@@ -1,0 +1,592 @@
+# Danish translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2010-12-05 23:29+0000\n"
+"Last-Translator: jesperfjoelner@hotmail.com <Unknown>\n"
+"Language-Team: Danish <da@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr ""
+
+#: menuEdit
+msgid "Edit"
+msgstr "Rediger"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Kør"
+
+#: menuView
+msgid "View"
+msgstr "Vis"
+
+#: menuTool
+msgid "Tools"
+msgstr ""
+
+#: menuFileNew
+msgid "New"
+msgstr "Ny"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Åbn..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Gem"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Gem som..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Eksporter eksekverbar fil"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Præferencer..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Luk faneblad"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Luk"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr ""
+
+#: menuEditRedo
+msgid "Redo"
+msgstr ""
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Klip"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Kopier"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Indsæt"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Markér alt"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Indryk"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Fjern indrykninger"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr ""
+
+#: menuFindFind
+msgid "Find..."
+msgstr ""
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr ""
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr ""
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Kør"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr ""
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Stop"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Enhed test"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr ""
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr ""
+
+#: menuHelp
+msgid "Help"
+msgstr "Hjælp"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Tjek opdatering..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Komplet guide til Sikuli Script"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Tutorials, eksempler, vejledninger"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Stil spørgsmål og find svar"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Rapportér en fejl"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr ""
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikulis hjemmeside"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Der er ingen tilgængelige opdateringer"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr ""
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Auto-indfang"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr ""
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr ""
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr ""
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr ""
+
+#: paneMessage
+msgid "Message"
+msgstr "Meddelelse"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "Test Trace"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Uden titel"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Enhedstest"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Kør{0}"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr ""
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr ""
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Tryk {0} for at stoppe"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr ""
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "Marker en region for at indskrænke skærm-matching"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr ""
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Tag et skærmbillede ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Indsæt et billede fra disk"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr ""
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Kørselsfejl under kørsel {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Afsluttede med kode {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Stoppet"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Der skete en fejl på linje {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr "Fejlmeddelelse"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Vælg et område på skærmen"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Præferencer"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Skærm capture"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Quick capture tast"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Forsink før capture"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "sekunder"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr ""
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr ""
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr ""
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr ""
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Generelle indstillinger"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Check for opdatering automatisk"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Vil du lukke denne fane?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} er ændret. Vil du gemme ændringer?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Linje: {0,number,integer}, Column: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Mønster indstillinger"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr ""
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Matchende forhåndsvisning"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Målområde forskydning"
+
+#: lblPath
+msgid "Path:"
+msgstr ""
+
+#: lblFilename
+msgid "Filename:"
+msgstr ""
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Lighed:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "Målområde forskydning X"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "Annullér"
+
+#: yes
+msgid "Yes"
+msgstr "Ja"
+
+#: no
+msgid "No"
+msgstr "Nej"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr ""
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr ""
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr ""
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr ""
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "Find det bedst matchende grafiske element på skærmen eller i området"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr ""
+"Find alle de bedst matchende grafiske elementer på skærmen eller i området"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"Venter på det at det givne grafiske element fremkommer på skærmen eller i "
+"området i op til <i> timeout </i> sekunder."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"Venter på det at det givne grafiske element fremkommer på skærmen eller i "
+"området i op til <i> timeout </i> sekunder."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Checker om det givne grafiske element findes på skærmen eller i "
+"området.<br>Hvis det ikke kan findes, returneres None uden at der opstår en "
+"fejl."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr ""
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr ""
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr ""
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr ""
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+
+#: extBtnInstall
+msgid "Install"
+msgstr ""
+
+#: extBtnInfo
+msgid "More Info"
+msgstr ""
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr ""
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr ""
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr ""

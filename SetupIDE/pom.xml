@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<parent>
+		<groupId>com.sikulix</groupId>
+		<artifactId>sikulix1</artifactId>
+		<version>1.1.3-SNAPSHOT</version>
+		<relativePath>../</relativePath>
+	</parent>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixsetupIDE</artifactId>
+  <version>1.1.3-SNAPSHOT</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.sikulix</groupId>
+      <artifactId>sikulix</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.swinglabs.swingx</groupId>
+      <artifactId>swingx-core</artifactId>
+      <version>1.6.5-1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jgoodies</groupId>
+      <artifactId>forms</artifactId>
+      <version>1.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.explodingpixels</groupId>
+      <artifactId>mac_widgets</artifactId>
+      <version>0.9.5</version>
+    </dependency>
+  </dependencies>
+
+	<build>
+    <defaultGoal>clean package</defaultGoal>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.sikuli.ide.Sikulix</mainClass>
+            </manifest>
+          </archive>
+					<descriptors>
+						<descriptor>../${sikuli.helpers}/makeide.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

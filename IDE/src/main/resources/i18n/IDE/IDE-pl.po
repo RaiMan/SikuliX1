@@ -1,0 +1,601 @@
+# Polish translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-06 10:57+0000\n"
+"Last-Translator: Łukasz Czerwiński <milimetr88@gmail.com>\n"
+"Language-Team: Polish <pl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Plik"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Edycja"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Uruchom"
+
+#: menuView
+msgid "View"
+msgstr "Widok"
+
+#: menuTool
+msgid "Tools"
+msgstr "Narzędzia"
+
+#: menuFileNew
+msgid "New"
+msgstr "Nowy"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Otwórz..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Zapisz"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Zapisz jako..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Eksportuj plik wykonywalny"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Preferencje..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Zamknij kartę"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Wyjdź"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Cofnij"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Ponów"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Wytnij"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Kopiuj"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Wklej"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Zaznacz wszystko"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Wcięcie"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Cofnij wcięcie"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Znajdź"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Znajdź..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Znajdź następny"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Znajdź poprzedni"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Uruchom"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "Uruchom w zwolnionym tempie"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Zatrzymaj"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Test jednostkowy (Unit Test)"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "Lista poleceń"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "Rozszerzenia"
+
+#: menuHelp
+msgid "Help"
+msgstr "Pomoc"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Sprawdź aktualizacje"
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Kompletny przewodnik po Sikuli Script"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Kursy, Przykłady, Instrukcje"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Pytania i Odpowiedzi"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Zgłoś błąd"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Dołącz do naszego projektu tłumaczenia!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Strona domowa projektu Sikuli"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Dostępna jest nowa wersja ({0}) Sikuli!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Brak dostępnych uaktualnień"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr ""
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Znajdź"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Akcje myszy"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Akcje klawiatury"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr ""
+
+#: paneMessage
+msgid "Message"
+msgstr "Komunikat"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr ""
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Bez tytułu"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Test Jednostkowy"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Uruchom ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Uruchom"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "Uruchom w zwolnionym tempie"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Wciśnij {0} aby zatrzymać"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "Utwórz obszar"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr ""
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Zrób zrzut ekranu"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Zrób zrzut ekranu ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Wstaw obraz z dysku"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "Wstaw obrazek "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Błąd wykonania w trakcie działania {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Zakończona z kodem {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr ""
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Linia {0} zawiera błąd"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Informacja o błędzie:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Wybierz obszar na ekranie"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Ustawienia"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr "Tab wstawia spacje zamiast tabulacji"
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "Szerokość tabulacji:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr "Nazwa czcionki:"
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "Rozmiar:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "Czcionki"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "Wcięcie"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "Edycja tekstu"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Przechwytywanie ekranu"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr ""
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr ""
+
+#: prefSeconds
+msgid "seconds"
+msgstr "sekund"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr ""
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "znacznik czasu"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "tekst na obrazku"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr ""
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Ustawienia Ogólne"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Sprawdzaj aktualizacje automatycznie"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Czy chcesz zamknąć tą zakładkę?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} został zmodyfikowany. Zapisać zmiany?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Linia: {0,number,integer}, Kolumna: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr ""
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Plik"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr ""
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr ""
+
+#: lblPath
+msgid "Path:"
+msgstr "Ścieżka:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Nazwa pliku:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Podobieństwo:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr ""
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: yes
+msgid "Yes"
+msgstr "Tak"
+
+#: no
+msgid "No"
+msgstr "Nie"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Plik istnieje."
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Czy chcesz nadpisać plik \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "Nazwij zrzut ekranu"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "Wpisz nazwę pliku ze zrzutem ekranu:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "Szuka najlepiej pasującego elementu GUI na ekranie lub w Obszarze"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "Szuka wszystkich pasujących elementów GUI na ekranie lub w Obszarze"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"Czeka przez co najwyżej <i>timeout</i> sekund, aż element GUI pojawi się na "
+"ekranie lub w Obszarze"
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"Czeka przez co najwyżej <i>timeout</i> sekund, aż element GUI zniknie z "
+"ekranu lub Obszaru"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Sprawdza czy podany element GUI występuje na ekranie lub w "
+"Obszarze.<br>Jeśli nie, zwracane jest None bez rzucania wyjątku."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Klika na najlepiej pasującym elemencie GUI na ekranie lub w Obszarze."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Podwójnie klika na najlepiej pasującym elemencie GUI na ekranie lub w "
+"Obszarze."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Klika prawym przyciskiem na najlepiej pasującym elemencie GUI na ekranie lub "
+"w Obszarze."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "Przesuwa kursor myszy nad najlepiej pasujący element GUI."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "Przeciąga pierwszy element i upuszcza go na drugi."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Wpisuje podany <i>tekst</i> do aktywnego okna."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Klika na podany element, żeby go uaktywnić, a następnie wpisuje podany "
+"<i>tekst</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Wkleja podany <i>text</i> do aktywnego okna."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"Klika na podany element, żeby go uaktywnić, a następnie wkleja podany "
+"<i>tekst</i>."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Instaluj"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Więcej informacji"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr ""
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "Zainstaluj {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr ""

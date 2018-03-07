@@ -1,0 +1,153 @@
+<!--
+  ~ Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>
+SikuliX 2014 --- Nightly Builds
+</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" ></head>
+<body>
+<h1><a href="https://github.com/RaiMan/SikuliX-2014" target="_blank">SikuliX 2014 </a> --- Nightly Builds 1.1.2 ---</h1>
+<hr>
+<h3>
+Latest available Build: ${sikuli.usedversion} ${timestamp} Travis Build ##TRAVIS_BUILD_NUMBER##
+</h3>
+<h4><a href="#dailynews">Want to read about the latest fixes and new features?</a></h4>
+<hr>
+News and direct chat:
+<a href="https://gitter.im/RaiMan/SikuliX-2014?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge">
+<img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/RaiMan/SikuliX-2014">
+</a>
+<hr>
+Linux users might find out, that setup does not run out of the box due to missing prerequisites - still testing
+<br>
+<a href="https://github.com/RaiMan/SikuliX-2014/issues?state=closed" target="_blank">Issues might be posted here</a>
+<br>
+<hr>
+<br>
+The builds are run on Travis CI in the moment the changes are pushed to
+<a href="https://github.com/RaiMan/SikuliX-2014" target="_blank">GitHub</a>.<br>
+<br>
+<hr>
+<h3>BE AWARE and TAKE CARE:</h3>
+-- do not mix with a working SikuliX environment, use separate folders<br>
+-- purge everything from environment that has something to do with previous SikuliX versions
+-- run in a way, that your current installation and your work is safe or can be restored<br>
+-- the stuff you get, might have any bugs without notice - so be prepared<br>
+-- in addition to the fix information below, you might inspect the latest commits on
+<a href="https://github.com/RaiMan/SikuliX-2014" target="_blank">GitHub</a>
+<hr>
+<a href="javadocs/index.html" target="_blank">View the corresponding JavaDocs of selected classes (relevant for API usage)</a>
+<br><br>
+<strong>BE AWARE</strong> Classes in the index, that do not open (error: not found, by intention)
+<br>are not part of the official API, that is guaranteed to be downwards-compatible in version 2.
+<br>Usage of these classes is at your own risk.<br>
+For classes that open, all public elements can be expected to have the same feature and usage in version 2.
+<br>Elements with remarks like "INTERNAL USE" or "EXPERIMENTAL" might not be available in version 2.
+<br><hr>
+If you want to use the latest nightly build <b>(sikulixapi.jar) in your Maven project:</b>
+<br>it is available in the <b>OSSRH snapshot repository</b><br>
+Add this appropriately to your pom:
+<pre>
+  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;id&gt;sonatype-ossrh&lt;/id&gt;
+      &lt;url&gt;https://oss.sonatype.org/content/repositories/snapshots/&lt;/url&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt;
+
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.sikulix&lt;/groupId&gt;
+      &lt;artifactId&gt;sikulixapi&lt;/artifactId&gt;
+      &lt;version&gt;1.1.2-SNAPSHOT&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+</pre>
+<hr>
+For setup the only file you need to download is <strong>sikulixsetup-1.1.2-#timestamp#.jar</strong>:
+<br>
+<br>
+(download by clicking this link, store in an preferably empty folder and run by doubleclicking the jar)<br>
+<a href="##sikulixsetup##">sikulixsetup....jar</a><br>
+(on Linux it might be necessary to switch on the executable file attribute)
+<br>
+<br>
+this setup jar and the other jars look like this after download:<br>
+sikulix...-1.1.2-YYYYMMDD.SSSSSS-NN-forsetup.jar or <br>
+sikulix...-1.1.2-YYYYMMDD.SSSSSS-NN.jar<br>
+DO NOT rename the files - leave them as they are!<br><br>
+<br>
+The files downloaded during setup are no longer stored in the folder setup is run in, but in a special Folder of your home folder:<br>
+-- Windows: in the folder Sikulix in the folder pointed to by the environment variable %APPDATA%<br>
+-- Mac: the folder ~/Library/Application Support/Sikulix<br>
+-- Linux: in ~/.Sikulix<br>
+Other folders stored there:<br>
+-- the folder containing the native libraries (SikulixLibs_versionstamp/)<br>
+-- the Lib folder containing the supporting stuff for Jython and JRuby (Lib/)<br>
+-- the folder containing the tessdata stuff (SikulixTesseract/)<br>
+only in case of problems it might be necessary to visit this folder.
+<hr>
+<br>
+The needed jars will be downloaded automatically while running setup.<br>
+The referenced downloadpages are:<br>
+ -- <a href="https://oss.sonatype.org/content/groups/public/com/sikulix/" target="_blank">OSSRH Snapshot repository (browsable)</a><br>
+ -- <a href="http://repo1.maven.org/maven2/" target="_blank">MavenCentral repository (not browsable)</a><br>
+ -- <a href="http://download.sikulix.com/tesseract-ocr-3.02.eng.tar.gz" target="_blank">tessdata default eng for setup (see below)</a>
+ -- <a href="https://github.com/tesseract-ocr/tessdata" target="_blank">tessdata for all available languages</a>
+<br>
+<br>
+So you only would need to manually download anything using the below links, if you have problems with setup's inline download.<br>
+In this case you have to download the needed files according to the below information and run setup (so called offline setup)
+<br>
+If you download manually by clicking on the below links, the jars have to be moved either<br>
+&nbsp;&nbsp; -- to a folder Downloads in the folder containing sikulixsetup-X.Y.Z.jar<br>
+&nbsp;&nbsp; -- or to the same folder as sikulixsetup-X.Y.Z.jar<br>
+<br>
+Setup will find the local files and ask you wether to use them instead of downloading fresh versions.<br><br>
+BE AWARE: These files are not useable for any other purpose than being processed by setup<br>
+... and will be moved during setup into the Sikulix special folder down in your home folder (see above).<br>
+In any case, when rerunning a setup, already downloaded files will always be detected and you are asked wether to reuse.
+<br>
+<hr>
+<h4>for offline setup: downloads for setup option 1 (IDE)</h4>
+<a href="##sikulixsetupide##">sikulixsetupIDE</a> to get the SikuliX IDE<br>
+<br>
+<br>
+&nbsp;&nbsp;... to edit/run scripts with the IDE you must have at least one of the following (suboptions 1.1 and 1.2):<br>
+&nbsp;&nbsp;<a href= "http://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar">
+Jython</a> option 1.1 for scripting with Python/Jython (is Jython 2.7 and needs Java 7+)<br>
+&nbsp;&nbsp;for use with Java 6 download
+<a href= "http://repo1.maven.org/maven2/org/python/jython-standalone/2.5.4-rc1/jython-standalone-2.5.4-rc1.jar">Jython 2.5</a>
+<br>
+<br>
+&nbsp;&nbsp;<a href="http://repo1.maven.org/maven2/org/jruby/jruby-complete-9.1.15.0/jruby-complete-9.1.15.0.jar">
+JRuby</a> option 1.2 for scripting with Ruby/JRuby (is JRuby 9.1.15.0)
+<br>
+<h4>for offline setup: download for setup option 2 (API)</h4>
+<a href="##sikulixsetupapi##">sikulixsetupAPI</a>
+For the use of SikuliX with Java and Java aware languages/frameworks
+<br>
+<h4>for offline setup: to be downloaded in any case</h4>
+you need the libs package for your system<br>
+
+- for Windows: <a href="https://repo.maven.apache.org/maven2/com/sikulix/sikulixlibswin/1.1.1/sikulixlibswin-1.1.1.jar">sikulixlibswin</a><br>
+- for Mac: <a href="https://repo.maven.apache.org/maven2/com/sikulix/sikulixlibsmac/1.1.1/sikulixlibsmac-1.1.1.jar">sikulixlibsmac</a><br>
+- for Linux: <a href="https://repo.maven.apache.org/maven2/com/sikulix/sikulixlibslux/1.1.1/sikulixlibslux-1.1.1.jar">sikulixlibslux</a>
+<br>
+<h4>for offline setup: download for setup option 3</h4>
+nothing to do here anymore - the tessdata eng stuff is now contained in sikulixapi.jar by default
+<br>
+<hr>
+<h3>Status of bug fixes and new features</h3>
+<hr>
+Bugs reported on <a href="https://bugs.launchpad.net/sikuli/+bugs" target="_blank">Launchpad</a> marked as FixCommitted-Critical
+and targeted for the respective milestone should be fixed with this build. <br>
+<a href="https://bugs.launchpad.net/sikuli/+bugs?field.searchtext=&amp;orderby=-id&amp;field.status%3Alist=FIXCOMMITTED&amp;field.importance%3Alist=CRITICAL&amp;assignee_option=any&amp;field.assignee=&amp;field.bug_reporter=&amp;field.bug_commenter=&amp;field.subscriber=&amp;field.structural_subscriber=&amp;field.milestone%3Alist=59266&amp;field.tag=&amp;field.tags_combinator=ANY&amp;field.has_cve.used=&amp;field.omit_dupes.used=&amp;field.omit_dupes=on&amp;field.affects_me.used=&amp;field.has_patch.used=&amp;field.has_branches.used=&amp;field.has_branches=on&amp;field.has_no_branches.used=&amp;field.has_no_branches=on&amp;field.has_blueprints.used=&amp;field.has_blueprints=on&amp;field.has_no_blueprints.used=&amp;field.has_no_blueprints=on&amp;search=Search" target="_blank">Want to have a look?</a>
+<hr>
+<h3><a name="dailynews">Special information per build</a></h3>
+<hr>

@@ -1,0 +1,62 @@
+work=`pwd`
+opencvinclude=
+tesseractinclude=
+
+# ---- internal - do not change
+#work#
+#jdkdir#
+#extrainclude#
+#opencvcore#
+#opencvimgproc#
+#opencvhighgui#
+#tesseractlib#
+# ---- internal -
+
+#jdkdir=/usr/lib/jvm/java-7-openjdk-amd64
+
+#opencvlib=/usr/lib/x86_64-linux-gnu
+#opencvcore=$opencvlib/libopencv_core.so.2.4
+#opencvimgproc=$opencvlib/libopencv_imgproc.so.2.4
+#opencvhighgui=$opencvlib/libopencv_highgui.so.2.4
+
+#tesseractlib=/usr/lib/libtesseract.so.3
+
+source=$work/Source
+
+build=$work/Target
+rm -R -f $build
+mkdir $build
+
+stuff=$build/Stuff
+rm -R -f $stuff
+mkdir $stuff
+
+includeplus=
+if [ "$extrainclude" != "" ]; then
+  includeplus="-I$extrainclude "
+fi
+includefinal="-I/usr/include -I/usr/local/include $includeplus "
+
+echo ----------- COMPILING
+mods=
+for mod in cvgui.cpp finder.cpp pyramid-template-matcher.cpp sikuli-debug.cpp \
+  tessocr.cpp vision.cpp visionJAVA_wrap.cxx
+do
+  echo ----- $mod
+  g++ -c -O3 -fPIC -MMD -MP \
+    -I$jdkdir/include \
+    -I$jdkdir/include/linux  \
+    $includefinal \
+    -MF $stuff/$mod.o.d \
+    -o $stuff/$mod.o \
+    $source/$mod
+  mods="$mods $stuff/$mod.o "
+done
+
+echo ----------- LINKING
+g++ -shared -s -fPIC -dynamic $mods \
+  $opencvcore \
+  $opencvimgproc \
+  $opencvhighgui \
+  $tesseractlib \
+  -o $build/libVisionProxy.so

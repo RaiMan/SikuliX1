@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=support/tigervnc.jar -DgroupId=com.sikulix -DartifactId=tigervnc -Dversion=2.0.0 -Dpackaging=jar

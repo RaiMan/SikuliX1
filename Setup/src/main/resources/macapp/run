@@ -1,0 +1,21 @@
+#!/bin/bash
+PROPS='-Xmx512M -Dfile.encoding=UTF-8'
+
+rundir=`dirname "$0"`
+sjar=$rundir/SikuliX.app/Contents/Java/sikulix.jar
+icon=$rundir/SikuliX.app/Contents/Resources/sikulix.icns
+if [ ! -e "$sjar" ]; then
+  sjar=$rundir/Contents/Java/sikulix.jar
+  icon=$rundir/Contents/Resources/sikulix.icns
+fi
+if [ ! -e "$sjar" ]; then
+  sjar=/Applications/SikuliX.app/Contents/Java/sikulix.jar
+  icon=/Applications/SikuliX.app/Contents/Resources/sikulix.icns
+fi
+if [ -e "$sjar" ]; then
+	export SIKULI_COMMAND=$*
+	echo "running SikuliX: $sjar $SIKULI_COMMAND"
+	java $PROPS -Xdock:icon="$icon" -Xdock:name=SikuliX -jar "$sjar" $SIKULI_COMMAND
+else
+	echo "Error: terminating: $sjar not found"
+fi

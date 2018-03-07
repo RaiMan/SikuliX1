@@ -1,0 +1,589 @@
+# Korean translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-03-15 04:45+0000\n"
+"Last-Translator: M.W.Park <Unknown>\n"
+"Language-Team: Korean <ko@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "파일(&F)"
+
+#: menuEdit
+msgid "Edit"
+msgstr "편집"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "실행"
+
+#: menuView
+msgid "View"
+msgstr "보기"
+
+#: menuTool
+msgid "Tools"
+msgstr "도구"
+
+#: menuFileNew
+msgid "New"
+msgstr "새로 만들기"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "열기..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "저장(&S)"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "다른 이름으로 저장..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "실행파일 만들기..."
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "환경설정..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "탭 닫기"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "종료"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "실행 취소"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "다시 실행"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "오려두기"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "복사하기"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "붙여넣기"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "모두 선택"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "들여쓰기"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "들이기-취소"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "찾기(&F)"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "찾기..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "다음 찾기"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "이전 찾기"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "실행"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "천천히 실행"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "중지"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "단위 테스트"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "명령 리스트"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "부가 기능..."
+
+#: menuHelp
+msgid "Help"
+msgstr "도움말"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "업데이트 확인"
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Sikuli 스크립트에 대한 자세한 안내"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "자습서, 예제, 따라하기"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "묻고 답하기"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "버그 보고하기"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "번역 프로젝트에 참여해주세요!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli 홈페이지"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} 가 사용 가능 합니다"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "사용 가능한 업데이트가 없습니다."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "설정"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "자동 캡쳐"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "찾기"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "마우스 조작"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "키보드 조작"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "이벤트 감시"
+
+#: paneMessage
+msgid "Message"
+msgstr "메시지"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "시험 결과"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "제목 없음"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "단위 테스트"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "실행 ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "실행"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "천천히 실행"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "{0} 를 눌러 중단"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "영역 생성"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "화면 매칭 제한 영역 생성"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "화면 갈무리"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "화면 갈무리({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "디스크에 있는 이미지 삽입"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "이미지 삽입 "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"{0}를 실행하는 동안 런타임 오류 발생\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "종료 코드: {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "중지됨"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "{0} 번째 행에서 오류 발생"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"에러 메시지:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "화면에서 영역을 선택하세요"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "환경 설정"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "화면 갈무리"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "빠른 갈무리 단축키"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "갈무리 전 지연:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "초"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "자동으로 이름 붙임:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "시각"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "이미지 내의 텍스트"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "끄기 (수동 입력)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "일반 설정"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "업데이트를 자동으로 확인"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "이 탭을 닫으시겠습니까?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} 가 변경되었습니다. 변경 사항을 저장하시겠습니까?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "행: {0,number,integer}, 열: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "패턴 설정"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "파일"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "매칭 미리보기"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "대상 위치"
+
+#: lblPath
+msgid "Path:"
+msgstr "경로:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "파일 이름:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "유사도:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "대상 위치 X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "확인"
+
+#: cancel
+msgid "Cancel"
+msgstr "취소"
+
+#: yes
+msgid "Yes"
+msgstr "예"
+
+#: no
+msgid "No"
+msgstr "아니오"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "파일이 존재함"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "이 파일 \"{0}\"를 정말로 덮어쓰시겠습니까?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "갈무리 화면 이름 생성"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "갈무리 화면의 파일 이름을 입력하세요:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "화면 전체 또는 특정 영역에서 가장 일치하는 GUI 구성요소 찾기"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "화면 전체 또는 특정 영역에서 일치하는 모든 GUI 구성요소 찾기"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr "화면 전체 또는 특정 영역에서 GUI 구성요소가 나타나기를 <i>timeout</i?> 초까지 기다린다"
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr "화면 전체 또는 특정 영역에서 GUI 구성요소가 사라지기를 <i>timeout</i?> 초까지 기다린다"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"GUI 구성요소가 화면 전체 또는 특정 영역에 존재하는지 확인.<br>찾을 수 없을 경우, 예외를 발생시키지 않고 None을 반환함."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "화면 전체 또는 특정 영역에서 가장 일치하는 GUI 구성요소를 클릭."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "화면 전체 또는 특정 영역에서 가장 일치하는 GUI 구성요소를 두 번 클릭."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "화면 전체 또는 특정 영역에서 가장 일치하는 GUI 구성요소를 오른쪽 클릭."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "가장 일치하는 GUI 구성요소로 마우스 포인터를 이동."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "첫 번째 구성요소를 두 번째 구성요소에 끌어다 놓음."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "<i>text</i>를 현재 창에 입력."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr "구성요소를 클릭하여 포커스를 얻은 후 <i>text</i>를 입력."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "현재 창에 주어진 <i>text</i>를 붙여넣음."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr "구성요소를 클릭하여 포커스를 얻은 후 <i>text</i>를 붙여넣음."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr "이미지 모양이 화면 전체 또는 특정 영역에 나타나면 <i>handler</i>를 호출."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr "이미지 형태가 화면 전체 또는 특정 영역에서 사라지면 <i>handler</i>를 호출."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr "화면 전체 또는 특정 영역에서 달라진 점이 있으면 <i>handler</i>를 호출."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"화면 전체 또는 특정 부분을 <i>time</i> 초까지 지켜보는 관찰자를 시작.<br><i>background</i>가 True로 "
+"지정되어 있을 경우 관찰자는 백그라운드로 실행함."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "설치"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "추가 정보"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "설치됨"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "설치 {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "{0}으로 업데이트"

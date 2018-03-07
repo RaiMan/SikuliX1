@@ -1,0 +1,604 @@
+# Turkish translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-04-12 11:14+0000\n"
+"Last-Translator: Oguz Pastirmaci <Unknown>\n"
+"Language-Team: Turkish <tr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Dosya"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Düzen"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Çalıştır"
+
+#: menuView
+msgid "View"
+msgstr "Görünüm"
+
+#: menuTool
+msgid "Tools"
+msgstr "Araçlar"
+
+#: menuFileNew
+msgid "New"
+msgstr "Yeni"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Aç..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Kaydet"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Farklı kaydet..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Çalıştırılabilir dosyayı dışa aktar"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Tercihler..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Sekmeyi Kapat"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Çık"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Geri Al"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Yinele"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Kes"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Kopyala"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Yapıştır"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Tümünü Seç"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Girintile"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Girintiyi kaldır"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Bul"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Bul..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Sonrakini Bul"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Öncekini Bul"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Çalıştır"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "Ağır çekim çalıştır"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Durdur"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Birim Testi"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "Komut Listesi"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "Eklentiler..."
+
+#: menuHelp
+msgid "Help"
+msgstr "Yardım"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Güncellemeleri Kontrol Et"
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Eksiksiz Sikuli Script Kılavuzu"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Öğreticiler, Örnekler, Nasıl-Yapılır'lar"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Soru Sorun & Yanıtları Bulun"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Hata Bildir"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Çeviri projemize katılın!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli Anasayfa"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} çıktı!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Güncelleme mevcut değil."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Ayarlar"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Otomatik Yakala"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Bul"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Fare Hareketleri"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Klavye Hareketleri"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "Olay Gözlemi"
+
+#: paneMessage
+msgid "Message"
+msgstr "İleti"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "Test Çıktıları"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Adsız"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Birim Testi"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Çalıştır ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Çalıştır"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "Ağır çekim çalıştır"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Durdurmak için: {0}"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "Bölge Yarat"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "Ekran eşleşmesini sınırlamak için bölge oluştur"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Ekran görüntüsü al"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Ekran görüntüsü al ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Diskten resim ekle"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "Resim ekle "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"{0} çalışırken çalışma zamanı hatası oluştu.\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "{0} kodu ile sonlandı."
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Durduruldu"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "{0}. satırda hata"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Hata mesajı:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Ekran üzerinde bir bölge seçin"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Tercihler"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Ekran Yakalama"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Hızlı Yakalama Kısayolu"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Yakalamadan önceki gecikme:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "saniye"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "Otomatik Adlandırma:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "zaman damgası"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "görüntüdeki yazı"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "kapalı (elle giriş)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Genel Ayarlar"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Güncellemeleri Otomatik Kontrol Et"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Bu sekmeyi kapatmak istiyor musunuz?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} değiştirilmiş. Değişiklikleri kaydet?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Satır: {0,number,integer}, Sütun: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Şablon Ayarları"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Dosya"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Eşleşenler Önizleme"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Hedef Konum"
+
+#: lblPath
+msgid "Path:"
+msgstr "Konum:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Dosya Adı:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Benzerlik:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "Hedef konum X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "Tamam"
+
+#: cancel
+msgid "Cancel"
+msgstr "İptal"
+
+#: yes
+msgid "Yes"
+msgstr "Evet"
+
+#: no
+msgid "No"
+msgstr "Hayır"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Dosya Zaten Var"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Bu dosyanın üzerine yazmak istediğinize emin misiniz \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "Yakalanan Ekran Görüntüsünü Adlandır"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "Yakalanan ekran görüntüsünün dosya adını girin:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "Ekranda ya da Bölgedeki en iyi eşleşen GUI bileşenini arar."
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "Ekranda ya da Bölgedeki tüm eşleşen GUI bileşenlerini arar."
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"GUI bileşeninin ekranda ya da Bölgede belirmesi için <i>timeout</i> saniyeye "
+"kadar  bekler."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"GUI bileşeninin ekrandan ya da Bölgeden kaybolması için <i>timeout</i> "
+"saniyeye kadar bekler."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Verilen GUI bileşeninin ekranda veya Bölgede bulunup bulunmadığını kontrol "
+"eder.<br> Bulunamazsa istisna (exception) oluşturulmaksızın None değeri "
+"döndürülür."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "Ekranda ya da Bölgedeki en iyi eşleşen GUI bileşenine tıklar."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "Ekranda ya da Bölgedeki en iyi eşleşen GUI bileşenine çift tıklar."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "Ekranda ya da Bölgedeki en iyi eşleşen GUI bileşenine sağ tıklar."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "İmleci en iyi eşleşen bileşenin üzerine götürür."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "İlk bileşeni sürükleyerek ikinci bileşenin üzerine bırakır."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Verilen <i>metni</i> odaklanmış pencereye yazar."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Verilen bileşene tıklayarak onu odaklar ve verilen <i>metni</i> yazar."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Verilen <i>metni</i> odaklanmış pencereye yapıştırır."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"Verilen bileşene tıklayarak onu odaklar ve verilen <i>metni</i> yapıştırır."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+"Verilen resim kalıbı ekranda ya da Bölgede belirdiğinde <i>işleyici</i>yi "
+"çağırır."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+"Verilen resim kalıbı ekrandan ya da Bölgeden kaybolduğunda <i>işleyici</i>yi "
+"çağırır."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+"Ekranda ya da Bölgede herhangi bir şey değiştiğinde <i>işleyici</i>yi "
+"çağırır."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"Ekranı ya da Bölgeyi i <i>time<i/> saniyeye kadar izlemesi için gözlemciyi "
+"başlatır.<br><i>arkaplan</i> (background) değeri DOĞRU (TRUE) ise gözlemci "
+"arkaplanda çalışacaktır."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Kur"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Daha Fazla Bilgi"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "Kuruldu"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "{0} Kur"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "Buna güncelle: {0}"

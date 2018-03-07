@@ -1,0 +1,613 @@
+# Swedish translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-06 09:23+0000\n"
+"Last-Translator: andAlexander Andelkovic <Unknown>\n"
+"Language-Team: Swedish <sv@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Arkiv"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Redigera"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Kör"
+
+#: menuView
+msgid "View"
+msgstr "Visa"
+
+#: menuTool
+msgid "Tools"
+msgstr "Verktyg"
+
+#: menuFileNew
+msgid "New"
+msgstr "Ny"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Öppna..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Spara"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Spara som..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Exportera körbar fil..."
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Inställningar..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Stäng flik"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Avsluta"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Ångra"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Upprepa"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Klipp ut"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Kopiera"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Klistra in"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Markera alla"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Gör indrag"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Ta bort indrag"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Sök"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Sök..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Sök nästa"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Sök föregående"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Kör"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "Kör i slowmotion"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Avbryt"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Enhetstest"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "Kommandolista"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "Tillägg"
+
+#: menuHelp
+msgid "Help"
+msgstr "Hjälp"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Sök uppdatering..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Den kompletta Sikuli Script-guiden"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Guider & Övningsexempel"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Ställ frågor och hitta svar"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Rapportera en bugg"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Anslut till vårat översättningsprojekt"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikulis hemsida"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} är tillgängligt!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Det finns inga nya uppdateringar."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Inställningar"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Fånga automatiskt"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Sök"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Musrörelser"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Tangentbords kommandon"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "Händelseövervakning"
+
+#: paneMessage
+msgid "Message"
+msgstr "Meddelande"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "Test spåra"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Namnlös"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Enhetstest"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Kör ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Kör"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "Kör i slowmotion"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Tryck {0} för att stoppa"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "Skapa Region"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "Skapa en region för att begränsa skärmmatchning"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Ta skärmbild"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Ta en skärmbild ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Lägg till en bild från disk"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "Infoga bild "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Körfel vid {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Stoppad med kod {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Stoppad"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Ett fel uppstod på rad {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Felmeddelande:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Välj en region på skärmen"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Inställningar"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr "Tab-tangenten infogar mellanslag istället för tab"
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "Flik bredd:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr "Teckensnitt:"
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "Storlek:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "Teckensnitt"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "Indrag"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "Textredigering"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Ta skärmbild"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Snabbknapp för skärmbild"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Fördröj före skärmbild:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "sekunder"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "Automatisk namngivning:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "tidsstämpel"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "text i bilden"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "av (manuell input)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Allmänna inställningar"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Sök uppdateringar automatiskt"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Vill du stänga fliken?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} har modifierats. Vill du spara ändringarna?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Rad: {0,number,integer}, Kolumn: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Mönsterinställningar"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Fil"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Matchar Förhandsgranskning"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Kompenserar Mål"
+
+#: lblPath
+msgid "Path:"
+msgstr "Sökväg:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Filnamn:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Likhet:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr "Antal matcher / Max:"
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "Kompenserar Mål X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: yes
+msgid "Yes"
+msgstr "Ja"
+
+#: no
+msgid "No"
+msgstr "Nej"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Filen finns redan"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Vill du verkligen skriva över filen \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "Namnge ditt screen shot"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "Ange filnamn till screen shot"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Söker efter den bäst matchande GUI-komponenten på skärmen eller i regionen."
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr ""
+"Söker efter samtliga matchade GUI-komponenter på skärmen eller i regionen."
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"Väntar på att den angivna GUI-komponenten ska visas på skärmen eller i "
+"Regionen i upp till <i>timeout</i> sekunder."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"Väntar på att den angivna GUI-komponenten ska försvinna från skärmen eller "
+"Regionen i upp till <i>timeout</i> sekunder."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Kontrollerar om den givna GUI-komponenten finns på skärmen eller i regionen. "
+"Om den inte hittas returneras None och inget exception kastas."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Klickar på den bäst matchade GUI-komponenten på skärmen eller i regionen."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Dubbelklickar på den bäst matchade GUI-komponenten på skärmen eller i "
+"regionen."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Högerklickar på den bäst matchade GUI-komponenten på skärmen eller i "
+"regionen."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr ""
+"Flyttar muspekaren övanför den bäst matchade GUI-komponenten på skärmen "
+"eller i regionen."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "Drar den första komponenten, och släpper på den andra komponenten."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Skriver angiven <i>text</i> till aktuellt fokuserat fönster."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Klickar på den angivna komponenten för att fokusera och skriver sedan "
+"angiven <i>text</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Klistrar in angiven <i>text</i> till aktuellt fokuserat fönster."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"Klickar på den angivna komponenten för att fokusera och klistrar sedan in "
+"angiven <i>text</i>."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+"Anropar <i>handler</i> när angivet bildmönster visas på skärmen eller i "
+"Regionen."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+"Anropar <i>handler</i> när angivet bildmönster försvinner från skärmen eller "
+"i Regionen."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+"Anropar <i>handler</i> när ingenting ändrats på skärmen eller i Regionen."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"Startar kontroll av skärmen ellr Regionen för upp till <i>time</i> "
+"sekunder.<br>Kontrollen kommer köras i bakgrunden om  <i>background</i> är "
+"satt True."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Installera"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Mer information"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "Installerat"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "Installera {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "Uppdatera till {0}"

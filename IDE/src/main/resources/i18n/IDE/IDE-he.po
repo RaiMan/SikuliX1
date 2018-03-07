@@ -1,0 +1,595 @@
+# Hebrew translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-02-08 20:04+0000\n"
+"Last-Translator: wizzra <Unknown>\n"
+"Language-Team: Hebrew <he@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "קובץ"
+
+#: menuEdit
+msgid "Edit"
+msgstr "ערוך"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "הרץ"
+
+#: menuView
+msgid "View"
+msgstr "הצג"
+
+#: menuTool
+msgid "Tools"
+msgstr "כלים"
+
+#: menuFileNew
+msgid "New"
+msgstr "חדש"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "פתח..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "שמור"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "שמור בשם..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "ייצא יישום..."
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "מאפיינים..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "סגור לשונית"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "יציאה"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "בטל שינוי"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "בצע מחדש"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "גזור"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "העתק"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "הדבק"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "בחר הכל"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "הרחק"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "החזר"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "מצא"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "מצא..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "מצא את הבא"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "מצא את הקודם"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "הרץ"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "הרץ בהילוך איטי"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "הפסק"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "בדוק יחידה"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "רשימת פקודות"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "תוספים..."
+
+#: menuHelp
+msgid "Help"
+msgstr "עזרה"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "בדוק עדכונים..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "המדריך המלא לסקריפט סיקולי"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "מדריכים, דוגמאות, עזרות"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "שאל שאלות & מצא תשובות"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "דווח על תקלה"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "הצטרף לפרויקט התרגום שלנו!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "דף הבית של סיקולי"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "סיקולי {0} זמין!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "עדכון לא זמין"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "הגדרות"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "לכידה אוטומטית"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "מצא"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "פעולות עכבר"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "פעולות מקלדת"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "הבחנת מאורעות"
+
+#: paneMessage
+msgid "Message"
+msgstr "הודעה"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "בדוק הרצה"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "ללא כותרת"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "בדוק יחידה"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "הרץ ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "הרץ"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "הרץ בהילוך איטי"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "לחץ {0} כדי לעצור"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "צור תחום"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "צור איזור כדי להגביל תאימות מסך"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "צלם תמונת מסך"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "צלם תמונת מסף ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "הכנס תמונה מדיסק מקומי"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "הכנס תמונה "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr "שגיאת מערכת בזמן הרצה {0} {1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "הסתיים עם קוד {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "נעצר"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "התרחשה שגיאה בשורה {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr "הודעת שגיאה {0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "בחר אזור על המסך"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "מאפיינים"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "לכידת מסך"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "כפתור צילום מהיר:"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "השהה לפני צילום:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "שניות"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "שינוי שם אוטומטי:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "זמן התרחשות"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "טקסט בתמונה"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "כבוי (קלט ידני)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "הגדרות כלליות"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "בדוק עדכונים אוטומטית"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "האם אתה רוצה לסגור את הכרטיסיה?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} שונה. לשמור שינויים? {0}"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "שורה: {0, מספר, מספר שלם}, עמודה: {1,מספר, מספר שלם}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "הגדרות תבנית"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "קובץ"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "התאמת תצוגה"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "איזון מטרה"
+
+#: lblPath
+msgid "Path:"
+msgstr "נתיב:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "שם קובץ:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "דמיון"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "איזון מטרה X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y"
+
+#: ok
+msgid "OK"
+msgstr "אישור"
+
+#: cancel
+msgid "Cancel"
+msgstr "ביטול"
+
+#: yes
+msgid "Yes"
+msgstr "כן"
+
+#: no
+msgid "No"
+msgstr "לא"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "קובץ קיים"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "האם אתה בטוח לכתוב על הקובץ הזה  \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "שם צילום מסך"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "הכנס את שם תמונת המסך"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "חפש את רכיב הממשק הגרפי במסך או באיזור הנבחר"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "חפש אחר כל הרכיבים הגרפיים במסך או באיזורים הנבחרים"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"חכה אחר רכיב הממשק הגרפי אשר מופיע על המסך או בתוך האיזור הנבחר עד אשר "
+"<i>פרק מסויים עבר</i> בשניות."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"חכה אחר רכיב הממשק הגרפי עד אשר הוא נעלם מן המסך או מתוך האיזור הנבחר עד אשר "
+"<i>פרק מסויים עבר</i> בשניות."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"בדוק אם רכיב הממשק הגרפי קיים במסך או באיזור הנבחר. <br> אם הוא לא נמצא, "
+"מחזירים none מבלי לזרוק חריגות."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "לחץ על הרכיב הגרפי הטוב ביותר על המסך או בתוך האיזור הנבחר."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"לחיצה כפולה על הרכיב הגרפי המתאים ביותר על המסך או בתוך האיזור הנבחר."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"לחיצה ימנית על הרכיב הגרפי המתאים ביותר על המסך או בתוך האיזור הנבחר."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "הזז את סמן העכבר על הרכיב הגרפי המתאים"
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "גרור את הרכיב הראשון, והפל על הרכיב השני."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "כותב את ה <i>טקסט</i> על החלון הפעיל."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr "לוחץ על הרכיב ניתן להשיג את המוקד ולאחר מכן סוגי הנתון <i>טקסט</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "הדבק את ה <i>טקסט</i> על החלון הפעיל."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"לוחץ על הרכיב ניתן להשיג את המוקד ולאחר מכן מדביק את הנתון <i>טקסט</i>."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+"קרא ל <i>מצביע</i> כאשר תבנית התמונה מופיעה על המסך או על האזור הנבחר."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+"קרא ל <i>מצביע</i> כאשר תבנית התמונה נעלמת מן המסך או על האזור הנבחר."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr "קרא ל <i>מצביע</i> כאשר משהו משתנה על המסך או על האזור הנבחר."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"הפעל את תוכנה הצפייה כדי לנטר את המסך או האיזור הנבחר עד <i>זמן</i> "
+"בשניות.<br>תוכנת הצפייה תרוץ ברקע אם <i>הרקע</i> נבחר כאמת."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "הַתקן"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "מידע נוסף"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "הותקן"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "התקן {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "עדכן ל {0}"

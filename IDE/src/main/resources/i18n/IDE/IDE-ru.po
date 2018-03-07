@@ -1,0 +1,612 @@
+# Russian translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-06 15:09+0000\n"
+"Last-Translator: Roman Podolyan <Unknown>\n"
+"Language-Team: Russian <ru@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Файл"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Правка"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Выполнить"
+
+#: menuView
+msgid "View"
+msgstr "Вид"
+
+#: menuTool
+msgid "Tools"
+msgstr "Инструменты"
+
+#: menuFileNew
+msgid "New"
+msgstr "Создать"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Открыть..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Сохранить"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Сохранить как..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Сохранить как запускаемый файл"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Настройки..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Закрыть вкладку"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Выход"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Отменить"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Повторить"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Вырезать"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Копировать"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Вставить"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Выделить всё"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Сделать отступ"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Убрать отступ"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Поиск"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Найти…"
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Найти Далее"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Найти Предыдущее"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Выполнить"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "Запустить в замедленном режиме"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Остановить"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Юнит-тест"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "Список команд"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "Расширения"
+
+#: menuHelp
+msgid "Help"
+msgstr "Справка"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Проверить обновления"
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Полное руководство по Sikuli Script"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Уроки, примеры, инструкции"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Задать вопросы и найти ответы"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Сообщить об ошибке"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Присоединяйтесь к нашему проекту по переводу программы!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Домашняя страница Sikuli"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Доступен Sikuli {0}!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Нет доступных обновлений."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Параметры"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Автоматический захват"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Поиск"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Действия мыши"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Действия клавиатурой"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "Наблюдение за событиями"
+
+#: paneMessage
+msgid "Message"
+msgstr "Сообщение"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "Тестовый запуск"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Безымянный"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Юнит-тест"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Запустить ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Выполнить"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "Запустить в замедленном режиме"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Нажмите {0} для остановки"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "Выделить область"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "Создайте область для ограничения совпадений"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Снимок экрана"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Сделать снимок экрана ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Вставить изображение с диска"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "Вставить изображение "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Ошибка выполнения при запуске {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Выход с кодом {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Остановлено"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Ошибка происходит на строке {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Сообщение об ошибке:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Выберите область на экране"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Настройки"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr "Tab вставляет пробелы вместо табуляции"
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "Ширина табуляции:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr "Имя шрифта:"
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "Размер:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "Шрифты"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "Отступ"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "Правка текста"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Захват экрана"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Горячая клавиша для быстрого захвата:"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Задержка перед захватом:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "секунд(ы)"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "Автоматическое именование:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "временная отметка"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "Текст на картинке"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "Выкл (ручной ввод)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Общие настройки"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Автоматически проверять обновления"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Закрыть эту вкладку?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} изменен. Сохранить?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Строка: {0,number,integer}, Столбец: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Настройки шаблонов"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Файл"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Предпросмотр совпадений"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Смещение цели"
+
+#: lblPath
+msgid "Path:"
+msgstr "Путь"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Имя файла"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Схожесть:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr "Кол-во совпадений"
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "Смещение цели по Х:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "Отмена"
+
+#: yes
+msgid "Yes"
+msgstr "Да"
+
+#: no
+msgid "No"
+msgstr "Нет"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Файл существует"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Вы уверены, что хотите переписать этот файл \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "Назовите снимок экрана"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "Введите название для файла скриншота:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "Ищет самый подходящий элемент интерфейса на экране или в области."
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "Ищет все подходящие элементы интерфейса на экране или в области."
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"Ожидает появления данного компонента интерфейса на экране или в области до "
+"<i>определенного количества</i> секунд."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"Ожидает исчезновения данного компонента интерфейса на экране или в области "
+"до <i>определенного количества</i> секунд"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Проверяет, существует ли данный компонент интерфейса на экране или в "
+"области.<br>Если компонент не найден, возвращает None без возникновения "
+"исключения."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Кликает на самом подходящем элементе интерфейса на экране или в области."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Два раза кликает на самом подходящем элементе интерфейса на экране или в "
+"области."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Делает правый клик на самом подходящем элементе интерфейса на экране или в "
+"области."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr ""
+"Перемещает курсор мыши на самый подходящий элемент интерфейса на экране или "
+"в области."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "Перетаскивает первый компонент и бросает его на второй."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Вводит данный <i>текст</i> в текущее окно в фокусе."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Кликает на данный элемент для получения фокуса и вводит данный <i>текст</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Вставляет данный <i>текст</i> в текущее окно в фокусе."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"Кликает на данный элемент для получения фокуса и вставляет туда данный "
+"<i>текст</i>."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+"Вызывает <i>обработчик</i> когда данный шаблон изображения возникает на "
+"экране или в области."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+"Вызывает <i>обработчик</i> когда данный шаблон изображения исчезает с экрана "
+"или из области."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+"Вызывает <i>обработчик</i> когда что-нибудь изменяется на экране или в "
+"области."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"Запускает наблюдателя для слежения за экраном или областью до "
+"<i>секунд</i>.<br>Наблюдатель будет запущен в фоновом режиме, если "
+"<i>background</i> установлен в True."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Установить"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Подробнее"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "Установлено"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "Установить {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "Обновить до {0}"

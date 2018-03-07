@@ -1,0 +1,587 @@
+# Japanese translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-06 01:47+0000\n"
+"Last-Translator: mitivic <mitivic@gmail.com>\n"
+"Language-Team: Japanese <ja@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "ファイル(&F)"
+
+#: menuEdit
+msgid "Edit"
+msgstr "編集(&E)"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "実行(&R)"
+
+#: menuView
+msgid "View"
+msgstr "表示(&V)"
+
+#: menuTool
+msgid "Tools"
+msgstr "ツール(&T)"
+
+#: menuFileNew
+msgid "New"
+msgstr "新規作成"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "開く(&O)"
+
+#: menuFileSave
+msgid "Save"
+msgstr "保存(&S)"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "名前を付けて保存(&A)"
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "実行ファイルとしてエクスポート"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "環境設定(&P)"
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "タブを閉じる"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "終了(&X)"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "元に戻す(&U)"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "やり直し(&R)"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "切り取り(&T)"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "コピー(&C)"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "貼り付け(P)"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "すべて選択(&A)"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "インデント"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "インデント解除"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "検索(&F)"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "検索..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "次を検索(&F)"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "前を検索(&P)"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "実行(&R)"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "スローモーションで実行"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "停止"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "単体テスト"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "コマンドリスト"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "拡張機能"
+
+#: menuHelp
+msgid "Help"
+msgstr "ヘルプ(&H)"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "更新を確認..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Sikuli スクリプトの完全ガイド"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "チュートリアル, 例, How-To など"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "質問をする & 答えを見つける"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "バグを報告"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "このプロジェクトの翻訳に参加する"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli 公式サイト"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} が利用可能です!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "お使いのバージョンは最新です。"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "設定(&S)"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "自動的にキャプチャーモードへ移行"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "検索(&F)"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "マウスの動作"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "キーボードの動作"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "イベント監視"
+
+#: paneMessage
+msgid "Message"
+msgstr "メッセージ"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "トレース"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "無題"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "単体テスト"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "実行 ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "実行(&R)"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "スローモーションで実行"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "停止するには {0} を押してください"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "領域を作成"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "スクリーンマッチを行う領域を制限する"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "スクリーンショットを撮る"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "スクリーンショットを撮る ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "ディスク上に保存してある画像を挿入する"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "画像を挿入する "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"{0} を実行中にエラーが発生しました\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "終了コード {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "停止しました"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "エラーが発生しました. 行番号: {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"エラーメッセージ:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "領域を選択してください"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "環境設定"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "タブ幅:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "サイズ:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "フォント"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "インデント"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "テキスト編集"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "画面キャプチャー"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "画面キャプチャーのショートカットキー"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "キャプチャーを実行するまでの時間"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "秒"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "自動命名"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "タイムスタンプ"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "画像中のテキスト"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "オフ(手動入力)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "全般"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "自動的に更新を確認する"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "このタブを閉じますか?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} は内容が変更されています. 保存しますか?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "行番号: {0,number,integer}, カラム: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "パターン設定"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "ファイル(&F)"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "マッチングプレビュー"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "ターゲットオフセット"
+
+#: lblPath
+msgid "Path:"
+msgstr "パス名："
+
+#: lblFilename
+msgid "Filename:"
+msgstr "ファイル名:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "マッチ度"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "ターゲットオフセット X："
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ",Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: yes
+msgid "Yes"
+msgstr "はい(&Y)"
+
+#: no
+msgid "No"
+msgstr "いいえ(&N)"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "既に同名ファイルが存在します"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "\"{0}\" ファイルを上書きしますか?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "スクリーンショットに名前をつける"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "スクリーンショットの名前を入力:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "画面または領域上で最もマッチするコンポーネントを探す"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "画面または領域上でマッチするすべてのコンポーネントを探す"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr "指定したコンポーネントが画面または領域上に現れるまで最高<i>timeout</i>秒待つ"
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr "指定したコンポーネントが画面または領域上から消えるまで最高<i>timeout</i>秒待つ"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr "指定したコンポーネントが画面または領域上に存在するかチェックする。<br>見つからない場合、例外を発生させずにNoneを返します"
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "画面または領域上で最もマッチしたコンポーネントをクリックする"
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "画面または領域上で最もマッチしたコンポーネントをダブルクリックする"
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "画面または領域上で最もマッチしたコンポーネントを右クリックする"
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "最もマッチしたコンポーネントへマウスカーソルを移動させる"
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "1つ目の コンポーネントをドラッグし、2つ目のコンポーネントでドロップする"
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "フォーカスされているウィンドウで <i>text</i> と入力する"
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr "指定するコンポーネントをクリックし、フォーカスされたウィンドウで<i>text</i>と入力する"
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "フォーカスされているウィンドウに <i>text</i> を貼り付ける"
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr "指定するコンポーネントをクリックし、フォーカスされたウィンドウに<i>text</i>を貼り付ける"
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr "指定するコンポーネントが画面または領域上に現れた時に<i>handler</i>を呼ぶ"
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr "指定するコンポーネントが画面または領域上から消えた時に<i>handler</i>を呼ぶ"
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr "画面または領域上で何か変化があった時に<i>handler</i>を呼ぶ"
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"画面または領域を<i>time</i>秒間監視する。<br><i>background</i>がTrueの場合、監視はバックグラウンドで行われます。"
+
+#: extBtnInstall
+msgid "Install"
+msgstr "インストール"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "詳細"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "インストール済み"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "{0}をインストールする"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "{0}に更新する"

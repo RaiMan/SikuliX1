@@ -1,0 +1,132 @@
+/*
+* Clojure Lexer
+*/
+
+{
+	"name": "Clojure",
+	"aliases": ["clojure", "clj"],
+	"filenames": ["*.clj"],
+	"mimetypes": ["text/x-clojure", "application/x-clojure"],
+
+	"class": "regex",
+
+	"states":
+	{
+		"root":
+		[
+			/* the comments - always starting with semicolon
+			and going to the end of the line */
+			[r';.*$', "Comment.Single"],
+			
+			/* whitespaces - usually not relevant */
+			[r'\s+', "Text"],
+			
+			/* numbers */
+			[r'-?\d+\.\d+', "Number.Float"],
+			[r'-?\d+', "Number.Integer"],
+			/* support for uncommon kinds of numbers -
+			have to figure out what the characters mean
+			(r'(#e|#i|#b|#o|#d|#x)[\d.]+', "Number"), */
+			
+			/* strings, symbols and characters */
+			[r'"(\\\\|\\"|[^"])*"', "String"],
+			[r"'[a-zA-Z0-9!$%&*+,/:<=>?@^_~-]+", "String.Symbol"],
+			[r'\\([()/\'\".\'_!Â§$%& ?;=+-]{1}|[a-zA-Z0-9]+)', "String.Char"],
+			
+			/* constants */
+			[r'(#t|#f)', "Name.Constant"],
+			
+			/* special operators */
+			[r"('|#|`|,@|,|\.)", "Operator"],
+			
+			/* highlight the keywords */
+			["#constant:keywords", "Keyword"],
+			
+			/* first variable in a quoted string like
+			'(this is syntactic sugar) */
+			[r"(?<='\()[a-zA-Z0-9!$%&*+,/:<=>?@^_~-]+", "Name.Variable"],
+			[r"(?<=#\()[a-zA-Z0-9!$%&*+,/:<=>?@^_~-]+", "Name.Variable"],
+			
+			/* highlight the builtins */
+			["#constant:builtins", "Name.Builtin"],
+			
+			/* the remaining functions */
+			[r'(?<=\()[a-zA-Z0-9!$%&*+,/:<=>?@^_~-]+', "Name.Function"],
+			/* find the remaining variables */
+			[r'[a-zA-Z0-9!$%&*+,/:<=>?@^_~-]+', "Name.Variable"],
+			
+			/* Clojure accepts vector notation */
+			[r'(\[|\])', "Punctuation"],
+			
+			/* Clojure accepts map notation */
+			[r'({|})', "Punctuation"],
+			
+			/* the famous parentheses! */
+			[r'(\(|\))', "Punctuation"]
+		]
+	},
+
+
+	"constants":
+	{
+		"keywords":
+		[
+			r'(fn|def|defn|defmacro|defmethod|defmulti|defn-|',
+			r'defstruct|if|cond|let|for)'
+		],
+
+		"builtins":
+		[
+			r'(?<=\()(.|..|',
+			r'\*|\+|-|->|..|/|<|<=|=|==|>|>=|',
+			r'accessor|agent|agent-errors|aget|alength|all-ns|',
+			r'alter|and|append-child|apply|array-map|aset|',
+			r'aset-boolean|aset-byte|aset-char|aset-double|aset-float|',
+			r'aset-int|aset-long|aset-short|assert|assoc|await|',
+			r'await-for|bean|binding|bit-and|bit-not|bit-or|',
+			r'bit-shift-left|bit-shift-right|bit-xor|boolean|branch\?|',
+			r'butlast|byte|cast|char|children|class|',
+			r'clear-agent-errors|comment|commute|comp|comparator|',
+			r'complement|concat|conj|cons|constantly|',
+			r'construct-proxy|contains\?|count|create-ns|create-struct|',
+			r'cycle|dec|deref|difference|disj|dissoc|distinct|',
+			r'doall|doc|dorun|doseq|dosync|dotimes|doto|',
+			r'double|down|drop|drop-while|edit|end\?|ensure|',
+			r'eval|every\?|false\?|ffirst|file-seq|filter|find|',
+			r'find-doc|find-ns|find-var|first|float|flush|',
+			r'fnseq|frest|gensym|get|get-proxy-class|',
+			r'hash-map|hash-set|identical\?|identity|if-let|import|',
+			r'in-ns|inc|index|insert-child|insert-left|insert-right|',
+			r'inspect-table|inspect-tree|instance\?|int|interleave|',
+			r'intersection|into|into-array|iterate|join|key|keys|',
+			r'keyword|keyword\?|last|lazy-cat|lazy-cons|left|',
+			r'lefts|line-seq|list|list\*|load|load-file|',
+			r'locking|long|loop|macroexpand|macroexpand-1|',
+			r'make-array|make-node|map|map-invert|map\?|mapcat|',
+			r'max|max-key|memfn|merge|merge-with|meta|min|',
+			r'min-key|name|namespace|neg\?|new|newline|next|',
+			r'nil\?|node|not|not-any\?|not-every\?|not=|ns-imports|',
+			r'ns-interns|ns-map|ns-name|ns-publics|ns-refers|',
+			r'ns-resolve|ns-unmap|nth|nthrest|or|parse|partial|',
+			r'path|peek|pop|pos\?|pr|pr-str|print|print-str|',
+			r'println|println-str|prn|prn-str|project|proxy|',
+			r'proxy-mappings|quot|rand|rand-int|range|re-find|',
+			r're-groups|re-matcher|re-matches|re-pattern|re-seq|',
+			r'read|read-line|reduce|ref|ref-set|refer|rem|',
+			r'remove|remove-method|remove-ns|rename|rename-keys|',
+			r'repeat|replace|replicate|resolve|rest|resultset-seq|',
+			r'reverse|rfirst|right|rights|root|rrest|rseq|',
+			r'second|select|select-keys|send|send-off|seq|',
+			r'seq-zip|seq\?|set|short|slurp|some|sort|',
+			r'sort-by|sorted-map|sorted-map-by|sorted-set|',
+			r'special-symbol\?|split-at|split-with|str|string\?|',
+			r'struct|struct-map|subs|subvec|symbol|symbol\?|',
+			r'sync|take|take-nth|take-while|test|time|to-array|',
+			r'to-array-2d|tree-seq|true\?|union|up|update-proxy|',
+			r'val|vals|var-get|var-set|var\?|vector|vector-zip|',
+			r'vector\?|when|when-first|when-let|when-not|',
+			r'with-local-vars|with-meta|with-open|with-out-str|',
+			r'xml-seq|xml-zip|zero\?|zipmap|zipper)'
+		]
+	}
+}

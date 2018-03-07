@@ -1,0 +1,11 @@
+sikulixvmaj=${sikulixvmaj}
+sikulixvmin=${sikulixvmin}
+sikulixvsub=${sikulixvsub}
+sikulixbeta=${sikulixbeta}
+sikulixbuild=${timestamp}
+sikulixdev=${sikulixdev}
+sikulixvused=${sikuli.usedversion}
+sikulixvproject=${project.version}
+sikulixvjython=${sikulixjythonversion}
+sikulixvjruby=${sikulixjrubyversion}
+sikulixlocalrepo=${sikulixlocalrepo}

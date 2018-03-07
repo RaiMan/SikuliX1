@@ -1,0 +1,39 @@
+2010/02/28: JXGrabKey 0.3.2
+- added synchronization for c++ keys vector
+
+2009/03/01: JXGrabKey 0.3.1
+- *_DOWN masks now treated as normal masks
+
+2009/02/22: JXGrabKey 0.3.0
+- fixed another StackOverflow related to debug messages
+- code cleanup and renaming of methods to follow conventions, also comments added in Java code
+- JXGrabKey is now thread-safe
+
+2009/02/22: JXGrabKey 0.2.3
+- fixed StackOverflow bug when only having a listener added, debug enabled and then calling cleanup
+
+2009/02/17: JXGrabKey 0.2.2
+- keys now working properly again with the ignore fix from last version
+
+2009/02/08: JXGrabKey 0.2.1
+- numlock, scrollock and capslock now get ignored
+
+2009/01/24: JXGrabKey 0.2.0
+- when a Hotkey is already occupied by another application, 
+  JXGrabKey now throws a HotkeyConflictException on registerHotkey
+
+2009/01/23: JXGrabKey 0.1.3
+- 0.1.2 did not fix the issue properly, reverted back to XGrabKey method
+- implemented XErrorHandler, which solved the issue by catching the error
+
+2009/01/18: JXGrabKey 0.1.2
+- changed implementation to use XGrabKeyboard instead of XGrabKey as XGrabKey causes 
+  crashes if the specified key was already registered by another application 
+  -> see bug 2440751 (CTRL+F8 on Xubuntu)
+
+2009/01/01: JXGrabKey 0.1.1
+- jxgrabkey now terminating properly when cleanUp is called
+- renamed registerSwingHotkey to registerAWTHotkey, because it is more technically correct
+
+2008/12/14: JXGrabKey 0.1.0
+- feature complete as in what we need 

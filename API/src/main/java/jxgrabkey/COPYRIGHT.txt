@@ -1,0 +1,10 @@
+JXGrabKey
+
+Copyright: Edwin Stang (edwinstang@gmail.com)
+
+           2008
+
+The entire code base may be distributed under the terms of the GNU Lesser General
+Public License (LGPL).
+
+See "LICENSE.txt" or "http://www.gnu.org/licenses/" for the complete licence.

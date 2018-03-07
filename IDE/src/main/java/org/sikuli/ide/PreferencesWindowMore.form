@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <NonVisualComponents>
+    <Component class="javax.swing.JTextField" name="jTextField1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jTextField1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JToggleButton" name="jToggleButton1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jToggleButton1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroup1">
+    </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroup2">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox4">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jCheckBox4"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JPanel" name="jPanel1">
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="100" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <EmptySpace min="0" pref="100" max="32767" attributes="0"/>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+    </Container>
+    <Component class="javax.swing.JButton" name="jButton1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jButton1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="jButton2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jButton2"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox6">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jCheckBox6"/>
+      </Properties>
+    </Component>
+  </NonVisualComponents>
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator5" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="26" pref="26" max="-2" attributes="0"/>
+              <Component id="prefMoreLblTitle1" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator1" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreLblSave" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="73" pref="73" max="-2" attributes="0"/>
+              <Component id="prefMoreHTML" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="75" pref="75" max="-2" attributes="0"/>
+              <Component id="prefMoreClean" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator2" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreLblRun" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="77" pref="77" max="-2" attributes="0"/>
+              <Component id="prefMoreRunSave" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="78" pref="78" max="-2" attributes="0"/>
+              <Component id="prefMoreHighlight" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Component id="jSeparator3" min="-2" pref="570" max="-2" attributes="0"/>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreLblLayout" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="40" pref="40" max="-2" attributes="0"/>
+              <Component id="prefMoreMessage" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="26" pref="26" max="-2" attributes="0"/>
+              <Component id="prefMoreCommand" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator6" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreLblLogsOld" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="63" pref="63" max="-2" attributes="0"/>
+              <Component id="prefMoreLogActions" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="50" pref="50" max="-2" attributes="0"/>
+              <Component id="prefMoreLogInfo" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="57" pref="57" max="-2" attributes="0"/>
+              <Component id="prefMoreLogDebug" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator7" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="33" pref="33" max="-2" attributes="0"/>
+              <Component id="prefMoreLblText" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="48" pref="48" max="-2" attributes="0"/>
+              <Component id="prefMoreTextSearch" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="61" pref="61" max="-2" attributes="0"/>
+              <Component id="prefMoreTextOCR" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator8" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreScripter" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator9" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="32" pref="32" max="-2" attributes="0"/>
+              <Component id="prefMoreImageThumbs" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="47" pref="47" max="-2" attributes="0"/>
+              <Component id="prefMorePlainText" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator10" min="-2" pref="564" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="495" pref="495" max="-2" attributes="0"/>
+              <Component id="prefMoreBtnOk" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" attributes="0">
+              <EmptySpace min="59" pref="59" max="-2" attributes="0"/>
+              <Component id="prefMoreLblStatus" min="-2" max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <Component id="jSeparator5" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+              <Component id="prefMoreLblTitle1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator1" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+                      <Component id="prefMoreLblSave" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="prefMoreHTML" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreClean" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+              <Component id="jSeparator2" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+                      <Component id="prefMoreLblRun" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="prefMoreRunSave" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreHighlight" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="5" pref="5" max="-2" attributes="0"/>
+              <Component id="jSeparator3" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+                      <Component id="prefMoreLblLayout" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="prefMoreMessage" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreCommand" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator6" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+                      <Component id="prefMoreLblLogsOld" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="prefMoreLogActions" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreLogInfo" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreLogDebug" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator7" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
+                      <Component id="prefMoreLblText" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="prefMoreTextSearch" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMoreTextOCR" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator8" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="prefMoreScripter" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator9" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="prefMoreImageThumbs" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefMorePlainText" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+              <Component id="jSeparator10" min="-2" pref="10" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="prefMoreBtnOk" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+              <Component id="prefMoreLblStatus" min="-2" max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="prefMoreLblSave">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Options on Save"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreHTML">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="create HTML"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreHTMLStateChanged"/>
+      </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_SerializeTo" type="java.lang.String" value="PreferencesWindowMore_prefMoreHTML"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreClean">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="delete not used images"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreCleanStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblRun">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Options on Run"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreRunSave">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="autosave all"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreRunSaveStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreHighlight">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="always highlight"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreHighlightStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator1">
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator2">
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator3">
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator5">
+    </Component>
+    <Component class="javax.swing.JButton" name="prefMoreBtnOk">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Save"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="prefMoreBtnOkActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblLayout">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="IDE Layout"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreMessage">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="message area at bottom *"/>
+        <Property name="toolTipText" type="java.lang.String" value="OFF --- message area on right sight, ON --- bottom (restart needed)" noResource="true"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreMessageStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreCommand">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="CommandBar (old style) *"/>
+        <Property name="toolTipText" type="java.lang.String" value="OFF --- no command bar - commands in Tools menu instaed, ON --- old style (restart needed)"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreCommandStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator6">
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblLogsOld">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Messages to show"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator7">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreLogActions">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Actions"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreLogActionsStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreLogInfo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Info"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreLogInfoStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreLogDebug">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Debug"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreLogDebugStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator8">
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblText">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="TextSearch and OCR"/>
+        <Property name="toolTipText" type="java.lang.String" value="... only if you know what you are doing ;-)" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreTextSearch">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="allow searching for text"/>
+        <Property name="toolTipText" type="java.lang.String" value="... only if you know what you are doing ;-)" noResource="true"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreTextSearchStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreTextOCR">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="allow OCR"/>
+        <Property name="toolTipText" type="java.lang.String" value="... only if you know what you are doing ;-)" noResource="true"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreTextOCRStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreScripter">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Activate the new layout (X-1.0) *  (no CommandBar, MessageArea on right side)"/>
+        <Property name="toolTipText" type="java.lang.String" value="... no command bar - in Tools menu instead, message area on right side, some more options ..." noResource="true"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreScripterStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator9">
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblStatus">
+    </Component>
+    <Component class="javax.swing.JLabel" name="prefMoreLblTitle1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="* these prefs need a restart of the IDE - others are active after save (no restart needed)"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMoreImageThumbs">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="ImageThumbs (on) / ImageLabels (off) *"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMoreThumbsStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefMorePlainText">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="show script as plain text"/>
+      </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="prefMorePlainStateChanged"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JSeparator" name="jSeparator10">
+    </Component>
+  </SubComponents>
+</Form>

@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+  -->
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>forsetup</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <useProjectArtifact>true</useProjectArtifact>
+      <excludes>
+        <exclude>org.python:jython-standalone</exclude>
+        <exclude>org.jruby:jruby-complete</exclude>
+      </excludes>
+      <unpack>true</unpack>
+      <unpackOptions>
+        <excludes>
+          <exclude>sikulixlibs/</exclude>
+          <exclude>junit/</exclude>
+        </excludes>
+      </unpackOptions>
+      <scope>runtime</scope>
+    </dependencySet>
+  </dependencySets>
+</assembly>

@@ -1,0 +1,48 @@
+{
+    "name": "Java",
+    "aliases": ["java"],
+    "filenames": ["*.java"],
+    "mimetypes": ["text/x-java"],
+
+    "class": "regex",
+
+	"flags": ["MULTILINE", "DOTALL"],
+
+    //: optional Comment or Whitespace
+    "_ws": r'(?:\s|//.*?\n|/[*].*?[*]/)+',
+
+    "states": {
+        "root": [
+            [r'^(\s*(?:[a-zA-Z_][a-zA-Z0-9_\.\[\]]*\s+)+?)([a-zA-Z_][a-zA-Z0-9_]*)(\s*)(\()',
+             ["Name.Function", "Name.Function", "Text", "Operator"] ],
+            [r'[^\S\n]+', "Text"],
+            [r'//.*?\n', "Comment.Single"],
+            [r'/\*.*?\*/', "Comment.Multiline"],
+            [r'@[a-zA-Z_][a-zA-Z0-9_\.]*', "Name.Decorator"],
+            [r'(assert|break|case|catch|continue|default|do|else|finally|for|if|goto|instanceof|new|return|switch|this|throw|try|while)\b',
+             "Keyword"],
+            [r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', "Keyword.Declaration"],
+            [r'(boolean|byte|char|double|float|int|long|short|void)\b', "Keyword.Type"],
+            [r'(package)(\s+)', ["Keyword.Namespace", "Text"]],
+            [r'(true|false|null)\b', "Keyword.Constant"],
+            [r'(class|interface)(\s+)', ["Keyword.Declaration", "Text"], "class"],
+            [r'(import)(\s+)', ["Keyword.Namespace", "Text"], "import"],
+            [r'"(\\\\|\\"|[^"])*+"', "String"],
+            [r"'\\.'|'[^\\]'|'\\u[0-9a-f]{4}'", "String.Char"],
+            [r'(\.)([a-zA-Z_][a-zA-Z0-9_]*)', ["Operator", "Name.Attribute"]],
+            [r'[a-zA-Z_][a-zA-Z0-9_]*:', "Name.Label"],
+            [r'[a-zA-Z_\$][a-zA-Z0-9_]*', "Name"],
+            [r'[~\^\*!%&\[\]\(\)\{\}<>\|+=:;,./?-]', "Operator"],
+            [r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', "Number.Float"],
+            [r'0x[0-9a-f]+', "Number.Hex"],
+            [r'[0-9]+L?', "Number.Integer"],
+            [r'\n', "Text"]
+        ],
+        "class": [
+            [r'[a-zA-Z_][a-zA-Z0-9_]*', "Name.Class", "#pop"]
+        ],
+        "import": [
+            [r'[a-zA-Z0-9_.]+\*?', "Name.Namespace", "#pop"]
+        ]
+    }    
+}

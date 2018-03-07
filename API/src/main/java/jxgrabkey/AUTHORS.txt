@@ -1,0 +1,20 @@
+- Edwin Stang (gsubes@gmail.com)
+Initiator, Developer and Maintainer
+
+Many thanks to the following persons:
+
+- Philippe Brochard (hocwp@free.fr) 
+For developing xbindkeys, a tool that I love and which inspired me to create JXGrabKey. Also helped to look at when searching for non obvious solutions.
+
+- gmatt
+For his tutorial on XGrabKey and JNI, which also was a factor in inspiration to create JXGrabKey.
+See: http://ubuntuforums.org/showthread.php?t=864566
+
+- The escher project (escher.sourceforge.net)
+For providing X11 keysym definitions for Java. This saved me lots of work.
+
+- Tran Nam Quang (qforce@users.sourceforge.net)
+For being the first one who adopted JXGrabKey in his project (DocFetcher), thus finding out about bugs and helping to resolve them.
+
+- skafoelix (skafoelix@users.sourceforge.net)
+For pointing out the bug with numlock and finding a resolution quite quickly.

@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+#
+
+#
+# Copyright (c) 2010-2016, Sikuli.org, sikulix.com
+# Released under the MIT License.
+#
+#
+
+org.sikuli.scriptrunner.JythonScriptRunner
+org.sikuli.scriptrunner.JRubyScriptRunner

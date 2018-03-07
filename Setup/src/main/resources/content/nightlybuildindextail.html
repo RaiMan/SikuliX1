@@ -1,0 +1,601 @@
+<!--
+  ~ Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+  -->
+<h1>Changelog version 1.1.2</h1>
+<h4>Build: 2018-02-11</h4>
+<b>revised:</b> most JAVA 9 problems are fixed<br>
+<b>revised:</b> Setup now downloads JRuby 9.1 - link on offline setup page adjusted
+<h4>Build: 2018-01-12</h4>
+<b>revised:</b> Setup now downloads Jython 2.7.1 - link on offline setup page adjusted<br>
+<b>added:</b> VNCScreen: methods to flag Region/Location as being on a VNCSCreen and create new ones.<br>
+<b>changed:</b> Settings.Ocr... are now initialized to true (since tessdata is always available).<br>
+<b>added:</b> TextRecognizer.reset(String language) to switch to another language (prepared in tessdata accordingly)<br>
+<b>changed:</b> made Screen.lastScreenImage public, to allow some "capture logging"
+<h4>Build: 2017-12-31</h4>
+<b>added:</b> capture variant capture(Region or Text, [path,] name) that stores the captured image either in current bundlepath or the given path
+(<a href="http://sikulix-2014.readthedocs.io/en/latest/screen.html#capturing">see docs</a>)
+<b>added:</b> Region.findBest() and .findAny(): search for more than one image in same region in parallel
+(<a href="http://sikulix-2014.readthedocs.io/en/latest/region.html#find-more-than-one-image-in-a-region-at-the-same-time">see docs</a>)
+<h4>Build: 2017-12-01</h4>
+<b>added:</b> jython scripts exported in the IDE as jars including the script compiled (obfuscated) and the captured images can be run like normal scripts from commandline
+<h4>Build: 2017-11-28</h4>
+<b>experimental:</b> create a self-running jar from one Jython sikuli script (including images, script source obfuscated/compiled)
+<h4>major revision 2017-11-01</h4>
+- the lib... modules are fixed now and will be used from final version 1.1.1 as external jars from MavenCentral.
+<br>- tigervnc support implemented as in version 2 (external jar from MavenCentral).
+<br>- jygments sources are moved to module IDE.
+<br>- a complete tessdata eng is now contained in module API and hence always available.
+<br>- setup is revised accordingly.
+<br>... and not relevant stuff is removed from the repo
+<h1>Changelog version 1.1.2 before major revision 2017-11-01</h1>
+<h4>Build: 2017-10-23</h4>
+<b>added:</b> -Dsikuli.javaok to let SikuliX run, even if Java version cannot be detected
+<h4>Build: 2017-10-17</h4>
+<b>experimental:</b> added IDE command line parameter -m
+<br>which allows to run multiple instances of the IDE (you should know what you are doing)
+<h4>Build: 2017-09-15</h4>
+<b>fixed:</b>Python subprocess did not work - put import subprocess into Sikuli.py
+<h4>Build: 2017-07-26</h4>
+<b>fixed:</b> should not act (click, move, ...) if FindFailed should be ignored (setFindFailedResponse)
+<h4>Build: 2017-07-14</h4>
+<b>fixed:</b> paste() did not return 1 on success but 0
+<h4>Build: 2017-06-04</h4>
+<b>revised:</b> App.getClipboard(): system clipboard as singleton<br>
+<b>added:</b> download link in SikuliX1 Essentials (github.io)
+<h4>Build: 2017-05-28</h4>
+<b>fixed:</b> Bug #1694102: macOS: popFile() hangs (should run on EventQueue)<br>
+<b>fixed:</b> Bug #1693687: Region.getCol(n, cols): negative n did not work
+<h4>Build: 2017-05-24</h4>
+<b>fixed:</b> Bug #1693110 VNC: type(Key.UP) did not work
+<h4>Build: 2017-05-09</h4>
+<b>fixed:</b> new Finder().destroy() throws NPE
+<h4>Build: 2017-05-08</h4>
+<b>implemented:</b> VNCClient::serverCutText(): to get clipboard content from server after a ctrl-c (tested only on Mac-Mac)<br>
+<b>fixed:</b> VNCRobot: key modifiers not handled correctly for type(..., modifiers)<br>
+<b>fixed:</b> Region.findBest() throws IndexOutOfBounds if nothing found, should return null
+<h4>Build: 2017-05-02</h4>
+<b>revised:</b> changed the way, the tigervnc-viewer jar is referenced (sikulix2tigervc-2.0.0-SNAPSHOT)
+<h4>Build: 2017-04-30</h4>
+<b>fixed:</b> LinuxUtil: checking availability of xdotool should use -v insread of version (Bug #1687263)<br>
+<b>fixed:</b> ADBScreen: device in landscape orientation: capture did not work (Bug #1686355)
+<br>
+<hr>
+<h1>Changelog version 1.1.1 (closed 2017-04-05)</h1>
+<h4>Build: 2017-03-29</h4>
+<b>fixed:</b> findAll() should throw FindFailed according to docs and support FindFailed Response handling.
+<h4>Build: 2017-03-23</h4>
+<b>revised:</b> VNCScreen: scripts using only VNC can now be run on headless systems (Pepijn Van Eeckhoudt)
+<h4>Build: 2017-03-18</h4>
+<b>added:</b> backport from Version 2: class Do: timed autoclosing popup, popAsk, popError, input/input hidden<br>
+<a href="http://sikulix-2014.readthedocs.io/en/latest/interaction.html#popups-and-input-dialogs">see docs</a>
+<h4>Build: 2017-03-17</h4>
+<b>fixed:</b> VNC: class Key constants like Key.WIN were not supported / keyUp() used typeKey instead of typeCode
+<h4>Build: 2017-03-16</h4>
+<b>fixed:</b> IDE: recapture image: new file content not reflected (image cache not updated)<br>
+<b>revised:</b> VNCScreen: stop, close, stopAll: remove screen(s) from list.
+<h4>Build: 2017-03-14</h4>
+<b>revised:</b> complete rewrite of the VNC feature, now based on the TigerVNC viewer jar (great thanks to:
+<a href="https://github.com/pepijnve">Pepijn Van Eeckhoudt</a>)</br>
+<a href="http://sikulix-2014.readthedocs.io/en/latest/screen.html#connecting-to-a-vnc-server-vncscreen">Be sure to have read the docs!</a>
+<h4>Build: 2017-03-03</h4>
+<b>fixed:</b> removed irritating error message with multiple mouseDown()
+<h4>Build: 2017-02-25</h4>
+<b>fixed:</b> ADBDevice: tap, input and getDisplayDimension<br>
+<b>fixed:</b> Image.reload(image) did not work<br>
+<b>revised:</b> Runserver: pull/244 - various enhancements
+<h4>Build: 2016-12-10</h4>
+<b>fixed:</b> ImagePath: images not found at root level of jar
+<h4>Build: 2016-12-09</h4>
+<b>fixed:</b> KeyModifier.WIN should be the same as KeyModifier.KEY_WIN
+<h4>Build: 2016-12-02</h4>
+<b>fixed:</b> Python scripting: select() had problems with unicode strings and default = 0<br>
+<b>fixed:</b> Maven: sikulixapi.jar now contains the tessdata stuff, so OCR/text features should work in Maven projects now out of the box
+<h4>Build: 2016-11-29</h4>
+<b>fixed:</b> observe() used in scripting: crashed with stackoverflow due to infinite recursion between scripting and Java level
+<h4>Build: 2016-11-08</h4>
+<b>revised:</b> runsikulix.cmd: adding to PATH is not needed anymore (done at runtime internally)
+<h4>Build: 2016-11-04</h4>
+<b>fixed:</b> capture prompt: message was no longer displayed
+<h4>Build: 2016-11-03</h4>
+<b>revised:</b> setting findfailed handler in Java code so that parameterless constructor for ObserveCallBack can be used
+<h4>Build: 2016-10-31</h4>
+<b>fixed:</b> isLockOn() now works as expected (implemented with a direct access to the Windows API)
+<h4>Build: 2016-10-23</h4>
+<b>fixed:</b> checkLastSeen: subsequent searches with higher wanted similarity were ignored -
+should only check if current wanted similarity is lower then last seen similarity.
+<h4>Build: 2016-10-21</h4>
+<b>fixed:</b> Match.getTime() now really returns the duration in milliseconds including the time
+waiting for the image to appear (in case of success before the end of the waiting time),
+consolidated also with Match.toString()
+<h4>Build: 2016-10-20</h4>
+<b>fixed:</b> sikulixsetup#forsetup: latest snapshot was no longer uploaded to OSSRH
+<h4>Build: 2016-10-19</h4>
+<b>fixed:</b> OCR text search not working - looks for image file instead
+<h4>Build: 2016-10-09</h4>
+<b>fixed:</b> should detect macOS Sierra 10.12 (avoid extended delay with Java Robot)
+<h4>Build: 2016-09-10</h4>
+<b>fixed:</b> the Tesseract support stuff was no longer available on google.code, stored now at download.sikulix.com
+<h4>Build: 2016-08-04</h4>
+<b>fixed:</b> input() function on scripting level was blocked and did not work anymore
+<h4>Build: 2016-07-31</h4>
+<b>revised:</b> delete images on save: incomplete string can be ignored, a ' is detected in comments
+<b>revised:</b> ScreenUnion as Region: (Screen.all()) highlight does not make sense (error message),
+shown as S(Union) not S(-1)
+<h4>Build: 2016-07-19</h4>
+<b>revised:</b> Android support: startup, input/type, exec <br>
+moved tap, swipe, input, key to class Region - if used on non-Android device, nothing happens<br>
+(see: <a href="https://github.com/RaiMan/SikuliX-2014/issues/210">for some information details)</a><br>
+<h4>Build: 2016-07-15</h4>
+<b>added:</b> started to add support for Android devices (package org.sikuli.android) --- not yet in the docs
+<h4>Build: 2016-07-05</h4>
+<b>revised:</b> inputText() dialog: some improvements<br>
+<b>revised:</b> IDE: delete images on save: aborted now, if a string is not completed on same line (led to possible loss of images before)
+<h4>Build: 2016-07-04</h4>
+<b>revised:</b> inputText() dialog: set fontsize, optional use monospaced, line wrap at wordbounds, vertical scrollbar if needed
+<h4>Build: 2016-06-25</h4>
+<b>revised/fixed:</b> Python scripting: observe() not useable in some cases<br>
+<b>revised:</b> Capture Prompt: prompt text should already vanish, when mouse button is pressed
+<h4>Build: 2016-06-19</h4>
+<b>fixed:</b> Jython: with Region: now (finally ;-) seems to work
+<h4>Build: 2016-06-18</h4>
+<b>fixed:</b> IDE: insert image button did not work any longer
+<h4>Build: 2016-06-17</h4>
+<b>fixed:</b> prepareRobot(): should add to sys.path only once (only relevant for rerun in IDE)<br>
+<b>fixed:</b> Java level: Region.onXXX observe events could no longer be specified
+(no suitable constructor in ObserverCallBack)
+<h4>Build: 2016-06-07</h4>
+<b>fixed:</b> Jython scripting: capture() did no longer work as documented
+(should return filename of image stored in temp)
+<h4>Build: 2016-06-06</h4>
+<b>fixed:</b> Robot Framework: Library Screenshot now works<br>
+<b>fixed:</b> at Python script level: class Settings was no longer writable<br>
+<b>fixed:</b> location outside any screen should not crash with NPE, only display error message
+and either do nothing or something on primary screen.
+<h4>Build: 2016-05-27</h4>
+<b>revised:</b> RobotFramework support: robot module auto-imported in all cases,
+sys.path adjusted in all cases including parent folder of script,
+added prepareRobot() to support the seamless use of robot.run(),
+runScript() now is aware of UTF-8/UniCode (see docs)<br>
+<b>revised:</b> internal SikuliX errors leading to termination now during script run
+no longer terminate the IDE but only the scriptrun so leaving
+the problem messages visible even in IDE and avoid loss of unsaved scripts<br>
+<b>revised:</b> vncStart(): to allow more than one connection in parallel
+<h4>Build: 2016-05-26</h4>
+<b>revised/added:</b> VNCScreen: revised: init process, added: convenience features start() and stop() for one VNC
+connection 0 to IP:Port (example see docs)
+<h4>Build: 2016-05-25</h4>
+<b>added:</b> new feature: key-value-store that can be use, to provide options to a script from outside
+and/or to persist information from one scriptrun to the next (based on a property file - see docs)<br>
+<b>revised:</b> RobotFramework support: now all usage variants are functioning as described (see docs)<br>
+<b>fixed:</b> popFile(): NPE selecting root folder, memory leak caused by leaving JFrames
+<h4>Build: 2016-05-24</h4>
+<b>revised:</b> VNCScreen: fixed some issues
+<a href="https://github.com/RaiMan/SikuliX-2014/issues/206#issuecomment-220959817">(some details)</a><br>
+<b>fixed:</b> input(..., hidden) now returns the user's input correctly<br>
+<b>fixed:</b> popFile() now allows to select any file or folder<br>
+<b>fixed:</b> popFile() on cancel now returns empty string instead of crashing with NPE
+<h4>Build: 2016-05-20</h4>
+<b>fixed:</b> Region.wait() should not do anything at InteruptedException
+<h4>Build: 2016-05-20</h4>
+<b>fixed:</b> RobotFramework support on Windows<br>
+<b>fixed:</b> getImagePath() on Windows now returns useable path strings<br>
+<b>fixed:</b> input dialog (with hidden) should return null/None when cancelled<br>
+<b>added:</b> IDE: imported .sikuli scripts are now internally reloaded (reimported)
+when changed since the last run (no need any longer to use reload() or even restart the IDE)<br>
+<b>revised:</b> RobotFramework support: the robot Python module is now bundled,
+possible to run Robot scripts from the IDE (
+<a href="http://sikulix-2014.readthedocs.io/en/latest/scenarios.html#using-robotframework">see docs)</a><br>
+<b>fixed:</b> ObserverCallback did not work in JRuby<br>
+<a href="https://github.com/RaiMan/SikuliX-2014/pull/191">(thanks to https://github.com/RaiMan/SikuliX-2014/pull/191)</a><br>
+<b>revised:</b> IDE: open/save/export/loadImage handling - now possible to load .skl into the IDE,
+overwriting is checked at export, Folders not ending .sikuli can be loaded as scripts (with .py, .rb, .js)<br>
+<b>revised:</b> Linux: class App: if features like wmctrl are missing or do not work correctly,
+SikuliX does not terminate anymore,
+but only prints error messages and respective features will not work, also issuing error messages<br>
+<b>added:</b> ScreenImage (return of capture()): getRegion() returns the region,
+where the image was captured from<br>
+<b>revised:</b> Python API layer for use with IDE's like PyCharm,
+class Screen is now directly mapped to class Screen at Java API<br>
+<b>fixed:</b> mouse actions on VNCScreen not done by VNCRobot but by DesktopRobot<br>
+<b>revised:</b> Mac: App.isRunning() more robust now (no more strange crashes)<br>
+<b>added:</b> popFile(): display a file open dialog allowing to select a file or folder
+returning the absolute path to the selected item (Mac: script packages .sikuli can be entered)<br>
+<b>revised:</b> the open/save/loadImage dialogs - Jython scripting support: <br>
+... now possible to open a folder not having .sikuli (save not yet supported)<br>
+... .skl can be opened to a .sikuli, to edit the script <br>
+<b>fixed:</b> run(someCommand) now prints the complete output from stderr 
+(not only first line) (Bug #1573519)<br>
+<b>revised:</b> The target parameter type in find, wait, exists,findAll and onXXX is now checked for validity.<br>
+... same goes for the respective indirect finds in click, ... (valid only: single Pattern, String, Image)<br>
+... If invalid the script aborts with an error message reporting the line number in Jython scripts.<br>
+<b>added:</b> class App: experimental: issue http requests based on Apache org.apache.httpcomponents.httpclient 
+(App.wwwStart(), App.wwwStop(), App.wwwGet(), App.wwwSave() see javadocs)<br>
+<b>added:</b> FindFailed handler support: it is now possible, to define a handler function (as with observe), 
+that is visited in case of FindFailed situations (before any other actions). 
+A handler might also be specified for situations, that an image is not found on the imagepath (not loadable).
+This new feature allows much easier, to implement corrective actions and logging for these cases.
+How to finally handle the case can be specified in the handler. (see docs: Exception FindFailed)<br>
+<b>revised:</b> FindFailed PROMPT: now an image can be recaptured in case of not found. This might make it easier, 
+to make a script work in changed environments, where images are no longer found. 
+The original image is preserved as _BACKUP_original.png. 
+These backups have to be managed manually at this time and 
+are overwritten without notice with the next recapture<br>
+<b>added:</b> input and pop... features can now be placed on the screen where needed 
+(center of the dialogbox goes to a given location or center of a region - 
+related function is popat())<br>
+<b>revised:</b> input, popup and the other pop... features now are always on top 
+from beginning no matter which app is frontmost<br>
+<b>revised:</b> Jython scripting support: possible now to setup a folder 
+myscript (no .sikuli needed) containing a myscript.py, other .py files to be imported
+and folders .sikuli intended to contain images.<br>
+... This allows to setup projects in IDE's like PyCharm and 
+run them from PyCharm as well as using SikuliX from commandline. <br>
+... The image folders .sikuli are intended to be managed in the SikuliX IDE (capture support).<br>
+About the prerequisites and the possibilities see the docs. 
+This folder structure is not yet completely supported in the SikuliX IDE.
+<h4>Build: 2016-03-26</h4>
+fixed: findAll: Match.getImageFilename now works
+<h4>Build: 2016-03-25</h4>
+added: exists now aborts with FindFailedResponse(PROMPT) and reports
+the line number including traceback for Jython scripts<br>
+added: feature to report the current line number and a traceback for Jython scripts, 
+if the script run is terminated from the Java level<br>
+revised: final cleanup at termination
+<h4>Build: 2016-03-21</h4>
+changed: version 1.1.1+ will now need Java 1.7 or newer
+<h4>Build: 2016-03-21</h4>
+revised: Region.highlight(): now available on Linux if supported --- thanks to toschneck<br>
+revised: run Linux config check commands from internally now using appache.commens.exec --- thanks to toschneck<br>
+revised: Mouse.click() : configurable click (pause - down - pause - up - pause)<br>
+revised: mouse click action (Mac hack to avoid slow down after 1 minute) - fast clicking is back (except Mac 10.10+)
+<h4>Build: 2016-03-03</h4>
+revised: capture feature -- should now work in multimonitor configurations with latest system versions
+<h4>Build: 2015-10-26</h4>
+fixed: Mac: do-not-slow-down-hack now works on 10.11 too <br>
+revised: issue #155 - import of plain .py modules 
+<h4>Build: 2015-10-17</h4>
+revised: Linux: SikuliX no longer terminates if wmctrl or xdotool are not available.
+Some Appclass features do not work in this case, but respective error messages are produced.
+wmctrl: openApp, closeApp, switchApp - xodotool: getFocusedWindow<br>
+added: jxgrabkey sources to sikulixapi.jar to avoid downloading artefact from non-MavenCentral repository<br>
+changed: JRuby now using version 9 (9.0.1.0)
+<h1>Fixlevel of version 1.1.0 (2015-10-05)</h1>
+<h4>Build: 2015-09-25</h4>
+revised: drag(), dropAt(), dragDrop(): for each usage you can define individual timing parameters (see docs)<br>
+fixed: problem with App class on Mac and Windows after 2015-09-19: native xxxUtil libs where no longer loaded<br>
+added: App class: someApp.open(waitTime): waits max waitTime until App is running (like someApp.isRunning(waitTime))<br>
+added: for Java: convenience Method App.pause(waitTime): do nothing for the given time (instead of using new Screen().wait())
+<h4>Build: 2015-09-22</h4>
+some revisions and new features for the App class (thanks: https://github.com/RaiMan/SikuliX-2014/pull/163)<br>
+... and Linux setup: (thanks: https://github.com/RaiMan/SikuliX-2014/pull/167)
+<h4>Build: 2015-09-09</h4>
+fixed: Windows: App class constructor App() should not open not running app (thanks: https://github.com/RaiMan/SikuliX-2014/pull/163)<br>
+added: Allow user to specify the delay between mouseWheel calls (thanks: https://github.com/RaiMan/SikuliX-2014/pull/154)
+<h4>Build: 2015-09-08</h4>
+added: IDE: italian translation
+<h4>Build: 2015-08-28</h4>
+revised: using runsikulix -s -- arg1 arg2 ... now has the user args available in sys.argv[1+] 
+when running .sikuli (Python) on the server<br>
+revised: setup now shows the used options
+<h4>Build: 2015-08-21</h4>
+fixed: added a Region.init() to better support subclassing of Region on the Jython level<br>
+revised: allow to run setup in the project context using mvn -Pl Setup exec:exec 
+<h4>Build: 2015-08-18</h4>
+fixed: some problems with the App class methods (App.close("some-app" did not work)
+<h4>Build: 2015-07-20</h4>
+fixed: offline setup: selenium4sikulix should only be downloaded on request<br>
+temp fix: removed the robot stuff from sikulixapi.jar, htmldata files cannot be loaded from a jar
+<h4>Build: 2015-07-14</h4>
+added: for use in observe handler/ObserveCallback: 
+event.getType() returning a string with APPEAR, VANISH or CHANGE<br>
+added: for use in observe handler/ObserveCallback:
+event.isAppear(), event.isVanish() and event.isChange() returning True or false
+<h4>Build: 2015-07-13</h4>
+added: Mouse.setMouseMovedHighlight(true/false), where true will be the default.<br>
+added: Robot run: use Java as Keyword implementation, containing jar file is added to classpath at runtime
+<h4>Build: 2015-07-05</h4>
+added: Robot Framework: robot Python module now bundled (SikulixAppData/Lib), 
+setup RobotFW testcase in IDE(Robot text and inline Keyword library) and run from IDE and/or commandline,
+<a href="https://github.com/RaiMan/SikuliX-2014/tree/master/StuffContainer/testScripts/testRobot/testRun.sikuli" target="_blank">see a test script combining RFW with Sikulix and Selenium</a><br>
+fixed: NPE when setting autoWaitTimeout of a region to 0 
+<h4>Build: 2015-07-03</h4>
+added: a showcase (runnable from the net) for the usage of Selenium Firefox in SikuliX script (tested on Mac and Windows)<br>
+added: download and store available extensions using setup (from commandline: setup...jar options extensions)<br>
+added: support for Selenium now available as ready to use extension jar (not yet in the docs)<br>
+fixed: scripts from the net: if download for .py/.rb is not allowed, one can use .py.txt and .rb.txt for the script files<br>
+fixed: Mac OSX 10.11: SikuliX.app did not start up
+<h4>Build: 2015-06-30</h4>
+revised: running scripts stored somewhere in the HTTP net can now be run from inside the IDE (runScript())
+or from commandline with option -r --- docs are up to date
+<h4>Build: 2015-06-27</h4>
+revised: feature load(jar): more options to find the jar, imagepath to folder in jar can be given<br>
+added: buildJarFromFolder(): to build a jar on the fly at runtime<br>
+added: compileJythonFolder(): replaces the contained .py files with it's compiled versions ...$py.class
+(can be used for source protection)<br>
+fixed: App class: LinuxUtil: added a stub implementation for getApp() to avoid loss of pid
+<h4>Build: 2015-06-25</h4>
+added: Jython scripts: highlightOff() switches off all current highlights
+<h4>Build: 2015-06-24</h4>
+revised: RunServer: now works according to http://sikulix.com/support<br>
+fixed: Finder: Windows: now works again<br>
+fixed: App class: isRunning() now works on Windows and Mac<br>
+added: Jython support: now Lib/site-packages is recognized
+and can have a sites.txt containing more paths (see docs/Using Python)
+<h4>Build: 2015-06-22</h4>
+revised: commandfiles on Mac to have alternatives to start the IDE (shows SikuliX icon in taskbar and SikuliX as name)<br>
+revised: App class on Mac, still App.open() (app not running)
+does not work on 10.9 and earlier (on 10.10 with most apps works),
+when the script is run from the IDE that is running as SikuliX.app
+- when starting the IDE or running script from commandline it works<br>
+<h4>Build: 2015-06-15</h4>
+fixed: Windows: Jython scripting: exceptions in imported stuff now again shown correctly
+<h4>Build: 2015-05-28</h4>
+revised: findBest(): now internally works on the given images in parallel (threading)
+<h4>Build: 2015-05-26</h4>
+added: findAllByRow, findAllByColumn: returns an array of matches in sorted order
+top left to bottom right either row-wise or column-wise<br>
+added: findBest(): find the match with the highest score out of the list of given images<br>
+revised: App.isRunning(): now internally refreshes the App instance,
+so the App can be created with a window title and later be checked, whether it is running,
+if other means are used to start the app (usage instead of "if someApp.window()")
+<h4>Build: 2015-05-22</h4>
+revised: class App: App.open() and openApp() now ignore already running instances of the named app and will in doubt start a new instance.
+Windows: openApp("cmd.exe /c "some command to run") works again
+<h4>Build: 2015-05-21</h4>
+fixed: getBundlePath: Windows: now without leading slash<br>
+revised App class (Windows): faster now and focus indeed activates the frontmost window
+<h4>Build: 2015-05-20</h4>
+fixed: Jython import: problem with import of .py files
+<h4>Build: 2015-05-19</h4>
+revised: App class: open() now accepts parameters again
+<h4>Build: 2015-05-18</h4>
+fixed: regression: Pattern().targetOffset() offset ignored
+fixed: a problem with the "name =" capture feature, now made sure, that the line only contains "name ="<br>
+fixed: App.getWindow(): Mac: a problem with , in a title<br>
+continued: RunServer and RunClient (now named Run)
+<h4>Build: 2015-05-16</h4>
+fixed: IDE: cursor keeps current position in cases, where the content is re-evaluated (toggle view and image rename)<br>
+added: experimental (more options might follow):
+a feature to highlight the search region before search (green frame)
+and the match (if found, red frame) after the search (each for 2 seconds),
+might be an alternative to slow motion running. Start: Debug.highlightOn(), Stop: Debug.highlightOff().
+works for region.method() usage and for setROI() usage. The region/ROI must be at least 10 pixel smaller
+than the screen on all sides, otherwise the green frame is omitted.
+<h4>Build: 2015-05-15</h4>
+fixed: multi monitor: should be fixed now (tested on Mac (incl. 10.10.x) and on Windows)<br>
+revised: IDE: show button: now recognizes negative coordinates and finds image on all screens.<br>
+added: class App: now possible to add parameters/options again as a string using setUsing(...). <br>
+Currently only recognized on Windows, which brings back the possibility to <br>
+open an application with parameters/options. <br>
+Until now: App.open("some.exe parm1 parm2 ...") <br>
+must now be written as App("some.exe").setUsing("parm1 parm2 ...").open()
+<h4>Build: 2015-05-13</h4>
+revised: class App: Mac/Windows: an app now knows it's process ID (PID) and its frontmost window title<br>
+you can ask an app wether it is running and wether it has a window<br>
+if an app is running it is not started again with open(). Linux: not yet revised
+<h4>Build: 2015-05-08</h4>
+revised: class App: App.open, focus, close on Windows to be more consistent.
+getWindow() to get the title of the frontmost window of an app. The same app is only opened once -
+a running process is reused.
+<h4>Build: 2015-05-04</h4>
+temp fix: IDE as mac app: added a hack to avoid click/type slowdown after about 60 seconds<br>
+temp fixed: IDE: switching to Jython 2.7.0 final with setup option for Jython 2.5 (when unicode problems arise)
+<h4>Build: 2015-05-01</h4>
+added: IDE: buttons to capture a point and an offset and <br>
+to show (highlight) the leftmost item in the line having the cursor (if possible in the line context)<br>
+added: IDE: capturing with the cursor in a line containing only imagename = will result in an<br>
+image filename as imagename.png and overwrites on recapture. (to support naming schemes and variable use)
+<h4>Build: 2015-04-23</h4>
+fixed: setup did not work anymore with already downloaded artefacts (offline setup)<br>
+added: runScript(): inline run of PowerShell snippets
+<h4>Build: 2015-04-20</h4>
+added: runScript("applescript tell ..."): run code snippets in AppleScript on Mac using osascript<br>
+fixed: possible problem with setup running with proxy<br>
+revised: running Python scripts from net and with RunServer<br>
+revised runsikulix.cmd: now first we check, whether java can be run from system path<br>
+fixed: each SikuliX session should have it's own temp folder (auto deleted at JVM shutdown).
+Still the IDE GUI can only run once, but as much as one likes in parallel from commandline.
+<h4>Build: 2015-04-17</h4>
+fixed: user args after -- not filled into sys.argv when running from commandline<br>
+fixed: runsikulix.cmd did not use Java 8, if available in standard places<br>
+fixed: tessdata not bundled when using setup with option 1 only<br>
+fixed: exists(Pattern(image)) hangs (internally looping endlessly), if image file is not available<br>
+added: experimental: RunServer: run scripts (or JavaScript snippets) from anywhere using a http RESTful protocol<br>
+fixed: save script problems causing exceptions should be handled internally (otherwise might block GUI)<br>
+added: experimental: visual annotation (former extension Guide) now a standard feature of SikuliX (contained in sikulixapi.jar)
+<h4>Build: 2015-04-03</h4>
+fixed: runScript(): possible NPE, when used in scripts run from commandline
+<h4>Build: 2015-04-01</h4>
+revised: jython script running with sikulixapi.jar::Runner: now returns the value from an exit(n)<br>
+fixed: Linux: possible NPE in build on the fly
+<h4>Build: 2015-03-31</h4>
+added: jython script running with sikulixapi.jar::Runner: usage: org.sikuli.script.Runner.run(scriptPath, args),
+sikulixapi.jar and a jython.jar must be on classpath (auto taken from setup downloads if omitted).
+<h4>Build: 2015-03-27</h4>
+fixed: Mac: a problem that made it to not run any longer with Java 6<br>
+revised: MouseMovedCallback feature<br>
+added: set callback handler and request visiting the handler before processing a mouse action (on/off)<br>
+added: request termination with next mouse action throwing an AssertionError
+<h4>Build: 2015-03-24</h4>
+fixed: (I hope ;-) all regression bugs against 1.0.1 in multi monitor environments<br>
+revised: ALL in Jython scripts and Screen.all().getRegion() can now be used, to search on all monitors in the same op
+(ALL.click(someBotton) will find and click the button, no matter on which monitor it currently is)
+<h4>Build: 2015-03-24</h4>
+added: multi monitor: a visual can now be found on all screens with one op: Screen.all().getRegion().find(someImage)
+will return a match, that knows it's screen, hence match.getScreen() will return the screen it was found on.
+Take care: is a lengthy operation and costs some memory, so it should be used with care.
+If the match spans screens, the screen with the biggest part is the winner (should be avoided).
+<h4>Build: 2015-03-22</h4>
+the next days I will somehow reveal more information about the new or revised features<br>
+... but many features are already in the docs<br>
+<br>
+a toy: starting sikulixapi.jar with no parameters reveals a simple edit/save/run dialog for JavaScript trials<br>
+added: SikulixAppData/SikulixStore/SikulixDebug.txt if this file is present at startup, then from beginning
+we run with debug level 3 and all messages are written to this file (helpful for startup debugging)<br>
+added: SikulixAppData/SikulixStore/SikulixOptions.txt is a key/value store according
+to the rules of Java property files, that is loaded at startup. The options might overwrite settings
+and are available at runtime via getOption... calls (precedence: home folder, work dir, SikulixAppData)<br>
+added: SikuliX now has a central repository (SikulixAppData) for all related stuff
+in the user's home folder area according according to the standards of the system<br>
+added: running scripts can now be paused/continued and aborted by moving the mouse
+(detection with next mouse action)<br>
+added: one can now run scripts written in JavaScript (edit not yet supported in IDE)<br>
+revised: script running in general: -r can have multiple scripts that are run one after the other,<br>
+added: runScript() can be used to run scripts from inside other scripts or from Java
+including handling of the bundlePath<br>
+added: images and scripts can now be downloaded/run from HTTP accessible locations in the net<br>
+revised: Linux build on the fly for libVisionProxy should be available in API also,
+to support this with Maven usage of sikulixapi.jar <br>
+revised: TextRecognizer: made the tessdata handling more robust, findAll(text) now works<br>
+added: image files whose name start with an _ are protected against image cleaning on save in all cases<br>
+added: sikulixapi.jar can now be bundled with Launch4J to create .exe that only need a JRE, resources and images
+can be exported or used from the .exe content (bundled in the original jars)<br>
+revised: moved parts of the Sikuli/Jython import handler to the Java level<br>
+revised: completely reworked the startup for IDE and API usage, now concentrating all startup requirements in the one
+singleton class RunTime<br>
+revised: all Sikulix related stuff besides the jars (setup, IDE and API, can now be moved around freely)
+is now in a system specific Sikulix folder in the home folder<br>
+<h4>Build: 2015-01-14</h4>
+revised: observe: handlers (callback on observe event happened) now directly called from Java in Jython and Jruby
+<h4>Build: 2015-01-12</h4>
+<a href="https://github.com/RaiMan/SikuliX-2014/commits/master" target="_blank">see GitHub commits</a>
+<h4>Build: 2015-01-09</h4>
+again revised the Linux libVisionProxy.so build<br>
+started: make a SikuliX.exe using Launch4J
+<h4>Build: 2015-01-08</h4>
+again revised the Linux libVisionProxy.so build<br>
+finalized: on Mac now the IDE is back as Mac application
+<h4>Build: 2015-01-06</h4>
+fixed: Linux setup: libVisionProxy.so (provided or bundled) is checked and can be built on the fly during setup (tested on Ubuntu 14.04 64/32 Bit)<br>
+fixed: JRuby: did not run unsaved scripts<br>
+fixed: Java 6: Jython version is checked: must be 2.5 and is used with setup (having bundled 2.7 terminates)<br>
+changed: Jruby now 1.7.18, Jython now 2.7-b3<br>
+fixed: version 1.1.0 now compiles on Java 6 again
+<h4>Build: 2014-12-28</h4>
+fixed: problem with CheckLastSeen when pattern is used<br>
+fixed: only onAppear handler was called on event (other handlers not called)
+<h4>Build: 2014-12-03</h4>
+revised: silent setup: replaced download popups with log messages to avoid any GUI usage
+fixed: write(#DEL.) did not work
+added: Key.dump(): get a list of keynames for write()
+<h4>Build: 2014-11-23</h4>
+fixed: minor -  <a href="https://github.com/RaiMan/SikuliX-2014/commits/master" target="_blank">see GitHub commits</a>
+<h4>Build: 2014-11-13</h4>
+fixed: detection of Mac OSX 10.10
+<h4>Build: 2014-10-31</h4>
+fixed: Windows: offline setup did not work
+<h4>Build: 2014-10-20</h4>
+fixed: JRubyAddons (1.1.0-6.jar) back again for download during setup
+<h4>Build: 2014-10-16</h4>
+fixed: offline setup now includes library jars<br>
+finalized: unattended setup
+<h4>Build: 2014-10-14</h4>
+fixed: a crash on Windows because of a bug in the handling of the libs folder<br>
+finally revised: download of needed stuff during setup
+<h4>Build: 2014-10-12</h4>
+fixed: setup: export resources (Lib folder, command files, ...)<br>
+revised: Jython, JRuby, libs-jars and sikulixapi.jar now loaded from MavenCentral/OSSRH
+<h4>Build: 2014-10-05</h4>
+changed: managing ImageCache is per Settings.setImageCache(n), which sets the max. in-memory-images to n MB (start value 64). 0 will switch off caching and clear the cache immediately.<br>
+completely revised image loading and caching.<br>
+added: a feature to store key-value-pairs in the persistent preferences storage, so they can be retrieved in a future SikuliX session<br>
+... details see javadocs Sikulix.prefStore, ...load, ...remove<br>
+added: Region.isValid to check, wether a Region can access a screen<br>
+added: Region.mouseMove(x,y) and Mose.move(x,y): both move the mouse from it's current position to the given offset
+<h4>Build: 2014-09-25</h4>
+revised: getting parts of a region or an image based on a raster overlay of even rows, columns or cells<br>
+documentation: started to revise the docs
+<h4>Build: 2014-09-24</h4>
+added: Region: getLastTime() returns the duration in msecs of the last find in the given region (similar: Match.getTime())
+<h4>Build: 2014-09-23</h4>
+fixed: Jython import problem in build 2014-09-22 (addModPath)<br>
+added: Sikuli.py: some convenience functions for path handling<br>
+added: Sikuli.py: new popXXX, input, select
+<h4>Build: 2014-09-17</h4>
+added: IDE: Preview: renaming an image now changes all occurences of the same imagename in this script<br>
+added: IDE: scriptwindow tab menu: reset now makes a reparse to reflect changes in the preferences (e.g. how images are shown)
+<h4>Build: 2014-09-16</h4>
+fixed: user parameters from command line after -- or --args are now available again in sys.argv[1 .. n]<br>
+revised: IDE: renaming images in Preview (special case: overwrite existing image)
+<h4>Build: 2014-09-13</h4>
+revised/fixed: delete not used images on save still in some special cases deleted images erroneously
+<h4>Build: 2014-09-12</h4>
+added: OCR-read the text from a given image file (convenience: Image.text(imagefile)) or an Image object
+<h4>Build: 2014-09-11</h4>
+fixed: problem with addImagePath() crashing Jython import<br>
+this is the first build of 1.1.0 (first commit: 0107b25)
+<h4>Build: 2014-09-10</h4>
+new: javadoc and sources jars of sikulixapi now available here<br>
+new: Match.getTime() returns elapsed time in millisecs of the corresponding search op
+<h4>Build: 2014-09-07</h4>
+new: ScriptRunner.run(script_folder) will run the script, scripting language is detected from contained scriptfile.<br>
+can be used to setup batched script runs.<br>
+revised: editor tab context menu features<br>
+revised: IDE: usage of tempfiles
+<h4>Build: 2014-08-30</h4>
+temp fix: when running on Mac OSX 10.10 the search feature is switched of, to avoid startup crash of IDE (to be fixed later)<br>
+fixed: now compiles on Mac with Java 8<br>
+fixed: some problems after Scriptrunner restructuring
+<h4>Build: 2014-08-10</h4>
+revised: final setup test now the same for API/Jython/JRuby, more features are tested, more verbose logging
+<h4>Build: 2014-08-09</h4>
+revised: handling of images in Image/ImagePath completely switched to URL's<br>
+revised: IDE: tab close and script save - consistent handling of image cache - might still have odds
+<h4>Build: 2014-08-05</h4>
+added: callback feature to jython runner, now logging redirect works in Jython scripting<br>
+added: now even user logs can be redirected, setLoggerAll now redirects info, action, error, debug and user
+<h4>Build: 2014-08-04</h4>
+revised: setup<br>
+JRuby: gem should be useable, rspec+ package seperate setup option
+<h4>Build: 2014-07-31</h4>
+added: Sikuli's log messages can be redirected to a private logger instance (see java docs Debug)<br>
+brought back for JRuby: rspec, cucumber support is again bundled
+<h4>Build: 2014-07-31</h4>
+fixed some setup problems
+now the libs folder is always exported to the parent folder when sikulixapi.jar is used<br>
+switched off JRuby IDE stdxxx redirection for now - problems, when running IDE from commandline
+<h4>Build: 2014-07-24</h4>
+added: Michaeal Johnsons VNC solution<br>
+revised: build process and collectjars
+<h4>Build: 2014-07-23</h4>
+revised: lib export when running with sikulixapi.jar: exported to parent folder of jar in all cases.<br>
+added: a usecase for sikulixapi.jar from OSSRH in Maven projects (on git)
+<h4>Build: 2014-07-22</h4>
+finally fixed: problems after migrating to new version/naming/structural concept <br>
+setup: API (option 2) now contained in setup - no extra download<br>
+sikulixapi.jar for MavenCentral: Libs splitted into 3 system specific parts Libswin, Libsmac and LibsLux
+<h4>Build: 2014-07-21</h4>
+finally fixed: problems after migrating to new version/naming/structural concept <br>
+switched of yellow splash-screens at script run
+<h4>Build: 2014-07-17</h4> (first build of 1.1.0-Beta4)
+revised: IDE save: handling of images <br>
+revised: HotKeys: reset at scriptend in IDE<br>
+revised: Mouse: new classes Keys and Device for synching<br>
+<h4>Build: 2014-06-29</h4>
+revised: IDE help menu: post question, report bug: version/system/java info in clipboard, to support pasting<br>
+fixed: IDE crash Java NPE: if Tesseract not working and auto-image-naming is text/OCR
+<h4>Build: 2014-06-28 (this is the release status of 1.1.0-Beta2)</h4>
+fixed: IDE terminates on trying to open a non sikuli directory or an incorrect sikuli project<br>
+fixed: possible loss of images at save (images in comments, images given with path)<br>
+fixed: multi-monitor issues with respect to mouse actions (Screen(0) no longer is the primary monitor in all cases, but Screen.getPrimaryScreen() is)<br>
+fixed: out-of-bounds crash during error eval when running from command line (thanks to github user fpmchu)<br>
+fixed: IDE: NPE on termination when running from command line<br>
+fixed: bug 1330348: running Java: ImagePath is set to working directory if no path is set before first image search<br>
+fixed: possible NPE in special situations (mouse moved to invalid location)<br>
+fixed: the native library problems on Windows when using 32-Bit Java<br>
+added: Screen.all() makes a ScreenUnion of all monitors, on Python level ALL is predefined and can be used as ALL.function() like a Screen/Region<br>
+added: reset() to renew the multimonitor configuration inline on Python level<br>
+added: Settings.OcrLanguage is now accepted by Tesseract (after using org.sikuli.script.TextRecognizer.reset())<br>
+added: images can now be loaded from jars (see JavaDocs::ImagePath)<br>
+revised: completely: observe processing (see JavaDocs for now)<br>
+revised: further reduced error verbosity at script load and creating image thumbnails<br>
+revised: class Mouse, added Mouse.at() to get the mouse location, external mouse moves are detected, mouse use should now be thread safe<br>
+revised: moved the handling of capture and stop hotkey to HotkeyManager to prepare a more general usability (run on command line, using callbacks)<br>
+revised: Region.write() and it's javadoc (alternative for type() with more features)<br>
+revised: the native build for Linux, Mac and Windows (now using MinGW from http://win-builds.org/)<br>
+revised: JRuby support: many minors (see GitHub)<br>
+<br>
+... more can be found in commits before 2014-05-01 on GitHub
+<hr>
+</body>
+</html>

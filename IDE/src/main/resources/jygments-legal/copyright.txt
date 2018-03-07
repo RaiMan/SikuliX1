@@ -1,0 +1,8 @@
+
+Jygments is Copyright 2010-2014 Three Crickets LLC:
+
+http://threecrickets.com/
+  
+All third-party libraries redistributed with this software remain the property 
+of their respective copyright owners and are subject to separate license 
+agreements.

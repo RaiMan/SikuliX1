@@ -1,0 +1,614 @@
+# Dutch translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-04-18 14:03+0000\n"
+"Last-Translator: Berty <Unknown>\n"
+"Language-Team: Dutch <nl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Bestand"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Bewerken"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Uitvoeren"
+
+#: menuView
+msgid "View"
+msgstr "Beeld"
+
+#: menuTool
+msgid "Tools"
+msgstr "Gereedschappen"
+
+#: menuFileNew
+msgid "New"
+msgstr "Nieuw"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Openen..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Opslaan"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Opslaan als…"
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Exporteer als programma..."
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Voorkeuren..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Tab sluiten"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Afsluiten"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Ongedaan maken"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Opnieuw uitvoeren"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Knippen"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Kopiëren"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Plakken"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Alles selecteren"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Inspringen"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Uitspringen"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Zoeken"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Zoeken…"
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Volgende zoeken"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Vorige zoeken"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Uitvoeren"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "vertraagd uitvoeren"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Stop"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Unittesten"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "Commandolijst"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "Uitbreidingen..."
+
+#: menuHelp
+msgid "Help"
+msgstr "Help"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Controleer updates..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "De volledige Sikuli Script Handleiding"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "Handleidingen, Voorbeelden, How-To's"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Stel vragen & vind antwoorden"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Meld een bug"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Word lid van ons vertalingsproject!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli's Startpagina"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} is beschikbaar!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Er is geen update beschikbaar."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Instellingen"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Automatisch opnemen"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Zoeken"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Muishandelingen"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Toetsenbordhandelingen"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "Gebeurtenisobservatie"
+
+#: paneMessage
+msgid "Message"
+msgstr "Bericht"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "Test Tracen"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Naamloos"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "Unittesten"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Uitvoeren ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Uitvoeren"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "vertraagd uitvoeren"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Druk op ({0}) om te stoppen"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "gebied aanmaken"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "Maak een regio aan om het zoekgebied te beperken"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Schermafbeelding maken"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Neem een screenshot ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Voeg een afbeelding toe"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "afbeelding invoegen "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Kritieke fout tijdens het uitvoeren van {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Gestopt met code {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Gestopt"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Er heeft zich een error voorgedaan op regel {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Foutbericht:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Selecteer een gebied op het scherm"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Schermopname"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Sneltoets snel opnemen"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Vertraging voor opname"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "seconden"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "Automatische naamgeving"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "timestamp"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "tekst in de afbeelding"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "uit (handmatige ingave)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Algemene instellingen"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Controleer automatisch op updates"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Wilt u dit tabblad sluiten?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} is aangepast. Wijzigingen opslaan?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Regel: {0,number,integer}, Kolom: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Patrooninstellingen"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Bestand"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Overeenkomend Voorbeeld"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Doel compensatie"
+
+#: lblPath
+msgid "Path:"
+msgstr "Pad:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Bestandsnaam:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Gelijkenis:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "Doel compensatie X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "OK"
+
+#: cancel
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: yes
+msgid "Yes"
+msgstr "Ja"
+
+#: no
+msgid "No"
+msgstr "Nee"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Bestand bestaat al"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Weet u zeker dat u bestand \"{0}\" wilt overschrijven?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "Naam van het screenshot"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "Geef de bestandsnaam van het screenshot op:"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Zoekt naar de beste GUI-component overeenkomst op het scherm of in het "
+"gebied."
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr ""
+"Zoekt naar alle GUI-component overeenkomsten op het scherm of in het gebied."
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"Wacht tot de gegeven GUI-component verschijnt op het scherm of in het gebied "
+"tot <i>timeout</i> seconden."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"Wacht tot de gegeven GUI-component verdwijnt van het scherm of uit het "
+"gebied tot <i>timeout</i> seconden."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+"Controleert of de gegeven GUI-component bestaat op het scherm of in het "
+"gebied.<br>Als het niet gevonden kan worden, wordt er niets terug gegeven "
+"zonder een exceptie te smijten."
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Klikt op de best overeenkomende GUI-component op het scherm of in het gebied."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Dubbel klikt op de best overeenkomende GUI-component op het scherm of in het "
+"gebied."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Klikt rechts op de best overeenkomende GUI-component op het scherm of in het "
+"gebied."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "Beweegt de muis cursor op de best overeenkomende GUI-component."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "sleept het eerste stukl, en laat vallen op het tweede stuk."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Tikt de gegeven <i>tekst</i> in het openstaande venster."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Klikt op de gegeven component om de focus te krijgen en typt de gegeven "
+"<i>tekst</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Plakt de gegeven <i>tekst</i> in het gefocuste venster."
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+"Klikt op de gegeven component en plakt de gegeven <i>tekst</i> in het "
+"gefocuste venster."
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+"Roept <i>handler</i> wanneer het gegeven afbeeldingspatroon op het scherm of "
+"binnen het gebied verschijnt."
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+"Roept <i>handler</i> wanneer het gegeven afbeeldingspatroon van het scherm "
+"of uit het gebied verdwijnt."
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+"Roept <i>handler</i> wanneer er iets verandert op het scherm of binnen het "
+"gebied."
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"Start de waarnemer om het scherm of gebied te bekijken geduurdende "
+"<i>time<i> seconden.<br>De waarnemer zal in de achtergrond lopen als "
+"<i>achtergrond<i> op waar staat."
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Installeer"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Meer informatie"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "Geinstalleerd"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "installeer {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "Update naar {0}"

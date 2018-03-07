@@ -1,0 +1,582 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-08 21:44+0000\n"
+"Last-Translator: Tsung-Hsiang Chang <vgod@vgod.tw>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "檔案"
+
+#: menuEdit
+msgid "Edit"
+msgstr "編輯"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "執行"
+
+#: menuView
+msgid "View"
+msgstr "檢視"
+
+#: menuTool
+msgid "Tools"
+msgstr "工具"
+
+#: menuFileNew
+msgid "New"
+msgstr "新增"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "開啟..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "儲存"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "另存為..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "匯出.SKL可執行檔"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "偏好設定..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "關閉分頁"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "結束"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "復原"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "取消復原"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "剪下"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "複製"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "貼上"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "全部選取"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "縮排"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "減少縮排"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "搜尋"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "搜尋..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "找下一個"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "找上一個"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "執行"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "慢動作執行"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "停止"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "單元測試"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "指令清單"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "擴充元件..."
+
+#: menuHelp
+msgid "Help"
+msgstr "說明"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "檢查更新..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Sikuli Script完全手冊"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "教學, 範例, How-To's"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "提問, 找答案"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "回報錯誤"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "加入翻譯計畫!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli首頁"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} 已經釋出!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "沒有任何更新。"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "設定"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "自動截圖"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "搜尋"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "滑鼠動作"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "鍵盤動作"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "事件"
+
+#: paneMessage
+msgid "Message"
+msgstr "訊息"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "單元測試訊息"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "未命名"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "單元測試"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "執行 ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "執行"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "慢動作執行"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "按下 {0} 中止"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "建立搜尋區域"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "建立一個「區域」限制螢幕比對範圍"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "螢幕截圖"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "抓取螢幕截圖 ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "插入磁碟中的圖片"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "插入圖片 "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"執行 {0} 時發生錯誤\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "程式中止, 結束代碼: {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "程式已中止"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "在第{0}行發生錯誤"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"錯誤訊息:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "在螢幕上選取一塊區域"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "偏好設定"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr "TAB鍵插入空白字元"
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr "更新"
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr "語言"
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "Tab 寬度:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr "字型:"
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "大小:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "字型"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "縮排"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "文字編輯"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "螢幕截圖"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "螢幕截圖快速鍵:"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "截圖前延遲:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "秒"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "自動命名:"
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "時間戳記"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "圖中文字"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "關閉 (手動輸入)"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "一般設定"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "自動檢查更新"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "確定要關閉這個檔案嗎?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "您要儲存對 {0} 所做的更動嗎？"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "行: {0,number,integer}, 列: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "圖片樣式設定"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "命名"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "圖片比對預覽"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "目標位置偏移"
+
+#: lblPath
+msgid "Path:"
+msgstr "路徑:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "檔名:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "相似度："
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr "比對符合/最大數量"
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "目標位置偏移 X:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr "，Y："
+
+#: ok
+msgid "OK"
+msgstr "確定"
+
+#: cancel
+msgid "Cancel"
+msgstr "取消"
+
+#: yes
+msgid "Yes"
+msgstr "是"
+
+#: no
+msgid "No"
+msgstr "否"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "檔案已經存在"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "你確定要覆寫檔案 \"{0}\" 嗎?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "螢幕截圖命名"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "輸入螢幕截圖的檔名"
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "在螢幕上或是指定區域內搜尋給定的圖形樣式，並傳回最佳的比對結果。"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "在螢幕上或是指定區域內搜尋給定的圖形樣式，並傳回全部的比對結果。"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr "在螢幕上或是指定區域內等待給定的圖形樣式出現，最長等待<i>timeout</i>秒。"
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr "在螢幕上或是指定區域內等待給定的圖形樣式消失，最長等待<i>timeout</i>秒。"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr "檢查給定的圖形樣式是否出現在螢幕上或是指定區域內，如果沒有，只會回傳None而不會丟出例外。"
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "點擊螢幕上或是指定區域內最佳匹配的圖形樣式。"
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "雙擊螢幕上或是指定區域內最佳匹配的圖形樣式。"
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "右鍵點擊螢幕上或是指定區域內最佳匹配的圖形樣式。"
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "將滑鼠游標移至螢幕上或是指定區域內最佳匹配的圖形樣式上。"
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "將第一個圖形樣式拖至第二個圖形樣式上放開。"
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "用鍵盤輸入 <i>text</i> 到目前的視窗。"
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr "點擊給定的圖形樣式取得視窗焦點後，用鍵盤輸入 <i>text</i>。"
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "透過剪貼簿將 <i>text</i> 貼到目前的視窗。"
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr "點擊給定的圖形樣式取得視窗焦點後，再透過剪貼簿將 <i>text</i> 貼上。"
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr "當給定的圖形樣式出現在螢幕上或區域內時，呼叫函式 <i>handler</i> 。"
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr "當給定的圖形樣式消失在螢幕上或區域內時，呼叫函式 <i>handler</i> 。"
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr "當螢幕上或指定區域內有變化時，呼叫函式 <i>handler</i> 。"
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"開始監控螢幕或指定區域，最多 <i>time</i> 秒。如果 <i>background</i>設為True，監控將在背景與剩餘指令同時執行。"
+
+#: extBtnInstall
+msgid "Install"
+msgstr "安裝"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "更多資訊"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "已安裝"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "安裝 {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "升級至 {0}"

@@ -1,0 +1,64 @@
+/*
+* HTML Lexer
+*/
+
+{
+	"name": "HTML",
+	"aliases": ["html"],
+	"filenames": ["*.html", "*.htm", "*.xhtml", "*.xslt"],
+	"mimetypes": ["text/html", "application/xhtml+xml"],
+
+  	"class": "regex",
+	"flags": ["IGNORECASE", "DOTALL"],
+
+	"states":
+	{	
+		"root":
+		[
+			[r'[^<&]+', "Text"],
+			[r'&\S*?;', "Name.Entity"],
+			[r'\<\!\[CDATA\[.*?\]\]\>', "Comment.Preproc"],
+			[r'<!--', "Comment", "comment"],
+			[r'<\?.*?\?>', "Comment.Preproc"],
+			[r'<![^>]*>', "Comment.Preproc"],
+			[r'<\s*script\s*', "Name.Tag", ["script-content", "tag"]],
+			[r'<\s*style\s*', "Name.Tag", ["style-content", "tag"]],
+			[r'<\s*[a-zA-Z0-9:]+', "Name.Tag", "tag"],
+			[r'<\s*/\s*[a-zA-Z0-9:]+\s*>', "Name.Tag"]
+		],
+
+		"comment":
+		[
+			[r'[^-]+', "Comment"],
+			[r'-->', "Comment", "#pop"],
+			[r'-', "Comment"]
+		],
+
+		"tag":
+		[
+			[r'\s+', "Text"],
+			[r'[a-zA-Z0-9_:-]+\s*=', "Name.Attribute", "attr"],
+			[r'[a-zA-Z0-9_:-]+', "Name.Attribute"],
+			[r'/?\s*>', "Name.Tag", "#pop"]
+		],
+
+		"script-content":
+		[
+			[r'<\s*/\s*script\s*>', "Name.Tag", "#pop"],
+            ["#using", r'.+?(?=<\s*/\s*script\s*>)', "javascript"]
+		],
+
+		"style-content":
+		[
+			[r'<\s*/\s*style\s*>', "Name.Tag", "#pop"],
+            ["#using", r'.+?(?=<\s*/\s*style\s*>)', "css"]
+		],
+
+		"attr":
+		[
+			[r'".*?"', "String", "#pop"],
+			[r"'.*?'", "String", "#pop"],
+			[r'[^\s>]+', "String", "#pop"]
+		]
+	}
+}

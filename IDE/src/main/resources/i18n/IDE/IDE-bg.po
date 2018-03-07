@@ -1,0 +1,597 @@
+# Bulgarian translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-07-10 21:30+0000\n"
+"Last-Translator: Marco Idakiev <Unknown>\n"
+"Language-Team: Bulgarian <bg@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "Файл"
+
+#: menuEdit
+msgid "Edit"
+msgstr "Редактиране"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "Изпълнение"
+
+#: menuView
+msgid "View"
+msgstr "Изглед"
+
+#: menuTool
+msgid "Tools"
+msgstr "Инструменти"
+
+#: menuFileNew
+msgid "New"
+msgstr "Ново"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "Отваряне..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "Запазване"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "Запазване като…"
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "Изнасяне на изпълним файл..."
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "Настройки..."
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "Затваряне на подпрозореца"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "Изход"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "Отмени"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "Възстановяване"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "Изрязване"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "Копиране"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "Поставяне"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "Избиране на всичко"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "Отстъп"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "Махане на отстъп"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "Намери"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "Намери..."
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "Намери следващ"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "Намери предишен"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "Изпълнение"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "Пусни на забавен кадър"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "Спиране"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "Тест на артикул"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr ""
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr ""
+
+#: menuHelp
+msgid "Help"
+msgstr "Помощ"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "Проверка за обновление..."
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Пълно ръководство за Sikuli Script"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr ""
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "Задайте въпроси и открийте отговори"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "Докладване за грешка"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "Влезте в нашия проект за превеждане!"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Домашната страница на Sikuli"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} е налична!"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "Няма налично обновление."
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "Настройки"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "Автоматично прихващане"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "Намери"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "Действия с мишката"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "Действия с клавиатурата"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr ""
+
+#: paneMessage
+msgid "Message"
+msgstr "Съобщение"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr ""
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "Без име"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr ""
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "Пусни ({0})"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "Пусни"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "Пусни на забавен кадър"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "Натиснете {0} за спиране"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr ""
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr ""
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "Направете екранна снимка"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "Направете екранна снимка ({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "Вмъкване на изображение от дисковете"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "Вмъкни изображение "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"Грешка при изпълнение на {0}\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "Изход с код {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "Спряно"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "Получава се грешка на ред {0}"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"Съобщение на грешката:\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "Изберете участък от екрана"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "Настройки"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr ""
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr ""
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr ""
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr ""
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr ""
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr ""
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr ""
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr ""
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "Прихващане на екрана"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "Бърз клавиш за прихващане:"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "Забяване преди прихващане:"
+
+#: prefSeconds
+msgid "seconds"
+msgstr "секунди"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr ""
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr ""
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr ""
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr ""
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "Основни настройки"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "Автоматична проверка за обновление"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "Да се затвори ли този подпрозорец?"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0} беше промемен. Запазване на промените?"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "Ред: {0,number,integer}, Колона: {1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "Настройка на шаблон"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "Файл"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "Преглед на съвпадението"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "Изместване на целта"
+
+#: lblPath
+msgid "Path:"
+msgstr "Път:"
+
+#: lblFilename
+msgid "Filename:"
+msgstr "Име на файла:"
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "Сходство:"
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "ИЗместване на целта по Х:"
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr ", Y:"
+
+#: ok
+msgid "OK"
+msgstr "Добре"
+
+#: cancel
+msgid "Cancel"
+msgstr "Отказ"
+
+#: yes
+msgid "Yes"
+msgstr "Да"
+
+#: no
+msgid "No"
+msgstr "Не"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "Файлът съществува"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "Сигурни ли сте, че искате да презапишете този файл \"{0}\"?"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr ""
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr ""
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "Търси най-пълно съвпадащия елемент на ГПИ на екрана или в участъка."
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "Търси всички съвпадащи елементи на ГПИ на екрана или в участъка."
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr ""
+"В продължение на <i>timeout</i> секунди изчаква даден елемент на ГПИ да се "
+"появи на екрана или в участък."
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr ""
+"В продължение на <i>timeout</i> секунди изчаква даден елемент на ГПИ да се "
+"изчезне от екрана или участък."
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr ""
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr ""
+"Цъкане на най-пълно съвпадащият елемент на ГПИ на екрана или в участък."
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Двойно цъкане на най-пълно съвпадащият елемент на ГПИ на екрана или в "
+"участък."
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr ""
+"Дясно цъкане на най-пълно съвпадащия елемент на ГПИ на екрана или в участък."
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr ""
+"Премества показалеца на мишка на най-пълно съвпадащия компонент на ГПИ."
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "Влачи първият компонент и го пуска върху втория."
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "Изписва посоченото <i>text</i> в текущо фокусирания прозорец."
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr ""
+"Цъка върху указания компонент за да го фокусира, след което изписва "
+"<i>text</i>."
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "Поставя <i>text</i> в текущо фокусирания прозорец"
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr ""
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr ""
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr ""
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr ""
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+
+#: extBtnInstall
+msgid "Install"
+msgstr "Инсталиране"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "Повече информация"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr ""
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "Инсталирай {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "Поднови на {0}"

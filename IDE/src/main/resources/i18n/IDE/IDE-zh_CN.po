@@ -1,0 +1,587 @@
+# Chinese (Simplified) translation for sikuli
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the sikuli package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sikuli\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-09-08 16:24-0400\n"
+"PO-Revision-Date: 2011-09-08 21:47+0000\n"
+"Last-Translator: bobdos <Unknown>\n"
+"Language-Team: Chinese (Simplified) <zh_CN@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2011-09-14 21:56+0000\n"
+"X-Generator: Launchpad (build 13921)\n"
+
+#: menuFile
+msgctxt "menuFile"
+msgid "File"
+msgstr "文件(F)"
+
+#: menuEdit
+msgid "Edit"
+msgstr "编辑(E)"
+
+#: menuRun
+msgctxt "menuRun"
+msgid "Run"
+msgstr "运行"
+
+#: menuView
+msgid "View"
+msgstr "视图"
+
+#: menuTool
+msgid "Tools"
+msgstr "工具"
+
+#: menuFileNew
+msgid "New"
+msgstr "新建"
+
+#: menuFileOpen
+msgid "Open..."
+msgstr "打开..."
+
+#: menuFileSave
+msgid "Save"
+msgstr "保存(&S)"
+
+#: menuFileSaveAs
+msgid "Save as..."
+msgstr "另存为..."
+
+#: menuFileExport
+msgid "Export excutable..."
+msgstr "导出为可执行文件"
+
+#: menuFilePreferences
+msgid "Preferences..."
+msgstr "选项"
+
+#: menuFileCloseTab
+msgid "Close Tab"
+msgstr "关闭标签页"
+
+#: menuFileQuit
+msgid "Quit"
+msgstr "退出 (Quit)"
+
+#: menuEditUndo
+msgid "Undo"
+msgstr "撤销"
+
+#: menuEditRedo
+msgid "Redo"
+msgstr "恢复"
+
+#: menuEditCut
+msgid "Cut"
+msgstr "剪切(&T)"
+
+#: menuEditCopy
+msgid "Copy"
+msgstr "复制"
+
+#: menuEditPaste
+msgid "Paste"
+msgstr "粘贴"
+
+#: menuEditSelectAll
+msgid "Select All"
+msgstr "全选"
+
+#: menuEditIndent
+msgid "Indent"
+msgstr "缩进"
+
+#: menuEditUnIndent
+msgid "Un-Indent"
+msgstr "不缩进文本"
+
+#: menuFind
+msgctxt "menuFind"
+msgid "Find"
+msgstr "查找"
+
+#: menuFindFind
+msgid "Find..."
+msgstr "查找…"
+
+#: menuFindFindNext
+msgid "Find Next"
+msgstr "查找下一个"
+
+#: menuFindFindPrev
+msgid "Find Previous"
+msgstr "查找上一个"
+
+#: menuRunRun
+msgctxt "menuRunRun"
+msgid "Run"
+msgstr "运行"
+
+#: menuRunRunAndShowActions
+msgctxt "menuRunRunAndShowActions"
+msgid "Run in slow motion"
+msgstr "逐步运行"
+
+#: menuRunStop
+msgid "Stop"
+msgstr "终止执行"
+
+#: menuViewUnitTest
+msgctxt "menuViewUnitTest"
+msgid "Unit Test"
+msgstr "单元测试"
+
+#: menuViewCommandList
+msgid "Command List"
+msgstr "命令列表"
+
+#: menuToolExtensions
+msgid "Extensions..."
+msgstr "扩展组件..."
+
+#: menuHelp
+msgid "Help"
+msgstr "帮助中心"
+
+#: menuHelpCheckUpdate
+msgid "Check Update..."
+msgstr "检查更新"
+
+#: menuHelpGuide
+msgid "The Complete Guide to Sikuli Script"
+msgstr "Sikuli 脚本指南"
+
+#: menuHelpDocumentations
+msgid "Tutorials, Examples, How-To's"
+msgstr "教程示例"
+
+#: menuHelpAsk
+msgid "Ask Questions & Find Answers"
+msgstr "问答"
+
+#: menuHelpBugReport
+msgid "Report a Bug"
+msgstr "报告错误"
+
+#: menuHelpTranslation
+msgid "Join our translation project!"
+msgstr "加入翻译团队"
+
+#: menuHelpHomepage
+msgid "Sikuli's Homepage"
+msgstr "Sikuli 主页"
+
+#: dlgUpdateAvailable
+msgid "Sikuli {0} is available!"
+msgstr "Sikuli {0} 当前可用！"
+
+#: msgNoUpdate
+msgid "No update is available."
+msgstr "暂无更新。"
+
+#: cmdListSettings
+msgid "Settings"
+msgstr "设置"
+
+#: cmdListAutoCapture
+msgid "Auto Capture"
+msgstr "自动截取"
+
+#: cmdListFind
+msgctxt "cmdListFind"
+msgid "Find"
+msgstr "查找"
+
+#: cmdListMouse
+msgid "Mouse Actions"
+msgstr "鼠标动作"
+
+#: cmdListKeyboard
+msgid "Keyboard Actions"
+msgstr "键盘动作"
+
+#: cmdListObserver
+msgid "Event Observation"
+msgstr "事件观测"
+
+#: paneMessage
+msgid "Message"
+msgstr "提示信息"
+
+#: paneTestTrace
+msgid "Test Trace"
+msgstr "测试跟踪记录"
+
+#: tabUntitled
+msgid "Untitled"
+msgstr "未命名"
+
+#: tabUnitTest
+msgctxt "tabUnitTest"
+msgid "Unit Test"
+msgstr "单元测试"
+
+#: btnRun
+msgid "Run ({0})"
+msgstr "运行（{0}）"
+
+#: btnRunLabel
+msgctxt "btnRunLabel"
+msgid "Run"
+msgstr "运行"
+
+#: btnRunSlowMotionLabel
+msgctxt "btnRunSlowMotionLabel"
+msgid "Run in slow motion"
+msgstr "逐步运行"
+
+#: btnRunStopHint
+msgid "Press {0} to stop"
+msgstr "按 {0} 终止"
+
+#: btnRegionLabel
+msgid "Create Region"
+msgstr "建立屏幕区域"
+
+#: btnRegionHint
+msgid "Create a region to restrict screen matching"
+msgstr "创建屏幕匹配区域"
+
+#: btnCaptureLabel
+msgid "Take screenshot"
+msgstr "屏幕截图"
+
+#: btnCaptureHint
+msgid "Take a screenshot ({0})"
+msgstr "截取屏幕({0})"
+
+#: btnInsertImageHint
+msgid "Insert an image from disks"
+msgstr "插入来自本地磁盘的图片"
+
+#: btnInsertImageLabel
+msgid "Insert image "
+msgstr "插入图片 "
+
+#: msgRunningSklError
+msgid ""
+"Runtime Error when running {0}\n"
+"{1}"
+msgstr ""
+"执行{0}时，发生运行时错误\n"
+"{1}"
+
+#: msgExit
+msgid "Exited with code {0}"
+msgstr "退出程序执行，结束代码 {0}"
+
+#: msgStopped
+msgid "Stopped"
+msgstr "被停止"
+
+#: msgErrorLine
+msgid "An error occurs at line {0}"
+msgstr "第{0}行发生错误"
+
+#: msgErrorMsg
+msgid ""
+"Error message:\n"
+"{0}"
+msgstr ""
+"错误信息：\n"
+"{0}"
+
+#: msgCapturePrompt
+msgid "Select a region on the screen"
+msgstr "选取屏幕区域"
+
+#: winPreferences
+msgid "Preferences"
+msgstr "首选项"
+
+#: PreferencesWin.chkExpandTab.text
+msgid "Tab key inserts spaces instead of tab"
+msgstr ""
+
+#: PreferencesWin.lblUpdates.text
+msgid "Updates"
+msgstr "更新"
+
+#: PreferencesWin.lblLanguage.text
+msgid "Language"
+msgstr "语言"
+
+#: PreferencesWin.lblTabWidth.text
+msgid "Tab width:"
+msgstr "制表符宽度:"
+
+#: PreferencesWin.lblFont.text
+msgid "Font name:"
+msgstr "字体名:"
+
+#: PreferencesWin.lblFontSize.text
+msgid "Size:"
+msgstr "尺寸:"
+
+#: PreferencesWin.titleAppearance.textWithMnemonic
+msgid "Fonts"
+msgstr "字体"
+
+#: PreferencesWin.titleIndentation.textWithMnemonic
+msgid "Indentation"
+msgstr "缩进"
+
+#: PreferencesWin.paneTextEditing.tab.title
+msgid "Text Editing"
+msgstr "文本编辑"
+
+#: prefTabScreenCapturing
+msgid "Screen Capturing"
+msgstr "屏幕截图"
+
+#: prefCaptureHotkey
+msgid "Quick capture hotkey:"
+msgstr "截图快捷键"
+
+#: prefCaptureDelay
+msgid "Delay before capture:"
+msgstr "截图前延时："
+
+#: prefSeconds
+msgid "seconds"
+msgstr "秒"
+
+#: prefAutoNaming
+msgid "Automatic Naming:"
+msgstr "自动命名："
+
+#: prefTimestamp
+msgid "time stamp"
+msgstr "时间戳"
+
+#: prefRecognizedText
+msgid "text in the image"
+msgstr "图片中的文字"
+
+#: prefManualInput
+msgid "off (manual input)"
+msgstr "禁用（手动输入）"
+
+#: prefTabGeneralSettings
+msgid "General Settings"
+msgstr "常规设置"
+
+#: prefGeneralAutoCheck
+msgid "Check Update Automatically"
+msgstr "自动检查更新"
+
+#: dlgAskCloseTab
+msgid "Do you want to close this tab?"
+msgstr "是否要关闭该标签页？"
+
+#: msgAskSaveChanges
+msgid "{0} has been modified. Save changes?"
+msgstr "{0}已改动，是否保存更改？"
+
+#: statusLineColumn
+msgid "Line: {0,number,integer}, Column: {1,number,integer}"
+msgstr "行：{0,number,integer}, 列：{1,number,integer}"
+
+#: winPatternSettings
+msgid "Pattern Settings"
+msgstr "样式设置"
+
+#: tabNaming
+msgctxt "tabNaming"
+msgid "File"
+msgstr "文件"
+
+#: tabMatchingPreview
+msgid "Matching Preview"
+msgstr "匹配预览"
+
+#: tabTargetOffset
+msgid "Target Offset"
+msgstr "目标位置偏移"
+
+#: lblPath
+msgid "Path:"
+msgstr "路径："
+
+#: lblFilename
+msgid "Filename:"
+msgstr "文件名："
+
+#: lblSimilarity
+msgid "Similarity:"
+msgstr "相似度："
+
+#: lblNumberOfMatches
+msgid "Number of matches/Max:"
+msgstr ""
+
+#: lblTargetOffsetX
+msgid "Target offset  X:"
+msgstr "目标位置偏移 X："
+
+#: lblTargetOffsetY
+msgid ", Y:"
+msgstr "Y："
+
+#: ok
+msgid "OK"
+msgstr "确定"
+
+#: cancel
+msgid "Cancel"
+msgstr "取消"
+
+#: yes
+msgid "Yes"
+msgstr "是"
+
+#: no
+msgid "No"
+msgstr "否"
+
+#: dlgFileExists
+msgid "File Exists"
+msgstr "文件已存在"
+
+#: msgFileExists
+msgid "Are you sure to overwrite this file \"{0}\"?"
+msgstr "是否覆盖文件“{0}”？"
+
+#: dlgEnterScreenshotFilename
+msgid "Name The Screen Shot"
+msgstr "命名屏幕截图"
+
+#: msgEnterScreenshotFilename
+msgid "Enter the screen shot's file name:"
+msgstr "输入屏幕截图的文件名："
+
+#: cmdFind
+msgid ""
+"Looks for the best matched GUI component on the screen or in the Region."
+msgstr "在屏幕上或指定区域中查找匹配度最佳的GUI组件。"
+
+#: cmdFindAll
+msgid "Looks for all matched GUI component on the screen or in the Region."
+msgstr "在屏幕上或指定区域中查找所有匹配的GUI组件。"
+
+#: cmdWait
+msgid ""
+"Waits the given GUI component to appear on the screen or in the Region for "
+"up to <i>timeout</i> seconds."
+msgstr "等待屏幕上或指定区域中给定GUI组件出现，最长等待<i>timeout<i>秒。"
+
+#: cmdWaitVanish
+msgid ""
+"Waits the given GUI component to disappear on the screen or in the Region "
+"for up to <i>timeout</i> seconds."
+msgstr "等待屏幕上或指定区域中给定GUI组件消失，最长等待<i>timeout<i>秒。"
+
+#: cmdExists
+msgid ""
+"Checks if the given GUI component exists on the screen or in the "
+"Region.<br>If it can not be found, None is returned without throwing an "
+"exception."
+msgstr "在屏幕上或指定区域中检查给定的GUI组件是否存在。<br>若未找到该组件，则返回None，不抛出异常。"
+
+#: cmdClick
+msgid ""
+"Clicks on the best matched GUI component on the screen or in the Region."
+msgstr "在屏幕上或指定区域中左键单击匹配度最佳的GUI组件。"
+
+#: cmdDoubleClick
+msgid ""
+"Double clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "在屏幕上或指定区域中双击匹配度最佳的GUI组件。"
+
+#: cmdRightClick
+msgid ""
+"Right clicks on the best matched GUI component on the screen or in the "
+"Region."
+msgstr "在屏幕上或指定区域中右键单击匹配度最佳的GUI组件。"
+
+#: cmdHover
+msgid "Moves the mouse cursor on the best matched GUI component."
+msgstr "移动鼠标指针至匹配度最佳的GUI组件。"
+
+#: cmdDragDrop
+msgid "Drags the first component, and drops at the second component."
+msgstr "拖放第一个组件至第二个组件上。"
+
+#: cmdType
+msgid "Types the given <i>text</i> to the current focused window."
+msgstr "在当前焦点所在的窗口控件中键入<i>text<i>。"
+
+#: cmdType2
+msgid ""
+"Clicks on the given component to gain the focus and then types the given "
+"<i>text</i>."
+msgstr "点击给定组件使其获得焦点，然后键入<i>text<i>。"
+
+#: cmdPaste
+msgid "Pastes the given <i>text</i> to the current focused window."
+msgstr "将<i>text<i>粘贴到当前焦点所在的窗口控件。"
+
+#: cmdPaste2
+msgid ""
+"Clicks on the given component to gain the focus and then pastes the given "
+"<i>text</i>."
+msgstr "点击给定组件使其获得焦点，然后粘贴<i>text<i>至其中。"
+
+#: cmdOnAppear
+msgid ""
+"Calls <i>handler</i> when the given image pattern appears on the screen or "
+"in the Region."
+msgstr "当给定图像出现在屏幕上或指定区域中时，调用<i>handler<i>。"
+
+#: cmdOnVanish
+msgid ""
+"Calls <i>handler</i> when the given image pattern disappears on the screen "
+"or in the Region."
+msgstr "当给定图像在屏幕上或指定区域中消失时，调用<i>handler<i>。"
+
+#: cmdOnChange
+msgid ""
+"Calls <i>handler</i> when anything is changed on the screen or in the Region."
+msgstr "当屏幕上或指定区域中的显示发生变化时，调用<i>handler<i>"
+
+#: cmdObserve
+msgid ""
+"Starts the observer to watch the screen or the Region for up to <i>time</i> "
+"seconds.<br>The observer will be run in the background if <i>background</i> "
+"is set to True."
+msgstr ""
+"启动监视程序以监视全屏幕或指定区域范围，最多<i>time<i>秒。若<i>background<i>参数设置为True，监视程序将在后台运行。"
+
+#: extBtnInstall
+msgid "Install"
+msgstr "安装"
+
+#: extBtnInfo
+msgid "More Info"
+msgstr "详情"
+
+#: extMsgInstalled
+msgid "Installed"
+msgstr "已安装"
+
+#: extBtnInstallVer
+msgid "Install {0}"
+msgstr "安装 {0}"
+
+#: extBtnUpdateVer
+msgid "Update to {0}"
+msgstr "升级至 {0}"
