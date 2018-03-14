@@ -9,7 +9,7 @@ env:
   - secure: cJKVwqjMzeZuqbtmDZACWCZRCBCVKJHoMCOCgK7Vs2GWkU8JHrb/eAz1HGEKbgnD4G87HsshYz9Iq7XdoO5BAonBsBJwtfLr0OmCWDXnI9hpZS904O8LvQKk3deYASFjoIVFCqQdN4mXqFxVK4psz8t/KQR1L9NC26rFocarl4qPhn3zspKFoLzt/XjcrW8+ldjqNUqAPm7Jp1a0oxgBhS/BsuOKqM4YNup/qYUVKHdNgj9dSMbDQ3j8BIB80ZJLeP6tSdanPd5If02xtQovDjN4wtJcgXtfqXcX2Qf7F8DZjhxOHEOskHIv0UHw0yIbu+7OaMsSMvI8vKHZJP7bJfZDPq93lsSv2oUFW4I9Wtw+Pvam8SMvkuBNNaNR0QJE4X0sROQ1JMrbO+vOdAp3gbCNADCHJWioFkyoeey0RkTHcmgMtGCKDHPcKx4bamkbey442wEhHFBtBMlGwgDVusiUYqcnaTmTiHWn+0amBWmcvsV0Cm3ikfFR3PGRMS6wD9640JGX/l3wWsgtEe6BCX+6uH8T9poSDnOehZU3TNmQ6/fT7fn9lrFNV21c1sLkyRy4V8EvjXV8ttbsMO5xYeUEdlP2VToqeMMT7q1CoZoOQZKHoj/yPw7Zai7I+VhdyGfjJZuGTpXefiHxF+txdYa01laOMwYJ3EWe2mVF1fw=
 before_install:
 - openssl aes-256-cbc -K $encrypted_20efacf1f04e_key -iv $encrypted_20efacf1f04e_iv
-  -in codesigning.asc.enc -out codesigning.asc -d
+  -in codesigning/codesigning.asc.enc -out codesigning/codesigning.asc -d
 install: mvn install -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
