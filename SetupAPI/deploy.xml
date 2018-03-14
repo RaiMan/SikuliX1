@@ -32,9 +32,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:RaiMan/SikuliX-2014.git</connection>
-        <developerConnection>scm:git:git@github.com:RaiMan/SikuliX-2014.git</developerConnection>
-        <url>git@github.com:RaiMan/SikuliX-2014.git</url>
+        <connection>scm:git:git@github.com:RaiMan/SikuliX1.git</connection>
+        <developerConnection>scm:git:git@github.com:RaiMan/SikuliX1.git</developerConnection>
+        <url>git@github.com:RaiMan/SikuliX1.git</url>
     </scm>
 
     <dependencies>
