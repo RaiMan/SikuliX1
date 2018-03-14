@@ -922,8 +922,8 @@ public class Runner {
       for (int i = 0; i < args.length; i++) {
         newArgs[i + 1] = args[i];
       }
-      Runner.pyRunner.setSysArgv(newArgs);
       newArgs[0] = fpScript;
+      Runner.pyRunner.setSysArgv(newArgs);
       int retval;
       if (fScript == null) {
         ImagePath.addHTTP(fpScript);
