@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 /**Contains Swing Icon classes used by JDNC's Swing Extensions.
 <h2>Package Specification</h2>

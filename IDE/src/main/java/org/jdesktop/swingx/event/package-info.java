@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 /**Contains API for events added as part of JDNC's Swing extensions,
 such as message and progress events.

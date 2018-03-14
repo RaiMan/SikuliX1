@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 /**
  * Provides metal laf specific implementation of pluggable look-and-feel for SwingX components together with a
