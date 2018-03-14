@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014) [![Join the chat at https://gitter.im/RaiMan/SikuliX-2014](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RaiMan/SikuliX-2014?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
 
 -----------------
-1.1.3 is a bug-fix release for problems with versions up to 1.1.2 ([get nightly builds]())
+1.1.3 is a bug-fix release for problems with versions up to 1.1.2 ([get nightly builds](https://raiman.github.io/SikuliX1/nightly.html))
 
 [looking for 1.1.2 final (available 2018-03-10)](https://launchpad.net/sikuli/sikulix/1.1.2)
 
