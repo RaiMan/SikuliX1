@@ -78,7 +78,7 @@ public class Finder implements Iterator<Match> {
       _region = region;
       screenFinder = false;
     } else {
-      log(-1, "imagefile not found:\n%s");
+      log(-1, "imagefile not found:\n%s", imageFilename);
       valid = false;
     }
   }
