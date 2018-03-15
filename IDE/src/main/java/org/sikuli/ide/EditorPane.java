@@ -220,7 +220,17 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       dirtyHandler = new DirtyHandler();
     }
     getDocument().addDocumentListener(dirtyHandler);
-    getDocument().addUndoableEditListener(getUndoManager());
+//    getDocument().addUndoableEditListener(getUndoManager());
+    getDocument().addUndoableEditListener(getUndoRedo(this));
+  }
+
+  private EditorPaneUndoRedo undoRedo = null;
+
+  public EditorPaneUndoRedo getUndoRedo(EditorPane pane) {
+    if (undoRedo == null) {
+      undoRedo = new EditorPaneUndoRedo(pane);
+    }
+    return undoRedo;
   }
 
   public EditorUndoManager getUndoManager() {

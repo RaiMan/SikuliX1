@@ -1335,6 +1335,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private void initEditMenu() throws NoSuchMethodException {
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     _editMenu.setMnemonic(java.awt.event.KeyEvent.VK_E);
+//    JMenuItem undoItem = _editMenu.add(_undoAction);
     JMenuItem undoItem = _editMenu.add(_undoAction);
     undoItem.setAccelerator(
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask));
@@ -1524,9 +1525,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void updateUndoState() {
-      if (getCurrentCodePane() != null
-              && getCurrentCodePane().getUndoManager().canUndo()) {
-        setEnabled(true);
+      EditorPane pane = getCurrentCodePane();
+      if (pane != null) {
+        if (pane.getUndoRedo(pane).getUndoManager().canUndo()) {
+          setEnabled(true);
+        }
       } else {
         setEnabled(false);
       }
@@ -1534,13 +1537,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      EditorUndoManager undo = getCurrentCodePane().getUndoManager();
-      try {
-        undo.undo();
-      } catch (CannotUndoException ex) {
+      EditorPane pane = getCurrentCodePane();
+      if (pane != null) {
+        try {
+          pane.getUndoRedo(pane).getUndoManager().undo();
+        } catch (CannotUndoException ex) {
+        }
+        updateUndoState();
+        _redoAction.updateRedoState();
       }
-      updateUndoState();
-      _redoAction.updateRedoState();
     }
   }
 
@@ -1551,23 +1556,27 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       setEnabled(false);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      EditorUndoManager undo = getCurrentCodePane().getUndoManager();
-      try {
-        undo.redo();
-      } catch (CannotRedoException ex) {
-      }
-      updateRedoState();
-      _undoAction.updateUndoState();
-    }
-
     protected void updateRedoState() {
-      if (getCurrentCodePane() != null
-              && getCurrentCodePane().getUndoManager().canRedo()) {
-        setEnabled(true);
+      EditorPane pane = getCurrentCodePane();
+      if (pane != null) {
+        if (pane.getUndoRedo(pane).getUndoManager().canRedo()) {
+          setEnabled(true);
+        }
       } else {
         setEnabled(false);
+      }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      EditorPane pane = getCurrentCodePane();
+      if (pane != null) {
+        try {
+          pane.getUndoRedo(pane).getUndoManager().redo();
+        } catch (CannotRedoException ex) {
+        }
+        updateRedoState();
+        _undoAction.updateUndoState();
       }
     }
   }
