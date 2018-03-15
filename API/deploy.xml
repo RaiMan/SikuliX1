@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017, sikuli.org, sikulix.com - MIT license
+  ~ Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,9 +34,9 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git@github.com:RaiMan/SikuliX-2014.git</connection>
-		<developerConnection>scm:git:git@github.com:RaiMan/SikuliX-2014.git</developerConnection>
-		<url>git@github.com:RaiMan/SikuliX-2014.git</url>
+		<connection>scm:git:git@github.com:RaiMan/SikuliX1.git</connection>
+		<developerConnection>scm:git:git@github.com:RaiMan/SikuliX1.git</developerConnection>
+		<url>git@github.com:RaiMan/SikuliX1.git</url>
 	</scm>
 
 	<repositories>
@@ -235,8 +235,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 		</plugins>
