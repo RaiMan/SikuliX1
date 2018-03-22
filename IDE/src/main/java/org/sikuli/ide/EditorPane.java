@@ -145,6 +145,9 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     } else if (Runner.ERUBY.equals(scriptType)) {
       scrType = Runner.CRUBY;
       _indentationLogic = null;
+    } else if (Runner.EJSCRIPT.equals(scriptType)) {
+      scrType = Runner.CJSCRIPT;
+      _indentationLogic = null;
     }
 
 //TODO should know, that scripttype not changed here to avoid unnecessary new setups
@@ -199,11 +202,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       this.setText("");
     }
     SikuliIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
-    log(lvl, "InitTab: (%s)", getSikuliContentType());
     if (!ScriptingSupport.hasTypeRunner(getSikuliContentType())) {
       Sikulix.popup("No installed runner supports (" + getSikuliContentType() + ")\n"
               + "Trying to run the script will crash IDE!", "... serious problem detected!");
     }
+     log(lvl, "InitTab: (%s)", getSikuliContentType());
   }
 
   public String getSikuliContentType() {
