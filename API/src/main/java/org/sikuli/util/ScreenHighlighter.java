@@ -191,7 +191,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   public void highlight(Region r_) {
     //change due to oracle blog: https://blogs.oracle.com/thejavatutorials/entry/translucent_and_shaped_windows_in
     if (!_isTransparentSupported) {
-      Debug.error("highlight transparent is not support on " + System.getProperty("os.name")+ "!");
+      Debug.log(3,"highlight transparent is not supported on " + System.getProperty("os.name")+ "!");
       //use at least an not transparent color
       _transparentColor = Color.pink;
     }
