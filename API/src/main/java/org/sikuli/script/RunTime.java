@@ -158,7 +158,7 @@ public class RunTime {
       }
 
 //<editor-fold defaultstate="collapsed" desc="versions">
-      String vJava = System.getProperty("java.runtime.version");
+      String vJava = System.getProperty("java.version");
       String vVM = System.getProperty("java.vm.version");
       String vClass = System.getProperty("java.class.version");
       String vSysArch = System.getProperty("sikuli.arch");
@@ -176,21 +176,25 @@ public class RunTime {
         runTime.log(runTime.lvl, "Java arch (32 or 64 Bit) not detected nor given - using %d Bit", runTime.javaArch);
       }
       try {
-        if (!vJava.startsWith("1")) {
+        if (vJava.startsWith("1.")) {
+          runTime.javaVersion = Integer.parseInt(vJava.substring(2, 3));
+        } else if (vJava.startsWith("9.")) {
           runTime.javaVersion = 9;
         } else {
-          runTime.javaVersion = Integer.parseInt(vJava.substring(2, 3));
+          runTime.javaVersion = Integer.parseInt(vJava);
         }
         runTime.javaShow = String.format("java %d-%d version %s vm %s class %s arch %s",
                 runTime.javaVersion, runTime.javaArch, vJava, vVM, vClass, vSysArch);
       } catch (Exception ex) {
-        runTime.log(-1, "Java version not detected (using 7): %s", vJava);
-        runTime.javaVersion = 7;
-        runTime.javaShow = String.format("java ?7?-%d version %s vm %s class %s arch %s",
+        runTime.log(-1, "Java version not detected - pretending 8 : %s", vJava);
+        runTime.javaVersion = 8;
+        runTime.javaShow = String.format("java ?8?-%d version %s vm %s class %s arch %s",
                 runTime.javaArch, vJava, vVM, vClass, vSysArch);
         runTime.logp(runTime.javaShow);
         runTime.dumpSysProps();
       }
+
+      if (runTime.javaVersion < 8) runTime.terminate(-1, "Jave must be version 8 or newer");
 
       if (Debug.getDebugLevel() > runTime.minLvl) {
         runTime.dumpSysProps();
@@ -201,10 +205,8 @@ public class RunTime {
           runTime.log(-1, "Java version unusual, but should be used (sikuli.javaok given)!");
         } else {
           if (Type.SETUP.equals(typ)) {
-            //runTime.log(-1, "***** EXPERIMENTAL: Setup running on Java 9 *****");
           } else {
-            //runTime.terminate(-1, "Java version must be 1.7 or 1.8!");
-            runTime.log(-1, "***** BE AWARE: Running on Java 9 - Please report problems *****");
+            runTime.log(-1, "***** BE AWARE: Running on Java > 8 - Please report problems *****");
           }
         }
       }
@@ -1189,7 +1191,7 @@ public class RunTime {
   public boolean isJava9(String... args) {
     if (javaVersion > 8) {
       if (args.length > 0) {
-        log(-1, "*** Java 9: %s", args[0]);
+        log(-1, "*** Java > 8: %s", args[0]);
       }
       return true;
     } else {
@@ -1215,7 +1217,8 @@ public class RunTime {
   }
 
   public boolean isOSX10() {
-    return osVersion.startsWith("10.10.") || osVersion.startsWith("10.11.") || osVersion.startsWith("10.12.");
+    return osVersion.startsWith("10.10.") || osVersion.startsWith("10.11.")
+            || osVersion.startsWith("10.12.") || osVersion.startsWith("10.13.");
   }
 
   public boolean needsRobotFake() {
