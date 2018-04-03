@@ -28,9 +28,8 @@ The coordinates:
 **You might also visit the WIKI**
 
 **The Java language and bytecode versions are at 1.8**, so the nightly artifacts at least need Java 8.
-<br>If you want to build from theses sources here, you need Java 9
 
-**BE AWARE: When using with Java 9 - Please report any problems**
+**BE AWARE: When using with Java 9+ - Please report any problems**
 
 In doubt it is a good idea to run things from command line using
 
