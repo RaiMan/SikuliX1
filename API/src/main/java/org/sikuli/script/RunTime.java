@@ -158,7 +158,7 @@ public class RunTime {
       }
 
 //<editor-fold defaultstate="collapsed" desc="versions">
-      String vJava = System.getProperty("java.runtime.version");
+      String vJava = System.getProperty("java.version");
       String vVM = System.getProperty("java.vm.version");
       String vClass = System.getProperty("java.class.version");
       String vSysArch = System.getProperty("sikuli.arch");
@@ -176,10 +176,11 @@ public class RunTime {
         runTime.log(runTime.lvl, "Java arch (32 or 64 Bit) not detected nor given - using %d Bit", runTime.javaArch);
       }
       try {
-        if (!vJava.startsWith("1")) {
-          runTime.javaVersion = 9;
-        } else {
+        if (vJava.startsWith("1.")) {
           runTime.javaVersion = Integer.parseInt(vJava.substring(2, 3));
+        } else {
+          String[] parts = vJava.split("\\.");
+          runTime.javaVersion = Integer.parseInt(parts[0]);
         }
         runTime.javaShow = String.format("java %d-%d version %s vm %s class %s arch %s",
                 runTime.javaVersion, runTime.javaArch, vJava, vVM, vClass, vSysArch);
