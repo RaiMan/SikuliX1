@@ -366,7 +366,7 @@ public class RunSetup {
 
     String splashJava9 = "";
     if (runTime.isJava9()) {
-      splashJava9 = "*** on Java9 *** ";
+      splashJava9 = "*** on Java8+ *** ";
     }
 
     if (!hasOptions && !testingMaven) {

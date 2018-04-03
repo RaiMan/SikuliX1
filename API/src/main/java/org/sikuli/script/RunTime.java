@@ -205,7 +205,7 @@ public class RunTime {
             //runTime.log(-1, "***** EXPERIMENTAL: Setup running on Java 9 *****");
           } else {
             //runTime.terminate(-1, "Java version must be 1.7 or 1.8!");
-            runTime.log(-1, "***** BE AWARE: Running on Java 9 - Please report problems *****");
+            runTime.log(-1, "*** BE AWARE: Running on Java 8+ *** Please report problems ***");
           }
         }
       }
@@ -1185,12 +1185,12 @@ public class RunTime {
   }
 
   /**
-   * @return return true if Java version gt 7
+   * @return return true if Java version gt 7, optional message when gt 8
    */
   public boolean isJava9(String... args) {
     if (javaVersion > 8) {
       if (args.length > 0) {
-        log(-1, "*** Java 9: %s", args[0]);
+        log(-1, "*** Java 8+: %s", args[0]);
       }
       return true;
     } else {

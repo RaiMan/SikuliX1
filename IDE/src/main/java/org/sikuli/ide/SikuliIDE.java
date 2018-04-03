@@ -354,8 +354,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Debug.info("IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
 
     if (runTime.isJava9()) {
-      Debug.info("***** BE AWARE: Running on Java 9");
-      Debug.info("... Please report problems *****");
+      Debug.info("*** BE AWARE: Running on Java 8+");
+      Debug.info("*** Please report problems");
     }
     if (waitBeforeVisible > 0) {
       try {
