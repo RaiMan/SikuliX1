@@ -482,6 +482,11 @@ public class Runner {
     if (!JythonHelper.get().prepareRobot()) {
       return -1;
     }
+    boolean showReport = true;
+    if (code.length() > 7 && code.substring(0, 7).contains("silent\n")) {
+      code = code.substring(7);
+      showReport = false;
+    }
     File script = new File(ImagePath.getBundlePath());
     File fRobotWork = new File(script.getAbsolutePath() + ".robot");
     FileManager.deleteFileOrFolder(fRobotWork);
@@ -535,7 +540,7 @@ public class Runner {
     pyRunner.exec(robotCmd + "; print \"robot.run returned:\", ret; " +
             String.format("print \"robot.run output is here:\\n%s\";",
             fRobotWork.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\")));
-    if (new File(fRobotWork, "report.html").exists()) {
+    if (showReport && new File(fRobotWork, "report.html").exists()) {
       App.openLink("file:" + urlReport);
     }
     return 0;
