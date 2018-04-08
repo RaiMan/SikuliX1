@@ -17,7 +17,8 @@
       <unpack>true</unpack>
       <unpackOptions>
         <excludes>
-          <exclude>sikulixlibs/</exclude>
+          <exclude>sikulixlibs/mac/</exclude>
+          <exclude>sikulixlibs/windows/</exclude>
           <exclude>sikulixtessdata/</exclude>
           <exclude>junit/</exclude>
         </excludes>
