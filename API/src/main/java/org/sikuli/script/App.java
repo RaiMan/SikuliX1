@@ -507,7 +507,7 @@ public class App {
 
   @Override
   public String toString() {
-    if (!appWindow.startsWith("!")) {
+    if (appWindow != null && !appWindow.isEmpty() && !appWindow.startsWith("!")) {
       init();
     }
     return String.format("[%d:%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
