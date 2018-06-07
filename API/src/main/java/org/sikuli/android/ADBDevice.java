@@ -180,7 +180,7 @@ public class ADBDevice {
         if (x + actW > currentW) {
           actW = currentW - x;
         }
-        if (y + actW > currentH) {
+        if (y + actH > currentH) {
           actH = currentH - y;
         }
       }
