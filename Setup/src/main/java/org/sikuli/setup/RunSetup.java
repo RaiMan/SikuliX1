@@ -746,8 +746,6 @@ public class RunSetup {
         }
         downloadOK &= copyFromDownloads(fDownloaded, libsLux, jarsList[8]);
         if (downloadOK && isLinux) {
-          runTime.addToClasspath(jarsList[8], "RunSetup: libs for Linux");
-          runTime.dumpClassPath("sikulix");
           if (shouldBuildVision) {
             logPlus(lvl, "Requested to build libVisionProxy.so on the fly");
             if (!LinuxSupport.haveToBuild()) {

@@ -158,7 +158,7 @@ public class RunTime {
       }
 
 //<editor-fold defaultstate="collapsed" desc="versions">
-      String vJava = System.getProperty("java.version");
+      String vJava = System.getProperty("java.specification.version");
       String vVM = System.getProperty("java.vm.version");
       String vClass = System.getProperty("java.class.version");
       String vSysArch = System.getProperty("sikuli.arch");

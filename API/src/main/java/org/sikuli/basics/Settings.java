@@ -128,7 +128,7 @@ public class Settings {
   private static int makeJavaVersion() {
     int major = 0;
     try {
-      String vJava = java.lang.System.getProperty("java.version");
+      String vJava = java.lang.System.getProperty("java.specification.version");
       if (vJava.startsWith("1.")) {
         major = Integer.parseInt(vJava.substring(2, 3));
       } else {
