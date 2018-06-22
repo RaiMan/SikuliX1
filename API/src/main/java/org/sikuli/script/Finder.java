@@ -220,7 +220,6 @@ public class Finder implements Iterator<Match> {
   }
 
   private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img) {
-    BufferedImage newBimg = img.get();
 //* Java example
 //    // define and activate the callback
 //    Settings.ImageCallback = new ImageCallback() {
@@ -243,10 +242,18 @@ public class Finder implements Iterator<Match> {
 //    Settings.ImageCallback = MyCallback()
 //    # deactivate the callback
 //    Settings.ImageCallback = None
+    return possibleImageResizeOrCallback(img, 0);
+  }
 
-    if (Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
+  private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
+    BufferedImage newBimg = img.get();
+    float factor = oneTimeResize;
+    if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
+      factor = Settings.AlwaysResize;
+    }
+    if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
-      newBimg = Image.resize(newBimg, Settings.AlwaysResize);
+      newBimg = Image.resize(newBimg, factor);
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       newBimg = Settings.ImageCallback.callback(img);
@@ -268,7 +275,7 @@ public class Finder implements Iterator<Match> {
     if (aPtn.isValid()) {
       _pattern = aPtn;
       _image = aPtn.getImage();
-      _findInput.setTarget(possibleImageResizeOrCallback(_image));
+      _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _results = Vision.find(_findInput);
       _cur_result_i = 0;
@@ -358,7 +365,7 @@ public class Finder implements Iterator<Match> {
     if (aPtn.isValid()) {
       _pattern = aPtn;
       _image = aPtn.getImage();
-      _findInput.setTarget(possibleImageResizeOrCallback(_image));
+      _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setFindAll(true);
       Debug timing = Debug.startTimer("Finder.findAll");

@@ -22,6 +22,7 @@ public class Pattern {
   private Location offset = new Location(0, 0);
   private int waitAfter = 0;
   private boolean imagePattern = false;
+  private float resizeFactor = 0;
 
   /**
    * creates empty Pattern object at least setFilename() or setBImage() must be used before the
@@ -52,6 +53,15 @@ public class Pattern {
 		image = img.create(img);
     image.setIsPattern(false);
 		imagePattern = true;
+  }
+
+  public Pattern resize(float factor) {
+    resizeFactor = factor;
+    return this;
+  }
+
+  public float getResize() {
+    return resizeFactor;
   }
 
 	/**
