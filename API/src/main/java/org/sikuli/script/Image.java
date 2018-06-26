@@ -1129,13 +1129,16 @@ public class Image {
    */
   public BufferedImage resize(float factor) {
     int type;
-    BufferedImage bufimg = get();
-    type = bufimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bufimg.getType();
-    int width = (int) (getSize().getWidth() * factor);
-    int height = (int) (getSize().getHeight() * factor);
+    return resize(get(), factor);
+  }
+
+  protected static BufferedImage resize(BufferedImage bimg, float factor) {
+    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
+    int width = (int) (bimg.getWidth() * factor);
+    int height = (int) (bimg.getHeight() * factor);
     BufferedImage resizedImage = new BufferedImage(width, height, type);
     Graphics2D g = resizedImage.createGraphics();
-    g.drawImage(bufimg, 0, 0, width, height, null);
+    g.drawImage(bimg, 0, 0, width, height, null);
     g.dispose();
     return resizedImage;
   }

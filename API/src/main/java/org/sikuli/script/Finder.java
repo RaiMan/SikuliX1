@@ -219,6 +219,48 @@ public class Finder implements Iterator<Match> {
     return null;
   }
 
+  private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img) {
+//* Java example
+//    // define and activate the callback
+//    Settings.ImageCallback = new ImageCallback() {
+//      public BufferedImage callback(Image img) {
+//        return img.get(); //return the original BufferedImage
+//      }
+//    };
+//    // deactivate the callback
+//    Settings.ImageCallback = null;
+//
+//* Jython example
+//    # define the callback
+//    import org.sikuli.script.ImageCallback as ImageCallback
+//    class MyCallback(ImageCallback):
+//      def callback(self, img):
+//        print "hello from MyCallback"
+//        # return the original BufferedImage
+//        return img.get()
+//    # activate the callback
+//    Settings.ImageCallback = MyCallback()
+//    # deactivate the callback
+//    Settings.ImageCallback = None
+    return possibleImageResizeOrCallback(img, 0);
+  }
+
+  private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
+    BufferedImage newBimg = img.get();
+    float factor = oneTimeResize;
+    if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
+      factor = Settings.AlwaysResize;
+    }
+    if (factor > 0 && factor != 1) {
+      Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
+      newBimg = Image.resize(newBimg, factor);
+    } else if (Settings.ImageCallback != null) {
+      Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
+      newBimg = Settings.ImageCallback.callback(img);
+    }
+    return Image.convertBufferedImageToMat(newBimg);
+  }
+
   /**
    * do a find op with the given pattern in the Finder's image
    * (hasNext() and next() will reveal possible match results)
@@ -232,7 +274,8 @@ public class Finder implements Iterator<Match> {
     }
     if (aPtn.isValid()) {
       _pattern = aPtn;
-      _findInput.setTarget(aPtn.getImage().getMatNative());
+      _image = aPtn.getImage();
+      _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _results = Vision.find(_findInput);
       _cur_result_i = 0;
@@ -254,7 +297,8 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     if (img.isValid()) {
-      _findInput.setTarget(img.getMatNative());
+      _image = img;
+      _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
       _results = Vision.find(_findInput);
       _cur_result_i = 0;
@@ -319,9 +363,9 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     if (aPtn.isValid()) {
-      _image = aPtn.getImage();
       _pattern = aPtn;
-      _findInput.setTarget(aPtn.getImage().getMatNative());
+      _image = aPtn.getImage();
+      _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setFindAll(true);
       Debug timing = Debug.startTimer("Finder.findAll");
@@ -346,7 +390,8 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     if (img.isValid()) {
-      _findInput.setTarget(img.getMatNative());
+      _image = img;
+      _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
       _findInput.setFindAll(true);
       Debug timing = Debug.startTimer("Finder.findAll");

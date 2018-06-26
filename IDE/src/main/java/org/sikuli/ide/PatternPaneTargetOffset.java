@@ -121,21 +121,27 @@ class PatternPaneTargetOffset extends JPanel implements
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		int rot = e.getWheelRotation();
-		int patW = (int) (getWidth() * _ratio);
-//		float zoomRatio = patW / (float) _img.getWidth();
-		int patH = (int) (_img.getHeight() * _zoomRatio);
-		if (rot < 0) {
-			if (patW < 2 * getWidth() && patH < 2 * getHeight()) {
-				_ratio *= 1.1;
-			}
-		} else {
-			if (patW > 20 && patH > 20) {
-				_ratio *= 0.9;
-			}
-		}
-		repaint();
+		int rotation = e.getWheelRotation();
+		changeSize(rotation);
 	}
+
+	private void changeSize(int zoomInOut) {
+	  if (zoomInOut == 0) {
+      return;
+    }
+    int patW = (int) (getWidth() * _ratio);
+    int patH = (int) (_img.getHeight() * _zoomRatio);
+    if (zoomInOut < 0) {
+      if (patW < 2 * getWidth() && patH < 2 * getHeight()) {
+        _ratio *= 1.1;
+      }
+    } else {
+      if (patW > 20 && patH > 20) {
+        _ratio *= 0.9;
+      }
+    }
+    repaint();
+  }
 
 	@Override
 	public void mouseClicked(MouseEvent me) {

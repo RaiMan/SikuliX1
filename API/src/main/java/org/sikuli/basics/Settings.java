@@ -3,6 +3,7 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.ImageCallback;
 import org.sikuli.script.RunTime;
 
 import java.io.File;
@@ -312,6 +313,8 @@ public class Settings {
   public static boolean CheckLastSeen = true;
   public static float CheckLastSeenSimilar = 0.95f;
   public static boolean UseImageFinder = false;
+  public static float AlwaysResize = 0;
+  public static org.sikuli.script.ImageCallback ImageCallback = null;
 
   private static int ImageCache = 64;
 
