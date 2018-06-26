@@ -435,9 +435,16 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     log(lvl, "writeSrcFile: " + _editingFile.getName());
     this.write(new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
+    boolean shouldDeleteHTML = true;
     if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
-      convertSrcToHtml(getSrcBundle());
-    } else {
+      try {
+        convertSrcToHtml(getSrcBundle());
+        shouldDeleteHTML = false;
+      } catch (Exception ex) {
+        log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+      }
+    }
+    if (shouldDeleteHTML) {
       String snameDir = new File(_editingFile.getAbsolutePath()).getParentFile().getName();
       String sname = snameDir.replace(".sikuli", "") + ".html";
       (new File(snameDir, sname)).delete();
@@ -446,7 +453,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       if (!sikuliContentType.equals(Runner.CPYTHON)) {
         log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
       }
-      cleanBundle();
+      try {
+        cleanBundle();
+      } catch (Exception ex) {
+        log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+      }
     }
     setDirty(false);
   }
@@ -458,7 +469,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       log(-1, "cleanBundle aborted (uncomplete_comment_error)");
     } else {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
-      log(3, "cleanBundle finished");
+      log(lvl, "cleanBundle finished");
     }
   }
 
