@@ -220,28 +220,6 @@ public class Finder implements Iterator<Match> {
   }
 
   private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img) {
-//* Java example
-//    // define and activate the callback
-//    Settings.ImageCallback = new ImageCallback() {
-//      public BufferedImage callback(Image img) {
-//        return img.get(); //return the original BufferedImage
-//      }
-//    };
-//    // deactivate the callback
-//    Settings.ImageCallback = null;
-//
-//* Jython example
-//    # define the callback
-//    import org.sikuli.script.ImageCallback as ImageCallback
-//    class MyCallback(ImageCallback):
-//      def callback(self, img):
-//        print "hello from MyCallback"
-//        # return the original BufferedImage
-//        return img.get()
-//    # activate the callback
-//    Settings.ImageCallback = MyCallback()
-//    # deactivate the callback
-//    Settings.ImageCallback = None
     return possibleImageResizeOrCallback(img, 0);
   }
 
