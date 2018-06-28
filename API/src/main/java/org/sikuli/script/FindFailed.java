@@ -77,6 +77,7 @@ public class FindFailed extends SikuliException {
   }
 
   public static FindFailedResponse setHandler(Object observer) {
+    defaultFindFailedResponse = HANDLE;
     if (observer != null && (observer.getClass().getName().contains("org.python")
             || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, ObserveEvent.Type.FINDFAILED);

@@ -428,6 +428,7 @@ public class Region {
     rows = 0;
     autoWaitTimeout = r.autoWaitTimeout;
     findFailedResponse = r.findFailedResponse;
+    findFailedHandler = r.findFailedHandler;
     throwException = r.throwException;
     waitScanRate = r.waitScanRate;
     observeScanRate = r.observeScanRate;
@@ -442,7 +443,7 @@ public class Region {
    * internal use only, used for new Screen objects to get the Region behavior
    */
   protected Region() {
-    this.rows = 0;
+    rows = 0;
   }
 
   /**
@@ -2421,7 +2422,7 @@ public class Region {
       }
     }
     if (!shouldAbort.isEmpty()) {
-      runTime.abortScripting("Exists: Abort:", "FindFailed: " + shouldAbort);
+      //runTime.abortScripting("Exists: Abort:", "FindFailed: " + shouldAbort);
     } else {
       log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
     }
