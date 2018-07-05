@@ -428,6 +428,7 @@ public class Region {
     rows = 0;
     autoWaitTimeout = r.autoWaitTimeout;
     findFailedResponse = r.findFailedResponse;
+    findFailedHandler = r.findFailedHandler;
     throwException = r.throwException;
     waitScanRate = r.waitScanRate;
     observeScanRate = r.observeScanRate;
@@ -442,7 +443,7 @@ public class Region {
    * internal use only, used for new Screen objects to get the Region behavior
    */
   protected Region() {
-    this.rows = 0;
+    rows = 0;
   }
 
   /**
@@ -2206,7 +2207,7 @@ public class Region {
    *
    * @param img Handles a failed find action
    */
-  private <PSI> Boolean handleFindFailed(PSI target, Image img, boolean isExists) {
+  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
     log(lvl, "handleFindFailed: %s", target);
     Boolean state = null;
     ObserveEvent evt = null;
@@ -2222,9 +2223,6 @@ public class Region {
     }
     if (FindFailedResponse.ABORT.equals(response)) {
       state = null;
-      if (isExists) {
-        state = false;
-      }
     } else if (FindFailedResponse.SKIP.equals(response)) {
       state = false;
     } else if (FindFailedResponse.RETRY.equals(response)) {
@@ -2353,7 +2351,7 @@ public class Region {
       }
       log(lvl, "find: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
       if (null == lastMatch) {
-        response = handleFindFailed(target, img, false);
+        response = handleFindFailed(target, img);
       }
     }
     if (null == response) {
@@ -2384,7 +2382,6 @@ public class Region {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     lastMatch = null;
-    String shouldAbort = "";
     RepeatableFind rf = new RepeatableFind(target, null);
     Image img = rf._image;
     Boolean response = true;
@@ -2395,36 +2392,19 @@ public class Region {
       }
     }
     String targetStr = img.getName();
-    while (null != response && response) {
-      log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
-      if (rf.repeat(timeout)) {
-        lastMatch = rf.getMatch();
-        lastMatch.setImage(img);
-        if (isOtherScreen()) {
-          lastMatch.setOtherScreen();
-        } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
-        }
-        log(lvl, "exists: %s has appeared (%s)", targetStr, lastMatch);
-        return lastMatch;
-      } else {
-        response = handleFindFailed(target, img, true);
-        if (null == response) {
-          shouldAbort = FindFailed.createdefault(this, img);
-        } else if (response) {
-          if (img.isRecaptured()) {
-            rf = new RepeatableFind(target, img);
-          }
-          continue;
-        }
-        break;
+    log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+    if (rf.repeat(timeout)) {
+      lastMatch = rf.getMatch();
+      lastMatch.setImage(img);
+      if (isOtherScreen()) {
+        lastMatch.setOtherScreen();
+      } else if (img != null) {
+        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
       }
+      log(lvl, "exists: %s has appeared (%s)", targetStr, lastMatch);
+      return lastMatch;
     }
-    if (!shouldAbort.isEmpty()) {
-      runTime.abortScripting("Exists: Abort:", "FindFailed: " + shouldAbort);
-    } else {
-      log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
-    }
+    log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
     return null;
   }
 
@@ -2462,7 +2442,7 @@ public class Region {
         break;
       } else {
         log(lvl, "findAll: %s did not appear", targetStr);
-        response = handleFindFailed(target, img, false);
+        response = handleFindFailed(target, img);
       }
     }
     if (null == response) {
@@ -2764,7 +2744,7 @@ public class Region {
         log(lvl, "wait: %s appeared (%s)", targetStr, lastMatch);
         return lastMatch;
       } else {
-        response = handleFindFailed(target, img, false);
+        response = handleFindFailed(target, img);
         if (null == response) {
           shouldAbort = FindFailed.createdefault(this, img);
           break;
