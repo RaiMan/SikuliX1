@@ -24,6 +24,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   private JLabel patternImageIcon = null;
 	private EditorPane _pane;
 	private float _similarity, _similaritySaved;
+	private float _resizeFactor;
 	private int _numMatches = DEFAULT_NUM_MATCHES;
 	private boolean _exact, _exactSaved;
 	private Location _offset = new Location(0, 0), _offsetSaved;
@@ -59,6 +60,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     _imgFilename = _lbl.getFile();
 		_exact = false;
 		_similarity = _lbl.getSimilarity();
+		_resizeFactor = _lbl.getResizeFactor();
     _offset = _lbl.getTargetOffset();
     _numMatches = DEFAULT_NUM_MATCHES;
     _pane = _lbl.getPane();
@@ -137,8 +139,18 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 				} catch (NumberFormatException e) {
 					return null;
 				}
-			}
-		}
+      } else if (tok.startsWith("resize")) {
+        String strArg = tok.substring(tok.lastIndexOf("(") + 1);
+        float rf;
+        try {
+          rf = Float.valueOf(strArg);
+        } catch (NumberFormatException e) {
+          rf = 0;
+        }
+        btn.setResizeFactor(rf);
+      }
+
+    }
     btn.setButtonText();
 		return btn;
 	}
@@ -293,6 +305,10 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     return _similarity;
   }
 
+  public void setResizeFactor(float factor) {
+    _resizeFactor = factor;
+  }
+
 	public boolean setTargetOffset(Location offset) {
 		Debug.log(3, "ThumbButtonLabel: setTargetOffset: " + offset.toStringShort());
 		if (!_offset.equals(offset)) {
@@ -355,7 +371,11 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     final int fontH = g2d.getFontMetrics().getMaxAscent();
     final int borderW = 3;
     g2d.setFont(textFont);
-    g2d.setColor(new Color(0, 128, 0, 128));
+    Color simBack = new Color(0, 128, 0, 128);
+    if (_resizeFactor > 0 && _resizeFactor != 1) {
+      simBack = new Color(128, 0, 0, 128);
+    }
+    g2d.setColor(simBack);
     g2d.fillRoundRect(x - borderW * 2 - w - 1, y, w + borderW * 2 + 1, fontH + borderW * 2 + 1, 3, 3);
     g2d.setColor(Color.white);
     g2d.drawString(str, x - w - 3, y + fontH + 3);
@@ -394,14 +414,14 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
 	@Override
 	public String toString() {
-    return _pane.getPatternString(_imgFilename, _similarity, _offset, _image);
+    return _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor);
 	}
 
   private void setButtonText() {
     if (_lbl == null) {
       setToolTipText(toString());
     } else {
-      _lbl.resetLabel(_imgFilename, _similarity, _offset);
+      _lbl.resetLabel(_imgFilename, _similarity, _offset, _resizeFactor);
     }
   }
 

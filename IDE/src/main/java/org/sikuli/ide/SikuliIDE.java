@@ -1678,9 +1678,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void toggleShowThumbs(ActionEvent ae) {
-      getCurrentCodePane().showThumbs = chkShowThumbs.getState();
+      boolean showThumbsState = chkShowThumbs.getState();
+      getCurrentCodePane().showThumbs = showThumbsState;
       getCurrentCodePane().saveCaretPosition();
-      if (!getCurrentCodePane().reparse()) {
+      boolean reparseReturn = getCurrentCodePane().reparse();
+      if (!reparseReturn) {
         chkShowThumbs.setState(!chkShowThumbs.getState());
         getCurrentCodePane().showThumbs = chkShowThumbs.getState();
       }

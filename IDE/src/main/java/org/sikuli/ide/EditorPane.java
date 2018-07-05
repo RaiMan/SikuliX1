@@ -1005,7 +1005,8 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     if (paneContent.length() < 7) {
       return true;
     }
-    if (readScript(paneContent)) {
+    boolean readScriptReturn = readScript(paneContent);
+    if (readScriptReturn) {
       updateDocumentListeners("reparse");
       return true;
     }
@@ -1030,8 +1031,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       Element elm = node.getElement(i);
       log(lvl + 1, elm.toString());
       if (elm.isLeaf()) {
-        int start = elm.getStartOffset(), end = elm.getEndOffset();
-        parseRange(start, end);
+        parseRange(elm.getStartOffset(), elm.getEndOffset());
       } else {
         parse(elm);
       }
@@ -1097,7 +1097,8 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       String line = doc.getText(startOff, endOff - startOff);
       Matcher m = ptn.matcher(line);
       //System.out.println("["+line+"]");
-      if (m.find()) {
+      boolean ptnFound = m.find();
+      if (ptnFound) {
         int len = m.end() - m.start();
         boolean replaced = replaceWithImage(startOff + m.start(), startOff + m.end(), ptn);
         if (replaced) {
@@ -1146,7 +1147,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  public String getPatternString(String ifn, float sim, Location off, Image img) {
+  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor) {
 //TODO ifn really needed??
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
@@ -1156,23 +1157,26 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       imgName = img.getName();
     }
     String pat = "Pattern(\"" + imgName + "\")";
-    String ret = "";
+    String patternString = "";
+    if (resizeFactor > 0 && resizeFactor != 1) {
+      patternString += String.format(".resize(%.2f)", resizeFactor);
+    }
     if (sim > 0) {
       if (sim >= 0.99F) {
-        ret += ".exact()";
+        patternString += ".exact()";
       } else if (sim != 0.7F) {
-        ret += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
+        patternString += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
       }
     }
     if (off != null && (off.x != 0 || off.y != 0)) {
-      ret += ".targetOffset(" + off.x + "," + off.y + ")";
+      patternString += ".targetOffset(" + off.x + "," + off.y + ")";
     }
-    if (!ret.equals("")) {
-      ret = pat + ret;
+    if (!patternString.equals("")) {
+      patternString = pat + patternString;
     } else {
-      ret = "\"" + imgName + "\"";
+      patternString = "\"" + imgName + "\"";
     }
-    return ret;
+    return patternString;
   }
   //</editor-fold>
 

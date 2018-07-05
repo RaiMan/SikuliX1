@@ -31,6 +31,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
   private String lblText;
   private EditorPane pane;
   private float sim;
+  private float resizeFactor;
   private Location off;
   private String imgName = null;
   private String imgNameShort = null;
@@ -74,6 +75,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
     pane = parentPane;
     sim = 0.7F;
     off = new Location(0, 0);
+    resizeFactor = 0;
     if ("".equals(pyText)) {
       lblText = CAPTURE;
       pyText = "\"" + lblText + "\"";
@@ -104,6 +106,15 @@ public class EditorPatternLabel extends EditorRegionLabel {
             off.y = Integer.valueOf(args[1]);
           } catch (NumberFormatException e) {
           }
+        } else if (tok.startsWith("resize")) {
+          String strArg = tok.substring(tok.lastIndexOf("(") + 1);
+          float rf;
+          try {
+            rf = Float.valueOf(strArg);
+          } catch (NumberFormatException e) {
+            rf = 0;
+          }
+          resizeFactor = rf;
         }
       }
       if (lblText != null) {
@@ -197,13 +208,14 @@ public class EditorPatternLabel extends EditorRegionLabel {
     return (CAPTURE.equals(lblText) || lblText.startsWith(NOTFOUND));
   }
 
-  public void resetLabel(String givenFileName, float sim, Location off) {
+  public void resetLabel(String givenFileName, float sim, Location off, float resizeFactor) {
     imgName = (new File(givenFileName)).getName();
     image = Image.createThumbNail(imgName);
     imgFile = image.getFilename();
     imgNameShort = imgName.replaceFirst(".png", "").replaceFirst(".jpg", "");
     this.sim = sim;
     this.off = off;
+    this.resizeFactor = resizeFactor;
     setLabelText();
     setLabelPyText();
   }
@@ -217,13 +229,17 @@ public class EditorPatternLabel extends EditorRegionLabel {
     if (off != null && (off.x != 0 || off.y != 0)) {
       buttonOffset = String.format(" (%d,%d)", off.x, off.y);
     }
-    lblText = imgNameShort + buttonSimilar + buttonOffset;
+    String buttonResize = "";
+    if (resizeFactor > 0 && resizeFactor != 1) {
+      buttonResize = String.format(" +%3.1f", resizeFactor);
+    }
+    lblText = imgNameShort + buttonSimilar + buttonOffset + buttonResize;
     setText(lblText);
   }
 
   public void setLabelPyText() {
     if (!lblText.startsWith(NOTFOUND)) {
-      pyText = pane.getPatternString(imgName, sim, off, image);
+      pyText = pane.getPatternString(imgName, sim, off, image, resizeFactor);
     }
   }
 
@@ -259,16 +275,19 @@ public class EditorPatternLabel extends EditorRegionLabel {
     return sim;
   }
 
+  public float getResizeFactor() {
+    return resizeFactor;
+  }
+
   public EditorPane getPane() {
     return pane;
   }
 
   public static EditorPatternLabel labelFromString(EditorPane parentPane, String str) {
-    EditorPatternLabel reg = new EditorPatternLabel(parentPane, str, false);
-    if (reg.isOnImagePath()) {
-      return reg;
+    EditorPatternLabel editorPatternLabel = new EditorPatternLabel(parentPane, str, false);
+    if (editorPatternLabel.isOnImagePath()) {
+      return editorPatternLabel;
     } else {
-      reg = null;
       return null;
     }
   }
