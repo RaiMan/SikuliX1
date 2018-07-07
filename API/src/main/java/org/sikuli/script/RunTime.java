@@ -1216,7 +1216,7 @@ public class RunTime {
   }
 
   public boolean isOSX10() {
-    return osVersion.startsWith("10.10.") || osVersion.startsWith("10.11.") || osVersion.startsWith("10.12.");
+    return osVersion.startsWith("10.1");
   }
 
   public boolean needsRobotFake() {
