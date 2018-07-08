@@ -332,16 +332,16 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   public void paint(Graphics g) {
     super.paint(g);
     Graphics2D g2d = (Graphics2D)g;
-    drawText(g2d);
+    drawDecoration(g2d);
     if( useThumbnail() ){
        g2d.setColor( new Color(0, 128, 128, 128) );
        g2d.drawRoundRect(3, 3, getWidth()-7, getHeight()-7, 5, 5);
     }
   }
 
-  private void drawText(Graphics2D g2d) {
+  private void drawDecoration(Graphics2D g2d) {
     String strSim = null, strOffset = null;
-    if (_similarity != DEFAULT_SIMILARITY) {
+    if (_similarity != DEFAULT_SIMILARITY || (_resizeFactor > 0 && _resizeFactor != 1)) {
       if (_exact) {
         strSim = "99";
       } else {
@@ -357,17 +357,17 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     final int fontH = g2d.getFontMetrics().getMaxAscent();
     final int x = getWidth(), y = 0;
-    drawText(g2d, strSim, x, y);
+    drawSimBadge(g2d, strSim, x, y);
     if (_offset != null) {
       drawCross(g2d);
     }
   }
 
-  private void drawText(Graphics2D g2d, String str, int x, int y) {
-    if (str == null) {
+  private void drawSimBadge(Graphics2D g2d, String strSim, int x, int y) {
+    if (strSim == null) {
       return;
     }
-    final int w = g2d.getFontMetrics().stringWidth(str);
+    final int w = g2d.getFontMetrics().stringWidth(strSim);
     final int fontH = g2d.getFontMetrics().getMaxAscent();
     final int borderW = 3;
     g2d.setFont(textFont);
@@ -378,7 +378,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     g2d.setColor(simBack);
     g2d.fillRoundRect(x - borderW * 2 - w - 1, y, w + borderW * 2 + 1, fontH + borderW * 2 + 1, 3, 3);
     g2d.setColor(Color.white);
-    g2d.drawString(str, x - w - 3, y + fontH + 3);
+    g2d.drawString(strSim, x - w - 3, y + fontH + 3);
   }
 
   private void drawCross(Graphics2D g2d) {
