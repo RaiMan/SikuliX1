@@ -393,7 +393,6 @@ public class Region {
   public Region(int X, int Y, int W, int H) {
     this(X, Y, W, H, null);
     this.rows = 0;
-    log(lvl, "init: (%d, %d, %d, %d)", X, Y, W, H);
   }
 
   /**
