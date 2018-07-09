@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.natives.FindInput;
@@ -33,6 +34,7 @@ public class Observer {
 
     FIRST, UNKNOWN, MISSING, REPEAT, HAPPENED, INACTIVE
   }
+
   private Region observedRegion = null;
   private Mat lastImgMat = null;
   private org.opencv.core.Mat lastImageMat = null;
@@ -195,7 +197,8 @@ public class Observer {
       boolean hasMatch = false;
       long lastSearchTime;
       long now = 0;
-      if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
+//      if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
+      if (Settings.CheckLastSeen && null != img.getLastSeen()) {
         Region r = Region.create(img.getLastSeen());
         if (observedRegion.contains(r)) {
           lastSearchTime = (new Date()).getTime();
@@ -213,12 +216,13 @@ public class Observer {
       }
       if (match == null) {
         if (finder == null) {
-          if (Settings.UseImageFinder) {
-            finder = new ImageFinder(observedRegion);
-            ((ImageFinder) finder).setIsMultiFinder();
-          } else {
-            finder = new Finder(simg, observedRegion);
-          }
+//          if (Settings.UseImageFinder) {
+//            finder = new ImageFinder(observedRegion);
+//            ((ImageFinder) finder).setIsMultiFinder();
+//          } else {
+//            finder = new Finder(simg, observedRegion);
+//          }
+          finder = new Finder(simg, observedRegion);
         }
         lastSearchTime = (new Date()).getTime();
         now = (new Date()).getTime();
@@ -262,7 +266,7 @@ public class Observer {
     return patternsToCheck();
   }
 
-  private boolean patternsToCheck () {
+  private boolean patternsToCheck() {
     for (String name : eventNames.keySet()) {
       if (eventTypes.get(name) == ObserveEvent.Type.CHANGE) {
         continue;
@@ -303,17 +307,18 @@ public class Observer {
     }
     boolean leftToDo = false;
     if (lastImgMat == null) {
-      if (Settings.UseImageFinder) {
-        lastImageMat = new org.opencv.core.Mat();
-      } else {
-        lastImgMat = Image.convertBufferedImageToMat(img.getImage());
-      }
+//      if (Settings.UseImageFinder) {
+//        lastImageMat = new org.opencv.core.Mat();
+//      } else {
+//        lastImgMat = Image.convertBufferedImageToMat(img.getImage());
+//      }
+      lastImgMat = Image.convertBufferedImageToMat(img.getImage());
       return true;
     }
-    if (Settings.UseImageFinder && lastImageMat.empty()) {
-      lastImageMat = Image.createMat(img.getImage());
-      return true;
-    }
+//    if (Settings.UseImageFinder && lastImageMat.empty()) {
+//      lastImageMat = Image.createMat(img.getImage());
+//      return true;
+//    }
     for (String name : eventNames.keySet()) {
       if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) {
         continue;
@@ -328,32 +333,32 @@ public class Observer {
     if (leftToDo) {
       leftToDo = false;
       log(lvl + 1, "update: checking changes");
-      if (Settings.UseImageFinder) {
-        ImageFinder f = new ImageFinder(lastImageMat);
-        f.setMinChanges(minChanges);
-        org.opencv.core.Mat current = Image.createMat(img.getImage());
-        if (f.hasChanges(current)) {
-          //TODO implement ChangeObserver: processing changes
-          log(lvl, "TODO: processing changes");
+//      if (Settings.UseImageFinder) {
+//        ImageFinder f = new ImageFinder(lastImageMat);
+//        f.setMinChanges(minChanges);
+//        org.opencv.core.Mat current = Image.createMat(img.getImage());
+//        if (f.hasChanges(current)) {
+//          //TODO implement ChangeObserver: processing changes
+//          log(lvl, "TODO: processing changes");
+//        }
+//        lastImageMat = current;
+//      } else {
+      FindInput fin = new FindInput();
+      fin.setSource(lastImgMat);
+      Mat target = Image.convertBufferedImageToMat(img.getImage());
+      fin.setTarget(target);
+      fin.setSimilarity(minChanges);
+      FindResults results = Vision.findChanges(fin);
+      if (results.size() > 0) {
+        callChangeObserver(results);
+        if (shouldStopOnFirstEvent) {
+          observedRegion.stopObserver();
         }
-        lastImageMat = current;
       } else {
-        FindInput fin = new FindInput();
-        fin.setSource(lastImgMat);
-        Mat target = Image.convertBufferedImageToMat(img.getImage());
-        fin.setTarget(target);
-        fin.setSimilarity(minChanges);
-        FindResults results = Vision.findChanges(fin);
-        if (results.size() > 0) {
-          callChangeObserver(results);
-          if (shouldStopOnFirstEvent) {
-            observedRegion.stopObserver();
-          }
-        } else {
-          leftToDo = true;
-        }
-        lastImgMat = target;
+        leftToDo = true;
       }
+      lastImgMat = target;
+//      }
     }
     return leftToDo |= numChangeCallBacks > 0;
   }
@@ -400,6 +405,6 @@ public class Observer {
     if (!observedRegion.isObserving()) {
       return false;
     }
-   return false || fromPatterns || fromChanges;
+    return false || fromPatterns || fromChanges;
   }
 }

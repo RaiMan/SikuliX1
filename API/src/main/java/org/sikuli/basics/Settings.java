@@ -312,7 +312,7 @@ public class Settings {
   public static double MinSimilarity = 0.7;
   public static boolean CheckLastSeen = true;
   public static float CheckLastSeenSimilar = 0.95f;
-  public static boolean UseImageFinder = false;
+  //public static boolean UseImageFinder = false;
   public static float AlwaysResize = 0;
   public static org.sikuli.script.ImageCallback ImageCallback = null;
 
