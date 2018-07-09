@@ -1159,7 +1159,7 @@ public class Region {
 
   /**
    * resets this region to the given location, and size <br> this might move the region even to another screen
-   * <p>
+   *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
    *
@@ -1178,7 +1178,7 @@ public class Region {
 
   /**
    * resets this region to the given rectangle <br> this might move the region even to another screen
-   * <p>
+   *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
    *
@@ -1190,7 +1190,7 @@ public class Region {
 
   /**
    * resets this region to the given region <br> this might move the region even to another screen
-   * <p>
+   *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
    *
@@ -2981,7 +2981,8 @@ public class Region {
     }
     boolean shouldCheckLastSeen = false;
     float score = 0;
-    if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
+//    if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
+    if (Settings.CheckLastSeen && null != img.getLastSeen()) {
       score = (float) (img.getLastSeenScore() - 0.01);
       if (ptn != null) {
         if (!(ptn.getSimilar() > score)) {
@@ -3011,13 +3012,14 @@ public class Region {
         log(lvl, "checkLastSeen: not there");
       }
     }
-    if (Settings.UseImageFinder) {
-      ImageFinder f = new ImageFinder(this);
-      f.setFindTimeout(findTimeout);
-      return f;
-    } else {
-      return new Finder(base, this);
-    }
+//    if (Settings.UseImageFinder) {
+//      ImageFinder f = new ImageFinder(this);
+//      f.setFindTimeout(findTimeout);
+//      return f;
+//    } else {
+//      return new Finder(base, this);
+//    }
+    return new Finder(base, this);
   }
 
   /**
@@ -3104,7 +3106,8 @@ public class Region {
         run();
         if (ifSuccessful()) {
           return true;
-        } else if (timeoutMilli < MaxTimePerScan || Settings.UseImageFinder) {
+//        } else if (timeoutMilli < MaxTimePerScan || Settings.UseImageFinder) {
+        } else if (timeoutMilli < MaxTimePerScan) {
           // instant return on first search failed if timeout very small or 0
           // or when using new ImageFinder
           return false;
