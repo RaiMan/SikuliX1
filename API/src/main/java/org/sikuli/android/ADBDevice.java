@@ -4,9 +4,9 @@
 
 package org.sikuli.android;
 
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
+//import org.opencv.core.CvType;
+//import org.opencv.core.Mat;
+//import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
@@ -58,42 +58,44 @@ public class ADBDevice {
   }
 
   public static ADBDevice init() {
-    if (adbDevice == null) {
-      adbDevice = new ADBDevice();
-      adbDevice.device = ADBClient.getDevice();
-      if (adbDevice.device == null) {
-        adbDevice = null;
-      } else {
-        adbDevice.deviceProps = Arrays.asList(adbDevice.exec("getprop").split("\n"));
-        //[ro.build.version.release]: [6.0.1]
-        //[ro.product.brand]: [google]
-        //[ro.product.manufacturer]: [asus]
-        //[ro.product.model]: [Nexus 7]
-        //[ro.product.name]: [razor]
-        //[ro.serialno]: [094da986]
-        Pattern pProp = Pattern.compile("\\[(.*?)\\]:.*?\\[(.*)\\]");
-        Matcher mProp = null;
-        String val = "";
-        String key = "";
-        for (String prop : adbDevice.deviceProps) {
-          if (!prop.startsWith("[ro.")) continue;
-          mProp = pProp.matcher(prop);
-          if (mProp.find()) {
-            key = mProp.group(1);
-            if (key.contains("build.version.release")) {
-              val = mProp.group(2);
-              try {
-                adbDevice.deviceVersion = Integer.parseInt(val.split("\\.")[0]);
-                adbDevice.sDeviceVersion = val;
-              } catch (Exception e) {
-              }
-            }
-          }
-        }
-        log(lvl, "init: %s", adbDevice.toString());
-      }
-    }
-    return adbDevice;
+    //TODO temporarily switched off (OpenCV implementation)
+    return null;
+//    if (adbDevice == null) {
+//      adbDevice = new ADBDevice();
+//      adbDevice.device = ADBClient.getDevice();
+//      if (adbDevice.device == null) {
+//        adbDevice = null;
+//      } else {
+//        adbDevice.deviceProps = Arrays.asList(adbDevice.exec("getprop").split("\n"));
+//        //[ro.build.version.release]: [6.0.1]
+//        //[ro.product.brand]: [google]
+//        //[ro.product.manufacturer]: [asus]
+//        //[ro.product.model]: [Nexus 7]
+//        //[ro.product.name]: [razor]
+//        //[ro.serialno]: [094da986]
+//        Pattern pProp = Pattern.compile("\\[(.*?)\\]:.*?\\[(.*)\\]");
+//        Matcher mProp = null;
+//        String val = "";
+//        String key = "";
+//        for (String prop : adbDevice.deviceProps) {
+//          if (!prop.startsWith("[ro.")) continue;
+//          mProp = pProp.matcher(prop);
+//          if (mProp.find()) {
+//            key = mProp.group(1);
+//            if (key.contains("build.version.release")) {
+//              val = mProp.group(2);
+//              try {
+//                adbDevice.deviceVersion = Integer.parseInt(val.split("\\.")[0]);
+//                adbDevice.sDeviceVersion = val;
+//              } catch (Exception e) {
+//              }
+//            }
+//          }
+//        }
+//        log(lvl, "init: %s", adbDevice.toString());
+//      }
+//    }
+//    return adbDevice;
   }
 
   public static void reset() {
@@ -142,16 +144,18 @@ public class ADBDevice {
   }
 
   public BufferedImage captureDeviceScreen(int x, int y, int w, int h) {
-    Mat matImage = captureDeviceScreenMat(x, y, w, h);
     BufferedImage bImage = null;
-    if (matImage != null) {
-      bImage = new BufferedImage(matImage.width(), matImage.height(), BufferedImage.TYPE_3BYTE_BGR);
-      byte[] bImageData = ((DataBufferByte) bImage.getRaster().getDataBuffer()).getData();
-      matImage.get(0, 0, bImageData);
-    }
+//    Mat matImage = captureDeviceScreenMat(x, y, w, h);
+//    if (matImage != null) {
+//      bImage = new BufferedImage(matImage.width(), matImage.height(), BufferedImage.TYPE_3BYTE_BGR);
+//      byte[] bImageData = ((DataBufferByte) bImage.getRaster().getDataBuffer()).getData();
+//      matImage.get(0, 0, bImageData);
+//    }
     return bImage;
   }
 
+/*
+  //TODO temporarily switched off (OpenCV implementation)
   public Mat captureDeviceScreenMat(int x, int y, int actW, int actH) {
     byte[] imagePrefix = new byte[12];
     byte[] image = new byte[0];
@@ -210,6 +214,7 @@ public class ADBDevice {
     Imgproc.cvtColor(matOrg, matImage, Imgproc.COLOR_RGBA2BGR, 3);
     return matImage;
   }
+*/
 
   private int byte2int(byte[] bytes, int start, int len) {
     int val = 0;
