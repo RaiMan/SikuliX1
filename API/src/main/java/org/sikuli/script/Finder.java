@@ -3,16 +3,23 @@
  */
 package org.sikuli.script;
 
-import org.opencv.core.Mat;
-import org.sikuli.basics.Settings;
+import org.opencv.core.*;
 import org.sikuli.basics.Debug;
-import java.awt.image.BufferedImage;
-import java.util.Iterator;
+import org.sikuli.basics.Settings;
 import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
 import org.sikuli.natives.finder.Vision;
-import org.sikuli.natives.finder.MatNative;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class Finder implements Iterator<Match> {
 
@@ -62,7 +69,7 @@ public class Finder implements Iterator<Match> {
   public Finder(String imageFilename, Region region) {
     Image img = Image.create(imageFilename);
     if (img.isValid()) {
-      _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
+      _findInput.setSource(makeMat(img.get()));
       _region = region;
       screenFinder = false;
     } else {
@@ -77,7 +84,7 @@ public class Finder implements Iterator<Match> {
    * @param bimg BufferedImage
    */
   public Finder(BufferedImage bimg) {
-    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
+    _findInput.setSource(makeMat(bimg));
   }
 
   /**
@@ -106,7 +113,7 @@ public class Finder implements Iterator<Match> {
    */
   public Finder(Image img) {
     log(lvl, "Image: %s", img);
-    _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
+    _findInput.setSource(makeMat(img.get()));
   }
 
   private void initScreenFinder(ScreenImage simg, Region region) {
@@ -116,7 +123,7 @@ public class Finder implements Iterator<Match> {
   }
 
   protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(Image.convertBufferedImageToMat(simg.getImage()));
+    _findInput.setSource(makeMat(simg.getImage()));
   }
 //</editor-fold>
 
@@ -187,7 +194,7 @@ public class Finder implements Iterator<Match> {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       newBimg = Settings.ImageCallback.callback(img);
     }
-    return Image.convertBufferedImageToMat(newBimg);
+    return makeMat(newBimg);
   }
 
   /**
@@ -406,4 +413,86 @@ public class Finder implements Iterator<Match> {
     _pattern = null;
   }
 //</editor-fold>
+
+//<editor-fold desc="opencv Mat">
+  private static Mat makeMat(BufferedImage bImg) {
+    Mat aMat = getNewMat();
+    if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
+      log(lvl, "makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
+      ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      intBuffer.put(data);
+      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, byteBuffer.array());
+      Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      java.util.List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
+      java.util.List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
+      //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
+      Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
+      return oMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+      log(lvl, "makeMat: 3BYTE_BGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMat.put(0, 0, data);
+      return aMat;
+    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+      log(lvl, "makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, data);
+      Mat mBGRA = getNewMat(aMat.size(), 4, -1);
+      List<Mat> mats = new ArrayList<Mat>();
+      Core.split(aMat, mats);
+      mats.add(mats.remove(0));
+      Core.merge(mats, mBGRA);
+      return mBGRA;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+      log(lvl, "makeMat: BYTE_GRAY (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      aMat.put(0, 0, data);
+      return aMat;
+    } else {
+      log(-1, "makeMat: Type not supported: %d (%dx%d)",
+              bImg.getType(), bImg.getWidth(), bImg.getHeight());
+    }
+    return aMat;
+  }
+
+  public static Mat getNewMat() {
+    //TODO SX.loadNative(SX.NATIVES.OPENCV);
+    return new Mat();
+  }
+
+  public static Mat getNewMat(Size size, int type, int fill) {
+    //TODO SX.loadNative(SX.NATIVES.OPENCV);
+    switch (type) {
+      case 1:
+        type = CvType.CV_8UC1;
+        break;
+      case 3:
+        type = CvType.CV_8UC3;
+        break;
+      case 4:
+        type = CvType.CV_8UC4;
+        break;
+      default:
+        type = -1;
+    }
+    if (type < 0) {
+      return new Mat();
+    }
+    Mat result;
+    if (fill < 0) {
+      result = new Mat(size, type);
+    } else {
+      result = new Mat(size, type, new Scalar(fill));
+    }
+    return result;
+  }
+//</editor-fold>
+
 }
