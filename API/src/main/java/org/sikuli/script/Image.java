@@ -34,7 +34,8 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.Vision;
+import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.Mat;
 
 /**
  * This class hides the complexity behind image names given as string.
@@ -1367,15 +1368,15 @@ public class Image {
    * @deprecated
    */
   @Deprecated
-  protected org.sikuli.natives.Mat getMatNative() {
+  protected Mat getMatNative() {
     return convertBufferedImageToMat(get());
   }
 
-  protected static org.sikuli.natives.Mat convertBufferedImageToMat(BufferedImage img) {
+  protected static Mat convertBufferedImageToMat(BufferedImage img) {
     if (img != null) {
       long theMatTime = new Date().getTime();
       byte[] data = convertBufferedImageToByteArray(img);
-      org.sikuli.natives.Mat theMat = Vision.createMat(img.getHeight(), img.getWidth(), data);
+      Mat theMat = Vision.createMat(img.getHeight(), img.getWidth(), data);
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
                 img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);

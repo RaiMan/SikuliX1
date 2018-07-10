@@ -10,7 +10,7 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.sikuli.natives;
+package org.sikuli.natives.finder;
 
 public class SWIGTYPE_p_cv__Rect {
   private long swigCPtr;

@@ -44,7 +44,7 @@ public class Sikulix {
   private static String jarParentPath;
   private static final String prefNonSikuli = "nonSikuli_";
   private static RunTime rt = null;
-  public static int testNumber = -1;
+  //public static int testNumber = -1;
   private static boolean shouldRunServer = false;
   private static Point locPopAt = null;
 
@@ -80,12 +80,7 @@ public class Sikulix {
   }
 
   /**
-   * checking parameter -d on commandline<br>
-   * 0 - list all available tests<br>
-   * 1 - run all available tests<br>
-   * n - run the test with that number if available
-   *
-   * @param args currently only -d is evaluated
+   * @param args currently only -d 999 is evaluated
    */
   public static void main(String[] args) throws FindFailed {
 
@@ -93,26 +88,10 @@ public class Sikulix {
       shouldRunServer = true;
     } else {
       int dl = RunTime.checkArgs(args, RunTime.Type.API);
-      if (dl > -1 && dl < 999) {
-        testNumber = dl;
-        Debug.on(3);
-      } else {
-        testNumber = -1;
-      }
-
-      testNumber = rt.getOptionNumber("testing.test", testNumber);
-
       if (dl == 999) {
         int exitCode = Runner.runScripts(args);
         cleanUp(exitCode);
         System.exit(exitCode);
-      } else if (testNumber > -1) {
-        if (!rt.testing) {
-          rt.show();
-          rt.testing = true;
-        }
-        //Tests.runTest(testNumber);
-        System.exit(1);
       }
     }
     rt = RunTime.get();
@@ -178,20 +157,6 @@ public class Sikulix {
     }
     if (playing) {
       System.exit(1);
-    }
-
-    if (args.length > 0 && args[0].startsWith("test")) {
-      Debug.on(3);
-      String test = args[0];
-      try {
-        Method method = Sikulix.class.getDeclaredMethod(test, new Class[0]);
-        log(lvl, "running test %s", test);
-        Object ret = method.invoke(null, new Object[0]);
-      } catch (Exception e) {
-        log(-1, "Problem: %s(%s)", e.getCause(), e.getMessage());
-        System.exit(1);
-      }
-      System.exit(0);
     }
 
     String version = String.format("(%s-%s)", rt.getVersionShort(), rt.sxBuildStamp);
@@ -465,71 +430,6 @@ public class Sikulix {
     } catch (AWTException e) {
     }
     Mouse.reset();
-  }
-
-  /**
-   * INTERNAL USE: used in setup: tests basic SikulixUtil features
-   *
-   * @return success
-   */
-  public static boolean testSetup() {
-    return doTestSetup("Java API", false);
-  }
-
-  /**
-   * INTERNAL USE: used in setup: tests basic SikulixUtil features
-   *
-   * @return success
-   */
-  public static boolean testSetup(String src) {
-    return doTestSetup(src, false);
-  }
-
-  /**
-   * INTERNAL USE: used in setup: tests basic SikulixUtil features
-   *
-   * @return success
-   */
-  public static boolean testSetupSilent() {
-    Settings.noPupUps = true;
-    return doTestSetup("Java API", true);
-  }
-
-  private static boolean doTestSetup(String testSetupSource, boolean silent) {
-    Region r = Region.create(0, 0, 100, 100);
-    Image img = new Image(r.getScreen().capture(r).getImage());
-    Pattern p = new Pattern(img);
-    Finder f = new Finder(img);
-    boolean success = (null != f.find(p));
-    log(lvl, "testSetup: Finder setup with image %s", (!success ? "did not work" : "worked"));
-    if (success &= f.hasNext()) {
-      success = (null != f.find(img.asFile()));
-      log(lvl, "testSetup: Finder setup with image file %s", (!success ? "did not work" : "worked"));
-      success &= f.hasNext();
-      String screenFind = "Screen.find(imagefile)";
-      try {
-        ((Screen) r.getScreen()).find(img.asFile());
-        log(lvl, "testSetup: %s worked", screenFind);
-        screenFind = "repeated Screen.find(imagefile)";
-        ((Screen) r.getScreen()).find(img.asFile());
-        log(lvl, "testSetup: %s worked", screenFind);
-      } catch (Exception ex) {
-        log(lvl, "testSetup: %s did not work", screenFind);
-        success = false;
-      }
-    }
-    if (success) {
-      if (!silent) {
-        popup("Hallo from Sikulix.testSetup: " + testSetupSource + "\n"
-                + "SikuliX seems to be working!\n\nHave fun!");
-        log(lvl, "testSetup: Finder.find: worked");
-      } else {
-        System.out.println("[info] RunSetup: Sikulix.testSetup: Java Sikuli seems to be working!");
-      }
-      return true;
-    }
-    log(lvl, "testSetup: last Screen/Finder.find: did not work");
-    return false;
   }
 
 //  @Deprecated

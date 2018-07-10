@@ -10,18 +10,18 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.sikuli.natives;
+package org.sikuli.natives.finder;
 
-public class OCRWords {
+public class OCRLines {
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
-  protected OCRWords(long cPtr, boolean cMemoryOwn) {
+  protected OCRLines(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(OCRWords obj) {
+  protected static long getCPtr(OCRLines obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -33,50 +33,50 @@ public class OCRWords {
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        VisionProxyJNI.delete_OCRWords(swigCPtr);
+        VisionProxyJNI.delete_OCRLines(swigCPtr);
       }
       swigCPtr = 0;
     }
   }
 
-  public OCRWords() {
-    this(VisionProxyJNI.new_OCRWords__SWIG_0(), true);
+  public OCRLines() {
+    this(VisionProxyJNI.new_OCRLines__SWIG_0(), true);
   }
 
-  public OCRWords(long n) {
-    this(VisionProxyJNI.new_OCRWords__SWIG_1(n), true);
+  public OCRLines(long n) {
+    this(VisionProxyJNI.new_OCRLines__SWIG_1(n), true);
   }
 
   public long size() {
-    return VisionProxyJNI.OCRWords_size(swigCPtr, this);
+    return VisionProxyJNI.OCRLines_size(swigCPtr, this);
   }
 
   public long capacity() {
-    return VisionProxyJNI.OCRWords_capacity(swigCPtr, this);
+    return VisionProxyJNI.OCRLines_capacity(swigCPtr, this);
   }
 
   public void reserve(long n) {
-    VisionProxyJNI.OCRWords_reserve(swigCPtr, this, n);
+    VisionProxyJNI.OCRLines_reserve(swigCPtr, this, n);
   }
 
   public boolean isEmpty() {
-    return VisionProxyJNI.OCRWords_isEmpty(swigCPtr, this);
+    return VisionProxyJNI.OCRLines_isEmpty(swigCPtr, this);
   }
 
   public void clear() {
-    VisionProxyJNI.OCRWords_clear(swigCPtr, this);
+    VisionProxyJNI.OCRLines_clear(swigCPtr, this);
   }
 
-  public void add(OCRWord x) {
-    VisionProxyJNI.OCRWords_add(swigCPtr, this, OCRWord.getCPtr(x), x);
+  public void add(OCRLine x) {
+    VisionProxyJNI.OCRLines_add(swigCPtr, this, OCRLine.getCPtr(x), x);
   }
 
-  public OCRWord get(int i) {
-    return new OCRWord(VisionProxyJNI.OCRWords_get(swigCPtr, this, i), false);
+  public OCRLine get(int i) {
+    return new OCRLine(VisionProxyJNI.OCRLines_get(swigCPtr, this, i), false);
   }
 
-  public void set(int i, OCRWord val) {
-    VisionProxyJNI.OCRWords_set(swigCPtr, this, i, OCRWord.getCPtr(val), val);
+  public void set(int i, OCRLine val) {
+    VisionProxyJNI.OCRLines_set(swigCPtr, this, i, OCRLine.getCPtr(val), val);
   }
 
 }

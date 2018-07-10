@@ -348,9 +348,6 @@ public class RunTime {
   public static synchronized RunTime reset(Type typ) {
     if (runTime != null) {
       preLogMessages += "RunTime: resetting RunTime instance;";
-      if (Sikulix.testNumber == 1) {
-        Debug.setDebugLevel(debugLevelSaved);
-      }
       Debug.setLogFile(debugLogfileSaved);
       runTime = null;
     }

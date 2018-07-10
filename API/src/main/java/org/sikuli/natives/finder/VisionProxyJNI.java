@@ -10,7 +10,9 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.sikuli.natives;
+package org.sikuli.natives.finder;
+
+import org.sikuli.natives.finder.*;
 
 public class VisionProxyJNI {
   public final static native long new_FindResults__SWIG_0();

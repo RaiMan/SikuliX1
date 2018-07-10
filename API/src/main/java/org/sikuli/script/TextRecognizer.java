@@ -10,10 +10,10 @@ import org.sikuli.basics.Debug;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import org.sikuli.natives.Mat;
-import org.sikuli.natives.OCRWord;
-import org.sikuli.natives.OCRWords;
-import org.sikuli.natives.Vision;
+import org.sikuli.natives.finder.Mat;
+import org.sikuli.natives.finder.OCRWord;
+import org.sikuli.natives.finder.OCRWords;
+import org.sikuli.natives.finder.Vision;
 
 /**
  * INTERNAL USE --- NOT part of official API

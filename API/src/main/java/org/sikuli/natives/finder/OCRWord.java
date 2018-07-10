@@ -10,17 +10,17 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.sikuli.natives;
+package org.sikuli.natives.finder;
 
-public class OCRChar extends OCRRect {
+public class OCRWord extends OCRRect {
   private long swigCPtr;
 
-  protected OCRChar(long cPtr, boolean cMemoryOwn) {
-    super(VisionProxyJNI.OCRChar_SWIGUpcast(cPtr), cMemoryOwn);
+  protected OCRWord(long cPtr, boolean cMemoryOwn) {
+    super(VisionProxyJNI.OCRWord_SWIGUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(OCRChar obj) {
+  protected static long getCPtr(OCRWord obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -32,23 +32,31 @@ public class OCRChar extends OCRRect {
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        VisionProxyJNI.delete_OCRChar(swigCPtr);
+        VisionProxyJNI.delete_OCRWord(swigCPtr);
       }
       swigCPtr = 0;
     }
     super.delete();
   }
 
-  public OCRChar(String ch_, int x_, int y_, int width_, int height_) {
-    this(VisionProxyJNI.new_OCRChar(ch_, x_, y_, width_, height_), true);
+  public void setScore(float value) {
+    VisionProxyJNI.OCRWord_score_set(swigCPtr, this, value);
   }
 
-  public void setCh(String value) {
-    VisionProxyJNI.OCRChar_ch_set(swigCPtr, this, value);
+  public float getScore() {
+    return VisionProxyJNI.OCRWord_score_get(swigCPtr, this);
   }
 
-  public String getCh() {
-    return VisionProxyJNI.OCRChar_ch_get(swigCPtr, this);
+  public String getString() {
+    return VisionProxyJNI.OCRWord_getString(swigCPtr, this);
+  }
+
+  public OCRChars getChars() {
+    return new OCRChars(VisionProxyJNI.OCRWord_getChars(swigCPtr, this), true);
+  }
+
+  public OCRWord() {
+    this(VisionProxyJNI.new_OCRWord(), true);
   }
 
 }

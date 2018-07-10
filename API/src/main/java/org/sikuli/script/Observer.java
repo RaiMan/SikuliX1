@@ -12,11 +12,11 @@ import java.util.Map;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import org.sikuli.natives.FindInput;
-import org.sikuli.natives.FindResult;
-import org.sikuli.natives.FindResults;
-import org.sikuli.natives.Mat;
-import org.sikuli.natives.Vision;
+import org.sikuli.natives.finder.FindInput;
+import org.sikuli.natives.finder.FindResult;
+import org.sikuli.natives.finder.FindResults;
+import org.sikuli.natives.finder.Mat;
+import org.sikuli.natives.finder.Vision;
 
 /**
  * INTERNAL USE implements the observe action for a region and calls the ObserverCallBacks

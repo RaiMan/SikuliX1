@@ -10,7 +10,7 @@
  * the SWIG interface file instead.
  * ----------------------------------------------------------------------------- */
 
-package org.sikuli.natives;
+package org.sikuli.natives.finder;
 
 public class VisionProxy {
   public static void setDebug(int cat, int level) {

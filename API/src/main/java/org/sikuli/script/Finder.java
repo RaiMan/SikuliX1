@@ -6,30 +6,22 @@ package org.sikuli.script;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.Iterator;
-import org.sikuli.natives.FindInput;
-import org.sikuli.natives.FindResult;
-import org.sikuli.natives.FindResults;
-import org.sikuli.natives.TARGET_TYPE;
-import org.sikuli.natives.Vision;
+import org.sikuli.natives.finder.FindInput;
+import org.sikuli.natives.finder.FindResult;
+import org.sikuli.natives.finder.FindResults;
+import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.Mat;
 
-/**
- * implements the process to find one image in another image <br>
- * this is the historical implementation
- * based on the C++ JNI access to the native OpenCV libraries<br>
- * It is being replaced by ImageFinder, that implements the Finder features
- * completely in Java using the OpenCV newly provided JAVA interface<br>
- * At time of realisation the Finder API will be redirected to ImageFinder
- */
 public class Finder implements Iterator<Match> {
 
+  public final static int TARGET_TYPE_TEXT = 3;
   static RunTime runTime = RunTime.get();
 
   private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
-  private FindInput _findInput = new FindInput();
+  private FindInput _findInput = null;
   private FindResults _results = null;
   private int _cur_result_i;
   private boolean repeating = false;
@@ -50,7 +42,7 @@ public class Finder implements Iterator<Match> {
   /**
    * Just to force library initialization
    */
-  public Finder() {}
+  private Finder() {}
 
   /**
    * Finder constructor (finding within an image).
@@ -59,9 +51,9 @@ public class Finder implements Iterator<Match> {
    * @param imageFilename a string (name, path, url)
    * @throws java.io.IOException if imagefile not found
    */
-  public Finder(String imageFilename) throws IOException {
-    this(imageFilename, null);
-  }
+//  public Finder(String imageFilename) throws IOException {
+//    this(imageFilename, null);
+//  }
 
   /**
    * Finder constructor (finding within an image within the given region).
@@ -71,35 +63,35 @@ public class Finder implements Iterator<Match> {
    * @param region search Region within image - topleft = (0,0)
    * @throws java.io.IOException if imagefile not found
    */
-  public Finder(String imageFilename, Region region) throws IOException  {
-    Image img = Image.create(imageFilename);
-    if (img.isValid()) {
-      _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
-      _region = region;
-      screenFinder = false;
-    } else {
-      log(-1, "imagefile not found:\n%s", imageFilename);
-      valid = false;
-    }
-  }
+//  public Finder(String imageFilename, Region region) throws IOException  {
+//    Image img = Image.create(imageFilename);
+//    if (img.isValid()) {
+//      _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
+//      _region = region;
+//      screenFinder = false;
+//    } else {
+//      log(-1, "imagefile not found:\n%s", imageFilename);
+//      valid = false;
+//    }
+//  }
 
   /**
    * Constructor for special use from a BufferedImage
    *
    * @param bimg BufferedImage
    */
-  public Finder(BufferedImage bimg) {
-    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
-  }
+//  public Finder(BufferedImage bimg) {
+//    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
+//  }
 
   /**
    * Finder constructor for special use from a ScreenImage
    *
    * @param simg ScreenImage
    */
-  public Finder(ScreenImage simg) {
-    initScreenFinder(simg, null);
-  }
+//  public Finder(ScreenImage simg) {
+//    initScreenFinder(simg, null);
+//  }
 
   /**
    * Finder constructor for special use from a ScreenImage
@@ -116,18 +108,28 @@ public class Finder implements Iterator<Match> {
    *
    * @param img Image
    */
-  public Finder(Image img) {
-    log(lvl, "Image: %s", img);
-    _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
-  }
+//  public Finder(Image img) {
+//    log(lvl, "Image: %s", img);
+//    _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
+//  }
 
   public void resetImage(Image img) {
     _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
   }
 
   private void initScreenFinder(ScreenImage simg, Region region) {
+    _findInput = new FindInput();
     setScreenImage(simg);
     _region = region;
+  }
+
+  /**
+   * internal use: exchange the source image in existing Finder
+   *
+   * @param simg ScreenImage
+   */
+  protected void setScreenImage(ScreenImage simg) {
+    _findInput.setSource(Image.convertBufferedImageToMat(simg.getImage()));
   }
 
   /**
@@ -155,18 +157,9 @@ public class Finder implements Iterator<Match> {
     destroy();
   }
 
-  /**
-   * internal use: exchange the source image in existing Finder
-   *
-   * @param simg ScreenImage
-   */
-  protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(Image.convertBufferedImageToMat(simg.getImage()));
-  }
-
-  public boolean isValid() {
-    return valid;
-  }
+//  public boolean isValid() {
+//    return valid;
+//  }
   //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="internal repeating">
@@ -219,11 +212,11 @@ public class Finder implements Iterator<Match> {
     return null;
   }
 
-  private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img) {
+  private Mat possibleImageResizeOrCallback(Image img) {
     return possibleImageResizeOrCallback(img, 0);
   }
 
-  private org.sikuli.natives.Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
+  private Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
     BufferedImage newBimg = img.get();
     float factor = oneTimeResize;
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
@@ -299,7 +292,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    _findInput.setTarget(TARGET_TYPE.TEXT, text);
+    _findInput.setTarget(TARGET_TYPE_TEXT, text);
     _results = Vision.find(_findInput);
     _cur_result_i = 0;
     return text;
@@ -393,7 +386,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    _findInput.setTarget(TARGET_TYPE.TEXT, text);
+    _findInput.setTarget(TARGET_TYPE_TEXT, text);
     _findInput.setFindAll(true);
     Debug timing = Debug.startTimer("Finder.findAllText");
     _results = Vision.find(_findInput);
@@ -403,44 +396,44 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  private String setTargetSmartly(FindInput fin, String target) {
-    if (isImageFile(target)) {
-      //assume it's a file first
-      String filename = Image.create(target).getFilename();
-      if (filename != null) {
-        fin.setTarget(TARGET_TYPE.IMAGE, filename);
-        return filename;
-      } else {
-        if (!repeating) {
-          Debug.error(target
-                  + " looks like a file, but not on disk. Assume it's text.");
-        }
-      }
-    }
-    if (!Settings.OcrTextSearch) {
-      Debug.error("Region.find(text): text search is currently switched off");
-      return target + "???";
-    } else {
-      fin.setTarget(TARGET_TYPE.TEXT, target);
-      if (TextRecognizer.getInstance() == null) {
-        Debug.error("Region.find(text): text search is now switched off");
-        return target + "???";
-      }
-      return target;
-    }
-  }
+//  private String setTargetSmartly(FindInput fin, String target) {
+//    if (isImageFile(target)) {
+//      //assume it's a file first
+//      String filename = Image.create(target).getFilename();
+//      if (filename != null) {
+//        fin.setTarget(TARGET_TYPE.IMAGE, filename);
+//        return filename;
+//      } else {
+//        if (!repeating) {
+//          Debug.error(target
+//                  + " looks like a file, but not on disk. Assume it's text.");
+//        }
+//      }
+//    }
+//    if (!Settings.OcrTextSearch) {
+//      Debug.error("Region.find(text): text search is currently switched off");
+//      return target + "???";
+//    } else {
+//      fin.setTarget(TARGET_TYPE.TEXT, target);
+//      if (TextRecognizer.getInstance() == null) {
+//        Debug.error("Region.find(text): text search is now switched off");
+//        return target + "???";
+//      }
+//      return target;
+//    }
+//  }
 
-	private static boolean isImageFile(String fname) {
-		int dot = fname.lastIndexOf('.');
-		if (dot < 0) {
-			return false;
-		}
-		String suffix = fname.substring(dot + 1).toLowerCase();
-		if (suffix.equals("png") || suffix.equals("jpg")) {
-			return true;
-		}
-		return false;
-	}
+//	private static boolean isImageFile(String fname) {
+//		int dot = fname.lastIndexOf('.');
+//		if (dot < 0) {
+//			return false;
+//		}
+//		String suffix = fname.substring(dot + 1).toLowerCase();
+//		if (suffix.equals("png") || suffix.equals("jpg")) {
+//			return true;
+//		}
+//		return false;
+//	}
 
   /**
    *
