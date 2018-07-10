@@ -37,7 +37,7 @@ public class Finder implements Iterator<Match> {
   private boolean screenFinder = true;
 
   static {
-    RunTime.loadLibrary("VisionProxy");
+    //TODO RunTime.loadLibrary("VisionProxy");
   }
 
   private static String me = "Finder: ";

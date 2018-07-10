@@ -29,7 +29,7 @@ public class TextRecognizer {
 	private static int lvl = 3;
 
   static {
-    RunTime.loadLibrary("VisionProxy");
+    //TODO RunTime.loadLibrary("VisionProxy");
   }
 
   private TextRecognizer() {
