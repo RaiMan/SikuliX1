@@ -37,7 +37,7 @@ public class Observer {
 
   private Region observedRegion = null;
   private Mat lastImgMat = null;
-  private org.opencv.core.Mat lastImageMat = null;
+  //private org.opencv.core.Mat lastImageMat = null;
   private Map<String, State> eventStates = null;
   private Map<String, Long> eventRepeatWaitTimes = null;
   private Map<String, Match> eventMatches = null;

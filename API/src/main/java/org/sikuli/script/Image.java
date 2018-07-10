@@ -28,8 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
+//import org.opencv.core.CvType;
+//import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -1325,40 +1325,40 @@ public class Image {
    *
    * @return OpenCV Mat
    */
-  public Mat getMat() {
-    return createMat(get());
-  }
-
-  protected static Mat createMat(BufferedImage img) {
-    if (img != null) {
-      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
-      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
-      timer.lap("init");
-      byte[] data;
-      BufferedImage cvImg;
-      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-      int[] nBits = {8, 8, 8, 8};
-      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
-      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
-      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-      cvImg = new BufferedImage(cm, r, false, null);
-      timer.lap("empty");
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      timer.lap("created");
-      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-      mat_ref.put(0, 0, data);
-      Mat mat = new Mat();
-      timer.lap("filled");
-      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
-      timer.end();
-      return mat;
-    } else {
-      return null;
-    }
-  }
+//  public Mat getMat() {
+//    return createMat(get());
+//  }
+//
+//  protected static Mat createMat(BufferedImage img) {
+//    if (img != null) {
+//      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
+//      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
+//      timer.lap("init");
+//      byte[] data;
+//      BufferedImage cvImg;
+//      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+//      int[] nBits = {8, 8, 8, 8};
+//      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+//      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
+//      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
+//      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+//      cvImg = new BufferedImage(cm, r, false, null);
+//      timer.lap("empty");
+//      Graphics2D g = cvImg.createGraphics();
+//      g.drawImage(img, 0, 0, null);
+//      g.dispose();
+//      timer.lap("created");
+//      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
+//      mat_ref.put(0, 0, data);
+//      Mat mat = new Mat();
+//      timer.lap("filled");
+//      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
+//      timer.end();
+//      return mat;
+//    } else {
+//      return null;
+//    }
+//  }
 
   /**
    * to get old style OpenCV Mat for FindInput
