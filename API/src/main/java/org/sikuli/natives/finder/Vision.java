@@ -47,28 +47,28 @@ public class Vision {
     return new FindResults(VisionProxyJNI.Vision_findChanges(FindInput.getCPtr(q), q), true);
   }
 
-  public static double compare(Mat m1, Mat m2) {
-    return VisionProxyJNI.Vision_compare(Mat.getCPtr(m1), m1, Mat.getCPtr(m2), m2);
+  public static double compare(MatNative m1, MatNative m2) {
+    return VisionProxyJNI.Vision_compare(MatNative.getCPtr(m1), m1, MatNative.getCPtr(m2), m2);
   }
 
   public static void initOCR(String ocrDataPath) {
     VisionProxyJNI.Vision_initOCR(ocrDataPath);
   }
 
-  public static OCRText recognize_as_ocrtext(Mat image) {
-    return new OCRText(VisionProxyJNI.Vision_recognize_as_ocrtext(Mat.getCPtr(image), image), true);
+  public static OCRText recognize_as_ocrtext(MatNative image) {
+    return new OCRText(VisionProxyJNI.Vision_recognize_as_ocrtext(MatNative.getCPtr(image), image), true);
   }
 
-  public static String recognize(Mat image) {
-    return VisionProxyJNI.Vision_recognize(Mat.getCPtr(image), image);
+  public static String recognize(MatNative image) {
+    return VisionProxyJNI.Vision_recognize(MatNative.getCPtr(image), image);
   }
 
-  public static String recognizeWord(Mat image) {
-    return VisionProxyJNI.Vision_recognizeWord(Mat.getCPtr(image), image);
+  public static String recognizeWord(MatNative image) {
+    return VisionProxyJNI.Vision_recognizeWord(MatNative.getCPtr(image), image);
   }
 
-  public static Mat createMat(int _rows, int _cols, byte[] _data) {
-    return new Mat(VisionProxyJNI.Vision_createMat(_rows, _cols, _data), true);
+  public static MatNative createMat(int _rows, int _cols, byte[] _data) {
+    return new MatNative(VisionProxyJNI.Vision_createMat(_rows, _cols, _data), true);
   }
 
   public static void setParameter(String param, float val) {

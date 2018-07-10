@@ -12,16 +12,16 @@
 
 package org.sikuli.natives.finder;
 
-public class Mat {
+public class MatNative {
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
-  protected Mat(long cPtr, boolean cMemoryOwn) {
+  protected MatNative(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Mat obj) {
+  protected static long getCPtr(MatNative obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -39,7 +39,7 @@ public class Mat {
     }
   }
 
-  public Mat() {
+  public MatNative() {
     this(VisionProxyJNI.new_Mat(), true);
   }
 

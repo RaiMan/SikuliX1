@@ -15,7 +15,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
-import org.sikuli.natives.finder.Mat;
+import org.sikuli.natives.finder.MatNative;
 import org.sikuli.natives.finder.Vision;
 
 /**
@@ -36,7 +36,7 @@ public class Observer {
   }
 
   private Region observedRegion = null;
-  private Mat lastImgMat = null;
+  private MatNative lastImgMat = null;
   //private org.opencv.core.Mat lastImageMat = null;
   private Map<String, State> eventStates = null;
   private Map<String, Long> eventRepeatWaitTimes = null;
@@ -345,7 +345,7 @@ public class Observer {
 //      } else {
       FindInput fin = new FindInput();
       fin.setSource(lastImgMat);
-      Mat target = Image.convertBufferedImageToMat(img.getImage());
+      MatNative target = Image.convertBufferedImageToMat(img.getImage());
       fin.setTarget(target);
       fin.setSimilarity(minChanges);
       FindResults results = Vision.findChanges(fin);

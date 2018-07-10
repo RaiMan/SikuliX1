@@ -10,7 +10,7 @@ import org.sikuli.basics.Debug;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import org.sikuli.natives.finder.Mat;
+import org.sikuli.natives.finder.MatNative;
 import org.sikuli.natives.finder.OCRWord;
 import org.sikuli.natives.finder.OCRWords;
 import org.sikuli.natives.finder.Vision;
@@ -96,7 +96,7 @@ public class TextRecognizer {
   //TODO: support LINE and PARAGRAPH
   // listText only supports WORD mode now.
   public List<Match> listText(ScreenImage simg, Region parent, ListTextMode mode) {
-    Mat mat = Image.convertBufferedImageToMat(simg.getImage());
+    MatNative mat = Image.convertBufferedImageToMat(simg.getImage());
     OCRWords words = Vision.recognize_as_ocrtext(mat).getWords();
     List<Match> ret = new LinkedList<Match>();
     for (int i = 0; i < words.size(); i++) {
@@ -115,7 +115,7 @@ public class TextRecognizer {
 
   public String recognize(BufferedImage img) {
     if (initSuccess) {
-      Mat mat = Image.convertBufferedImageToMat(img);
+      MatNative mat = Image.convertBufferedImageToMat(img);
       return Vision.recognize(mat).trim();
     } else {
       return "";
@@ -129,7 +129,7 @@ public class TextRecognizer {
 
   public String recognizeWord(BufferedImage img) {
     if (initSuccess) {
-      Mat mat = Image.convertBufferedImageToMat(img);
+      MatNative mat = Image.convertBufferedImageToMat(img);
       return Vision.recognizeWord(mat).trim();
     } else {
       return "";

@@ -12,8 +12,6 @@
 
 package org.sikuli.natives.finder;
 
-import org.sikuli.natives.finder.*;
-
 public class VisionProxyJNI {
   public final static native long new_FindResults__SWIG_0();
   public final static native long new_FindResults__SWIG_1(long jarg1);
@@ -119,16 +117,16 @@ public class VisionProxyJNI {
   public final static native long new_OCRText();
   public final static native void delete_OCRText(long jarg1);
   public final static native long new_FindInput__SWIG_0();
-  public final static native long new_FindInput__SWIG_1(long jarg1, Mat jarg1_, long jarg2, Mat jarg2_);
-  public final static native long new_FindInput__SWIG_2(long jarg1, Mat jarg1_, int jarg2, String jarg3);
+  public final static native long new_FindInput__SWIG_1(long jarg1, MatNative jarg1_, long jarg2, MatNative jarg2_);
+  public final static native long new_FindInput__SWIG_2(long jarg1, MatNative jarg1_, int jarg2, String jarg3);
   public final static native long new_FindInput__SWIG_3(String jarg1, int jarg2, String jarg3);
-  public final static native long new_FindInput__SWIG_4(long jarg1, Mat jarg1_, int jarg2);
+  public final static native long new_FindInput__SWIG_4(long jarg1, MatNative jarg1_, int jarg2);
   public final static native long new_FindInput__SWIG_5(String jarg1, int jarg2);
-  public final static native long new_FindInput__SWIG_6(long jarg1, Mat jarg1_, long jarg2, FindInput jarg2_);
+  public final static native long new_FindInput__SWIG_6(long jarg1, MatNative jarg1_, long jarg2, FindInput jarg2_);
   public final static native void FindInput_setSource__SWIG_0(long jarg1, FindInput jarg1_, String jarg2);
   public final static native void FindInput_setTarget__SWIG_0(long jarg1, FindInput jarg1_, int jarg2, String jarg3);
-  public final static native void FindInput_setSource__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, Mat jarg2_);
-  public final static native void FindInput_setTarget__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, Mat jarg2_);
+  public final static native void FindInput_setSource__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, MatNative jarg2_);
+  public final static native void FindInput_setTarget__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, MatNative jarg2_);
   public final static native long FindInput_getSourceMat(long jarg1, FindInput jarg1_);
   public final static native long FindInput_getTargetMat(long jarg1, FindInput jarg1_);
   public final static native void FindInput_setFindAll(long jarg1, FindInput jarg1_, boolean jarg2);
@@ -142,11 +140,11 @@ public class VisionProxyJNI {
   public final static native void delete_FindInput(long jarg1);
   public final static native long Vision_find(long jarg1, FindInput jarg1_);
   public final static native long Vision_findChanges(long jarg1, FindInput jarg1_);
-  public final static native double Vision_compare(long jarg1, Mat jarg1_, long jarg2, Mat jarg2_);
+  public final static native double Vision_compare(long jarg1, MatNative jarg1_, long jarg2, MatNative jarg2_);
   public final static native void Vision_initOCR(String jarg1);
-  public final static native long Vision_recognize_as_ocrtext(long jarg1, Mat jarg1_);
-  public final static native String Vision_recognize(long jarg1, Mat jarg1_);
-  public final static native String Vision_recognizeWord(long jarg1, Mat jarg1_);
+  public final static native long Vision_recognize_as_ocrtext(long jarg1, MatNative jarg1_);
+  public final static native String Vision_recognize(long jarg1, MatNative jarg1_);
+  public final static native String Vision_recognizeWord(long jarg1, MatNative jarg1_);
   public final static native long Vision_createMat(int jarg1, int jarg2, byte[] jarg3);
   public final static native void Vision_setParameter(String jarg1, float jarg2);
   public final static native float Vision_getParameter(String jarg1);

@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.image.BufferedImage;
@@ -11,19 +12,19 @@ import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
 import org.sikuli.natives.finder.Vision;
-import org.sikuli.natives.finder.Mat;
+import org.sikuli.natives.finder.MatNative;
 
 public class Finder implements Iterator<Match> {
 
   public final static int TARGET_TYPE_TEXT = 3;
-  static RunTime runTime = RunTime.get();
 
   private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
   private FindInput _findInput = null;
   private FindResults _results = null;
-  private int _cur_result_i;
+
+  private int currentMatchIndex;
   private boolean repeating = false;
   private boolean valid = true;
   private boolean screenFinder = true;
@@ -39,9 +40,6 @@ public class Finder implements Iterator<Match> {
   }
 
 //<editor-fold defaultstate="collapsed" desc="Constructors">
-  /**
-   * Just to force library initialization
-   */
   private Finder() {}
 
   /**
@@ -49,11 +47,10 @@ public class Finder implements Iterator<Match> {
    * <br>internally used with a screen snapshot
    *
    * @param imageFilename a string (name, path, url)
-   * @throws java.io.IOException if imagefile not found
    */
-//  public Finder(String imageFilename) throws IOException {
-//    this(imageFilename, null);
-//  }
+  public Finder(String imageFilename) {
+    this(imageFilename, null);
+  }
 
   /**
    * Finder constructor (finding within an image within the given region).
@@ -61,40 +58,39 @@ public class Finder implements Iterator<Match> {
    *
    * @param imageFilename a string (name, path, url)
    * @param region search Region within image - topleft = (0,0)
-   * @throws java.io.IOException if imagefile not found
    */
-//  public Finder(String imageFilename, Region region) throws IOException  {
-//    Image img = Image.create(imageFilename);
-//    if (img.isValid()) {
-//      _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
-//      _region = region;
-//      screenFinder = false;
-//    } else {
-//      log(-1, "imagefile not found:\n%s", imageFilename);
-//      valid = false;
-//    }
-//  }
+  public Finder(String imageFilename, Region region) {
+    Image img = Image.create(imageFilename);
+    if (img.isValid()) {
+      _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
+      _region = region;
+      screenFinder = false;
+    } else {
+      log(-1, "imagefile not found:\n%s", imageFilename);
+      valid = false;
+    }
+  }
 
   /**
    * Constructor for special use from a BufferedImage
    *
    * @param bimg BufferedImage
    */
-//  public Finder(BufferedImage bimg) {
-//    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
-//  }
+  public Finder(BufferedImage bimg) {
+    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
+  }
 
   /**
    * Finder constructor for special use from a ScreenImage
    *
    * @param simg ScreenImage
    */
-//  public Finder(ScreenImage simg) {
-//    initScreenFinder(simg, null);
-//  }
+  public Finder(ScreenImage simg) {
+    initScreenFinder(simg, null);
+  }
 
   /**
-   * Finder constructor for special use from a ScreenImage
+   * Finder constructor for special use from a region on a ScreenImage
    *
    * @param simg ScreenImage
    * @param region the cropping region
@@ -108,12 +104,8 @@ public class Finder implements Iterator<Match> {
    *
    * @param img Image
    */
-//  public Finder(Image img) {
-//    log(lvl, "Image: %s", img);
-//    _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
-//  }
-
-  public void resetImage(Image img) {
+  public Finder(Image img) {
+    log(lvl, "Image: %s", img);
     _findInput.setSource(Image.convertBufferedImageToMat(img.get()));
   }
 
@@ -123,44 +115,10 @@ public class Finder implements Iterator<Match> {
     _region = region;
   }
 
-  /**
-   * internal use: exchange the source image in existing Finder
-   *
-   * @param simg ScreenImage
-   */
   protected void setScreenImage(ScreenImage simg) {
     _findInput.setSource(Image.convertBufferedImageToMat(simg.getImage()));
   }
-
-  /**
-   * to explicitly free the Finder's resources
-   */
-  public void destroy() {
-    _findInput.delete();
-    _findInput = null;
-    if (_results != null) {
-      _results.delete();
-      _results = null;
-    }
-    _pattern = null;
-  }
-
-  /**
-   * not used
-   */
-  @Override
-  public void remove(){}
-
-  @Override
-  protected void finalize() throws Throwable {
-    super.finalize();
-    destroy();
-  }
-
-//  public boolean isValid() {
-//    return valid;
-//  }
-  //</editor-fold>
+//</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="internal repeating">
   /**
@@ -175,7 +133,7 @@ public class Finder implements Iterator<Match> {
    */
   protected void findRepeat() {
     _results = Vision.find(_findInput);
-    _cur_result_i = 0;
+    currentMatchIndex = 0;
   }
 
   /**
@@ -184,7 +142,7 @@ public class Finder implements Iterator<Match> {
   protected void findAllRepeat() {
     Debug timing = Debug.startTimer("Finder.findAll");
     _results = Vision.find(_findInput);
-    _cur_result_i = 0;
+    currentMatchIndex = 0;
     timing.end();
   }
 //</editor-fold>
@@ -249,7 +207,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _results = Vision.find(_findInput);
-      _cur_result_i = 0;
+      currentMatchIndex = 0;
       return aPtn.getFilename();
     } else {
       return null;
@@ -272,7 +230,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
       _results = Vision.find(_findInput);
-      _cur_result_i = 0;
+      currentMatchIndex = 0;
       return img.getFilename();
     } else if (img.isUseable()) {
       return find(new Pattern(img));
@@ -294,7 +252,7 @@ public class Finder implements Iterator<Match> {
     }
     _findInput.setTarget(TARGET_TYPE_TEXT, text);
     _results = Vision.find(_findInput);
-    _cur_result_i = 0;
+    currentMatchIndex = 0;
     return text;
   }
 //</editor-fold>
@@ -338,10 +296,10 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
-      _findInput.setFindAll(true);
+      _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Vision.find(_findInput);
-      _cur_result_i = 0;
+      currentMatchIndex = 0;
       timing.end();
       return aPtn.getFilename();
     } else {
@@ -364,10 +322,10 @@ public class Finder implements Iterator<Match> {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
-      _findInput.setFindAll(true);
+      _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Vision.find(_findInput);
-      _cur_result_i = 0;
+      currentMatchIndex = 0;
       timing.end();
       return img.getFilename();
     } else {
@@ -387,61 +345,23 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     _findInput.setTarget(TARGET_TYPE_TEXT, text);
-    _findInput.setFindAll(true);
+    _findInput.setFindAll();
     Debug timing = Debug.startTimer("Finder.findAllText");
     _results = Vision.find(_findInput);
-    _cur_result_i = 0;
+    currentMatchIndex = 0;
     timing.end();
     return text;
   }
 //</editor-fold>
 
-//  private String setTargetSmartly(FindInput fin, String target) {
-//    if (isImageFile(target)) {
-//      //assume it's a file first
-//      String filename = Image.create(target).getFilename();
-//      if (filename != null) {
-//        fin.setTarget(TARGET_TYPE.IMAGE, filename);
-//        return filename;
-//      } else {
-//        if (!repeating) {
-//          Debug.error(target
-//                  + " looks like a file, but not on disk. Assume it's text.");
-//        }
-//      }
-//    }
-//    if (!Settings.OcrTextSearch) {
-//      Debug.error("Region.find(text): text search is currently switched off");
-//      return target + "???";
-//    } else {
-//      fin.setTarget(TARGET_TYPE.TEXT, target);
-//      if (TextRecognizer.getInstance() == null) {
-//        Debug.error("Region.find(text): text search is now switched off");
-//        return target + "???";
-//      }
-//      return target;
-//    }
-//  }
-
-//	private static boolean isImageFile(String fname) {
-//		int dot = fname.lastIndexOf('.');
-//		if (dot < 0) {
-//			return false;
-//		}
-//		String suffix = fname.substring(dot + 1).toLowerCase();
-//		if (suffix.equals("png") || suffix.equals("jpg")) {
-//			return true;
-//		}
-//		return false;
-//	}
-
+//<editor-fold defaultstate="collapsed" desc="Iterator">
   /**
    *
    * @return true if Finder has a next match, false otherwise
    */
   @Override
   public boolean hasNext() {
-    if (_results != null && _results.size() > _cur_result_i) {
+    if (_results != null && _results.size() > currentMatchIndex) {
       return true;
     }
     return false;
@@ -455,7 +375,7 @@ public class Finder implements Iterator<Match> {
   public Match next() {
     Match match = null;
     if (hasNext()) {
-      FindResult fr = _results.get(_cur_result_i++);
+      FindResult fr = _results.get(currentMatchIndex++);
       IScreen parentScreen = null;
       if (screenFinder && _region != null) {
         parentScreen = _region.getScreen();
@@ -474,4 +394,16 @@ public class Finder implements Iterator<Match> {
     }
     return match;
   }
+
+  @Override
+  public void remove(){
+    destroy();
+  }
+
+  public void destroy() {
+    _findInput = null;
+    _results = null;
+    _pattern = null;
+  }
+//</editor-fold>
 }
