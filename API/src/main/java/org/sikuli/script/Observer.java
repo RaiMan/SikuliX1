@@ -13,7 +13,6 @@ import java.util.Map;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
 import org.sikuli.natives.finder.VisionNative;
@@ -307,18 +306,9 @@ public class Observer {
     }
     boolean leftToDo = false;
     if (lastImgMat == null) {
-//      if (Settings.UseImageFinder) {
-//        lastImageMat = new org.opencv.core.Mat();
-//      } else {
-//        lastImgMat = Image.convertBufferedImageToMat(img.getImage());
-//      }
       lastImgMat = Finder.makeMat(img.getImage());
       return true;
     }
-//    if (Settings.UseImageFinder && lastImageMat.empty()) {
-//      lastImageMat = Image.createMat(img.getImage());
-//      return true;
-//    }
     for (String name : eventNames.keySet()) {
       if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) {
         continue;
@@ -333,22 +323,12 @@ public class Observer {
     if (leftToDo) {
       leftToDo = false;
       log(lvl + 1, "update: checking changes");
-//      if (Settings.UseImageFinder) {
-//        ImageFinder f = new ImageFinder(lastImageMat);
-//        f.setMinChanges(minChanges);
-//        org.opencv.core.Mat current = Image.createMat(img.getImage());
-//        if (f.hasChanges(current)) {
-//          //TODO implement ChangeObserver: processing changes
-//          log(lvl, "TODO: processing changes");
-//        }
-//        lastImageMat = current;
-//      } else {
-      FindInput fin = new FindInput();
-      fin.setSource(lastImgMat);
-      Mat target = Finder.makeMat(img.getImage());
-      fin.setTarget(target);
-      fin.setSimilarity(minChanges);
-      FindResults results = VisionNative.findChanges(fin);
+      FindInput2 findInput = new FindInput2();
+      findInput.setSource(lastImgMat);
+      Mat nextImgMat = Finder.makeMat(img.getImage());
+      findInput.setTarget(nextImgMat);
+      findInput.setSimilarity(minChanges);
+      FindResults results = VisionNative.findChanges(findInput);
       if (results.size() > 0) {
         callChangeObserver(results);
         if (shouldStopOnFirstEvent) {
@@ -357,8 +337,7 @@ public class Observer {
       } else {
         leftToDo = true;
       }
-      lastImgMat = target;
-//      }
+      lastImgMat = nextImgMat;
     }
     return leftToDo |= numChangeCallBacks > 0;
   }

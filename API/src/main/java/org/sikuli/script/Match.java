@@ -99,7 +99,7 @@ public class Match extends Region implements Comparable<Match> {
     ocrText = text;
   }
 
-  private Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {
+  public Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {
     init(_x, _y, _w, _h, _parent);
     simScore = score;
   }

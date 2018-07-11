@@ -6,9 +6,6 @@ package org.sikuli.script;
 import org.opencv.core.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.finder.FindInput;
-import org.sikuli.natives.finder.FindResult;
-import org.sikuli.natives.finder.FindResults;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -27,8 +24,8 @@ public class Finder implements Iterator<Match> {
   private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
-  private FindInput _findInput = null;
-  private FindResults _results = null;
+  private FindInput2 _findInput = new FindInput2();
+  private FindResult2 _results = null;
 
   private int currentMatchIndex;
   private boolean repeating = false;
@@ -36,7 +33,7 @@ public class Finder implements Iterator<Match> {
   private boolean screenFinder = true;
 
   static {
-    //TODO RunTime.loadLibrary("VisionProxy");
+    RunTime.loadLibrary("opencv_java320");
   }
 
   private static String me = "Finder: ";
@@ -116,7 +113,7 @@ public class Finder implements Iterator<Match> {
   }
 
   private void initScreenFinder(ScreenImage simg, Region region) {
-    _findInput = new FindInput();
+    _findInput = new FindInput2();
     setScreenImage(simg);
     _region = region;
   }
@@ -256,7 +253,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    _findInput.setTarget(TARGET_TYPE_TEXT, text);
+    _findInput.setTargetText(text);
     _results = Finder2.find(_findInput);
     currentMatchIndex = 0;
     return text;
@@ -350,7 +347,7 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    _findInput.setTarget(TARGET_TYPE_TEXT, text);
+    _findInput.setTargetText(text);
     _findInput.setFindAll();
     Debug timing = Debug.startTimer("Finder.findAllText");
     _results = Finder2.find(_findInput);
@@ -367,7 +364,7 @@ public class Finder implements Iterator<Match> {
    */
   @Override
   public boolean hasNext() {
-    if (_results != null && _results.size() > currentMatchIndex) {
+    if (_results != null && _results.hasNext()) {
       return true;
     }
     return false;
@@ -381,22 +378,21 @@ public class Finder implements Iterator<Match> {
   public Match next() {
     Match match = null;
     if (hasNext()) {
-      FindResult fr = _results.get(currentMatchIndex++);
-      IScreen parentScreen = null;
-      if (screenFinder && _region != null) {
-        parentScreen = _region.getScreen();
-      }
-      match = new Match(fr, parentScreen);
-      match.setOnScreen(screenFinder);
-			fr.delete();
-      if (_region != null) {
-        match = _region.toGlobalCoord(match);
-      }
-      if (_pattern != null) {
-        Location offset = _pattern.getTargetOffset();
-        match.setTargetOffset(offset);
-      }
-      match.setImage(_image);
+      match = _results.next();
+//      IScreen parentScreen = null;
+//      if (screenFinder && _region != null) {
+//        parentScreen = _region.getScreen();
+//      }
+//      match = new Match(fr, parentScreen);
+//      match.setOnScreen(screenFinder);
+//      if (_region != null) {
+//        match = _region.toGlobalCoord(match);
+//      }
+//      if (_pattern != null) {
+//        Location offset = _pattern.getTargetOffset();
+//        match.setTargetOffset(offset);
+//      }
+//      match.setImage(_image);
     }
     return match;
   }
@@ -462,7 +458,7 @@ public class Finder implements Iterator<Match> {
   }
 
   public static Mat getNewMat() {
-    //TODO SX.loadNative(SX.NATIVES.OPENCV);
+    Do.SX.loadNativeOpenCV();
     return new Mat();
   }
 

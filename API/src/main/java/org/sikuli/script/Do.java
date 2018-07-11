@@ -218,7 +218,7 @@ public class Do {
     return Screen.getPrimaryScreen();
   }
 
-  static class SX {
+  static public class SX {
     public static boolean isNotNull(Object obj) {
       return null != obj;
     }
@@ -239,9 +239,13 @@ public class Do {
     }
 
     public static  boolean isVersion1() { return true; };
+
+    public static void loadNativeOpenCV() {
+
+    }
   }
 
-  static class Log {
+  static public class Log {
     public static void error(String msg, Object... args) {
       Debug.error("Do: " + msg, args);
     }

@@ -12,6 +12,8 @@
 
 package org.sikuli.natives.finder;
 
+import org.sikuli.script.FindInput2;
+
 public class VisionNative {
 
   //<editor-fold desc="SWIG - obsolete">
@@ -43,12 +45,12 @@ public class VisionNative {
   //</editor-fold>
 
   //<editor-fold desc="find">
-  public static FindResults find(FindInput q) {
-    return new FindResults(VisionProxyJNI.Vision_find(FindInput.getCPtr(q), q), true);
+  public static FindResults find(FindInput2 q) {
+    return new FindResults(VisionProxyJNI.Vision_find(FindInput2.getCPtr(q), q), true);
   }
 
-  public static FindResults findChanges(FindInput q) {
-    return new FindResults(VisionProxyJNI.Vision_findChanges(FindInput.getCPtr(q), q), true);
+  public static FindResults findChanges(FindInput2 q) {
+    return new FindResults(VisionProxyJNI.Vision_findChanges(FindInput2.getCPtr(q), q), true);
   }
   //</editor-fold>
 

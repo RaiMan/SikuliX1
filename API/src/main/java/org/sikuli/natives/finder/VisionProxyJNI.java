@@ -12,6 +12,8 @@
 
 package org.sikuli.natives.finder;
 
+import org.sikuli.script.FindInput2;
+
 public class VisionProxyJNI {
   public final static native long new_FindResults__SWIG_0();
   public final static native long new_FindResults__SWIG_1(long jarg1);
@@ -122,24 +124,24 @@ public class VisionProxyJNI {
   public final static native long new_FindInput__SWIG_3(String jarg1, int jarg2, String jarg3);
   public final static native long new_FindInput__SWIG_4(long jarg1, MatNative jarg1_, int jarg2);
   public final static native long new_FindInput__SWIG_5(String jarg1, int jarg2);
-  public final static native long new_FindInput__SWIG_6(long jarg1, MatNative jarg1_, long jarg2, FindInput jarg2_);
-  public final static native void FindInput_setSource__SWIG_0(long jarg1, FindInput jarg1_, String jarg2);
-  public final static native void FindInput_setTarget__SWIG_0(long jarg1, FindInput jarg1_, int jarg2, String jarg3);
-  public final static native void FindInput_setSource__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, MatNative jarg2_);
-  public final static native void FindInput_setTarget__SWIG_1(long jarg1, FindInput jarg1_, long jarg2, MatNative jarg2_);
-  public final static native long FindInput_getSourceMat(long jarg1, FindInput jarg1_);
-  public final static native long FindInput_getTargetMat(long jarg1, FindInput jarg1_);
-  public final static native void FindInput_setFindAll(long jarg1, FindInput jarg1_, boolean jarg2);
-  public final static native boolean FindInput_isFindingAll(long jarg1, FindInput jarg1_);
-  public final static native void FindInput_setLimit(long jarg1, FindInput jarg1_, int jarg2);
-  public final static native int FindInput_getLimit(long jarg1, FindInput jarg1_);
-  public final static native void FindInput_setSimilarity(long jarg1, FindInput jarg1_, double jarg2);
-  public final static native double FindInput_getSimilarity(long jarg1, FindInput jarg1_);
-  public final static native int FindInput_getTargetType(long jarg1, FindInput jarg1_);
-  public final static native String FindInput_getTargetText(long jarg1, FindInput jarg1_);
+  public final static native long new_FindInput__SWIG_6(long jarg1, MatNative jarg1_, long jarg2, FindInput2 jarg2_);
+  public final static native void FindInput_setSource__SWIG_0(long jarg1, FindInput2 jarg1_, String jarg2);
+  public final static native void FindInput_setTarget__SWIG_0(long jarg1, FindInput2 jarg1_, int jarg2, String jarg3);
+  public final static native void FindInput_setSource__SWIG_1(long jarg1, FindInput2 jarg1_, long jarg2, MatNative jarg2_);
+  public final static native void FindInput_setTarget__SWIG_1(long jarg1, FindInput2 jarg1_, long jarg2, MatNative jarg2_);
+  public final static native long FindInput_getSourceMat(long jarg1, FindInput2 jarg1_);
+  public final static native long FindInput_getTargetMat(long jarg1, FindInput2 jarg1_);
+  public final static native void FindInput_setFindAll(long jarg1, FindInput2 jarg1_, boolean jarg2);
+  public final static native boolean FindInput_isFindingAll(long jarg1, FindInput2 jarg1_);
+  public final static native void FindInput_setLimit(long jarg1, FindInput2 jarg1_, int jarg2);
+  public final static native int FindInput_getLimit(long jarg1, FindInput2 jarg1_);
+  public final static native void FindInput_setSimilarity(long jarg1, FindInput2 jarg1_, double jarg2);
+  public final static native double FindInput_getSimilarity(long jarg1, FindInput2 jarg1_);
+  public final static native int FindInput_getTargetType(long jarg1, FindInput2 jarg1_);
+  public final static native String FindInput_getTargetText(long jarg1, FindInput2 jarg1_);
   public final static native void delete_FindInput(long jarg1);
-  public final static native long Vision_find(long jarg1, FindInput jarg1_);
-  public final static native long Vision_findChanges(long jarg1, FindInput jarg1_);
+  public final static native long Vision_find(long jarg1, FindInput2 jarg1_);
+  public final static native long Vision_findChanges(long jarg1, FindInput2 jarg1_);
   public final static native double Vision_compare(long jarg1, MatNative jarg1_, long jarg2, MatNative jarg2_);
   public final static native void Vision_initOCR(String jarg1);
   public final static native long Vision_recognize_as_ocrtext(long jarg1, MatNative jarg1_);

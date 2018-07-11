@@ -20,7 +20,7 @@ public class SikulixBoot {
     String testImageName = "testImage";
     String testImage = "_" + testImageName;
 //    ScreenImage image = scr.userCapture();
-//    String testImage = image.saveInBundle(testImageName);
+//    testImage = image.saveInBundle(testImageName);
     Match match = scr.exists(testImage);
     p("***** ending test");
   }
