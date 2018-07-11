@@ -16,8 +16,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
-import org.sikuli.natives.finder.MatNative;
-import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.VisionNative;
 
 /**
  * INTERNAL USE implements the observe action for a region and calls the ObserverCallBacks
@@ -349,7 +348,7 @@ public class Observer {
       Mat target = Finder.makeMat(img.getImage());
       fin.setTarget(target);
       fin.setSimilarity(minChanges);
-      FindResults results = Vision.findChanges(fin);
+      FindResults results = VisionNative.findChanges(fin);
       if (results.size() > 0) {
         callChangeObserver(results);
         if (shouldStopOnFirstEvent) {

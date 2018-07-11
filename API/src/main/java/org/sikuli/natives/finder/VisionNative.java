@@ -12,16 +12,18 @@
 
 package org.sikuli.natives.finder;
 
-public class Vision {
+public class VisionNative {
+
+  //<editor-fold desc="SWIG - obsolete">
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
-  protected Vision(long cPtr, boolean cMemoryOwn) {
+  protected VisionNative(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Vision obj) {
+  protected static long getCPtr(VisionNative obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -38,7 +40,9 @@ public class Vision {
       swigCPtr = 0;
     }
   }
+  //</editor-fold>
 
+  //<editor-fold desc="find">
   public static FindResults find(FindInput q) {
     return new FindResults(VisionProxyJNI.Vision_find(FindInput.getCPtr(q), q), true);
   }
@@ -46,11 +50,9 @@ public class Vision {
   public static FindResults findChanges(FindInput q) {
     return new FindResults(VisionProxyJNI.Vision_findChanges(FindInput.getCPtr(q), q), true);
   }
+  //</editor-fold>
 
-  public static double compare(MatNative m1, MatNative m2) {
-    return VisionProxyJNI.Vision_compare(MatNative.getCPtr(m1), m1, MatNative.getCPtr(m2), m2);
-  }
-
+  //<editor-fold desc="OCR">
   public static void initOCR(String ocrDataPath) {
     VisionProxyJNI.Vision_initOCR(ocrDataPath);
   }
@@ -66,11 +68,9 @@ public class Vision {
   public static String recognizeWord(MatNative image) {
     return VisionProxyJNI.Vision_recognizeWord(MatNative.getCPtr(image), image);
   }
+  //</editor-fold>
 
-  public static MatNative createMat(int _rows, int _cols, byte[] _data) {
-    return new MatNative(VisionProxyJNI.Vision_createMat(_rows, _cols, _data), true);
-  }
-
+  //<editor-fold desc="parameter">
   public static void setParameter(String param, float val) {
     VisionProxyJNI.Vision_setParameter(param, val);
   }
@@ -87,8 +87,18 @@ public class Vision {
     return VisionProxyJNI.Vision_getSParameter(param);
   }
 
-  public Vision() {
+  public VisionNative() {
     this(VisionProxyJNI.new_Vision(), true);
   }
+  //</editor-fold>
 
+  //<editor-fold desc="native - not used">
+  public static MatNative createMat(int _rows, int _cols, byte[] _data) {
+    return new MatNative(VisionProxyJNI.Vision_createMat(_rows, _cols, _data), true);
+  }
+
+  public static double compare(MatNative m1, MatNative m2) {
+    return VisionProxyJNI.Vision_compare(MatNative.getCPtr(m1), m1, MatNative.getCPtr(m2), m2);
+  }
+  //</editor-fold>
 }

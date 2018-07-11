@@ -13,7 +13,7 @@ import java.util.List;
 import org.sikuli.natives.finder.MatNative;
 import org.sikuli.natives.finder.OCRWord;
 import org.sikuli.natives.finder.OCRWords;
-import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.VisionNative;
 
 /**
  * INTERNAL USE --- NOT part of official API
@@ -60,7 +60,7 @@ public class TextRecognizer {
       Settings.OcrTextSearch = false;
     } else {
       Settings.OcrDataPath = fTessdataPath.getParent();
-      Vision.initOCR(FileManager.slashify(Settings.OcrDataPath, true));
+      VisionNative.initOCR(FileManager.slashify(Settings.OcrDataPath, true));
       Debug.log(lvl, "TextRecognizer: init OK: using as data folder:\n%s", Settings.OcrDataPath);
     }
   }
@@ -77,12 +77,12 @@ public class TextRecognizer {
 
 	public static void reset() {
 		_instance = null;
-		Vision.setSParameter("OCRLang", Settings.OcrLanguage);
+		VisionNative.setSParameter("OCRLang", Settings.OcrLanguage);
 	}
 
   public static void reset(String language) {
     _instance = null;
-    Vision.setSParameter("OCRLang", language);
+    VisionNative.setSParameter("OCRLang", language);
   }
 
   public enum ListTextMode {
@@ -97,7 +97,7 @@ public class TextRecognizer {
   // listText only supports WORD mode now.
   public List<Match> listText(ScreenImage simg, Region parent, ListTextMode mode) {
     MatNative mat = Image.convertBufferedImageToMat(simg.getImage());
-    OCRWords words = Vision.recognize_as_ocrtext(mat).getWords();
+    OCRWords words = VisionNative.recognize_as_ocrtext(mat).getWords();
     List<Match> ret = new LinkedList<Match>();
     for (int i = 0; i < words.size(); i++) {
       OCRWord w = words.get(i);
@@ -116,7 +116,7 @@ public class TextRecognizer {
   public String recognize(BufferedImage img) {
     if (initSuccess) {
       MatNative mat = Image.convertBufferedImageToMat(img);
-      return Vision.recognize(mat).trim();
+      return VisionNative.recognize(mat).trim();
     } else {
       return "";
     }
@@ -130,7 +130,7 @@ public class TextRecognizer {
   public String recognizeWord(BufferedImage img) {
     if (initSuccess) {
       MatNative mat = Image.convertBufferedImageToMat(img);
-      return Vision.recognizeWord(mat).trim();
+      return VisionNative.recognizeWord(mat).trim();
     } else {
       return "";
     }

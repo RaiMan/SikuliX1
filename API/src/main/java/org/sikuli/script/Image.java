@@ -34,7 +34,7 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.VisionNative;
 import org.sikuli.natives.finder.MatNative;
 
 /**
@@ -1377,7 +1377,7 @@ public class Image {
     if (img != null) {
       long theMatTime = new Date().getTime();
       byte[] data = convertBufferedImageToByteArray(img);
-      MatNative theMat = Vision.createMat(img.getHeight(), img.getWidth(), data);
+      MatNative theMat = VisionNative.createMat(img.getHeight(), img.getWidth(), data);
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
                 img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);

@@ -9,7 +9,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.natives.finder.FindInput;
 import org.sikuli.natives.finder.FindResult;
 import org.sikuli.natives.finder.FindResults;
-import org.sikuli.natives.finder.Vision;
+import org.sikuli.natives.finder.VisionNative;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -139,7 +139,7 @@ public class Finder implements Iterator<Match> {
    * internal use: repeat with same Finder
    */
   protected void findRepeat() {
-    _results = Vision.find(_findInput);
+    _results = VisionNative.find(_findInput);
     currentMatchIndex = 0;
   }
 
@@ -148,7 +148,7 @@ public class Finder implements Iterator<Match> {
    */
   protected void findAllRepeat() {
     Debug timing = Debug.startTimer("Finder.findAll");
-    _results = Vision.find(_findInput);
+    _results = VisionNative.find(_findInput);
     currentMatchIndex = 0;
     timing.end();
   }
@@ -213,7 +213,7 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
-      _results = Vision.find(_findInput);
+      _results = VisionNative.find(_findInput);
       currentMatchIndex = 0;
       return aPtn.getFilename();
     } else {
@@ -236,7 +236,7 @@ public class Finder implements Iterator<Match> {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
-      _results = Vision.find(_findInput);
+      _results = VisionNative.find(_findInput);
       currentMatchIndex = 0;
       return img.getFilename();
     } else if (img.isUseable()) {
@@ -258,7 +258,7 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     _findInput.setTarget(TARGET_TYPE_TEXT, text);
-    _results = Vision.find(_findInput);
+    _results = VisionNative.find(_findInput);
     currentMatchIndex = 0;
     return text;
   }
@@ -305,7 +305,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
-      _results = Vision.find(_findInput);
+      _results = VisionNative.find(_findInput);
       currentMatchIndex = 0;
       timing.end();
       return aPtn.getFilename();
@@ -331,7 +331,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setSimilarity(Settings.MinSimilarity);
       _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
-      _results = Vision.find(_findInput);
+      _results = VisionNative.find(_findInput);
       currentMatchIndex = 0;
       timing.end();
       return img.getFilename();
@@ -354,7 +354,7 @@ public class Finder implements Iterator<Match> {
     _findInput.setTarget(TARGET_TYPE_TEXT, text);
     _findInput.setFindAll();
     Debug timing = Debug.startTimer("Finder.findAllText");
-    _results = Vision.find(_findInput);
+    _results = VisionNative.find(_findInput);
     currentMatchIndex = 0;
     timing.end();
     return text;

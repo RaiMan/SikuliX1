@@ -39,60 +39,62 @@ public class FindResult {
     }
   }
 
-  public void setX(int value) {
-    VisionProxyJNI.FindResult_x_set(swigCPtr, this, value);
-  }
-
   public int getX() {
     return VisionProxyJNI.FindResult_x_get(swigCPtr, this);
-  }
-
-  public void setY(int value) {
-    VisionProxyJNI.FindResult_y_set(swigCPtr, this, value);
   }
 
   public int getY() {
     return VisionProxyJNI.FindResult_y_get(swigCPtr, this);
   }
 
-  public void setW(int value) {
-    VisionProxyJNI.FindResult_w_set(swigCPtr, this, value);
-  }
-
   public int getW() {
     return VisionProxyJNI.FindResult_w_get(swigCPtr, this);
-  }
-
-  public void setH(int value) {
-    VisionProxyJNI.FindResult_h_set(swigCPtr, this, value);
   }
 
   public int getH() {
     return VisionProxyJNI.FindResult_h_get(swigCPtr, this);
   }
 
-  public void setScore(double value) {
-    VisionProxyJNI.FindResult_score_set(swigCPtr, this, value);
-  }
-
   public double getScore() {
     return VisionProxyJNI.FindResult_score_get(swigCPtr, this);
   }
 
-  public FindResult() {
-    this(VisionProxyJNI.new_FindResult__SWIG_0(), true);
-  }
-
-  public FindResult(int _x, int _y, int _w, int _h, double _score) {
-    this(VisionProxyJNI.new_FindResult__SWIG_1(_x, _y, _w, _h, _score), true);
-  }
-
-  public void setText(String value) {
-    VisionProxyJNI.FindResult_text_set(swigCPtr, this, value);
-  }
-
-  public String getText() {
-    return VisionProxyJNI.FindResult_text_get(swigCPtr, this);
-  }
+  //<editor-fold desc="native - not used">
+  //  public FindResult() {
+//    this(VisionProxyJNI.new_FindResult__SWIG_0(), true);
+//  }
+//
+//  public FindResult(int _x, int _y, int _w, int _h, double _score) {
+//    this(VisionProxyJNI.new_FindResult__SWIG_1(_x, _y, _w, _h, _score), true);
+//  }
+//
+//  public void setX(int value) {
+//    VisionProxyJNI.FindResult_x_set(swigCPtr, this, value);
+//  }
+//
+//  public void setY(int value) {
+//    VisionProxyJNI.FindResult_y_set(swigCPtr, this, value);
+//  }
+//
+//  public void setW(int value) {
+//    VisionProxyJNI.FindResult_w_set(swigCPtr, this, value);
+//  }
+//
+//  public void setH(int value) {
+//    VisionProxyJNI.FindResult_h_set(swigCPtr, this, value);
+//  }
+//
+//  public void setScore(double value) {
+//    VisionProxyJNI.FindResult_score_set(swigCPtr, this, value);
+//  }
+//
+//  public void setText(String value) {
+//    VisionProxyJNI.FindResult_text_set(swigCPtr, this, value);
+//  }
+//
+//  public String getText() {
+//    return VisionProxyJNI.FindResult_text_get(swigCPtr, this);
+//  }
+  //</editor-fold>
 
 }
