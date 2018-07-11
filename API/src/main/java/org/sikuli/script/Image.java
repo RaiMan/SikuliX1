@@ -633,9 +633,10 @@ public class Image {
     }
     if (!img.isValid()) {
       if (Settings.OcrTextSearch) {
-        img.setIsText(true);
         if (Settings.isValidImageFilename(img.getName())) {
           img.setIsText(false);
+        } else {
+          img.setIsText(true);
         }
       } else {
         if (verbose) {
