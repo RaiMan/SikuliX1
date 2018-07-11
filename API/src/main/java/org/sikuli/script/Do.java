@@ -223,6 +223,10 @@ public class Do {
       return null != obj;
     }
 
+    public static boolean isNull(Object obj) {
+      return null == obj;
+    }
+
     public static void pause(double time) {
       try {
         Thread.sleep((int) (time * 1000));
