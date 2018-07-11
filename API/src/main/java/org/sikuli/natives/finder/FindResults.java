@@ -39,44 +39,46 @@ public class FindResults {
     }
   }
 
-  public FindResults() {
-    this(VisionProxyJNI.new_FindResults__SWIG_0(), true);
-  }
-
-  public FindResults(long n) {
-    this(VisionProxyJNI.new_FindResults__SWIG_1(n), true);
-  }
-
   public long size() {
     return VisionProxyJNI.FindResults_size(swigCPtr, this);
-  }
-
-  public long capacity() {
-    return VisionProxyJNI.FindResults_capacity(swigCPtr, this);
-  }
-
-  public void reserve(long n) {
-    VisionProxyJNI.FindResults_reserve(swigCPtr, this, n);
-  }
-
-  public boolean isEmpty() {
-    return VisionProxyJNI.FindResults_isEmpty(swigCPtr, this);
-  }
-
-  public void clear() {
-    VisionProxyJNI.FindResults_clear(swigCPtr, this);
-  }
-
-  public void add(FindResult x) {
-    VisionProxyJNI.FindResults_add(swigCPtr, this, FindResult.getCPtr(x), x);
   }
 
   public FindResult get(int i) {
     return new FindResult(VisionProxyJNI.FindResults_get(swigCPtr, this, i), false);
   }
 
-  public void set(int i, FindResult val) {
-    VisionProxyJNI.FindResults_set(swigCPtr, this, i, FindResult.getCPtr(val), val);
-  }
+  //<editor-fold desc="native - notused">
+  //  public FindResults() {
+//    this(VisionProxyJNI.new_FindResults__SWIG_0(), true);
+//  }
+//
+//  public FindResults(long n) {
+//    this(VisionProxyJNI.new_FindResults__SWIG_1(n), true);
+//  }
+//
+//  public long capacity() {
+//    return VisionProxyJNI.FindResults_capacity(swigCPtr, this);
+//  }
+//
+//  public void reserve(long n) {
+//    VisionProxyJNI.FindResults_reserve(swigCPtr, this, n);
+//  }
+//
+//  public boolean isEmpty() {
+//    return VisionProxyJNI.FindResults_isEmpty(swigCPtr, this);
+//  }
+//
+//  public void clear() {
+//    VisionProxyJNI.FindResults_clear(swigCPtr, this);
+//  }
+//
+//  public void add(FindResult x) {
+//    VisionProxyJNI.FindResults_add(swigCPtr, this, FindResult.getCPtr(x), x);
+//  }
+//
+//  public void set(int i, FindResult val) {
+//    VisionProxyJNI.FindResults_set(swigCPtr, this, i, FindResult.getCPtr(val), val);
+//  }
+  //</editor-fold>
 
 }

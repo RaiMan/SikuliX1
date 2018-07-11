@@ -37,4 +37,9 @@ public class FindInput {
   public void setFindAll() {
     findAll = true;
   }
+
+//TODO for compilation - remove when native is obsolete
+  public static long getCPtr(FindInput p) {
+    return 0;
+  }
 }

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.natives.finder.FindInput;
@@ -36,7 +37,7 @@ public class Observer {
   }
 
   private Region observedRegion = null;
-  private MatNative lastImgMat = null;
+  private Mat lastImgMat = null;
   //private org.opencv.core.Mat lastImageMat = null;
   private Map<String, State> eventStates = null;
   private Map<String, Long> eventRepeatWaitTimes = null;
@@ -312,7 +313,7 @@ public class Observer {
 //      } else {
 //        lastImgMat = Image.convertBufferedImageToMat(img.getImage());
 //      }
-      lastImgMat = Image.convertBufferedImageToMat(img.getImage());
+      lastImgMat = Finder.makeMat(img.getImage());
       return true;
     }
 //    if (Settings.UseImageFinder && lastImageMat.empty()) {
@@ -345,7 +346,7 @@ public class Observer {
 //      } else {
       FindInput fin = new FindInput();
       fin.setSource(lastImgMat);
-      MatNative target = Image.convertBufferedImageToMat(img.getImage());
+      Mat target = Finder.makeMat(img.getImage());
       fin.setTarget(target);
       fin.setSimilarity(minChanges);
       FindResults results = Vision.findChanges(fin);

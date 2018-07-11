@@ -415,7 +415,7 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
 //<editor-fold desc="opencv Mat">
-  private static Mat makeMat(BufferedImage bImg) {
+  public static Mat makeMat(BufferedImage bImg) {
     Mat aMat = getNewMat();
     if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
       log(lvl, "makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
