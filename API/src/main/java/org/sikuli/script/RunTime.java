@@ -61,12 +61,15 @@ public class RunTime {
 
   protected void abortScripting(String msg1, String msg2) {
     Thread current = Thread.currentThread();
-    String where = "unknown";
+    String where = "";
     if (Region.runTime.isJythonReady) {
       where = JythonHelper.get().getCurrentLine();
+      log(-1, msg2);
+      log(-1, msg1 + " %s", where);
     }
-    log(-1, msg1 + " %s", where);
-    log(-1, msg2);
+    if (where.isEmpty()) {
+      throw new RuntimeException(msg2);
+    }
     current.interrupt();
     current.stop();
   }
