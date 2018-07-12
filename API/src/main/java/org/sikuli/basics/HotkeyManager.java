@@ -28,7 +28,6 @@ public abstract class HotkeyManager {
   public static HotkeyManager getInstance() {
     if (_instance == null) {
       if (Settings.isWindows() || Settings.isMac()) {
-//      if (Settings.isMac()) {
         _instance = new GenericHotkeyManager();
       } else {
         String cls = getOSHotkeyManagerClass();

@@ -1359,17 +1359,6 @@ public class Image {
 //    }
 //  }
 
-  /**
-   * to get old style OpenCV Mat for FindInput
-   *
-   * @return SWIG interfaced OpenCV Mat
-   * @deprecated
-   */
-  @Deprecated
-  protected MatNative getMatNative() {
-    return convertBufferedImageToMat(get());
-  }
-
   protected static MatNative convertBufferedImageToMat(BufferedImage img) {
     if (img != null) {
       long theMatTime = new Date().getTime();

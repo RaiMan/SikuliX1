@@ -98,12 +98,6 @@
       <version>1.7.25</version>
     </dependency>
     <dependency>
-      <groupId>com.melloware</groupId>
-      <artifactId>jintellitype</artifactId>
-      <version>1.3.9</version>
-      <!--License Apache 2-->
-    </dependency>
-    <dependency>
       <groupId>com.nativelibs4java</groupId>
       <artifactId>bridj</artifactId>
       <version>0.7.0</version>
