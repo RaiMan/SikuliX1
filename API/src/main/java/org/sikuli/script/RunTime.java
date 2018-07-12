@@ -989,18 +989,25 @@ public class RunTime {
       }
       for (URL urlRessource : uLibsFrom) {
         log(lvl, "export libs from: %s", urlRessource);
-        String theJar = "";
-        String theFolder = "";
         String protocol = urlRessource.getProtocol();
         if ("file".equals(protocol)) {
-          log(lvl, "file: %s", urlRessource);
+          log(lvl, "file: %s", urlRessource.getPath());
+          extractResourcesToFolder(urlRessource.getPath(), fLibsFolder, null);
         } else if ("jar".equals(protocol)) {
-          log(lvl, "jar: %s", urlRessource);
+          String jarPath = urlRessource.getPath().replace("file:", "");
+          String[] parts = jarPath.split("!");
+          String jarFolder = "/";
+          jarFolder = parts[1];
+          if (parts.length > 1) {
+            jarPath = parts[0];
+            jarFolder = parts[1];
+          }
+          log(lvl, "jar: %s", jarPath);
+          log(lvl, "folder: %s", jarFolder);
+          extractResourcesToFolderFromJar(jarPath, jarFolder, fLibsFolder, null);
         } else {
           terminate(1, "export libs invalid: %s", urlRessource);
         }
-        //extractResourcesToFolderFromJar(theJar, theFolder, fLibsFolder, null);
-        theJar = "";
       }
     }
     for (String aFile : fLibsFolder.list()) {
@@ -2054,9 +2061,13 @@ public class RunTime {
       }
       aIS = (InputStream) clsRef.getResourceAsStream(content);
       if (aIS == null) {
-        throw new IOException("resource not accessible");
+        File fInFile = new File(content);
+        if (!fInFile.exists()) {
+          throw new IOException(String.format("resource not accessible: %s", content));
+        }
+        aIS = new FileInputStream(fInFile);
       }
-      File out = outFile.isEmpty() ? new File(outDir, inFile) : new File(outDir, inFile);
+      File out = outFile.isEmpty() ? new File(outDir, inFile) : new File(outDir, outFile);
       if (!out.getParentFile().exists()) {
         out.getParentFile().mkdirs();
       }
@@ -2129,7 +2140,12 @@ public class RunTime {
       folder = "/" + folder;
     }
     URL uFolder = resourceLocation(folder);
+    File fFolder = null;
     if (uFolder == null) {
+      fFolder = new File(folder);
+      if (fFolder.exists()) {
+        files = doResourceListFolder(fFolder, files, filter);
+      }
       log(lvl, "resourceList: not found: %s", folder);
       return files;
     }
@@ -2141,7 +2157,6 @@ public class RunTime {
     if (uContentList != null) {
       return doResourceListWithList(folder, files, filter);
     }
-    File fFolder = null;
     try {
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
@@ -2339,7 +2354,7 @@ public class RunTime {
     int localLevel = testing ? lvl : lvl + 1;
     String subFolder = "";
     if (fFolder.isDirectory()) {
-      if (!FileManager.pathEquals(fFolder.getPath(), files.get(0))) {
+      if (files.size() > 0 && !FileManager.pathEquals(fFolder.getPath(), files.get(0))) {
         subFolder = fFolder.getPath().substring(files.get(0).length() + 1).replace("\\", "/") + "/";
         if (filter != null && !filter.accept(new File(files.get(0), subFolder), "")) {
           return files;
