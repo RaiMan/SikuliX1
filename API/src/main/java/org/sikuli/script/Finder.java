@@ -45,6 +45,10 @@ public class Finder implements Iterator<Match> {
 //<editor-fold defaultstate="collapsed" desc="Constructors">
   private Finder() {}
 
+  public Finder(FindInput2 findInput) {
+    _findInput = findInput;
+  }
+
   /**
    * Finder constructor (finding within an image).
    * <br>internally used with a screen snapshot
@@ -242,6 +246,20 @@ public class Finder implements Iterator<Match> {
     }
   }
 
+  public List<Region> findChanges(Object changedImage) {
+    if (Do.SX.isNull(changedImage)) {
+      return null;
+    }
+    if (changedImage instanceof String) {
+      Image img = Image.create((String) changedImage);
+      _findInput.setTarget(possibleImageResizeOrCallback(img));
+    } else if (changedImage instanceof ScreenImage) {
+      Image img = new Image((ScreenImage) changedImage);
+      _findInput.setTarget(possibleImageResizeOrCallback(img));
+    }
+    return Finder2.findChanges(_findInput);
+  }
+
   /**
    * do a text find with the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
@@ -411,14 +429,17 @@ public class Finder implements Iterator<Match> {
 
 //<editor-fold desc="opencv Mat">
   public static Mat makeMat(BufferedImage bImg) {
-    Mat aMat = getNewMat();
+    return makeMat(bImg, true);
+  }
+
+  public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
     if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
       log(lvl, "makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
       int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
       ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
       IntBuffer intBuffer = byteBuffer.asIntBuffer();
       intBuffer.put(data);
-      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
       aMat.put(0, 0, byteBuffer.array());
       Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
       Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
@@ -430,31 +451,38 @@ public class Finder implements Iterator<Match> {
     } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
       log(lvl, "makeMat: 3BYTE_BGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
       byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-      aMat.put(0, 0, data);
-      return aMat;
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
       log(lvl, "makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
       byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
       aMat.put(0, 0, data);
-      Mat mBGRA = getNewMat(aMat.size(), 4, -1);
       List<Mat> mats = new ArrayList<Mat>();
       Core.split(aMat, mats);
-      mats.add(mats.remove(0));
-      Core.merge(mats, mBGRA);
-      return mBGRA;
+      if (asBGR) {
+        Mat mBGR = getNewMat(aMat.size(), 3, -1);
+        mats.remove(0);
+        Core.merge(mats, mBGR);
+        return mBGR;
+      } else {
+        Mat mBGRA = getNewMat(aMat.size(), 4, -1);
+        mats.add(mats.remove(0));
+        Core.merge(mats, mBGRA);
+        return mBGRA;
+      }
     } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
       log(lvl, "makeMat: BYTE_GRAY (%dx%d)", bImg.getWidth(), bImg.getHeight());
       byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
       aMat.put(0, 0, data);
       return aMat;
     } else {
       log(-1, "makeMat: Type not supported: %d (%dx%d)",
               bImg.getType(), bImg.getWidth(), bImg.getHeight());
     }
-    return aMat;
+    return getNewMat();
   }
 
   public static Mat getNewMat() {

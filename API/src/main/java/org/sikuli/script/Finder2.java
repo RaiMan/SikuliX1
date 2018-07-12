@@ -186,7 +186,8 @@ public class Finder2 {
     return mat.type() == colored || mat.type() == transparent;
   }
 
-  public static List<Region> findChanges(Mat previous, Mat next) {
+  public static List<Region> findChanges(FindInput2 findInput) {
+    findInput.setAttributes();
     int PIXEL_DIFF_THRESHOLD = 3;
     int IMAGE_DIFF_THRESHOLD = 5;
     Mat previousGray = Finder.getNewMat();
@@ -194,8 +195,8 @@ public class Finder2 {
     Mat mDiffAbs = Finder.getNewMat();
     Mat mDiffTresh = Finder.getNewMat();
 
-    Imgproc.cvtColor(previous, previousGray, toGray);
-    Imgproc.cvtColor(next, nextGray, toGray);
+    Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
+    Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
     Core.absdiff(previousGray, nextGray, mDiffAbs);
     Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
 
@@ -237,7 +238,6 @@ public class Finder2 {
         if (y > y2) y2 = y;
       }
       Region rect = new Region(x1, y1, x2 - x1, y2 - y1);
-      //log.trace("rectangle: %s", rect);
       rects.add(rect);
     }
     return rects;

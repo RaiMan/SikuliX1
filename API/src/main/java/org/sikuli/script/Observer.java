@@ -35,8 +35,6 @@ public class Observer {
   }
 
   private Region observedRegion = null;
-  private Mat lastImgMat = null;
-  //private org.opencv.core.Mat lastImageMat = null;
   private Map<String, State> eventStates = null;
   private Map<String, Long> eventRepeatWaitTimes = null;
   private Map<String, Match> eventMatches = null;
@@ -300,13 +298,16 @@ public class Observer {
     return min;
   }
 
+  private Mat lastImgMat = null;
+  private ScreenImage lastImage = null;
+
   private boolean checkChanges(ScreenImage img) {
     if (numChangeObservers == 0) {
       return false;
     }
     boolean leftToDo = false;
-    if (lastImgMat == null) {
-      lastImgMat = Finder.makeMat(img.getImage());
+    if (lastImage == null) {
+      lastImage = img;
       return true;
     }
     for (String name : eventNames.keySet()) {
@@ -323,38 +324,36 @@ public class Observer {
     if (leftToDo) {
       leftToDo = false;
       log(lvl + 1, "update: checking changes");
-      FindInput2 findInput = new FindInput2();
-      findInput.setSource(lastImgMat);
-      Mat nextImgMat = Finder.makeMat(img.getImage());
-      findInput.setTarget(nextImgMat);
-      findInput.setSimilarity(minChanges);
-      FindResults results = VisionNative.findChanges(findInput);
-      if (results.size() > 0) {
-        callChangeObserver(results);
+      Finder finder = new Finder(lastImage);
+      List<Region> result = finder.findChanges(img);
+      if (result.size() > 0) {
+        callChangeObserver(result);
         if (shouldStopOnFirstEvent) {
           observedRegion.stopObserver();
         }
       } else {
         leftToDo = true;
       }
-      lastImgMat = nextImgMat;
+      lastImage = img;
     }
     return leftToDo |= numChangeCallBacks > 0;
   }
 
-  private void callChangeObserver(FindResults results) {
-    int n;
+  private void callChangeObserver(List<Region> results) {
     log(lvl, "changes: %d in: %s", results.size(), observedRegion);
+    int offX = observedRegion.x;
+    int offY = observedRegion.y;
     for (String name : eventNames.keySet()) {
       if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) {
         continue;
       }
-      n = (Integer) eventNames.get(name);
-      List<Match> changes = new ArrayList<Match>();
-      for (int i = 0; i < results.size(); i++) {
-        FindResult r = results.get(i);
-        if (r.getW() * r.getH() >= n) {
-          changes.add(observedRegion.toGlobalCoord(new Match(r, observedRegion.getScreen())));
+      int minChangedPixels = (Integer) eventNames.get(name);
+      List<Region> changes = new ArrayList<Region>();
+      for (Region rect : results) {
+        if (rect.getW() * rect.getH() >= minChangedPixels) {
+          rect.x += offX;
+          rect.y += offY;
+          changes.add(rect);
         }
       }
       if (changes.size() > 0) {
@@ -362,7 +361,7 @@ public class Observer {
         eventCounts.put(name, eventCounts.get(name) + 1);
         ObserveEvent observeEvent = new ObserveEvent(name, ObserveEvent.Type.CHANGE, null, null, observedRegion, now);
         observeEvent.setChanges(changes);
-        observeEvent.setIndex(n);
+        observeEvent.setIndex(minChangedPixels);
         Observing.addEvent(observeEvent);
         Object callBack = eventCallBacks.get(name);
         if (callBack != null) {
