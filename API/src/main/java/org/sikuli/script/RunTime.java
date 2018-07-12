@@ -397,6 +397,8 @@ public class RunTime {
 
   private Class clsRef = RunTime.class;
   private Class clsRefBase = clsRef;
+  private Class clsRefAPI = Sikulix.class;
+  private Class clsRefOpenCV = com.sikulix.opencv.Sikulix.class;
 
   private List<URL> classPath = new ArrayList<URL>();
   public File fTempPath = null;
@@ -912,7 +914,6 @@ public class RunTime {
   private void libsExport(Type typ) {
     shouldExport = false;
     makeFolders();
-    URL uLibsFrom = null;
     if (!libsCheck(fLibsFolder)) {
       FileManager.deleteFileOrFolder(fLibsFolder);
       fLibsFolder.mkdirs();
@@ -961,25 +962,45 @@ public class RunTime {
       if (!fpLibsFrom.isEmpty()) {
         addToClasspath(fpLibsFrom, "RunTime.libsExport " + typ);
       }
-      uLibsFrom = clsRef.getResource(fpJarLibs);
-      if (testing || uLibsFrom == null) {
-        dumpClassPath();
-      }
-      if (uLibsFrom == null) {
+      List<URL> uLibsFrom = new ArrayList<>();
+      URL libsLocation = clsRefAPI.getResource(fpJarLibs);
+      if (Do.SX.isNotNull(libsLocation)) {
+        uLibsFrom.add(libsLocation);
+      } else {
         terminate(1, "libs to export not found on above classpath: " + fpJarLibs);
       }
-      log(lvl, "libs to export are at:\n%s", uLibsFrom);
-      if (runningWinApp || testingWinApp) {
-        String libsAccepted = "libs" + javaArch;
-        extractResourcesToFolder(fpJarLibs, fLibsFolder, new LibsFilter(libsAccepted));
-        File fCurrentLibs = new File(fLibsFolder, libsAccepted);
-        if (FileManager.xcopy(fCurrentLibs, fLibsFolder)) {
-          FileManager.deleteFileOrFolder(fCurrentLibs);
-        } else {
-          terminate(1, "could not create libs folder for Windows --- see log");
-        }
+      String fpOpenCVLibs = "/Native/mac";
+      if (runningMac) {
+        libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
+      } else if (runningWindows) {
+        fpOpenCVLibs = "/Native/windows";
+        libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
       } else {
-        extractResourcesToFolder(fpJarLibs, fLibsFolder, null);
+        fpOpenCVLibs = "/Native/linux";
+        libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
+      }
+      if (Do.SX.isNotNull(libsLocation)) {
+        uLibsFrom.add(libsLocation);
+      } else {
+        terminate(1, "libs to export not found on above classpath: " + fpOpenCVLibs);
+      }
+      if (testing || uLibsFrom.size() == 0) {
+        dumpClassPath();
+      }
+      for (URL urlRessource : uLibsFrom) {
+        log(lvl, "export libs from: %s", urlRessource);
+        String theJar = "";
+        String theFolder = "";
+        String protocol = urlRessource.getProtocol();
+        if ("file".equals(protocol)) {
+          log(lvl, "file: %s", urlRessource);
+        } else if ("jar".equals(protocol)) {
+          log(lvl, "jar: %s", urlRessource);
+        } else {
+          terminate(1, "export libs invalid: %s", urlRessource);
+        }
+        //extractResourcesToFolderFromJar(theJar, theFolder, fLibsFolder, null);
+        theJar = "";
       }
     }
     for (String aFile : fLibsFolder.list()) {
