@@ -1,7 +1,8 @@
 [![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://www.sikuli.org) SikuliX 1.1.4 (under developement)
 ============
 
-Main intention for this version is to backport the Java-only OpenCV 3.x implementation from version 2
+Main intention for this version is to backport the Java-only OpenCV 3.x implementation from version 2<br>
+and implement the text features via Tess4J (also backport from version 2)
 
 Bug fixes in version 1.1.3 will be available her also may be with some delay. 
 
