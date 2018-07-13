@@ -4,6 +4,9 @@
 package org.sikuli.script;
 
 import java.awt.image.BufferedImage;
+
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Debug;
@@ -11,15 +14,29 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * INTERNAL USE --- NOT part of official API
- *
- * Will be rewritten for use of Tess4J - Java only implementation
- */
 public class TextRecognizer {
 
   static RunTime runTime = RunTime.get();
 
+  private Tesseract1 tess = null;
+  private boolean valid = false;
+
+  public boolean isValid() {
+    return valid;
+  }
+
+  public String read(Image image) {
+    if (valid) {
+      try {
+        return tess.doOCR(image.get());
+      } catch (TesseractException e) {
+        Debug.error("TextRecognizer: read: %s", e.getMessage());
+      }
+    } else {
+      Debug.error("TextRecognizer: read: not valid");
+    }
+    return "did not work";
+  }
   private static TextRecognizer _instance = null;
   private static boolean initSuccess = false;
 	private static int lvl = 3;
@@ -33,6 +50,7 @@ public class TextRecognizer {
   }
 
   private void init() {
+    tess = new Tesseract1();
     File fTessdataPath = null;
     initSuccess = false;
     if (Settings.OcrDataPath != null) {
@@ -63,6 +81,7 @@ public class TextRecognizer {
       Settings.OcrTextSearch = false;
       initSuccess = false;
     }
+    valid = initSuccess;
   }
 
   public static TextRecognizer getInstance() {
