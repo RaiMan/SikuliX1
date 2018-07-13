@@ -13,9 +13,6 @@ import java.util.Map;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import org.sikuli.natives.finder.FindResult;
-import org.sikuli.natives.finder.FindResults;
-import org.sikuli.natives.finder.VisionNative;
 
 /**
  * INTERNAL USE implements the observe action for a region and calls the ObserverCallBacks

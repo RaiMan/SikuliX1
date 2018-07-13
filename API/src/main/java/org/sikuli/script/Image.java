@@ -31,8 +31,6 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.finder.VisionNative;
-import org.sikuli.natives.finder.MatNative;
 
 /**
  * This class hides the complexity behind image names given as string.
@@ -1359,20 +1357,20 @@ public class Image {
 //    }
 //  }
 
-  protected static MatNative convertBufferedImageToMat(BufferedImage img) {
-    if (img != null) {
-      long theMatTime = new Date().getTime();
-      byte[] data = convertBufferedImageToByteArray(img);
-      MatNative theMat = VisionNative.createMat(img.getHeight(), img.getWidth(), data);
-      if (Settings.FindProfiling) {
-        Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
-                img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);
-      }
-      return theMat;
-    } else {
-      return null;
-    }
-  }
+//TODO  protected static MatNative convertBufferedImageToMat(BufferedImage img) {
+//    if (img != null) {
+//      long theMatTime = new Date().getTime();
+//      byte[] data = convertBufferedImageToByteArray(img);
+//      MatNative theMat = VisionNative.createMat(img.getHeight(), img.getWidth(), data);
+//      if (Settings.FindProfiling) {
+//        Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
+//                img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);
+//      }
+//      return theMat;
+//    } else {
+//      return null;
+//    }
+//  }
 
   protected static byte[] convertBufferedImageToByteArray(BufferedImage img) {
     if (img != null) {

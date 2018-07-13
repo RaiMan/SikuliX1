@@ -10,10 +10,6 @@ import org.sikuli.basics.Debug;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import org.sikuli.natives.finder.MatNative;
-import org.sikuli.natives.finder.OCRWord;
-import org.sikuli.natives.finder.OCRWords;
-import org.sikuli.natives.finder.VisionNative;
 
 /**
  * INTERNAL USE --- NOT part of official API
@@ -60,8 +56,12 @@ public class TextRecognizer {
       Settings.OcrTextSearch = false;
     } else {
       Settings.OcrDataPath = fTessdataPath.getParent();
-      VisionNative.initOCR(FileManager.slashify(Settings.OcrDataPath, true));
-      Debug.log(lvl, "TextRecognizer: init OK: using as data folder:\n%s", Settings.OcrDataPath);
+      //TODO VisionNative.initOCR(FileManager.slashify(Settings.OcrDataPath, true));
+      //Debug.log(lvl, "TextRecognizer: init OK: using as data folder:\n%s", Settings.OcrDataPath);
+      Debug.error("TextRecognizer: currently not useable");
+      Settings.OcrTextRead = false;
+      Settings.OcrTextSearch = false;
+      initSuccess = false;
     }
   }
 
@@ -77,12 +77,12 @@ public class TextRecognizer {
 
 	public static void reset() {
 		_instance = null;
-		VisionNative.setSParameter("OCRLang", Settings.OcrLanguage);
+		//TODO VisionNative.setSParameter("OCRLang", Settings.OcrLanguage);
 	}
 
   public static void reset(String language) {
     _instance = null;
-    VisionNative.setSParameter("OCRLang", language);
+    //TODO VisionNative.setSParameter("OCRLang", language);
   }
 
   public enum ListTextMode {
@@ -93,18 +93,18 @@ public class TextRecognizer {
     return listText(simg, parent, ListTextMode.WORD);
   }
 
-  //TODO: support LINE and PARAGRAPH
+  //TODO: listText() support LINE and PARAGRAPH
   // listText only supports WORD mode now.
   public List<Match> listText(ScreenImage simg, Region parent, ListTextMode mode) {
-    MatNative mat = Image.convertBufferedImageToMat(simg.getImage());
-    OCRWords words = VisionNative.recognize_as_ocrtext(mat).getWords();
     List<Match> ret = new LinkedList<Match>();
-    for (int i = 0; i < words.size(); i++) {
-      OCRWord w = words.get(i);
-      Match m = new Match(parent.x + w.getX(), parent.y + w.getY(), w.getWidth(), w.getHeight(),
-              w.getScore(), parent.getScreen(), w.getString());
-      ret.add(m);
-    }
+//    MatNative mat = Image.convertBufferedImageToMat(simg.getImage());
+//    OCRWords words = VisionNative.recognize_as_ocrtext(mat).getWords();
+//    for (int i = 0; i < words.size(); i++) {
+//      OCRWord w = words.get(i);
+//      Match m = new Match(parent.x + w.getX(), parent.y + w.getY(), w.getWidth(), w.getHeight(),
+//              w.getScore(), parent.getScreen(), w.getString());
+//      ret.add(m);
+//    }
     return ret;
   }
 
@@ -115,11 +115,10 @@ public class TextRecognizer {
 
   public String recognize(BufferedImage img) {
     if (initSuccess) {
-      MatNative mat = Image.convertBufferedImageToMat(img);
-      return VisionNative.recognize(mat).trim();
-    } else {
-      return "";
+      //MatNative mat = Image.convertBufferedImageToMat(img);
+      //TODO return VisionNative.recognize(mat).trim();
     }
+    return "";
   }
 
   public String recognizeWord(ScreenImage simg) {
@@ -129,10 +128,9 @@ public class TextRecognizer {
 
   public String recognizeWord(BufferedImage img) {
     if (initSuccess) {
-      MatNative mat = Image.convertBufferedImageToMat(img);
-      return VisionNative.recognizeWord(mat).trim();
-    } else {
-      return "";
+      //MatNative mat = Image.convertBufferedImageToMat(img);
+      //TODO return VisionNative.recognizeWord(mat).trim();
     }
+    return "";
   }
 }
