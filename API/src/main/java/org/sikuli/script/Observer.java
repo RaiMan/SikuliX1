@@ -348,12 +348,12 @@ public class Observer {
         continue;
       }
       int minChangedPixels = (Integer) eventNames.get(name);
-      List<Region> changes = new ArrayList<Region>();
+      List<Match> changes = new ArrayList<Match>();
       for (Region rect : results) {
         if (rect.getW() * rect.getH() >= minChangedPixels) {
           rect.x += offX;
           rect.y += offY;
-          changes.add(rect);
+          changes.add(new Match(rect, 1));
         }
       }
       if (changes.size() > 0) {

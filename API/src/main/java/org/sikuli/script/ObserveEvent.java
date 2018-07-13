@@ -27,7 +27,7 @@ public class ObserveEvent {
   private Image image = null;
   private FindFailedResponse response = FindFailed.defaultFindFailedResponse;
   private int index = -1;
-  private List<Region> changes = null;
+  private List<Match> changes = null;
   private long time;
   private String name;
   private Object[] vals = new Object[] {null, null, null};
@@ -184,13 +184,13 @@ public class ObserveEvent {
    *
    * @return a list of observed changes as matches (CHANGE)
    */
-  public List<Region> getChanges() {
+  public List<Match> getChanges() {
     return changes;
   }
 
-  protected void setChanges(List<Region> actualChanges) {
+  protected void setChanges(List<Match> actualChanges) {
     if (actualChanges != null) {
-      this.changes = new ArrayList<Region>();
+      this.changes = new ArrayList<Match>();
       this.changes.addAll(actualChanges);
     }
   }
