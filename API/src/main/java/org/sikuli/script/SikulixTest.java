@@ -4,34 +4,77 @@
 
 package org.sikuli.script;
 
-import org.opencv.core.Mat;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class SikulixTest {
 
+  private static Screen scr = new Screen();
+
   private static void p(String msg, Object... args) {
     System.out.println(String.format(msg, args));
   }
+
+  private static String showBase = "/Users/raimundhocke/IdeaProjects/SikuliX114/API/src/main/resources/ImagesAPI.sikuli";
+  private static String showLink;
+  private static int showWait;
+  private static int showBefore;
+
+  private static void show(String image) {
+    show(image, 3, 0);
+  }
+
+  private static void show(String image, int wait) {
+    show(image, wait, 0);
+  }
+
+  private static void showStop() {
+    scr.type("w", Key.CMD);
+  }
+
+  private static void show(String image, int wait, int before) {
+    if (!image.endsWith(".png")) {
+      image += ".png";
+    }
+    showLink = "file://" + showBase + "/" + image;
+    showWait = wait;
+    showBefore = before;
+    Thread runnable = new Thread() {
+      @Override
+      public void run() {
+        if (before > 0) {
+          RunTime.pause(showBefore);
+        }
+        App.openLink(showLink);
+        if (wait > 0) {
+          RunTime.pause(showWait);
+          //p("%s", App.focusedWindow());
+          scr.type("w", Key.CMD);
+        }
+      }
+    };
+    runnable.start();
+  }
+
   public static void main(String[] args) {
 //    String property = System.getProperty("java.awt.graphicsenv");
 //    p("java.awt.graphicsenv: %s", property);
     RunTime runTime = RunTime.get();
-    Screen scr = new Screen();
-    ImagePath.setBundlePath(runTime.fSikulixStore.getAbsolutePath());
+    ImagePath.setBundlePath(showBase);
     Match match = null;
     String testImage = "findBase";
 
     List<Integer> runTest = new ArrayList<>();
     runTest.add(1);
     runTest.add(2);
+    //runTest.add(3);
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
+      show(testImage, 0);
       //scr.hover();
       match = scr.exists(testImage);
-      //match.highlight(2);
+      match.highlight(2);
       p("***** ending test");
     }
     if (runTest.contains(2)) {
@@ -42,6 +85,11 @@ public class SikulixTest {
       for (Region change : changes) {
         getInset(match, change).highlight(1);
       }
+      showStop();
+      p("***** endOf test2");
+    }
+    if (runTest.contains(3)) {
+      p("***** start test2 popup");
       p("***** endOf test2");
     }
   }
