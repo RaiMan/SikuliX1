@@ -95,13 +95,19 @@ public class SikulixTest {
     }
     if (runTest.contains(3)) {
       p("***** start test2 popup");
+      TextRecognizer tr = TextRecognizer.getInstance();
+      Region reg = scr.selectRegion();
+      String text = "";
+      if (Do.SX.isNotNull(reg)) {
+        text = reg.text().trim();
+      }
+      p("read:\n%s", text);
       p("***** endOf test2");
     }
     if (isShown) {
       showStop();
     }
   }
-
 
   private static Region getInset(Region base, Region inset) {
     return new Region(base.x + inset.x, base.y + inset.y, inset.w, inset.h);

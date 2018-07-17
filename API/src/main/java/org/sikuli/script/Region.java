@@ -4618,7 +4618,7 @@ public class Region {
   //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
 
   /**
-   * STILL EXPERIMENTAL: tries to read the text in this region<br> might contain misread characters, NL characters and
+   * tries to read the text in this region<br> might contain misread characters, NL characters and
    * other stuff, when interpreting contained grafics as text<br>
    * Best results: one line of text with no grafics in the line
    *
@@ -4630,37 +4630,14 @@ public class Region {
       TextRecognizer tr = TextRecognizer.getInstance();
       if (tr == null) {
         Debug.error("text: text recognition is now switched off");
-        return "--- no text ---";
+        return "";
       }
       String textRead = tr.recognize(simg);
-      log(lvl, "text: #(" + textRead + ")#");
+      //log(lvl, "text: #(" + textRead + ")#");
       return textRead;
     }
     Debug.error("text: text recognition is currently switched off");
-    return "--- no text ---";
-  }
-
-  /**
-   * VERY EXPERIMENTAL: returns a list of matches, that represent single words, that have been found in this region<br>
-   * the match's x,y,w,h the region of the word<br> Match.getText() returns the word (utf8) at this match<br>
-   * Match.getScore() returns a value between 0 ... 1, that represents some OCR-confidence value<br > (the higher, the
-   * better the OCR engine thinks the result is)
-   *
-   * @return a list of matches
-   */
-  public List<Match> listText() {
-    if (Settings.OcrTextRead) {
-      ScreenImage simg = getScreen().capture(x, y, w, h);
-      TextRecognizer tr = TextRecognizer.getInstance();
-      if (tr == null) {
-        Debug.error("text: text recognition is now switched off");
-        return null;
-      }
-      log(lvl, "listText: scanning %s", this);
-      return tr.listText(simg, this);
-    }
-    Debug.error("text: text recognition is currently switched off");
-    return null;
+    return "";
   }
   //</editor-fold>
 }
