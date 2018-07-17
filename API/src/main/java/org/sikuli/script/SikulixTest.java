@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class SikulixTest {
   private static String showLink;
   private static int showWait;
   private static int showBefore;
+  private static boolean isShown = false;
 
   private static void show(String image) {
     show(image, 3, 0);
@@ -30,6 +32,7 @@ public class SikulixTest {
 
   private static void showStop() {
     scr.type("w", Key.CMD);
+    isShown = false;
   }
 
   private static void show(String image, int wait, int before) {
@@ -50,6 +53,8 @@ public class SikulixTest {
           RunTime.pause(showWait);
           //p("%s", App.focusedWindow());
           scr.type("w", Key.CMD);
+        } else {
+          isShown = true;
         }
       }
     };
@@ -65,9 +70,9 @@ public class SikulixTest {
     String testImage = "findBase";
 
     List<Integer> runTest = new ArrayList<>();
-    runTest.add(1);
-    runTest.add(2);
-    //runTest.add(3);
+    //runTest.add(1);
+    //runTest.add(2);
+    runTest.add(3);
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
@@ -92,7 +97,11 @@ public class SikulixTest {
       p("***** start test2 popup");
       p("***** endOf test2");
     }
+    if (isShown) {
+      showStop();
+    }
   }
+
 
   private static Region getInset(Region base, Region inset) {
     return new Region(base.x + inset.x, base.y + inset.y, inset.w, inset.h);
