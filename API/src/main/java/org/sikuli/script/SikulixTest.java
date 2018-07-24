@@ -4,7 +4,6 @@
 
 package org.sikuli.script;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,6 +94,8 @@ public class SikulixTest {
     }
     if (runTest.contains(3)) {
       p("***** start test2 popup");
+      App.focus("safari");
+      scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.getInstance();
       Region reg = scr.selectRegion();
       String text = "";
