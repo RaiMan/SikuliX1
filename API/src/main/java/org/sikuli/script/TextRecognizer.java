@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
+import net.sourceforge.tess4j.util.ImageHelper;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Debug;
@@ -100,7 +101,16 @@ public class TextRecognizer {
   public String read(BufferedImage bimg) {
     if (isValid()) {
       try {
-        return tess.doOCR(Image.resize(bimg, 2));
+        int actualDPI = 72;
+        float optimumDPI = 300;
+        float factor = optimumDPI / actualDPI;
+        BufferedImage resizedBimg = bimg;
+        if (factor > 1) {
+          int newW = (int) (factor * bimg.getWidth());
+          int newH = (int) (factor * bimg.getHeight());
+          resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
+        }
+        return tess.doOCR(resizedBimg);
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
       }
