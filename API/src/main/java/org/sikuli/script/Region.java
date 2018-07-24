@@ -4625,19 +4625,8 @@ public class Region {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    if (Settings.OcrTextRead) {
-      ScreenImage simg = getScreen().capture(x, y, w, h);
-      TextRecognizer tr = TextRecognizer.getInstance();
-      if (tr == null) {
-        Debug.error("text: text recognition is now switched off");
-        return "";
-      }
-      String textRead = tr.recognize(simg);
-      //log(lvl, "text: #(" + textRead + ")#");
-      return textRead;
-    }
-    Debug.error("text: text recognition is currently switched off");
-    return "";
+    ScreenImage simg = getScreen().capture(x, y, w, h);
+    return TextRecognizer.doOCR(simg.getImage());
   }
   //</editor-fold>
 }

@@ -127,11 +127,11 @@ public class PatternPaneNaming extends JPanel {
 	}
 
 	public static String getFilenameFromImage(BufferedImage img) {
-		TextRecognizer tr = TextRecognizer.getInstance();
-		if (!PreferencesUser.getInstance().getPrefMoreTextOCR() || tr == null) {
+		TextRecognizer tr = TextRecognizer.start();
+		if (!PreferencesUser.getInstance().getPrefMoreTextOCR() || !tr.isValid()) {
 			return "";
 		}
-		String text = tr.recognize(img);
+		String text = TextRecognizer.doOCR(img);
 		text = text.replaceAll("\\W", "");
 		if (text.length() > MAX_OCR_TEXT_LENGTH) {
 			return text.substring(0, MAX_OCR_TEXT_LENGTH);

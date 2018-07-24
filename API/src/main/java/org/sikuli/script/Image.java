@@ -1455,22 +1455,10 @@ public class Image {
 
 	/**
 	 * OCR-read the text from the image
-	 * @return the text or null
+	 * @return the text or empty string
 	 */
 	public String text() {
-//TODO: use Tess4J here already??
-    if (Settings.OcrTextRead) {
-      TextRecognizer tr = TextRecognizer.getInstance();
-      if (tr == null) {
-        Debug.error("text: text recognition is now switched off");
-        return null;
-      }
-      String textRead = tr.recognize(this.get());
-      log(lvl, "text: #(" + textRead + ")#");
-      return textRead;
-    }
-    Debug.error("text: text recognition is currently switched off");
-		return null;
+      return TextRecognizer.doOCR(this.get());
 	}
 
 	/**

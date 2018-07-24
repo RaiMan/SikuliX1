@@ -96,7 +96,7 @@ public class SikulixTest {
       p("***** start test2 popup");
       App.focus("safari");
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.getInstance();
+      TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
       String text = "";
       if (Do.SX.isNotNull(reg)) {
