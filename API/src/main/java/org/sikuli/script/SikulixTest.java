@@ -4,6 +4,12 @@
 
 package org.sikuli.script;
 
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
+import net.sourceforge.tess4j.Word;
+
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +77,8 @@ public class SikulixTest {
     List<Integer> runTest = new ArrayList<>();
     //runTest.add(1);
     //runTest.add(2);
-    runTest.add(3);
+    //runTest.add(3);
+    runTest.add(4);
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
@@ -93,17 +100,30 @@ public class SikulixTest {
       p("***** endOf test2");
     }
     if (runTest.contains(3)) {
-      p("***** start test2 popup");
+      p("***** start test3 text OCR");
       App.focus("safari");
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start();
+      TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
       Region reg = scr.selectRegion();
       String text = "";
       if (Do.SX.isNotNull(reg)) {
         text = reg.text().trim();
       }
       p("read:\n%s", text);
-      p("***** endOf test2");
+      p("***** endOf test3");
+    }
+    if (runTest.contains(4)) {
+      p("***** start test4 tessAPI");
+      App.focus("safari");
+      scr.wait(1.0);
+      TextRecognizer tr = TextRecognizer.start();
+      Tesseract1 tapi = tr.getAPI();
+      Region reg = scr.selectRegion();
+      BufferedImage bimg = scr.capture(reg).getImage();
+      String text = "";
+      List<Word> words = tapi.getWords(tr.resize(bimg), 3);
+      //      p("read:\n%s", text);
+      p("***** endOf test4");
     }
     if (isShown) {
       showStop();

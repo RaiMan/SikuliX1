@@ -19,67 +19,6 @@ public class TextRecognizer {
   static RunTime runTime = RunTime.get();
   private static int lvl = 3;
 
-  private Tesseract1 tess = null;
-
-  private int oem = -1;
-  private int psm = -1;
-  private String dataPath = Settings.OcrDataPath;
-  private String language = Settings.OcrLanguage;
-
-  public TextRecognizer setOEM(int oem) {
-    if (oem < 0 || oem > 3) {
-      Debug.error("Tesseract: oem invalid (%d) - using default (3)", oem);
-      oem = 3;
-    }
-    if (isValid()) {
-      this.oem = oem;
-      tess.setOcrEngineMode(this.oem);
-    }
-    return this;
-  }
-
-  public TextRecognizer setPSM(int psm) {
-    if (psm < 0 || psm > 13) {
-      Debug.error("Tesseract: psm invalid (%d) - using default (3)", psm);
-      psm = 3;
-    }
-    if (isValid()) {
-      this.psm = psm;
-      tess.setOcrEngineMode(this.oem);
-    }
-    return this;
-  }
-
-  public TextRecognizer setDataPath(String dataPath) {
-    if (isValid()) {
-      this.dataPath = dataPath;
-      tess.setDatapath(this.dataPath);
-    }
-    return this;
-  }
-
-  public TextRecognizer setLanguage(String language) {
-    if (isValid()) {
-      this.language = language;
-      tess.setLanguage(this.language);
-    }
-    return this;
-  }
-
-  public TextRecognizer setVariable(String key, String value) {
-    if (isValid()) {
-      tess.setTessVariable(key, value);
-    }
-    return this;
-  }
-
-  public TextRecognizer setConfigs(List<String> configs) {
-    if (isValid()) {
-      tess.setConfigs(configs);
-    }
-    return this;
-  }
-
   private static TextRecognizer textRecognizer = null;
   private TextRecognizer() { }
 
@@ -88,6 +27,7 @@ public class TextRecognizer {
     return valid;
   }
 
+  private Tesseract1 tess = null;
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
@@ -123,6 +63,138 @@ public class TextRecognizer {
     return textRecognizer;
   }
 
+  public Tesseract1 getAPI() {
+    return tess;
+  }
+
+  private int oem = -1;
+  private int psm = -1;
+  private String dataPath = Settings.OcrDataPath;
+  private String language = Settings.OcrLanguage;
+
+  /**
+   * OCR Engine modes:
+   *   0    Original Tesseract only.
+   *   1    Cube only.
+   *   2    Tesseract + cube.
+   *   3    Default, based on what is available.
+   * @param oem
+   * @return
+   */
+  public TextRecognizer setOEM(int oem) {
+    if (oem < 0 || oem > 3) {
+      Debug.error("Tesseract: oem invalid (%d) - using default (3)", oem);
+      oem = 3;
+    }
+    if (isValid()) {
+      this.oem = oem;
+      tess.setOcrEngineMode(this.oem);
+    }
+    return this;
+  }
+
+  /**
+   * Page segmentation modes:
+   *   0    Orientation and script detection (OSD) only.
+   *   1    Automatic page segmentation with OSD.
+   *   2    Automatic page segmentation, but no OSD, or OCR.
+   *   3    Fully automatic page segmentation, but no OSD. (Default)
+   *   4    Assume a single column of text of variable sizes.
+   *   5    Assume a single uniform block of vertically aligned text.
+   *   6    Assume a single uniform block of text.
+   *   7    Treat the image as a single text line.
+   *   8    Treat the image as a single word.
+   *   9    Treat the image as a single word in a circle.
+   *  10    Treat the image as a single character.
+   *  11    Sparse text. Find as much text as possible in no particular order.
+   *  12    Sparse text with OSD.
+   *  13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
+   * @param psm
+   * @return the textRecognizer instance
+   */
+  public TextRecognizer setPSM(int psm) {
+    if (psm < 0 || psm > 13) {
+      Debug.error("Tesseract: psm invalid (%d) - using default (3)", psm);
+      psm = 3;
+    }
+    if (isValid()) {
+      this.psm = psm;
+      tess.setOcrEngineMode(this.oem);
+    }
+    return this;
+  }
+
+  public TextRecognizer setDataPath(String dataPath) {
+    if (isValid()) {
+      if (new File(dataPath).exists()) {
+        this.dataPath = dataPath;
+        tess.setDatapath(this.dataPath);
+      }
+    }
+    return this;
+  }
+
+  public TextRecognizer setLanguage(String language) {
+    if (isValid()) {
+      this.language = language;
+      tess.setLanguage(this.language);
+    }
+    return this;
+  }
+
+  public TextRecognizer setVariable(String key, String value) {
+    if (isValid()) {
+      tess.setTessVariable(key, value);
+    }
+    return this;
+  }
+
+  public TextRecognizer setConfigs(List<String> configs) {
+    if (isValid()) {
+      tess.setConfigs(configs);
+    }
+    return this;
+  }
+
+  public static String doOCR(ScreenImage simg) {
+    return doOCR(simg.getImage());
+  }
+
+  public static String doOCR(BufferedImage bimg) {
+    TextRecognizer tr = start();
+    String text = "";
+    if (tr.isValid()) {
+      text = tr.read(bimg);
+    }
+    return text;
+  }
+
+  private String read(BufferedImage bimg) {
+    if (isValid()) {
+      try {
+        return tess.doOCR(resize(bimg));
+      } catch (TesseractException e) {
+        Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
+      }
+    } else {
+      Debug.error("TextRecognizer: read: not valid");
+    }
+    return "";
+  }
+
+  public BufferedImage resize(BufferedImage bimg) {
+    int actualDPI = 72;
+    float optimumDPI = 300;
+    float factor = optimumDPI / actualDPI;
+    BufferedImage resizedBimg = bimg;
+    if (factor > 1) {
+      int newW = (int) (factor * bimg.getWidth());
+      int newH = (int) (factor * bimg.getHeight());
+      resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
+    }
+    return  resizedBimg;
+  }
+
   /**
    * use start() instead
    * @return
@@ -154,47 +226,24 @@ public class TextRecognizer {
     start().setLanguage(language);
   }
 
-  public static String doOCR(BufferedImage bimg) {
-    TextRecognizer tr = start();
-    String text = "";
-    if (tr.isValid()) {
-      text = tr.read(bimg);
-    }
-    return text;
-  }
-
+  /**
+   * deprecated use doOCR() instead
+   * @param simg
+   * @return text
+   */
+  @Deprecated
   public String recognize(ScreenImage simg) {
     BufferedImage bimg = simg.getImage();
     return read(bimg);
   }
 
+  /**
+   * deprecated use doOCR() instead
+   * @param bimg
+   * @return text
+   */
+  @Deprecated
   public String recognize(BufferedImage bimg) {
     return read(bimg);
-  }
-
-  public String read(Image image) {
-    return read(image.get());
-  }
-
-  public String read(BufferedImage bimg) {
-    if (isValid()) {
-      try {
-        int actualDPI = 72;
-        float optimumDPI = 300;
-        float factor = optimumDPI / actualDPI;
-        BufferedImage resizedBimg = bimg;
-        if (factor > 1) {
-          int newW = (int) (factor * bimg.getWidth());
-          int newH = (int) (factor * bimg.getHeight());
-          resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
-        }
-        return tess.doOCR(resizedBimg);
-      } catch (TesseractException e) {
-        Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
-      }
-    } else {
-      Debug.error("TextRecognizer: read: not valid");
-    }
-    return "";
   }
 }

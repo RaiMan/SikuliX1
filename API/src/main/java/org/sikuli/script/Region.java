@@ -4626,7 +4626,7 @@ public class Region {
    */
   public String text() {
     ScreenImage simg = getScreen().capture(x, y, w, h);
-    return TextRecognizer.doOCR(simg.getImage());
+    return TextRecognizer.doOCR(simg);
   }
   //</editor-fold>
 }
