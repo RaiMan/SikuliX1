@@ -127,8 +127,12 @@ public class TextRecognizer {
   public TextRecognizer setDataPath(String dataPath) {
     if (isValid()) {
       if (new File(dataPath).exists()) {
-        this.dataPath = dataPath;
-        tess.setDatapath(this.dataPath);
+        if (new File(dataPath, "eng.traineddata").exists()) {
+          this.dataPath = dataPath;
+          tess.setDatapath(this.dataPath);
+        } else {
+          Debug.error("TextRecognizer: setDataPath: not valid - no eng.traineddata (%s)",dataPath);
+        }
       }
     }
     return this;
@@ -136,8 +140,12 @@ public class TextRecognizer {
 
   public TextRecognizer setLanguage(String language) {
     if (isValid()) {
-      this.language = language;
-      tess.setLanguage(this.language);
+      if (new File(dataPath, language + ".traineddata").exists()) {
+        this.language = language;
+        tess.setLanguage(this.language);
+      } else {
+        Debug.error("TextRecognizer: setLanguage: no %s.traineddata - still using %s", language, this.language);
+      }
     }
     return this;
   }

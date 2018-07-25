@@ -11,6 +11,7 @@ import net.sourceforge.tess4j.Word;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class SikulixTest {
@@ -116,14 +117,16 @@ public class SikulixTest {
       p("***** start test4 tessAPI");
       App.focus("safari");
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start();
+      TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
       Tesseract1 tapi = tr.getAPI();
-      Region reg = scr.selectRegion();
+      Region reg = new Region(App.focusedWindow()); //scr.selectRegion();
       BufferedImage bimg = scr.capture(reg).getImage();
       String text = "";
+      long start = new Date().getTime();
       List<Word> words = tapi.getWords(tr.resize(bimg), 3);
       //      p("read:\n%s", text);
-      p("***** endOf test4");
+      p("***** endOf test4 (%d) words: %d", new Date().getTime() - start, words.size());
+      p("");
     }
     if (isShown) {
       showStop();
