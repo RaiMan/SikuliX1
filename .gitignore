@@ -18,3 +18,4 @@ opencvsrc/
 .exe
 original/
 *.sikuli.robot/
+*.java.ignore
