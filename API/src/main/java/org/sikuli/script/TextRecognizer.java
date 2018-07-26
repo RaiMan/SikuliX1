@@ -10,6 +10,8 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
@@ -25,6 +27,16 @@ public class TextRecognizer {
   private static boolean valid = false;
   public boolean isValid() {
     return valid;
+  }
+
+  public int getActualDPI() {
+    return actualDPI;
+  }
+
+  private int actualDPI = 72;
+  private float optimumDPI = 300;
+  private float factor() {
+    return optimumDPI / actualDPI;
   }
 
   private Tesseract1 tess = null;
@@ -191,16 +203,32 @@ public class TextRecognizer {
   }
 
   public BufferedImage resize(BufferedImage bimg) {
-    int actualDPI = 72;
-    float optimumDPI = 300;
-    float factor = optimumDPI / actualDPI;
+    actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
     BufferedImage resizedBimg = bimg;
-    if (factor > 1) {
-      int newW = (int) (factor * bimg.getWidth());
-      int newH = (int) (factor * bimg.getHeight());
+    float rFactor = factor();
+    if (rFactor > 1) {
+      int newW = (int) (rFactor * bimg.getWidth());
+      int newH = (int) (rFactor * bimg.getHeight());
       resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
     }
     return  resizedBimg;
+  }
+
+  public Region rescale(Rectangle rect) {
+    Region reg = new Region();
+    reg.x = (int) (rect.getX() / factor());
+    reg.y = (int) (rect.getY() / factor());
+    reg.w = (int) (rect.getWidth() / factor()) + 2;
+    reg.h = (int) (rect.getHeight() / factor()) + 2;
+    return reg;
+  }
+
+  public Region relocate(Rectangle rect, Region base) {
+    Region reg = rescale(rect);
+    reg.x += base.x;
+    reg.y += base.y;
+    reg.setScreen(base.getScreen().getID());
+    return reg;
   }
 
   /**

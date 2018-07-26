@@ -5,10 +5,8 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Date;
@@ -114,18 +112,42 @@ public class SikulixTest {
       p("***** endOf test3");
     }
     if (runTest.contains(4)) {
-      p("***** start test4 tessAPI");
+      p("***** start test4 findText");
       App.focus("safari");
       scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
       Tesseract1 tapi = tr.getAPI();
       Region reg = new Region(App.focusedWindow()); //scr.selectRegion();
+      reg.y += 100;
+      reg.h -= 400;
+      reg.w = 250;
+      reg.highlight(2);
       BufferedImage bimg = scr.capture(reg).getImage();
-      String text = "";
+      String text = "Elektronik";
+      int lenText = text.length();
       long start = new Date().getTime();
-      List<Word> words = tapi.getWords(tr.resize(bimg), 3);
-      //      p("read:\n%s", text);
-      p("***** endOf test4 (%d) words: %d", new Date().getTime() - start, words.size());
+      List<Word> wordsFound = tapi.getWords(tr.resize(bimg), 3);
+      List<String> wordsUsed = new ArrayList<>();
+      List<Integer> ixWordsUsed = new ArrayList<>();
+      int n = 0;
+      for (Word word : wordsFound) {
+        String text1 = word.getText();
+        int lenText1 = text1.length();
+        if (word.getText().length() < lenText) {
+          n++;
+          continue;
+        }
+        wordsUsed.add(text1);
+        ixWordsUsed.add(n);
+        p("%3d %2d %s", n++, lenText1, text1);
+      }
+      int ixFound = wordsUsed.indexOf(text);
+      p("***** endOf test4 (%d) words: %d - %s is %d (at %d DPI)",
+              new Date().getTime() - start, wordsUsed.size(), text, ixFound, tr.getActualDPI());
+      if (ixFound > -1) {
+        Region wordFound = tr.relocate(wordsFound.get(ixWordsUsed.get(ixFound)).getBoundingBox(), reg);
+        wordFound.highlight(2);
+      }
       p("");
     }
     if (isShown) {
