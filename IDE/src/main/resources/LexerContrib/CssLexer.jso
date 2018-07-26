@@ -108,7 +108,7 @@
 			r"hidden|hide|higher|high|hiragana-iroha|hiragana|icon|",
 			r"inherit|inline-table|inline|inset|inside|invert|italic|",
 			r"justify|katakana-iroha|katakana|landscape|larger|large|",
-			r"left-side|leftwards|level|lighter|line-through|list-item|",
+			r"left-side|leftwards|textLevel|lighter|line-through|list-item|",
 			r"loud|lower-alpha|lower-greek|lower-roman|lowercase|ltr|",
 			r"lower|low|medium|message-box|middle|mix|monospace|",
 			r"n-resize|narrower|ne-resize|no-close-quote|no-open-quote|",

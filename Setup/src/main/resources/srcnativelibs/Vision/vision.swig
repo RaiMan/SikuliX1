@@ -230,7 +230,7 @@ namespace sikuli {
    enum DebugCategories {
       OCR, FINDER
    };
-   void setDebug(DebugCategories cat, int level);
+   void setDebug(DebugCategories cat, int textLevel);
 
 
 

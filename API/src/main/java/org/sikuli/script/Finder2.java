@@ -52,10 +52,13 @@ public class Finder2 {
   }
   //</editor-fold>
 
+  private FindInput2 fInput = null;
+
   public static FindResult2 find(FindInput2 findInput) {
     findInput.setAttributes();
     Finder2 finder2 = new Finder2();
-    FindResult2 results = finder2.doFind(findInput);
+    finder2.fInput = findInput;
+    FindResult2 results = finder2.doFind();
     return results;
   }
 
@@ -67,34 +70,38 @@ public class Finder2 {
   private boolean isCheckLastSeen = false;
   private static final double downSimDiff = 0.15;
 
-  private FindResult2 doFind(FindInput2 findInput) {
-    if (!findInput.isValid()) {
+  private int levelWord = 3;
+  private int levelLine = 2;
+
+  private boolean isWord() {
+    return fInput.getTextLevel() == levelWord;
+  }
+
+  private boolean isLine() {
+    return fInput.getTextLevel() == levelLine;
+  }
+
+  private FindResult2 doFind() {
+    if (!fInput.isValid()) {
       return null;
     }
     FindResult2 findResult = null;
-    if (findInput.isText()) {
-      Region where = findInput.getWhere();
-      String text = findInput.getTargetText().trim();
-      if (!text.isEmpty()) {
-        String[] strings = text.split("\\s");
-        if (strings.length > 0) {
-          text = strings[0];
-        }
-        if (strings.length > 1) {
-          log.error("doFindText: phrase not implemented, taking first word: %s", text);
-        }
-      }
+    if (fInput.isText()) {
+      Region where = fInput.getWhere();
+      String text = fInput.getTargetText().trim();
       BufferedImage bimg = where.getScreen().capture(where).getImage();
       TextRecognizer tr = TextRecognizer.start();
       if (tr.isValid()) {
         Tesseract1 tapi = tr.getAPI();
         long timer = new Date().getTime();
-        List<Word> wordsFound = tapi.getWords(tr.resize(bimg), 3);
+        List<Word> wordsFound = tapi.getWords(tr.resize(bimg), fInput.getTextLevel());
         timer = new Date().getTime() - timer;
         List<Word> wordsMatch = new ArrayList<>();
         for (Word word : wordsFound) {
-          String text1 = word.getText();
-          if (!word.getText().equals(text)) {
+          if (isWord() && !word.getText().equals(text)) {
+            continue;
+          }
+          if (isLine() && !word.getText().contains(text)) {
             continue;
           }
           Rectangle trueRectangel = tr.relocateAsRectangle(word.getBoundingBox(), where);
@@ -103,12 +110,13 @@ public class Finder2 {
         }
         if (wordsMatch.size() > 0) {
           log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
-          findResult = new FindResult2(wordsMatch, findInput);
+          findResult = new FindResult2(wordsMatch, fInput);
         } else {
           log.trace("doFindText: %s (%d msec): not found", text, timer);
         }
       }
     } else {
+      FindInput2 findInput = fInput;
       log.trace("doFind: start");
       mBase = findInput.getBase();
       boolean success = false;

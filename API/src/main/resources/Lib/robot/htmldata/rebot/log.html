@@ -190,7 +190,7 @@ function addTestExecutionLog(main) {
       ${date} ${time}
       {{/if}}
     </td>
-    <td class="${level.toLowerCase()} level"><span class="label ${level.toLowerCase()}">${level}</span></td>
+    <td class="${textLevel.toLowerCase()} textLevel"><span class="label ${textLevel.toLowerCase()}">${textLevel}</span></td>
     <td class="message">{{html text}}</td>
     <td class="select-message" onclick="javascript:selectMessage('${id}')" title="Select message text">
       <div></div>
@@ -366,10 +366,10 @@ function addTestExecutionLog(main) {
 </script>
 
 <script type="text/x-jquery-tmpl" id="messageTemplate">
-  <table id="${id}" class="messages ${level.toLowerCase()}-message">
+  <table id="${id}" class="messages ${textLevel.toLowerCase()}-message">
     <tr class="message-row">
       <td class="time">${time}</td>
-      <td class="${level.toLowerCase()} level"><span class="label ${level.toLowerCase()}">${level}</span></td>
+      <td class="${textLevel.toLowerCase()} textLevel"><span class="label ${textLevel.toLowerCase()}">${textLevel}</span></td>
       <td class="message">{{html text}}</td>
       <td class="select-message" onclick="javascript:selectMessage('${id}')" title="Select message text">
         <div></div>
@@ -379,8 +379,8 @@ function addTestExecutionLog(main) {
 </script>
 
 <script type="text/x-jquery-tmpl" id="logLevelSelectorTemplate">
-  <div id="log-level-selector">
-  Log level:
+  <div id="log-textLevel-selector">
+  Log textLevel:
     <select onchange="logLevelSelected(this.options[selectedIndex].value)">
       <option value="2">INFO</option>
       <option value="1">DEBUG</option>

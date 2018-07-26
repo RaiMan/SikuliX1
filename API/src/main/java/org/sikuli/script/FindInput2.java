@@ -50,6 +50,16 @@ public class FindInput2 {
     return false;
   }
 
+  public int getTextLevel() {
+    return textLevel;
+  }
+
+  public void setTextLevel(int textLevel) {
+    this.textLevel = textLevel;
+  }
+
+  private int textLevel = 0;
+
   public boolean isText() {
     return targetTypeText && !targetText.isEmpty();
   }

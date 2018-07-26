@@ -124,12 +124,18 @@ public class SikulixTest {
       reg.h -= 300;
       reg.w = 250;
       reg.highlight(2);
-      Match mText = reg.findText("Elektronik und sonst was");
-      mText.highlight(2);
+      Match mText = reg.findWord("Elektronik");
+      if (Do.SX.isNotNull(mText)) {
+        mText.highlight(2);
+      }
       fullReg.highlight(2);
-      Iterator<Match> matches = fullReg.findAllText("ECHO");
+      Iterator<Match> matches = fullReg.findWords("Mehr");
       while(matches.hasNext()) {
         matches.next().highlight(2);
+      }
+      mText = fullReg.findLine("Cookies");
+      if (Do.SX.isNotNull(mText)) {
+        mText.highlight(2);
       }
       p("");
     }

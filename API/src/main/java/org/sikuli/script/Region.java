@@ -2852,6 +2852,72 @@ public class Region {
     return findText(text, autoWaitTimeout);
   }
 
+  public Match findWord(String word) {
+    Match match = null;
+    if (!word.isEmpty()) {
+      match = (Match) doFindText(word, levelWord, false);
+    }
+    return match;
+  }
+
+  public Iterator<Match> findWords(String word) {
+    Iterator<Match> matches = null;
+    if (!word.isEmpty()) {
+      matches = (Iterator<Match>) doFindText(word, levelWord, true);
+    }
+    return matches;
+  }
+
+  public Match findLine(String text) {
+    Match match = null;
+    if (!text.isEmpty()) {
+      match = (Match) doFindText(text, levelLine, false);
+    }
+    return match;
+  }
+
+  public Iterator<Match> findLines(String text) {
+    Iterator<Match> matches = null;
+    if (!text.isEmpty()) {
+      matches = (Iterator<Match>) doFindText(text, levelLine, true);
+    }
+    return matches;
+  }
+
+  private int levelWord = 3;
+  private int levelLine = 2;
+
+  private Object doFindText(String text, int level, boolean multi) {
+    Object returnValue = null;
+    if (TextRecognizer.start().isValid()) {
+      Finder finder = new Finder(this);
+      lastSearchTime = (new Date()).getTime();
+      text = text.trim();
+      if (level == levelWord) {
+        if (multi) {
+          if (finder.findWords(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findWord(text)) {
+            returnValue = finder.next();
+          }
+        }
+      } else if (level == levelLine) {
+        if (multi) {
+          if (finder.findLines(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findLine(text)) {
+            returnValue = finder.next();
+          }
+        }
+      }
+    }
+    return returnValue;
+  }
+
   /**
    * Use findAllText() instead of findAll() in cases where the given string could be misinterpreted as an image filename
    *
@@ -2868,6 +2934,7 @@ public class Region {
         public boolean hasNext() {
           return false;
         }
+
         @Override
         public Match next() {
           return null;

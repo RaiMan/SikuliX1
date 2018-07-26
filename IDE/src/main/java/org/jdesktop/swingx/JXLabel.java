@@ -152,7 +152,7 @@ public class JXLabel extends JLabel implements BackgroundPaintable {
 
 //    private static final Logger log = Logger.getAnonymousLogger();
 //    static {
-//        log.setLevel(Level.FINEST);
+//        log.setTextLevel(Level.FINEST);
 //    }
 
     /**

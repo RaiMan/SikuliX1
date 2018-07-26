@@ -19,7 +19,7 @@
 <b>fixed:</b> Java and macOS version detection (Java 9+, macOS 10.13)
 <h4>Build: 2018-03-22 #10</h4>
 <b>fixed:</b> bug 1757368:running JavaScript from IDE did not work<br>
-<b>changed:</b> highlight transparent error changed to debug log level 3
+<b>changed:</b> highlight transparent error changed to debug log textLevel 3
 <h4>Build: 2018-03-15</h4>
 <b>fixed:</b> bug 1755759: Java 9: IDE - Undo/Redo not functional <br>
 <b>fixed:</b> github issue #2: ERROR at line org.sikuli.script.Finder.java:81 (log(-1, "imagefile not found:\n%s");
@@ -111,14 +111,14 @@ java.util.MissingFormatArgumentException: Format specifier '%s')
 <b>fixed:</b> Image.reload(image) did not work<br>
 <b>revised:</b> Runserver: pull/244 - various enhancements
 <h4>Build: 2016-12-10</h4>
-<b>fixed:</b> ImagePath: images not found at root level of jar
+<b>fixed:</b> ImagePath: images not found at root textLevel of jar
 <h4>Build: 2016-12-09</h4>
 <b>fixed:</b> KeyModifier.WIN should be the same as KeyModifier.KEY_WIN
 <h4>Build: 2016-12-02</h4>
 <b>fixed:</b> Python scripting: select() had problems with unicode strings and default = 0<br>
 <b>fixed:</b> Maven: sikulixapi.jar now contains the tessdata stuff, so OCR/text features should work in Maven projects now out of the box
 <h4>Build: 2016-11-29</h4>
-<b>fixed:</b> observe() used in scripting: crashed with stackoverflow due to infinite recursion between scripting and Java level
+<b>fixed:</b> observe() used in scripting: crashed with stackoverflow due to infinite recursion between scripting and Java textLevel
 <h4>Build: 2016-11-08</h4>
 <b>revised:</b> runsikulix.cmd: adding to PATH is not needed anymore (done at runtime internally)
 <h4>Build: 2016-11-04</h4>
@@ -143,7 +143,7 @@ consolidated also with Match.toString()
 <h4>Build: 2016-09-10</h4>
 <b>fixed:</b> the Tesseract support stuff was no longer available on google.code, stored now at download.sikulix.com
 <h4>Build: 2016-08-04</h4>
-<b>fixed:</b> input() function on scripting level was blocked and did not work anymore
+<b>fixed:</b> input() function on scripting textLevel was blocked and did not work anymore
 <h4>Build: 2016-07-31</h4>
 <b>revised:</b> delete images on save: incomplete string can be ignored, a ' is detected in comments
 <b>revised:</b> ScreenUnion as Region: (Screen.all()) highlight does not make sense (error message),
@@ -168,14 +168,14 @@ moved tap, swipe, input, key to class Region - if used on non-Android device, no
 <b>fixed:</b> IDE: insert image button did not work any longer
 <h4>Build: 2016-06-17</h4>
 <b>fixed:</b> prepareRobot(): should add to sys.path only once (only relevant for rerun in IDE)<br>
-<b>fixed:</b> Java level: Region.onXXX observe events could no longer be specified
+<b>fixed:</b> Java textLevel: Region.onXXX observe events could no longer be specified
 (no suitable constructor in ObserverCallBack)
 <h4>Build: 2016-06-07</h4>
 <b>fixed:</b> Jython scripting: capture() did no longer work as documented
 (should return filename of image stored in temp)
 <h4>Build: 2016-06-06</h4>
 <b>fixed:</b> Robot Framework: Library Screenshot now works<br>
-<b>fixed:</b> at Python script level: class Settings was no longer writable<br>
+<b>fixed:</b> at Python script textLevel: class Settings was no longer writable<br>
 <b>fixed:</b> location outside any screen should not crash with NPE, only display error message
 and either do nothing or something on primary screen.
 <h4>Build: 2016-05-27</h4>
@@ -266,7 +266,7 @@ fixed: findAll: Match.getImageFilename now works
 added: exists now aborts with FindFailedResponse(PROMPT) and reports
 the line number including traceback for Jython scripts<br>
 added: feature to report the current line number and a traceback for Jython scripts, 
-if the script run is terminated from the Java level<br>
+if the script run is terminated from the Java textLevel<br>
 revised: final cleanup at termination
 <h4>Build: 2016-03-21</h4>
 changed: version 1.1.1+ will now need Java 1.7 or newer
@@ -305,7 +305,7 @@ revised: using runsikulix -s -- arg1 arg2 ... now has the user args available in
 when running .sikuli (Python) on the server<br>
 revised: setup now shows the used options
 <h4>Build: 2015-08-21</h4>
-fixed: added a Region.init() to better support subclassing of Region on the Jython level<br>
+fixed: added a Region.init() to better support subclassing of Region on the Jython textLevel<br>
 revised: allow to run setup in the project context using mvn -Pl Setup exec:exec 
 <h4>Build: 2015-08-18</h4>
 fixed: some problems with the App class methods (App.close("some-app" did not work)
@@ -458,7 +458,7 @@ the next days I will somehow reveal more information about the new or revised fe
 <br>
 a toy: starting sikulixapi.jar with no parameters reveals a simple edit/save/run dialog for JavaScript trials<br>
 added: SikulixAppData/SikulixStore/SikulixDebug.txt if this file is present at startup, then from beginning
-we run with debug level 3 and all messages are written to this file (helpful for startup debugging)<br>
+we run with debug textLevel 3 and all messages are written to this file (helpful for startup debugging)<br>
 added: SikulixAppData/SikulixStore/SikulixOptions.txt is a key/value store according
 to the rules of Java property files, that is loaded at startup. The options might overwrite settings
 and are available at runtime via getOption... calls (precedence: home folder, work dir, SikulixAppData)<br>
@@ -477,7 +477,7 @@ revised: TextRecognizer: made the tessdata handling more robust, findAll(text) n
 added: image files whose name start with an _ are protected against image cleaning on save in all cases<br>
 added: sikulixapi.jar can now be bundled with Launch4J to create .exe that only need a JRE, resources and images
 can be exported or used from the .exe content (bundled in the original jars)<br>
-revised: moved parts of the Sikuli/Jython import handler to the Java level<br>
+revised: moved parts of the Sikuli/Jython import handler to the Java textLevel<br>
 revised: completely reworked the startup for IDE and API usage, now concentrating all startup requirements in the one
 singleton class RunTime<br>
 revised: all Sikulix related stuff besides the jars (setup, IDE and API, can now be moved around freely)
@@ -610,8 +610,8 @@ fixed: IDE: NPE on termination when running from command line<br>
 fixed: bug 1330348: running Java: ImagePath is set to working directory if no path is set before first image search<br>
 fixed: possible NPE in special situations (mouse moved to invalid location)<br>
 fixed: the native library problems on Windows when using 32-Bit Java<br>
-added: Screen.all() makes a ScreenUnion of all monitors, on Python level ALL is predefined and can be used as ALL.function() like a Screen/Region<br>
-added: reset() to renew the multimonitor configuration inline on Python level<br>
+added: Screen.all() makes a ScreenUnion of all monitors, on Python textLevel ALL is predefined and can be used as ALL.function() like a Screen/Region<br>
+added: reset() to renew the multimonitor configuration inline on Python textLevel<br>
 added: Settings.OcrLanguage is now accepted by Tesseract (after using org.sikuli.script.TextRecognizer.reset())<br>
 added: images can now be loaded from jars (see JavaDocs::ImagePath)<br>
 revised: completely: observe processing (see JavaDocs for now)<br>
