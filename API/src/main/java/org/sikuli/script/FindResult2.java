@@ -1,5 +1,6 @@
 package org.sikuli.script;
 
+import net.sourceforge.tess4j.Word;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Range;
@@ -15,8 +16,14 @@ public class FindResult2 implements Iterator<Match> {
   private int offX = 0;
   private int offY = 0;
   private Mat result = null;
+  private List<Word> words = new ArrayList<>();
 
   private FindResult2() {
+  }
+
+  public FindResult2(List<Word> words, FindInput2 findInput) {
+    this.words = words;
+    this.findInput = findInput;
   }
 
   public FindResult2(Mat result, FindInput2 findInput) {
@@ -40,6 +47,12 @@ public class FindResult2 implements Iterator<Match> {
   private int currentY = -1;
 
   public boolean hasNext() {
+    if (findInput.isText()) {
+      if (words.size() > 0) {
+        return true;
+      }
+      return false;
+    }
     resultMinMax = Core.minMaxLoc(result);
     currentScore = resultMinMax.maxVal;
     currentX = (int) resultMinMax.maxLoc.x;
@@ -58,12 +71,17 @@ public class FindResult2 implements Iterator<Match> {
   public Match next() {
     Match match = null;
     if (hasNext()) {
-      match = new Match(currentX + offX, currentY + offY,
-              findInput.getTarget().width(), findInput.getTarget().height(), currentScore, null);
-      int margin = getPurgeMargin();
-      Range rangeX = new Range(Math.max(currentX - margin, 0), currentX + 1);
-      Range rangeY = new Range(Math.max(currentY - margin, 0), currentY + 1);
-      result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
+      if (findInput.isText()) {
+        Word nextWord = words.remove(0);
+        match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence()/100);
+      } else {
+        match = new Match(currentX + offX, currentY + offY,
+                findInput.getTarget().width(), findInput.getTarget().height(), currentScore, null);
+        int margin = getPurgeMargin();
+        Range rangeX = new Range(Math.max(currentX - margin, 0), currentX + 1);
+        Range rangeY = new Range(Math.max(currentY - margin, 0), currentY + 1);
+        result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
+      }
     }
     return match;
   }

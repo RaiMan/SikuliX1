@@ -231,6 +231,10 @@ public class TextRecognizer {
     return reg;
   }
 
+  public Rectangle relocateAsRectangle(Rectangle rect, Region base) {
+    Region reg = relocate(rect, base);
+    return new Rectangle(reg.x, reg.y, reg.w, reg.h);
+  }
   /**
    * use start() instead
    * @return

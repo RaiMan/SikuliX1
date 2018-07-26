@@ -15,7 +15,7 @@ import org.sikuli.basics.Settings;
  */
 public class Match extends Region implements Comparable<Match> {
 
-  private double simScore;
+  private double simScore = 0;
   private Location target = null;
   private Image image = null;
   private String ocrText = null;
@@ -62,6 +62,9 @@ public class Match extends Region implements Comparable<Match> {
    * @param m other Match
    */
   public Match(Match m) {
+    if (Do.SX.isNull(m)) {
+      init(0, 0, 1, 1, Screen.getPrimaryScreen());
+    }
     init(m.x, m.y, m.w, m.h, m.getScreen());
     copy(m);
   }

@@ -26,6 +26,13 @@ public class Finder implements Iterator<Match> {
   private Image _image = null;
   private FindInput2 _findInput = new FindInput2();
   private FindResult2 _results = null;
+  private Region where = null;
+
+  public void setFindAll() {
+    isFindAll = true;
+  }
+
+  private boolean isFindAll = false;
 
   private int currentMatchIndex;
   private boolean repeating = false;
@@ -47,6 +54,14 @@ public class Finder implements Iterator<Match> {
 
   public Finder(FindInput2 findInput) {
     _findInput = findInput;
+  }
+
+  public Finder(Region reg) {
+    where = reg;
+  }
+
+  public Region getRegion() {
+    return where;
   }
 
   /**
@@ -272,6 +287,10 @@ public class Finder implements Iterator<Match> {
       return null;
     }
     _findInput.setTargetText(text);
+    _findInput.setWhere(where);
+    if (isFindAll) {
+      _findInput.setFindAll();
+    }
     _results = Finder2.find(_findInput);
     currentMatchIndex = 0;
     return text;
@@ -293,7 +312,8 @@ public class Finder implements Iterator<Match> {
     Image img = Image.create(imageOrText);
     _image = img;
     if (img.isText()) {
-      return findAllText(imageOrText);
+      setFindAll();
+      return findText(imageOrText);
     }
     if (img.isValid()) {
       return findAll(img);
@@ -365,13 +385,8 @@ public class Finder implements Iterator<Match> {
       log(-1, "not valid");
       return null;
     }
-    _findInput.setTargetText(text);
     _findInput.setFindAll();
-    Debug timing = Debug.startTimer("Finder.findAllText");
-    _results = Finder2.find(_findInput);
-    currentMatchIndex = 0;
-    timing.end();
-    return text;
+    return findText(text);
   }
 //</editor-fold>
 

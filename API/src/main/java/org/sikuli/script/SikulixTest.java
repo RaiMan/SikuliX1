@@ -10,6 +10,7 @@ import net.sourceforge.tess4j.Word;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class SikulixTest {
@@ -116,37 +117,19 @@ public class SikulixTest {
       App.focus("safari");
       scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
-      Tesseract1 tapi = tr.getAPI();
       Region reg = new Region(App.focusedWindow()); //scr.selectRegion();
       reg.y += 100;
-      reg.h -= 400;
+      reg.h -= 100;
+      Region fullReg = new Region(reg);
+      reg.h -= 300;
       reg.w = 250;
       reg.highlight(2);
-      BufferedImage bimg = scr.capture(reg).getImage();
-      String text = "Elektronik";
-      int lenText = text.length();
-      long start = new Date().getTime();
-      List<Word> wordsFound = tapi.getWords(tr.resize(bimg), 3);
-      List<String> wordsUsed = new ArrayList<>();
-      List<Integer> ixWordsUsed = new ArrayList<>();
-      int n = 0;
-      for (Word word : wordsFound) {
-        String text1 = word.getText();
-        int lenText1 = text1.length();
-        if (word.getText().length() < lenText) {
-          n++;
-          continue;
-        }
-        wordsUsed.add(text1);
-        ixWordsUsed.add(n);
-        p("%3d %2d %s", n++, lenText1, text1);
-      }
-      int ixFound = wordsUsed.indexOf(text);
-      p("***** endOf test4 (%d) words: %d - %s is %d (at %d DPI)",
-              new Date().getTime() - start, wordsUsed.size(), text, ixFound, tr.getActualDPI());
-      if (ixFound > -1) {
-        Region wordFound = tr.relocate(wordsFound.get(ixWordsUsed.get(ixFound)).getBoundingBox(), reg);
-        wordFound.highlight(2);
+      Match mText = reg.findText("Elektronik und sonst was");
+      mText.highlight(2);
+      fullReg.highlight(2);
+      Iterator<Match> matches = fullReg.findAllText("ECHO");
+      while(matches.hasNext()) {
+        matches.next().highlight(2);
       }
       p("");
     }

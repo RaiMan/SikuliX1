@@ -14,16 +14,31 @@ public class FindInput2 {
 
   private Mat target = null;
   private boolean targetTypeText = false;
+
+  public String getTargetText() {
+    return targetText;
+  }
+
   private String targetText = "";
 
   private Mat source = null;
+
+  public void setWhere(Region where) {
+    this.where = where;
+  }
+
+  public Region getWhere() {
+    return where;
+  }
+
+  private Region where = null;
 
   private double similarity = 0.7;
 
   private boolean findAll = false;
 
   public boolean isValid() {
-    if (Do.SX.isNull(source)) {
+    if (Do.SX.isNull(source) && Do.SX.isNull(where)) {
       return false;
     }
     if (Do.SX.isNotNull(target)) {
@@ -115,6 +130,9 @@ public class FindInput2 {
   }
 
   public void setAttributes() {
+    if (targetTypeText) {
+      return;
+    }
     plainColor = false;
     blackColor = false;
     resizeFactor = Math.min(((double) target.width()) / resizeMinDownSample,

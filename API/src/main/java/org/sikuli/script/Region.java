@@ -2832,11 +2832,14 @@ public class Region {
    * @param text    text
    * @param timeout time
    * @return the matched region containing the text
-   * @throws org.sikuli.script.FindFailed if not found
    */
-  public Match findText(String text, double timeout) throws FindFailed {
+  public Match findText(String text, double timeout) {
     // the leading/trailing tab is used to internally switch to text search directly
-    return wait("\t" + text + "\t", timeout);
+    try {
+      return wait("\t" + text + "\t", timeout);
+    } catch (FindFailed findFailed) {
+      return null;
+    }
   }
 
   /**
@@ -2844,9 +2847,8 @@ public class Region {
    *
    * @param text text
    * @return the matched region containing the text
-   * @throws org.sikuli.script.FindFailed if not found
    */
-  public Match findText(String text) throws FindFailed {
+  public Match findText(String text) {
     return findText(text, autoWaitTimeout);
   }
 
@@ -2855,11 +2857,23 @@ public class Region {
    *
    * @param text text
    * @return the matched region containing the text
-   * @throws org.sikuli.script.FindFailed if not found
    */
-  public Iterator<Match> findAllText(String text) throws FindFailed {
+  public Iterator<Match> findAllText(String text) {
     // the leading/trailing tab is used to internally switch to text search directly
-    return findAll("\t" + text + "\t");
+    try {
+      return findAll("\t" + text + "\t");
+    } catch (FindFailed findFailed) {
+      return new Iterator<Match>() {
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+        @Override
+        public Match next() {
+          return null;
+        }
+      };
+    }
   }
   //</editor-fold>
 
@@ -2881,9 +2895,11 @@ public class Region {
       findTimeout = repeating.getFindTimeOut();
     }
     if (repeating != null && repeating._finder != null) {
-      simg = getScreen().capture(this);
       f = repeating._finder;
-      f.setScreenImage(simg);
+      if (!findingText) {
+        simg = getScreen().capture(this);
+        f.setScreenImage(simg);
+      }
       f.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
@@ -2912,8 +2928,8 @@ public class Region {
         }
         if (findingText) {
           log(lvl, "doFind: Switching to TextSearch");
-          if (TextRecognizer.getInstance() != null) {
-            f = new Finder(getScreen().capture(x, y, w, h), this);
+          if (TextRecognizer.start().isValid()) {
+            f = new Finder(this);
             lastSearchTime = (new Date()).getTime();
             f.findText(someText);
           }
@@ -2981,7 +2997,6 @@ public class Region {
     }
     boolean shouldCheckLastSeen = false;
     float score = 0;
-//    if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
     if (Settings.CheckLastSeen && null != img.getLastSeen()) {
       score = (float) (img.getLastSeenScore() - 0.01);
       if (ptn != null) {
@@ -3012,31 +3027,22 @@ public class Region {
         log(lvl, "checkLastSeen: not there");
       }
     }
-//    if (Settings.UseImageFinder) {
-//      ImageFinder f = new ImageFinder(this);
-//      f.setFindTimeout(findTimeout);
-//      return f;
-//    } else {
-//      return new Finder(base, this);
-//    }
     return new Finder(base, this);
   }
 
   /**
-   * Match findAllNow( Pattern/String/Image ) finds all the given pattern on the screen and returns the best matches
+   * Match findAll( Pattern/String/Image ) finds all the given pattern on the screen and returns the best matches
    * without waiting.
    */
   private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) {
     boolean findingText = false;
-    Finder f;
-    ScreenImage simg = getScreen().capture(x, y, w, h);
+    Finder finder = null;
     if (repeating != null && repeating._finder != null) {
-      f = repeating._finder;
-      f.setScreenImage(simg);
-      f.setRepeating();
-      f.findAllRepeat();
+      finder = repeating._finder;
+      finder.setScreenImage(getScreen().capture(x, y, w, h));
+      finder.setRepeating();
+      finder.findAllRepeat();
     } else {
-      f = new Finder(simg, this);
       Image img = null;
       if (ptn instanceof String) {
         if (((String) ptn).startsWith("\t") && ((String) ptn).endsWith("\t")) {
@@ -3044,38 +3050,42 @@ public class Region {
         } else {
           img = Image.create((String) ptn);
           if (img.isValid()) {
-            f.findAll(img);
+            finder = new Finder(getScreen().capture(x, y, w, h), this);
+            finder.findAll(img);
           } else if (img.isText()) {
             findingText = true;
           }
         }
         if (findingText) {
-          if (TextRecognizer.getInstance() != null) {
-            log(lvl, "doFindAll: Switching to TextSearch");
-            f.findAllText((String) ptn);
+          if (TextRecognizer.start().isValid()) {
+            finder = new Finder(this);
+            finder.setFindAll();
+            finder.findText((String) ptn);
           }
         }
       } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
-          f.findAll((Pattern) ptn);
+          finder = new Finder(getScreen().capture(x, y, w, h), this);
+          finder.findAll((Pattern) ptn);
         }
       } else if (ptn instanceof Image) {
         if (((Image) ptn).isValid()) {
           img = ((Image) ptn);
-          f.findAll((Image) ptn);
+          finder = new Finder(getScreen().capture(x, y, w, h), this);
+          finder.findAll((Image) ptn);
         }
       } else {
         log(-1, "doFind: invalid parameter: %s", ptn);
         Sikulix.terminate(999);
       }
       if (repeating != null) {
-        repeating._finder = f;
+        repeating._finder = finder;
         repeating._image = img;
       }
     }
-    if (f.hasNext()) {
-      return f;
+    if (finder.hasNext()) {
+      return finder;
     }
     return null;
   }
