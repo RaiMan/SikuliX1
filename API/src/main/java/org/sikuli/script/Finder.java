@@ -296,6 +296,35 @@ public class Finder implements Iterator<Match> {
     currentMatchIndex = 0;
     return text;
   }
+
+  private int levelWord = 3;
+  private int levelLine = 2;
+
+  public boolean findWord(String text) {
+    _findInput.setTextLevel(levelWord);
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findWords(String text) {
+    _findInput.setTextLevel(levelWord);
+    _findInput.setFindAll();
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findLine(String text) {
+    _findInput.setTextLevel(levelLine);
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findLines(String text) {
+    _findInput.setTextLevel(levelLine);
+    _findInput.setFindAll();
+    findText(text);
+    return hasNext();
+  }
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="findAll">
