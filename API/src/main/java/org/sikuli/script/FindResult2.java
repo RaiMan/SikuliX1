@@ -74,6 +74,7 @@ public class FindResult2 implements Iterator<Match> {
       if (findInput.isText()) {
         Word nextWord = words.remove(0);
         match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence()/100);
+        match.setText(nextWord.getText().trim());
       } else {
         match = new Match(currentX + offX, currentY + offY,
                 findInput.getTarget().width(), findInput.getTarget().height(), currentScore, null);

@@ -2860,12 +2860,14 @@ public class Region {
     return match;
   }
 
-  public Iterator<Match> findWords(String word) {
-    Iterator<Match> matches = null;
-    if (!word.isEmpty()) {
-      matches = (Iterator<Match>) doFindText(word, levelWord, true);
-    }
+  public Finder findWords(String word) {
+    Finder matches = null;
+    matches = (Finder) doFindText(word, levelWord, true);
     return matches;
+  }
+
+  public Finder findWords() {
+    return findWords("");
   }
 
   public Match findLine(String text) {
@@ -2876,10 +2878,10 @@ public class Region {
     return match;
   }
 
-  public Iterator<Match> findLines(String text) {
-    Iterator<Match> matches = null;
+  public Finder findLines(String text) {
+    Finder matches = null;
     if (!text.isEmpty()) {
-      matches = (Iterator<Match>) doFindText(text, levelLine, true);
+      matches = (Finder) doFindText(text, levelLine, true);
     }
     return matches;
   }
@@ -2891,8 +2893,8 @@ public class Region {
     Object returnValue = null;
     if (TextRecognizer.start().isValid()) {
       Finder finder = new Finder(this);
+      returnValue = finder;
       lastSearchTime = (new Date()).getTime();
-      text = text.trim();
       if (level == levelWord) {
         if (multi) {
           if (finder.findWords(text)) {

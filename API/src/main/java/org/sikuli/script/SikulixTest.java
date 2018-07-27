@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SikulixTest {
 
@@ -67,8 +69,6 @@ public class SikulixTest {
   }
 
   public static void main(String[] args) {
-//    String property = System.getProperty("java.awt.graphicsenv");
-//    p("java.awt.graphicsenv: %s", property);
     RunTime runTime = RunTime.get();
     ImagePath.setBundlePath(showBase);
     Match match = null;
@@ -78,7 +78,8 @@ public class SikulixTest {
     //runTest.add(1);
     //runTest.add(2);
     //runTest.add(3);
-    runTest.add(4);
+    //runTest.add(4);
+    runTest.add(5);
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
@@ -103,7 +104,7 @@ public class SikulixTest {
       p("***** start test3 text OCR");
       App.focus("safari");
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
+      TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
       String text = "";
       if (Do.SX.isNotNull(reg)) {
@@ -113,31 +114,33 @@ public class SikulixTest {
       p("***** endOf test3");
     }
     if (runTest.contains(4)) {
-      p("***** start test4 findText");
+      p("***** start test4 findWord");
+      App.focus("safari");
+      scr.wait(1.0);
+      TextRecognizer tr = TextRecognizer.start();
+      Region reg = scr.selectRegion();
+      reg.highlight(1);
+      String aWord = Do.input("Give me a word");
+      Match mText = reg.findWord(aWord);
+      if (Do.SX.isNotNull(mText)) {
+        mText.highlight(2);
+      }
+      reg.findWords(aWord).show(2);
+      p("***** endOf test4");
+    }
+    if (runTest.contains(5)) {
+      p("***** start test5 findLine");
       App.focus("safari");
       scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
-      Region reg = new Region(App.focusedWindow()); //scr.selectRegion();
-      reg.y += 100;
-      reg.h -= 100;
-      Region fullReg = new Region(reg);
-      reg.h -= 300;
-      reg.w = 250;
-      reg.highlight(2);
-      Match mText = reg.findWord("Elektronik");
-      if (Do.SX.isNotNull(mText)) {
-        mText.highlight(2);
+      Region reg = scr.selectRegion();
+      reg.highlight(1);
+      String aRegex = Do.input("Give me a RegEx");
+      List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
+      for (Match found : matches) {
+        p("**** line: %s", found.getText());
       }
-      fullReg.highlight(2);
-      Iterator<Match> matches = fullReg.findWords("Mehr");
-      while(matches.hasNext()) {
-        matches.next().highlight(2);
-      }
-      mText = fullReg.findLine("Cookies");
-      if (Do.SX.isNotNull(mText)) {
-        mText.highlight(2);
-      }
-      p("");
+      p("***** endOf test5");
     }
     if (isShown) {
       showStop();

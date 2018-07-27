@@ -212,10 +212,18 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    *
-   * @return the text used for searching
+   * @return the text stored by findWord, findLine, ...
    */
   public String getText() {
     return ocrText;
+  }
+
+  /**
+   * internally used to set the text found by findWord, findLine, ...
+   * @param text
+   */
+  public void setText(String text) {
+    ocrText = text;
   }
 
   @Override

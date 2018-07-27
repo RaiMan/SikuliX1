@@ -50,7 +50,20 @@ public class Finder implements Iterator<Match> {
     Debug.logx(level, me + message, args);
   }
 
-//<editor-fold defaultstate="collapsed" desc="Constructors">
+  private static String markRegex = Key.ESC;
+  public static String asRegEx(String text) {
+    return markRegex + text;
+  }
+
+  public static boolean isRegEx(String text) {
+    return text.startsWith(markRegex);
+  }
+
+  public static java.util.regex.Pattern getRegEx(String text) {
+    return java.util.regex.Pattern.compile(text.substring(1));
+  }
+
+  //<editor-fold defaultstate="collapsed" desc="Constructors">
   private Finder() {}
 
   public Finder(FindInput2 findInput) {
@@ -460,20 +473,6 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
-//      IScreen parentScreen = null;
-//      if (screenFinder && _region != null) {
-//        parentScreen = _region.getScreen();
-//      }
-//      match = new Match(fr, parentScreen);
-//      match.setOnScreen(screenFinder);
-//      if (_region != null) {
-//        match = _region.toGlobalCoord(match);
-//      }
-//      if (_pattern != null) {
-//        Location offset = _pattern.getTargetOffset();
-//        match.setTargetOffset(offset);
-//      }
-//      match.setImage(_image);
     }
     return match;
   }

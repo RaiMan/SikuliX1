@@ -15,6 +15,8 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Finder2 {
 
@@ -81,6 +83,22 @@ public class Finder2 {
     return fInput.getTextLevel() == levelLine;
   }
 
+  private boolean isTextMatching(String base, String probe, Pattern pattern) {
+    if (Do.SX.isNull(pattern)) {
+      return base.equals(probe);
+    }
+    Matcher matcher = pattern.matcher(base.trim());
+    return matcher.find();
+  }
+
+  private boolean isTextContained(String base, String probe, Pattern pattern) {
+    if (Do.SX.isNull(pattern)) {
+      return base.contains(probe);
+    }
+    Matcher matcher = pattern.matcher(base);
+    return matcher.find();
+  }
+
   private FindResult2 doFind() {
     if (!fInput.isValid()) {
       return null;
@@ -88,8 +106,8 @@ public class Finder2 {
     FindResult2 findResult = null;
     if (fInput.isText()) {
       Region where = fInput.getWhere();
-      String text = fInput.getTargetText().trim();
       BufferedImage bimg = where.getScreen().capture(where).getImage();
+      String text = fInput.getTargetText();
       TextRecognizer tr = TextRecognizer.start();
       if (tr.isValid()) {
         Tesseract1 tapi = tr.getAPI();
@@ -97,22 +115,33 @@ public class Finder2 {
         List<Word> wordsFound = tapi.getWords(tr.resize(bimg), fInput.getTextLevel());
         timer = new Date().getTime() - timer;
         List<Word> wordsMatch = new ArrayList<>();
-        for (Word word : wordsFound) {
-          if (isWord() && !word.getText().equals(text)) {
-            continue;
+        if (!text.isEmpty()) {
+          Pattern pattern = null;
+          if (Finder.isRegEx(text)) {
+            pattern = Finder.getRegEx(text);
+          } else {
+            text = text.trim();
           }
-          if (isLine() && !word.getText().contains(text)) {
-            continue;
+          for (Word word : wordsFound) {
+            if (isWord() && !isTextMatching(word.getText(),text, pattern)) {
+              continue;
+            }
+            if (isLine() && !isTextContained(word.getText(), text, pattern)) {
+              continue;
+            }
+            Rectangle trueRectangel = tr.relocateAsRectangle(word.getBoundingBox(), where);
+            Word found = new Word(word.getText(), word.getConfidence(), trueRectangel);
+            wordsMatch.add(found);
           }
-          Rectangle trueRectangel = tr.relocateAsRectangle(word.getBoundingBox(), where);
-          Word found = new Word(word.getText(), word.getConfidence(), trueRectangel);
-          wordsMatch.add(found);
-        }
-        if (wordsMatch.size() > 0) {
-          log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
-          findResult = new FindResult2(wordsMatch, fInput);
+          if (wordsMatch.size() > 0) {
+            log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
+            findResult = new FindResult2(wordsMatch, fInput);
+          } else {
+            log.trace("doFindText: %s (%d msec): not found", text, timer);
+          }
         } else {
-          log.trace("doFindText: %s (%d msec): not found", text, timer);
+          log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
+          findResult = new FindResult2(wordsFound, fInput);
         }
       }
     } else {

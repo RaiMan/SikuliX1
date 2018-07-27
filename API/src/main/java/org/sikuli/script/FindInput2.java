@@ -44,7 +44,7 @@ public class FindInput2 {
     if (Do.SX.isNotNull(target)) {
       return true;
     }
-    if (targetTypeText && !targetText.isEmpty()) {
+    if (targetTypeText) {
       return true;
     }
     return false;
@@ -61,7 +61,7 @@ public class FindInput2 {
   private int textLevel = 0;
 
   public boolean isText() {
-    return targetTypeText && !targetText.isEmpty();
+    return targetTypeText;
   }
 
   public boolean isFindAll() {
