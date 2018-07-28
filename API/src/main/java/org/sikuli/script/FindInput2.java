@@ -58,7 +58,7 @@ public class FindInput2 {
     this.textLevel = textLevel;
   }
 
-  private int textLevel = 0;
+  private int textLevel = -1;
 
   public boolean isText() {
     return targetTypeText;

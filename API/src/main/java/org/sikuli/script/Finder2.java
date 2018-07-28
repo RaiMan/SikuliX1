@@ -105,6 +105,7 @@ public class Finder2 {
     }
     FindResult2 findResult = null;
     if (fInput.isText()) {
+      boolean globalSearch = false;
       Region where = fInput.getWhere();
       BufferedImage bimg = where.getScreen().capture(where).getImage();
       String text = fInput.getTargetText();
@@ -112,7 +113,14 @@ public class Finder2 {
       if (tr.isValid()) {
         Tesseract1 tapi = tr.getAPI();
         long timer = new Date().getTime();
-        List<Word> wordsFound = tapi.getWords(tr.resize(bimg), fInput.getTextLevel());
+        int textLevel = fInput.getTextLevel();
+        List<Word> wordsFound = null;
+        if (textLevel > -1) {
+          wordsFound = tapi.getWords(tr.resize(bimg), textLevel);
+        } else {
+          globalSearch = true;
+          wordsFound = tapi.getWords(tr.resize(bimg), levelLine);
+        }
         timer = new Date().getTime() - timer;
         List<Word> wordsMatch = new ArrayList<>();
         if (!text.isEmpty()) {
@@ -123,13 +131,26 @@ public class Finder2 {
             text = text.trim();
           }
           for (Word word : wordsFound) {
-            if (isWord() && !isTextMatching(word.getText(),text, pattern)) {
+            if (isWord()) {
+              if (!isTextMatching(word.getText(),text, pattern)) {
+                continue;
+              }
+            } else if (isLine()) {
+              if (!isTextContained(word.getText(), text, pattern)) {
+                continue;
+              }
+            } else if (globalSearch) {
+              if (!isTextContained(word.getText().toLowerCase(), text.toLowerCase(), null)) {
+                continue;
+              }
+            } else {
               continue;
             }
-            if (isLine() && !isTextContained(word.getText(), text, pattern)) {
-              continue;
+            Rectangle wordOrLine = word.getBoundingBox();
+            if (globalSearch) {
+              
             }
-            Rectangle trueRectangel = tr.relocateAsRectangle(word.getBoundingBox(), where);
+            Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
             Word found = new Word(word.getText(), word.getConfidence(), trueRectangel);
             wordsMatch.add(found);
           }

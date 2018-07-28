@@ -74,12 +74,18 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
+    String browser = "edge";
+    if (runTime.runningMac) {
+      browser = "safari";
+    }
+
     List<Integer> runTest = new ArrayList<>();
     //runTest.add(1);
     //runTest.add(2);
     //runTest.add(3);
     //runTest.add(4);
-    runTest.add(5);
+    //runTest.add(5);
+    runTest.add(6);
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
@@ -102,7 +108,7 @@ public class SikulixTest {
     }
     if (runTest.contains(3)) {
       p("***** start test3 text OCR");
-      App.focus("safari");
+      App.focus(browser);
       scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
@@ -115,7 +121,7 @@ public class SikulixTest {
     }
     if (runTest.contains(4)) {
       p("***** start test4 findWord");
-      App.focus("safari");
+      App.focus(browser);
       scr.wait(1.0);
       TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
@@ -130,9 +136,9 @@ public class SikulixTest {
     }
     if (runTest.contains(5)) {
       p("***** start test5 findLine");
-      App.focus("safari");
+      App.focus(browser);
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start().setLanguage("deu");
+      TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
       reg.highlight(1);
       String aRegex = Do.input("Give me a RegEx");
@@ -141,6 +147,28 @@ public class SikulixTest {
         p("**** line: %s", found.getText());
       }
       p("***** endOf test5");
+    }
+    if (runTest.contains(6)) {
+      p("***** start test6 Region.find(someText)");
+      String aText = Do.input("Give me a phrase");
+      App.focus(browser);
+      scr.wait(1.0);
+      TextRecognizer tr = TextRecognizer.start();
+      Region reg = App.focusedWindow();
+      reg.highlight(1);
+/*
+      match = reg.findText(aText);
+      if (Do.SX.isNotNull(match)) {
+        match.highlight(2);
+      }
+*/
+      Iterator<Match> allText = reg.findAllText(aText);
+      if (allText.hasNext()) {
+        while (allText.hasNext()) {
+          allText.next().highlight(1);
+        }
+      }
+      p("***** endOf test6");
     }
     if (isShown) {
       showStop();
