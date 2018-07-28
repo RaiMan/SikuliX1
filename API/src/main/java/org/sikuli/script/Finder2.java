@@ -108,6 +108,7 @@ public class Finder2 {
       boolean globalSearch = false;
       Region where = fInput.getWhere();
       BufferedImage bimg = where.getScreen().capture(where).getImage();
+      BufferedImage bimgWork = null;
       String text = fInput.getTargetText();
       TextRecognizer tr = TextRecognizer.start();
       if (tr.isValid()) {
@@ -115,11 +116,12 @@ public class Finder2 {
         long timer = new Date().getTime();
         int textLevel = fInput.getTextLevel();
         List<Word> wordsFound = null;
+        bimgWork = tr.resize(bimg);
         if (textLevel > -1) {
-          wordsFound = tapi.getWords(tr.resize(bimg), textLevel);
+          wordsFound = tapi.getWords(bimgWork, textLevel);
         } else {
           globalSearch = true;
-          wordsFound = tapi.getWords(tr.resize(bimg), levelLine);
+          wordsFound = tapi.getWords(bimgWork, levelLine);
         }
         timer = new Date().getTime() - timer;
         List<Word> wordsMatch = new ArrayList<>();
@@ -132,7 +134,7 @@ public class Finder2 {
           }
           for (Word word : wordsFound) {
             if (isWord()) {
-              if (!isTextMatching(word.getText(),text, pattern)) {
+              if (!isTextMatching(word.getText(), text, pattern)) {
                 continue;
               }
             } else if (isLine()) {
@@ -147,12 +149,25 @@ public class Finder2 {
               continue;
             }
             Rectangle wordOrLine = word.getBoundingBox();
+            Word found = null;
+            List<Word> wordsInLine = null;
             if (globalSearch) {
-              
+              BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
+              wordsInLine = tapi.getWords(bLine, levelWord);
+              for (Word wordInLine : wordsInLine) {
+                if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
+                  continue;
+                }
+                Rectangle rword = new Rectangle(wordInLine.getBoundingBox());
+                rword.x += wordOrLine.x;
+                rword.y += wordOrLine.y;
+                Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
+                wordsMatch.add(new Word(wordInLine.getText(), wordInLine.getConfidence(), trueRectangel));
+              }
+            } else {
+              Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
+              wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
             }
-            Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
-            Word found = new Word(word.getText(), word.getConfidence(), trueRectangel);
-            wordsMatch.add(found);
           }
           if (wordsMatch.size() > 0) {
             log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);

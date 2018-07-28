@@ -216,6 +216,10 @@ public class Image {
   private int bsize = 0;
   private int bwidth = -1;
   private int bheight = -1;
+
+  public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
+    return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
+  }
 //</editor-fold>
 
   private ImageGroup group = null;

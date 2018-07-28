@@ -85,7 +85,14 @@ public class SikulixTest {
     //runTest.add(3);
     //runTest.add(4);
     //runTest.add(5);
-    runTest.add(6);
+    //runTest.add(6);
+    //runTest.add(7);
+
+    int newest = 7;
+
+    if (runTest.size() == 0) {
+      runTest.add(newest);
+    }
 
     if (runTest.contains(1)) {
       p("***** starting test1 scr.exists(testImage)");
@@ -135,13 +142,13 @@ public class SikulixTest {
       p("***** endOf test4");
     }
     if (runTest.contains(5)) {
-      p("***** start test5 findLine");
+      p("***** start test5 findLines with RegEx");
+      String aRegex = Do.input("Give me a RegEx");
       App.focus(browser);
       scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start();
       Region reg = scr.selectRegion();
+      TextRecognizer tr = TextRecognizer.start();
       reg.highlight(1);
-      String aRegex = Do.input("Give me a RegEx");
       List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
       for (Match found : matches) {
         p("**** line: %s", found.getText());
@@ -153,22 +160,30 @@ public class SikulixTest {
       String aText = Do.input("Give me a phrase");
       App.focus(browser);
       scr.wait(1.0);
+      Region reg = scr.selectRegion();
       TextRecognizer tr = TextRecognizer.start();
-      Region reg = App.focusedWindow();
       reg.highlight(1);
-/*
       match = reg.findText(aText);
       if (Do.SX.isNotNull(match)) {
         match.highlight(2);
       }
-*/
-      Iterator<Match> allText = reg.findAllText(aText);
+      p("***** endOf test6");
+    }
+    if (runTest.contains(7)) {
+      p("***** start test7 Region.find(allText)");
+      String aText = Do.input("Give me a phrase");
+      App.focus(browser);
+      scr.wait(1.0);
+      Region reg = scr.selectRegion();
+      TextRecognizer tr = TextRecognizer.start();
+      reg.highlight(1);
+      Iterator<Match> allText = reg.findAllText(Finder.asRegEx(aText));
       if (allText.hasNext()) {
         while (allText.hasNext()) {
           allText.next().highlight(1);
         }
       }
-      p("***** endOf test6");
+      p("***** endOf test7");
     }
     if (isShown) {
       showStop();
