@@ -326,6 +326,13 @@ public class Finder implements Iterator<Match> {
     return hasNext();
   }
 
+  public boolean findWords() {
+    _findInput.setTextLevel(levelWord);
+    _findInput.setFindAll();
+    findText("");
+    return hasNext();
+  }
+
   public boolean findLine(String text) {
     _findInput.setTextLevel(levelLine);
     findText(text);
@@ -336,6 +343,13 @@ public class Finder implements Iterator<Match> {
     _findInput.setTextLevel(levelLine);
     _findInput.setFindAll();
     findText(text);
+    return hasNext();
+  }
+
+  public boolean findLines() {
+    _findInput.setTextLevel(levelLine);
+    _findInput.setFindAll();
+    findText("");
     return hasNext();
   }
 //</editor-fold>

@@ -2861,13 +2861,7 @@ public class Region {
   }
 
   public Finder findWords(String word) {
-    Finder matches = null;
-    matches = (Finder) doFindText(word, levelWord, true);
-    return matches;
-  }
-
-  public Finder findWords() {
-    return findWords("");
+    return (Finder) doFindText(word, levelWord, true);
   }
 
   public Match findLine(String text) {
@@ -2879,11 +2873,7 @@ public class Region {
   }
 
   public Finder findLines(String text) {
-    Finder matches = null;
-    if (!text.isEmpty()) {
-      matches = (Finder) doFindText(text, levelLine, true);
-    }
-    return matches;
+    return (Finder) doFindText(text, levelLine, true);
   }
 
   private int levelWord = 3;
@@ -4706,6 +4696,17 @@ public class Region {
   public String text() {
     ScreenImage simg = getScreen().capture(x, y, w, h);
     return TextRecognizer.doOCR(simg);
+  }
+
+  public List<Match> getWordList() {
+    List<Match> words = new ArrayList<>();
+    findWords("");
+    return words;
+  }
+
+  public List<Match> getLineList() {
+    Finder linesFound = findLines("");
+    return linesFound.getList();
   }
   //</editor-fold>
 }

@@ -88,7 +88,7 @@ public class SikulixTest {
     //runTest.add(6);
     //runTest.add(7);
 
-    int newest = 7;
+    int newest = 8;
 
     if (runTest.size() == 0) {
       runTest.add(newest);
@@ -181,6 +181,21 @@ public class SikulixTest {
       if (allText.hasNext()) {
         while (allText.hasNext()) {
           allText.next().highlight(1);
+        }
+      }
+      p("***** endOf test7");
+    }
+    if (runTest.contains(8)) {
+      p("***** start test8 Region.getWordList/getLineList");
+      App.focus(browser);
+      scr.wait(1.0);
+      Region reg = scr.selectRegion();
+      TextRecognizer tr = TextRecognizer.start();
+      reg.highlight(1);
+      List<Match> lines = reg.getLineList();
+      if (lines.size() > 0) {
+        for (Match line : lines) {
+          line.highlight(1);
         }
       }
       p("***** endOf test7");
