@@ -2200,515 +2200,6 @@ public class Region {
   }
 
   /**
-   * return false to skip <br>
-   * return true to try again <br>
-   * throw FindFailed to abort
-   *
-   * @param img Handles a failed find action
-   */
-  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
-    log(lvl, "handleFindFailed: %s", target);
-    Boolean state = null;
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (FindFailedResponse.HANDLE.equals(response)) {
-      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
-      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
-        log(lvl, "handleFindFailed: Response.HANDLE: calling handler");
-        evt = new ObserveEvent("", type, target, img, this, 0);
-        ((ObserverCallBack) findFailedHandler).findfailed(evt);
-        response = evt.getResponse();
-      }
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      state = false;
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    if (FindFailedResponse.PROMPT.equals(response)) {
-      response = handleFindFailedShowDialog(img, false);
-    } else {
-      return state;
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      // TODO HACK to allow recapture on FindFailed PROMPT
-      if (img.backup()) {
-        img.delete();
-        state = handleImageMissing(img, true);
-        if (state == null || !state) {
-          if (!img.restore()) {
-            state = null;
-          } else {
-            img.get();
-          }
-        }
-      }
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    return state;
-  }
-
-  private Boolean handleImageMissing(Image img, boolean recap) {
-    log(lvl, "handleImageMissing: %s", img.getName());
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (FindFailedResponse.HANDLE.equals(response)) {
-      ObserveEvent.Type type = ObserveEvent.Type.MISSING;
-      if (imageMissingHandler != null && ((ObserverCallBack) imageMissingHandler).getType().equals(type)) {
-        log(lvl, "handleImageMissing: Response.HANDLE: calling handler");
-        evt = new ObserveEvent("", type, null, img, this, 0);
-        ((ObserverCallBack) imageMissingHandler).missing(evt);
-        response = evt.getResponse();
-      } else {
-        response = FindFailedResponse.PROMPT;
-      }
-    }
-    if (FindFailedResponse.PROMPT.equals(response)) {
-      log(lvl, "handleImageMissing: Response.PROMPT");
-      response = handleFindFailedShowDialog(img, true);
-    }
-    if (findFailedResponse.RETRY.equals(response)) {
-      log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
-      getRobotForRegion().delay(500);
-      ScreenImage simg = getScreen().userCapture(
-              (recap ? "recapture " : "capture missing ") + img.getName());
-      if (simg != null) {
-        String path = ImagePath.getBundlePath();
-        if (path == null) {
-          log(-1, "handleImageMissing: no bundle path - aborting");
-          return null;
-        }
-        simg.getFile(path, img.getImageName());
-        Image.set(img);
-        if (img.isValid()) {
-          log(lvl, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
-          Image.setIDEshouldReload(img);
-          return true;
-        }
-      }
-      return null;
-    } else if (findFailedResponse.ABORT.equals(response)) {
-      log(lvl, "handleImageMissing: Response.ABORT: aborting");
-      return null;
-    }
-    log(lvl, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
-    return false;
-  }
-
-  private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
-    log(lvl, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
-    FindFailedResponse response;
-    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
-    fd.setVisible(true);
-    response = fd.getResponse();
-    fd.dispose();
-    wait(0.5);
-    log(lvl, "handleFindFailedShowDialog: answer is %s", response);
-    return response;
-  }
-
-  /**
-   * finds the given Pattern, String or Image in the region and returns the best match. If AutoWaitTimeout is set, this
-   * is equivalent to wait(). Otherwise only one search attempt will be done.
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target A search criteria
-   * @return If found, the element. null otherwise
-   * @throws FindFailed if the Find operation failed
-   */
-  public <PSI> Match find(PSI target) throws FindFailed {
-    if (autoWaitTimeout > 0) {
-      return wait(target, autoWaitTimeout);
-    }
-    lastMatch = null;
-    Image img = Image.getImageFromTarget(target);
-    Boolean response = true;
-    if (!img.isText() && !img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
-      if (response == null) {
-        runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
-      }
-    }
-    String targetStr = img.getName();
-    while (null != response && response) {
-      log(lvl, "find: waiting 0 secs for %s to appear in %s", targetStr, this.toStringShort());
-      lastMatch = doFind(target, img, null);
-      if (lastMatch != null) {
-        lastMatch.setImage(img);
-        if (isOtherScreen()) {
-          lastMatch.setOtherScreen();
-        } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
-        }
-        log(lvl, "find: %s appeared (%s)", targetStr, lastMatch);
-        break;
-      }
-      log(lvl, "find: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
-      if (null == lastMatch) {
-        response = handleFindFailed(target, img);
-      }
-    }
-    if (null == response) {
-      throw new FindFailed(FindFailed.createdefault(this, img));
-    }
-    return lastMatch;
-  }
-
-  /**
-   * Check if target exists (with the default autoWaitTimeout)
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target Pattern, String or Image
-   * @return the match (null if not found or image file missing)
-   */
-  public <PSI> Match exists(PSI target) {
-    return exists(target, autoWaitTimeout);
-  }
-
-  /**
-   * Check if target exists with a specified timeout<br>
-   * timout = 0: returns immediately after first search
-   *
-   * @param <PSI>   Pattern, String or Image
-   * @param target  The target to search for
-   * @param timeout Timeout in seconds
-   * @return the match (null if not found or image file missing)
-   */
-  public <PSI> Match exists(PSI target, double timeout) {
-    lastMatch = null;
-    RepeatableFind rf = new RepeatableFind(target, null);
-    Image img = rf._image;
-    Boolean response = true;
-    if (!img.isText() && !img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
-      if (response == null) {
-        runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
-      }
-    }
-    String targetStr = img.getName();
-    log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
-    if (rf.repeat(timeout)) {
-      lastMatch = rf.getMatch();
-      lastMatch.setImage(img);
-      if (isOtherScreen()) {
-        lastMatch.setOtherScreen();
-      } else if (img != null) {
-        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
-      }
-      log(lvl, "exists: %s has appeared (%s)", targetStr, lastMatch);
-      return lastMatch;
-    }
-    log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
-    return null;
-  }
-
-  /**
-   * finds all occurences of the given Pattern, String or Image in the region and returns an Iterator of Matches.
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target A search criteria
-   * @return All elements matching
-   * @throws FindFailed if the Find operation failed
-   */
-  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    lastMatches = null;
-    RepeatableFindAll rf = new RepeatableFindAll(target, null);
-    Image img = rf._image;
-    String targetStr = img.getName();
-    Boolean response = true;
-    if (!img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
-      if (response == null) {
-        runTime.abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
-      }
-    }
-    while (null != response && response) {
-      log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-              autoWaitTimeout, targetStr, this.toStringShort());
-      if (autoWaitTimeout > 0) {
-        rf.repeat(autoWaitTimeout);
-        lastMatches = rf.getMatches();
-      } else {
-        lastMatches = doFindAll(target, null);
-      }
-      if (lastMatches != null) {
-        log(lvl, "findAll: %s has appeared", targetStr);
-        break;
-      } else {
-        log(lvl, "findAll: %s did not appear", targetStr);
-        response = handleFindFailed(target, img);
-      }
-    }
-    if (null == response) {
-      throw new FindFailed(FindFailed.createdefault(this, img));
-    }
-    return lastMatches;
-  }
-
-  public <PSI> Match[] findAllByRow(PSI target) {
-    Match[] matches = new Match[0];
-    List<Match> mList = findAllCollect(target);
-    if (mList.isEmpty()) {
-      return null;
-    }
-    Collections.sort(mList, new Comparator<Match>() {
-      @Override
-      public int compare(Match m1, Match m2) {
-        if (m1.y == m2.y) {
-          return m1.x - m2.x;
-        }
-        return m1.y - m2.y;
-      }
-    });
-    return mList.toArray(matches);
-  }
-
-  public <PSI> Match[] findAllByColumn(PSI target) {
-    Match[] matches = new Match[0];
-    List<Match> mList = findAllCollect(target);
-    if (mList.isEmpty()) {
-      return null;
-    }
-    Collections.sort(mList, new Comparator<Match>() {
-      @Override
-      public int compare(Match m1, Match m2) {
-        if (m1.x == m2.x) {
-          return m1.y - m2.y;
-        }
-        return m1.x - m2.x;
-      }
-    });
-    return mList.toArray(matches);
-  }
-
-  private <PSI> List<Match> findAllCollect(PSI target) {
-    Iterator<Match> mIter = null;
-    try {
-      mIter = findAll(target);
-    } catch (Exception ex) {
-      Debug.error("findAllByRow: %s", ex.getMessage());
-      return null;
-    }
-    List<Match> mList = new ArrayList<Match>();
-    while (mIter.hasNext()) {
-      mList.add(mIter.next());
-    }
-    return mList;
-  }
-
-  public Match findBest(Object... args) {
-    if (args.length == 0) {
-      return null;
-    }
-    List<Object> pList = new ArrayList<>();
-    pList.addAll(Arrays.asList(args));
-    return findBestList(pList);
-  }
-
-  public Match findBestList(List<Object> pList) {
-    Debug.log(lvl, "findBest: enter");
-    if (pList == null || pList.size() == 0) {
-      return null;
-    }
-    Match mResult = null;
-    List<Match> mList = findAnyCollect(pList);
-    if (mList.size() > 0) {
-      Collections.sort(mList, new Comparator<Match>() {
-        @Override
-        public int compare(Match m1, Match m2) {
-          double ms = m2.getScore() - m1.getScore();
-          if (ms < 0) {
-            return -1;
-          } else if (ms > 0) {
-            return 1;
-          }
-          return 0;
-        }
-      });
-      mResult = mList.get(0);
-    }
-    return mResult;
-  }
-
-  public List<Match> findAny(Object... args) {
-    if (args.length == 0) {
-      return new ArrayList<Match>();
-    }
-    List<Object> pList = new ArrayList<>();
-    pList.addAll(Arrays.asList(args));
-    return findAnyList(pList);
-  }
-
-  public List<Match> findAnyList(List<Object> pList) {
-    Debug.log(lvl, "findAny: enter");
-    if (pList == null || pList.size() == 0) {
-      return new ArrayList<Match>();
-    }
-    List<Match> mList = findAnyCollect(pList);
-    return mList;
-  }
-
-  private List<Match> findAnyCollect(List<Object> pList) {
-    List<Match> mList = new ArrayList<Match>();
-    if (pList == null) {
-      return mList;
-    }
-    Match[] mArray = new Match[pList.size()];
-    SubFindRun[] theSubs = new SubFindRun[pList.size()];
-    int nobj = 0;
-    ScreenImage base = getScreen().capture(this);
-    for (Object obj : pList) {
-      mArray[nobj] = null;
-      if (obj instanceof Pattern || obj instanceof String || obj instanceof Image) {
-        theSubs[nobj] = new SubFindRun(mArray, nobj, base, obj, this);
-        new Thread(theSubs[nobj]).start();
-      }
-      nobj++;
-    }
-    Debug.log(lvl, "findAnyCollect: waiting for SubFindRuns");
-    nobj = 0;
-    boolean all = false;
-    while (!all) {
-      all = true;
-      for (SubFindRun sub : theSubs) {
-        all &= sub.hasFinished();
-      }
-    }
-    Debug.log(lvl, "findAnyCollect: SubFindRuns finished");
-    nobj = 0;
-    for (Match match : mArray) {
-      if (match != null) {
-        match.setIndex(nobj);
-        mList.add(match);
-      } else {
-      }
-      nobj++;
-    }
-    return mList;
-  }
-
-  private class SubFindRun implements Runnable {
-
-    Match[] mArray;
-    ScreenImage base;
-    Object target;
-    Region reg;
-    boolean finished = false;
-    int subN;
-
-    public SubFindRun(Match[] pMArray, int pSubN,
-                      ScreenImage pBase, Object pTarget, Region pReg) {
-      subN = pSubN;
-      base = pBase;
-      target = pTarget;
-      reg = pReg;
-      mArray = pMArray;
-    }
-
-    @Override
-    public void run() {
-      try {
-        mArray[subN] = reg.findInImage(base, target);
-      } catch (Exception ex) {
-        log(-1, "findAnyCollect: image file not found:\n", target);
-      }
-      hasFinished(true);
-    }
-
-    public boolean hasFinished() {
-      return hasFinished(false);
-    }
-
-    public synchronized boolean hasFinished(boolean state) {
-      if (state) {
-        finished = true;
-      }
-      return finished;
-    }
-  }
-
-  private Match findInImage(ScreenImage base, Object target) throws IOException {
-    Finder finder = null;
-    Match match = null;
-    boolean findingText = false;
-    Image img = null;
-    if (target instanceof String) {
-      if (((String) target).startsWith("\t") && ((String) target).endsWith("\t")) {
-        findingText = true;
-      } else {
-        img = Image.create((String) target);
-        if (img.isValid()) {
-          finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, null);
-          if (!finder.hasNext()) {
-            runFinder(finder, img);
-          }
-        } else if (img.isText()) {
-          findingText = true;
-        } else {
-          throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
-        }
-      }
-      if (findingText) {
-        if (TextRecognizer.getInstance() != null) {
-          log(lvl, "findInImage: Switching to TextSearch");
-          finder = new Finder(getScreen().capture(x, y, w, h), this);
-          finder.findText((String) target);
-        }
-      }
-    } else if (target instanceof Pattern) {
-      if (((Pattern) target).isValid()) {
-        img = ((Pattern) target).getImage();
-        finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, (Pattern) target);
-        if (!finder.hasNext()) {
-          runFinder(finder, target);
-        }
-      } else {
-        throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
-      }
-    } else if (target instanceof Image) {
-      if (((Image) target).isValid()) {
-        img = ((Image) target);
-        finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, null);
-        if (!finder.hasNext()) {
-          runFinder(finder, img);
-        }
-      } else {
-        throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
-      }
-    } else {
-      log(-1, "findInImage: invalid parameter: %s", target);
-      return null;
-    }
-    if (finder.hasNext()) {
-      match = finder.next();
-      match.setImage(img);
-      img.setLastSeen(match.getRect(), match.getScore());
-    }
-    return match;
-  }
-
-  /**
-   * Waits for the Pattern, String or Image to appear until the AutoWaitTimeout value is exceeded.
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target The target to search for
-   * @return The found Match
-   * @throws FindFailed if the Find operation finally failed
-   */
-  public <PSI> Match wait(PSI target) throws FindFailed {
-    if (target instanceof Float || target instanceof Double) {
-      wait(0.0 + ((Double) target));
-      return null;
-    }
-    return wait(target, autoWaitTimeout);
-  }
-
-  /**
    * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
    *
    * @param <PSI>   Pattern, String or Image
@@ -2764,14 +2255,122 @@ public class Region {
   }
 
   /**
-   * waits until target vanishes or timeout (in seconds) is passed (AutoWaitTimeout)
+   * Waits for the Pattern, String or Image to appear until the AutoWaitTimeout value is exceeded.
    *
    * @param <PSI>  Pattern, String or Image
-   * @param target The target to wait for it to vanish
-   * @return true if the target vanishes, otherwise returns false.
+   * @param target The target to search for
+   * @return The found Match
+   * @throws FindFailed if the Find operation finally failed
    */
-  public <PSI> boolean waitVanish(PSI target) {
-    return waitVanish(target, autoWaitTimeout);
+  public <PSI> Match wait(PSI target) throws FindFailed {
+    if (target instanceof Float || target instanceof Double) {
+      wait(0.0 + ((Double) target));
+      return null;
+    }
+    return wait(target, autoWaitTimeout);
+  }
+
+  /**
+   * finds the given Pattern, String or Image in the region and returns the best match. If AutoWaitTimeout is set, this
+   * is equivalent to wait(). Otherwise only one search attempt will be done.
+   *
+   * @param <PSI>  Pattern, String or Image
+   * @param target A search criteria
+   * @return If found, the element. null otherwise
+   * @throws FindFailed if the Find operation failed
+   */
+  public <PSI> Match find(PSI target) throws FindFailed {
+    lastMatch = null;
+    Image img = Image.getImageFromTarget(target);
+    Boolean response = true;
+    if (!img.isText() && !img.isValid() && img.hasIOException()) {
+      response = handleImageMissing(img, false);
+      if (response == null) {
+        runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+      }
+    }
+    String targetStr = img.getName();
+    while (null != response && response) {
+      log(lvl, "find: waiting 0 secs for %s to appear in %s", targetStr, this.toStringShort());
+      lastMatch = doFind(target, img, null);
+      if (lastMatch != null) {
+        lastMatch.setImage(img);
+        if (isOtherScreen()) {
+          lastMatch.setOtherScreen();
+        } else if (img != null) {
+          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+        }
+        log(lvl, "find: %s appeared (%s)", targetStr, lastMatch);
+        break;
+      }
+      log(lvl, "find: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+      if (null == lastMatch) {
+        response = handleFindFailed(target, img);
+      }
+    }
+    if (null == response) {
+      throw new FindFailed(FindFailed.createdefault(this, img));
+    }
+    return lastMatch;
+  }
+
+  /**
+   * Check if target exists with a specified timeout<br>
+   * timout = 0: returns immediately after first search
+   *
+   * @param <PSI>   Pattern, String or Image
+   * @param target  The target to search for
+   * @param timeout Timeout in seconds
+   * @return the match (null if not found or image file missing)
+   */
+  public <PSI> Match exists(PSI target, double timeout) {
+    lastMatch = null;
+    RepeatableFind rf = new RepeatableFind(target, null);
+    Image img = rf._image;
+    Boolean response = true;
+    if (!img.isText() && !img.isValid() && img.hasIOException()) {
+      response = handleImageMissing(img, false);
+      if (response == null) {
+        runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+      }
+    }
+    String targetStr = img.getName();
+    log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+    if (rf.repeat(timeout)) {
+      lastMatch = rf.getMatch();
+      lastMatch.setImage(img);
+      if (isOtherScreen()) {
+        lastMatch.setOtherScreen();
+      } else if (img != null) {
+        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+      }
+      log(lvl, "exists: %s has appeared (%s)", targetStr, lastMatch);
+      return lastMatch;
+    }
+    log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+    return null;
+  }
+
+  /**
+   * Check if target exists (with the default autoWaitTimeout)
+   *
+   * @param <PSI>  Pattern, String or Image
+   * @param target Pattern, String or Image
+   * @return the match (null if not found or image file missing)
+   */
+  public <PSI> Match exists(PSI target) {
+    return exists(target, autoWaitTimeout);
+  }
+
+  /**
+   * Check if target exists (with the default autoWaitTimeout)
+   *
+   * @param <PSI>  Pattern, String or Image
+   * @param target Pattern, String or Image
+   * @return the match (null if not found or image file missing)
+   */
+  public <PSI> Match has(PSI target) {
+    return exists(target, 0);
   }
 
   /**
@@ -2802,55 +2401,224 @@ public class Region {
     return false;
   }
 
-//TODO 1.2.0 Region.compare as time optimized Region.exists
-
   /**
-   * time optimized Region.exists, when image-size == region-size<br>
-   * 1.1.x: just using exists(img, 0), sizes not checked
+   * waits until target vanishes or timeout (in seconds) is passed (AutoWaitTimeout)
    *
-   * @param img image file name
-   * @return the match or null if not equal
+   * @param <PSI>  Pattern, String or Image
+   * @param target The target to wait for it to vanish
+   * @return true if the target vanishes, otherwise returns false.
    */
-  public Match compare(String img) {
-    return compare(Image.create(img));
+  public <PSI> boolean waitVanish(PSI target) {
+    return waitVanish(target, autoWaitTimeout);
   }
 
   /**
-   * time optimized Region.exists, when image-size == region-size<br>
-   * 1.1.x: just using exists(img, 0), sizes not checked
+   * finds all occurences of the given Pattern, String or Image in the region and returns an Iterator of Matches.
    *
-   * @param img Image object
-   * @return the match or null if not equal
+   * @param <PSI>  Pattern, String or Image
+   * @param target A search criteria
+   * @return All elements matching
+   * @throws FindFailed if the Find operation failed
    */
-  public Match compare(Image img) {
-    return exists(img, 0);
+  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+    lastMatches = null;
+    RepeatableFindAll rf = new RepeatableFindAll(target, null);
+    Image img = rf._image;
+    String targetStr = img.getName();
+    Boolean response = true;
+    if (!img.isValid() && img.hasIOException()) {
+      response = handleImageMissing(img, false);
+      if (response == null) {
+        runTime.abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
+      }
+    }
+    while (null != response && response) {
+      log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
+              autoWaitTimeout, targetStr, this.toStringShort());
+      if (autoWaitTimeout > 0) {
+        rf.repeat(autoWaitTimeout);
+        lastMatches = rf.getMatches();
+      } else {
+        lastMatches = doFindAll(target, null);
+      }
+      if (lastMatches != null) {
+        log(lvl, "findAll: %s has appeared", targetStr);
+        break;
+      } else {
+        log(lvl, "findAll: %s did not appear", targetStr);
+        response = handleFindFailed(target, img);
+      }
+    }
+    if (null == response) {
+      throw new FindFailed(FindFailed.createdefault(this, img));
+    }
+    return lastMatches;
   }
 
-  /**
-   * Use findText() instead of find() in cases where the given string could be misinterpreted as an image filename
-   *
-   * @param text    text
-   * @param timeout time
-   * @return the matched region containing the text
-   */
-  public Match findText(String text, double timeout) {
-    // the leading/trailing tab is used to internally switch to text search directly
-    try {
-      return wait("\t" + text + "\t", timeout);
-    } catch (FindFailed findFailed) {
+  public <PSI> List<Match> findAllByRow(PSI target) {
+    Match[] matches = new Match[0];
+    List<Match> mList = findAllCollect(target);
+    if (mList.isEmpty()) {
       return null;
+    }
+    Collections.sort(mList, new Comparator<Match>() {
+      @Override
+      public int compare(Match m1, Match m2) {
+        if (m1.y == m2.y) {
+          return m1.x - m2.x;
+        }
+        return m1.y - m2.y;
+      }
+    });
+    return mList;
+  }
+
+  public <PSI> List<Match> findAllByColumn(PSI target) {
+    Match[] matches = new Match[0];
+    List<Match> mList = findAllCollect(target);
+    if (mList.isEmpty()) {
+      return null;
+    }
+    Collections.sort(mList, new Comparator<Match>() {
+      @Override
+      public int compare(Match m1, Match m2) {
+        if (m1.x == m2.x) {
+          return m1.y - m2.y;
+        }
+        return m1.x - m2.x;
+      }
+    });
+    return mList;
+  }
+
+  public Match findBest(Object... args) {
+    if (args.length == 0) {
+      return null;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(args));
+    return findBestList(pList);
+  }
+
+  public Match findBestList(List<Object> pList) {
+    Debug.log(lvl, "findBest: enter");
+    if (pList == null || pList.size() == 0) {
+      return null;
+    }
+    Match mResult = null;
+    List<Match> mList = findAnyCollect(pList);
+    if (mList.size() > 0) {
+      Collections.sort(mList, new Comparator<Match>() {
+        @Override
+        public int compare(Match m1, Match m2) {
+          double ms = m2.getScore() - m1.getScore();
+          if (ms < 0) {
+            return -1;
+          } else if (ms > 0) {
+            return 1;
+          }
+          return 0;
+        }
+      });
+      mResult = mList.get(0);
+    }
+    return mResult;
+  }
+
+  public List<Match> findAny(Object... args) {
+    if (args.length == 0) {
+      return new ArrayList<Match>();
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(args));
+    return findAnyList(pList);
+  }
+
+  public List<Match> findAnyList(List<Object> pList) {
+    Debug.log(lvl, "findAny: enter");
+    if (pList == null || pList.size() == 0) {
+      return new ArrayList<Match>();
+    }
+    List<Match> mList = findAnyCollect(pList);
+    return mList;
+  }
+
+  //------------------------------
+
+  public Match waitText(String text, double timeout) throws FindFailed {
+    return wait("\t" + text + "\t", timeout);
+  }
+
+  public Match waitText(String text) throws FindFailed {
+    return waitText(text, autoWaitTimeout);
+  }
+
+  public Match waitT(String text, double timeout) throws FindFailed {
+    return waitText(text, timeout);
+  }
+
+  public Match waitT(String text) throws FindFailed {
+    return waitT(text, autoWaitTimeout);
+  }
+
+  public Match findText(String text) throws FindFailed {
+    return waitText(text, 0);
+  }
+
+  public Match findT(String text) throws FindFailed {
+    return findText(text);
+  }
+
+  public Match existsText(String text, double timeout) {
+    Match match = null;
+    try {
+      match = wait("\t" + text + "\t", timeout);
+    } catch (FindFailed findFailed) {
+    }
+    return match;
+  }
+
+  public Match existsText(String text) {
+    return existsText(text, autoWaitTimeout);
+  }
+
+  public Match existsT(String text, double timeout) {
+    return existsText(text, timeout);
+  }
+
+  public Match existsT(String text) {
+    return existsT(text, autoWaitTimeout);
+  }
+
+  public Match hasText(String text) {
+    return existsText(text, 0);
+  }
+
+  public Match hasT(String text) {
+    return hasText(text);
+  }
+
+  public Iterator<Match> findAllText(String text) {
+    try {
+      return findAll("\t" + text + "\t");
+    } catch (FindFailed findFailed) {
+      return new Iterator<Match>() {
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+        @Override
+        public Match next() {
+          return null;
+        }
+      };
     }
   }
 
-  /**
-   * Use findText() instead of find() in cases where the given string could be misinterpreted as an image filename
-   *
-   * @param text text
-   * @return the matched region containing the text
-   */
-  public Match findText(String text) {
-    return findText(text, autoWaitTimeout);
+  public Iterator<Match> findAllT(String text) {
+      return findAllText(text);
   }
+  //--------------------------------
 
   public Match findWord(String word) {
     Match match = null;
@@ -2909,31 +2677,6 @@ public class Region {
     }
     return returnValue;
   }
-
-  /**
-   * Use findAllText() instead of findAll() in cases where the given string could be misinterpreted as an image filename
-   *
-   * @param text text
-   * @return the matched region containing the text
-   */
-  public Iterator<Match> findAllText(String text) {
-    // the leading/trailing tab is used to internally switch to text search directly
-    try {
-      return findAll("\t" + text + "\t");
-    } catch (FindFailed findFailed) {
-      return new Iterator<Match>() {
-        @Override
-        public boolean hasNext() {
-          return false;
-        }
-
-        @Override
-        public Match next() {
-          return null;
-        }
-      };
-    }
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
@@ -2943,9 +2686,9 @@ public class Region {
    * waiting.
    */
   private <PSI> Match doFind(PSI ptn, Image img, RepeatableFind repeating) {
-    Finder f = null;
-    Match m = null;
-    IScreen s = null;
+    Finder finder = null;
+    Match match = null;
+    //IScreen screen = null;
     boolean findingText = false;
     ScreenImage simg;
     double findTimeout = autoWaitTimeout;
@@ -2954,20 +2697,18 @@ public class Region {
       findTimeout = repeating.getFindTimeOut();
     }
     if (repeating != null && repeating._finder != null) {
-      f = repeating._finder;
-      if (!findingText) {
-        simg = getScreen().capture(this);
-        f.setScreenImage(simg);
-      }
-      f.setRepeating();
+      finder = repeating._finder;
+      simg = getScreen().capture(this);
+      finder.setScreenImage(simg);
+      finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
                 new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
-      f.findRepeat();
+      finder.findRepeat();
     } else {
-      s = getScreen();
+      //screen = getScreen();
       lastFindTime = (new Date()).getTime();
       if (ptn instanceof String) {
         if (((String) ptn).startsWith("\t") && ((String) ptn).endsWith("\t")) {
@@ -2976,9 +2717,9 @@ public class Region {
         } else {
           if (img.isValid()) {
             lastSearchTime = (new Date()).getTime();
-            f = checkLastSeenAndCreateFinder(img, findTimeout, null);
-            if (!f.hasNext()) {
-              runFinder(f, img);
+            finder = checkLastSeenAndCreateFinder(img, findTimeout, null);
+            if (!finder.hasNext()) {
+              runFinder(finder, img);
             }
           } else if (img.isText()) {
             findingText = true;
@@ -2988,25 +2729,25 @@ public class Region {
         if (findingText) {
           log(lvl, "doFind: Switching to TextSearch");
           if (TextRecognizer.start().isValid()) {
-            f = new Finder(this);
+            finder = new Finder(this);
             lastSearchTime = (new Date()).getTime();
-            f.findText(someText);
+            finder.findText(someText);
           }
         }
       } else if (ptn instanceof Pattern) {
         if (img.isValid()) {
           lastSearchTime = (new Date()).getTime();
-          f = checkLastSeenAndCreateFinder(img, findTimeout, (Pattern) ptn);
-          if (!f.hasNext()) {
-            runFinder(f, ptn);
+          finder = checkLastSeenAndCreateFinder(img, findTimeout, (Pattern) ptn);
+          if (!finder.hasNext()) {
+            runFinder(finder, ptn);
           }
         }
       } else if (ptn instanceof Image) {
         if (img.isValid()) {
           lastSearchTime = (new Date()).getTime();
-          f = checkLastSeenAndCreateFinder(img, findTimeout, null);
-          if (!f.hasNext()) {
-            runFinder(f, img);
+          finder = checkLastSeenAndCreateFinder(img, findTimeout, null);
+          if (!finder.hasNext()) {
+            runFinder(finder, img);
           }
         }
       } else {
@@ -3014,23 +2755,23 @@ public class Region {
                 String.format("find, wait, exists: invalid parameter: %s", ptn));
       }
       if (repeating != null) {
-        repeating._finder = f;
+        repeating._finder = finder;
         repeating._image = img;
       }
     }
-    if (f != null) {
+    if (finder != null) {
       lastSearchTimeRepeat = lastSearchTime;
       lastSearchTime = (new Date()).getTime() - lastSearchTime;
-      if (f.hasNext()) {
+      if (finder.hasNext()) {
         lastFindTime = (new Date()).getTime() - lastFindTime;
-        m = f.next();
-        m.setTimes(lastFindTime, lastSearchTime);
+        match = finder.next();
+        match.setTimes(lastFindTime, lastSearchTime);
         if (Settings.FindProfiling) {
           Debug.logp("[FindProfiling] Region.doFind final: %d msec", lastSearchTime);
         }
       }
     }
-    return m;
+    return match;
   }
 
   private void runFinder(Finder f, Object target) {
@@ -3175,10 +2916,7 @@ public class Region {
         run();
         if (ifSuccessful()) {
           return true;
-//        } else if (timeoutMilli < MaxTimePerScan || Settings.UseImageFinder) {
         } else if (timeoutMilli < MaxTimePerScan) {
-          // instant return on first search failed if timeout very small or 0
-          // or when using new ImageFinder
           return false;
         }
         long after_find = (new Date()).getTime();
@@ -3271,19 +3009,160 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Find internal support">
-//  private <PatternStringRegionMatch> Region getRegionFromTarget(PatternStringRegionMatch target) throws FindFailed {
-//    if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-//      Match m = find(target);
-//      if (m != null) {
-//        return m.setScreen(scr);
-//      }
-//      return null;
-//    }
-//    if (target instanceof Region) {
-//      return ((Region) target).setScreen(scr);
-//    }
-//    return null;
-//  }
+  private class SubFindRun implements Runnable {
+
+    Match[] mArray;
+    ScreenImage base;
+    Object target;
+    Region reg;
+    boolean finished = false;
+    int subN;
+
+    public SubFindRun(Match[] pMArray, int pSubN,
+                      ScreenImage pBase, Object pTarget, Region pReg) {
+      subN = pSubN;
+      base = pBase;
+      target = pTarget;
+      reg = pReg;
+      mArray = pMArray;
+    }
+
+    @Override
+    public void run() {
+      try {
+        mArray[subN] = reg.findInImage(base, target);
+      } catch (Exception ex) {
+        log(-1, "findAnyCollect: image file not found:\n", target);
+      }
+      hasFinished(true);
+    }
+
+    public boolean hasFinished() {
+      return hasFinished(false);
+    }
+
+    public synchronized boolean hasFinished(boolean state) {
+      if (state) {
+        finished = true;
+      }
+      return finished;
+    }
+  }
+
+  private Match findInImage(ScreenImage base, Object target) throws IOException {
+    Finder finder = null;
+    Match match = null;
+    boolean findingText = false;
+    Image img = null;
+    if (target instanceof String) {
+      if (((String) target).startsWith("\t") && ((String) target).endsWith("\t")) {
+        findingText = true;
+      } else {
+        img = Image.create((String) target);
+        if (img.isValid()) {
+          finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, null);
+          if (!finder.hasNext()) {
+            runFinder(finder, img);
+          }
+        } else if (img.isText()) {
+          findingText = true;
+        } else {
+          throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
+        }
+      }
+      if (findingText) {
+        if (TextRecognizer.getInstance() != null) {
+          log(lvl, "findInImage: Switching to TextSearch");
+          finder = new Finder(getScreen().capture(x, y, w, h), this);
+          finder.findText((String) target);
+        }
+      }
+    } else if (target instanceof Pattern) {
+      if (((Pattern) target).isValid()) {
+        img = ((Pattern) target).getImage();
+        finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, (Pattern) target);
+        if (!finder.hasNext()) {
+          runFinder(finder, target);
+        }
+      } else {
+        throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
+      }
+    } else if (target instanceof Image) {
+      if (((Image) target).isValid()) {
+        img = ((Image) target);
+        finder = doCheckLastSeenAndCreateFinder(base, img, 0.0, null);
+        if (!finder.hasNext()) {
+          runFinder(finder, img);
+        }
+      } else {
+        throw new IOException("Region: findInImage: Image not loadable: " + target.toString());
+      }
+    } else {
+      log(-1, "findInImage: invalid parameter: %s", target);
+      return null;
+    }
+    if (finder.hasNext()) {
+      match = finder.next();
+      match.setImage(img);
+      img.setLastSeen(match.getRect(), match.getScore());
+    }
+    return match;
+  }
+
+  private <PSI> List<Match> findAllCollect(PSI target) {
+    Iterator<Match> mIter = null;
+    try {
+      mIter = findAll(target);
+    } catch (Exception ex) {
+      Debug.error("findAllByRow: %s", ex.getMessage());
+      return null;
+    }
+    List<Match> mList = new ArrayList<Match>();
+    while (mIter.hasNext()) {
+      mList.add(mIter.next());
+    }
+    return mList;
+  }
+
+  private List<Match> findAnyCollect(List<Object> pList) {
+    List<Match> mList = new ArrayList<Match>();
+    if (pList == null) {
+      return mList;
+    }
+    Match[] mArray = new Match[pList.size()];
+    SubFindRun[] theSubs = new SubFindRun[pList.size()];
+    int nobj = 0;
+    ScreenImage base = getScreen().capture(this);
+    for (Object obj : pList) {
+      mArray[nobj] = null;
+      if (obj instanceof Pattern || obj instanceof String || obj instanceof Image) {
+        theSubs[nobj] = new SubFindRun(mArray, nobj, base, obj, this);
+        new Thread(theSubs[nobj]).start();
+      }
+      nobj++;
+    }
+    Debug.log(lvl, "findAnyCollect: waiting for SubFindRuns");
+    nobj = 0;
+    boolean all = false;
+    while (!all) {
+      all = true;
+      for (SubFindRun sub : theSubs) {
+        all &= sub.hasFinished();
+      }
+    }
+    Debug.log(lvl, "findAnyCollect: SubFindRuns finished");
+    nobj = 0;
+    for (Match match : mArray) {
+      if (match != null) {
+        match.setIndex(nobj);
+        mList.add(match);
+      } else {
+      }
+      nobj++;
+    }
+    return mList;
+  }
+
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = find(target);
@@ -3306,6 +3185,112 @@ public class Region {
       return new Location((Location) target);
     }
     return null;
+  }
+
+  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
+    log(lvl, "handleFindFailed: %s", target);
+    Boolean state = null;
+    ObserveEvent evt = null;
+    FindFailedResponse response = findFailedResponse;
+    if (FindFailedResponse.HANDLE.equals(response)) {
+      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
+      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
+        log(lvl, "handleFindFailed: Response.HANDLE: calling handler");
+        evt = new ObserveEvent("", type, target, img, this, 0);
+        ((ObserverCallBack) findFailedHandler).findfailed(evt);
+        response = evt.getResponse();
+      }
+    }
+    if (FindFailedResponse.ABORT.equals(response)) {
+      state = null;
+    } else if (FindFailedResponse.SKIP.equals(response)) {
+      state = false;
+    } else if (FindFailedResponse.RETRY.equals(response)) {
+      state = true;
+    }
+    if (FindFailedResponse.PROMPT.equals(response)) {
+      response = handleFindFailedShowDialog(img, false);
+    } else {
+      return state;
+    }
+    if (FindFailedResponse.ABORT.equals(response)) {
+      state = null;
+    } else if (FindFailedResponse.SKIP.equals(response)) {
+      // TODO HACK to allow recapture on FindFailed PROMPT
+      if (img.backup()) {
+        img.delete();
+        state = handleImageMissing(img, true);
+        if (state == null || !state) {
+          if (!img.restore()) {
+            state = null;
+          } else {
+            img.get();
+          }
+        }
+      }
+    } else if (FindFailedResponse.RETRY.equals(response)) {
+      state = true;
+    }
+    return state;
+  }
+
+  private Boolean handleImageMissing(Image img, boolean recap) {
+    log(lvl, "handleImageMissing: %s", img.getName());
+    ObserveEvent evt = null;
+    FindFailedResponse response = findFailedResponse;
+    if (FindFailedResponse.HANDLE.equals(response)) {
+      ObserveEvent.Type type = ObserveEvent.Type.MISSING;
+      if (imageMissingHandler != null && ((ObserverCallBack) imageMissingHandler).getType().equals(type)) {
+        log(lvl, "handleImageMissing: Response.HANDLE: calling handler");
+        evt = new ObserveEvent("", type, null, img, this, 0);
+        ((ObserverCallBack) imageMissingHandler).missing(evt);
+        response = evt.getResponse();
+      } else {
+        response = FindFailedResponse.PROMPT;
+      }
+    }
+    if (FindFailedResponse.PROMPT.equals(response)) {
+      log(lvl, "handleImageMissing: Response.PROMPT");
+      response = handleFindFailedShowDialog(img, true);
+    }
+    if (findFailedResponse.RETRY.equals(response)) {
+      log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
+      getRobotForRegion().delay(500);
+      ScreenImage simg = getScreen().userCapture(
+              (recap ? "recapture " : "capture missing ") + img.getName());
+      if (simg != null) {
+        String path = ImagePath.getBundlePath();
+        if (path == null) {
+          log(-1, "handleImageMissing: no bundle path - aborting");
+          return null;
+        }
+        simg.getFile(path, img.getImageName());
+        Image.set(img);
+        if (img.isValid()) {
+          log(lvl, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
+          Image.setIDEshouldReload(img);
+          return true;
+        }
+      }
+      return null;
+    } else if (findFailedResponse.ABORT.equals(response)) {
+      log(lvl, "handleImageMissing: Response.ABORT: aborting");
+      return null;
+    }
+    log(lvl, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
+    return false;
+  }
+
+  private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
+    log(lvl, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
+    FindFailedResponse response;
+    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
+    fd.setVisible(true);
+    response = fd.getResponse();
+    fd.dispose();
+    wait(0.5);
+    log(lvl, "handleFindFailedShowDialog: answer is %s", response);
+    return response;
   }
   //</editor-fold>
 

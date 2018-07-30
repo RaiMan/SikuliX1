@@ -86,7 +86,7 @@ public class SikulixTest {
     //runTest.add(4);
     //runTest.add(5);
     //runTest.add(6);
-    //runTest.add(7);
+    runTest.add(7);
 
     int newest = 8;
 
@@ -163,7 +163,7 @@ public class SikulixTest {
       Region reg = scr.selectRegion();
       TextRecognizer tr = TextRecognizer.start();
       reg.highlight(1);
-      match = reg.findText(aText);
+      match = reg.existsText(aText);
       if (Do.SX.isNotNull(match)) {
         match.highlight(2);
       }
@@ -171,18 +171,31 @@ public class SikulixTest {
     }
     if (runTest.contains(7)) {
       p("***** start test7 Region.find(allText)");
-      String aText = Do.input("Give me a phrase");
+      String aText = "intention for this version";//Do.input("Give me a phrase");
+/*
       App.focus(browser);
       scr.wait(1.0);
-      Region reg = scr.selectRegion();
-      TextRecognizer tr = TextRecognizer.start();
+      Region reg = App.focusedWindow();
+      reg.y += 200;
+      reg.h -= 300;
+      reg.x += 50;
+      reg.w -= 100;
+      //scr.selectRegion();
+*/
+      Region reg = new Region(50, 200, 250, 150);
       reg.highlight(1);
-      Iterator<Match> allText = reg.findAllText(Finder.asRegEx(aText));
+      TextRecognizer tr = TextRecognizer.start();
+      Iterator<Match> allText = null;//findAllText(Finder.asRegEx(aText));
+      Match found = null;
+      found = reg.hasText(aText);
+      if (Do.SX.isNotNull(found)) found.highlight(2);
+/*
       if (allText.hasNext()) {
         while (allText.hasNext()) {
           allText.next().highlight(1);
         }
       }
+*/
       p("***** endOf test7");
     }
     if (runTest.contains(8)) {
