@@ -5,8 +5,10 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Date;
@@ -172,9 +174,9 @@ public class SikulixTest {
     if (runTest.contains(7)) {
       p("***** start test7 Region.find(allText)");
       String aText = "intention for this version";//Do.input("Give me a phrase");
-/*
       App.focus(browser);
       scr.wait(1.0);
+/*
       Region reg = App.focusedWindow();
       reg.y += 200;
       reg.h -= 300;
@@ -183,9 +185,16 @@ public class SikulixTest {
       //scr.selectRegion();
 */
       Region reg = new Region(50, 200, 250, 150);
-      reg.highlight(1);
+      //reg.highlight(1);
       TextRecognizer tr = TextRecognizer.start();
       Iterator<Match> allText = null;//findAllText(Finder.asRegEx(aText));
+      ScreenImage simg = scr.userCapture();
+      List<Rectangle> regions = null;
+      try {
+        regions = tr.getAPI().getSegmentedRegions(simg.getImage(), 0);
+      } catch (TesseractException e) {
+        e.printStackTrace();
+      }
       Match found = null;
       found = reg.hasText(aText);
       if (Do.SX.isNotNull(found)) found.highlight(2);
