@@ -4699,9 +4699,8 @@ public class Region {
   }
 
   public List<Match> getWordList() {
-    List<Match> words = new ArrayList<>();
-    findWords("");
-    return words;
+    Finder wordsFound = findWords("");
+    return wordsFound.getList();
   }
 
   public List<Match> getLineList() {

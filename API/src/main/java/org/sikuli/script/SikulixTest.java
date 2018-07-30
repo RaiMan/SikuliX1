@@ -196,9 +196,17 @@ public class SikulixTest {
       if (lines.size() > 0) {
         for (Match line : lines) {
           line.highlight(1);
+          p("%s", line.getText());
         }
       }
-      p("***** endOf test7");
+      List<Match> words = reg.getWordList();
+      if (words.size() > 0) {
+        for (Match word : words) {
+          word.highlight(1);
+          p("%s", word.getText());
+        }
+      }
+      p("***** endOf test8");
     }
     if (isShown) {
       showStop();
