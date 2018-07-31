@@ -1717,6 +1717,10 @@ public class Region {
     return Region.create(r.x, r.y, r.width, r.height, scr);
   }
 
+  public Region getInset(Region inset) {
+    return new Region(x + inset.x, y + inset.y, inset.w, inset.h);
+  }
+
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="parts of a Region">

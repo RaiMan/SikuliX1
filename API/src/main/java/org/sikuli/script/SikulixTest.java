@@ -100,7 +100,7 @@ public class SikulixTest {
     if (App.openLink(actualPage)) {
       scr.wait(1.0);
       reg = App.focusedWindow();
-      if (Do.SX.isNotNull(reg.exists("apple", 10))) {
+      if (Do.SX.isNotNull(reg.exists(corner, 10))) {
         success = true;
       }
     }
@@ -130,6 +130,7 @@ public class SikulixTest {
   }
 
   private static String currentTest = "";
+
   private static void before(String test, String text) {
     currentTest = test;
     p("***** starting %s %s", test, text);
@@ -142,6 +143,7 @@ public class SikulixTest {
   }
 
   private static List<Integer> runTest = new ArrayList<>();
+
   private static boolean shouldRunTest(int nTest) {
     if (runTest.contains(0) || runTest.contains(nTest)) {
       return true;
@@ -155,9 +157,9 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
-    runTest.add(0);
+    //runTest.add(0);
     //runTest.add(1);
-    //runTest.add(2);
+    runTest.add(2);
     //runTest.add(3);
     //runTest.add(4);
     //runTest.add(5);
@@ -169,10 +171,14 @@ public class SikulixTest {
       runTest.add(9);
     }
 
+    if (runTest.size() > 1) {
+      runTest.remove(runTest.indexOf(0));
+    }
+
     if (shouldRunTest(1)) {
       before("test1", "scr.exists(testImage)");
       show(testImage, 0);
-      scr.wait(3.0);
+      scr.wait(2.0);
       match = scr.exists(testImage, 10);
       match.highlight(2);
       after();
@@ -181,12 +187,13 @@ public class SikulixTest {
     if (shouldRunTest(2)) {
       before("test2", "findChange");
       show(testImage, 0);
-      scr.wait(3.0);
+      scr.wait(2.0);
       Finder finder = new Finder(testImage);
       String imgChange = "findChange3";
-      List<Region> changes = finder.findChanges(imgChange); //, 100);
+      List<Region> changes = finder.findChanges(imgChange);
+      match = scr.exists(testImage, 10);
       for (Region change : changes) {
-        getInset(match, change).highlight(1);
+        match.getInset(change).highlight(1);
       }
       after();
     }
@@ -204,8 +211,8 @@ public class SikulixTest {
       after();
     }
 
-    if (runTest.contains(4)) {
-      p("***** start test4 findWord");
+    if (shouldRunTest(4)) {
+      before("test4", "findWord");
       String aWord = "brown";
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
@@ -215,11 +222,11 @@ public class SikulixTest {
           reg.findWords(aWord).show(2);
         }
       }
-      p("***** endOf test4");
+      after();
     }
 
-    if (runTest.contains(5)) {
-      p("***** start test5 findLines with RegEx");
+    if (shouldRunTest(5)) {
+      before("test5", "findLines with RegEx");
       String aRegex = "jumps.*?lazy";
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
@@ -233,11 +240,11 @@ public class SikulixTest {
           p("**** line: %s", found.getText());
         }
       }
-      p("***** endOf test5");
+      after();
     }
 
-    if (runTest.contains(6)) {
-      p("***** start test6 Region.find(someText)");
+    if (shouldRunTest(6)) {
+      before("test6", "Region.find(someText)");
       String[] aTexts = new String[]{"another", "very, very lazy dog", "very + dog"};
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
@@ -248,11 +255,11 @@ public class SikulixTest {
           }
         }
       }
-      p("***** endOf test6");
+      after();
     }
 
-    if (runTest.contains(7)) {
-      p("***** start test7 Region.find(allText)");
+    if (shouldRunTest(7)) {
+      before("test7", "Region.find(allText)");
       String aText = "very lazy dog";
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
@@ -264,11 +271,11 @@ public class SikulixTest {
         //aText = "very.*?dog";
         reg.findAllText(aText).show(2);
       }
-      p("***** endOf test7");
+      after();
     }
 
-    if (runTest.contains(8)) {
-      p("***** start test8 Region.getWordList/getLineList");
+    if (shouldRunTest(8)) {
+      before("test", "Region.getWordList/getLineList");
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
         List<Match> lines = reg.getLineList();
@@ -280,7 +287,7 @@ public class SikulixTest {
         }
         List<Match> words = reg.getWordList();
         if (words.size() > 0) {
-          int jump = words.size()/10;
+          int jump = words.size() / 10;
           int current = 0;
           for (Match word : words) {
             if (current % 10 == 0) {
@@ -291,11 +298,14 @@ public class SikulixTest {
           }
         }
       }
-      p("***** endOf test8");
+      after();
     }
-  }
 
-  private static Region getInset(Region base, Region inset) {
-    return new Region(base.x + inset.x, base.y + inset.y, inset.w, inset.h);
+    if (shouldRunTest(9)) {
+      before("test9", "play");
+      if (openTestPage()) {
+      }
+      after();
+    }
   }
 }
