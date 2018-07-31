@@ -64,7 +64,7 @@ public class Finder implements Iterator<Match> {
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
-  private Finder() {}
+  protected Finder() {}
 
   public Finder(FindInput2 findInput) {
     _findInput = findInput;
@@ -487,6 +487,10 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
+      if (!_findInput.isText()) {
+        match.x += _region.x;
+        match.y += _region.y;
+      }
     }
     return match;
   }

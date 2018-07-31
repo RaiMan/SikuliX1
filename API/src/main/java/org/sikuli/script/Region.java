@@ -2473,6 +2473,18 @@ public class Region {
     return mList;
   }
 
+  public <PSI> List<Match> getAll(PSI target) {
+    List<Match> matches = new ArrayList<>();
+    try {
+      Iterator<Match> all = findAll(target);
+      while (all.hasNext()) {
+        matches.add(all.next());
+      }
+    } catch (FindFailed findFailed) {
+    }
+    return matches;
+  }
+
   public <PSI> List<Match> findAllByColumn(PSI target) {
     Match[] matches = new Match[0];
     List<Match> mList = findAllCollect(target);
@@ -2598,11 +2610,11 @@ public class Region {
     return hasText(text);
   }
 
-  public Iterator<Match> findAllText(String text) {
+  public Finder findAllText(String text) {
     try {
-      return findAll("\t" + text + "\t");
+      return (Finder) findAll("\t" + text + "\t");
     } catch (FindFailed findFailed) {
-      return new Iterator<Match>() {
+      return new Finder() {
         @Override
         public boolean hasNext() {
           return false;
@@ -2837,6 +2849,7 @@ public class Region {
   private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) {
     boolean findingText = false;
     Finder finder = null;
+    String someText = "";
     if (repeating != null && repeating._finder != null) {
       finder = repeating._finder;
       finder.setScreenImage(getScreen().capture(x, y, w, h));
@@ -2847,6 +2860,7 @@ public class Region {
       if (ptn instanceof String) {
         if (((String) ptn).startsWith("\t") && ((String) ptn).endsWith("\t")) {
           findingText = true;
+          someText = ((String) ptn).replaceAll("\\t", "");
         } else {
           img = Image.create((String) ptn);
           if (img.isValid()) {
@@ -2854,13 +2868,14 @@ public class Region {
             finder.findAll(img);
           } else if (img.isText()) {
             findingText = true;
+            someText = img.getText();
           }
         }
         if (findingText) {
           if (TextRecognizer.start().isValid()) {
             finder = new Finder(this);
             finder.setFindAll();
-            finder.findText((String) ptn);
+            finder.findText(someText);
           }
         }
       } else if (ptn instanceof Pattern) {

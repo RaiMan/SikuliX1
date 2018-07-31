@@ -120,6 +120,16 @@ public class Finder2 {
         boolean singleWord = true;
         String[] textSplit = new String[0];
         Pattern pattern = null;
+        if (Finder.isRegEx(text)) {
+          if (textLevel < 0) {
+            text = text.substring(1);
+            log.error("RegEx not supported: %s", text);
+          } else {
+            pattern = Finder.getRegEx(text);
+          }
+        } else {
+          text = text.trim();
+        }
         if (textLevel > -1) {
           wordsFound = tapi.getWords(bimgWork, textLevel);
         } else {
@@ -136,11 +146,6 @@ public class Finder2 {
         timer = new Date().getTime() - timer;
         List<Word> wordsMatch = new ArrayList<>();
         if (!text.isEmpty()) {
-          if (Finder.isRegEx(text)) {
-            pattern = Finder.getRegEx(text);
-          } else {
-            text = text.trim();
-          }
           for (Word word : wordsFound) {
             if (isWord()) {
               if (!isTextMatching(word.getText(), text, pattern)) {
@@ -179,13 +184,15 @@ public class Finder2 {
                 int startText = -1;
                 int endText = -1;
                 int ix = 0;
+                String firstWord = textSplit[0].toLowerCase();
+                String lastWord = textSplit[textSplit.length - 1].toLowerCase();
                 for (Word wordInLine : wordsInLine) {
                   if (startText < 0) {
-                    if (isTextContained(wordInLine.getText().toLowerCase(), textSplit[0].toLowerCase(), null)) {
+                    if (isTextContained(wordInLine.getText().toLowerCase(), firstWord, null)) {
                       startText = ix;
                     }
                   } else if (endText < 0) {
-                    if (isTextContained(wordInLine.getText().toLowerCase(), textSplit[textSplit.length - 1].toLowerCase(), null)) {
+                    if (isTextContained(wordInLine.getText().toLowerCase(), lastWord, null)) {
                       endText = ix;
                     }
                   } else {
@@ -262,8 +269,8 @@ public class Finder2 {
         log.trace("downSizeFound: %s", downSizeFound);
         log.trace("doFind: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_t);
       }
+      findWhere = this.mBase;
       if (!findInput.isFindAll() && downSizeFound) {
-        findWhere = this.mBase;
         // ************************************* check after downsized success
         if (findWhere.size().equals(findInput.getTarget().size())) {
           // trust downsized mResult, if images have same size

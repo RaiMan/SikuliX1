@@ -40,8 +40,10 @@ public class SikulixTest {
   }
 
   private static void showStop() {
-    scr.type("w", Key.CMD);
-    isShown = false;
+    if (isShown) {
+      scr.type("w", Key.CMD);
+      isShown = false;
+    }
   }
 
   private static void show(String image, int wait, int before) {
@@ -70,16 +72,67 @@ public class SikulixTest {
     runnable.start();
   }
 
-  public static void main(String[] args) {
-    RunTime runTime = RunTime.get();
-    ImagePath.setBundlePath(showBase);
-    Match match = null;
-    String testImage = "findBase";
+  private static RunTime runTime = RunTime.get();
+  private static Region reg = null;
 
+  private static boolean openTestPage() {
+    return openTestPage("");
+  }
+
+  private static boolean openTestPage(String page) {
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
     }
+    String testPageBase = "https://github.com/RaiMan/SikuliX1/wiki/";
+    String testPage = "Empty-Wiki--SikuliX-1.1.3-plus";
+    String corner = "apple";
+    if (!page.isEmpty()) {
+      testPage = page;
+    }
+    App appBrowser = new App(browser);
+    boolean success = false;
+    if (appBrowser.isRunning()) {
+      appBrowser.focus();
+      scr.wait(1.0);
+      App.setClipboard("");
+      scr.type("l", Key.CMD);
+      scr.type("c", Key.CMD);
+      scr.type(Key.ESC);
+      String actualPage = App.getClipboard();
+      if (!actualPage.isEmpty()) {
+        success = actualPage.contains(testPage);
+      } else {
+        scr.type("w", Key.CMD);
+      }
+    }
+    if (!success && App.openLink("https://github.com/RaiMan/SikuliX1/wiki/Empty-Wiki--SikuliX-1.1.3-plus")) {
+      scr.wait(1.0);
+      reg = App.focusedWindow();
+      if (Do.SX.isNotNull(reg.exists("apple", 10))) {
+        success = true;
+      }
+    }
+    if (success) {
+      reg = App.focusedWindow();
+      List<Match> matches = reg.getAll(corner);
+      if (matches.size() == 2) {
+        reg = matches.get(0).union(matches.get(1));
+        reg.h += 5;
+      } else {
+        success = false;
+      }
+    }
+    if (!success) {
+      p("***** Error: web page did not open (10 secs)");
+    }
+    return success;
+  }
+
+  public static void main(String[] args) {
+    ImagePath.setBundlePath(showBase);
+    Match match = null;
+    String testImage = "findBase";
 
     List<Integer> runTest = new ArrayList<>();
     //runTest.add(1);
@@ -88,7 +141,7 @@ public class SikulixTest {
     //runTest.add(4);
     //runTest.add(5);
     //runTest.add(6);
-    runTest.add(7);
+    //runTest.add(7);
 
     int newest = 8;
 
@@ -104,6 +157,7 @@ public class SikulixTest {
       match.highlight(2);
       p("***** ending test");
     }
+
     if (runTest.contains(2)) {
       p("***** start test2 findChange");
       Finder finder = new Finder(testImage);
@@ -112,119 +166,112 @@ public class SikulixTest {
       for (Region change : changes) {
         getInset(match, change).highlight(1);
       }
-      showStop();
       p("***** endOf test2");
     }
+
+    showStop();
+
     if (runTest.contains(3)) {
       p("***** start test3 text OCR");
-      App.focus(browser);
-      scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start();
-      Region reg = scr.selectRegion();
-      String text = "";
-      if (Do.SX.isNotNull(reg)) {
-        text = reg.text().trim();
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        String text = "";
+        if (Do.SX.isNotNull(reg)) {
+          text = reg.text().trim();
+        }
+        p("***** read:\n%s", text);
       }
-      p("read:\n%s", text);
       p("***** endOf test3");
     }
+
     if (runTest.contains(4)) {
       p("***** start test4 findWord");
-      App.focus(browser);
-      scr.wait(1.0);
-      TextRecognizer tr = TextRecognizer.start();
-      Region reg = scr.selectRegion();
-      reg.highlight(1);
-      String aWord = Do.input("Give me a word");
-      Match mText = reg.findWord(aWord);
-      if (Do.SX.isNotNull(mText)) {
-        mText.highlight(2);
+      String aWord = "brown";
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        Match mText = reg.findWord(aWord);
+        if (Do.SX.isNotNull(mText)) {
+          mText.highlight(2);
+          reg.findWords(aWord).show(2);
+        }
       }
-      reg.findWords(aWord).show(2);
       p("***** endOf test4");
     }
+
     if (runTest.contains(5)) {
       p("***** start test5 findLines with RegEx");
-      String aRegex = Do.input("Give me a RegEx");
-      App.focus(browser);
-      scr.wait(1.0);
-      Region reg = scr.selectRegion();
-      TextRecognizer tr = TextRecognizer.start();
-      reg.highlight(1);
-      List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
-      for (Match found : matches) {
-        p("**** line: %s", found.getText());
+      String aRegex = "jumps.*?lazy";
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
+        for (Match found : matches) {
+          p("**** line: %s", found.getText());
+        }
+        aRegex = "jumps.*?very.*?lazy";
+        matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
+        for (Match found : matches) {
+          p("**** line: %s", found.getText());
+        }
       }
       p("***** endOf test5");
     }
+
     if (runTest.contains(6)) {
       p("***** start test6 Region.find(someText)");
-      String aText = Do.input("Give me a phrase");
-      App.focus(browser);
-      scr.wait(1.0);
-      Region reg = scr.selectRegion();
-      TextRecognizer tr = TextRecognizer.start();
-      reg.highlight(1);
-      match = reg.existsText(aText);
-      if (Do.SX.isNotNull(match)) {
-        match.highlight(2);
+      String[] aTexts = new String[]{"another", "very, very lazy dog", "very + dog"};
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        for (String aText : aTexts) {
+          match = reg.existsText(aText);
+          if (Do.SX.isNotNull(match)) {
+            match.highlight(2);
+          }
+        }
       }
       p("***** endOf test6");
     }
+
     if (runTest.contains(7)) {
       p("***** start test7 Region.find(allText)");
-      String aText = "intention for this version";//Do.input("Give me a phrase");
-      App.focus(browser);
-      scr.wait(1.0);
-/*
-      Region reg = App.focusedWindow();
-      reg.y += 200;
-      reg.h -= 300;
-      reg.x += 50;
-      reg.w -= 100;
-      //scr.selectRegion();
-*/
-      Region reg = new Region(50, 200, 250, 150);
-      //reg.highlight(1);
-      TextRecognizer tr = TextRecognizer.start();
-      Iterator<Match> allText = null;//findAllText(Finder.asRegEx(aText));
-      Match found = null;
-      found = reg.hasText(aText);
-      if (Do.SX.isNotNull(found)) found.highlight(2);
-/*
-      if (allText.hasNext()) {
-        while (allText.hasNext()) {
-          allText.next().highlight(1);
+      String aText = "very lazy dog";
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        Match found = null;
+        found = reg.hasText(Finder.asRegEx(aText));
+        if (Do.SX.isNotNull(found)) {
+          found.highlight(2);
         }
+        //aText = "very.*?dog";
+        reg.findAllText(aText).show(2);
       }
-*/
       p("***** endOf test7");
     }
+
     if (runTest.contains(8)) {
       p("***** start test8 Region.getWordList/getLineList");
-      App.focus(browser);
-      scr.wait(1.0);
-      Region reg = scr.selectRegion();
-      TextRecognizer tr = TextRecognizer.start();
-      reg.highlight(1);
-      List<Match> lines = reg.getLineList();
-      if (lines.size() > 0) {
-        for (Match line : lines) {
-          line.highlight(1);
-          p("%s", line.getText());
+      if (openTestPage()) {
+        TextRecognizer tr = TextRecognizer.start();
+        List<Match> lines = reg.getLineList();
+        if (lines.size() > 0) {
+          for (Match line : lines) {
+            line.highlight(1);
+            p("***** line: %s", line.getText());
+          }
         }
-      }
-      List<Match> words = reg.getWordList();
-      if (words.size() > 0) {
-        for (Match word : words) {
-          word.highlight(1);
-          p("%s", word.getText());
+        List<Match> words = reg.getWordList();
+        if (words.size() > 0) {
+          int jump = words.size()/10;
+          int current = 0;
+          for (Match word : words) {
+            if (current % 10 == 0) {
+              word.highlight(1);
+            }
+            p("%s", word.getText());
+            current++;
+          }
         }
       }
       p("***** endOf test8");
-    }
-    if (isShown) {
-      showStop();
     }
   }
 
