@@ -68,7 +68,7 @@ public class RunTime {
       log(-1, msg1 + " %s", where);
     }
     if (where.isEmpty()) {
-      throw new RuntimeException(msg2);
+      throw new RuntimeException(msg1 + msg2);
     }
     current.interrupt();
     current.stop();

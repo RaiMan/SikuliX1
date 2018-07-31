@@ -10,6 +10,7 @@ import net.sourceforge.tess4j.Word;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public class SikulixTest {
     System.out.println(String.format(msg, args));
   }
 
-  private static String showBase = "/Users/raimundhocke/IdeaProjects/SikuliX114/API/src/main/resources/ImagesAPI.sikuli";
+  private static String showBase = "API/src/main/resources/ImagesAPI.sikuli";
   private static String showLink;
   private static int showWait;
   private static int showBefore;
@@ -41,7 +42,7 @@ public class SikulixTest {
 
   private static void showStop() {
     if (isShown) {
-      scr.type("w", Key.CMD);
+      scr.type("w", keyMeta);
       isShown = false;
     }
   }
@@ -50,7 +51,7 @@ public class SikulixTest {
     if (!image.endsWith(".png")) {
       image += ".png";
     }
-    showLink = "file://" + showBase + "/" + image;
+    showLink = "file://" + Image.create(image).getFileURL().getPath();
     showWait = wait;
     showBefore = before;
     Thread runnable = new Thread() {
@@ -79,10 +80,14 @@ public class SikulixTest {
     return openTestPage("");
   }
 
+  private static String keyMeta = Key.CTRL;
+  private static boolean isBrowserRunning = false;
+
   private static boolean openTestPage(String page) {
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
+      keyMeta = Key.CMD;
     }
     String testPageBase = "https://github.com/RaiMan/SikuliX1/wiki/";
     String testPage = "Empty-Wiki--SikuliX-1.1.3-plus";
@@ -90,23 +95,9 @@ public class SikulixTest {
     if (!page.isEmpty()) {
       testPage = page;
     }
-    App appBrowser = new App(browser);
+    String actualPage = testPageBase + testPage;
     boolean success = false;
-    if (appBrowser.isRunning()) {
-      appBrowser.focus();
-      scr.wait(1.0);
-      App.setClipboard("");
-      scr.type("l", Key.CMD);
-      scr.type("c", Key.CMD);
-      scr.type(Key.ESC);
-      String actualPage = App.getClipboard();
-      if (!actualPage.isEmpty()) {
-        success = actualPage.contains(testPage);
-      } else {
-        scr.type("w", Key.CMD);
-      }
-    }
-    if (!success && App.openLink("https://github.com/RaiMan/SikuliX1/wiki/Empty-Wiki--SikuliX-1.1.3-plus")) {
+    if (App.openLink(actualPage)) {
       scr.wait(1.0);
       reg = App.focusedWindow();
       if (Do.SX.isNotNull(reg.exists("apple", 10))) {
@@ -125,16 +116,46 @@ public class SikulixTest {
     }
     if (!success) {
       p("***** Error: web page did not open (10 secs)");
+    } else {
+      isBrowserRunning = true;
     }
     return success;
   }
 
+  private static void browserStop() {
+    if (isBrowserRunning) {
+      scr.type("w", keyMeta);
+    }
+    isBrowserRunning = false;
+  }
+
+  private static String currentTest = "";
+  private static void before(String test, String text) {
+    currentTest = test;
+    p("***** starting %s %s", test, text);
+  }
+
+  private static void after() {
+    p("***** ending %s", currentTest);
+    showStop();
+    browserStop();
+  }
+
+  private static List<Integer> runTest = new ArrayList<>();
+  private static boolean shouldRunTest(int nTest) {
+    if (runTest.contains(0) || runTest.contains(nTest)) {
+      return true;
+    }
+    return false;
+  }
+
+
   public static void main(String[] args) {
-    ImagePath.setBundlePath(showBase);
+    ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
     Match match = null;
     String testImage = "findBase";
 
-    List<Integer> runTest = new ArrayList<>();
+    runTest.add(0);
     //runTest.add(1);
     //runTest.add(2);
     //runTest.add(3);
@@ -142,37 +163,36 @@ public class SikulixTest {
     //runTest.add(5);
     //runTest.add(6);
     //runTest.add(7);
-
-    int newest = 8;
+    //runTest.add(8);
 
     if (runTest.size() == 0) {
-      runTest.add(newest);
+      runTest.add(9);
     }
 
-    if (runTest.contains(1)) {
-      p("***** starting test1 scr.exists(testImage)");
+    if (shouldRunTest(1)) {
+      before("test1", "scr.exists(testImage)");
       show(testImage, 0);
-      //scr.hover();
-      match = scr.exists(testImage);
+      scr.wait(3.0);
+      match = scr.exists(testImage, 10);
       match.highlight(2);
-      p("***** ending test");
+      after();
     }
 
-    if (runTest.contains(2)) {
-      p("***** start test2 findChange");
+    if (shouldRunTest(2)) {
+      before("test2", "findChange");
+      show(testImage, 0);
+      scr.wait(3.0);
       Finder finder = new Finder(testImage);
       String imgChange = "findChange3";
       List<Region> changes = finder.findChanges(imgChange); //, 100);
       for (Region change : changes) {
         getInset(match, change).highlight(1);
       }
-      p("***** endOf test2");
+      after();
     }
 
-    showStop();
-
-    if (runTest.contains(3)) {
-      p("***** start test3 text OCR");
+    if (shouldRunTest(3)) {
+      before("test3", "text OCR");
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
         String text = "";
@@ -181,7 +201,7 @@ public class SikulixTest {
         }
         p("***** read:\n%s", text);
       }
-      p("***** endOf test3");
+      after();
     }
 
     if (runTest.contains(4)) {

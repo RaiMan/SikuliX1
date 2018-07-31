@@ -2331,7 +2331,7 @@ public class Region {
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+        runTime.abortScripting("Exists: Abort: ", "ImageMissing: " + target.toString());
       }
     }
     String targetStr = img.getName();
