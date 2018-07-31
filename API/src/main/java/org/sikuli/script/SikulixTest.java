@@ -188,13 +188,6 @@ public class SikulixTest {
       //reg.highlight(1);
       TextRecognizer tr = TextRecognizer.start();
       Iterator<Match> allText = null;//findAllText(Finder.asRegEx(aText));
-      ScreenImage simg = scr.userCapture();
-      List<Rectangle> regions = null;
-      try {
-        regions = tr.getAPI().getSegmentedRegions(simg.getImage(), 0);
-      } catch (TesseractException e) {
-        e.printStackTrace();
-      }
       Match found = null;
       found = reg.hasText(aText);
       if (Do.SX.isNotNull(found)) found.highlight(2);
