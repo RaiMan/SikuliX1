@@ -1,4 +1,5 @@
 # this worked on Ubuntu 18.04 on August 1st, 2018
+# thanks to https://lucacerone.net/2017/install-tesseract-3-0-5-in-ubuntu-16-04/
 
 # remove tesseract binaries and languages
 sudo apt-get remove tesseract-ocr*
