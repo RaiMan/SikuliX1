@@ -1641,9 +1641,8 @@ public class RunTime {
         ssxbeta = String.format("-Beta%d", SikuliVersionBetaN);
       }
       SikuliVersionBuild = prop.getProperty("sikulixbuild");
-      log(lvl + 1, "%s version from %s: %d.%d.%d%s build: %s", svf,
-              SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub, ssxbeta,
-              SikuliVersionBuild, svt);
+      log(lvl + 1, "%s version: %d.%d.%d build: %s", svt,
+              SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub, SikuliVersionBuild);
       sversion = String.format("%d.%d.%d",
               SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub);
       bversion = String.format("%d.%d.%d-Beta%d",

@@ -467,6 +467,7 @@ def use(scr=None, remote=False, fromWith = False):
     SCREEN = newScreen
     Debug.log(3, "Jython: requested to use as default region: " + SCREEN.toStringShort())
     globals()['SIKULISAVED'] = _exposeAllMethods(SCREEN, globals().get('SIKULISAVED'), theGlobals, None)
+    Debug.log(4, "Jython: after _exposeAllMethods");
     theGlobals['SCREEN'] = SCREEN
     if remote:
       remoteScreen = SCREEN
@@ -618,16 +619,19 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
                     'create', 'observeInBackground', 'waitAll',
                     'updateSelf', 'findNow', 'findAllNow', 'getEventManager',
                     'lastMatch', 'lastMatches', 'lastScreenImage', 'lastScreenImageFile',
-                    'capture', 'wait'
+                    'capture', 'wait', 'lineList', 'wordList'
                    ]
-  # Debug.log(3, "Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
+  Debug.log(4, "Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
   tosave = []
   if not saved:
     saved = []
   for name in dir(anyObject):
     if name in exclude_list: continue
     try:
-      if not inspect.ismethod(getattr(anyObject, name)): continue
+      if name == "wordList": Debug.log(4, "Sikuli: _exposeAllMethods: checking1: %s", name)
+      attr = getattr(anyObject, name)
+      if name == "wordList": Debug.log(4, "Sikuli: _exposeAllMethods: checking2: %s", name)
+      if not inspect.ismethod(attr): continue
     except:
       continue
     if name[0] != '_' and name[:7] != 'super__':
@@ -636,8 +640,8 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
       except:
         pass
       tosave.append(name)
-      # print "added:", name
       theGlobals[name] = eval("anyObject." + name)
+      Debug.log(4, "Sikuli: _exposeAllMethods: added: %s", name)
       if name == 'checkWith': Debug.log(3, "%s %s", name, str(dict[name])[1:])
   for name in saved:
     if name in theGlobals:

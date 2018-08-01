@@ -66,32 +66,37 @@ public class SikulixTest {
   private static RunTime runTime = RunTime.get();
   private static Region reg = null;
 
-  private static boolean openTestPage() {
+  public static boolean openTestPage() {
     return openTestPage("");
   }
 
   private static String keyMeta = Key.CTRL;
   private static boolean isBrowserRunning = false;
 
-  private static boolean openTestPage(String page) {
+  public static boolean openTestPage(String page) {
     String testPageBase = "https://github.com/RaiMan/SikuliX1/wiki/";
     String testPage = "Test-page-text";
-    String corner = "apple";
     if (!page.isEmpty()) {
       testPage = page;
     }
     String actualPage = testPageBase + testPage;
     boolean success = false;
+    String corner = "apple";
+    Match cornerSeen = null;
     if (App.openLink(actualPage)) {
       scr.wait(1.0);
-      reg = App.focusedWindow();
-      if (Do.SX.isNotNull(reg.exists(corner, 10))) {
+      if (Do.SX.isNotNull(scr.exists(new Pattern(corner).exact(), 30))) {
         success = true;
-        reg.hover();
+        cornerSeen = scr.getLastMatch();
+        cornerSeen.hover();
+        reg = App.focusedWindow();
       }
     }
     if (success) {
-      reg = App.focusedWindow();
+      if (Do.SX.isNull(reg)) {
+        reg = scr;
+      }
+      int wheelDirection = 0;
       success = false;
       while (!success) {
         List<Match> matches = reg.getAll(corner);
@@ -101,11 +106,21 @@ public class SikulixTest {
           success = true;
           break;
         }
-        reg.wheel(Button.WHEEL_UP, 1);
+        if (wheelDirection == 0) {
+          wheelDirection = Button.WHEEL_DOWN;
+          reg.wheel(wheelDirection, 1);
+          scr.wait(0.5);
+          Match cornerMatch = scr.exists(new Pattern(corner).exact());
+          if (cornerMatch.y >= cornerSeen.y) {
+            wheelDirection *= -1;
+          }
+        }
+        reg.wheel(wheelDirection, 1);
+        scr.wait(0.5);
       }
     }
     if (!success) {
-      p("***** Error: web page did not open (10 secs)");
+      p("***** Error: web page did not open (30 secs)");
     } else {
       reg.highlight(1);
       isBrowserRunning = true;
@@ -154,29 +169,25 @@ public class SikulixTest {
     String testImage = "findBase";
 
     //runTest.add(0);
-    //runTest.add(1);
-    //runTest.add(2);
-    //runTest.add(3);
-    //runTest.add(5);
-    //runTest.add(6);
-    //runTest.add(7);
-    //runTest.add(8);
-
-    if (runTest.size() == 0) {
-      runTest.add(99);
-    }
+    //runTest.add(1); // exists
+    //runTest.add(2); // findChange
+    //runTest.add(3); // text OCR
+    //runTest.add(4); // text find word
+    //runTest.add(5); // text find lines RegEx
+    //runTest.add(6); // text Region.find(someText)
+    //runTest.add(7); // text Region.findAll(someText)
+    //runTest.add(8); // text Region.getWordList/getLineList
 
     if (runTest.size() > 1) {
       runTest.remove(runTest.indexOf(0));
-    }
-
-    if (shouldRunTest(99)) {
-      before("test9", "play");
+    } else if (runTest.size() == 0) {
+      before("test99", "play");
       if (openTestPage()) {
       }
       after();
     }
 
+    //<editor-fold desc="test1 exists">
     if (shouldRunTest(1)) {
       before("test1", "scr.exists(testImage)");
       show(testImage, 0);
@@ -185,7 +196,9 @@ public class SikulixTest {
       match.highlight(2);
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test2 findChange">
     if (shouldRunTest(2)) {
       before("test2", "findChange");
       show(testImage, 0);
@@ -199,7 +212,9 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test3 text OCR">
     if (shouldRunTest(3)) {
       before("test3", "text OCR");
       if (openTestPage()) {
@@ -212,7 +227,9 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test4 find word">
     if (shouldRunTest(4)) {
       before("test4", "findWord");
       String aWord = "brown";
@@ -226,7 +243,9 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test5 findLines with RegEx">
     if (shouldRunTest(5)) {
       before("test5", "findLines with RegEx");
       String aRegex = "jumps.*?lazy";
@@ -244,7 +263,9 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test6 Region.find(someText)">
     if (shouldRunTest(6)) {
       before("test6", "Region.find(someText)");
       String[] aTexts = new String[]{"another", "very, very lazy dog", "very + dog"};
@@ -259,9 +280,11 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test7 Region.findAll(someText)">
     if (shouldRunTest(7)) {
-      before("test7", "Region.find(allText)");
+      before("test7", "Region.findAll(someText)");
       String aText = "very lazy dog";
       if (openTestPage()) {
         TextRecognizer tr = TextRecognizer.start();
@@ -270,12 +293,13 @@ public class SikulixTest {
         if (Do.SX.isNotNull(found)) {
           found.highlight(2);
         }
-        //aText = "very.*?dog";
         reg.findAllText(aText).show(2);
       }
       after();
     }
+    //</editor-fold>
 
+    //<editor-fold desc="test8 Region.getWordList/getLineList">
     if (shouldRunTest(8)) {
       before("test", "Region.getWordList/getLineList");
       if (openTestPage()) {
@@ -302,5 +326,6 @@ public class SikulixTest {
       }
       after();
     }
+    //</editor-fold>
   }
 }
