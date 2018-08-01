@@ -4,19 +4,9 @@
 
 package org.sikuli.script;
 
-import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
-import net.sourceforge.tess4j.Word;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SikulixTest {
 
@@ -84,13 +74,8 @@ public class SikulixTest {
   private static boolean isBrowserRunning = false;
 
   private static boolean openTestPage(String page) {
-    String browser = "edge";
-    if (runTime.runningMac) {
-      browser = "safari";
-      keyMeta = Key.CMD;
-    }
     String testPageBase = "https://github.com/RaiMan/SikuliX1/wiki/";
-    String testPage = "Empty-Wiki--SikuliX-1.1.3-plus";
+    String testPage = "Test-page-text";
     String corner = "apple";
     if (!page.isEmpty()) {
       testPage = page;
@@ -102,21 +87,27 @@ public class SikulixTest {
       reg = App.focusedWindow();
       if (Do.SX.isNotNull(reg.exists(corner, 10))) {
         success = true;
+        reg.hover();
       }
     }
     if (success) {
       reg = App.focusedWindow();
-      List<Match> matches = reg.getAll(corner);
-      if (matches.size() == 2) {
-        reg = matches.get(0).union(matches.get(1));
-        reg.h += 5;
-      } else {
-        success = false;
+      success = false;
+      while (!success) {
+        List<Match> matches = reg.getAll(corner);
+        if (matches.size() == 2) {
+          reg = matches.get(0).union(matches.get(1));
+          reg.h += 5;
+          success = true;
+          break;
+        }
+        reg.wheel(Button.WHEEL_UP, 1);
       }
     }
     if (!success) {
       p("***** Error: web page did not open (10 secs)");
     } else {
+      reg.highlight(1);
       isBrowserRunning = true;
     }
     return success;
@@ -153,26 +144,37 @@ public class SikulixTest {
 
 
   public static void main(String[] args) {
+    String browser = "edge";
+    if (runTime.runningMac) {
+      browser = "safari";
+      keyMeta = Key.CMD;
+    }
     ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
     Match match = null;
     String testImage = "findBase";
 
     //runTest.add(0);
     //runTest.add(1);
-    runTest.add(2);
+    //runTest.add(2);
     //runTest.add(3);
-    //runTest.add(4);
     //runTest.add(5);
     //runTest.add(6);
     //runTest.add(7);
     //runTest.add(8);
 
     if (runTest.size() == 0) {
-      runTest.add(9);
+      runTest.add(99);
     }
 
     if (runTest.size() > 1) {
       runTest.remove(runTest.indexOf(0));
+    }
+
+    if (shouldRunTest(99)) {
+      before("test9", "play");
+      if (openTestPage()) {
+      }
+      after();
     }
 
     if (shouldRunTest(1)) {
@@ -297,13 +299,6 @@ public class SikulixTest {
             current++;
           }
         }
-      }
-      after();
-    }
-
-    if (shouldRunTest(9)) {
-      before("test9", "play");
-      if (openTestPage()) {
       }
       after();
     }
