@@ -73,10 +73,8 @@ public class Finder2 {
     return results;
   }
 
-  private final double resizeMinFactor = 1.5;
-  private final double[] resizeLevels = new double[]{1f, 0.4f};
-  private int resizeMaxLevel = resizeLevels.length - 1;
-  private double resizeMinSim = 0.8;
+  private final float resizeMinFactor = 1.5f;
+  private final float[] resizeLevels = new float[]{1f, 0.4f};
   private boolean isCheckLastSeen = false;
   private static final double downSimDiff = 0.15;
 
