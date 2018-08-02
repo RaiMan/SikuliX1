@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 
@@ -295,7 +294,6 @@ public class Observer {
     return min;
   }
 
-  private Mat lastImgMat = null;
   private ScreenImage lastImage = null;
 
   private boolean checkChanges(ScreenImage img) {
