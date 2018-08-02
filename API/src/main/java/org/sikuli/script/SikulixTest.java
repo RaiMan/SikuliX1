@@ -82,10 +82,11 @@ public class SikulixTest {
     String actualPage = testPageBase + testPage;
     boolean success = false;
     String corner = "apple";
+    Pattern pCorner = new Pattern(corner).similar(0.9);
     Match cornerSeen = null;
     if (App.openLink(actualPage)) {
       scr.wait(1.0);
-      if (Do.SX.isNotNull(scr.exists(new Pattern(corner).exact(), 30))) {
+      if (Do.SX.isNotNull(scr.exists(pCorner, 30))) {
         success = true;
         cornerSeen = scr.getLastMatch();
         cornerSeen.hover();
@@ -110,7 +111,7 @@ public class SikulixTest {
           wheelDirection = Button.WHEEL_DOWN;
           reg.wheel(wheelDirection, 1);
           scr.wait(0.5);
-          Match cornerMatch = scr.exists(new Pattern(corner).exact());
+          Match cornerMatch = scr.exists(pCorner);
           if (cornerMatch.y >= cornerSeen.y) {
             wheelDirection *= -1;
           }
@@ -171,7 +172,7 @@ public class SikulixTest {
     //runTest.add(0);
     //runTest.add(1); // exists
     //runTest.add(2); // findChange
-    //runTest.add(3); // text OCR
+    runTest.add(3); // text OCR
     //runTest.add(4); // text find word
     //runTest.add(5); // text find lines RegEx
     //runTest.add(6); // text Region.find(someText)
@@ -179,7 +180,9 @@ public class SikulixTest {
     //runTest.add(8); // text Region.getWordList/getLineList
 
     if (runTest.size() > 1) {
-      runTest.remove(runTest.indexOf(0));
+      if(-1 < runTest.indexOf(0)) {
+        runTest.remove(runTest.indexOf(0));
+      }
     } else if (runTest.size() == 0) {
       before("test99", "play");
       if (openTestPage()) {

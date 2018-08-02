@@ -349,14 +349,14 @@ public class Image {
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="similarity">
-  private float similarity = (float) Settings.MinSimilarity;
+  private double similarity = Settings.MinSimilarity;
 
   /**
    * Get the value of similarity
    *
    * @return the value of similarity
    */
-  public float getSimilarity() {
+  public double getSimilarity() {
     return similarity;
   }
 
@@ -366,7 +366,7 @@ public class Image {
    * @param similarity new value of similarity
    * @return the image
    */
-  public Image setSimilarity(float similarity) {
+  public Image setSimilarity(double similarity) {
     this.similarity = similarity;
     return this;
   }

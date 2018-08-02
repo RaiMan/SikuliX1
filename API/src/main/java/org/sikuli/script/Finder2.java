@@ -65,8 +65,8 @@ public class Finder2 {
   }
 
   //<editor-fold desc="find basic">
-  private final double resizeMinFactor = 1.5;
-  private final double[] resizeLevels = new double[]{1f, 0.4f};
+  private final float resizeMinFactor = 1.5f;
+  private final float[] resizeLevels = new float[]{1, 0.4f};
   private int resizeMaxLevel = resizeLevels.length - 1;
   private double resizeMinSim = 0.8;
   private boolean isCheckLastSeen = false;
@@ -245,7 +245,7 @@ public class Finder2 {
       Mat findWhere = Finder.getNewMat();
       Mat findWhat = Finder.getNewMat();
 
-      if (!findInput.isFindAll() && findInput.getResizeFactor() > resizeMinFactor) {
+      if (findInput.shouldSearchDownsized(resizeMinFactor)) {
         // ************************************************* search in downsized
         begin_t = new Date().getTime();
         double imgFactor = findInput.getResizeFactor();
