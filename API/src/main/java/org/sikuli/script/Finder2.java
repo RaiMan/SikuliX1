@@ -8,13 +8,18 @@ import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.Word;
 import org.opencv.core.*;
 import org.opencv.core.Point;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 
+import javax.imageio.ImageIO;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
@@ -509,5 +514,30 @@ public class Finder2 {
     }
     return result;
   }
+
+  protected final static String PNG = "png";
+  protected final static String dotPNG = "." + PNG;
+
+  public static BufferedImage getBufferedImage(Mat mat) {
+    return getBufferedImage(mat, dotPNG);
+  }
+
+  public static BufferedImage getBufferedImage(Mat mat, String type) {
+    BufferedImage bImg = null;
+    MatOfByte bytemat = new MatOfByte();
+    if (Do.SX.isNull(mat)) {
+      mat = getNewMat();
+    }
+    Imgcodecs.imencode(type, mat, bytemat);
+    byte[] bytes = bytemat.toArray();
+    InputStream in = new ByteArrayInputStream(bytes);
+    try {
+      bImg = ImageIO.read(in);
+    } catch (IOException ex) {
+      log.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
+    }
+    return bImg;
+  }
+
   //</editor-fold>
 }

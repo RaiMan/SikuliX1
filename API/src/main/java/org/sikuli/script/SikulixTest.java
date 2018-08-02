@@ -10,6 +10,7 @@ import java.util.List;
 
 public class SikulixTest {
 
+  //<editor-fold desc="housekeeping">
   private static Screen scr = new Screen();
 
   private static void p(String msg, Object... args) {
@@ -65,6 +66,7 @@ public class SikulixTest {
 
   private static RunTime runTime = RunTime.get();
   private static Region reg = null;
+  private static Region regWin = null;
 
   public static boolean openTestPage() {
     return openTestPage("");
@@ -91,6 +93,7 @@ public class SikulixTest {
         cornerSeen = scr.getLastMatch();
         cornerSeen.hover();
         reg = App.focusedWindow();
+        regWin = new Region(reg);
       }
     }
     if (success) {
@@ -123,7 +126,7 @@ public class SikulixTest {
     if (!success) {
       p("***** Error: web page did not open (30 secs)");
     } else {
-      reg.highlight(1);
+      //reg.highlight(1);
       isBrowserRunning = true;
     }
     return success;
@@ -157,7 +160,7 @@ public class SikulixTest {
     }
     return false;
   }
-
+  //</editor-fold>
 
   public static void main(String[] args) {
     String browser = "edge";
@@ -172,7 +175,7 @@ public class SikulixTest {
     //runTest.add(0);
     //runTest.add(1); // exists
     //runTest.add(2); // findChange
-    runTest.add(3); // text OCR
+    //runTest.add(3); // text OCR
     //runTest.add(4); // text find word
     //runTest.add(5); // text find lines RegEx
     //runTest.add(6); // text Region.find(someText)
@@ -186,6 +189,9 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       if (openTestPage()) {
+        //regWin.highlight(2);
+        regWin.has("buttonTrans");
+        regWin.highlight(-2);
       }
       after();
     }
