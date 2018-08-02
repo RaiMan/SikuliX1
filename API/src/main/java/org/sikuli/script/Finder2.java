@@ -13,12 +13,20 @@ import org.sikuli.basics.Debug;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Finder2 {
+
+  static {
+    RunTime.loadLibrary(RunTime.libOpenCV);
+  }
 
   //<editor-fold desc="housekeeping">
   static class Log {
@@ -39,8 +47,8 @@ public class Finder2 {
 
   private static Log log = new Log("Finder2");
 
-  private Mat mBase = Finder.getNewMat();
-  private Mat mResult = Finder.getNewMat();
+  private Mat mBase = getNewMat();
+  private Mat mResult = getNewMat();
 
   private enum FindType {
     ONE, ALL
@@ -54,9 +62,10 @@ public class Finder2 {
   }
   //</editor-fold>
 
+  //<editor-fold desc="find image or text">
   private FindInput2 fInput = null;
 
-  public static FindResult2 find(FindInput2 findInput) {
+  protected static FindResult2 find(FindInput2 findInput) {
     findInput.setAttributes();
     Finder2 finder2 = new Finder2();
     finder2.fInput = findInput;
@@ -64,7 +73,6 @@ public class Finder2 {
     return results;
   }
 
-  //<editor-fold desc="find basic">
   private final double resizeMinFactor = 1.5;
   private final double[] resizeLevels = new double[]{1f, 0.4f};
   private int resizeMaxLevel = resizeLevels.length - 1;
@@ -242,8 +250,8 @@ public class Finder2 {
       boolean downSizeFound = false;
       double downSizeScore = 0;
       double downSizeWantedScore = 0;
-      Mat findWhere = Finder.getNewMat();
-      Mat findWhat = Finder.getNewMat();
+      Mat findWhere = getNewMat();
+      Mat findWhat = getNewMat();
 
       if (!findInput.isFindAll() && findInput.getResizeFactor() > resizeMinFactor) {
         // ************************************************* search in downsized
@@ -318,7 +326,7 @@ public class Finder2 {
   }
 
   private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-    Mat mResult = Finder.getNewMat();
+    Mat mResult = getNewMat();
     if (!findInput.isPlainColor()) {
       Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
     } else {
@@ -354,10 +362,10 @@ public class Finder2 {
     findInput.setAttributes();
     int PIXEL_DIFF_THRESHOLD = 3;
     int IMAGE_DIFF_THRESHOLD = 5;
-    Mat previousGray = Finder.getNewMat();
-    Mat nextGray = Finder.getNewMat();
-    Mat mDiffAbs = Finder.getNewMat();
-    Mat mDiffTresh = Finder.getNewMat();
+    Mat previousGray = getNewMat();
+    Mat nextGray = getNewMat();
+    Mat mDiffAbs = getNewMat();
+    Mat mDiffTresh = getNewMat();
 
     Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
     Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
@@ -367,12 +375,12 @@ public class Finder2 {
     List<Region> rectangles = new ArrayList<>();
     if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
       Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
-      Imgproc.dilate(mDiffAbs, mDiffAbs, Finder.getNewMat());
+      Imgproc.dilate(mDiffAbs, mDiffAbs, getNewMat());
       Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
       Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
 
       List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-      Mat mHierarchy = Finder.getNewMat();
+      Mat mHierarchy = getNewMat();
       Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
       rectangles = contoursToRectangle(contours);
 
@@ -405,6 +413,103 @@ public class Finder2 {
       rects.add(rect);
     }
     return rects;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="OpenCV Mat">
+  public static Mat makeMat(BufferedImage bImg) {
+    return makeMat(bImg, true);
+  }
+
+  public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
+    if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
+      log.trace("makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
+      ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
+      IntBuffer intBuffer = byteBuffer.asIntBuffer();
+      intBuffer.put(data);
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, byteBuffer.array());
+      Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
+      List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
+      //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
+      Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
+      return oMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+      log.trace("makeMat: 3BYTE_BGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+      log.trace("makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+      aMat.put(0, 0, data);
+      List<Mat> mats = new ArrayList<Mat>();
+      Core.split(aMat, mats);
+      if (asBGR) {
+        Mat mBGR = getNewMat(aMat.size(), 3, -1);
+        mats.remove(0);
+        Core.merge(mats, mBGR);
+        return mBGR;
+      } else {
+        Mat mBGRA = getNewMat(aMat.size(), 4, -1);
+        mats.add(mats.remove(0));
+        Core.merge(mats, mBGRA);
+        return mBGRA;
+      }
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+      log.trace("makeMat: BYTE_GRAY (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
+      aMat.put(0, 0, data);
+      return aMat;
+    } else {
+      log.error("makeMat: Type not supported: %d (%dx%d)",
+              bImg.getType(), bImg.getWidth(), bImg.getHeight());
+    }
+    return getNewMat();
+  }
+
+  public static Mat makeMat() {
+    return getNewMat();
+  }
+
+  public static Mat makeMat(Size size, int type, int fill) {
+    return getNewMat(size, type, fill);
+  }
+
+  private static Mat getNewMat() {
+    return new Mat();
+  }
+
+  private static Mat getNewMat(Size size, int type, int fill) {
+    switch (type) {
+      case 1:
+        type = CvType.CV_8UC1;
+        break;
+      case 3:
+        type = CvType.CV_8UC3;
+        break;
+      case 4:
+        type = CvType.CV_8UC4;
+        break;
+      default:
+        type = -1;
+    }
+    if (type < 0) {
+      return new Mat();
+    }
+    Mat result;
+    if (fill < 0) {
+      result = new Mat(size, type);
+    } else {
+      result = new Mat(size, type, new Scalar(fill));
+    }
+    return result;
   }
   //</editor-fold>
 }

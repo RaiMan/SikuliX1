@@ -1612,8 +1612,7 @@ public class RunTime {
 
   public Map<String, String> tessData = new HashMap<String, String>();
 
-  //TODO needed ???
-  public final String libOpenCV = "libopencv_java248";
+  public static final String libOpenCV = "opencv_java320";
 
   public String SikuliVersionLong;
   public String SikuliSystemVersion;
