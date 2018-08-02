@@ -93,6 +93,14 @@ public class FindInput2 {
     this.similarity = similarity;
   }
 
+  public boolean isExact() {
+    return similarity >= 0.99;
+  }
+
+  public boolean shouldSearchDownsized(float resizeMinFactor) {
+    return !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
+  }
+
   public double getScore() {
     return similarity;
   }

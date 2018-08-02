@@ -2812,9 +2812,9 @@ public class Region {
       base = getScreen().capture(this);
     }
     boolean shouldCheckLastSeen = false;
-    float score = 0;
+    double score = 0;
     if (Settings.CheckLastSeen && null != img.getLastSeen()) {
-      score = (float) (img.getLastSeenScore() - 0.01);
+      score = img.getLastSeenScore() - 0.01;
       if (ptn != null) {
         if (!(ptn.getSimilar() > score)) {
           shouldCheckLastSeen = true;
