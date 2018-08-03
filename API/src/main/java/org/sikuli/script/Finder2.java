@@ -29,6 +29,10 @@ import java.util.regex.Pattern;
 
 public class Finder2 {
 
+  static {
+    RunTime.loadLibrary(RunTime.libOpenCV);
+  }
+  
   //<editor-fold desc="housekeeping">
   static class Log {
     private static String prefix = "UnKnown";

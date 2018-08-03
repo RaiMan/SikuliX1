@@ -478,13 +478,47 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
+      if (screenFinder && _region != null) {
+        match.setScreen(_region.getScreen());
+      }
+      match.setOnScreen(screenFinder);
+      if (_pattern != null) {
+        Location offset = _pattern.getTargetOffset();
+        match.setTargetOffset(offset);
+      }
       if (!_findInput.isText()) {
         match.x += _region.x;
         match.y += _region.y;
       }
+      match.setImage(_image);
     }
     return match;
   }
+
+  /*
+    public Match next() {
+      Match match = null;
+      if (hasNext()) {
+        FindResult fr = _results.get(_cur_result_i++);
+        IScreen parentScreen = null;
+        if (screenFinder && _region != null) {
+          parentScreen = _region.getScreen();
+        }
+        match = new Match(fr, parentScreen);
+        match.setOnScreen(screenFinder);
+        fr.delete();
+        if (_region != null) {
+          match = _region.toGlobalCoord(match);
+        }
+        if (_pattern != null) {
+          Location offset = _pattern.getTargetOffset();
+          match.setTargetOffset(offset);
+        }
+        match.setImage(_image);
+      }
+      return match;
+    }
+  */
 
   @Override
   public void remove(){
