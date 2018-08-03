@@ -29,10 +29,6 @@ import java.util.regex.Pattern;
 
 public class Finder2 {
 
-  static {
-    RunTime.loadLibrary(RunTime.libOpenCV);
-  }
-
   //<editor-fold desc="housekeeping">
   static class Log {
     private static String prefix = "UnKnown";
@@ -67,7 +63,6 @@ public class Finder2 {
   }
   //</editor-fold>
 
-  //<editor-fold desc="find image or text">
   private FindInput2 fInput = null;
 
   protected static FindResult2 find(FindInput2 findInput) {
@@ -256,7 +251,7 @@ public class Finder2 {
       Mat findWhere = getNewMat();
       Mat findWhat = getNewMat();
 
-      if (!findInput.isFindAll() && findInput.getResizeFactor() > resizeMinFactor) {
+      if (findInput.shouldSearchDownsized(resizeMinFactor)) {
         // ************************************************* search in downsized
         begin_t = new Date().getTime();
         double imgFactor = findInput.getResizeFactor();
