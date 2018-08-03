@@ -88,18 +88,16 @@ public class SikulixTest {
     Match cornerSeen = null;
     if (App.openLink(actualPage)) {
       scr.wait(1.0);
-      if (Do.SX.isNotNull(scr.exists(pCorner, 30))) {
+      Screen allScreen = Screen.all();
+      if (Do.SX.isNotNull(allScreen.exists(pCorner, 30))) {
         success = true;
-        cornerSeen = scr.getLastMatch();
+        cornerSeen = allScreen.getLastMatch();
         cornerSeen.hover();
         reg = App.focusedWindow();
         regWin = new Region(reg);
       }
     }
     if (success) {
-      if (Do.SX.isNull(reg)) {
-        reg = scr;
-      }
       int wheelDirection = 0;
       success = false;
       while (!success) {
@@ -114,7 +112,7 @@ public class SikulixTest {
           wheelDirection = Button.WHEEL_DOWN;
           reg.wheel(wheelDirection, 1);
           scr.wait(0.5);
-          Match cornerMatch = scr.exists(pCorner);
+          Match cornerMatch = regWin.exists(pCorner);
           if (cornerMatch.y >= cornerSeen.y) {
             wheelDirection *= -1;
           }
@@ -172,11 +170,11 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
-    //runTest.add(0);
+    runTest.add(0);
     //runTest.add(1); // exists
     //runTest.add(2); // findChange
     //runTest.add(3); // text OCR
-    //runTest.add(4); // text find word
+    runTest.add(4); // text find word
     //runTest.add(5); // text find lines RegEx
     //runTest.add(6); // text Region.find(someText)
     //runTest.add(7); // text Region.findAll(someText)

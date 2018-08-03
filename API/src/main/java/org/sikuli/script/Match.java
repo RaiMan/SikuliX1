@@ -79,9 +79,8 @@ public class Match extends Region implements Comparable<Match> {
     simScore = sc;
   }
 
-  private Match(Match m, IScreen parent) {
-    init(m.x, m.y, m.w, m.h, parent);
-    copy(m);
+  public Match(Region region, IScreen parent) {
+    init(region.x, region.y, region.w, region.h, parent);
   }
 
   /**

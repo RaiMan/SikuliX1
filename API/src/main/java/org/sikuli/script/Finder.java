@@ -478,18 +478,20 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
-      if (screenFinder && _region != null) {
-        match.setScreen(_region.getScreen());
-      }
-      match.setOnScreen(screenFinder);
-      if (_pattern != null) {
-        Location offset = _pattern.getTargetOffset();
-        match.setTargetOffset(offset);
-      }
       if (!_findInput.isText()) {
         match.x += _region.x;
         match.y += _region.y;
       }
+      IScreen parentScreen = null;
+      if (screenFinder && _region != null) {
+        parentScreen = _region.getScreen();
+      }
+      match = new Match(match, parentScreen);
+      if (_pattern != null) {
+        Location offset = _pattern.getTargetOffset();
+        match.setTargetOffset(offset);
+      }
+      match.setOnScreen(screenFinder);
       match.setImage(_image);
     }
     return match;
