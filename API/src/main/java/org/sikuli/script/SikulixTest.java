@@ -171,7 +171,7 @@ public class SikulixTest {
     String testImage = "findBase";
 
     //runTest.add(0);
-    runTest.add(1); // exists
+    //runTest.add(1); // exists
     //runTest.add(2); // findChange
     //runTest.add(3); // text OCR
     //runTest.add(4); // text find word
@@ -181,15 +181,15 @@ public class SikulixTest {
     //runTest.add(8); // text Region.getWordList/getLineList
 
     if (runTest.size() > 1) {
-      if(-1 < runTest.indexOf(0)) {
+      if (-1 < runTest.indexOf(0)) {
         runTest.remove(runTest.indexOf(0));
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      if (openTestPage()) {
+      if (openTestPage("Test-page-1")) {
         //regWin.highlight(2);
         regWin.has("button");
-        regWin.highlight(-2);
+        regWin.highlight(-1);
       }
       after();
     }
@@ -310,7 +310,6 @@ public class SikulixTest {
     if (shouldRunTest(8)) {
       before("test", "Region.getWordList/getLineList");
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         List<Match> lines = reg.getLineList();
         if (lines.size() > 0) {
           for (Match line : lines) {
