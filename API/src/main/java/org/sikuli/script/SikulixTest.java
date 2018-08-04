@@ -171,7 +171,7 @@ public class SikulixTest {
     String testImage = "findBase";
 
     //runTest.add(0);
-    //runTest.add(1); // exists
+    runTest.add(1); // exists
     //runTest.add(2); // findChange
     //runTest.add(3); // text OCR
     //runTest.add(4); // text find word

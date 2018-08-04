@@ -9,6 +9,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.util.JythonHelper;
 import org.sikuli.util.LinuxSupport;
 import org.sikuli.util.SysJNA;
+import org.opencv.core.Core;
 
 import java.awt.*;
 import java.io.*;
@@ -398,7 +399,7 @@ public class RunTime {
   private Class clsRef = RunTime.class;
   private Class clsRefBase = clsRef;
   private Class clsRefAPI = Sikulix.class;
-  private Class clsRefOpenCV = com.sikulix.opencv.Sikulix.class;
+  private Class clsRefOpenCV = clsRefAPI;
 
   private List<URL> classPath = new ArrayList<URL>();
   public File fTempPath = null;
@@ -787,14 +788,13 @@ public class RunTime {
   }
 //</editor-fold>
 
+  public File fLibsFolderStatic = null;
+
   //<editor-fold defaultstate="collapsed" desc="libs export">
   public void makeFolders() {
-    fLibsFolder = new File(fSikulixAppPath, "SikulixLibs_" + sxBuildStamp);
-    if (testing) {
-      logp("***** for testing: delete folders SikulixLibs/ and Lib/");
-      FileManager.deleteFileOrFolder(fLibsFolder);
-      FileManager.deleteFileOrFolder(fSikulixLib);
-    }
+    fLibsFolderStatic = new File(fSikulixAppPath, "SikulixLibs");
+//    fLibsFolder = new File(fSikulixAppPath, "SikulixLibs_" + sxBuildStamp);
+    fLibsFolder = fLibsFolderStatic;
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
@@ -825,24 +825,25 @@ public class RunTime {
     fpList = fSikulixAppPath.list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs")) {
+        if (name.contains("SikulixLibs_")) {
           return true;
         }
         return false;
       }
     });
-    if (fpList.length > 1) {
+    if (fpList.length > 0) {
       log(lvl, "deleting obsolete libs folders in AppPath");
       for (String entry : fpList) {
-        if (entry.endsWith(sxBuildStamp)) {
-          continue;
-        }
+//        if (entry.endsWith(sxBuildStamp)) {
+//          continue;
+//        }
         FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
       }
     }
   }
 
   private boolean libsLoad(String libName) {
+    File fLibsFolderUsed = fLibsFolder;
     if (!areLibsExported) {
       libsExport(runType);
     }
@@ -859,7 +860,14 @@ public class RunTime {
     File fLib = new File(fLibsFolder, libName);
     Boolean vLib = libsLoaded.get(libName);
     if (vLib == null || !fLib.exists()) {
-      terminate(1, String.format("loadlib: %s not available in %s", libName, fLibsFolder));
+      fLib = new File(fLibsFolderStatic, libName);
+      if (!fLib.exists()) {
+        terminate(1, String.format("loadlib: %s not in any libs folder", libName));
+      } else {
+        fLibsFolderUsed = fLibsFolderStatic;
+        libsLoaded.put(libName, true);
+        vLib = false;
+      }
     }
     String msg = "loadLib: %s";
     int level = lvl;
@@ -877,7 +885,7 @@ public class RunTime {
       shouldTerminate = true;
       loadError = null;
       try {
-        System.load(new File(fLibsFolder, libName).getAbsolutePath());
+        System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
       } catch (Error e) {
         loadError = e;
         if (runningLinux) {
@@ -912,8 +920,9 @@ public class RunTime {
   }
 
   private void libsExport(Type typ) {
-    shouldExport = false;
+    shouldExport = true;
     makeFolders();
+/*
     if (!libsCheck(fLibsFolder)) {
       FileManager.deleteFileOrFolder(fLibsFolder);
       fLibsFolder.mkdirs();
@@ -922,6 +931,7 @@ public class RunTime {
         terminate(1, "libs folder not available: " + fLibsFolder.toString());
       }
     }
+*/
     if (shouldExport) {
       String sysShort = "win";
       boolean shouldAddLibsJar = false;
@@ -929,6 +939,7 @@ public class RunTime {
         sysShort = runningOn.toString().toLowerCase();
       }
       String fpLibsFrom = "";
+/*
       if (runningJar) {
         fpLibsFrom = fSxBaseJar.getAbsolutePath();
         if (fpLibsFrom.contains("forsetup")) {
@@ -962,6 +973,7 @@ public class RunTime {
       if (!fpLibsFrom.isEmpty()) {
         addToClasspath(fpLibsFrom, "RunTime.libsExport " + typ);
       }
+*/
       List<URL> uLibsFrom = new ArrayList<>();
       URL libsLocation = clsRefAPI.getResource(fpJarLibs);
       if (Do.SX.isNotNull(libsLocation)) {
@@ -969,20 +981,20 @@ public class RunTime {
       } else {
         terminate(1, "libs to export not found on above classpath: " + fpJarLibs);
       }
-      String fpOpenCVLibs = "/Native/mac";
+      String fpOpenCVLibs = "/OpenCV/mac";
       if (runningMac) {
         libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
       } else if (runningWindows) {
-        fpOpenCVLibs = "/Native/windows";
+        fpOpenCVLibs = "/OpenCV/windows";
         libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
       } else {
-        fpOpenCVLibs = "/Native/linux";
+        fpOpenCVLibs = "/OpenCV/linux";
         libsLocation = clsRefOpenCV.getResource(fpOpenCVLibs);
       }
       if (Do.SX.isNotNull(libsLocation)) {
         uLibsFrom.add(libsLocation);
       } else {
-        terminate(1, "libs to export not found on above classpath: " + fpOpenCVLibs);
+        log(-1, "OpenCV libs not on classpath - should be in local libs folder");
       }
       if (testing || uLibsFrom.size() == 0) {
         dumpClassPath();
@@ -1612,7 +1624,7 @@ public class RunTime {
 
   public Map<String, String> tessData = new HashMap<String, String>();
 
-  public static final String libOpenCV = "opencv_java320";
+  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
 
   public String SikuliVersionLong;
   public String SikuliSystemVersion;
