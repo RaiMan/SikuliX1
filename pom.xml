@@ -88,9 +88,11 @@
   <modules>
     <module>API</module>
     <module>SetupAPI</module>
-    <module>IDE</module>
-    <module>SetupIDE</module>
-    <module>Setup</module>
+    <!--
+        <module>IDE</module>
+        <module>SetupIDE</module>
+        <module>Setup</module>
+    -->
   </modules>
 
   <build>
