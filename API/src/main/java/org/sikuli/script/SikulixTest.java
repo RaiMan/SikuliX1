@@ -170,11 +170,11 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
-    runTest.add(0);
+    //runTest.add(0);
     //runTest.add(1); // exists
     //runTest.add(2); // findChange
     //runTest.add(3); // text OCR
-    runTest.add(4); // text find word
+    //runTest.add(4); // text find word
     //runTest.add(5); // text find lines RegEx
     //runTest.add(6); // text Region.find(someText)
     //runTest.add(7); // text Region.findAll(someText)
@@ -188,7 +188,7 @@ public class SikulixTest {
       before("test99", "play");
       if (openTestPage()) {
         //regWin.highlight(2);
-        regWin.has("buttonTrans");
+        regWin.has("button");
         regWin.highlight(-2);
       }
       after();
