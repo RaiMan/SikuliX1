@@ -6,6 +6,8 @@ package org.sikuli.script;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class SikulixTest {
@@ -13,7 +15,20 @@ public class SikulixTest {
   //<editor-fold desc="housekeeping">
   private static Screen scr = new Screen();
 
+  private static long start = -1;
+
+  private static void timer() {
+    start = new Date().getTime();
+  }
+
+  private static void timer(String msg) {
+    p("%d (%s)", new Date().getTime() - start, msg.isEmpty() ? "msec" : msg);
+  }
+
   private static void p(String msg, Object... args) {
+    if (msg.isEmpty()) {
+      return;
+    }
     System.out.println(String.format(msg, args));
   }
 
@@ -186,10 +201,28 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
+      Image img1 = Image.create("button");
+      Image img2 = Image.create("buttonTrans");
+      Image img3 = Image.create("buttonLeft");
       if (openTestPage("Test-page-1")) {
-        //regWin.highlight(2);
-        regWin.has("button");
-        regWin.highlight(-1);
+        if (Do.SX.isNotNull(regWin.has(img1))) {
+//          reg = regWin.getLastMatch().grow(100);
+          regWin.highlight(-1);
+          try {
+            Iterator<Match> all = regWin.findAll(img2);
+            while (all.hasNext()) {
+              Match next = all.next();
+              p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
+              p("");
+              next.highlight(1);
+            }
+          } catch (FindFailed findFailed) {
+            p("ERROR: not found: %s", img2);
+          }
+//          reg = regWin;
+//          reg.has(img2);
+//          reg.highlight(-3);
+        }
       }
       after();
     }

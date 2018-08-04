@@ -119,6 +119,12 @@ public class Match extends Region implements Comparable<Match> {
     setScreen(parent);
   }
 
+  public static Match create(Match match, IScreen screen) {
+    Match newMatch = new Match(match, screen);
+    newMatch.copy(match);
+    return newMatch;
+  }
+
   private void copy(Match m) {
     simScore = m.simScore;
     ocrText = m.ocrText;

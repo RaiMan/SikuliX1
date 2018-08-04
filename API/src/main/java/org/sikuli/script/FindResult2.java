@@ -45,6 +45,12 @@ public class FindResult2 implements Iterator<Match> {
 
   private int currentX = -1;
   private int currentY = -1;
+  private int baseW = -1;
+  private int baseH = -1;
+  private int targetW = -1;
+  private int targetH = -1;
+  private int marginX = -1;
+  private int marginY = -1;
 
   public boolean hasNext() {
     if (findInput.isText()) {
@@ -59,6 +65,12 @@ public class FindResult2 implements Iterator<Match> {
     currentY = (int) resultMinMax.maxLoc.y;
     if (firstScore < 0) {
       firstScore = currentScore;
+      baseW = result.width();
+      baseH = result.height();
+      targetW = findInput.getTarget().width();
+      targetH = findInput.getTarget().height();
+      marginX = (int) (targetW * 0.8);
+      marginY = (int) (targetH * 0.8);
     }
     double targetScore = findInput.getScore();
     double scoreMin = firstScore - scoreMaxDiff;
@@ -76,11 +88,10 @@ public class FindResult2 implements Iterator<Match> {
         match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence()/100);
         match.setText(nextWord.getText().trim());
       } else {
-        match = new Match(currentX + offX, currentY + offY,
-                findInput.getTarget().width(), findInput.getTarget().height(), currentScore, null);
-        int margin = getPurgeMargin();
-        Range rangeX = new Range(Math.max(currentX - margin, 0), currentX + 1);
-        Range rangeY = new Range(Math.max(currentY - margin, 0), currentY + 1);
+        match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);
+        //int margin = getPurgeMargin();
+        Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, baseW));
+        Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, baseH));
         result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
       }
     }

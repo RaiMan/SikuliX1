@@ -330,7 +330,33 @@ public class Finder2 {
   private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
     Mat mResult = getNewMat();
     if (!findInput.isPlainColor()) {
-      Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
+      int nChannels = what.channels();
+      Mat mask = getNewMat();
+      Mat whatBGR = getNewMat();
+      if (nChannels == 4) {
+        List<Mat> mats = new ArrayList<Mat>();
+        Core.split(what, mats);
+        mask = mats.remove(3);
+        whatBGR = getNewMat();
+        Core.merge(mats, whatBGR);
+        int allPixel = (int) mask.size().area();
+        int nonZeroPixel = Core.countNonZero(mask);
+        if (nonZeroPixel != allPixel) {
+          Mat maskMask = getNewMat();
+          Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+          mask = matMulti(maskMask, 3);
+          //mask = getNewMat();
+        } else {
+          mask = getNewMat();
+        }
+      } else {
+        whatBGR = what;
+      }
+      if (mask.empty()) {
+        Imgproc.matchTemplate(where, whatBGR, mResult, Imgproc.TM_CCOEFF_NORMED);
+      } else {
+        Imgproc.matchTemplate(where, whatBGR, mResult, Imgproc.TM_CCORR_NORMED, mask);
+      }
     } else {
       Mat wherePlain = where;
       Mat whatPlain = what;
@@ -419,6 +445,28 @@ public class Finder2 {
   //</editor-fold>
 
   //<editor-fold desc="OpenCV Mat">
+  public static boolean isOpaque(BufferedImage bImg) {
+    if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+      List<Mat> mats = getMatList(bImg);
+      Mat transMat = mats.get(0);
+      int allPixel = (int) transMat.size().area();
+      int nonZeroPixel = Core.countNonZero(transMat);
+      if (nonZeroPixel != allPixel) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static List<Mat> getMatList(BufferedImage bImg) {
+    byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+    Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
+    aMat.put(0, 0, data);
+    List<Mat> mats = new ArrayList<Mat>();
+    Core.split(aMat, mats);
+    return mats;
+  }
+
   public static Mat makeMat(BufferedImage bImg) {
     return makeMat(bImg, true);
   }
@@ -447,18 +495,15 @@ public class Finder2 {
       return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
       log.trace("makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
-      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
-      aMat.put(0, 0, data);
-      List<Mat> mats = new ArrayList<Mat>();
-      Core.split(aMat, mats);
+      List<Mat> mats = getMatList(bImg);
+      Size size = mats.get(0).size();
       if (asBGR) {
-        Mat mBGR = getNewMat(aMat.size(), 3, -1);
+        Mat mBGR = getNewMat(size, 3, -1);
         mats.remove(0);
         Core.merge(mats, mBGR);
         return mBGR;
       } else {
-        Mat mBGRA = getNewMat(aMat.size(), 4, -1);
+        Mat mBGRA = getNewMat(size, 4, -1);
         mats.add(mats.remove(0));
         Core.merge(mats, mBGRA);
         return mBGRA;
@@ -512,6 +557,19 @@ public class Finder2 {
       result = new Mat(size, type, new Scalar(fill));
     }
     return result;
+  }
+
+  private Mat matMulti(Mat mat, int channels) {
+    if (mat.type() != CvType.CV_8UC1 || mat.channels() == channels) {
+      return mat;
+    }
+    List<Mat> listMat = new ArrayList<>();
+    for (int n = 0; n < channels; n++) {
+      listMat.add(mat);
+    }
+    Mat mResult = getNewMat();
+    Core.merge(listMat, mResult);
+    return mResult;
   }
 
   protected final static String PNG = "png";

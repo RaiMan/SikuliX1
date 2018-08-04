@@ -214,7 +214,7 @@ public class Finder implements Iterator<Match> {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       newBimg = Settings.ImageCallback.callback(img);
     }
-    return Finder2.makeMat(newBimg);
+    return Finder2.makeMat(newBimg, false);
   }
 
   /**
@@ -486,7 +486,7 @@ public class Finder implements Iterator<Match> {
       if (screenFinder && _region != null) {
         parentScreen = _region.getScreen();
       }
-      match = new Match(match, parentScreen);
+      match = Match.create(match, parentScreen);
       if (_pattern != null) {
         Location offset = _pattern.getTargetOffset();
         match.setTargetOffset(offset);

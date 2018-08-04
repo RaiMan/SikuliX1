@@ -98,7 +98,8 @@ public class FindInput2 {
   }
 
   public boolean shouldSearchDownsized(float resizeMinFactor) {
-    return !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
+    return false;
+    //return !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
   }
 
   public double getScore() {
