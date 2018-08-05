@@ -180,24 +180,11 @@ public class FindInput2 {
     if (targetTypeText) {
       return;
     }
-    int nChannels = target.channels();
-    if (nChannels == 4) {
-      List<Mat> mats = new ArrayList<Mat>();
-      Core.split(target, mats);
-      mask = mats.remove(3);
-      Core.merge(mats, targetBGR);
-      int allPixel = (int) mask.size().area();
-      int nonZeroPixel = Core.countNonZero(mask);
-      if (nonZeroPixel != allPixel) {
-        Mat maskMask = new Mat();
-        Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
-        mask = Finder2.matMulti(maskMask, 3);
-        scoreMaxDiff = 0.005;
-      } else {
-        mask = new Mat();
-      }
-    } else {
-      targetBGR = target;
+    List<Mat> mats = Finder2.extractMask(target, true);
+    targetBGR = mats.get(0);
+    mask = mats.get(1);
+    if (!mask.empty()) {
+      scoreMaxDiff = 0.005;
     }
 
     plainColor = false;

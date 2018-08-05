@@ -204,7 +204,7 @@ public class SikulixTest {
     //runTest.add(6); // text Region.find(someText)
     //runTest.add(7); // text Region.findAll(someText)
     //runTest.add(8); // text Region.getWordList/getLineList
-    runTest.add(9); // basic transparency
+    //runTest.add(9); // basic transparency
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -212,7 +212,14 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      //after();
+      String img1 = "buttonTextTrans";
+      String img2 = "whiteTrans";
+      String img3 = "whiteWithText";
+      App.focus("preview"); scr.wait(1.0);
+      Pattern pMask = new Pattern(img2).asMask();
+      match = scr.has(img3);
+      scr.highlight(-1);
+      after();
     }
 
     //<editor-fold desc="test1 exists">

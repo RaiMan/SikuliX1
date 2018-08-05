@@ -3,9 +3,12 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Mat;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.List;
 
 /**
  * to define a more complex search target<br>
@@ -115,6 +118,25 @@ public class Pattern {
    */
   public boolean isValid() {
     return image.isValid() || imagePattern;
+  }
+
+  private Mat patternMask = Finder2.getNewMat();
+  private boolean isMask = false;
+
+  public Pattern asMask() {
+    if (isValid()) {
+      Debug.log(3, "Pattern: asMask: %s", image);
+      List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
+      Mat mask = mats.get(1);
+      if (!mask.empty()) {
+        patternMask = mask;
+        isMask = true;
+      }
+    }
+    if (!isValid()){
+      Debug.log(-1, "Pattern: asMask: not valid", image);
+    }
+    return this;
   }
 
   /**

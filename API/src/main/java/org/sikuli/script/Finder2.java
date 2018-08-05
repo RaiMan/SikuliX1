@@ -33,7 +33,8 @@ public class Finder2 {
     RunTime.loadLibrary(RunTime.libOpenCV);
   }
 
-  protected static void init() {}
+  protected static void init() {
+  }
 
   //<editor-fold desc="housekeeping">
   static class Log {
@@ -522,11 +523,11 @@ public class Finder2 {
     return getNewMat(size, type, fill);
   }
 
-  private static Mat getNewMat() {
+  protected static Mat getNewMat() {
     return new Mat();
   }
 
-  private static Mat getNewMat(Size size, int type, int fill) {
+  protected static Mat getNewMat(Size size, int type, int fill) {
     switch (type) {
       case 1:
         type = CvType.CV_8UC1;
@@ -563,6 +564,44 @@ public class Finder2 {
     Mat mResult = getNewMat();
     Core.merge(listMat, mResult);
     return mResult;
+  }
+
+  protected static List<Mat> extractMask(Mat target, boolean onlyChannel4) {
+    List<Mat> extracted = new ArrayList<>();
+    Mat mask = new Mat();
+    Mat targetBGR = new Mat();
+    int nChannels = target.channels();
+    if (nChannels == 4) {
+      List<Mat> mats = new ArrayList<Mat>();
+      Core.split(target, mats);
+      mask = mats.remove(3);
+      Core.merge(mats, targetBGR);
+      int allPixel = (int) mask.size().area();
+      int nonZeroPixel = Core.countNonZero(mask);
+      if (nonZeroPixel != allPixel) {
+        Mat maskMask = new Mat();
+        Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+        mask = Finder2.matMulti(maskMask, 3);
+      } else {
+        mask = new Mat();
+      }
+    } else {
+      targetBGR = target;
+    }
+    if (!onlyChannel4 && (mask.empty() || nChannels == 3)) {
+      Mat mGray = new Mat();
+      Imgproc.cvtColor(targetBGR, mGray, toGray);
+      int allPixel = (int) mGray.size().area();
+      int nonZeroPixel = Core.countNonZero(mGray);
+      if (nonZeroPixel != allPixel) {
+        Mat maskMask = new Mat();
+        Imgproc.threshold(mGray, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+        mask = Finder2.matMulti(maskMask, 3);
+      }
+    }
+    extracted.add(targetBGR);
+    extracted.add(mask);
+    return extracted;
   }
 
   protected final static String PNG = "png";
