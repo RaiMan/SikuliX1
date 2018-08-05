@@ -204,6 +204,7 @@ public class SikulixTest {
     //runTest.add(6); // text Region.find(someText)
     //runTest.add(7); // text Region.findAll(someText)
     //runTest.add(8); // text Region.getWordList/getLineList
+    runTest.add(9); // basic transparency
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -211,26 +212,6 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      Image img1 = Image.create("button");
-      Image img2 = Image.create("buttonTrans");
-      Image img3 = Image.create("buttonLeft");
-      Image img4 = Image.create("buttonText");
-      Image img4O = Image.create("buttonTextOpa");
-      Image img5 = Image.create("buttonTextTrans");
-      App.focus("safari");
-      scr.wait(1.0);
-      reg = App.focusedWindow();
-      reg.y += 350;
-      reg.h -= 350;
-      //reg.highlight(1);
-      Image image = img4O;
-      List<Match> matches = reg.findAllList(image);
-      highlight(matches);
-      for (Match next : matches) {
-        p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-//        Match match1 = next.grow(10).has(image);
-//        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
-      }
       //after();
     }
 
@@ -368,6 +349,27 @@ public class SikulixTest {
             p("%s", word.getText());
             current++;
           }
+        }
+      }
+      after();
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="test9 basic transparency">
+    if (shouldRunTest(9)) {
+      Image img4 = Image.create("buttonText");
+      Image img4O = Image.create("buttonTextOpa");
+      Image img5 = Image.create("buttonTextTrans");
+      if (openTestPage("Test-page-1")) {
+        Image image = img5;
+        List<Match> matches = reg.findAllList(image);
+        highlight(matches);
+        for (Match next : matches) {
+          p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
+          List<Match> wordList = next.getLineList();
+//        Match match1 = next.grow(10).has(image);
+//        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
+          p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());
         }
       }
       after();

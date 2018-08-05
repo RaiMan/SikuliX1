@@ -233,7 +233,11 @@ public class Finder2 {
             log.trace("doFindText: %s (%d msec): not found", text, timer);
           }
         } else {
-          log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
+          if (isWord()) {
+            log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
+          } else {
+            log.trace("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
+          }
           for (Word word : wordsFound) {
             Rectangle wordOrLine = word.getBoundingBox();
             Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
