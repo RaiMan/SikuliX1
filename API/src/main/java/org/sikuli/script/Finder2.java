@@ -33,6 +33,8 @@ public class Finder2 {
     RunTime.loadLibrary(RunTime.libOpenCV);
   }
 
+  protected static void init() {}
+
   //<editor-fold desc="housekeeping">
   static class Log {
     private static String prefix = "UnKnown";
@@ -245,19 +247,23 @@ public class Finder2 {
       log.trace("doFind: start");
       mBase = findInput.getBase();
       boolean success = false;
-      long begin_t = 0;
+      long begin_lap = 0;
+      long begin_find = new Date().getTime();
       Core.MinMaxLocResult mMinMax = null;
 
       double rfactor = 0;
       boolean downSizeFound = false;
-      double downSizeScore = 0;
+      double downSizeScore = -1;
       double downSizeWantedScore = 0;
       Mat findWhere = getNewMat();
       Mat findWhat = getNewMat();
 
-      if (findInput.shouldSearchDownsized(resizeMinFactor)) {
+      boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
+      //TODO search downsized?
+      trueOrFalse = false;
+      if (trueOrFalse) {
         // ************************************************* search in downsized
-        begin_t = new Date().getTime();
+        begin_lap = new Date().getTime();
         double imgFactor = findInput.getResizeFactor();
         Size sizeBase, sizePattern;
         mResult = null;
@@ -277,10 +283,11 @@ public class Finder2 {
           }
         }
         log.trace("downSizeFound: %s", downSizeFound);
-        log.trace("doFind: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_t);
+        log.trace("doFind: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_lap);
       }
       findWhere = this.mBase;
-      if (!findInput.isFindAll() && downSizeFound) {
+      trueOrFalse = !findInput.isFindAll() && downSizeFound;
+      if (trueOrFalse) {
         // ************************************* check after downsized success
         if (findWhere.size().equals(findInput.getTarget().size())) {
           // trust downsized mResult, if images have same size
@@ -288,7 +295,7 @@ public class Finder2 {
         } else {
           int maxLocX = (int) (mMinMax.maxLoc.x * rfactor);
           int maxLocY = (int) (mMinMax.maxLoc.y * rfactor);
-          begin_t = new Date().getTime();
+          begin_lap = new Date().getTime();
           int margin = ((int) findInput.getResizeFactor()) + 1;
           Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
                   Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
@@ -305,24 +312,24 @@ public class Finder2 {
           }
           if (Do.SX.isNotNull(findResult)) {
             log.trace("doFind: after down: %%%.2f(?%%%.2f) %d msec",
-                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_t);
+                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
           }
         }
       }
       // ************************************** search in original
-      if (((int) (100 * downSizeScore)) == 0) {
-        begin_t = new Date().getTime();
+      if (downSizeScore < 0) {
+        begin_lap = new Date().getTime();
         mResult = doFindMatch(findInput.getTarget(), findWhere, findInput);
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
-          log.trace("doFind: search in original: %%%.2f(?%%%.2f) %d msec",
-                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_t);
+          log.trace("doFind: in original: %%%.4f (?%.0f) %d msec",
+                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap);
         }
         if (mMinMax.maxVal > findInput.getScore()) {
           findResult = new FindResult2(mResult, findInput);
         }
       }
-      log.trace("doFind: end");
+      log.trace("doFind: end %d msec", new Date().getTime() - begin_find);
     }
     return findResult;
   }
@@ -330,41 +337,23 @@ public class Finder2 {
   private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
     Mat mResult = getNewMat();
     if (!findInput.isPlainColor()) {
-      int nChannels = what.channels();
-      Mat mask = getNewMat();
-      Mat whatBGR = getNewMat();
-      if (nChannels == 4) {
-        List<Mat> mats = new ArrayList<Mat>();
-        Core.split(what, mats);
-        mask = mats.remove(3);
-        whatBGR = getNewMat();
-        Core.merge(mats, whatBGR);
-        int allPixel = (int) mask.size().area();
-        int nonZeroPixel = Core.countNonZero(mask);
-        if (nonZeroPixel != allPixel) {
-          Mat maskMask = getNewMat();
-          Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
-          mask = matMulti(maskMask, 3);
-          //mask = getNewMat();
-        } else {
-          mask = getNewMat();
-        }
+      if (findInput.hasMask()) {
+        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_CCORR_NORMED, findInput.getMask());
       } else {
-        whatBGR = what;
-      }
-      if (mask.empty()) {
-        Imgproc.matchTemplate(where, whatBGR, mResult, Imgproc.TM_CCOEFF_NORMED);
-      } else {
-        Imgproc.matchTemplate(where, whatBGR, mResult, Imgproc.TM_CCORR_NORMED, mask);
+        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_CCOEFF_NORMED);
       }
     } else {
       Mat wherePlain = where;
-      Mat whatPlain = what;
+      Mat whatPlain = findInput.getTarget();
       if (findInput.isBlack()) {
         Core.bitwise_not(where, wherePlain);
         Core.bitwise_not(what, whatPlain);
       }
-      Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+      if (findInput.hasMask()) {
+        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+      } else {
+        Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+      }
       Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
     }
     return mResult;
@@ -559,7 +548,7 @@ public class Finder2 {
     return result;
   }
 
-  private Mat matMulti(Mat mat, int channels) {
+  protected static Mat matMulti(Mat mat, int channels) {
     if (mat.type() != CvType.CV_8UC1 || mat.channels() == channels) {
       return mat;
     }

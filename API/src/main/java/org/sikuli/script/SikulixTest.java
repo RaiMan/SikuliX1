@@ -4,6 +4,8 @@
 
 package org.sikuli.script;
 
+import org.sikuli.util.ScreenHighlighter;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -165,6 +167,14 @@ public class SikulixTest {
     browserStop();
   }
 
+  private static void highlight(List<Match> regs) {
+    for (Match reg : regs) {
+      reg.highlight();
+    }
+    scr.wait(1.0);
+    ScreenHighlighter.closeAll();
+  }
+
   private static List<Integer> runTest = new ArrayList<>();
 
   private static boolean shouldRunTest(int nTest) {
@@ -204,27 +214,24 @@ public class SikulixTest {
       Image img1 = Image.create("button");
       Image img2 = Image.create("buttonTrans");
       Image img3 = Image.create("buttonLeft");
-      if (openTestPage("Test-page-1")) {
-        if (Do.SX.isNotNull(regWin.has(img1))) {
-//          reg = regWin.getLastMatch().grow(100);
-          regWin.highlight(-1);
-          try {
-            Iterator<Match> all = regWin.findAll(img2);
-            while (all.hasNext()) {
-              Match next = all.next();
-              p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-              p("");
-              next.highlight(1);
-            }
-          } catch (FindFailed findFailed) {
-            p("ERROR: not found: %s", img2);
-          }
-//          reg = regWin;
-//          reg.has(img2);
-//          reg.highlight(-3);
-        }
+      Image img4 = Image.create("buttonText");
+      Image img4O = Image.create("buttonTextOpa");
+      Image img5 = Image.create("buttonTextTrans");
+      App.focus("safari");
+      scr.wait(1.0);
+      reg = App.focusedWindow();
+      reg.y += 350;
+      reg.h -= 350;
+      //reg.highlight(1);
+      Image image = img4O;
+      List<Match> matches = reg.findAllList(image);
+      highlight(matches);
+      for (Match next : matches) {
+        p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
+//        Match match1 = next.grow(10).has(image);
+//        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
       }
-      after();
+      //after();
     }
 
     //<editor-fold desc="test1 exists">

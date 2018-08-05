@@ -2459,6 +2459,14 @@ public class Region {
     return lastMatches;
   }
 
+  public <PSI> List<Match> findAllList(PSI target) {
+    List<Match> matches = new ArrayList<>();
+    try {
+      matches = ((Finder) findAll(target)).getList();
+    } catch (FindFailed findFailed) {}
+    return matches;
+  }
+
   public <PSI> List<Match> findAllByRow(PSI target) {
     Match[] matches = new Match[0];
     List<Match> mList = findAllCollect(target);
@@ -2623,6 +2631,7 @@ public class Region {
         public boolean hasNext() {
           return false;
         }
+
         @Override
         public Match next() {
           return null;
@@ -2632,7 +2641,7 @@ public class Region {
   }
 
   public Iterator<Match> findAllT(String text) {
-      return findAllText(text);
+    return findAllText(text);
   }
   //--------------------------------
 

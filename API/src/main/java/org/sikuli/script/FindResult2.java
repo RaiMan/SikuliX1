@@ -41,7 +41,7 @@ public class FindResult2 implements Iterator<Match> {
 
   private double currentScore = -1;
   double firstScore = -1;
-  double scoreMaxDiff = 0.001;
+  double scoreMaxDiff = 0.01;
 
   private int currentX = -1;
   private int currentY = -1;
@@ -71,11 +71,16 @@ public class FindResult2 implements Iterator<Match> {
       targetH = findInput.getTarget().height();
       marginX = (int) (targetW * 0.8);
       marginY = (int) (targetH * 0.8);
+      scoreMaxDiff = findInput.getScoreMaxDiff();
     }
     double targetScore = findInput.getScore();
     double scoreMin = firstScore - scoreMaxDiff;
-    if (currentScore > targetScore && currentScore > scoreMin) {
-      return true;
+    if (currentScore > targetScore) {
+      if(currentScore > scoreMin) {
+        return true;
+      } else {
+        return false;
+      }
     }
     return false;
   }
@@ -90,8 +95,8 @@ public class FindResult2 implements Iterator<Match> {
       } else {
         match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);
         //int margin = getPurgeMargin();
-        Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, baseW));
-        Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, baseH));
+        Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, result.width()));
+        Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, result.height()));
         result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
       }
     }

@@ -7,21 +7,36 @@ package org.sikuli.script;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
+import org.opencv.imgproc.Imgproc;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FindInput2 {
 
-  private Mat target = null;
-  private boolean targetTypeText = false;
+  static {
+    Finder2.init();
+  }
+
+  private Mat mask = new Mat();
+
+  protected boolean hasMask() {
+    return !mask.empty();
+  }
+
+  protected Mat getMask() {
+    return mask;
+  }
+
+  private Mat targetBGR = new Mat();
+
 
   public String getTargetText() {
     return targetText;
   }
 
   private String targetText = "";
-
-  private Mat source = null;
 
   public void setWhere(Region where) {
     this.where = where;
@@ -36,6 +51,9 @@ public class FindInput2 {
   private double similarity = 0.7;
 
   private boolean findAll = false;
+
+  private Mat target = null;
+  private boolean targetTypeText = false;
 
   public boolean isValid() {
     if (Do.SX.isNull(source) && Do.SX.isNull(where)) {
@@ -78,8 +96,13 @@ public class FindInput2 {
   }
 
   public Mat getTarget() {
-    return target;
+    if (targetBGR.empty()) {
+      return target;
+    }
+    return targetBGR;
   }
+
+  private Mat source = null;
 
   public void setSource(Mat source) {
     this.source = source;
@@ -98,11 +121,16 @@ public class FindInput2 {
   }
 
   public boolean shouldSearchDownsized(float resizeMinFactor) {
-    return false;
-    //return !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
+    return !hasMask() && !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
   }
 
-  public double getScore() {
+  private double scoreMaxDiff = 0.05;
+
+  protected double getScoreMaxDiff() {
+    return scoreMaxDiff;
+  }
+
+  protected double getScore() {
     return similarity;
   }
 
@@ -152,6 +180,26 @@ public class FindInput2 {
     if (targetTypeText) {
       return;
     }
+    int nChannels = target.channels();
+    if (nChannels == 4) {
+      List<Mat> mats = new ArrayList<Mat>();
+      Core.split(target, mats);
+      mask = mats.remove(3);
+      Core.merge(mats, targetBGR);
+      int allPixel = (int) mask.size().area();
+      int nonZeroPixel = Core.countNonZero(mask);
+      if (nonZeroPixel != allPixel) {
+        Mat maskMask = new Mat();
+        Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+        mask = Finder2.matMulti(maskMask, 3);
+        scoreMaxDiff = 0.005;
+      } else {
+        mask = new Mat();
+      }
+    } else {
+      targetBGR = target;
+    }
+
     plainColor = false;
     blackColor = false;
     resizeFactor = Math.min(((double) target.width()) / resizeMinDownSample,
