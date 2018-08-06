@@ -216,10 +216,13 @@ public class SikulixTest {
       String img2 = "whiteTrans";
       String img3 = "whiteWithText";
       App.focus("preview"); scr.wait(1.0);
+      reg = scr;
+      reg = App.focusedWindow();
       Pattern pMask = new Pattern(img2).asMask();
-      match = scr.has(img3);
-      scr.highlight(-1);
-      after();
+      Pattern pImg = new Pattern(img3).withMask(pMask);
+      match = reg.has(pMask);
+      reg.highlight(-1);
+//      after();
     }
 
     //<editor-fold desc="test1 exists">

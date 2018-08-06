@@ -123,20 +123,61 @@ public class Pattern {
   private Mat patternMask = Finder2.getNewMat();
   private boolean isMask = false;
 
+  public Mat getMask() {
+    return patternMask;
+  }
+
   public Pattern asMask() {
     if (isValid()) {
       Debug.log(3, "Pattern: asMask: %s", image);
-      List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
-      Mat mask = mats.get(1);
+      Mat mask = extractMask();
       if (!mask.empty()) {
         patternMask = mask;
         isMask = true;
+      } else {
+        Debug.log(-1, "Pattern: asMask: not valid", image);
       }
     }
-    if (!isValid()){
-      Debug.log(-1, "Pattern: asMask: not valid", image);
+    return this;
+  }
+
+  private Mat extractMask() {
+    List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
+    return mats.get(1);
+  }
+
+  private boolean withMask = false;
+
+  public Pattern withMask(Pattern pMask) {
+    if (isValid()) {
+      Mat mask = Finder2.getNewMat();
+      if (Do.SX.isNotNull(pMask)) {
+        if (pMask.isValid() && pMask.isMask) {
+          Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
+          mask = pMask.getMask();
+        }
+      } else {
+        mask = extractMask();
+      }
+      if (!mask.empty()) {
+        patternMask = pMask.getMask();
+        withMask = true;
+      }
+      if (mask.empty()
+              || image.getSize().getWidth() != mask.width()
+              || image.getSize().getHeight() != mask.height()) {
+        Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
+      }
     }
     return this;
+  }
+
+  public Pattern withMask() {
+    return withMask(null);
+  }
+
+  public boolean hasMask() {
+    return !patternMask.empty();
   }
 
   /**

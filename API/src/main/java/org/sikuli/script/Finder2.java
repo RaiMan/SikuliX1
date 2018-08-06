@@ -327,8 +327,9 @@ public class Finder2 {
         mResult = doFindMatch(findInput.getTarget(), findWhere, findInput);
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
-          log.trace("doFind: in original: %%%.4f (?%.0f) %d msec",
-                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap);
+          log.trace("doFind: in original: %%%.4f (?%.0f) %d msec %s",
+                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
+                  findInput.hasMask() ? " **withMask" : "");
         }
         if (mMinMax.maxVal > findInput.getScore()) {
           findResult = new FindResult2(mResult, findInput);
@@ -343,19 +344,20 @@ public class Finder2 {
     Mat mResult = getNewMat();
     if (!findInput.isPlainColor()) {
       if (findInput.hasMask()) {
-        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_CCORR_NORMED, findInput.getMask());
+        Mat mask = findInput.getMask();
+        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
       } else {
-        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_CCOEFF_NORMED);
+        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
       }
     } else {
       Mat wherePlain = where;
-      Mat whatPlain = findInput.getTarget();
+      Mat whatPlain = what;
       if (findInput.isBlack()) {
         Core.bitwise_not(where, wherePlain);
         Core.bitwise_not(what, whatPlain);
       }
       if (findInput.hasMask()) {
-        Imgproc.matchTemplate(where, findInput.getTarget(), mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
       } else {
         Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
       }

@@ -230,6 +230,9 @@ public class Finder implements Iterator<Match> {
     }
     if (aPtn.isValid()) {
       _pattern = aPtn;
+      if (_pattern.hasMask()) {
+        _findInput.setMask(_pattern.getMask());
+      }
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());

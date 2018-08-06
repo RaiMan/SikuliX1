@@ -29,8 +29,11 @@ public class FindInput2 {
     return mask;
   }
 
-  private Mat targetBGR = new Mat();
+  protected void setMask(Mat mask) {
+    this.mask = mask;
+  }
 
+  private Mat targetBGR = new Mat();
 
   public String getTargetText() {
     return targetText;
@@ -182,7 +185,9 @@ public class FindInput2 {
     }
     List<Mat> mats = Finder2.extractMask(target, true);
     targetBGR = mats.get(0);
-    mask = mats.get(1);
+    if (mask.empty()) {
+      mask = mats.get(1);
+    }
     if (!mask.empty()) {
       scoreMaxDiff = 0.005;
     }
