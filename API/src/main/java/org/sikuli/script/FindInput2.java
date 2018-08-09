@@ -192,14 +192,15 @@ public class FindInput2 {
       scoreMaxDiff = 0.005;
     }
 
+    //TODO plaincolor/black with masking
     plainColor = false;
     blackColor = false;
-    resizeFactor = Math.min(((double) target.width()) / resizeMinDownSample,
-            ((double) target.height()) / resizeMinDownSample);
+    resizeFactor = Math.min(((double) targetBGR.width()) / resizeMinDownSample,
+            ((double) targetBGR.height()) / resizeMinDownSample);
     resizeFactor = Math.max(1.0, resizeFactor);
     MatOfDouble pMean = new MatOfDouble();
     MatOfDouble pStdDev = new MatOfDouble();
-    Core.meanStdDev(target, pMean, pStdDev);
+    Core.meanStdDev(targetBGR, pMean, pStdDev);
     double sum = 0.0;
     double[] arr = pStdDev.toArray();
     for (int i = 0; i < arr.length; i++) {
