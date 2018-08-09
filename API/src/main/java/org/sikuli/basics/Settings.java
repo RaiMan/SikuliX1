@@ -360,6 +360,7 @@ public class Settings {
   public static boolean OcrTextSearch = true;
   public static boolean OcrTextRead = true;
   public static String OcrLanguage = "eng";
+  public static boolean SwitchToText = false;
 
   /**
    * true = start slow motion mode, false: stop it (default: false) show a

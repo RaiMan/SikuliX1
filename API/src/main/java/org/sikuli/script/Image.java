@@ -236,7 +236,7 @@ public class Image {
     return imageIsText;
   }
 
-  private Image setIsText(boolean val) {
+  protected Image setIsText(boolean val) {
     imageIsText = val;
     return this;
   }
@@ -632,7 +632,7 @@ public class Image {
       return new Image("", null);
     }
     if (!img.isValid()) {
-      if (Settings.OcrTextSearch) {
+      if (Settings.OcrTextSearch || Settings.SwitchToText) {
         if (Settings.isValidImageFilename(img.getName())) {
           img.setIsText(false);
         } else {

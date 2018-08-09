@@ -2222,7 +2222,14 @@ public class Region {
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        runTime.abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
+        if (Settings.SwitchToText) {
+          log(lvl, "wait: image missing: switching to text search (deprecated - use text methods)");
+          response = true;
+          img.setIsText(true);
+          rf.setTarget("\t" + target + "\t");
+        } else {
+          runTime.abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
+        }
       }
     }
     while (null != response && response) {
@@ -2235,7 +2242,7 @@ public class Region {
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
-        log(lvl, "wait: %s appeared (%s)", targetStr, lastMatch);
+        log(lvl, "wait: %s appeared (%s)", img.isText() ? img.getName() : img.getImageName(), lastMatch);
         return lastMatch;
       } else {
         response = handleFindFailed(target, img);
@@ -2288,9 +2295,16 @@ public class Region {
     Image img = Image.getImageFromTarget(target);
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
+      response = handleImageMissing(img, false); //find()
       if (response == null) {
-        runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+        if (Settings.SwitchToText) {
+          log(lvl, "find: image missing: switching to text search (deprecated - use text methods)");
+          response = true;
+          img.setIsText(true);
+          target = (PSI) ("\t" + target + "\t");
+        } else {
+          runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+        }
       }
     }
     String targetStr = img.getName();
@@ -2335,7 +2349,14 @@ public class Region {
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        runTime.abortScripting("Exists: Abort: ", "ImageMissing: " + target.toString());
+        if (Settings.SwitchToText) {
+          log(lvl, "Exists: image missing: switching to text search (deprecated - use text methods)");
+          response = true;
+          img.setIsText(true);
+          rf.setTarget("\t" + target + "\t");
+        } else {
+          runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+        }
       }
     }
     String targetStr = img.getName();
@@ -2961,6 +2982,11 @@ public class Region {
   private class RepeatableFind extends Repeatable {
 
     Object _target;
+
+    public void setTarget(String target) {
+      _target = target;
+    }
+
     Match _match = null;
     Finder _finder = null;
     Image _image = null;
@@ -3302,7 +3328,8 @@ public class Region {
       }
       return null;
     } else if (findFailedResponse.ABORT.equals(response)) {
-      log(lvl, "handleImageMissing: Response.ABORT: aborting");
+      log(-1, "handleImageMissing: Response.ABORT: aborting");
+      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
       return null;
     }
     log(lvl, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));

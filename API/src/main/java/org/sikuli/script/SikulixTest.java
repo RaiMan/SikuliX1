@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class SikulixTest {
     System.out.println(String.format(msg, args));
   }
 
-  private static String showBase = "API/src/main/resources/ImagesAPI.sikuli";
+  private static String showBase = "API/src/main/resources/ImagesAPI";
   private static String showLink;
   private static int showWait;
   private static int showBefore;
@@ -205,6 +206,8 @@ public class SikulixTest {
     //runTest.add(7); // text Region.findAll(someText)
     //runTest.add(8); // text Region.getWordList/getLineList
     //runTest.add(9); // basic transparency
+    //runTest.add(10); // transparency with pattern
+    //runTest.add(11); // find SwitchToText
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -212,17 +215,8 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      String img1 = "buttonTextTrans";
-      String img2 = "whiteTrans";
-      String img3 = "whiteWithText";
-      App.focus("preview"); scr.wait(1.0);
-      reg = scr;
-      reg = App.focusedWindow();
-      Pattern pMask = new Pattern(img2).asMask();
-      Pattern pImg = new Pattern(img3).withMask(pMask);
-      match = reg.has(pMask);
-      reg.highlight(-1);
-//      after();
+      //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
+      after();
     }
 
     //<editor-fold desc="test1 exists">
@@ -256,7 +250,6 @@ public class SikulixTest {
     if (shouldRunTest(3)) {
       before("test3", "text OCR");
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         String text = "";
         if (Do.SX.isNotNull(reg)) {
           text = reg.text().trim();
@@ -272,7 +265,6 @@ public class SikulixTest {
       before("test4", "findWord");
       String aWord = "brown";
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         Match mText = reg.findWord(aWord);
         if (Do.SX.isNotNull(mText)) {
           mText.highlight(2);
@@ -288,7 +280,6 @@ public class SikulixTest {
       before("test5", "findLines with RegEx");
       String aRegex = "jumps.*?lazy";
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
         for (Match found : matches) {
           p("**** line: %s", found.getText());
@@ -308,7 +299,6 @@ public class SikulixTest {
       before("test6", "Region.find(someText)");
       String[] aTexts = new String[]{"another", "very, very lazy dog", "very + dog"};
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         for (String aText : aTexts) {
           match = reg.existsText(aText);
           if (Do.SX.isNotNull(match)) {
@@ -325,7 +315,6 @@ public class SikulixTest {
       before("test7", "Region.findAll(someText)");
       String aText = "very lazy dog";
       if (openTestPage()) {
-        TextRecognizer tr = TextRecognizer.start();
         Match found = null;
         found = reg.hasText(Finder.asRegEx(aText));
         if (Do.SX.isNotNull(found)) {
@@ -339,7 +328,7 @@ public class SikulixTest {
 
     //<editor-fold desc="test8 Region.getWordList/getLineList">
     if (shouldRunTest(8)) {
-      before("test", "Region.getWordList/getLineList");
+      before("test8", "Region.getWordList/getLineList");
       if (openTestPage()) {
         List<Match> lines = reg.getLineList();
         if (lines.size() > 0) {
@@ -367,6 +356,7 @@ public class SikulixTest {
 
     //<editor-fold desc="test9 basic transparency">
     if (shouldRunTest(9)) {
+      before("test9", "basic transparency");
       Image img4 = Image.create("buttonText");
       Image img4O = Image.create("buttonTextOpa");
       Image img5 = Image.create("buttonTextTrans");
@@ -380,6 +370,49 @@ public class SikulixTest {
 //        Match match1 = next.grow(10).has(image);
 //        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
           p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());
+        }
+      }
+      after();
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="test10 transparency with pattern">
+    if (shouldRunTest(10)) {
+      before("test10", "transparency with pattern");
+      String img2 = "whiteTrans";
+      String img3 = "whiteWithText";
+      //App.focus("preview"); scr.wait(1.0);
+      show(img3, 0);
+      scr.wait(2.0);
+      reg = scr;
+      reg = App.focusedWindow();
+      Pattern pMask = new Pattern(img2).asMask();
+      Pattern pImg = new Pattern(img3).withMask(pMask);
+      p("***** real image");
+      reg.has(img3);
+      reg.highlight(-1);
+      p("***** pattern asMask()");
+      reg.has(pMask);
+      reg.highlight(-1);
+      p("***** pattern withMask()");
+      reg.has(pImg);
+      reg.highlight(-1);
+      after();
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="find SwitchToText">
+    if (shouldRunTest(11)) {
+      before("test11", "find SwitchToText");
+      Settings.SwitchToText = true;
+      String[] aTexts = new String[]{"another"};
+      reg = scr;
+      if (openTestPage()) {
+        for (String aText : aTexts) {
+          match = reg.has(aText);
+          if (Do.SX.isNotNull(match)) {
+            match.highlight(1);
+          }
         }
       }
       after();
