@@ -98,19 +98,19 @@ public class SysJNA {
       BridJ.register();
     }
 
-    public static boolean isNumLockOn() {
+    public static int isNumLockOn() {
       int state = GetKeyState(WinNumLock);
-      return state > 0;
+      return state;
     }
 
-    public static boolean isScrollLockOn() {
+    public static int isScrollLockOn() {
       int state = GetKeyState(WinScrollLock);
-      return state > 0;
+      return state;
     }
 
-    public static boolean isCapsLockOn() {
+    public static int isCapsLockOn() {
       int state = GetKeyState(WinCapsLock);
-      return state > 0;
+      return state;
     }
 
     /*
