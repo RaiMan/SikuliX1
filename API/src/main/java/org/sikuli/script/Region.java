@@ -2480,6 +2480,19 @@ public class Region {
     return lastMatches;
   }
 
+  public <PSI> List<Match> getAll(PSI target) {
+//    List<Match> matches = new ArrayList<>();
+//    try {
+//      Iterator<Match> all = findAll(target);
+//      while (all.hasNext()) {
+//        matches.add(all.next());
+//      }
+//    } catch (FindFailed findFailed) {
+//    }
+//    return matches;
+    return findAllList(target);
+  }
+
   public <PSI> List<Match> findAllList(PSI target) {
     List<Match> matches = new ArrayList<>();
     try {
@@ -2490,7 +2503,7 @@ public class Region {
 
   public <PSI> List<Match> findAllByRow(PSI target) {
     Match[] matches = new Match[0];
-    List<Match> mList = findAllCollect(target);
+    List<Match> mList = getAll(target);
     if (mList.isEmpty()) {
       return null;
     }
@@ -2506,21 +2519,9 @@ public class Region {
     return mList;
   }
 
-  public <PSI> List<Match> getAll(PSI target) {
-    List<Match> matches = new ArrayList<>();
-    try {
-      Iterator<Match> all = findAll(target);
-      while (all.hasNext()) {
-        matches.add(all.next());
-      }
-    } catch (FindFailed findFailed) {
-    }
-    return matches;
-  }
-
   public <PSI> List<Match> findAllByColumn(PSI target) {
     Match[] matches = new Match[0];
-    List<Match> mList = findAllCollect(target);
+    List<Match> mList = getAll(target);
     if (mList.isEmpty()) {
       return null;
     }
@@ -2643,25 +2644,15 @@ public class Region {
     return hasText(text);
   }
 
-  public Finder findAllText(String text) {
+  public List<Match> findAllText(String text) {
+    List<Match> matches = new ArrayList<>();
     try {
-      return (Finder) findAll("\t" + text + "\t");
-    } catch (FindFailed findFailed) {
-      return new Finder() {
-        @Override
-        public boolean hasNext() {
-          return false;
-        }
-
-        @Override
-        public Match next() {
-          return null;
-        }
-      };
-    }
+      matches = ((Finder) findAll("\t" + text + "\t")).getList();
+    } catch(FindFailed ff) {}
+    return matches;
   }
 
-  public Iterator<Match> findAllT(String text) {
+  public List<Match> findAllT(String text) {
     return findAllText(text);
   }
   //--------------------------------
@@ -2674,8 +2665,8 @@ public class Region {
     return match;
   }
 
-  public Finder findWords(String word) {
-    return (Finder) doFindText(word, levelWord, true);
+  public List<Match> findWords(String word) {
+    return ((Finder) doFindText(word, levelWord, true)).getList();
   }
 
   public Match findLine(String text) {
@@ -2686,8 +2677,8 @@ public class Region {
     return match;
   }
 
-  public Finder findLines(String text) {
-    return (Finder) doFindText(text, levelLine, true);
+  public List<Match> findLines(String text) {
+    return ((Finder) doFindText(text, levelLine, true)).getList();
   }
 
   private int levelWord = 3;
@@ -3161,21 +3152,6 @@ public class Region {
       img.setLastSeen(match.getRect(), match.getScore());
     }
     return match;
-  }
-
-  private <PSI> List<Match> findAllCollect(PSI target) {
-    Iterator<Match> mIter = null;
-    try {
-      mIter = findAll(target);
-    } catch (Exception ex) {
-      Debug.error("findAllByRow: %s", ex.getMessage());
-      return null;
-    }
-    List<Match> mList = new ArrayList<Match>();
-    while (mIter.hasNext()) {
-      mList.add(mIter.next());
-    }
-    return mList;
   }
 
   private List<Match> findAnyCollect(List<Object> pList) {
@@ -4738,14 +4714,12 @@ public class Region {
     return TextRecognizer.doOCR(simg);
   }
 
-  public List<Match> getWordList() {
-    Finder wordsFound = findWords("");
-    return wordsFound.getList();
+  public List<Match> getWords() {
+    return findWords("");
   }
 
-  public List<Match> getLineList() {
-    Finder linesFound = findLines("");
-    return linesFound.getList();
+  public List<Match> getLines() {
+    return findLines("");
   }
   //</editor-fold>
 }
