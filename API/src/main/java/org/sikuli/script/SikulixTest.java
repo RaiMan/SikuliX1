@@ -10,7 +10,6 @@ import org.sikuli.util.ScreenHighlighter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 public class SikulixTest {
@@ -168,12 +167,17 @@ public class SikulixTest {
     browserStop();
   }
 
-  private static void highlight(List<Match> regs) {
+  private static List<Match> highlight(List<Match> regs, int time) {
     for (Match reg : regs) {
       reg.highlight();
     }
-    scr.wait(1.0);
+    scr.wait(time * 1.0);
     ScreenHighlighter.closeAll();
+    return regs;
+  }
+
+  private static void highlight(List<Match> regs) {
+    highlight(regs, 1);
   }
 
   private static List<Integer> runTest = new ArrayList<>();
@@ -268,7 +272,7 @@ public class SikulixTest {
         Match mText = reg.findWord(aWord);
         if (Do.SX.isNotNull(mText)) {
           mText.highlight(2);
-          reg.findWords(aWord).show(2);
+          highlight(reg.findWords(aWord), 2);
         }
       }
       after();
@@ -280,12 +284,12 @@ public class SikulixTest {
       before("test5", "findLines with RegEx");
       String aRegex = "jumps.*?lazy";
       if (openTestPage()) {
-        List<Match> matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
+        List<Match> matches = highlight(reg.findLines(Finder.asRegEx(aRegex)), 3);
         for (Match found : matches) {
           p("**** line: %s", found.getText());
         }
         aRegex = "jumps.*?very.*?lazy";
-        matches = reg.findLines(Finder.asRegEx(aRegex)).show(3);
+        matches = highlight(reg.findLines(Finder.asRegEx(aRegex)), 3);
         for (Match found : matches) {
           p("**** line: %s", found.getText());
         }
@@ -320,7 +324,7 @@ public class SikulixTest {
         if (Do.SX.isNotNull(found)) {
           found.highlight(2);
         }
-        reg.findAllText(aText).show(2);
+        highlight(reg.findAllText(aText), 2);
       }
       after();
     }
@@ -330,14 +334,14 @@ public class SikulixTest {
     if (shouldRunTest(8)) {
       before("test8", "Region.getWordList/getLineList");
       if (openTestPage()) {
-        List<Match> lines = reg.getLineList();
+        List<Match> lines = reg.getLines();
         if (lines.size() > 0) {
           for (Match line : lines) {
             line.highlight(1);
             p("***** line: %s", line.getText());
           }
         }
-        List<Match> words = reg.getWordList();
+        List<Match> words = reg.getWords();
         if (words.size() > 0) {
           int jump = words.size() / 10;
           int current = 0;
@@ -361,12 +365,13 @@ public class SikulixTest {
       Image img4O = Image.create("buttonTextOpa");
       Image img5 = Image.create("buttonTextTrans");
       if (openTestPage("Test-page-1")) {
+        reg.highlight(1);
         Image image = img5;
         List<Match> matches = reg.findAllList(image);
         highlight(matches);
         for (Match next : matches) {
           p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-          List<Match> wordList = next.getLineList();
+          List<Match> wordList = next.getLines();
 //        Match match1 = next.grow(10).has(image);
 //        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
           p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());

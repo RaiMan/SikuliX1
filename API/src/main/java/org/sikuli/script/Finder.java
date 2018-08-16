@@ -442,16 +442,6 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
-  public List<Match> show(int time) {
-    List<Match> matches = getList();
-    for (Match match : matches) {
-      match.highlight();
-    }
-    RunTime.pause(time);
-    ScreenHighlighter.closeAll();
-    return matches;
-  }
-
   public List<Match> getList() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {
