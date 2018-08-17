@@ -498,7 +498,10 @@ def useVnc(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, passwo
   use(Sikulix.vncStart(ip, port, password, connectionTimeout, timeout), True)
 
 def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, password=None):
-  return Sikulix.vncStart(ip, port, password, connectionTimeout, timeout)
+  theVNCScreen = Sikulix.vncStart(ip, port, password, connectionTimeout, timeout)
+  if theVNCScreen:
+    return theVNCScreen
+  exit(-1)
 
 ## ----------------------------------------------------------------------
 # Switches the frontmost application to the given application.
