@@ -332,16 +332,16 @@ public class SikulixTest {
 
     //<editor-fold desc="test8 Region.getWordList/getLineList">
     if (shouldRunTest(8)) {
-      before("test8", "Region.getWordList/getLineList");
+      before("test8", "Region.getWords/getLines");
       if (openTestPage()) {
-        List<Match> lines = reg.getLines();
+        List<Match> lines = reg.collectLines();
         if (lines.size() > 0) {
           for (Match line : lines) {
             line.highlight(1);
             p("***** line: %s", line.getText());
           }
         }
-        List<Match> words = reg.getWords();
+        List<Match> words = reg.collectWords();
         if (words.size() > 0) {
           int jump = words.size() / 10;
           int current = 0;
@@ -371,7 +371,7 @@ public class SikulixTest {
         highlight(matches);
         for (Match next : matches) {
           p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-          List<Match> wordList = next.getLines();
+          List<Match> wordList = next.collectLines();
 //        Match match1 = next.grow(10).has(image);
 //        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
           p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());
@@ -384,23 +384,27 @@ public class SikulixTest {
     //<editor-fold desc="test10 transparency with pattern">
     if (shouldRunTest(10)) {
       before("test10", "transparency with pattern");
-      String img2 = "whiteTrans";
-      String img3 = "whiteWithText";
+      String wb = "whiteBlack";
+      String wt = "whiteTrans";
+      String wwt = "whiteWithText";
       //App.focus("preview"); scr.wait(1.0);
-      show(img3, 0);
+      show(wwt, 0);
       scr.wait(2.0);
       reg = scr;
       reg = App.focusedWindow();
-      Pattern pMask = new Pattern(img2).asMask();
-      Pattern pImg = new Pattern(img3).withMask(pMask);
+      Pattern wbMask = new Pattern(wb).asMask();
+      Pattern pWwtWb = new Pattern(wwt).withMask(wbMask);
       p("***** real image");
-      reg.has(img3);
+      reg.has(wwt);
       reg.highlight(-1);
       p("***** pattern asMask()");
-      reg.has(pMask);
+      reg.has(wbMask);
       reg.highlight(-1);
       p("***** pattern withMask()");
-      reg.has(pImg);
+      reg.has(pWwtWb);
+      reg.highlight(-1);
+      p("***** transparent masked image");
+      reg.has(wt);
       reg.highlight(-1);
       after();
     }

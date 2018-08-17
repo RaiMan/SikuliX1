@@ -159,14 +159,15 @@ public class Pattern {
       } else {
         mask = extractMask();
       }
-      if (!mask.empty()) {
-        patternMask = pMask.getMask();
-        withMask = true;
-      }
       if (mask.empty()
               || image.getSize().getWidth() != mask.width()
               || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
+        mask = Finder2.getNewMat();
+      }
+      if (!mask.empty()) {
+        patternMask = mask;
+        withMask = true;
       }
     }
     return this;

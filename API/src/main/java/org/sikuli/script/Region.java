@@ -4714,11 +4714,11 @@ public class Region {
     return TextRecognizer.doOCR(simg);
   }
 
-  public List<Match> getWords() {
+  public List<Match> collectWords() {
     return findWords("");
   }
 
-  public List<Match> getLines() {
+  public List<Match> collectLines() {
     return findLines("");
   }
   //</editor-fold>
