@@ -26,6 +26,9 @@ public class TextRecognizer {
 
   private static boolean valid = false;
   public boolean isValid() {
+    if (tess == null) {
+      return false;
+    }
     return valid;
   }
 
@@ -43,7 +46,22 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      textRecognizer.tess = new Tesseract1();
+      boolean shouldLoadLib = false;
+      try {
+        textRecognizer.tess = new Tesseract1();
+      } catch (UnsatisfiedLinkError ule) {
+        shouldLoadLib = true;
+      }
+      if (shouldLoadLib) {
+        Debug.log(lvl,"TextRecognizer: start: native libraries not found - trying to load");
+//        RunTime.loadLibrary("tesseract");
+//        try {
+//          textRecognizer.tess = new Tesseract1();
+//        } catch (UnsatisfiedLinkError ule) {
+//          Debug.error("TextRecognizer: start: native libraries not loaded");
+//        }
+        runTime.terminate(-1, "TextRecognizer: start: loading native libraries not implemented");
+      }
       File fTessdataPath = null;
       valid = false;
       if (textRecognizer.dataPath != null) {
@@ -181,8 +199,8 @@ public class TextRecognizer {
   }
 
   public static String doOCR(BufferedImage bimg) {
-    TextRecognizer tr = start();
     String text = "";
+    TextRecognizer tr = start();
     if (tr.isValid()) {
       text = tr.read(bimg);
     }
