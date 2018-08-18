@@ -200,18 +200,18 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
-    //runTest.add(0);
-    //runTest.add(1); // exists
-    //runTest.add(2); // findChange
-    //runTest.add(3); // text OCR
-    //runTest.add(4); // text find word
-    //runTest.add(5); // text find lines RegEx
-    //runTest.add(6); // text Region.find(someText)
-    //runTest.add(7); // text Region.findAll(someText)
-    //runTest.add(8); // text Region.getWordList/getLineList
-    //runTest.add(9); // basic transparency
-    //runTest.add(10); // transparency with pattern
-    //runTest.add(11); // find SwitchToText
+//    runTest.add(0);
+//    runTest.add(1); // exists
+//    runTest.add(2); // findChange
+//    runTest.add(3); // text OCR
+//    runTest.add(4); // text find word
+//    runTest.add(5); // text find lines RegEx
+//    runTest.add(6); // text Region.find(someText)
+//    runTest.add(7); // text Region.findAll(someText)
+//    runTest.add(8); // text Region.getWordList/getLineList
+//    runTest.add(9); // basic transparency
+//    runTest.add(10); // transparency with pattern
+//    runTest.add(11); // find SwitchToText
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
