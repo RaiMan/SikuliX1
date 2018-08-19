@@ -60,7 +60,7 @@
             </manifest>
           </archive>
 					<descriptors>
-						<descriptor>../${sikuli.helpers}/makeide.xml</descriptor>
+						<descriptor>makeide.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>

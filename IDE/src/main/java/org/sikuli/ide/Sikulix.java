@@ -4,35 +4,133 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.scriptrunner.ScriptingSupport;
+import org.sikuli.util.ProcessRunner;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 import java.security.CodeSource;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 public class Sikulix {
 
-  public static void main(String[] args) {
-    String jarName = "";
+  static boolean verbose = false;
+  static String jarName = "";
+  static File fAppData;
+  static File fDirExtensions = null;
+  static File[] fExtensions = null;
+  static List<String> extensions = new ArrayList<>();
+  static String ClassPath = "";
+  static String start = String.format("%d", new Date().getTime());
+  static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
+  ;
 
+  public static void main(String[] args) {
     CodeSource codeSrc = SikuliIDE.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
       jarName = codeSrc.getLocation().getPath();
     }
 
-    if (jarName.contains("sikulixsetupIDE")) {
-      JOptionPane.showMessageDialog(null, "Not useable!\nRun setup first!",
-              "sikulixsetupIDE", JOptionPane.ERROR_MESSAGE);
-      System.exit(0);
+    if (args.length > 0 && args[0].startsWith("-v")) {
+      verbose = true;
+      args[0] += start;
     }
 
-    if (args.length > 0 && args[0].startsWith("-test")) {
-      ScriptingSupport.runscript(args);
-      if (null == args[0]) {
-        System.exit(1);
+    if (jarName.endsWith(".jar")) {
+      log(1, "starting");
+      fAppData = makeAppData();
+      log(1, "Running: %s", jarName);
+      log(1, "AppData: %s", fAppData);
+    } else {
+      prepareMac();
+      SikulixRunIDE.main(args);
+      return;
+    }
+
+    fDirExtensions = new File(fAppData, "Extensions");
+    if (fDirExtensions.exists()) {
+      log(1, "looking for extension jars in: %s", fDirExtensions);
+      fExtensions = fDirExtensions.listFiles();
+    }
+
+    ClassPath = jarName;
+    String separator = File.pathSeparator;
+    for (File fExtension : fExtensions) {
+      if (!ClassPath.isEmpty()) ClassPath += separator;
+      String pExtension = fExtension.getAbsolutePath();
+      ClassPath += pExtension;
+      extensions.add(pExtension);
+      log(1, "adding extension: %s", fExtension);
+    }
+    List<String> cmd = new ArrayList<>();
+    cmd.add("java");
+    cmd.add("-cp");
+    cmd.add(ClassPath);
+    cmd.add("org.sikuli.ide.SikulixRunIDE");
+    cmd.addAll(Arrays.asList(args));
+    ProcessRunner.detach(cmd);
+    log(1, "terminating");
+  }
+
+  private static void log(int level, String msg, Object... args) {
+    msg = "[DEBUG] RunIDE: " + msg;
+    if (level < 0) {
+      msg = "[ERROR] RunIDE: " + msg;
+    }
+    if (level < 0 || verbose) {
+      System.out.println(String.format(msg, args));
+    }
+  }
+
+  private static File makeAppData() {
+    File fSikulixAppPath = new File("");
+    File fAppPath = new File("");
+    File fUserDir = null;
+    String userHome = System.getProperty("user.home");
+    if (userHome == null || userHome.isEmpty() || !(fUserDir = new File(userHome)).exists()) {
+      log(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
+    } else {
+      if ("w".equals(osName)) {
+        String appPath = System.getenv("APPDATA");
+        if (appPath != null && !appPath.isEmpty()) {
+          fAppPath = new File(appPath);
+          fSikulixAppPath = new File(fAppPath, "Sikulix");
+        }
+      } else if ("m".equals(osName)) {
+        fAppPath = new File(fUserDir, "Library/Application Support");
+        fSikulixAppPath = new File(fAppPath, "Sikulix");
+      } else {
+        fAppPath = fUserDir;
+        fSikulixAppPath = new File(fAppPath, ".Sikulix");
       }
-      System.exit(0);
     }
+    return fSikulixAppPath;
+  }
 
-    SikuliIDE.run(args);
+  protected static void prepareMac() {
+    try {
+      // set the brushed metal look and feel, if desired
+      System.setProperty("apple.awt.brushMetalLook", "true");
+
+      // use the mac system menu bar
+      System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+      // set the "About" menu item name
+      System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiStar");
+
+      // use smoother fonts
+      System.setProperty("apple.awt.textantialiasing", "true");
+
+      // ref: http://developer.apple.com/releasenotes/Java/Java142RNTiger/1_NewFeatures/chapter_2_section_3.html
+      System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+
+      // use the system look and feel
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    } catch (Exception e) {
+      // put your debug code here ...
+    }
   }
 }

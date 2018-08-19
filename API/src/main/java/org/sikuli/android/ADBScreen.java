@@ -17,10 +17,6 @@ import java.awt.*;
  */
 public class ADBScreen extends Region implements EventObserver, IScreen {
 
-  static {
-    //TODO RunTime.loadLibrary("VisionProxy");
-  }
-
   private static String me = "ADBScreen: ";
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);

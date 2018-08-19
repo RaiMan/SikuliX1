@@ -3,6 +3,14 @@
  */
 package org.sikuli.setup;
 
+import org.sikuli.basics.*;
+import org.sikuli.script.RunTime;
+import org.sikuli.util.LinuxSupport;
+import org.sikuli.util.ProcessRunner;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -15,32 +23,10 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-
-import org.rauschig.jarchivelib.Archiver;
-import org.rauschig.jarchivelib.ArchiverFactory;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.SplashFrame;
-import org.sikuli.basics.PreferencesUser;
-import org.sikuli.script.App;
-import org.sikuli.script.RunTime;
-import org.sikuli.basics.Settings;
-//import org.sikuli.script.Sikulix;
-import org.sikuli.script.Sikulix;
-import org.sikuli.util.LinuxSupport;
-import org.sikuli.util.ProcessRunner;
 
 public class RunSetup {
 

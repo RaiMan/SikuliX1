@@ -758,10 +758,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   //TODO convertSrcToHtml has to be completely revised
   private void convertSrcToHtml(String bundle) {
-    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
-    if (runner != null) {
-      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
-    }
+//    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
+//    if (runner != null) {
+//      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
+//    }
   }
 
   public File copyFileToBundle(String filename) {

@@ -46,21 +46,10 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      boolean shouldLoadLib = false;
       try {
         textRecognizer.tess = new Tesseract1();
       } catch (UnsatisfiedLinkError ule) {
-        shouldLoadLib = true;
-      }
-      if (shouldLoadLib) {
-        Debug.log(lvl,"TextRecognizer: start: native libraries not found - trying to load");
-//        RunTime.loadLibrary("tesseract");
-//        try {
-//          textRecognizer.tess = new Tesseract1();
-//        } catch (UnsatisfiedLinkError ule) {
-//          Debug.error("TextRecognizer: start: native libraries not loaded");
-//        }
-        runTime.terminate(-1, "TextRecognizer: start: loading native libraries not implemented");
+        runTime.terminate(-1, "TextRecognizer: start: native libraries not found");
       }
       File fTessdataPath = null;
       valid = false;

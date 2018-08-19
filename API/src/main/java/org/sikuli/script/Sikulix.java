@@ -19,9 +19,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.CodeSource;
 
-/**
- * INTERNAL USE ONLY --- NOT part of official API
- */
 public class Sikulix {
 
   private static int lvl = 3;
@@ -63,9 +60,6 @@ public class Sikulix {
     }
 
     rt = RunTime.get();
-    if (Debug.getDebugLevel() == 0) {
-      Debug.setDebugLevel(1);
-    }
 
     if (codeSrc != null && codeSrc.getLocation() != null) {
       URL jarURL = codeSrc.getLocation();
@@ -79,28 +73,16 @@ public class Sikulix {
     }
   }
 
-  /**
-   * @param args currently only -d 999 is evaluated
-   */
   public static void main(String[] args) throws FindFailed {
 
-    if (args.length > 0 && args[0].toLowerCase().startsWith("-s")) {
-      shouldRunServer = true;
-    } else {
-      int dl = RunTime.checkArgs(args, RunTime.Type.API);
-      if (dl == 999) {
-        int exitCode = Runner.runScripts(args);
-        cleanUp(exitCode);
-        System.exit(exitCode);
-      }
-    }
-    rt = RunTime.get();
-    if (rt.fSxBaseJar.getName().contains("setup")) {
-      Sikulix.popError("Not useable!\nRun setup first!");
-      System.exit(0);
+    RunTime.checkArgs(rt, args, RunTime.Type.API);
+    if (rt.runningScripts) {
+      int exitCode = Runner.runScripts(args);
+      cleanUp(exitCode);
+      System.exit(exitCode);
     }
 
-    if (shouldRunServer) {
+    if (rt.shouldRunServer) {
       if (RunServer.run(null)) {
         System.exit(1);
       }

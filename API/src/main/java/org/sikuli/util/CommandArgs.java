@@ -119,8 +119,11 @@ public class CommandArgs {
     _options.addOption(CommandArgsEnum.CONSOLE.shortname(),
             CommandArgsEnum.CONSOLE.longname(), false, CommandArgsEnum.CONSOLE.description());
 
-    _options.addOption(CommandArgsEnum.SPLASH.shortname(),
-            CommandArgsEnum.SPLASH.longname(), false, CommandArgsEnum.SPLASH.description());
+    _options.addOption(CommandArgsEnum.VERBOSE.shortname(),
+            CommandArgsEnum.VERBOSE.longname(), false, CommandArgsEnum.VERBOSE.description());
+
+    _options.addOption(CommandArgsEnum.QUIET.shortname(),
+            CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
 
     _options.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())

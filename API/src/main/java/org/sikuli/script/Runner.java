@@ -128,7 +128,9 @@ public class Runner {
 
     runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
     log(lvl, "commandline: %s", cmdArgs.getArgsOrg());
-    runTime.printArgs();
+    if (lvl > 2) {
+      runTime.printArgs();
+    }
 
     // select script runner and/or start interactive session
     // option is overloaded - might specify runner for -r/-t

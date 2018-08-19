@@ -10,7 +10,6 @@ import se.vidstige.jadb.AdbServerLauncher;
 import se.vidstige.jadb.JadbConnection;
 import se.vidstige.jadb.JadbDevice;
 
-import java.io.IOException;
 import java.util.List;
 
 /**

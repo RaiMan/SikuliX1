@@ -35,11 +35,13 @@
 			<artifactId>swing-layout</artifactId>
 			<version>1.0.3</version>
 		</dependency>
+<!--
 		<dependency>
 			<groupId>org.rauschig</groupId>
 			<artifactId>jarchivelib</artifactId>
 			<version>0.6.0</version>
 		</dependency>
+-->
 	</dependencies>
 
 	<build>

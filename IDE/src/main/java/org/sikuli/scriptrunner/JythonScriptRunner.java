@@ -3,17 +3,6 @@
  */
 package org.sikuli.scriptrunner;
 
-import org.sikuli.util.JythonHelper;
-import java.io.File;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
@@ -22,6 +11,16 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
+import org.sikuli.util.JythonHelper;
+
+import java.io.File;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
@@ -85,11 +84,11 @@ public class JythonScriptRunner implements IScriptRunner {
   private static final int PY_JAVA = 2;
   private static final int PY_UNKNOWN = -1;
   private static final String NL = String.format("%n");
-  //TODO SikuliToHtmlConverter implement in Java
-  final static InputStream SikuliToHtmlConverter
-          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
-  static String pyConverter
-          = FileManager.convertStreamToString(SikuliToHtmlConverter);
+//TODO SikuliToHtmlConverter implement in Java
+//  final static InputStream SikuliToHtmlConverter
+//          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
+//  static String pyConverter
+//          = FileManager.convertStreamToString(SikuliToHtmlConverter);
   private String sikuliLibPath = null;
   private boolean isReady = false;
   private boolean isCompileOnly = false;
@@ -524,9 +523,10 @@ public class JythonScriptRunner implements IScriptRunner {
   public boolean doSomethingSpecial(String action, Object[] args) {
     if ("redirect".equals(action)) {
       return doRedirect((PipedInputStream[]) args);
-    } else if ("convertSrcToHtml".equals(action)) {
-      convertSrcToHtml((String) args[0]);
-      return true;
+//TODO SikuliToHtmlConverter implement in Java
+//    } else if ("convertSrcToHtml".equals(action)) {
+//      convertSrcToHtml((String) args[0]);
+//      return true;
     } else if ("createRegionForWith".equals(action)) {
       args[0] = createRegionForWith(args[0]);
       return true;
@@ -620,6 +620,8 @@ public class JythonScriptRunner implements IScriptRunner {
     return true;
   }
 
+  //TODO SikuliToHtmlConverter implement in Java
+/*
   private void convertSrcToHtml(String bundle) {
     PythonInterpreter py = new PythonInterpreter();
     log(lvl, "Convert Sikuli source code " + bundle + " to HTML");
@@ -627,6 +629,7 @@ public class JythonScriptRunner implements IScriptRunner {
     py.set("sikuli_src", bundle);
     py.exec(pyConverter);
   }
+*/
 
   private Object createRegionForWith(Object reg) {
     return null;
