@@ -2,9 +2,11 @@
 ============
 
 Main intention for this version is to backport the Java-only OpenCV 3.x implementation from version 2<br>
-and implement the text features via Tess4J (also backport from version 2)
+and implement the text features via Tess4J (also backport from version 2).
 
-Bug fixes in version 1.1.3 will be available her also may be with some delay. 
+[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+
+**Developement is done on Java 11 now**
 
 [looking for 1.1.3 - get nightly builds](https://raiman.github.io/SikuliX1/nightly.html)
 
