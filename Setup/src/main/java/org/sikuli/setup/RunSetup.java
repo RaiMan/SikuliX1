@@ -61,7 +61,6 @@ public class RunSetup {
   private static String localJRubyAddOns = "sikulixjrubyaddons.jar";
   private static String runsikulix = "runsikulix";
   private static String localLogfile;
-  private static SetUpSelect winSU;
   private static JFrame winSetup;
   private static boolean getIDE, getJython, getAPI;
   private static boolean getRServer = false;
@@ -480,6 +479,8 @@ public class RunSetup {
     //<editor-fold defaultstate="collapsed" desc="display setup options">
     String proxyMsg = "";
 
+    //<editor-fold desc="old dialog window">
+/*
     if (!hasOptions) {
       getIDE = false;
       getJython = false;
@@ -595,6 +596,8 @@ public class RunSetup {
       msg = "The following file(s) will be downloaded to\n"
               + workDir + "\n";
     }
+*/
+    //</editor-fold>
 
     getTess = false; // tessdata completely contained in API-forsetup and IDE-forsetup
     downloadedFiles = "";
