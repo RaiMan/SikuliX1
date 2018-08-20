@@ -8,7 +8,7 @@
 
 	<parent>
 		<groupId>com.sikulix</groupId>
-		<artifactId>sikulix1</artifactId>
+		<artifactId>sikulix114</artifactId>
 		<version>1.1.4-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
@@ -30,18 +30,6 @@
 			<artifactId>sikulixapi</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.swinglabs</groupId>
-			<artifactId>swing-layout</artifactId>
-			<version>1.0.3</version>
-		</dependency>
-<!--
-		<dependency>
-			<groupId>org.rauschig</groupId>
-			<artifactId>jarchivelib</artifactId>
-			<version>0.6.0</version>
-		</dependency>
--->
 	</dependencies>
 
 	<build>
@@ -61,7 +49,6 @@
 				</excludes>
 			</resource>
 		</resources>
-		<defaultGoal>clean package</defaultGoal>
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -73,7 +60,7 @@
 						</manifest>
 					</archive>
 					<descriptors>
-						<descriptor>../${sikuli.helpers}/makesetup.xml</descriptor>
+						<descriptor>makesetup.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>
@@ -85,26 +72,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.3.1</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>org.sikuli.setup.RunSetup</mainClass>
-					<executable>java</executable>
-					<arguments>
-						<argument>-jar</argument>
-						<argument>target/sikulixsetup-${project.version}-forsetup.jar</argument>
-					</arguments>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
