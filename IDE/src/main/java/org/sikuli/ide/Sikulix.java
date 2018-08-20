@@ -61,9 +61,11 @@ public class Sikulix {
     for (File fExtension : fExtensions) {
       if (!ClassPath.isEmpty()) ClassPath += separator;
       String pExtension = fExtension.getAbsolutePath();
-      ClassPath += pExtension;
-      extensions.add(pExtension);
-      log(1, "adding extension: %s", fExtension);
+      if (pExtension.endsWith(".jar")) {
+        ClassPath += pExtension;
+        extensions.add(pExtension);
+        log(1, "adding extension: %s", fExtension);
+      }
     }
     List<String> cmd = new ArrayList<>();
     cmd.add("java");
