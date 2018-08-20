@@ -741,8 +741,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Settings.DebugLogs = prefs.getPrefMoreLogDebug();
     Settings.InfoLogs = prefs.getPrefMoreLogInfo();
     Settings.Highlight = prefs.getPrefMoreHighlight();
-    Settings.OcrTextSearch = prefs.getPrefMoreTextSearch();
-    Settings.OcrTextRead = prefs.getPrefMoreTextOCR();
     runTime.resetProject();
     return true;
   }
@@ -1677,12 +1675,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     _viewMenu = new JMenu(_I("menuView"));
     _viewMenu.setMnemonic(java.awt.event.KeyEvent.VK_V);
 
-    if (prefs.getPrefMoreCommandBar()) {
-      chkShowCmdList = new JCheckBoxMenuItem(_I("menuViewCommandList"), true);
-      _viewMenu.add(createMenuItem(chkShowCmdList,
-              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, scMask),
-              new ViewAction(ViewAction.CMD_LIST)));
-    }
+//    if (prefs.getPrefMoreCommandBar()) {
+//      chkShowCmdList = new JCheckBoxMenuItem(_I("menuViewCommandList"), true);
+//      _viewMenu.add(createMenuItem(chkShowCmdList,
+//              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, scMask),
+//              new ViewAction(ViewAction.CMD_LIST)));
+//    }
 
     chkShowThumbs = new JCheckBoxMenuItem(_I("menuViewShowThumbs"), false);
     _viewMenu.add(createMenuItem(chkShowThumbs,
@@ -2811,9 +2809,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           msgPaneCollapsed = false;
         } else {
           int pos = _mainSplitPane.getWidth() - 35;
-          if (prefs.getPrefMoreMessage() == PreferencesUser.HORIZONTAL) {
-            pos = _mainSplitPane.getHeight() - 35;
-          }
           _mainSplitPane.setDividerLocation(pos);
           msgPaneCollapsed = true;
         }

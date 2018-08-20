@@ -128,7 +128,7 @@ public class PatternPaneNaming extends JPanel {
 
 	public static String getFilenameFromImage(BufferedImage img) {
 		TextRecognizer tr = TextRecognizer.start();
-		if (!PreferencesUser.getInstance().getPrefMoreTextOCR() || !tr.isValid()) {
+		if (!tr.isValid()) {
 			return "";
 		}
 		String text = TextRecognizer.doOCR(img);

@@ -6,10 +6,6 @@ package org.sikuli.ide;
 import org.sikuli.basics.PreferencesUser;
 import javax.swing.JCheckBox;
 
-/**
- *
- * @author rhocke
- */
 public class PreferencesWindowMore extends javax.swing.JPanel {
 
   /**
@@ -27,20 +23,12 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		DEBUG = false;
 		openingWindow = true;
 		prefs = PreferencesUser.getInstance();
-		prefMoreHTML.setSelected(prefs.getAtSaveMakeHTML());
 		prefMoreClean.setSelected(prefs.getAtSaveCleanBundle());
 		prefMoreRunSave.setSelected(prefs.getPrefMoreRunSave());
-//TODO: implement prefMoreHighlight
 		prefMoreHighlight.setSelected(prefs.getPrefMoreHighlight());
-		prefMoreMessage.setSelected(prefs.getPrefMoreMessage() == PreferencesUser.HORIZONTAL);
-//TODO: command bar as menu
-		prefMoreCommand.setSelected(prefs.getPrefMoreCommandBar());
 		prefMoreLogActions.setSelected(prefs.getPrefMoreLogActions());
 		prefMoreLogDebug.setSelected(prefs.getPrefMoreLogDebug());
 		prefMoreLogInfo.setSelected(prefs.getPrefMoreLogInfo());
-		prefMoreTextSearch.setSelected(prefs.getPrefMoreTextSearch());
-		prefMoreTextOCR.setSelected(prefs.getPrefMoreTextOCR());
-		prefMoreScripter.setSelected(prefs.getUserType() == PreferencesUser.SCRIPTER);
 		prefMoreImageThumbs.setSelected(prefs.getPrefMoreImageThumbs());
 		prefMorePlainText.setSelected(prefs.getPrefMorePlainText());
 		DEBUG = debug;
@@ -427,20 +415,14 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
   }
 
 	private void savePrefs(String msg)	{
-		prefs.setAtSaveMakeHTML(isSelected(prefMoreHTML));
 		prefs.setAtSaveCleanBundle(isSelected(prefMoreClean));
 		prefs.setPrefMoreRunSave(isSelected(prefMoreRunSave));
 		prefs.setPrefMoreHighlight(isSelected(prefMoreHighlight));
-		prefs.setPrefMoreMessage(isSelected(prefMoreMessage) ? PreferencesUser.HORIZONTAL : PreferencesUser.VERTICAL);
-		prefs.setPrefMoreCommandBar(isSelected(prefMoreCommand));
 		prefs.setPrefMoreLogActions(isSelected(prefMoreLogActions));
 		prefs.setPrefMoreLogInfo(isSelected(prefMoreLogInfo));
 		prefs.setPrefMoreLogDebug(isSelected(prefMoreLogDebug));
-		prefs.setPrefMoreTextSearch(isSelected(prefMoreTextSearch));
-		prefs.setPrefMoreTextOCR(isSelected(prefMoreTextOCR));
 		prefs.setPrefMoreImageThumbs(isSelected(prefMoreImageThumbs));
 		prefs.setPrefMorePlainText(isSelected(prefMorePlainText));
-		prefs.setUserType(isSelected(prefMoreScripter)?PreferencesUser.SCRIPTER:PreferencesUser.SIKULI_USER);
 		setStatus(msg, true);
 	}
 

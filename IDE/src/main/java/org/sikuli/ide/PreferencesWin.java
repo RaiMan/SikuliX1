@@ -431,7 +431,8 @@ public class PreferencesWin extends JFrame {
     _lblFontSize.setText(SikuliIDEI18N._I("PreferencesWin.lblFontSize.text"));
     _tabPane.setTitleAt(1, SikuliIDEI18N._I("PreferencesWin.paneTextEditing.tab.title"));
     chkAutoUpdate.setText(SikuliIDEI18N._I("prefGeneralAutoCheck"));
-    _lblUpdates.setText(SikuliIDEI18N._I("PreferencesWin.lblUpdates.text"));
+//    _lblUpdates.setText(SikuliIDEI18N._I("PreferencesWin.lblUpdates.text"));
+    _lblUpdates.setText("Check for Updates (ignored - not implemented)");
     _lblLanguage.setText(SikuliIDEI18N._I("PreferencesWin.lblLanguage.text"));
     _tabPane.setTitleAt(2, SikuliIDEI18N._I("prefTabGeneralSettings"));
     _btnMore.setText(SikuliIDEI18N._I("more"));
@@ -488,12 +489,8 @@ public class PreferencesWin extends JFrame {
     pref.setCaptureHotkey(cap_hkey);
     pref.setCaptureHotkeyModifiers(cap_mod);
     pref.setAutoNamingMethod(
-            _radTimestamp.isSelected() ? PreferencesUser.AUTO_NAMING_TIMESTAMP
-            : _radOCR.isSelected() ? PreferencesUser.AUTO_NAMING_OCR
-            : PreferencesUser.AUTO_NAMING_OFF);
-    if (pref.getAutoNamingMethod() != PreferencesUser.AUTO_NAMING_TIMESTAMP) {
-      pref.setPrefMoreTextOCR(true);
-    }
+            _radTimestamp.isSelected() ? PreferencesUser.AUTO_NAMING_TIMESTAMP :
+            (_radOCR.isSelected() ? PreferencesUser.AUTO_NAMING_OCR : PreferencesUser.AUTO_NAMING_OFF));
     if (old_cap_hkey != cap_hkey || old_cap_mod != cap_mod) {
       ide.removeCaptureHotkey();
       ide.installCaptureHotkey();

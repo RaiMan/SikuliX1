@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
 
@@ -52,24 +53,24 @@ public class PreferencesUser {
     Debug.log(3, "init user preferences");
   }
 
-  public boolean exportPrefs(String path) {
+  public boolean save(String path) {
     try {
       FileOutputStream pout = new FileOutputStream(new File(path));
       ;
       pref.exportSubtree(pout);
       pout.close();
     } catch (Exception ex) {
-      Debug.error("UserPrefs: export: did not work\n" + ex.getMessage());
+      Debug.error("UserPrefs: export: did not work: %s", ex.getMessage());
       return false;
     }
     return true;
   }
 
-  public boolean importPrefs(String path) {
+  public boolean load(String path) {
     try {
       Preferences.importPreferences(new FileInputStream(new File(path)));
     } catch (Exception ex) {
-      Debug.error("UserPrefs: import: did not work\n" + ex.getMessage());
+      Debug.error("UserPrefs: import: did not work: ", ex.getMessage());
       return false;
     }
     return true;
@@ -82,13 +83,22 @@ public class PreferencesUser {
   public void removeAll(String prefix) {
     try {
       for (String item : pref.keys()) {
-        if (!item.startsWith(prefix)) {
-          continue;
+        if (prefix.isEmpty() || item.startsWith(prefix)) {
+          pref.remove(item);
         }
-        pref.remove(item);
       }
     } catch (Exception ex) {
       Debug.error("Prefs.removeAll: prefix (%s) did not work", prefix);
+    }
+  }
+
+  public void reset() {
+    removeAll("");
+    setDefaults();
+    try {
+      pref.flush();
+    } catch (BackingStoreException e) {
+      Debug.error("UserPrefs: reset: did not work: ", e.getMessage());
     }
   }
 
@@ -247,15 +257,6 @@ public class PreferencesUser {
     return pref.getInt("DEFAULT_THUMB_HEIGHT", THUMB_HEIGHT);
   }
 
-  // ***** command bar
-  public void setPrefMoreCommandBar(boolean flag) {
-    pref.putInt("PREF_MORE_COMMAND_BAR", flag ? 1 : 0);
-  }
-
-  public boolean getPrefMoreCommandBar() {
-    return pref.getInt("PREF_MORE_COMMAND_BAR", 1) != 0;
-  }
-
   public void setAutoCaptureForCmdButtons(boolean flag) {
     pref.putInt("AUTO_CAPTURE_FOR_CMD_BUTTONS", flag ? 1 : 0);
   }
@@ -294,25 +295,19 @@ public class PreferencesUser {
     pref.putBoolean("PREF_MORE_HIGHLIGHT", flag);
   }
 
+  //TODO: implement prefMoreHighlight
   public boolean getPrefMoreHighlight() {
     return pref.getBoolean("PREF_MORE_HIGHLIGHT", false);
   }
 
   // ***** auto update support
+  //TODO implement update
   public void setCheckUpdate(boolean flag) {
-    pref.putBoolean("CHECK_UPDATE", flag);
+    pref.putBoolean("CHECK_UPDATE", false);
   }
 
   public boolean getCheckUpdate() {
-    return pref.getBoolean("CHECK_UPDATE", true);
-  }
-
-  public void setWantBeta(boolean flag) {
-    pref.putBoolean("WANT_BETA", flag);
-  }
-
-  public boolean getWantBeta() {
-    return pref.getBoolean("WANT_BETA", false);
+    return pref.getBoolean("CHECK_UPDATE", false);
   }
 
   public void setLastSeenUpdate(String ver) {
@@ -398,14 +393,6 @@ public class PreferencesUser {
   }
 
   // ***** message area settings
-  public void setPrefMoreMessage(int typ) {
-    pref.putInt("PREF_MORE_MESSAGE", typ);
-  }
-
-  public int getPrefMoreMessage() {
-    return pref.getInt("PREF_MORE_MESSAGE", HORIZONTAL);
-  }
-
   public void setPrefMoreLogActions(boolean flag) {
     pref.putBoolean("PREF_MORE_LOG_ACTIONS", flag);
   }
@@ -436,23 +423,6 @@ public class PreferencesUser {
 
   public String getConsoleCSS() {
     return pref.get("CONSOLE_CSS", DEFAULT_CONSOLE_CSS);
-  }
-
-  // ***** text search and OCR
-  public void setPrefMoreTextSearch(boolean flag) {
-    pref.putBoolean("PREF_MORE_TEXT_SEARCH", flag);
-  }
-
-  public boolean getPrefMoreTextSearch() {
-    return pref.getBoolean("PREF_MORE_TEXT_SEARCH", false);
-  }
-
-  public void setPrefMoreTextOCR(boolean flag) {
-    pref.putBoolean("PREF_MORE_TEXT_OCR", flag);
-  }
-
-  public boolean getPrefMoreTextOCR() {
-    return pref.getBoolean("PREF_MORE_TEXT_OCR", false);
   }
 
   // ***** general setter getter
@@ -492,9 +462,6 @@ public class PreferencesUser {
     setPrefMoreImageThumbs(true);
     setDefaultThumbHeight(THUMB_HEIGHT);
 
-// ***** command bar
-    setPrefMoreCommandBar(false);
-
 // ***** save options
     setAtSaveMakeHTML(false);
     setAtSaveCleanBundle(true);
@@ -516,15 +483,10 @@ public class PreferencesUser {
     setPrefMoreImagesPath("");
 
 // ***** message area settings
-    setPrefMoreMessage(VERTICAL);
     setPrefMoreLogActions(true);
     setPrefMoreLogInfo(true);
     setPrefMoreLogDebug(true);
 
     setConsoleCSS(DEFAULT_CONSOLE_CSS);
-
-// ***** text search and OCR
-    setPrefMoreTextSearch(true);
-    setPrefMoreTextOCR(true);
   }
 }
