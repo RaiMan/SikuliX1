@@ -22,10 +22,10 @@ script:
 - ". API/target/classes/setup/content/deployOSSRH"
 - echo ------- javadocs
 - ". API/target/classes/setup/content/createJavadocs"
-deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: "$GITHUB_TOKEN"
-  local_dir: pages
-  on:
-    branch: master
+#deploy:
+#  provider: pages
+#  skip_cleanup: true
+#  github_token: "$GITHUB_TOKEN"
+#  local_dir: pages
+#  on:
+#    branch: master
