@@ -9,8 +9,8 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.*;
 
-import org.sikuli.android.ADBDevice;
-import org.sikuli.android.ADBScreen;
+//import org.sikuli.android.ADBDevice;
+//import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
@@ -4578,6 +4578,7 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="Mobile actions (Android)">
+/*
   private ADBDevice adbDevice = null;
   private ADBScreen adbScreen = null;
 
@@ -4593,13 +4594,15 @@ public class Region {
     return false;
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
    *
    * @param <PFRML> Pattern, String, Image, Match, Region or Location
    * @param target  PFRML
    * @throws FindFailed image not found
-   */
+   *//*
+
   public <PFRML> void aTap(PFRML target) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
       Location loc = getLocationFromTarget(target);
@@ -4610,36 +4613,42 @@ public class Region {
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
    *
    * @param text text
-   */
+   *//*
+
   public void aInput(String text) {
     if (isAndroid() && adbDevice != null) {
       adbDevice.input(text);
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
    *
    * @param key key
-   */
+   *//*
+
   public void aKey(int key) {
     if (isAndroid() && adbDevice != null) {
       adbDevice.inputKeyEvent(key);
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
    *
    * @param <PFRML> Pattern, String, Image, Match, Region or Location
    * @param from    PFRML
    * @param to      PFRML
    * @throws FindFailed image not found
-   */
+   *//*
+
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
       Location locFrom = getLocationFromTarget(from);
@@ -4651,9 +4660,11 @@ public class Region {
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
-   */
+   *//*
+
   public void aSwipeUp() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4663,9 +4674,11 @@ public class Region {
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
-   */
+   *//*
+
   public void aSwipeDown() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4675,9 +4688,11 @@ public class Region {
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
-   */
+   *//*
+
   public void aSwipeLeft() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);
@@ -4687,9 +4702,11 @@ public class Region {
     }
   }
 
-  /**
+  */
+/**
    * EXPERIMENTAL: for Android over ADB
-   */
+   *//*
+
   public void aSwipeRight() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);
@@ -4698,6 +4715,7 @@ public class Region {
     } catch (FindFailed findFailed) {
     }
   }
+*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
