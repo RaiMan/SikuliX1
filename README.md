@@ -7,17 +7,19 @@ Since version 2 is still in a very experimental stage and needs a complete revis
 time, to implement some of the version-2-ideas into the current version 1.
 
 **Major changes and enhancements**
- - latest OpenCV 3.x
+ - latest OpenCV 3.x and everything at the Java level
  - support for transparency
  - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 3.x)
  - packaging reduced to downloadable, ready-to-use API and IDE jars (bye, bye Setup ;-) 
  - revision of the IDE and its feature implementations
  
-[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) (sorry, not yet ready)
+[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) (sorry, not yet ready :-(
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
 Sorry, Linux people: not yet useable for you :-(
+
+**You need at least Java 8, but it works on Java 9+ also**
 
 **Developement is done on Java 11 now**
 
