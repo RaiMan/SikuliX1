@@ -4,12 +4,6 @@
 
   cd API;
   mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
-  cd ../SetupAPI;
-  mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
-  cd ../SetupIDE;
-  mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
-  cd ../Setup;
-  mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
   cd ..
 
 #fi

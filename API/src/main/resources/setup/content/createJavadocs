@@ -1,6 +1,6 @@
 #!/bin/sh
 # creates the javadocs for selected classes and their public members
-apijar=SetupAPI/target/sikulixsetupAPI-1.1.3-SNAPSHOT-forsetup.jar
+apijar=API/target/sikulixapi-1.1.4-SNAPSHOT-complete.jar
 apisrc=API/src/main/java/org/sikuli/script
 basicssrc=API/src/main/java/org/sikuli/basics
 echo $apisrc/Region.java >createJavadocsClasses
