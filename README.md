@@ -29,7 +29,7 @@ Sorry, Linux people: not yet useable for you :-(
 
 <hr>
 
-**API SNAPSHOT on OSSRH**<br>
+**API SNAPSHOT on OSSRH** (currently only for Mac and Windows)<br>
 
 The repository URL:<br>
 ```
