@@ -380,12 +380,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     tabPane.setSelectedIndex(0);
 
-    Debug.info("IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
+    Debug.log(lvl,"IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
     Debug.unsetWithTimeElapsed();
 
     if (runTime.isJava9()) {
-      Debug.info("*** BE AWARE: Running on Java 9+");
-      Debug.info("*** Please report problems");
+      Debug.log("*** BE AWARE: Running on Java 9+");
     }
 //    if (waitBeforeVisible > 0) {
 //      try {

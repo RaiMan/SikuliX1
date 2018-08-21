@@ -96,7 +96,8 @@ public class RunTime {
   private Class clsRef = RunTime.class;
   private Class clsRefAPI = Sikulix.class;
 
-  private List<URL> classPath = new ArrayList<URL>();
+  private List<URL> classPath = new ArrayList<>();
+  private List<String> classPathList = new ArrayList<>();
   public File fTempPath = null;
   public File fBaseTempPath = null;
   public File fLibsFolder = null;
@@ -2487,11 +2488,20 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="classpath handling">
   private void storeClassPath() {
-    if (isJava9("skipped: storeClassPath()")) {
-      return;
+    if (isJava9()) {
+      String separator = File.pathSeparator;
+      String cp = System.getProperty("java.class.path");
+      classPathList = Arrays.asList(cp.split(separator));
+
+    } else {
+      URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+      classPath = Arrays.asList(sysLoader.getURLs());
+      classPath.clear();
+      classPathList.clear();
+      for (URL urlPath : classPath) {
+        classPathList.add(urlPath.toExternalForm());
+      }
     }
-    URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-    classPath = Arrays.asList(sysLoader.getURLs());
   }
 
   /**
@@ -2508,16 +2518,11 @@ public class RunTime {
    */
   public void dumpClassPath(String filter) {
     filter = filter == null ? "" : filter;
-    if (isJava9()) {
-      return;
-    }
     logp("*** classpath dump %s", filter);
     storeClassPath();
-    String sEntry;
     filter = filter.toUpperCase();
     int n = 0;
-    for (URL uEntry : classPath) {
-      sEntry = uEntry.getPath();
+    for (String sEntry : classPathList) {
       if (!filter.isEmpty()) {
         if (!sEntry.toUpperCase().contains(filter)) {
           n++;
@@ -2539,11 +2544,11 @@ public class RunTime {
   private String isOnClasspath(String artefact, boolean isJar) {
     artefact = FileManager.slashify(artefact, false);
     String cpe = null;
-    if (classPath.isEmpty()) {
+    if (classPathList.isEmpty()) {
       storeClassPath();
     }
-    for (URL entry : classPath) {
-      String sEntry = FileManager.slashify(new File(entry.getPath()).getPath(), false);
+    for (String entry : classPathList) {
+      String sEntry = FileManager.slashify(new File(entry).getPath(), false);
       if (sEntry.contains(artefact)) {
         if (isJar) {
           if (!sEntry.endsWith(".jar")) {
@@ -2556,7 +2561,7 @@ public class RunTime {
             continue;
           }
         }
-        cpe = new File(entry.getPath()).getPath();
+        cpe = new File(entry).getPath();
         break;
       }
     }
@@ -2574,13 +2579,21 @@ public class RunTime {
   public URL fromClasspath(String artefact) {
     artefact = FileManager.slashify(artefact, false).toUpperCase();
     URL cpe = null;
+    String scpe = null;
     if (classPath.isEmpty()) {
       storeClassPath();
     }
-    for (URL entry : classPath) {
-      String sEntry = FileManager.slashify(new File(entry.getPath()).getPath(), false);
+    for (String entry : classPathList) {
+      String sEntry = FileManager.slashify(new File(entry).getPath(), false);
       if (sEntry.toUpperCase().contains(artefact)) {
-        return entry;
+        scpe = entry;
+        break;
+      }
+    }
+    if (null != scpe) {
+      try {
+        cpe = new URL(scpe);
+      } catch (MalformedURLException e) {
       }
     }
     return cpe;
@@ -2596,10 +2609,7 @@ public class RunTime {
     if (classPath.isEmpty()) {
       storeClassPath();
     }
-    for (URL entry : classPath) {
-      if (new File(path.getPath()).equals(new File(entry.getPath()))) {
-        return true;
-      }
+    for (String entry : classPathList) {
     }
     return false;
   }
@@ -2611,32 +2621,32 @@ public class RunTime {
   }
 
   public boolean addToClasspath(String jarOrFolder, String caller) {
+    if (null != isOnClasspath(jarOrFolder)) {
+      return true;
+    }
     if (isJava9("skipped: addToClasspath() - caller: " + caller)) {
       sxClasspath.add(jarOrFolder);
       return false;
     }
-    URL uJarOrFolder = FileManager.makeURL(jarOrFolder);
     if (!new File(jarOrFolder).exists()) {
       log(-1, "addToClasspath: does not exist - not added:\n%s", jarOrFolder);
       return false;
     }
-    if (isOnClasspath(uJarOrFolder)) {
-      return true;
-    }
-    log(lvl, "addToClasspath:\n%s", uJarOrFolder);
-    Method method;
-    URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-    Class sysclass = URLClassLoader.class;
-    try {
-      method = sysclass.getDeclaredMethod("addURL", new Class[]{URL.class});
-      method.setAccessible(true);
-      method.invoke(sysLoader, new Object[]{uJarOrFolder});
-    } catch (Exception ex) {
-      log(-1, "Did not work: %s", ex.getMessage());
-      return false;
-    }
-    storeClassPath();
-    return true;
+    //TODO addToClasspath
+//    log(lvl, "addToClasspath:\n%s", uJarOrFolder);
+//    Method method;
+//    URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+//    Class sysclass = URLClassLoader.class;
+//    try {
+//      method = sysclass.getDeclaredMethod("addURL", new Class[]{URL.class});
+//      method.setAccessible(true);
+//      method.invoke(sysLoader, new Object[]{uJarOrFolder});
+//    } catch (Exception ex) {
+//      log(-1, "Did not work: %s", ex.getMessage());
+//      return false;
+//    }
+//    storeClassPath();
+    return false;
   }
 
   public File asExtension(String fpJar) {
