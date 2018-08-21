@@ -1,11 +1,8 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 public class MatOfRect extends Mat {
     // 32SC4
@@ -59,6 +56,7 @@ public class MatOfRect extends Mat {
         }
         put(0, 0, buff); //TODO: check ret val!
     }
+
 
     public Rect[] toArray() {
         int num = (int) total();

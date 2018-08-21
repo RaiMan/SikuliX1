@@ -6,10 +6,6 @@ package org.sikuli.ide;
 import org.sikuli.basics.PreferencesUser;
 import javax.swing.JCheckBox;
 
-/**
- *
- * @author rhocke
- */
 public class PreferencesWindowMore extends javax.swing.JPanel {
 
   /**
@@ -27,20 +23,12 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		DEBUG = false;
 		openingWindow = true;
 		prefs = PreferencesUser.getInstance();
-		prefMoreHTML.setSelected(prefs.getAtSaveMakeHTML());
 		prefMoreClean.setSelected(prefs.getAtSaveCleanBundle());
 		prefMoreRunSave.setSelected(prefs.getPrefMoreRunSave());
-//TODO: implement prefMoreHighlight
 		prefMoreHighlight.setSelected(prefs.getPrefMoreHighlight());
-		prefMoreMessage.setSelected(prefs.getPrefMoreMessage() == PreferencesUser.HORIZONTAL);
-//TODO: command bar as menu
-		prefMoreCommand.setSelected(prefs.getPrefMoreCommandBar());
 		prefMoreLogActions.setSelected(prefs.getPrefMoreLogActions());
 		prefMoreLogDebug.setSelected(prefs.getPrefMoreLogDebug());
 		prefMoreLogInfo.setSelected(prefs.getPrefMoreLogInfo());
-		prefMoreTextSearch.setSelected(prefs.getPrefMoreTextSearch());
-		prefMoreTextOCR.setSelected(prefs.getPrefMoreTextOCR());
-		prefMoreScripter.setSelected(prefs.getUserType() == PreferencesUser.SCRIPTER);
 		prefMoreImageThumbs.setSelected(prefs.getPrefMoreImageThumbs());
 		prefMorePlainText.setSelected(prefs.getPrefMorePlainText());
 		DEBUG = debug;
@@ -260,8 +248,8 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
       .add(layout.createSequentialGroup()
         .add(32, 32, 32)
         .add(prefMoreLblSave)
-        .add(73, 73, 73)
-        .add(prefMoreHTML)
+//        .add(73, 73, 73)
+//        .add(prefMoreHTML)
         .add(75, 75, 75)
         .add(prefMoreClean))
       .add(layout.createSequentialGroup()
@@ -274,14 +262,15 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
         .add(prefMoreRunSave)
         .add(78, 78, 78)
         .add(prefMoreHighlight))
-      .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 570, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-      .add(layout.createSequentialGroup()
-        .add(32, 32, 32)
-        .add(prefMoreLblLayout)
-        .add(40, 40, 40)
-        .add(prefMoreMessage)
-        .add(26, 26, 26)
-        .add(prefMoreCommand))
+//      .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 570, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+//      .add(layout.createSequentialGroup()
+//        .add(32, 32, 32)
+//        .add(prefMoreLblLayout)
+//        .add(40, 40, 40)
+//        .add(prefMoreMessage)
+//        .add(26, 26, 26)
+//        .add(prefMoreCommand))
+//        )
       .add(layout.createSequentialGroup()
         .add(6, 6, 6)
         .add(jSeparator6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
@@ -295,21 +284,21 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
         .add(57, 57, 57)
         .add(prefMoreLogDebug))
       .add(layout.createSequentialGroup()
-        .add(6, 6, 6)
-        .add(jSeparator7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-      .add(layout.createSequentialGroup()
-        .add(33, 33, 33)
-        .add(prefMoreLblText)
-        .add(48, 48, 48)
-        .add(prefMoreTextSearch)
-        .add(61, 61, 61)
-        .add(prefMoreTextOCR))
-      .add(layout.createSequentialGroup()
-        .add(6, 6, 6)
-        .add(jSeparator8, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-      .add(layout.createSequentialGroup()
-        .add(32, 32, 32)
-        .add(prefMoreScripter))
+        .add(6, 6, 6))
+//        .add(jSeparator7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+//      .add(layout.createSequentialGroup()
+//        .add(33, 33, 33)
+//        .add(prefMoreLblText)
+//        .add(48, 48, 48)
+//        .add(prefMoreTextSearch)
+//        .add(61, 61, 61)
+//        .add(prefMoreTextOCR))
+//      .add(layout.createSequentialGroup()
+//        .add(6, 6, 6)
+//        .add(jSeparator8, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+//      .add(layout.createSequentialGroup()
+//        .add(32, 32, 32)
+//        .add(prefMoreScripter))
       .add(layout.createSequentialGroup()
         .add(6, 6, 6)
         .add(jSeparator9, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
@@ -341,7 +330,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
           .add(layout.createSequentialGroup()
             .add(4, 4, 4)
             .add(prefMoreLblSave))
-          .add(prefMoreHTML)
+          //.add(prefMoreHTML)
           .add(prefMoreClean))
         .add(4, 4, 4)
         .add(jSeparator2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
@@ -353,15 +342,16 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
           .add(prefMoreRunSave)
           .add(prefMoreHighlight))
         .add(5, 5, 5)
-        .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-          .add(layout.createSequentialGroup()
-            .add(4, 4, 4)
-            .add(prefMoreLblLayout))
-          .add(prefMoreMessage)
-          .add(prefMoreCommand))
-        .add(6, 6, 6)
+//        .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+//        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+//        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+//          .add(layout.createSequentialGroup()
+//            .add(4, 4, 4)
+//            .add(prefMoreLblLayout))
+//          .add(prefMoreMessage)
+//          .add(prefMoreCommand)
+//            )
+//        .add(6, 6, 6)
         .add(jSeparator6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         .add(6, 6, 6)
         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -372,19 +362,19 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
           .add(prefMoreLogInfo)
           .add(prefMoreLogDebug))
         .add(6, 6, 6)
-        .add(jSeparator7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        .add(6, 6, 6)
-        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-          .add(layout.createSequentialGroup()
-            .add(4, 4, 4)
-            .add(prefMoreLblText))
-          .add(prefMoreTextSearch)
-          .add(prefMoreTextOCR))
-        .add(6, 6, 6)
-        .add(jSeparator8, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-        .add(6, 6, 6)
-        .add(prefMoreScripter)
-        .add(6, 6, 6)
+//        .add(jSeparator7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+//        .add(6, 6, 6)
+//        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+//          .add(layout.createSequentialGroup()
+//            .add(4, 4, 4)
+//            .add(prefMoreLblText))
+//          .add(prefMoreTextSearch)
+//          .add(prefMoreTextOCR))
+//        .add(6, 6, 6)
+//        .add(jSeparator8, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+//        .add(6, 6, 6)
+//        .add(prefMoreScripter)
+//        .add(6, 6, 6)
         .add(jSeparator9, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         .add(6, 6, 6)
         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -425,20 +415,14 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
   }
 
 	private void savePrefs(String msg)	{
-		prefs.setAtSaveMakeHTML(isSelected(prefMoreHTML));
 		prefs.setAtSaveCleanBundle(isSelected(prefMoreClean));
 		prefs.setPrefMoreRunSave(isSelected(prefMoreRunSave));
 		prefs.setPrefMoreHighlight(isSelected(prefMoreHighlight));
-		prefs.setPrefMoreMessage(isSelected(prefMoreMessage) ? PreferencesUser.HORIZONTAL : PreferencesUser.VERTICAL);
-		prefs.setPrefMoreCommandBar(isSelected(prefMoreCommand));
 		prefs.setPrefMoreLogActions(isSelected(prefMoreLogActions));
 		prefs.setPrefMoreLogInfo(isSelected(prefMoreLogInfo));
 		prefs.setPrefMoreLogDebug(isSelected(prefMoreLogDebug));
-		prefs.setPrefMoreTextSearch(isSelected(prefMoreTextSearch));
-		prefs.setPrefMoreTextOCR(isSelected(prefMoreTextOCR));
 		prefs.setPrefMoreImageThumbs(isSelected(prefMoreImageThumbs));
 		prefs.setPrefMorePlainText(isSelected(prefMorePlainText));
-		prefs.setUserType(isSelected(prefMoreScripter)?PreferencesUser.SCRIPTER:PreferencesUser.SIKULI_USER);
 		setStatus(msg, true);
 	}
 

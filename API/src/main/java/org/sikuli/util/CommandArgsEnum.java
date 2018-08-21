@@ -41,9 +41,13 @@ public enum CommandArgsEnum {
 	 */
 	CONSOLE("console", "c", null, "print all output to commandline (IDE message area)"),
 	/**
-	 * Prints all errormessages to stdout
+	 * special debugging during startup
 	 */
-	SPLASH("splash", "x", null, "show a splash screen to enter options"),
+	VERBOSE("verbose", "v", null, "Debug level 3 and elapsed time during startup"),
+	/**
+	 * special debugging during startup
+	 */
+	QUIET("quiet", "q", null, "show nothing"),
 	/**
 	 * Preloads script in IDE
 	 */

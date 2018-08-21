@@ -4,7 +4,6 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.FindResult;
 
 /**
  * holds the result of a find operation, is itself the region on the screen,
@@ -16,7 +15,7 @@ import org.sikuli.natives.FindResult;
  */
 public class Match extends Region implements Comparable<Match> {
 
-  private double simScore;
+  private double simScore = 0;
   private Location target = null;
   private Image image = null;
   private String ocrText = null;
@@ -63,6 +62,9 @@ public class Match extends Region implements Comparable<Match> {
    * @param m other Match
    */
   public Match(Match m) {
+    if (Do.SX.isNull(m)) {
+      init(0, 0, 1, 1, Screen.getPrimaryScreen());
+    }
     init(m.x, m.y, m.w, m.h, m.getScreen());
     copy(m);
   }
@@ -77,9 +79,8 @@ public class Match extends Region implements Comparable<Match> {
     simScore = sc;
   }
 
-  private Match(Match m, IScreen parent) {
-    init(m.x, m.y, m.w, m.h, parent);
-    copy(m);
+  public Match(Region region, IScreen parent) {
+    init(region.x, region.y, region.w, region.h, parent);
   }
 
   /**
@@ -99,21 +100,16 @@ public class Match extends Region implements Comparable<Match> {
     ocrText = text;
   }
 
-  private Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {
+  public Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {
     init(_x, _y, _w, _h, _parent);
     simScore = score;
   }
 
-  /**
-   * internally used constructor used by findX image
-   *
-   * @param f
-   * @param _parent
-   */
-  protected Match(FindResult f, IScreen _parent) {
-    init(f.getX(), f.getY(), f.getW(), f.getH(), _parent);
-    simScore = f.getScore();
-  }
+
+//TODO  protected Match(FindResult f, IScreen _parent) {
+//    init(f.getX(), f.getY(), f.getW(), f.getH(), _parent);
+//    simScore = f.getScore();
+//  }
 
   private void init(int X, int Y, int W, int H, IScreen parent) {
     x = X;
@@ -121,6 +117,12 @@ public class Match extends Region implements Comparable<Match> {
     w = W;
     h = H;
     setScreen(parent);
+  }
+
+  public static Match create(Match match, IScreen screen) {
+    Match newMatch = new Match(match, screen);
+    newMatch.copy(match);
+    return newMatch;
   }
 
   private void copy(Match m) {
@@ -215,10 +217,18 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    *
-   * @return the text used for searching
+   * @return the text stored by findWord, findLine, ...
    */
   public String getText() {
     return ocrText;
+  }
+
+  /**
+   * internally used to set the text found by findWord, findLine, ...
+   * @param text
+   */
+  public void setText(String text) {
+    ocrText = text;
   }
 
   @Override

@@ -3,9 +3,12 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Mat;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.List;
 
 /**
  * to define a more complex search target<br>
@@ -18,7 +21,7 @@ public class Pattern {
   static RunTime runTime = RunTime.get();
 
   private Image image = null;
-  private float similarity = (float) Settings.MinSimilarity;
+  private double similarity = Settings.MinSimilarity;
   private Location offset = new Location(0, 0);
   private int waitAfter = 0;
   private boolean imagePattern = false;
@@ -117,6 +120,67 @@ public class Pattern {
     return image.isValid() || imagePattern;
   }
 
+  private Mat patternMask = Finder2.getNewMat();
+  private boolean isMask = false;
+
+  public Mat getMask() {
+    return patternMask;
+  }
+
+  public Pattern asMask() {
+    if (isValid()) {
+      Debug.log(3, "Pattern: asMask: %s", image);
+      Mat mask = extractMask();
+      if (!mask.empty()) {
+        patternMask = mask;
+        isMask = true;
+      } else {
+        Debug.log(-1, "Pattern: asMask: not valid", image);
+      }
+    }
+    return this;
+  }
+
+  private Mat extractMask() {
+    List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
+    return mats.get(1);
+  }
+
+  private boolean withMask = false;
+
+  public Pattern withMask(Pattern pMask) {
+    if (isValid()) {
+      Mat mask = Finder2.getNewMat();
+      if (Do.SX.isNotNull(pMask)) {
+        if (pMask.isValid() && pMask.isMask) {
+          Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
+          mask = pMask.getMask();
+        }
+      } else {
+        mask = extractMask();
+      }
+      if (mask.empty()
+              || image.getSize().getWidth() != mask.width()
+              || image.getSize().getHeight() != mask.height()) {
+        Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
+        mask = Finder2.getNewMat();
+      }
+      if (!mask.empty()) {
+        patternMask = mask;
+        withMask = true;
+      }
+    }
+    return this;
+  }
+
+  public Pattern withMask() {
+    return withMask(null);
+  }
+
+  public boolean hasMask() {
+    return !patternMask.empty();
+  }
+
   /**
    * set a new image for this pattern
    *
@@ -176,7 +240,7 @@ public class Pattern {
    * @param sim value 0 to 1
    * @return the Pattern object itself
    */
-  public Pattern similar(float sim) {
+  public Pattern similar(double sim) {
     similarity = sim;
     return this;
   }
@@ -187,7 +251,7 @@ public class Pattern {
    * @return the Pattern object itself
    */
   public Pattern exact() {
-    similarity = 0.99f;
+    similarity = 0.99;
     return this;
   }
 
@@ -195,7 +259,7 @@ public class Pattern {
    *
    * @return the current minimum similarity
    */
-  public float getSimilar() {
+  public double getSimilar() {
     return this.similarity;
   }
 

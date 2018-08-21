@@ -1,11 +1,8 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 public class MatOfInt4 extends Mat {
     // 32SC4

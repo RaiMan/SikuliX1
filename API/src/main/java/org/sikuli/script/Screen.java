@@ -68,7 +68,6 @@ public class Screen extends Region implements IScreen {
   //<editor-fold defaultstate="collapsed" desc="Initialization">
 
   static {
-    RunTime.loadLibrary("VisionProxy");
     initScreens(false);
   }
 

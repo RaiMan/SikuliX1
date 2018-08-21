@@ -18,22 +18,22 @@ import java.util.List;
 import java.util.Map;
 
 public class LinuxUtil implements OSUtil {
-
+  
   private static boolean wmctrlAvail = true;
   private static boolean xdoToolAvail = true;
-
+  
   private String[] wmctrlLine = new String[0];
-
+  
   @Override
   public void checkFeatureAvailability() {
     List<CommandLine> commands = Arrays.asList(
-            CommandLine.parse("wmctrl -m"),
-            CommandLine.parse("xdotool -v")
+        CommandLine.parse("wmctrl -m"),
+        CommandLine.parse("xdotool -v")
     );
     for (CommandLine cmd : commands) {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       String commandstring = StringUtils.toString(cmd.toStrings(), " ");
-
+      
       try {
         DefaultExecutor executor = new DefaultExecutor();
         // other return values throw exception
@@ -44,7 +44,7 @@ public class LinuxUtil implements OSUtil {
       } catch (ExecuteException e) {
         // it ran, but exited with non-zero status -- accept
         Debug.info("App: command %s ran, but failed: `%s'. Hoping for the best",
-                commandstring, e.toString());
+            commandstring, e.toString());
       } catch (IOException e) {
         String executable = cmd.toStrings()[0];
         if (executable.equals("wmctrl")) {
@@ -59,14 +59,14 @@ public class LinuxUtil implements OSUtil {
       }
     }
   }
-
+  
   private static void logCommandSysout(String commandstring, ByteArrayOutputStream outputStream) {
     //try to create some useful error output
     if (outputStream.size() > 0) {
       Debug.log(4, "command '" + commandstring + "' output:\n" + outputStream.toString());
     }
   }
-
+  
   private boolean isAvailable(boolean module, String cmd, String feature) {
     if (module) {
       return true;
@@ -74,12 +74,12 @@ public class LinuxUtil implements OSUtil {
     Debug.error("%s: feature %s: not available or not working", cmd, feature);
     return false;
   }
-
+  
   @Override
   public App.AppEntry getApp(int appPID, String appName) {
     return new App.AppEntry(appName, "" + appPID, "", "", "");
   }
-
+  
   @Override
   public int isRunning(App.AppEntry app) {
     int pid;
@@ -107,13 +107,13 @@ public class LinuxUtil implements OSUtil {
       return -1;
     }
   }
-
+  
   @Override
   public int open(String appName) {
     try {
       String cmd[] = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
       Process p = Runtime.getRuntime().exec(cmd);
-
+      
       InputStream in = p.getInputStream();
       byte pidBytes[] = new byte[64];
       int len = in.read(pidBytes);
@@ -127,12 +127,12 @@ public class LinuxUtil implements OSUtil {
       return 0;
     }
   }
-
+  
   @Override
   public int open(App.AppEntry app) {
     return open(app.execName);
   }
-
+  
   @Override
   public int switchto(String appName, int winNum) {
     int windowPID = findWindowPID(appName, winNum);
@@ -145,12 +145,12 @@ public class LinuxUtil implements OSUtil {
     System.err.println("[error] switchApp: could not identify process with search name '" + appName + "'");
     return -1;
   }
-
+  
   @Override
   public int switchto(String appName) {
     return switchto(appName, 0);
   }
-
+  
   @Override
   public int switchto(App.AppEntry app, int num) {
     if (app.pid > 0) {
@@ -158,7 +158,7 @@ public class LinuxUtil implements OSUtil {
     }
     return switchto(app.execName, num);
   }
-
+  
   @Override
   public int close(String appName) {
     try {
@@ -184,7 +184,7 @@ public class LinuxUtil implements OSUtil {
       return -1;
     }
   }
-
+  
   @Override
   public int close(App.AppEntry app) {
     if (app.pid > 0) {
@@ -192,12 +192,12 @@ public class LinuxUtil implements OSUtil {
     }
     return close(app.execName);
   }
-
+  
   @Override
   public Map<Integer, String[]> getApps(String name) {
     return null;
   }
-
+  
   @Override
   public Rectangle getFocusedWindow() {
     if (!isAvailable(xdoToolAvail, "getFocusedWindow", "xdoTool")) {
@@ -209,20 +209,23 @@ public class LinuxUtil implements OSUtil {
       InputStream in = p.getInputStream();
       BufferedReader bufin = new BufferedReader(new InputStreamReader(in));
       String str = bufin.readLine();
-      long id = Integer.parseInt(str);
-      String hexid = String.format("0x%08x", id);
-      return findRegion(hexid, 0, SearchType.WINDOW_ID);
+      long id = 0;
+      if (str != null) {
+        id = Integer.parseInt(str);
+        String hexid = String.format("0x%08x", id);
+        return findRegion(hexid, 0, SearchType.WINDOW_ID);
+      }
     } catch (IOException e) {
       System.out.println("[error] getFocusedWindow:\n" + e.getMessage());
-      return null;
     }
+    return null;
   }
-
+  
   @Override
   public Rectangle getWindow(String appName) {
     return getWindow(appName, 0);
   }
-
+  
   private Rectangle findRegion(String appName, int winNum, SearchType type) {
     String[] winLine = findWindow(appName, winNum, type);
     if (winLine != null && winLine.length >= 7) {
@@ -234,19 +237,19 @@ public class LinuxUtil implements OSUtil {
     }
     return null;
   }
-
+  
   private String[] findWindow(String appName, int winNum, SearchType type) {
     String[] found = {};
     int numFound = 0;
     try {
       CommandExecutorResult result = CommandExecutorHelper.execute("wmctrl -lpGx", 0);
-
+      
       int slash = appName.lastIndexOf("/");
       if (slash >= 0) {
         // remove path: /usr/bin/....
         appName = appName.substring(slash + 1);
       }
-
+      
       if (type == SearchType.APP_NAME) {
         appName = appName.toLowerCase();
       }
@@ -255,7 +258,7 @@ public class LinuxUtil implements OSUtil {
         //Debug.log("read: " + str);
         String winLine[] = str.split("\\s+", 10);
         boolean ok = false;
-
+        
         if (type == SearchType.WINDOW_ID) {
           if (appName.equals(winLine[0])) {
             ok = true;
@@ -269,12 +272,12 @@ public class LinuxUtil implements OSUtil {
           if (appName.equals(winLineName)) {
             ok = true;
           }
-
+          
           if (!ok && winLine[9].toLowerCase().contains(appName)) {
             ok = true;
           }
         }
-
+        
         if (ok) {
           if (numFound >= winNum) {
             //Debug.log("Found window" + winLine);
@@ -290,7 +293,7 @@ public class LinuxUtil implements OSUtil {
     }
     return found;
   }
-
+  
   /**
    * Returns a PID of the givenAppname and the winNumber
    *
@@ -307,22 +310,22 @@ public class LinuxUtil implements OSUtil {
     }
     return -1;
   }
-
+  
   @Override
   public Rectangle getWindow(String appName, int winNum) {
     return findRegion(appName, winNum, SearchType.APP_NAME);
   }
-
+  
   @Override
   public Rectangle getWindow(int pid) {
     return getWindow(pid, 0);
   }
-
+  
   @Override
   public Rectangle getWindow(int pid, int winNum) {
     return findRegion("" + pid, winNum, SearchType.PID);
   }
-
+  
   @Override
   public int close(int pid) {
     if (!isAvailable(wmctrlAvail, "closeApp", "wmctrl")) {
@@ -342,7 +345,7 @@ public class LinuxUtil implements OSUtil {
       return -1;
     }
   }
-
+  
   @Override
   public int switchto(int pid, int num) {
     if (!isAvailable(wmctrlAvail, "switchApp", "wmctrl")) {
@@ -367,7 +370,7 @@ public class LinuxUtil implements OSUtil {
 */
     return bringWindowToFront(winLine[0], pid);
   }
-
+  
   private int bringWindowToFront(String windowID, int pid) {
     try {
       // execute wmctrl with hex, e.g. 'wmctrl -ia 0x00000'
@@ -380,13 +383,13 @@ public class LinuxUtil implements OSUtil {
       return -1;
     }
   }
-
+  
   @Override
   public void bringWindowToFront(Window win, boolean ignoreMouse) {
   }
-
+  
   private enum SearchType {
-
+    
     APP_NAME,
     WINDOW_ID,
     PID

@@ -1,0 +1,4 @@
+#!/bin/bash
+  cd API;
+  mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
+  cd ..

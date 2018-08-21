@@ -1,13 +1,9 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.opencv.features2d.DMatch;
+import org.opencv.core.DMatch;
 
 public class MatOfDMatch extends Mat {
     // 32FC4
@@ -45,6 +41,7 @@ public class MatOfDMatch extends Mat {
         if(elemNumber>0)
             super.create(elemNumber, 1, CvType.makeType(_depth, _channels));
     }
+
 
     public void fromArray(DMatch...a) {
         if(a==null || a.length==0)

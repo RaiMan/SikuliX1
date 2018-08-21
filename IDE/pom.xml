@@ -8,16 +8,16 @@
 
   <parent>
     <groupId>com.sikulix</groupId>
-    <artifactId>sikulix1</artifactId>
-    <version>1.1.3-SNAPSHOT</version>
+    <artifactId>sikulix114</artifactId>
+    <version>1.1.4-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.sikulix</groupId>
-  <artifactId>sikulix</artifactId>
-  <version>1.1.3-SNAPSHOT</version>
+  <artifactId>sikulixide</artifactId>
+  <version>1.1.4-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -113,7 +113,7 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>
         <configuration>
           <archive>
@@ -121,7 +121,19 @@
               <mainClass>org.sikuli.ide.Sikulix</mainClass>
             </manifest>
           </archive>
+          <descriptors>
+            <descriptor>makeide.xml</descriptor>
+          </descriptors>
         </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -1,71 +1,6 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
-/**
- * <p>template<typename _Tp> class CV_EXPORTS Size_ <code></p>
- *
- * <p>// C++ code:</p>
- *
- *
- * <p>public:</p>
- *
- * <p>typedef _Tp value_type;</p>
- *
- * <p>//! various constructors</p>
- *
- * <p>Size_();</p>
- *
- * <p>Size_(_Tp _width, _Tp _height);</p>
- *
- * <p>Size_(const Size_& sz);</p>
- *
- * <p>Size_(const CvSize& sz);</p>
- *
- * <p>Size_(const CvSize2D32f& sz);</p>
- *
- * <p>Size_(const Point_<_Tp>& pt);</p>
- *
- * <p>Size_& operator = (const Size_& sz);</p>
- *
- * <p>//! the area (width*height)</p>
- *
- * <p>_Tp area() const;</p>
- *
- * <p>//! conversion of another data type.</p>
- *
- * <p>template<typename _Tp2> operator Size_<_Tp2>() const;</p>
- *
- * <p>//! conversion to the old-style OpenCV types</p>
- *
- * <p>operator CvSize() const;</p>
- *
- * <p>operator CvSize2D32f() const;</p>
- *
- * <p>_Tp width, height; // the width and the height</p>
- *
- * <p>};</p>
- *
- * <p>Template class for specifying the size of an image or rectangle. The class
- * includes two members called <code>width</code> and <code>height</code>. The
- * structure can be converted to and from the old OpenCV structures </code></p>
- *
- * <p><code>CvSize</code> and <code>CvSize2D32f</code>. The same set of arithmetic
- * and comparison operations as for <code>Point_</code> is available.
- * OpenCV defines the following <code>Size_<></code> aliases: <code></p>
- *
- * <p>// C++ code:</p>
- *
- * <p>typedef Size_<int> Size2i;</p>
- *
- * <p>typedef Size2i Size;</p>
- *
- * <p>typedef Size_<float> Size2f;</p>
- *
- * @see <a href="http://docs.opencv.org/modules/core/doc/basic_structures.html#size">org.opencv.core.Size_</a>
- */
+//javadoc:Size_
 public class Size {
 
     public double width, height;
@@ -100,6 +35,10 @@ public class Size {
 
     public double area() {
         return width * height;
+    }
+
+    public boolean empty() {
+        return width <= 0 || height <= 0;
     }
 
     public Size clone() {

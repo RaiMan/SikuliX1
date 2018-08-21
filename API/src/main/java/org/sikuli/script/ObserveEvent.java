@@ -188,10 +188,10 @@ public class ObserveEvent {
     return changes;
   }
 
-  protected void setChanges(List<Match> c) {
-    if (c != null) {
-      changes = new ArrayList<Match>();
-      changes.addAll(c);
+  protected void setChanges(List<Match> actualChanges) {
+    if (actualChanges != null) {
+      this.changes = new ArrayList<Match>();
+      this.changes.addAll(actualChanges);
     }
   }
 

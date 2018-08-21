@@ -28,7 +28,6 @@ public abstract class HotkeyManager {
   public static HotkeyManager getInstance() {
     if (_instance == null) {
       if (Settings.isWindows() || Settings.isMac()) {
-//      if (Settings.isMac()) {
         _instance = new GenericHotkeyManager();
       } else {
         String cls = getOSHotkeyManagerClass();
@@ -178,7 +177,7 @@ public abstract class HotkeyManager {
     boolean res;
     String txtMod = getKeyModifierText(mod);
     String txtCode = getKeyCodeText(key);
-    Debug.info("HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
+    Debug.log(3,"HotkeyManager: add %s Hotkey: %s %s (%d, %d)", hotkeyType, txtMod, txtCode, key, mod);
     boolean checkGlobal = true;
     for (Integer k : hotkeys.keySet()) {
       if (k == key && mod == hotkeys.get(key)) {

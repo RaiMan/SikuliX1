@@ -1,61 +1,6 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
-/**
- * <p>class CV_EXPORTS TermCriteria <code></p>
- *
- * <p>// C++ code:</p>
- *
- *
- * <p>public:</p>
- *
- * <p>enum</p>
- *
- *
- * <p>COUNT=1, //!< the maximum number of iterations or elements to compute</p>
- *
- * <p>MAX_ITER=COUNT, //!< ditto</p>
- *
- * <p>EPS=2 //!< the desired accuracy or change in parameters at which the
- * iterative algorithm stops</p>
- *
- * <p>};</p>
- *
- * <p>//! default constructor</p>
- *
- * <p>TermCriteria();</p>
- *
- * <p>//! full constructor</p>
- *
- * <p>TermCriteria(int type, int maxCount, double epsilon);</p>
- *
- * <p>//! conversion from CvTermCriteria</p>
- *
- * <p>TermCriteria(const CvTermCriteria& criteria);</p>
- *
- * <p>//! conversion to CvTermCriteria</p>
- *
- * <p>operator CvTermCriteria() const;</p>
- *
- * <p>int type; //!< the type of termination criteria: COUNT, EPS or COUNT + EPS</p>
- *
- * <p>int maxCount; // the maximum number of iterations/elements</p>
- *
- * <p>double epsilon; // the desired accuracy</p>
- *
- * <p>};</p>
- *
- * <p>The class defining termination criteria for iterative algorithms. You can
- * initialize it by default constructor and then override any parameters, or the
- * structure may be fully initialized using the advanced variant of the
- * constructor.
- * </code></p>
- *
- * @see <a href="http://docs.opencv.org/modules/core/doc/basic_structures.html#termcriteria">org.opencv.core.TermCriteria</a>
- */
+//javadoc:TermCriteria
 public class TermCriteria {
 
     /**
@@ -142,7 +87,6 @@ public class TermCriteria {
 
     @Override
     public String toString() {
-        if (this == null) return "null";
         return "{ type: " + type + ", maxCount: " + maxCount + ", epsilon: " + epsilon + "}";
     }
 }

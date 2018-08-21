@@ -1,9 +1,6 @@
-/*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
- */
-
 package org.opencv.core;
 
+//javadoc:RotatedRect_
 public class RotatedRect {
 
     public Point center;

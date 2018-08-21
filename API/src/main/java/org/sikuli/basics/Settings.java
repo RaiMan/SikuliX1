@@ -68,7 +68,7 @@ public class Settings {
    * jarurl: where to download the jar from (no url: this standard place)<br>
    */
 
-//<editor-fold defaultstate="collapsed" desc="moved to RunTime">
+  //<editor-fold defaultstate="collapsed" desc="moved to RunTime">
 //  public static int SikuliVersionMajor;
 //	public static int SikuliVersionMinor;
 //	public static int SikuliVersionSub;
@@ -113,9 +113,6 @@ public class Settings {
 //	public static	String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
 //
 //	public static Map<String, String> tessData = new HashMap<String, String>();
-//
-//	//TODO needed ???
-//	public static final String libOpenCV = "libopencv_java248";
 //
 //	public static String osName;
 //  public static String SikuliVersionLong;
@@ -363,6 +360,7 @@ public class Settings {
   public static boolean OcrTextSearch = true;
   public static boolean OcrTextRead = true;
   public static String OcrLanguage = "eng";
+  public static boolean SwitchToText = false;
 
   /**
    * true = start slow motion mode, false: stop it (default: false) show a

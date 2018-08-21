@@ -71,7 +71,10 @@ public class Debug {
 
 	private static PrintStream redirectedOut = null, redirectedErr = null;
 
+	public static long elapsedStart = -1;
+
   static {
+  	elapsedStart = new Date().getTime();
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null && "".equals(debug)) {
       DEBUG_LEVEL = 0;
@@ -91,12 +94,6 @@ public class Debug {
     setUserLogFile(null);
   }
 
-  public static void init() {
-    if (DEBUG_LEVEL > 0) {
-      logx(DEBUG_LEVEL, "Debug.init: from sikuli.Debug: on: %d", DEBUG_LEVEL);
-    }
-  }
-
   public static void highlightOn() {
     searchHighlight = true;
     Settings.Highlight = true;
@@ -109,6 +106,16 @@ public class Debug {
 
   public static boolean shouldHighlight() {
     return searchHighlight;
+  }
+
+  private static boolean beQuiet = false;
+
+  public static void quietOn() {
+    beQuiet = true;
+  }
+
+  public static void quietOff() {
+    beQuiet = false;
   }
 
 	/**
@@ -310,7 +317,9 @@ public class Debug {
 
 	public static void out(String msg) {
 		if (redirectedOut != null && DEBUG_LEVEL > 2) {
-			redirectedOut.println(msg);
+			if (!beQuiet) {
+        redirectedOut.println(msg);
+      }
 		}
 	}
 
@@ -578,13 +587,14 @@ public class Debug {
    */
   public static void info(String message, Object... args) {
     if (Settings.InfoLogs) {
-			if (doRedirect(CallbackType.INFO, "", message, args)) {
-				return;
+			if (is(3)) {
+				logx(3, message, args);
+			} else {
+				if (doRedirect(CallbackType.INFO, "", message, args)) {
+					return;
+				}
+				log(-1, infoPrefix, message, args);
 			}
-      log(-1, infoPrefix, message, args);
-    }
-    if (is(3)) {
-      logx(3, message, args);
     }
   }
 
@@ -674,11 +684,36 @@ public class Debug {
    */
   public static void log(int level, String message, Object... args) {
     if (Settings.DebugLogs) {
-      log(level, debugPrefix, message, args);
+    	String prefix = debugPrefix;
+      log(level, prefix, message, args);
     }
   }
 
-	/**
+  public static void logt(String message) {
+    if (!withTimeElapsed) {
+      return;
+    }
+    log(3, message);
+  }
+
+  static boolean withTimeElapsed = false;
+
+  public static void setWithTimeElapsed() {
+  	withTimeElapsed = true;
+	}
+
+  public static void setWithTimeElapsed(long start) {
+    withTimeElapsed = true;
+    if (start > 0) {
+      elapsedStart = start;
+    }
+  }
+
+  public static void unsetWithTimeElapsed() {
+    withTimeElapsed = false;
+  }
+
+  /**
 	 * INTERNAL USE: special debug messages
 	 * @param level value
 	 * @param message text or format string
@@ -687,6 +722,7 @@ public class Debug {
 	 */
 	public static String logx(int level, String message, Object... args) {
     String sout = "";
+    if (beQuiet) return sout;
     if (level == -1 || level == -100) {
       sout = log(level, errorPrefix, message, args);
     } else if (level == -2) {
@@ -701,7 +737,9 @@ public class Debug {
 
   public static String logp(String msg, Object... args) {
     String out = String.format(msg, args);
-    System.out.println(out);
+    if (!beQuiet) {
+      System.out.println(out);
+    }
     return out;
   }
 
@@ -716,6 +754,9 @@ public class Debug {
             return "";
           }
         }
+        if(withTimeElapsed) {
+					prefix = String.format("%d %s", new Date().getTime() - elapsedStart, prefix);
+				}
       }
       if (Settings.LogTime && level != -99) {
         stime = String.format(" (%s)", df.format(new Date()));
@@ -738,8 +779,10 @@ public class Debug {
           printout.print(prefix + sout);
           printout.println();
         } else {
-          System.out.print(prefix + sout);
-          System.out.println();
+          if (!beQuiet) {
+            System.out.print(prefix + sout);
+            System.out.println();
+          }
         }
         if (level == -1 || level == -100 || level > 2) {
           out(prefix + sout);

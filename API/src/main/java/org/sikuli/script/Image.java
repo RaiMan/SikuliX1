@@ -28,13 +28,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.Vision;
 
 /**
  * This class hides the complexity behind image names given as string.
@@ -220,6 +216,10 @@ public class Image {
   private int bsize = 0;
   private int bwidth = -1;
   private int bheight = -1;
+
+  public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
+    return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
+  }
 //</editor-fold>
 
   private ImageGroup group = null;
@@ -236,7 +236,7 @@ public class Image {
     return imageIsText;
   }
 
-  private Image setIsText(boolean val) {
+  protected Image setIsText(boolean val) {
     imageIsText = val;
     return this;
   }
@@ -349,14 +349,14 @@ public class Image {
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="similarity">
-  private float similarity = (float) Settings.MinSimilarity;
+  private double similarity = Settings.MinSimilarity;
 
   /**
    * Get the value of similarity
    *
    * @return the value of similarity
    */
-  public float getSimilarity() {
+  public double getSimilarity() {
     return similarity;
   }
 
@@ -366,7 +366,7 @@ public class Image {
    * @param similarity new value of similarity
    * @return the image
    */
-  public Image setSimilarity(float similarity) {
+  public Image setSimilarity(double similarity) {
     this.similarity = similarity;
     return this;
   }
@@ -632,7 +632,7 @@ public class Image {
       return new Image("", null);
     }
     if (!img.isValid()) {
-      if (Settings.OcrTextSearch) {
+      if (Settings.OcrTextSearch || Settings.SwitchToText) {
         if (Settings.isValidImageFilename(img.getName())) {
           img.setIsText(false);
         } else {
@@ -1326,66 +1326,55 @@ public class Image {
    *
    * @return OpenCV Mat
    */
-  public Mat getMat() {
-    return createMat(get());
-  }
+//  public Mat getMat() {
+//    return createMat(get());
+//  }
+//
+//  protected static Mat createMat(BufferedImage img) {
+//    if (img != null) {
+//      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
+//      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
+//      timer.lap("init");
+//      byte[] data;
+//      BufferedImage cvImg;
+//      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+//      int[] nBits = {8, 8, 8, 8};
+//      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+//      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
+//      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
+//      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+//      cvImg = new BufferedImage(cm, r, false, null);
+//      timer.lap("empty");
+//      Graphics2D g = cvImg.createGraphics();
+//      g.drawImage(img, 0, 0, null);
+//      g.dispose();
+//      timer.lap("created");
+//      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
+//      mat_ref.put(0, 0, data);
+//      Mat mat = new Mat();
+//      timer.lap("filled");
+//      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
+//      timer.end();
+//      return mat;
+//    } else {
+//      return null;
+//    }
+//  }
 
-  protected static Mat createMat(BufferedImage img) {
-    if (img != null) {
-      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
-      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
-      timer.lap("init");
-      byte[] data;
-      BufferedImage cvImg;
-      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-      int[] nBits = {8, 8, 8, 8};
-      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
-      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
-      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-      cvImg = new BufferedImage(cm, r, false, null);
-      timer.lap("empty");
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      timer.lap("created");
-      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-      mat_ref.put(0, 0, data);
-      Mat mat = new Mat();
-      timer.lap("filled");
-      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
-      timer.end();
-      return mat;
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * to get old style OpenCV Mat for FindInput
-   *
-   * @return SWIG interfaced OpenCV Mat
-   * @deprecated
-   */
-  @Deprecated
-  protected org.sikuli.natives.Mat getMatNative() {
-    return convertBufferedImageToMat(get());
-  }
-
-  protected static org.sikuli.natives.Mat convertBufferedImageToMat(BufferedImage img) {
-    if (img != null) {
-      long theMatTime = new Date().getTime();
-      byte[] data = convertBufferedImageToByteArray(img);
-      org.sikuli.natives.Mat theMat = Vision.createMat(img.getHeight(), img.getWidth(), data);
-      if (Settings.FindProfiling) {
-        Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
-                img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);
-      }
-      return theMat;
-    } else {
-      return null;
-    }
-  }
+//TODO  protected static MatNative convertBufferedImageToMat(BufferedImage img) {
+//    if (img != null) {
+//      long theMatTime = new Date().getTime();
+//      byte[] data = convertBufferedImageToByteArray(img);
+//      MatNative theMat = VisionNative.createMat(img.getHeight(), img.getWidth(), data);
+//      if (Settings.FindProfiling) {
+//        Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
+//                img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);
+//      }
+//      return theMat;
+//    } else {
+//      return null;
+//    }
+//  }
 
   protected static byte[] convertBufferedImageToByteArray(BufferedImage img) {
     if (img != null) {
@@ -1470,22 +1459,10 @@ public class Image {
 
 	/**
 	 * OCR-read the text from the image
-	 * @return the text or null
+	 * @return the text or empty string
 	 */
 	public String text() {
-//TODO: use Tess4J here already??
-    if (Settings.OcrTextRead) {
-      TextRecognizer tr = TextRecognizer.getInstance();
-      if (tr == null) {
-        Debug.error("text: text recognition is now switched off");
-        return null;
-      }
-      String textRead = tr.recognize(this.get());
-      log(lvl, "text: #(" + textRead + ")#");
-      return textRead;
-    }
-    Debug.error("text: text recognition is currently switched off");
-		return null;
+      return TextRecognizer.doOCR(this.get());
 	}
 
 	/**

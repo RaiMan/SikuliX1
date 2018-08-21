@@ -808,16 +808,21 @@ public class Key {
     if (!RunTime.get().runningWindows) {
       return false;
     }
+    int state = 0;
     switch (key) {
       case '\ue025':
-        return SysJNA.WinUser32.isScrollLockOn();
+        state = SysJNA.WinUser32.isScrollLockOn();
+        break;
       case '\ue027':
-        return SysJNA.WinUser32.isCapsLockOn();
+        state =  SysJNA.WinUser32.isCapsLockOn();
+        break;
       case '\ue03B':
-        return SysJNA.WinUser32.isNumLockOn();
+        state = SysJNA.WinUser32.isNumLockOn();
+        break;
       default:
         return false;
     }
+    return (state % 2) > 0;
   }
 
 	/**
