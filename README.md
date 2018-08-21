@@ -1,10 +1,23 @@
 [![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://www.sikuli.org) SikuliX 1.1.4 (under developement)
 ============
 
-Main intention for this version is to backport the Java-only OpenCV 3.x implementation from version 2<br>
-and implement the text features via Tess4J (also backport from version 2).
+[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014)
 
-[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+Since version 2 is still in a very experimental stage and needs a complete revision, I thought, that it might be the
+time, to implement some of the version-2-ideas into the current version 1.
+
+**Major changes and enhancements**
+ - latest OpenCV 3.x
+ - support for transparency
+ - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 3.x)
+ - packaging reduced to downloadable, ready-to-use API and IDE jars (bye, bye Setup ;-) 
+ - revision of the IDE and its feature implementations
+ 
+[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) (sorry, not yet ready)
+
+[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+
+Sorry, Linux people: not yet useable for you :-(
 
 **Developement is done on Java 11 now**
 
@@ -14,19 +27,17 @@ and implement the text features via Tess4J (also backport from version 2).
 
 <hr>
 
-**SNAPSHOTS on OSSRH** (not yet available)<br>
+**API SNAPSHOT on OSSRH**<br>
 
 The repository URL:<br>
-`<url>http://oss.sonatype.org/content/groups/public</url>`<br>
+```
+<url>http://oss.sonatype.org/content/groups/public</url>
+```
 
-The coordinates will be (when available):
+The coordinates are:
 ```
 <groupId>com.sikulix</groupId>
 <artifactId>sikulixapi</artifactId>
 <version>1.1.4-SNAPSHOT</version>
 ```
-
-<hr>
-
-**For all other information look into branch master (version 1.1.3)**
 
