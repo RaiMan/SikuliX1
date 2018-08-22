@@ -18,7 +18,6 @@ install: mvn install -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
-- echo ---------- deploy
 - ". API/target/classes/setup/content/deployOSSRH"
 - echo ------- javadocs
 - ". API/target/classes/setup/content/createJavadocs"
