@@ -220,7 +220,6 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
-      TextRecognizer.start();
       after();
     }
 

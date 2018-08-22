@@ -1,21 +1,15 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.setup;
+package org.sikuli.util;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.RunTime;
 import org.sikuli.util.LinuxSupport;
 import org.sikuli.util.ProcessRunner;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -61,7 +55,6 @@ public class RunSetup {
   private static String localJRubyAddOns = "sikulixjrubyaddons.jar";
   private static String runsikulix = "runsikulix";
   private static String localLogfile;
-  private static JFrame winSetup;
   private static boolean getIDE, getJython, getAPI;
   private static boolean getRServer = false;
   private static boolean forAllSystems = false;
@@ -71,7 +64,6 @@ public class RunSetup {
   private static String localJar;
   private static boolean hasOptions = false;
   private static List<String> options = new ArrayList<String>();
-  private static JFrame splash = null;
   private static String me = "RunSetup";
   private static int lvl = 2;
   private static String msg;
@@ -1029,8 +1021,6 @@ public class RunSetup {
       }
     };
 
-    splash = showSplash("Now creating jars, application and commandfiles", "please wait - may take some seconds ...");
-
     if (getTess) {
       //jarsList[2] = (new File(workDir, localTess)).getAbsolutePath();
     }
@@ -1111,8 +1101,6 @@ public class RunSetup {
       }
     }
 
-    closeSplash(splash);
-
     if (!success) {
       popError("Bad things happened trying to add native stuff to selected jars --- terminating!");
       terminate("Adding stuff to jars did not work");
@@ -1128,10 +1116,6 @@ public class RunSetup {
     if (getAPI && !notests && !runTime.isHeadless()) {
       String apiTest = hasOptions ? "testSetupSilent" : "testSetup";
       logPlus(lvl, "Trying to run functional test: JAVA-API %s", splashJava9);
-      splash = showSplash("Trying to run functional test(s) - wait for the result popup",
-              splashJava9 + " Java-API: org.sikuli.script.Sikulix.testSetup()");
-      start += 2000;
-      closeSplash(splash);
       if (runTime.isJava9("setup API test - with ProcessRunner")) {
         String result = null;
         try {
@@ -1146,7 +1130,6 @@ public class RunSetup {
         }
       } else {
         if (!runTime.addToClasspath(localJarAPI.getAbsolutePath())) {
-          closeSplash(splash);
           log(-1, "Java-API test: ");
           popError("Something serious happened! Sikuli not useable!\n"
                   + "Check the error log at " + (logfile == null ? "printout" : logfile));
@@ -1160,14 +1143,12 @@ public class RunSetup {
           Method method = SikuliCL.getDeclaredMethod(apiTest, new Class[0]);
           log(lvl, "getMethod: " + method.toString());
           method.setAccessible(true);
-          closeSplash(splash);
           log(lvl, "invoke: " + method.toString());
           Object ret = method.invoke(null, new Object[0]);
           if (!(Boolean) ret) {
             throw new Exception("testSetup returned false");
           }
         } catch (Exception ex) {
-          closeSplash(splash);
           log(-1, ex.getMessage());
           popError("Something serious happened! Sikuli not useable!\n"
                   + "Check the error log at " + (logfile == null ? "printout" : logfile));
@@ -1186,7 +1167,6 @@ public class RunSetup {
       }
       if (!runTime.isJava9("setup IDE test - addToClasspath() skipped")) {
         if (!runTime.addToClasspath(localJarIDE.getAbsolutePath())) {
-          closeSplash(splash);
           popError("Something serious happened! Sikuli not useable!\n"
                   + "Check the error log at " + (logfile == null ? "printout" : logfile));
           terminate("Functional test IDE did not work", 1);
@@ -1200,18 +1180,13 @@ public class RunSetup {
           testMethod = "Sikulix.testSetup('Jython Scripting')";
         }
         logPlus(lvl, "Jython: Trying to run functional test: running script statements via SikuliScript");
-        splash = showSplash("Jython Scripting: Trying to run functional test - wait for the result popup",
-                splashJava9 + "   Running script statements via SikuliScript");
-        start += 2000;
         try {
           String testargs[] = new String[]{"-testSetup", "jython", testMethod};
-          closeSplash(splash);
           runScriptTest(testargs);
           if (null == testargs[0]) {
             throw new Exception("testSetup ran with problems");
           }
         } catch (Exception ex) {
-          closeSplash(splash);
           success &= false;
           log(-1, ex.getMessage());
           popError("Something serious happened! Sikuli not useable!\n"
@@ -1234,18 +1209,13 @@ public class RunSetup {
           }
         }
         logPlus(lvl, "JRuby: Trying to run functional test: running script statements via SikuliScript");
-        splash = showSplash("JRuby Scripting: Trying to run functional test - wait for the result popup",
-                splashJava9 + "Running script statements via SikuliScript");
-        start += 2000;
         try {
           String testargs[] = new String[]{"-testSetup", "jruby", testMethod};
-          closeSplash(splash);
           runScriptTest(testargs);
           if (null == testargs[0]) {
             throw new Exception("testSetup ran with problems");
           }
         } catch (Exception ex) {
-          closeSplash(splash);
           success &= false;
           log(-1, "content of returned error's (%s) message:\n%s", ex, ex.getMessage());
           popError("Something serious happened! Sikuli not useable!\n"
@@ -1255,21 +1225,9 @@ public class RunSetup {
       }
       if (success && Settings.isMac()) {
         logPlus(lvl, "MacApp created - should be moved to /Applications");
-        splash = showSplash(splashJava9 + "MacApp created",
-                "Should be moved to /Applications");
-        start += 3000;
-        closeSplash(splash);
       }
     }
     //</editor-fold>
-
-    if (!notests) {
-      splash = showSplash(splashJava9 + "Setup seems to have ended successfully!",
-              "Detailed information see: " + (logfile == null ? "printout" : logfile));
-      start += 2000;
-
-      closeSplash(splash);
-    }
 
     logPlus(lvl, "... SikuliX Setup seems to have ended successfully ;-)");
 
@@ -1632,14 +1590,14 @@ public class RunSetup {
   private static void popError(String msg) {
     logPlus(3, "\npopError: " + packMessage(msg));
     if (!hasOptions) {
-      JOptionPane.showMessageDialog(null, msg, "SikuliX-Setup: having problems ...", JOptionPane.ERROR_MESSAGE);
+      //JOptionPane.showMessageDialog(null, msg, "SikuliX-Setup: having problems ...", JOptionPane.ERROR_MESSAGE);
     }
   }
 
   private static void popInfo(String msg) {
     logPlus(3, "\npopInfo: " + packMessage(msg));
     if (!hasOptions) {
-      JOptionPane.showMessageDialog(null, msg, "SikuliX-Setup: info ...", JOptionPane.PLAIN_MESSAGE);
+      //JOptionPane.showMessageDialog(null, msg, "SikuliX-Setup: info ...", JOptionPane.PLAIN_MESSAGE);
     }
   }
 
@@ -1648,33 +1606,11 @@ public class RunSetup {
     if (hasOptions) {
       return true;
     }
-    int ret = JOptionPane.showConfirmDialog(null, msg, "SikuliX-Setup: question ...", JOptionPane.YES_NO_OPTION);
-    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
-      return false;
-    }
+//    int ret = JOptionPane.showConfirmDialog(null, msg, "SikuliX-Setup: question ...", JOptionPane.YES_NO_OPTION);
+//    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
+//      return false;
+//    }
     return true;
-  }
-
-  private static JFrame showSplash(String title, String msg) {
-    if (hasOptions | notests) {
-      return null;
-    }
-    start = (new Date()).getTime();
-    return new SplashFrame(new String[]{"splash", "# " + title, "#... " + msg});
-  }
-
-  private static void closeSplash(JFrame splash) {
-    if (splash == null) {
-      return;
-    }
-    long elapsed = (new Date()).getTime() - start;
-    if (elapsed < 3000) {
-      try {
-        Thread.sleep(3000 - elapsed);
-      } catch (InterruptedException ex) {
-      }
-    }
-    splash.dispose();
   }
 
   private static File download(String sDir, String tDir, String item, String itemName) {
@@ -1697,9 +1633,6 @@ public class RunSetup {
       logPlus(lvl, "SilentSetup: Downloading: %s", itemName);
       fname = FileManager.downloadURL(dlSource, tDir, null);
     } else {
-      JFrame progress = new SplashFrame("download");
-      fname = FileManager.downloadURL(dlSource, tDir, progress);
-      progress.dispose();
     }
     if (null == fname) {
       return null;

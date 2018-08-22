@@ -8,9 +8,9 @@ import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXSearchField;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
-import org.sikuli.android.ADBClient;
-import org.sikuli.android.ADBScreen;
-import org.sikuli.android.ADBTest;
+//import org.sikuli.android.ADBClient;
+//import org.sikuli.android.ADBScreen;
+//import org.sikuli.android.ADBTest;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
@@ -380,12 +380,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     tabPane.setSelectedIndex(0);
 
-    Debug.info("IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
+    Debug.log(lvl,"IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
     Debug.unsetWithTimeElapsed();
 
     if (runTime.isJava9()) {
-      Debug.info("*** BE AWARE: Running on Java 9+");
-      Debug.info("*** Please report problems");
+      Debug.log("*** BE AWARE: Running on Java 9+");
     }
 //    if (waitBeforeVisible > 0) {
 //      try {
@@ -1740,9 +1739,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null,
             new ToolAction(ToolAction.EXTENSIONS)));
 
-    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-            null,
-            new ToolAction(ToolAction.ANDROID)));
+//    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
+//            null,
+//            new ToolAction(ToolAction.ANDROID)));
   }
 
   class ToolAction extends MenuAction {
@@ -1762,9 +1761,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       showExtensionsFrame();
     }
 
-    public void android(ActionEvent ae) {
-      androidSupport();
-    }
+//    public void android(ActionEvent ae) {
+//      androidSupport();
+//    }
 
   }
 
@@ -1800,6 +1799,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return defaultScreen;
   }
 
+/*
   private void androidSupport() {
 //    if (runTime.isJava9("Android/adbc not working yet")) {
 //      return;
@@ -1845,6 +1845,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     ADBTest.ideTest(aScr);
     SikuliIDE.showIDE();
   }
+*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Init Help Menu">
