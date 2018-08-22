@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,10 +75,10 @@ public class Sikulix {
     if (sxFolderList.length > 0) {
       for (File fJar : sxFolderList) {
         try {
-          Files.copy(fJar.toPath(), fDirExtensions.toPath().resolve(fJar.toPath().getFileName()));
-          log(1, "copying to extensions: %s", fJar);
+          Files.move(fJar.toPath(), fDirExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
+          log(1, "moving to extensions: %s", fJar);
         } catch (IOException e) {
-          log(-1, "copying to extensions: %s (%s)", fJar, e.getMessage());
+          log(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
         }
       }
     }
