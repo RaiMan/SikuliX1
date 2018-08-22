@@ -23,10 +23,6 @@ Sorry, Linux people: not yet useable for you :-(
 
 **Developement is done on Java 11 now**
 
-[looking for 1.1.3 - get nightly builds](https://raiman.github.io/SikuliX1/nightly.html)
-
-[looking for 1.1.2 final (available 2018-03-10)](https://launchpad.net/sikuli/sikulix/1.1.2)
-
 <hr>
 
 **API SNAPSHOT on OSSRH** (currently only for Mac and Windows)<br>
