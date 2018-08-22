@@ -19,10 +19,8 @@ before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
 - ". API/target/classes/setup/content/deployOSSRH"
-- echo ------- javadocs
-- ". API/target/classes/setup/content/createJavadocs"
-- echo ------- uploads
 - ". API/target/classes/setup/content/upload"
+- ". API/target/classes/setup/content/createJavadocs"
 deploy:
   provider: pages
   skip_cleanup: true
