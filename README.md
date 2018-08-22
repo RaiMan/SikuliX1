@@ -1,4 +1,4 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://www.sikuli.org) SikuliX 1.1.4 (under developement)
+[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://www.sikuli.org) SikuliX 1.1.4
 ============
 
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014)
@@ -13,7 +13,10 @@ time, to implement some of the version-2-ideas into the current version 1.
  - packaging reduced to downloadable, ready-to-use API and IDE jars (bye, bye Setup ;-) 
  - revision of the IDE and its feature implementations
  
-[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) (sorry, not yet ready :-(
+ **Be aware**
+ This version is a developement version and currently only available as nightly build.
+ 
+[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) 
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
