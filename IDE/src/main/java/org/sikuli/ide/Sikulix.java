@@ -8,7 +8,9 @@ import org.sikuli.util.ProcessRunner;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ public class Sikulix {
 
   static boolean verbose = false;
   static String jarName = "";
+  static File sxFolder = null;
   static File fAppData;
   static File fDirExtensions = null;
   static File[] fExtensions = null;
@@ -32,6 +35,7 @@ public class Sikulix {
     CodeSource codeSrc = SikuliIDE.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
       jarName = codeSrc.getLocation().getPath();
+      sxFolder = new File(jarName).getParentFile();
     }
 
     if (args.length > 0 && args[0].startsWith("-v")) {
@@ -50,7 +54,34 @@ public class Sikulix {
       return;
     }
 
+    File[] sxFolderList = sxFolder.listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.endsWith(".jar")) {
+          if (name.contains("jython") && name.contains("standalone")) {
+            return true;
+          }
+          if (name.contains("jruby") && name.contains("complete")) {
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+
     fDirExtensions = new File(fAppData, "Extensions");
+
+    if (sxFolderList.length > 0) {
+      for (File fJar : sxFolderList) {
+        try {
+          Files.copy(fJar.toPath(), fDirExtensions.toPath().resolve(fJar.toPath().getFileName()));
+          log(1, "copying to extensions: %s", fJar);
+        } catch (IOException e) {
+          log(-1, "copying to extensions: %s (%s)", fJar, e.getMessage());
+        }
+      }
+    }
+
     if (fDirExtensions.exists()) {
       log(1, "looking for extension jars in: %s", fDirExtensions);
       fExtensions = fDirExtensions.listFiles();
