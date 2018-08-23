@@ -2492,11 +2492,10 @@ public class RunTime {
       String separator = File.pathSeparator;
       String cp = System.getProperty("java.class.path");
       classPathList = Arrays.asList(cp.split(separator));
-
     } else {
+      classPath.clear();
       URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
       classPath = Arrays.asList(sysLoader.getURLs());
-      classPath.clear();
       classPathList.clear();
       for (URL urlPath : classPath) {
         classPathList.add(urlPath.toExternalForm());
