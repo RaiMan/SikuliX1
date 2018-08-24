@@ -45,7 +45,7 @@ public class Finder2 {
     }
 
     public static void error(String msg, Object... args) {
-      Debug.log(-1, prefix + msg, args);
+      Debug.error(prefix + msg, args);
     }
 
     public static void trace(String msg, Object... args) {
@@ -342,26 +342,30 @@ public class Finder2 {
 
   private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
     Mat mResult = getNewMat();
-    if (!findInput.isPlainColor()) {
-      if (findInput.hasMask()) {
-        Mat mask = findInput.getMask();
-        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
-      } else {
-        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
-      }
+    if (what.empty()) {
+      log.error("doFindMatch: image conversion to cvMat did not work");
     } else {
-      Mat wherePlain = where;
-      Mat whatPlain = what;
-      if (findInput.isBlack()) {
-        Core.bitwise_not(where, wherePlain);
-        Core.bitwise_not(what, whatPlain);
-      }
-      if (findInput.hasMask()) {
-        Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+      if (!findInput.isPlainColor()) {
+        if (findInput.hasMask()) {
+          Mat mask = findInput.getMask();
+          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
+        } else {
+          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
+        }
       } else {
-        Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+        Mat wherePlain = where;
+        Mat whatPlain = what;
+        if (findInput.isBlack()) {
+          Core.bitwise_not(where, wherePlain);
+          Core.bitwise_not(what, whatPlain);
+        }
+        if (findInput.hasMask()) {
+          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+        } else {
+          Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+        }
+        Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
       }
-      Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
     }
     return mResult;
   }
@@ -511,8 +515,8 @@ public class Finder2 {
       aMat.put(0, 0, data);
       return aMat;
     } else {
-      log.error("makeMat: Type not supported: %d (%dx%d)",
-              bImg.getType(), bImg.getWidth(), bImg.getHeight());
+      log.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
+      RunTime.get().terminate(-1, "makes no sense to continue");
     }
     return getNewMat();
   }
