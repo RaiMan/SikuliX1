@@ -516,7 +516,6 @@ public class Finder2 {
       return aMat;
     } else {
       log.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
-      RunTime.get().terminate(-1, "makes no sense to continue");
     }
     return getNewMat();
   }
