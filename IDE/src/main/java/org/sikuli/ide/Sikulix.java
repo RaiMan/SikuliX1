@@ -72,6 +72,14 @@ public class Sikulix {
 
     fDirExtensions = new File(fAppData, "Extensions");
 
+    if (!fDirExtensions.exists()) {
+      fDirExtensions.mkdir();
+    }
+
+    if (!fDirExtensions.exists()) {
+      log(1, "folder extension not available: %s", fDirExtensions);
+    }
+
     if (sxFolderList.length > 0) {
       for (File fJar : sxFolderList) {
         try {
@@ -83,10 +91,8 @@ public class Sikulix {
       }
     }
 
-    if (fDirExtensions.exists()) {
-      log(1, "looking for extension jars in: %s", fDirExtensions);
-      fExtensions = fDirExtensions.listFiles();
-    }
+    log(1, "looking for extension jars in: %s", fDirExtensions);
+    fExtensions = fDirExtensions.listFiles();
 
     ClassPath = jarName;
     String separator = File.pathSeparator;
@@ -126,6 +132,7 @@ public class Sikulix {
     String userHome = System.getProperty("user.home");
     if (userHome == null || userHome.isEmpty() || !(fUserDir = new File(userHome)).exists()) {
       log(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
+      System.exit(-1);
     } else {
       if ("w".equals(osName)) {
         String appPath = System.getenv("APPDATA");
@@ -139,6 +146,13 @@ public class Sikulix {
       } else {
         fAppPath = fUserDir;
         fSikulixAppPath = new File(fAppPath, ".Sikulix");
+      }
+      if (!fSikulixAppPath.exists()) {
+        fSikulixAppPath.mkdirs();
+      }
+      if (!fSikulixAppPath.exists()) {
+        log(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
+        System.exit(-1);
       }
     }
     return fSikulixAppPath;
