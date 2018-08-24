@@ -88,25 +88,27 @@ public class ProcessRunner {
       Map<String, String> processEnv = app.environment();
       app.command(cmd);
       app.redirectErrorStream(true);
+      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
       Process process = null;
       try {
         process = app.start();
       } catch (Exception e) {
         p("[Error] ProcessRunner: start: %s", e.getMessage());
       }
-      try {
-        if (process != null) {
-          InputStreamReader reader = new InputStreamReader(process.getInputStream());
-          BufferedReader processOut = new BufferedReader(reader);
-          String line = processOut.readLine();
-          while (null != line) {
-            System.out.println(line);
-            line = processOut.readLine();
-          }
-        }
-      } catch (IOException e) {
-        p("[Error] ProcessRunner: read: %s", e.getMessage());
-      }
+//      try {
+//        if (process != null) {
+//          InputStreamReader reader = new InputStreamReader(process.getInputStream());
+//          BufferedReader processOut = new BufferedReader(reader);
+//          String line = processOut.readLine();
+//          while (null != line) {
+//            System.out.println(line);
+//            line = processOut.readLine();
+//          }
+//        }
+//      } catch (IOException e) {
+//        p("[Error] ProcessRunner: read: %s", e.getMessage());
+//      }
       try {
         if (process != null) {
           process.waitFor();

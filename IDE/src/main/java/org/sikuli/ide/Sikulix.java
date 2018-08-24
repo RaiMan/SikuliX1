@@ -44,11 +44,13 @@ public class Sikulix {
       args[0] += start;
     }
 
-    if (jarName.endsWith(".jar")) {
+    fAppData = makeAppData();
+    log(1, "Running: %s", jarName);
+    log(1, "AppData: %s", fAppData);
+
+    boolean runningJar = jarName.endsWith(".jar");
+    if (runningJar || verbose) {
       log(1, "starting");
-      fAppData = makeAppData();
-      log(1, "Running: %s", jarName);
-      log(1, "AppData: %s", fAppData);
     } else {
       prepareMac();
       SikulixRunIDE.main(args);
@@ -94,7 +96,11 @@ public class Sikulix {
     log(1, "looking for extension jars in: %s", fDirExtensions);
     fExtensions = fDirExtensions.listFiles();
 
-    ClassPath = jarName;
+    if (runningJar) {
+      ClassPath = jarName;
+    } else {
+      ClassPath = System.getProperty("java.class.path");
+    }
     String separator = File.pathSeparator;
     for (File fExtension : fExtensions) {
       if (!ClassPath.isEmpty()) ClassPath += separator;
