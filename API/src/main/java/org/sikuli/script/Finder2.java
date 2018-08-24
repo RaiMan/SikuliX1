@@ -13,7 +13,7 @@ import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 
 import javax.imageio.ImageIO;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
@@ -490,6 +490,15 @@ public class Finder2 {
     } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
       log.trace("makeMat: 3BYTE_BGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
       byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+      log.trace("makeMat: BYTE_INDEXED (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg,0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
       Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
       aMatBGR.put(0, 0, data);
       return aMatBGR;

@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
 
@@ -219,11 +220,8 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
+      //Debug.on(3);
       //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
-      show("playbackControlsShot", 0);
-      scr.wait(2.0);
-      match = scr.exists("playbackControls", 10);
-      match.highlight(2);
       after();
     }
 
