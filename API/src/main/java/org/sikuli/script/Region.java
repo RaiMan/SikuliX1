@@ -4736,8 +4736,26 @@ public class Region {
     return findWords("");
   }
 
+  public List<String> collectWordsText() {
+    List<String> words = new ArrayList<>();
+    List<Match> matches = collectWords();
+    for (Match match : matches) {
+      words.add(match.getText());
+    }
+    return words;
+  }
+
   public List<Match> collectLines() {
     return findLines("");
+  }
+
+  public List<String> collectLinesText() {
+    List<String> lines = new ArrayList<>();
+    List<Match> matches = collectLines();
+    for (Match match : matches) {
+      lines.add(match.getText());
+    }
+    return lines;
   }
   //</editor-fold>
 }

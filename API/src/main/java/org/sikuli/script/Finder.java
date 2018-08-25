@@ -214,7 +214,11 @@ public class Finder implements Iterator<Match> {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       newBimg = Settings.ImageCallback.callback(img);
     }
-    return Finder2.makeMat(newBimg, false);
+    Mat mat = Finder2.makeMat(newBimg, false);
+    if (mat.empty()) {
+      RunTime.get().terminate(-1, "%s: conversion error --- makes no sense to continue", img);
+    }
+    return mat;
   }
 
   /**
