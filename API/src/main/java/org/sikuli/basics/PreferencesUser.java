@@ -490,6 +490,8 @@ public class PreferencesUser {
     setPrefMoreImages(false);
     setPrefMoreImagesPath("");
 
+    setPrefMoreMessage(PreferencesUser.VERTICAL);
+
 // ***** message area settings
     setPrefMoreLogActions(true);
     setPrefMoreLogInfo(true);
