@@ -32,6 +32,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
   private EditorPane pane;
   private float sim;
   private float resizeFactor;
+  private String mask;
   private Location off;
   private String imgName = null;
   private String imgNameShort = null;
@@ -76,6 +77,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
     sim = 0.7F;
     off = new Location(0, 0);
     resizeFactor = 0;
+    mask = "";
     if ("".equals(pyText)) {
       lblText = CAPTURE;
       pyText = "\"" + lblText + "\"";
@@ -115,6 +117,8 @@ public class EditorPatternLabel extends EditorRegionLabel {
             rf = 0;
           }
           resizeFactor = rf;
+        } else if (tok.contains("Mask")) {
+          mask = tok;
         }
       }
       if (lblText != null) {
@@ -231,15 +235,19 @@ public class EditorPatternLabel extends EditorRegionLabel {
     }
     String buttonResize = "";
     if (resizeFactor > 0 && resizeFactor != 1) {
-      buttonResize = String.format(" +%3.1f", resizeFactor);
+      buttonResize = String.format(" +%3.1f", resizeFactor).replace(",", ".");
     }
-    lblText = imgNameShort + buttonSimilar + buttonOffset + buttonResize;
+    String buttonMask = "";
+    if (!mask.isEmpty()) {
+      buttonMask = " M";
+    }
+    lblText = imgNameShort + buttonSimilar + buttonOffset + buttonResize + buttonMask;
     setText(lblText);
   }
 
   public void setLabelPyText() {
     if (!lblText.startsWith(NOTFOUND)) {
-      pyText = pane.getPatternString(imgName, sim, off, image, resizeFactor);
+      pyText = pane.getPatternString(imgName, sim, off, image, resizeFactor, mask);
     }
   }
 

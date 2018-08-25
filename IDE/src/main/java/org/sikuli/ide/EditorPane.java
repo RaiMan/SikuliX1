@@ -1147,7 +1147,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor) {
+  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor, String mask) {
 //TODO ifn really needed??
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
@@ -1159,7 +1159,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     String pat = "Pattern(\"" + imgName + "\")";
     String patternString = "";
     if (resizeFactor > 0 && resizeFactor != 1) {
-      patternString += String.format(".resize(%.2f)", resizeFactor);
+      patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
     }
     if (sim > 0) {
       if (sim >= 0.99F) {
@@ -1170,6 +1170,9 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
     if (off != null && (off.x != 0 || off.y != 0)) {
       patternString += ".targetOffset(" + off.x + "," + off.y + ")";
+    }
+    if (null != mask && !mask.isEmpty()) {
+      patternString += "." + mask + ")";
     }
     if (!patternString.equals("")) {
       patternString = pat + patternString;
