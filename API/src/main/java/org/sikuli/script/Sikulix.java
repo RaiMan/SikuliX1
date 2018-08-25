@@ -76,7 +76,7 @@ public class Sikulix {
   public static void main(String[] args) throws FindFailed {
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.println(rt.sxBuild);
+      System.out.print(rt.sxBuild);
       cleanUp(0);
       System.exit(0);
     }
