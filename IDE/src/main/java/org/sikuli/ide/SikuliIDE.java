@@ -337,7 +337,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     JPanel codeAndUnitPane = new JPanel(new BorderLayout(10, 10));
     codeAndUnitPane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codeAndUnitPane.add(tabPane, BorderLayout.CENTER);
-    _mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codeAndUnitPane, msgPane);
+    if (prefs.getPrefMoreMessage() == PreferencesUser.VERTICAL) {
+      _mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codeAndUnitPane, msgPane);
+    } else {
+      _mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, codeAndUnitPane, msgPane);
+    }
     _mainSplitPane.setResizeWeight(0.6);
     _mainSplitPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 

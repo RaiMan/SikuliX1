@@ -30,7 +30,6 @@ public class Sikulix {
   static String ClassPath = "";
   static String start = String.format("%d", new Date().getTime());
   static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
-  ;
 
   public static void main(String[] args) {
     CodeSource codeSrc = SikuliIDE.class.getProtectionDomain().getCodeSource();
@@ -52,7 +51,6 @@ public class Sikulix {
     if (runningJar || verbose) {
       log(1, "starting");
     } else {
-      prepareMac();
       SikulixRunIDE.main(args);
       return;
     }
@@ -113,6 +111,10 @@ public class Sikulix {
     }
     List<String> cmd = new ArrayList<>();
     cmd.add("java");
+//    if ("m".equals(osName)) {
+//      cmd.add("-Xdock:name=SikuliX");
+//      cmd.add("-Xdock:icon=\"" + new File(fAppData, "SikulixLibs/sikulix.icns").getAbsolutePath() + "\"");
+//    }
     cmd.add("-cp");
     cmd.add(ClassPath);
     cmd.add("org.sikuli.ide.SikulixRunIDE");

@@ -9,6 +9,8 @@ import org.sikuli.script.RunTime;
 
 public class SikulixRunIDE {
 
+  static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
+
   public static void main(String[] args) {
 
     if (args.length > 0 && args[0].startsWith("-v")) {
@@ -27,7 +29,9 @@ public class SikulixRunIDE {
       Debug.log(3,"Sikulix: starting IDE");
     }
 
-    Sikulix.prepareMac();
+    if ("m".equals(osName)) {
+      Sikulix.prepareMac();
+    }
 
     RunTime runTime = RunTime.get(RunTime.Type.IDE, args);
 

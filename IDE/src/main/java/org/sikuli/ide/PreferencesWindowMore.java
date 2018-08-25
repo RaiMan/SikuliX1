@@ -31,6 +31,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		prefMoreLogInfo.setSelected(prefs.getPrefMoreLogInfo());
 		prefMoreImageThumbs.setSelected(prefs.getPrefMoreImageThumbs());
 		prefMorePlainText.setSelected(prefs.getPrefMorePlainText());
+    prefMoreMessage.setSelected(prefs.getPrefMoreMessage() == PreferencesUser.HORIZONTAL);
 		DEBUG = debug;
 		openingWindow = false;
 	}
@@ -262,15 +263,15 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
         .add(prefMoreRunSave)
         .add(78, 78, 78)
         .add(prefMoreHighlight))
-//      .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 570, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-//      .add(layout.createSequentialGroup()
-//        .add(32, 32, 32)
-//        .add(prefMoreLblLayout)
-//        .add(40, 40, 40)
-//        .add(prefMoreMessage)
+      .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 570, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+      .add(layout.createSequentialGroup()
+        .add(32, 32, 32)
+        .add(prefMoreLblLayout)
+        .add(40, 40, 40)
+        .add(prefMoreMessage)
 //        .add(26, 26, 26)
-//        .add(prefMoreCommand))
-//        )
+//        .add(prefMoreCommand)
+      )
       .add(layout.createSequentialGroup()
         .add(6, 6, 6)
         .add(jSeparator6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 564, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
@@ -342,16 +343,16 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
           .add(prefMoreRunSave)
           .add(prefMoreHighlight))
         .add(5, 5, 5)
-//        .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-//        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-//        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-//          .add(layout.createSequentialGroup()
-//            .add(4, 4, 4)
-//            .add(prefMoreLblLayout))
-//          .add(prefMoreMessage)
+        .add(jSeparator3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+          .add(layout.createSequentialGroup()
+            .add(4, 4, 4)
+            .add(prefMoreLblLayout))
+          .add(prefMoreMessage)
 //          .add(prefMoreCommand)
-//            )
-//        .add(6, 6, 6)
+            )
+        .add(6, 6, 6)
         .add(jSeparator6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 10, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         .add(6, 6, 6)
         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -423,6 +424,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		prefs.setPrefMoreLogDebug(isSelected(prefMoreLogDebug));
 		prefs.setPrefMoreImageThumbs(isSelected(prefMoreImageThumbs));
 		prefs.setPrefMorePlainText(isSelected(prefMorePlainText));
+    prefs.setPrefMoreMessage(isSelected(prefMoreMessage) ? PreferencesUser.HORIZONTAL : PreferencesUser.VERTICAL);
 		setStatus(msg, true);
 	}
 

@@ -393,6 +393,14 @@ public class PreferencesUser {
   }
 
   // ***** message area settings
+  public void setPrefMoreMessage(int typ) {
+    pref.putInt("PREF_MORE_MESSAGE", typ);
+  }
+
+  public int getPrefMoreMessage() {
+    return pref.getInt("PREF_MORE_MESSAGE", HORIZONTAL);
+  }
+
   public void setPrefMoreLogActions(boolean flag) {
     pref.putBoolean("PREF_MORE_LOG_ACTIONS", flag);
   }
