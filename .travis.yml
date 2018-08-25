@@ -21,6 +21,7 @@ script:
 - ". API/target/classes/setup/content/deployOSSRH"
 - ". API/target/classes/setup/content/upload"
 - ". API/target/classes/setup/content/createJavadocs"
+- ". API/target/classes/setup/content/createDownloadPage"
 deploy:
   provider: pages
   skip_cleanup: true

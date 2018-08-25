@@ -75,6 +75,12 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
 
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      System.out.println(rt.sxBuild);
+      cleanUp(0);
+      System.exit(0);
+    }
+
     RunTime.checkArgs(rt, args, RunTime.Type.API);
     if (rt.runningScripts) {
       int exitCode = Runner.runScripts(args);

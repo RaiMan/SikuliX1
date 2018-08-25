@@ -1,0 +1,13 @@
+jar=`ls Setup/target/sikulixsetup*forsetup.jar`
+echo ------ updating downloads page
+
+
+
+build=`java -jar API/target/sikulixapi-1.1.4-SNAPSHOT-complete.jar buildDate`
+
+echo "s/##sikulixapiide##/$build/" >sedcommand
+echo "s/##TRAVIS_BUILD_NUMBER##/$TRAVIS_BUILD_NUMBER/" >>sedcommand
+cat sedcommand
+
+sed -f sedcommand Setup/target/classes/content/downloads.txt >pages/downloads.html
+
