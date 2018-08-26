@@ -233,19 +233,13 @@ public class RunTime {
     String vVM = System.getProperty("java.vm.version");
     String vClass = System.getProperty("java.class.version");
 
-    String vSysArch = System.getProperty("sikuli.arch");
-    Object vSikuliJavaok = System.getProperty("sikuli.javaok");
-    if (null == vSysArch) {
-      vSysArch = System.getProperty("os.arch");
-    } else {
-      runTime.log(runTime.lvl, "SystemProperty given: sikuli.arch=%s", vSysArch);
-    }
+    String vSysArch = System.getProperty("os.arch");
     if (vSysArch != null) {
       if (vSysArch.contains("64")) {
         runTime.javaArch = 64;
+      } else {
+        vSysArch = null;
       }
-    } else {
-      runTime.terminate(-1, "Java arch (32 or 64 Bit) not detected nor given");
     }
 
     try {
@@ -261,11 +255,15 @@ public class RunTime {
     }
 
     if (runTime.javaVersion < 8) {
-      runTime.terminate(-1, "Java version must at least be 8");
+      runTime.terminate(-1, "Java version must at least be 8 (%s)", runTime.javaShow);
     }
 
-    if (runTime.javaVersion > 8) {
-      runTime.log(3, "*** BE AWARE: Running on Java 9+ *** Please report problems ***");
+//    if (runTime.javaVersion > 8) {
+//      runTime.log(3, "*** BE AWARE: Running on Java 9+ *** Please report problems ***");
+//    }
+
+    if (null == vSysArch) {
+      runTime.terminate(-1, "Java arch not 64 Bit or not detected (%s)", runTime.javaShow);
     }
 
     runTime.osVersion = runTime.osVersionSysProp;
