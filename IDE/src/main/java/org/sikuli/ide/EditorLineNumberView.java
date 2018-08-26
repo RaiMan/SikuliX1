@@ -230,11 +230,11 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   public void mouseClicked(MouseEvent me) {
     if (wasPopup) {
       wasPopup = false;
-      return;
+      //return;
     }
-    ((EditorPane) text).jumpTo(sizes.getIndex(me.getY()) + 1);
+    text.jumpTo(sizes.getIndex(me.getY()) + 1);
     if (me.getClickCount() == 2) {
-      ((EditorPane) text).getDocument();
+      Document document = text.getDocument();
     }
   }
 
@@ -245,7 +245,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
   @Override
   public void mouseReleased(MouseEvent me) {
-    checkPopup(me);
+    //checkPopup(me);
   }
 
   private void checkPopup(MouseEvent me) {
