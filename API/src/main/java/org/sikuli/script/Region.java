@@ -2680,39 +2680,6 @@ public class Region {
     return ((Finder) doFindText(text, levelLine, true)).getList();
   }
 
-  private int levelWord = 3;
-  private int levelLine = 2;
-
-  private Object doFindText(String text, int level, boolean multi) {
-    Object returnValue = null;
-    if (TextRecognizer.start().isValid()) {
-      Finder finder = new Finder(this);
-      returnValue = finder;
-      lastSearchTime = (new Date()).getTime();
-      if (level == levelWord) {
-        if (multi) {
-          if (finder.findWords(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findWord(text)) {
-            returnValue = finder.next();
-          }
-        }
-      } else if (level == levelLine) {
-        if (multi) {
-          if (finder.findLines(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findLine(text)) {
-            returnValue = finder.next();
-          }
-        }
-      }
-    }
-    return returnValue;
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
@@ -2927,6 +2894,40 @@ public class Region {
       return finder;
     }
     return null;
+  }
+
+  private int levelWord = 3;
+  private int levelLine = 2;
+
+  private Object doFindText(String text, int level, boolean multi) {
+    Object returnValue = null;
+    if (TextRecognizer.start().isValid()) {
+      Finder finder = new Finder(this);
+      returnValue = finder;
+      lastSearchTime = (new Date()).getTime();
+      if (level == levelWord) {
+        if (multi) {
+          if (finder.findWords(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findWord(text)) {
+            returnValue = finder.next();
+          }
+        }
+      } else if (level == levelLine) {
+        if (multi) {
+          if (finder.findLines(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findLine(text)) {
+            returnValue = finder.next();
+          }
+        }
+      }
+    }
+    return returnValue;
   }
 
   // Repeatable Find ////////////////////////////////

@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.List;
@@ -44,7 +45,7 @@ public class Pattern {
     similarity = p.similarity;
     offset.x = p.offset.x;
     offset.y = p.offset.y;
-		imagePattern = image.isPattern();
+    imagePattern = image.isPattern();
   }
 
   /**
@@ -53,9 +54,9 @@ public class Pattern {
    * @param img Image
    */
   public Pattern(Image img) {
-		image = img.create(img);
+    image = img.create(img);
     image.setIsPattern(false);
-		imagePattern = true;
+    imagePattern = true;
   }
 
   public Pattern resize(float factor) {
@@ -67,15 +68,16 @@ public class Pattern {
     return resizeFactor;
   }
 
-	/**
-	 * true if Pattern was created from Image
-	 * @return true/false
-	 */
-	public boolean isImagePattern() {
-		return imagePattern;
-	}
+  /**
+   * true if Pattern was created from Image
+   *
+   * @return true/false
+   */
+  public boolean isImagePattern() {
+    return imagePattern;
+  }
 
-	/**
+  /**
    * create a Pattern based on an image file name<br>
    *
    * @param imgpath image filename
@@ -87,7 +89,7 @@ public class Pattern {
   /**
    * Pattern from a Java resource (Object.class.getResource)
    *
-	 * @param url image file URL
+   * @param url image file URL
    */
   public Pattern(URL url) {
     image = Image.create(url);
@@ -121,11 +123,21 @@ public class Pattern {
   }
 
   private Mat patternMask = Finder2.getNewMat();
-  private boolean isMask = false;
 
   public Mat getMask() {
     return patternMask;
   }
+
+  public boolean hasMask() {
+    return !patternMask.empty();
+  }
+
+  private Mat extractMask() {
+    List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
+    return mats.get(1);
+  }
+
+  private boolean isMask = false;
 
   public Pattern mask() {
     return asMask();
@@ -145,33 +157,37 @@ public class Pattern {
     return this;
   }
 
-  private Mat extractMask() {
-    List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
-    return mats.get(1);
+  private boolean withMask = false;
+
+  public Pattern mask(String sMask) {
+    return withMask(new Pattern(Image.create(sMask)));
   }
 
-  private boolean withMask = false;
+  public Pattern mask(Image iMask) {
+    return withMask(new Pattern(iMask));
+  }
+
+  public Pattern mask(Pattern pMask) {
+    return withMask(pMask);
+  }
 
   public Pattern withMask(Pattern pMask) {
     if (isValid()) {
       Mat mask = Finder2.getNewMat();
-      if (Do.SX.isNotNull(pMask)) {
-        if (pMask.isValid()) {
-          if (pMask.isMask) {
-            Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
-            mask = pMask.getMask();
-          } else {
-
-          }
+      if (pMask.isValid()) {
+        if (pMask.hasMask()) {
+          mask = pMask.getMask();
+        } else {
+          mask = pMask.extractMask();
         }
-      } else {
-        mask = extractMask();
       }
       if (mask.empty()
               || image.getSize().getWidth() != mask.width()
               || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
         mask = Finder2.getNewMat();
+      } else {
+        Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
       }
       if (!mask.empty()) {
         patternMask = mask;
@@ -182,11 +198,7 @@ public class Pattern {
   }
 
   public Pattern withMask() {
-    return withMask(null);
-  }
-
-  public boolean hasMask() {
-    return !patternMask.empty();
+    return mask();
   }
 
   /**
@@ -264,7 +276,6 @@ public class Pattern {
   }
 
   /**
-   *
    * @return the current minimum similarity
    */
   public double getSimilar() {
@@ -297,7 +308,6 @@ public class Pattern {
   }
 
   /**
-   *
    * @return the current offset
    */
   public Location getTargetOffset() {
@@ -338,7 +348,7 @@ public class Pattern {
   /**
    * get the Pattern's image
    *
-	 * @return Image
+   * @return Image
    */
   public Image getImage() {
     return image;
@@ -354,9 +364,10 @@ public class Pattern {
   }
 
   /**
-	 * <br>TODO: Usage to be implemented!
+   * <br>TODO: Usage to be implemented!
    * get the seconds to wait, after this pattern is acted on
-	 * @return time in seconds
+   *
+   * @return time in seconds
    */
   public int getTimeAfter() {
     return waitAfter;
@@ -371,11 +382,8 @@ public class Pattern {
     if (offset.x != 0 || offset.y != 0) {
       ret += " T: " + offset.x + "," + offset.y;
     }
-    if (withMask) {
-      ret += " withMask";
-    }
-    if (isMask) {
-      ret += " isMask";
+    if (withMask || isMask) {
+      ret += " masked";
     }
     return ret;
   }

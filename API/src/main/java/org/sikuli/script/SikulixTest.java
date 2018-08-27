@@ -230,13 +230,8 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       //Debug.on(3);
-      App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
-      reg.grow(-50).highlight(1, "green");
-      highlight(reg.has("buttonText"));
-      reg = reg.getLastMatch();
-      reg.highlight(1, "green");
-      highlight(reg.has("buttonText"));
-      //after();
+      //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
+      after();
     }
 
     //<editor-fold desc="test1 exists">
@@ -381,10 +376,12 @@ public class SikulixTest {
       Pattern imgBG = new Pattern(Image.create("buttonTextOpa"));
       Pattern img = new Pattern(Image.create("buttonText"));
       Pattern imgTrans = new Pattern(Image.create("buttonTextTrans"));
-      Pattern maskBlack = new Pattern("buttonTextBlackMask").asMask();
+      Pattern maskBlack = new Pattern("buttonTextBlackMask").mask();
+      Pattern imgBlack = new Pattern("buttonTextBlackMask");
       Pattern maskTrans = new Pattern("buttonTextTransMask");
-      Pattern maskedBlack = new Pattern(maskBlack).withMask(maskBlack);
-      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, maskBlack, maskTrans, maskedBlack};
+      Pattern maskedBlack = new Pattern(maskBlack).mask(maskBlack);
+      Pattern maskedTrans = new Pattern(maskBlack).mask(maskTrans);
+      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
       if (openTestPage("Test-page-1")) {
         //reg.highlight(1);
         reg.setAutoWaitTimeout(0);
