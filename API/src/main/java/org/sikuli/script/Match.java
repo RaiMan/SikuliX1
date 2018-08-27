@@ -286,7 +286,7 @@ public class Match extends Region implements Comparable<Match> {
   public String toStringShort() {
     return String.format("M[%d,%d %dx%d]On(%s) S %d", x, y, w, h,
               (getScreen()== null ? "?" : getScreen().getID()),
-              (int) (simScore * 10000));
+              Math.round(simScore * 10000));
   }
 
 

@@ -53,14 +53,14 @@ public class SikulixTest {
     show(image, wait, 0);
   }
 
-  private static void showStop() {
+  public static void showStop() {
     if (isShown) {
       scr.type("w", keyMeta);
       isShown = false;
     }
   }
 
-  private static void show(String image, int wait, int before) {
+  public static void show(String image, int wait, int before) {
     if (!image.endsWith(".png")) {
       image += ".png";
     }
@@ -219,7 +219,7 @@ public class SikulixTest {
 //    runTest.add(6); // text Region.find(someText)
 //    runTest.add(7); // text Region.findAll(someText)
 //    runTest.add(8); // text Region.getWordList/getLineList
-    runTest.add(9); // basic transparency
+//    runTest.add(9); // basic transparency
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
 
@@ -230,8 +230,13 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       //Debug.on(3);
-      //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
-      after();
+      App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
+      reg.grow(-50).highlight(1, "green");
+      highlight(reg.has("buttonText"));
+      reg = reg.getLastMatch();
+      reg.highlight(1, "green");
+      highlight(reg.has("buttonText"));
+      //after();
     }
 
     //<editor-fold desc="test1 exists">
@@ -241,6 +246,7 @@ public class SikulixTest {
       scr.wait(2.0);
       match = scr.exists(testImage, 10);
       match.highlight(2);
+
       after();
     }
     //</editor-fold>
