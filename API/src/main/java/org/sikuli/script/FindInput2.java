@@ -189,7 +189,7 @@ public class FindInput2 {
       mask = mats.get(1);
     }
     if (!mask.empty()) {
-      scoreMaxDiff = 0.005;
+      scoreMaxDiff = 0.001;
     }
 
     //TODO plaincolor/black with masking

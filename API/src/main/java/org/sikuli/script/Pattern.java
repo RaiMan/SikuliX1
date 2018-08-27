@@ -127,6 +127,10 @@ public class Pattern {
     return patternMask;
   }
 
+  public Pattern mask() {
+    return asMask();
+  }
+
   public Pattern asMask() {
     if (isValid()) {
       Debug.log(3, "Pattern: asMask: %s", image);
@@ -152,9 +156,13 @@ public class Pattern {
     if (isValid()) {
       Mat mask = Finder2.getNewMat();
       if (Do.SX.isNotNull(pMask)) {
-        if (pMask.isValid() && pMask.isMask) {
-          Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
-          mask = pMask.getMask();
+        if (pMask.isValid()) {
+          if (pMask.isMask) {
+            Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
+            mask = pMask.getMask();
+          } else {
+
+          }
         }
       } else {
         mask = extractMask();
@@ -362,6 +370,12 @@ public class Pattern {
     ret += " S: " + similarity;
     if (offset.x != 0 || offset.y != 0) {
       ret += " T: " + offset.x + "," + offset.y;
+    }
+    if (withMask) {
+      ret += " withMask";
+    }
+    if (isMask) {
+      ret += " isMask";
     }
     return ret;
   }

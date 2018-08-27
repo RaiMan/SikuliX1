@@ -393,6 +393,9 @@ public class Finder implements Iterator<Match> {
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setFindAll();
+      if (_pattern.hasMask()) {
+        _findInput.setMask(_pattern.getMask());
+      }
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
       currentMatchIndex = 0;

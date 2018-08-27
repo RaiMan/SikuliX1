@@ -2103,10 +2103,7 @@ public class Region {
     if (isOtherScreen()) {
       return this;
     }
-    if (!silent) {
-      Debug.action("toggle highlight " + toString() + ": " + toEnable
-              + (color != null ? " color: " + color : ""));
-    }
+    Debug.log(lvl, "highlight " + (toEnable ? "on: " : "off: ") + toStringShort());
     if (toEnable) {
       overlay = new ScreenHighlighter(getScreen(), color);
       overlay.setWaitAfter(silent);
@@ -2497,7 +2494,8 @@ public class Region {
     List<Match> matches = new ArrayList<>();
     try {
       matches = ((Finder) findAll(target)).getList();
-    } catch (FindFailed findFailed) {}
+    } catch (FindFailed findFailed) {
+    }
     return matches;
   }
 
@@ -2648,7 +2646,8 @@ public class Region {
     List<Match> matches = new ArrayList<>();
     try {
       matches = ((Finder) findAll("\t" + text + "\t")).getList();
-    } catch(FindFailed ff) {}
+    } catch (FindFailed ff) {
+    }
     return matches;
   }
 
@@ -4596,12 +4595,12 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param <PFRML> Pattern, String, Image, Match, Region or Location
-   * @param target  PFRML
-   * @throws FindFailed image not found
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param <PFRML> Pattern, String, Image, Match, Region or Location
+ * @param target  PFRML
+ * @throws FindFailed image not found
+ *//*
 
   public <PFRML> void aTap(PFRML target) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
@@ -4615,10 +4614,10 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param text text
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param text text
+ *//*
 
   public void aInput(String text) {
     if (isAndroid() && adbDevice != null) {
@@ -4628,10 +4627,10 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param key key
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param key key
+ *//*
 
   public void aKey(int key) {
     if (isAndroid() && adbDevice != null) {
@@ -4641,13 +4640,13 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param <PFRML> Pattern, String, Image, Match, Region or Location
-   * @param from    PFRML
-   * @param to      PFRML
-   * @throws FindFailed image not found
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param <PFRML> Pattern, String, Image, Match, Region or Location
+ * @param from    PFRML
+ * @param to      PFRML
+ * @throws FindFailed image not found
+ *//*
 
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
@@ -4662,8 +4661,8 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *//*
 
   public void aSwipeUp() {
     int midX = (int) (w / 2);
@@ -4676,8 +4675,8 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *//*
 
   public void aSwipeDown() {
     int midX = (int) (w / 2);
@@ -4690,8 +4689,8 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *//*
 
   public void aSwipeLeft() {
     int midY = (int) (h / 2);
@@ -4704,8 +4703,8 @@ public class Region {
 
   */
 /**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+ * EXPERIMENTAL: for Android over ADB
+ *//*
 
   public void aSwipeRight() {
     int midY = (int) (h / 2);

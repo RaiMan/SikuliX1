@@ -35,6 +35,10 @@ public class SikulixTest {
     System.out.println(String.format(msg, args));
   }
 
+  private static void error(String msg, Object... args) {
+    p("[ERROR]" + msg, args);
+  }
+
   private static String showBase = "API/src/main/resources/ImagesAPI";
   private static String showLink;
   private static int showWait;
@@ -164,6 +168,7 @@ public class SikulixTest {
 
   private static void after() {
     p("***** ending %s", currentTest);
+    ScreenHighlighter.closeAll();
     showStop();
     browserStop();
   }
@@ -179,6 +184,10 @@ public class SikulixTest {
 
   private static void highlight(List<Match> regs) {
     highlight(regs, 1);
+  }
+
+  private static void highlight(Match match) {
+    if (null != match) match.highlight(1);
   }
 
   private static List<Integer> runTest = new ArrayList<>();
@@ -210,7 +219,7 @@ public class SikulixTest {
 //    runTest.add(6); // text Region.find(someText)
 //    runTest.add(7); // text Region.findAll(someText)
 //    runTest.add(8); // text Region.getWordList/getLineList
-//    runTest.add(9); // basic transparency
+    runTest.add(9); // basic transparency
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
 
@@ -363,22 +372,35 @@ public class SikulixTest {
     //<editor-fold desc="test9 basic transparency">
     if (shouldRunTest(9)) {
       before("test9", "basic transparency");
-      Image img4 = Image.create("buttonText");
-      Image img4O = Image.create("buttonTextOpa");
-      Image img5 = Image.create("buttonTextTrans");
+      Pattern imgBG = new Pattern(Image.create("buttonTextOpa"));
+      Pattern img = new Pattern(Image.create("buttonText"));
+      Pattern imgTrans = new Pattern(Image.create("buttonTextTrans"));
+      Pattern maskBlack = new Pattern("buttonTextBlackMask").asMask();
+      Pattern maskTrans = new Pattern("buttonTextTransMask");
+      Pattern maskedBlack = new Pattern(maskBlack).withMask(maskBlack);
+      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, maskBlack, maskTrans, maskedBlack};
       if (openTestPage("Test-page-1")) {
-        reg.highlight(1);
-        Image image = img5;
-        List<Match> matches = reg.findAllList(image);
-        highlight(matches);
-        for (Match next : matches) {
-          p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-          List<Match> wordList = next.collectLines();
-//        Match match1 = next.grow(10).has(image);
-//        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
-          p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());
+        //reg.highlight(1);
+        reg.setAutoWaitTimeout(0);
+        String out = "";
+        for (Pattern image : patterns) {
+          highlight(reg.has(image));
+          try {
+            Finder fmatches = (Finder) reg.findAll(image);
+            List<Match> matches = reg.findAllList(image);
+            out += String.format("*** findAll: %d of %s\n", matches.size(), image);
+            for (Match next : matches) {
+              next.highlight();
+            }
+          } catch (FindFailed findFailed) {
+            out += String.format("findAll failed: %s\n", image);
+          }
+          scr.wait(1.0);
+          ScreenHighlighter.closeAll();
         }
+        p("%s", out);
       }
+      scr.wait(1.0);
       after();
     }
     //</editor-fold>
