@@ -117,7 +117,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
             rf = 0;
           }
           resizeFactor = rf;
-        } else if (tok.contains("Mask")) {
+        } else if (tok.toLowerCase().contains("mask")) {
           mask = tok;
         }
       }
