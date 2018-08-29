@@ -48,7 +48,7 @@ public class Sikulix {
     log(1, "AppData: %s", fAppData);
 
     boolean runningJar = jarName.endsWith(".jar");
-    if (runningJar || verbose) {
+    if (runningJar) {
       log(1, "starting");
     } else {
       SikulixRunIDE.main(args);

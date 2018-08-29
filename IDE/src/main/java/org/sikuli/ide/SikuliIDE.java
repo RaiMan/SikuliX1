@@ -191,6 +191,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
   }
 
+  private static boolean newBuildAvailable = false;
+
   public static void run(RunTime rt, String[] args) {
 
     getInstance();
@@ -286,6 +288,24 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       runTime.printArgs();
     }
 
+    String httpDownload = "https://raiman.github.io/SikuliX1/downloads.html";
+    String pageDownload = FileManager.downloadURLtoString(httpDownload);
+    String token = "This version was built at ";
+    int locStamp = pageDownload.indexOf(token);
+    if (locStamp > 0) {
+      locStamp += token.length();
+      String latestBuild = pageDownload.substring(locStamp, locStamp + 16);
+      latestBuild = latestBuild.replaceAll("-", "").replace("_", "").replace(":", "");
+      String actualBuild = runTime.sxBuildStamp;
+      try {
+        long lb = Long.parseLong(latestBuild);
+        long ab = Long.parseLong(actualBuild);
+        if (lb > ab) newBuildAvailable = true;
+        log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
+      } catch (NumberFormatException e) {
+        log(-1, "check for new build: stamps not readable");
+      }
+    }
     sikulixIDE.initHotkeys();
     //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
@@ -384,11 +404,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     tabPane.setSelectedIndex(0);
 
-    Debug.log(lvl,"IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
+    String j9Message = "";
+    if (runTime.isJava9()) {
+      j9Message ="*** Running on Java 9+";
+    }
+    Debug.log(lvl,"IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
 
-    if (runTime.isJava9()) {
-      Debug.log("*** BE AWARE: Running on Java 9+");
+    if (newBuildAvailable) {
+      Debug.info("*** BE AWARE: A new SNAPSHOT build is available ***");
     }
 //    if (waitBeforeVisible > 0) {
 //      try {
@@ -1790,7 +1814,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     if (ret == WARNING_ACCEPTED) {
       //TODO set prefs to be quiet on extensions warning
     }
-    ;
     ExtensionManagerFrame extmg = ExtensionManagerFrame.getInstance();
     if (extmg != null) {
       extmg.setVisible(true);
