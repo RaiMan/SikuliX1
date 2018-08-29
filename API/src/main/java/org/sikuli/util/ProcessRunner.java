@@ -74,15 +74,16 @@ public class ProcessRunner {
     return result;
   }
 
-  public static void detach(String... args) {
+  public static int detach(String... args) {
     List<String> cmd = new ArrayList<String>();
     for (String arg : args) {
       cmd.add(arg);
     }
-    detach(cmd);
+    return detach(cmd);
   }
 
-  public static void detach(List<String> cmd) {
+  public static int detach(List<String> cmd) {
+    int exitValue = 0;
     if (cmd.size() > 0) {
       ProcessBuilder app = new ProcessBuilder();
       Map<String, String> processEnv = app.environment();
@@ -112,11 +113,13 @@ public class ProcessRunner {
       try {
         if (process != null) {
           process.waitFor();
+          exitValue = process.exitValue();
         }
       } catch (InterruptedException e) {
         p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
       }
     }
+    return exitValue;
   }
 }
 

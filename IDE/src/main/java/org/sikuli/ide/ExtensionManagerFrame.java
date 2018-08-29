@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -29,6 +30,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Settings;
 import org.sikuli.ide.SikuliIDE;
+import org.sikuli.script.RunTime;
 
 public class ExtensionManagerFrame extends JFrame {
 
@@ -38,18 +40,46 @@ public class ExtensionManagerFrame extends JFrame {
   private int selected_idx = 0;
   ArrayList<ExtensionItem> _extensions;
 
+  private ExtensionManagerFrame() {
+    super();
+    fExtensions = RunTime.get().fSikulixExtensions.listFiles();
+//    init();
+  }
+
   static public ExtensionManagerFrame getInstance() {
     if (_instance == null) {
-//TODO reactivate extension manager
-      _instance = null;
-//      _instance = new ExtensionManagerFrame();
+      _instance = new ExtensionManagerFrame();
     }
     return _instance;
   }
 
-  private ExtensionManagerFrame() {
-    super();
+  private File[] fExtensions;
 
+  public List<File> getExtensionFiles() {
+    List<File> extensions = new ArrayList<>();
+    for (File extension : fExtensions) {
+      String name = extension.getName();
+      if (name.startsWith(".") || !name.endsWith(".jar")) {
+        continue;
+      }
+      extensions.add(extension);
+    }
+    return extensions;
+  }
+
+  public List<String> getExtensionNames() {
+    List<String> extensions = new ArrayList<>();
+    for (File extension : fExtensions) {
+      String name = extension.getName();
+      if (name.startsWith(".") || !name.endsWith(".jar")) {
+        continue;
+      }
+      extensions.add(name);
+    }
+    return extensions;
+  }
+
+  private void init() {
     setTitle("Sikuli Extensions");
     setResizable(false);
     createComponents();
