@@ -179,6 +179,9 @@ public class FindInput2 {
     return Math.sqrt(r + g + b) < minThreshhold;
   }
 
+  double targetStdDev = -1;
+  double targetMean = -1;
+
   public void setAttributes() {
     if (targetTypeText) {
       return;
@@ -187,9 +190,6 @@ public class FindInput2 {
     targetBGR = mats.get(0);
     if (mask.empty()) {
       mask = mats.get(1);
-    }
-    if (!mask.empty()) {
-      scoreMaxDiff = 0.001;
     }
 
     //TODO plaincolor/black with masking
@@ -200,12 +200,20 @@ public class FindInput2 {
     resizeFactor = Math.max(1.0, resizeFactor);
     MatOfDouble pMean = new MatOfDouble();
     MatOfDouble pStdDev = new MatOfDouble();
-    Core.meanStdDev(targetBGR, pMean, pStdDev);
+    Mat check = new Mat();
+
+    if (mask.empty()) {
+      check = targetBGR;
+    } else {
+      Core.multiply(targetBGR, mask, check);
+    }
+    Core.meanStdDev(check, pMean, pStdDev);
     double sum = 0.0;
     double[] arr = pStdDev.toArray();
     for (int i = 0; i < arr.length; i++) {
       sum += arr[i];
     }
+    targetStdDev = sum;
     if (sum < minThreshhold) {
       plainColor = true;
     }
@@ -216,6 +224,7 @@ public class FindInput2 {
       meanColor[i] = (int) arr[i];
       sum += arr[i];
     }
+    targetMean = sum;
     if (sum < minThreshhold && plainColor) {
       blackColor = true;
     }
@@ -224,6 +233,9 @@ public class FindInput2 {
     }
   }
 
+  public String toString() {
+    return String.format("(stdDev: %.4f mean: %4f)", targetStdDev, targetMean);
+  }
 
 //TODO for compilation - remove when native is obsolete
   public static long getCPtr(FindInput2 p) {

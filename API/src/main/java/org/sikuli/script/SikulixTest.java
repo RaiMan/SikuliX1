@@ -231,6 +231,15 @@ public class SikulixTest {
       before("test99", "play");
       //Debug.on(3);
       //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
+      show("mo-map", 0);
+      App.focus("preview"); scr.wait(1.0); reg = App.focusedWindow();
+      //reg.highlight(2);
+      Pattern pBlack = new Pattern("mo-black").mask();
+      Pattern pMasked = new Pattern("mo-safety-cone").mask("mo-cone-mask");
+      String iTrans = "mo-cone-trans";
+      //highlight(reg.has(pBlack));
+      highlight(reg.findAllList(pMasked));
+      //scr.wait(2.0);
       after();
     }
 
@@ -382,6 +391,7 @@ public class SikulixTest {
       Pattern maskedBlack = new Pattern(maskBlack).mask(maskBlack);
       Pattern maskedTrans = new Pattern(maskBlack).mask(maskTrans);
       Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
+//      Pattern[] patterns = new Pattern[]{maskedBlack};
       if (openTestPage("Test-page-1")) {
         //reg.highlight(1);
         reg.setAutoWaitTimeout(0);
