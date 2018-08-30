@@ -2594,6 +2594,35 @@ public class Region {
     return mList;
   }
 
+  public Region unionAny(Object... targets) {
+    if (targets.length < 2) {
+      return this;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(targets));
+    return unionAnyList(pList);
+  }
+
+  public Region unionAnyList(List<Object> targets) {
+    if (targets.size() < 2) {
+      return this;
+    }
+    List<Match> matches = new ArrayList<>();
+    matches = findAnyList(targets);
+    if (matches.size() < 2) {
+      return this;
+    }
+    Region theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
+  }
+
   //------------------------------
 
   public Match waitText(String text, double timeout) throws FindFailed {
