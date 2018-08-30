@@ -89,7 +89,7 @@ public class FindResult2 implements Iterator<Match> {
         }
       } else {
         double scoreDiff = lastScore - currentScore;
-        if (scoreDiff <= (scoreMeanDiff + 0.001)) {
+        if (scoreDiff <= (scoreMeanDiff + 0.005)) {
           scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff)/(matchCount + 1);
           isMatch = true;
         }

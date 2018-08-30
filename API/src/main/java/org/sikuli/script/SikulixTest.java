@@ -230,9 +230,9 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       //Debug.on(3);
-      App.focus("safari");
-      scr.wait(1.0);
-      reg = App.focusedWindow();
+//      App.focus("safari");
+//      scr.wait(1.0);
+//      reg = App.focusedWindow();
  /*
       reg = reg.unionAll("apple");
       //reg.highlight(2);
