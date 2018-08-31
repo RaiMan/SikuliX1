@@ -84,12 +84,12 @@ public class FindResult2 implements Iterator<Match> {
         isMatch = true;
       } else if (matchCount == 1) {
         scoreMeanDiff = lastScore - currentScore;
-        if (scoreMeanDiff < scoreMaxDiff) {
+        if (findInput.isPattern || scoreMeanDiff < scoreMaxDiff) {
           isMatch = true;
         }
       } else {
         double scoreDiff = lastScore - currentScore;
-        if (scoreDiff <= (scoreMeanDiff + 0.005)) {
+        if (findInput.isPattern || scoreDiff <= (scoreMeanDiff + 0.005)) {
           scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff)/(matchCount + 1);
           isMatch = true;
         }

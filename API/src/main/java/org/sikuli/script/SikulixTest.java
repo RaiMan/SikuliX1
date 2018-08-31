@@ -186,8 +186,9 @@ public class SikulixTest {
     highlight(regs, 1);
   }
 
-  private static void highlight(Match match) {
+  private static Match highlight(Match match) {
     if (null != match) match.highlight(1);
+    return match;
   }
 
   private static List<Integer> runTest = new ArrayList<>();
@@ -207,6 +208,7 @@ public class SikulixTest {
       keyMeta = Key.CMD;
     }
     ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+    //ImagePath.setBundlePath("/Users/raimundhocke/SikuliX/Tests/_Help/game");
     Match match = null;
     String testImage = "findBase";
 
@@ -230,19 +232,9 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       //Debug.on(3);
-//      App.focus("safari");
-//      scr.wait(1.0);
-//      reg = App.focusedWindow();
- /*
-      reg = reg.unionAll("apple");
-      //reg.highlight(2);
-      String iShot = "coneShot";
-      String iBlack = "coneblack";
-      String iTrans = "coneTrans";
-      Pattern pBlack = new Pattern(iBlack).mask();
-      Pattern pMasked = new Pattern(iShot).mask(iBlack);
-      highlight(reg.getAll(pMasked));
- */
+      //App.focus("preview");
+      //scr.wait(1.0);
+      //reg = App.focusedWindow();
       after();
     }
 
