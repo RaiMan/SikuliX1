@@ -249,7 +249,7 @@ public class Finder2 {
       }
     } else {
       FindInput2 findInput = fInput;
-      log.trace("doFind: start");
+      log.trace("doFind: start %s", findInput);
       mBase = findInput.getBase();
       boolean success = false;
       long begin_lap = 0;

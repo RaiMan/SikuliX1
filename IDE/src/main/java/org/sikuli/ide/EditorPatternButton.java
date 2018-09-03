@@ -149,7 +149,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
           rf = 0;
         }
         btn.setResizeFactor(rf);
-      } else if (tok.contains("Mask")) {
+      } else if (tok.toLowerCase().contains("mask")) {
         btn.setMask(tok);
       }
     }

@@ -240,6 +240,7 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
+      _findInput.setIsPattern();
       _results = Finder2.find(_findInput);
       currentMatchIndex = 0;
       return aPtn.getFilename();
@@ -392,6 +393,7 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
+      _findInput.setIsPattern();
       _findInput.setFindAll();
       if (_pattern.hasMask()) {
         _findInput.setMask(_pattern.getMask());

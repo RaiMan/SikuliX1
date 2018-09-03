@@ -48,7 +48,7 @@ public class Sikulix {
     log(1, "AppData: %s", fAppData);
 
     boolean runningJar = jarName.endsWith(".jar");
-    if (runningJar || verbose) {
+    if (runningJar) {
       log(1, "starting");
     } else {
       SikulixRunIDE.main(args);
@@ -119,16 +119,15 @@ public class Sikulix {
     cmd.add(ClassPath);
     cmd.add("org.sikuli.ide.SikulixRunIDE");
     cmd.addAll(Arrays.asList(args));
-    ProcessRunner.detach(cmd);
-    log(1, "terminating");
+    int exitValue = ProcessRunner.detach(cmd);
+    log(1, "terminating: returned: %d", exitValue);
   }
 
   private static void log(int level, String msg, Object... args) {
     msg = "[DEBUG] RunIDE: " + msg;
     if (level < 0) {
       msg = "[ERROR] RunIDE: " + msg;
-    }
-    if (level < 0 || verbose) {
+    } else if (verbose) {
       System.out.println(String.format(msg, args));
     }
   }

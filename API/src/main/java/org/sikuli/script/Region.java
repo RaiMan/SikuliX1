@@ -2478,16 +2478,23 @@ public class Region {
   }
 
   public <PSI> List<Match> getAll(PSI target) {
-//    List<Match> matches = new ArrayList<>();
-//    try {
-//      Iterator<Match> all = findAll(target);
-//      while (all.hasNext()) {
-//        matches.add(all.next());
-//      }
-//    } catch (FindFailed findFailed) {
-//    }
-//    return matches;
     return findAllList(target);
+  }
+
+  public <PSI> Region unionAll(PSI target) {
+    List<Match> matches = getAll(target);
+    if (matches.size() < 2) {
+      return this;
+    }
+    Region theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
   }
 
   public <PSI> List<Match> findAllList(PSI target) {
@@ -2585,6 +2592,35 @@ public class Region {
     }
     List<Match> mList = findAnyCollect(pList);
     return mList;
+  }
+
+  public Region unionAny(Object... targets) {
+    if (targets.length < 2) {
+      return this;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(targets));
+    return unionAnyList(pList);
+  }
+
+  public Region unionAnyList(List<Object> targets) {
+    if (targets.size() < 2) {
+      return this;
+    }
+    List<Match> matches = new ArrayList<>();
+    matches = findAnyList(targets);
+    if (matches.size() < 2) {
+      return this;
+    }
+    Region theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
   }
 
   //------------------------------

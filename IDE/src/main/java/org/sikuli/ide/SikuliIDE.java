@@ -191,6 +191,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
   }
 
+  private static boolean newBuildAvailable = false;
+
   public static void run(RunTime rt, String[] args) {
 
     getInstance();
@@ -286,6 +288,24 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       runTime.printArgs();
     }
 
+    String httpDownload = "https://raiman.github.io/SikuliX1/downloads.html";
+    String pageDownload = FileManager.downloadURLtoString(httpDownload);
+    String token = "This version was built at ";
+    int locStamp = pageDownload.indexOf(token);
+    if (locStamp > 0) {
+      locStamp += token.length();
+      String latestBuild = pageDownload.substring(locStamp, locStamp + 16);
+      latestBuild = latestBuild.replaceAll("-", "").replace("_", "").replace(":", "");
+      String actualBuild = runTime.sxBuildStamp;
+      try {
+        long lb = Long.parseLong(latestBuild);
+        long ab = Long.parseLong(actualBuild);
+        if (lb > ab) newBuildAvailable = true;
+        log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
+      } catch (NumberFormatException e) {
+        log(-1, "check for new build: stamps not readable");
+      }
+    }
     sikulixIDE.initHotkeys();
     //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
@@ -384,11 +404,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     tabPane.setSelectedIndex(0);
 
-    Debug.log(lvl,"IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
+    String j9Message = "";
+    if (runTime.isJava9()) {
+      j9Message ="*** Running on Java 9+";
+    }
+    Debug.log(lvl,"IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
 
-    if (runTime.isJava9()) {
-      Debug.log("*** BE AWARE: Running on Java 9+");
+    if (newBuildAvailable) {
+      Debug.info("*** BE AWARE: A new SNAPSHOT build is available ***");
     }
 //    if (waitBeforeVisible > 0) {
 //      try {
@@ -1772,28 +1796,27 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   }
 
   private void showExtensionsFrame() {
-//    String warn = "You might proceed, if you\n"
-//            + "- have some programming skills\n"
-//            + "- read the docs about extensions\n"
-//            + "- know what you are doing\n\n"
-//            + "Otherwise you should press Cancel!";
-    String warn = "Not available yet - click what you like ;-)";
-    String title = "Need your attention!";
+    ExtensionManagerFrame extensionManager = ExtensionManagerFrame.getInstance();
+    String warn = "Nothing to do here currently - click what you like ;-)\n" +
+            "\nExtensions folder: \n" + runTime.fSikulixExtensions.getAbsolutePath() +
+            "\n\nCurrent content:";
+    if (extensionManager != null) {
+      for (String extension : extensionManager.getExtensionNames()) {
+        warn += "\n" + extension;
+      }
+      //extmg.setVisible(true);
+    }
+    String title = "SikuliX1 Extensions";
     String[] options = new String[3];
     options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "Be quiet!";
+    options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(this, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    int ret = JOptionPane.showOptionDialog(null, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
     }
-    if (ret == WARNING_ACCEPTED) {
-      //TODO set prefs to be quiet on extensions warning
-    }
-    ;
-    ExtensionManagerFrame extmg = ExtensionManagerFrame.getInstance();
-    if (extmg != null) {
-      extmg.setVisible(true);
+    if (extensionManager != null) {
+      //extmg.setVisible(true);
     }
   }
 
@@ -1864,8 +1887,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     _helpMenu.add(createMenuItem(_I("menuHelpGuide"),
             null, new HelpAction(HelpAction.OPEN_DOC)));
-    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
-            null, new HelpAction(HelpAction.OPEN_GUIDE)));
+//    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
+//            null, new HelpAction(HelpAction.OPEN_GUIDE)));
     _helpMenu.add(createMenuItem(_I("menuHelpFAQ"),
             null, new HelpAction(HelpAction.OPEN_FAQ)));
     _helpMenu.add(createMenuItem(_I("menuHelpAsk"),
@@ -1880,6 +1903,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
 
     _helpMenu.addSeparator();
+    _helpMenu.add(createMenuItem("SikuliX1 Downloads",
+            null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
     _helpMenu.add(createMenuItem(_I("menuHelpCheckUpdate"),
             null, new HelpAction(HelpAction.CHECK_UPDATE)));
   }
@@ -1895,6 +1920,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     static final String OPEN_BUG_REPORT = "openBugReport";
     static final String OPEN_TRANSLATION = "openTranslation";
     static final String OPEN_HOMEPAGE = "openHomepage";
+    static final String OPEN_DOWNLOADS = "openDownloads";
 
     public HelpAction() {
       super();
@@ -1969,6 +1995,10 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     public void openHomepage(ActionEvent ae) {
       FileManager.openURL("http://sikulix.com");
+    }
+
+    public void openDownloads(ActionEvent ae) {
+      FileManager.openURL("https://raiman.github.io/SikuliX1/downloads.html");
     }
 
     public void doCheckUpdate(ActionEvent ae) {
