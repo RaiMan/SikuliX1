@@ -1792,7 +1792,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 //    public void android(ActionEvent ae) {
 //      androidSupport();
 //    }
-
   }
 
   private void showExtensionsFrame() {
