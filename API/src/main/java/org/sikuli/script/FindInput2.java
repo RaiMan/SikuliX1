@@ -115,6 +115,20 @@ public class FindInput2 {
     return source;
   }
 
+  boolean isPattern = false;
+
+  public void setIsPattern() {
+    isPattern = true;
+  }
+
+  public boolean isPattern() {
+    return isPattern;
+  }
+
+  public void setPattern(boolean pattern) {
+    isPattern = pattern;
+  }
+
   public void setSimilarity(double similarity) {
     this.similarity = similarity;
   }
