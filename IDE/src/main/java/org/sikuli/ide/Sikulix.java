@@ -10,6 +10,8 @@ import javax.swing.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
@@ -34,7 +36,13 @@ public class Sikulix {
   public static void main(String[] args) {
     CodeSource codeSrc = SikuliIDE.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
-      jarName = codeSrc.getLocation().getPath();
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        log(-1, "URLDecoder: not possible: %s", jarName);
+        System.exit(1);
+      }
       sxFolder = new File(jarName).getParentFile();
     }
 
