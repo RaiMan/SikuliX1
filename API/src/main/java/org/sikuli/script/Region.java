@@ -3231,7 +3231,7 @@ public class Region {
 
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-      Match m = find(target);
+      Match m = wait(target);
       if (m != null) {
         if (isOtherScreen()) {
           return m.getTarget().setOtherScreen(scr);
