@@ -30,6 +30,7 @@ import org.sikuli.util.JythonHelper;
  */
 public class Debug {
 
+	private static int TRACE_LEVEL = 0;
   private static int DEBUG_LEVEL = 0;
 	private static boolean loggerRedirectSupported = true;
 	public static boolean shouldLogJython = false;
@@ -117,6 +118,19 @@ public class Debug {
   public static void quietOff() {
     beQuiet = false;
   }
+
+  public static void globalTraceOn() {
+  	TRACE_LEVEL = 1;
+  	traceLast = -1;
+	}
+
+	public static void globalTraceOff() {
+		TRACE_LEVEL = 0;
+	}
+
+	public static boolean isGlobalTrace() {
+  	return TRACE_LEVEL > 0;
+	}
 
 	/**
 	 * A logger object that is intended, to get Sikuli's log messages per redirection
@@ -743,19 +757,37 @@ public class Debug {
     return out;
   }
 
+	private static synchronized String trace(String message, Object... args) {
+		return log(-999, "TRACE", message, args);
+	}
+
+	private static long traceLast = -1;
+
   private static synchronized String log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
     String sout = "";
     String stime = "";
     if (level <= DEBUG_LEVEL) {
-      if (level == 3) {
+      if (level == 3 || level == -999) {
         if (message.startsWith("TRACE: ")) {
           if (!Settings.TraceLogs) {
             return "";
           }
         }
-        if(withTimeElapsed) {
-					prefix = String.format("%d %s", new Date().getTime() - elapsedStart, prefix);
+        if(withTimeElapsed || level == -999) {
+					long traceElapsed = 0;
+        	long actual = new Date().getTime();
+        	if (withTimeElapsed) {
+        		traceElapsed = actual - elapsedStart;
+					} else {
+						if (traceLast < 0) {
+							traceElapsed = 0;
+						} else {
+							traceElapsed = actual - traceLast;
+						}
+						traceLast = actual;
+					}
+					prefix = String.format("%d %s", traceElapsed, prefix);
 				}
       }
       if (Settings.LogTime && level != -99) {
