@@ -75,17 +75,6 @@ public class JythonHelper implements JLangHelperInterface {
       instance.log(lvl, "init: starting");
       try {
         cInterpreter = Class.forName("org.python.util.PythonInterpreter");
-      } catch (Exception ex) {
-        String sJython = new File(runTime.SikuliJython).getName();
-        File fJython = new File(runTime.fSikulixDownloadsGeneric, sJython);
-        if (fJython.exists()) {
-          runTime.addToClasspath(fJython.getAbsolutePath(), "JythonHelper.get");
-        } else {
-          cInterpreter = null;
-        }
-      }
-      try {
-        cInterpreter = Class.forName("org.python.util.PythonInterpreter");
         mGetSystemState = cInterpreter.getMethod("getSystemState", nc);
         mExec = cInterpreter.getMethod("exec", new Class[]{String.class});
         mExecfile = cInterpreter.getMethod("execfile", new Class[]{String.class});
@@ -111,7 +100,7 @@ public class JythonHelper implements JLangHelperInterface {
       instance.log(lvl, "init: success");
     }
     if (cInterpreter == null) {
-      instance.runTime.terminate(1, "JythonHelper: no Jython available");
+      runTime.terminate(1, "JythonHelper: no Jython available");
     }
     runTime.isJythonReady = true;
     return instance;
