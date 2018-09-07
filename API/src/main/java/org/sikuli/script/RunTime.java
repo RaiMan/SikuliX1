@@ -808,27 +808,29 @@ public class RunTime {
     } else if (runningLinux) {
       libName = "lib" + libName + ".so";
     }
-    File fLib = new File(fLibsFolder, libName);
-    Boolean vLib = libsLoaded.get(libName);
-    if (vLib == null || !fLib.exists()) {
-      fLib = new File(fLibsFolderStatic, libName);
-      if (!fLib.exists()) {
-        terminate(1, String.format("loadlib: %s not in any libs folder", libName));
-      } else {
-        fLibsFolderUsed = fLibsFolderStatic;
-        libsLoaded.put(libName, true);
-        vLib = false;
-      }
-    }
     String msg = "loadLib: %s";
+    File fLib = new File(fLibsFolder, libName);
     int level = lvl;
-    if (vLib) {
-      level++;
-      msg += " already loaded";
-    }
-    if (vLib) {
-      log(level, msg, libName);
-      return true;
+    if (!runningLinux) {
+      Boolean vLib = libsLoaded.get(libName);
+      if (vLib == null || !fLib.exists()) {
+        fLib = new File(fLibsFolderStatic, libName);
+        if (!fLib.exists()) {
+          terminate(1, String.format("loadlib: %s not in any libs folder", libName));
+        } else {
+          fLibsFolderUsed = fLibsFolderStatic;
+          libsLoaded.put(libName, true);
+          vLib = false;
+        }
+      }
+      if (vLib) {
+        level++;
+        msg += " already loaded";
+      }
+      if (vLib) {
+        log(level, msg, libName);
+        return true;
+      }
     }
     boolean shouldTerminate = false;
     Error loadError = null;
@@ -836,12 +838,17 @@ public class RunTime {
       shouldTerminate = true;
       loadError = null;
       try {
-        System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
+        if (runningLinux && libName.startsWith("libopen")) {
+          libName = "/usr/lib/jni/libopencv_java320.so";
+          System.load(libName);
+        } else {
+          System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
+        }
       } catch (Error e) {
         loadError = e;
         if (runningLinux) {
           log(-1, msg + " not usable: \n%s", libName, loadError);
-          shouldTerminate = !LinuxSupport.checkAllLibs();
+          terminate(1, "problem with native library: " + libName);
         }
       }
     }
