@@ -83,6 +83,12 @@ import org.sikuli.script.Finder as JFinder
 class Finder(JFinder):
   pass
 
+Debug.log(4, "Jython: sikuli: Sikuli: import TextRecognizer")
+import org.sikuli.script.TextRecognizer as JTextOCR
+
+class TextOCR(JTextOCR):
+  pass
+
 Debug.log(4, "Jython: sikuli: Sikuli: import Match")
 from org.sikuli.script import Match as JMatch
 
