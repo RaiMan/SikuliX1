@@ -839,8 +839,8 @@ public class RunTime {
       loadError = null;
       try {
         if (runningLinux && libName.startsWith("libopen")) {
-          libName = "/usr/lib/jni/libopencv_java320.so";
-          System.load(libName);
+          libName = "opencv_java";
+          System.loadLibrary(libName);
         } else {
           System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
         }
