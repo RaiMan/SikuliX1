@@ -252,7 +252,7 @@ public class SikulixTest {
 
     //<editor-fold desc="test2 findChange">
     if (shouldRunTest(2)) {
-      before("test2", "findChange");
+      before("test2", "findChanges");
       show(testImage, 0);
       scr.wait(2.0);
       Finder finder = new Finder(testImage);
