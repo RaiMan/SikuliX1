@@ -757,9 +757,11 @@ def open_workbook_2007_xml(
     x12book = X12Book(bk, logfile, verbosity)
     zflo = zf.open('xl/_rels/workbook.xml.rels')
     x12book.process_rels(zflo)
+    zflo.close()
     del zflo
     zflo = zf.open('xl/workbook.xml')
     x12book.process_stream(zflo, 'Workbook')
+    zflo.close()
     del zflo
     props_name = 'docProps/core.xml'
     if props_name in component_names:
@@ -770,6 +772,7 @@ def open_workbook_2007_xml(
     if 'xl/styles.xml' in component_names:
         zflo = zf.open('xl/styles.xml')
         x12sty.process_stream(zflo, 'styles')
+        zflo.close()
         del zflo
     else:
         # seen in MS sample file MergedCells.xlsx
@@ -780,6 +783,7 @@ def open_workbook_2007_xml(
     if sst_fname in component_names:
         zflo = zf.open(sst_fname)
         x12sst.process_stream(zflo, 'SST')
+        zflo.close()
         del zflo
 
     for sheetx in range(bk.nsheets):
@@ -789,11 +793,13 @@ def open_workbook_2007_xml(
         x12sheet = X12Sheet(sheet, logfile, verbosity)
         heading = "Sheet %r (sheetx=%d) from %r" % (sheet.name, sheetx, fname)
         x12sheet.process_stream(zflo, heading)
+        zflo.close()
         del zflo
         comments_fname = 'xl/comments%d.xml' % (sheetx + 1)
         if comments_fname in component_names:
             comments_stream = zf.open(comments_fname)
             x12sheet.process_comments_stream(comments_stream)
+            comments_stream.close()
             del comments_stream
 
         sheet.tidy_dimensions()
