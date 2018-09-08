@@ -4,6 +4,7 @@
 
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.util.ProcessRunner;
 
 import javax.swing.*;
@@ -49,6 +50,7 @@ public class Sikulix {
     if (args.length > 0 && args[0].startsWith("-v")) {
       verbose = true;
       args[0] += start;
+      Debug.globalTraceOn();
     }
 
     fAppData = makeAppData();

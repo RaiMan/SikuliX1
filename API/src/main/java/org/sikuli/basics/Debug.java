@@ -757,8 +757,12 @@ public class Debug {
     return out;
   }
 
-	private static synchronized String trace(String message, Object... args) {
-		return log(-999, "TRACE", message, args);
+	public static synchronized String trace(String message, Object... args) {
+	  if (isGlobalTrace()) {
+      return log(-999, "TRACE", message, args);
+    } else {
+      return "";
+    }
 	}
 
 	private static long traceLast = -1;
@@ -779,7 +783,8 @@ public class Debug {
         	long actual = new Date().getTime();
         	if (withTimeElapsed) {
         		traceElapsed = actual - elapsedStart;
-					} else {
+					}
+					if (level == -999) {
 						if (traceLast < 0) {
 							traceElapsed = 0;
 						} else {
