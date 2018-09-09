@@ -22,7 +22,7 @@
 <h4>Version 1.1.4 (currently nightly builds only - snapshot versions)</h4>
 
 This version was built at ##sikulixapiide## (TravisCI ##TRAVIS_BUILD_NUMBER##)
-<br><br><a href="https://sikulix-2014.readthedocs.io/en/latest/news.html", target="_blank">More detailed information is available here</a>
+<br><br><a href="https://sikulix-2014.readthedocs.io/en/latest/news.html", target="_blank">Be sure you had a look at the more detailed information here</a>
 <br><br><a href="https://bugs.launchpad.net/sikuli/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=FIXCOMMITTED&field.importance%3Alist=CRITICAL&assignee_option=any&field.assignee=&field.bug_reporter=&field.bug_commenter=&field.subscriber=&field.structural_subscriber=&field.milestone%3Alist=86164&field.tag=&field.tags_combinator=ANY&field.has_cve.used=&field.omit_dupes.used=&field.omit_dupes=on&field.affects_me.used=&field.has_patch.used=&field.has_branches.used=&field.has_branches=on&field.has_no_branches.used=&field.has_no_branches=on&field.has_blueprints.used=&field.has_blueprints=on&field.has_no_blueprints.used=&field.has_no_blueprints=on&search=Search", target="_blank">Things that have been fixed</a>
 
 <hr><h4><a href="https://raiman.github.io/SikuliX1/sikulixapi.jar">Download the ready to use sikulixapi.jar</a></h4>
