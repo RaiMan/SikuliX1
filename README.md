@@ -20,15 +20,13 @@ time, to implement some of the version-2-ideas into the current version 1.
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
-Sorry, Linux people: not yet useable for you :-(
+**You need at least Java 8, but it works on Java 9, 10, 11 also**
 
-**You need at least Java 8, but it works on Java 9+ also**
-
-**Developement is done on Java 11 now**
+**Developement is done on Java 11 now (OpenJDK release)**
 
 <hr>
 
-**API SNAPSHOT on OSSRH** (currently only for Mac and Windows)<br>
+**API SNAPSHOT on OSSRH**<br>
 
 The repository URL:<br>
 ```
@@ -42,3 +40,6 @@ The coordinates are:
 <version>1.1.4-SNAPSHOT</version>
 ```
 
+**Works out of the box for Mac and Windows**
+
+**For Linux** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)) qx
