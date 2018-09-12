@@ -75,27 +75,21 @@ public class LinuxUtil implements OSUtil {
     return false;
   }
 
-  @Override
-  public App.AppEntry getApp(App.AppEntry appEntry) {
-    return appEntry;
+  private App getApp(int appPID, String appName) {
+    return new App(appName); //, "" + appPID, "", "", "");
   }
 
   @Override
-  public App.AppEntry getApp(int appPID, String appName) {
-    return new App.AppEntry(appName, "" + appPID, "", "", "");
-  }
-  
-  @Override
-  public int isRunning(App.AppEntry app) {
+  public App getApp(App app) {
     int pid;
     if (app == null) {
-      return -1;
-    } else if (app.pid >= 0) {
-      pid = app.pid;
-    } else if (app.name == null || app.name.isEmpty()) {
-      return -1;
+      return app;
+    } else if (app.getPID() >= 0) {
+      pid = app.getPID();
+    } else if (app.getName() == null || app.getName().isEmpty()) {
+      return app;
     } else {
-      pid = this.findWindowPID(app.name, 0);
+      pid = this.findWindowPID(app.getName(), 0);
     }
     //save system output
     final DefaultExecutor executor = new DefaultExecutor();
@@ -105,20 +99,18 @@ public class LinuxUtil implements OSUtil {
     try {
       //check if PID exists, if not throw exception
       executor.execute(command);
-      return 1;
+      return app;
     } catch (IOException e) {
       System.out.println("[error] App.isRunning: '" + command + "'" + e.getMessage());
       logCommandSysout(command.toString(), outputStream);
-      return -1;
+      return app;
     }
   }
-  
-  @Override
-  public int open(String appName) {
+
+  private int open(String appName) {
     try {
       String cmd[] = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
       Process p = Runtime.getRuntime().exec(cmd);
-      
       InputStream in = p.getInputStream();
       byte pidBytes[] = new byte[64];
       int len = in.read(pidBytes);
@@ -134,12 +126,12 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public int open(App.AppEntry app) {
-    return open(app.execName);
+  public App open(App app) {
+    int ret = open(app.getExec());
+    return app;
   }
-  
-  @Override
-  public int switchto(String appName, int winNum) {
+
+  private int switchto(String appName, int winNum) {
     int windowPID = findWindowPID(appName, winNum);
 //    if (windowPID > 1) {
 //      return switchto(windowPID, winNum);
@@ -152,20 +144,23 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public int switchto(String appName) {
-    return switchto(appName, 0);
+  public App switchto(String appName) {
+    int ret = switchto(appName, 0);
+    return new App(appName);
   }
   
   @Override
-  public int switchto(App.AppEntry app, int num) {
-    if (app.pid > 0) {
-      return switchto(app.pid, num);
+  public App switchto(App app, int num) {
+    int ret = 0;
+    if (app.getPID() > 0) {
+      ret = switchto(app.getPID(), num);
+    } else {
+      ret =switchto(app.getExec(), num);
     }
-    return switchto(app.execName, num);
+    return app;
   }
   
-  @Override
-  public int close(String appName) {
+  private int close(String appName) {
     try {
       //on the success exit value = 0 -> so no exception will be thrown
       CommandExecutorResult result1 = CommandExecutorHelper.execute("pidof " + appName, 0);
@@ -191,11 +186,14 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public int close(App.AppEntry app) {
-    if (app.pid > 0) {
-      return close(app.pid);
+  public App close(App app) {
+    int ret = 0;
+    if (app.getPID() > 0) {
+      ret = close(app.getPID());
+    } else {
+      ret = close(app.getExec());
     }
-    return close(app.execName);
+    return app;
   }
   
   @Override
@@ -315,24 +313,30 @@ public class LinuxUtil implements OSUtil {
     }
     return -1;
   }
-  
+
   @Override
-  public Rectangle getWindow(String appName, int winNum) {
+  public Rectangle getWindow(App app) {
+    return getWindow(app, 0);
+  }
+
+  @Override
+  public Rectangle getWindow(App app, int num) {
+    return new Rectangle();
+  }
+  
+  private Rectangle getWindow(String appName, int winNum) {
     return findRegion(appName, winNum, SearchType.APP_NAME);
   }
   
-  @Override
-  public Rectangle getWindow(int pid) {
+  private Rectangle getWindow(int pid) {
     return getWindow(pid, 0);
   }
   
-  @Override
-  public Rectangle getWindow(int pid, int winNum) {
+  private Rectangle getWindow(int pid, int winNum) {
     return findRegion("" + pid, winNum, SearchType.PID);
   }
   
-  @Override
-  public int close(int pid) {
+  private int close(int pid) {
     if (!isAvailable(wmctrlAvail, "closeApp", "wmctrl")) {
       return -1;
     }
@@ -351,8 +355,7 @@ public class LinuxUtil implements OSUtil {
     }
   }
   
-  @Override
-  public int switchto(int pid, int num) {
+  private int switchto(int pid, int num) {
     if (!isAvailable(wmctrlAvail, "switchApp", "wmctrl")) {
       return -1;
     }
