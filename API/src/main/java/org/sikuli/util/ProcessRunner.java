@@ -4,8 +4,11 @@
 
 package org.sikuli.util;
 
+import org.sikuli.script.RunTime;
+
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +120,49 @@ public class ProcessRunner {
         }
       } catch (InterruptedException e) {
         p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+      }
+    }
+    return exitValue;
+  }
+
+  public static int startApp(String... givenCmd) {
+    List<String> cmd = new ArrayList<>();
+    cmd.addAll(Arrays.asList(givenCmd));
+    return startApp(cmd);
+  }
+
+  public static int startApp(List<String> givenCmd) {
+    RunTime runTime = RunTime.get();
+    int exitValue = 0;
+    if (runTime.runningWindows) {
+      List<String> cmd = new ArrayList<>();
+      cmd.add("cmd");
+      cmd.add("/C");
+      cmd.add("start \"\" /B \"" + givenCmd.get(0) + "\"");
+      if (givenCmd.size() > 1) {
+        cmd.add(givenCmd.get(1));
+      }
+      if (cmd.size() > 0) {
+        ProcessBuilder app = new ProcessBuilder();
+        Map<String, String> processEnv = app.environment();
+        app.command(cmd);
+        app.redirectErrorStream(true);
+//      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+//      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        Process process = null;
+        try {
+          process = app.start();
+        } catch (Exception e) {
+          p("[Error] ProcessRunner: start: %s", e.getMessage());
+        }
+        try {
+          if (process != null) {
+            process.waitFor();
+            exitValue = process.exitValue();
+          }
+        } catch (InterruptedException e) {
+          p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+        }
       }
     }
     return exitValue;

@@ -59,16 +59,15 @@ public class MacUtil implements OSUtil {
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
   @Override
-  public App.AppEntry getApp(int appPID, String appName) {
-    App.AppEntry app = null;
+  public App getApp(App app) {
     String name = "";
     String theCmd = "";
     int pid = -1;
     Object filter;
-    if (appPID < 0) {
-      filter = appName;
+    if (app.getPID() < 0) {
+      filter = app.getName();
     } else {
-      filter = appPID;
+      filter = app.getPID();
     }
     if (filter instanceof String) {
       name = (String) filter;
@@ -101,93 +100,60 @@ public class MacUtil implements OSUtil {
             title += "," + parts[i];
           }
         }
-        app = new App.AppEntry(sName.trim(), sPid.trim(), title.trim(), "", "");
+        //app = new App.AppEntry(sName.trim(), sPid.trim(), title.trim(), "", "");
+        app.setName(sName.trim());
+        app.setPID(sPid.trim());
+        app.setWindow(title.trim());
       }
     }
     return app;
   }
 
   @Override
-  public int isRunning(App.AppEntry app) {
-    if (app.pid > 0) {
-      return 1;
-    }
-    if (app.name.isEmpty()) {
-      return -1;
-    }
-    if (getWindow(app.name, 0) != null) {
-      return 1;
-    }
-    App.AppEntry ae = getApp(app.pid, app.name);
-    if (ae != null && ae.pid > 0) {
-      return 1;
-    }
-    return 0;
-  }
-
-  @Override
-  public int open(String appName) {
-    if (_openApp(appName)) {
-      return 0;
-    }
-    return -1;
-  }
-
-  @Override
-  public int open(App.AppEntry app) {
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
+  public App open(App app) {
+    String appName = app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec();
     int retval = 0;
     if (runTime.osVersion.startsWith("10.10.")) {
       if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) != 0) {
         retval = -1;
       }
     } else {
-      retval = open(appName);
+      retval = _openApp(appName) ? 0 : -1;
     }
 		if (retval == 0) {
 				retval = getPID(appName);
 		}
-		return retval;
+		return app;
   }
 
   @Override
-  public int switchto(String appName) {
-    return open(appName);
+  public App switchto(App app, int num) {
+    return open(app);
   }
 
   @Override
-  public int switchto(int pid, int num) {
-    return -1;
-  }
-
-  // ignore winNum on Mac
-  @Override
-  public int switchto(String appName, int winNum) {
-    return open(appName);
+  public App switchto(String appName) {
+    return open(new App(appName));
   }
 
   @Override
-  public int switchto(App.AppEntry app, int num) {
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
-    int retval = 0;
-    if (runTime.osVersion.startsWith("10.10.")) {
-      if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) < 0) {
-        retval = -1;
-      }
+  public App close(App app) {
+    int ret = 0;
+    if (app.getPID() > -1) {
+      ret = close(app.getPID());
     } else {
-      retval = open(appName);
+      ret = close(app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec());
     }
-		if (retval == 0) {
-				retval = getPID(appName);
-		}
-    return retval;
+    if (ret == 0) {
+      app.reset();
+    }
+    return app;
   }
 
-  @Override
-  public int close(String appName) {
+  private int close(String appName) {
     try {
       String cmd[] = {"sh", "-c",
-        "ps aux |  grep \"" + appName + "\" | awk '{print $2}' | xargs kill"};
+              "ps aux |  grep \"" + appName + "\" | awk '{print $2}' | xargs kill"};
       Process p = Runtime.getRuntime().exec(cmd);
       p.waitFor();
       return p.exitValue();
@@ -196,8 +162,7 @@ public class MacUtil implements OSUtil {
     }
   }
 
-  @Override
-  public int close(int pid) {
+  private int close(int pid) {
     try {
       String cmd[] = {"sh", "-c", "kill " + pid};
       Process p = Runtime.getRuntime().exec(cmd);
@@ -206,15 +171,6 @@ public class MacUtil implements OSUtil {
     } catch (Exception e) {
       return -1;
     }
-  }
-
-  @Override
-  public int close(App.AppEntry app) {
-    if (app.pid > -1) {
-      return close(app.pid);
-    }
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
-    return close(appName);
   }
 
   private void checkAxEnabled(String name) {
@@ -263,24 +219,27 @@ public class MacUtil implements OSUtil {
 //'delete from access where client like "%part of app name%"'
 
   @Override
-  public Rectangle getWindow(String appName, int winNum) {
+  public Rectangle getWindow(App app) {
+    return getWindow(app, 0);
+  }
+
+  @Override
+  public Rectangle getWindow(App app, int winNum) {
     checkAxEnabled("getWindow");
-    int pid = getPID(appName);
+    int pid = getPID(app.getName());
     return getWindow(pid, winNum);
   }
 
   @Override
   public Rectangle getWindow(String appName) {
-    return getWindow(appName, 0);
+    return getWindow(new App(appName), 0);
   }
 
-  @Override
-  public Rectangle getWindow(int pid) {
+  private Rectangle getWindow(int pid) {
     return getWindow(pid, 0);
   }
 
-  @Override
-  public Rectangle getWindow(int pid, int winNum) {
+  private Rectangle getWindow(int pid, int winNum) {
     Rectangle rect = getRegion(pid, winNum);
     checkAxEnabled(null);
     return rect;

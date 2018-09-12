@@ -231,7 +231,27 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      //Debug.on(3);
+      Debug.on(3);
+      String chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+      String firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+      String notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
+      //App aff = App.open(notepad);
+      App aff = new App(notepad);
+      aff.open(1);
+      if (aff.isRunning(5)) {
+        p("app: %s (%s)", aff, aff.focusedWindow());
+        aff.focusedWindow().highlight(2);
+        //RunTime.pause(2);
+        //aff.close();
+        aff.closeByKey();
+        RunTime.pause(2);
+        p("app: %s (%s)", aff, aff.window());
+        aff.open(5);
+        //aff = App.open(chrome);
+        p("app: %s (%s)", aff, aff.focusedWindow());
+        aff.focusedWindow().highlight(2);
+      }
+
       //App.focus("preview");
       //scr.wait(1.0);
       //reg = App.focusedWindow();

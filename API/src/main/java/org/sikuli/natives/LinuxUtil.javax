@@ -74,7 +74,12 @@ public class LinuxUtil implements OSUtil {
     Debug.error("%s: feature %s: not available or not working", cmd, feature);
     return false;
   }
-  
+
+  @Override
+  public App.AppEntry getApp(App.AppEntry appEntry) {
+    return appEntry;
+  }
+
   @Override
   public App.AppEntry getApp(int appPID, String appName) {
     return new App.AppEntry(appName, "" + appPID, "", "", "");
