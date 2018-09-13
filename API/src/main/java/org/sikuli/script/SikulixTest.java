@@ -232,24 +232,28 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       Debug.on(3);
-      String chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
-      String firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-      String notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
-      //App aff = App.open(notepad);
-      App aff = new App(notepad);
-      aff.open(1);
-      if (aff.isRunning(5)) {
-        p("app: %s (%s)", aff, aff.focusedWindow());
-        aff.focusedWindow().highlight(2);
+      String notepad = "brackets";
+      if (runTime.runningWindows) {
+        String chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+        String firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+        notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
+      }
+      //App app = App.open(notepad);
+      App app = new App(notepad);
+      app.open(1);
+      RunTime.pause(3);
+      if (app.isRunning(5)) {
+        p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
         //RunTime.pause(2);
-        //aff.close();
-        aff.closeByKey();
+        //app.close();
+        app.closeByKey();
         RunTime.pause(2);
-        p("app: %s (%s)", aff, aff.window());
-        aff.open(5);
-        //aff = App.open(chrome);
-        p("app: %s (%s)", aff, aff.focusedWindow());
-        aff.focusedWindow().highlight(2);
+        p("app: %s (%s)", app, app.window());
+        app.open(5);
+        //app = App.open(chrome);
+        p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
       }
 
       //App.focus("preview");
