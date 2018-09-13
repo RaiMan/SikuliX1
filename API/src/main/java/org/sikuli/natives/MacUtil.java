@@ -100,10 +100,11 @@ public class MacUtil implements OSUtil {
             title += "," + parts[i];
           }
         }
-        //app = new App.AppEntry(sName.trim(), sPid.trim(), title.trim(), "", "");
         app.setName(sName.trim());
         app.setPID(sPid.trim());
         app.setWindow(title.trim());
+      } else {
+        app.reset();
       }
     }
     return app;
@@ -113,7 +114,7 @@ public class MacUtil implements OSUtil {
   public App open(App app) {
     String appName = app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec();
     int retval = 0;
-    if (runTime.osVersion.startsWith("10.10.")) {
+    if (runTime.osVersion.startsWith("10.")) {
       if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) != 0) {
         retval = -1;
       }

@@ -281,6 +281,7 @@ public class App {
   private String appExec = "";
   private String appWindow = "";
   private int appPID = -1;
+  private int maxWait = 10;
 
   public String getNameGiven() {
     return appNameGiven;
@@ -423,9 +424,9 @@ public class App {
     while (!isValid() && maxTime > 0) {
       maxTime -= 1;
       RunTime.pause(1);
-      //Debug.log(3, "App.isRunning: checking: %s", toStringShort());
       _osUtil.getApp(this);
     }
+    Debug.trace("App.isRunning: checking: %s", toStringShort());
     return isValid();
   }
 
@@ -543,10 +544,14 @@ public class App {
     focus();
     if (runTime.runningWindows) {
       window().type(Key.F4, Key.ALT);
-      RunTime.pause(1);
-      _osUtil.getApp(this);
+    } else if (runTime.runningMac) {
+      window().type("q", Key.CMD);
     } else {
       return close();
+    }
+    int timeTowait = maxWait;
+    while (isRunning(0) && timeTowait > 0) {
+      timeTowait--;
     }
     if (appPID < 0) {
       Debug.log(3,"App.closeByKey: %s", this.toStringShort());

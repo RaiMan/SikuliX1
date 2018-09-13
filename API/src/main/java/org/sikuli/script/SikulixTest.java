@@ -232,6 +232,7 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       Debug.on(3);
+      //Debug.globalTraceOn();
       String notepad = "brackets";
       if (runTime.runningWindows) {
         String chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
@@ -240,8 +241,8 @@ public class SikulixTest {
       }
       //App app = App.open(notepad);
       App app = new App(notepad);
-      app.open(1);
-      RunTime.pause(3);
+      app.open(10);
+      //RunTime.pause(3);
       if (app.isRunning(5)) {
         p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
