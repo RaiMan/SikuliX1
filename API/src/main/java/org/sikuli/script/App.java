@@ -529,7 +529,7 @@ public class App {
     }
     _osUtil.close(this);
     if (appPID < 0) {
-      Debug.log(3,"App.close: %s", this.toStringShort());
+      Debug.log(3,"App.close: %s", this);
     } else {
       Debug.error("App.close: did not work: %s", this);
     }
@@ -554,7 +554,7 @@ public class App {
       timeTowait--;
     }
     if (appPID < 0) {
-      Debug.log(3,"App.closeByKey: %s", this.toStringShort());
+      Debug.log(3,"App.closeByKey: %s", this);
     } else {
       Debug.error("App.closeByKey: did not work: %s", this);
     }

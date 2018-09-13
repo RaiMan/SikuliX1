@@ -233,14 +233,18 @@ public class SikulixTest {
       before("test99", "play");
       Debug.on(3);
       //Debug.globalTraceOn();
+      String chrome = "google chrome";
+      String firefox = "firefox";
       String notepad = "brackets";
       if (runTime.runningWindows) {
-        String chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
-        String firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+        chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+        firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
         notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
       }
       //App app = App.open(notepad);
       App app = new App(notepad);
+      app = new App(firefox);
+      app = new App(chrome);
       app.open(10);
       //RunTime.pause(3);
       if (app.isRunning(5)) {
