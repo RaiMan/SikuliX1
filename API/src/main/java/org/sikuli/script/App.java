@@ -329,7 +329,7 @@ public class App {
 
   public void reset() {
     appPID = -1;
-    appWindow = "";
+    appWindow = "???";
   }
 
   public App() {
@@ -361,7 +361,13 @@ public class App {
       }
     }
     appExec = appName;
-    appName = new File(appExec).getName();
+    File fExec = new File(appExec);
+    if (fExec.isAbsolute()) {
+      if (!fExec.exists()) {
+        Debug.error("App: create: does not exist: %s", fExec);
+      }
+    }
+    appName = fExec.getName().replace(".app", "");
     Debug.log(3, "App.create: %s", toStringShort());
   }
   //</editor-fold>
@@ -494,11 +500,13 @@ public class App {
     if (!isRunning(0)) {
       _osUtil.open(this);
       if (!isRunning(waitTime)) {
-        Debug.error("App.open: not found in taskList yet after %d secs (%s)", waitTime, appNameGiven);
+        Debug.error("App.open: not found in taskList after %d secs (%s)", waitTime, appNameGiven);
       } else {
+        Debug.log(3,"App.open: %s", this);
         focus();
       }
     } else {
+      Debug.log(3,"App.open: already running: %s", this);
       focus();
     }
     return this;
@@ -528,7 +536,7 @@ public class App {
       return this;
     }
     _osUtil.close(this);
-    if (appPID < 0) {
+    if (!isValid()) {
       Debug.log(3,"App.close: %s", this);
     } else {
       Debug.error("App.close: did not work: %s", this);

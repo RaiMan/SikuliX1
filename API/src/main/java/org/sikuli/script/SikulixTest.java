@@ -242,22 +242,25 @@ public class SikulixTest {
         notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
       }
       //App app = App.open(notepad);
-      App app = new App(notepad);
-      app = new App(firefox);
-      app = new App(chrome);
+//      App app = new App(notepad);
+//      App app = new App("/Applications/Brackets.app");
+//      App app = new App("preview");
+      App app = new App("firefox -- sikulix.com");
+//      app = new App(firefox);
+//      app = new App(chrome);
       app.open(10);
       //RunTime.pause(3);
       if (app.isRunning(5)) {
-        p("app: %s (%s)", app, app.focusedWindow());
+        //p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
         //RunTime.pause(2);
         //app.close();
         app.closeByKey();
         RunTime.pause(2);
-        p("app: %s (%s)", app, app.window());
+        //p("app: %s (%s)", app, app.window());
         app.open(5);
         //app = App.open(chrome);
-        p("app: %s (%s)", app, app.focusedWindow());
+        //p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
       }
 

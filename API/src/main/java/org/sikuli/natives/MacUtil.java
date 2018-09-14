@@ -17,7 +17,7 @@ public class MacUtil implements OSUtil {
   private String usedFeature;
   private static RunTime runTime = null;
 
-	@Override
+  @Override
   public void checkFeatureAvailability() {
     runTime = RunTime.get();
     RunTime.loadLibrary("MacUtil");
@@ -41,20 +41,18 @@ public class MacUtil implements OSUtil {
   end if
   found
   */
-  static String cmd = "tell application \"System Events\"\n"
-          + "set found to \"NotFound\"\n"
+  static String cmd = "set found to \"NotFound\"\n"
           + "try\n"
+          + "tell application \"System Events\"\n"
           + "#LINE#\n"
-          + "end try\n"
           + "end tell\n"
           + "if not found is equal to \"NotFound\" then\n"
           + "set windowName to \"\"\n"
-          + "try\n"
           + "set windowName to name of first window of application (name of found)\n"
-          + "end try\n"
           + "set found to {name of found, «class idux» of found, windowName}\n"
-          + "end if\n" +
-            "found\n";
+          + "end if\n"
+          + "end try\n"
+          + "found\n";
   static String cmdLineApp = "set found to first item of (processes whose name is \"#APP#\")";
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
@@ -81,7 +79,7 @@ public class MacUtil implements OSUtil {
       return app;
     }
     int retVal = Runner.runas(theCmd, true);
-    String result = RunTime.get().getLastCommandResult();
+    String result = RunTime.get().getLastCommandResult().trim();
     String title = "???";
     String sPid = "-1";
     String sName = "NotKnown";
@@ -113,18 +111,15 @@ public class MacUtil implements OSUtil {
   @Override
   public App open(App app) {
     String appName = app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec();
-    int retval = 0;
-    if (runTime.osVersion.startsWith("10.")) {
-      if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) != 0) {
-        retval = -1;
-      }
-    } else {
-      retval = _openApp(appName) ? 0 : -1;
+    String cmd = "open -a " + appName;
+    if (!app.getOptions().isEmpty()) {
+      cmd += " --args " + app.getOptions();
     }
-		if (retval == 0) {
-				retval = getPID(appName);
-		}
-		return app;
+    int retval = shRun(cmd);
+    if (retval == 0) {
+      retval = getPID(appName);
+    }
+    return app;
   }
 
   @Override
@@ -151,10 +146,9 @@ public class MacUtil implements OSUtil {
     return app;
   }
 
-  private int close(String appName) {
+  private static int shRun(String sCmd) {
+    String cmd[] = {"sh", "-c", sCmd};
     try {
-      String cmd[] = {"sh", "-c",
-              "ps aux |  grep \"" + appName + "\" | awk '{print $2}' | xargs kill"};
       Process p = Runtime.getRuntime().exec(cmd);
       p.waitFor();
       return p.exitValue();
@@ -163,15 +157,14 @@ public class MacUtil implements OSUtil {
     }
   }
 
+  private int close(String appName) {
+    String cmd = "ps aux |  grep \"" + appName + "\" | grep -v \"grep\" | awk '{print $2}' | xargs kill";
+    return shRun(cmd);
+  }
+
   private int close(int pid) {
-    try {
-      String cmd[] = {"sh", "-c", "kill " + pid};
-      Process p = Runtime.getRuntime().exec(cmd);
-      p.waitFor();
-      return p.exitValue();
-    } catch (Exception e) {
-      return -1;
-    }
+    String cmd = "kill " + pid;
+    return shRun(cmd);
   }
 
   private void checkAxEnabled(String name) {
@@ -182,12 +175,12 @@ public class MacUtil implements OSUtil {
       if (name == null) {
         JOptionPane.showMessageDialog(null,
                 "This app uses Sikuli feature " + usedFeature + ", which needs\n"
-                + "access to the Mac's assistive device support.\n"
-                + "You have to explicitly allow this in the System Preferences.\n"
-                + "(System Preferences -> Security & Privacy -> Privacy)\n"
-                + "Currently we cannot do this for you.\n\n"
-                + "Be prepared to get some crash after clicking ok.\n"
-                + "Please check the System Preferences and come back.",
+                        + "access to the Mac's assistive device support.\n"
+                        + "You have to explicitly allow this in the System Preferences.\n"
+                        + "(System Preferences -> Security & Privacy -> Privacy)\n"
+                        + "Currently we cannot do this for you.\n\n"
+                        + "Be prepared to get some crash after clicking ok.\n"
+                        + "Please check the System Preferences and come back.",
                 "SikuliX on Mac Mavericks Special", JOptionPane.PLAIN_MESSAGE);
         System.out.println("[error] MacUtil: on Mavericks: no access to assistive device support");
       }
@@ -200,15 +193,15 @@ public class MacUtil implements OSUtil {
       }
       int ret = JOptionPane.showConfirmDialog(null,
               "You need to enable Accessibility API to use the function \""
-              + name + "\".\n"
-              + "Should I open te System Preferences for you?",
+                      + name + "\".\n"
+                      + "Should I open te System Preferences for you?",
               "Accessibility API not enabled",
               JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
       if (ret == JOptionPane.YES_OPTION) {
         openAxSetting();
         JOptionPane.showMessageDialog(null,
                 "Check \"Enable access for assistant devices\""
-                + "in the System Preferences\n and then close this dialog.",
+                        + "in the System Preferences\n and then close this dialog.",
                 "Enable Accessibility API", JOptionPane.INFORMATION_MESSAGE);
       }
       _askedToEnableAX = true;
