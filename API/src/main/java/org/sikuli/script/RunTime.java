@@ -901,7 +901,9 @@ public class RunTime {
         log(lvl, "file: %s", urlLibsLocation.getPath());
         extractResourcesToFolder(urlLibsLocation.getPath(), fLibsFolder, null);
       } else if ("jar".equals(protocol)) {
-        String jarPath = urlLibsLocation.getPath().replace("file:", "");
+        String jarPath = urlLibsLocation.getPath()
+                .replace("file:", "")
+                .replaceAll("%20", " ");
         String[] parts = jarPath.split("!");
         String jarFolder = "/";
         jarFolder = parts[1];
