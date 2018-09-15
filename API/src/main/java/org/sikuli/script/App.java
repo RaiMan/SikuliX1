@@ -405,10 +405,12 @@ public class App {
 
   @Override
   public String toString() {
+    _osUtil.getApp(this);
     return String.format("[%d:%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
   }
 
   public String toStringShort() {
+    _osUtil.getApp(this);
     return String.format("[%d:%s]", appPID, appName);
   }
   //</editor-fold>
@@ -429,7 +431,7 @@ public class App {
     }
     while (!isValid() && maxTime > 0) {
       maxTime -= 1;
-      RunTime.pause(1);
+      pause(1);
       _osUtil.getApp(this);
     }
     Debug.trace("App.isRunning: checking: %s", toStringShort());
@@ -496,7 +498,6 @@ public class App {
   }
 
   private App openAndWait(int waitTime) {
-    _osUtil.getApp(this);
     if (!isRunning(0)) {
       _osUtil.open(this);
       if (!isRunning(waitTime)) {
@@ -545,6 +546,10 @@ public class App {
   }
 
   public App closeByKey() {
+    return closeByKey(0);
+  }
+
+  public App closeByKey(int waitTime) {
     if (!isRunning()) {
       Debug.error("App.closeByKey: not running: %s", this);
       return this;
@@ -555,9 +560,12 @@ public class App {
     } else if (runTime.runningMac) {
       window().type("q", Key.CMD);
     } else {
-      return close();
+      window().type("q", Key.CTRL);
     }
     int timeTowait = maxWait;
+    if (waitTime > 0) {
+      timeTowait = waitTime;
+    }
     while (isRunning(0) && timeTowait > 0) {
       timeTowait--;
     }

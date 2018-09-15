@@ -256,11 +256,10 @@ public class SikulixTest {
         //RunTime.pause(2);
         //app.close();
         app.closeByKey();
-        RunTime.pause(2);
         //p("app: %s (%s)", app, app.window());
         app.open(5);
         //app = App.open(chrome);
-        //p("app: %s (%s)", app, app.focusedWindow());
+        p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
       }
 

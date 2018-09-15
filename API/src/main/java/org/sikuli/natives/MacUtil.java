@@ -3,6 +3,7 @@
  */
 package org.sikuli.natives;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
@@ -21,6 +22,7 @@ public class MacUtil implements OSUtil {
   public void checkFeatureAvailability() {
     runTime = RunTime.get();
     RunTime.loadLibrary("MacUtil");
+    checkAxEnabled();
   }
 
   /*
@@ -58,49 +60,37 @@ public class MacUtil implements OSUtil {
 
   @Override
   public App getApp(App app) {
-    String name = "";
+    String name = app.getName();
+    int pid = app.getPID();
     String theCmd = "";
-    int pid = -1;
-    Object filter;
-    if (app.getPID() < 0) {
-      filter = app.getName();
+    if (pid < 0) {
+      if (!name.isEmpty()) {
+        theCmd = cmd.replace("#LINE#", cmdLineApp);
+        theCmd = theCmd.replaceAll("#APP#", name);
+      } else {
+        return app;
+      }
     } else {
-      filter = app.getPID();
-    }
-    if (filter instanceof String) {
-      name = (String) filter;
-      theCmd = cmd.replace("#LINE#", cmdLineApp);
-      theCmd = theCmd.replaceAll("#APP#", name);
-    } else if (filter instanceof Integer) {
-      pid = (Integer) filter;
       theCmd = cmd.replace("#LINE#", cmdLinePID);
       theCmd = theCmd.replaceAll("#PID#", "" + pid);
-    } else {
-      return app;
     }
     int retVal = Runner.runas(theCmd, true);
     String result = RunTime.get().getLastCommandResult().trim();
-    String title = "???";
-    String sPid = "-1";
-    String sName = "NotKnown";
     if (retVal > -1) {
       if (!result.contains("NotFound")) {
         String[] parts = result.split(",");
         if (parts.length > 1) {
-          sName = parts[0];
-          sPid = parts[1];
+          app.setName(parts[0].trim());
+          app.setPID(parts[1].trim());
         }
         if (parts.length > 2) {
-          title = parts[2];
+          app.setWindow(parts[2]);
         }
         if (parts.length > 3) {
           for (int i = 3; i < parts.length; i++) {
-            title += "," + parts[i];
+            app.setWindow(app.getWindow() + "," + parts[i]);
           }
         }
-        app.setName(sName.trim());
-        app.setPID(sPid.trim());
-        app.setWindow(title.trim());
       } else {
         app.reset();
       }
@@ -167,50 +157,17 @@ public class MacUtil implements OSUtil {
     return shRun(cmd);
   }
 
-  private void checkAxEnabled(String name) {
-    if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) {
-      return;
-    }
-    if (Integer.parseInt(System.getProperty("os.version").replace(".", "")) > 108 && !isAxEnabled()) {
-      if (name == null) {
-        JOptionPane.showMessageDialog(null,
-                "This app uses Sikuli feature " + usedFeature + ", which needs\n"
-                        + "access to the Mac's assistive device support.\n"
-                        + "You have to explicitly allow this in the System Preferences.\n"
-                        + "(System Preferences -> Security & Privacy -> Privacy)\n"
-                        + "Currently we cannot do this for you.\n\n"
-                        + "Be prepared to get some crash after clicking ok.\n"
-                        + "Please check the System Preferences and come back.",
-                "SikuliX on Mac Mavericks Special", JOptionPane.PLAIN_MESSAGE);
-        System.out.println("[error] MacUtil: on Mavericks: no access to assistive device support");
-      }
-      usedFeature = name;
-      return;
-    }
-    if (!isAxEnabled()) {
-      if (_askedToEnableAX) {
-        return;
-      }
-      int ret = JOptionPane.showConfirmDialog(null,
-              "You need to enable Accessibility API to use the function \""
-                      + name + "\".\n"
-                      + "Should I open te System Preferences for you?",
-              "Accessibility API not enabled",
-              JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
-      if (ret == JOptionPane.YES_OPTION) {
-        openAxSetting();
-        JOptionPane.showMessageDialog(null,
-                "Check \"Enable access for assistant devices\""
-                        + "in the System Preferences\n and then close this dialog.",
-                "Enable Accessibility API", JOptionPane.INFORMATION_MESSAGE);
-      }
-      _askedToEnableAX = true;
+  private void checkAxEnabled() {
+    if (runTime.isOSX10() && !isAxEnabled()) {
+      JOptionPane.showMessageDialog(null,
+              "SikuliX needs access to the Mac's assistive device support.\n"
+                      + "You have to explicitly allow this in the System Preferences.\n"
+                      + "(... -> Security & Privacy -> Privacy -> Accessibility)\n"
+                      + "Please check the System Preferences and come back.",
+              "macOS Accessibility", JOptionPane.ERROR_MESSAGE);
+      runTime.terminate(-1, "App: MacUtil: no access to assistive device support");
     }
   }
-
-//Mac Mavericks: delete app entry from list - in terminal on one line
-//sudo sqlite3 /Library/Application\ Support/com.apple.TCC/Tcc.db
-//'delete from access where client like "%part of app name%"'
 
   @Override
   public Rectangle getWindow(App app) {
@@ -219,7 +176,6 @@ public class MacUtil implements OSUtil {
 
   @Override
   public Rectangle getWindow(App app, int winNum) {
-    checkAxEnabled("getWindow");
     int pid = getPID(app.getName());
     return getWindow(pid, winNum);
   }
@@ -235,15 +191,12 @@ public class MacUtil implements OSUtil {
 
   private Rectangle getWindow(int pid, int winNum) {
     Rectangle rect = getRegion(pid, winNum);
-    checkAxEnabled(null);
     return rect;
   }
 
   @Override
   public Rectangle getFocusedWindow() {
-    checkAxEnabled("getFocusedWindow");
     Rectangle rect = getFocusedRegion();
-    checkAxEnabled(null);
     return rect;
   }
 
