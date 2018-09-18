@@ -7,13 +7,17 @@ import org.sikuli.basics.Debug;
 import org.sikuli.natives.OSUtil;
 import org.sikuli.natives.SysUtil;
 
-import java.awt.*;
+import java.awt.Desktop;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.io.*;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
@@ -650,6 +654,11 @@ public class App {
    */
   public static Region focusedWindow() {
     return asRegion(_osUtil.getFocusedWindow());
+  }
+
+  public List<Region> getWindows() {
+    List<Region> regWindows = new ArrayList<>();
+    return _osUtil.getWindows(this);
   }
 //</editor-fold>
 

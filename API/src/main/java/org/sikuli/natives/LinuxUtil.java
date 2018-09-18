@@ -10,9 +10,11 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.util.StringUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
+import org.sikuli.script.Region;
 
 import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -395,7 +397,12 @@ public class LinuxUtil implements OSUtil {
   @Override
   public void bringWindowToFront(Window win, boolean ignoreMouse) {
   }
-  
+
+  @Override
+  public List<Region> getWindows(App app) {
+    return new ArrayList<>();
+  }
+
   private enum SearchType {
     
     APP_NAME,

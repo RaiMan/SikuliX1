@@ -4,10 +4,7 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.App;
-import org.sikuli.script.Key;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Screen;
+import org.sikuli.script.*;
 import org.sikuli.util.ProcessRunner;
 
 import java.awt.Rectangle;
@@ -315,6 +312,11 @@ public class WinUtil implements OSUtil {
   public Rectangle getFocusedWindow() {
     Rectangle rect = getFocusedRegion();
     return rect;
+  }
+
+  @Override
+  public List<Region> getWindows(App app) {
+    return new ArrayList<>();
   }
 
   public native int switchApp(String appName, int num);

@@ -5,11 +5,14 @@ package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
+import org.sikuli.script.Region;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MacUtil implements OSUtil {
@@ -58,6 +61,20 @@ public class MacUtil implements OSUtil {
   static String cmdLineApp = "set found to first item of (processes whose name is \"#APP#\")";
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
+  /*
+  set theWindows to {}
+  repeat with win in (windows of application "#APP#" whose visible is true)
+	  copy {name of win, bounds of win} to end of theWindows
+  end repeat
+  theWindows
+  */
+
+  String cmdGetWindows = "set theWindows to {}\n" +
+          "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
+          "copy {name of win, bounds of win} to end of theWindows\n" +
+          "end repeat\n" +
+          "theWindows\n";
+
   @Override
   public App getApp(App app) {
     String name = app.getName();
@@ -105,16 +122,25 @@ public class MacUtil implements OSUtil {
     if (!app.getOptions().isEmpty()) {
       cmd += " --args " + app.getOptions();
     }
-    int retval = shRun(cmd);
-    if (retval == 0) {
-      retval = getPID(appName);
-    }
+    shRun(cmd);
     return app;
   }
 
   @Override
   public App switchto(App app, int num) {
-    return open(app);
+    //osascript -e "tell app \"safari\" to activate"
+    String cmd = "tell application \""
+            + app.getName()
+            + "\" to activate";
+    Runner.runas(cmd, true);
+    if (num > 0) {
+      List<Region> windows = getWindows(app);
+      if (num < windows.size()) {
+        //TODO bring window to front
+        Debug.trace("MacUtil: switchto: win: %d of %s", num, app);
+      }
+    }
+    return app;
   }
 
   @Override
@@ -198,6 +224,37 @@ public class MacUtil implements OSUtil {
   public Rectangle getFocusedWindow() {
     Rectangle rect = getFocusedRegion();
     return rect;
+  }
+
+  @Override
+  public List<Region> getWindows(App app) {
+    List<Region> windows = new ArrayList<>();
+    String theCmd = cmdGetWindows.replace("#APP#", app.getName());
+    int retVal = Runner.runas(theCmd, true);
+    String result = RunTime.get().getLastCommandResult().trim();
+    if (retVal > -1 && !result.isEmpty()) {
+      Debug.trace("getWindows: %s", result);
+      String[] parts = result.split(",");
+      int lenResult = parts.length;
+      if (lenResult % 5 != 0) {
+        Debug.error("getWindow: at least one window title has a comma - giving up: %s", result);
+        return windows;
+      }
+      for (int nWin = 0; nWin < lenResult; nWin += 5) {
+        try {
+          int x = Integer.parseInt(parts[nWin + 1].trim());
+          int y = Integer.parseInt(parts[nWin + 2].trim());
+          int w = Integer.parseInt(parts[nWin + 3].trim()) - x;
+          int h = Integer.parseInt(parts[nWin + 4].trim()) - y;
+          Region reg = new Region(x, y, w, h);
+          reg.setName(parts[nWin]);
+          windows.add(reg);
+        } catch (NumberFormatException e) {
+          Debug.error("getWindow: invalid coordinates: %s", result);
+        }
+      }
+    }
+    return windows;
   }
 
   @Override

@@ -97,6 +97,16 @@ public class Region {
   private boolean isVirtual = false;
   private long lastSearchTimeRepeat = -1;
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  private String name = "";
+
   /**
    * {@inheritDoc}
    *
@@ -106,8 +116,13 @@ public class Region {
   public String toString() {
     String scrText = getScreen() == null ? "?" :
             "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
-    return String.format("R[%d,%d %dx%d]@S(%s) E:%s, T:%.1f",
-            x, y, w, h, scrText,
+
+    String nameText = "";
+    if (!name.isEmpty()) {
+      nameText = "#" + name + "# ";
+    }
+    return String.format("%sR[%d,%d %dx%d]@S(%s) E:%s, T:%.1f",
+            nameText, x, y, w, h, scrText,
             throwException ? "Y" : "N", autoWaitTimeout);
   }
 
@@ -129,7 +144,11 @@ public class Region {
     } else {
       String scrText = getScreen() == null ? "?" :
               "" + (-1 == getScreen().getID() ? "Union" : getScreen().getID());
-      return String.format("R[%d,%d %dx%d]@S(%s)", x, y, w, h, scrText);
+      String nameText = "";
+      if (!name.isEmpty()) {
+        nameText = "#" + name + "# ";
+      }
+      return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
     }
   }
   //</editor-fold>

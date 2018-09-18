@@ -224,6 +224,7 @@ public class SikulixTest {
 //    runTest.add(9); // basic transparency
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
+//    runTest.add(12); // class App
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -232,40 +233,7 @@ public class SikulixTest {
     } else if (runTest.size() == 0) {
       before("test99", "play");
       Debug.on(3);
-      //Debug.globalTraceOn();
-      String chrome = "google chrome";
-      String firefox = "firefox";
-      String notepad = "brackets";
-      if (runTime.runningWindows) {
-        chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
-        firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-        notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
-      }
-      //App app = App.open(notepad);
-//      App app = new App(notepad);
-//      App app = new App("/Applications/Brackets.app");
-//      App app = new App("preview");
-      App app = new App("firefox -- sikulix.com");
-//      app = new App(firefox);
-//      app = new App(chrome);
-      app.open(10);
-      //RunTime.pause(3);
-      if (app.isRunning(5)) {
-        //p("app: %s (%s)", app, app.focusedWindow());
-        app.focusedWindow().highlight(2);
-        //RunTime.pause(2);
-        //app.close();
-        app.closeByKey();
-        //p("app: %s (%s)", app, app.window());
-        app.open(5);
-        //app = App.open(chrome);
-        p("app: %s (%s)", app, app.focusedWindow());
-        app.focusedWindow().highlight(2);
-      }
-
-      //App.focus("preview");
-      //scr.wait(1.0);
-      //reg = App.focusedWindow();
+      Debug.globalTraceOn();
       after();
     }
 
@@ -490,5 +458,49 @@ public class SikulixTest {
       after();
     }
     //</editor-fold>
+
+    //<editor-fold desc="class App">
+    if (shouldRunTest(12)) {
+      before("test12", "class App");
+      String chrome = "google chrome";
+      String firefox = "firefox";
+      String notepad = "brackets";
+      if (runTime.runningWindows) {
+        chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+        firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+        notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
+      }
+      //App app = App.open(notepad);
+//      App app = new App(notepad);
+//      App app = new App("/Applications/Brackets.app");
+//      App app = new App("preview");
+      App app = new App("safari");
+//      app = new App(firefox);
+//      app = new App(chrome);
+      app.open(10);
+      RunTime.pause(3);
+      app.focus(1);
+      if (app.isRunning(5)) {
+        List<Region> windows = app.getWindows();
+        for (Region window : windows) {
+          p("%s", window);
+        }
+        RunTime.pause(10);
+        //p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
+        //RunTime.pause(2);
+        //app.close();
+        app.closeByKey();
+        //p("app: %s (%s)", app, app.window());
+        app.open(5);
+        //app = App.open(chrome);
+        p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
+      }
+
+      //App.focus("preview");
+      //scr.wait(1.0);
+      //reg = App.focusedWindow();
+    }
   }
 }

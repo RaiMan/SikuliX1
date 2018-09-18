@@ -4,8 +4,11 @@
 package org.sikuli.natives;
 
 import org.sikuli.script.App;
+import org.sikuli.script.Region;
 
-import java.awt.*;
+import java.awt.Rectangle;
+import java.awt.Window;
+import java.util.List;
 import java.util.Map;
 
 public interface OSUtil {
@@ -37,6 +40,8 @@ public interface OSUtil {
   public Rectangle getWindow(App app, int winNum);
 
   public Rectangle getFocusedWindow();
+
+  public List<Region> getWindows(App app);
 
   public void bringWindowToFront(Window win, boolean ignoreMouse);
 }
