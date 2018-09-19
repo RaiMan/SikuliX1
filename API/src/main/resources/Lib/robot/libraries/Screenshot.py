@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -345,7 +346,10 @@ class ScreenshotTaker(object):
             self._wx_app_reference = wx.App(False)
         context = wx.ScreenDC()
         width, height = context.GetSize()
-        bitmap = wx.EmptyBitmap(width, height, -1)
+        if wx.__version__ >= '4':
+            bitmap = wx.Bitmap(width, height, -1)
+        else:
+            bitmap = wx.EmptyBitmap(width, height, -1)
         memory = wx.MemoryDC()
         memory.SelectObject(bitmap)
         memory.Blit(0, 0, width, height, context, -1, -1)

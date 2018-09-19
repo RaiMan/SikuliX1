@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from robot.errors import TimeoutError
 from robot.utils import get_error_details, py2to3
 
 from .listenerarguments import ListenerArguments
@@ -99,6 +101,10 @@ class ListenerMethod(object):
         try:
             ListenerMethod.called = True
             self.method(*args)
+        except TimeoutError:
+            # Propagate possible timeouts:
+            # https://github.com/robotframework/robotframework/issues/2763
+            raise
         except:
             message, details = get_error_details()
             LOGGER.error("Calling method '%s' of listener '%s' failed: %s"

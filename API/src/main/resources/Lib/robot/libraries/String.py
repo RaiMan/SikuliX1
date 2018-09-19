@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,6 +12,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+from __future__ import absolute_import
 
 import re
 from fnmatch import fnmatchcase
@@ -95,8 +98,6 @@ class String(object):
         on character or integer sequences. Use `Decode Bytes To String` if you
         need to convert byte strings to Unicode strings and `Convert To String`
         in ``BuiltIn`` if you need to convert arbitrary objects to Unicode.
-
-        New in Robot Framework 2.7.7.
         """
         return bytes(string.encode(encoding, errors))
 
@@ -119,8 +120,6 @@ class String(object):
         Use `Encode String To Bytes` if you need to convert Unicode strings to
         byte strings, and `Convert To String` in ``BuiltIn`` if you need to
         convert arbitrary objects to Unicode strings.
-
-        New in Robot Framework 2.7.7.
         """
         if PY3 and is_unicode(bytes):
             raise TypeError('Can not decode strings on Python 3.')
@@ -184,8 +183,9 @@ class String(object):
 
         The match is case-sensitive by default, but giving ``case_insensitive``
         a true value makes it case-insensitive. The value is considered true
-        if it is a non-empty string that is not equal to ``false`` or ``no``.
-        If the value is not a string, its truth value is got directly in Python.
+        if it is a non-empty string that is not equal to ``false``, ``none`` or
+        ``no``. If the value is not a string, its truth value is got directly
+        in Python. Considering ``none`` false is new in RF 3.0.3.
 
         Lines are returned as one string catenated back together with
         newlines. Possible trailing newline is never returned. The
@@ -218,8 +218,9 @@ class String(object):
 
         The match is case-sensitive by default, but giving ``case_insensitive``
         a true value makes it case-insensitive. The value is considered true
-        if it is a non-empty string that is not equal to ``false`` or ``no``.
-        If the value is not a string, its truth value is got directly in Python.
+        if it is a non-empty string that is not equal to ``false``, ``none`` or
+        ``no``. If the value is not a string, its truth value is got directly
+        in Python. Considering ``none`` false is new in RF 3.0.3.
 
         Lines are returned as one string catenated back together with
         newlines. Possible trailing newline is never returned. The
@@ -249,9 +250,10 @@ class String(object):
 
         By default lines match only if they match the pattern fully, but
         partial matching can be enabled by giving the ``partial_match``
-        argument a true value. The value is considered true if it is a
-        non-empty string that is not equal to ``false`` or ``no``. If the
-        value is not a string, its truth value is got directly in Python.
+        argument a true value. The value is considered true
+        if it is a non-empty string that is not equal to ``false``, ``none`` or
+        ``no``. If the value is not a string, its truth value is got directly
+        in Python. Considering ``none`` false is new in RF 3.0.3.
 
         If the pattern is empty, it matches only empty lines by default.
         When partial matching is enabled, empty pattern matches all lines.
@@ -456,8 +458,6 @@ class String(object):
 
         Example:
         | @{characters} = | Split String To Characters | ${string} |
-
-        New in Robot Framework 2.7.
         """
         return list(string)
 
@@ -565,9 +565,17 @@ class String(object):
     def should_be_string(self, item, msg=None):
         """Fails if the given ``item`` is not a string.
 
-        This keyword passes regardless is the ``item`` is a Unicode string or
-        a byte string. Use `Should Be Unicode String` or `Should Be Byte
-        String` if you want to restrict the string type.
+        With Python 2, except with IronPython, this keyword passes regardless
+        is the ``item`` a Unicode string or a byte string. Use `Should Be
+        Unicode String` or `Should Be Byte String` if you want to restrict
+        the string type. Notice that with Python 2, except with IronPython,
+        ``'string'`` creates a byte string and ``u'unicode'`` must be used to
+        create a Unicode string.
+
+        With Python 3 and IronPython, this keyword passes if the string is
+        a Unicode string but fails if it is bytes. Notice that with both
+        Python 3 and IronPython, ``'string'`` creates a Unicode string, and
+        ``b'bytes'`` must be used to create a byte string.
 
         The default error message can be overridden with the optional
         ``msg`` argument.
@@ -577,6 +585,9 @@ class String(object):
 
     def should_not_be_string(self, item, msg=None):
         """Fails if the given ``item`` is a string.
+
+        See `Should Be String` for more details about Unicode strings and byte
+        strings.
 
         The default error message can be overridden with the optional
         ``msg`` argument.
@@ -589,12 +600,11 @@ class String(object):
 
         Use `Should Be Byte String` if you want to verify the ``item`` is a
         byte string, or `Should Be String` if both Unicode and byte strings
-        are fine.
+        are fine. See `Should Be String` for more details about Unicode
+        strings and byte strings.
 
         The default error message can be overridden with the optional
         ``msg`` argument.
-
-        New in Robot Framework 2.7.7.
         """
         if not is_unicode(item):
             self._fail(msg, "'%s' is not a Unicode string.", item)
@@ -604,12 +614,11 @@ class String(object):
 
         Use `Should Be Unicode String` if you want to verify the ``item`` is a
         Unicode string, or `Should Be String` if both Unicode and byte strings
-        are fine.
+        are fine. See `Should Be String` for more details about Unicode strings
+        and byte strings.
 
         The default error message can be overridden with the optional
         ``msg`` argument.
-
-        New in Robot Framework 2.7.7.
         """
         if not is_bytes(item):
             self._fail(msg, "'%s' is not a byte string.", item)

@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,8 +18,29 @@ try:
 except ImportError:  # New in Python 2.7
     from .ordereddict import OrderedDict
 
+from .robottypes import is_dict_like
+
 
 class DotDict(OrderedDict):
+
+    def __init__(self, *args, **kwds):
+        args = [self._convert_nested_initial_dicts(a) for a in args]
+        kwds = self._convert_nested_initial_dicts(kwds)
+        OrderedDict.__init__(self, *args, **kwds)
+
+    def _convert_nested_initial_dicts(self, value):
+        items = value.items() if is_dict_like(value) else value
+        return OrderedDict((key, self._convert_nested_dicts(value))
+                           for key, value in items)
+
+    def _convert_nested_dicts(self, value):
+        if isinstance(value, DotDict):
+            return value
+        if is_dict_like(value):
+            return DotDict(value)
+        if isinstance(value, list):
+            value[:] = [self._convert_nested_dicts(item) for item in value]
+        return value
 
     def __getattr__(self, key):
         try:
