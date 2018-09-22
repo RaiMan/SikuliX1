@@ -986,10 +986,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
             new FileAction(FileAction.ASJAR)));
 
-    _fileMenu.add(createMenuItem("Export as runnable jar",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
-                    InputEvent.SHIFT_MASK | scMask),
-            new FileAction(FileAction.ASRUNJAR)));
+//TODO export as runnable jar
+//    _fileMenu.add(createMenuItem("Export as runnable jar",
+//            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
+//                    InputEvent.SHIFT_MASK | scMask),
+//            new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
