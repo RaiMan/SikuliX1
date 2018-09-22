@@ -42,7 +42,7 @@ public class SikulixFileChooser {
     if (_parent == null) {
       return false;
     }
-    return (_parent.getWidth() == 1 && _parent.getHeight() == 1);
+    return (_parent.getWidth() < 3 && _parent.getHeight() < 3);
   }
 
   public File show(String title) {
