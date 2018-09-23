@@ -33,6 +33,12 @@ public class Sikulix {
   static String ClassPath = "";
   static String start = String.format("%d", new Date().getTime());
   static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
+  static String jythonVersion = "2.7.1";
+  static String jrubyVersion = "9.2.0.0";
+  static boolean moveJython = false;
+  static boolean moveJRuby = false;
+  static boolean jythonLatest = false;
+  static boolean jrubyLatest = false;
 
   public static void main(String[] args) {
     CodeSource codeSrc = SikuliIDE.class.getProtectionDomain().getCodeSource();
@@ -57,22 +63,23 @@ public class Sikulix {
     log(1, "Running: %s", jarName);
     log(1, "AppData: %s", fAppData);
 
-    boolean runningJar = jarName.endsWith(".jar");
-    if (runningJar) {
+    if (jarName.endsWith(".jar")) {
       log(1, "starting");
+      ClassPath = jarName;
     } else {
       SikulixRunIDE.main(args);
       return;
     }
-
     File[] sxFolderList = sxFolder.listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.endsWith(".jar")) {
           if (name.contains("jython") && name.contains("standalone")) {
+            moveJython = true;
             return true;
           }
           if (name.contains("jruby") && name.contains("complete")) {
+            moveJRuby = true;
             return true;
           }
         }
@@ -81,6 +88,7 @@ public class Sikulix {
     });
 
     fDirExtensions = new File(fAppData, "Extensions");
+    boolean extensionsOK = true;
 
     if (!fDirExtensions.exists()) {
       fDirExtensions.mkdir();
@@ -88,37 +96,61 @@ public class Sikulix {
 
     if (!fDirExtensions.exists()) {
       log(1, "folder extension not available: %s", fDirExtensions);
+      extensionsOK = false;
     }
 
-    if (sxFolderList.length > 0) {
-      for (File fJar : sxFolderList) {
-        try {
-          Files.move(fJar.toPath(), fDirExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-          log(1, "moving to extensions: %s", fJar);
-        } catch (IOException e) {
-          log(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
+    if (extensionsOK) {
+      fExtensions = fDirExtensions.listFiles();
+      if (moveJython || moveJRuby) {
+        for (File fExtension : fExtensions) {
+          String name = fExtension.getName();
+          if ((name.contains("jython") && name.contains("standalone")) ||
+                  (name.contains("jruby") && name.contains("complete"))) {
+            fExtension.delete();
+          }
+        }
+      }
+      if (sxFolderList.length > 0) {
+        for (File fJar : sxFolderList) {
+          try {
+            Files.move(fJar.toPath(), fDirExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            log(1, "moving to extensions: %s", fJar);
+          } catch (IOException e) {
+            log(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
+          }
+        }
+      }
+
+      log(1, "looking for extension jars in: %s", fDirExtensions);
+      String separator = File.pathSeparator;
+      fExtensions = fDirExtensions.listFiles();
+      for (File fExtension : fExtensions) {
+        if (!ClassPath.isEmpty()) {
+          ClassPath += separator;
+        }
+        String pExtension = fExtension.getAbsolutePath();
+        if (pExtension.endsWith(".jar")) {
+          if (pExtension.contains("jython") && pExtension.contains("standalone")) {
+            if (pExtension.contains(jythonVersion)) {
+              jythonLatest = true;
+            }
+          } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
+            if (pExtension.contains(jrubyVersion)) {
+              jrubyLatest = true;
+            }
+          }
+          ClassPath += pExtension;
+          extensions.add(pExtension);
+          log(1, "adding extension: %s", fExtension);
         }
       }
     }
-
-    log(1, "looking for extension jars in: %s", fDirExtensions);
-    fExtensions = fDirExtensions.listFiles();
-
-    if (runningJar) {
-      ClassPath = jarName;
-    } else {
-      ClassPath = System.getProperty("java.class.path");
+    if (!jythonLatest && !jrubyLatest) {
+      log(-1, "Neither Jython nor JRuby available - IDE not yet useable with JavaScript only" +
+              "\nPlease consult the docs for a solution");
+      System.exit(-1);
     }
-    String separator = File.pathSeparator;
-    for (File fExtension : fExtensions) {
-      if (!ClassPath.isEmpty()) ClassPath += separator;
-      String pExtension = fExtension.getAbsolutePath();
-      if (pExtension.endsWith(".jar")) {
-        ClassPath += pExtension;
-        extensions.add(pExtension);
-        log(1, "adding extension: %s", fExtension);
-      }
-    }
+
     List<String> cmd = new ArrayList<>();
     cmd.add("java");
 //    if ("m".equals(osName)) {
@@ -134,12 +166,13 @@ public class Sikulix {
   }
 
   private static void log(int level, String msg, Object... args) {
-    msg = "[DEBUG] RunIDE: " + msg;
+    String msgShow = "[DEBUG] RunIDE: " + msg;
     if (level < 0) {
-      msg = "[ERROR] RunIDE: " + msg;
-    } else if (verbose) {
-      System.out.println(String.format(msg, args));
+      msgShow = "[ERROR] RunIDE: " + msg;
+    } else if (!verbose) {
+      return;
     }
+    System.out.println(String.format(msgShow, args));
   }
 
   private static File makeAppData() {

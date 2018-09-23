@@ -295,8 +295,13 @@ public class ScriptingSupport {
       }
       System.exit(1);
     } else {
+      //TODO JavaScript only script support
       Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
       Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+      if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
+        Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
+        Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+      }
       for (IScriptRunner r : scriptRunner.values()) {
         for (String e : r.getFileEndings()) {
           if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
