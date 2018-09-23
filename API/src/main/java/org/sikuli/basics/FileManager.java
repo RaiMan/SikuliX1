@@ -1227,14 +1227,14 @@ public class FileManager {
   }
 
   public static String makeScriptjar(List<String> options) {
-    File fSetupStuff = new File(RunTime.get().fSikulixAppPath, "SetupStuff");
-    FileManager.resetFolder(fSetupStuff);
-    String target = doMakeScriptjar(options, fSetupStuff);
-    deleteFileOrFolder(fSetupStuff);
+    File fSikulixTemp = new File(RunTime.get().fSikulixStore, "SikulixTemp");
+    FileManager.resetFolder(fSikulixTemp);
+    String target = doMakeScriptjar(options, fSikulixTemp);
+    deleteFileOrFolder(fSikulixTemp);
     return target;
   }
 
-  private static String doMakeScriptjar(List<String> options, File fSetupStuff) {
+  private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
     boolean makingScriptjarPlain = false;
     RunTime runTime = RunTime.get();
     File fSikulixapi = new File(runTime.fSikulixDownloadsGeneric, runTime.sSikulixapi);
@@ -1283,8 +1283,8 @@ public class FileManager {
     }
 
     String fpScriptJar = "sikulixjython.jar";
-    File fScriptSource = new File(fSetupStuff, "scriptSource");
-    File fScriptCompiled = new File(fSetupStuff, "scriptCompiled");
+    File fScriptSource = new File(fSikulixTemp, "scriptSource");
+    File fScriptCompiled = new File(fSikulixTemp, "scriptCompiled");
     File fWorkdir = scriptFolder.getParentFile();
     FileFilter skipCompiled = new FileFilter() {
       @Override
@@ -1320,10 +1320,10 @@ public class FileManager {
     }
 
     Sikulix.compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
-    FileManager.xcopy(fScriptCompiled, fSetupStuff);
+    FileManager.xcopy(fScriptCompiled, fSikulixTemp);
     FileManager.deleteFileOrFolder(fScriptSource);
     FileManager.deleteFileOrFolder(fScriptCompiled);
-    fileList[0] = fSetupStuff.getAbsolutePath();
+    fileList[0] = fSikulixTemp.getAbsolutePath();
 
     String[] jarsList = new String[] {null, null};
     if (!makingScriptjarPlain) {
@@ -1332,7 +1332,7 @@ public class FileManager {
       jarsList[1] = fSikulixapi.getAbsolutePath();
 
       String manifest = "Manifest-Version: 1.0\nMain-Class: org.python.util.JarRunner\n";
-      File fMetaInf = new File(fSetupStuff, "META-INF");
+      File fMetaInf = new File(fSikulixTemp, "META-INF");
       fMetaInf.mkdir();
       FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
     }
