@@ -146,8 +146,14 @@ public class Sikulix {
       }
     }
     if (!jythonLatest && !jrubyLatest) {
-      log(-1, "Neither Jython nor JRuby available - IDE not yet useable with JavaScript only" +
-              "\nPlease consult the docs for a solution");
+      String message = "Neither Jython nor JRuby available" +
+              "\nIDE not yet useable with JavaScript only" +
+              "\nPlease consult the docs for a solution";
+      if (!verbose) {
+        JOptionPane.showMessageDialog(null, message, "IDE not useable", JOptionPane.ERROR_MESSAGE);
+      } else {
+        log(-1, message);
+      }
       System.exit(-1);
     }
 
