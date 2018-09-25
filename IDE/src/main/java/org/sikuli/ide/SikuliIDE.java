@@ -208,9 +208,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       cmdLineValid = false;
     }
 
-    if (cmdLineValid  && !(cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-                          || cmdLine.hasOption(CommandArgsEnum.TEST.shortname())
-                          || cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname()))
+    if (cmdLineValid  && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
                       && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
                       && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
       ideSplash = new IDESplash();
@@ -224,7 +222,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
 
-    if (RunTime.get().shouldRunServer) {
+    if (runTime.shouldRunServer) {
       RunServer.run(null);
       System.exit(0);
     }
@@ -234,10 +232,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       System.exit(0);
     }
 
-    if (cmdLineValid && (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-            || cmdLine.hasOption(CommandArgsEnum.TEST.shortname())
-            || cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname()))) {
-      log(lvl, "Switching to ScriptRunner with option -r, -t or -i");
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
+      log(lvl, "Switching to ScriptRunner with option -r");
       ScriptingSupport.runscript(args);
     }
 

@@ -125,12 +125,12 @@ public class CommandArgs {
     _options.addOption(CommandArgsEnum.QUIET.shortname(),
             CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
 
-    _options.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.INTERACTIVE.argname())
-            .withDescription(CommandArgsEnum.INTERACTIVE.description())
-            .create(CommandArgsEnum.INTERACTIVE.shortname().charAt(0)));
+//    _options.addOption(
+//            OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())
+//            .hasOptionalArg()
+//            .withArgName(CommandArgsEnum.INTERACTIVE.argname())
+//            .withDescription(CommandArgsEnum.INTERACTIVE.description())
+//            .create(CommandArgsEnum.INTERACTIVE.shortname().charAt(0)));
 
     _options.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
@@ -146,12 +146,12 @@ public class CommandArgs {
             .withArgName(CommandArgsEnum.LOAD.argname())
             .create(CommandArgsEnum.LOAD.shortname().charAt(0)));
 
-    _options.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.TEST.longname())
-            .withDescription(CommandArgsEnum.TEST.description())
-            .hasOptionalArgs()
-            .withArgName(CommandArgsEnum.TEST.argname())
-            .create(CommandArgsEnum.TEST.shortname().charAt(0)));
+//    _options.addOption(
+//            OptionBuilder.withLongOpt(CommandArgsEnum.TEST.longname())
+//            .withDescription(CommandArgsEnum.TEST.description())
+//            .hasOptionalArgs()
+//            .withArgName(CommandArgsEnum.TEST.argname())
+//            .create(CommandArgsEnum.TEST.shortname().charAt(0)));
 
     _options.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
