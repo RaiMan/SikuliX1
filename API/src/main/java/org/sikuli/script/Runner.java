@@ -134,26 +134,27 @@ public class Runner {
 
     // select script runner and/or start interactive session
     // option is overloaded - might specify runner for -r/-t
-    if (cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname())) {
-      if (!cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-              && !cmdLine.hasOption(CommandArgsEnum.TEST.shortname())) {
-        runTime.interactiveRunner = cmdLine.getOptionValue(CommandArgsEnum.INTERACTIVE.longname());
-        runTime.runningInteractive = true;
-        return null;
-      }
-    }
+//    if (cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname())) {
+//      if (!cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
+//              && !cmdLine.hasOption(CommandArgsEnum.TEST.shortname())) {
+//        runTime.interactiveRunner = cmdLine.getOptionValue(CommandArgsEnum.INTERACTIVE.longname());
+//        runTime.runningInteractive = true;
+//        return null;
+//      }
+//    }
 
     String[] runScripts = null;
     runTime.runningTests = false;
     if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
       runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
-    } else if (cmdLine.hasOption(CommandArgsEnum.TEST.shortname())) {
-      runScripts = cmdLine.getOptionValues(CommandArgsEnum.TEST.longname());
-      log(-1, "Command line option -t: not yet supported! %s", Arrays.asList(args).toString());
-      runTime.runningTests = true;
-//TODO run a script as unittest with HTMLTestRunner
-      System.exit(1);
     }
+//    else if (cmdLine.hasOption(CommandArgsEnum.TEST.shortname())) {
+//      runScripts = cmdLine.getOptionValues(CommandArgsEnum.TEST.longname());
+//      log(-1, "Command line option -t: not yet supported! %s", Arrays.asList(args).toString());
+//      runTime.runningTests = true;
+////TODO run a script as unittest with HTMLTestRunner
+//      System.exit(1);
+//    }
     return runScripts;
   }
 

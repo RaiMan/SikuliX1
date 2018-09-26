@@ -27,7 +27,7 @@ public enum CommandArgsEnum {
 	/**
 	 * Starts an interactive session
 	 */
-	INTERACTIVE("interactive", "i", "[runner (jython)]", "start interactive session and/or select ScriptRunner"),
+	//INTERACTIVE("interactive", "i", "[runner (jython)]", "start interactive session and/or select ScriptRunner"),
 	/**
 	 * Runs the script
 	 */
@@ -35,7 +35,7 @@ public enum CommandArgsEnum {
 	/**
 	 * Runs the script as testcase
 	 */
-	TEST("test", "t", "foobar.sikuli", "runs script as unittest"),
+	//TEST("test", "t", "foobar.sikuli", "runs script as unittest"),
 	/**
 	 * Prints all errormessages to stdout
 	 */
