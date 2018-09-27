@@ -238,6 +238,9 @@ public class SikulixTest {
       App.focus("preview"); scr.wait(1.0);
       Region puzz = App.focusedWindow();
       Image pink = new Image(scr.userCapture());
+      puzz.has(pink);
+      puzz.has(pink);
+
       List<Match> matches = puzz.findAllList(pink);
       matches.sort(new Comparator<Match>() {
         @Override
