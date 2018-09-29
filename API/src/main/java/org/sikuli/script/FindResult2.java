@@ -84,18 +84,16 @@ public class FindResult2 implements Iterator<Match> {
         isMatch = true;
       } else if (matchCount == 1) {
         scoreMeanDiff = lastScore - currentScore;
-        if (findInput.isPattern || scoreMeanDiff < scoreMaxDiff) {
-          isMatch = true;
-        }
+        isMatch = true;
       } else {
         double scoreDiff = lastScore - currentScore;
         if (findInput.isPattern || scoreDiff <= (scoreMeanDiff + 0.01)) { // 0.005
-          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff)/(matchCount + 1);
+          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
           isMatch = true;
         }
       }
       if (!isMatch) {
-        Debug.log(3, "findAll: stop: %.4f (%.4f) %s", currentScore, scoreMeanDiff, findInput);
+        Debug.log(3, "findAll: (%d) stop: %.4f (%.4f) %s", matchCount, currentScore, scoreMeanDiff, findInput);
       }
     }
     return isMatch;
@@ -106,7 +104,7 @@ public class FindResult2 implements Iterator<Match> {
     if (hasNext()) {
       if (findInput.isText()) {
         Word nextWord = words.remove(0);
-        match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence()/100);
+        match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence() / 100);
         match.setText(nextWord.getText().trim());
       } else {
         match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);

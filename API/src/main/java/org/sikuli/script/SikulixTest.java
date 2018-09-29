@@ -235,30 +235,6 @@ public class SikulixTest {
       before("test99", "play");
       Debug.on(3);
       Debug.globalTraceOn();
-      App.focus("preview"); scr.wait(1.0);
-      Region puzz = App.focusedWindow();
-      Image pink = new Image(scr.userCapture());
-      puzz.has(pink);
-      puzz.has(pink);
-
-      List<Match> matches = puzz.findAllList(pink);
-      matches.sort(new Comparator<Match>() {
-        @Override
-        public int compare(Match m1, Match m2) {
-          int top = m1.h;
-          int left = m1.w;
-          if (m1.y < m2.y - top ) {
-            return -1;
-          }
-          if (m1.x < m2.x - left) {
-            return -1;
-          }
-          return 1;
-        }
-      });
-      for (Match found : matches) {
-        found.highlight(1);
-      }
       after();
     }
 

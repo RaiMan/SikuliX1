@@ -2526,7 +2526,6 @@ public class Region {
   }
 
   public <PSI> List<Match> findAllByRow(PSI target) {
-    Match[] matches = new Match[0];
     List<Match> mList = getAll(target);
     if (mList.isEmpty()) {
       return null;
@@ -2534,10 +2533,20 @@ public class Region {
     Collections.sort(mList, new Comparator<Match>() {
       @Override
       public int compare(Match m1, Match m2) {
-        if (m1.y == m2.y) {
-          return m1.x - m2.x;
+        int xMid1 = m1.getCenter().x;
+        int yMid1 = m1.getCenter().y;
+        int yTop = yMid1 - m1.h/2;
+        int yBottom = yMid1 + m1.h/2;
+        int xMid2 = m2.getCenter().x;
+        int yMid2 = m2.getCenter().y;
+        if (yMid2 > yTop &&  yMid2 < yBottom) {
+          if (xMid1 > xMid2) {
+            return 1;
+          }
+        } else if (yMid2 < yTop) {
+          return 1;
         }
-        return m1.y - m2.y;
+        return -1;
       }
     });
     return mList;
@@ -2552,10 +2561,20 @@ public class Region {
     Collections.sort(mList, new Comparator<Match>() {
       @Override
       public int compare(Match m1, Match m2) {
-        if (m1.x == m2.x) {
-          return m1.y - m2.y;
+        int xMid1 = m1.getCenter().x;
+        int yMid1 = m1.getCenter().y;
+        int xLeft = xMid1 - m1.w/2;
+        int xRight = xMid1 + m1.w/2;
+        int xMid2 = m2.getCenter().x;
+        int yMid2 = m2.getCenter().y;
+        if (xMid2 > xLeft &&  xMid2 < xRight) {
+          if (yMid1 > yMid2) {
+            return 1;
+          }
+        } else if (xMid2 < xLeft) {
+          return 1;
         }
-        return m1.x - m2.x;
+        return -1;
       }
     });
     return mList;
