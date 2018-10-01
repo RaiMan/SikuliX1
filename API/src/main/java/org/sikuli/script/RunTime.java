@@ -229,6 +229,9 @@ public class RunTime {
 
 //<editor-fold defaultstate="collapsed" desc="versions">
     Debug.log(3, "RunTimeINIT: java version");
+    if (Debug.getDebugLevel() > 3) {
+      runTime.dumpSysProps();
+    }
     String vJava = System.getProperty("java.specification.version");
     String vVM = System.getProperty("java.vm.version");
     String vClass = System.getProperty("java.class.version");

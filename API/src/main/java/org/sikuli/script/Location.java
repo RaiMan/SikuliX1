@@ -251,6 +251,13 @@ public class Location implements Comparable<Location>{
     return Region.create(this, CREATE_X_DIRECTION, CREATE_Y_DIRECTION, w, h);
   }
 
+  public Region union(Location loc) {
+    Rectangle r1 = new Rectangle(this.x, this.y, 0, 0);
+    Rectangle r2 = new Rectangle(loc.x, loc.y, 0, 0);
+    Region reg = new Region(r1.union(r2));
+    return reg;
+  }
+
   /**
    * moves the point the given amounts in the x and y direction, might be negative <br>might move
    * point outside of any screen, not checked
