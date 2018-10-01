@@ -138,7 +138,10 @@ public class ProcessRunner {
       List<String> cmd = new ArrayList<>();
       cmd.add("cmd");
       cmd.add("/C");
-      cmd.add("start \"\" /B \"" + givenCmd.get(0) + "\"");
+      cmd.add("start");
+      cmd.add("\"\"");
+      cmd.add("/B");
+      cmd.add("\"" + givenCmd.get(0) + "\"");
       if (givenCmd.size() > 1) {
         cmd.add(givenCmd.get(1));
       }
