@@ -431,6 +431,7 @@ public class ImagePath {
       if (fpImage == null) {
         fpImage = "";
       }
+      log(3, "addJar: %s", fpJar);
       pathURL = FileManager.makeURL(fpJar + "!/" + fpImage, "jar");
       add(pathURL);
     }

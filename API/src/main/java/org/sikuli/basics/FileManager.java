@@ -1240,20 +1240,20 @@ public class FileManager {
   private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
     boolean makingScriptjarPlain = false;
     RunTime runTime = RunTime.get();
-    File fSikulixapi = new File(runTime.fSikulixDownloadsGeneric, runTime.sSikulixapi);
-    File fSikulixjython = new File(runTime.fSikulixDownloadsGeneric, new File(runTime.SikuliJythonMaven).getName());
+//    File fSikulixapi = new File(runTime.fSikulixDownloadsGeneric, runTime.sSikulixapi);
+//    File fSikulixjython = new File(runTime.fSikulixDownloadsGeneric, new File(runTime.SikuliJythonMaven).getName());
     if (options.size() > 0 && "plain".equals(options.get(0))) {
       makingScriptjarPlain = true;
       options.remove(0);
     } else {
-      if (!fSikulixapi.exists()) {
-        log(-1, "makingScriptJar: sikulixapi.jar missing. run setup first!");
-        return null;
-      }
-      if (!fSikulixjython.exists()) {
-        log(-1, "makingScriptJar: jython jar missing. run setup first!");
-        return null;
-      }
+//      if (!fSikulixapi.exists()) {
+//        log(-1, "makingScriptJar: sikulixapi.jar missing. run setup first!");
+//        return null;
+//      }
+//      if (!fSikulixjython.exists()) {
+//        log(-1, "makingScriptJar: jython jar missing. run setup first!");
+//        return null;
+//      }
     }
     File scriptFile = null;
     File scriptFolder = null;
@@ -1285,7 +1285,7 @@ public class FileManager {
       return null;
     }
 
-    String fpScriptJar = "sikulixjython.jar";
+    String fpScriptJar = "";
     File fScriptSource = new File(fSikulixTemp, "scriptSource");
     File fScriptCompiled = new File(fSikulixTemp, "scriptCompiled");
     File fWorkdir = scriptFolder.getParentFile();
@@ -1310,10 +1310,18 @@ public class FileManager {
       }
       FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
       String script = "";
-      String prolog = "import org.sikuli.script.SikulixForJython\nfrom sikuli import *\n";
-      prolog += "ImagePath.addJar(\".\", \"\")\n";
-      prolog += "import " + scriptName + "\n";
+      String prolog = "import org.sikuli.script.SikulixForJython\n" +
+              "from sikuli import *\n" +
+              "Debug.on(3)\n" +
+              "for e in sys.path:\n" +
+              "    print e\n" +
+              "    if e.endswith(\".jar\"):\n" +
+              "        jar = e\n" +
+              "        break\n" +
+              "ImagePath.addJar(jar, \"\")\n" +
+              "import " + scriptName + "\n";
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
+      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
       script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
       prolog = "from sikuli import *\n";
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
@@ -1330,21 +1338,21 @@ public class FileManager {
 
     String[] jarsList = new String[]{null, null};
     if (!makingScriptjarPlain) {
-      log(lvl, "makingScriptJar: adding sikulixapi and jython - takes some time", fpScriptJar);
-      jarsList[0] = fSikulixjython.getAbsolutePath();
-      jarsList[1] = fSikulixapi.getAbsolutePath();
+//      log(lvl, "makingScriptJar: adding sikulixapi and jython - takes some time", fpScriptJar);
+//      jarsList[0] = fSikulixjython.getAbsolutePath();
+//      jarsList[1] = fSikulixapi.getAbsolutePath();
     } else {
-      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
-      fJarRunner = new File(fJarRunner, "JarRunner.class");
-      File fJarRunnerDir = new File(fSikulixTemp, "org/python/util");
-      fJarRunnerDir.mkdirs();
-      FileManager.xcopy(fJarRunner, fJarRunnerDir);
+//      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
+//      fJarRunner = new File(fJarRunner, "JarRunner.class");
+//      File fJarRunnerDir = new File(fSikulixTemp, "org/python/util");
+//      fJarRunnerDir.mkdirs();
+//      FileManager.xcopy(fJarRunner, fJarRunnerDir);
     }
 
-    String manifest = "Manifest-Version: 1.0\nMain-Class: org.python.util.JarRunner\n";
-    File fMetaInf = new File(fSikulixTemp, "META-INF");
-    fMetaInf.mkdir();
-    FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
+//    String manifest = "Manifest-Version: 1.0\nMain-Class: org.python.util.JarRunner\n";
+//    File fMetaInf = new File(fSikulixTemp, "META-INF");
+//    fMetaInf.mkdir();
+//    FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
     if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
