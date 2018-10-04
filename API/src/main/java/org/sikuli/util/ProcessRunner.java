@@ -143,7 +143,8 @@ public class ProcessRunner {
       cmd.add("/B");
       cmd.add("\"" + givenCmd.get(0) + "\"");
       if (givenCmd.size() > 1) {
-        cmd.add(givenCmd.get(1));
+        //cmd.add(givenCmd.get(1));
+        startAppParams(cmd, givenCmd.get(1));
       }
       if (cmd.size() > 0) {
         ProcessBuilder app = new ProcessBuilder();
@@ -169,6 +170,27 @@ public class ProcessRunner {
       }
     }
     return exitValue;
+  }
+
+  private static List<String> startAppParams(List<String> cmd, String param) {
+    String[] params = param.split(" ");
+    String concatParm = "";
+    for (String parm : params) {
+      if (parm.startsWith("\"")) {
+        concatParm = parm;
+        continue;
+      }
+      if (!concatParm.isEmpty()) {
+        if (!parm.endsWith("\"")) {
+          concatParm += " " + parm;
+          continue;
+        }
+        parm = concatParm + " " + parm;
+        concatParm = "";
+      }
+      cmd.add(parm.trim());
+    }
+    return cmd;
   }
 }
 

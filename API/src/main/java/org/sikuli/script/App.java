@@ -347,21 +347,20 @@ public class App {
   private void init(String name) {
     appName = appNameGiven;
     String[] parts;
+    //C:\Program Files\Mozilla Firefox\firefox.exe -- options
+    parts = appName.split(" -- ");
+    if (parts.length > 1) {
+      appOptions = parts[1].trim();
+      appName = parts[0].trim();
+    }
     if (appName.startsWith("\"")) {
       //"C:\Program Files\Mozilla Firefox\firefox.exe" options
       parts = appName.substring(1).split("\"");
       if (parts.length > 1) {
-        appOptions = appName.substring(parts[0].length() + 3);
+        appOptions = appName.substring(parts[0].length() + 2).trim();
         appName = parts[0];
       } else {
         appName = appName.replace("\"", "");
-      }
-    } else {
-      //C:\Program Files\Mozilla Firefox\firefox.exe -- options
-      parts = appName.split(" -- ");
-      if (parts.length > 1) {
-        appOptions = parts[1];
-        appName = parts[0];
       }
     }
     appExec = appName;
@@ -410,7 +409,7 @@ public class App {
   @Override
   public String toString() {
     _osUtil.getApp(this);
-    return String.format("[%d:%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
+    return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
   }
 
   public String toStringShort() {
