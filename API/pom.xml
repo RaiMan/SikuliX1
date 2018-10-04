@@ -47,17 +47,20 @@
       <version>3.4</version>
       <!--License Apache 2-->
     </dependency>
+<!--
+    Integration via sources without dbus
+    groupId:com.github.tulskiy
+    GNU Lesser General Public License v3.0
+    https://github.com/tulskiy/jkeymaster
+    artifactId:jkeymaster
+    version:1.3-SNAPShot
+-->
     <dependency>
-      <groupId>com.github.tulskiy</groupId>
-      <!--GNU Lesser General Public License v3.0-->
-      <!--https://github.com/tulskiy/jkeymaster-->
-      <artifactId>jkeymaster</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>1.7.25</version>
+      <!--needed by jkeymaster-->
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.5.2</version>
+      <!--License Apache 2-->
     </dependency>
     <dependency>
       <groupId>com.nativelibs4java</groupId>
@@ -83,6 +86,7 @@
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
       <version>3.5.2</version>
+      <!--License Apache 2-->
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>

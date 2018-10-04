@@ -142,6 +142,7 @@ public class RunTime {
   private final String osVersionSysProp = System.getProperty("os.version");
   public String javaShow = "not-set";
   public int javaArch = 32;
+  public String osArch = "??";
   public int javaVersion = 0;
   public String javahome = FileManager.slashify(System.getProperty("java.home"), false);
   public String osName = "NotKnown";
@@ -236,7 +237,8 @@ public class RunTime {
     String vVM = System.getProperty("java.vm.version");
     String vClass = System.getProperty("java.class.version");
 
-    String vSysArch = System.getProperty("os.arch");
+    runTime.osArch = System.getProperty("os.arch");
+    String vSysArch = System.getProperty("sun.arch.data.model");
     if (vSysArch != null) {
       if (vSysArch.contains("64")) {
         runTime.javaArch = 64;
@@ -252,8 +254,8 @@ public class RunTime {
         String[] parts = vJava.split("\\.");
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
-      runTime.javaShow = String.format("java %d-%d version %s vm %s class %s arch %s",
-              runTime.javaVersion, runTime.javaArch, vJava, vVM, vClass, vSysArch);
+      runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
+              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
@@ -1149,7 +1151,7 @@ public class RunTime {
     logp("user.dir (work dir): %s", fWorkDir);
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
-    logp("running %dBit on %s (%s) %s", javaArch, osName,
+    logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osName,
             (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
