@@ -345,22 +345,26 @@ public class Finder2 {
     if (what.empty()) {
       log.error("doFindMatch: image conversion to cvMat did not work");
     } else {
+      Mat mWhere = where;
+      if (findInput.isGray()) {
+        Imgproc.cvtColor(where, mWhere, Imgproc.COLOR_BGR2GRAY);
+      }
       if (!findInput.isPlainColor()) {
         if (findInput.hasMask()) {
           Mat mask = findInput.getMask();
-          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
+          Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
         } else {
-          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_CCOEFF_NORMED);
+          Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCOEFF_NORMED);
         }
       } else {
-        Mat wherePlain = where;
+        Mat wherePlain = mWhere;
         Mat whatPlain = what;
         if (findInput.isBlack()) {
-          Core.bitwise_not(where, wherePlain);
+          Core.bitwise_not(mWhere, wherePlain);
           Core.bitwise_not(what, whatPlain);
         }
         if (findInput.hasMask()) {
-          Imgproc.matchTemplate(where, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+          Imgproc.matchTemplate(wherePlain, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
         } else {
           Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
         }

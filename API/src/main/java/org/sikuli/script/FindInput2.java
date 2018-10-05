@@ -7,10 +7,8 @@ package org.sikuli.script;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
-import org.opencv.imgproc.Imgproc;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class FindInput2 {
@@ -158,6 +156,7 @@ public class FindInput2 {
   protected boolean plainColor = false;
   protected boolean blackColor = false;
   protected boolean whiteColor = false;
+  protected boolean grayColor = false;
 
   public boolean isPlainColor() {
     return isValid() && plainColor;
@@ -167,10 +166,13 @@ public class FindInput2 {
     return isValid() && blackColor;
   }
 
+  public boolean isGray() {
+    return isValid() && grayColor;
+  }
+
   public boolean isWhite() {
     return isValid() && blackColor;
   }
-
   public double getResizeFactor() {
     return isValid() ? resizeFactor : 1;
   }
@@ -207,6 +209,9 @@ public class FindInput2 {
     }
 
     //TODO plaincolor/black with masking
+    if (targetBGR.channels() == 1) {
+      grayColor = true;
+    }
     plainColor = false;
     blackColor = false;
     resizeFactor = Math.min(((double) targetBGR.width()) / resizeMinDownSample,
