@@ -1262,7 +1262,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
     int ret = -1;
     Document doc = getDocument();
-    Debug.log(lvl, "search: %s from %d forward: %s", str, pos, forward);
+    Debug.log(4, "search: %s from %d forward: %s", str, pos, forward);
     try {
       String body;
       int begin;
@@ -1289,7 +1289,8 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
         }
       }
     } catch (BadLocationException e) {
-      log(-1, "search: did not work:\n" + e.getStackTrace());
+      //log(-1, "search: did not work:\n" + e.getStackTrace());
+      ret = -1;
     }
     return ret;
   }

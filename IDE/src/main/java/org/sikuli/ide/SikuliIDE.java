@@ -90,6 +90,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private ButtonRun _btnRun = null, _btnRunViz = null;
   private boolean ideIsRunningScript = false;
   private JXSearchField _searchField;
+  private String findText = "";
   private JMenuBar _menuBar = new JMenuBar();
   private JMenu _fileMenu = null; //new JMenu(_I("menuFile"));
   private JMenu _editMenu = null; //new JMenu(_I("menuEdit"));
@@ -1512,16 +1513,34 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void doFind(ActionEvent ae) {
-      _searchField.selectAll();
-      _searchField.requestFocus();
+//      _searchField.selectAll();
+//      _searchField.requestFocus();
+      findText = Sikulix.input(
+              "Enter text to be searched (case sensitive)\n" +
+                    "Start with ! to search case insensitive\n",
+                    findText, "SikuliX IDE -- Find");
+      if (null == findText) {
+        return;
+      }
+      if (findText.isEmpty()) {
+        Debug.error("Find(%s): search text is empty", findText);
+        return;
+      }
+      if (!findStr(findText)) {
+        Debug.error("Find(%s): not found", findText);
+      }
     }
 
     public void doFindNext(ActionEvent ae) {
-      findNext(_searchField.getText());
+      if (!findText.isEmpty()) {
+        findNext(findText);
+      }
     }
 
     public void doFindPrev(ActionEvent ae) {
-      findPrev(_searchField.getText());
+      if (!findText.isEmpty()) {
+        findPrev(findText);
+      }
     }
 
     private boolean _find(String str, int begin, boolean forward) {
@@ -1530,7 +1549,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
       EditorPane codePane = getCurrentCodePane();
       int pos = codePane.search(str, begin, forward);
-      Debug.log(7, "find \"" + str + "\" at " + begin + ", found: " + pos);
+      Debug.log(4, "find \"" + str + "\" at " + begin + ", found: " + pos);
       if (pos < 0) {
         return false;
       }
@@ -1807,7 +1826,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     options[WARNING_DO_NOTHING] = "OK";
     options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    int ret = JOptionPane.showOptionDialog(null, warn, title,
+            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
     }
