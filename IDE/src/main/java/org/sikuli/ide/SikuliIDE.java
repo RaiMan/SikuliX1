@@ -89,14 +89,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
   private boolean ideIsRunningScript = false;
-  private JXSearchField _searchField;
+  //private JXSearchField _searchField;
   private String findText = "";
   private JMenuBar _menuBar = new JMenuBar();
   private JMenu _fileMenu = null; //new JMenu(_I("menuFile"));
   private JMenu _editMenu = null; //new JMenu(_I("menuEdit"));
   private UndoAction _undoAction = null; //new UndoAction();
   private RedoAction _redoAction = null; //new RedoAction();
-  private FindAction _findHelper;
   private JMenu _runMenu = null; //new JMenu(_I("menuRun"));
   private JMenu _viewMenu = null; //new JMenu(_I("menuView"));
   private JMenu _toolMenu = null; //new JMenu(_I("menuTool"));
@@ -1414,7 +1413,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     _editMenu.addSeparator();
     JMenu findMenu = new JMenu(_I("menuFind"));
-    _findHelper = new FindAction();
     findMenu.setMnemonic(KeyEvent.VK_F);
     findMenu.add(createMenuItem(_I("menuFindFind"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
@@ -1579,15 +1577,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       return false;
     }
 
-    public void setFailed(boolean failed) {
-      Debug.log(7, "search failed: " + failed);
-      _searchField.setBackground(Color.white);
-      if (failed) {
-        _searchField.setForeground(COLOR_SEARCH_FAILED);
-      } else {
-        _searchField.setForeground(COLOR_SEARCH_NORMAL);
-      }
-    }
+//    public void setFailed(boolean failed) {
+//      Debug.log(7, "search failed: " + failed);
+//      _searchField.setBackground(Color.white);
+//      if (failed) {
+//        _searchField.setForeground(COLOR_SEARCH_FAILED);
+//      } else {
+//        _searchField.setForeground(COLOR_SEARCH_NORMAL);
+//      }
+//    }
   }
 
   class UndoAction extends AbstractAction {
@@ -2739,6 +2737,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return pane.getBundlePath();
   }
 
+/*
   private JComponent createSearchField() {
     _searchField = new JXSearchField("Find");
     //_searchField.setUseNativeSearchFieldIfPossible(true);
@@ -2788,6 +2787,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     });
     return _searchField;
   }
+*/
   //</editor-fold>
 
   private void initTabPane() {
