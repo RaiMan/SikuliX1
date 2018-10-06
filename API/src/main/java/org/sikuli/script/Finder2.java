@@ -497,8 +497,13 @@ public class Finder2 {
       Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
       aMatBGR.put(0, 0, data);
       return aMatBGR;
-    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-      log.trace("makeMat: BYTE_INDEXED (%dx%d)", bImg.getWidth(), bImg.getHeight());
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
+                || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      String bImgType = "BYTE_BINARY";
+      if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+        bImgType = "BYTE_INDEXED";
+      }
+      log.trace("makeMat: %s (%dx%d)", bImgType, bImg.getWidth(), bImg.getHeight());
       BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
       Graphics graphics = bimg3b.getGraphics();
       graphics.drawImage(bImg,0, 0, null);
