@@ -527,6 +527,15 @@ public class Finder2 {
       Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
       aMat.put(0, 0, data);
       return aMat;
+    } else if (bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+      log.trace("makeMat: BYTE_BINARY (%dx%d)", bImg.getWidth(), bImg.getHeight());
+      BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bimg3b.getGraphics();
+      graphics.drawImage(bImg,0, 0, null);
+      byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
+      Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
+      aMatBGR.put(0, 0, data);
+      return aMatBGR;
     } else {
       log.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
     }
