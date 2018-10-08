@@ -331,7 +331,7 @@ public class FileManager {
   public static String downloadURLtoString(URL uSrc) {
     String content = "";
     InputStream reader = null;
-    log(lvl, "download to string from:\n%s,", uSrc);
+    log(lvl +1, "download to string from:\n%s,", uSrc);
     try {
       if (getProxy() != null) {
         reader = uSrc.openConnection(getProxy()).getInputStream();

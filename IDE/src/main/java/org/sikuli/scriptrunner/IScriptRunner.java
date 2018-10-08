@@ -28,6 +28,8 @@ public interface IScriptRunner {
    */
   public int runScript(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE);
 
+  public void runLines(String[] lines);
+
   /**
    * Executes the Script as Test.
    *

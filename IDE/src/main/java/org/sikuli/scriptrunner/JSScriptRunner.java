@@ -44,6 +44,11 @@ public class JSScriptRunner implements IScriptRunner {
   }
 
   @Override
+  public void runLines(String[] lines){
+
+  }
+
+  @Override
   public int runScript(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE) {
     log(lvl, "runJavaScript: running statements");
     File scriptFolder = scriptfile.getParentFile();

@@ -93,6 +93,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   private SikuliIDEPopUpMenu popMenuImage;
   private SikuliEditorKit editorKit;
   private EditorViewFactory editorViewFactory;
+
+  public SikuliIDE getIDE() {
+    return sikuliIDE;
+  }
+
   private SikuliIDE sikuliIDE = null;
   private int caretPosition = -1;
 
@@ -931,6 +936,19 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
   }
 
+  public String getLine(int lineno) {
+    String line = "";
+    Element map = getDocument().getDefaultRootElement();
+    Element lineElem = map.getElement(lineno - 1);
+    int start = lineElem.getStartOffset();
+    int end = lineElem.getEndOffset();
+    try {
+      line = getDocument().getText(start, end - start);
+    } catch (BadLocationException e) {
+    }
+    return line;
+  }
+
   //<editor-fold defaultstate="collapsed" desc="TODO only used for UnitTest">
   public void jumpTo(String funcName) throws BadLocationException {
     log(lvl + 1, "jumpTo function: " + funcName);
@@ -1182,6 +1200,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return patternString;
   }
   //</editor-fold>
+
+  public IScriptRunner getRunner() {
+    IScriptRunner runner = ScriptingSupport.getRunner(null, getContentType());
+    return runner;
+  }
 
   //<editor-fold defaultstate="collapsed" desc="content insert append">
   public void insertString(String str) {

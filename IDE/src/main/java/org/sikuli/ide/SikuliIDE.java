@@ -45,6 +45,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Element;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import java.awt.*;
@@ -296,7 +297,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       try {
         long lb = Long.parseLong(latestBuild);
         long ab = Long.parseLong(actualBuild);
-        if (lb > ab) newBuildAvailable = true;
+        if (lb > ab) {
+          newBuildAvailable = true;
+        }
         log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
       } catch (NumberFormatException e) {
         log(-1, "check for new build: stamps not readable");
@@ -1457,13 +1460,28 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void doCut(ActionEvent ae) {
+      if (getCurrentCodePane().getSelectedText() != null) {
+        performEditorAction(DefaultEditorKit.cutAction, ae);
+      } else {
+        EditorPane pane = getCurrentCodePane();
+        Element lineAtCaret = pane.getLineAtCaret(pane.getCaretPosition());
+        pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
 //TODO delete current line if no selection
-      performEditorAction(DefaultEditorKit.cutAction, ae);
+      }
     }
 
+    //mac: 
+
     public void doCopy(ActionEvent ae) {
+      if (getCurrentCodePane().getSelectedText() != null) {
+        performEditorAction(DefaultEditorKit.copyAction, ae);
+      } else {
+        EditorPane pane = getCurrentCodePane();
+        Element lineAtCaret = pane.getLineAtCaret(-1);
+        pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
+        log(0,"");
 //TODO copy current line if no selection
-      performEditorAction(DefaultEditorKit.copyAction, ae);
+      }
     }
 
     public void doPaste(ActionEvent ae) {

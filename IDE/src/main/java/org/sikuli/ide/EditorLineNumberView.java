@@ -29,7 +29,12 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   private int textTopInset;
   private int textFontAscent;
   private int textFontHeight;
-  private EditorPane text;
+
+  public EditorPane getEditorPane() {
+    return editorPane;
+  }
+
+  private EditorPane editorPane;
   private SizeSequence sizes;
   private int startLine = 0;
   private boolean structureChanged = true;
@@ -38,21 +43,21 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   private SikuliIDEPopUpMenu popMenuLineNumber = null;
   private boolean wasPopup = false;
 
-  public EditorLineNumberView(JTextComponent text) {
+  public EditorLineNumberView(JTextComponent editorPane) {
     /**
-     * Construct a LineNumberView and attach it to the given text component. The LineNumberView will
-     * listen for certain kinds of events from the text component and update itself accordingly.
+     * Construct a LineNumberView and attach it to the given editorPane component. The LineNumberView will
+     * listen for certain kinds of events from the editorPane component and update itself accordingly.
      */
-    if (text == null) {
+    if (editorPane == null) {
       throw new IllegalArgumentException("Text component required! Cannot be null!");
     }
-    this.text = (EditorPane) text;
+    this.editorPane = (EditorPane) editorPane;
     updateCachedMetrics();
 
     UpdateHandler handler = new UpdateHandler();
-    text.getDocument().addDocumentListener(handler);
-    text.addPropertyChangeListener(handler);
-    text.addComponentListener(handler);
+    editorPane.getDocument().addDocumentListener(handler);
+    editorPane.addPropertyChangeListener(handler);
+    editorPane.addComponentListener(handler);
 
     setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, BORDER_COLOR));
     setForeground(FG_COLOR);
@@ -71,7 +76,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
   @Override
   public Dimension getPreferredSize() {
-    return new Dimension(componentWidth, text.getHeight());
+    return new Dimension(componentWidth, editorPane.getHeight());
   }
 
   @Override
@@ -82,11 +87,11 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
   private void updateCachedMetrics() {
     // Cache some values that are used a lot in painting or size calculations.
-    Font textFont = text.getFont();
+    Font textFont = editorPane.getFont();
     FontMetrics fm = getFontMetrics(textFont);
     textFontHeight = fm.getHeight();
     textFontAscent = fm.getAscent();
-    textTopInset = text.getInsets().top;
+    textTopInset = editorPane.getInsets().top;
 
     Font viewFont = getFont();
     boolean changed = false;
@@ -165,7 +170,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
     // document to deal with boundary conditions at the end.  This
     // is not desired in the line count, so we detect it and remove
     // its effect if throwing off the count.
-    Element root = text.getDocument().getDefaultRootElement();
+    Element root = editorPane.getDocument().getDefaultRootElement();
     int n = root.getElementCount();
     Element lastLine = root.getElement(n - 1);
     if ((lastLine.getEndOffset() - lastLine.getStartOffset()) >= 1) {
@@ -178,19 +183,19 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
     // Get the height of a line from the JTextComponent.
     Element e;
     int lastPos = sizes.getPosition(index) + textTopInset;
-    Element l = text.getDocument().getDefaultRootElement().getElement(index);
+    Element l = editorPane.getDocument().getDefaultRootElement().getElement(index);
     Rectangle r = null;
     Rectangle r1;
     int h = textFontHeight;
     int max_h = 0;
     try {
       if (l.getElementCount() < 2) {
-        r = text.modelToView(l.getEndOffset() - 1);
+        r = editorPane.modelToView(l.getEndOffset() - 1);
       } else {
         for (int i = 0; i < l.getElementCount(); i++) {
           e = l.getElement(i);
           if ("component".equals(e.getName())) {
-            r1 = text.modelToView(e.getStartOffset());
+            r1 = editorPane.modelToView(e.getStartOffset());
             if (max_h < r1.height) {
               max_h = r1.height;
               r = r1;
@@ -199,7 +204,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
         }
       }
       if (r == null) {
-        r = text.modelToView(l.getEndOffset() - 1);
+        r = editorPane.modelToView(l.getEndOffset() - 1);
       }
       h = (r.y - lastPos) + r.height;
     } catch (Exception ex) {
@@ -232,11 +237,23 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
       wasPopup = false;
       //return;
     }
-    text.jumpTo(sizes.getIndex(me.getY()) + 1);
+    setCurrentLine(sizes.getIndex(me.getY()) + 1);
+    editorPane.jumpTo(getCurrentLine());
     if (me.getClickCount() == 2) {
-      Document document = text.getDocument();
+      Document document = editorPane.getDocument();
     }
   }
+
+  public int getCurrentLine() {
+    return currentLine;
+  }
+
+  public void setCurrentLine(int currentLine) {
+    this.currentLine = currentLine;
+  }
+
+  private int currentLine = -1;
+
 
   @Override
   public void mousePressed(MouseEvent me) {
@@ -312,7 +329,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
     private void update(DocumentEvent evt, String msg) {
       // invalidate one or all lines
-      Element map = text.getDocument().getDefaultRootElement();
+      Element map = editorPane.getDocument().getDefaultRootElement();
       int line = map.getElementIndex(evt.getOffset());
       DocumentEvent.ElementChange ec = evt.getChange(map);
       Debug.log(6, "LineNumbers: " + msg + " update - struct changed: " + (ec != null));
