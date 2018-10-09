@@ -10,6 +10,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
+
 import org.sikuli.basics.Debug;
 
 public class EditorLineNumberView extends JComponent implements MouseListener {
@@ -67,7 +68,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
   private void init() {
     addMouseListener(this);
-    setToolTipText("RightClick for options - left to select the line");
+    setToolTipText("RightClick for options - left to jump to - double to select");
     popMenuLineNumber = new SikuliIDEPopUpMenu("POP_LINE", this);
     if (!popMenuLineNumber.isValidMenu()) {
       popMenuLineNumber = null;
@@ -235,12 +236,33 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   public void mouseClicked(MouseEvent me) {
     if (wasPopup) {
       wasPopup = false;
-      //return;
+      currentStart = currentEnd = -1;
     }
     setCurrentLine(sizes.getIndex(me.getY()) + 1);
     editorPane.jumpTo(getCurrentLine());
     if (me.getClickCount() == 2) {
-      Document document = editorPane.getDocument();
+      Element lineAtCaret = editorPane.getLineAtCaret(-1);
+      currentStart = lineAtCaret.getStartOffset();
+      currentEnd = lineAtCaret.getEndOffset();
+      editorPane.select(currentStart, currentEnd);
+      return;
+    }
+    if (shouldPopup) {
+      shouldPopup = false;
+      checkPopup(me);
+      if (currentStart > -1) {
+        editorPane.select(currentStart, currentEnd);
+        currentStart = currentEnd = -1;
+      }
+    }
+  }
+
+  private boolean shouldPopup = false;
+
+  private void checkPopup(MouseEvent me) {
+    if (popMenuLineNumber != null) {
+      wasPopup = true;
+      popMenuLineNumber.show(this, (int) getSize().getWidth() - 3, me.getY() + 8);
     }
   }
 
@@ -253,26 +275,24 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
   }
 
   private int currentLine = -1;
-
+  private int currentStart = -1;
+  private int currentEnd = -1;
 
   @Override
   public void mousePressed(MouseEvent me) {
-    checkPopup(me);
+    int start = editorPane.getSelectionStart();
+    int end = editorPane.getSelectionEnd();
+    if (start != end) {
+      currentStart = start;
+      currentEnd = end;
+    }
+    if (me.isPopupTrigger()) {
+      shouldPopup = true;
+    }
   }
 
   @Override
   public void mouseReleased(MouseEvent me) {
-    //checkPopup(me);
-  }
-
-  private void checkPopup(MouseEvent me) {
-    if (me.isPopupTrigger()) {
-      if (popMenuLineNumber != null) {
-        wasPopup = true;
-        popMenuLineNumber.show(this, me.getX(), me.getY());
-      }
-      return;
-    }
   }
 
   //</editor-fold>

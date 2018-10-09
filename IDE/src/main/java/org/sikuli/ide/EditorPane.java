@@ -29,10 +29,8 @@ import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.idesupport.IIndentationLogic;
-import org.sikuli.script.Location;
+import org.sikuli.script.*;
 import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
 import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
@@ -947,6 +945,48 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     } catch (BadLocationException e) {
     }
     return line;
+  }
+
+  public void runSelection() {
+    int start = getSelectionStart();
+    int end = getSelectionEnd();
+    if (start == end) {
+      runLines(getLineTextAtCaret().trim());
+    } else {
+      runLines(getSelectedText());
+    }
+  }
+
+  public String getLines(int current, Boolean selection) {
+    String lines = "";
+    String[] scriptLines = getText().split("\n");
+    if (selection == null) {
+      lines = scriptLines[current - 1].trim();
+    } else if (selection) {
+      for (int i = current - 1; i < scriptLines.length; i++) {
+        lines += scriptLines[i] + "\n";
+      }
+    } else {
+      for (int i = 0; i < current; i++) {
+        lines += scriptLines[i] + "\n";
+      }
+    }
+    return lines;
+  }
+
+  public void runLines(String lines) {
+    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
+      log(-1, "runLines: 1st line must not be indented");
+      return;
+    }
+    getIDE().setVisible(false);
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        getRunner().runLines(new String[]{lines});
+        getIDE().setVisible(true);
+      }
+    }).start();
   }
 
   //<editor-fold defaultstate="collapsed" desc="TODO only used for UnitTest">

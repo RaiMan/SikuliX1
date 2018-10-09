@@ -209,9 +209,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       cmdLineValid = false;
     }
 
-    if (cmdLineValid  && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-                      && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
-                      && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
+    if (cmdLineValid && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
+            && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
+            && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
       ideSplash = new IDESplash();
     }
 
@@ -405,9 +405,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     String j9Message = "";
     if (runTime.isJava9()) {
-      j9Message ="*** Running on Java 9+";
+      j9Message = "*** Running on Java 9+";
     }
-    Debug.log(lvl,"IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
+    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
 
     if (newBuildAvailable) {
@@ -1387,10 +1387,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   //<editor-fold defaultstate="collapsed" desc="Init EditMenu">
   private void initEditMenu() throws NoSuchMethodException {
-    _editMenu = new JMenu(_I("menuEdit"));
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    int scMaskMETA = InputEvent.META_DOWN_MASK;
+    int scMaskCTRL = InputEvent.CTRL_DOWN_MASK;
+
+    _editMenu = new JMenu(_I("menuEdit"));
     _editMenu.setMnemonic(java.awt.event.KeyEvent.VK_E);
-//    JMenuItem undoItem = _editMenu.add(_undoAction);
+
     _undoAction = new UndoAction();
     JMenuItem undoItem = _editMenu.add(_undoAction);
     undoItem.setAccelerator(
@@ -1398,15 +1401,21 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     _redoAction = new RedoAction();
     JMenuItem redoItem = _editMenu.add(_redoAction);
     redoItem.setAccelerator(
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_MASK));
-    _editMenu.addSeparator();
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
 
-    _editMenu.add(createMenuItem(_I("menuEditCut"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
-            new EditAction(EditAction.CUT)));
+    _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditCopy"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
             new EditAction(EditAction.COPY)));
+    _editMenu.add(createMenuItem("Copy line",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMaskCTRL),
+            new EditAction(EditAction.COPY)));
+    _editMenu.add(createMenuItem(_I("menuEditCut"),
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
+            new EditAction(EditAction.CUT)));
+    _editMenu.add(createMenuItem("Cut line",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMaskCTRL),
+            new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem(_I("menuEditPaste"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
             new EditAction(EditAction.PASTE)));
@@ -1454,34 +1463,31 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
+    //mac: defaults write -g ApplePressAndHoldEnabled -bool false
+
     private void performEditorAction(String action, ActionEvent ae) {
       EditorPane pane = getCurrentCodePane();
       pane.getActionMap().get(action).actionPerformed(ae);
     }
 
-    public void doCut(ActionEvent ae) {
-      if (getCurrentCodePane().getSelectedText() != null) {
-        performEditorAction(DefaultEditorKit.cutAction, ae);
-      } else {
-        EditorPane pane = getCurrentCodePane();
-        Element lineAtCaret = pane.getLineAtCaret(pane.getCaretPosition());
-        pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
-//TODO delete current line if no selection
-      }
+    private void selectLine() {
+      EditorPane pane = getCurrentCodePane();
+      Element lineAtCaret = pane.getLineAtCaret(-1);
+      pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
     }
 
-    //mac: 
+    public void doCut(ActionEvent ae) {
+      if (getCurrentCodePane().getSelectedText() == null) {
+        selectLine();
+      }
+      performEditorAction(DefaultEditorKit.cutAction, ae);
+    }
 
     public void doCopy(ActionEvent ae) {
-      if (getCurrentCodePane().getSelectedText() != null) {
-        performEditorAction(DefaultEditorKit.copyAction, ae);
-      } else {
-        EditorPane pane = getCurrentCodePane();
-        Element lineAtCaret = pane.getLineAtCaret(-1);
-        pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
-        log(0,"");
-//TODO copy current line if no selection
+      if (getCurrentCodePane().getSelectedText() == null) {
+        selectLine();
       }
+      performEditorAction(DefaultEditorKit.copyAction, ae);
     }
 
     public void doPaste(ActionEvent ae) {
@@ -1533,8 +1539,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 //      _searchField.requestFocus();
       findText = Sikulix.input(
               "Enter text to be searched (case sensitive)\n" +
-                    "Start with ! to search case insensitive\n",
-                    findText, "SikuliX IDE -- Find");
+                      "Start with ! to search case insensitive\n",
+              findText, "SikuliX IDE -- Find");
       if (null == findText) {
         return;
       }
@@ -1678,33 +1684,27 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   //<editor-fold defaultstate="collapsed" desc="Init Run Menu">
   private void initRunMenu() throws NoSuchMethodException {
-    JMenuItem item;
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     _runMenu = new JMenu(_I("menuRun"));
     _runMenu.setMnemonic(java.awt.event.KeyEvent.VK_R);
-    item = _runMenu.add(createMenuItem(_I("menuRunRun"),
+    _runMenu.add(createMenuItem(_I("menuRunRun"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
             new RunAction(RunAction.RUN)));
-    item.setName("RUN");
-    item = _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
+    _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.ALT_MASK | scMask),
+                    InputEvent.ALT_DOWN_MASK | scMask),
             new RunAction(RunAction.RUN_SHOW_ACTIONS)));
-    item.setName("RUN_SLOWLY");
-
-    PreferencesUser pref = PreferencesUser.getInstance();
-    item = createMenuItem(_I("menuRunStop"),
-            KeyStroke.getKeyStroke(
-                    pref.getStopHotkey(), pref.getStopHotkeyModifiers()),
-            new RunAction(RunAction.RUN_SHOW_ACTIONS));
-    item.setEnabled(false);
-    _runMenu.add(item);
+    _runMenu.add(createMenuItem("Run selection",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new RunAction(RunAction.RUN_SELECTION)));
   }
 
   class RunAction extends MenuAction {
 
-    static final String RUN = "run";
+    static final String RUN = "runNormal";
     static final String RUN_SHOW_ACTIONS = "runShowActions";
+    static final String RUN_SELECTION = "runSelection";
 
     public RunAction() {
       super();
@@ -1714,7 +1714,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
-    public void run(ActionEvent ae) {
+    public void runNormal(ActionEvent ae) {
       doRun(_btnRun);
     }
 
@@ -1724,6 +1724,10 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     private void doRun(ButtonRun btn) {
       btn.runCurrentScript();
+    }
+
+    public void runSelection(ActionEvent ae) {
+      getCurrentCodePane().runSelection();
     }
   }
   //</editor-fold>

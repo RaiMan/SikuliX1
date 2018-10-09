@@ -417,6 +417,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       add(createMenuItem("run line", new PopLineAction(PopLineAction.RUNLINE)));
       add(createMenuItem("run to line", new PopLineAction(PopLineAction.RUNTO)));
       add(createMenuItem("run from line", new PopLineAction(PopLineAction.RUNFROM)));
+      add(createMenuItem("run selection", new PopLineAction(PopLineAction.RUNSEL)));
     } catch (NoSuchMethodException ex) {
       validMenu = false;
     }
@@ -424,10 +425,10 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   class PopLineAction extends MenuAction {
 
-    static final String ACTION = "doAction";
     static final String RUNLINE = "doRunLine";
     static final String RUNTO = "doRunTo";
     static final String RUNFROM = "doRunFrom";
+    static final String RUNSEL = "doRunSel";
 
     public PopLineAction() {
       super();
@@ -437,61 +438,27 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       super(item);
     }
 
-    public void doAction(ActionEvent ae) {
-      log(lvl, "doAction:");
-    }
-
     public void doRunLine(ActionEvent ae) {
       int current = refLineNumberView.getCurrentLine();
       log(lvl, "doRunLine: %d", current);
-      runLines(getLines(current,null));
+      refEditorPane.runLines(refEditorPane.getLines(current, null));
     }
 
     public void doRunTo(ActionEvent ae) {
       int current = refLineNumberView.getCurrentLine();
       log(lvl, "doRunToLine: %d", current);
-      runLines(getLines(current,false));
+      refEditorPane.runLines(refEditorPane.getLines(current, false));
     }
 
     public void doRunFrom(ActionEvent ae) {
       int current = refLineNumberView.getCurrentLine();
       log(lvl, "doRunFromLine: %d", current);
-      String lines = getLines(current,true);
-      if (!lines.startsWith(" ") && !lines.startsWith("\t ")) {
-        runLines(lines);
-      } else {
-        log(-1, "doRunFromLine: 1st line must not be indented");
-      }
+      String lines = refEditorPane.getLines(current, true);
+      refEditorPane.runLines(lines);
     }
 
-    private String getLines(int current, Boolean selection) {
-      String lines = "";
-      String[] scriptLines = refEditorPane.getText().split("\n");
-      IScriptRunner runner = refEditorPane.getRunner();
-      if (selection == null) {
-        lines = scriptLines[current - 1].trim();
-      } else if (selection) {
-        for (int i = current - 1; i < scriptLines.length; i++) {
-          lines += scriptLines[i] + "\n";
-        }
-      } else {
-        for (int i = 0; i < current; i++) {
-          lines += scriptLines[i] + "\n";
-        }
-      }
-      return lines;
-    }
-
-    private void runLines(String lines) {
-      refEditorPane.getIDE().setVisible(false);
-      RunTime.pause(1);
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          refEditorPane.getRunner().runLines(new String[]{lines});
-          refEditorPane.getIDE().setVisible(true);
-        }
-      }).start();
+    public void doRunSel(ActionEvent ae) {
+      refEditorPane.runSelection();
     }
   }
 }
