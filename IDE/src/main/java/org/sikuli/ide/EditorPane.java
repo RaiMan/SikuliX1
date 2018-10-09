@@ -981,7 +981,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     new Thread(new Runnable() {
       @Override
       public void run() {
-        getRunner().runLines(new String[]{lines});
+        getRunner().runLines(lines);
         getIDE().setVisible(true);
       }
     }).start();

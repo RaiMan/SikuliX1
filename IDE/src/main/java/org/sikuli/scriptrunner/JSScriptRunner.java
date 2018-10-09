@@ -44,8 +44,8 @@ public class JSScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public void runLines(String[] lines){
-
+  public void runLines(String lines){
+    log(-1, "runLines: not yet implemented");
   }
 
   @Override

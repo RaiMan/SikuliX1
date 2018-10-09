@@ -134,19 +134,16 @@ public class JythonScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public void runLines(String[] lines) {
-    if (lines.length == 1 && lines[0].contains("\n")) {
-      if (lines[0].startsWith(" ") || lines[0].startsWith("\t")) {
-        lines[0] = "if True:\n" + lines[0];
+  public void runLines(String lines) {
+    if (lines.contains("\n")) {
+      if (lines.startsWith(" ") || lines.startsWith("\t")) {
+        lines = "if True:\n" + lines;
       }
     }
-    for (String line : lines) {
-      try {
-        interpreter.exec(line);
-      } catch (Exception ex) {
-        log(-1, "runPython: (%s) raised: %s", line, ex);
-        break;
-      }
+    try {
+      interpreter.exec(lines);
+    } catch (Exception ex) {
+      log(-1, "runPython: (%s) raised: %s", lines, ex);
     }
   }
 
