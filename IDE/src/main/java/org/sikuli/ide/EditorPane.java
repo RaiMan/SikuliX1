@@ -976,8 +976,6 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   public void runLines(String lines) {
     if (lines.startsWith(" ") || lines.startsWith("\t ")) {
-      log(-1, "runLines: 1st line must not be indented");
-      return;
     }
     getIDE().setVisible(false);
     new Thread(new Runnable() {

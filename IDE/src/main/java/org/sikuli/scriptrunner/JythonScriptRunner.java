@@ -135,7 +135,11 @@ public class JythonScriptRunner implements IScriptRunner {
 
   @Override
   public void runLines(String[] lines) {
-    log(lvl, "runLines:");
+    if (lines.length == 1 && lines[0].contains("\n")) {
+      if (lines[0].startsWith(" ") || lines[0].startsWith("\t")) {
+        lines[0] = "if True:\n" + lines[0];
+      }
+    }
     for (String line : lines) {
       try {
         interpreter.exec(line);
