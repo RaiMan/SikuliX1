@@ -46,8 +46,9 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      String jnaLibPath = System.getProperty("jna.library.path");
-      System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
+      if (runTime.runningMac) {
+        System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
+      }
       textRecognizer.tess = new Tesseract1();
       File fTessdataPath = null;
       valid = false;
