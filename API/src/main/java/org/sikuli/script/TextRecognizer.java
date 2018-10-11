@@ -18,6 +18,10 @@ import java.util.List;
 
 public class TextRecognizer {
 
+  static {
+    Finder2.init();
+  }
+
   static RunTime runTime = RunTime.get();
   private static int lvl = 3;
 

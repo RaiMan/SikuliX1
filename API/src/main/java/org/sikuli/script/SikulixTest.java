@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
 
@@ -235,7 +236,6 @@ public class SikulixTest {
       before("test99", "play");
       Debug.on(3);
       Debug.globalTraceOn();
-      TextRecognizer.start();
       after();
     }
 

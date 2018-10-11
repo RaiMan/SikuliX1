@@ -22,6 +22,8 @@ import java.security.CodeSource;
 import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -691,7 +693,7 @@ public class RunTime {
       runTime.fpSysLibs = runTime.fpJarLibs.substring(1) + "/libs" + runTime.javaArch;
     }
     if (!Type.SETUP.equals(typ)) {
-      libsExport();
+//      libsExport();
     } else {
       fSikulixDownloadsBuild = new File(fSikulixAppPath, "SikulixDownloads_" + sxBuildStamp);
       String[] fpList = fSikulixAppPath.list(new FilenameFilter() {
@@ -795,13 +797,13 @@ public class RunTime {
   }
 
   private boolean libsLoad(String libName) {
-    File fLibsFolderUsed = fLibsFolder;
     if (!areLibsExported) {
       libsExport();
     }
     if (!areLibsExported) {
       terminate(1, "loadLib: deferred exporting of libs did not work");
     }
+    File fLibsFolderUsed = fLibsFolder;
     if (runningWindows) {
       libName += ".dll";
     } else if (runningMac) {
@@ -868,22 +870,35 @@ public class RunTime {
     return true;
   }
 
-  int nativeW = 0;
-  int nativeM = 0;
-  int nativeL = 0;
-
   private void libsExport() {
     boolean newLibsFolder = makeFolders();
     String sysChar = runningOn.toString().substring(0, 1);
-    int nativeVersion = nativeM;
-    if ("W".equals(sysChar)) {
-      nativeVersion = nativeW;
-    } else if ("L".equals(sysChar)) {
-      nativeVersion = nativeL;
+    URL urlLibsLocation = clsRefAPI.getResource(fpJarLibs);
+    String protocol = urlLibsLocation.getProtocol();
+    String jarPath = "";
+    String jarFolder = "";
+    if ("jar".equals(protocol)) {
+      jarPath = urlLibsLocation.getPath()
+              .replace("file:", "")
+              .replaceAll("%20", " ");
+      String[] parts = jarPath.split("!");
+      jarFolder = "/";
+      if (parts.length > 1) {
+        jarPath = parts[0];
+        jarFolder = parts[1];
+      }
+    } else if ("file" != protocol){
+      terminate(1, "export libs invalid: %s", urlLibsLocation);
     }
-    String name = String.format("1.1.%s-%d-MadeForSikuliX%d%s.txt",
-            SikuliVersionSub, nativeVersion, javaArch, sysChar);
-    if (!new File(fLibsFolder, name).exists()) {
+    String resourceList = runTime.resourceListAsString(fpJarLibs, null);
+    Matcher matcher = Pattern.compile("1\\..*?MadeForSikuliX.*?txt").matcher(resourceList);
+    String libVersion = "";
+    if (matcher.find()) {
+      libVersion = matcher.group();
+    }
+    if (libVersion.isEmpty()) {
+      shouldExport = true;
+    } else if (!new File(fLibsFolder, libVersion).exists()) {
       log(lvl, "libs folder empty or has wrong content");
       shouldExport = true;
     }
@@ -895,26 +910,13 @@ public class RunTime {
           terminate(1, "libs folder not available: " + fLibsFolder.toString());
         }
       }
-      URL urlLibsLocation = clsRefAPI.getResource(fpJarLibs);
       log(lvl, "export libs from: %s", urlLibsLocation);
-      String protocol = urlLibsLocation.getProtocol();
       if ("file".equals(protocol)) {
-        log(lvl, "file: %s", urlLibsLocation.getPath());
+        //log(lvl, "file: %s", urlLibsLocation.getPath());
         extractResourcesToFolder(urlLibsLocation.getPath(), fLibsFolder, null);
       } else if ("jar".equals(protocol)) {
-        String jarPath = urlLibsLocation.getPath()
-                .replace("file:", "")
-                .replaceAll("%20", " ");
-        String[] parts = jarPath.split("!");
-        String jarFolder = "/";
-        jarFolder = parts[1];
-        if (parts.length > 1) {
-          jarPath = parts[0];
-          jarFolder = parts[1];
-        }
+        log(lvl, "jar: %s at %s", jarPath, jarFolder);
         extractResourcesToFolderFromJar(jarPath, jarFolder, fLibsFolder, null);
-      } else {
-        terminate(1, "export libs invalid: %s", urlLibsLocation);
       }
     }
     shouldExport = false;
@@ -1945,7 +1947,6 @@ public class RunTime {
   }
 
   private List<String> resourceList(String folder, FilenameFilter filter) {
-    log(lvl, "resourceList: enter");
     List<String> files = new ArrayList<String>();
     if (!folder.startsWith("/")) {
       folder = "/" + folder;
@@ -1956,8 +1957,9 @@ public class RunTime {
       fFolder = new File(folder);
       if (fFolder.exists()) {
         files = doResourceListFolder(fFolder, files, filter);
+      } else {
+        log(lvl, "resourceList: not found: %s", folder);
       }
-      log(lvl, "resourceList: not found: %s", folder);
       return files;
     }
     try {
