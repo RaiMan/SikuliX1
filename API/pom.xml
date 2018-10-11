@@ -69,12 +69,11 @@
       <!--License New BSD License (GPL-compatible)-->
     </dependency>
 <!--
-    <dependency>
-      <groupId>com.github.vidstige</groupId>
-      <artifactId>jadb</artifactId>
-      <version>-v1.1.0-gbad9f11-31</version>
-      &lt;!&ndash;License Apache 2&ndash;&gt;
-    </dependency>
+    Android/ADB Support: Integration via sources
+    groupId: com.github.vidstige
+    jadb-v1.1.0-SNAPSHOT (Commit: 2018-09-23)
+    License Apache 2
+    https://github.com/vidstige/jadb
 -->
     <dependency>
       <groupId>com.sikulix</groupId>
@@ -87,14 +86,12 @@
       <artifactId>tess4j</artifactId>
       <version>3.5.2</version>
       <!--License Apache 2-->
-<!--
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>
           <artifactId>logback-classic</artifactId>
         </exclusion>
       </exclusions>
--->
     </dependency>
   </dependencies>
 
