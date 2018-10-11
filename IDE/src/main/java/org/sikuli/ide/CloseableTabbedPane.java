@@ -370,6 +370,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
         dispatchEvent(event);
       }
       remove(tabIndexToClose);
+      SikuliIDE.showAgain();
     }
     return closeit;
   }

@@ -50,16 +50,9 @@
     <sikulixvmaj>1</sikulixvmaj>
     <sikulixvmin>1</sikulixvmin>
     <sikulixvsub>4</sikulixvsub>
-    <sikulixbeta>0</sikulixbeta>
-    <!--   this decides, where setup downloads from   -->
-    <!--<sikulixdev>release</sikulixdev>-->
-    <sikulixdev>development</sikulixdev>
     <sikuli.usedversion>${sikulixvmaj}.${sikulixvmin}.${sikulixvsub}-SNAPSHOT</sikuli.usedversion>
-    <sikuli.minorversion>${sikulixvmaj}.${sikulixvmin}.${sikulixvsub}</sikuli.minorversion>
     <sikulixjythonversion>2.7.1</sikulixjythonversion>
     <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
-    <sikulixlocalrepo>${settings.localRepository}</sikulixlocalrepo>
-    <sikuli.helpers>Setup/src/main/resources/content</sikuli.helpers>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
   </properties>

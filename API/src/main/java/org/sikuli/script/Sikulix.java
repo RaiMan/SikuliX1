@@ -147,7 +147,7 @@ public class Sikulix {
       System.exit(1);
     }
 
-    String version = String.format("(%s-%s)", rt.getVersionShort(), rt.sxBuildStamp);
+    String version = rt.getVersion();
     File lastSession = new File(rt.fSikulixStore, "LastAPIJavaScript.js");
     String runSomeJS = "";
     if (lastSession.exists()) {

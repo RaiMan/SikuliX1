@@ -46,11 +46,9 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      try {
-        textRecognizer.tess = new Tesseract1();
-      } catch (UnsatisfiedLinkError ule) {
-        runTime.terminate(-1, "TextRecognizer: start: native libraries not found");
-      }
+      String jnaLibPath = System.getProperty("jna.library.path");
+      System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
+      textRecognizer.tess = new Tesseract1();
       File fTessdataPath = null;
       valid = false;
       if (textRecognizer.dataPath != null) {

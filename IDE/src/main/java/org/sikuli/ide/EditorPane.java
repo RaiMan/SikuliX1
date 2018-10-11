@@ -982,7 +982,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       @Override
       public void run() {
         getRunner().runLines(lines);
-        getIDE().setVisible(true);
+        SikuliIDE.showAgain();
       }
     }).start();
   }

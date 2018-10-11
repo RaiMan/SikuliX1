@@ -5,12 +5,11 @@ package org.sikuli.ide;
 
 import org.apache.commons.cli.CommandLine;
 import org.jdesktop.swingx.JXCollapsiblePane;
-import org.jdesktop.swingx.JXSearchField;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
-//import org.sikuli.android.ADBClient;
-//import org.sikuli.android.ADBScreen;
-//import org.sikuli.android.ADBTest;
+import org.sikuli.android.ADBClient;
+import org.sikuli.android.ADBScreen;
+import org.sikuli.android.ADBTest;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
@@ -130,28 +129,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return idePause;
   }
 
-  private boolean getPause() {
-    return setPause(null);
-  }
-
-  private void waitPause() {
-    if (getPause()) {
-      //ideSplash.setVisible(false);
-      Sikulix.popup("No options yet!\nClick OK to continue!",
-              String.format("%s-%s", runTime.getVersionShort(), runTime.sxBuildStamp));
-      //ideSplash.showAction(" ");
-      //ideSplash.setVisible(true);
-      waitBeforeVisible = 2;
-    }
-  }
-
   public static void showIDE() {
-    Debug.log(3, "showIDE");
-    sikulixIDE.setVisible(true);
+    showAgain();
   }
 
   public static void hideIDE() {
-    Debug.log(3, "hideIDE");
     sikulixIDE.setVisible(false);
     RunTime.pause(0.5f);
   }
@@ -159,7 +141,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   public static void showAgain() {
     sikulixIDE.setVisible(true);
     EditorPane codePane = sikulixIDE.getCurrentCodePane();
-    codePane.requestFocus();
+    codePane.requestFocusInWindow();
   }
 
   private SikuliIDE() {
@@ -389,11 +371,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     //ideSplash.showStep("Check for Updates");
     autoCheckUpdate();
 
-    try {
-      getCurrentCodePane().requestFocus();
-    } catch (Exception e) {
-    }
-
     //waitPause();
     //ideSplash.showStep("Restore last Session");
     Debug.log(3, "IDE: Putting all together - Restore last Session");
@@ -410,19 +387,14 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
 
-    if (newBuildAvailable) {
-      Debug.info("*** BE AWARE: A new SNAPSHOT build is available ***");
-    }
-//    if (waitBeforeVisible > 0) {
-//      try {
-//        Thread.sleep(1000 * waitBeforeVisible);
-//      } catch (InterruptedException ex) {
-//      }
-//    }
     stopSplash();
     setVisible(true);
     _mainSplitPane.setDividerLocation(0.6);
     _inited = true;
+    try {
+      getCurrentCodePane().requestFocusInWindow();
+    } catch (Exception e) {
+    }
   }
 
   private void initNativeSupport() {
@@ -520,7 +492,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   @Override
   public void setTitle(String title) {
-    super.setTitle(runTime.SikuliVersionIDE + " - " + title);
+    super.setTitle(runTime.SXVersionIDE + " - " + title);
   }
 
   public static ImageIcon getIconResource(String name) {
@@ -799,13 +771,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   public void doAbout() {
     //TODO full featured About
-    String info = "You are running " + runTime.SikuliVersionIDE
+    String info = "You are running " + runTime.SXVersionIDE
             + "\n\nNeed help? -> start with Help Menu\n\n"
             + "*** Have fun ;-)\n\n"
             + "Tsung-Hsiang Chang aka vgod\n"
             + "Tom Yeh\n"
             + "Raimund Hocke aka RaiMan\n\n"
-            + "\n\nBuild: " + runTime.SikuliVersionBuild;
+            + "\n\nBuild: " + runTime.SXBuild;
     JOptionPane.showMessageDialog(this, info,
             "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }
@@ -1803,9 +1775,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null,
             new ToolAction(ToolAction.EXTENSIONS)));
 
-//    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-//            null,
-//            new ToolAction(ToolAction.ANDROID)));
+    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
+            null,
+            new ToolAction(ToolAction.ANDROID)));
   }
 
   class ToolAction extends MenuAction {
@@ -1825,9 +1797,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       showExtensionsFrame();
     }
 
-//    public void android(ActionEvent ae) {
-//      androidSupport();
-//    }
+    public void android(ActionEvent ae) {
+      androidSupport();
+    }
   }
 
   private void showExtensionsFrame() {
@@ -1862,11 +1834,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return defaultScreen;
   }
 
-/*
+
   private void androidSupport() {
-//    if (runTime.isJava9("Android/adbc not working yet")) {
-//      return;
-//    }
     final ADBScreen aScr = new ADBScreen();
     String title = "Android Support - !!EXPERIMENTAL!!";
     if (aScr.isValid()) {
@@ -1908,7 +1877,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     ADBTest.ideTest(aScr);
     SikuliIDE.showIDE();
   }
-*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Init Help Menu">
@@ -2040,27 +2008,18 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     public void doCheckUpdate(ActionEvent ae) {
       if (!checkUpdate(false)) {
         JOptionPane.showMessageDialog(null,
-                _I("msgNoUpdate"), runTime.SikuliVersionIDE,
+                _I("msgNoUpdate"), runTime.SXVersionIDE,
                 JOptionPane.INFORMATION_MESSAGE);
       }
     }
 
     public boolean checkUpdate(boolean isAutoCheck) {
-      JFrame f = null;
       String ver = "";
       String details;
       AutoUpdater au = new AutoUpdater();
-      if (!isAutoCheck) {
-//TODO replace this hack: wait update check
-        f = au.showUpdateFrame("Checking for new version ... please wait!",
-                "Checking for new version ... please wait! Checking for new version ... please wait!", -1);
-      }
       PreferencesUser pref = PreferencesUser.getInstance();
       Debug.log(3, "being asked to check update");
       int whatUpdate = au.checkUpdate();
-      if (f != null) {
-        f.dispose();
-      }
       if (whatUpdate >= AutoUpdater.SOMEBETA) {
 //TODO add Prefs wantBeta check
         whatUpdate -= AutoUpdater.SOMEBETA;
@@ -2346,10 +2305,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       Screen.closePrompt();
       Screen.resetPrompt(ocp);
       captureComplete(simg);
-      updateAfter();
-    }
-
-    public void updateAfter() {
       SikuliIDE.showAgain();
     }
 
@@ -2525,10 +2480,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         nothingTodo();
       }
     }
-
-    @Override
-    public void updateAfter() {
-    }
   }
 
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
@@ -2682,11 +2633,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           sikulixIDE.getCurrentCodePane().jumpTo(line);
         }
         sikulixIDE.setIsRunningScript(false);
-        sikulixIDE.setVisible(true);
 
-//TODO  sikulixIDE.toFront();
         Sikulix.cleanUp(0);
         _runningThread = null;
+//TODO  sikulixIDE.toFront();
+//        sikulixIDE.setVisible(true);
+        SikuliIDE.showAgain();
       }
     }
 
@@ -3045,22 +2997,18 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   }
 
   public void onStopRunning() {
-    Debug.log(3, "AbortKey was pressed");
-    boolean shouldCleanUp = true;
+    boolean shouldCleanUp = false;
     if (_btnRun != null && _btnRun.isRunning()) {
-      shouldCleanUp &= _btnRun.stopRunScript();
+      shouldCleanUp = _btnRun.stopRunScript();
     }
     if (_btnRunViz != null && _btnRunViz.isRunning()) {
-      shouldCleanUp &= _btnRunViz.stopRunScript();
-    }
-    if (_btnRun == null && _btnRunViz == null) {
-      //ideSplash.showAction("... accepted - please wait ...");
-      setPause(true);
-      return;
+      shouldCleanUp = _btnRunViz.stopRunScript();
     }
     if (shouldCleanUp) {
+      Debug.log(3, "AbortKey was pressed");
       org.sikuli.script.Sikulix.cleanUp(-1);
-      this.setVisible(true);
+      //setVisible(true);
+      showAgain();
     } else {
       Debug.log(3, "AbortKey was pressed, but nothing to stop here ;-)");
     }

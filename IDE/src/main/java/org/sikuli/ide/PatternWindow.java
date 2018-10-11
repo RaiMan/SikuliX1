@@ -118,7 +118,7 @@ public class PatternWindow extends JFrame {
 		} catch (Exception e) {
 		}
 		_simg = (new ScreenUnion()).getScreen().capture();
-		ide.setVisible(true);
+		SikuliIDE.showAgain();
 	}
 
 	private JPanel createPreviewPanel() {
