@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.android.ADBScreen;
 import org.sikuli.vnc.VNCScreen;
 //import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
@@ -409,7 +410,7 @@ public class Sikulix {
   public static void cleanUp(int n) {
     log(lvl, "cleanUp: %d", n);
     VNCScreen.stopAll();
-    //ADBScreen.stop();
+    ADBScreen.stop();
     ScreenHighlighter.closeAll();
     Observing.cleanUp();
     HotkeyManager.reset();
