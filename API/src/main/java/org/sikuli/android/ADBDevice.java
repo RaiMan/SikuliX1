@@ -58,9 +58,13 @@ public class ADBDevice {
   }
 
   public static ADBDevice init() {
+    return init("");
+  }
+
+  public static ADBDevice init(String adbExec) {
     if (adbDevice == null) {
       adbDevice = new ADBDevice();
-      adbDevice.device = ADBClient.getDevice();
+      adbDevice.device = ADBClient.getDevice(adbExec);
       if (adbDevice.device == null) {
         adbDevice = null;
       } else {

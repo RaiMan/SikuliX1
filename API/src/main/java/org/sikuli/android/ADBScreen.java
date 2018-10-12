@@ -18,6 +18,7 @@ import java.awt.*;
 public class ADBScreen extends Region implements EventObserver, IScreen {
 
   private static String me = "ADBScreen: ";
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -36,14 +37,18 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   public boolean needsUnLock = false;
   public int waitAfterAction = 1;
 
-//---------------------------Inits
+  //---------------------------Inits
   private ADBDevice device = null;
   private static ADBScreen screen = null;
 
   public static ADBScreen start() {
+    return start("");
+  }
+
+  public static ADBScreen start(String adbExec) {
     if (screen == null) {
       try {
-        screen = new ADBScreen();
+        screen = new ADBScreen(adbExec);
       } catch (Exception e) {
         log(-1, "start: No devices attached");
         screen = null;
@@ -53,15 +58,19 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   }
 
   public static void stop() {
-      ADBDevice.reset();
-      screen = null;
+    ADBDevice.reset();
+    screen = null;
   }
 
   public ADBScreen() {
+    this("");
+  }
+
+  public ADBScreen(String adbExec) {
     super();
     setOtherScreen(this);
 
-    device = ADBDevice.init();
+    device = ADBDevice.init(adbExec);
     if (device != null) {
       robot = device.getRobot(this);
       robot.setAutoDelay(10);

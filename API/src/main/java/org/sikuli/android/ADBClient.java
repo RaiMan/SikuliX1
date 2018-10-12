@@ -25,27 +25,45 @@ public class ADBClient {
   private static JadbConnection jadb = null;
   private static boolean shouldStopServer = false;
   private static JadbDevice device = null;
-  public static boolean isAdbAvailable = true;
-  // /Users/raimundhocke/Downloads/03_SikuliX/platform-tools/adb
-  public static String path_to_adb_executable = "platform-tools/adb";
+  public static boolean isAdbAvailable = false;
+  public static String adbExec = "platform-tools/adb";
+  private static String adbFilePath = "adb";
 
-  private static void init() {
-    getConnection(true);
+  private static void init(String adbWhereIs) {
+    //getConnection(true);
+    String adbPath;
     if (jadb == null) {
+      if (adbWhereIs == null || adbWhereIs.isEmpty()) {
+        if (RunTime.get().runningWindows) adbExec += ".exe";
+        adbPath = System.getenv("sikulixadb");
+        if (adbPath == null) {
+          adbPath = System.getProperty("sikulixadb");
+        }
+        if (adbPath == null) {
+          adbPath = RunTime.get().fWorkDir.getAbsolutePath();
+        }
+        File adbFile = new File(adbPath, adbExec);
+        if (!adbFile.exists()) {
+          adbFile = new File(adbPath);
+        }
+        adbFilePath = adbFile.getAbsolutePath();
+      } else {
+        adbFilePath = adbWhereIs;
+      }
       try {
-        //TODO AdbServerLauncher: "path-to-adb-executable" ????
-        path_to_adb_executable = new File(RunTime.get().fWorkDir, path_to_adb_executable).getAbsolutePath();
-        new AdbServerLauncher(new Subprocess(), path_to_adb_executable).launch();
-        Debug.log(3, "ADBClient: ADBServer started");
+        new AdbServerLauncher(new Subprocess(), adbFilePath).launch();
         getConnection(false);
         if (jadb != null) {
+          isAdbAvailable = true;
           shouldStopServer = true;
+          Debug.log(3, "ADBClient: ADBServer started");
+        } else {
+          reset();
         }
       } catch (Exception e) {
         //Cannot run program "adb": error=2, No such file or directory
         if (e.getMessage().startsWith("Cannot run program")) {
-          isAdbAvailable = false;
-          Debug.error("ADBClient: package adb not available. need to be installed");
+          Debug.error("ADBClient: package adb not available: %s", adbFilePath);
         } else {
           Debug.error("ADBClient: ADBServer problem: %s", e.getMessage());
         }
@@ -78,7 +96,7 @@ public class ADBClient {
       return;
     }
     try {
-      Process p = Runtime.getRuntime().exec(new String[] {path_to_adb_executable, "kill-server"});
+      Process p = Runtime.getRuntime().exec(new String[] {adbFilePath, "kill-server"});
       p.waitFor();
       Debug.log(3,"ADBClient: ADBServer should be stopped now");
     } catch (Exception e) {
@@ -101,8 +119,8 @@ public class ADBClient {
     }
   }
 
-  public static JadbDevice getDevice() {
-    init();
+  public static JadbDevice getDevice(String adbExec) {
+    init(adbExec);
     return device;
   }
 
