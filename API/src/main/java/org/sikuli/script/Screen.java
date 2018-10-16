@@ -453,12 +453,12 @@ public class Screen extends Region implements IScreen {
 
   @Override
   public Region newRegion(Region reg) {
-    return null;
+    return copyTo(this);
   }
 
   @Override
-  public ScreenImage getLastScreenImageFromScreen() {
-    return lastScreenImage;
+  public Region newRegion(int x, int y, int w, int h) {
+    return newRegion(new Location(x, y), w, h);
   }
 
   /**
@@ -474,8 +474,8 @@ public class Screen extends Region implements IScreen {
   }
 
   @Override
-  public Region newRegion(int x, int y, int w, int h) {
-    return null;
+  public ScreenImage getLastScreenImageFromScreen() {
+    return lastScreenImage;
   }
 
   //</editor-fold>
