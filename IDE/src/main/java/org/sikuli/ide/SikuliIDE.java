@@ -1895,6 +1895,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   }
 
   private void lookUpdate() {
+    newBuildAvailable = null;
     String token = "This version was built at ";
     String httpDownload = "#https://raiman.github.io/SikuliX1/downloads.html";
     String pageDownload = FileManager.downloadURLtoString(httpDownload);
