@@ -431,8 +431,12 @@ public class Mouse {
     }
     IRobot r = Screen.getRobot(region);
     get().device.use(region);
-    Debug.log(3, "Region: wheel: %s steps: %d",
-            (direction == WHEEL_UP ? "WHEEL_UP" : "WHEEL_DOWN"), steps);
+    String wheelComment = (direction == WHEEL_UP ? "Content upwards" : "Content downwards");
+    if (!Settings.WheelNatural) {
+      wheelComment = (direction == WHEEL_UP ? "Content downwards" : "Content upwards");
+      direction *= -1;
+    }
+    Debug.log(3, "Region: wheel: %s steps: %d", wheelComment, steps);
     for (int i = 0; i < steps; i++) {
       r.mouseWheel(direction);
       r.delay(stepDelay);
