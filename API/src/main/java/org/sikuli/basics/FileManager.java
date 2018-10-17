@@ -318,6 +318,11 @@ public class FileManager {
   }
 
   public static String downloadURLtoString(String src) {
+    boolean silent = false;
+    if (src.startsWith("#")) {
+      silent = true;
+      src = src.substring(1);
+    }
     URL url = null;
     try {
       url = new URL(src);
@@ -325,13 +330,19 @@ public class FileManager {
       log(-1, "download to string: bad URL:\n%s", src);
       return null;
     }
-    return downloadURLtoString(url);
+    return downloadURLtoString(url, silent);
   }
 
   public static String downloadURLtoString(URL uSrc) {
+    return downloadURLtoString(uSrc, false);
+  }
+
+  public static String downloadURLtoString(URL uSrc, boolean silent) {
     String content = "";
     InputStream reader = null;
-    log(lvl +1, "download to string from:\n%s,", uSrc);
+    if (!silent) {
+      log(lvl, "download to string from:\n%s,", uSrc);
+    }
     try {
       if (getProxy() != null) {
         reader = uSrc.openConnection(getProxy()).getInputStream();
@@ -344,7 +355,9 @@ public class FileManager {
         content += (new String(Arrays.copyOfRange(buffer, 0, bytesRead), Charset.forName("utf-8")));
       }
     } catch (Exception ex) {
-      log(-1, "problems while downloading\n" + ex.getMessage());
+      if (!silent) {
+        log(-1, "problems while downloading\n" + ex.getMessage());
+      }
     } finally {
       if (reader != null) {
         try {
