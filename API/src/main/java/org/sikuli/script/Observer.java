@@ -31,13 +31,13 @@ public class Observer {
   }
 
   private Region observedRegion = null;
-  private Map<String, State> eventStates = null;
-  private Map<String, Long> eventRepeatWaitTimes = null;
-  private Map<String, Match> eventMatches = null;
-  private Map<String, Object> eventNames = null;
-  private Map<String, ObserveEvent.Type> eventTypes = null;
-  private Map<String, Object> eventCallBacks = null;
-  private Map<String, Integer> eventCounts = null;
+  private Map<String, State> eventStates = Collections.synchronizedMap(new HashMap());
+  private Map<String, Long> eventRepeatWaitTimes = Collections.synchronizedMap(new HashMap());
+  private Map<String, Match> eventMatches = Collections.synchronizedMap(new HashMap());
+  private Map<String, Object> eventNames = Collections.synchronizedMap(new HashMap());
+  private Map<String, ObserveEvent.Type> eventTypes = Collections.synchronizedMap(new HashMap());
+  private Map<String, Object> eventCallBacks = Collections.synchronizedMap(new HashMap());
+  private Map<String, Integer> eventCounts = Collections.synchronizedMap(new HashMap());
   private int minChanges = 0;
   private int numChangeCallBacks = 0;
   private int numChangeObservers = 0;
@@ -48,13 +48,6 @@ public class Observer {
 
   protected Observer(Region region) {
     observedRegion = region;
-    eventStates = Collections.synchronizedMap(new HashMap<String, State>());
-    eventRepeatWaitTimes = Collections.synchronizedMap(new HashMap<String, Long>());
-    eventCounts = Collections.synchronizedMap(new HashMap<String, Integer>());
-    eventMatches = Collections.synchronizedMap(new HashMap<String, Match>());
-    eventNames = Collections.synchronizedMap(new HashMap<String, Object>());
-    eventTypes = Collections.synchronizedMap(new HashMap<String, ObserveEvent.Type>());
-    eventCallBacks = Collections.synchronizedMap(new HashMap<String, Object>());
   }
 
   protected void initialize() {
@@ -92,7 +85,8 @@ public class Observer {
   }
 
   protected int getCount(String name) {
-    return eventCounts.get(name);
+    Integer count = eventCounts.get(name);
+    return count == null ? 1 : count;
   }
 
   private <PSC> double getSimiliarity(PSC ptn) {

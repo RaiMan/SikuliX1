@@ -910,6 +910,15 @@ public class Image {
     if (null != fImg) FileManager.deleteFileOrFolder(fImg);
   }
 
+  public static void delete(String pImg) {
+    Image img = get(pImg, true);
+    File fImg = img.remove();
+    if (null != fImg) {
+      FileManager.deleteFileOrFolder(fImg);
+      log(lvl, "deleted: %s", img.getImageName());
+    }
+  }
+
   private String hasBackup = "";
 
   protected boolean backup() {
