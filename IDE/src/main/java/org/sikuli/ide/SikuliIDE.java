@@ -174,7 +174,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
   }
 
-  private static boolean newBuildAvailable = false;
+  private static Boolean newBuildAvailable = null;
+  private static String newBuildStamp = "";
 
   public static void run(RunTime rt, String[] args) {
 
@@ -267,26 +268,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       runTime.printArgs();
     }
 
-    String httpDownload = "https://raiman.github.io/SikuliX1/downloads.html";
-    String pageDownload = FileManager.downloadURLtoString(httpDownload);
-    String token = "This version was built at ";
-    int locStamp = pageDownload.indexOf(token);
-    if (locStamp > 0) {
-      locStamp += token.length();
-      String latestBuild = pageDownload.substring(locStamp, locStamp + 16);
-      latestBuild = latestBuild.replaceAll("-", "").replace("_", "").replace(":", "");
-      String actualBuild = runTime.sxBuildStamp;
-      try {
-        long lb = Long.parseLong(latestBuild);
-        long ab = Long.parseLong(actualBuild);
-        if (lb > ab) {
-          newBuildAvailable = true;
-        }
-        log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
-      } catch (NumberFormatException e) {
-        log(-1, "check for new build: stamps not readable");
-      }
-    }
     sikulixIDE.initHotkeys();
     //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
@@ -1913,6 +1894,34 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null, new HelpAction(HelpAction.CHECK_UPDATE)));
   }
 
+  private void lookUpdate() {
+    newBuildAvailable = null;
+    String token = "This version was built at ";
+    String httpDownload = "#https://raiman.github.io/SikuliX1/downloads.html";
+    String pageDownload = FileManager.downloadURLtoString(httpDownload);
+    if (!pageDownload.isEmpty()) {
+      newBuildAvailable = false;
+    }
+    int locStamp = pageDownload.indexOf(token);
+    if (locStamp > 0) {
+      locStamp += token.length();
+      String latestBuildFull = pageDownload.substring(locStamp, locStamp + 16);
+      String latestBuild = latestBuildFull.replaceAll("-", "").replace("_", "").replace(":", "");
+      String actualBuild = runTime.sxBuildStamp;
+      try {
+        long lb = Long.parseLong(latestBuild);
+        long ab = Long.parseLong(actualBuild);
+        if (lb > ab) {
+          newBuildAvailable = true;
+          newBuildStamp = latestBuildFull;
+        }
+        log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
+      } catch (NumberFormatException e) {
+        log(-1, "check for new build: stamps not readable");
+      }
+    }
+  }
+
   class HelpAction extends MenuAction {
 
     static final String CHECK_UPDATE = "doCheckUpdate";
@@ -2007,9 +2016,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     public void doCheckUpdate(ActionEvent ae) {
       if (!checkUpdate(false)) {
-        JOptionPane.showMessageDialog(null,
-                _I("msgNoUpdate"), runTime.SXVersionIDE,
-                JOptionPane.INFORMATION_MESSAGE);
+        lookUpdate();
+        int msgType = newBuildAvailable != null ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE;
+        String updMsg = newBuildAvailable != null ? (newBuildAvailable ?
+                _I("msgUpdate") + ": " + newBuildStamp :
+                _I("msgNoUpdate")) : _I("msgUpdateError");
+        JOptionPane.showMessageDialog(null, updMsg,
+                runTime.SXVersionIDE, msgType);
       }
     }
 

@@ -112,6 +112,9 @@ public class Settings {
   public static double DelayBeforeDrag = -DelayValue;
   public static double DelayBeforeDrop = DelayValue;
 
+  // setting to false reverses the wheel direction
+  public static boolean WheelNatural = true;
+
   /**
    * Specify a delay between the key presses in seconds as 0.nnn. This only
    * applies to the next type and is then reset to 0 again. A value &gt; 1 is cut

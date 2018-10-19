@@ -103,7 +103,7 @@ public class Lexer extends Grammar
 			{
 				String converted = Util.rejsonToJson( stream );
 				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.getFactory().configure( JsonParser.Feature.ALLOW_COMMENTS, true );
+//				objectMapper.getFactory().configure( JsonParser.Feature.ALLOW_COMMENTS, true );
 				Map<String, Object> json = objectMapper.readValue( converted, HashMap.class );
 				Object className = json.get( "class" );
 				if( className == null )
