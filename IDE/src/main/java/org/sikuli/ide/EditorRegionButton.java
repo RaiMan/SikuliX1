@@ -90,14 +90,17 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
 
   public static EditorRegionButton createFromString(EditorPane parentPane, String str) {
     String[] tokens = str.split("[(),]");
+    int x, y, w, h;
     try {
-      int x = Integer.valueOf(tokens[1].trim()), y = Integer.valueOf(tokens[2].trim()),
-              w = Integer.valueOf(tokens[3].trim()), h = Integer.valueOf(tokens[4].trim());
-      return new EditorRegionButton(parentPane, x, y, w, h);
+      x = Integer.valueOf(tokens[1].trim());
+      y = Integer.valueOf(tokens[2].trim());
+      w = Integer.valueOf(tokens[3].trim());
+      h = Integer.valueOf(tokens[4].trim());
     } catch (Exception e) {
-      Debug.error(me + "createFromString: Problem parsing region expression\n%s", e.getMessage());
+      Debug.log(3, me + "createFromString: not possible: %s", str);
+      return null;
     }
-    return null;
+    return new EditorRegionButton(parentPane, x, y, w, h);
   }
 
   @Override
