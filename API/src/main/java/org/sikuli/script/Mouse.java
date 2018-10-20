@@ -105,6 +105,7 @@ public class Mouse {
     get().device.mouseMovedCallback = null;
 		get().device.callback = null;
     get().device.lastPos = null;
+    resetRandom();
     Screen.getPrimaryScreen().getRobot().mouseReset();
   }
 
