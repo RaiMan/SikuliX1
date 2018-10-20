@@ -210,7 +210,6 @@ public class SikulixTest {
       keyMeta = Key.CMD;
     }
     ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-    //ImagePath.setBundlePath("/Users/raimundhocke/SikuliX/Tests/_Help/game");
     Match match = null;
     String testImage = "findBase";
 
@@ -236,6 +235,7 @@ public class SikulixTest {
       before("test99", "play");
       Debug.on(3);
       Debug.globalTraceOn();
+
       after();
     }
 
