@@ -20,8 +20,6 @@ import org.sikuli.util.ScreenHighlighter;
  */
 public class Region {
 
-  static RunTime runTime = RunTime.get();
-
   private static String me = "Region: ";
   private static int lvl = 3;
 
@@ -1415,7 +1413,7 @@ public class Region {
   public void saveLastScreenImage() {
     ScreenImage simg = getScreen().getLastScreenImageFromScreen();
     if (simg != null) {
-      simg.saveLastScreenImage(runTime.fSikulixStore);
+      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
     }
   }
   //</editor-fold>
@@ -2244,7 +2242,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2319,7 +2317,7 @@ public class Region {
           img.setIsText(true);
           target = (PSI) ("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2371,7 +2369,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2470,7 +2468,7 @@ public class Region {
     if (!img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        runTime.abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
+        RunTime.get().abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
       }
     }
     while (null != response && response) {
@@ -2828,7 +2826,7 @@ public class Region {
           }
         }
       } else {
-        runTime.abortScripting("aborting script at:",
+        RunTime.get().abortScripting("aborting script at:",
                 String.format("find, wait, exists: invalid parameter: %s", ptn));
       }
       if (repeating != null) {
@@ -3515,7 +3513,7 @@ public class Region {
       if (!img.isValid() && img.hasIOException()) {
         response = handleImageMissing(img, false);
         if (response == null) {
-          runTime.abortScripting("onEvent(" + obsType.name() + "): Abort:",
+          RunTime.get().abortScripting("onEvent(" + obsType.name() + "): Abort:",
                   "ImageMissing: " + targetThreshhold.toString());
         }
       }

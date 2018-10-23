@@ -177,6 +177,8 @@ public class RunTime {
   int mainMonitor = -1;
   int nMonitors = 0;
   Point pNull = new Point(0, 0);
+
+  static String sikulixGlobalDebug = null;
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="instance">
@@ -223,6 +225,12 @@ public class RunTime {
   public static synchronized RunTime get(Type typ, String[] clArgs) {
     if (runTime != null) {
       return runTime;
+    }
+    sikulixGlobalDebug = System.getenv("SIKULIXDEBUG");
+    if (sikulixGlobalDebug != null) {
+      Debug.setDebugLevel(3);
+      Debug.setWithTimeElapsed(0);
+      Debug.globalTraceOn();
     }
     Debug.log(3, "RunTimeINIT: starting %s", typ);
     runTime = new RunTime();
@@ -1090,7 +1098,7 @@ public class RunTime {
   protected void abortScripting(String msg1, String msg2) {
     Thread current = Thread.currentThread();
     String where = "";
-    if (Region.runTime.isJythonReady) {
+    if (isJythonReady) {
       where = JythonHelper.get().getCurrentLine();
       log(-1, msg2);
       log(-1, msg1 + " %s", where);
@@ -1155,7 +1163,7 @@ public class RunTime {
             (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
-    logp("libs folder: %s", fLibsFolder);
+    //logp("libs folder: %s", fLibsFolder);
     if (runningJar) {
       logp("executing jar: %s", fSxBaseJar);
     }

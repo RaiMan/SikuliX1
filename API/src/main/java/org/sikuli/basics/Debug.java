@@ -132,6 +132,11 @@ public class Debug {
   	return TRACE_LEVEL > 0;
 	}
 
+	public static void reset() {
+  	globalTraceOff();
+  	setDebugLevel(0);
+	}
+
 	/**
 	 * A logger object that is intended, to get Sikuli's log messages per redirection
 	 * @param logger the logger object

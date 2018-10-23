@@ -204,6 +204,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
+    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
@@ -233,9 +234,8 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      Debug.on(3);
-      Debug.globalTraceOn();
-
+//      Debug.on(3);
+//      Debug.globalTraceOn();
       after();
     }
 
