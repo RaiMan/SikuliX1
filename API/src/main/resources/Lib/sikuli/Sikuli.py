@@ -675,3 +675,6 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
 use()
 ALL = JScreen.all().getRegion()
 Debug.log(3, "Jython: sikuli: Sikuli: ending init")
+Debug.off()
+Debug.globalTraceOff();
+Debug.unsetWithTimeElapsed();

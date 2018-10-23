@@ -21,7 +21,7 @@ import org.sikuli.script.SikulixForJython;
 
 public class JythonHelper implements JLangHelperInterface {
 
-  static RunTime runTime = RunTime.get();
+  static RunTime runTime;
 
   //<editor-fold defaultstate="collapsed" desc="new logging concept">
   private static final String me = "JythonSupport: ";
@@ -72,6 +72,7 @@ public class JythonHelper implements JLangHelperInterface {
 
   public static JythonHelper get() {
     if (instance == null) {
+      runTime = RunTime.get();
       instance = new JythonHelper();
       instance.log(lvl, "init: starting");
       try {

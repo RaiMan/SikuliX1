@@ -224,7 +224,7 @@ public class RunTime {
     if (runTime != null) {
       return runTime;
     }
-    Debug.log(3, "RunTimeINIT: starting");
+    Debug.log(3, "RunTimeINIT: starting %s", typ);
     runTime = new RunTime();
     int debugLevel = 0;
 
@@ -384,12 +384,14 @@ public class RunTime {
     return runTime;
   }
 
+/*
   public static synchronized RunTime get(String[] args) {
     if (runTime == null) {
       return get(Type.API, args);
     }
     return runTime;
   }
+*/
 
   public static synchronized RunTime get() {
     if (runTime == null) {
@@ -643,8 +645,8 @@ public class RunTime {
         }
       }
     } else {
-      terminate(1, "no valid Java context for SikuliX available "
-              + "(java.security.CodeSource.getLocation() is null)");
+      dumpClassPath();
+      terminate(1, String.format("no valid Java context (%s)", clsRef));
     }
     if (runningInProject) {
       fSxProjectTestScriptsJS = new File(fSxProject, "StuffContainer/testScripts/testJavaScript");

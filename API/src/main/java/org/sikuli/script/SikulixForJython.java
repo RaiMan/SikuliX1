@@ -6,7 +6,7 @@ package org.sikuli.script;
 import java.io.File;
 import java.net.URL;
 
-import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Debug;
 import org.sikuli.util.JythonHelper;
 
 /**
@@ -21,6 +21,10 @@ public class SikulixForJython {
   private static final int lvl = 3;
 
   static {
+    staticInit();
+  }
+
+  static void staticInit() {
     JythonHelper helper = JythonHelper.get();
     helper.log(lvl, "SikulixForJython: init: starting");
     RunTime runTime = RunTime.get();
@@ -50,7 +54,7 @@ public class SikulixForJython {
     helper.log(lvl, "SikulixForJython: init: success");
   }
 
-  private SikulixForJython() {
+  SikulixForJython() {
   }
 
   public static SikulixForJython get() {
