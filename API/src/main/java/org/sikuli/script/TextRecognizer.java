@@ -141,7 +141,7 @@ public class TextRecognizer {
     }
     if (isValid()) {
       this.psm = psm;
-      tess.setOcrEngineMode(this.psm);
+      tess.setPageSegMode(this.psm);
     }
     return this;
   }
