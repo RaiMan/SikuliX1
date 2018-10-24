@@ -20,10 +20,12 @@ public class SikuliEditorKit extends StyledEditorKit {
 	private EditorPane pane;
 
 	public static final String deIndentAction = "SKL.DeindentAction";
+	public static final String completionAction = "SKL.CompletionAction";
 	private static final TextAction[] defaultActions = {
 		new InsertTabAction(),
 		new DeindentAction(),
 		new InsertBreakAction(),
+		new CompletionAction(),
 		new NextVisualPositionAction(forwardAction, false, SwingConstants.EAST),
 		new NextVisualPositionAction(backwardAction, false, SwingConstants.WEST),
 		new NextVisualPositionAction(selectionForwardAction, true, SwingConstants.EAST),
@@ -367,6 +369,36 @@ public class SikuliEditorKit extends StyledEditorKit {
 				newWs.append(' ');
 			}
 			doc.replace(lineStart, wsChars, newWs.toString(), null);
+		}
+	}
+
+	public static class CompletionAction extends TextAction {
+
+		private Segment segLine;
+
+		public CompletionAction() {
+			this(completionAction);
+		}
+
+		public CompletionAction(String name) {
+			super(name);
+			segLine = new Segment();
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			Debug.log(3, "CompletionAction %s-%s-", e.getModifiers(), e.getActionCommand());
+			JTextComponent text = (JTextComponent) e.getSource();
+			actionPerformed(text);
+		}
+
+		public void actionPerformed(JTextComponent text) {
+			StyledDocument doc = (StyledDocument) text.getDocument();
+			Element map = doc.getDefaultRootElement();
+			Caret c = text.getCaret();
+			int dot = c.getDot();
+			int mark = c.getMark();
+			int line1 = map.getElementIndex(dot);
 		}
 	}
 

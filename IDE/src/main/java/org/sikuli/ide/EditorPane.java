@@ -252,10 +252,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   private void initKeyMap() {
     InputMap map = this.getInputMap();
-    int shift = InputEvent.SHIFT_MASK;
-    int ctrl = InputEvent.CTRL_MASK;
+    int shift = InputEvent.SHIFT_DOWN_MASK;
+    int ctrl = InputEvent.CTRL_DOWN_MASK;
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, shift), SikuliEditorKit.deIndentAction);
-    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), SikuliEditorKit.deIndentAction);
+    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), SikuliEditorKit.completionAction);
   }
 
   @Override
@@ -268,7 +268,6 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   @Override
   public void keyTyped(java.awt.event.KeyEvent ke) {
-    //TODO implement code completion * checkCompletion(ke);
   }
   //</editor-fold>
 
