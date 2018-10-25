@@ -250,7 +250,7 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   * do a find op with the given pattern in the Finder's image
+   * do a find op with the given image in the Finder's image
    * (hasNext() and next() will reveal possible match results)
    * @param img Image
    * @return null. if find setup not possible
@@ -272,6 +272,20 @@ public class Finder implements Iterator<Match> {
     } else {
       return null;
     }
+  }
+
+  /**
+   * do a find op with the given image in the Finder's image
+   * (hasNext() and next() will reveal possible match results)
+   * @param img BufferedImage
+   * @return null. if find setup not possible
+   */
+  public String find(BufferedImage img) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
+    return find(new Image(img));
   }
 
   public List<Region> findChanges(Object changedImage) {
@@ -480,15 +494,15 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
-      if (!_findInput.isText()) {
+      if (!_findInput.isText() && _region != null) {
         match.x += _region.x;
         match.y += _region.y;
       }
       IScreen parentScreen = null;
       if (screenFinder && _region != null) {
         parentScreen = _region.getScreen();
+        match = Match.create(match, parentScreen);
       }
-      match = Match.create(match, parentScreen);
       if (_pattern != null) {
         Location offset = _pattern.getTargetOffset();
         match.setTargetOffset(offset);
