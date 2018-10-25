@@ -86,9 +86,11 @@ public class ADBTest {
     Sikulix.popup("Take care\n\nthat device is on and unlocked\n\nbefore clicking ok", title);
     aScr.wakeUp(2);
     aScr.aKey(ADBDevice.KEY_HOME);
+    boolean cancelled = true;
     if (Sikulix.popAsk("Now the device should show the HOME screen.\n" +
             "\nclick YES to proceed watching the test on the device" +
             "\nclick NO to end the test now", title)) {
+      cancelled = false;
       aScr.aSwipeLeft();
       aScr.aSwipeRight();
       aScr.wait(1f);
@@ -102,11 +104,27 @@ public class ADBTest {
           Sikulix.popup("The image was found on the device's current screen" +
                   "\nand should have been tapped.\n" +
                   "\nIf you think it worked, you can now try\n" +
-                  "to capture needed images from the device.\n" +
+                  "to capture needed images from the device - be aware:\n" +
                   "\nYou have to come back here and click Default!", title);
         } catch (FindFailed findFailed) {
           Sikulix.popError("Sorry, the image you captured was\nnot found on the device's current screen", title);
+          cancelled = true;
         }
+      } else {
+        cancelled = true;
+      }
+    }
+    if (cancelled) {
+      if (Sikulix.popAsk("You have cancelled or the image was not found.\n" +
+              "\nclick YES to produce some output for debugging" +
+              "\nclick NO to simply leave", title)) {
+        int debugLevel = Debug.getDebugLevel();
+        Debug.on(3);
+        ADBScreen.stop();
+        ADBScreen adbScreen = ADBScreen.start();
+        adbScreen.getDevice().printDump();
+        ADBScreen.stop();
+        Debug.on(debugLevel);
       }
     }
   }

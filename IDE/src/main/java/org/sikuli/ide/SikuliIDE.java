@@ -1856,6 +1856,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   private void androidSupportTest(ADBScreen aScr) {
     ADBTest.ideTest(aScr);
+    ADBScreen.stop();
     SikuliIDE.showIDE();
   }
   //</editor-fold>

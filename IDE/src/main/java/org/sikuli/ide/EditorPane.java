@@ -89,6 +89,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   private int _caret_last_x = -1;
   private boolean _can_update_caret_last_x = true;
   private SikuliIDEPopUpMenu popMenuImage;
+  private SikuliIDEPopUpMenu popMenuCompletion;
   private SikuliEditorKit editorKit;
   private EditorViewFactory editorViewFactory;
 
@@ -200,6 +201,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       popMenuImage = null;
     }
 
+    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+    if (!popMenuCompletion.isValidMenu()) {
+      popMenuCompletion = null;
+    }
+
     if (paneIsEmpty || reInit) {
 //			this.setText(String.format(Settings.TypeCommentDefault, getSikuliContentType()));
       this.setText("");
@@ -218,6 +224,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   public SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
+  }
+
+  public SikuliIDEPopUpMenu getPopMenuCompletion() {
+    return popMenuCompletion;
   }
 
   private void updateDocumentListeners(String source) {

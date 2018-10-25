@@ -17,7 +17,7 @@ public class SikuliEditorKit extends StyledEditorKit {
 
 	private static final String me = "EditorKit: ";
 	private ViewFactory _viewFactory;
-	private EditorPane pane;
+	private static EditorPane pane;
 
 	public static final String deIndentAction = "SKL.DeindentAction";
 	public static final String completionAction = "SKL.CompletionAction";
@@ -35,11 +35,18 @@ public class SikuliEditorKit extends StyledEditorKit {
 		new NextVisualPositionAction(selectionUpAction, true, SwingConstants.NORTH),
 		new NextVisualPositionAction(selectionDownAction, true, SwingConstants.SOUTH),};
 
+	private static SikuliIDEPopUpMenu popCompletion = null;
+
 	public SikuliEditorKit() {
     pane = SikuliIDE.getInstance().getCurrentCodePane();
 		_viewFactory = new EditorViewFactory();
     ((EditorViewFactory) _viewFactory).setContentType(pane.getSikuliContentType());
-	}
+    SikuliIDEPopUpMenu popCompletion = pane.getPopMenuCompletion();
+    if (null == popCompletion || !popCompletion.isValidMenu()) {
+      popCompletion = null;
+    }
+
+  }
 
 	public static class InsertTabAction extends TextAction {
 
@@ -387,18 +394,32 @@ public class SikuliEditorKit extends StyledEditorKit {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			Debug.log(3, "CompletionAction %s-%s-", e.getModifiers(), e.getActionCommand());
 			JTextComponent text = (JTextComponent) e.getSource();
 			actionPerformed(text);
 		}
 
 		public void actionPerformed(JTextComponent text) {
 			StyledDocument doc = (StyledDocument) text.getDocument();
-			Element map = doc.getDefaultRootElement();
 			Caret c = text.getCaret();
 			int dot = c.getDot();
-			int mark = c.getMark();
-			int line1 = map.getElementIndex(dot);
+			if (dot != c.getMark()) {
+        return;
+      }
+      Element map = doc.getDefaultRootElement();
+			int line = map.getElementIndex(dot);
+      Element elem = map.getElement(line);
+      int start = elem.getStartOffset();
+      int end = dot;//elem.getEndOffset() - 1;
+      try {
+        doc.getText(start, end - start, segLine);
+      } catch (BadLocationException e) {
+        Debug.error("EditorPane: CompletionAction: BadLocationException %s", e.getMessage());
+        return;
+      }
+      Debug.log(3, "EditorPane: CompletionAction: [%d] |%s| (%d)", line + 1, segLine, dot);
+      if (popCompletion != null) {
+        popCompletion.show(pane, 100, 100);
+      }
 		}
 	}
 
