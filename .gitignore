@@ -19,5 +19,3 @@ opencvsrc/
 original/
 *.sikuli.robot/
 *.java.ignore
-.DS_Store
-/native
