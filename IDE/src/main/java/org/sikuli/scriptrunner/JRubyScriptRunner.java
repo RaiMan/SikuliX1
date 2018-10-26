@@ -92,6 +92,11 @@ public class JRubyScriptRunner implements IScriptRunner {
 	}
 
 	@Override
+	public void runLines(String lines) {
+		log(-1, "runLines: not yet implemented");
+	}
+
+	@Override
 	public int runScript(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE) {
 		if (null == scriptfile) {
 			//run the Ruby statements from argv (special for setup functional test)

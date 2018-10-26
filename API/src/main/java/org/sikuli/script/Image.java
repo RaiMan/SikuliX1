@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -633,7 +632,7 @@ public class Image {
     }
     if (!img.isValid()) {
       if (Settings.OcrTextSearch || Settings.SwitchToText) {
-        if (Settings.isValidImageFilename(img.getName())) {
+        if (FileManager.isValidImageFilename(img.getName())) {
           img.setIsText(false);
         } else {
           img.setIsText(true);
@@ -693,7 +692,7 @@ public class Image {
     } else {
       fName = FileManager.slashify(fName, false);
       URL fURL = null;
-      String fileName = Settings.getValidImageFilename(fName);
+      String fileName = FileManager.getValidImageFilename(fName);
       if (fileName.isEmpty()) {
         log(-1, "not a valid image type: " + fName);
         fileName = fName;
@@ -909,6 +908,15 @@ public class Image {
   public void delete() {
     File fImg = remove();
     if (null != fImg) FileManager.deleteFileOrFolder(fImg);
+  }
+
+  public static void delete(String pImg) {
+    Image img = get(pImg, true);
+    File fImg = img.remove();
+    if (null != fImg) {
+      FileManager.deleteFileOrFolder(fImg);
+      log(lvl, "deleted: %s", img.getImageName());
+    }
   }
 
   private String hasBackup = "";

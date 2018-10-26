@@ -5,12 +5,11 @@ package org.sikuli.ide;
 
 import org.apache.commons.cli.CommandLine;
 import org.jdesktop.swingx.JXCollapsiblePane;
-import org.jdesktop.swingx.JXSearchField;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
-//import org.sikuli.android.ADBClient;
-//import org.sikuli.android.ADBScreen;
-//import org.sikuli.android.ADBTest;
+import org.sikuli.android.ADBClient;
+import org.sikuli.android.ADBScreen;
+import org.sikuli.android.ADBTest;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
@@ -45,6 +44,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Element;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import java.awt.*;
@@ -89,13 +89,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
   private boolean ideIsRunningScript = false;
-  private JXSearchField _searchField;
+  //private JXSearchField _searchField;
+  private String findText = "";
   private JMenuBar _menuBar = new JMenuBar();
   private JMenu _fileMenu = null; //new JMenu(_I("menuFile"));
   private JMenu _editMenu = null; //new JMenu(_I("menuEdit"));
   private UndoAction _undoAction = null; //new UndoAction();
   private RedoAction _redoAction = null; //new RedoAction();
-  private FindAction _findHelper;
   private JMenu _runMenu = null; //new JMenu(_I("menuRun"));
   private JMenu _viewMenu = null; //new JMenu(_I("menuView"));
   private JMenu _toolMenu = null; //new JMenu(_I("menuTool"));
@@ -129,28 +129,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return idePause;
   }
 
-  private boolean getPause() {
-    return setPause(null);
-  }
-
-  private void waitPause() {
-    if (getPause()) {
-      //ideSplash.setVisible(false);
-      Sikulix.popup("No options yet!\nClick OK to continue!",
-              String.format("%s-%s", runTime.getVersionShort(), runTime.sxBuildStamp));
-      //ideSplash.showAction(" ");
-      //ideSplash.setVisible(true);
-      waitBeforeVisible = 2;
-    }
-  }
-
   public static void showIDE() {
-    Debug.log(3, "showIDE");
-    sikulixIDE.setVisible(true);
+    showAgain();
   }
 
   public static void hideIDE() {
-    Debug.log(3, "hideIDE");
     sikulixIDE.setVisible(false);
     RunTime.pause(0.5f);
   }
@@ -158,7 +141,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   public static void showAgain() {
     sikulixIDE.setVisible(true);
     EditorPane codePane = sikulixIDE.getCurrentCodePane();
-    codePane.requestFocus();
+    codePane.requestFocusInWindow();
   }
 
   private SikuliIDE() {
@@ -191,6 +174,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
   }
 
+  private static Boolean newBuildAvailable = null;
+  private static String newBuildStamp = "";
+
   public static void run(RunTime rt, String[] args) {
 
     getInstance();
@@ -206,11 +192,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       cmdLineValid = false;
     }
 
-    if (cmdLineValid  && !(cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-                          || cmdLine.hasOption(CommandArgsEnum.TEST.shortname())
-                          || cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname()))
-                      && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
-                      && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
+    if (cmdLineValid && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
+            && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
+            && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
       ideSplash = new IDESplash();
     }
 
@@ -222,7 +206,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
 
-    if (RunTime.get().shouldRunServer) {
+    if (runTime.shouldRunServer) {
       RunServer.run(null);
       System.exit(0);
     }
@@ -232,10 +216,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       System.exit(0);
     }
 
-    if (cmdLineValid && (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-            || cmdLine.hasOption(CommandArgsEnum.TEST.shortname())
-            || cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname()))) {
-      log(lvl, "Switching to ScriptRunner with option -r, -t or -i");
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
+      log(lvl, "Switching to ScriptRunner with option -r");
       ScriptingSupport.runscript(args);
     }
 
@@ -337,7 +319,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     JPanel codeAndUnitPane = new JPanel(new BorderLayout(10, 10));
     codeAndUnitPane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codeAndUnitPane.add(tabPane, BorderLayout.CENTER);
-    _mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codeAndUnitPane, msgPane);
+    if (prefs.getPrefMoreMessage() == PreferencesUser.VERTICAL) {
+      _mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codeAndUnitPane, msgPane);
+    } else {
+      _mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, codeAndUnitPane, msgPane);
+    }
     _mainSplitPane.setResizeWeight(0.6);
     _mainSplitPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
@@ -366,11 +352,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     //ideSplash.showStep("Check for Updates");
     autoCheckUpdate();
 
-    try {
-      getCurrentCodePane().requestFocus();
-    } catch (Exception e) {
-    }
-
     //waitPause();
     //ideSplash.showStep("Restore last Session");
     Debug.log(3, "IDE: Putting all together - Restore last Session");
@@ -380,22 +361,21 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     tabPane.setSelectedIndex(0);
 
-    Debug.log(lvl,"IDE startup: %4.1f seconds", (new Date().getTime() - start) / 1000.0);
+    String j9Message = "";
+    if (runTime.isJava9()) {
+      j9Message = "*** Running on Java 9+";
+    }
+    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
 
-    if (runTime.isJava9()) {
-      Debug.log("*** BE AWARE: Running on Java 9+");
-    }
-//    if (waitBeforeVisible > 0) {
-//      try {
-//        Thread.sleep(1000 * waitBeforeVisible);
-//      } catch (InterruptedException ex) {
-//      }
-//    }
     stopSplash();
     setVisible(true);
     _mainSplitPane.setDividerLocation(0.6);
     _inited = true;
+    try {
+      getCurrentCodePane().requestFocusInWindow();
+    } catch (Exception e) {
+    }
   }
 
   private void initNativeSupport() {
@@ -493,7 +473,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   @Override
   public void setTitle(String title) {
-    super.setTitle(runTime.SikuliVersionIDE + " - " + title);
+    super.setTitle(runTime.SXVersionIDE + " - " + title);
   }
 
   public static ImageIcon getIconResource(String name) {
@@ -772,13 +752,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   public void doAbout() {
     //TODO full featured About
-    String info = "You are running " + runTime.SikuliVersionIDE
+    String info = "You are running " + runTime.SXVersionIDE
             + "\n\nNeed help? -> start with Help Menu\n\n"
             + "*** Have fun ;-)\n\n"
             + "Tsung-Hsiang Chang aka vgod\n"
             + "Tom Yeh\n"
             + "Raimund Hocke aka RaiMan\n\n"
-            + "\n\nBuild: " + runTime.SikuliVersionBuild;
+            + "\n\nBuild: " + runTime.SXBuild;
     JOptionPane.showMessageDialog(this, info,
             "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }
@@ -958,10 +938,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
             new FileAction(FileAction.ASJAR)));
 
-    _fileMenu.add(createMenuItem("Export as runnable jar",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
-                    InputEvent.SHIFT_MASK | scMask),
-            new FileAction(FileAction.ASRUNJAR)));
+//TODO export as runnable jar
+//    _fileMenu.add(createMenuItem("Export as runnable jar",
+//            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
+//                    InputEvent.SHIFT_MASK | scMask),
+//            new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
@@ -1359,10 +1340,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   //<editor-fold defaultstate="collapsed" desc="Init EditMenu">
   private void initEditMenu() throws NoSuchMethodException {
-    _editMenu = new JMenu(_I("menuEdit"));
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    int scMaskMETA = InputEvent.META_DOWN_MASK;
+    int scMaskCTRL = InputEvent.CTRL_DOWN_MASK;
+
+    _editMenu = new JMenu(_I("menuEdit"));
     _editMenu.setMnemonic(java.awt.event.KeyEvent.VK_E);
-//    JMenuItem undoItem = _editMenu.add(_undoAction);
+
     _undoAction = new UndoAction();
     JMenuItem undoItem = _editMenu.add(_undoAction);
     undoItem.setAccelerator(
@@ -1370,15 +1354,21 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     _redoAction = new RedoAction();
     JMenuItem redoItem = _editMenu.add(_redoAction);
     redoItem.setAccelerator(
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_MASK));
-    _editMenu.addSeparator();
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
 
-    _editMenu.add(createMenuItem(_I("menuEditCut"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
-            new EditAction(EditAction.CUT)));
+    _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditCopy"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
             new EditAction(EditAction.COPY)));
+    _editMenu.add(createMenuItem("Copy line",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMaskCTRL),
+            new EditAction(EditAction.COPY)));
+    _editMenu.add(createMenuItem(_I("menuEditCut"),
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
+            new EditAction(EditAction.CUT)));
+    _editMenu.add(createMenuItem("Cut line",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMaskCTRL),
+            new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem(_I("menuEditPaste"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
             new EditAction(EditAction.PASTE)));
@@ -1388,7 +1378,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     _editMenu.addSeparator();
     JMenu findMenu = new JMenu(_I("menuFind"));
-    _findHelper = new FindAction();
     findMenu.setMnemonic(KeyEvent.VK_F);
     findMenu.add(createMenuItem(_I("menuFindFind"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
@@ -1427,18 +1416,30 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
+    //mac: defaults write -g ApplePressAndHoldEnabled -bool false
+
     private void performEditorAction(String action, ActionEvent ae) {
       EditorPane pane = getCurrentCodePane();
       pane.getActionMap().get(action).actionPerformed(ae);
     }
 
+    private void selectLine() {
+      EditorPane pane = getCurrentCodePane();
+      Element lineAtCaret = pane.getLineAtCaret(-1);
+      pane.select(lineAtCaret.getStartOffset(), lineAtCaret.getEndOffset());
+    }
+
     public void doCut(ActionEvent ae) {
-//TODO delete current line if no selection
+      if (getCurrentCodePane().getSelectedText() == null) {
+        selectLine();
+      }
       performEditorAction(DefaultEditorKit.cutAction, ae);
     }
 
     public void doCopy(ActionEvent ae) {
-//TODO copy current line if no selection
+      if (getCurrentCodePane().getSelectedText() == null) {
+        selectLine();
+      }
       performEditorAction(DefaultEditorKit.copyAction, ae);
     }
 
@@ -1487,16 +1488,34 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void doFind(ActionEvent ae) {
-      _searchField.selectAll();
-      _searchField.requestFocus();
+//      _searchField.selectAll();
+//      _searchField.requestFocus();
+      findText = Sikulix.input(
+              "Enter text to be searched (case sensitive)\n" +
+                      "Start with ! to search case insensitive\n",
+              findText, "SikuliX IDE -- Find");
+      if (null == findText) {
+        return;
+      }
+      if (findText.isEmpty()) {
+        Debug.error("Find(%s): search text is empty", findText);
+        return;
+      }
+      if (!findStr(findText)) {
+        Debug.error("Find(%s): not found", findText);
+      }
     }
 
     public void doFindNext(ActionEvent ae) {
-      findNext(_searchField.getText());
+      if (!findText.isEmpty()) {
+        findNext(findText);
+      }
     }
 
     public void doFindPrev(ActionEvent ae) {
-      findPrev(_searchField.getText());
+      if (!findText.isEmpty()) {
+        findPrev(findText);
+      }
     }
 
     private boolean _find(String str, int begin, boolean forward) {
@@ -1505,7 +1524,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
       EditorPane codePane = getCurrentCodePane();
       int pos = codePane.search(str, begin, forward);
-      Debug.log(7, "find \"" + str + "\" at " + begin + ", found: " + pos);
+      Debug.log(4, "find \"" + str + "\" at " + begin + ", found: " + pos);
       if (pos < 0) {
         return false;
       }
@@ -1535,15 +1554,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       return false;
     }
 
-    public void setFailed(boolean failed) {
-      Debug.log(7, "search failed: " + failed);
-      _searchField.setBackground(Color.white);
-      if (failed) {
-        _searchField.setForeground(COLOR_SEARCH_FAILED);
-      } else {
-        _searchField.setForeground(COLOR_SEARCH_NORMAL);
-      }
-    }
+//    public void setFailed(boolean failed) {
+//      Debug.log(7, "search failed: " + failed);
+//      _searchField.setBackground(Color.white);
+//      if (failed) {
+//        _searchField.setForeground(COLOR_SEARCH_FAILED);
+//      } else {
+//        _searchField.setForeground(COLOR_SEARCH_NORMAL);
+//      }
+//    }
   }
 
   class UndoAction extends AbstractAction {
@@ -1618,33 +1637,27 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   //<editor-fold defaultstate="collapsed" desc="Init Run Menu">
   private void initRunMenu() throws NoSuchMethodException {
-    JMenuItem item;
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     _runMenu = new JMenu(_I("menuRun"));
     _runMenu.setMnemonic(java.awt.event.KeyEvent.VK_R);
-    item = _runMenu.add(createMenuItem(_I("menuRunRun"),
+    _runMenu.add(createMenuItem(_I("menuRunRun"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
             new RunAction(RunAction.RUN)));
-    item.setName("RUN");
-    item = _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
+    _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.ALT_MASK | scMask),
+                    InputEvent.ALT_DOWN_MASK | scMask),
             new RunAction(RunAction.RUN_SHOW_ACTIONS)));
-    item.setName("RUN_SLOWLY");
-
-    PreferencesUser pref = PreferencesUser.getInstance();
-    item = createMenuItem(_I("menuRunStop"),
-            KeyStroke.getKeyStroke(
-                    pref.getStopHotkey(), pref.getStopHotkeyModifiers()),
-            new RunAction(RunAction.RUN_SHOW_ACTIONS));
-    item.setEnabled(false);
-    _runMenu.add(item);
+    _runMenu.add(createMenuItem("Run selection",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new RunAction(RunAction.RUN_SELECTION)));
   }
 
   class RunAction extends MenuAction {
 
-    static final String RUN = "run";
+    static final String RUN = "runNormal";
     static final String RUN_SHOW_ACTIONS = "runShowActions";
+    static final String RUN_SELECTION = "runSelection";
 
     public RunAction() {
       super();
@@ -1654,7 +1667,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
-    public void run(ActionEvent ae) {
+    public void runNormal(ActionEvent ae) {
       doRun(_btnRun);
     }
 
@@ -1664,6 +1677,10 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     private void doRun(ButtonRun btn) {
       btn.runCurrentScript();
+    }
+
+    public void runSelection(ActionEvent ae) {
+      getCurrentCodePane().runSelection();
     }
   }
   //</editor-fold>
@@ -1739,9 +1756,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null,
             new ToolAction(ToolAction.EXTENSIONS)));
 
-//    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-//            null,
-//            new ToolAction(ToolAction.ANDROID)));
+    _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
+            null,
+            new ToolAction(ToolAction.ANDROID)));
   }
 
   class ToolAction extends MenuAction {
@@ -1761,35 +1778,34 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       showExtensionsFrame();
     }
 
-//    public void android(ActionEvent ae) {
-//      androidSupport();
-//    }
-
+    public void android(ActionEvent ae) {
+      androidSupport();
+    }
   }
 
   private void showExtensionsFrame() {
-//    String warn = "You might proceed, if you\n"
-//            + "- have some programming skills\n"
-//            + "- read the docs about extensions\n"
-//            + "- know what you are doing\n\n"
-//            + "Otherwise you should press Cancel!";
-    String warn = "Not available yet - click what you like ;-)";
-    String title = "Need your attention!";
+    ExtensionManagerFrame extensionManager = ExtensionManagerFrame.getInstance();
+    String warn = "Nothing to do here currently - click what you like ;-)\n" +
+            "\nExtensions folder: \n" + runTime.fSikulixExtensions.getAbsolutePath() +
+            "\n\nCurrent content:";
+    if (extensionManager != null) {
+      for (String extension : extensionManager.getExtensionNames()) {
+        warn += "\n" + extension;
+      }
+      //extmg.setVisible(true);
+    }
+    String title = "SikuliX1 Extensions";
     String[] options = new String[3];
     options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "Be quiet!";
+    options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(this, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    int ret = JOptionPane.showOptionDialog(null, warn, title,
+            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
     }
-    if (ret == WARNING_ACCEPTED) {
-      //TODO set prefs to be quiet on extensions warning
-    }
-    ;
-    ExtensionManagerFrame extmg = ExtensionManagerFrame.getInstance();
-    if (extmg != null) {
-      extmg.setVisible(true);
+    if (extensionManager != null) {
+      //extmg.setVisible(true);
     }
   }
 
@@ -1799,11 +1815,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return defaultScreen;
   }
 
-/*
+
   private void androidSupport() {
-//    if (runTime.isJava9("Android/adbc not working yet")) {
-//      return;
-//    }
     final ADBScreen aScr = new ADBScreen();
     String title = "Android Support - !!EXPERIMENTAL!!";
     if (aScr.isValid()) {
@@ -1843,9 +1856,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   private void androidSupportTest(ADBScreen aScr) {
     ADBTest.ideTest(aScr);
+    ADBScreen.stop();
     SikuliIDE.showIDE();
   }
-*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Init Help Menu">
@@ -1860,8 +1873,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     _helpMenu.add(createMenuItem(_I("menuHelpGuide"),
             null, new HelpAction(HelpAction.OPEN_DOC)));
-    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
-            null, new HelpAction(HelpAction.OPEN_GUIDE)));
+//    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
+//            null, new HelpAction(HelpAction.OPEN_GUIDE)));
     _helpMenu.add(createMenuItem(_I("menuHelpFAQ"),
             null, new HelpAction(HelpAction.OPEN_FAQ)));
     _helpMenu.add(createMenuItem(_I("menuHelpAsk"),
@@ -1876,8 +1889,38 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
 
     _helpMenu.addSeparator();
+    _helpMenu.add(createMenuItem("SikuliX1 Downloads",
+            null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
     _helpMenu.add(createMenuItem(_I("menuHelpCheckUpdate"),
             null, new HelpAction(HelpAction.CHECK_UPDATE)));
+  }
+
+  private void lookUpdate() {
+    newBuildAvailable = null;
+    String token = "This version was built at ";
+    String httpDownload = "#https://raiman.github.io/SikuliX1/downloads.html";
+    String pageDownload = FileManager.downloadURLtoString(httpDownload);
+    if (!pageDownload.isEmpty()) {
+      newBuildAvailable = false;
+    }
+    int locStamp = pageDownload.indexOf(token);
+    if (locStamp > 0) {
+      locStamp += token.length();
+      String latestBuildFull = pageDownload.substring(locStamp, locStamp + 16);
+      String latestBuild = latestBuildFull.replaceAll("-", "").replace("_", "").replace(":", "");
+      String actualBuild = runTime.sxBuildStamp;
+      try {
+        long lb = Long.parseLong(latestBuild);
+        long ab = Long.parseLong(actualBuild);
+        if (lb > ab) {
+          newBuildAvailable = true;
+          newBuildStamp = latestBuildFull;
+        }
+        log(lvl, "latest build: %s this build: %s (newer: %s)", latestBuild, actualBuild, newBuildAvailable);
+      } catch (NumberFormatException e) {
+        log(-1, "check for new build: stamps not readable");
+      }
+    }
   }
 
   class HelpAction extends MenuAction {
@@ -1891,6 +1934,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     static final String OPEN_BUG_REPORT = "openBugReport";
     static final String OPEN_TRANSLATION = "openTranslation";
     static final String OPEN_HOMEPAGE = "openHomepage";
+    static final String OPEN_DOWNLOADS = "openDownloads";
 
     public HelpAction() {
       super();
@@ -1967,30 +2011,29 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       FileManager.openURL("http://sikulix.com");
     }
 
+    public void openDownloads(ActionEvent ae) {
+      FileManager.openURL("https://raiman.github.io/SikuliX1/downloads.html");
+    }
+
     public void doCheckUpdate(ActionEvent ae) {
       if (!checkUpdate(false)) {
-        JOptionPane.showMessageDialog(null,
-                _I("msgNoUpdate"), runTime.SikuliVersionIDE,
-                JOptionPane.INFORMATION_MESSAGE);
+        lookUpdate();
+        int msgType = newBuildAvailable != null ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE;
+        String updMsg = newBuildAvailable != null ? (newBuildAvailable ?
+                _I("msgUpdate") + ": " + newBuildStamp :
+                _I("msgNoUpdate")) : _I("msgUpdateError");
+        JOptionPane.showMessageDialog(null, updMsg,
+                runTime.SXVersionIDE, msgType);
       }
     }
 
     public boolean checkUpdate(boolean isAutoCheck) {
-      JFrame f = null;
       String ver = "";
       String details;
       AutoUpdater au = new AutoUpdater();
-      if (!isAutoCheck) {
-//TODO replace this hack: wait update check
-        f = au.showUpdateFrame("Checking for new version ... please wait!",
-                "Checking for new version ... please wait! Checking for new version ... please wait!", -1);
-      }
       PreferencesUser pref = PreferencesUser.getInstance();
       Debug.log(3, "being asked to check update");
       int whatUpdate = au.checkUpdate();
-      if (f != null) {
-        f.dispose();
-      }
       if (whatUpdate >= AutoUpdater.SOMEBETA) {
 //TODO add Prefs wantBeta check
         whatUpdate -= AutoUpdater.SOMEBETA;
@@ -2276,10 +2319,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       Screen.closePrompt();
       Screen.resetPrompt(ocp);
       captureComplete(simg);
-      updateAfter();
-    }
-
-    public void updateAfter() {
       SikuliIDE.showAgain();
     }
 
@@ -2455,10 +2494,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         nothingTodo();
       }
     }
-
-    @Override
-    public void updateAfter() {
-    }
   }
 
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
@@ -2612,11 +2647,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           sikulixIDE.getCurrentCodePane().jumpTo(line);
         }
         sikulixIDE.setIsRunningScript(false);
-        sikulixIDE.setVisible(true);
 
-//TODO  sikulixIDE.toFront();
         Sikulix.cleanUp(0);
         _runningThread = null;
+//TODO  sikulixIDE.toFront();
+//        sikulixIDE.setVisible(true);
+        SikuliIDE.showAgain();
       }
     }
 
@@ -2689,6 +2725,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return pane.getBundlePath();
   }
 
+/*
   private JComponent createSearchField() {
     _searchField = new JXSearchField("Find");
     //_searchField.setUseNativeSearchFieldIfPossible(true);
@@ -2738,6 +2775,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     });
     return _searchField;
   }
+*/
   //</editor-fold>
 
   private void initTabPane() {
@@ -2973,22 +3011,18 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   }
 
   public void onStopRunning() {
-    Debug.log(3, "AbortKey was pressed");
-    boolean shouldCleanUp = true;
+    boolean shouldCleanUp = false;
     if (_btnRun != null && _btnRun.isRunning()) {
-      shouldCleanUp &= _btnRun.stopRunScript();
+      shouldCleanUp = _btnRun.stopRunScript();
     }
     if (_btnRunViz != null && _btnRunViz.isRunning()) {
-      shouldCleanUp &= _btnRunViz.stopRunScript();
-    }
-    if (_btnRun == null && _btnRunViz == null) {
-      //ideSplash.showAction("... accepted - please wait ...");
-      setPause(true);
-      return;
+      shouldCleanUp = _btnRunViz.stopRunScript();
     }
     if (shouldCleanUp) {
+      Debug.log(3, "AbortKey was pressed");
       org.sikuli.script.Sikulix.cleanUp(-1);
-      this.setVisible(true);
+      //setVisible(true);
+      showAgain();
     } else {
       Debug.log(3, "AbortKey was pressed, but nothing to stop here ;-)");
     }

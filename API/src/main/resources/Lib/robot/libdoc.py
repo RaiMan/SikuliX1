@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Module implementing the command line entry point for the `Libdoc` tool.
+"""Module implementing the command line entry point for the Libdoc tool.
 
 This module can be executed from the command line using the following
 approaches::
@@ -197,11 +198,26 @@ def libdoc_cli(arguments):
     LibDoc().execute_cli(arguments)
 
 
-def libdoc(library_or_resource, outfile, name='', version='', format=None):
-    """Executes libdoc.
+def libdoc(library_or_resource, outfile, name='', version='', format=None,
+           docformat=None):
+    """Executes Libdoc.
+
+    :param library_or_resource: Name or path of the test library or resource
+        file to be documented.
+    :param outfile: Path path to the file where to write outputs.
+    :param name: Custom name to give to the documented library or resource.
+    :param version: Version to give to the documented library or resource.
+    :param format: Specifies whether to generate HTML or XML output. If this
+        options is not used, the format is got from the extension of
+        the output file. Possible values are ``'HTML'`` and ``'XML'``.
+    :param docformat: Documentation source format. Possible values are
+        ``'ROBOT'``, ``'reST'``, ``'HTML'`` and ``'TEXT'``. The default value
+        can be specified in test library source code and the initial default
+        is ``'ROBOT'``. New in Robot Framework 3.0.3.
 
     Arguments have same semantics as Libdoc command line options with
-    same names.
+    same names. Run ``python -m robot.libdoc --help`` or consult the Libdoc
+    section in the Robot Framework User Guide for more details.
 
     Example::
 
@@ -210,7 +226,7 @@ def libdoc(library_or_resource, outfile, name='', version='', format=None):
         libdoc('MyLibrary.py', 'MyLibraryDoc.html', version='1.0')
     """
     LibDoc().execute(library_or_resource, outfile, name=name, version=version,
-                     format=format)
+                     format=format, docformat=docformat)
 
 
 if __name__ == '__main__':

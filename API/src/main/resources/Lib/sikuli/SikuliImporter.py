@@ -1,14 +1,10 @@
-# Copyright 2010-2014, Sikuli.org, sikulix.com
+# Copyright 2010-2018, Sikuli.org, sikulix.com
 # Released under the MIT License.
-# modified RaiMan 2013
 
 import imp
 import sys
-
-import Sikuli
-from org.sikuli.script import ImagePath
-import org.sikuli.util.JythonHelper as JH
 import os
+import org.sikuli.util.JythonHelper as JH
 
 def _stripPackagePrefix(module_name):
     pdot = module_name.rfind('.')

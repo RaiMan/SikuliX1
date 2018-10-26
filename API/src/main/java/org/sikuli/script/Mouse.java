@@ -5,6 +5,8 @@ package org.sikuli.script;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Random;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
@@ -103,6 +105,7 @@ public class Mouse {
     get().device.mouseMovedCallback = null;
 		get().device.callback = null;
     get().device.lastPos = null;
+    resetRandom();
     Screen.getPrimaryScreen().getRobot().mouseReset();
   }
 
@@ -319,6 +322,46 @@ public class Mouse {
     return msg;
   }
 
+  private Random doRandom = new Random();
+
+  public static void randomize() {
+    Mouse.get().doRandom = new Random();
+  }
+
+  public static void randomize(long seed) {
+    Mouse.get().doRandom = new Random(seed);
+  }
+
+  public static int getRandom() {
+    return Mouse.get().randomOffset;
+  }
+
+  public static void setRandom() {
+    setRandom(Mouse.get().defaultRandom);
+  }
+
+  public static void setRandom(int randomOffset) {
+    Mouse.get().randomOffset = randomOffset;
+  }
+
+  public static void resetRandom() {
+    setRandom(0);
+  }
+
+  public static boolean hasRandom() {
+    return Mouse.get().randomOffset > 0;
+  }
+
+  private Location makeRandom(Location loc) {
+    Location offset = new Location(doRandom.nextInt(2 * randomOffset) - randomOffset,
+                                  doRandom.nextInt(2 * randomOffset) - randomOffset);
+    loc.translate(offset.x, offset.y);
+    return offset;
+  }
+
+  private int randomOffset = 0;
+  private int defaultRandom = 6;
+
   /**
    * move the mouse to the given location (local and remote)
    *
@@ -355,6 +398,10 @@ public class Mouse {
       }
       if (!r.isRemote()) {
         get().device.use(region);
+      }
+      if (Mouse.hasRandom()) {
+        Location offset = Mouse.get().makeRandom(loc);
+        log(lvl, "Mouse: random move offset: (%d, %d)", offset.x, offset.y);
       }
       r.smoothMove(loc);
       r.waitForIdle();
@@ -431,8 +478,12 @@ public class Mouse {
     }
     IRobot r = Screen.getRobot(region);
     get().device.use(region);
-    Debug.log(3, "Region: wheel: %s steps: %d",
-            (direction == WHEEL_UP ? "WHEEL_UP" : "WHEEL_DOWN"), steps);
+    String wheelComment = (direction == WHEEL_UP ? "Content upwards" : "Content downwards");
+    if (!Settings.WheelNatural) {
+      wheelComment = (direction == WHEEL_UP ? "Content downwards" : "Content upwards");
+      direction *= -1;
+    }
+    Debug.log(3, "Region: wheel: %s steps: %d", wheelComment, steps);
     for (int i = 0; i < steps; i++) {
       r.mouseWheel(direction);
       r.delay(stepDelay);

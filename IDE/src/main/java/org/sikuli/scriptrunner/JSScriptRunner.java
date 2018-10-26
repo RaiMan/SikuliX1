@@ -7,6 +7,7 @@ package org.sikuli.scriptrunner;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
+import org.sikuli.script.Screen;
 
 import java.io.File;
 
@@ -38,8 +39,13 @@ public class JSScriptRunner implements IScriptRunner {
     if (isReady) {
       return;
     }
-
+    new Screen();
     isReady = true;
+  }
+
+  @Override
+  public void runLines(String lines){
+    log(-1, "runLines: not yet implemented");
   }
 
   @Override

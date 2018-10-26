@@ -9,8 +9,8 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.*;
 
-//import org.sikuli.android.ADBDevice;
-//import org.sikuli.android.ADBScreen;
+import org.sikuli.android.ADBDevice;
+import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
@@ -19,8 +19,6 @@ import org.sikuli.util.ScreenHighlighter;
  * A Region is a rectengular area and lies always completely inside its parent screen
  */
 public class Region {
-
-  static RunTime runTime = RunTime.get();
 
   private static String me = "Region: ";
   private static int lvl = 3;
@@ -97,6 +95,16 @@ public class Region {
   private boolean isVirtual = false;
   private long lastSearchTimeRepeat = -1;
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  private String name = "";
+
   /**
    * {@inheritDoc}
    *
@@ -106,8 +114,13 @@ public class Region {
   public String toString() {
     String scrText = getScreen() == null ? "?" :
             "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
-    return String.format("R[%d,%d %dx%d]@S(%s) E:%s, T:%.1f",
-            x, y, w, h, scrText,
+
+    String nameText = "";
+    if (!name.isEmpty()) {
+      nameText = "#" + name + "# ";
+    }
+    return String.format("%sR[%d,%d %dx%d]@S(%s) E:%s, T:%.1f",
+            nameText, x, y, w, h, scrText,
             throwException ? "Y" : "N", autoWaitTimeout);
   }
 
@@ -129,7 +142,11 @@ public class Region {
     } else {
       String scrText = getScreen() == null ? "?" :
               "" + (-1 == getScreen().getID() ? "Union" : getScreen().getID());
-      return String.format("R[%d,%d %dx%d]@S(%s)", x, y, w, h, scrText);
+      String nameText = "";
+      if (!name.isEmpty()) {
+        nameText = "#" + name + "# ";
+      }
+      return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
     }
   }
   //</editor-fold>
@@ -1396,7 +1413,7 @@ public class Region {
   public void saveLastScreenImage() {
     ScreenImage simg = getScreen().getLastScreenImageFromScreen();
     if (simg != null) {
-      simg.saveLastScreenImage(runTime.fSikulixStore);
+      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
     }
   }
   //</editor-fold>
@@ -2103,10 +2120,7 @@ public class Region {
     if (isOtherScreen()) {
       return this;
     }
-    if (!silent) {
-      Debug.action("toggle highlight " + toString() + ": " + toEnable
-              + (color != null ? " color: " + color : ""));
-    }
+    Debug.log(lvl, "highlight " + (toEnable ? "on: " : "off: ") + toStringShort());
     if (toEnable) {
       overlay = new ScreenHighlighter(getScreen(), color);
       overlay.setWaitAfter(silent);
@@ -2228,7 +2242,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2303,7 +2317,7 @@ public class Region {
           img.setIsText(true);
           target = (PSI) ("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2355,7 +2369,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          runTime.abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+          RunTime.get().abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
         }
       }
     }
@@ -2454,7 +2468,7 @@ public class Region {
     if (!img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        runTime.abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
+        RunTime.get().abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
       }
     }
     while (null != response && response) {
@@ -2481,28 +2495,35 @@ public class Region {
   }
 
   public <PSI> List<Match> getAll(PSI target) {
-//    List<Match> matches = new ArrayList<>();
-//    try {
-//      Iterator<Match> all = findAll(target);
-//      while (all.hasNext()) {
-//        matches.add(all.next());
-//      }
-//    } catch (FindFailed findFailed) {
-//    }
-//    return matches;
     return findAllList(target);
+  }
+
+  public <PSI> Region unionAll(PSI target) {
+    List<Match> matches = getAll(target);
+    if (matches.size() < 2) {
+      return this;
+    }
+    Region theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
   }
 
   public <PSI> List<Match> findAllList(PSI target) {
     List<Match> matches = new ArrayList<>();
     try {
       matches = ((Finder) findAll(target)).getList();
-    } catch (FindFailed findFailed) {}
+    } catch (FindFailed findFailed) {
+    }
     return matches;
   }
 
   public <PSI> List<Match> findAllByRow(PSI target) {
-    Match[] matches = new Match[0];
     List<Match> mList = getAll(target);
     if (mList.isEmpty()) {
       return null;
@@ -2510,10 +2531,20 @@ public class Region {
     Collections.sort(mList, new Comparator<Match>() {
       @Override
       public int compare(Match m1, Match m2) {
-        if (m1.y == m2.y) {
-          return m1.x - m2.x;
+        int xMid1 = m1.getCenter().x;
+        int yMid1 = m1.getCenter().y;
+        int yTop = yMid1 - m1.h/2;
+        int yBottom = yMid1 + m1.h/2;
+        int xMid2 = m2.getCenter().x;
+        int yMid2 = m2.getCenter().y;
+        if (yMid2 > yTop &&  yMid2 < yBottom) {
+          if (xMid1 > xMid2) {
+            return 1;
+          }
+        } else if (yMid2 < yTop) {
+          return 1;
         }
-        return m1.y - m2.y;
+        return -1;
       }
     });
     return mList;
@@ -2528,10 +2559,20 @@ public class Region {
     Collections.sort(mList, new Comparator<Match>() {
       @Override
       public int compare(Match m1, Match m2) {
-        if (m1.x == m2.x) {
-          return m1.y - m2.y;
+        int xMid1 = m1.getCenter().x;
+        int yMid1 = m1.getCenter().y;
+        int xLeft = xMid1 - m1.w/2;
+        int xRight = xMid1 + m1.w/2;
+        int xMid2 = m2.getCenter().x;
+        int yMid2 = m2.getCenter().y;
+        if (xMid2 > xLeft &&  xMid2 < xRight) {
+          if (yMid1 > yMid2) {
+            return 1;
+          }
+        } else if (xMid2 < xLeft) {
+          return 1;
         }
-        return m1.x - m2.x;
+        return -1;
       }
     });
     return mList;
@@ -2587,6 +2628,35 @@ public class Region {
     }
     List<Match> mList = findAnyCollect(pList);
     return mList;
+  }
+
+  public Region unionAny(Object... targets) {
+    if (targets.length < 2) {
+      return this;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(targets));
+    return unionAnyList(pList);
+  }
+
+  public Region unionAnyList(List<Object> targets) {
+    if (targets.size() < 2) {
+      return this;
+    }
+    List<Match> matches = new ArrayList<>();
+    matches = findAnyList(targets);
+    if (matches.size() < 2) {
+      return this;
+    }
+    Region theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
   }
 
   //------------------------------
@@ -2648,7 +2718,8 @@ public class Region {
     List<Match> matches = new ArrayList<>();
     try {
       matches = ((Finder) findAll("\t" + text + "\t")).getList();
-    } catch(FindFailed ff) {}
+    } catch (FindFailed ff) {
+    }
     return matches;
   }
 
@@ -2681,39 +2752,6 @@ public class Region {
     return ((Finder) doFindText(text, levelLine, true)).getList();
   }
 
-  private int levelWord = 3;
-  private int levelLine = 2;
-
-  private Object doFindText(String text, int level, boolean multi) {
-    Object returnValue = null;
-    if (TextRecognizer.start().isValid()) {
-      Finder finder = new Finder(this);
-      returnValue = finder;
-      lastSearchTime = (new Date()).getTime();
-      if (level == levelWord) {
-        if (multi) {
-          if (finder.findWords(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findWord(text)) {
-            returnValue = finder.next();
-          }
-        }
-      } else if (level == levelLine) {
-        if (multi) {
-          if (finder.findLines(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findLine(text)) {
-            returnValue = finder.next();
-          }
-        }
-      }
-    }
-    return returnValue;
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
@@ -2788,7 +2826,7 @@ public class Region {
           }
         }
       } else {
-        runTime.abortScripting("aborting script at:",
+        RunTime.get().abortScripting("aborting script at:",
                 String.format("find, wait, exists: invalid parameter: %s", ptn));
       }
       if (repeating != null) {
@@ -2928,6 +2966,40 @@ public class Region {
       return finder;
     }
     return null;
+  }
+
+  private int levelWord = 3;
+  private int levelLine = 2;
+
+  private Object doFindText(String text, int level, boolean multi) {
+    Object returnValue = null;
+    if (TextRecognizer.start().isValid()) {
+      Finder finder = new Finder(this);
+      returnValue = finder;
+      lastSearchTime = (new Date()).getTime();
+      if (level == levelWord) {
+        if (multi) {
+          if (finder.findWords(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findWord(text)) {
+            returnValue = finder.next();
+          }
+        }
+      } else if (level == levelLine) {
+        if (multi) {
+          if (finder.findLines(text)) {
+            returnValue = finder;
+          }
+        } else {
+          if (finder.findLine(text)) {
+            returnValue = finder.next();
+          }
+        }
+      }
+    }
+    return returnValue;
   }
 
   // Repeatable Find ////////////////////////////////
@@ -3195,7 +3267,7 @@ public class Region {
 
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-      Match m = find(target);
+      Match m = wait(target);
       if (m != null) {
         if (isOtherScreen()) {
           return m.getTarget().setOtherScreen(scr);
@@ -3441,7 +3513,7 @@ public class Region {
       if (!img.isValid() && img.hasIOException()) {
         response = handleImageMissing(img, false);
         if (response == null) {
-          runTime.abortScripting("onEvent(" + obsType.name() + "): Abort:",
+          RunTime.get().abortScripting("onEvent(" + obsType.name() + "): Abort:",
                   "ImageMissing: " + targetThreshhold.toString());
         }
       }
@@ -4578,7 +4650,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="Mobile actions (Android)">
-/*
   private ADBDevice adbDevice = null;
   private ADBScreen adbScreen = null;
 
@@ -4594,14 +4665,15 @@ public class Region {
     return false;
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param <PFRML> Pattern, String, Image, Match, Region or Location
-   * @param target  PFRML
-   * @throws FindFailed image not found
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param <PFRML> Pattern, String, Image, Match, Region or Location
+ * @param target  PFRML
+ * @throws FindFailed image not found
+*/
+
 
   public <PFRML> void aTap(PFRML target) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
@@ -4613,12 +4685,13 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param text text
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param text text
+*/
+
 
   public void aInput(String text) {
     if (isAndroid() && adbDevice != null) {
@@ -4626,12 +4699,13 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param key key
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param key key
+*/
+
 
   public void aKey(int key) {
     if (isAndroid() && adbDevice != null) {
@@ -4639,15 +4713,16 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *
-   * @param <PFRML> Pattern, String, Image, Match, Region or Location
-   * @param from    PFRML
-   * @param to      PFRML
-   * @throws FindFailed image not found
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+ *
+ * @param <PFRML> Pattern, String, Image, Match, Region or Location
+ * @param from    PFRML
+ * @param to      PFRML
+ * @throws FindFailed image not found
+*/
+
 
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
     if (isAndroid() && adbDevice != null) {
@@ -4660,10 +4735,11 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+*/
+
 
   public void aSwipeUp() {
     int midX = (int) (w / 2);
@@ -4674,10 +4750,11 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+*/
+
 
   public void aSwipeDown() {
     int midX = (int) (w / 2);
@@ -4688,10 +4765,11 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+*/
+
 
   public void aSwipeLeft() {
     int midY = (int) (h / 2);
@@ -4702,10 +4780,11 @@ public class Region {
     }
   }
 
-  */
-/**
-   * EXPERIMENTAL: for Android over ADB
-   *//*
+/*
+*
+ * EXPERIMENTAL: for Android over ADB
+*/
+
 
   public void aSwipeRight() {
     int midY = (int) (h / 2);
@@ -4715,7 +4794,6 @@ public class Region {
     } catch (FindFailed findFailed) {
     }
   }
-*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
@@ -4736,8 +4814,26 @@ public class Region {
     return findWords("");
   }
 
+  public List<String> collectWordsText() {
+    List<String> words = new ArrayList<>();
+    List<Match> matches = collectWords();
+    for (Match match : matches) {
+      words.add(match.getText());
+    }
+    return words;
+  }
+
   public List<Match> collectLines() {
     return findLines("");
+  }
+
+  public List<String> collectLinesText() {
+    List<String> lines = new ArrayList<>();
+    List<Match> matches = collectLines();
+    for (Match match : matches) {
+      lines.add(match.getText());
+    }
+    return lines;
   }
   //</editor-fold>
 }

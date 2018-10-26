@@ -22,6 +22,8 @@ import java.security.CodeSource;
 import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -142,6 +144,7 @@ public class RunTime {
   private final String osVersionSysProp = System.getProperty("os.version");
   public String javaShow = "not-set";
   public int javaArch = 32;
+  public String osArch = "??";
   public int javaVersion = 0;
   public String javahome = FileManager.slashify(System.getProperty("java.home"), false);
   public String osName = "NotKnown";
@@ -174,6 +177,8 @@ public class RunTime {
   int mainMonitor = -1;
   int nMonitors = 0;
   Point pNull = new Point(0, 0);
+
+  static String sikulixGlobalDebug = null;
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="instance">
@@ -221,7 +226,13 @@ public class RunTime {
     if (runTime != null) {
       return runTime;
     }
-    Debug.log(3, "RunTimeINIT: starting");
+    sikulixGlobalDebug = System.getenv("SIKULIXDEBUG");
+    if (sikulixGlobalDebug != null) {
+      Debug.setDebugLevel(3);
+      Debug.setWithTimeElapsed(0);
+      Debug.globalTraceOn();
+    }
+    Debug.log(3, "RunTimeINIT: starting %s", typ);
     runTime = new RunTime();
     int debugLevel = 0;
 
@@ -229,23 +240,21 @@ public class RunTime {
 
 //<editor-fold defaultstate="collapsed" desc="versions">
     Debug.log(3, "RunTimeINIT: java version");
+    if (Debug.getDebugLevel() > 3) {
+      runTime.dumpSysProps();
+    }
     String vJava = System.getProperty("java.specification.version");
     String vVM = System.getProperty("java.vm.version");
     String vClass = System.getProperty("java.class.version");
 
-    String vSysArch = System.getProperty("sikuli.arch");
-    Object vSikuliJavaok = System.getProperty("sikuli.javaok");
-    if (null == vSysArch) {
-      vSysArch = System.getProperty("os.arch");
-    } else {
-      runTime.log(runTime.lvl, "SystemProperty given: sikuli.arch=%s", vSysArch);
-    }
+    runTime.osArch = System.getProperty("os.arch");
+    String vSysArch = System.getProperty("sun.arch.data.model");
     if (vSysArch != null) {
       if (vSysArch.contains("64")) {
         runTime.javaArch = 64;
+      } else {
+        vSysArch = null;
       }
-    } else {
-      runTime.terminate(-1, "Java arch (32 or 64 Bit) not detected nor given");
     }
 
     try {
@@ -255,17 +264,17 @@ public class RunTime {
         String[] parts = vJava.split("\\.");
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
-      runTime.javaShow = String.format("java %d-%d version %s vm %s class %s arch %s",
-              runTime.javaVersion, runTime.javaArch, vJava, vVM, vClass, vSysArch);
+      runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
+              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
     if (runTime.javaVersion < 8) {
-      runTime.terminate(-1, "Java version must at least be 8");
+      runTime.terminate(-1, "Java version must at least be 8 (%s)", runTime.javaShow);
     }
 
-    if (runTime.javaVersion > 8) {
-      runTime.log(3, "*** BE AWARE: Running on Java 9+ *** Please report problems ***");
+    if (null == vSysArch) {
+      runTime.terminate(-1, "Java arch not 64 Bit or not detected (%s)", runTime.javaShow);
     }
 
     runTime.osVersion = runTime.osVersionSysProp;
@@ -383,12 +392,14 @@ public class RunTime {
     return runTime;
   }
 
+/*
   public static synchronized RunTime get(String[] args) {
     if (runTime == null) {
       return get(Type.API, args);
     }
     return runTime;
   }
+*/
 
   public static synchronized RunTime get() {
     if (runTime == null) {
@@ -431,7 +442,7 @@ public class RunTime {
     }
     log(lvl, "global init: entering as: %s", typ);
 
-    sxBuild = SikuliVersionBuild;
+    sxBuild = SXBuild;
     sxBuildStamp = sxBuild.replace("_", "").replace("-", "").replace(":", "").substring(0, 12);
 
     if (System.getProperty("user.name") != null) {
@@ -642,8 +653,8 @@ public class RunTime {
         }
       }
     } else {
-      terminate(1, "no valid Java context for SikuliX available "
-              + "(java.security.CodeSource.getLocation() is null)");
+      dumpClassPath();
+      terminate(1, String.format("no valid Java context (%s)", clsRef));
     }
     if (runningInProject) {
       fSxProjectTestScriptsJS = new File(fSxProject, "StuffContainer/testScripts/testJavaScript");
@@ -692,7 +703,7 @@ public class RunTime {
       runTime.fpSysLibs = runTime.fpJarLibs.substring(1) + "/libs" + runTime.javaArch;
     }
     if (!Type.SETUP.equals(typ)) {
-      libsExport();
+//      libsExport();
     } else {
       fSikulixDownloadsBuild = new File(fSikulixAppPath, "SikulixDownloads_" + sxBuildStamp);
       String[] fpList = fSikulixAppPath.list(new FilenameFilter() {
@@ -796,13 +807,13 @@ public class RunTime {
   }
 
   private boolean libsLoad(String libName) {
-    File fLibsFolderUsed = fLibsFolder;
     if (!areLibsExported) {
       libsExport();
     }
     if (!areLibsExported) {
       terminate(1, "loadLib: deferred exporting of libs did not work");
     }
+    File fLibsFolderUsed = fLibsFolder;
     if (runningWindows) {
       libName += ".dll";
     } else if (runningMac) {
@@ -810,27 +821,29 @@ public class RunTime {
     } else if (runningLinux) {
       libName = "lib" + libName + ".so";
     }
-    File fLib = new File(fLibsFolder, libName);
-    Boolean vLib = libsLoaded.get(libName);
-    if (vLib == null || !fLib.exists()) {
-      fLib = new File(fLibsFolderStatic, libName);
-      if (!fLib.exists()) {
-        terminate(1, String.format("loadlib: %s not in any libs folder", libName));
-      } else {
-        fLibsFolderUsed = fLibsFolderStatic;
-        libsLoaded.put(libName, true);
-        vLib = false;
-      }
-    }
     String msg = "loadLib: %s";
+    File fLib = new File(fLibsFolder, libName);
     int level = lvl;
-    if (vLib) {
-      level++;
-      msg += " already loaded";
-    }
-    if (vLib) {
-      log(level, msg, libName);
-      return true;
+    if (!runningLinux) {
+      Boolean vLib = libsLoaded.get(libName);
+      if (vLib == null || !fLib.exists()) {
+        fLib = new File(fLibsFolderStatic, libName);
+        if (!fLib.exists()) {
+          terminate(1, String.format("loadlib: %s not in any libs folder", libName));
+        } else {
+          fLibsFolderUsed = fLibsFolderStatic;
+          libsLoaded.put(libName, true);
+          vLib = false;
+        }
+      }
+      if (vLib) {
+        level++;
+        msg += " already loaded";
+      }
+      if (vLib) {
+        log(level, msg, libName);
+        return true;
+      }
     }
     boolean shouldTerminate = false;
     Error loadError = null;
@@ -838,12 +851,17 @@ public class RunTime {
       shouldTerminate = true;
       loadError = null;
       try {
-        System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
+        if (runningLinux && libName.startsWith("libopen")) {
+          libName = "opencv_java";
+          System.loadLibrary(libName);
+        } else {
+          System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
+        }
       } catch (Error e) {
         loadError = e;
         if (runningLinux) {
           log(-1, msg + " not usable: \n%s", libName, loadError);
-          shouldTerminate = !LinuxSupport.checkAllLibs();
+          terminate(1, "problem with native library: " + libName);
         }
       }
     }
@@ -862,22 +880,35 @@ public class RunTime {
     return true;
   }
 
-  int nativeW = 0;
-  int nativeM = 0;
-  int nativeL = 0;
-
   private void libsExport() {
     boolean newLibsFolder = makeFolders();
     String sysChar = runningOn.toString().substring(0, 1);
-    int nativeVersion = nativeM;
-    if ("W".equals(sysChar)) {
-      nativeVersion = nativeW;
-    } else if ("L".equals(sysChar)) {
-      nativeVersion = nativeL;
+    URL urlLibsLocation = clsRefAPI.getResource(fpJarLibs);
+    String protocol = urlLibsLocation.getProtocol();
+    String jarPath = "";
+    String jarFolder = "";
+    if ("jar".equals(protocol)) {
+      jarPath = urlLibsLocation.getPath()
+              .replace("file:", "")
+              .replaceAll("%20", " ");
+      String[] parts = jarPath.split("!");
+      jarFolder = "/";
+      if (parts.length > 1) {
+        jarPath = parts[0];
+        jarFolder = parts[1];
+      }
+    } else if ("file" != protocol){
+      terminate(1, "export libs invalid: %s", urlLibsLocation);
     }
-    String name = String.format("1.1.%s-%d-MadeForSikuliX%d%s.txt",
-            SikuliVersionSub, nativeVersion, javaArch, sysChar);
-    if (!new File(fLibsFolder, name).exists()) {
+    String resourceList = runTime.resourceListAsString(fpJarLibs, null);
+    Matcher matcher = Pattern.compile("1\\..*?MadeForSikuliX.*?txt").matcher(resourceList);
+    String libVersion = "";
+    if (matcher.find()) {
+      libVersion = matcher.group();
+    }
+    if (libVersion.isEmpty()) {
+      shouldExport = true;
+    } else if (!new File(fLibsFolder, libVersion).exists()) {
       log(lvl, "libs folder empty or has wrong content");
       shouldExport = true;
     }
@@ -889,24 +920,13 @@ public class RunTime {
           terminate(1, "libs folder not available: " + fLibsFolder.toString());
         }
       }
-      URL urlLibsLocation = clsRefAPI.getResource(fpJarLibs);
       log(lvl, "export libs from: %s", urlLibsLocation);
-      String protocol = urlLibsLocation.getProtocol();
       if ("file".equals(protocol)) {
-        log(lvl, "file: %s", urlLibsLocation.getPath());
+        //log(lvl, "file: %s", urlLibsLocation.getPath());
         extractResourcesToFolder(urlLibsLocation.getPath(), fLibsFolder, null);
       } else if ("jar".equals(protocol)) {
-        String jarPath = urlLibsLocation.getPath().replace("file:", "");
-        String[] parts = jarPath.split("!");
-        String jarFolder = "/";
-        jarFolder = parts[1];
-        if (parts.length > 1) {
-          jarPath = parts[0];
-          jarFolder = parts[1];
-        }
+        log(lvl, "jar: %s at %s", jarPath, jarFolder);
         extractResourcesToFolderFromJar(jarPath, jarFolder, fLibsFolder, null);
-      } else {
-        terminate(1, "export libs invalid: %s", urlLibsLocation);
       }
     }
     shouldExport = false;
@@ -1078,7 +1098,7 @@ public class RunTime {
   protected void abortScripting(String msg1, String msg2) {
     Thread current = Thread.currentThread();
     String where = "";
-    if (Region.runTime.isJythonReady) {
+    if (isJythonReady) {
       where = JythonHelper.get().getCurrentLine();
       log(-1, msg2);
       log(-1, msg1 + " %s", where);
@@ -1134,16 +1154,16 @@ public class RunTime {
     if (hasOptions()) {
       dumpOptions();
     }
-    logp("***** show environment for %s %s (build %s)", SikuliVersion, runType, sxBuildStamp);
+    logp("***** show environment for %s %s", SXVersionLong, runType);
     logp("user.home: %s", fUserDir);
     logp("user.dir (work dir): %s", fWorkDir);
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
-    logp("running %dBit on %s (%s) %s", javaArch, osName,
+    logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osName,
             (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
-    logp("libs folder: %s", fLibsFolder);
+    //logp("libs folder: %s", fLibsFolder);
     if (runningJar) {
       logp("executing jar: %s", fSxBaseJar);
     }
@@ -1167,28 +1187,20 @@ public class RunTime {
     return false;
   }
 
-  public String getVersionShortBasic() {
-    return sversion.substring(0, 3);
-  }
-
   public String getVersionShort() {
-    if (SikuliVersionBetaN > 0 && SikuliVersionBetaN < 99) {
-      return bversion;
-    } else {
-      return sversion;
-    }
+    return SXVersionShort;
   }
 
   public String getSystemInfo() {
-    return String.format("%s/%s/%s", SikuliVersionLong, SikuliSystemVersion, SikuliJavaVersion);
+    return String.format("%s/%s/%s", SXVersionLong, SXSystemVersion, SXJavaVersion);
   }
 
   public boolean isVersionRelease() {
-    return SikuliVersionType.isEmpty();
+    return !SXVersion.endsWith("-SNAPSHOT");
   }
 
   public String getVersion() {
-    return SikuliVersion;
+    return SXVersion;
   }
 
   public void getStatus() {
@@ -1441,39 +1453,19 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Sikulix options handling">
-  public String sSikulixapi = "sikulixapi.jar";
   public int SikuliVersionMajor;
   public int SikuliVersionMinor;
   public int SikuliVersionSub;
-  public int SikuliVersionBetaN;
-  public String SikuliProjectVersionUsed = "";
-  public String SikuliProjectVersion = "";
-  public String SikuliVersionBuild;
-  public String SikuliVersionType;
-  public String SikuliVersionTypeText;
-  public String downloadBaseDirBase;
-  public String downloadBaseDirWeb;
-  public String downloadBaseDir;
-  // used for download of production versions
-  private final String dlProdLink = "https://launchpad.net/raiman/sikulix2013+/";
-  private final String dlProdLink1 = ".0";
-  private final String dlProdLink2 = "/+download/";
-  // used for download of development versions (nightly builds)
-  private final String dlDevLink = "http://nightly.sikuli.de/";
-  public String SikuliRepo;
-  public String SikuliLocalRepo = "";
-  public String[] ServerList = {};
-  private String sversion;
-  private String bversion;
-  public String SikuliVersionDefault;
-  public String SikuliVersionBeta;
-  public String SikuliVersionDefaultIDE;
-  public String SikuliVersionBetaIDE;
-  public String SikuliVersionDefaultScript;
-  public String SikuliVersionBetaScript;
-  public String SikuliVersion;
-  public String SikuliVersionIDE;
-  public String SikuliVersionScript;
+  public String SXVersion = "";
+  public String SXVersionLong;
+  public String SXVersionShort;
+  public String SXBuild = "";
+  public String SXVersionIDE;
+  public String SXVersionAPI;
+
+  public String SXSystemVersion;
+  public String SXJavaVersion;
+
   public String SikuliJythonVersion;
   public String SikuliJythonVersion25 = "2.5.4-rc1";
   public String SikuliJythonMaven;
@@ -1483,16 +1475,16 @@ public class RunTime {
   public String SikuliJRubyVersion;
   public String SikuliJRuby;
   public String SikuliJRubyMaven;
+
   public String dlMavenRelease = "https://repo1.maven.org/maven2/";
   public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
+  public String SikuliRepo;
+  public String SikuliLocalRepo = "";
+  public String[] ServerList = {};
 
   public Map<String, String> tessData = new HashMap<String, String>();
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-
-  public String SikuliVersionLong;
-  public String SikuliSystemVersion;
-  public String SikuliJavaVersion;
 
   private void initSikulixOptions() {
     SikuliRepo = null;
@@ -1506,93 +1498,51 @@ public class RunTime {
       }
       prop.load(is);
       is.close();
-      String svt = prop.getProperty("sikulixdev");
       SikuliVersionMajor = Integer.decode(prop.getProperty("sikulixvmaj"));
       SikuliVersionMinor = Integer.decode(prop.getProperty("sikulixvmin"));
       SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
-      SikuliVersionBetaN = Integer.decode(prop.getProperty("sikulixbeta"));
-      String ssxbeta = "";
-      if (SikuliVersionBetaN > 0) {
-        ssxbeta = String.format("-Beta%d", SikuliVersionBetaN);
-      }
-      SikuliVersionBuild = prop.getProperty("sikulixbuild");
-      log(lvl + 1, "%s version: %d.%d.%d build: %s", svt,
-              SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub, SikuliVersionBuild);
-      sversion = String.format("%d.%d.%d",
-              SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub);
-      bversion = String.format("%d.%d.%d-Beta%d",
-              SikuliVersionMajor, SikuliVersionMinor, SikuliVersionSub, SikuliVersionBetaN);
-      SikuliVersionDefault = "SikuliX " + sversion;
-      SikuliVersionBeta = "Sikuli " + bversion;
-      SikuliVersionDefaultIDE = "SikulixIDE " + sversion;
-      SikuliVersionBetaIDE = "SikulixIDE " + bversion;
-      SikuliVersionDefaultScript = "SikulixScript " + sversion;
-      SikuliVersionBetaScript = "SikulixScript " + bversion;
-
-      SikuliVersionTypeText = "";
-      if ("release".equals(svt)) {
-        downloadBaseDirBase = dlProdLink;
-        downloadBaseDirWeb = downloadBaseDirBase + getVersionShortBasic() + dlProdLink1;
-        downloadBaseDir = downloadBaseDirWeb + dlProdLink2;
-        SikuliVersionType = "";
-      } else {
-        downloadBaseDirBase = dlDevLink;
-        downloadBaseDirWeb = dlDevLink;
-        downloadBaseDir = dlDevLink;
-        //TODO switch on for 1.1.2
-        //SikuliVersionTypeText = "nightly";
-        SikuliVersionBuild += SikuliVersionTypeText;
-        SikuliVersionType = svt;
-      }
-      if (SikuliVersionBetaN > 0) {
-        SikuliVersion = SikuliVersionBeta;
-        SikuliVersionIDE = SikuliVersionBetaIDE;
-        SikuliVersionScript = SikuliVersionBetaScript;
-        SikuliVersionLong = bversion + "(" + SikuliVersionBuild + ")";
-      } else {
-        SikuliVersion = SikuliVersionDefault;
-        SikuliVersionIDE = SikuliVersionDefaultIDE;
-        SikuliVersionScript = SikuliVersionDefaultScript;
-        SikuliVersionLong = sversion + "(" + SikuliVersionBuild + ")";
-      }
-      SikuliProjectVersionUsed = prop.getProperty("sikulixvused");
-      SikuliProjectVersion = prop.getProperty("sikulixvproject");
-      String osn = "UnKnown";
-      String os = System.getProperty("os.name").toLowerCase();
-      if (os.startsWith("mac")) {
-        osn = "Mac";
-      } else if (os.startsWith("windows")) {
-        osn = "Windows";
-      } else if (os.startsWith("linux")) {
-        osn = "Linux";
-      }
-
-      SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
-      SikuliJythonVersion = prop.getProperty("sikulixvjython");
-      SikuliJythonMaven = "org/python/jython-standalone/"
-              + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
-      SikuliJythonMaven25 = "org/python/jython-standalone/"
-              + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
-      SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
-      SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
-      SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
-      SikuliJRubyMaven = "org/jruby/jruby-complete/"
-              + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
-      SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
-
-      SikuliSystemVersion = osn + System.getProperty("os.version");
-      SikuliJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
-//TODO this should be in RunSetup only
-//TODO debug version: where to do in sikulixapi.jar
-//TODO need a function: reveal all environment and system information
-//      log(lvl, "%s version: downloading from %s", svt, downloadBaseDir);
+      SXBuild = prop.getProperty("sikulixbuild");
+      SXVersion = prop.getProperty("sikulixvproject");
     } catch (Exception e) {
       Debug.error("Settings: load version file %s did not work", svf);
       Sikulix.endError(999);
     }
+
+    log(lvl, "version: %s build: %s", SXVersion, SXBuild);
+
+    SXVersionIDE = "SikulixIDE-" + SXVersion;
+    SXVersionAPI = "SikulixAPI " + SXVersion;
+    SXVersionLong = SXVersion + "-" + SXBuild;
+    SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
+
+    String osn = "UnKnown";
+    String os = System.getProperty("os.name").toLowerCase();
+    if (os.startsWith("mac")) {
+      osn = "Mac";
+    } else if (os.startsWith("windows")) {
+      osn = "Windows";
+    } else if (os.startsWith("linux")) {
+      osn = "Linux";
+    }
+
+    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
+    SikuliJythonVersion = prop.getProperty("sikulixvjython");
+    SikuliJythonMaven = "org/python/jython-standalone/"
+            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+    SikuliJythonMaven25 = "org/python/jython-standalone/"
+            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
+    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
+    SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
+    SikuliJRubyMaven = "org/jruby/jruby-complete/"
+            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
+
+    SXSystemVersion = osn + System.getProperty("os.version");
+    SXJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
 //    tessData.put("eng", "http://tesseract-ocr.googlecode.com/files/tesseract-ocr-3.02.eng.tar.gz");
     tessData.put("eng", "http://download.sikulix.com/tesseract-ocr-3.02.eng.tar.gz");
-    Env.setSikuliVersion(SikuliVersion);
+    Env.setSikuliVersion(SXVersion);
   }
 
   //</editor-fold>
@@ -2007,7 +1957,6 @@ public class RunTime {
   }
 
   private List<String> resourceList(String folder, FilenameFilter filter) {
-    log(lvl, "resourceList: enter");
     List<String> files = new ArrayList<String>();
     if (!folder.startsWith("/")) {
       folder = "/" + folder;
@@ -2018,8 +1967,9 @@ public class RunTime {
       fFolder = new File(folder);
       if (fFolder.exists()) {
         files = doResourceListFolder(fFolder, files, filter);
+      } else {
+        log(lvl, "resourceList: not found: %s", folder);
       }
-      log(lvl, "resourceList: not found: %s", folder);
       return files;
     }
     try {
@@ -2492,11 +2442,10 @@ public class RunTime {
       String separator = File.pathSeparator;
       String cp = System.getProperty("java.class.path");
       classPathList = Arrays.asList(cp.split(separator));
-
     } else {
+      classPath.clear();
       URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
       classPath = Arrays.asList(sysLoader.getURLs());
-      classPath.clear();
       classPathList.clear();
       for (URL urlPath : classPath) {
         classPathList.add(urlPath.toExternalForm());

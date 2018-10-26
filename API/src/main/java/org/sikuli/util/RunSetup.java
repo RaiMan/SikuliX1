@@ -7,8 +7,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.RunTime;
-import org.sikuli.util.LinuxSupport;
-import org.sikuli.util.ProcessRunner;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -185,24 +183,11 @@ public class RunSetup {
 //      Sikulix.terminate(201);
 //    }
 
-    if (runTime.SikuliVersionBetaN > 0 && runTime.SikuliVersionBetaN < 99) {
-      updateVersion = String.format("%d.%d.%d-Beta%d",
-              runTime.SikuliVersionMajor, runTime.SikuliVersionMinor, runTime.SikuliVersionSub,
-              1 + runTime.SikuliVersionBetaN);
-    } else if (runTime.SikuliVersionBetaN < 1) {
-      updateVersion = String.format("%d.%d.%d",
-              runTime.SikuliVersionMajor, runTime.SikuliVersionMinor,
-              1 + runTime.SikuliVersionSub);
-    } else {
-      updateVersion = String.format("%d.%d.%d",
-              runTime.SikuliVersionMajor, 1 + runTime.SikuliVersionMinor, 0);
-    }
-
     options.addAll(Arrays.asList(args));
 
     //<editor-fold defaultstate="collapsed" desc="options return version">
     if (args.length > 0 && "stamp".equals(args[0])) {
-      System.out.println(runTime.SikuliProjectVersion + "-" + runTime.sxBuildStamp);
+      System.out.println(runTime.SXVersion + "-" + runTime.sxBuildStamp);
       System.exit(0);
     }
 
@@ -218,17 +203,12 @@ public class RunSetup {
     }
 
     if (args.length > 0 && "build".equals(args[0])) {
-      System.out.println(runTime.SikuliVersionBuild);
+      System.out.println(runTime.SXBuild);
       System.exit(0);
     }
 
     if (args.length > 0 && "pversion".equals(args[0])) {
-      System.out.println(runTime.SikuliProjectVersion);
-      System.exit(0);
-    }
-
-    if (args.length > 0 && "uversion".equals(args[0])) {
-      System.out.println(runTime.SikuliProjectVersionUsed);
+      System.out.println(runTime.SXVersion);
       System.exit(0);
     }
 
@@ -445,7 +425,7 @@ public class RunSetup {
       logPlus(lvl, "LinuxDistro: %s (%s-Bit)", linuxDistro, osarch);
     }
 
-    logPlus(lvl, "Setup: %s %s in folder:\n%s", runTime.getVersionShort(), runTime.SikuliVersionBuild, fWorkDir);
+    logPlus(lvl, "Setup: %s %s in folder:\n%s", runTime.getVersionShort(), runTime.SXBuild, fWorkDir);
 
     File localJarIDE = new File(fWorkDir, localIDE);
     File localJarAPI = new File(fWorkDir, localAPI);
@@ -491,7 +471,7 @@ public class RunSetup {
       winSetup.setVisible(true);
 
       //setup version basic
-      winSU.suVersion.setText(runTime.getVersionShort() + "   (" + runTime.SikuliVersionBuild + ")");
+      winSU.suVersion.setText(runTime.getVersionShort() + "   (" + runTime.SXBuild + ")");
 
       // running system
       Settings.getOS();
@@ -853,7 +833,7 @@ public class RunSetup {
         sDownloaded = "JRuby AddOns";
         targetJar = new File(workDir, localJRubyAddOns).getAbsolutePath();
         fDownloaded = downloadsFound.get("rubyaddons");
-        fDownloaded = download(runTime.downloadBaseDir, dlDirGeneric, downloadJRubyAddOns, sDownloaded);
+//        fDownloaded = download(runTime.downloadBaseDir, dlDirGeneric, downloadJRubyAddOns, sDownloaded);
         downloadOK &= copyFromDownloads(fDownloaded, sDownloaded, targetJar);
       }
     }
@@ -864,7 +844,7 @@ public class RunSetup {
         sDownloadedName = item + ".jar";
         fTargetJar = new File(runTime.fSikulixExtensions, sDownloadedName);
         if (!fTargetJar.exists()) {
-          fDownloaded = download(runTime.downloadBaseDir, runTime.fSikulixExtensions.getAbsolutePath(), sDownloadedName, item);
+//          fDownloaded = download(runTime.downloadBaseDir, runTime.fSikulixExtensions.getAbsolutePath(), sDownloadedName, item);
           downloadOK &= fDownloaded != null;
         } else {
           logPlus(lvl, "request to download: %s ignored - already there", sDownloadedName);
@@ -1437,7 +1417,7 @@ public class RunSetup {
       }
 
 //TODO JRubyAddOns
-      String jrubyAddons = "sikulixjrubyaddons-" + runTime.SikuliProjectVersion + "-plain.jar";
+      String jrubyAddons = "sikulixjrubyaddons-" + runTime.SXVersion + "-plain.jar";
       File fJRubyAddOns = new File(projectDir, "JRubyAddOns/target/" + jrubyAddons);
 //        success &= FileManager.xcopy(fJRubyAddOns, new File(fDownloadsGeneric, downloadJRubyAddOns));
 
@@ -1457,7 +1437,7 @@ public class RunSetup {
   }
 
   private static String getProjectJarFileName(String jarFilePre, String jarFileSuf) {
-    return String.format("%s-%s%s", jarFilePre, runTime.SikuliProjectVersion, jarFileSuf);
+    return String.format("%s-%s%s", jarFilePre, runTime.SXVersion, jarFileSuf);
   }
 
   private static boolean handleTempAfter(String temp, String target) {

@@ -5,6 +5,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Range;
 import org.opencv.core.Scalar;
+import org.sikuli.basics.Debug;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,8 +41,11 @@ public class FindResult2 implements Iterator<Match> {
   private Core.MinMaxLocResult resultMinMax = null;
 
   private double currentScore = -1;
-  double firstScore = -1;
-  double scoreMaxDiff = 0.01;
+  double targetScore = -1;
+  double lastScore = -1;
+  double scoreMeanDiff = -1;
+  double scoreMaxDiff = 0.005;
+  double matchCount = 0;
 
   private int currentX = -1;
   private int currentY = -1;
@@ -63,26 +67,36 @@ public class FindResult2 implements Iterator<Match> {
     currentScore = resultMinMax.maxVal;
     currentX = (int) resultMinMax.maxLoc.x;
     currentY = (int) resultMinMax.maxLoc.y;
-    if (firstScore < 0) {
-      firstScore = currentScore;
+    if (lastScore < 0) {
+      lastScore = currentScore;
+      targetScore = findInput.getScore();
       baseW = result.width();
       baseH = result.height();
       targetW = findInput.getTarget().width();
       targetH = findInput.getTarget().height();
       marginX = (int) (targetW * 0.8);
       marginY = (int) (targetH * 0.8);
-      scoreMaxDiff = findInput.getScoreMaxDiff();
+      matchCount = 0;
     }
-    double targetScore = findInput.getScore();
-    double scoreMin = firstScore - scoreMaxDiff;
+    boolean isMatch = false;
     if (currentScore > targetScore) {
-      if(currentScore > scoreMin) {
-        return true;
+      if (matchCount == 0) {
+        isMatch = true;
+      } else if (matchCount == 1) {
+        scoreMeanDiff = lastScore - currentScore;
+        isMatch = true;
       } else {
-        return false;
+        double scoreDiff = lastScore - currentScore;
+        if (findInput.isPattern || scoreDiff <= (scoreMeanDiff + 0.01)) { // 0.005
+          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
+          isMatch = true;
+        }
+      }
+      if (!isMatch) {
+        Debug.log(3, "findAll: (%d) stop: %.4f (%.4f) %s", matchCount, currentScore, scoreMeanDiff, findInput);
       }
     }
-    return false;
+    return isMatch;
   }
 
   public Match next() {
@@ -90,10 +104,12 @@ public class FindResult2 implements Iterator<Match> {
     if (hasNext()) {
       if (findInput.isText()) {
         Word nextWord = words.remove(0);
-        match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence()/100);
+        match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence() / 100);
         match.setText(nextWord.getText().trim());
       } else {
         match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);
+        matchCount++;
+        lastScore = currentScore;
         //int margin = getPurgeMargin();
         Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, result.width()));
         Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, result.height()));

@@ -18,6 +18,10 @@ import java.util.List;
 
 public class TextRecognizer {
 
+  static {
+    Finder2.init();
+  }
+
   static RunTime runTime = RunTime.get();
   private static int lvl = 3;
 
@@ -46,11 +50,10 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      try {
-        textRecognizer.tess = new Tesseract1();
-      } catch (UnsatisfiedLinkError ule) {
-        runTime.terminate(-1, "TextRecognizer: start: native libraries not found");
+      if (runTime.runningMac) {
+        System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
       }
+      textRecognizer.tess = new Tesseract1();
       File fTessdataPath = null;
       valid = false;
       if (textRecognizer.dataPath != null) {
@@ -138,7 +141,7 @@ public class TextRecognizer {
     }
     if (isValid()) {
       this.psm = psm;
-      tess.setOcrEngineMode(this.oem);
+      tess.setPageSegMode(this.psm);
     }
     return this;
   }

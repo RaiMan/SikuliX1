@@ -284,8 +284,9 @@ public class Match extends Region implements Comparable<Match> {
 
   @Override
   public String toStringShort() {
-    return String.format("M[%d,%d %dx%d]@S(%s)", x, y, w, h,
-              (getScreen()== null ? "?" : getScreen().getID()));
+    return String.format("M[%d,%d %dx%d]On(%s) S %d", x, y, w, h,
+              (getScreen()== null ? "?" : getScreen().getID()),
+              Math.round(simScore * 10000));
   }
 
 

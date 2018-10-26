@@ -1,11 +1,8 @@
-# Copyright 2010-2016, Sikuli.org, sikulix.com
+# Copyright 2010-2018, Sikuli.org, sikulix.com
 # Released under the MIT License.
-# modified RaiMan 2016
 
 import org.sikuli.script.Region as JRegion
 from org.sikuli.script.Constants import FOREVER
-import sys
-import inspect
 
 from org.sikuli.basics import Debug as JDebug
 

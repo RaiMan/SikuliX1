@@ -1,6 +1,5 @@
-# Copyright 2010-2016, Sikuli.org, sikulix.com
+# Copyright 2010-2018, Sikuli.org, sikulix.com
 # Released under the MIT License.
-# modified RaiMan 2016
 
 from __future__ import with_statement
 
@@ -19,10 +18,10 @@ import os
 import inspect
 import subprocess
 
-Debug.log(4, "Jython: sikuli: Sikuli: backports from Version 2: Do")
+Debug.trace("Jython: sikuli: Sikuli: backports from Version 2: Do")
 import org.sikuli.script.Do as Do
 
-Debug.log(4, "Jython: sikuli: Sikuli: RunTime, Setting, Debug")
+Debug.trace("Jython: sikuli: Sikuli: RunTime, Setting, Debug")
 import org.sikuli.script.RunTime as JRunTime
 
 class RunTime(JRunTime):
@@ -32,7 +31,7 @@ RUNTIME = RunTime.get()
 
 import org.sikuli.basics.Settings as Settings
 
-Debug.log(4, "Jython: sikuli: Sikuli: constants")
+Debug.trace("Jython: sikuli: Sikuli: constants")
 import org.sikuli.script.FindFailed as FindFailed
 from org.sikuli.script.FindFailedResponse import *
 from org.sikuli.script.Constants import *
@@ -40,10 +39,10 @@ import org.sikuli.script.Button as Button
 from org.sikuli.script.Button import WHEEL_UP, WHEEL_DOWN
 from org.sikuli.basics import OS
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Region")
+Debug.trace("Jython: sikuli: Sikuli: import Region")
 from Region import *
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Screen")
+Debug.trace("Jython: sikuli: Sikuli: import Screen")
 # from Screen import *
 import org.sikuli.script.Screen as JScreen
 
@@ -68,49 +67,55 @@ def wait(target, timeout=None):
   else:
     return SCREEN.wait(target, timeout)
 
-Debug.log(4, "Jython: sikuli: Sikuli: import ScreenUnion")
+Debug.trace("Jython: sikuli: Sikuli: import ScreenUnion")
 from org.sikuli.script import ScreenUnion
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Location")
+Debug.trace("Jython: sikuli: Sikuli: import Location")
 import org.sikuli.script.Location as JLocation
 
 class Location(JLocation):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Finder")
+Debug.trace("Jython: sikuli: Sikuli: import Finder")
 import org.sikuli.script.Finder as JFinder
 
 class Finder(JFinder):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Match")
+Debug.trace("Jython: sikuli: Sikuli: import TextRecognizer")
+import org.sikuli.script.TextRecognizer as JTextOCR
+
+class TextOCR(JTextOCR):
+  pass
+
+Debug.trace("Jython: sikuli: Sikuli: import Match")
 from org.sikuli.script import Match as JMatch
 
 class Match(JMatch):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: import ImagePath")
+Debug.trace("Jython: sikuli: Sikuli: import ImagePath")
 from org.sikuli.script import ImagePath
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Pattern")
+Debug.trace("Jython: sikuli: Sikuli: import Pattern")
 from org.sikuli.script import Pattern as JPattern
 class Pattern(JPattern):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Image")
+Debug.trace("Jython: sikuli: Sikuli: import Image")
 import org.sikuli.script.Image as JImage
 class Image(JImage):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: Env.addHotkey")
+Debug.trace("Jython: sikuli: Sikuli: Env.addHotkey")
 from Env import *
 
-Debug.log(4, "Jython: sikuli: Sikuli: import App")
+Debug.trace("Jython: sikuli: Sikuli: import App")
 import org.sikuli.script.App as JApp
 class App(JApp):
   pass
 
-Debug.log(4, "Jython: sikuli: Sikuli: import KeyBoard/Mouse")
+Debug.trace("Jython: sikuli: Sikuli: import KeyBoard/Mouse")
 from org.sikuli.script import Key as JKey
 class Key(JKey):
   pass
@@ -124,18 +129,18 @@ from org.sikuli.script import Mouse
 def at():
   return Mouse.at()
 
-Debug.log(4, "Jython: sikuli: Sikuli: import from compare")
+Debug.trace("Jython: sikuli: Sikuli: import from compare")
 from org.sikuli.script.compare import DistanceComparator
 from org.sikuli.script.compare import VerticalComparator
 from org.sikuli.script.compare import HorizontalComparator
 
-Debug.log(4, "Jython: sikuli: Sikuli: init SikuliImporter")
+Debug.trace("Jython: sikuli: Sikuli: init SikuliImporter")
 import SikuliImporter
 
-Debug.log(4, "Jython: sikuli: Sikuli: import Sikulix")
+Debug.trace("Jython: sikuli: Sikuli: import Sikulix")
 from org.sikuli.script import Sikulix
 
-Debug.log(4, "Jython: sikuli: Sikuli: import ScriptingSupport")
+Debug.trace("Jython: sikuli: Sikuli: import ScriptingSupport")
 SCRIPT_SUPPORT = True
 try:
   from org.sikuli.scriptrunner import ScriptingSupport
@@ -405,7 +410,6 @@ def popAsk(msg, title="Sikuli Decision"):
 # @return The user's input string.
 #
 def input(msg="", default="", title="Sikuli Input", hidden=False):
-  Debug.log(3, "Sikuli.py: input")
   if (hidden):
     default = ""
   return Sikulix.input(msg, default, title, hidden)
@@ -465,9 +469,9 @@ def use(scr=None, remote=False, fromWith = False):
     newScreen = scr
   if (newScreen.isValid()):
     SCREEN = newScreen
-    Debug.log(3, "Jython: requested to use as default region: " + SCREEN.toStringShort())
+    Debug.trace("Jython: requested to use as default region: " + SCREEN.toStringShort())
     globals()['SIKULISAVED'] = _exposeAllMethods(SCREEN, globals().get('SIKULISAVED'), theGlobals, None)
-    Debug.log(4, "Jython: after _exposeAllMethods");
+    Debug.trace("Jython: after _exposeAllMethods");
     theGlobals['SCREEN'] = SCREEN
     if remote:
       remoteScreen = SCREEN
@@ -501,6 +505,21 @@ def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, pass
   theVNCScreen = Sikulix.vncStart(ip, port, password, connectionTimeout, timeout)
   if theVNCScreen:
     return theVNCScreen
+  exit(-1)
+
+## -----------------------------------------------------------------------
+# convenience for an ADBScreen connection
+
+Debug.trace("Jython: sikuli: Sikuli: import ADBScreen")
+import org.sikuli.android.ADBScreen as JADBScreen
+
+class ADBScreen(JADBScreen):
+  pass
+
+def adbStart(adbexec = ""):
+  adbscr = ADBScreen(adbexec)
+  if adbscr:
+    return adbscr
   exit(-1)
 
 ## ----------------------------------------------------------------------
@@ -624,16 +643,16 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
                     'lastMatch', 'lastMatches', 'lastScreenImage', 'lastScreenImageFile',
                     'capture', 'wait', 'lineList', 'wordList'
                    ]
-  Debug.log(4, "Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
+  Debug.trace("Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
   tosave = []
   if not saved:
     saved = []
   for name in dir(anyObject):
     if name in exclude_list: continue
     try:
-      if name == "wordList": Debug.log(4, "Sikuli: _exposeAllMethods: checking1: %s", name)
+      if name == "wordList": Debug.trace("Sikuli: _exposeAllMethods: checking1: %s", name)
       attr = getattr(anyObject, name)
-      if name == "wordList": Debug.log(4, "Sikuli: _exposeAllMethods: checking2: %s", name)
+      if name == "wordList": Debug.trace("Sikuli: _exposeAllMethods: checking2: %s", name)
       if not inspect.ismethod(attr): continue
     except:
       continue
@@ -645,10 +664,10 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
       tosave.append(name)
       theGlobals[name] = eval("anyObject." + name)
       Debug.log(4, "Sikuli: _exposeAllMethods: added: %s", name)
-      if name == 'checkWith': Debug.log(3, "%s %s", name, str(dict[name])[1:])
+      if name == 'checkWith': Debug.trace("%s %s", name, str(dict[name])[1:])
   for name in saved:
     if name in theGlobals:
-      # print "removed:", name
+      Debug.log(4, "Sikuli: _exposeAllMethods: removed: %s", name)
       theGlobals.pop(name)
   return tosave
 
@@ -656,3 +675,4 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
 use()
 ALL = JScreen.all().getRegion()
 Debug.log(3, "Jython: sikuli: Sikuli: ending init")
+Debug.reset()

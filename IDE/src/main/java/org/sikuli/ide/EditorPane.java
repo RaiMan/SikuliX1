@@ -29,10 +29,8 @@ import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.idesupport.IIndentationLogic;
-import org.sikuli.script.Location;
+import org.sikuli.script.*;
 import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
 import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
@@ -91,8 +89,14 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   private int _caret_last_x = -1;
   private boolean _can_update_caret_last_x = true;
   private SikuliIDEPopUpMenu popMenuImage;
+  private SikuliIDEPopUpMenu popMenuCompletion;
   private SikuliEditorKit editorKit;
   private EditorViewFactory editorViewFactory;
+
+  public SikuliIDE getIDE() {
+    return sikuliIDE;
+  }
+
   private SikuliIDE sikuliIDE = null;
   private int caretPosition = -1;
 
@@ -197,6 +201,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       popMenuImage = null;
     }
 
+    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+    if (!popMenuCompletion.isValidMenu()) {
+      popMenuCompletion = null;
+    }
+
     if (paneIsEmpty || reInit) {
 //			this.setText(String.format(Settings.TypeCommentDefault, getSikuliContentType()));
       this.setText("");
@@ -215,6 +224,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   public SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
+  }
+
+  public SikuliIDEPopUpMenu getPopMenuCompletion() {
+    return popMenuCompletion;
   }
 
   private void updateDocumentListeners(String source) {
@@ -249,10 +262,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   private void initKeyMap() {
     InputMap map = this.getInputMap();
-    int shift = InputEvent.SHIFT_MASK;
-    int ctrl = InputEvent.CTRL_MASK;
+    int shift = InputEvent.SHIFT_DOWN_MASK;
+    int ctrl = InputEvent.CTRL_DOWN_MASK;
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, shift), SikuliEditorKit.deIndentAction);
-    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), SikuliEditorKit.deIndentAction);
+    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), SikuliEditorKit.completionAction);
   }
 
   @Override
@@ -265,7 +278,6 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   @Override
   public void keyTyped(java.awt.event.KeyEvent ke) {
-    //TODO implement code completion * checkCompletion(ke);
   }
   //</editor-fold>
 
@@ -931,6 +943,59 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
   }
 
+  public String getLine(int lineno) {
+    String line = "";
+    Element map = getDocument().getDefaultRootElement();
+    Element lineElem = map.getElement(lineno - 1);
+    int start = lineElem.getStartOffset();
+    int end = lineElem.getEndOffset();
+    try {
+      line = getDocument().getText(start, end - start);
+    } catch (BadLocationException e) {
+    }
+    return line;
+  }
+
+  public void runSelection() {
+    int start = getSelectionStart();
+    int end = getSelectionEnd();
+    if (start == end) {
+      runLines(getLineTextAtCaret().trim());
+    } else {
+      runLines(getSelectedText());
+    }
+  }
+
+  public String getLines(int current, Boolean selection) {
+    String lines = "";
+    String[] scriptLines = getText().split("\n");
+    if (selection == null) {
+      lines = scriptLines[current - 1].trim();
+    } else if (selection) {
+      for (int i = current - 1; i < scriptLines.length; i++) {
+        lines += scriptLines[i] + "\n";
+      }
+    } else {
+      for (int i = 0; i < current; i++) {
+        lines += scriptLines[i] + "\n";
+      }
+    }
+    return lines;
+  }
+
+  public void runLines(String lines) {
+    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
+    }
+    getIDE().setVisible(false);
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        getRunner().runLines(lines);
+        SikuliIDE.showAgain();
+      }
+    }).start();
+  }
+
   //<editor-fold defaultstate="collapsed" desc="TODO only used for UnitTest">
   public void jumpTo(String funcName) throws BadLocationException {
     log(lvl + 1, "jumpTo function: " + funcName);
@@ -1147,7 +1212,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor) {
+  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor, String mask) {
 //TODO ifn really needed??
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
@@ -1159,7 +1224,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     String pat = "Pattern(\"" + imgName + "\")";
     String patternString = "";
     if (resizeFactor > 0 && resizeFactor != 1) {
-      patternString += String.format(".resize(%.2f)", resizeFactor);
+      patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
     }
     if (sim > 0) {
       if (sim >= 0.99F) {
@@ -1171,6 +1236,9 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     if (off != null && (off.x != 0 || off.y != 0)) {
       patternString += ".targetOffset(" + off.x + "," + off.y + ")";
     }
+    if (null != mask && !mask.isEmpty()) {
+      patternString += "." + mask + ")";
+    }
     if (!patternString.equals("")) {
       patternString = pat + patternString;
     } else {
@@ -1179,6 +1247,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return patternString;
   }
   //</editor-fold>
+
+  public IScriptRunner getRunner() {
+    IScriptRunner runner = ScriptingSupport.getRunner(null, getContentType());
+    return runner;
+  }
 
   //<editor-fold defaultstate="collapsed" desc="content insert append">
   public void insertString(String str) {
@@ -1259,7 +1332,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
     int ret = -1;
     Document doc = getDocument();
-    Debug.log(lvl, "search: %s from %d forward: %s", str, pos, forward);
+    Debug.log(4, "search: %s from %d forward: %s", str, pos, forward);
     try {
       String body;
       int begin;
@@ -1286,7 +1359,8 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
         }
       }
     } catch (BadLocationException e) {
-      log(-1, "search: did not work:\n" + e.getStackTrace());
+      //log(-1, "search: did not work:\n" + e.getStackTrace());
+      ret = -1;
     }
     return ret;
   }

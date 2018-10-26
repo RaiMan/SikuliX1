@@ -4,8 +4,11 @@
 package org.sikuli.natives;
 
 import org.sikuli.script.App;
+import org.sikuli.script.Region;
 
-import java.awt.*;
+import java.awt.Rectangle;
+import java.awt.Window;
+import java.util.List;
 import java.util.Map;
 
 public interface OSUtil {
@@ -18,44 +21,27 @@ public interface OSUtil {
    */
   public void checkFeatureAvailability();
 
-  public App.AppEntry getApp(int pid, String name);
+  public App getApp(App app);
 
   public Map<Integer, String[]> getApps(String name);
 
-  public int isRunning(App.AppEntry app);
+	public App open(App app);
 
-	public int open(String appName);
+  public App switchto(App app, int num);
 
-  public int open(App.AppEntry app);
+  public App switchto(String title);
 
-  // Windows: returns PID, 0 if fails
-  // Others: return 0 if succeeds, -1 if fails
-  public int switchto(String appName);
+  public App close(App app);
 
-  public int switchto(String appName, int winNum);
+  public Rectangle getWindow(String titel);
 
-  //internal use
-  public int switchto(int pid, int num);
+  public Rectangle getWindow(App app);
 
-  public int switchto(App.AppEntry app, int num);
-
-  // returns 0 if succeeds, -1 if fails
-  public int close(String appName);
-
-  //internal use
-  public int close(int pid);
-
-  public int close(App.AppEntry app);
-
-  public Rectangle getWindow(String appName);
-
-  public Rectangle getWindow(String appName, int winNum);
-
-  Rectangle getWindow(int pid);
-
-  Rectangle getWindow(int pid, int winNum);
+  public Rectangle getWindow(App app, int winNum);
 
   public Rectangle getFocusedWindow();
+
+  public List<Region> getWindows(App app);
 
   public void bringWindowToFront(Window win, boolean ignoreMouse);
 }

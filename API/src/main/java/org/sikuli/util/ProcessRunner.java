@@ -4,8 +4,11 @@
 
 package org.sikuli.util;
 
+import org.sikuli.script.RunTime;
+
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -74,47 +77,120 @@ public class ProcessRunner {
     return result;
   }
 
-  public static void detach(String... args) {
+  public static int detach(String... args) {
     List<String> cmd = new ArrayList<String>();
     for (String arg : args) {
       cmd.add(arg);
     }
-    detach(cmd);
+    return detach(cmd);
   }
 
-  public static void detach(List<String> cmd) {
+  public static int detach(List<String> cmd) {
+    int exitValue = 0;
     if (cmd.size() > 0) {
       ProcessBuilder app = new ProcessBuilder();
       Map<String, String> processEnv = app.environment();
       app.command(cmd);
       app.redirectErrorStream(true);
+      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
       Process process = null;
       try {
         process = app.start();
       } catch (Exception e) {
         p("[Error] ProcessRunner: start: %s", e.getMessage());
       }
-      try {
-        if (process != null) {
-          InputStreamReader reader = new InputStreamReader(process.getInputStream());
-          BufferedReader processOut = new BufferedReader(reader);
-          String line = processOut.readLine();
-          while (null != line) {
-            System.out.println(line);
-            line = processOut.readLine();
-          }
-        }
-      } catch (IOException e) {
-        p("[Error] ProcessRunner: read: %s", e.getMessage());
-      }
+//      try {
+//        if (process != null) {
+//          InputStreamReader reader = new InputStreamReader(process.getInputStream());
+//          BufferedReader processOut = new BufferedReader(reader);
+//          String line = processOut.readLine();
+//          while (null != line) {
+//            System.out.println(line);
+//            line = processOut.readLine();
+//          }
+//        }
+//      } catch (IOException e) {
+//        p("[Error] ProcessRunner: read: %s", e.getMessage());
+//      }
       try {
         if (process != null) {
           process.waitFor();
+          exitValue = process.exitValue();
         }
       } catch (InterruptedException e) {
         p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
       }
     }
+    return exitValue;
+  }
+
+  public static int startApp(String... givenCmd) {
+    List<String> cmd = new ArrayList<>();
+    cmd.addAll(Arrays.asList(givenCmd));
+    return startApp(cmd);
+  }
+
+  public static int startApp(List<String> givenCmd) {
+    RunTime runTime = RunTime.get();
+    int exitValue = 0;
+    if (runTime.runningWindows) {
+      List<String> cmd = new ArrayList<>();
+      cmd.add("cmd");
+      cmd.add("/C");
+      cmd.add("start");
+      cmd.add("\"\"");
+      cmd.add("/B");
+      cmd.add("\"" + givenCmd.get(0) + "\"");
+      if (givenCmd.size() > 1) {
+        //cmd.add(givenCmd.get(1));
+        startAppParams(cmd, givenCmd.get(1));
+      }
+      if (cmd.size() > 0) {
+        ProcessBuilder app = new ProcessBuilder();
+        Map<String, String> processEnv = app.environment();
+        app.command(cmd);
+        app.redirectErrorStream(true);
+//      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+//      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        Process process = null;
+        try {
+          process = app.start();
+        } catch (Exception e) {
+          p("[Error] ProcessRunner: start: %s", e.getMessage());
+        }
+        try {
+          if (process != null) {
+            process.waitFor();
+            exitValue = process.exitValue();
+          }
+        } catch (InterruptedException e) {
+          p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+        }
+      }
+    }
+    return exitValue;
+  }
+
+  private static List<String> startAppParams(List<String> cmd, String param) {
+    String[] params = param.split(" ");
+    String concatParm = "";
+    for (String parm : params) {
+      if (parm.startsWith("\"")) {
+        concatParm = parm;
+        continue;
+      }
+      if (!concatParm.isEmpty()) {
+        if (!parm.endsWith("\"")) {
+          concatParm += " " + parm;
+          continue;
+        }
+        parm = concatParm + " " + parm;
+        concatParm = "";
+      }
+      cmd.add(parm.trim());
+    }
+    return cmd;
   }
 }
 

@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -46,7 +47,7 @@ class UserLibrary(object):
             try:
                 handler = self._create_handler(kw)
             except DataError as error:
-                handler = UserErrorHandler(kw.name, error, self.name)
+                handler = UserErrorHandler(error, kw.name, self.name)
                 self._log_creating_failed(handler, error)
             embedded = isinstance(handler, EmbeddedArgumentsHandler)
             try:

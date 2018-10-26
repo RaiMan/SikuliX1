@@ -1,5 +1,5 @@
 #!/bin/bash
-PROPS='-Xmx512M -Dfile.encoding=UTF-8'
+PROPS='-Xmx1024M -Dfile.encoding=UTF-8'
 
 rundir=`dirname "$0"`
 sjar=$rundir/SikuliX.app/Contents/Java/sikulix.jar

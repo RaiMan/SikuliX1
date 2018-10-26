@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.android.ADBScreen;
 import org.sikuli.vnc.VNCScreen;
 //import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
@@ -75,6 +76,12 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
 
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      System.out.print(rt.sxBuild);
+      cleanUp(0);
+      System.exit(0);
+    }
+
     RunTime.checkArgs(rt, args, RunTime.Type.API);
     if (rt.runningScripts) {
       int exitCode = Runner.runScripts(args);
@@ -141,7 +148,7 @@ public class Sikulix {
       System.exit(1);
     }
 
-    String version = String.format("(%s-%s)", rt.getVersionShort(), rt.sxBuildStamp);
+    String version = rt.getVersion();
     File lastSession = new File(rt.fSikulixStore, "LastAPIJavaScript.js");
     String runSomeJS = "";
     if (lastSession.exists()) {
@@ -403,7 +410,7 @@ public class Sikulix {
   public static void cleanUp(int n) {
     log(lvl, "cleanUp: %d", n);
     VNCScreen.stopAll();
-    //ADBScreen.stop();
+    ADBScreen.stop();
     ScreenHighlighter.closeAll();
     Observing.cleanUp();
     HotkeyManager.reset();

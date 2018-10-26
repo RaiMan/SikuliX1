@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -28,7 +29,7 @@ from robot.utils import (abspath, ConnectionCache, console_decode, del_env_var,
                          is_unicode, normpath, parse_time, plural_or_not,
                          secs_to_timestamp, secs_to_timestr, seq2str,
                          set_env_var, timestr_to_secs, unic, CONSOLE_ENCODING,
-                         IRONPYTHON, PY2, SYSTEM_ENCODING)
+                         IRONPYTHON, JYTHON, PY2, SYSTEM_ENCODING, WINDOWS)
 
 __version__ = get_version()
 PROCESSES = ConnectionCache('No active processes.')
@@ -103,9 +104,9 @@ class OperatingSystem(object):
 
     Some keywords accept arguments that are handled as Boolean values true or
     false. If such an argument is given as a string, it is considered false if
-    it is either empty or case-insensitively equal to ``false`` or ``no``.
-    Other strings are considered true regardless their value, and other
-    argument types are tested using same
+    it is either an empty string or case-insensitively equal to ``false``,
+    ``none`` or ``no``. Other strings are considered true regardless
+    their value, and other argument types are tested using the same
     [http://docs.python.org/2/library/stdtypes.html#truth-value-testing|rules
     as in Python].
 
@@ -121,8 +122,9 @@ class OperatingSystem(object):
     | `Remove Directory` | ${path} | recursive=${EMPTY} | # Empty string is false.       |
     | `Remove Directory` | ${path} | recursive=${FALSE} | # Python ``False`` is false.   |
 
-    Note that prior to Robot Framework 2.9, all non-empty strings, including
-    ``false`` and ``no``, were considered true.
+    Prior to Robot Framework 2.9, all non-empty strings, including ``false``
+    and ``no``, were considered true. Considering ``none`` false is new in
+    Robot Framework 3.0.3.
 
     = Example =
 
@@ -549,8 +551,8 @@ class OperatingSystem(object):
     def create_file(self, path, content='', encoding='UTF-8'):
         """Creates a file with the given content and encoding.
 
-        If the directory where to create file does not exist it, and possible
-        intermediate missing directories, are created.
+        If the directory for the file does not exist, it is created, along
+        with missing intermediate directories.
 
         See `Get File` for more information about possible ``encoding`` values,
         including special values ``SYSTEM`` and ``CONSOLE``.
@@ -592,8 +594,8 @@ class OperatingSystem(object):
 
         Byte strings, and possible other types, are written to the file as is.
 
-        If the directory where to create file does not exist it, and possible
-        intermediate missing directories, are created.
+        If the directory for the file does not exist, it is created, along
+        with missing intermediate directories.
 
         Examples:
         | Create Binary File | ${dir}/example.png | ${image content}     |
@@ -611,7 +613,7 @@ class OperatingSystem(object):
         self._link("Created binary file '%s'.", path)
 
     def append_to_file(self, path, content, encoding='UTF-8'):
-        """Appends the given contend to the specified file.
+        """Appends the given content to the specified file.
 
         If the file does not exists, this keyword works exactly the same
         way as `Create File`.
@@ -889,7 +891,12 @@ class OperatingSystem(object):
         """
         source, destination \
             = self._prepare_copy_and_move_directory(source, destination)
-        shutil.copytree(source, destination)
+        try:
+            shutil.copytree(source, destination)
+        except shutil.Error:
+            # https://github.com/robotframework/robotframework/issues/2321
+            if not (WINDOWS and JYTHON):
+                raise
         self._link("Copied directory from '%s' to '%s'.", source, destination)
 
     def _prepare_copy_and_move_directory(self, source, destination):
@@ -1078,9 +1085,9 @@ class OperatingSystem(object):
         See `Join Path` for more information.
 
         Examples:
-        | @{p1} = | Join Path | base     | example       | other |          |
-        | @{p2} = | Join Path | /my/base | /example      | other |          |
-        | @{p3} = | Join Path | my/base  | example/path/ | other | one/more |
+        | @{p1} = | Join Paths | base     | example       | other |          |
+        | @{p2} = | Join Paths | /my/base | /example      | other |          |
+        | @{p3} = | Join Paths | my/base  | example/path/ | other | one/more |
         =>
         - @{p1} = ['base/example', 'base/other']
         - @{p2} = ['/example', '/my/base/other']

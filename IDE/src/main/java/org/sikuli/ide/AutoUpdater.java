@@ -80,7 +80,6 @@ public class AutoUpdater {
           smajor = SikuliIDE.runTime.SikuliVersionMajor;
           sminor = SikuliIDE.runTime.SikuliVersionMinor;
           ssub = SikuliIDE.runTime.SikuliVersionSub;
-          sbeta = SikuliIDE.runTime.SikuliVersionBetaN;
           if (sbeta > 0) {
             if (smajor == major && sminor == minor) {
               available = FINAL;

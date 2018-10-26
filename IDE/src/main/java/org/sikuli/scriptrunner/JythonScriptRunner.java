@@ -62,10 +62,10 @@ public class JythonScriptRunner implements IScriptRunner {
    * The header commands, that are executed before every script
    */
   private static String[] SCRIPT_HEADER = new String[]{
-    "# -*- coding: utf-8 -*- ",
-    "from sikuli import *",
-    "use() #resetROI()",
-    "setShowActions(False)"
+          "# -*- coding: utf-8 -*- ",
+          "from sikuli import *",
+          "use() #resetROI()",
+          "setShowActions(False)"
   };
 
   private ArrayList<String> codeBefore = null;
@@ -84,7 +84,7 @@ public class JythonScriptRunner implements IScriptRunner {
   private static final int PY_JAVA = 2;
   private static final int PY_UNKNOWN = -1;
   private static final String NL = String.format("%n");
-//TODO SikuliToHtmlConverter implement in Java
+  //TODO SikuliToHtmlConverter implement in Java
 //  final static InputStream SikuliToHtmlConverter
 //          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
 //  static String pyConverter
@@ -99,9 +99,10 @@ public class JythonScriptRunner implements IScriptRunner {
     if (runTime.runningWinApp) {
       runTime.terminate(1, "JythonScriptRunner called in WinApp (packed .exe)");
     }
-    if (isReady) {
+    if (isReady && interpreter != null) {
       return;
     }
+    isReady = false;
 
     try {
       getInterpreter();
@@ -132,12 +133,26 @@ public class JythonScriptRunner implements IScriptRunner {
     isReady = true;
   }
 
+  @Override
+  public void runLines(String lines) {
+    if (lines.contains("\n")) {
+      if (lines.startsWith(" ") || lines.startsWith("\t")) {
+        lines = "if True:\n" + lines;
+      }
+    }
+    try {
+      interpreter.exec(lines);
+    } catch (Exception ex) {
+      log(-1, "runPython: (%s) raised: %s", lines, ex);
+    }
+  }
+
   /**
    * Executes the jythonscript
    *
-   * @param pyFile The file containing the script
+   * @param pyFile      The file containing the script
    * @param fScriptPath The directory containing the images
-   * @param argv The arguments passed by the --args parameter
+   * @param argv        The arguments passed by the --args parameter
    * @param forIDE
    * @return The exitcode
    */
@@ -175,8 +190,8 @@ public class JythonScriptRunner implements IScriptRunner {
       JythonHelper.get().removeSysPath(fScriptPath);
     } else {
       executeScriptHeader(new String[]{
-        pyFile.getParent(),
-        pyFile.getParentFile().getParent()});
+              pyFile.getParent(),
+              pyFile.getParentFile().getParent()});
       exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
     }
     return exitCode;
@@ -407,11 +422,11 @@ public class JythonScriptRunner implements IScriptRunner {
   public int runInteractive(String[] argv) {
     String[] jy_args = null;
     String[] iargs = {"-i", "-c",
-      "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "
-      + "print \"Hello, this is your interactive Sikuli (rules for interactive Python apply)\\n"
-      + "use the UP/DOWN arrow keys to walk through the input history\\n"
-      + "help()<enter> will output some basic Python information\\n"
-      + "... use ctrl-d to end the session\""};
+            "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "
+                    + "print \"Hello, this is your interactive Sikuli (rules for interactive Python apply)\\n"
+                    + "use the UP/DOWN arrow keys to walk through the input history\\n"
+                    + "help()<enter> will output some basic Python information\\n"
+                    + "... use ctrl-d to end the session\""};
     if (argv != null && argv.length > 0) {
       jy_args = new String[argv.length + iargs.length];
       System.arraycopy(iargs, 0, jy_args, 0, iargs.length);
@@ -498,7 +513,7 @@ public class JythonScriptRunner implements IScriptRunner {
    * Fills the sysargv list for the Python script
    *
    * @param pyFile The file containing the script: Has to be passed as first parameter in Python
-   * @param argv The parameters passed to Sikuli with --args
+   * @param argv   The parameters passed to Sikuli with --args
    */
   private void fillSysArgv(File pyFile, String[] argv) {
     sysargv = new ArrayList<String>();
@@ -530,12 +545,23 @@ public class JythonScriptRunner implements IScriptRunner {
     } else if ("createRegionForWith".equals(action)) {
       args[0] = createRegionForWith(args[0]);
       return true;
+    } else if ("reset".equals(action)) {
+      interpreter = null;
+      init(null);
+      if (isReady && interpreter != null) {
+        log(-1, "reset requested (experimental: please report oddities)");
+      } else {
+        log(-1, "reset requested but did not work. Please report this case." +
+                "Do not run scripts anymore and restart the IDE after having saved your work");
+      }
+      return true;
     } else {
       return false;
     }
   }
 
 //TODO revise the before/after concept (to support IDE reruns)
+
   /**
    * {@inheritDoc}
    */

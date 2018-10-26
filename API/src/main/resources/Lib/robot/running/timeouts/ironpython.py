@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,8 +18,6 @@ import threading
 
 from System.Threading import Thread, ThreadStart
 
-from robot.errors import TimeoutError
-
 
 class Timeout(object):
 
@@ -33,7 +32,7 @@ class Timeout(object):
         thread.Start()
         if not thread.Join(self._timeout * 1000):
             thread.Abort()
-            raise TimeoutError(self._error)
+            raise self._error
         return runner.get_result()
 
 
@@ -54,4 +53,6 @@ class Runner(object):
     def get_result(self):
         if not self._error:
             return self._result
-        raise self._error[0], self._error[1], self._error[2]
+        # `exec` used to avoid errors with easy_install on Python 3:
+        # https://github.com/robotframework/robotframework/issues/2785
+        exec('raise self._error[0], self._error[1], self._error[2]')

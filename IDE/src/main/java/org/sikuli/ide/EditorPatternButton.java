@@ -25,6 +25,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 	private EditorPane _pane;
 	private float _similarity, _similaritySaved;
 	private float _resizeFactor;
+	private String _mask;
 	private int _numMatches = DEFAULT_NUM_MATCHES;
 	private boolean _exact, _exactSaved;
 	private Location _offset = new Location(0, 0), _offsetSaved;
@@ -148,8 +149,9 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
           rf = 0;
         }
         btn.setResizeFactor(rf);
+      } else if (tok.toLowerCase().contains("mask")) {
+        btn.setMask(tok);
       }
-
     }
     btn.setButtonText();
 		return btn;
@@ -309,6 +311,10 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     _resizeFactor = factor;
   }
 
+  public void setMask(String mask) {
+    _mask = mask;
+  }
+
 	public boolean setTargetOffset(Location offset) {
 		Debug.log(3, "ThumbButtonLabel: setTargetOffset: " + offset.toStringShort());
 		if (!_offset.equals(offset)) {
@@ -341,11 +347,19 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
   private void drawDecoration(Graphics2D g2d) {
     String strSim = null, strOffset = null;
-    if (_similarity != DEFAULT_SIMILARITY || (_resizeFactor > 0 && _resizeFactor != 1)) {
+    if (_similarity != DEFAULT_SIMILARITY
+            || (_resizeFactor > 0 && _resizeFactor != 1)
+            || (null != _mask && !_mask.isEmpty())) {
       if (_exact) {
         strSim = "99";
       } else {
         strSim = String.format("%d", (int) (_similarity * 100));
+      }
+      if (_resizeFactor > 0 && _resizeFactor != 1) {
+        strSim += " +";
+      }
+      if (null != _mask && !_mask.isEmpty()) {
+        strSim += " M";
       }
     }
     if (_offset != null && (_offset.x != 0 || _offset.y != 0)) {
@@ -372,9 +386,9 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     final int borderW = 3;
     g2d.setFont(textFont);
     Color simBack = new Color(0, 128, 0, 128);
-    if (_resizeFactor > 0 && _resizeFactor != 1) {
-      simBack = new Color(128, 0, 0, 128);
-    }
+//    if (_resizeFactor > 0 && _resizeFactor != 1) {
+//      simBack = new Color(128, 0, 0, 128);
+//    }
     g2d.setColor(simBack);
     g2d.fillRoundRect(x - borderW * 2 - w - 1, y, w + borderW * 2 + 1, fontH + borderW * 2 + 1, 3, 3);
     g2d.setColor(Color.white);
@@ -400,7 +414,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     } else {
       y = (int) (getHeight() / 2 + _offset.y * _scale + h / 2);
     }
-    g2d.setFont(textFont);
+    g2d.setFont(new Font("arial", Font.PLAIN, 24));
     g2d.setColor(new Color(0, 0, 0, 180));
     g2d.drawString(cross, x + 1, y + 1);
     g2d.setColor(new Color(255, 0, 0, 180));
@@ -414,7 +428,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
 	@Override
 	public String toString() {
-    return _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor);
+    return _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor, _mask);
 	}
 
   private void setButtonText() {

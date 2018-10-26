@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -20,7 +21,7 @@ import org.sikuli.script.SikulixForJython;
 
 public class JythonHelper implements JLangHelperInterface {
 
-  static RunTime runTime = RunTime.get();
+  static RunTime runTime;
 
   //<editor-fold defaultstate="collapsed" desc="new logging concept">
   private static final String me = "JythonSupport: ";
@@ -71,19 +72,9 @@ public class JythonHelper implements JLangHelperInterface {
 
   public static JythonHelper get() {
     if (instance == null) {
+      runTime = RunTime.get();
       instance = new JythonHelper();
       instance.log(lvl, "init: starting");
-      try {
-        cInterpreter = Class.forName("org.python.util.PythonInterpreter");
-      } catch (Exception ex) {
-        String sJython = new File(runTime.SikuliJython).getName();
-        File fJython = new File(runTime.fSikulixDownloadsGeneric, sJython);
-        if (fJython.exists()) {
-          runTime.addToClasspath(fJython.getAbsolutePath(), "JythonHelper.get");
-        } else {
-          cInterpreter = null;
-        }
-      }
       try {
         cInterpreter = Class.forName("org.python.util.PythonInterpreter");
         mGetSystemState = cInterpreter.getMethod("getSystemState", nc);
@@ -111,7 +102,7 @@ public class JythonHelper implements JLangHelperInterface {
       instance.log(lvl, "init: success");
     }
     if (cInterpreter == null) {
-      instance.runTime.terminate(1, "JythonHelper: no Jython available");
+      runTime.terminate(1, "JythonHelper: no Jython available");
     }
     runTime.isJythonReady = true;
     return instance;
@@ -312,7 +303,7 @@ public class JythonHelper implements JLangHelperInterface {
     return retval;
   }
 
-//TODO check signature (instance method)
+  //TODO check signature (instance method)
   public boolean checkCallback(Object[] args) {
     PyInstance inst = new PyInstance(args[0]);
     String mName = (String) args[1];
@@ -421,7 +412,7 @@ public class JythonHelper implements JLangHelperInterface {
     String fpJar = load(fpJarOrFolder, true);
     ImagePath.addJar(fpJar, imagePath);
     String scriptName = new File(fpJar).getName().replace("_sikuli.jar", "");
-    if(exec("try: reload(" + scriptName + ")\nexcept: import " + scriptName)) {
+    if (exec("try: reload(" + scriptName + ")\nexcept: import " + scriptName)) {
       return 0;
     } else {
       return -1;
@@ -481,24 +472,22 @@ public class JythonHelper implements JLangHelperInterface {
         }
       }
     }
-    if (fJar != null) {
-      if (!scriptOnly && !runTime.addToClasspath(fJar.getPath(), "JythonHelper.load")) {
-        log(-1, "load: not possible: %s", fJar);
-      }
-    } else {
+    if (fJar == null) {
       log(-1, "load: not found: %s", fJar);
-      return null;
+      return fpJarOrFolder;
+    } else {
+      if (!hasSysPath(fJar.getPath())) {
+        insertSysPath(fJar);
+      }
+      return fJar.getAbsolutePath();
     }
-    if (!hasSysPath(fJar.getPath())) {
-      insertSysPath(fJar);
-    }
-    return fJar.getAbsolutePath();
   }
 
   private long lastRun = 0;
 
   private List<File> importedScripts = new ArrayList<File>();
   String name = "";
+
   public void reloadImported() {
     if (lastRun > 0) {
       for (File fMod : importedScripts) {
@@ -506,7 +495,8 @@ public class JythonHelper implements JLangHelperInterface {
         if (new File(fMod, name + ".py").lastModified() > lastRun) {
           log(lvl, "reload: %s", fMod);
           get().exec("reload(" + name + ")");
-        };
+        }
+        ;
       }
     }
     lastRun = new Date().getTime();
@@ -531,7 +521,7 @@ public class JythonHelper implements JLangHelperInterface {
       return null;
     }
     int nDot = modName.lastIndexOf(".");
-    String modNameFull =  modName;
+    String modNameFull = modName;
     if (nDot > -1) {
       modName = modName.substring(nDot + 1);
     }
@@ -833,7 +823,7 @@ public class JythonHelper implements JLangHelperInterface {
                 + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
         while (null != back) {
           String line = getCurrentLineTraceElement(fLineno, fCode, fFilename, back);
-          if (! line.startsWith("Region (")) {
+          if (!line.startsWith("Region (")) {
             trace += "\n" + line;
           }
           back = fBack.get(back);

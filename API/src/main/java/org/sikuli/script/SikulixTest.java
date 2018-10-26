@@ -4,11 +4,14 @@
 
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +37,10 @@ public class SikulixTest {
     System.out.println(String.format(msg, args));
   }
 
+  private static void error(String msg, Object... args) {
+    p("[ERROR]" + msg, args);
+  }
+
   private static String showBase = "API/src/main/resources/ImagesAPI";
   private static String showLink;
   private static int showWait;
@@ -48,14 +55,14 @@ public class SikulixTest {
     show(image, wait, 0);
   }
 
-  private static void showStop() {
+  public static void showStop() {
     if (isShown) {
       scr.type("w", keyMeta);
       isShown = false;
     }
   }
 
-  private static void show(String image, int wait, int before) {
+  public static void show(String image, int wait, int before) {
     if (!image.endsWith(".png")) {
       image += ".png";
     }
@@ -163,6 +170,7 @@ public class SikulixTest {
 
   private static void after() {
     p("***** ending %s", currentTest);
+    ScreenHighlighter.closeAll();
     showStop();
     browserStop();
   }
@@ -180,6 +188,11 @@ public class SikulixTest {
     highlight(regs, 1);
   }
 
+  private static Match highlight(Match match) {
+    if (null != match) match.highlight(1);
+    return match;
+  }
+
   private static List<Integer> runTest = new ArrayList<>();
 
   private static boolean shouldRunTest(int nTest) {
@@ -191,6 +204,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
+    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
@@ -212,6 +226,7 @@ public class SikulixTest {
 //    runTest.add(9); // basic transparency
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
+//    runTest.add(12); // class App
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -219,7 +234,8 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      //App.focus("safari"); scr.wait(1.0); reg = App.focusedWindow();
+//      Debug.on(3);
+//      Debug.globalTraceOn();
       after();
     }
 
@@ -230,13 +246,14 @@ public class SikulixTest {
       scr.wait(2.0);
       match = scr.exists(testImage, 10);
       match.highlight(2);
+
       after();
     }
     //</editor-fold>
 
     //<editor-fold desc="test2 findChange">
     if (shouldRunTest(2)) {
-      before("test2", "findChange");
+      before("test2", "findChanges");
       show(testImage, 0);
       scr.wait(2.0);
       Finder finder = new Finder(testImage);
@@ -361,22 +378,38 @@ public class SikulixTest {
     //<editor-fold desc="test9 basic transparency">
     if (shouldRunTest(9)) {
       before("test9", "basic transparency");
-      Image img4 = Image.create("buttonText");
-      Image img4O = Image.create("buttonTextOpa");
-      Image img5 = Image.create("buttonTextTrans");
+      Pattern imgBG = new Pattern(Image.create("buttonTextOpa"));
+      Pattern img = new Pattern(Image.create("buttonText"));
+      Pattern imgTrans = new Pattern(Image.create("buttonTextTrans"));
+      Pattern maskBlack = new Pattern("buttonTextBlackMask").mask();
+      Pattern imgBlack = new Pattern("buttonTextBlackMask");
+      Pattern maskTrans = new Pattern("buttonTextTransMask");
+      Pattern maskedBlack = new Pattern(maskBlack).mask(maskBlack);
+      Pattern maskedTrans = new Pattern(maskBlack).mask(maskTrans);
+      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
+//      Pattern[] patterns = new Pattern[]{maskedBlack};
       if (openTestPage("Test-page-1")) {
-        reg.highlight(1);
-        Image image = img5;
-        List<Match> matches = reg.findAllList(image);
-        highlight(matches);
-        for (Match next : matches) {
-          p("Match: (%d,%d) %.6f", next.x, next.y, next.getScore());
-          List<Match> wordList = next.collectLines();
-//        Match match1 = next.grow(10).has(image);
-//        p("Match1: (%d,%d) %.6f", match1.x, match1.y, match1.getScore());
-          p("%s (text: %s)", wordList.get(0).getText(), next.text().trim());
+        //reg.highlight(1);
+        reg.setAutoWaitTimeout(0);
+        String out = "";
+        for (Pattern image : patterns) {
+          highlight(reg.has(image));
+          try {
+            Finder fmatches = (Finder) reg.findAll(image);
+            List<Match> matches = reg.findAllList(image);
+            out += String.format("*** findAll: %d of %s\n", matches.size(), image);
+            for (Match next : matches) {
+              next.highlight();
+            }
+          } catch (FindFailed findFailed) {
+            out += String.format("findAll failed: %s\n", image);
+          }
+          scr.wait(1.0);
+          ScreenHighlighter.closeAll();
         }
+        p("%s", out);
       }
+      scr.wait(1.0);
       after();
     }
     //</editor-fold>
@@ -427,5 +460,49 @@ public class SikulixTest {
       after();
     }
     //</editor-fold>
+
+    //<editor-fold desc="class App">
+    if (shouldRunTest(12)) {
+      before("test12", "class App");
+      String chrome = "google chrome";
+      String firefox = "firefox";
+      String notepad = "brackets";
+      if (runTime.runningWindows) {
+        chrome = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+        firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+        notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
+      }
+      //App app = App.open(notepad);
+//      App app = new App(notepad);
+//      App app = new App("/Applications/Brackets.app");
+//      App app = new App("preview");
+      App app = new App("safari");
+//      app = new App(firefox);
+//      app = new App(chrome);
+      app.open(10);
+      RunTime.pause(3);
+      app.focus(1);
+      if (app.isRunning(5)) {
+        List<Region> windows = app.getWindows();
+        for (Region window : windows) {
+          p("%s", window);
+        }
+        RunTime.pause(10);
+        //p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
+        //RunTime.pause(2);
+        //app.close();
+        app.closeByKey();
+        //p("app: %s (%s)", app, app.window());
+        app.open(5);
+        //app = App.open(chrome);
+        p("app: %s (%s)", app, app.focusedWindow());
+        app.focusedWindow().highlight(2);
+      }
+
+      //App.focus("preview");
+      //scr.wait(1.0);
+      //reg = App.focusedWindow();
+    }
   }
 }

@@ -4,14 +4,15 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.App;
-import org.sikuli.script.Key;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Screen;
+import org.sikuli.script.*;
+import org.sikuli.util.ProcessRunner;
 
-import java.awt.*;
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WinUtil implements OSUtil {
@@ -22,11 +23,22 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App.AppEntry getApp(int appPID, String appName) {
-    if (appPID == 0) {
-      return null;
+  public App getApp(App app) {
+    if (app.getPID() > 0) {
+      app = getTaskByPID(app);
+    } else {
+      app = getTaskByName(app);
     }
-    App.AppEntry app = null;
+    return app;
+  }
+
+  //<editor-fold desc="old getApp">
+/*
+  @Override
+  public App getApp(App app) {
+    if (app.getPID() == 0) {
+      return app;
+    }
     Object filter;
     if (appPID < 0) {
       filter = appName;
@@ -48,17 +60,17 @@ public class WinUtil implements OSUtil {
           parts = name.substring(1).split("\"");
           if (parts.length > 1) {
             options = name.substring(parts[0].length() + 3);
-            name = "\"" + parts[0] +  "\"";
+            name = "\"" + parts[0] + "\"";
           }
         } else {
-          parts = name.split(" ");
+          parts = name.split(" -- ");
           if (parts.length > 1) {
-            options = name.substring(parts[0].length() + 1);
+            options = parts[1];
             name = parts[0];
           }
         }
         if (name.startsWith("\"")) {
-          execName = new File(name.substring(1, name.length()-1)).getName().toUpperCase();
+          execName = new File(name.substring(1, name.length() - 1)).getName().toUpperCase();
         } else {
           execName = new File(name).getName().toUpperCase();
         }
@@ -108,24 +120,69 @@ public class WinUtil implements OSUtil {
       return new App.AppEntry(name, "", "", "", options);
     }
     if (app == null) {
-      cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"", execName);
-      result = RunTime.get().runcmd(cmd);
-      lines = result.split("\r\n");
-      if ("0".equals(lines[0].trim())) {
-        for (int nl = 1; nl < lines.length; nl++) {
-          parts = lines[nl].split("\"");
-          if (parts.length < 2) {
-            continue;
-          }
-          String theWindow = parts[parts.length - 1];
-          String theName = parts[1];
-          String thePID = parts[3];
-          if (theWindow.contains("N/A")) continue;
-          app = new App.AppEntry(theName, thePID, theWindow, "", "");
-          break;
-        }
+      List<String> theApp = getTaskByName(execName);
+      if (theApp.size() > 0) {
+        app = new App.AppEntry(theApp.get(0), theApp.get(1), theApp.get(2), "", "");
       }
     }
+    return app;
+  }
+*/
+  //</editor-fold>
+
+  private static App getTaskByName(App app) {
+    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"", app.getName());
+    String sysout = RunTime.get().runcmd(cmd);
+    String[] lines = sysout.split("\r\n");
+    String[] parts = null;
+    app.reset();
+    if ("0".equals(lines[0].trim())) {
+      for (int n = 1; n < lines.length; n++) {
+        parts = lines[n].split("\"");
+        if (parts.length < 2) {
+          continue;
+        }
+        if (parts[parts.length - 1].contains("N/A")) continue;
+        app.setPID(parts[3]);
+        app.setWindow(parts[parts.length - 1]);
+        break;
+      }
+    }
+    return app;
+  }
+
+  private static App getTaskByPID(App app) {
+    if (!app.isValid()) {
+      return app;
+    }
+    String[] name_pid_window = evalTaskByPID(app.getPID());
+    if (name_pid_window[1].isEmpty()) {
+      app.reset();
+    } else {
+      app.setWindow(name_pid_window[2]);
+    }
+    return app;
+  }
+
+  private static String[] evalTaskByPID(int pid) {
+    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"PID eq %d\"", pid);
+    String sysout = RunTime.get().runcmd(cmd);
+    String[] lines = sysout.split("\r\n");
+    String[] parts = null;
+    if ("0".equals(lines[0].trim())) {
+      for (int n = 1; n < lines.length; n++) {
+        parts = lines[n].split("\"");
+        if (parts.length < 2) {
+          continue;
+        }
+        return new String[]{parts[1], "pid", parts[parts.length - 1]}; //name, window
+      }
+    }
+    return new String[]{"", "", ""};
+  }
+
+  private static App getTaskByWindow(String title) {
+    App app = new App();
     return app;
   }
 
@@ -158,7 +215,7 @@ public class WinUtil implements OSUtil {
           if (theWindow.contains("N/A")) {
             pid = -pid;
           }
-          apps.put(pid, new String[] {theName, theWindow});
+          apps.put(pid, new String[]{theName, theWindow});
         }
       }
     } else {
@@ -168,117 +225,98 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public int isRunning(App.AppEntry app) {
-    if (app.pid > 0) {
-      return 1;
-    }
-    if (app.name.isEmpty()) {
-      return -1;
-    }
-    if (getWindow(app.name, 0) != null) {
-      return 1;
-    }
-    App.AppEntry ae = getApp(app.pid, app.name);
-    if (ae != null && ae.pid > 0) {
-      return 1;
-    }
-    return 0;
-  }
-
-  @Override
-  public int open(String appName) {
-    int pid = openApp(appName);
-    return pid < 1 ? -1 : pid;
-  }
-
-  @Override
-  public int open(App.AppEntry app) {
-    if (app.pid > -1) {
-      return switchApp(app.pid, 0);
-    }
-    String cmd = app.execName;
-    if (!app.options.isEmpty()) {
-      cmd += " " + app.options;
-    }
-    int pid = openApp(cmd);
-    return pid < 1 ? -1 : pid;
-  }
-
-  @Override
-  public int switchto(String appName) {
-    return switchApp(appName, 0);
-  }
-
-  @Override
-  public int switchto(String appName, int winNum) {
-    return switchApp(appName, winNum);
-  }
-
-  @Override
-  public int switchto(int pid, int num) {
-    return switchApp(pid, num);
-  }
-
-  @Override
-  public int switchto(App.AppEntry app, int num) {
-    if (app.pid > -1) {
-      String wname = app.window;
-      if (wname.startsWith("!")) {
-        wname = wname.substring(1);
-      }
-      return switchto(wname, 0);
-    }
-    if (app.window.startsWith("!")) {
-      String token = app.window.substring(1);
-      if(!token.isEmpty()) {
-        return switchto(token, 0);
-      } else {
-        App.AppEntry newApp = getApp(app.pid, app.name);
-        if (newApp == null) {
-          return switchto(app.execName, 0);
-        } else {
-          return switchto(newApp.window, 0);
-        }
-      }
-    }
-    return switchto(app.execName, num);
-  }
-
-  @Override
-  public int close(String appName) {
-    return closeApp(appName);
-  }
-
-  @Override
-  public int close(int pid) {
-    return closeApp(pid);
-  }
-
-  @Override
-  public int close(App.AppEntry app) {
-    if (app.pid > -1) {
-      return closeApp(app.pid);
-    }
-    if (app.window.startsWith("!")) {
-      String token = app.window.substring(1);
-      if(!token.isEmpty()) {
-        switchto(app.window.substring(1), 0);
-        RunTime.pause(1);
-        new Screen().type(Key.F4, Key.ALT);
-        return 0;
-      } else {
-        app = getApp(app.pid, app.name);
-      }
-    }
-    if (app != null) {
-      if (app.pid > -1) {
-        return closeApp(app.pid);
-      } else {
-        return closeApp(app.execName.replaceAll("\"", ""));
-      }
+  public App open(App app) {
+    if (app.isValid()) {
+      int ret = switchApp(app.getPID(), 0);
     } else {
-      return -1;
+      String cmd = app.getExec();
+      if (!app.getOptions().isEmpty()) {
+        start(cmd, app.getOptions());
+      } else {
+        start(cmd);
+      }
     }
+    return app;
+  }
+
+  private int start(String... cmd) {
+    return ProcessRunner.startApp(cmd);
+  }
+
+  @Override
+  public App switchto(App app, int num) {
+    if (!app.isValid()) {
+      return app;
+    }
+//    int ret = switchApp(app.getPID(), num);
+    int ret = switchApp(app.getWindow(), 0);
+    return app;
+  }
+
+  @Override
+  public App switchto(String appName) {
+    App app = new App();
+    int pid = switchApp(appName, 0);
+    if (pid > 0) {
+      app.setPID(pid);
+      String[] name_pid_window = evalTaskByPID(pid);
+      app.setName(name_pid_window[0]);
+      app.setWindow(name_pid_window[2]);
+    }
+    return app;
+  }
+
+  @Override
+  public App close(App app) {
+    if (closeApp(app.getPID()) == 0) {
+      app.reset();
+    }
+    return app;
+  }
+
+  @Override
+  public Rectangle getWindow(App app) {
+    return getWindow(app, 0);
+  }
+
+  @Override
+  public Rectangle getWindow(App app, int winNum) {
+    getApp(app);
+    if (!app.isValid()) {
+      return new Rectangle();
+    }
+    return getWindow(app.getPID(), winNum);
+  }
+
+  @Override
+  public Rectangle getWindow(String title) {
+    return getWindow(title, 0);
+  }
+
+  private Rectangle getWindow(String title, int winNum) {
+    long hwnd = getHwnd(title, winNum);
+    return _getWindow(hwnd, winNum);
+  }
+
+  private Rectangle getWindow(int pid, int winNum) {
+    long hwnd = getHwnd(pid, winNum);
+    return _getWindow(hwnd, winNum);
+  }
+
+  private Rectangle _getWindow(long hwnd, int winNum) {
+    Rectangle rect = getRegion(hwnd, winNum);
+    return rect;
+  }
+
+  @Override
+  public Rectangle getFocusedWindow() {
+    Rectangle rect = getFocusedRegion();
+    return rect;
+  }
+
+  @Override
+  public List<Region> getWindows(App app) {
+    return new ArrayList<>();
   }
 
   public native int switchApp(String appName, int num);
@@ -292,34 +330,6 @@ public class WinUtil implements OSUtil {
   public native int closeApp(int pid);
 
   @Override
-  public Rectangle getWindow(String appName) {
-    return getWindow(appName, 0);
-  }
-
-  @Override
-  public Rectangle getWindow(int pid) {
-    return getWindow(pid, 0);
-  }
-
-  @Override
-  public Rectangle getWindow(String appName, int winNum) {
-    long hwnd = getHwnd(appName, winNum);
-    return _getWindow(hwnd, winNum);
-  }
-
-  @Override
-  public Rectangle getWindow(int pid, int winNum) {
-    long hwnd = getHwnd(pid, winNum);
-    return _getWindow(hwnd, winNum);
-  }
-
-  @Override
-  public Rectangle getFocusedWindow() {
-    Rectangle rect = getFocusedRegion();
-    return rect;
-  }
-
-  @Override
   public native void bringWindowToFront(Window win, boolean ignoreMouse);
 
   private static native long getHwnd(String appName, int winNum);
@@ -329,9 +339,4 @@ public class WinUtil implements OSUtil {
   private static native Rectangle getRegion(long hwnd, int winNum);
 
   private static native Rectangle getFocusedRegion();
-
-  private Rectangle _getWindow(long hwnd, int winNum) {
-    Rectangle rect = getRegion(hwnd, winNum);
-    return rect;
-  }
 }

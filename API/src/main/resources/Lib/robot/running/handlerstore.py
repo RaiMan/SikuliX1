@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 from operator import attrgetter
 
-from robot.errors import DataError
+from robot.errors import DataError, KeywordError
 from robot.utils import NormalizedDict
 
 from .usererrorhandler import UserErrorHandler
@@ -37,10 +38,10 @@ class HandlerStore(object):
         elif handler.name not in self._normal:
             self._normal[handler.name] = handler
         else:
-            error = 'Keyword with same name defined multiple times.'
-            self._normal[handler.name] = UserErrorHandler(handler.name, error,
+            error = DataError('Keyword with same name defined multiple times.')
+            self._normal[handler.name] = UserErrorHandler(error, handler.name,
                                                           handler.libname)
-            raise DataError(error)
+            raise error
 
     def __iter__(self):
         handlers = list(self._normal.values()) + self._embedded
@@ -76,9 +77,9 @@ class HandlerStore(object):
         else:
             source = "%s '%s'" % (self.source_type, self.source)
         if not found:
-            raise DataError("%s contains no keywords matching name '%s'."
-                            % (source, name))
+            raise KeywordError("%s contains no keywords matching name '%s'."
+                                % (source, name))
         error = ["%s contains multiple keywords matching name '%s':"
                  % (source, name)]
         names = sorted(handler.name for handler in found)
-        raise DataError('\n    '.join(error + names))
+        raise KeywordError('\n    '.join(error + names))

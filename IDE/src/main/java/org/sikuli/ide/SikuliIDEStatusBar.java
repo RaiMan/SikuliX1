@@ -8,7 +8,6 @@ import javax.swing.*;
 
 import com.explodingpixels.macwidgets.plaf.EmphasizedLabelUI;
 import java.util.Date;
-import org.sikuli.basics.Settings;
 
 class SikuliIDEStatusBar extends JPanel {
 
@@ -66,7 +65,7 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    setMessage(SikuliIDE.runTime.SikuliVersionIDE + " (" + SikuliIDE.runTime.SikuliVersionBuild + ")");
+    setMessage(SikuliIDE.runTime.SXVersionIDE + " (" + SikuliIDE.runTime.SXBuild + ")");
     starting = 0;
   }
 //  @Override

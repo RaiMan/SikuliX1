@@ -3,12 +3,16 @@
  */
 package org.sikuli.natives;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
+import org.sikuli.script.Region;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MacUtil implements OSUtil {
@@ -17,10 +21,11 @@ public class MacUtil implements OSUtil {
   private String usedFeature;
   private static RunTime runTime = null;
 
-	@Override
+  @Override
   public void checkFeatureAvailability() {
     runTime = RunTime.get();
     RunTime.loadLibrary("MacUtil");
+    checkAxEnabled();
   }
 
   /*
@@ -41,153 +46,125 @@ public class MacUtil implements OSUtil {
   end if
   found
   */
-  static String cmd = "tell application \"System Events\"\n"
-          + "set found to \"NotFound\"\n"
+  static String cmd = "set found to \"NotFound\"\n"
           + "try\n"
+          + "tell application \"System Events\"\n"
           + "#LINE#\n"
-          + "end try\n"
           + "end tell\n"
           + "if not found is equal to \"NotFound\" then\n"
           + "set windowName to \"\"\n"
-          + "try\n"
           + "set windowName to name of first window of application (name of found)\n"
-          + "end try\n"
           + "set found to {name of found, «class idux» of found, windowName}\n"
-          + "end if\n" +
-            "found\n";
+          + "end if\n"
+          + "end try\n"
+          + "found\n";
   static String cmdLineApp = "set found to first item of (processes whose name is \"#APP#\")";
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
+  /*
+  set theWindows to {}
+  repeat with win in (windows of application "#APP#" whose visible is true)
+	  copy {name of win, bounds of win} to end of theWindows
+  end repeat
+  theWindows
+  */
+
+  String cmdGetWindows = "set theWindows to {}\n" +
+          "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
+          "copy {name of win, bounds of win} to end of theWindows\n" +
+          "end repeat\n" +
+          "theWindows\n";
+
   @Override
-  public App.AppEntry getApp(int appPID, String appName) {
-    App.AppEntry app = null;
-    String name = "";
+  public App getApp(App app) {
+    String name = app.getName();
+    int pid = app.getPID();
     String theCmd = "";
-    int pid = -1;
-    Object filter;
-    if (appPID < 0) {
-      filter = appName;
+    if (pid < 0) {
+      if (!name.isEmpty()) {
+        theCmd = cmd.replace("#LINE#", cmdLineApp);
+        theCmd = theCmd.replaceAll("#APP#", name);
+      } else {
+        return app;
+      }
     } else {
-      filter = appPID;
-    }
-    if (filter instanceof String) {
-      name = (String) filter;
-      theCmd = cmd.replace("#LINE#", cmdLineApp);
-      theCmd = theCmd.replaceAll("#APP#", name);
-    } else if (filter instanceof Integer) {
-      pid = (Integer) filter;
       theCmd = cmd.replace("#LINE#", cmdLinePID);
       theCmd = theCmd.replaceAll("#PID#", "" + pid);
-    } else {
-      return app;
     }
     int retVal = Runner.runas(theCmd, true);
-    String result = RunTime.get().getLastCommandResult();
-    String title = "???";
-    String sPid = "-1";
-    String sName = "NotKnown";
+    String result = RunTime.get().getLastCommandResult().trim();
     if (retVal > -1) {
       if (!result.contains("NotFound")) {
         String[] parts = result.split(",");
         if (parts.length > 1) {
-          sName = parts[0];
-          sPid = parts[1];
+          app.setName(parts[0].trim());
+          app.setPID(parts[1].trim());
         }
         if (parts.length > 2) {
-          title = parts[2];
+          app.setWindow(parts[2]);
         }
         if (parts.length > 3) {
           for (int i = 3; i < parts.length; i++) {
-            title += "," + parts[i];
+            app.setWindow(app.getWindow() + "," + parts[i]);
           }
         }
-        app = new App.AppEntry(sName.trim(), sPid.trim(), title.trim(), "", "");
+      } else {
+        app.reset();
       }
     }
     return app;
   }
 
   @Override
-  public int isRunning(App.AppEntry app) {
-    if (app.pid > 0) {
-      return 1;
+  public App open(App app) {
+    String appName = app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec();
+    String cmd = "open -a " + appName;
+    if (!app.getOptions().isEmpty()) {
+      cmd += " --args " + app.getOptions();
     }
-    if (app.name.isEmpty()) {
-      return -1;
-    }
-    if (getWindow(app.name, 0) != null) {
-      return 1;
-    }
-    App.AppEntry ae = getApp(app.pid, app.name);
-    if (ae != null && ae.pid > 0) {
-      return 1;
-    }
-    return 0;
+    shRun(cmd);
+    return app;
   }
 
   @Override
-  public int open(String appName) {
-    if (_openApp(appName)) {
-      return 0;
-    }
-    return -1;
-  }
-
-  @Override
-  public int open(App.AppEntry app) {
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
-    int retval = 0;
-    if (runTime.osVersion.startsWith("10.10.")) {
-      if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) != 0) {
-        retval = -1;
+  public App switchto(App app, int num) {
+    //osascript -e "tell app \"safari\" to activate"
+    String cmd = "tell application \""
+            + app.getName()
+            + "\" to activate";
+    Runner.runas(cmd, true);
+    if (num > 0) {
+      List<Region> windows = getWindows(app);
+      if (num < windows.size()) {
+        //TODO bring window to front
+        Debug.trace("MacUtil: switchto: win: %d of %s", num, app);
       }
-    } else {
-      retval = open(appName);
     }
-		if (retval == 0) {
-				retval = getPID(appName);
-		}
-		return retval;
+    return app;
   }
 
   @Override
-  public int switchto(String appName) {
-    return open(appName);
+  public App switchto(String appName) {
+    return open(new App(appName));
   }
 
   @Override
-  public int switchto(int pid, int num) {
-    return -1;
-  }
-
-  // ignore winNum on Mac
-  @Override
-  public int switchto(String appName, int winNum) {
-    return open(appName);
-  }
-
-  @Override
-  public int switchto(App.AppEntry app, int num) {
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
-    int retval = 0;
-    if (runTime.osVersion.startsWith("10.10.")) {
-      if (Runner.runas(String.format("tell app \"%s\" to activate", appName), true) < 0) {
-        retval = -1;
-      }
+  public App close(App app) {
+    int ret = 0;
+    if (app.getPID() > -1) {
+      ret = close(app.getPID());
     } else {
-      retval = open(appName);
+      ret = close(app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec());
     }
-		if (retval == 0) {
-				retval = getPID(appName);
-		}
-    return retval;
+    if (ret == 0) {
+      app.reset();
+    }
+    return app;
   }
 
-  @Override
-  public int close(String appName) {
+  private static int shRun(String sCmd) {
+    String cmd[] = {"sh", "-c", sCmd};
     try {
-      String cmd[] = {"sh", "-c",
-        "ps aux |  grep \"" + appName + "\" | awk '{print $2}' | xargs kill"};
       Process p = Runtime.getRuntime().exec(cmd);
       p.waitFor();
       return p.exitValue();
@@ -196,102 +173,88 @@ public class MacUtil implements OSUtil {
     }
   }
 
-  @Override
-  public int close(int pid) {
-    try {
-      String cmd[] = {"sh", "-c", "kill " + pid};
-      Process p = Runtime.getRuntime().exec(cmd);
-      p.waitFor();
-      return p.exitValue();
-    } catch (Exception e) {
-      return -1;
+  private int close(String appName) {
+    String cmd = "ps aux |  grep \"" + appName + "\" | grep -v \"grep\" | awk '{print $2}' | xargs kill";
+    return shRun(cmd);
+  }
+
+  private int close(int pid) {
+    String cmd = "kill " + pid;
+    return shRun(cmd);
+  }
+
+  private void checkAxEnabled() {
+    if (runTime.isOSX10() && !isAxEnabled()) {
+      JOptionPane.showMessageDialog(null,
+              "SikuliX needs access to the Mac's assistive device support.\n"
+                      + "You have to explicitly allow this in the System Preferences.\n"
+                      + "(... -> Security & Privacy -> Privacy -> Accessibility)\n"
+                      + "Please check the System Preferences and come back.",
+              "macOS Accessibility", JOptionPane.ERROR_MESSAGE);
+      runTime.terminate(-1, "App: MacUtil: no access to assistive device support");
     }
   }
 
   @Override
-  public int close(App.AppEntry app) {
-    if (app.pid > -1) {
-      return close(app.pid);
-    }
-    String appName = app.execName.startsWith(app.name) ? app.name : app.execName;
-    return close(appName);
+  public Rectangle getWindow(App app) {
+    return getWindow(app, 0);
   }
-
-  private void checkAxEnabled(String name) {
-    if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) {
-      return;
-    }
-    if (Integer.parseInt(System.getProperty("os.version").replace(".", "")) > 108 && !isAxEnabled()) {
-      if (name == null) {
-        JOptionPane.showMessageDialog(null,
-                "This app uses Sikuli feature " + usedFeature + ", which needs\n"
-                + "access to the Mac's assistive device support.\n"
-                + "You have to explicitly allow this in the System Preferences.\n"
-                + "(System Preferences -> Security & Privacy -> Privacy)\n"
-                + "Currently we cannot do this for you.\n\n"
-                + "Be prepared to get some crash after clicking ok.\n"
-                + "Please check the System Preferences and come back.",
-                "SikuliX on Mac Mavericks Special", JOptionPane.PLAIN_MESSAGE);
-        System.out.println("[error] MacUtil: on Mavericks: no access to assistive device support");
-      }
-      usedFeature = name;
-      return;
-    }
-    if (!isAxEnabled()) {
-      if (_askedToEnableAX) {
-        return;
-      }
-      int ret = JOptionPane.showConfirmDialog(null,
-              "You need to enable Accessibility API to use the function \""
-              + name + "\".\n"
-              + "Should I open te System Preferences for you?",
-              "Accessibility API not enabled",
-              JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
-      if (ret == JOptionPane.YES_OPTION) {
-        openAxSetting();
-        JOptionPane.showMessageDialog(null,
-                "Check \"Enable access for assistant devices\""
-                + "in the System Preferences\n and then close this dialog.",
-                "Enable Accessibility API", JOptionPane.INFORMATION_MESSAGE);
-      }
-      _askedToEnableAX = true;
-    }
-  }
-
-//Mac Mavericks: delete app entry from list - in terminal on one line
-//sudo sqlite3 /Library/Application\ Support/com.apple.TCC/Tcc.db
-//'delete from access where client like "%part of app name%"'
 
   @Override
-  public Rectangle getWindow(String appName, int winNum) {
-    checkAxEnabled("getWindow");
-    int pid = getPID(appName);
+  public Rectangle getWindow(App app, int winNum) {
+    int pid = getPID(app.getName());
     return getWindow(pid, winNum);
   }
 
   @Override
   public Rectangle getWindow(String appName) {
-    return getWindow(appName, 0);
+    return getWindow(new App(appName), 0);
   }
 
-  @Override
-  public Rectangle getWindow(int pid) {
+  private Rectangle getWindow(int pid) {
     return getWindow(pid, 0);
   }
 
-  @Override
-  public Rectangle getWindow(int pid, int winNum) {
+  private Rectangle getWindow(int pid, int winNum) {
     Rectangle rect = getRegion(pid, winNum);
-    checkAxEnabled(null);
     return rect;
   }
 
   @Override
   public Rectangle getFocusedWindow() {
-    checkAxEnabled("getFocusedWindow");
     Rectangle rect = getFocusedRegion();
-    checkAxEnabled(null);
     return rect;
+  }
+
+  @Override
+  public List<Region> getWindows(App app) {
+    List<Region> windows = new ArrayList<>();
+    String theCmd = cmdGetWindows.replace("#APP#", app.getName());
+    int retVal = Runner.runas(theCmd, true);
+    String result = RunTime.get().getLastCommandResult().trim();
+    if (retVal > -1 && !result.isEmpty()) {
+      Debug.trace("getWindows: %s", result);
+      String[] parts = result.split(",");
+      int lenResult = parts.length;
+      if (lenResult % 5 != 0) {
+        Debug.error("getWindow: at least one window title has a comma - giving up: %s", result);
+        return windows;
+      }
+      for (int nWin = 0; nWin < lenResult; nWin += 5) {
+        try {
+          int x = Integer.parseInt(parts[nWin + 1].trim());
+          int y = Integer.parseInt(parts[nWin + 2].trim());
+          int w = Integer.parseInt(parts[nWin + 3].trim()) - x;
+          int h = Integer.parseInt(parts[nWin + 4].trim()) - y;
+          Region reg = new Region(x, y, w, h);
+          reg.setName(parts[nWin]);
+          windows.add(reg);
+        } catch (NumberFormatException e) {
+          Debug.error("getWindow: invalid coordinates: %s", result);
+        }
+      }
+    }
+    return windows;
   }
 
   @Override

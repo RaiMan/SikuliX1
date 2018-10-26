@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -47,9 +48,19 @@ class HighlightingStream(object):
         return highlighter(stream)
 
     def write(self, text, flush=True):
-        self.stream.write(console_encode(text, stream=self.stream))
+        self._write(console_encode(text, stream=self.stream))
         if flush:
             self.flush()
+
+    def _write(self, text, retry=5):
+        # Workaround for Windows 10 console bug:
+        # https://github.com/robotframework/robotframework/issues/2709
+        try:
+            self.stream.write(text)
+        except IOError as err:
+            if not (WINDOWS and err.errno == 0 and retry > 0):
+                raise
+            self._write(text, retry-1)
 
     def flush(self):
         self.stream.flush()

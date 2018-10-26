@@ -1,6 +1,6 @@
-# Copyright 2010-2014, Sikuli.org, sikulix.com
+# Copyright 2010-2018, Sikuli.org, sikulix.com
 # Released under the MIT License.
-# created by RaiMan 2013
+
 from org.sikuli.script import Finder as JFinder
 
 class Finder(JFinder):

@@ -214,7 +214,11 @@ public class Finder implements Iterator<Match> {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       newBimg = Settings.ImageCallback.callback(img);
     }
-    return Finder2.makeMat(newBimg, false);
+    Mat mat = Finder2.makeMat(newBimg, false);
+    if (mat.empty()) {
+      RunTime.get().terminate(-1, "%s: conversion error --- makes no sense to continue", img);
+    }
+    return mat;
   }
 
   /**
@@ -236,6 +240,7 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
+      _findInput.setIsPattern();
       _results = Finder2.find(_findInput);
       currentMatchIndex = 0;
       return aPtn.getFilename();
@@ -245,7 +250,7 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   * do a find op with the given pattern in the Finder's image
+   * do a find op with the given image in the Finder's image
    * (hasNext() and next() will reveal possible match results)
    * @param img Image
    * @return null. if find setup not possible
@@ -267,6 +272,20 @@ public class Finder implements Iterator<Match> {
     } else {
       return null;
     }
+  }
+
+  /**
+   * do a find op with the given image in the Finder's image
+   * (hasNext() and next() will reveal possible match results)
+   * @param img BufferedImage
+   * @return null. if find setup not possible
+   */
+  public String find(BufferedImage img) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
+    return find(new Image(img));
   }
 
   public List<Region> findChanges(Object changedImage) {
@@ -388,7 +407,11 @@ public class Finder implements Iterator<Match> {
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
+      _findInput.setIsPattern();
       _findInput.setFindAll();
+      if (_pattern.hasMask()) {
+        _findInput.setMask(_pattern.getMask());
+      }
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
       currentMatchIndex = 0;
@@ -471,15 +494,15 @@ public class Finder implements Iterator<Match> {
     Match match = null;
     if (hasNext()) {
       match = _results.next();
-      if (!_findInput.isText()) {
+      if (!_findInput.isText() && _region != null) {
         match.x += _region.x;
         match.y += _region.y;
       }
       IScreen parentScreen = null;
       if (screenFinder && _region != null) {
         parentScreen = _region.getScreen();
+        match = Match.create(match, parentScreen);
       }
-      match = Match.create(match, parentScreen);
       if (_pattern != null) {
         Location offset = _pattern.getTargetOffset();
         match.setTargetOffset(offset);

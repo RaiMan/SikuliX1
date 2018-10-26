@@ -12,9 +12,7 @@ import org.sikuli.natives.SysUtil;
 
 /**
  * features moved to other classes, details below with the methods
- * @deprecated
  */
-@Deprecated
 public class Env {
 
   /**
@@ -35,11 +33,11 @@ public class Env {
 
   /**
    * @return version
-   * @deprecated use Settings.SikuliVersion
+   * @deprecated use Settings.getVersion() instead
    */
   @Deprecated
   public static String getSikuliVersion() {
-    return RunTime.get().SikuliVersion;
+    return RunTime.get().SXVersion;
   }
 
   protected static void setSikuliVersion(String version) {
