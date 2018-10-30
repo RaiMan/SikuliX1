@@ -248,8 +248,7 @@ public class WinUtil implements OSUtil {
     if (!app.isValid()) {
       return app;
     }
-//    int ret = switchApp(app.getPID(), num);
-    int ret = switchApp(app.getWindow(), 0);
+    int ret = switchApp(app.getWindow(), num);
     return app;
   }
 
