@@ -127,25 +127,19 @@ public class MacUtil implements OSUtil {
   }
 
   @Override
-  public App switchto(App app, int num) {
+  public App switchto(App app) {
     //osascript -e "tell app \"safari\" to activate"
     String cmd = "tell application \""
             + app.getName()
             + "\" to activate";
     Runner.runas(cmd, true);
-    if (num > 0) {
-      List<Region> windows = getWindows(app);
-      if (num < windows.size()) {
-        //TODO bring window to front
-        Debug.trace("MacUtil: switchto: win: %d of %s", num, app);
-      }
-    }
     return app;
   }
 
   @Override
-  public App switchto(String appName) {
-    return open(new App(appName));
+  public App switchto(String title, int index) {
+    //TODO switchTo window title
+    return new App();
   }
 
   @Override
