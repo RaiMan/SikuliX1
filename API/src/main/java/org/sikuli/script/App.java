@@ -408,12 +408,12 @@ public class App {
 
   @Override
   public String toString() {
-    _osUtil.getApp(this);
+    _osUtil.get(this);
     return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
   }
 
   public String toStringShort() {
-    _osUtil.getApp(this);
+    _osUtil.get(this);
     return String.format("[%d:%s]", appPID, appName);
   }
   //</editor-fold>
@@ -428,14 +428,14 @@ public class App {
   }
 
   public boolean isRunning(int maxTime) {
-    _osUtil.getApp(this);
+    _osUtil.get(this);
     if (maxTime == 0 && !isValid()) {
       return false;
     }
     while (!isValid() && maxTime > 0) {
       maxTime -= 1;
       pause(1);
-      _osUtil.getApp(this);
+      _osUtil.get(this);
     }
     Debug.trace("App.isRunning: checking: %s", toStringShort());
     return isValid();

@@ -9,7 +9,6 @@ import org.sikuli.util.ProcessRunner;
 
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,7 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App getApp(App app) {
+  public App get(App app) {
     if (app.getPID() > 0) {
       app = getTaskByPID(app);
     } else {
@@ -248,8 +247,7 @@ public class WinUtil implements OSUtil {
     if (!app.isValid()) {
       return app;
     }
-//    int ret = switchApp(app.getPID(), num);
-    int ret = switchApp(app.getWindow(), 0);
+    int ret = switchApp(app.getWindow(), num);
     return app;
   }
 
@@ -281,7 +279,7 @@ public class WinUtil implements OSUtil {
 
   @Override
   public Rectangle getWindow(App app, int winNum) {
-    getApp(app);
+    get(app);
     if (!app.isValid()) {
       return new Rectangle();
     }

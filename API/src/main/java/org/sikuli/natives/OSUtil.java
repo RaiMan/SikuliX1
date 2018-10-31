@@ -21,7 +21,7 @@ public interface OSUtil {
    */
   public void checkFeatureAvailability();
 
-  public App getApp(App app);
+  public App get(App app);
 
   public Map<Integer, String[]> getApps(String name);
 
