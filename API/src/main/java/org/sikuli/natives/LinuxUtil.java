@@ -82,7 +82,7 @@ public class LinuxUtil implements OSUtil {
   }
 
   @Override
-  public App getApp(App app) {
+  public App get(App app) {
     int pid;
     if (app == null) {
       return app;

@@ -76,7 +76,7 @@ public class MacUtil implements OSUtil {
           "theWindows\n";
 
   @Override
-  public App getApp(App app) {
+  public App get(App app) {
     String name = app.getName();
     int pid = app.getPID();
     String theCmd = "";
@@ -273,7 +273,7 @@ public class MacUtil implements OSUtil {
   public static native void openAxSetting();
 
   @Override
-  public Map<Integer, String[]> getApps(String name) {
+  public Map<Integer, String[]>  getApps(String name) {
     return null;
   }
 }
