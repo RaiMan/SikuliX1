@@ -243,18 +243,30 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App switchto(App app, int num) {
+  public App switchto(App app) {
     if (!app.isValid()) {
       return app;
     }
-    int ret = switchApp(app.getWindow(), num);
+    int loopCount = 0;
+    while (loopCount < 100) {
+      int pid = switchApp(app.getWindow(), loopCount);
+      if (pid > 0) {
+        if (pid == app.getPID()) {
+          app.setFocused(true);
+          break;
+        }
+      } else {
+        break;
+      }
+      loopCount++;
+    }
     return app;
   }
 
   @Override
-  public App switchto(String appName) {
+  public App switchto(String title, int index) {
     App app = new App();
-    int pid = switchApp(appName, 0);
+    int pid = switchApp(title, index);
     if (pid > 0) {
       app.setPID(pid);
       String[] name_pid_window = evalTaskByPID(pid);

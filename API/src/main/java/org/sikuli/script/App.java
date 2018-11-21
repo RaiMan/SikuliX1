@@ -530,22 +530,38 @@ public class App {
   }
 
   /**
-   * tries to close the app defined by this App instance
+   * tries to close the app defined by this App instance, waits max given seconds for the app to no longer be running
    *
    * @return this or null on failure
    */
-  public App close() {
+  public App close(int waitTime) {
     if (!isRunning()) {
       Debug.error("App.close: not running: %s", this);
       return this;
     }
     _osUtil.close(this);
+    int timeTowait = maxWait;
+    if (waitTime > 0) {
+      timeTowait = waitTime;
+    }
+    while (isRunning(0) && timeTowait > 0) {
+      timeTowait--;
+    }
     if (!isValid()) {
       Debug.log(3,"App.close: %s", this);
     } else {
       Debug.error("App.close: did not work: %s", this);
     }
     return this;
+  }
+
+  /**
+   * tries to close the app defined by this App instance, waits max 10 seconds for the app to no longer be running
+   *
+   * @return this or null on failure
+   */
+  public App close() {
+    return close(0);
   }
 
   public App closeByKey() {
@@ -582,40 +598,56 @@ public class App {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="focus">
+  private boolean isFocused = false;
+
+  public void setFocused(boolean state) {
+    isFocused = state;
+  }
+
+  public boolean hasFocus() {
+    return isFocused;
+  }
+
   /**
-   * tries to identify a running app with name and if not running tries to open it and tries to make it the foreground
-   * application bringing its topmost window to front
+   * tries to identify a running app with name or (part of) window title
+   * bringing its topmost window to front
    *
    * @param title name
-   * @return the App instance or null on failure
+   * @return an App instance - is invalid and not useable if not found as running
    */
   public static App focus(String title) {
-    return _osUtil.switchto(title);
+    return focus(title, 0);
   }
 
   /**
-   * tries to make it the foreground application bringing its topmost window to front
+   * tries to identify a running app with name or (part of) window title
+   * bringing its topmost window to front
    *
-   * @return the App instance or null on failure
+   * @param title name
+   * @return an App instance - is invalid and not useable if not found as running
+   */
+  public static App focus(String title, int index) {
+    App app = _osUtil.switchto(title, index);
+    if (app.isValid()) {
+      app.setFocused(true);
+    }
+    return app;
+  }
+
+  /**
+   * tries to make it the foreground application bringing its frontmost window to front
+   *
+   * @return the App instance
    */
   public App focus() {
-    return focus(0);
-  }
-
-  /**
-   * tries to make it the foreground application bringing its window with the given number to front
-   *
-   * @param num window
-   * @return the App instance or null on failure
-   */
-  public App focus(int num) {
+    isFocused = false;
     if (!isRunning(0)) {
       Debug.error("App.focus failed: not running: %s", toString());
       return this;
     }
-    _osUtil.switchto(this, num);
-    if (!isValid()) {
-      Debug.error("App.focus failed: window %d for %s", toString());
+    _osUtil.switchto(this);
+    if (!isValid() || !hasFocus()) {
+      Debug.error("App.focus failed: no window for %s", toString());
     }
     return this;
   }

@@ -481,7 +481,7 @@ public class SikulixTest {
 //      app = new App(chrome);
       app.open(10);
       RunTime.pause(3);
-      app.focus(1);
+      app.focus();
       if (app.isRunning(5)) {
         List<Region> windows = app.getWindows();
         for (Region window : windows) {

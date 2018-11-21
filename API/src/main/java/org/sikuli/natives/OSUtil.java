@@ -27,9 +27,9 @@ public interface OSUtil {
 
 	public App open(App app);
 
-  public App switchto(App app, int num);
+  public App switchto(App app);
 
-  public App switchto(String title);
+  public App switchto(String title, int index);
 
   public App close(App app);
 

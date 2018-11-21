@@ -133,7 +133,7 @@ public class LinuxUtil implements OSUtil {
     return app;
   }
 
-  private int switchto(String appName, int winNum) {
+  private int switchtoWindow(String appName, int winNum) {
     int windowPID = findWindowPID(appName, winNum);
 //    if (windowPID > 1) {
 //      return switchto(windowPID, winNum);
@@ -145,23 +145,27 @@ public class LinuxUtil implements OSUtil {
     return -1;
   }
   
-  @Override
-  public App switchto(String appName) {
-    int ret = switchto(appName, 0);
+  private App switchtoWindow(String appName) {
+    int ret = switchtoWindow(appName, 0);
     return new App(appName);
   }
   
   @Override
-  public App switchto(App app, int num) {
+  public App switchto(App app) {
     int ret = 0;
     if (app.getPID() > 0) {
-      ret = switchto(app.getPID(), num);
-    } else {
-      ret =switchto(app.getExec(), num);
+      ret = switchto(app.getPID(), 0);
     }
     return app;
   }
-  
+
+  @Override
+  public App switchto(String title, int index) {
+    //TODO switchto window title
+    App app = new App();
+    return app;
+  }
+
   private int close(String appName) {
     try {
       //on the success exit value = 0 -> so no exception will be thrown
