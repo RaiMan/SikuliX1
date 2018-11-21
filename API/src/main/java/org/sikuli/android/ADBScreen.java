@@ -10,6 +10,8 @@ import org.sikuli.script.*;
 import org.sikuli.util.*;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Törcsi on 2016. 06. 26.
@@ -69,8 +71,18 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   public ADBScreen(String adbExec) {
     super();
     setOtherScreen(this);
-
     device = ADBDevice.init(adbExec);
+    init();
+  }
+
+  private ADBScreen(int id) {
+    super();
+    setOtherScreen(this);
+    device = ADBDevice.init(id);
+    init();
+  }
+
+  private void init() {
     if (device != null) {
       robot = device.getRobot(this);
       robot.setAutoDelay(10);
@@ -86,6 +98,27 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
 
   public ADBDevice getDevice() {
     return device;
+  }
+
+  public List<ADBDevice> getDevices() {
+    List<ADBDevice> devices = new ArrayList<>();
+    if (device != null) {
+
+    }
+    return devices;
+  }
+
+  public ADBScreen getScreenWithDevice(int id) {
+    if (screen == null) {
+      log(-1, "getScreenWithDevice: Android support not started");
+      return null;
+    }
+    ADBScreen multiScreen = new ADBScreen(id);
+    if (!multiScreen.isValid()) {
+      log(-1, "getScreenWithDevice: no device with id = %d", id);
+      return null;
+    }
+    return multiScreen;
   }
 
   public String toString() {

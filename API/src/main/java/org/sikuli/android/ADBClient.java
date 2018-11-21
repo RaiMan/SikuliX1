@@ -69,24 +69,32 @@ public class ADBClient {
         }
       }
     }
-    String serial = null;
     if (jadb != null) {
-      List<JadbDevice> devices = null;
-      try {
-        devices = jadb.getDevices();
-      } catch (Exception e) {
-      }
-      if (devices != null && devices.size() > 0) {
-        device = devices.get(0);
-        serial = device.getSerial();
-      } else {
-        device = null;
-        Debug.error("ADBClient: init: no devices attached");
-      }
+      device = getDevice(0);
     }
     if (device != null) {
-      Debug.log(3, "ADBClient: init: attached device: serial(%s)", serial);
+      Debug.log(3, "ADBClient: init: attached device: serial(%s)", device.getSerial());
     }
+  }
+
+  public static JadbDevice getDevice(int id) {
+    if (id < 0) {
+      return null;
+    }
+    List<JadbDevice> devices;
+    JadbDevice device = null;
+    try {
+      devices = jadb.getDevices();
+      if (devices != null && devices.size() > id) {
+        device = devices.get(id);
+      } else {
+        if (id < 1) {
+          Debug.error("ADBClient: init: no devices attached");
+        }
+      }
+    } catch (Exception e) {
+    }
+    return device;
   }
 
   public static void reset() {
@@ -96,9 +104,9 @@ public class ADBClient {
       return;
     }
     try {
-      Process p = Runtime.getRuntime().exec(new String[] {adbFilePath, "kill-server"});
+      Process p = Runtime.getRuntime().exec(new String[]{adbFilePath, "kill-server"});
       p.waitFor();
-      Debug.log(3,"ADBClient: ADBServer should be stopped now");
+      Debug.log(3, "ADBClient: ADBServer should be stopped now");
     } catch (Exception e) {
       Debug.error("ADBClient: reset: kill-server did not work");
     }

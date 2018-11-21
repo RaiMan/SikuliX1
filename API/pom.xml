@@ -77,12 +77,14 @@
       <artifactId>tess4j</artifactId>
       <version>3.5.2</version>
       <!--License Apache 2-->
+<!--
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>
           <artifactId>logback-classic</artifactId>
         </exclusion>
       </exclusions>
+-->
     </dependency>
   </dependencies>
 

@@ -41,6 +41,7 @@ public class ADBDevice {
   private int devH = -1;
   private ADBRobot robot = null;
   private ADBScreen screen = null;
+  private boolean isMulti = false;
 
   private List<String> deviceProps = new ArrayList<>();
   private int deviceVersion = -1;
@@ -68,36 +69,50 @@ public class ADBDevice {
       if (adbDevice.device == null) {
         adbDevice = null;
       } else {
-        adbDevice.deviceProps = Arrays.asList(adbDevice.exec("getprop").split("\n"));
-        //[ro.build.version.release]: [6.0.1]
-        //[ro.product.brand]: [google]
-        //[ro.product.manufacturer]: [asus]
-        //[ro.product.model]: [Nexus 7]
-        //[ro.product.name]: [razor]
-        //[ro.serialno]: [094da986]
-        Pattern pProp = Pattern.compile("\\[(.*?)\\]:.*?\\[(.*)\\]");
-        Matcher mProp = null;
-        String val = "";
-        String key = "";
-        for (String prop : adbDevice.deviceProps) {
-          if (!prop.startsWith("[ro.")) continue;
-          mProp = pProp.matcher(prop);
-          if (mProp.find()) {
-            key = mProp.group(1);
-            if (key.contains("build.version.release")) {
-              val = mProp.group(2);
-              try {
-                adbDevice.deviceVersion = Integer.parseInt(val.split("\\.")[0]);
-                adbDevice.sDeviceVersion = val;
-              } catch (Exception e) {
-              }
-            }
-          }
-        }
-        log(lvl, "init: %s", adbDevice.toString());
+        adbDevice.initDevice(adbDevice);
       }
     }
     return adbDevice;
+  }
+
+  private void initDevice(ADBDevice device) {
+    device.deviceProps = Arrays.asList(device.exec("getprop").split("\n"));
+    //[ro.build.version.release]: [6.0.1]
+    //[ro.product.brand]: [google]
+    //[ro.product.manufacturer]: [asus]
+    //[ro.product.model]: [Nexus 7]
+    //[ro.product.name]: [razor]
+    //[ro.serialno]: [094da986]
+    Pattern pProp = Pattern.compile("\\[(.*?)\\]:.*?\\[(.*)\\]");
+    Matcher mProp = null;
+    String val = "";
+    String key = "";
+    for (String prop : device.deviceProps) {
+      if (!prop.startsWith("[ro.")) continue;
+      mProp = pProp.matcher(prop);
+      if (mProp.find()) {
+        key = mProp.group(1);
+        if (key.contains("build.version.release")) {
+          val = mProp.group(2);
+          try {
+            device.deviceVersion = Integer.parseInt(val.split("\\.")[0]);
+            device.sDeviceVersion = val;
+          } catch (Exception e) {
+          }
+        }
+      }
+    }
+    log(lvl, "init: %s", device.toString());
+  }
+
+  public static ADBDevice init(int id) {
+    ADBDevice device = new ADBDevice();
+    device.device = ADBClient.getDevice(id);
+    if (device.device == null) {
+      return null;
+    }
+    device.initDevice(device);
+    return device;
   }
 
   public static void reset() {
