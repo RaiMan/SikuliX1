@@ -648,6 +648,8 @@ public class App {
     _osUtil.switchto(this);
     if (!isValid() || !hasFocus()) {
       Debug.error("App.focus failed: no window for %s", toString());
+    } else {
+      Debug.log(3, "App.focus: %s", this);
     }
     return this;
   }

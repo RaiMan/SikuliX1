@@ -133,6 +133,7 @@ public class MacUtil implements OSUtil {
             + app.getName()
             + "\" to activate";
     Runner.runas(cmd, true);
+    app.setFocused(true);
     return app;
   }
 

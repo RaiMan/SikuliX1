@@ -249,7 +249,7 @@ public class WinUtil implements OSUtil {
     }
     int loopCount = 0;
     while (loopCount < 100) {
-      int pid = switchApp(app.getWindow(), loopCount);
+      int pid = switchApp(app.getWindow(), 0);
       if (pid > 0) {
         if (pid == app.getPID()) {
           app.setFocused(true);

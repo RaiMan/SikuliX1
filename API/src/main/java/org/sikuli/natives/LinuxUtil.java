@@ -155,6 +155,9 @@ public class LinuxUtil implements OSUtil {
     int ret = 0;
     if (app.getPID() > 0) {
       ret = switchto(app.getPID(), 0);
+      if (ret > -1) {
+        app.setFocused(true);
+      }
     }
     return app;
   }
