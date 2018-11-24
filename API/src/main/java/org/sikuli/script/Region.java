@@ -2731,7 +2731,10 @@ public class Region {
   public Match findWord(String word) {
     Match match = null;
     if (!word.isEmpty()) {
-      match = (Match) doFindText(word, levelWord, false);
+      Object result = doFindText(word, levelWord, false);
+      if (result != null) {
+        match = (Match) result;
+      }
     }
     return match;
   }
@@ -2743,7 +2746,10 @@ public class Region {
   public Match findLine(String text) {
     Match match = null;
     if (!text.isEmpty()) {
-      match = (Match) doFindText(text, levelLine, false);
+      Object result = doFindText(text, levelLine, false);
+      if (result != null) {
+        match = (Match) result;
+      }
     }
     return match;
   }
