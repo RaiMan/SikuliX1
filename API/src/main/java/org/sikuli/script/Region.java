@@ -2348,7 +2348,8 @@ public class Region {
 
   /**
    * Check if target exists with a specified timeout<br>
-   * timout = 0: returns immediately after first search
+   * timout = 0: returns immediately after first search,
+   * does not raise FindFailed
    *
    * @param <PSI>   Pattern, String or Image
    * @param target  The target to search for
@@ -2391,7 +2392,8 @@ public class Region {
   }
 
   /**
-   * Check if target exists (with the default autoWaitTimeout)
+   * Check if target exists (with the default autoWaitTimeout),
+   * does not raise FindFailed
    *
    * @param <PSI>  Pattern, String or Image
    * @param target Pattern, String or Image
@@ -2402,7 +2404,13 @@ public class Region {
   }
 
   /**
-   * Check if target exists (with the default autoWaitTimeout)
+   * Check if target exists<br>
+   * - does not raise FindFailed
+   * - like exists(target, 0) but returns true/false<br>
+   * - which means only one search <br>
+   * - no wait for target to appear<br>
+   * - intended to be used in logical expressions<br>
+   * - use getLastMatch() to get the match if found
    *
    * @param <PSI>  Pattern, String or Image
    * @param target Pattern, String or Image
@@ -2410,6 +2418,22 @@ public class Region {
    */
   public <PSI> boolean has(PSI target) {
     return null != exists(target, 0);
+  }
+
+  /**
+   * Check if target appears within the specified time<br>
+   * - does not raise FindFailed
+   * - like exists(target, timeout) but returns true/false<br>
+   * - intended to be used in logical expressions<br>
+   * - use getLastMatch() to get the match if found
+   *
+   * @param <PSI>   Pattern, String or Image
+   * @param target  The target to search for
+   * @param timeout Timeout in seconds
+   * @return true if found, false otherwise
+   */
+  public <PSI> boolean has(PSI target, double timeout) {
+    return null != exists(target, timeout);
   }
 
   /**
