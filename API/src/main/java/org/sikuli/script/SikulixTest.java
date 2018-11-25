@@ -393,7 +393,7 @@ public class SikulixTest {
         reg.setAutoWaitTimeout(0);
         String out = "";
         for (Pattern image : patterns) {
-          highlight(reg.has(image));
+          highlight(reg.exists(image, 0));
           try {
             Finder fmatches = (Finder) reg.findAll(image);
             List<Match> matches = reg.findAllList(image);
@@ -451,7 +451,7 @@ public class SikulixTest {
       reg = scr;
       if (openTestPage()) {
         for (String aText : aTexts) {
-          match = reg.has(aText);
+          match = reg.exists(aText, 0);
           if (Do.SX.isNotNull(match)) {
             match.highlight(1);
           }
