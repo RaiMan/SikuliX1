@@ -2406,10 +2406,10 @@ public class Region {
    *
    * @param <PSI>  Pattern, String or Image
    * @param target Pattern, String or Image
-   * @return the match (null if not found or image file missing)
+   * @return true if found, false otherwise
    */
-  public <PSI> Match has(PSI target) {
-    return exists(target, 0);
+  public <PSI> boolean has(PSI target) {
+    return null != exists(target, 0);
   }
 
   /**
