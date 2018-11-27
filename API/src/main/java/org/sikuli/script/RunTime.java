@@ -364,7 +364,6 @@ public class RunTime {
     runTime.fTestFile = new File(runTime.fTestFolder, "SikulixTest.txt");
 
     sxOptions = Options.init(typ);
-    sxOptions.loadOptions(typ);
     int dl = sxOptions.getOptionInteger("Debug.level");
     if (dl > 0 && Debug.getDebugLevel() < 2) {
       Debug.setDebugLevel(dl);
