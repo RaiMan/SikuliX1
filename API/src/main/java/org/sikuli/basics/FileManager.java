@@ -148,6 +148,29 @@ public class FileManager {
     return proxy;
   }
 
+  public static InetAddress getProxyAddress(String arg) {
+    try {
+      return InetAddress.getByName(arg);
+    } catch (UnknownHostException ex) {
+      return null;
+    }
+  }
+
+  public static int getProxyPort(String p) {
+    int port;
+    int pDefault = 8080;
+    if (p != null) {
+      try {
+        port = Integer.parseInt(p);
+      } catch (NumberFormatException ex) {
+        return -1;
+      }
+    } else {
+      return pDefault;
+    }
+    return port;
+  }
+
   public static boolean setProxy(String pName, String pPort) {
     InetAddress a = null;
     String host = null;
@@ -1031,35 +1054,12 @@ public class FileManager {
     return port;
   }
 
-  public static int getProxyPort(String p) {
-    int port;
-    int pDefault = 8080;
-    if (p != null) {
-      try {
-        port = Integer.parseInt(p);
-      } catch (NumberFormatException ex) {
-        return -1;
-      }
-    } else {
-      return pDefault;
-    }
-    return port;
-  }
-
   public static String getAddress(String arg) {
     try {
       if (arg == null) {
         return InetAddress.getLocalHost().getHostAddress();
       }
       return InetAddress.getByName(arg).getHostAddress();
-    } catch (UnknownHostException ex) {
-      return null;
-    }
-  }
-
-  public static InetAddress getProxyAddress(String arg) {
-    try {
-      return InetAddress.getByName(arg);
     } catch (UnknownHostException ex) {
       return null;
     }

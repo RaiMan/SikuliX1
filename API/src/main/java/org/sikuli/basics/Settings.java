@@ -66,10 +66,7 @@ public class Settings {
   public static final int ISWINDOWS = 0;
   public static final int ISMAC = 1;
   public static final int ISLINUX = 2;
-  public static final int ISNOTSUPPORTED = 3;
   public static boolean isMacApp = false;
-  public static boolean isWinApp = false;
-  public static final String appPathMac = "/Applications/SikuliX-IDE.app/Contents";
 
   public static boolean ThrowException = true; // throw FindFailed exception
   public static float AutoWaitTimeout = 3f; // in seconds
