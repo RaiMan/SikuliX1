@@ -73,6 +73,8 @@ public class RunTime {
     WIN, MAC, LUX, FOO
   }
 
+  private static Options sxOptions = null;
+
   public static File scriptProject = null;
   public static URL uScriptProject = null;
   private static boolean isTerminating = false;
@@ -120,10 +122,6 @@ public class RunTime {
   public File fSikulixDownloadsGeneric = null;
   public File fSikulixDownloadsBuild = null;
   public File fSikulixSetup;
-
-  private File fOptions = null;
-  private Properties options = null;
-  private String fnOptions = "SikulixOptions.txt";
 
   public File fSxBase = null;
   public File fSxBaseJar = null;
@@ -365,13 +363,14 @@ public class RunTime {
     runTime.fTestFolder = new File(runTime.fUserDir, "SikulixTest");
     runTime.fTestFile = new File(runTime.fTestFolder, "SikulixTest.txt");
 
-    runTime.loadOptions(typ);
-    int dl = runTime.getOptionNumber("Debug.level");
+    sxOptions = Options.init(typ);
+    sxOptions.loadOptions(typ);
+    int dl = sxOptions.getOptionInteger("Debug.level");
     if (dl > 0 && Debug.getDebugLevel() < 2) {
       Debug.setDebugLevel(dl);
     }
     if (Debug.getDebugLevel() == 2) {
-      runTime.dumpOptions();
+      sxOptions.dumpOptions();
     }
 
     if (Type.SETUP.equals(typ) && debugLevel != -2) {
@@ -431,7 +430,7 @@ public class RunTime {
   private void init(Type typ) {
 
 //<editor-fold defaultstate="collapsed" desc="general">
-    if ("winapp".equals(getOption("testing"))) {
+    if ("winapp".equals(sxOptions.getOption("testing"))) {
       log(lvl, "***** for testing: simulating WinApp");
       testingWinApp = true;
     }
@@ -604,6 +603,7 @@ public class RunTime {
 //</editor-fold>
 
 //<editor-fold defaultstate="collapsed" desc="classpath">
+/*
     try {
       if (Type.IDE.equals(typ)) {
         clsRef = Class.forName("org.sikuli.ide.SikuliIDE");
@@ -612,6 +612,8 @@ public class RunTime {
       }
     } catch (Exception ex) {
     }
+*/
+    clsRef = RunTime.class;
     CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
     String base = null;
     if (codeSrc != null && codeSrc.getLocation() != null) {
@@ -663,13 +665,13 @@ public class RunTime {
 
     List<String> items = new ArrayList<String>();
     if (Type.API.equals(typ)) {
-      String optJython = getOption("jython");
+      String optJython = sxOptions.getOption("jython");
       if (!optJython.isEmpty()) {
         items.add(optJython);
       }
     }
     if (!Type.SETUP.equals(typ)) {
-      String optClasspath = getOption("classpath");
+      String optClasspath = sxOptions.getOption("classpath");
       if (!optClasspath.isEmpty()) {
         items.addAll(Arrays.asList(optClasspath.split(System.getProperty("path.separator"))));
       }
@@ -751,6 +753,104 @@ public class RunTime {
     }
   }
 //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="Sikulix options handling">
+  public int SikuliVersionMajor;
+  public int SikuliVersionMinor;
+  public int SikuliVersionSub;
+  public String SXVersion = "";
+  public String SXVersionLong;
+  public String SXVersionShort;
+  public String SXBuild = "";
+  public String SXVersionIDE;
+  public String SXVersionAPI;
+
+  public String SXSystemVersion;
+  public String SXJavaVersion;
+
+  public String SikuliJythonVersion;
+  public String SikuliJythonVersion25 = "2.5.4-rc1";
+  public String SikuliJythonMaven;
+  public String SikuliJythonMaven25;
+  public String SikuliJython;
+  public String SikuliJython25;
+  public String SikuliJRubyVersion;
+  public String SikuliJRuby;
+  public String SikuliJRubyMaven;
+
+  public String dlMavenRelease = "https://repo1.maven.org/maven2/";
+  public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
+  public String SikuliRepo;
+  public String SikuliLocalRepo = "";
+  public String[] ServerList = {};
+
+  public Map<String, String> tessData = new HashMap<String, String>();
+
+  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+
+  void initSikulixOptions() {
+    SikuliRepo = null;
+    Properties prop = new Properties();
+    String svf = "sikulixversion.txt";
+    try {
+      InputStream is;
+      is = RunTime.class.getClassLoader().getResourceAsStream("Settings/" + svf);
+      if (is == null) {
+        terminate(1, "initSikulixOptions: not found on classpath: %s", "Settings/" + svf);
+      }
+      prop.load(is);
+      is.close();
+      SikuliVersionMajor = Integer.decode(prop.getProperty("sikulixvmaj"));
+      SikuliVersionMinor = Integer.decode(prop.getProperty("sikulixvmin"));
+      SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
+      SXBuild = prop.getProperty("sikulixbuild");
+      SXVersion = prop.getProperty("sikulixvproject");
+    } catch (Exception e) {
+      Debug.error("Settings: load version file %s did not work", svf);
+      Sikulix.endError(999);
+    }
+
+    log(lvl, "version: %s build: %s", SXVersion, SXBuild);
+
+    SXVersionIDE = "SikulixIDE-" + SXVersion;
+    SXVersionAPI = "SikulixAPI " + SXVersion;
+    SXVersionLong = SXVersion + "-" + SXBuild;
+    SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
+
+    String osn = "UnKnown";
+    String os = System.getProperty("os.name").toLowerCase();
+    if (os.startsWith("mac")) {
+      osn = "Mac";
+    } else if (os.startsWith("windows")) {
+      osn = "Windows";
+    } else if (os.startsWith("linux")) {
+      osn = "Linux";
+    }
+
+    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
+    SikuliJythonVersion = prop.getProperty("sikulixvjython");
+    SikuliJythonMaven = "org/python/jython-standalone/"
+            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+    SikuliJythonMaven25 = "org/python/jython-standalone/"
+            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
+    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
+    SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
+    SikuliJRubyMaven = "org/jruby/jruby-complete/"
+            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
+
+    SXSystemVersion = osn + System.getProperty("os.version");
+    SXJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
+//    tessData.put("eng", "http://tesseract-ocr.googlecode.com/files/tesseract-ocr-3.02.eng.tar.gz");
+    tessData.put("eng", "http://download.sikulix.com/tesseract-ocr-3.02.eng.tar.gz");
+    Env.setSikuliVersion(SXVersion);
+  }
+
+  String getOption(String oName) {
+    return sxOptions.getOption(oName);
+  }
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="libs export">
   public File fLibsFolderStatic = null;
@@ -1151,8 +1251,8 @@ public class RunTime {
    * print out some basic information about the current runtime environment
    */
   public void show() {
-    if (hasOptions()) {
-      dumpOptions();
+    if (sxOptions.hasOptions()) {
+      sxOptions.dumpOptions();
     }
     logp("***** show environment for %s %s", SXVersionLong, runType);
     logp("user.home: %s", fUserDir);
@@ -1220,520 +1320,6 @@ public class RunTime {
     System.out.println("***** System Information Dump ***** end *****");
   }
 //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="internal options handling">
-  private void loadOptions(Type typ) {
-    for (File aFile : new File[]{fWorkDir, fUserDir, fSikulixStore}) {
-      log(lvl, "loadOptions: check: %s", aFile);
-      fOptions = new File(aFile, fnOptions);
-      if (fOptions.exists()) {
-        break;
-      } else {
-        fOptions = null;
-      }
-    }
-    if (fOptions != null) {
-      options = new Properties();
-      try {
-        InputStream is;
-        is = new FileInputStream(fOptions);
-        options.load(is);
-        is.close();
-      } catch (Exception ex) {
-        log(-1, "while checking Options file:\n%s", fOptions);
-        fOptions = null;
-        options = null;
-      }
-      testing = isOption("testing", false);
-      if (testing) {
-        Debug.setDebugLevel(3);
-      }
-      log(lvl, "found Options file at: %s", fOptions);
-    }
-    if (hasOptions()) {
-      for (Object oKey : options.keySet()) {
-        String sKey = (String) oKey;
-        String[] parts = sKey.split("\\.");
-        if (parts.length == 1) {
-          continue;
-        }
-        String sClass = parts[0];
-        String sAttr = parts[1];
-        Class cClass = null;
-        Field cField = null;
-        Class ccField = null;
-        if (sClass.contains("Settings")) {
-          try {
-            cClass = Class.forName("org.sikuli.basics.Settings");
-            cField = cClass.getField(sAttr);
-            ccField = cField.getType();
-            if (ccField.getName() == "boolean") {
-              cField.setBoolean(null, isOption(sKey));
-            } else if (ccField.getName() == "int") {
-              cField.setInt(null, getOptionNumber(sKey));
-            } else if (ccField.getName() == "float") {
-              cField.setInt(null, getOptionNumber(sKey));
-            } else if (ccField.getName() == "double") {
-              cField.setInt(null, getOptionNumber(sKey));
-            } else if (ccField.getName() == "String") {
-              cField.set(null, getOption(sKey));
-            }
-          } catch (Exception ex) {
-            log(-1, "loadOptions: not possible: %s = %s", sKey, options.getProperty(sKey));
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * CONVENIENCE: look into the option file if any (if no option file is found, the option is taken as not existing)
-   *
-   * @param pName the option key (case-sensitive)
-   * @return true only if option exists and has yes or true (not case-sensitive), in all other cases false
-   */
-  public boolean isOption(String pName) {
-    return isOption(pName, false);
-  }
-
-  /**
-   * CONVENIENCE: look into the option file if any (if no option file is found, the option is taken as not existing)
-   *
-   * @param pName    the option key (case-sensitive)
-   * @param bDefault the default to be returned if option absent or empty
-   * @return true if option has yes or no, false for no or false (not case-sensitive)
-   */
-  public boolean isOption(String pName, Boolean bDefault) {
-    if (options == null) {
-      return bDefault;
-    }
-    String pVal = options.getProperty(pName, bDefault.toString()).toLowerCase();
-    if (pVal.isEmpty()) {
-      return bDefault;
-    } else if (pVal.contains("yes") || pVal.contains("true") || pVal.contains("on")) {
-      return true;
-    } else if (pVal.contains("no") || pVal.contains("false") || pVal.contains("off")) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * look into the option file if any (if no option file is found, the option is taken as not existing)
-   *
-   * @param pName the option key (case-sensitive)
-   * @return the associated value, empty string if absent
-   */
-  public String getOption(String pName) {
-    if (options == null) {
-      return "";
-    }
-    String pVal = options.getProperty(pName, "");
-    return pVal;
-  }
-
-  /**
-   * look into the option file if any (if no option file is found, the option is taken as not existing)<br>
-   * side-effect: if no options file is there, an options store will be created in memory<br>
-   * in this case and when the option is absent or empty, the given default will be stored<br>
-   * you might later save the options store to a file with storeOptions()
-   *
-   * @param pName    the option key (case-sensitive)
-   * @param sDefault the default to be returned if option absent or empty
-   * @return the associated value, the default value if absent or empty
-   */
-  public String getOption(String pName, String sDefault) {
-    if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, sDefault);
-      return sDefault;
-    }
-    String pVal = options.getProperty(pName, sDefault);
-    if (pVal.isEmpty()) {
-      options.setProperty(pName, sDefault);
-      return sDefault;
-    }
-    return pVal;
-  }
-
-  /**
-   * store an option key-value pair, overwrites existing value<br>
-   * new option store is created if necessary and can later be saved to a file
-   *
-   * @param pName
-   * @param sValue
-   */
-  public void setOption(String pName, String sValue) {
-    if (options == null) {
-      options = new Properties();
-    }
-    options.setProperty(pName, sValue);
-  }
-
-  /**
-   * CONVENIENCE: look into the option file if any (if no option file is found, the option is taken as not existing)<br>
-   * tries to convert the stored string value into an integer number (gives 0 if not possible)<br>
-   *
-   * @param pName the option key (case-sensitive)
-   * @return the converted integer number, 0 if absent or not possible
-   */
-  public int getOptionNumber(String pName) {
-    if (options == null) {
-      return 0;
-    }
-    String pVal = options.getProperty(pName, "0");
-    int nVal = 0;
-    try {
-      nVal = Integer.decode(pVal);
-    } catch (Exception ex) {
-    }
-    return nVal;
-  }
-
-  /**
-   * CONVENIENCE: look into the option file if any (if no option file is found, the option is taken as not existing)<br>
-   * tries to convert the stored string value into an integer number (gives 0 if not possible)<br>
-   *
-   * @param pName    the option key (case-sensitive)
-   * @param nDefault the default to be returned if option absent, empty or not convertable
-   * @return the converted integer number, default if absent, empty or not possible
-   */
-  public int getOptionNumber(String pName, Integer nDefault) {
-    if (options == null) {
-      return nDefault;
-    }
-    String pVal = options.getProperty(pName, nDefault.toString());
-    int nVal = nDefault;
-    try {
-      nVal = Integer.decode(pVal);
-    } catch (Exception ex) {
-    }
-    return nVal;
-  }
-
-  /**
-   * all options and their values
-   *
-   * @return a map of key-value pairs containing the found options, empty if no options file found
-   */
-  public Map<String, String> getOptions() {
-    Map<String, String> mapOptions = new HashMap<String, String>();
-    if (options != null) {
-      Enumeration<?> optionNames = options.propertyNames();
-      String optionName;
-      while (optionNames.hasMoreElements()) {
-        optionName = (String) optionNames.nextElement();
-        mapOptions.put(optionName, getOption(optionName));
-      }
-    }
-    return mapOptions;
-  }
-
-  /**
-   * check whether options are defined
-   *
-   * @return true if at lest one option defined else false
-   */
-  public boolean hasOptions() {
-    return options != null && options.size() > 0;
-  }
-
-  /**
-   * all options and their values written to sysout as key = value
-   */
-  public void dumpOptions() {
-    if (hasOptions()) {
-      logp("*** options dump:\n%s", (fOptions == null ? "" : fOptions));
-      for (String sOpt : getOptions().keySet()) {
-        logp("%s = %s", sOpt, getOption(sOpt));
-      }
-      logp("*** options dump end");
-    }
-  }
-//</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="Sikulix options handling">
-  public int SikuliVersionMajor;
-  public int SikuliVersionMinor;
-  public int SikuliVersionSub;
-  public String SXVersion = "";
-  public String SXVersionLong;
-  public String SXVersionShort;
-  public String SXBuild = "";
-  public String SXVersionIDE;
-  public String SXVersionAPI;
-
-  public String SXSystemVersion;
-  public String SXJavaVersion;
-
-  public String SikuliJythonVersion;
-  public String SikuliJythonVersion25 = "2.5.4-rc1";
-  public String SikuliJythonMaven;
-  public String SikuliJythonMaven25;
-  public String SikuliJython;
-  public String SikuliJython25;
-  public String SikuliJRubyVersion;
-  public String SikuliJRuby;
-  public String SikuliJRubyMaven;
-
-  public String dlMavenRelease = "https://repo1.maven.org/maven2/";
-  public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
-  public String SikuliRepo;
-  public String SikuliLocalRepo = "";
-  public String[] ServerList = {};
-
-  public Map<String, String> tessData = new HashMap<String, String>();
-
-  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-
-  private void initSikulixOptions() {
-    SikuliRepo = null;
-    Properties prop = new Properties();
-    String svf = "sikulixversion.txt";
-    try {
-      InputStream is;
-      is = clsRef.getClassLoader().getResourceAsStream("Settings/" + svf);
-      if (is == null) {
-        terminate(1, "initSikulixOptions: not found on classpath: %s", "Settings/" + svf);
-      }
-      prop.load(is);
-      is.close();
-      SikuliVersionMajor = Integer.decode(prop.getProperty("sikulixvmaj"));
-      SikuliVersionMinor = Integer.decode(prop.getProperty("sikulixvmin"));
-      SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
-      SXBuild = prop.getProperty("sikulixbuild");
-      SXVersion = prop.getProperty("sikulixvproject");
-    } catch (Exception e) {
-      Debug.error("Settings: load version file %s did not work", svf);
-      Sikulix.endError(999);
-    }
-
-    log(lvl, "version: %s build: %s", SXVersion, SXBuild);
-
-    SXVersionIDE = "SikulixIDE-" + SXVersion;
-    SXVersionAPI = "SikulixAPI " + SXVersion;
-    SXVersionLong = SXVersion + "-" + SXBuild;
-    SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
-
-    String osn = "UnKnown";
-    String os = System.getProperty("os.name").toLowerCase();
-    if (os.startsWith("mac")) {
-      osn = "Mac";
-    } else if (os.startsWith("windows")) {
-      osn = "Windows";
-    } else if (os.startsWith("linux")) {
-      osn = "Linux";
-    }
-
-    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
-    SikuliJythonVersion = prop.getProperty("sikulixvjython");
-    SikuliJythonMaven = "org/python/jython-standalone/"
-            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
-    SikuliJythonMaven25 = "org/python/jython-standalone/"
-            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
-    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
-    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
-    SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
-    SikuliJRubyMaven = "org/jruby/jruby-complete/"
-            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
-    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
-
-    SXSystemVersion = osn + System.getProperty("os.version");
-    SXJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
-//    tessData.put("eng", "http://tesseract-ocr.googlecode.com/files/tesseract-ocr-3.02.eng.tar.gz");
-    tessData.put("eng", "http://download.sikulix.com/tesseract-ocr-3.02.eng.tar.gz");
-    Env.setSikuliVersion(SXVersion);
-  }
-
-  //</editor-fold>
-
-  //<editor-fold desc="user public options support">
-
-  private static String optThisComingFromFile = "thisOptions.comingFromWhatFile";
-  private static String optThisWhatIsANumber = "thisOptions.whatIsAnumber";
-  private static String whatIsANumber = "#";
-
-  private static boolean optIsNumber(Properties props, String pName) {
-    String prefix = getOpt(props, pName, whatIsANumber);
-    if (pName.contains(prefix)) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * load a properties file
-   *
-   * @param fpOptions path to a file containing options
-   * @return the Properties store or null
-   */
-  public Properties loadOpts(String fpOptions) {
-    if (fpOptions == null) {
-      log(-1, "loadOptions: (error: no file)");
-      return null;
-    }
-    File fOptions = new File(fpOptions);
-    if (!fOptions.isFile()) {
-      log(-1, "loadOptions: (error: not found) %s", fOptions);
-      return null;
-    }
-    Properties pOptions = new Properties();
-    try {
-      fpOptions = fOptions.getCanonicalPath();
-      InputStream is;
-      is = new FileInputStream(fOptions);
-      pOptions.load(is);
-      is.close();
-    } catch (Exception ex) {
-      log(-1, "loadOptions: %s (error %s)", fOptions, ex.getMessage());
-      return null;
-    }
-    log(lvl, "loadOptions: ok (%d): %s", pOptions.size(), fOptions.getName());
-    pOptions.setProperty(optThisComingFromFile, fpOptions);
-    return pOptions;
-  }
-
-  public static Properties makeOpts() {
-    return new Properties();
-  }
-
-  /**
-   * save a properties store to a file (prop: this.comingfrom = abs. filepath)
-   *
-   * @param pOptions the prop store
-   * @return success
-   */
-  public boolean saveOpts(Properties pOptions) {
-    String fpOptions = pOptions.getProperty(optThisComingFromFile);
-    if (null == fpOptions) {
-      log(-1, "saveOptions: no prop %s", optThisComingFromFile);
-      return false;
-    }
-    return saveOpts(pOptions, fpOptions);
-  }
-
-  /**
-   * save a properties store to the given file
-   *
-   * @param pOptions  the prop store
-   * @param fpOptions path to a file
-   * @return success
-   */
-  public boolean saveOpts(Properties pOptions, String fpOptions) {
-    pOptions.remove(optThisComingFromFile);
-    File fOptions = new File(fpOptions);
-    try {
-      fpOptions = fOptions.getCanonicalPath();
-      OutputStream os;
-      os = new FileOutputStream(fOptions);
-      pOptions.store(os, "");
-      os.close();
-    } catch (Exception ex) {
-      log(-1, "saveOptions: %s (error %s)", fOptions, ex.getMessage());
-      return false;
-    }
-    log(lvl, "saveOptions: saved: %s", fpOptions);
-    return true;
-  }
-
-  public static boolean hasOpt(Properties props, String pName) {
-    return null != props && null != props.getProperty(pName);
-  }
-
-  public static String getOpt(Properties props, String pName) {
-    return getOpt(props, pName, "");
-  }
-
-  public static String getOpt(Properties props, String pName, String deflt) {
-    String retVal = deflt;
-    if (hasOpt(props, pName)) {
-      retVal = props.getProperty(pName);
-    }
-    return retVal;
-  }
-
-  public static String setOpt(Properties props, String pName, String pVal) {
-    String retVal = "";
-    if (hasOpt(props, pName)) {
-      retVal = props.getProperty(pName);
-    }
-    props.setProperty(pName, pVal);
-    return retVal;
-  }
-
-  public static double getOptNum(Properties props, String pName) {
-    return getOptNum(props, pName, 0d);
-  }
-
-  public static double getOptNum(Properties props, String pName, double deflt) {
-    double retVal = deflt;
-    if (hasOpt(props, pName)) {
-      try {
-        retVal = Double.parseDouble(props.getProperty(pName));
-      } catch (Exception ex) {
-      }
-    }
-    return retVal;
-  }
-
-  public static double setOptNum(Properties props, String pName, double pVal) {
-    double retVal = 0d;
-    if (hasOpt(props, pName)) {
-      try {
-        retVal = Double.parseDouble(props.getProperty(pName));
-      } catch (Exception ex) {
-      }
-    }
-    props.setProperty(pName, ((Double) pVal).toString());
-    return retVal;
-  }
-
-  public static String delOpt(Properties props, String pName) {
-    String retVal = "";
-    if (hasOpt(props, pName)) {
-      retVal = props.getProperty(pName);
-    }
-    props.remove(pName);
-    return retVal;
-  }
-
-  public static Map<String, String> getOpts(Properties props) {
-    Map<String, String> mapOptions = new HashMap<String, String>();
-    if (props != null) {
-      Enumeration<?> optionNames = props.propertyNames();
-      String optionName;
-      while (optionNames.hasMoreElements()) {
-        optionName = (String) optionNames.nextElement();
-        mapOptions.put(optionName, props.getProperty(optionName));
-      }
-    }
-    return mapOptions;
-  }
-
-  public static int setOpts(Properties props, Map<String, String> aMap) {
-    int n = 0;
-    for (String key : aMap.keySet()) {
-      props.setProperty(key, aMap.get(key));
-      n++;
-    }
-    return n;
-  }
-
-  public static boolean delOpts(Properties props) {
-    if (null != props) {
-      props.clear();
-      return true;
-    }
-    return false;
-  }
-
-  public static int hasOpts(Properties props) {
-    if (null != props) {
-      return props.size();
-    }
-    return 0;
-  }
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="handling resources from classpath">
   protected List<String> extractTessData(File folder) {

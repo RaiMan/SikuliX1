@@ -198,14 +198,14 @@ public class Runner {
           log(lvl, "Exit code -1: Terminating multi-script-run");
           break;
         }
-        someJS = runTime.getOption("runsetup", "");
+        someJS = runTime.getOption("runsetup");
         if (!someJS.isEmpty()) {
           log(lvl, "Options.runsetup: %s", someJS);
           new RunBox().runjs(null, null, someJS, null);
         }
         RunBox rb = new RunBox(givenScriptName, runTime.getArgs(), runAsTest);
         exitCode = rb.run();
-        someJS = runTime.getOption("runteardown", "");
+        someJS = runTime.getOption("runteardown");
         if (!someJS.isEmpty()) {
           log(lvl, "Options.runteardown: %s", someJS);
           new RunBox().runjs(null, null, someJS, null);

@@ -17,6 +17,9 @@ import java.util.List;
  * Created by Törcsi on 2016. 06. 26.
  * Revised by RaiMan
  */
+
+//TODO possible to use https://github.com/Genymobile/scrcpy?
+
 public class ADBScreen extends Region implements EventObserver, IScreen {
 
   private static String me = "ADBScreen: ";
