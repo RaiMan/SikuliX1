@@ -17,7 +17,7 @@
       <unpack>true</unpack>
       <unpackOptions>
         <excludes>
-          <!--<exclude>sikulixlibs/</exclude>-->
+          <exclude>tessdata/</exclude>
           <exclude>junit/</exclude>
         </excludes>
       </unpackOptions>

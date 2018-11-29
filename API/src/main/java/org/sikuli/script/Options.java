@@ -48,6 +48,22 @@ public class Options {
   }
 
   void loadOptions() {
+/*
+    // public Settings::fields as options
+    Field[] fields = Settings.class.getFields();
+    Object value = null;
+    for (Field field : fields) {
+      try {
+        Field theField = Settings.class.getField(field.getName());
+        value = theField.get(null);
+      } catch (NoSuchFieldException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+      p("%s (%s) %s", field.getName(), field.getType(), value);
+    }
+*/
     loadOptions(fnSXOptions);
     if (hasOptions()) {
       testing = isOption("testing", false);
