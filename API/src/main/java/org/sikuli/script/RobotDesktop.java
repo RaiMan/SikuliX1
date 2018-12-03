@@ -256,6 +256,9 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void pressModifiers(int modifiers) {
+    if (modifiers > 15) {
+      return;
+    }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
       doKeyPress(KeyEvent.VK_SHIFT);
     }
@@ -276,6 +279,9 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void releaseModifiers(int modifiers) {
+    if (modifiers > 15) {
+      return;
+    }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
       doKeyRelease(KeyEvent.VK_SHIFT);
     }

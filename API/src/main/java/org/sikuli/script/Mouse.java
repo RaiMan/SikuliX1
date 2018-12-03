@@ -304,8 +304,8 @@ public class Mouse {
 
   private static String getClickMsg(Location loc, int buttons, int modifiers, boolean dblClick, long duration) {
     String msg = "";
-    if (modifiers != 0) {
-      msg += KeyEvent.getKeyModifiersText(modifiers) + "+";
+    if (modifiers != 0 && modifiers < 16) {
+      msg += KeyEvent.getKeyModifiersText(modifiers).replaceAll(" ", "") + " + ";
     }
     if (buttons == InputEvent.BUTTON1_MASK && !dblClick) {
       msg += "CLICK";
