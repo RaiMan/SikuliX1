@@ -8,8 +8,10 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
+import org.sikuli.vnc.VNCScreen;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -234,8 +236,13 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-//      Debug.on(3);
+      Debug.on(3);
 //      Debug.globalTraceOn();
+      try {
+        VNCScreen vncScreen = VNCScreen.start("192.168.2.121", 5900);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       after();
     }
 
