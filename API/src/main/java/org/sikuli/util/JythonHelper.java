@@ -683,6 +683,9 @@ public class JythonHelper implements JLangHelperInterface {
           String[] listSites = sSites.split("\n");
           for (String site : listSites) {
             String path = site.trim();
+            if (path.startsWith("#")) {
+              continue;
+            }
             if (!path.isEmpty()) {
               appendSysPath(path);
               log(lvl, "adding from Lib/site-packages/sites.txt:\n%s", path);
