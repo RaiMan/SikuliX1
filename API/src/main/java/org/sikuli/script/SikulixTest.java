@@ -236,13 +236,8 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-      Debug.on(3);
+//      Debug.on(3);
 //      Debug.globalTraceOn();
-      try {
-        VNCScreen vncScreen = VNCScreen.start("192.168.2.121", 5900);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
       after();
     }
 
