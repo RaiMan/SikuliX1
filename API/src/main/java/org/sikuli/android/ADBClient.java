@@ -35,18 +35,22 @@ public class ADBClient {
     if (jadb == null) {
       if (adbWhereIs == null || adbWhereIs.isEmpty()) {
         if (RunTime.get().runningWindows) adbExec += ".exe";
-        adbPath = System.getenv("sikulixadb");
-        if (adbPath == null) {
-          adbPath = System.getProperty("sikulixadb");
+        File fAdbPath = new File(RunTime.get().fSikulixExtensions, "android/" + adbExec);
+        adbFilePath = fAdbPath.getAbsolutePath();
+        if (!fAdbPath.exists()) {
+          adbPath = System.getenv("sikulixadb");
+          if (adbPath == null) {
+            adbPath = System.getProperty("sikulixadb");
+          }
+          if (adbPath == null) {
+            adbPath = RunTime.get().fWorkDir.getAbsolutePath();
+          }
+          File adbFile = new File(adbPath, adbExec);
+          if (!adbFile.exists()) {
+            adbFile = new File(adbPath);
+          }
+          adbFilePath = adbFile.getAbsolutePath();
         }
-        if (adbPath == null) {
-          adbPath = RunTime.get().fWorkDir.getAbsolutePath();
-        }
-        File adbFile = new File(adbPath, adbExec);
-        if (!adbFile.exists()) {
-          adbFile = new File(adbPath);
-        }
-        adbFilePath = adbFile.getAbsolutePath();
       } else {
         adbFilePath = adbWhereIs;
       }
