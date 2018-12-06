@@ -172,23 +172,25 @@ public class ADBDevice {
   }
 
   public Mat captureDeviceScreenMat(int x, int y, int actW, int actH) {
+    log(lvl, "captureDeviceScreenMat: enter: [%d,%d %dx%d]", x, y, actW, actH);
     byte[] imagePrefix = new byte[12];
     byte[] image = new byte[0];
     Debug timer = Debug.startTimer();
-    boolean isfullScreen =false;
+    boolean isfullScreen = false;
     if (x == 0 && y == 0 && actW < 0 && actH < 0) {
       isfullScreen = true;
     }
     try {
       InputStream stdout = device.executeShell("screencap");
+      while (stdout.available() < 12) ;
       stdout.read(imagePrefix);
       if (imagePrefix[8] != 0x01) {
         log(-1, "captureDeviceScreenMat: image type not RGBA");
-        return null;
+//        return null;
       }
       int currentW = byte2int(imagePrefix, 0, 4);
       int currentH = byte2int(imagePrefix, 4, 4);
-      if (! ((currentW == devW && currentH == devH) || (currentH == devW && currentW == devH))) {
+      if (!((currentW == devW && currentH == devH) || (currentH == devW && currentW == devH))) {
         log(-1, "captureDeviceScreenMat: width or height differ from device values");
         return null;
       }
@@ -227,6 +229,7 @@ public class ADBDevice {
     matOrg.put(0, 0, image);
     Mat matImage = new Mat();
     Imgproc.cvtColor(matOrg, matImage, Imgproc.COLOR_RGBA2BGR, 3);
+    log(lvl, "captureDeviceScreenMat: exit: %s", matImage);
     return matImage;
   }
 

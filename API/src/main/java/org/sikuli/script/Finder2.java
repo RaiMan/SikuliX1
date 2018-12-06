@@ -29,10 +29,6 @@ import java.util.regex.Pattern;
 
 public class Finder2 {
 
-  static {
-    RunTime.loadLibrary(RunTime.libOpenCV);
-  }
-
   protected static void init() {
   }
 
