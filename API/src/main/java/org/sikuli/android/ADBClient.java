@@ -116,8 +116,8 @@ public class ADBClient {
     if (jadb == null) {
       try {
         jadb = new JadbConnection();
-        jadb.getHostVersion();
-        Debug.log(3, "ADBClient: ADBServer connection established");
+        String jadbHostVersion = jadb.getHostVersion();
+        Debug.log(3, "ADBClient: ADBServer connection established (%s)", jadbHostVersion);
       } catch (Exception e) {
         if (!quiet) {
           Debug.error("ADBClient: ADBServer connection not possible: %s", e.getMessage());
