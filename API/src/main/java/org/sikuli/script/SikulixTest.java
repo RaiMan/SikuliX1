@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -229,6 +230,7 @@ public class SikulixTest {
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
 //    runTest.add(12); // class App
+    runTest.add(13); // Android
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -445,7 +447,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="find SwitchToText">
+    //<editor-fold desc="test11 find SwitchToText">
     if (shouldRunTest(11)) {
       before("test11", "find SwitchToText");
       Settings.SwitchToText = true;
@@ -463,7 +465,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="class App">
+    //<editor-fold desc="test12 class App">
     if (shouldRunTest(12)) {
       before("test12", "class App");
       String chrome = "google chrome";
@@ -506,5 +508,17 @@ public class SikulixTest {
       //scr.wait(1.0);
       //reg = App.focusedWindow();
     }
+    //</editor-fold>
+
+    //<editor-fold desc="test13 android">
+    if (shouldRunTest(13)) {
+      before("test13", "android");
+      ADBScreen adb = ADBScreen.start();
+      p("%s", adb);
+      ScreenImage capture = adb.userCapture("");
+      p("%s", capture);
+
+    }
+    //</editor-fold>
   }
 }

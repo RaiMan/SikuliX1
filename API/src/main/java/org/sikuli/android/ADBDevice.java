@@ -14,7 +14,8 @@ import org.sikuli.script.ScreenImage;
 import se.vidstige.jadb.JadbDevice;
 import se.vidstige.jadb.JadbException;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -23,7 +24,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -181,12 +181,12 @@ public class ADBDevice {
       isfullScreen = true;
     }
     try {
-      InputStream stdout = device.executeShell("screencap");
-      while (stdout.available() < 12) ;
-      stdout.read(imagePrefix);
+      InputStream deviceOut = device.executeShell("screencap");
+      while (deviceOut.available() < 12) ;
+      deviceOut.read(imagePrefix);
       if (imagePrefix[8] != 0x01) {
         log(-1, "captureDeviceScreenMat: image type not RGBA");
-//        return null;
+        return null;
       }
       int currentW = byte2int(imagePrefix, 0, 4);
       int currentH = byte2int(imagePrefix, 4, 4);
@@ -209,15 +209,15 @@ public class ADBDevice {
       int lenRow = currentW * 4;
       byte[] row = new byte[lenRow];
       for (int count = 0; count < y; count++) {
-        stdout.read(row);
+        deviceOut.read(row);
       }
       boolean shortRow = x + actW < currentW;
       for (int count = 0; count < actH; count++) {
         if (shortRow) {
-          stdout.read(row);
+          deviceOut.read(row);
           System.arraycopy(row, x * 4, image, count * actW * 4, actW * 4);
         } else {
-          stdout.read(image, count * actW * 4, actW * 4);
+          deviceOut.read(image, count * actW * 4, actW * 4);
         }
       }
       long duration = timer.end();
