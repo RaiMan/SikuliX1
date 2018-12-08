@@ -513,11 +513,14 @@ public class SikulixTest {
     //<editor-fold desc="test13 android">
     if (shouldRunTest(13)) {
       before("test13", "android");
+      Debug.on(3);
       ADBScreen adb = ADBScreen.start();
-      p("%s", adb);
-      ScreenImage capture = adb.userCapture("");
+      while (!adb.getDevice().isDisplayOn()) {
+        adb.aKey(224);
+        RunTime.pause(1);
+      }
+      ScreenImage capture = adb.capture(0,0,1200,1920);
       p("%s", capture);
-
     }
     //</editor-fold>
   }

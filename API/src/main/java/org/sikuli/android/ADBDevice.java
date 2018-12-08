@@ -11,6 +11,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.ScreenImage;
+import org.sikuli.util.ProcessRunner;
 import se.vidstige.jadb.JadbDevice;
 import se.vidstige.jadb.JadbException;
 
@@ -180,6 +181,8 @@ public class ADBDevice {
     if (x == 0 && y == 0 && actW < 0 && actH < 0) {
       isfullScreen = true;
     }
+    int currentW = devW;
+    int currentH = devH;
     try {
       InputStream deviceOut = device.executeShell("screencap");
       while (deviceOut.available() < 12) ;
@@ -188,8 +191,8 @@ public class ADBDevice {
         log(-1, "captureDeviceScreenMat: image type not RGBA");
         return null;
       }
-      int currentW = byte2int(imagePrefix, 0, 4);
-      int currentH = byte2int(imagePrefix, 4, 4);
+      currentW = byte2int(imagePrefix, 0, 4);
+      currentH = byte2int(imagePrefix, 4, 4);
       if (!((currentW == devW && currentH == devH) || (currentH == devW && currentW == devH))) {
         log(-1, "captureDeviceScreenMat: width or height differ from device values");
         return null;
