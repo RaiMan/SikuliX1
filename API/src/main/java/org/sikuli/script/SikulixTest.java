@@ -6,15 +6,11 @@ package org.sikuli.script;
 
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.ScreenHighlighter;
-import org.sikuli.vnc.VNCScreen;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -519,7 +515,8 @@ public class SikulixTest {
         adb.aKey(224);
         RunTime.pause(1);
       }
-      ScreenImage capture = adb.capture(0,0,1200,1920);
+      ScreenImage capture = adb.capture(300, 300, 300, 300);
+      //ScreenImage capture = adb.capture();
       p("%s", capture);
     }
     //</editor-fold>

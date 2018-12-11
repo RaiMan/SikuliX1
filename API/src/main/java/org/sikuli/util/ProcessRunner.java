@@ -143,8 +143,9 @@ public class ProcessRunner {
       cmd.add("/B");
       cmd.add("\"" + givenCmd.get(0) + "\"");
       if (givenCmd.size() > 1) {
-        //cmd.add(givenCmd.get(1));
-        startAppParams(cmd, givenCmd.get(1));
+        for (int np = 1; np < givenCmd.size(); np ++) {
+          startAppParams(cmd, givenCmd.get(np));
+        }
       }
       if (cmd.size() > 0) {
         ProcessBuilder app = new ProcessBuilder();

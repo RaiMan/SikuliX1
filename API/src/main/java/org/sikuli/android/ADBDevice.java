@@ -4,6 +4,7 @@
 
 package org.sikuli.android;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -19,13 +20,11 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,6 +49,8 @@ public class ADBDevice {
 
 
   private static ADBDevice adbDevice = null;
+  private String adbExec = "";
+
 
   public static int KEY_HOME = 3;
   public static int KEY_BACK = 4;
@@ -71,6 +72,7 @@ public class ADBDevice {
         adbDevice = null;
       } else {
         adbDevice.initDevice(adbDevice);
+        adbDevice.adbExec = ADBClient.getADB();
       }
     }
     return adbDevice;
@@ -176,15 +178,18 @@ public class ADBDevice {
     log(lvl, "captureDeviceScreenMat: enter: [%d,%d %dx%d]", x, y, actW, actH);
     byte[] imagePrefix = new byte[12];
     byte[] image = new byte[0];
-    Debug timer = Debug.startTimer();
     boolean isfullScreen = false;
     if (x == 0 && y == 0 && actW < 0 && actH < 0) {
       isfullScreen = true;
     }
-    int currentW = devW;
-    int currentH = devH;
+    int currentW;
+    int currentH;
+    int channels = 4;
+    Mat matImage = new Mat();
+    InputStream deviceOut = null;
     try {
-      InputStream deviceOut = device.executeShell("screencap");
+      deviceOut = execADB("exec-out", "screencap");
+      Debug timer = Debug.startTimer();
       while (deviceOut.available() < 12) ;
       deviceOut.read(imagePrefix);
       if (imagePrefix[8] != 0x01) {
@@ -208,31 +213,59 @@ public class ADBDevice {
           actH = currentH - y;
         }
       }
-      image = new byte[actW * actH * 4];
-      int lenRow = currentW * 4;
-      byte[] row = new byte[lenRow];
-      for (int count = 0; count < y; count++) {
-        deviceOut.read(row);
-      }
-      boolean shortRow = x + actW < currentW;
-      for (int count = 0; count < actH; count++) {
-        if (shortRow) {
-          deviceOut.read(row);
-          System.arraycopy(row, x * 4, image, count * actW * 4, actW * 4);
-        } else {
-          deviceOut.read(image, count * actW * 4, actW * 4);
+      long duration = timer.lap("");
+      int nPixels = actW * actH;
+      image = new byte[nPixels * channels];
+      int atImage = 0;
+      boolean endOfStream = false;
+      int maxR = y + actH;
+      int maxC = x + actW;
+      while (true) {
+        for (int npr = 0; npr < maxR; npr++) {
+          for (int npc = 0; npc < currentW; npc++) {
+            byte[] pixel = deviceOut.readNBytes(4);
+            if (pixel.length > 0) {
+              if (pixel[3] == -1) {
+                if (npr >= y && npc >= x && npc < maxC) {
+                  image[atImage++] = pixel[0];
+                  image[atImage++] = pixel[1];
+                  image[atImage++] = pixel[2];
+                  image[atImage++] = pixel[3];
+                }
+              } else {
+                log(-1, "buffer problem: %d", nPixels);
+                deviceOut.close();
+                return null;
+              }
+            } else {
+              endOfStream = true;
+              break;
+            }
+          }
+          if (endOfStream) {
+            break;
+          }
         }
+        break;
       }
-      long duration = timer.end();
-      log(lvl, "captureDeviceScreenMat:[%d,%d %dx%d] %d", x, y, actW, actH, duration);
-    } catch (IOException | JadbException e) {
+      if (null != deviceOut) {
+        deviceOut.close();
+      }
+      Mat matOrg = new Mat(actH, actW, CvType.CV_8UC4);
+      matOrg.put(0, 0, image);
+      List<Mat> matsOrg = new ArrayList<Mat>();
+      Core.split(matOrg, matsOrg);
+      matsOrg.remove(3);
+      List<Mat> matsImage = new ArrayList<Mat>();
+      matsImage.add(matsOrg.get(2));
+      matsImage.add(matsOrg.get(1));
+      matsImage.add(matsOrg.get(0));
+      Core.merge(matsImage, matImage);
+      log(lvl, "captureDeviceScreenMat: exit: [%d,%d %dx%d] %d (%d)",
+              x, y, actW, actH, duration, timer.end());
+    } catch (IOException e) {
       log(-1, "captureDeviceScreenMat: [%d,%d %dx%d] %s", x, y, actW, actH, e);
     }
-    Mat matOrg = new Mat(actH, actW, CvType.CV_8UC4);
-    matOrg.put(0, 0, image);
-    Mat matImage = new Mat();
-    Imgproc.cvtColor(matOrg, matImage, Imgproc.COLOR_RGBA2BGR, 3);
-    log(lvl, "captureDeviceScreenMat: exit: %s", matImage);
     return matImage;
   }
 
@@ -245,6 +278,30 @@ public class ADBDevice {
       fact *= 256;
     }
     return val;
+  }
+
+  private InputStream execADB(String... args) {
+    if (args.length < 1) {
+      return null;
+    }
+    ProcessBuilder app = new ProcessBuilder();
+    List<String> cmd = new ArrayList<String>();
+    Map<String, String> processEnv = app.environment();
+    cmd.add(adbExec);
+    for (String arg : args) {
+      cmd.add(arg);
+    }
+    app.directory(null);
+    app.redirectErrorStream(false);
+    app.command(cmd);
+    Process process = null;
+    try {
+      process = app.start();
+      return process.getInputStream();
+    } catch (IOException e) {
+      log(-1, "execADB: %s (%s)", cmd, e);
+    }
+    return null;
   }
 
   private Dimension getDisplayDimension() {

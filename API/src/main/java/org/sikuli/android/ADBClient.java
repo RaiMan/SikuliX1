@@ -60,7 +60,7 @@ public class ADBClient {
         if (jadb != null) {
           isAdbAvailable = true;
           shouldStopServer = true;
-          Debug.log(3, "ADBClient: ADBServer started");
+          Debug.log(3, "ADBClient: ADBServer started (%s)", adbFilePath);
         } else {
           reset();
         }
@@ -114,6 +114,13 @@ public class ADBClient {
     } catch (Exception e) {
       Debug.error("ADBClient: reset: kill-server did not work");
     }
+  }
+
+  public static String getADB() {
+    if (isAdbAvailable) {
+      return adbFilePath;
+    }
+    return "";
   }
 
   private static void getConnection(boolean quiet) {
