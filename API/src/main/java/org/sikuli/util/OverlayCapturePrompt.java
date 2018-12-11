@@ -4,6 +4,7 @@
 package org.sikuli.util;
 
 import java.awt.*;
+import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -13,10 +14,7 @@ import java.awt.image.RasterFormatException;
 import java.awt.image.RescaleOp;
 import javax.swing.JFrame;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.IScreen;
-import org.sikuli.script.Location;
-import org.sikuli.script.Screen;
-import org.sikuli.script.ScreenImage;
+import org.sikuli.script.*;
 
 /**
  * INTERNAL USE implements the screen overlay used with the capture feature
@@ -209,6 +207,9 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
 
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
+    if (Debug.getDebugLevel() > 2) {
+      scr_img_original.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot");
+    }
     scr_img = scr_img_original.getImage();
     scr_img_darker = scr_img;
     scr_img_type = scr_img.getType();
@@ -285,7 +286,6 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
       y = (int) (y / scr_img_scale);
       w = (int) (w / scr_img_scale);
       h = (int) (h / scr_img_scale);
-
     }
     BufferedImage crop = new BufferedImage(w, h, scr_img_type);
     Graphics2D crop_g2d = crop.createGraphics();

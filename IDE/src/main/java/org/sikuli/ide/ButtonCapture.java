@@ -4,6 +4,7 @@
 package org.sikuli.ide;
 
 //import org.sikuli.android.ADBScreen;
+import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.PreferencesUser;
 import java.awt.*;
 import java.awt.event.*;
@@ -96,17 +97,20 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     if (defaultScreen == null) {
       Screen.doPrompt("Select an image", this);
     } else {
-//      Sikulix.popup("Android capture");
-//      Thread adbCapture = new Thread() {
-//        @Override
-//        public void run() {
-//          ADBScreen aScr = (ADBScreen) defaultScreen;
-//          aScr.wakeUp(2);
-//          sImgNonLocal = aScr.userCapture("");
-//          ButtonCapture.this.update((EventSubject) null);
-//        }
-//      };
-//      adbCapture.start();
+      if (Sikulix.popAsk("Android capture")) {
+        new Thread() {
+          @Override
+          public void run() {
+            ADBScreen aScr = (ADBScreen) defaultScreen;
+            aScr.wakeUp(2);
+            aScr.wait(1.0);
+            sImgNonLocal = aScr.userCapture("");
+            ButtonCapture.this.update((EventSubject) null);
+          }
+        }.start();
+      } else {
+        ButtonCapture.this.update((EventSubject) null);
+      }
     }
   }
 

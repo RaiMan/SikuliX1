@@ -26,7 +26,8 @@ public class ADBClient {
   private static boolean shouldStopServer = false;
   private static JadbDevice device = null;
   public static boolean isAdbAvailable = false;
-  public static String adbExec = "platform-tools/adb";
+  public static String adbExecBase = "platform-tools/adb";
+  public static String adbExec;
   private static String adbFilePath = "adb";
 
   private static void init(String adbWhereIs) {
@@ -34,7 +35,10 @@ public class ADBClient {
     String adbPath;
     if (jadb == null) {
       if (adbWhereIs == null || adbWhereIs.isEmpty()) {
-        if (RunTime.get().runningWindows) adbExec += ".exe";
+        adbExec = adbExecBase;
+        if (RunTime.get().runningWindows) {
+          adbExec += ".exe";
+        }
         File fAdbPath = new File(RunTime.get().fSikulixExtensions, "android/" + adbExec);
         adbFilePath = fAdbPath.getAbsolutePath();
         if (!fAdbPath.exists()) {

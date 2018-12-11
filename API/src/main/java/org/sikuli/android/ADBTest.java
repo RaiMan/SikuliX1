@@ -8,6 +8,8 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
 
+import java.io.File;
+
 /**
  * Created by RaiMan on 12.07.16.
  * <p>
@@ -18,7 +20,7 @@ public class ADBTest {
   private static int lvl = 3;
 
   private static void log(int level, String message, Object... args) {
-    Debug.logx(level, "ADBDevice: " + message, args);
+    Debug.logx(level, "ADBTest: " + message, args);
   }
 
   private static void logp(String message, Object... args) {
@@ -35,13 +37,11 @@ public class ADBTest {
 
     if (aScr.isValid()) {
       if (runTests) {
-
-        basicTest(aScr);
-
-        ADBScreen.stop();
-
-        System.exit(0);
+        //basicTest(aScr);
+        ideTest(aScr);
       }
+      ADBScreen.stop();
+      System.exit(0);
     } else {
       System.exit(1);
     }
@@ -54,9 +54,12 @@ public class ADBTest {
     rt = RunTime.get();
     ADBScreen adbs = new ADBScreen();
     if (adbs.isValid()) {
+      log(lvl, "Device found: %s", adbs.getDeviceDescription());
       adbs.wakeUp(2);
       adbs.wait(1f);
-      if (runTests) {
+      if (!adbs.getDevice().isDisplayOn()) {
+        log(-1, "WakeUp did not work");
+      } else {
         adbs.aKey(ADBDevice.KEY_HOME);
         adbs.wait(1f);
       }
@@ -71,8 +74,25 @@ public class ADBTest {
     adbs.aSwipeRight();
     adbs.wait(1f);
     ScreenImage sIMg = adbs.userCapture("Android");
-    sIMg.save(RunTime.get().fSikulixStore.getAbsolutePath(), "android");
+    sIMg.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "android");
+    if (Debug.getDebugLevel() > 2) {
+      saveShot();
+    }
     adbs.aTap(new Image(sIMg));
+  }
+
+  private static void saveShot() {
+    if (Debug.getDebugLevel() < 3) {
+      return;
+    }
+    File fShot = new File(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot.png");
+    File fShotAndroid = new File(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenAndroid.png");
+    if (fShotAndroid.exists()) {
+      fShotAndroid.delete();
+    }
+    if (fShot.exists()) {
+      fShot.renameTo(fShotAndroid);
+    }
   }
 
 
@@ -97,8 +117,12 @@ public class ADBTest {
       if (Sikulix.popAsk("You should have seen a swipe left and a swipe right.\n" +
               "\nclick YES to capture an icon from homescreen and then aTap it" +
               "\nclick NO to end the test now", title)) {
+        int debugLevel = Debug.getDebugLevel();
+        Debug.on(3);
         ScreenImage sIMg = aScr.userCapture("AndroidTest");
-        sIMg.save(RunTime.get().fSikulixStore.getAbsolutePath(), "android");
+        sIMg.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "android");
+        saveShot();
+        Debug.on(debugLevel);
         try {
           aScr.aTap(new Image(sIMg));
           Sikulix.popup("The image was found on the device's current screen" +
@@ -117,6 +141,7 @@ public class ADBTest {
     if (cancelled) {
       if (Sikulix.popAsk("You have cancelled or the image was not found.\n" +
               "\nclick YES to produce some output for debugging" +
+              "\n... which may take a while !!" +
               "\nclick NO to simply leave", title)) {
         int debugLevel = Debug.getDebugLevel();
         Debug.on(3);

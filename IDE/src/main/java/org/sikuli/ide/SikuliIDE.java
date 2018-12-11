@@ -1822,12 +1822,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     if (aScr.isValid()) {
       String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
               "click Check: a short test is run with the device\n" +
-              "click Default: set device as default screen for capture\n" +
-              "click Cancel: nothing is done (default screen is reset)\n" +
+              "click Default...: set device as default screen for capture\n" +
+              "click Cancel: capture is reset to local screen\n" +
               "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
       String[] options = new String[3];
       options[WARNING_DO_NOTHING] = "Check";
-      options[WARNING_ACCEPTED] = "Default";
+      options[WARNING_ACCEPTED] = "Default Android";
       options[WARNING_CANCEL] = "Cancel";
       int ret = JOptionPane.showOptionDialog(this, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
       if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {

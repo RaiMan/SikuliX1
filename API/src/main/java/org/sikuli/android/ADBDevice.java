@@ -410,7 +410,8 @@ public class ADBDevice {
         log(-1, "wakeUp: not possible - see log");
         return;
       }
-      device.executeShell("input", "keyevent", "26");
+      //device.executeShell("input", "keyevent", "224");
+      inputKeyEvent(224);
       while (0 < times--) {
         if (isDisplayOn()) {
           return;

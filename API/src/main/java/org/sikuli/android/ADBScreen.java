@@ -251,10 +251,9 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
 
     th.start();
 
-    boolean hasShot = false;
     ScreenImage simg = null;
     int count = 0;
-    while (!hasShot) {
+    while (true) {
       this.wait(0.1f);
       if (count++ > waitForScreenshot) {
         break;
@@ -266,13 +265,14 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
         simg = prompt.getSelection();
         if (simg != null) {
           lastScreenImage = simg;
-          hasShot = true;
         }
-        prompt.close();
+        break;
       }
     }
-    prompt.close();
-    prompt = null;
+    if (null != prompt) {
+      prompt.close();
+      prompt = null;
+    }
     return simg;
   }
 
