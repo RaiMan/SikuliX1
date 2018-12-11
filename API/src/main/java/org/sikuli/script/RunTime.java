@@ -1166,7 +1166,6 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
     log(lvl, "initAPI: entering");
-    RunTime.loadLibrary(RunTime.libOpenCV);
     if (shouldExport
             || !fSikulixLib.exists()
             || !new File(fSikulixLib, "robot").exists()

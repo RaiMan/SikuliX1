@@ -7,20 +7,20 @@ package org.sikuli.android;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.util.ProcessRunner;
 import se.vidstige.jadb.JadbDevice;
 import se.vidstige.jadb.JadbException;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +29,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ADBDevice {
+
+  static {
+    RunTime.loadLibrary(RunTime.libOpenCV);
+  }
 
   private static int lvl = 3;
 
@@ -220,11 +224,21 @@ public class ADBDevice {
       boolean endOfStream = false;
       int maxR = y + actH;
       int maxC = x + actW;
+      byte[] pixel = new byte[channels];
+      int pixelByte = -1;
       while (true) {
         for (int npr = 0; npr < maxR; npr++) {
           for (int npc = 0; npc < currentW; npc++) {
-            byte[] pixel = deviceOut.readNBytes(4);
-            if (pixel.length > 0) {
+            //byte[] pixel = deviceOut.readNBytes(4);
+            for (int np = 0; np < channels; np++) {
+              pixelByte = deviceOut.read();
+              if (pixelByte > -1) {
+                pixel[np] = (byte) pixelByte;
+              } else {
+                endOfStream = true;
+              }
+            }
+            if (!endOfStream) {
               if (pixel[3] == -1) {
                 if (npr >= y && npc >= x && npc < maxC) {
                   image[atImage++] = pixel[0];
@@ -238,7 +252,6 @@ public class ADBDevice {
                 return null;
               }
             } else {
-              endOfStream = true;
               break;
             }
           }

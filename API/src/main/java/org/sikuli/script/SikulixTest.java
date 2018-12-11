@@ -226,7 +226,7 @@ public class SikulixTest {
 //    runTest.add(10); // transparency with pattern
 //    runTest.add(11); // find SwitchToText
 //    runTest.add(12); // class App
-    runTest.add(13); // Android
+//    runTest.add(13); // Android
 
     if (runTest.size() > 1) {
       if (-1 < runTest.indexOf(0)) {
@@ -515,8 +515,8 @@ public class SikulixTest {
         adb.aKey(224);
         RunTime.pause(1);
       }
-      ScreenImage capture = adb.capture(300, 300, 300, 300);
-      //ScreenImage capture = adb.capture();
+      //ScreenImage capture = adb.capture(300, 300, 300, 300);
+      ScreenImage capture = adb.capture();
       p("%s", capture);
     }
     //</editor-fold>
