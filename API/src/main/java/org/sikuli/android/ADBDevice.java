@@ -193,9 +193,7 @@ public class ADBDevice {
     int currentH;
     int channels = 4;
     Mat matImage = new Mat();
-    InputStream deviceOut = null;
-    try {
-      deviceOut = execADB("exec-out", "screencap");
+    try (InputStream deviceOut = execADB("exec-out", "screencap")) {
       Debug timer = Debug.startTimer();
       while (deviceOut.available() < 12) ;
       deviceOut.read(imagePrefix);
@@ -251,7 +249,6 @@ public class ADBDevice {
                 }
               } else {
                 log(-1, "buffer problem: %d", nPixels);
-                deviceOut.close();
                 return null;
               }
             } else {
@@ -263,9 +260,6 @@ public class ADBDevice {
           }
         }
         break;
-      }
-      if (null != deviceOut) {
-        deviceOut.close();
       }
       Mat matOrg = new Mat(actH, actW, CvType.CV_8UC4);
       matOrg.put(0, 0, image);
@@ -338,29 +332,24 @@ public class ADBDevice {
   }
 
   public String exec(String command, String... args) {
-    InputStream stdout = null;
     String out = "";
-    try {
-      stdout = device.executeShell(command, args);
+    try (InputStream stdout = device.executeShell(command, args)) {
       out = inputStreamToString(stdout, "UTF-8");
     } catch (IOException | JadbException e) {
       log(-1, "exec: %s: %s", command, e);
+      return null;
     }
     return out;
   }
 
   public String dumpsys(String component) {
-    InputStream stdout = null;
     String out = "";
-    try {
-      if (component == null || component.isEmpty()) {
-        component = "power";
-      }
-      if (component.toLowerCase().contains("all")) {
-        stdout = device.executeShell("dumpsys");
-      } else {
-        stdout = device.executeShell("dumpsys", component);
-      }
+    if (component == null || component.isEmpty()) {
+      component = "power";
+    }
+    try (InputStream stdout = component.toLowerCase().contains("all") ?
+            device.executeShell("dumpsys") :
+            device.executeShell("dumpsys", component)) {
       out = inputStreamToString(stdout, "UTF-8");
     } catch (IOException | JadbException e) {
       log(-1, "dumpsys: %s: %s", component, e);
