@@ -1,5 +1,11 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://www.sikuli.org) SikuliX 1.1.4
+[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX 1.1.4
 ============
+
+**What is SikuliX** SikuliX automates anything you see on the screen of your desktop computer 
+running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
+GUI components and can act on them with mouse and keyboard actions.
+This is handy in cases when there is no easy access to a GUI's internals or 
+the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014)
 
