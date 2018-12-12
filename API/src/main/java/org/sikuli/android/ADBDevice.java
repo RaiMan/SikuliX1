@@ -30,9 +30,11 @@ import java.util.regex.Pattern;
 
 public class ADBDevice {
 
+/*
   static {
     RunTime.loadLibrary(RunTime.libOpenCV);
   }
+*/
 
   private static int lvl = 3;
 
@@ -77,6 +79,7 @@ public class ADBDevice {
       } else {
         adbDevice.initDevice(adbDevice);
         adbDevice.adbExec = ADBClient.getADB();
+        RunTime.loadLibrary(RunTime.libOpenCV);
       }
     }
     return adbDevice;
