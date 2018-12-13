@@ -64,7 +64,8 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="variables">
   public enum Type {
 
-    IDE, API, SETUP, INIT
+//    IDE, API, SETUP, INIT
+    IDE, API, INIT
   }
 
   private enum theSystem {
@@ -371,10 +372,6 @@ public class RunTime {
       sxOptions.dumpOptions();
     }
 
-    if (Type.SETUP.equals(typ) && debugLevel != -2) {
-      Debug.setDebugLevel(3);
-    }
-
     Settings.init(); // force Settings initialization
     runTime.initSikulixOptions();
 
@@ -661,6 +658,8 @@ public class RunTime {
       fSxProjectTestScripts = new File(fSxProject, "StuffContainer/testScripts");
     }
 
+//TODO RunTime: extensions / Jython
+/*
     List<String> items = new ArrayList<String>();
     if (Type.API.equals(typ)) {
       String optJython = sxOptions.getOption("jython");
@@ -668,6 +667,7 @@ public class RunTime {
         items.add(optJython);
       }
     }
+
     if (!Type.SETUP.equals(typ)) {
       String optClasspath = sxOptions.getOption("classpath");
       if (!optClasspath.isEmpty()) {
@@ -696,15 +696,17 @@ public class RunTime {
         }
       }
     }
+*/
 //</editor-fold>
 
     if (runningWinApp || testingWinApp) {
       runTime.fpJarLibs += "windows";
       runTime.fpSysLibs = runTime.fpJarLibs.substring(1) + "/libs" + runTime.javaArch;
     }
-    if (!Type.SETUP.equals(typ)) {
-//      libsExport();
-    } else {
+
+//TODO RunTime: remove SETUP
+/*
+    if (Type.SETUP.equals(typ)) {
       fSikulixDownloadsBuild = new File(fSikulixAppPath, "SikulixDownloads_" + sxBuildStamp);
       String[] fpList = fSikulixAppPath.list(new FilenameFilter() {
         @Override
@@ -726,6 +728,7 @@ public class RunTime {
         }
       }
     }
+*/
 
     runType = typ;
     if (Debug.getDebugLevel() == minLvl) {
