@@ -54,24 +54,10 @@ public class TextRecognizer {
         System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
       }
       textRecognizer.tess = new Tesseract1();
-      File fTessdataPath = null;
-      valid = false;
-      if (textRecognizer.dataPath != null) {
-        fTessdataPath = new File(FileManager.slashify(textRecognizer.dataPath, false), "tessdata");
-        valid = fTessdataPath.exists();
-      }
-      if (!valid) {
-        fTessdataPath = new File(runTime.fSikulixAppPath, "SikulixTesseract/tessdata");
-        if (!(valid = fTessdataPath.exists())) {
-          if (!(valid = (null != runTime.extractTessData(fTessdataPath)))) {
-            Debug.error("TextRecognizer: start: export tessdata not possible");
-          }
-        }
-        if (valid) {
-          textRecognizer.dataPath = fTessdataPath.getAbsolutePath();
-        }
-      }
-      if (!new File(fTessdataPath, "eng.traineddata").exists()) {
+      File fTessdataPath = extractTessdata();
+      if (null != fTessdataPath && new File(fTessdataPath, "eng.traineddata").exists()) {
+        valid = true;
+      } else {
         Debug.error("TextRecognizer: start: no eng.traineddata");
         valid = false;
       }
@@ -85,13 +71,34 @@ public class TextRecognizer {
     return textRecognizer;
   }
 
+  public static File extractTessdata() {
+    File fTessdataPath = null;
+    valid = false;
+    if (dataPath != null) {
+      fTessdataPath = new File(FileManager.slashify(dataPath, false), "tessdata");
+      valid = fTessdataPath.exists();
+    }
+    if (!valid) {
+      fTessdataPath = new File(runTime.fSikulixAppPath, "SikulixTesseract/tessdata");
+      if (!(valid = fTessdataPath.exists())) {
+        if (!(valid = (null != runTime.extractTessData(fTessdataPath)))) {
+          Debug.error("TextRecognizer: start: export tessdata not possible");
+        }
+      }
+      if (valid) {
+        dataPath = fTessdataPath.getAbsolutePath();
+      }
+    }
+    return fTessdataPath;
+  }
+
   public Tesseract1 getAPI() {
     return tess;
   }
 
   private int oem = -1;
   private int psm = -1;
-  private String dataPath = Settings.OcrDataPath;
+  private static String dataPath = Settings.OcrDataPath;
   private String language = Settings.OcrLanguage;
 
   /**

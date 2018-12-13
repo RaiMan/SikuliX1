@@ -1061,11 +1061,11 @@ public class RunTime {
    *
    * @param libname name of library without prefix/suffix/ending
    */
-  public static void loadLibrary(String libname) {
+  public static boolean loadLibrary(String libname) {
     if (isTerminating) {
-      return;
+      return false;
     }
-    RunTime.get().libsLoad(libname);
+    return RunTime.get().libsLoad(libname);
   }
 
   /**
@@ -1074,9 +1074,9 @@ public class RunTime {
    * @param libname name of library without prefix/suffix/ending
    */
   public static boolean loadLibrary(String libname, boolean useLibsProvided) {
-    RunTime rt = RunTime.get();
-    rt.useLibsProvided = useLibsProvided;
-    return rt.libsLoad(libname);
+    RunTime runTime = RunTime.get();
+    runTime.useLibsProvided = useLibsProvided;
+    return loadLibrary(libname);
   }
 
   private void addToWindowsSystemPath(File fLibsFolder) {

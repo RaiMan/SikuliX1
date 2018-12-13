@@ -34,19 +34,6 @@ public class Sikulix {
   private static RunTime runTime = null;
   private static Point locPopAt = null;
 
-  private static Screen init() {
-    return new Screen();
-  }
-
-  public static boolean start() {
-    return start(false);
-  }
-
-  public static boolean start(boolean withException) {
-    Screen scr = init();
-    return true;
-  }
-
   public static void endNormal(int n) {
     terminate(n, "Sikulix: endNormal");
   }
@@ -90,6 +77,10 @@ public class Sikulix {
   }
   public static void main(String[] args) throws FindFailed {
     runTime = RunTime.get();
+
+    if (args.length == 0) {
+      TextRecognizer.extractTessdata();
+    }
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
       System.out.print(runTime.sxBuild);
