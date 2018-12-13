@@ -2984,8 +2984,7 @@ public class Region {
           finder.findAll((Image) ptn);
         }
       } else {
-        log(-1, "doFind: invalid parameter: %s", ptn);
-        Sikulix.terminate(999);
+        RunTime.get().terminate(999, "doFind: invalid parameter: %s", ptn);
       }
       if (repeating != null) {
         repeating._finder = finder;

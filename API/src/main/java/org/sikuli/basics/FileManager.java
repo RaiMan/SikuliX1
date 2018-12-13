@@ -1142,7 +1142,7 @@ public class FileManager {
     return dir.endsWith(".sikuli");
   }
 
-  //  public static IResourceLoader getNativeLoader(String name, String[] args) {
+//  public static IResourceLoader getNativeLoader(String name, String[] args) {
 //    if (nativeLoader != null) {
 //      return nativeLoader;
 //    }
@@ -1165,7 +1165,8 @@ public class FileManager {
 //    }
 //    return nativeLoader;
 //  }
-//
+
+/*
   public static String getJarParentFolder() {
     CodeSource src = FileManager.class.getProtectionDomain().getCodeSource();
     String jarParentPath = "--- not known ---";
@@ -1175,11 +1176,11 @@ public class FileManager {
       if (!jarPath.endsWith(".jar")) RunningFromJar = "N";
       jarParentPath = FileManager.slashify((new File(jarPath)).getParent(), true);
     } else {
-      log(-1, "Fatal Error 101: Not possible to access the jar files!");
-      Sikulix.terminate(101);
+      Sikulix.terminate(999, "Fatal Error 101: Not possible to access the jar files!");
     }
     return RunningFromJar + jarParentPath;
   }
+*/
 
   public static String getJarPath(Class cname) {
     CodeSource src = cname.getProtectionDomain().getCodeSource();

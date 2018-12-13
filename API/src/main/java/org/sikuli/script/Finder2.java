@@ -113,10 +113,10 @@ public class Finder2 {
   }
 
   private FindResult2 doFind() {
-    if (!fInput.isValid()) {
-      return null;
-    }
     FindResult2 findResult = null;
+    if (!fInput.isValid()) {
+      return findResult;
+    }
     if (fInput.isText()) {
       boolean globalSearch = false;
       Region where = fInput.getWhere();

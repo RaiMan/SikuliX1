@@ -57,8 +57,7 @@ public class RunTime {
   }
 
   public void terminate(int retval, String message, Object... args) {
-    log(-1, " *** terminating: " + message, args);
-    System.exit(retval);
+    Sikulix.terminate(retval, message, args);
   }
   //</editor-fold>
 
@@ -268,11 +267,11 @@ public class RunTime {
     }
 
     if (runTime.javaVersion < 8) {
-      runTime.terminate(-1, "Java version must at least be 8 (%s)", runTime.javaShow);
+      runTime.terminate(999, "Java version must at least be 8 (%s)", runTime.javaShow);
     }
 
     if (null == vSysArch) {
-      runTime.terminate(-1, "Java arch not 64 Bit or not detected (%s)", runTime.javaShow);
+      runTime.terminate(999, "Java arch not 64 Bit or not detected (%s)", runTime.javaShow);
     }
 
     runTime.osVersion = runTime.osVersionSysProp;
@@ -313,13 +312,13 @@ public class RunTime {
     Debug.log(3, "RunTimeINIT: user.home");
     String aFolder = System.getProperty("user.home");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fUserDir = new File(aFolder)).exists()) {
-      runTime.terminate(-1, "JavaSystemProperty::user.home not valid");
+      runTime.terminate(999, "JavaSystemProperty::user.home not valid");
     }
 
     Debug.log(3, "RunTimeINIT: user.dir");
     aFolder = System.getProperty("user.dir");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
-      runTime.terminate(-1, "JavaSystemProperty::user.dir not valid");
+      runTime.terminate(999, "JavaSystemProperty::user.dir not valid");
     }
 
     Debug.log(3, "RunTimeINIT: app data path");
@@ -454,7 +453,7 @@ public class RunTime {
     if (tmpdir != null && !tmpdir.isEmpty()) {
       fTempPath = new File(tmpdir);
     } else {
-      terminate(1, "init: java.io.tmpdir not valid (null or empty");
+      terminate(999, "init: java.io.tmpdir not valid (null or empty");
     }
     fBaseTempPath = new File(fTempPath,
             String.format("Sikulix_%d", FileManager.getRandomInt()));
@@ -544,7 +543,7 @@ public class RunTime {
         fSikulixAppPath.mkdirs();
       }
       if (!fSikulixAppPath.exists()) {
-        terminate(1, appDataMsg, fSikulixAppPath);
+        terminate(999, appDataMsg, fSikulixAppPath);
       }
       fSikulixExtensions = new File(fSikulixAppPath, "Extensions");
       fSikulixExtensions.mkdir();
@@ -555,7 +554,7 @@ public class RunTime {
       fLibsProvided = new File(fSikulixAppPath, fpSysLibs);
       fLibsLocal = fLibsProvided.getParentFile().getParentFile();
     } catch (Exception ex) {
-      terminate(1, appDataMsg + "\n" + ex.toString(), fSikulixAppPath);
+      terminate(999, appDataMsg + "\n" + ex.toString(), fSikulixAppPath);
     }
 
 //</editor-fold>
@@ -568,7 +567,7 @@ public class RunTime {
       gdevs = genv.getScreenDevices();
       nMonitors = gdevs.length;
       if (nMonitors == 0) {
-        terminate(1, "GraphicsEnvironment has no ScreenDevices");
+        terminate(999, "GraphicsEnvironment has no ScreenDevices");
       }
       monitorBounds = new Rectangle[nMonitors];
       rAllMonitors = null;
@@ -621,11 +620,11 @@ public class RunTime {
     appType = "from a jar";
     if (base != null) {
       fSxBaseJar = new File(base);
-      String jn = fSxBaseJar.getName();
+      String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
-      log(lvl, "runs as %s in: %s", jn, fSxBase.getAbsolutePath());
+      log(lvl, "runs as %s in: %s", baseJarName, fSxBase.getAbsolutePath());
       Debug.setWithTimeElapsed();
-      if (jn.contains("classes")) {
+      if (baseJarName.contains("classes")) {
         runningJar = false;
         fSxProject = fSxBase.getParentFile().getParentFile();
         log(lvl, "not jar - supposing Maven project: %s", fSxProject);
@@ -638,7 +637,7 @@ public class RunTime {
         runningInProject = true;
       } else {
         if (runningWindows) {
-          if (jn.endsWith(".exe")) {
+          if (baseJarName.endsWith(".exe")) {
             runningWinApp = true;
             runningJar = false;
             appType = "as application .exe";
@@ -655,7 +654,7 @@ public class RunTime {
       }
     } else {
       dumpClassPath();
-      terminate(1, String.format("no valid Java context (%s)", clsRef));
+      terminate(999, String.format("no valid Java context (%s)", clsRef));
     }
     if (runningInProject) {
       fSxProjectTestScriptsJS = new File(fSxProject, "StuffContainer/testScripts/testJavaScript");
@@ -795,7 +794,8 @@ public class RunTime {
       InputStream is;
       is = RunTime.class.getClassLoader().getResourceAsStream("Settings/" + svf);
       if (is == null) {
-        terminate(1, "initSikulixOptions: not found on classpath: %s", "Settings/" + svf);
+        Debug.error("initSikulixOptions: not found on classpath: %s", "Settings/" + svf);
+        Sikulix.endError(999);
       }
       prop.load(is);
       is.close();
@@ -862,7 +862,7 @@ public class RunTime {
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
-        terminate(1, "libs folder not available: " + fLibsFolder.toString());
+        terminate(999, "libs folder not available: " + fLibsFolder.toString());
       }
       log(lvl, "new libs folder at: %s", fLibsFolder);
       newLibsFolder = true;
@@ -910,7 +910,7 @@ public class RunTime {
       libsExport();
     }
     if (!areLibsExported) {
-      terminate(1, "loadLib: deferred exporting of libs did not work");
+      terminate(999, "loadLib: deferred exporting of libs did not work");
     }
     File fLibsFolderUsed = fLibsFolder;
     if (runningWindows) {
@@ -928,7 +928,7 @@ public class RunTime {
       if (vLib == null || !fLib.exists()) {
         fLib = new File(fLibsFolderStatic, libName);
         if (!fLib.exists()) {
-          terminate(1, String.format("loadlib: %s not in any libs folder", libName));
+          terminate(999, String.format("loadlib: %s not in any libs folder", libName));
         } else {
           fLibsFolderUsed = fLibsFolderStatic;
           libsLoaded.put(libName, true);
@@ -960,7 +960,7 @@ public class RunTime {
         loadError = e;
         if (runningLinux) {
           log(-1, msg + " not usable: \n%s", libName, loadError);
-          terminate(1, "problem with native library: " + libName);
+          terminate(999, "problem with native library: " + libName);
         }
       }
     }
@@ -971,7 +971,7 @@ public class RunTime {
       if (Settings.runningSetup) {
         return false;
       } else {
-        terminate(1, "problem with native library: " + libName);
+        terminate(999, "problem with native library: " + libName);
       }
     }
     libsLoaded.put(libName, true);
@@ -997,7 +997,7 @@ public class RunTime {
         jarFolder = parts[1];
       }
     } else if ("file" != protocol){
-      terminate(1, "export libs invalid: %s", urlLibsLocation);
+      terminate(999, "export libs invalid: %s", urlLibsLocation);
     }
     String resourceList = runTime.resourceListAsString(fpJarLibs, null);
     Matcher matcher = Pattern.compile("1\\..*?MadeForSikuliX.*?txt").matcher(resourceList);
@@ -1016,7 +1016,7 @@ public class RunTime {
         FileManager.deleteFileOrFolder(fLibsFolder);
         fLibsFolder.mkdir();
         if (!fLibsFolder.exists()) {
-          terminate(1, "libs folder not available: " + fLibsFolder.toString());
+          terminate(999, "libs folder not available: " + fLibsFolder.toString());
         }
       }
       log(lvl, "export libs from: %s", urlLibsLocation);
@@ -1047,7 +1047,7 @@ public class RunTime {
       FileManager.deleteFileOrFolder(fJawtDll);
       FileManager.xcopy(new File(javahome + "/bin/" + lib), fJawtDll);
       if (!fJawtDll.exists()) {
-        terminate(1, "problem copying %s", fJawtDll);
+        terminate(999, "problem copying %s", fJawtDll);
       }
     }
     areLibsExported = true;
@@ -1082,7 +1082,7 @@ public class RunTime {
   private void addToWindowsSystemPath(File fLibsFolder) {
     String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
     if (syspath == null) {
-      terminate(1, "addToWindowsSystemPath: cannot access system path");
+      terminate(999, "addToWindowsSystemPath: cannot access system path");
     } else {
       String libsPath = (fLibsFolder.getAbsolutePath()).replaceAll("/", "\\");
       if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
@@ -1090,7 +1090,7 @@ public class RunTime {
           syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
           if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
             log(-1, "addToWindowsSystemPath: adding to system path did not work:\n%s", syspath);
-            terminate(1, "addToWindowsSystemPath: did not work - see error");
+            terminate(999, "addToWindowsSystemPath: did not work - see error");
           }
         }
         log(lvl, "addToWindowsSystemPath: added to systempath:\n%s", libsPath);

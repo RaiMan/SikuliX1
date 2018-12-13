@@ -415,7 +415,7 @@ public class ScriptingSupport {
         }
       }
       if (currentRunner == null) {
-        System.exit(1);
+        Sikulix.endError(1);
       }
       exitCode = currentRunner.runInteractive(runTime.getSikuliArgs());
       currentRunner.close();
@@ -423,7 +423,7 @@ public class ScriptingSupport {
     }
 
 		if (runScripts == null) {
-			runTime.terminate(1, "option -r without any script");
+			Sikulix.terminate(1, "option -r without any script");
 		}
 
     if (runScripts.length > 0) {

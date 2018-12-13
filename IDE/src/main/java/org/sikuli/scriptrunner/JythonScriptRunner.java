@@ -97,7 +97,7 @@ public class JythonScriptRunner implements IScriptRunner {
   @Override
   public void init(String[] param) {
     if (runTime.runningWinApp) {
-      runTime.terminate(1, "JythonScriptRunner called in WinApp (packed .exe)");
+      helper.terminate(1, "JythonScriptRunner called in WinApp (packed .exe)");
     }
     if (isReady && interpreter != null) {
       return;
@@ -128,7 +128,7 @@ public class JythonScriptRunner implements IScriptRunner {
       interpreter.exec("from sikuli import *");
       log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
     } catch (Exception ex) {
-      runTime.terminate(1, "JythonScriptRunner: cannot be initialized:\n%s", ex);
+      helper.terminate(1, "JythonScriptRunner: cannot be initialized:\n%s", ex);
     }
     isReady = true;
   }

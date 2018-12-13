@@ -4,10 +4,7 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.App;
-import org.sikuli.script.Region;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
+import org.sikuli.script.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -186,7 +183,7 @@ public class MacUtil implements OSUtil {
                       + "(... -> Security & Privacy -> Privacy -> Accessibility)\n"
                       + "Please check the System Preferences and come back.",
               "macOS Accessibility", JOptionPane.ERROR_MESSAGE);
-      runTime.terminate(-1, "App: MacUtil: no access to assistive device support");
+      Sikulix.terminate(-1, "App: MacUtil: no access to assistive device support");
     }
   }
 

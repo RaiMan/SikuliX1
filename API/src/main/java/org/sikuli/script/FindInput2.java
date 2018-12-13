@@ -60,6 +60,9 @@ public class FindInput2 {
     if (Do.SX.isNull(source) && Do.SX.isNull(where)) {
       return false;
     }
+    if (target.empty()) {
+      return false;
+    }
     if (Do.SX.isNotNull(target)) {
       return true;
     }

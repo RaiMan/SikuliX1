@@ -24,7 +24,7 @@ import org.sikuli.util.ScreenHighlighter;
  */
 public class Screen extends Region implements IScreen {
 
-  static RunTime runTime = RunTime.get();
+  static RunTime runTime;
 
   private static String me = "Screen: ";
   private static int lvl = 3;
@@ -49,36 +49,84 @@ public class Screen extends Region implements IScreen {
   public ScreenImage lastScreenImage = null;
   private static boolean isActiveCapturePrompt = false;
   private static EventObserver captureObserver = null;
-
-  private static synchronized boolean setActiveCapturePrompt() {
-    if (isActiveCapturePrompt) {
-      return false;
-    }
-    Debug.log(3, "TRACE: Screen: setActiveCapturePrompt");
-    isActiveCapturePrompt = true;
-    return true;
-  }
-
-  private static synchronized void resetActiveCapturePrompt() {
-    Debug.log(3, "TRACE: Screen: resetActiveCapturePrompt");
-    isActiveCapturePrompt = false;
-    captureObserver = null;
-  }
+  private long lastCaptureTime = -1;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
 
   static {
+    runTime = RunTime.get();
     initScreens(false);
   }
 
-  private long lastCaptureTime = -1;
+  /**
+   * Is the screen object having the top left corner as (0,0). If such a screen does not exist it is
+   * the screen with id 0.
+   */
+  public Screen() {
+    super();
+    curID = primaryScreen;
+    initScreen();
+  }
 
-//  private static void initScreens() {
-//    initScreens(false);
-//  }
+  private void initScreen() {
+    Rectangle bounds = getBounds();
+    x = (int) bounds.getX();
+    y = (int) bounds.getY();
+    w = (int) bounds.getWidth();
+    h = (int) bounds.getHeight();
+/*
+    try {
+      robot = new RobotDesktop(this);
+      robot.setAutoDelay(10);
+    } catch (AWTException e) {
+      Debug.error("Can't initialize Java Robot on Screen " + curID + ": " + e.getMessage());
+      robot = null;
+    }
+*/
+    robot = globalRobot;
+  }
 
-  public int getcurrentID() {
-    return curID;
+/*
+  // hack to get an additional internal constructor for the initialization
+  private Screen(int id, boolean init) {
+    super();
+    curID = id;
+  }
+*/
+
+  // hack to get an additional internal constructor for the initialization
+  private Screen(int id, int monitor) {
+    super();
+    curID = id;
+    this.monitor = monitor;
+  }
+
+  public static Screen as(int id) {
+    if (id < 0 || id >= runTime.nMonitors) {
+      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
+              id, runTime.nMonitors - 1, primaryScreen);
+      return screens[0];
+    } else {
+      return screens[id];
+    }
+  }
+
+  /**
+   * The screen object with the given id
+   *
+   * @param id valid screen number
+   */
+  public Screen(int id) {
+    super();
+    if (id < 0 || id >= runTime.nMonitors) {
+      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
+              id, runTime.nMonitors - 1, primaryScreen);
+      curID = primaryScreen;
+    } else {
+      curID = id;
+    }
+    monitor = screens[curID].monitor;
+    initScreen();
   }
 
   private static void initScreens(boolean reset) {
@@ -167,47 +215,6 @@ public class Screen extends Region implements IScreen {
     return new ScreenUnion();
   }
 
-  // hack to get an additional internal constructor for the initialization
-  private Screen(int id, boolean init) {
-    super();
-    curID = id;
-  }
-
-  // hack to get an additional internal constructor for the initialization
-  private Screen(int id, int monitor) {
-    super();
-    curID = id;
-    this.monitor = monitor;
-  }
-
-  public static Screen as(int id) {
-    if (id < 0 || id >= runTime.nMonitors) {
-      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, runTime.nMonitors - 1, primaryScreen);
-      return screens[0];
-    } else {
-      return screens[id];
-    }
-  }
-
-  /**
-   * The screen object with the given id
-   *
-   * @param id valid screen number
-   */
-  public Screen(int id) {
-    super();
-    if (id < 0 || id >= runTime.nMonitors) {
-      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, runTime.nMonitors - 1, primaryScreen);
-      curID = primaryScreen;
-    } else {
-      curID = id;
-    }
-    monitor = screens[curID].monitor;
-    initScreen();
-  }
-
   /**
    * INTERNAL USE
    * collect all physical screens to one big region<br>
@@ -237,36 +244,12 @@ public class Screen extends Region implements IScreen {
     curID = oldID;
   }
 
-  /**
-   * Is the screen object having the top left corner as (0,0). If such a screen does not exist it is
-   * the screen with id 0.
-   */
-  public Screen() {
-    super();
-    curID = primaryScreen;
-    initScreen();
-  }
-
+/*
   //TODO: remove this method if it is not needed
   public void initScreen(Screen scr) {
     updateSelf();
   }
-
-  private void initScreen() {
-    Rectangle bounds = getBounds();
-    x = (int) bounds.getX();
-    y = (int) bounds.getY();
-    w = (int) bounds.getWidth();
-    h = (int) bounds.getHeight();
-//    try {
-//      robot = new RobotDesktop(this);
-//      robot.setAutoDelay(10);
-//    } catch (AWTException e) {
-//      Debug.error("Can't initialize Java Robot on Screen " + curID + ": " + e.getMessage());
-//      robot = null;
-//    }
-    robot = globalRobot;
-  }
+*/
 
   /**
    * {@inheritDoc}
@@ -322,6 +305,10 @@ public class Screen extends Region implements IScreen {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="getters setters">
+  public int getcurrentID() {
+    return curID;
+  }
+
   protected boolean useFullscreen() {
     return false;
   }
@@ -629,6 +616,21 @@ public class Screen extends Region implements IScreen {
       Screen.getScreen(is).prompt.close();
       Screen.getScreen(is).prompt = null;
     }
+  }
+
+  private static synchronized boolean setActiveCapturePrompt() {
+    if (isActiveCapturePrompt) {
+      return false;
+    }
+    Debug.log(3, "TRACE: Screen: setActiveCapturePrompt");
+    isActiveCapturePrompt = true;
+    return true;
+  }
+
+  private static synchronized void resetActiveCapturePrompt() {
+    Debug.log(3, "TRACE: Screen: resetActiveCapturePrompt");
+    isActiveCapturePrompt = false;
+    captureObserver = null;
   }
 
   public static void resetPrompt(OverlayCapturePrompt ocp) {

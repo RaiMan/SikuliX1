@@ -13,12 +13,8 @@ import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.security.CodeSource;
 
 public class Sikulix {
 
@@ -28,76 +24,94 @@ public class Sikulix {
     Debug.logx(level, "Sikulix: " + message, args);
   }
 
-  private static void p(String msg, Object... args) {
-    System.out.println(String.format(msg, args));
+  private static String p(String msg, Object... args) {
+    String outMsg = String.format(msg, args);
+    System.out.println(outMsg);
+    return outMsg;
   }
 
-  private static void terminate(int retVal, String msg, Object... args) {
-    p(msg, args);
-    System.exit(retVal);
-  }
-
-  private static boolean runningFromJar;
-  private static String jarPath;
-  private static String jarParentPath;
   private static final String prefNonSikuli = "nonSikuli_";
-  private static RunTime rt = null;
-  //public static int testNumber = -1;
-  private static boolean shouldRunServer = false;
+  private static RunTime runTime = null;
   private static Point locPopAt = null;
 
-  static {
-    String jarName = "";
-
-    CodeSource codeSrc = Sikulix.class.getProtectionDomain().getCodeSource();
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      jarName = codeSrc.getLocation().getPath();
-    }
-
-    if (jarName.contains("sikulixsetupAPI")) {
-      JOptionPane.showMessageDialog(null, "Not useable!\nRun setup first!",
-              "sikulixsetupAPI", JOptionPane.ERROR_MESSAGE);
-      System.exit(0);
-    }
-
-    rt = RunTime.get();
-
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      URL jarURL = codeSrc.getLocation();
-      jarPath = FileManager.slashify(new File(jarURL.getPath()).getAbsolutePath(), false);
-      jarParentPath = (new File(jarPath)).getParent();
-      if (jarPath.endsWith(".jar")) {
-        runningFromJar = true;
-      } else {
-        jarPath += "/";
-      }
-    }
+  private static Screen init() {
+    return new Screen();
   }
 
+  public static boolean start() {
+    return start(false);
+  }
+
+  public static boolean start(boolean withException) {
+    Screen scr = init();
+    return true;
+  }
+
+  public static void endNormal(int n) {
+    terminate(n, "Sikulix: endNormal");
+  }
+
+  public static void endWarning(int n) {
+    terminate(n, "Sikulix: endWarning");
+  }
+
+  public static void endError(int n) {
+    terminate(n, "Sikulix: endError");
+  }
+
+  public static void terminate(int retVal, String msg, Object... args) {
+    String outMsg = p(msg, args);
+    cleanUp(retVal);
+    if (retVal < 999) {
+      System.exit(retVal);
+    }
+    throw new RuntimeException("Sikulix fatal error: " + outMsg);
+  }
+
+  /**
+   * INTERNAL USE: resets stateful Sikuli X features: <br>
+   * ScreenHighlighter, Observing, Mouse, Key, Hotkeys <br>
+   * When in IDE: resets selected options to defaults (TODO)
+   *
+   * @param n returncode
+   */
+  public static void cleanUp(int n) {
+    log(lvl, "cleanUp: %d", n);
+    VNCScreen.stopAll();
+    ADBScreen.stop();
+    ScreenHighlighter.closeAll();
+    Observing.cleanUp();
+    HotkeyManager.reset();
+    try {
+      new RobotDesktop().keyUp();
+    } catch (AWTException e) {
+    }
+    Mouse.reset();
+  }
   public static void main(String[] args) throws FindFailed {
+    runTime = RunTime.get();
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.print(rt.sxBuild);
+      System.out.print(runTime.sxBuild);
       cleanUp(0);
       System.exit(0);
     }
 
-    RunTime.checkArgs(rt, args, RunTime.Type.API);
-    if (rt.runningScripts) {
+    RunTime.checkArgs(runTime, args, RunTime.Type.API);
+    if (runTime.runningScripts) {
       int exitCode = Runner.runScripts(args);
       cleanUp(exitCode);
       System.exit(exitCode);
     }
 
-    if (rt.shouldRunServer) {
+    if (runTime.shouldRunServer) {
       if (RunServer.run(null)) {
         System.exit(1);
       }
+      System.exit(0);
     }
 
-    boolean playing = false;
     if (args.length > 0 && "play".equals(args[0])) {
-      playing = true;
 //-------- playground Observe
 //      Region reg = new Region(0,0,80,80);
 //      reg.highlight(2);
@@ -144,29 +158,28 @@ public class Sikulix {
 //      }
 // -------- playground
     }
-    if (playing) {
-      System.exit(1);
-    }
 
-    String version = rt.getVersion();
-    File lastSession = new File(rt.fSikulixStore, "LastAPIJavaScript.js");
-    String runSomeJS = "";
-    if (lastSession.exists()) {
-      runSomeJS = FileManager.readFileToString(lastSession);
-    }
-    runSomeJS = inputText("enter some JavaScript (know what you do - may silently die ;-)"
-                    + "\nexample: run(\"git*\") will run the JavaScript showcase from GitHub"
-                    + "\nWhat you enter now will be shown the next time.",
-            "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
-    if (runSomeJS == null || runSomeJS.isEmpty()) {
-      popup("Nothing to do!", version);
-    } else {
-      while (null != runSomeJS && !runSomeJS.isEmpty()) {
-        FileManager.writeStringToFile(runSomeJS, lastSession);
-        Runner.runjs(null, null, runSomeJS, null);
-        runSomeJS = inputText("Edit the JavaScript and/or press OK to run it (again)\n"
-                        + "Press Cancel to terminate",
-                "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
+    if (args.length == 1 && "test".equals(args[0])) {
+      String version = runTime.getVersion();
+      File lastSession = new File(runTime.fSikulixStore, "LastAPIJavaScript.js");
+      String runSomeJS = "";
+      if (lastSession.exists()) {
+        runSomeJS = FileManager.readFileToString(lastSession);
+      }
+      runSomeJS = inputText("enter some JavaScript (know what you do - may silently die ;-)"
+                      + "\nexample: run(\"git*\") will run the JavaScript showcase from GitHub"
+                      + "\nWhat you enter now will be shown the next time.",
+              "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
+      if (runSomeJS == null || runSomeJS.isEmpty()) {
+        popup("Nothing to do!", version);
+      } else {
+        while (null != runSomeJS && !runSomeJS.isEmpty()) {
+          FileManager.writeStringToFile(runSomeJS, lastSession);
+          Runner.runjs(null, null, runSomeJS, null);
+          runSomeJS = inputText("Edit the JavaScript and/or press OK to run it (again)\n"
+                          + "Press Cancel to terminate",
+                  "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
+        }
       }
     }
     System.exit(0);
@@ -279,164 +292,12 @@ public class Sikulix {
     return jython;
   }
 
-  public static boolean isRunningFromJar() {
-    return runningFromJar;
-  }
-
-  public static String getJarPath() {
-    return jarPath;
-  }
-
-  public static String getJarParentPath() {
-    return jarParentPath;
-  }
-
-  private static boolean runningSikulixapi = false;
-
-  /**
-   * Get the value of runningSikulixUtilapi
-   *
-   * @return the value of runningSikulixUtilapi
-   */
-  public static boolean isRunningSikulixapi() {
-    return runningSikulixapi;
-  }
-
-  /**
-   * Set the value of runningSikulixUtilapi
-   *
-   * @param runningAPI new value of runningSikulixUtilapi
-   */
-  public static void setRunningSikulixapi(boolean runningAPI) {
-    runningSikulixapi = runningAPI;
-  }
-
-  /**
-   * call this, to initialize Sikuli up to useability
-   *
-   * @return the primary screen object or null if headless
-   */
-  public static Screen init() {
-    if (!canRun()) {
-      return null;
-    }
-//TODO collect initializations here
-    Mouse.init();
-    return new Screen();
-  }
-
-  /**
-   * Can SikuliX be run on this machine?
-   *
-   * @return true if not running headless false otherwise
-   */
-  public static boolean canRun() {
-    return !RunTime.get().isHeadless();
-  }
-
-  /**
-   * INTERNAL USE: convenience function: runs {@link #cleanUp(int)}, prints a message endNormal and terminates with
-   * returncode
-   *
-   * @param n
-   */
-  public static void endNormal(int n) {
-    log(lvl, "endNormal: %d", n);
-    cleanUp(n);
-    System.exit(n);
-  }
-
-  /**
-   * INTERNAL USE: convenience function: runs {@link #cleanUp(int)}, prints a message endWarning and terminates with
-   * returncode
-   *
-   * @param n returncode
-   */
-  public static void endWarning(int n) {
-    log(lvl, "endWarning: %d", n);
-    cleanUp(n);
-    System.exit(n);
-  }
-
-  /**
-   * INTERNAL USE: convenience function: runs {@link #cleanUp(int)}, prints a message endError and terminates with
-   * returncode
-   *
-   * @param n
-   */
-  public static void endError(int n) {
-    log(lvl, "endError: %d", n);
-    cleanUp(n);
-    System.exit(n);
-  }
-
-  public static void terminate(int n) {
-    String msg = "***** Terminating SikuliX Setup after a fatal error"
-            + (n == 0 ? "*****\n" : " %d *****\n")
-            + "SikuliX is not useable!\n"
-            + "Check the error log at " + Debug.logfile;
-    if (Settings.runningSetup) {
-      if (Settings.noPupUps) {
-        log(-1, msg, n);
-      } else {
-        popError(String.format(msg, n));
-      }
-    } else {
-      msg = "***** Terminating SikuliX after a fatal error"
-              + (n == 0 ? "*****\n" : " %d *****\n")
-              + "It makes no sense to continue!\n"
-              + "If you do not have any idea about the error cause or solution, run again\n"
-              + "with a Debug level of 3. You might paste the output to the Q&A board.";
-      log(-1, msg, n);
-      if (Settings.isRunningIDE) {
-        popError(String.format(msg, n));
-      }
-      cleanUp(n);
-    }
-    if (!Settings.isRunningIDE) {
-      System.exit(1);
-    } else {
-      throw new IllegalStateException("Aborting script due to an internal error - see log");
-    }
-  }
-
-  /**
-   * INTERNAL USE: resets stateful Sikuli X features: <br>
-   * ScreenHighlighter, Observing, Mouse, Key, Hotkeys <br>
-   * When in IDE: resets selected options to defaults (TODO)
-   *
-   * @param n returncode
-   */
-  public static void cleanUp(int n) {
-    log(lvl, "cleanUp: %d", n);
-    VNCScreen.stopAll();
-    ADBScreen.stop();
-    ScreenHighlighter.closeAll();
-    Observing.cleanUp();
-    HotkeyManager.reset();
-    try {
-      new RobotDesktop().keyUp();
-    } catch (AWTException e) {
-    }
-    Mouse.reset();
-  }
-
-//  @Deprecated
-//  public static boolean addToClasspath(String jar) {
-//    return RunTime.get().addToClasspath(jar);
-//  }
-//
-//  @Deprecated
-//  public static boolean isOnClasspath(String artefact) {
-//    return null != RunTime.get().isOnClasspath(artefact);
-//  }
-
   public static String run(String cmdline) {
     return run(new String[]{cmdline});
   }
 
   public static String run(String[] cmd) {
-    return rt.runcmd(cmd);
+    return RunTime.get().runcmd(cmd);
   }
 
   public static void popError(String message) {
@@ -573,7 +434,7 @@ public class Sikulix {
   }
 
   private static Point getLocPopAt() {
-    Rectangle screen0 = rt.getMonitor(0);
+    Rectangle screen0 = RunTime.get().getMonitor(0);
     if (null == screen0) {
       return null;
     }

@@ -15,8 +15,6 @@ import java.util.List;
 
 public class Finder implements Iterator<Match> {
 
-  public final static int TARGET_TYPE_TEXT = 3;
-
   private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
@@ -216,7 +214,7 @@ public class Finder implements Iterator<Match> {
     }
     Mat mat = Finder2.makeMat(newBimg, false);
     if (mat.empty()) {
-      RunTime.get().terminate(-1, "%s: conversion error --- makes no sense to continue", img);
+      log(-1, "%s: conversion error --- find will fail", img);
     }
     return mat;
   }

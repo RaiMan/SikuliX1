@@ -42,7 +42,7 @@ public class JythonHelper implements JLangHelperInterface {
   }
 
   public void terminate(int retVal, String msg, Object... args) {
-    runTime.terminate(retVal, me + msg, args);
+    Sikulix.terminate(retVal, me + msg, args);
   }
   //</editor-fold>
 
@@ -102,7 +102,7 @@ public class JythonHelper implements JLangHelperInterface {
       instance.log(lvl, "init: success");
     }
     if (cInterpreter == null) {
-      runTime.terminate(1, "JythonHelper: no Jython available");
+      instance.terminate(1, "JythonHelper: no Jython available");
     }
     runTime.isJythonReady = true;
     return instance;
@@ -389,8 +389,7 @@ public class JythonHelper implements JLangHelperInterface {
     if (runTime.isRunningFromJar()) {
       File fLibRobot = new File(runTime.fSikulixLib, "robot");
       if (!fLibRobot.exists()) {
-        log(-1, "prepareRobot: not available: %s", fLibRobot);
-        Sikulix.terminate(1);
+        Sikulix.terminate(1, "prepareRobot: not available: %s", fLibRobot);
       }
       if (!hasSysPath(runTime.fSikulixLib.getAbsolutePath())) {
         insertSysPath(runTime.fSikulixLib);
