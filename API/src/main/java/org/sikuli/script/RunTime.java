@@ -64,8 +64,8 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="variables">
   public enum Type {
 
-//    IDE, API, SETUP, INIT
-    IDE, API, INIT
+    IDE, API, SETUP, INIT
+//    IDE, API, INIT
   }
 
   private enum theSystem {
