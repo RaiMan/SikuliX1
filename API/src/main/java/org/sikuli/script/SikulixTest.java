@@ -234,8 +234,10 @@ public class SikulixTest {
       }
     } else if (runTest.size() == 0) {
       before("test99", "play");
-//      Debug.on(3);
+      Debug.on(3);
 //      Debug.globalTraceOn();
+      App app = new App("calculator");
+      app.open(3);
       after();
     }
 
