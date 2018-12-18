@@ -624,6 +624,14 @@ public class RunTime {
       urlCodeSrc = codeSrc.getLocation();
       if (null != codeSrc) {
         base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
+        if (urlCodeSrcProto == "file") {
+          runningAs = RunType.CLASSES;
+          if (urlCodeSrc.getPath().endsWith(".jar")) {
+            runningAs = RunType.JAR;
+          }
+        } else {
+          runningAs = RunType.OTHER;
+        }
       }
     }
     appType = "from a jar";
@@ -631,7 +639,7 @@ public class RunTime {
       fSxBaseJar = new File(base);
       String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
-      log(lvl, "runs as %s in: %s", baseJarName, fSxBase.getAbsolutePath());
+      log(lvl, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
       Debug.setWithTimeElapsed();
       if (baseJarName.contains("classes")) {
         runningJar = false;
