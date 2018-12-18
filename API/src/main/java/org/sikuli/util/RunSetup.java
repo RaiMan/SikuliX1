@@ -360,7 +360,7 @@ public class RunSetup {
     Settings.runningSetup = true;
     Settings.LogTime = true;
 
-    runTime.makeFolders();
+    //TODO runTime.makeFolders();
 
     fWorkDir = runTime.fSxBase;
     fDownloadsGeneric = runTime.fSikulixDownloadsGeneric;
@@ -1143,7 +1143,7 @@ public class RunSetup {
     if (getIDE && !notests && !runTime.isHeadless()) {
       success = true;
       if (!runAPITest) {
-        runTime.makeFolders();
+        //TODO runTime.makeFolders();
       }
       if (!runTime.isJava9("setup IDE test - addToClasspath() skipped")) {
         if (!runTime.addToClasspath(localJarIDE.getAbsolutePath())) {

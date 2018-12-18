@@ -38,18 +38,12 @@ import java.util.Map;
  */
 public class App {
 
-  static RunTime runTime = RunTime.get();
-
-  private static final OSUtil _osUtil = SysUtil.getOSUtil();
+  private static OSUtil _osUtil = null;
   private static final Map<Type, String> appsWindows;
   private static final Map<Type, String> appsMac;
   private static final Region aRegion = new Region();
 
   static {
-//TODO Sikuli hangs if App is used before Screen
-//    new Screen();
-    _osUtil.checkFeatureAvailability();
-
     appsWindows = new HashMap<Type, String>();
     appsWindows.put(Type.EDITOR, "Notepad");
     appsWindows.put(Type.BROWSER, "Google Chrome");
@@ -166,7 +160,7 @@ public class App {
     Region win;
     try {
       if (Type.EDITOR.equals(appType)) {
-        if (runTime.runningMac) {
+        if (RunTime.get().runningMac) {
           app = new App(appsMac.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -184,7 +178,7 @@ public class App {
             return win;
           }
         }
-        if (runTime.runningWindows) {
+        if (RunTime.get().runningWindows) {
           app = new App(appsWindows.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -203,7 +197,7 @@ public class App {
           }
         }
       } else if (Type.BROWSER.equals(appType)) {
-        if (runTime.runningWindows) {
+        if (RunTime.get().runningWindows) {
           app = new App(appsWindows.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -345,6 +339,10 @@ public class App {
   }
 
   private void init(String name) {
+    if (_osUtil == null) {
+      _osUtil = SysUtil.getOSUtil();
+      _osUtil.checkFeatureAvailability();
+    }
     appName = appNameGiven;
     String[] parts;
     //C:\Program Files\Mozilla Firefox\firefox.exe -- options
@@ -574,9 +572,9 @@ public class App {
       return this;
     }
     focus();
-    if (runTime.runningWindows) {
+    if (RunTime.get().runningWindows) {
       window().type(Key.F4, Key.ALT);
-    } else if (runTime.runningMac) {
+    } else if (RunTime.get().runningMac) {
       window().type("q", Key.CMD);
     } else {
       window().type("q", Key.CTRL);
@@ -714,8 +712,8 @@ public class App {
    * @return the final returncode of the command execution
    */
   public static int run(String cmd) {
-    lastRunResult = runTime.runcmd(cmd);
-    String NL = runTime.runningWindows ? "\r\n" : "\n";
+    lastRunResult = RunTime.get().runcmd(cmd);
+    String NL = RunTime.get().runningWindows ? "\r\n" : "\n";
     String[] res = lastRunResult.split(NL);
     try {
       lastRunReturnCode = Integer.parseInt(res[0].trim());
@@ -729,7 +727,7 @@ public class App {
         lastRunStderr += res[n] + NL;
         continue;
       }
-      if (RunTime.runCmdError.equals(res[n])) {
+      if (RunTime.get().runCmdError.equals(res[n])) {
         isError = true;
         continue;
       }

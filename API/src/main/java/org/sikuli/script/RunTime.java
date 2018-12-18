@@ -96,7 +96,6 @@ public class RunTime {
   public String fpBaseTempPath = "";
 
   private Class clsRef = RunTime.class;
-  private Class clsRefAPI = Sikulix.class;
 
   private List<URL> classPath = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
@@ -768,22 +767,20 @@ public class RunTime {
   public String SXJavaVersion;
 
   public String SikuliJythonVersion;
-  public String SikuliJythonVersion25 = "2.5.4-rc1";
-  public String SikuliJythonMaven;
-  public String SikuliJythonMaven25;
-  public String SikuliJython;
-  public String SikuliJython25;
   public String SikuliJRubyVersion;
-  public String SikuliJRuby;
-  public String SikuliJRubyMaven;
 
   public String dlMavenRelease = "https://repo1.maven.org/maven2/";
   public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
   public String SikuliRepo;
   public String SikuliLocalRepo = "";
   public String[] ServerList = {};
-
-  public Map<String, String> tessData = new HashMap<String, String>();
+  public String SikuliJythonVersion25 = "2.5.4-rc1";
+  public String SikuliJythonMaven;
+  public String SikuliJythonMaven25;
+  public String SikuliJython;
+  public String SikuliJython25;
+  public String SikuliJRuby;
+  public String SikuliJRubyMaven;
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
 
@@ -791,6 +788,14 @@ public class RunTime {
     SikuliRepo = null;
     Properties prop = new Properties();
     String svf = "sikulixversion.txt";
+//    sikulixvmaj=1
+//    sikulixvmin=1
+//    sikulixvsub=4
+//    sikulixbuild=2018-12-12_15:13
+//    sikulixvused=1.1.4-SNAPSHOT
+//    sikulixvproject=1.1.4-SNAPSHOT
+//    sikulixvjython=2.7.1
+//    sikulixvjruby=9.2.0.0
     try {
       InputStream is;
       is = RunTime.class.getClassLoader().getResourceAsStream("Settings/" + svf);
@@ -800,11 +805,25 @@ public class RunTime {
       }
       prop.load(is);
       is.close();
+//    sikulixvmaj=1
+//    sikulixvmin=1
+//    sikulixvsub=4
       SikuliVersionMajor = Integer.decode(prop.getProperty("sikulixvmaj"));
       SikuliVersionMinor = Integer.decode(prop.getProperty("sikulixvmin"));
       SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
+//    sikulixbuild=2018-12-12_15:13
       SXBuild = prop.getProperty("sikulixbuild");
+//    sikulixvproject=1.1.4-SNAPSHOT
       SXVersion = prop.getProperty("sikulixvproject");
+//    sikulixvused=1.1.4-SNAPSHOT
+      String sikulixvused = prop.getProperty("sikulixvused");
+      if (!sikulixvused.equals(SXVersion)) {
+        Debug.error("Settings: Project (%s) != Version (%s)", SXVersion, sikulixvused);
+      }
+//    sikulixvjython=2.7.1
+      SikuliJythonVersion = prop.getProperty("sikulixvjython");
+//    sikulixvjruby=9.2.0.0
+      SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
     } catch (Exception e) {
       Debug.error("Settings: load version file %s did not work", svf);
       Sikulix.endError(999);
@@ -817,6 +836,17 @@ public class RunTime {
     SXVersionLong = SXVersion + "-" + SXBuild;
     SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
 
+    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
+    SikuliJythonMaven = "org/python/jython-standalone/"
+            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+    SikuliJythonMaven25 = "org/python/jython-standalone/"
+            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
+    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
+    SikuliJRubyMaven = "org/jruby/jruby-complete/"
+            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
+
     String osn = "UnKnown";
     String os = System.getProperty("os.name").toLowerCase();
     if (os.startsWith("mac")) {
@@ -826,24 +856,8 @@ public class RunTime {
     } else if (os.startsWith("linux")) {
       osn = "Linux";
     }
-
-    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
-    SikuliJythonVersion = prop.getProperty("sikulixvjython");
-    SikuliJythonMaven = "org/python/jython-standalone/"
-            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
-    SikuliJythonMaven25 = "org/python/jython-standalone/"
-            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
-    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
-    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
-    SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
-    SikuliJRubyMaven = "org/jruby/jruby-complete/"
-            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
-    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
-
     SXSystemVersion = osn + System.getProperty("os.version");
     SXJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
-//    tessData.put("eng", "http://tesseract-ocr.googlecode.com/files/tesseract-ocr-3.02.eng.tar.gz");
-    tessData.put("eng", "http://download.sikulix.com/tesseract-ocr-3.02.eng.tar.gz");
     Env.setSikuliVersion(SXVersion);
   }
 
@@ -853,60 +867,11 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="libs export">
-  public File fLibsFolderStatic = null;
-
-  public boolean makeFolders() {
-    boolean newLibsFolder = false;
-    fLibsFolderStatic = new File(fSikulixAppPath, "SikulixLibs");
-//    fLibsFolder = new File(fSikulixAppPath, "SikulixLibs_" + sxBuildStamp);
-    fLibsFolder = fLibsFolderStatic;
-    if (!fLibsFolder.exists()) {
-      fLibsFolder.mkdirs();
-      if (!fLibsFolder.exists()) {
-        terminate(999, "libs folder not available: " + fLibsFolder.toString());
-      }
-      log(lvl, "new libs folder at: %s", fLibsFolder);
-      newLibsFolder = true;
-    } else {
-      log(lvl, "exists libs folder at: %s", fLibsFolder);
-    }
-    String[] fpList = fTempPath.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "deleting obsolete libs folders in Temp");
-      for (String entry : fpList) {
-        if (entry.endsWith(sxBuildStamp)) {
-          continue;
-        }
-        FileManager.deleteFileOrFolder(new File(fTempPath, entry));
-      }
-    }
-    fpList = fSikulixAppPath.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs_")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "deleting obsolete libs folders in AppPath");
-      for (String entry : fpList) {
-        FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
-      }
-    }
-    return newLibsFolder;
-  }
-
   private boolean libsLoad(String libName) {
+    String msg = "loadLib: %s";
+    log(lvl, msg + " (starting)", libName);
+    //TODO areLibsExported
+    areLibsExported = false;
     if (!areLibsExported) {
       libsExport();
     }
@@ -921,26 +886,20 @@ public class RunTime {
     } else if (runningLinux) {
       libName = "lib" + libName + ".so";
     }
-    String msg = "loadLib: %s";
     File fLib = new File(fLibsFolder, libName);
     int level = lvl;
     if (!runningLinux) {
       Boolean vLib = libsLoaded.get(libName);
       if (vLib == null || !fLib.exists()) {
-        fLib = new File(fLibsFolderStatic, libName);
         if (!fLib.exists()) {
           terminate(999, String.format("loadlib: %s not in any libs folder", libName));
         } else {
-          fLibsFolderUsed = fLibsFolderStatic;
-          libsLoaded.put(libName, true);
           vLib = false;
         }
       }
       if (vLib) {
         level++;
         msg += " already loaded";
-      }
-      if (vLib) {
         log(level, msg, libName);
         return true;
       }
@@ -955,7 +914,7 @@ public class RunTime {
           libName = "opencv_java";
           System.loadLibrary(libName);
         } else {
-          System.load(new File(fLibsFolderUsed, libName).getAbsolutePath());
+          System.load(fLib.getAbsolutePath());
         }
       } catch (Error e) {
         loadError = e;
@@ -976,31 +935,74 @@ public class RunTime {
       }
     }
     libsLoaded.put(libName, true);
-    log(level, msg, libName);
+    log(level, msg + " (success)", libName);
     return true;
   }
 
   private void libsExport() {
-    boolean newLibsFolder = makeFolders();
-    String sysChar = runningOn.toString().substring(0, 1);
-    URL urlLibsLocation = clsRefAPI.getResource(fpJarLibs);
-    String protocol = urlLibsLocation.getProtocol();
-    String jarPath = "";
-    String jarFolder = "";
-    if ("jar".equals(protocol)) {
-      jarPath = urlLibsLocation.getPath()
-              .replace("file:", "")
-              .replaceAll("%20", " ");
-      String[] parts = jarPath.split("!");
-      jarFolder = "/";
-      if (parts.length > 1) {
-        jarPath = parts[0];
-        jarFolder = parts[1];
+/*
+    remove obsolete libs folders in Temp
+*/
+    String[] fpList = fTempPath.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.contains("SikulixLibs")) {
+          return true;
+        }
+        return false;
       }
-    } else if ("file" != protocol){
-      terminate(999, "export libs invalid: %s", urlLibsLocation);
+    });
+    if (fpList.length > 0) {
+      log(lvl, "deleting obsolete libs folders in Temp");
+      for (String entry : fpList) {
+        if (entry.endsWith(sxBuildStamp)) {
+          continue;
+        }
+        FileManager.deleteFileOrFolder(new File(fTempPath, entry));
+      }
     }
-    String resourceList = runTime.resourceListAsString(fpJarLibs, null);
+
+/*
+    remove libsfolder < 1.1.4
+*/
+    fpList = fSikulixAppPath.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.contains("SikulixLibs_")) {
+          return true;
+        }
+        return false;
+      }
+    });
+    if (fpList.length > 0) {
+      log(lvl, "deleting obsolete libs folders in AppPath");
+      for (String entry : fpList) {
+        FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
+      }
+    }
+
+/*
+    make libsfolder if needed
+*/
+    boolean newLibsFolder = false;
+    fLibsFolder = new File(fSikulixAppPath, "SikulixLibs");
+    if (!fLibsFolder.exists()) {
+      fLibsFolder.mkdirs();
+      if (!fLibsFolder.exists()) {
+        terminate(999, "libs folder not available: " + fLibsFolder.toString());
+      }
+      log(lvl, "new libs folder at: %s", fLibsFolder);
+      newLibsFolder = true;
+    } else {
+      log(lvl, "exists libs folder at: %s", fLibsFolder);
+    }
+
+/*
+    export
+*/
+    List<String> nativesList = getResourceList(fpJarLibs);
+
+    String resourceList = resourceListAsString(fLibsFolder.getAbsolutePath(), null);
     Matcher matcher = Pattern.compile("1\\..*?MadeForSikuliX.*?txt").matcher(resourceList);
     String libVersion = "";
     if (matcher.find()) {
@@ -1012,6 +1014,7 @@ public class RunTime {
       log(lvl, "libs folder empty or has wrong content");
       shouldExport = true;
     }
+
     if (shouldExport) {
       if (!newLibsFolder) {
         FileManager.deleteFileOrFolder(fLibsFolder);
@@ -1020,15 +1023,8 @@ public class RunTime {
           terminate(999, "libs folder not available: " + fLibsFolder.toString());
         }
       }
-      log(lvl, "export libs from: %s", urlLibsLocation);
-      if ("file".equals(protocol)) {
-        //log(lvl, "file: %s", urlLibsLocation.getPath());
-        extractResourcesToFolder(urlLibsLocation.getPath(), fLibsFolder, null);
-      } else if ("jar".equals(protocol)) {
-        log(lvl, "jar: %s at %s", jarPath, jarFolder);
-        extractResourcesToFolderFromJar(jarPath, jarFolder, fLibsFolder, null);
-      }
     }
+
     shouldExport = false;
     for (String aFile : fLibsFolder.list()) {
       libsLoaded.put(aFile, false);
@@ -1320,6 +1316,46 @@ public class RunTime {
     System.out.println("***** System Information Dump ***** end *****");
   }
 //</editor-fold>
+
+  //<editor-fold desc="get resources NEW">
+  public List<String> getResourceList(String res) {
+    return getResourceList(res, clsRef);
+  }
+
+  public List<String> getResourceList(String res, Class classReference) {
+    List<String> resList = new ArrayList<>();
+    InputStream aIS = null;
+    String content = null;
+    File fRes = new File(res);
+    res = fRes.getPath();
+    if (!fRes.isAbsolute()) {
+      res = "/" + res;
+    }
+    try {
+      aIS = (InputStream) classReference.getResourceAsStream(res);
+      if (aIS != null) {
+        content = new String(copy(aIS));
+        aIS.close();
+      }
+      aIS = null;
+    } catch (Exception ex) {
+      log(-1, "getResourceList: %s (%s)", res, ex);
+    }
+    try {
+      if (aIS != null) {
+        aIS.close();
+      }
+    } catch (Exception ex) {
+    }
+    if (null != content) {
+      String[] names = content.split("\n");
+      for (String name : names) {
+        resList.add(name.strip());
+      }
+    }
+    return resList;
+  }
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="handling resources from classpath">
   protected List<String> extractTessData(File folder) {
@@ -2449,7 +2485,6 @@ public class RunTime {
       }
     }
   }
-
-//</editor-fold>
+  //</editor-fold>
 
 }

@@ -18,15 +18,12 @@ import java.util.List;
 
 public class TextRecognizer {
 
-  static {
-    Finder2.init();
-  }
-
-  static RunTime runTime = RunTime.get();
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
-  private TextRecognizer() { }
+  private TextRecognizer() {
+    Finder2.init();
+  }
 
   private static boolean valid = false;
   public boolean isValid() {
@@ -50,8 +47,8 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      if (runTime.runningMac) {
-        System.setProperty("jna.library.path", runTime.fLibsFolder.getAbsolutePath());
+      if (RunTime.get().runningMac) {
+        System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
       }
       textRecognizer.tess = new Tesseract1();
       File fTessdataPath = extractTessdata();
@@ -79,9 +76,9 @@ public class TextRecognizer {
       valid = fTessdataPath.exists();
     }
     if (!valid) {
-      fTessdataPath = new File(runTime.fSikulixAppPath, "SikulixTesseract/tessdata");
+      fTessdataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
       if (!(valid = fTessdataPath.exists())) {
-        if (!(valid = (null != runTime.extractTessData(fTessdataPath)))) {
+        if (!(valid = (null != RunTime.get().extractTessData(fTessdataPath)))) {
           Debug.error("TextRecognizer: start: export tessdata not possible");
         }
       }
