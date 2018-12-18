@@ -15,6 +15,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.List;
 
 public class Sikulix {
 
@@ -148,6 +151,29 @@ public class Sikulix {
 //        }
 //      }
 // -------- playground
+      TextRecognizer.start();
+    }
+
+    if (args.length == 1 && "createlibs".equals(args[0])) {
+      Debug.off();
+      CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
+      if (codeSource != null && codeSource.getLocation().toString().endsWith("classes/")) {
+        File libsSource = new File(new File(codeSource.getLocation().getFile()).getParentFile().getParentFile(), "src/main/resources");
+        for (String sys : new String[] {"mac", "windows", "linux"}) {
+          p("******* %s", sys);
+          String sxcontentFolder = String.format("sikulixlibs/%s/libs64", sys);
+          List<String> sikulixlibs = runTime.getResourceList(sxcontentFolder);
+          String sxcontent = "";
+          for (String lib : sikulixlibs) {
+            if (lib.equals("sikulixcontent")) {
+              continue;
+            }
+            sxcontent += lib + "\n";
+          }
+          p("%s", sxcontent);
+          FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
+        }
+      }
     }
 
     if (args.length == 1 && "test".equals(args[0])) {

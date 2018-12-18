@@ -892,9 +892,6 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="libs export">
   private boolean libsLoad(String libName) {
     String msg = "loadLib: %s";
-    log(lvl, msg + " (starting)", libName);
-    //TODO areLibsExported
-    areLibsExported = false;
     if (!areLibsExported) {
       libsExport();
     }
@@ -976,7 +973,7 @@ public class RunTime {
       }
     });
     if (fpList.length > 0) {
-      log(lvl, "deleting obsolete libs folders in Temp");
+      log(lvl, "libsExport: deleting obsolete libs folders in Temp");
       for (String entry : fpList) {
         if (entry.endsWith(sxBuildStamp)) {
           continue;
@@ -998,64 +995,72 @@ public class RunTime {
       }
     });
     if (fpList.length > 0) {
-      log(lvl, "deleting obsolete libs folders in AppPath");
+      log(lvl, "libsExport: deleting obsolete libs folders in AppPath");
       for (String entry : fpList) {
         FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
       }
     }
 
 /*
-    make libsfolder if needed
+    export
 */
-    boolean newLibsFolder = false;
     fLibsFolder = new File(fSikulixAppPath, "SikulixLibs");
+    String libMsg = "folder exists:";
+    if (fLibsFolder.exists()) {
+      String[] resourceList = fLibsFolder.list(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          if (name.contains("_MadeForSikuliX")) return true;
+          return false;
+        }
+      });
+      String libVersion = "";
+      String libStamp = "";
+      if (resourceList.length > 0) {
+        Matcher matcher = Pattern.compile("(.*?)_(.*?)_MadeForSikuliX.*?txt").matcher(resourceList[0]);
+        if (matcher.find()) {
+          libVersion = matcher.group(1);
+          libStamp = matcher.group(2);
+        }
+      }
+      if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
+              libStamp.length() != sxBuildStamp.length() || 0 > libStamp.compareTo(sxBuildStamp)) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+        log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
+      }
+    }
+
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
-        terminate(999, "libs folder not available: " + fLibsFolder.toString());
+        terminate(999, "libsExport: folder not available: " + fLibsFolder.toString());
       }
-      log(lvl, "new libs folder at: %s", fLibsFolder);
-      newLibsFolder = true;
-    } else {
-      log(lvl, "exists libs folder at: %s", fLibsFolder);
-    }
-
-/*
-    export
-*/
-    List<String> nativesList = getResourceList(fpJarLibs);
-
-    String resourceList = resourceListAsString(fLibsFolder.getAbsolutePath(), null);
-    Matcher matcher = Pattern.compile("1\\..*?MadeForSikuliX.*?txt").matcher(resourceList);
-    String libVersion = "";
-    if (matcher.find()) {
-      libVersion = matcher.group();
-    }
-    if (libVersion.isEmpty()) {
-      shouldExport = true;
-    } else if (!new File(fLibsFolder, libVersion).exists()) {
-      log(lvl, "libs folder empty or has wrong content");
-      shouldExport = true;
-    }
-
-    if (shouldExport) {
-      if (!newLibsFolder) {
-        FileManager.deleteFileOrFolder(fLibsFolder);
-        fLibsFolder.mkdir();
-        if (!fLibsFolder.exists()) {
-          terminate(999, "libs folder not available: " + fLibsFolder.toString());
+      String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
+              getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
+      FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
+      libMsg = "folder created:";
+      List<String> nativesList = getResourceList(fpJarLibs);
+      for (String aFile : nativesList) {
+        String copyMsg = "exported";
+        try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
+             InputStream inFile = clsRef.getResourceAsStream(new File(fpJarLibs, aFile).getPath());) {
+          copy(inFile, outFile);
+          libsLoaded.put(aFile, false);
+        } catch (Exception ex) {
+          copyMsg = String.format("failed (%s)", ex.getMessage());
         }
+        log(lvl + 1, "libsExport: %s: %s", aFile, copyMsg);
       }
     }
 
-    shouldExport = false;
-    for (String aFile : fLibsFolder.list()) {
-      libsLoaded.put(aFile, false);
-    }
-    if (useLibsProvided) {
-      log(lvl, "Linux: requested to use provided libs - copying");
-      LinuxSupport.copyProvidedLibs(fLibsFolder);
-    }
+    //TODO useLibsProvided
+/*
+      if (useLibsProvided) {
+        log(lvl, "Linux: requested to use provided libs - copying");
+        LinuxSupport.copyProvidedLibs(fLibsFolder);
+      }
+*/
+
     if (runningWindows) {
       addToWindowsSystemPath(fLibsFolder);
       //TODO: Windows: Java Classloader::usr_paths needed for libs access?
@@ -1070,6 +1075,8 @@ public class RunTime {
         terminate(999, "problem copying %s", fJawtDll);
       }
     }
+
+    log(lvl, "libsExport: " + libMsg + " %s (%s - %s)", fLibsFolder, getVersionShort(), sxBuildStamp);
     areLibsExported = true;
   }
 //</editor-fold>
@@ -1360,6 +1367,7 @@ public class RunTime {
         content = new String(copy(aIS));
         aIS.close();
       }
+      log(lvl+1, "getResourceList: %s (%s)", res, content);
       aIS = null;
     } catch (Exception ex) {
       log(-1, "getResourceList: %s (%s)", res, ex);
