@@ -71,6 +71,12 @@ public class RunTime {
     WIN, MAC, LUX, FOO
   }
 
+  public enum RunType {
+    JAR, CLASSES, OTHER
+  }
+
+  RunType runningAs = RunType.OTHER;
+
   private static Options sxOptions = null;
 
   public static File scriptProject = null;
@@ -540,9 +546,13 @@ public class RunTime {
         terminate(999, appDataMsg, fSikulixAppPath);
       }
       fSikulixExtensions = new File(fSikulixAppPath, "Extensions");
-      fSikulixExtensions.mkdir();
+      if (!fSikulixExtensions.exists()) {
+        fSikulixExtensions.mkdir();
+      }
       fSikulixDownloadsGeneric = new File(fSikulixAppPath, "SikulixDownloads");
-      fSikulixDownloadsGeneric.mkdir();
+      if (!fSikulixDownloadsGeneric.exists()) {
+        fSikulixDownloadsGeneric.mkdir();
+      }
       fSikulixLib = new File(fSikulixAppPath, "Lib");
       fSikulixSetup = new File(fSikulixAppPath, "SikulixSetup");
       fLibsProvided = new File(fSikulixAppPath, fpSysLibs);
@@ -608,8 +618,13 @@ public class RunTime {
     clsRef = RunTime.class;
     CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
     String base = null;
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
+    URL urlCodeSrc = null;
+    String urlCodeSrcProto = "not-set";
+    if (codeSrc != null) {
+      urlCodeSrc = codeSrc.getLocation();
+      if (null != codeSrc) {
+        base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
+      }
     }
     appType = "from a jar";
     if (base != null) {
