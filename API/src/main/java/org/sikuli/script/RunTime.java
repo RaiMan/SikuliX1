@@ -1042,9 +1042,13 @@ public class RunTime {
       List<String> nativesList = getResourceList(fpJarLibs);
       for (String aFile : nativesList) {
         String copyMsg = "exported";
+        String inFile = new File(fpJarLibs, aFile).getPath();
+        if (runningWindows) {
+          inFile = inFile.replace("\\", "/");
+        }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inFile = clsRef.getResourceAsStream(new File(fpJarLibs, aFile).getPath());) {
-          copy(inFile, outFile);
+             InputStream inStream = clsRef.getResourceAsStream(inFile);) {
+          copy(inStream, outFile);
           libsLoaded.put(aFile, false);
         } catch (Exception ex) {
           copyMsg = String.format("failed: %s", ex.getMessage());

@@ -203,7 +203,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
-    Debug.reset();
+//    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
@@ -236,6 +236,7 @@ public class SikulixTest {
       before("test99", "play");
 //      Debug.on(3);
 //      Debug.globalTraceOn();
+      TextRecognizer.start();
       after();
     }
 
