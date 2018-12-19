@@ -151,7 +151,6 @@ public class Sikulix {
 //        }
 //      }
 // -------- playground
-      TextRecognizer.start();
     }
 
     if (args.length == 1 && "createlibs".equals(args[0])) {

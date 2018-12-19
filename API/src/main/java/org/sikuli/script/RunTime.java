@@ -1047,9 +1047,15 @@ public class RunTime {
           copy(inFile, outFile);
           libsLoaded.put(aFile, false);
         } catch (Exception ex) {
-          copyMsg = String.format("failed (%s)", ex.getMessage());
+          copyMsg = String.format("failed: %s", ex.getMessage());
         }
-        log(lvl + 1, "libsExport: %s: %s", aFile, copyMsg);
+        copyMsg = String.format("libsExport: %s: %s", aFile, copyMsg);
+        if (copyMsg.contains("failed")) {
+          FileManager.deleteFileOrFolder(fLibsFolder);
+          log(-1, copyMsg);
+        } else {
+          log(lvl + 1, copyMsg);
+        }
       }
     }
 
@@ -1354,6 +1360,10 @@ public class RunTime {
 
   public List<String> getResourceList(String res, Class classReference) {
     List<String> resList = new ArrayList<>();
+    CodeSource codeSource = classReference.getProtectionDomain().getCodeSource();
+    if (codeSource == null) {
+      return resList;
+    }
     InputStream aIS = null;
     String content = null;
     File fRes = new File(res);
@@ -1361,13 +1371,14 @@ public class RunTime {
     if (!fRes.isAbsolute()) {
       res = "/" + res;
     }
+    res += "/sikulixcontent";
     try {
       aIS = (InputStream) classReference.getResourceAsStream(res);
       if (aIS != null) {
         content = new String(copy(aIS));
         aIS.close();
       }
-      log(lvl+1, "getResourceList: %s (%s)", res, content);
+      log(lvl + 1, "getResourceList: %s (%s)", res, content);
       aIS = null;
     } catch (Exception ex) {
       log(-1, "getResourceList: %s (%s)", res, ex);
@@ -1381,6 +1392,7 @@ public class RunTime {
     if (null != content) {
       String[] names = content.split("\n");
       for (String name : names) {
+        if (name.equals("sikulixcontent")) continue;
         resList.add(name.strip());
       }
     }
