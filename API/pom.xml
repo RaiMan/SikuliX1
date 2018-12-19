@@ -39,6 +39,14 @@
       <!--License Apache 2-->
     </dependency>
 <!--
+    <dependency>
+      <groupId>org.zeroturnaround</groupId>
+      <artifactId>zt-zip</artifactId>
+      <version>1.13</version>
+      <type>jar</type>
+    </dependency>
+-->
+<!--
     Integration via sources without dbus
     groupId:com.github.tulskiy
     GNU Lesser General Public License v3.0

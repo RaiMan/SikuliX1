@@ -4,20 +4,20 @@
 package org.sikuli.script;
 
 import org.sikuli.android.ADBScreen;
-import org.sikuli.vnc.VNCScreen;
-//import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.util.JythonHelper;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.util.SikulixFileChooser;
+import org.sikuli.vnc.VNCScreen;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.util.List;
+
+//import org.sikuli.android.ADBScreen;
 
 public class Sikulix {
 
