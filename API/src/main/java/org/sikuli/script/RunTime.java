@@ -622,6 +622,7 @@ public class RunTime {
     String urlCodeSrcProto = "not-set";
     if (codeSrc != null) {
       urlCodeSrc = codeSrc.getLocation();
+      urlCodeSrcProto = urlCodeSrc.getProtocol();
       if (null != codeSrc) {
         base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
         if (urlCodeSrcProto == "file") {
@@ -1024,7 +1025,7 @@ public class RunTime {
         }
       }
       if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-              libStamp.length() != sxBuildStamp.length() || 0 > libStamp.compareTo(sxBuildStamp)) {
+              libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
       }
@@ -1370,12 +1371,13 @@ public class RunTime {
     }
     InputStream aIS = null;
     String content = null;
-    File fRes = new File(res);
-    res = fRes.getPath();
-    if (!fRes.isAbsolute()) {
+    res = new File(res, "sikulixcontent").getPath();
+    if (runningWindows) {
+      res = res.replace("\\", "/");
+    }
+    if (!res.startsWith("/")) {
       res = "/" + res;
     }
-    res += "/sikulixcontent";
     try {
       aIS = (InputStream) classReference.getResourceAsStream(res);
       if (aIS != null) {
