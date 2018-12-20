@@ -203,7 +203,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
-    Debug.reset();
+//    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";

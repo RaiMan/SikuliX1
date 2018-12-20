@@ -153,6 +153,10 @@ public class Sikulix {
 // -------- playground
     }
 
+    if (args.length == 1 && "testlibs".equals(args[0])) {
+      TextRecognizer.start();
+    }
+
     if (args.length == 1 && "createlibs".equals(args[0])) {
       Debug.off();
       CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
