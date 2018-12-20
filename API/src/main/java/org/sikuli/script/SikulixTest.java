@@ -236,7 +236,6 @@ public class SikulixTest {
       before("test99", "play");
 //      Debug.on(3);
 //      Debug.globalTraceOn();
-      TextRecognizer.start();
       after();
     }
 
