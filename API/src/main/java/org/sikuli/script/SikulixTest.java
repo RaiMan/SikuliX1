@@ -236,6 +236,10 @@ public class SikulixTest {
       before("test99", "play");
 //      Debug.on(3);
 //      Debug.globalTraceOn();
+      App app = new App("intellij ide");
+      Debug startTimer = Debug.startTimer();
+      boolean run = app.isRunning();
+      p("app: %s running: %s (%d)", app, run, startTimer.end());
       after();
     }
 

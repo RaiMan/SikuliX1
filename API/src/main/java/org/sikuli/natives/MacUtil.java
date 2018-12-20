@@ -51,13 +51,13 @@ public class MacUtil implements OSUtil {
           + "if not (found is equal to \"NotFound\") then\n"
           + "set windowName to \"\"\n"
           + "try\n"
-          + "set windowName to name of first window of application (name of found)\n"
+          + "set windowName to name of first window of found\n"
           + "end try\n"
-          + "set found to {name of found, «class idux» of found, windowName}\n"
+          + "set found to {name of found, «class idux» of found, windowName, file of found}\n"
           + "end if\n"
           + "end try\n"
           + "found\n";
-  static String cmdLineApp = "set found to first item of (processes whose name is \"#APP#\")";
+  static String cmdLineApp = "set found to first item of (processes whose displayed name is \"#APP#\")";
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
   /*
@@ -100,11 +100,21 @@ public class MacUtil implements OSUtil {
           app.setPID(parts[1].trim());
         }
         if (parts.length > 2) {
-          app.setWindow(parts[2]);
+          app.setWindow(parts[2].trim());
         }
         if (parts.length > 3) {
           for (int i = 3; i < parts.length; i++) {
-            app.setWindow(app.getWindow() + "," + parts[i]);
+            String part = parts[i].trim();
+            if (part.startsWith("alias ")) {
+              String[] folders = part.split(":");
+              part = "";
+              for (int nf = 1; nf < folders.length; nf++) {
+                part += "/" + folders[nf];
+              }
+              app.setExec(part);
+              continue;
+            }
+            app.setWindow(app.getWindow() + "," + parts);
           }
         }
       } else {

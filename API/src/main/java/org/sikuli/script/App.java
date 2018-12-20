@@ -301,6 +301,10 @@ public class App {
     return appExec;
   }
 
+  public void setExec(String exec) {
+    appExec = exec;
+  }
+
   public String getWindow() {
     return appWindow;
   }
