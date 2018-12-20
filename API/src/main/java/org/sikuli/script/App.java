@@ -458,12 +458,7 @@ public class App {
    */
   public static App open(String appName, int waitTime) {
     App app = new App(appName);
-    if (!app.isRunning(0)) {
-      app.open(waitTime);
-    } else {
-      app.focus();
-    }
-    return app;
+    return app.openAndWait(waitTime);
   }
 
   /**
@@ -625,7 +620,8 @@ public class App {
    * @return an App instance - is invalid and not useable if not found as running
    */
   public static App focus(String title, int index) {
-    App app = _osUtil.switchto(title, index);
+    App app = new App(title);
+    _osUtil.switchto(app);
     if (app.isValid()) {
       app.setFocused(true);
     }
