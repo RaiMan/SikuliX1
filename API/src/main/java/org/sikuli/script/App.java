@@ -54,7 +54,7 @@ public class App {
     appsMac.put(Type.VIEWER, "Preview");
   }
 
-  //  //<editor-fold defaultstate="collapsed" desc="features based on org.apache.httpcomponents.httpclient">
+  //  //<editor-fold defaultstate="collapsed" desc="9 features based on org.apache.httpcomponents.httpclient">
 //  private static CloseableHttpClient httpclient = null;
 //
 //  /**
@@ -149,7 +149,7 @@ public class App {
 //  }
 //  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="special app features">
+  //<editor-fold defaultstate="collapsed" desc="8 special app features">
   public static enum Type {
 
     EDITOR, BROWSER, VIEWER
@@ -272,14 +272,154 @@ public class App {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="constructors">
+  //<editor-fold defaultstate="collapsed" desc="0 housekeeping">
+  private static boolean shouldLog = false;
   private String appNameGiven = "";
-  private String appOptions = "";
   private String appName = "";
+  private String appToken = "";
   private String appExec = "";
+  private String appOptions = "";
   private String appWindow = "";
   private int appPID = -1;
   private int maxWait = 10;
+
+  private static void log(String msg, Object... args) {
+    if (shouldLog) {
+      Debug.logp("[AppLog] " + msg, args);
+    }
+  }
+
+  public static void logOn() {
+    shouldLog = true;
+  }
+
+  public static void logOff() {
+    shouldLog = false;
+  }
+
+  public void reset() {
+    appPID = -1;
+    appWindow = "???";
+  }
+
+  public App() {
+    init("");
+  }
+
+  public App(String name) {
+    appNameGiven = name;
+    init(appNameGiven);
+  }
+
+  private void init(String name) {
+    if (_osUtil == null) {
+      _osUtil = SysUtil.getOSUtil();
+      _osUtil.checkFeatureAvailability();
+    }
+    if (name.isEmpty())
+      return;
+    appName = appNameGiven;
+    String[] parts;
+    //C:\Program Files\Mozilla Firefox\firefox.exe -- options
+    parts = appName.split(" -- ");
+    if (parts.length > 1) {
+      appOptions = parts[1].trim();
+      appExec = parts[0].replace("\"", "").trim();
+    } else {
+      if (appName.startsWith("\"")) {
+        parts = appName.substring(1).split("\"");
+        if (parts.length > 1) {
+          appOptions = appName.substring(parts[0].length() + 2).trim();
+          appExec = parts[0];
+        } else {
+          appExec = appName.replace("\"", "");
+        }
+      }
+    }
+    File fExec = new File(appName);
+    if (fExec.isAbsolute()) {
+      if (!fExec.exists()) {
+        log("App: init: does not exist: %s", fExec);
+        appExec = "";
+      } else {
+        appExec = fExec.getAbsolutePath();
+      }
+    }
+    if (!appExec.isEmpty()) {
+      appName = fExec.getName();
+      if (appName.lastIndexOf(".") > appName.length() - 5) {
+        appName = appName.substring(0, appName.lastIndexOf("."));
+      }
+    }
+    log("App.create: %s", toStringShort());
+  }
+
+  @Override
+  public String toString() {
+    //_osUtil.get(this);
+    return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
+  }
+
+  public String toStringShort() {
+    //_osUtil.get(this);
+    return String.format("[%d:%s]", appPID, appName);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="7 app list">
+
+  public static List<App> getApps() {
+    new App();
+    return _osUtil.getApps("");
+  }
+
+  public static List<App> getApps(String name) {
+    new App();
+    return _osUtil.getApps(name);
+  }
+
+  public static void listApps() {
+    new App();
+    List<App> appList = _osUtil.getApps("");
+    logOn();
+    log("***** all running apps");
+    for (App app : appList) {
+      log("%s", app);
+    }
+    log("***** end of list (%d)", appList.size());
+    logOff();
+  }
+
+  public static void listApps(String name) {
+    new App();
+    List<App> appList = _osUtil.getApps(name);
+    logOn();
+    log("***** running apps matching: %s", name);
+    for (App app : appList) {
+      log("%s", app);
+    }
+    log("***** end of list (%d)", appList.size());
+    logOff();
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="6 getter/setter">
+  public String getToken() {
+    return appToken;
+  }
+
+  public void setToken(String appToken) {
+    this.appToken = appToken;
+  }
+
+  public App setUsing(String options) {
+    if (options != null) {
+      appOptions = options;
+    } else {
+      appOptions = "";
+    }
+    return this;
+  }
 
   public String getNameGiven() {
     return appNameGiven;
@@ -328,105 +468,15 @@ public class App {
   public int getPID() {
     return appPID;
   }
-
-  public void reset() {
-    appPID = -1;
-    appWindow = "???";
-  }
-
-  public App() {
-  }
-
-  public App(String name) {
-    appNameGiven = name;
-    init(appNameGiven);
-  }
-
-  private void init(String name) {
-    if (_osUtil == null) {
-      _osUtil = SysUtil.getOSUtil();
-      _osUtil.checkFeatureAvailability();
-    }
-    appName = appNameGiven;
-    String[] parts;
-    //C:\Program Files\Mozilla Firefox\firefox.exe -- options
-    parts = appName.split(" -- ");
-    if (parts.length > 1) {
-      appOptions = parts[1].trim();
-      appName = parts[0].trim();
-    }
-    if (appName.startsWith("\"")) {
-      //"C:\Program Files\Mozilla Firefox\firefox.exe" options
-      parts = appName.substring(1).split("\"");
-      if (parts.length > 1) {
-        appOptions = appName.substring(parts[0].length() + 2).trim();
-        appName = parts[0];
-      } else {
-        appName = appName.replace("\"", "");
-      }
-    }
-    appExec = appName;
-    File fExec = new File(appExec);
-    if (fExec.isAbsolute()) {
-      if (!fExec.exists()) {
-        Debug.error("App: create: does not exist: %s", fExec);
-      }
-    }
-    appName = fExec.getName().replace(".app", "");
-    Debug.log(3, "App.create: %s", toStringShort());
-  }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="getter/setter">
-  public static void getApps(String name) {
-    Map<Integer, String[]> theApps = _osUtil.getApps(name);
-    int count = 0;
-    String[] item;
-    for (Integer pid : theApps.keySet()) {
-      item = theApps.get(pid);
-      if (pid < 0) {
-        pid = -pid;
-        Debug.logp("%d:%s (N/A)", pid, item[0]);
-      } else {
-        Debug.logp("%d:%s (%s)", pid, item[0], item[1]);
-        count++;
-      }
-    }
-    Debug.logp("App.getApps: %d apps (%d having window)", theApps.size(), count);
-  }
-
-  public static void getApps() {
-    getApps(null);
-  }
-
-  public App setUsing(String options) {
-    if (options != null) {
-      appOptions = options;
-    } else {
-      appOptions = "";
-    }
-    return this;
-  }
-
-  @Override
-  public String toString() {
-    _osUtil.get(this);
-    return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
-  }
-
-  public String toStringShort() {
-    _osUtil.get(this);
-    return String.format("[%d:%s]", appPID, appName);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="running">
+  //<editor-fold desc="2 running/valid">
   public boolean isValid() {
     return appPID > 0;
   }
 
   public boolean isRunning() {
-    return isRunning(1);
+    return isRunning(0);
   }
 
   public boolean isRunning(int maxTime) {
@@ -439,7 +489,6 @@ public class App {
       pause(1);
       _osUtil.get(this);
     }
-    Debug.trace("App.isRunning: checking: %s", toStringShort());
     return isValid();
   }
 
@@ -451,18 +500,21 @@ public class App {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="open">
+  //<editor-fold defaultstate="collapsed" desc="1 open">
+  boolean isOpen = false;
+
   /**
    * tries to open an app using the given name and waits waitTime for being ready
    * If the app is already open, it is brought to foreground
    *
-   * @param appName name - something that could be used on commandline to start the app
+   * @param appName  name - something that could be used on commandline to start the app
    * @param waitTime
    * @return the App instance
    */
   public static App open(String appName, int waitTime) {
     App app = new App(appName);
-    return app.openAndWait(waitTime);
+    app.openAndWait(waitTime);
+    return app;
   }
 
   /**
@@ -477,13 +529,14 @@ public class App {
   }
 
   /**
- * tries to open the app defined by this App instance<br>
- * do not wait for the app to get running
- *
- * @return this or null on failure
- */
-  public App open() {
-    return openAndWait(0);
+   * tries to open the app defined by this App instance<br>
+   * do not wait for the app to get running
+   *
+   * @return this or null on failure
+   */
+  public boolean open() {
+    openAndWait(3);
+    return isValid();
   }
 
   /**
@@ -493,28 +546,33 @@ public class App {
    * @param waitTime max waittime until running
    * @return this or null on failure
    */
-  public App open(int waitTime) {
-    return openAndWait(waitTime);
+  public boolean open(int waitTime) {
+    openAndWait(waitTime);
+    return isValid();
   }
 
-  private App openAndWait(int waitTime) {
+  private void openAndWait(int waitTime) {
+    isOpen = false;
     if (!isRunning(0)) {
-      _osUtil.open(this);
-      if (!isRunning(waitTime)) {
-        Debug.error("App.open: not found in taskList after %d secs (%s)", waitTime, appNameGiven);
+      if (_osUtil.open(this)) {
+        if (!isRunning(waitTime)) {
+          log("App.open: not running after %d secs (%s)", waitTime, appNameGiven);
+        } else {
+          log("App.open: %s", this);
+          focus();
+        }
       } else {
-        Debug.log(3,"App.open: %s", this);
-        focus();
+        log("App.open: %s: did not work - app not valid", appNameGiven);
       }
     } else {
-      Debug.log(3,"App.open: already running: %s", this);
+      log("App.open: already running: %s", this);
+      isOpen = true;
       focus();
     }
-    return this;
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="close">
+  //<editor-fold defaultstate="collapsed" desc="4 close">
 
   /**
    * tries to identify a running app with the given name and then tries to close it
@@ -522,7 +580,7 @@ public class App {
    * @param appName name
    * @return 0 for success -1 otherwise
    */
-  public static App close(String appName) {
+  public static boolean close(String appName) {
     return new App(appName).close();
   }
 
@@ -531,25 +589,27 @@ public class App {
    *
    * @return this or null on failure
    */
-  public App close(int waitTime) {
+  public boolean close(int waitTime) {
     if (!isRunning()) {
-      Debug.error("App.close: not running: %s", this);
-      return this;
+      log("App.close: not running: %s", this);
+      return false;
     }
-    _osUtil.close(this);
-    int timeTowait = maxWait;
-    if (waitTime > 0) {
-      timeTowait = waitTime;
-    }
-    while (isRunning(0) && timeTowait > 0) {
-      timeTowait--;
+    if (_osUtil.close(this)) {
+      int timeTowait = maxWait;
+      if (waitTime > 0) {
+        timeTowait = waitTime;
+      }
+      while (isRunning(0) && timeTowait > 0) {
+        timeTowait--;
+      }
     }
     if (!isValid()) {
-      Debug.log(3,"App.close: %s", this);
+      log("App.close: %s", this);
     } else {
-      Debug.error("App.close: did not work: %s", this);
+      log("App.close: did not work: %s", this);
+      return true;
     }
-    return this;
+    return false;
   }
 
   /**
@@ -557,18 +617,18 @@ public class App {
    *
    * @return this or null on failure
    */
-  public App close() {
+  public boolean close() {
     return close(0);
   }
 
-  public App closeByKey() {
+  public int closeByKey() {
     return closeByKey(0);
   }
 
-  public App closeByKey(int waitTime) {
+  public int closeByKey(int waitTime) {
     if (!isRunning()) {
-      Debug.error("App.closeByKey: not running: %s", this);
-      return this;
+      log("App.closeByKey: not running: %s", this);
+      return 1;
     }
     focus();
     if (RunTime.get().runningWindows) {
@@ -585,16 +645,17 @@ public class App {
     while (isRunning(0) && timeTowait > 0) {
       timeTowait--;
     }
-    if (appPID < 0) {
-      Debug.log(3,"App.closeByKey: %s", this);
+    if (!isValid()) {
+      log("App.closeByKey: %s", this);
     } else {
-      Debug.error("App.closeByKey: did not work: %s", this);
+      log("App.closeByKey: did not work: %s", this);
+      return 1;
     }
-    return this;
+    return 0;
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="focus">
+  //<editor-fold defaultstate="collapsed" desc="3 focus">
   private boolean isFocused = false;
 
   public void setFocused(boolean state) {
@@ -625,9 +686,9 @@ public class App {
    */
   public static App focus(String title, int index) {
     App app = new App(title);
-    _osUtil.switchto(app);
-    if (app.isValid()) {
-      app.setFocused(true);
+    app.focus();
+    if (!app.isRunning()) {
+      app.open();
     }
     return app;
   }
@@ -637,23 +698,25 @@ public class App {
    *
    * @return the App instance
    */
-  public App focus() {
+  public boolean focus() {
     isFocused = false;
-    if (!isRunning(0)) {
-      Debug.error("App.focus failed: not running: %s", toString());
-      return this;
+    if (!isOpen && !isRunning(0)) {
+      log("App.focus: not running: %s", toString());
+      return false;
     }
-    _osUtil.switchto(this);
-    if (!isValid() || !hasFocus()) {
-      Debug.error("App.focus failed: no window for %s", toString());
+    isOpen = false;
+    if (!_osUtil.switchto(this)) {
+      log("App.focus: no window for %s", toString());
+      return false;
     } else {
-      Debug.log(3, "App.focus: %s", this);
+      isFocused = true;
+      log("App.focus: %s", this);
     }
-    return this;
+    return true;
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="window">
+  //<editor-fold defaultstate="collapsed" desc="5 window">
 
   /**
    * evaluates the region currently occupied by the topmost window of this App instance. The region might not be fully

@@ -526,12 +526,12 @@ def adbStart(adbexec = ""):
 # Switches the frontmost application to the given application.
 # If the given application is not running, it will be launched by openApp()
 # automatically. <br/>
-# Note: On Windows, Sikule searches in the text on the title bar
+# Note: On Windows, Sikuli searches in the text on the title bar
 # instead of the application name.
 # @param app The name of the application. (case-insensitive)
 #
 def switchApp(app):
-  return App.focus(app)
+  return App.open(app)
 
 ##
 # Opens the given application. <br/>

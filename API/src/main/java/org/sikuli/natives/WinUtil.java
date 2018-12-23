@@ -186,8 +186,8 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public Map<Integer, String[]> getApps(String name) {
-    Map<Integer, String[]> apps = new HashMap<Integer, String[]>();
+  public List<App> getApps(String name) {
+    List<App> apps = new ArrayList<>();
     String cmd;
     if (name == null || name.isEmpty()) {
       cmd = cmd = "!tasklist /V /FO CSV /NH /FI \"SESSIONNAME eq Console\"";
@@ -202,19 +202,21 @@ public class WinUtil implements OSUtil {
         if (parts.length < 3) {
           continue;
         }
-        String theWindow = parts[parts.length - 1];
-        String thePID = parts[3];
-        String theName = parts[1];
+        App theApp = new App();
+        theApp.setWindow(parts[parts.length - 1].trim());
+        theApp.setName(parts[1].trim());
+        String thePID = parts[3].trim();
         Integer pid = -1;
         try {
           pid = Integer.parseInt(thePID);
         } catch (Exception ex) {
         }
         if (pid != -1) {
-          if (theWindow.contains("N/A")) {
+          if (theApp.getWindow().contains("N/A")) {
             pid = -pid;
           }
-          apps.put(pid, new String[]{theName, theWindow});
+          theApp.setPID(pid);
+          apps.add(theApp);
         }
       }
     } else {
@@ -224,9 +226,9 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App open(App app) {
+  public boolean open(App app) {
     if (app.isValid()) {
-      int ret = switchApp(app.getPID(), 0);
+      return 0 == switchApp(app.getPID(), 0);
     } else {
       String cmd = app.getExec();
       if (!app.getOptions().isEmpty()) {
@@ -235,7 +237,7 @@ public class WinUtil implements OSUtil {
         start(cmd);
       }
     }
-    return app;
+    return true;
   }
 
   private int start(String... cmd) {
@@ -243,9 +245,9 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App switchto(App app) {
+  public boolean switchto(App app) {
     if (!app.isValid()) {
-      return app;
+      return false;
     }
     int loopCount = 0;
     while (loopCount < 100) {
@@ -253,14 +255,14 @@ public class WinUtil implements OSUtil {
       if (pid > 0) {
         if (pid == app.getPID()) {
           app.setFocused(true);
-          break;
+          return true;
         }
       } else {
         break;
       }
       loopCount++;
     }
-    return app;
+    return false;
   }
 
   @Override
@@ -277,11 +279,12 @@ public class WinUtil implements OSUtil {
   }
 
   @Override
-  public App close(App app) {
+  public boolean close(App app) {
     if (closeApp(app.getPID()) == 0) {
       app.reset();
+      return true;
     }
-    return app;
+    return false;
   }
 
   @Override

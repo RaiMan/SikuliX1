@@ -9,6 +9,7 @@ import org.sikuli.script.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,40 +82,46 @@ public class MacUtil implements OSUtil {
     String theCmd = "";
     if (pid < 0) {
       if (!name.isEmpty()) {
-        theCmd = cmd.replace("#LINE#", cmdLineApp);
-        theCmd = theCmd.replaceAll("#APP#", name);
-      } else {
-        return app;
+        List<App> apps = getApps(name);
+        if (apps.size() > 0) {
+          App theApp = apps.get(0);
+          app.setPID(theApp.getPID());
+          app.setName(theApp.getName());
+          app.setToken(theApp.getToken());
+          app.setExec(theApp.getExec());
+          app.setWindow(theApp.getWindow());
+        }
       }
+      return app;
     } else {
       theCmd = cmd.replace("#LINE#", cmdLinePID);
       theCmd = theCmd.replaceAll("#PID#", "" + pid);
-    }
-    int retVal = Runner.runas(theCmd, true);
-    String result = RunTime.get().getLastCommandResult().trim();
-    if (retVal > -1) {
-      if (!result.contains("NotFound")) {
-        String[] parts = result.split(",");
-        if (parts.length > 1) {
-          app.setName(parts[0].trim());
-          app.setPID(parts[1].trim());
-        }
-        if (parts.length > 2) {
-          app.setWindow(parts[2].trim());
-        }
-        if (parts.length > 3) {
-          for (int i = 3; i < parts.length; i++) {
-            String part = parts[i].trim();
-            if (part.startsWith("alias ")) {
-              String[] folders = part.split(":");
-              part = "";
-              for (int nf = 1; nf < folders.length; nf++) {
-                part += "/" + folders[nf];
+      int retVal = Runner.runas(theCmd, true);
+      String result = RunTime.get().getLastCommandResult().trim();
+      if (retVal > -1) {
+        if (!result.contains("NotFound")) {
+          String[] parts = result.split(",");
+          if (parts.length > 1) {
+            app.setName(parts[0].trim());
+            app.setPID(parts[1].trim());
+          }
+          if (parts.length > 2) {
+            app.setWindow(parts[2].trim());
+          }
+          if (parts.length > 3) {
+            for (int i = 3; i < parts.length; i++) {
+              String part = parts[i].trim();
+              if (part.startsWith("alias ")) {
+                String[] folders = part.split(":");
+                part = "";
+                for (int nf = 1; nf < folders.length; nf++) {
+                  part += "/" + folders[nf];
+                }
+                app.setExec(part);
+                continue;
               }
-              app.setExec(part);
-              continue;
+              app.setWindow(app.getWindow() + "," + parts);
             }
-            app.setWindow(app.getWindow() + "," + parts);
           }
         }
       } else {
@@ -125,25 +132,26 @@ public class MacUtil implements OSUtil {
   }
 
   @Override
-  public App open(App app) {
-    String appName = app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec();
-    String cmd = "open -a " + appName;
+  public boolean open(App app) {
+    String appName = app.getExec().isEmpty() ? app.getName() : app.getExec();
+    String cmd = "open -a \"" + appName + "\"";
     if (!app.getOptions().isEmpty()) {
       cmd += " --args " + app.getOptions();
     }
-    shRun(cmd);
-    return app;
+    int ret = shRun(cmd);
+    return ret == 0;
   }
 
   @Override
-  public App switchto(App app) {
-    //osascript -e "tell app \"safari\" to activate"
-    String cmd = "tell application \""
-            + app.getName()
-            + "\" to activate";
-    Runner.runas(cmd, true);
-    app.setFocused(true);
-    return app;
+  public boolean switchto(App app) {
+    if (app.isValid()) {
+      //osascript -e "tell app \"safari\" to activate"
+      String cmd = "tell application \""
+              + app.getName()
+              + "\" to activate";
+      return 0 == Runner.runas(cmd, true);
+    }
+    return false;
   }
 
   @Override
@@ -153,8 +161,8 @@ public class MacUtil implements OSUtil {
   }
 
   @Override
-  public App close(App app) {
-    int ret = 0;
+  public boolean close(App app) {
+    int ret;
     if (app.getPID() > -1) {
       ret = close(app.getPID());
     } else {
@@ -163,7 +171,7 @@ public class MacUtil implements OSUtil {
     if (ret == 0) {
       app.reset();
     }
-    return app;
+    return ret == 0;
   }
 
   private static int shRun(String sCmd) {
@@ -277,7 +285,52 @@ public class MacUtil implements OSUtil {
   public static native void openAxSetting();
 
   @Override
-  public Map<Integer, String[]>  getApps(String name) {
-    return null;
+  public List<App> getApps(String name) {
+    new App();
+    String cmd = "tell application \"System Events\"\n" +
+            "set plist to (processes whose background only is false)\n" +
+            "set resultlist to {}\n" +
+            "repeat with n from 1 to the length of plist\n" +
+            "set proc to item n of plist\n" +
+            "set pwin to \"\"\ntry\nset pwin to name of first window of proc\nend try\n" +
+            "set entry to {pwin as text, \"|||\", «class idux» of proc as text," +
+            "displayed name of proc as text, name of proc as text, get file of proc, \"###\"}\n" +
+            "set end of resultlist to entry\n" +
+            "end repeat\n" +
+            "end tell\n" +
+            "resultlist";
+    int retVal = Runner.runas(cmd, true);
+    String result = RunTime.get().getLastCommandResult().trim();
+    String[] processes = result.split(", ###");
+    List<App> appList = new ArrayList<>();
+    int pid = 0;
+    for (String process : processes) {
+      if (process.startsWith(", ")) {
+        process = process.substring(2);
+      }
+      App theApp = new App();
+      String[] parts = process.split(", \\|\\|\\|,");
+      String pWin = parts[0].trim();
+      parts = parts[1].split(",");
+      try {
+        pid = Integer.parseInt(parts[0].trim());
+      } catch (NumberFormatException e) {
+        pid--;
+      }
+      String dispName = parts[1].trim();
+      String procName = parts[2].trim();
+      String[] pAlias = parts[3].split(":");
+      String pExec = pAlias[pAlias.length - 1];
+      String pToken = String.format("%s|%s|%s", dispName, procName, pExec);
+      if (name.isEmpty() || pToken.toUpperCase().contains(name.toUpperCase())) {
+        theApp.setName(dispName);
+        theApp.setPID(pid);
+        theApp.setToken(pToken);
+        theApp.setExec(pExec);
+        theApp.setWindow(pWin);
+        appList.add(theApp);
+      }
+    }
+    return appList;
   }
 }

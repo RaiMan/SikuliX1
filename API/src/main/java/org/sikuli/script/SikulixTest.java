@@ -203,7 +203,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
-//    Debug.reset();
+    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
@@ -236,10 +236,33 @@ public class SikulixTest {
       before("test99", "play");
 //      Debug.on(3);
 //      Debug.globalTraceOn();
+/*
       App app = new App("intellij ide");
       Debug startTimer = Debug.startTimer();
       boolean run = app.isRunning();
       p("app: %s running: %s (%d)", app, run, startTimer.end());
+*/
+      //List<String[]> apps = App.getApp("intellij idea ce");
+      App.listApps();
+//      App.logOn();
+      App app = new App("app store");
+      app.open();
+      p("open: %s (%s)", app, app.isRunning() ? "running" : "");
+      App.pause(1);
+      if (app.isRunning()) {
+        new App("idea").focus();
+        App.pause(1);
+        app.focus();
+        App.pause(1);
+        app.close();
+      }
+      p("close: %s (%s)", app, app.isRunning() ? "running" : "");
+      App.focus("app store");
+      p("focus: %s (%s)", app, app.isRunning() ? "running" : "");
+      App.pause(1);
+      App.listApps();
+      App.close("app store");
+      App.pause(1);
       after();
     }
 
@@ -476,11 +499,10 @@ public class SikulixTest {
         firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
         notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
       }
-      //App app = App.open(notepad);
-//      App app = new App(notepad);
-//      App app = new App("/Applications/Brackets.app");
+      App appN = App.open(notepad);
+      App app = new App("/Applications/Brackets.app");
 //      App app = new App("preview");
-      App app = new App("safari");
+//      App apps = new App("safari");
 //      app = new App(firefox);
 //      app = new App(chrome);
       app.open(10);

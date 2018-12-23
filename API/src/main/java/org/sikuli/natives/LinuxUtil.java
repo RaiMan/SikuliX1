@@ -128,9 +128,9 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public App open(App app) {
+  public boolean open(App app) {
     int ret = open(app.getExec());
-    return app;
+    return ret == 0;
   }
 
   private int switchtoWindow(String appName, int winNum) {
@@ -151,15 +151,15 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public App switchto(App app) {
-    int ret = 0;
+  public boolean switchto(App app) {
+    int ret = -1;
     if (app.getPID() > 0) {
       ret = switchto(app.getPID(), 0);
       if (ret > -1) {
         app.setFocused(true);
       }
     }
-    return app;
+    return ret == 0;
   }
 
   @Override
@@ -195,18 +195,18 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public App close(App app) {
-    int ret = 0;
+  public boolean close(App app) {
+    int ret;
     if (app.getPID() > 0) {
       ret = close(app.getPID());
     } else {
       ret = close(app.getExec());
     }
-    return app;
+    return ret == 0;
   }
   
   @Override
-  public Map<Integer, String[]> getApps(String name) {
+  public List<App> getApps(String name) {
     return null;
   }
   

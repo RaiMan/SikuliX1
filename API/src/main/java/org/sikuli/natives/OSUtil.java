@@ -19,29 +19,29 @@ public interface OSUtil {
    * check if needed command libraries or packages are installed and working<br>
    * if not ok, respective features will do nothing but issue error messages
    */
-  public void checkFeatureAvailability();
+  void checkFeatureAvailability();
 
-  public App get(App app);
+  App get(App app);
 
-  public Map<Integer, String[]> getApps(String name);
+  List<App> getApps(String name);
 
-	public App open(App app);
+	boolean open(App app);
 
-  public App switchto(App app);
+  boolean switchto(App app);
 
-  public App switchto(String title, int index);
+  App switchto(String title, int index);
 
-  public App close(App app);
+  boolean close(App app);
 
-  public Rectangle getWindow(String titel);
+  Rectangle getWindow(String titel);
 
-  public Rectangle getWindow(App app);
+  Rectangle getWindow(App app);
 
-  public Rectangle getWindow(App app, int winNum);
+  Rectangle getWindow(App app, int winNum);
 
-  public Rectangle getFocusedWindow();
+  Rectangle getFocusedWindow();
 
-  public List<Region> getWindows(App app);
+  List<Region> getWindows(App app);
 
-  public void bringWindowToFront(Window win, boolean ignoreMouse);
+  void bringWindowToFront(Window win, boolean ignoreMouse);
 }
