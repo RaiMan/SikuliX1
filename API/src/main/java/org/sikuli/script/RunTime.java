@@ -1399,7 +1399,7 @@ public class RunTime {
       String[] names = content.split("\n");
       for (String name : names) {
         if (name.equals("sikulixcontent")) continue;
-        resList.add(name.strip());
+        resList.add(name.trim());
       }
     }
     return resList;
