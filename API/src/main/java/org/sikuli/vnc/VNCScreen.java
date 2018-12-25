@@ -46,6 +46,7 @@ public class VNCScreen extends Region implements IScreen, Closeable {
     try {
       vscr = start(theIP, stdPort, null, 0, 0);
       vscr.wait((double) startUpWait);
+      Debug.log(3, "VNCScreen: start: %s (%s:%d)", vscr.toStringShort(), theIP, stdPort);
     } catch (IOException e) {
       Debug.error("VNCScreen: start: %s:%d failed");
     }
@@ -72,6 +73,7 @@ public class VNCScreen extends Region implements IScreen, Closeable {
 
   public void stop() {
     try {
+      Debug.log(3, "VNCScreen: stopping: %s", this);
       close();
     } catch (IOException e) {
       Debug.error("VNCScreen: stop: %s", e.getMessage());

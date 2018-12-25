@@ -114,7 +114,6 @@ public class Region {
   public String toString() {
     String scrText = getScreen() == null ? "?" :
             "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
-
     String nameText = "";
     if (!name.isEmpty()) {
       nameText = "#" + name + "# ";
