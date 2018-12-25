@@ -2847,7 +2847,7 @@ public class Region {
             runFinder(finder, ptn);
           }
         }
-      } else if (ptn instanceof Image) {
+      } else if (ptn instanceof Image || ptn instanceof ScreenImage) {
         if (img.isValid()) {
           lastSearchTime = (new Date()).getTime();
           finder = checkLastSeenAndCreateFinder(img, findTimeout, null);
@@ -3087,6 +3087,8 @@ public class Region {
       _target = target;
       if (img == null) {
         _image = Image.getImageFromTarget(target);
+      } else if (target instanceof ScreenImage) {
+        _image = new Image (((ScreenImage) target).getImage());
       } else {
         _image = img;
       }

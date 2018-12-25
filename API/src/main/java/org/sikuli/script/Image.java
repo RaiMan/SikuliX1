@@ -607,6 +607,8 @@ public class Image {
       return img;
     } else if (target instanceof Image) {
       return (Image) target;
+    } else if (target instanceof ScreenImage) {
+      return new Image (((ScreenImage) target).getImage());
     } else {
         runTime.abortScripting("aborting script at:",
                 String.format("find, wait, exists: invalid parameter: %s", target));

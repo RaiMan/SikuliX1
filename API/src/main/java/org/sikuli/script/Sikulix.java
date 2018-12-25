@@ -179,6 +179,10 @@ public class Sikulix {
       }
     }
 
+    if (args.length == 1 && "runtest".equals(args[0])) {
+      SikulixTest.main(new String[]{});
+    }
+
     if (args.length == 1 && "test".equals(args[0])) {
       String version = runTime.getVersion();
       File lastSession = new File(runTime.fSikulixStore, "LastAPIJavaScript.js");

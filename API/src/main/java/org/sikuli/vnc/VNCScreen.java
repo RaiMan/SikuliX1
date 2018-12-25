@@ -26,23 +26,36 @@ public class VNCScreen extends Region implements IScreen, Closeable {
   private final IRobot robot;
   private ScreenImage lastScreenImage;
 
+  private static String stdIP = "127.0.0.1";
+  private static int stdPort = 5900;
+
   private static Map<VNCScreen, VNCClient> screens = new HashMap<>();
 
-//TODO Java9 on Mac
-//public class SocketDescriptor implements FileDescriptor {
-//  private static SelectorProvider DefaultSelectorProvider() {
-//      protected SelectorProvider() {
-//        this(checkPermission());
-//    }
-//
-//    private static boolean loadProviderFromProperty() {
+  private static int startUpWait = 3;
+
+  public static void startUp(int waittime) {
+    startUpWait = waittime;
+  }
+
+  public static VNCScreen start() {
+    return start(stdIP);
+  }
+
+  public static VNCScreen start(String theIP) {
+    VNCScreen vscr = null;
+    try {
+      vscr = start(theIP, stdPort, null, 0, 0);
+      vscr.wait((double) startUpWait);
+    } catch (IOException e) {
+      Debug.error("VNCScreen: start: %s:%d failed");
+    }
+    return vscr;
+  }
 
   public static VNCScreen start(String theIP, int thePort, String password, int cTimeout, int timeout) throws IOException {
     VNCScreen scr = null;
-    if (!(RunTime.get().runningMac && RunTime.get().isJava9("VNCScreen not yet working on Mac"))) {
       scr = new VNCScreen(VNCClient.connect(theIP, thePort, password, true));
       screens.put(scr, scr.client);
-    }
     return scr;
   }
 
