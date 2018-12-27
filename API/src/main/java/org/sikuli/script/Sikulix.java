@@ -36,6 +36,7 @@ public class Sikulix {
   private static final String prefNonSikuli = "nonSikuli_";
   private static RunTime runTime = null;
   private static Point locPopAt = null;
+  private static String showBase = "API/src/main/resources/ImagesAPI";
 
   public static void endNormal(int n) {
     terminate(n, "Sikulix: endNormal");
@@ -78,6 +79,7 @@ public class Sikulix {
     }
     Mouse.reset();
   }
+
   public static void main(String[] args) throws FindFailed {
     runTime = RunTime.get();
 
@@ -106,51 +108,8 @@ public class Sikulix {
     }
 
     if (args.length > 0 && "play".equals(args[0])) {
-//-------- playground Observe
-//      Region reg = new Region(0,0,80,80);
-//      reg.highlight(2);
-//      reg.onChange(new ObserverCallBack(){
-//        @Override
-//        public void changed(ObserveEvent evt) {
-//          if (evt.getCount() > 3) {
-//            p("in handler: %d - stopping", evt.getCount());
-//            evt.stopObserver();
-//          } else {
-//            p("in handler: %d", evt.getCount());
-//          }
-//        }
-//      });
-//      reg.observeInBackground();
-//      int n = 0;
-//      while (reg.isObserving()) {
-//        p("%d - observing", n);
-//        reg.wait(1.0);
-//        n++;
-//      }
-//-------- playground VNC
-//      VNCScreen vs = vncStart("192.168.2.63", 5900, "vnc", 0, 0);
-//      p("%s", vs);
-//      vs.wait(3.0);
-//      vs.type(Key.UP);
-//      vs.click();
-//      vs.type("test");
-//      vs.type("a", Key.CMD);
-//      vs.type("c", Key.CMD);
-//      vs.click();
-//      vs.type("v", Key.CMD);
-//      vs.wait(1.0);
-//      vs.userCapture("");
-//      vs.stop();
-//      vs.wait(3.0);
-
-//      while (true) {
-//        String file = popFile("");
-//        p("selected: %s", file);
-//        if (file.isEmpty()) {
-//          break;
-//        }
-//      }
-// -------- playground
+      Debug.off();
+      ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
     }
 
     if (args.length == 1 && "testlibs".equals(args[0])) {
@@ -162,7 +121,7 @@ public class Sikulix {
       CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
       if (codeSource != null && codeSource.getLocation().toString().endsWith("classes/")) {
         File libsSource = new File(new File(codeSource.getLocation().getFile()).getParentFile().getParentFile(), "src/main/resources");
-        for (String sys : new String[] {"mac", "windows", "linux"}) {
+        for (String sys : new String[]{"mac", "windows", "linux"}) {
           p("******* %s", sys);
           String sxcontentFolder = String.format("sikulixlibs/%s/libs64", sys);
           List<String> sikulixlibs = runTime.getResourceList(sxcontentFolder);
@@ -206,6 +165,7 @@ public class Sikulix {
         }
       }
     }
+    cleanUp(0);
     System.exit(0);
   }
 

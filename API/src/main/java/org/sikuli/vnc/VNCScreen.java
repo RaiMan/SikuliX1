@@ -45,30 +45,27 @@ public class VNCScreen extends Region implements IScreen, Closeable {
     VNCScreen vscr = null;
     try {
       vscr = start(theIP, stdPort, null, 0, 0);
-      vscr.wait((double) startUpWait);
-      Debug.log(3, "VNCScreen: start: %s (%s:%d)", vscr.toStringShort(), theIP, stdPort);
     } catch (IOException e) {
       Debug.error("VNCScreen: start: %s:%d failed");
     }
     return vscr;
   }
 
-  public static VNCScreen start(String theIP, int thePort, String password, int cTimeout, int timeout) throws IOException {
-    VNCScreen scr = null;
-      scr = new VNCScreen(VNCClient.connect(theIP, thePort, password, true));
-      screens.put(scr, scr.client);
-    return scr;
+  public static VNCScreen start(String theIP, int thePort) throws IOException {
+    return start(theIP, thePort, 0, 0);
   }
 
   public static VNCScreen start(String theIP, int thePort, int cTimeout, int timeout) throws IOException {
     return start(theIP, thePort, null, cTimeout, timeout);
-//    VNCScreen scr = new VNCScreen(VNCClient.connect(theIP, thePort, null, true));
-//    screens.put(scr, scr.client);
-//    return scr;
   }
 
-  public static VNCScreen start(String theIP, int thePort) throws IOException {
-    return start(theIP, thePort, 0, 0);
+  public static VNCScreen start(String theIP, int thePort, String password, int cTimeout, int timeout) throws IOException {
+    VNCScreen scr = null;
+    scr = new VNCScreen(VNCClient.connect(theIP, thePort, password, true));
+    screens.put(scr, scr.client);
+    scr.wait((double) startUpWait);
+    Debug.log(3, "VNCScreen: start: %s (%s:%d)", scr.toStringShort(), theIP, stdPort);
+    return scr;
   }
 
   public void stop() {
