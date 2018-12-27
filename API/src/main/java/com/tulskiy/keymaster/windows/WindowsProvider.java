@@ -94,7 +94,9 @@ public class WindowsProvider extends Provider {
         };
 
         thread = new Thread(runnable);
+        thread.setDaemon(true);
         thread.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     private void register(HotKey hotKey) {
