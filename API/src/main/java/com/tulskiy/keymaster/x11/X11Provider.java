@@ -126,7 +126,9 @@ public class X11Provider extends Provider {
         };
 
         thread = new Thread(runnable);
+        thread.setDaemon(true);
         thread.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     private void register(X11HotKey hotKey) {
