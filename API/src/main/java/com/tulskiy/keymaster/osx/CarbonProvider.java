@@ -102,7 +102,9 @@ public class CarbonProvider extends Provider {
             }
         });
 
+        thread.setDaemon(true);
         thread.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     private void resetAll() {
