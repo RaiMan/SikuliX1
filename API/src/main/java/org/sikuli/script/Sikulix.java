@@ -49,32 +49,11 @@ public class Sikulix {
 
   public static void terminate(int retVal, String msg, Object... args) {
     String outMsg = p(msg, args);
-    cleanUp(retVal);
     if (retVal < 999) {
       System.exit(retVal);
     }
+    RunTime.cleanUp();
     throw new RuntimeException("Sikulix fatal error: " + outMsg);
-  }
-
-  /**
-   * INTERNAL USE: resets stateful Sikuli X features: <br>
-   * ScreenHighlighter, Observing, Mouse, Key, Hotkeys <br>
-   * When in IDE: resets selected options to defaults (TODO)
-   *
-   * @param n returncode
-   */
-  public static void cleanUp(int n) {
-    log(lvl, "cleanUp: %d", n);
-    VNCScreen.stopAll();
-    ADBScreen.stop();
-    ScreenHighlighter.closeAll();
-    Observing.cleanUp();
-    HotkeyManager.stop();
-    try {
-      new RobotDesktop().keyUp();
-    } catch (AWTException e) {
-    }
-    Mouse.reset();
   }
 
   public static void main(String[] args) throws FindFailed {
@@ -86,14 +65,12 @@ public class Sikulix {
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
       System.out.print(runTime.sxBuild);
-      cleanUp(0);
       System.exit(0);
     }
 
     RunTime.checkArgs(runTime, args, RunTime.Type.API);
     if (runTime.runningScripts) {
       int exitCode = Runner.runScripts(args);
-      cleanUp(exitCode);
       System.exit(exitCode);
     }
 
@@ -162,7 +139,6 @@ public class Sikulix {
         }
       }
     }
-    cleanUp(0);
     System.exit(0);
   }
 

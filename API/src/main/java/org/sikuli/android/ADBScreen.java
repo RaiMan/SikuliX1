@@ -63,8 +63,11 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   }
 
   public static void stop() {
-    ADBDevice.reset();
-    screen = null;
+    if (null != screen) {
+      Debug.log(3, "ADBScreen: stopping android support");
+      ADBDevice.reset();
+      screen = null;
+    }
   }
 
   public ADBScreen() {

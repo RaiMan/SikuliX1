@@ -567,7 +567,7 @@ def exit(code=0):
   if remoteScreen:
     remoteScreen.close()
     remoteScreen = None
-  Sikulix.cleanUp(code)
+  #Sikulix.cleanUp(code)
   sys.exit(code)
 
 ## ----------------------------------------------------------------------

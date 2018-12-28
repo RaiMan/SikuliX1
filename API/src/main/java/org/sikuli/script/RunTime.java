@@ -3,13 +3,17 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.JythonHelper;
 import org.sikuli.util.LinuxSupport;
+import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.util.SysJNA;
 import org.opencv.core.Core;
+import org.sikuli.vnc.VNCScreen;
 
 import java.awt.*;
 import java.io.*;
@@ -464,7 +468,13 @@ public class RunTime {
       @Override
       public void run() {
         isTerminating = true;
+        if (Debug.isStartWithTrace()) {
+          Debug.on(3);
+          Debug.globalTraceOn();
+        }
         log(lvl, "final cleanup");
+        cleanUp();
+
         if (isRunning != null) {
           try {
             isRunningFile.close();
@@ -756,6 +766,23 @@ public class RunTime {
       show();
     }
     log(lvl, "global init: leaving");
+  }
+
+  public static void cleanUp() {
+    VNCScreen.stopAll();
+    ADBScreen.stop();
+    ScreenHighlighter.closeAll();
+    Observing.cleanUp();
+    if (isTerminating) {
+      HotkeyManager.stop();
+    } else {
+      HotkeyManager.reset();
+    }
+    try {
+      new RobotDesktop().keyUp();
+    } catch (AWTException e) {
+    }
+    Mouse.reset();
   }
 
   class LibsFilter implements FilenameFilter {

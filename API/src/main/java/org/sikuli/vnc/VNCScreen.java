@@ -160,10 +160,13 @@ public class VNCScreen extends Region implements IScreen {
   }
 
   public static void stopAll() {
-    for (VNCScreen scr : screens.values()) {
-      scr.close();
+    if (screens.size() > 0) {
+      Debug.log(3, "VNCScreen: stopping all");
+      for (VNCScreen scr : screens.values()) {
+        scr.close();
+      }
+      screens.clear();
     }
-    screens.clear();
   }
 
   private void close() {

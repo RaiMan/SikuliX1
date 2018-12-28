@@ -119,6 +119,16 @@ public class Debug {
     beQuiet = false;
   }
 
+	public static boolean isStartWithTrace() {
+		return startWithTrace;
+	}
+
+	public static void setStartWithTrace() {
+		startWithTrace = true;
+	}
+
+	private static boolean startWithTrace = false;
+
   public static void globalTraceOn() {
   	TRACE_LEVEL = 1;
   	traceLast = -1;

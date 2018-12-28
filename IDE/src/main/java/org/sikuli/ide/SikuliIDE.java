@@ -1019,7 +1019,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           return;
         }
       }
-      Sikulix.cleanUp(0);
       System.exit(0);
     }
 
@@ -2648,7 +2647,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         }
         sikulixIDE.setIsRunningScript(false);
 
-        Sikulix.cleanUp(0);
+        RunTime.cleanUp();
         _runningThread = null;
 //TODO  sikulixIDE.toFront();
 //        sikulixIDE.setVisible(true);
@@ -3020,7 +3019,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     if (shouldCleanUp) {
       Debug.log(3, "AbortKey was pressed");
-      org.sikuli.script.Sikulix.cleanUp(-1);
+      RunTime.cleanUp();
       //setVisible(true);
       showAgain();
     } else {
