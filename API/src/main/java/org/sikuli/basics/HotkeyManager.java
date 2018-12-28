@@ -76,6 +76,16 @@ public abstract class HotkeyManager {
     }
   }
 
+  public static void stop() {
+    if (_instance == null || hotkeys.isEmpty()) {
+      return;
+    }
+    reset();
+    _instance.cleanUp();
+  }
+
+  abstract public void cleanUp();
+
   private static String getOSHotkeyManagerClass() {
     String pkg = "org.sikuli.basics.";
     int theOS = Settings.getOS();
@@ -269,6 +279,4 @@ public abstract class HotkeyManager {
   abstract public boolean _addHotkey(int keyCode, int modifiers, HotkeyListener callback);
 
   abstract public boolean _removeHotkey(int keyCode, int modifiers);
-
-  abstract public void cleanUp();
 }

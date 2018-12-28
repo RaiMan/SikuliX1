@@ -212,9 +212,4 @@ public class Env {
   public static boolean removeHotkey(char key, int modifiers) {
     return Key.removeHotkey(key, modifiers);
   }
-
-//TODO where to use???
-	public static void cleanUp() {
-    HotkeyManager.getInstance().cleanUp();
-  }
 }

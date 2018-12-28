@@ -69,7 +69,7 @@ public class Sikulix {
     ADBScreen.stop();
     ScreenHighlighter.closeAll();
     Observing.cleanUp();
-    HotkeyManager.reset();
+    HotkeyManager.stop();
     try {
       new RobotDesktop().keyUp();
     } catch (AWTException e) {
