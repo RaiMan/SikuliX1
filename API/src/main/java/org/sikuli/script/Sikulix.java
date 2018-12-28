@@ -13,11 +13,8 @@ import org.sikuli.vnc.VNCScreen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.security.CodeSource;
 import java.util.List;
-
-//import org.sikuli.android.ADBScreen;
 
 public class Sikulix {
 
@@ -663,11 +660,7 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
-    try {
       return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -681,10 +674,6 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, int cTimeout, int timeout) {
-    try {
       return VNCScreen.start(theIP, thePort, cTimeout, timeout);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 }
