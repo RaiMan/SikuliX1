@@ -1019,7 +1019,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           return;
         }
       }
-      System.exit(0);
+      runTime.terminate(0, "");
     }
 
     public void doPreferences(ActionEvent ae) {
@@ -3019,7 +3019,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     if (shouldCleanUp) {
       Debug.log(3, "AbortKey was pressed");
-      RunTime.cleanUp();
+      //RunTime.cleanUp();
       //setVisible(true);
       showAgain();
     } else {
