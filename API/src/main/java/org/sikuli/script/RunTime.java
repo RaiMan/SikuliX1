@@ -231,6 +231,65 @@ public class RunTime {
     if (runTime != null) {
       return runTime;
     }
+    runTime = new RunTime();
+
+    //<editor-fold desc="addShutdownHook">
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        isTerminating = true;
+        if (Debug.isStartWithTrace()) {
+          Debug.on(3);
+          Debug.globalTraceOn();
+        }
+        runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
+        cleanUp();
+
+        if (runTime.isRunning != null) {
+          try {
+            runTime.isRunningFile.close();
+          } catch (IOException ex) {
+          }
+          runTime.isRunning.delete();
+        }
+
+        if (runTime.shouldCleanDownloads) {
+          FileManager.deleteFileOrFolder(runTime.fSikulixDownloadsBuild);
+        }
+        for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            File aFile = new File(dir, name);
+            boolean isObsolete = false;
+            long lastTime = aFile.lastModified();
+            if (lastTime == 0) {
+              return false;
+            }
+            if (lastTime < ((new Date().getTime()) - 7 * 24 * 60 * 60 * 1000)) {
+              isObsolete = true;
+            }
+            if (name.contains("BridJExtractedLibraries") && isObsolete) {
+              return true;
+            }
+            if (name.toLowerCase().contains("sikuli")) {
+              if (name.contains("Sikulix_")) {
+                if (isObsolete || aFile.equals(runTime.fBaseTempPath)) {
+                  return true;
+                }
+              } else {
+                return true;
+              }
+            }
+            return false;
+          }
+        })) {
+          runTime.log(4, "cleanTemp: " + f.getName());
+          FileManager.deleteFileOrFolder(f.getAbsolutePath());
+        }
+      }
+    });
+    //</editor-fold>
+
     sikulixGlobalDebug = System.getenv("SIKULIXDEBUG");
     if (sikulixGlobalDebug != null) {
       Debug.setDebugLevel(3);
@@ -238,12 +297,10 @@ public class RunTime {
       Debug.globalTraceOn();
     }
     Debug.log(3, "RunTimeINIT: starting %s", typ);
-    runTime = new RunTime();
-    int debugLevel = 0;
 
     checkArgs(runTime, clArgs, typ);
 
-//<editor-fold defaultstate="collapsed" desc="versions">
+    //<editor-fold defaultstate="collapsed" desc="versions">
     Debug.log(3, "RunTimeINIT: java version");
     if (Debug.getDebugLevel() > 3) {
       runTime.dumpSysProps();
@@ -349,7 +406,7 @@ public class RunTime {
     }
     runTime.fSikulixStore = new File(runTime.fSikulixAppPath, "SikulixStore");
     runTime.fSikulixStore.mkdirs();
-//</editor-fold>
+    //</editor-fold>
 
     debugLevelSaved = Debug.getDebugLevel();
     debugLogfileSaved = Debug.logfile;
@@ -393,15 +450,6 @@ public class RunTime {
     return runTime;
   }
 
-/*
-  public static synchronized RunTime get(String[] args) {
-    if (runTime == null) {
-      return get(Type.API, args);
-    }
-    return runTime;
-  }
-*/
-
   public static synchronized RunTime get() {
     if (runTime == null) {
       return get(Type.API);
@@ -418,11 +466,6 @@ public class RunTime {
     return get(typ);
   }
 
-  /**
-   * INTERNAL USE get a new initialized RunTime singleton instance
-   *
-   * @return
-   */
   public static synchronized RunTime reset() {
     return reset(Type.API);
   }
@@ -431,7 +474,7 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="global init">
   private void init(Type typ) {
 
-//<editor-fold defaultstate="collapsed" desc="general">
+    //<editor-fold defaultstate="collapsed" desc="general">
     if ("winapp".equals(sxOptions.getOption("testing"))) {
       log(lvl, "***** for testing: simulating WinApp");
       testingWinApp = true;
@@ -463,61 +506,6 @@ public class RunTime {
             String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        isTerminating = true;
-        if (Debug.isStartWithTrace()) {
-          Debug.on(3);
-          Debug.globalTraceOn();
-        }
-        log(lvl, "final cleanup");
-        cleanUp();
-
-        if (isRunning != null) {
-          try {
-            isRunningFile.close();
-          } catch (IOException ex) {
-          }
-          isRunning.delete();
-        }
-
-        if (shouldCleanDownloads) {
-          FileManager.deleteFileOrFolder(fSikulixDownloadsBuild);
-        }
-        for (File f : fTempPath.listFiles(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            File aFile = new File(dir, name);
-            boolean isObsolete = false;
-            long lastTime = aFile.lastModified();
-            if (lastTime == 0) {
-              return false;
-            }
-            if (lastTime < ((new Date().getTime()) - 7 * 24 * 60 * 60 * 1000)) {
-              isObsolete = true;
-            }
-            if (name.contains("BridJExtractedLibraries") && isObsolete) {
-              return true;
-            }
-            if (name.toLowerCase().contains("sikuli")) {
-              if (name.contains("Sikulix_")) {
-                if (isObsolete || aFile.equals(fBaseTempPath)) {
-                  return true;
-                }
-              } else {
-                return true;
-              }
-            }
-            return false;
-          }
-        })) {
-          Debug.log(4, "cleanTemp: " + f.getName());
-          FileManager.deleteFileOrFolder(f.getAbsolutePath());
-        }
-      }
-    });
 
     if (Type.IDE.equals(typ) && !runningScripts && !allowMultipleInstances) {
       isRunning = new File(fTempPath, isRunningFilename);
@@ -570,10 +558,9 @@ public class RunTime {
     } catch (Exception ex) {
       terminate(999, appDataMsg + "\n" + ex.toString(), fSikulixAppPath);
     }
+    //</editor-fold>
 
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="monitors">
+    //<editor-fold defaultstate="collapsed" desc="monitors">
     if (!isHeadless()) {
       log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
       genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -612,9 +599,9 @@ public class RunTime {
     } else {
       log(lvl, "running in headless environment");
     }
-//</editor-fold>
+    //</editor-fold>
 
-//<editor-fold defaultstate="collapsed" desc="classpath">
+    //<editor-fold defaultstate="collapsed" desc="classpath">
 /*
     try {
       if (Type.IDE.equals(typ)) {
@@ -728,38 +715,12 @@ public class RunTime {
       }
     }
 */
-//</editor-fold>
+    //</editor-fold>
 
     if (runningWinApp || testingWinApp) {
       runTime.fpJarLibs += "windows";
       runTime.fpSysLibs = runTime.fpJarLibs.substring(1) + "/libs" + runTime.javaArch;
     }
-
-//TODO RunTime: remove SETUP
-/*
-    if (Type.SETUP.equals(typ)) {
-      fSikulixDownloadsBuild = new File(fSikulixAppPath, "SikulixDownloads_" + sxBuildStamp);
-      String[] fpList = fSikulixAppPath.list(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          if (name.contains("SikulixDownloads_")) {
-            if (name.contains(sxBuildStamp)) {
-              return false;
-            }
-            return true;
-          }
-          return false;
-        }
-      });
-      if (fpList.length > 0) {
-        log(lvl, "deleting versioned downloads folder in AppPath (%s)", fSikulixDownloadsBuild.getName());
-        for (String entry : fpList) {
-          //new File(fSikulixAppPath, entry).renameTo(fSikulixDownloadsBuild);
-          FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
-        }
-      }
-    }
-*/
 
     runType = typ;
     if (Debug.getDebugLevel() == minLvl) {
@@ -767,8 +728,13 @@ public class RunTime {
     }
     log(lvl, "global init: leaving");
   }
+  //</editor-fold>
 
+  //<editor-fold desc="cleanUp">
   public static void cleanUp() {
+    if (!isTerminating) {
+      runTime.log(3, "***** running cleanUp *****");
+    }
     VNCScreen.stopAll();
     ADBScreen.stop();
     ScreenHighlighter.closeAll();
@@ -784,24 +750,7 @@ public class RunTime {
     }
     Mouse.reset();
   }
-
-  class LibsFilter implements FilenameFilter {
-
-    String sAccept = "";
-
-    public LibsFilter(String toAccept) {
-      sAccept = toAccept;
-    }
-
-    @Override
-    public boolean accept(File dir, String name) {
-      if (dir.getPath().contains(sAccept)) {
-        return true;
-      }
-      return false;
-    }
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Sikulix options handling">
   public int SikuliVersionMajor;
