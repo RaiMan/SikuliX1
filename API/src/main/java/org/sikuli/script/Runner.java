@@ -275,7 +275,7 @@ public class Runner {
     if (jsr != null) {
       log(lvl, "ScriptingEngine started: JavaScript (ending .js)");
     } else {
-      Sikulix.terminate(1, "ScriptingEngine for JavaScript not available");
+      Sikulix.terminate(999, "ScriptingEngine for JavaScript not available");
     }
     if (RunTime.Type.IDE.equals(runTime.runType)) {
       try {
@@ -377,7 +377,7 @@ public class Runner {
         if (givenScriptName.endsWith(".zip")) {
           scriptLocation = givenScriptHost + givenScriptFolder + givenScriptName;
           if (0 < FileManager.isUrlUseabel(scriptLocation)) {
-            Sikulix.terminate(1, ".zip from net not yet supported\n%s", scriptLocation);
+            Sikulix.terminate(999, ".zip from net not yet supported\n%s", scriptLocation);
           }
         } else {
           for (String suffix : endingTypes.keySet()) {
@@ -968,13 +968,13 @@ public class Runner {
           @Override
           public void run() {
             try {
-              Runner.mHide.invoke(null, new Class[0]);
+              Runner.mHide.invoke(null);
               Runner.jsRunner.eval(jsScript);
-              Runner.mShow.invoke(null, new Class[0]);
+              Runner.mShow.invoke(null);
             } catch (Exception ex) {
               Runner.log(-1, "not possible:\n%s", ex);
               try {
-                Runner.mShow.invoke(null, new Class[0]);
+                Runner.mShow.invoke(null);
               } catch (Exception e) {
                 Sikulix.terminate(999, "IDE::showWindow not possible");
               }

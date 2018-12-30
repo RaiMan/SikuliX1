@@ -82,6 +82,8 @@ public class JythonScriptRunner implements IScriptRunner {
   private static final int PY_SYNTAX = 0;
   private static final int PY_RUNTIME = 1;
   private static final int PY_JAVA = 2;
+  private static final int SX_RUNTIME = 3;
+  private static final int SX_ABORT = 4;
   private static final int PY_UNKNOWN = -1;
   private static final String NL = String.format("%n");
   //TODO SikuliToHtmlConverter implement in Java
@@ -97,7 +99,7 @@ public class JythonScriptRunner implements IScriptRunner {
   @Override
   public void init(String[] param) {
     if (runTime.runningWinApp) {
-      helper.terminate(1, "JythonScriptRunner called in WinApp (packed .exe)");
+      helper.terminate(999, "JythonScriptRunner called in WinApp (packed .exe)");
     }
     if (isReady && interpreter != null) {
       return;
@@ -128,7 +130,7 @@ public class JythonScriptRunner implements IScriptRunner {
       interpreter.exec("from sikuli import *");
       log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
     } catch (Exception ex) {
-      helper.terminate(1, "JythonScriptRunner: cannot be initialized:\n%s", ex);
+      helper.terminate(999, "JythonScriptRunner: cannot be initialized:\n%s", ex);
     }
     isReady = true;
   }
@@ -344,8 +346,21 @@ public class JythonScriptRunner implements IScriptRunner {
     }
 
     if (errorClass == PY_RUNTIME || errorClass == PY_SYNTAX) {
-      Debug.error(msg);
-      Debug.error(errorType + " ( " + errorText + " )");
+      if (errorText.startsWith(errorType)) {
+        if (errorText.startsWith("java.lang.RuntimeException: SikuliX: ")) {
+          errorText = errorText.replace("java.lang.RuntimeException: SikuliX: ",
+                  "sikulix.RuntimeException: ");
+          errorClass = SX_RUNTIME;
+        } else if (errorText.startsWith("java.lang.ThreadDeath")) {
+          errorClass = SX_ABORT;
+        }
+      }
+      if (errorClass != SX_ABORT) {
+        Debug.error(msg);
+        Debug.error(errorType + " ( " + errorText + " )");
+      } else {
+        Debug.error("IDE: terminating script run - abort key was pressed");
+      }
       if (errorClass == PY_RUNTIME) {
         errorTrace = findErrorSourceWalkTrace(mFile, filename);
         if (errorTrace.length() > 0) {

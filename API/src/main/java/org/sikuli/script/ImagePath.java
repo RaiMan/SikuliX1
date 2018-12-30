@@ -574,12 +574,10 @@ public class ImagePath {
 		}
     if (getCount() ==0) {
       String wf = System.getProperty("user.dir");
-      log(-1, "setBundlePath: invalid BundlePath: %s \nusing working folder: %s",
-              bPath, wf);
       if (!new File(wf).exists()) {
-        log(-1, "setBundlePath: Fatal error: working folder does not exist --- terminating");
-        System.exit(1);
+        throw new RuntimeException(String.format("SikuliX: fatal: setBundlePath: user.dir does not exist: %s", wf));
       }
+      log(lvl,"setBundlePath: invalid: %s using working folder: %s", bPath, wf);
       return setBundlePath(wf);
     }
     return true;

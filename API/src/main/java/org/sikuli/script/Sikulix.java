@@ -18,6 +18,7 @@ import java.util.List;
 
 public class Sikulix {
 
+  //<editor-fold desc="housekeeping">
   private static int lvl = 3;
 
   private static void log(int level, String message, Object... args) {
@@ -48,42 +49,49 @@ public class Sikulix {
   }
 
   public static void terminate(int retVal, String msg, Object... args) {
-    String outMsg = p(msg, args);
-    if (retVal < 999) {
-      System.exit(retVal);
-    }
-    RunTime.cleanUp();
-    throw new RuntimeException("Sikulix fatal error: " + outMsg);
+    runTime.terminate(retVal, msg, args);
   }
+
+  public static void terminate() {
+    terminate(0, "");
+  }
+  //</editor-fold>
 
   public static void main(String[] args) throws FindFailed {
     runTime = RunTime.get();
 
     if (args.length == 0) {
       TextRecognizer.extractTessdata();
+      terminate();
+    }
+
+    if (args.length > 0 && "play".equals(args[0])) {
+      //Debug.off();
+      ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+      Screen scr = new Screen();
+
+      scr.exists(1);
+      scr.hover();
+
+      terminate();
     }
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
       System.out.print(runTime.sxBuild);
-      System.exit(0);
+      terminate();
     }
 
     RunTime.checkArgs(runTime, args, RunTime.Type.API);
     if (runTime.runningScripts) {
       int exitCode = Runner.runScripts(args);
-      System.exit(exitCode);
+      terminate(exitCode, "");
     }
 
     if (runTime.shouldRunServer) {
       if (RunServer.run(null)) {
-        System.exit(1);
+        terminate(1, "");
       }
-      System.exit(0);
-    }
-
-    if (args.length > 0 && "play".equals(args[0])) {
-      Debug.off();
-      ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+      terminate();
     }
 
     if (args.length == 1 && "testlibs".equals(args[0])) {
@@ -110,10 +118,12 @@ public class Sikulix {
           FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
         }
       }
+      terminate();
     }
 
     if (args.length == 1 && "runtest".equals(args[0])) {
       SikulixTest.main(new String[]{});
+      terminate();
     }
 
     if (args.length == 1 && "test".equals(args[0])) {
@@ -139,7 +149,7 @@ public class Sikulix {
         }
       }
     }
-    System.exit(0);
+    terminate();
   }
 
   /**

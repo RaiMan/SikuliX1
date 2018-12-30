@@ -610,10 +610,8 @@ public class Image {
     } else if (target instanceof ScreenImage) {
       return new Image (((ScreenImage) target).getImage());
     } else {
-        runTime.abortScripting("aborting script at:",
-                String.format("find, wait, exists: invalid parameter: %s", target));
+      throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
     }
-    return null;
   }
 
   /**

@@ -2241,7 +2241,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          RunTime.get().abortScripting("Wait: Abort:", "ImageMissing: " + target.toString());
+          throw new RuntimeException(String.format("SikuliX: wait: ImageMissing: %s", target));
         }
       }
     }
@@ -2316,7 +2316,7 @@ public class Region {
           img.setIsText(true);
           target = (PSI) ("\t" + target + "\t");
         } else {
-          RunTime.get().abortScripting("Find: Abort:", "ImageMissing: " + target.toString());
+          throw new RuntimeException(String.format("SikuliX: find: ImageMissing: %s", target));
         }
       }
     }
@@ -2369,7 +2369,7 @@ public class Region {
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
-          RunTime.get().abortScripting("Exists: Abort:", "ImageMissing: " + target.toString());
+          throw new RuntimeException(String.format("SikuliX: exists: ImageMissing: %s", target));
         }
       }
     }
@@ -2491,7 +2491,7 @@ public class Region {
     if (!img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);
       if (response == null) {
-        RunTime.get().abortScripting("FindAll: Abort:", "ImageMissing: " + target.toString());
+        throw new RuntimeException(String.format("SikuliX: findAll: ImageMissing: %s", target));
       }
     }
     while (null != response && response) {
@@ -2855,8 +2855,7 @@ public class Region {
           }
         }
       } else {
-        RunTime.get().abortScripting("aborting script at:",
-                String.format("find, wait, exists: invalid parameter: %s", ptn));
+        throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", ptn));
       }
       if (repeating != null) {
         repeating._finder = finder;
@@ -2983,7 +2982,7 @@ public class Region {
           finder.findAll((Image) ptn);
         }
       } else {
-        RunTime.get().terminate(999, "doFind: invalid parameter: %s", ptn);
+        throw new RuntimeException(String.format("SikuliX: Region: doFind: invalid parameter: %s", ptn));
       }
       if (repeating != null) {
         repeating._finder = finder;
@@ -3543,8 +3542,8 @@ public class Region {
       if (!img.isValid() && img.hasIOException()) {
         response = handleImageMissing(img, false);
         if (response == null) {
-          RunTime.get().abortScripting("onEvent(" + obsType.name() + "): Abort:",
-                  "ImageMissing: " + targetThreshhold.toString());
+          throw new RuntimeException(
+                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }

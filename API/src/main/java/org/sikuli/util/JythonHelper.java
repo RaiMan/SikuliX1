@@ -81,7 +81,7 @@ public class JythonHelper implements JLangHelperInterface {
         mExec = cInterpreter.getMethod("exec", new Class[]{String.class});
         mExecfile = cInterpreter.getMethod("execfile", new Class[]{String.class});
         Constructor PI_new = cInterpreter.getConstructor(nc);
-        interpreter = PI_new.newInstance(null);
+        interpreter = PI_new.newInstance();
         cPyException = Class.forName("org.python.core.PyException");
         cList = Class.forName("org.python.core.PyList");
         cPy = Class.forName("org.python.core.Py");
@@ -102,7 +102,7 @@ public class JythonHelper implements JLangHelperInterface {
       instance.log(lvl, "init: success");
     }
     if (cInterpreter == null) {
-      instance.terminate(1, "JythonHelper: no Jython available");
+      instance.terminate(999, "JythonHelper: no Jython available");
     }
     runTime.isJythonReady = true;
     return instance;
@@ -389,7 +389,7 @@ public class JythonHelper implements JLangHelperInterface {
     if (runTime.isRunningFromJar()) {
       File fLibRobot = new File(runTime.fSikulixLib, "robot");
       if (!fLibRobot.exists()) {
-        Sikulix.terminate(1, "prepareRobot: not available: %s", fLibRobot);
+        Sikulix.terminate(999, "prepareRobot: not available: %s", fLibRobot);
       }
       if (!hasSysPath(runTime.fSikulixLib.getAbsolutePath())) {
         insertSysPath(runTime.fSikulixLib);
@@ -602,7 +602,7 @@ public class JythonHelper implements JLangHelperInterface {
       Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
       Field fArgv = aState.getClass().getField("argv");
       Object pyArgv = fArgv.get(aState);
-      mClear.invoke(pyArgv, null);
+      mClear.invoke(pyArgv);
       for (String arg : args) {
         mAdd.invoke(pyArgv, arg);
       }

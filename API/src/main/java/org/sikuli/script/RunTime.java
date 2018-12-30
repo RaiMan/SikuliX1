@@ -61,7 +61,14 @@ public class RunTime {
   }
 
   public void terminate(int retval, String message, Object... args) {
-    Sikulix.terminate(retval, message, args);
+    String outMsg = String.format(message, args);
+    if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        System.out.println(outMsg);
+      }
+      System.exit(retval);
+    }
+    throw new RuntimeException(String.format("SikuliX: fatal: " + outMsg));
   }
   //</editor-fold>
 
@@ -568,7 +575,7 @@ public class RunTime {
       gdevs = genv.getScreenDevices();
       nMonitors = gdevs.length;
       if (nMonitors == 0) {
-        terminate(999, "GraphicsEnvironment has no ScreenDevices");
+        throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
       }
       monitorBounds = new Rectangle[nMonitors];
       rAllMonitors = null;
@@ -597,7 +604,7 @@ public class RunTime {
         mainMonitor = 0;
       }
     } else {
-      log(lvl, "running in headless environment");
+      throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
     }
     //</editor-fold>
 
@@ -734,6 +741,7 @@ public class RunTime {
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
+      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
@@ -1208,6 +1216,8 @@ public class RunTime {
     }
   }
 
+//TODO abortScripting obsolete
+/*
   protected void abortScripting(String msg1, String msg2) {
     Thread current = Thread.currentThread();
     String where = "";
@@ -1222,6 +1232,7 @@ public class RunTime {
     current.interrupt();
     current.stop();
   }
+*/
 
   public static void resetProject() {
     scriptProject = null;

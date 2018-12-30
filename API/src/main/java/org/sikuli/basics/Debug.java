@@ -819,9 +819,9 @@ public class Debug {
       sout = String.format(message, args);
       boolean isRedirected = false;
 			if (level > -99) {
-				isRedirected = doRedirect(CallbackType.DEBUG, prefix, sout, null);
+				isRedirected = doRedirect(CallbackType.DEBUG, prefix, sout);
 			} else if (level == -99) {
-				isRedirected = doRedirect(CallbackType.USER, prefix, sout, null);
+				isRedirected = doRedirect(CallbackType.USER, prefix, sout);
 			}
       if (!isRedirected) {
         if (level == -99 && printoutuser != null) {
