@@ -58,7 +58,13 @@ public class Sikulix {
   //</editor-fold>
 
   public static void main(String[] args) throws FindFailed {
+
     runTime = RunTime.get();
+
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      System.out.println(runTime.sxBuild);
+      System.exit(0);
+    }
 
     if (args.length == 0) {
       TextRecognizer.extractTessdata();
@@ -73,11 +79,6 @@ public class Sikulix {
       scr.exists(1);
       scr.hover();
 
-      terminate();
-    }
-
-    if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.print(runTime.sxBuild);
       terminate();
     }
 
@@ -96,6 +97,7 @@ public class Sikulix {
 
     if (args.length == 1 && "testlibs".equals(args[0])) {
       TextRecognizer.start();
+      terminate();
     }
 
     if (args.length == 1 && "createlibs".equals(args[0])) {

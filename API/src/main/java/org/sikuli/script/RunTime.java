@@ -240,63 +240,6 @@ public class RunTime {
     }
     runTime = new RunTime();
 
-    //<editor-fold desc="addShutdownHook">
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        isTerminating = true;
-        if (Debug.isStartWithTrace()) {
-          Debug.on(3);
-          Debug.globalTraceOn();
-        }
-        runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
-        cleanUp();
-
-        if (runTime.isRunning != null) {
-          try {
-            runTime.isRunningFile.close();
-          } catch (IOException ex) {
-          }
-          runTime.isRunning.delete();
-        }
-
-        if (runTime.shouldCleanDownloads) {
-          FileManager.deleteFileOrFolder(runTime.fSikulixDownloadsBuild);
-        }
-        for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            File aFile = new File(dir, name);
-            boolean isObsolete = false;
-            long lastTime = aFile.lastModified();
-            if (lastTime == 0) {
-              return false;
-            }
-            if (lastTime < ((new Date().getTime()) - 7 * 24 * 60 * 60 * 1000)) {
-              isObsolete = true;
-            }
-            if (name.contains("BridJExtractedLibraries") && isObsolete) {
-              return true;
-            }
-            if (name.toLowerCase().contains("sikuli")) {
-              if (name.contains("Sikulix_")) {
-                if (isObsolete || aFile.equals(runTime.fBaseTempPath)) {
-                  return true;
-                }
-              } else {
-                return true;
-              }
-            }
-            return false;
-          }
-        })) {
-          runTime.log(4, "cleanTemp: " + f.getName());
-          FileManager.deleteFileOrFolder(f.getAbsolutePath());
-        }
-      }
-    });
-    //</editor-fold>
-
     sikulixGlobalDebug = System.getenv("SIKULIXDEBUG");
     if (sikulixGlobalDebug != null) {
       Debug.setDebugLevel(3);
@@ -445,6 +388,69 @@ public class RunTime {
 
     Settings.init(); // force Settings initialization
     runTime.initSikulixOptions();
+
+/*
+    if (typ.equals(Type.SETUP)) {
+      return runTime;
+    }
+*/
+
+    //<editor-fold desc="addShutdownHook">
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        isTerminating = true;
+        if (Debug.isStartWithTrace()) {
+          Debug.on(3);
+          Debug.globalTraceOn();
+        }
+        runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
+        cleanUp();
+
+        if (runTime.isRunning != null) {
+          try {
+            runTime.isRunningFile.close();
+          } catch (IOException ex) {
+          }
+          runTime.isRunning.delete();
+        }
+
+        if (runTime.shouldCleanDownloads) {
+          FileManager.deleteFileOrFolder(runTime.fSikulixDownloadsBuild);
+        }
+        for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            File aFile = new File(dir, name);
+            boolean isObsolete = false;
+            long lastTime = aFile.lastModified();
+            if (lastTime == 0) {
+              return false;
+            }
+            if (lastTime < ((new Date().getTime()) - 7 * 24 * 60 * 60 * 1000)) {
+              isObsolete = true;
+            }
+            if (name.contains("BridJExtractedLibraries") && isObsolete) {
+              return true;
+            }
+            if (name.toLowerCase().contains("sikuli")) {
+              if (name.contains("Sikulix_")) {
+                if (isObsolete || aFile.equals(runTime.fBaseTempPath)) {
+                  return true;
+                }
+              } else {
+                return true;
+              }
+            }
+            return false;
+          }
+        })) {
+          runTime.log(4, "cleanTemp: " + f.getName());
+          FileManager.deleteFileOrFolder(f.getAbsolutePath());
+        }
+      }
+    });
+    //</editor-fold>
 
     runTime.init(typ);
     if (Type.IDE.equals(typ)) {
