@@ -388,11 +388,9 @@ public class RunTime {
     Settings.init(); // force Settings initialization
     runTime.initSikulixOptions();
 
-/*
     if (typ.equals(Type.SETUP)) {
       return runTime;
     }
-*/
 
     //<editor-fold desc="addShutdownHook">
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -609,7 +607,9 @@ public class RunTime {
         mainMonitor = 0;
       }
     } else {
-      throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
+      if (!typ.equals(Type.SETUP)) {
+        throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
+      }
     }
     //</editor-fold>
 

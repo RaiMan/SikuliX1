@@ -59,12 +59,13 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
 
-    runTime = RunTime.get();
-
     if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.println(runTime.sxBuild);
+      runTime = RunTime.get(RunTime.Type.SETUP);
+      System.out.println(runTime.SXBuild);
       System.exit(0);
     }
+
+    runTime = RunTime.get();
 
     if (args.length == 0) {
       TextRecognizer.extractTessdata();
