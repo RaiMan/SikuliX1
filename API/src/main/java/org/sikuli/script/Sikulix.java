@@ -73,13 +73,8 @@ public class Sikulix {
     }
 
     if (args.length > 0 && "play".equals(args[0])) {
-      //Debug.off();
+      Debug.off();
       ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-      Screen scr = new Screen();
-
-      scr.exists(1);
-      scr.hover();
-
       terminate();
     }
 
@@ -649,7 +644,7 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
-      return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
+    return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
   }
 
   /**
@@ -663,6 +658,6 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, int cTimeout, int timeout) {
-      return VNCScreen.start(theIP, thePort, cTimeout, timeout);
+    return VNCScreen.start(theIP, thePort, cTimeout, timeout);
   }
 }
