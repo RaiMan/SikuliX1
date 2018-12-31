@@ -479,15 +479,12 @@ public class Location implements Comparable<Location>{
    */
   @Override
   public String toString() {
-    IScreen s = getScreen();
-
-    if(s instanceof Screen){
-    	return "L(" + x + "," + y + ")" + "@" + ((Screen) s).toStringShort();
+    String scrText = getScreen() == null ? "?" :
+            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+    if (isOtherScreen()) {
+      scrText = getScreen().getIDString();
     }
-    else{
-    	return "L(" + x + "," + y + ")" +
-                ((s == null) ? "" : "@" + s.toString());
-    }
+    return String.format("L[%d,%d]@S(%s)", x, y, scrText);
   }
 
   /**

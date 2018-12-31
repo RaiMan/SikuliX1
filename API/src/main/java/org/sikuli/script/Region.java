@@ -114,39 +114,21 @@ public class Region {
   public String toString() {
     String scrText = getScreen() == null ? "?" :
             "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+    if (isOtherScreen()) {
+      scrText = getScreen().getIDString();
+    }
     String nameText = "";
     if (!name.isEmpty()) {
       nameText = "#" + name + "# ";
     }
-    return String.format("%sR[%d,%d %dx%d]@S(%s) E:%s, T:%.1f",
-            nameText, x, y, w, h, scrText,
-            throwException ? "Y" : "N", autoWaitTimeout);
-  }
-
-  /**
-   * INTERNAL USE ONLY
-   *
-   * @return text
-   */
-  public String getIDString() {
-    return "NonLocal";
+    return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
   }
 
   /**
    * @return a compact description
    */
   public String toStringShort() {
-    if (isOtherScreen()) {
-      return String.format("%s, %dx%d", getScreen().getIDString(), w, h);
-    } else {
-      String scrText = getScreen() == null ? "?" :
-              "" + (-1 == getScreen().getID() ? "Union" : getScreen().getID());
-      String nameText = "";
-      if (!name.isEmpty()) {
-        nameText = "#" + name + "# ";
-      }
-      return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
-    }
+    return toString();
   }
   //</editor-fold>
 
@@ -492,7 +474,7 @@ public class Region {
    * @param scr the source screen
    * @return the new region
    */
-  private static Region create(int X, int Y, int W, int H, IScreen scr) {
+  public static Region create(int X, int Y, int W, int H, IScreen scr) {
     return new Region(X, Y, W, H, scr);
   }
 

@@ -386,6 +386,11 @@ public class Screen extends Region implements IScreen {
     return curID;
   }
 
+  public String getIDString() {
+    return "" + getID();
+  }
+
+
   /**
    * INTERNAL USE: to be compatible with ScreenUnion
    *
@@ -767,30 +772,6 @@ public class Screen extends Region implements IScreen {
     }
   }
   //</editor-fold>
-
-  @Override
-  public String toString() {
-    Rectangle r = getBounds();
-    String scrText = curID == -1 ? "Union" : "" + curID;
-    return String.format("S(%s)[%d,%d %dx%d] E:%s, T:%.1f",
-            scrText, (int) r.getX(), (int) r.getY(),
-            (int) r.getWidth(), (int) r.getHeight(),
-            getThrowException() ? "Y" : "N", getAutoWaitTimeout());
-  }
-
-  /**
-   * only a short version of toString()
-   *
-   * @return like S(0) [0,0, 1440x900]
-   */
-  @Override
-  public String toStringShort() {
-    Rectangle r = getBounds();
-    String scrText = curID == -1 ? "Union" : "" + curID;
-    return String.format("S(%s)[%d,%d %dx%d]",
-            scrText, (int) r.getX(), (int) r.getY(),
-            (int) r.getWidth(), (int) r.getHeight());
-  }
 
   @Override
   public Region setOther(Region element) {

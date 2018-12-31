@@ -129,9 +129,9 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
 
   public String toString() {
     if (null == device) {
-      return "ADBScreen: No Android device attached";
+      return "Android:INVALID";
     } else {
-      return String.format("ADBScreen: Android device: %s", getDeviceDescription());
+      return String.format("Android %s", getDeviceDescription());
     }
   }
 
@@ -228,7 +228,7 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   }
 
   public String getIDString() {
-    return "Android";
+    return "Android " + getDeviceDescription();
   }
 
   @Override

@@ -62,9 +62,9 @@ public class VNCScreen extends Region implements IScreen {
     if (null != scr) {
       if (scr.id.isEmpty()) {
         scr.init(theIP, thePort, password);
-        Debug.log(3, "VNCScreen: start: %s", scr, theIP, thePort);
+        Debug.log(3, "VNCScreen: start: %s", scr);
       } else
-        Debug.log(3, "VNCScreen: start: using existing: %s", scr, theIP, thePort);
+        Debug.log(3, "VNCScreen: start: using existing: %s", scr);
     } else {
       scr = new VNCScreen();
     }
@@ -140,18 +140,8 @@ public class VNCScreen extends Region implements IScreen {
     return null;
   }
 
-  @Override
-  public String toStringShort() {
-    String text = super.toStringShort();
-    if (!isRunning()) {
-      text = text.replace("NonLocal", "VNCScreen:INVALID");
-    }
-    return text + ", " + id;
-  }
-
-  @Override
-  public String toString() {
-    return toStringShort();
+  public String getIDString() {
+    return (isRunning() ? "VNC " : "VNC:INVALID ") + id;
   }
 
   public void stop() {
@@ -221,6 +211,7 @@ public class VNCScreen extends Region implements IScreen {
             image
     );
     lastScreenImage = img;
+    Debug.log(3, "VNCScreen: capture: (%d,%d) %dx%d on %s", x, y, w, h, this);
     return img;
   }
 
@@ -333,7 +324,7 @@ public class VNCScreen extends Region implements IScreen {
   }
 
   public Region newRegion(int x, int y, int w, int h) {
-    Region reg = Region.create(x, y, w, h);
+    Region reg = Region.create(x, y, w, h, this);
     reg.setOtherScreen(this);
     return reg;
   }
