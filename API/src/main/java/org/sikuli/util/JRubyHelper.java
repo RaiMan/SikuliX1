@@ -8,12 +8,14 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.RunTime;
 
 /**
  * This class implements JRuby specific parts
  */
 public class JRubyHelper implements JLangHelperInterface {
     private static final String me = "JRubyHelper: ";
+    private static RunTime runTime;
 
     /**
      * Mandatory method which returns an instance of the helper
@@ -21,6 +23,8 @@ public class JRubyHelper implements JLangHelperInterface {
      * @return
      */
     public static JRubyHelper get() {
+        runTime = RunTime.get();
+        runTime.exportLib();
         return new JRubyHelper();
     }
 

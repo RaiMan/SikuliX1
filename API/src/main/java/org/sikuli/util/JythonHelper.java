@@ -73,6 +73,7 @@ public class JythonHelper implements JLangHelperInterface {
   public static JythonHelper get() {
     if (instance == null) {
       runTime = RunTime.get();
+      runTime.exportLib();
       instance = new JythonHelper();
       instance.log(lvl, "init: starting");
       try {

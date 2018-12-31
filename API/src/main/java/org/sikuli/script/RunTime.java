@@ -180,7 +180,6 @@ public class RunTime {
   private String lastResult = "";
   public boolean shouldCleanDownloads = false;
   public boolean isJythonReady = false;
-  private boolean shouldExport = false;
 
   GraphicsEnvironment genv = null;
   GraphicsDevice[] gdevs;
@@ -1194,8 +1193,15 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
     log(lvl, "initAPI: entering");
-    if (shouldExport
-            || !fSikulixLib.exists()
+    log(lvl, "initAPI: leaving");
+  }
+
+  private static boolean isLibExported = false;
+  public void exportLib() {
+    if (isLibExported) {
+      return;
+    }
+    if (!fSikulixLib.exists()
             || !new File(fSikulixLib, "robot").exists()
             || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
@@ -1203,7 +1209,7 @@ public class RunTime {
     } else {
       extractResourcesToFolder("Lib/sikuli", new File(fSikulixLib, "sikuli"), null);
     }
-    log(lvl, "initAPI: leaving");
+    isLibExported = true;
   }
 //</editor-fold>
 
