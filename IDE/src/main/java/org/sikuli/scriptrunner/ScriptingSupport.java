@@ -423,7 +423,7 @@ public class ScriptingSupport {
     }
 
 		if (runScripts == null) {
-			Sikulix.terminate(1, "option -r without any script");
+			Sikulix.terminate(999, "option -r without any script");
 		}
 
     if (runScripts.length > 0) {

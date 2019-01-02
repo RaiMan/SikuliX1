@@ -33,12 +33,6 @@ public class FindInput2 {
 
   private Mat targetBGR = new Mat();
 
-  public String getTargetText() {
-    return targetText;
-  }
-
-  private String targetText = "";
-
   public void setWhere(Region where) {
     this.where = where;
   }
@@ -54,19 +48,37 @@ public class FindInput2 {
   private boolean findAll = false;
 
   private Mat target = null;
+  private String targetText = "";
   private boolean targetTypeText = false;
+
+  public void setTarget(Mat target) {
+    this.target = target;
+  }
+
+  public Mat getTarget() {
+    if (targetBGR.empty()) {
+      return target;
+    }
+    return targetBGR;
+  }
+
+  public void setTargetText(String text) {
+    targetText = text;
+    targetTypeText = true;
+  }
+
+  public String getTargetText() {
+    return targetText;
+  }
 
   public boolean isValid() {
     if (Do.SX.isNull(source) && Do.SX.isNull(where)) {
       return false;
     }
-    if (target.empty()) {
-      return false;
-    }
-    if (Do.SX.isNotNull(target)) {
+    if (Do.SX.isNotNull(target) && !target.empty()) {
       return true;
     }
-    if (targetTypeText) {
+    if (targetTypeText && !targetText.isEmpty()) {
       return true;
     }
     return false;
@@ -88,22 +100,6 @@ public class FindInput2 {
 
   public boolean isFindAll() {
     return findAll;
-  }
-
-  public void setTargetText(String text) {
-    targetText = text;
-    targetTypeText = true;
-  }
-
-  public void setTarget(Mat target) {
-    this.target = target;
-  }
-
-  public Mat getTarget() {
-    if (targetBGR.empty()) {
-      return target;
-    }
-    return targetBGR;
   }
 
   private Mat source = null;

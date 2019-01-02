@@ -57,6 +57,7 @@ public class Sikulix {
       verbose = true;
       args[0] += start;
       Debug.globalTraceOn();
+      Debug.setStartWithTrace();
     }
 
     fAppData = makeAppData();

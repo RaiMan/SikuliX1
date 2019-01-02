@@ -186,6 +186,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   @Override
   public void mouseClicked(MouseEvent e) {
     setVisible(false);
+    clean();
   }
 
   public void highlight(Region r_) {

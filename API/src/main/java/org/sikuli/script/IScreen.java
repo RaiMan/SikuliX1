@@ -50,8 +50,6 @@ public interface IScreen {
 
 	public int getIdFromPoint(int srcx, int srcy);
 
-	public String toStringShort();
-
   public Region setOther(Region element);
   public Location setOther(Location element);
 

@@ -63,8 +63,11 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   }
 
   public static void stop() {
-    ADBDevice.reset();
-    screen = null;
+    if (null != screen) {
+      Debug.log(3, "ADBScreen: stopping android support");
+      ADBDevice.reset();
+      screen = null;
+    }
   }
 
   public ADBScreen() {
@@ -126,9 +129,9 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
 
   public String toString() {
     if (null == device) {
-      return "ADBScreen: No Android device attached";
+      return "Android:INVALID";
     } else {
-      return String.format("ADBScreen: Android device: %s", getDeviceDescription());
+      return String.format("Android %s", getDeviceDescription());
     }
   }
 
@@ -225,7 +228,7 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   }
 
   public String getIDString() {
-    return "Android";
+    return "Android " + getDeviceDescription();
   }
 
   @Override

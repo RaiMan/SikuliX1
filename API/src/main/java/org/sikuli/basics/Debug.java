@@ -119,6 +119,16 @@ public class Debug {
     beQuiet = false;
   }
 
+	public static boolean isStartWithTrace() {
+		return startWithTrace;
+	}
+
+	public static void setStartWithTrace() {
+		startWithTrace = true;
+	}
+
+	private static boolean startWithTrace = false;
+
   public static void globalTraceOn() {
   	TRACE_LEVEL = 1;
   	traceLast = -1;
@@ -809,9 +819,9 @@ public class Debug {
       sout = String.format(message, args);
       boolean isRedirected = false;
 			if (level > -99) {
-				isRedirected = doRedirect(CallbackType.DEBUG, prefix, sout, null);
+				isRedirected = doRedirect(CallbackType.DEBUG, prefix, sout);
 			} else if (level == -99) {
-				isRedirected = doRedirect(CallbackType.USER, prefix, sout, null);
+				isRedirected = doRedirect(CallbackType.USER, prefix, sout);
 			}
       if (!isRedirected) {
         if (level == -99 && printoutuser != null) {

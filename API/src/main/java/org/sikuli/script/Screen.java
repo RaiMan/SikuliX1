@@ -135,7 +135,7 @@ public class Screen extends Region implements IScreen {
     }
     log(lvl + 1, "initScreens: entry");
     primaryScreen = 0;
-    setMouseRobot();
+    getGlobalRobot();
     if (null == globalRobot) {
       screens = new Screen[1];
       screens[0] = null;
@@ -176,25 +176,17 @@ public class Screen extends Region implements IScreen {
     }
   }
 
-  public static IRobot getGlobalRobot() {
-    return globalRobot;
-  }
+//  public static IRobot getGlobalRobot() {
+//    return globalRobot;
+//  }
 
-  private static void setMouseRobot() {
-    try {
-      if (globalRobot == null && !GraphicsEnvironment.isHeadless()) {
+  protected static IRobot getGlobalRobot() {
+    if (globalRobot == null) {
+      try {
         globalRobot = new RobotDesktop();
+      } catch (AWTException e) {
+        throw new RuntimeException(String.format("SikuliX: Screen: getGlobalRobot: %s", e.getMessage()));
       }
-    } catch (AWTException e) {
-      Debug.error("Can't initialize global Robot for Mouse: " + e.getMessage());
-    }
-  }
-
-  private IRobot getMouseRobot() {
-    setMouseRobot();
-    if (null == globalRobot && !GraphicsEnvironment.isHeadless()) {
-      log(-1, "problem getting a java.awt.Robot");
-      Sikulix.endError(999);
     }
     return globalRobot;
   }
@@ -394,6 +386,11 @@ public class Screen extends Region implements IScreen {
     return curID;
   }
 
+  public String getIDString() {
+    return "" + getID();
+  }
+
+
   /**
    * INTERNAL USE: to be compatible with ScreenUnion
    *
@@ -413,12 +410,12 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public IRobot getRobot() {
-    return getMouseRobot();
+    return getGlobalRobot();
   }
 
   protected static IRobot getRobot(Region reg) {
     if (reg == null || null == reg.getScreen()) {
-      return getPrimaryScreen().getMouseRobot();
+      return getPrimaryScreen().getGlobalRobot();
     } else {
       return reg.getScreen().getRobot();
     }
@@ -775,30 +772,6 @@ public class Screen extends Region implements IScreen {
     }
   }
   //</editor-fold>
-
-  @Override
-  public String toString() {
-    Rectangle r = getBounds();
-    String scrText = curID == -1 ? "Union" : "" + curID;
-    return String.format("S(%s)[%d,%d %dx%d] E:%s, T:%.1f",
-            scrText, (int) r.getX(), (int) r.getY(),
-            (int) r.getWidth(), (int) r.getHeight(),
-            getThrowException() ? "Y" : "N", getAutoWaitTimeout());
-  }
-
-  /**
-   * only a short version of toString()
-   *
-   * @return like S(0) [0,0, 1440x900]
-   */
-  @Override
-  public String toStringShort() {
-    Rectangle r = getBounds();
-    String scrText = curID == -1 ? "Union" : "" + curID;
-    return String.format("S(%s)[%d,%d %dx%d]",
-            scrText, (int) r.getX(), (int) r.getY(),
-            (int) r.getWidth(), (int) r.getHeight());
-  }
 
   @Override
   public Region setOther(Region element) {

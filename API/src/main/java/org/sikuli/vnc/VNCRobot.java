@@ -134,40 +134,44 @@ class VNCRobot implements IRobot {
 
   private void typeCode(int xlibCode, KeyMode mode) {
     boolean addShift = requiresShift(xlibCode) && !shiftPressed;
-    try {
-      if (mode == KeyMode.PRESS_RELEASE || mode == KeyMode.PRESS_ONLY) {
-        if (addShift) {
-          pressKey(XKeySym.XK_Shift_L);
-        }
-        pressKey(xlibCode);
-        if (xlibCode == XKeySym.XK_Shift_L || xlibCode == XKeySym.XK_Shift_R || xlibCode == XKeySym.XK_Shift_Lock) {
-          shiftPressed = true;
-        }
+    if (mode == KeyMode.PRESS_RELEASE || mode == KeyMode.PRESS_ONLY) {
+      if (addShift) {
+        pressKey(XKeySym.XK_Shift_L);
+      }
+      pressKey(xlibCode);
+      if (xlibCode == XKeySym.XK_Shift_L || xlibCode == XKeySym.XK_Shift_R || xlibCode == XKeySym.XK_Shift_Lock) {
+        shiftPressed = true;
+      }
+    }
+
+    if (mode == KeyMode.PRESS_RELEASE || mode == KeyMode.RELEASE_ONLY) {
+      releaseKey(xlibCode);
+      if (addShift) {
+        releaseKey(XKeySym.XK_Shift_L);
       }
 
-      if (mode == KeyMode.PRESS_RELEASE || mode == KeyMode.RELEASE_ONLY) {
-        releaseKey(xlibCode);
-        if (addShift) {
-          releaseKey(XKeySym.XK_Shift_L);
-        }
-
-        if (xlibCode == XKeySym.XK_Shift_L || xlibCode == XKeySym.XK_Shift_R || xlibCode == XKeySym.XK_Shift_Lock) {
-          shiftPressed = false;
-        }
+      if (xlibCode == XKeySym.XK_Shift_L || xlibCode == XKeySym.XK_Shift_R || xlibCode == XKeySym.XK_Shift_Lock) {
+        shiftPressed = false;
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 
-  private void pressKey(int key) throws IOException {
-    screen.getClient().keyDown(key);
-    pressedKeys.add(key);
+  private void pressKey(int key) {
+    try {
+      screen.getClient().keyDown(key);
+      pressedKeys.add(key);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
-  private void releaseKey(int key) throws IOException {
-    screen.getClient().keyUp(key);
-    pressedKeys.remove(key);
+  private void releaseKey(int key) {
+    try {
+      screen.getClient().keyUp(key);
+      pressedKeys.remove(key);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private int charToXlib(char c) {
@@ -583,7 +587,6 @@ class VNCRobot implements IRobot {
       mouseX = x;
       mouseY = y;
     } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 

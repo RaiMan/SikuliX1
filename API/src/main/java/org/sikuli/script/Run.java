@@ -63,8 +63,7 @@ public class Run {
     ip = getAddress(adr);
     port = getPort(p);
     if (ip == null || port < 0) {
-      error("target not valid: " + adr + " / " + p);
-      System.exit(1);
+      Sikulix.terminate(1, "target not valid: %s / %d", adr, p);
     }
     try {
       socket = new Socket(ip, port);

@@ -269,6 +269,7 @@ public class Match extends Region implements Comparable<Match> {
 
   @Override
   public String toString() {
+    String text = super.toString().replace("R[", "M[");
     String starget;
     Location c = getCenter();
     if (target != null && !c.equals(target)) {
@@ -277,9 +278,7 @@ public class Match extends Region implements Comparable<Match> {
       starget = String.format("C:%d,%d", c.x, c.y);
     }
     String findTimes = String.format("[%d msec]", lastFindTime);
-    return String.format("M[%d,%d %dx%d]@S(%s) S:%.2f %s %s", x, y, w, h,
-              ((getScreen()== null || !onScreen) ? "?" : getScreen().toStringShort()),
-              simScore, starget, findTimes);
+    return String.format("%s S:%.2f %s %s", text, simScore, starget, findTimes);
   }
 
   @Override

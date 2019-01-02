@@ -13,14 +13,12 @@ import org.sikuli.vnc.VNCScreen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.security.CodeSource;
 import java.util.List;
 
-//import org.sikuli.android.ADBScreen;
-
 public class Sikulix {
 
+  //<editor-fold desc="housekeeping">
   private static int lvl = 3;
 
   private static void log(int level, String message, Object... args) {
@@ -36,6 +34,7 @@ public class Sikulix {
   private static final String prefNonSikuli = "nonSikuli_";
   private static RunTime runTime = null;
   private static Point locPopAt = null;
+  private static String showBase = "API/src/main/resources/ImagesAPI";
 
   public static void endNormal(int n) {
     terminate(n, "Sikulix: endNormal");
@@ -50,111 +49,51 @@ public class Sikulix {
   }
 
   public static void terminate(int retVal, String msg, Object... args) {
-    String outMsg = p(msg, args);
-    cleanUp(retVal);
-    if (retVal < 999) {
-      System.exit(retVal);
-    }
-    throw new RuntimeException("Sikulix fatal error: " + outMsg);
+    runTime.terminate(retVal, msg, args);
   }
 
-  /**
-   * INTERNAL USE: resets stateful Sikuli X features: <br>
-   * ScreenHighlighter, Observing, Mouse, Key, Hotkeys <br>
-   * When in IDE: resets selected options to defaults (TODO)
-   *
-   * @param n returncode
-   */
-  public static void cleanUp(int n) {
-    log(lvl, "cleanUp: %d", n);
-    VNCScreen.stopAll();
-    ADBScreen.stop();
-    ScreenHighlighter.closeAll();
-    Observing.cleanUp();
-    HotkeyManager.reset();
-    try {
-      new RobotDesktop().keyUp();
-    } catch (AWTException e) {
-    }
-    Mouse.reset();
+  public static void terminate() {
+    terminate(0, "");
   }
+  //</editor-fold>
+
   public static void main(String[] args) throws FindFailed {
+
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      runTime = RunTime.get(RunTime.Type.SETUP);
+      System.out.println(runTime.SXBuild);
+      System.exit(0);
+    }
+
     runTime = RunTime.get();
 
     if (args.length == 0) {
       TextRecognizer.extractTessdata();
+      terminate();
     }
 
-    if (args.length == 1 && "buildDate".equals(args[0])) {
-      System.out.print(runTime.sxBuild);
-      cleanUp(0);
-      System.exit(0);
+    if (args.length > 0 && "play".equals(args[0])) {
+      Debug.off();
+      ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+      terminate();
     }
 
     RunTime.checkArgs(runTime, args, RunTime.Type.API);
     if (runTime.runningScripts) {
       int exitCode = Runner.runScripts(args);
-      cleanUp(exitCode);
-      System.exit(exitCode);
+      terminate(exitCode, "");
     }
 
     if (runTime.shouldRunServer) {
       if (RunServer.run(null)) {
-        System.exit(1);
+        terminate(1, "");
       }
-      System.exit(0);
-    }
-
-    if (args.length > 0 && "play".equals(args[0])) {
-//-------- playground Observe
-//      Region reg = new Region(0,0,80,80);
-//      reg.highlight(2);
-//      reg.onChange(new ObserverCallBack(){
-//        @Override
-//        public void changed(ObserveEvent evt) {
-//          if (evt.getCount() > 3) {
-//            p("in handler: %d - stopping", evt.getCount());
-//            evt.stopObserver();
-//          } else {
-//            p("in handler: %d", evt.getCount());
-//          }
-//        }
-//      });
-//      reg.observeInBackground();
-//      int n = 0;
-//      while (reg.isObserving()) {
-//        p("%d - observing", n);
-//        reg.wait(1.0);
-//        n++;
-//      }
-//-------- playground VNC
-//      VNCScreen vs = vncStart("192.168.2.63", 5900, "vnc", 0, 0);
-//      p("%s", vs);
-//      vs.wait(3.0);
-//      vs.type(Key.UP);
-//      vs.click();
-//      vs.type("test");
-//      vs.type("a", Key.CMD);
-//      vs.type("c", Key.CMD);
-//      vs.click();
-//      vs.type("v", Key.CMD);
-//      vs.wait(1.0);
-//      vs.userCapture("");
-//      vs.stop();
-//      vs.wait(3.0);
-
-//      while (true) {
-//        String file = popFile("");
-//        p("selected: %s", file);
-//        if (file.isEmpty()) {
-//          break;
-//        }
-//      }
-// -------- playground
+      terminate();
     }
 
     if (args.length == 1 && "testlibs".equals(args[0])) {
       TextRecognizer.start();
+      terminate();
     }
 
     if (args.length == 1 && "createlibs".equals(args[0])) {
@@ -162,7 +101,7 @@ public class Sikulix {
       CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
       if (codeSource != null && codeSource.getLocation().toString().endsWith("classes/")) {
         File libsSource = new File(new File(codeSource.getLocation().getFile()).getParentFile().getParentFile(), "src/main/resources");
-        for (String sys : new String[] {"mac", "windows", "linux"}) {
+        for (String sys : new String[]{"mac", "windows", "linux"}) {
           p("******* %s", sys);
           String sxcontentFolder = String.format("sikulixlibs/%s/libs64", sys);
           List<String> sikulixlibs = runTime.getResourceList(sxcontentFolder);
@@ -177,6 +116,12 @@ public class Sikulix {
           FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
         }
       }
+      terminate();
+    }
+
+    if (args.length == 1 && "runtest".equals(args[0])) {
+      SikulixTest.main(new String[]{});
+      terminate();
     }
 
     if (args.length == 1 && "test".equals(args[0])) {
@@ -202,7 +147,7 @@ public class Sikulix {
         }
       }
     }
-    System.exit(0);
+    terminate();
   }
 
   /**
@@ -699,11 +644,7 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
-    try {
-      return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
   }
 
   /**
@@ -717,10 +658,6 @@ public class Sikulix {
    * @return a VNCScreen object
    */
   public static VNCScreen vncStart(String theIP, int thePort, int cTimeout, int timeout) {
-    try {
-      return VNCScreen.start(theIP, thePort, cTimeout, timeout);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return VNCScreen.start(theIP, thePort, cTimeout, timeout);
   }
 }

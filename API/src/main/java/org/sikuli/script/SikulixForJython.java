@@ -36,14 +36,14 @@ public class SikulixForJython {
       URL uSikuliStuff = runTime.resourceLocation(libSikuli);
       if (uSikuliStuff == null) {
         runTime.dumpClassPath();
-        helper.terminate(1, "no suitable sikulix...jar on classpath");
+        helper.terminate(999, "no suitable sikulix...jar on classpath");
       }
       fpSikuliStuff = runTime.fSikulixLib.getAbsolutePath();
       if (!helper.hasSysPath(fpSikuliStuff)) {
         helper.log(lvl, "sikuli/*.py not found on current Jython::sys.path");
         helper.addSysPath(fpSikuliStuff);
         if (!helper.hasSysPath(fpSikuliStuff)) {
-          helper.terminate(1, "not possible to add to Jython::sys.path:\n%s", fpSikuliStuff);
+          helper.terminate(999, "not possible to add to Jython::sys.path:\n%s", fpSikuliStuff);
         }
         helper.log(lvl, "added as Jython::sys.path[0]:\n%s", fpSikuliStuff);
       } else {

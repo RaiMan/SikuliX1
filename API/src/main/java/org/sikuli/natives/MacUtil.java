@@ -203,7 +203,7 @@ public class MacUtil implements OSUtil {
                       + "(... -> Security & Privacy -> Privacy -> Accessibility)\n"
                       + "Please check the System Preferences and come back.",
               "macOS Accessibility", JOptionPane.ERROR_MESSAGE);
-      Sikulix.terminate(-1, "App: MacUtil: no access to assistive device support");
+      Sikulix.terminate(999, "App: MacUtil: no access to assistive device support");
     }
   }
 

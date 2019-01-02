@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.sikuli.basics.Debug;
 
 /**
@@ -53,7 +54,7 @@ public class Observing {
       r.getObserver().setStopOnFirstEvent();
     }
     runningObservers.add(r);
-    log(lvl,"add observer: now running %d observer(s)", runningObservers.size());
+    log(lvl, "add observer: now running %d observer(s)", runningObservers.size());
   }
 
   protected static void removeRunningObserver(Region r) {
@@ -76,6 +77,7 @@ public class Observing {
 
   /**
    * set the observer with the given name inactive (not checked while observing)
+   *
    * @param name
    */
   public void setInactive(String name) {
@@ -84,6 +86,7 @@ public class Observing {
 
   /**
    * set the observer with the given name active (checked while observing)
+   *
    * @param name
    */
   public void setActive(String name) {
@@ -113,6 +116,7 @@ public class Observing {
   /**
    * stop and remove all observers registered for this region from the list <br>
    * events for those observers are removed as well
+   *
    * @param reg
    */
   public static void remove(Region reg) {
@@ -123,27 +127,30 @@ public class Observing {
 
   /**
    * stop and remove all observers and their registered events
-   *
    */
   public static void cleanUp() {
     String[] names;
     synchronized (observers) {
       names = new String[observers.size()];
-      int i = 0;
-      for (String name : observers.keySet()) {
-        Region reg = observers.get(name);
-        if (reg.isObserving()) {
-          reg.stopObserver();
+      if (observers.size() > 0) {
+        int i = 0;
+        for (String name : observers.keySet()) {
+          Region reg = observers.get(name);
+          if (reg.isObserving()) {
+            reg.stopObserver();
+          }
+          events.remove(name);
+          names[i++] = name;
         }
-        events.remove(name);
-        names[i++] = name;
+      }
+      runningObservers.clear();
+      if (names.length > 0) {
+        for (String name : names) {
+          observers.remove(name);
+        }
+        log(lvl, "Observing: removed all observers");
       }
     }
-    runningObservers.clear();
-    for (String name : names) {
-      observers.remove(name);
-    }
-    log(lvl + 1, "as requested: removed all observers");
   }
 
   /**
@@ -167,7 +174,7 @@ public class Observing {
         return true;
       }
     }
-     return false;
+    return false;
   }
 
   /**
@@ -225,6 +232,7 @@ public class Observing {
 
   /**
    * retrieves and removes the requested event
+   *
    * @param name of event
    * @return the event or null
    */

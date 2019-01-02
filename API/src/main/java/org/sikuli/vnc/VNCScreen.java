@@ -11,102 +11,165 @@ import org.sikuli.util.ScreenHighlighter;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.*;
 
 import com.sikulix.vnc.*;
 
-public class VNCScreen extends Region implements IScreen, Closeable {
-  private final VNCClient client;
-  private volatile boolean closed;
-  private final IRobot robot;
+public class VNCScreen extends Region implements IScreen {
+  private VNCClient client;
+  private IRobot robot;
   private ScreenImage lastScreenImage;
 
-  private static Map<VNCScreen, VNCClient> screens = new HashMap<>();
+  private static String stdIP = "127.0.0.1";
+  private static int stdPort = 5900;
 
-//TODO Java9 on Mac
-//public class SocketDescriptor implements FileDescriptor {
-//  private static SelectorProvider DefaultSelectorProvider() {
-//      protected SelectorProvider() {
-//        this(checkPermission());
-//    }
-//
-//    private static boolean loadProviderFromProperty() {
+  private String ip = "";
+  private int port = -1;
+  private String id = "";
 
-  public static VNCScreen start(String theIP, int thePort, String password, int cTimeout, int timeout) throws IOException {
-    VNCScreen scr = null;
-    if (!(RunTime.get().runningMac && RunTime.get().isJava9("VNCScreen not yet working on Mac"))) {
-      scr = new VNCScreen(VNCClient.connect(theIP, thePort, password, true));
-      screens.put(scr, scr.client);
+  private static Map<String, VNCScreen> screens = new HashMap<>();
+
+  private static int startUpWait = 3;
+
+  public static void startUp(int waittime) {
+    startUpWait = waittime;
+  }
+
+  private VNCScreen() {}
+
+  public static VNCScreen start() {
+    return start(stdIP);
+  }
+
+  public static VNCScreen start(String theIP) {
+    VNCScreen vscr = null;
+    vscr = start(theIP, stdPort, null, 3, 0);
+    return vscr;
+  }
+
+  public static VNCScreen start(String theIP, int thePort) {
+    return start(theIP, thePort, null, 3, 0);
+  }
+
+  public static VNCScreen start(String theIP, int thePort, int cTimeout, int timeout) {
+    return start(theIP, thePort, null, cTimeout, timeout);
+  }
+
+  public static VNCScreen start(String theIP, int thePort, String password, int cTimeout, int timeout) {
+    VNCScreen scr = canConnect(theIP, thePort, cTimeout);
+    if (null != scr) {
+      if (scr.id.isEmpty()) {
+        scr.init(theIP, thePort, password);
+        Debug.log(3, "VNCScreen: start: %s", scr);
+      } else
+        Debug.log(3, "VNCScreen: start: using existing: %s", scr);
+    } else {
+      scr = new VNCScreen();
     }
     return scr;
   }
 
-  public static VNCScreen start(String theIP, int thePort, int cTimeout, int timeout) throws IOException {
-    return start(theIP, thePort, null, cTimeout, timeout);
-//    VNCScreen scr = new VNCScreen(VNCClient.connect(theIP, thePort, null, true));
-//    screens.put(scr, scr.client);
-//    return scr;
-  }
-
-  public static VNCScreen start(String theIP, int thePort) throws IOException {
-    return start(theIP, thePort, 0, 0);
-  }
-
-  public void stop() {
-    try {
-      close();
-    } catch (IOException e) {
-      Debug.error("VNCScreen: stop: %s", e.getMessage());
-    }
-    screens.put(this, null);
-  }
-
-  public static void stopAll() {
-    for (VNCScreen scr : screens.keySet()) {
-      if (screens.get(scr) == null) {
-        continue;
-      }
-      try {
-        scr.close();
-      } catch (IOException e) {
-        Debug.error("VNCScreen: stopAll: %s", e.getMessage());
-      }
-    }
-    screens.clear();
-  }
-
-  private VNCScreen(final VNCClient client) {
-    this.client = client;
-    this.robot = new VNCRobot(this);
+  private void init(String theIP, int thePort, String password) {
+    ip = theIP;
+    port = thePort;
+    id = String.format("%s:%d", ip, port);
+    client = VNCClient.connect(ip, port, password, true);
+    robot = new VNCRobot(this);
     setOtherScreen(this);
     setRect(getBounds());
     initScreen(this);
+
     new Thread(new Runnable() {
       @Override
       public void run() {
         try {
           client.processMessages();
         } catch (RuntimeException e) {
-          if (!closed) {
+          if (isRunning()) {
             throw e;
           }
         }
       }
     }).start();
     client.refreshFramebuffer();
-    //RunTime.get().pause(5);
+
+    screens.put(id, this);
+    this.wait((double) startUpWait);
   }
 
-  @Override
-  public void close() throws IOException {
-    closed = true;
-    client.close();
-    screens.put(this, null);
+  private static VNCScreen canConnect(String theIP, int thePort, int timeout) {
+    String address = theIP + ":" + thePort;
+    boolean validIP;
+    VNCScreen vncScreen;
+    String[] parts = theIP.split("\\.");
+    if (parts.length == 4) {
+      validIP = true;
+      for (String part : parts) {
+        try {
+          int numIP = Integer.parseInt(part);
+          if (numIP < 0 || numIP > 255) {
+            return null;
+          }
+          break;
+        } catch (NumberFormatException nex) {
+          return null;
+        }
+      }
+    } else {
+      validIP = !new InetSocketAddress(theIP, thePort).isUnresolved();
+    }
+    if (validIP) {
+      if (screens.size() > 0) {
+        vncScreen = screens.get(address);
+        if (null != vncScreen) {
+          return vncScreen;
+        }
+      }
+      try (Socket socket = new Socket()) {
+        socket.connect(new InetSocketAddress(theIP, thePort), timeout * 1000);
+        vncScreen = new VNCScreen();
+        return vncScreen;
+      } catch (Exception ex) {
+        Debug.error("VNCScreen: start: connection %s:%d not possible", theIP, thePort);
+        return null;
+      }
+    }
+    Debug.error("VNCScreen: start: given ip/hostname %s not valid", theIP);
+    return null;
+  }
+
+  public String getIDString() {
+    return (isRunning() ? "VNC " : "VNC:INVALID ") + id;
+  }
+
+  public void stop() {
+    close();
+    screens.remove(this.id);
+  }
+
+  public static void stopAll() {
+    if (screens.size() > 0) {
+      Debug.log(3, "VNCScreen: stopping all");
+      for (VNCScreen scr : screens.values()) {
+        scr.close();
+      }
+      screens.clear();
+    }
+  }
+
+  private void close() {
+    if (isRunning()) {
+      Debug.log(3, "VNCScreen: stopping: %s", this);
+      client.close();
+      client = null;
+      robot = null;
+    }
+  }
+
+  public boolean isRunning() {
+    return null != client;
   }
 
   @Override
@@ -116,7 +179,10 @@ public class VNCScreen extends Region implements IScreen, Closeable {
 
   @Override
   public Rectangle getBounds() {
-    return client.getBounds();
+    if (isRunning()) {
+      return client.getBounds();
+    }
+    return new Rectangle();
   }
 
   @Override
@@ -136,12 +202,16 @@ public class VNCScreen extends Region implements IScreen, Closeable {
 
   @Override
   public ScreenImage capture(int x, int y, int w, int h) {
+    if (!isRunning()) {
+      return null;
+    }
     BufferedImage image = client.getFrameBuffer(x, y, w, h);
     ScreenImage img = new ScreenImage(
             new Rectangle(x, y, w, h),
             image
     );
     lastScreenImage = img;
+    Debug.log(3, "VNCScreen: capture: (%d,%d) %dx%d on %s", x, y, w, h, this);
     return img;
   }
 
@@ -182,7 +252,7 @@ public class VNCScreen extends Region implements IScreen, Closeable {
 
   @Override
   public ScreenImage userCapture(final String msg) {
-    if (robot == null) {
+    if (!isRunning()) {
       return null;
     }
 
@@ -254,7 +324,7 @@ public class VNCScreen extends Region implements IScreen, Closeable {
   }
 
   public Region newRegion(int x, int y, int w, int h) {
-    Region reg = Region.create(x, y, w, h);
+    Region reg = Region.create(x, y, w, h, this);
     reg.setOtherScreen(this);
     return reg;
   }
