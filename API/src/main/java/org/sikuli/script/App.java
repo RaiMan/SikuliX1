@@ -303,21 +303,22 @@ public class App {
   }
 
   public App() {
-    init("");
+    if (_osUtil == null) {
+      _osUtil = SysUtil.getOSUtil();
+      _osUtil.checkFeatureAvailability();
+    }
   }
 
   public App(String name) {
+    this();
     appNameGiven = name;
     init(appNameGiven);
   }
 
   private void init(String name) {
-    if (_osUtil == null) {
-      _osUtil = SysUtil.getOSUtil();
-      _osUtil.checkFeatureAvailability();
-    }
-    if (name.isEmpty())
+    if (name.isEmpty()) {
       return;
+    }
     appName = appNameGiven;
     String[] parts;
     //C:\Program Files\Mozilla Firefox\firefox.exe -- options
@@ -336,7 +337,7 @@ public class App {
         }
       }
     }
-    File fExec = new File(appName);
+    File fExec = new File(appExec);
     if (fExec.isAbsolute()) {
       if (!fExec.exists()) {
         log("App: init: does not exist: %s", fExec);
@@ -347,7 +348,7 @@ public class App {
     }
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
-      if (appName.lastIndexOf(".") > appName.length() - 5) {
+      if (RunTime.get().runningMac && appName.lastIndexOf(".") > appName.length() - 5) {
         appName = appName.substring(0, appName.lastIndexOf("."));
       }
     }
@@ -384,7 +385,9 @@ public class App {
     logOn();
     log("***** all running apps");
     for (App app : appList) {
-      log("%s", app);
+      if (app.getPID() > 0) {
+        log("%s", app);
+      }
     }
     log("***** end of list (%d)", appList.size());
     logOff();

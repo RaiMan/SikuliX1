@@ -130,7 +130,8 @@ public class WinUtil implements OSUtil {
   //</editor-fold>
 
   private static App getTaskByName(App app) {
-    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"", app.getName());
+    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"",
+            (app.getToken().isEmpty() ? app.getName() : app.getToken()));
     String sysout = RunTime.get().runcmd(cmd);
     String[] lines = sysout.split("\r\n");
     String[] parts = null;
@@ -190,7 +191,7 @@ public class WinUtil implements OSUtil {
     List<App> apps = new ArrayList<>();
     String cmd;
     if (name == null || name.isEmpty()) {
-      cmd = cmd = "!tasklist /V /FO CSV /NH /FI \"SESSIONNAME eq Console\"";
+      cmd = cmd = "!tasklist /V /FO CSV /NH /FI \"SESSIONNAME eq Console\" /FI \"status eq running\" /FI \"username ne N/A\"";
     } else {
       cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"", name);
     }
@@ -202,19 +203,20 @@ public class WinUtil implements OSUtil {
         if (parts.length < 3) {
           continue;
         }
-        App theApp = new App();
-        theApp.setWindow(parts[parts.length - 1].trim());
-        theApp.setName(parts[1].trim());
         String thePID = parts[3].trim();
         Integer pid = -1;
         try {
           pid = Integer.parseInt(thePID);
         } catch (Exception ex) {
         }
+        String theWindow = parts[parts.length - 1].trim();
         if (pid != -1) {
-          if (theApp.getWindow().contains("N/A")) {
+          if (theWindow.contains("N/A")) {
             pid = -pid;
           }
+          App theApp = new App();
+          theApp.setName(parts[1].trim());
+          theApp.setWindow(theWindow);
           theApp.setPID(pid);
           apps.add(theApp);
         }
