@@ -757,10 +757,13 @@ public class RunTime {
     } else {
       HotkeyManager.reset();
     }
+/*
     try {
       new RobotDesktop().keyUp();
     } catch (AWTException e) {
     }
+*/
+    Screen.getGlobalRobot().keyUp();
     Mouse.reset();
   }
   //</editor-fold>
