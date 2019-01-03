@@ -68,7 +68,7 @@ public class RunTime {
       }
       System.exit(retval);
     }
-    throw new RuntimeException(String.format("SikuliX: fatal: " + outMsg));
+    throw new SikuliXception(String.format("fatal: " + outMsg));
   }
   //</editor-fold>
 
