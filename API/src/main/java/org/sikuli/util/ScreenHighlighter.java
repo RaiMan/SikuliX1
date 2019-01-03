@@ -18,14 +18,11 @@ import java.awt.image.RescaleOp;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
-import javax.swing.JPanel;
 import org.sikuli.basics.Animator;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.IScreen;
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
-import org.sikuli.script.Screen;
+import org.sikuli.script.RunTime;
 import org.sikuli.script.ScreenImage;
 
 /**
@@ -107,9 +104,9 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   private void init() {
     _opened.add(this);
-    if (Settings.isLinux()) {
+    if (RunTime.get().runningLinux) {
       _double_buffered = true;
-    } else if (Settings.isMac()) {
+    } else if (RunTime.get().runningMac) {
       _native_transparent = true;
     }
     GraphicsDevice screenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -131,7 +128,8 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     clean();
     if (!noWaitAfter) {
       try {
-        Thread.sleep((int) (Settings.WaitAfterHighlight > 0.3f ? Settings.WaitAfterHighlight * 1000 - 300 : 300));
+//        Thread.sleep((int) (Settings.WaitAfterHighlight > 0.3f ? Settings.WaitAfterHighlight * 1000 - 300 : 300));
+        Thread.sleep(300);
       } catch (InterruptedException e) {
       }
     }
@@ -147,7 +145,6 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   public static void closeAll() {
     if (_opened.size() > 0) {
-      Debug.log(3, "ScreenHighlighter: Removing all highlights");
       for (ScreenHighlighter s : _opened) {
         if (s.isVisible()) {
           s.setVisible(false);
@@ -192,7 +189,6 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   public void highlight(Region r_) {
     //change due to oracle blog: https://blogs.oracle.com/thejavatutorials/entry/translucent_and_shaped_windows_in
     if (!_isTransparentSupported) {
-      Debug.log(3,"highlight transparent is not supported on " + System.getProperty("os.name")+ "!");
       //use at least an not transparent color
       _transparentColor = Color.pink;
     }
@@ -209,16 +205,6 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     requestFocus();
   }
 
-  protected boolean isWindowTranslucencySupported() {
-    if(Settings.isLinux()){
-      GraphicsDevice screenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-      return screenDevice.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.TRANSLUCENT)
-              && screenDevice.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT)
-              &&  screenDevice.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSPARENT);
-    }
-    return true;
-  }
-
   public void highlight(Region r_, float secs) {
     highlight(r_);
     closeAfter(secs);
@@ -228,12 +214,11 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     final int w = TARGET_SIZE, h = TARGET_SIZE;
     int x = loc.x - w / 2, y = loc.y - w / 2;
     _lastTarget = loc;
-    Debug.log(2, "showTarget " + x + " " + y + " " + w + " " + h);
     showWindow(x, y, w, h, secs);
   }
 
   private void captureScreen(int x, int y, int w, int h) {
-    ScreenImage img = ((Screen)_scr).captureforHighlight(x, y, w, h);
+    ScreenImage img = _scr.capture(x, y, w, h);
     _screen = img.getImage();
     float scaleFactor = .6f;
     RescaleOp op = new RescaleOp(scaleFactor, 0, null);

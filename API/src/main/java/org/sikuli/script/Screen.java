@@ -38,7 +38,7 @@ public class Screen extends Region implements IScreen {
   protected static Screen[] screens = null;
   protected static int primaryScreen = -1;
   private static int waitForScreenshot = 300;
-  protected IRobot robot = null;
+  //protected IRobot robot = null;
   protected int curID = -1;
   protected int oldID = 0;
   protected int monitor = -1;
@@ -83,7 +83,6 @@ public class Screen extends Region implements IScreen {
       robot = null;
     }
 */
-    robot = globalRobot;
   }
 
 /*
@@ -555,7 +554,7 @@ public class Screen extends Region implements IScreen {
   }
 
   public ScreenImage captureforHighlight(int x, int y, int w, int h) {
-    return robot.captureScreen(new Rectangle(x, y, w, h));
+    return globalRobot.captureScreen(new Rectangle(x, y, w, h));
   }
 
   /**
@@ -567,7 +566,7 @@ public class Screen extends Region implements IScreen {
   @Override
   public ScreenImage capture(Rectangle rect) {
     lastCaptureTime = new Date().getTime();
-    ScreenImage simg = robot.captureScreen(rect);
+    ScreenImage simg = globalRobot.captureScreen(rect);
     if (Settings.FindProfiling) {
       Debug.logp("[FindProfiling] Screen.capture [%d x %d]: %d msec",
               rect.width, rect.height, new Date().getTime() - lastCaptureTime);

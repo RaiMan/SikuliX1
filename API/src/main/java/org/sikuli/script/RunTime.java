@@ -1196,6 +1196,8 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
     log(lvl, "initAPI: entering");
+    //TODO termination cleanup hanging on Windows
+    new ScreenHighlighter(new Screen(), null).close();
     log(lvl, "initAPI: leaving");
   }
 

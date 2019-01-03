@@ -73,8 +73,9 @@ public class Sikulix {
     }
 
     if (args.length > 0 && "play".equals(args[0])) {
-      Debug.off();
+      Debug.on(3);
       ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+      //new ScreenHighlighter(new Screen(), null).close();
       terminate();
     }
 
