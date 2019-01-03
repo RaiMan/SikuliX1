@@ -211,17 +211,6 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
     return capture(rect.x, rect.y, rect.width, rect.height);
   }
 
-  public void showTarget(Location loc) {
-    showTarget(loc, Settings.SlowMotionDelay);
-  }
-
-  protected void showTarget(Location loc, double secs) {
-    if (Settings.isShowActions()) {
-      ScreenHighlighter overlay = new ScreenHighlighter(this, null);
-      overlay.showTarget(loc, (float) secs);
-    }
-  }
-
   @Override
   public int getID() {
     return 0;

@@ -760,7 +760,6 @@ public class Screen extends Region implements IScreen {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Visual effects">
-  @Override
   public void showTarget(Location loc) {
     showTarget(loc, Settings.SlowMotionDelay);
   }

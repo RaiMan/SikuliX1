@@ -504,9 +504,6 @@ public class Location implements Comparable<Location>{
       Debug.error("Point %s outside any screen for %s - might not work", this, action);
       return Screen.getGlobalRobot();
     }
-    if (!getScreen().isOtherScreen()) {
-      getScreen().showTarget(this);
-    }
     return getScreen().getRobot();
   }
 }

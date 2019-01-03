@@ -12,51 +12,49 @@ import java.io.IOException;
  */
 public interface IScreen {
 
-	public IRobot getRobot();
+	int getID();
 
-	public Rectangle getBounds();
+	int getIdFromPoint(int srcx, int srcy);
 
-	public ScreenImage capture();
+	String getIDString();
 
-	public ScreenImage capture(int x, int y, int w, int h);
+	IRobot getRobot();
 
-	public ScreenImage capture(Rectangle rect);
+	ScreenImage capture();
 
-	public ScreenImage capture(Region reg);
+	ScreenImage capture(int x, int y, int w, int h);
 
-	public boolean isOtherScreen();
+	ScreenImage capture(Rectangle rect);
 
-	public Rectangle getRect();
+	ScreenImage capture(Region reg);
 
-	public void showTarget(Location location);
+	ScreenImage userCapture(String string);
 
-	public int getID();
+	ScreenImage getLastScreenImageFromScreen();
 
-	public String getIDString();
+	String getLastScreenImageFile(String path, String name) throws IOException;
 
-	public ScreenImage getLastScreenImageFromScreen();
+	int getX();
 
-  public String getLastScreenImageFile(String path, String name) throws IOException;
+	int getW();
 
-	public int getX();
+	int getY();
 
-	public int getW();
+	int getH();
 
-	public int getY();
+	Rectangle getBounds();
 
-	public int getH();
+	Rectangle getRect();
 
-	public ScreenImage userCapture(String string);
+	boolean isOtherScreen();
 
-	public int getIdFromPoint(int srcx, int srcy);
+	Region setOther(Region element);
+  Location setOther(Location element);
 
-  public Region setOther(Region element);
-  public Location setOther(Location element);
+  Location newLocation(int x, int y);
+  Location newLocation(Location loc);
 
-  public Location newLocation(int x, int y);
-  public Location newLocation(Location loc);
-
-  public Region newRegion(int x, int y, int w, int h);
-  public Region newRegion(Location loc, int w, int h);
-  public Region newRegion(Region reg);
+  Region newRegion(int x, int y, int w, int h);
+  Region newRegion(Location loc, int w, int h);
+  Region newRegion(Region reg);
 }

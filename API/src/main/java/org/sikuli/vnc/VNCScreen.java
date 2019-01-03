@@ -215,17 +215,6 @@ public class VNCScreen extends Region implements IScreen {
     return img;
   }
 
-  public void showTarget(Location loc) {
-    showTarget(loc, Settings.SlowMotionDelay);
-  }
-
-  protected void showTarget(Location loc, double secs) {
-    if (Settings.isShowActions()) {
-      ScreenHighlighter overlay = new ScreenHighlighter(this, null);
-      overlay.showTarget(loc, (float) secs);
-    }
-  }
-
   @Override
   public int getID() {
     return 0;
