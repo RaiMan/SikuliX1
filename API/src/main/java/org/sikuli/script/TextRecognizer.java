@@ -3,9 +3,11 @@
  */
 package org.sikuli.script;
 
+import com.sun.jna.Platform;
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.util.ImageHelper;
+import net.sourceforge.tess4j.util.LoadLibs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -46,9 +48,16 @@ public class TextRecognizer {
   private Tesseract1 tess = null;
   public static TextRecognizer start() {
     if (textRecognizer == null) {
-      //TODO Windows: export tesseract libs
       textRecognizer = new TextRecognizer();
       System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
+      if (RunTime.get().runningWindows && RunTime.get().runningAs.equals(RunTime.RunType.OTHER)) {
+        String tessLib = LoadLibs.LIB_NAME;
+        Class tessClass = net.sourceforge.tess4j.Tesseract.class;
+        String leptLib = net.sourceforge.lept4j.util.LoadLibs.LIB_NAME;
+        Class leptClass = net.sourceforge.lept4j.Box.class;
+        String libFolder = Platform.RESOURCE_PREFIX;
+        //TODO Windows: export tesseract libs
+      }
       try {
         textRecognizer.tess = new Tesseract1();
         if (extractTessdata()) {
