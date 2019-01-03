@@ -2760,7 +2760,11 @@ public class Region {
   }
 
   public List<Match> findLines(String text) {
-    return ((Finder) doFindText(text, levelLine, true)).getList();
+    Finder finder = (Finder) doFindText(text, levelLine, true);
+    if (null != finder) {
+      return finder.getList();
+    }
+    return new ArrayList<>();
   }
 
   //</editor-fold>
