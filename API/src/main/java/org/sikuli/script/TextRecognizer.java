@@ -27,12 +27,11 @@ public class TextRecognizer {
     Finder2.init();
   }
 
-  private static boolean valid = false;
   public boolean isValid() {
     if (tess == null) {
       return false;
     }
-    return valid;
+    return true;
   }
 
   public int getActualDPI() {
