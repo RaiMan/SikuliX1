@@ -36,14 +36,6 @@ public class JythonScriptRunner implements IScriptRunner {
   private void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
-
-  private void logp(String message, Object... args) {
-    if (runTime.runningWinApp) {
-      log(0, message, args);
-    } else {
-      System.out.println(String.format(message, args));
-    }
-  }
   //</editor-fold>
 
   /**
@@ -52,7 +44,6 @@ public class JythonScriptRunner implements IScriptRunner {
   private PythonInterpreter interpreter = null;
   private JythonHelper helper = null;
 
-  private int savedpathlen = 0;
   private static final String COMPILE_ONLY = "# COMPILE ONLY";
   /**
    * sys.argv for the jython script
@@ -98,9 +89,6 @@ public class JythonScriptRunner implements IScriptRunner {
 
   @Override
   public void init(String[] param) {
-    if (runTime.runningWinApp) {
-      helper.terminate(999, "JythonScriptRunner called in WinApp (packed .exe)");
-    }
     if (isReady && interpreter != null) {
       return;
     }

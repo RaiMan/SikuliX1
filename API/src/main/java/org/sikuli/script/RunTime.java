@@ -3,19 +3,21 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Core;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.JythonHelper;
-import org.sikuli.util.LinuxSupport;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.util.SysJNA;
-import org.opencv.core.Core;
 import org.sikuli.vnc.VNCScreen;
 
-import java.awt.*;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -24,7 +26,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.*;
-import java.util.List;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -125,8 +126,6 @@ public class RunTime {
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
   public File fUserDir = null;
   public File fWorkDir = null;
-  public File fTestFolder = null;
-  public File fTestFile = null;
   public File fAppPath = null;
   public File fSikulixAppPath = null;
   public File fSikulixExtensions = null;
@@ -149,9 +148,7 @@ public class RunTime {
   public boolean runningWindows = false;
   public boolean runningMac = false;
   public boolean runningLinux = false;
-  public boolean runningWinApp = false;
-  public boolean runningMacApp = false;
-  private theSystem runningOn = theSystem.FOO;
+  //private theSystem runningOn = theSystem.FOO;
   private final String osNameSysProp = System.getProperty("os.name");
   private final String osVersionSysProp = System.getProperty("os.version");
   public String javaShow = "not-set";
@@ -165,6 +162,36 @@ public class RunTime {
   private String appType = null;
   public String linuxDistro = "???LINUX???";
 
+  public int SikuliVersionMajor;
+  public int SikuliVersionMinor;
+  public int SikuliVersionSub;
+  public String SXVersion = "";
+  public String SXVersionLong;
+  public String SXVersionShort;
+  public String SXBuild = "";
+  public String SXVersionIDE;
+  public String SXVersionAPI;
+
+  public String SXSystemVersion;
+  public String SXJavaVersion;
+
+  public String SikuliJythonVersion;
+  public String SikuliJRubyVersion;
+
+  public String dlMavenRelease = "https://repo1.maven.org/maven2/";
+  public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
+  public String SikuliRepo;
+  public String SikuliLocalRepo = "";
+  public String[] ServerList = {};
+  public String SikuliJythonVersion25 = "2.5.4-rc1";
+  public String SikuliJythonMaven;
+  public String SikuliJythonMaven25;
+  public String SikuliJython;
+  public String SikuliJython25;
+  public String SikuliJRuby;
+  public String SikuliJRubyMaven;
+
+  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   public boolean allowMultipleInstances = false;
   public boolean shouldRunServer = false;
   public boolean runningScripts = false;
@@ -196,41 +223,15 @@ public class RunTime {
   private RunTime() {
   }
 
-  public static synchronized RunTime get(Type typ) {
-    return get(typ, null);
+  public static synchronized RunTime get() {
+    if (runTime == null) {
+      return get(Type.API);
+    }
+    return runTime;
   }
 
-  public static void checkArgs(RunTime runTime, String[] args, Type typ) {
-    if (args == null) {
-      return;
-    }
-    int debugLevel = -99;
-    boolean runningScripts = false;
-    boolean allowMultipleInstances = false;
-    List<String> options = new ArrayList<String>();
-    options.addAll(Arrays.asList(args));
-    for (int n = 0; n < options.size(); n++) {
-      String opt = options.get(n);
-      if ("-s".equals(opt.toLowerCase())) {
-        runTime.shouldRunServer = true;
-      }
-      if (!opt.startsWith("-")) {
-        continue;
-      }
-      if (opt.startsWith("-d")) {
-        try {
-          debugLevel = n + 1 == options.size() ? -1 : Integer.decode(options.get(n + 1));
-          Debug.on(debugLevel);
-        } catch (Exception ex) {
-        }
-      } else if (opt.startsWith("-r")) {
-        runTime.runningScripts = true;
-      } else if (opt.startsWith("-i")) {
-        runTime.runningInteractive = true;
-      } else if (opt.startsWith("-m")) {
-        runTime.allowMultipleInstances = true;
-      }
-    }
+  public static synchronized RunTime get(Type typ) {
+    return get(typ, null);
   }
 
   public static synchronized RunTime get(Type typ, String[] clArgs) {
@@ -291,30 +292,20 @@ public class RunTime {
     runTime.osVersion = runTime.osVersionSysProp;
     String os = runTime.osNameSysProp.toLowerCase();
     if (os.startsWith("windows")) {
-      runTime.runningOn = theSystem.WIN;
       runTime.sysName = "windows";
       runTime.osName = "Windows";
       runTime.runningWindows = true;
       runTime.NL = "\r\n";
     } else if (os.startsWith("mac")) {
-      runTime.runningOn = theSystem.MAC;
       runTime.sysName = "mac";
       runTime.osName = "Mac OSX";
       runTime.runningMac = true;
     } else if (os.startsWith("linux")) {
-      runTime.runningOn = theSystem.LUX;
       runTime.sysName = "linux";
       runTime.osName = "Linux";
       runTime.runningLinux = true;
-//        String result = runTime.runcmd("lsb_release -i -r -s");
-//        if (result.contains("*** error ***")) {
-//          runTime.log(-1, "command returns error: lsb_release -i -r -s\n%s", result);
-//        } else {
-//          runTime.linuxDistro = result.replaceAll("\n", " ").trim();
-//        }
     } else {
       // Presume Unix -- pretend to be Linux
-      runTime.runningOn = theSystem.LUX;
       runTime.sysName = os;
       runTime.osName = runTime.osNameSysProp;
       runTime.runningLinux = true;
@@ -356,25 +347,6 @@ public class RunTime {
     runTime.fSikulixStore = new File(runTime.fSikulixAppPath, "SikulixStore");
     runTime.fSikulixStore.mkdirs();
     //</editor-fold>
-
-    debugLevelSaved = Debug.getDebugLevel();
-    debugLogfileSaved = Debug.logfile;
-
-    Debug.log(3, "RunTimeINIT: store debug.txt");
-    File fDebug = new File(runTime.fSikulixStore, "SikulixDebug.txt");
-    if (fDebug.exists()) {
-      if (Debug.getDebugLevel() == 0) {
-        Debug.setDebugLevel(3);
-      }
-      Debug.setLogFile(fDebug.getAbsolutePath());
-      if (Type.IDE.equals(typ)) {
-        System.setProperty("sikuli.console", "false");
-      }
-      Debug.log(3, "auto-debugging with level %d into:\n%s", Debug.getDebugLevel(), fDebug);
-    }
-
-    runTime.fTestFolder = new File(runTime.fUserDir, "SikulixTest");
-    runTime.fTestFile = new File(runTime.fTestFolder, "SikulixTest.txt");
 
     sxOptions = Options.init(typ);
     int dl = sxOptions.getOptionInteger("Debug.level");
@@ -460,17 +432,11 @@ public class RunTime {
     return runTime;
   }
 
-  public static synchronized RunTime get() {
-    if (runTime == null) {
-      return get(Type.API);
-    }
-    return runTime;
-  }
-
+//TODO reset() needed?
+/*
   public static synchronized RunTime reset(Type typ) {
     if (runTime != null) {
       preLogMessages += "RunTime: resetting RunTime instance;";
-      Debug.setLogFile(debugLogfileSaved);
       runTime = null;
     }
     return get(typ);
@@ -479,7 +445,8 @@ public class RunTime {
   public static synchronized RunTime reset() {
     return reset(Type.API);
   }
-//</editor-fold>
+*/
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="global init">
   private void init(Type typ) {
@@ -663,21 +630,7 @@ public class RunTime {
         appType = "in Maven project from some jar";
         runningInProject = true;
       } else {
-        if (runningWindows) {
-          if (baseJarName.endsWith(".exe")) {
-            runningWinApp = true;
-            runningJar = false;
-            appType = "as application .exe";
-          }
-        } else if (runningMac) {
-          if (fSxBase.getAbsolutePath().contains("SikuliX.app/Content")) {
-            runningMacApp = true;
-            appType = "as application .app";
-            if (!fSxBase.getAbsolutePath().startsWith("/Applications")) {
-              appType += " (not from /Applications folder)";
-            }
-          }
-        }
+        //TODO what???
       }
     } else {
       dumpClassPath();
@@ -729,11 +682,6 @@ public class RunTime {
 */
     //</editor-fold>
 
-    if (runningWinApp || testingWinApp) {
-      runTime.fpJarLibs += "windows";
-      runTime.fpSysLibs = runTime.fpJarLibs.substring(1) + "/libs" + runTime.javaArch;
-    }
-
     runType = typ;
     if (Debug.getDebugLevel() == minLvl) {
       show();
@@ -769,37 +717,6 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Sikulix options handling">
-  public int SikuliVersionMajor;
-  public int SikuliVersionMinor;
-  public int SikuliVersionSub;
-  public String SXVersion = "";
-  public String SXVersionLong;
-  public String SXVersionShort;
-  public String SXBuild = "";
-  public String SXVersionIDE;
-  public String SXVersionAPI;
-
-  public String SXSystemVersion;
-  public String SXJavaVersion;
-
-  public String SikuliJythonVersion;
-  public String SikuliJRubyVersion;
-
-  public String dlMavenRelease = "https://repo1.maven.org/maven2/";
-  public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
-  public String SikuliRepo;
-  public String SikuliLocalRepo = "";
-  public String[] ServerList = {};
-  public String SikuliJythonVersion25 = "2.5.4-rc1";
-  public String SikuliJythonMaven;
-  public String SikuliJythonMaven25;
-  public String SikuliJython;
-  public String SikuliJython25;
-  public String SikuliJRuby;
-  public String SikuliJRubyMaven;
-
-  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-
   void initSikulixOptions() {
     SikuliRepo = null;
     Properties prop = new Properties();
@@ -1078,7 +995,6 @@ public class RunTime {
         terminate(999, "problem copying %s", fJawtDll);
       }
     }
-
     log(lvl, "libsExport: " + libMsg + " %s (%s - %s)", fLibsFolder, getVersionShort(), sxBuildStamp);
     areLibsExported = true;
   }
@@ -1219,6 +1135,39 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="helpers">
+  public static void checkArgs(RunTime runTime, String[] args, Type typ) {
+    if (args == null) {
+      return;
+    }
+    int debugLevel = -99;
+    boolean runningScripts = false;
+    boolean allowMultipleInstances = false;
+    List<String> options = new ArrayList<String>();
+    options.addAll(Arrays.asList(args));
+    for (int n = 0; n < options.size(); n++) {
+      String opt = options.get(n);
+      if ("-s".equals(opt.toLowerCase())) {
+        runTime.shouldRunServer = true;
+      }
+      if (!opt.startsWith("-")) {
+        continue;
+      }
+      if (opt.startsWith("-d")) {
+        try {
+          debugLevel = n + 1 == options.size() ? -1 : Integer.decode(options.get(n + 1));
+          Debug.on(debugLevel);
+        } catch (Exception ex) {
+        }
+      } else if (opt.startsWith("-r")) {
+        runTime.runningScripts = true;
+      } else if (opt.startsWith("-i")) {
+        runTime.runningInteractive = true;
+      } else if (opt.startsWith("-m")) {
+        runTime.allowMultipleInstances = true;
+      }
+    }
+  }
+
   public static void pause(int time) {
     try {
       Thread.sleep(time * 1000);

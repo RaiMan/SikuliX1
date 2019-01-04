@@ -22,14 +22,6 @@ public class JSScriptRunner implements IScriptRunner {
     Debug.logx(level, me + message, args);
   }
 
-  private void logp(String message, Object... args) {
-    if (runTime.runningWinApp) {
-      log(0, message, args);
-    } else {
-      System.out.println(String.format(message, args));
-    }
-  }
-
   private boolean isReady = false;
   private String[] fileEndings = new String[]{"js"};
 
