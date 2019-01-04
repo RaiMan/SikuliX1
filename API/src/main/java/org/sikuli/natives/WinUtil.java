@@ -131,7 +131,7 @@ public class WinUtil implements OSUtil {
 
   private static App getTaskByName(App app) {
     String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"",
-            (app.getToken().isEmpty() ? app.getName() : app.getToken()));
+            (app.getToken().isEmpty() ? app.getName() + ".exe" : app.getToken()));
     String sysout = RunTime.get().runcmd(cmd);
     String[] lines = sysout.split("\r\n");
     String[] parts = null;

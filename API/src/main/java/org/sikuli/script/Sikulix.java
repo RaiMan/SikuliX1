@@ -75,7 +75,22 @@ public class Sikulix {
     if (args.length > 0 && "play".equals(args[0])) {
       Debug.on(3);
       ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-      //new ScreenHighlighter(new Screen(), null).close();
+      App ntp = new App("notepad.exe");
+      ntp.open(3);
+      if (ntp.isRunning()) {
+        p("Running: %s", ntp);
+      }
+      Region win = App.focusedWindow().above(1).below(30).below(18).below(200).left(1).right(15).right(200);
+      win.highlight(2);
+      List<String> strings = win.collectLinesText();
+      String text = win.text();
+//      print(word)
+//      word = win.text()
+//      print("text:", word)
+      App.pause(3);
+//ntp.close()
+
+      p("%s", ntp);
       terminate();
     }
 

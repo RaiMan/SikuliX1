@@ -319,7 +319,7 @@ public class App {
     if (name.isEmpty()) {
       return;
     }
-    appName = appNameGiven;
+    appName = appExec = appNameGiven;
     String[] parts;
     //C:\Program Files\Mozilla Firefox\firefox.exe -- options
     parts = appName.split(" -- ");
@@ -348,7 +348,7 @@ public class App {
     }
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
-      if (RunTime.get().runningMac && appName.lastIndexOf(".") > appName.length() - 5) {
+      if (appName.lastIndexOf(".") > appName.length() - 5) {
         appName = appName.substring(0, appName.lastIndexOf("."));
       }
     }
@@ -750,10 +750,12 @@ public class App {
    * @return the region
    */
   public static Region focusedWindow() {
+    new App();
     return asRegion(_osUtil.getFocusedWindow());
   }
 
   public List<Region> getWindows() {
+    new App();
     List<Region> regWindows = new ArrayList<>();
     return _osUtil.getWindows(this);
   }

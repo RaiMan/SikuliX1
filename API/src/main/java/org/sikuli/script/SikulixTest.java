@@ -17,7 +17,7 @@ import java.util.List;
 public class SikulixTest {
 
   //<editor-fold desc="housekeeping">
-  private static Screen scr = new Screen();
+  private static Screen scr;
 
   private static long start = -1;
 
@@ -204,6 +204,7 @@ public class SikulixTest {
 
   public static void main(String[] args) {
     Debug.reset();
+    scr = new Screen();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
@@ -216,7 +217,7 @@ public class SikulixTest {
 //    runTest.add(0);
 //    runTest.add(1); // exists
 //    runTest.add(2); // findChange
-//    runTest.add(3); // text OCR
+    runTest.add(3); // text OCR
 //    runTest.add(4); // text find word
 //    runTest.add(5); // text find lines RegEx
 //    runTest.add(6); // text Region.find(someText)
@@ -300,6 +301,7 @@ public class SikulixTest {
       if (openTestPage()) {
         String text = "";
         if (Do.SX.isNotNull(reg)) {
+          reg.highlight(2);
           text = reg.text().trim();
         }
         p("***** read:\n%s", text);
