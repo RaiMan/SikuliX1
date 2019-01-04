@@ -274,7 +274,6 @@ public class SikulixTest {
       scr.wait(2.0);
       match = scr.exists(testImage, 10);
       match.highlight(2);
-
       after();
     }
     //</editor-fold>
@@ -301,7 +300,6 @@ public class SikulixTest {
       if (openTestPage()) {
         String text = "";
         if (Do.SX.isNotNull(reg)) {
-          reg.highlight(2);
           text = reg.text().trim();
         }
         p("***** read:\n%s", text);
