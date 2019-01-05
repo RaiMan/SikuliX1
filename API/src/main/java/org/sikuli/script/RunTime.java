@@ -14,10 +14,7 @@ import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.util.SysJNA;
 import org.sikuli.vnc.VNCScreen;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -25,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
+import java.util.List;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -208,16 +206,10 @@ public class RunTime {
   public boolean shouldCleanDownloads = false;
   public boolean isJythonReady = false;
 
-  GraphicsEnvironment genv = null;
-  GraphicsDevice[] gdevs;
-  public Rectangle[] monitorBounds = null;
-  Rectangle rAllMonitors;
-  int mainMonitor = -1;
-  int nMonitors = 0;
-  Point pNull = new Point(0, 0);
-
   static String sikulixGlobalDebug = null;
   //</editor-fold>
+
+  public static Set<ScreenHighlighter> highlights = new HashSet<ScreenHighlighter>();
 
   //<editor-fold defaultstate="collapsed" desc="instance">
   private RunTime() {
@@ -448,6 +440,15 @@ public class RunTime {
 */
   //</editor-fold>
 
+  public Rectangle getMonitor(int n) {
+    return Screen.getMonitor(n);
+  }
+
+  public Rectangle hasPoint(Point aPoint) {
+    return Screen.hasPoint(aPoint);
+  }
+
+
   //<editor-fold defaultstate="collapsed" desc="global init">
   private void init(Type typ) {
 
@@ -534,49 +535,6 @@ public class RunTime {
       fLibsLocal = fLibsProvided.getParentFile().getParentFile();
     } catch (Exception ex) {
       terminate(999, appDataMsg + "\n" + ex.toString(), fSikulixAppPath);
-    }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="monitors">
-    if (!isHeadless()) {
-      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
-      genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
-      gdevs = genv.getScreenDevices();
-      nMonitors = gdevs.length;
-      if (nMonitors == 0) {
-        throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
-      }
-      monitorBounds = new Rectangle[nMonitors];
-      rAllMonitors = null;
-      Rectangle currentBounds;
-      for (int i = 0; i < nMonitors; i++) {
-        currentBounds = gdevs[i].getDefaultConfiguration().getBounds();
-        if (null != rAllMonitors) {
-          rAllMonitors = rAllMonitors.union(currentBounds);
-        } else {
-          rAllMonitors = currentBounds;
-        }
-        if (currentBounds.contains(pNull)) {
-          if (mainMonitor < 0) {
-            mainMonitor = i;
-            log(lvl, "ScreenDevice %d has (0,0) --- will be primary Screen(0)", i);
-          } else {
-            log(lvl, "ScreenDevice %d too contains (0,0)!", i);
-          }
-        }
-        log(lvl, "Monitor %d: (%d, %d) %d x %d", i,
-                currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
-        monitorBounds[i] = currentBounds;
-      }
-      if (mainMonitor < 0) {
-        log(lvl, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
-        mainMonitor = 0;
-      }
-    } else {
-      if (!typ.equals(Type.SETUP)) {
-        throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
-      }
     }
     //</editor-fold>
 
@@ -695,22 +653,16 @@ public class RunTime {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       Debug.off();
+      ScreenHighlighter.closeAll();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
-    ScreenHighlighter.closeAll();
     Observing.cleanUp();
     if (isTerminating) {
       HotkeyManager.stop();
     } else {
       HotkeyManager.reset();
     }
-/*
-    try {
-      new RobotDesktop().keyUp();
-    } catch (AWTException e) {
-    }
-*/
     Screen.getGlobalRobot().keyUp();
     Mouse.reset();
   }
@@ -1112,12 +1064,12 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
     log(lvl, "initAPI: entering");
-    //TODO termination cleanup hanging on Windows
-    new ScreenHighlighter(new Screen(), null).close();
+    Screen.initScreens(false);
     log(lvl, "initAPI: leaving");
   }
 
   private static boolean isLibExported = false;
+
   public void exportLib() {
     if (isLibExported) {
       return;
@@ -2282,60 +2234,7 @@ public class RunTime {
     logp("*** system properties dump end" + filter);
   }
 
-  /**
-   * checks, whether Java runs with a valid GraphicsEnvironment (usually means real screens connected)
-   *
-   * @return false if Java thinks it has access to screen(s), true otherwise
-   */
-  public boolean isHeadless() {
-    return GraphicsEnvironment.isHeadless();
-  }
-
-  public boolean isMultiMonitor() {
-    return nMonitors > 1;
-  }
-
-  public Rectangle getMonitor(int n) {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
-    }
-    if (null == monitorBounds) {
-      return null;
-    }
-    n = (n < 0 || n >= nMonitors) ? mainMonitor : n;
-    return monitorBounds[n];
-  }
-
-  public Rectangle getAllMonitors() {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
-    }
-    return rAllMonitors;
-  }
-
-  public Rectangle hasPoint(Point aPoint) {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
-    }
-    for (Rectangle rMon : monitorBounds) {
-      if (rMon.contains(aPoint)) {
-        return rMon;
-      }
-    }
-    return null;
-  }
-
-  public Rectangle hasRectangle(Rectangle aRect) {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
-    }
-    return hasPoint(aRect.getLocation());
-  }
-
-  public GraphicsDevice getGraphicsDevice(int id) {
-    return gdevs[id];
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="runcmd">
 

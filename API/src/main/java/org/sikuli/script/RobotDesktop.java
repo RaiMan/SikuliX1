@@ -59,16 +59,19 @@ public class RobotDesktop extends Robot implements IRobot {
     mouseMove(x, y);
   }
 
+
+
   private void doMouseDown(int buttons) {
+
     if (Settings.RobotFake && runTime.needsRobotFake()) {
-      Screen.getFakeRegion().silentHighlight(true);
+      Region.getFakeRegion().silentHighlight(true);
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
     setAutoWaitForIdle(Settings.ClickFast);
     if (Settings.RobotFake && runTime.needsRobotFake()) {
       delay(20);
-      Screen.getFakeRegion().silentHighlight(false);
+      Region.getFakeRegion().silentHighlight(false);
       delay(20);
     }
     mousePress(buttons);
@@ -125,11 +128,6 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public Screen getScreen() {
     return scr;
-  }
-
-  public RobotDesktop(Screen screen) throws AWTException {
-    super(runTime.getGraphicsDevice(screen.getcurrentID()));
-    scr = screen;
   }
 
   public RobotDesktop() throws AWTException {

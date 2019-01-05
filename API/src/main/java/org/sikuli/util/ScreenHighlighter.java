@@ -35,7 +35,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   final static int TARGET_SIZE = 50;
   final static int DRAGGING_TIME = 200;
   static int MARGIN = 20;
-  static Set<ScreenHighlighter> _opened = new HashSet<ScreenHighlighter>();
+//  static Set<ScreenHighlighter> _opened = new HashSet<ScreenHighlighter>();
   IScreen _scr;
   BufferedImage _screen = null;
   BufferedImage _darker_screen = null;
@@ -103,7 +103,8 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   }
 
   private void init() {
-    _opened.add(this);
+
+    RunTime.highlights.add(this);
     if (RunTime.get().runningLinux) {
       _double_buffered = true;
     } else if (RunTime.get().runningMac) {
@@ -124,7 +125,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   @Override
   public void close() {
     setVisible(false);
-    _opened.remove(this);
+    RunTime.highlights.remove(this);
     clean();
     if (!noWaitAfter) {
       try {
@@ -144,18 +145,18 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   }
 
   public static void closeAll() {
-    if (_opened.size() > 0) {
-      for (ScreenHighlighter s : _opened) {
+    if (RunTime.highlights.size() > 0) {
+      for (ScreenHighlighter s : RunTime.highlights) {
         if (s.isVisible()) {
           s.setVisible(false);
           s.clean();
         }
       }
-      _opened.clear();
+      RunTime.highlights.clear();
     }
   }
 
-  private void clean() {
+  public void clean() {
     dispose();
     _screen = null;
     _darker_screen = null;

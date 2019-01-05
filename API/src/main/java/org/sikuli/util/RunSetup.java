@@ -7,6 +7,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.RunTime;
+import org.sikuli.script.Screen;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -1087,13 +1088,13 @@ public class RunSetup {
     }
     //</editor-fold>
 
-    if (!notests && runTime.isHeadless()) {
+    if (!notests && Screen.isHeadless()) {
       log(lvl, "Running headless --- skipping tests");
     }
 
     //<editor-fold defaultstate="collapsed" desc="api test">
     boolean runAPITest = false;
-    if (getAPI && !notests && !runTime.isHeadless()) {
+    if (getAPI && !notests && !Screen.isHeadless()) {
       String apiTest = hasOptions ? "testSetupSilent" : "testSetup";
       logPlus(lvl, "Trying to run functional test: JAVA-API %s", splashJava9);
       if (runTime.isJava9("setup API test - with ProcessRunner")) {
@@ -1140,7 +1141,7 @@ public class RunSetup {
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="ide test">
-    if (getIDE && !notests && !runTime.isHeadless()) {
+    if (getIDE && !notests && !Screen.isHeadless()) {
       success = true;
       if (!runAPITest) {
         //TODO runTime.makeFolders();

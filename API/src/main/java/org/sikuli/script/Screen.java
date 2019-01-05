@@ -24,11 +24,8 @@ import org.sikuli.util.ScreenHighlighter;
  */
 public class Screen extends Region implements IScreen {
 
-  static RunTime runTime;
-
   private static String me = "Screen: ";
   private static int lvl = 3;
-  private static Region fakeRegion;
 
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
@@ -38,7 +35,6 @@ public class Screen extends Region implements IScreen {
   protected static Screen[] screens = null;
   protected static int primaryScreen = -1;
   private static int waitForScreenshot = 300;
-  //protected IRobot robot = null;
   protected int curID = -1;
   protected int oldID = 0;
   protected int monitor = -1;
@@ -51,12 +47,120 @@ public class Screen extends Region implements IScreen {
   private static EventObserver captureObserver = null;
   private long lastCaptureTime = -1;
 
-  //<editor-fold defaultstate="collapsed" desc="Initialization">
+  //<editor-fold defaultstate="collapsed" desc="monitors">
+  static GraphicsEnvironment genv = null;
+  static GraphicsDevice[] gdevs;
 
-  static {
-    runTime = RunTime.get();
-    initScreens(false);
+  public static boolean isHeadless() {
+    return GraphicsEnvironment.isHeadless();
   }
+
+  private static void initMonitors() {
+    if (!isHeadless()) {
+      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
+      genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
+      gdevs = genv.getScreenDevices();
+      nMonitors = gdevs.length;
+      if (nMonitors == 0) {
+        throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
+      }
+      monitorBounds = new Rectangle[nMonitors];
+      Rectangle currentBounds;
+      for (int i = 0; i < nMonitors; i++) {
+        currentBounds = gdevs[i].getDefaultConfiguration().getBounds();
+        if (currentBounds.contains(new Point(0, 0))) {
+          if (mainMonitor < 0) {
+            mainMonitor = i;
+            log(lvl, "ScreenDevice %d has (0,0) --- will be primary Screen(0)", i);
+          } else {
+            log(lvl, "ScreenDevice %d too contains (0,0)!", i);
+          }
+        }
+        log(lvl, "Monitor %d: (%d, %d) %d x %d", i,
+                currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
+        monitorBounds[i] = currentBounds;
+      }
+      if (mainMonitor < 0) {
+        log(lvl, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
+        mainMonitor = 0;
+      }
+    } else {
+      throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
+    }
+  }
+
+  static int nMonitors = 0;
+  static Rectangle[] monitorBounds = null;
+  static int mainMonitor = -1;
+
+  public static Rectangle getMonitor(int n) {
+    if (isHeadless()) {
+      return new Rectangle(0, 0, 1, 1);
+    }
+    if (null == monitorBounds) {
+      return null;
+    }
+    n = (n < 0 || n >= nMonitors) ? mainMonitor : n;
+    return monitorBounds[n];
+  }
+
+  public static Rectangle hasPoint(Point aPoint) {
+    if (isHeadless()) {
+      return new Rectangle(0, 0, 1, 1);
+    }
+    for (Rectangle rMon : monitorBounds) {
+      if (rMon.contains(aPoint)) {
+        return rMon;
+      }
+    }
+    return null;
+  }
+
+  protected static void initScreens(boolean reset) {
+    if (screens != null && !reset) {
+      return;
+    }
+    log(lvl, "initScreens: starting");
+    initMonitors();
+    primaryScreen = 0;
+    getGlobalRobot();
+    screens = new Screen[nMonitors];
+    screens[0] = new Screen(0, mainMonitor);
+    screens[0].initScreen();
+    int nMonitor = 0;
+    for (int i = 1; i < screens.length; i++) {
+      if (nMonitor == mainMonitor) {
+        nMonitor++;
+      }
+      screens[i] = new Screen(i, nMonitor);
+      screens[i].initScreen();
+      nMonitor++;
+      Mouse.init();
+    }
+    if (nMonitors > 1) {
+      log(lvl, "initScreens: multi monitor mouse check");
+      Location lnow = Mouse.at();
+      float mmd = Settings.MoveMouseDelay;
+      Settings.MoveMouseDelay = 0f;
+      Location lc = null, lcn = null;
+      for (Screen s : screens) {
+        lc = s.getCenter();
+        Mouse.move(lc);
+        lcn = Mouse.at();
+        if (!lc.equals(lcn)) {
+          log(lvl, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
+                  s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
+        } else {
+          log(lvl, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
+        }
+      }
+      Mouse.move(lnow);
+      Settings.MoveMouseDelay = mmd;
+    }
+    log(lvl, "initScreens: ending");
+  }
+  //</editor-fold>
 
   /**
    * Is the screen object having the top left corner as (0,0). If such a screen does not exist it is
@@ -101,9 +205,9 @@ public class Screen extends Region implements IScreen {
   }
 
   public static Screen as(int id) {
-    if (id < 0 || id >= runTime.nMonitors) {
+    if (id < 0 || id >= nMonitors) {
       Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, runTime.nMonitors - 1, primaryScreen);
+              id, nMonitors - 1, primaryScreen);
       return screens[0];
     } else {
       return screens[id];
@@ -117,62 +221,15 @@ public class Screen extends Region implements IScreen {
    */
   public Screen(int id) {
     super();
-    if (id < 0 || id >= runTime.nMonitors) {
+    if (id < 0 || id >= nMonitors) {
       Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, runTime.nMonitors - 1, primaryScreen);
+              id, nMonitors - 1, primaryScreen);
       curID = primaryScreen;
     } else {
       curID = id;
     }
     monitor = screens[curID].monitor;
     initScreen();
-  }
-
-  private static void initScreens(boolean reset) {
-    if (screens != null && !reset) {
-      return;
-    }
-    log(lvl + 1, "initScreens: entry");
-    primaryScreen = 0;
-    getGlobalRobot();
-    if (null == globalRobot) {
-      screens = new Screen[1];
-      screens[0] = null;
-    } else {
-      screens = new Screen[runTime.nMonitors];
-      screens[0] = new Screen(0, runTime.mainMonitor);
-      screens[0].initScreen();
-      int nMonitor = 0;
-      for (int i = 1; i < screens.length; i++) {
-        if (nMonitor == runTime.mainMonitor) {
-          nMonitor++;
-        }
-        screens[i] = new Screen(i, nMonitor);
-        screens[i].initScreen();
-        nMonitor++;
-      }
-      Mouse.init();
-      if (getNumberScreens() > 1) {
-        log(lvl, "initScreens: multi monitor mouse check");
-        Location lnow = Mouse.at();
-        float mmd = Settings.MoveMouseDelay;
-        Settings.MoveMouseDelay = 0f;
-        Location lc = null, lcn = null;
-        for (Screen s : screens) {
-          lc = s.getCenter();
-          Mouse.move(lc);
-          lcn = Mouse.at();
-          if (!lc.equals(lcn)) {
-            log(lvl, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
-                    s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
-          } else {
-            log(lvl, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
-          }
-        }
-        Mouse.move(lnow);
-        Settings.MoveMouseDelay = mmd;
-      }
-    }
   }
 
 //  public static IRobot getGlobalRobot() {
@@ -188,13 +245,6 @@ public class Screen extends Region implements IScreen {
       }
     }
     return globalRobot;
-  }
-
-  protected static Region getFakeRegion() {
-    if (fakeRegion == null) {
-      fakeRegion = new Region(0, 0, 5, 5);
-    }
-    return fakeRegion;
   }
 
   /**
@@ -270,7 +320,7 @@ public class Screen extends Region implements IScreen {
 //    initScreens();
     Debug.logp("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.logp("*** Primary is Screen %d", primaryScreen);
-    for (int i = 0; i < runTime.nMonitors; i++) {
+    for (int i = 0; i < nMonitors; i++) {
       Debug.logp("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
     Debug.logp("*** end monitor configuration ***");
@@ -287,15 +337,12 @@ public class Screen extends Region implements IScreen {
     initScreens(true);
     Debug.logp("*** new monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.logp("*** Primary is Screen %d", primaryScreen);
-    for (int i = 0; i < runTime.nMonitors; i++) {
+    for (int i = 0; i < nMonitors; i++) {
       Debug.logp("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
     Debug.error("*** end new monitor configuration ***");
   }
 
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="getters setters">
   public int getcurrentID() {
     return curID;
   }
@@ -305,7 +352,7 @@ public class Screen extends Region implements IScreen {
   }
 
   private static int getValidID(int id) {
-    if (id < 0 || id >= runTime.nMonitors) {
+    if (id < 0 || id >= nMonitors) {
       Debug.error("Screen: invalid screen id %d - using primary screen", id);
       return primaryScreen;
     }
@@ -313,9 +360,9 @@ public class Screen extends Region implements IScreen {
   }
 
   private static int getValidMonitor(int id) {
-    if (id < 0 || id >= runTime.nMonitors) {
+    if (id < 0 || id >= nMonitors) {
       Debug.error("Screen: invalid screen id %d - using primary screen", id);
-      return runTime.mainMonitor;
+      return mainMonitor;
     }
     return screens[id].monitor;
   }
@@ -324,7 +371,7 @@ public class Screen extends Region implements IScreen {
    * @return number of available screens
    */
   public static int getNumberScreens() {
-    return runTime.nMonitors;
+    return nMonitors;
   }
 
   /**
@@ -354,7 +401,7 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(runTime.getMonitor(monitor));
+    return new Rectangle(getMonitor(getValidMonitor(curID)));
   }
 
   /**
@@ -362,7 +409,7 @@ public class Screen extends Region implements IScreen {
    * @return the physical coordinate/size <br>as AWT.Rectangle to avoid mix up with getROI
    */
   public static Rectangle getBounds(int id) {
-    return new Rectangle(runTime.getMonitor(getValidMonitor(id)));
+    return new Rectangle(getMonitor(getValidMonitor(id)));
   }
 
   /**
@@ -460,8 +507,6 @@ public class Screen extends Region implements IScreen {
   public ScreenImage getLastScreenImageFromScreen() {
     return lastScreenImage;
   }
-
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Capture - SelectRegion">
 
@@ -573,7 +618,7 @@ public class Screen extends Region implements IScreen {
     }
     lastScreenImage = simg;
     if (Debug.getDebugLevel() > lvl) {
-      simg.saveLastScreenImage(runTime.fSikulixStore);
+      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
     }
     return simg;
   }

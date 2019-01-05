@@ -20,8 +20,13 @@ import org.sikuli.util.ScreenHighlighter;
  */
 public class Region {
 
+//  static {
+//    System.out.println("************************************************** First Touch: Region");
+//  }
+
   private static String me = "Region: ";
   private static int lvl = 3;
+  private static Region fakeRegion;
 
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
@@ -94,6 +99,13 @@ public class Region {
   private boolean isScreenUnion = false;
   private boolean isVirtual = false;
   private long lastSearchTimeRepeat = -1;
+
+  protected static Region getFakeRegion() {
+    if (fakeRegion == null) {
+      fakeRegion = new Region(0, 0, 5, 5);
+    }
+    return fakeRegion;
+  }
 
   public String getName() {
     return name;
