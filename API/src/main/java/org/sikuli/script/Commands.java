@@ -39,13 +39,11 @@ public class Commands {
     private static Region scr = new Screen();
     private static Region scrSaved = null;
 
-    private static RunTime runTime = RunTime.get();
-
     /**
      * @return true if we are on Java 8+
      */
     public static boolean isNashorn() {
-        return runTime.isJava8();
+        return RunTime.get().isJava8();
     }
 
     /**

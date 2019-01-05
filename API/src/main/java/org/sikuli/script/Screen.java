@@ -47,6 +47,10 @@ public class Screen extends Region implements IScreen {
   private static EventObserver captureObserver = null;
   private long lastCaptureTime = -1;
 
+  static int nMonitors = 0;
+  static Rectangle[] monitorBounds = null;
+  static int mainMonitor = -1;
+
   //<editor-fold defaultstate="collapsed" desc="monitors">
   static GraphicsEnvironment genv = null;
   static GraphicsDevice[] gdevs;
@@ -90,24 +94,17 @@ public class Screen extends Region implements IScreen {
     }
   }
 
-  static int nMonitors = 0;
-  static Rectangle[] monitorBounds = null;
-  static int mainMonitor = -1;
-
   public static Rectangle getMonitor(int n) {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
-    }
-    if (null == monitorBounds) {
-      return null;
+    if (primaryScreen < 0) {
+      initScreens(false);
     }
     n = (n < 0 || n >= nMonitors) ? mainMonitor : n;
     return monitorBounds[n];
   }
 
   public static Rectangle hasPoint(Point aPoint) {
-    if (isHeadless()) {
-      return new Rectangle(0, 0, 1, 1);
+    if (primaryScreen < 0) {
+      initScreens(false);
     }
     for (Rectangle rMon : monitorBounds) {
       if (rMon.contains(aPoint)) {
@@ -168,50 +165,11 @@ public class Screen extends Region implements IScreen {
    */
   public Screen() {
     super();
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     curID = primaryScreen;
     initScreen();
-  }
-
-  private void initScreen() {
-    Rectangle bounds = getBounds();
-    x = (int) bounds.getX();
-    y = (int) bounds.getY();
-    w = (int) bounds.getWidth();
-    h = (int) bounds.getHeight();
-/*
-    try {
-      robot = new RobotDesktop(this);
-      robot.setAutoDelay(10);
-    } catch (AWTException e) {
-      Debug.error("Can't initialize Java Robot on Screen " + curID + ": " + e.getMessage());
-      robot = null;
-    }
-*/
-  }
-
-/*
-  // hack to get an additional internal constructor for the initialization
-  private Screen(int id, boolean init) {
-    super();
-    curID = id;
-  }
-*/
-
-  // hack to get an additional internal constructor for the initialization
-  private Screen(int id, int monitor) {
-    super();
-    curID = id;
-    this.monitor = monitor;
-  }
-
-  public static Screen as(int id) {
-    if (id < 0 || id >= nMonitors) {
-      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, nMonitors - 1, primaryScreen);
-      return screens[0];
-    } else {
-      return screens[id];
-    }
   }
 
   /**
@@ -221,6 +179,9 @@ public class Screen extends Region implements IScreen {
    */
   public Screen(int id) {
     super();
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     if (id < 0 || id >= nMonitors) {
       Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
               id, nMonitors - 1, primaryScreen);
@@ -232,9 +193,33 @@ public class Screen extends Region implements IScreen {
     initScreen();
   }
 
-//  public static IRobot getGlobalRobot() {
-//    return globalRobot;
-//  }
+  private void initScreen() {
+    Rectangle bounds = getBounds();
+    x = (int) bounds.getX();
+    y = (int) bounds.getY();
+    w = (int) bounds.getWidth();
+    h = (int) bounds.getHeight();
+  }
+
+  // hack to get an additional internal constructor for the initialization
+  private Screen(int id, int monitor) {
+    super();
+    curID = id;
+    this.monitor = monitor;
+  }
+
+  public static Screen as(int id) {
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
+    if (id < 0 || id >= nMonitors) {
+      Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
+              id, nMonitors - 1, primaryScreen);
+      return screens[0];
+    } else {
+      return screens[id];
+    }
+  }
 
   protected static IRobot getGlobalRobot() {
     if (globalRobot == null) {
@@ -285,13 +270,6 @@ public class Screen extends Region implements IScreen {
     curID = oldID;
   }
 
-/*
-  //TODO: remove this method if it is not needed
-  public void initScreen(Screen scr) {
-    updateSelf();
-  }
-*/
-
   /**
    * {@inheritDoc}
    *
@@ -303,21 +281,23 @@ public class Screen extends Region implements IScreen {
   }
 
   /**
-   * Should not be used - throws UnsupportedOperationException
+   * Should not be used - makes no sense for Screen object
    *
    * @param s Screen
-   * @return should not return
+   * @return returns a new Region with the screen's location/dimension
    */
   @Override
   protected Region setScreen(IScreen s) {
-    throw new UnsupportedOperationException("The setScreen() method cannot be called from a Screen object.");
+    return new Region(getBounds());
   }
 
   /**
    * show the current monitor setup
    */
   public static void showMonitors() {
-//    initScreens();
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     Debug.logp("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.logp("*** Primary is Screen %d", primaryScreen);
     for (int i = 0; i < nMonitors; i++) {
@@ -343,22 +323,6 @@ public class Screen extends Region implements IScreen {
     Debug.error("*** end new monitor configuration ***");
   }
 
-  public int getcurrentID() {
-    return curID;
-  }
-
-  protected boolean useFullscreen() {
-    return false;
-  }
-
-  private static int getValidID(int id) {
-    if (id < 0 || id >= nMonitors) {
-      Debug.error("Screen: invalid screen id %d - using primary screen", id);
-      return primaryScreen;
-    }
-    return id;
-  }
-
   private static int getValidMonitor(int id) {
     if (id < 0 || id >= nMonitors) {
       Debug.error("Screen: invalid screen id %d - using primary screen", id);
@@ -371,6 +335,9 @@ public class Screen extends Region implements IScreen {
    * @return number of available screens
    */
   public static int getNumberScreens() {
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     return nMonitors;
   }
 
@@ -378,6 +345,9 @@ public class Screen extends Region implements IScreen {
    * @return the id of the screen at (0,0), if not exists 0
    */
   public static int getPrimaryId() {
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     return primaryScreen;
   }
 
@@ -385,6 +355,9 @@ public class Screen extends Region implements IScreen {
    * @return the screen at (0,0), if not exists the one with id 0
    */
   public static Screen getPrimaryScreen() {
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
     return screens[primaryScreen];
   }
 
@@ -393,7 +366,14 @@ public class Screen extends Region implements IScreen {
    * @return the screen with given id, the primary screen if id is invalid
    */
   public static Screen getScreen(int id) {
-    return screens[getValidID(id)];
+    if (primaryScreen < 0) {
+      initScreens(false);
+    }
+    if (id < 0 || id >= nMonitors) {
+      Debug.error("Screen: invalid screen id %d - using primary screen", id);
+      id = primaryScreen;
+    }
+    return screens[id];
   }
 
   /**

@@ -30,7 +30,7 @@ import org.sikuli.util.JythonHelper;
 
 public class ScriptingSupport {
 
-  public static RunTime runTime = RunTime.get();
+  private static RunTime runTime = RunTime.get();
 
 	private static final String me = "ScriptingSupport: ";
   private static final int lvl = 3;

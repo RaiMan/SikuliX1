@@ -58,8 +58,6 @@ import org.sikuli.basics.Settings;
  */
 public class Image {
 
-  static RunTime runTime = RunTime.get();
-
   private static String me = "Image: ";
   private static int lvl = 3;
 

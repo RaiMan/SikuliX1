@@ -27,7 +27,6 @@ public class ADBTest {
     System.out.println(String.format(message, args));
   }
 
-  private static RunTime rt = null;
   private static boolean runTests = true;
 
 
@@ -51,7 +50,6 @@ public class ADBTest {
 
   private static ADBScreen startTest() {
     Debug.on(3);
-    rt = RunTime.get();
     ADBScreen adbs = new ADBScreen();
     if (adbs.isValid()) {
       log(lvl, "Device found: %s", adbs.getDeviceDescription());

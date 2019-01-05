@@ -33,7 +33,6 @@ public class RobotDesktop extends Robot implements IRobot {
   public static int stdDelay = 10;
   public static int stdMaxElapsed = 1000;
   private Screen scr = null;
-  private static RunTime runTime = RunTime.get();
   private long start;
   private static boolean alwaysNewRobot = false;
   private static boolean isMouseInitialized = false;
@@ -63,13 +62,13 @@ public class RobotDesktop extends Robot implements IRobot {
 
   private void doMouseDown(int buttons) {
 
-    if (Settings.RobotFake && runTime.needsRobotFake()) {
+    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
       Region.getFakeRegion().silentHighlight(true);
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
     setAutoWaitForIdle(Settings.ClickFast);
-    if (Settings.RobotFake && runTime.needsRobotFake()) {
+    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
       delay(20);
       Region.getFakeRegion().silentHighlight(false);
       delay(20);

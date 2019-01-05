@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class JythonScriptRunner implements IScriptRunner {
 
-  private static RunTime runTime = ScriptingSupport.runTime;
+  private static RunTime runTime = RunTime.get();
 
   //<editor-fold defaultstate="collapsed" desc="new logging concept">
   private static final String me = "JythonScriptRunner: ";

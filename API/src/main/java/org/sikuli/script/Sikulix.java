@@ -32,7 +32,6 @@ public class Sikulix {
   }
 
   private static final String prefNonSikuli = "nonSikuli_";
-  //private static RunTime runTime = null;
   private static Point locPopAt = null;
   private static String showBase = "API/src/main/resources/ImagesAPI";
 
@@ -76,8 +75,8 @@ public class Sikulix {
       //Debug.off();
       //Debug.on(3);
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-      //RunTime.get();
-      new Screen().getCenter().grow(100).highlight();
+      Screen scr = new Screen();
+      scr.getCenter().grow(100); //.highlight();
       App.pause(3);
       terminate();
     }

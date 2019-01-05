@@ -16,13 +16,10 @@ import java.util.Map;
 public class MacUtil implements OSUtil {
 
   private static boolean _askedToEnableAX = false;
-  private String usedFeature;
-  private static RunTime runTime = null;
 
   @Override
   public void checkFeatureAvailability() {
-    runTime = RunTime.get();
-    RunTime.loadLibrary("MacUtil");
+    RunTime.get().loadLibrary("MacUtil");
     checkAxEnabled();
   }
 
@@ -196,7 +193,7 @@ public class MacUtil implements OSUtil {
   }
 
   private void checkAxEnabled() {
-    if (runTime.isOSX10() && !isAxEnabled()) {
+    if (RunTime.get().isOSX10() && !isAxEnabled()) {
       JOptionPane.showMessageDialog(null,
               "SikuliX needs access to the Mac's assistive device support.\n"
                       + "You have to explicitly allow this in the System Preferences.\n"

@@ -19,8 +19,6 @@ import java.util.List;
  */
 public class Pattern {
 
-  static RunTime runTime = RunTime.get();
-
   private Image image = null;
   private double similarity = Settings.MinSimilarity;
   private Location offset = new Location(0, 0);

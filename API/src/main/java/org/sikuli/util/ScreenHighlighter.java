@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import org.sikuli.basics.Animator;
+import org.sikuli.basics.Debug;
 import org.sikuli.script.IScreen;
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
@@ -146,6 +147,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   public static void closeAll() {
     if (RunTime.highlights.size() > 0) {
+      Debug.log(3, "ScreenHighlighter: closing highlights");
       for (ScreenHighlighter s : RunTime.highlights) {
         if (s.isVisible()) {
           s.setVisible(false);

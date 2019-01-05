@@ -21,7 +21,7 @@ import org.sikuli.script.SikulixForJython;
 
 public class JythonHelper implements JLangHelperInterface {
 
-  static RunTime runTime;
+  private static RunTime runTime;
 
   //<editor-fold defaultstate="collapsed" desc="new logging concept">
   private static final String me = "JythonSupport: ";

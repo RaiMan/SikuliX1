@@ -87,7 +87,7 @@ public class SikulixTest {
     runnable.start();
   }
 
-  private static RunTime runTime = RunTime.get();
+  private static RunTime runTime;
   private static Region reg = null;
   private static Region regWin = null;
 
@@ -203,6 +203,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
+    runTime = RunTime.get();
     Debug.reset();
     scr = new Screen();
     String browser = "edge";
@@ -214,10 +215,10 @@ public class SikulixTest {
     Match match = null;
     String testImage = "findBase";
 
-//    runTest.add(0);
+    runTest.add(0);
 //    runTest.add(1); // exists
 //    runTest.add(2); // findChange
-    runTest.add(3); // text OCR
+//    runTest.add(3); // text OCR
 //    runTest.add(4); // text find word
 //    runTest.add(5); // text find lines RegEx
 //    runTest.add(6); // text Region.find(someText)

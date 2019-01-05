@@ -71,9 +71,4 @@ public class ScreenUnion extends Screen {
     ScreenImage si = s.capture(rect);
     return si;
   }
-
-  @Override
-  public boolean useFullscreen() {
-    return false;
-  }
 }

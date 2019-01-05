@@ -96,8 +96,6 @@ public class RunTime {
   public static String appDataMsg = "";
 
   private static RunTime runTime = null;
-  private static int debugLevelSaved;
-  private static String debugLogfileSaved;
   public static boolean testing = false;
   public static boolean testingWinApp = false;
 
@@ -451,8 +449,6 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="global init">
   private void init(Type typ) {
-
-    //<editor-fold defaultstate="collapsed" desc="general">
     if ("winapp".equals(sxOptions.getOption("testing"))) {
       log(lvl, "***** for testing: simulating WinApp");
       testingWinApp = true;
@@ -536,19 +532,7 @@ public class RunTime {
     } catch (Exception ex) {
       terminate(999, appDataMsg + "\n" + ex.toString(), fSikulixAppPath);
     }
-    //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="classpath">
-/*
-    try {
-      if (Type.IDE.equals(typ)) {
-        clsRef = Class.forName("org.sikuli.ide.SikuliIDE");
-      } else if (Type.SETUP.equals(typ)) {
-        clsRef = Class.forName("org.sikuli.setup.RunSetup");
-      }
-    } catch (Exception ex) {
-    }
-*/
     clsRef = RunTime.class;
     CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
     String base = null;
@@ -638,8 +622,6 @@ public class RunTime {
       }
     }
 */
-    //</editor-fold>
-
     runType = typ;
     if (Debug.getDebugLevel() == minLvl) {
       show();
@@ -652,8 +634,8 @@ public class RunTime {
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
-      Debug.off();
       ScreenHighlighter.closeAll();
+      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
@@ -1064,7 +1046,7 @@ public class RunTime {
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
     log(lvl, "initAPI: entering");
-    Screen.initScreens(false);
+    //Screen.initScreens(false);
     log(lvl, "initAPI: leaving");
   }
 

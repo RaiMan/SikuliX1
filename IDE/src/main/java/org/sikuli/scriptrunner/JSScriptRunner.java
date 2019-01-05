@@ -13,8 +13,6 @@ import java.io.File;
 
 public class JSScriptRunner implements IScriptRunner {
 
-  private static RunTime runTime = ScriptingSupport.runTime;
-
   private static final String me = "JSScriptRunner: ";
   private int lvl = 3;
 
