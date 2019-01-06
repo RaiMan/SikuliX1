@@ -64,8 +64,6 @@ public class Sikulix {
       System.exit(0);
     }
 
-    //runTime = RunTime.get();
-
     if (args.length == 0) {
       TextRecognizer.extractTessdata();
       terminate();
@@ -76,8 +74,6 @@ public class Sikulix {
       //Debug.on(3);
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
       Screen scr = new Screen();
-      scr.getCenter().grow(100); //.highlight();
-      App.pause(3);
       terminate();
     }
 
