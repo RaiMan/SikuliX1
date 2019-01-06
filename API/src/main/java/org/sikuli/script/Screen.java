@@ -491,66 +491,77 @@ public class Screen extends Region implements IScreen {
   //<editor-fold defaultstate="collapsed" desc="Capture - SelectRegion">
 
   public ScreenImage cmdCapture(Object... args) {
+    ScreenImage shot = null;
     if (args.length == 0) {
-      return userCapture("capture an image");
-    }
-    Object arg0 = args[0];
-    if (args.length == 1) {
-      if (arg0 instanceof String) {
-        return userCapture((String) arg0);
-      } else if (arg0 instanceof Region) {
-        return capture((Region) arg0);
-      } else if (arg0 instanceof Rectangle) {
-        return capture((Rectangle) arg0);
-      }
-    } else if (args.length > 1 && args.length < 4) {
-      Object arg1 = args[1];
-      String path = "";
-      String name = "";
-      if ((arg0 instanceof Region || arg0 instanceof String) && arg1 instanceof String) {
-        if (args.length == 3) {
-          Object arg2 = args[2];
-          if (arg2 instanceof String) {
-            name = (String) arg2;
-            path = (String) arg1;
-          }
-        } else {
-          name = (String) arg1;
-        }
-        if (!name.isEmpty()) {
-          ScreenImage shot = null;
-          if (arg0 instanceof Region) {
-            shot = capture((Region) arg0);
+      shot = userCapture("capture an image");
+    } else {
+      Object arg0 = args[0];
+      if (args.length == 1) {
+        if (arg0 instanceof String) {
+          if (((String) arg0).isEmpty()) {
+            shot = capture();
           } else {
             shot = userCapture((String) arg0);
           }
-          if (shot != null) {
-            if (!path.isEmpty()) {
-              shot.getFile(path, name);
+        } else if (arg0 instanceof Region) {
+          shot = capture((Region) arg0);
+        } else if (arg0 instanceof Rectangle) {
+          shot = capture((Rectangle) arg0);
+        } else {
+          shot = capture();
+        }
+      } else if (args.length > 1 && args.length < 4) {
+        Object arg1 = args[1];
+        String path = "";
+        String name = "";
+        if ((arg0 instanceof Region || arg0 instanceof String) && arg1 instanceof String) {
+          if (args.length == 3) {
+            Object arg2 = args[2];
+            if (arg2 instanceof String) {
+              name = (String) arg2;
+              path = (String) arg1;
+            }
+          } else {
+            name = (String) arg1;
+          }
+          if (!name.isEmpty()) {
+            if (arg0 instanceof Region) {
+              shot = capture((Region) arg0);
             } else {
-              shot.saveInBundle(name);
+              shot = userCapture((String) arg0);
+            }
+            if (shot != null) {
+              if (!path.isEmpty()) {
+                shot.getFile(path, name);
+              } else {
+                shot.saveInBundle(name);
+              }
             }
             return shot;
-          } else {
-            return null;
           }
         }
-      }
-    } else if (args.length == 4) {
-      Integer argInt = null;
-      for (Object arg : args) {
-        argInt = null;
-        try {
-          argInt = (Integer) arg;
-        } catch (Exception ex) {
-          break;
+        Debug.error("Screen: capture: Invalid parameters");
+      } else if (args.length == 4) {
+        Integer argInt = null;
+        for (Object arg : args) {
+          argInt = null;
+          try {
+            argInt = (Integer) arg;
+          } catch (Exception ex) {
+            break;
+          }
         }
-      }
-      if (argInt != null) {
-        return capture((int) args[0], (int) args[1], (int) args[2], (int) args[3]);
+        if (argInt != null) {
+          shot = capture((int) args[0], (int) args[1], (int) args[2], (int) args[3]);
+        }
+      } else {
+        Debug.error("Screen: capture: Invalid parameters");
       }
     }
-    return userCapture("Invalid parameter for capture");
+    if (shot != null) {
+      shot.getFile();
+    }
+    return shot;
   }
 
   /**
