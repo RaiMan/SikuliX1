@@ -74,6 +74,16 @@ public class LinuxHotkeyManager extends HotkeyManager {
       return false;
    }
 
+   @Override
+   public int _removeAll(Map<String, Integer[]> hotkeys, boolean isTerminating) {
+      for (Integer[] keyMods : hotkeys.values()) {
+         if (!_removeHotkey(keyMods[0], keyMods[1])) {
+            return -1;
+         }
+      }
+      return hotkeys.size();
+   }
+
    public void cleanUp(){
       JXGrabKey grabKey = JXGrabKey.getInstance();
       for( Map.Entry<Integer, HotkeyData> entry : _idCallbackMap.entrySet() ){

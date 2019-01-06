@@ -236,12 +236,12 @@ public class RunTime {
       Debug.setWithTimeElapsed(0);
       Debug.globalTraceOn();
     }
-    Debug.log(3, "RunTimeINIT: starting %s", typ);
+    Debug.log(4, "RunTimeINIT: starting %s", typ);
 
     checkArgs(runTime, clArgs, typ);
 
     //<editor-fold defaultstate="collapsed" desc="versions">
-    Debug.log(3, "RunTimeINIT: java version");
+    Debug.log(4, "RunTimeINIT: java version");
     if (Debug.getDebugLevel() > 3) {
       runTime.dumpSysProps();
     }
@@ -304,19 +304,19 @@ public class RunTime {
     runTime.fpJarLibs += runTime.sysName + "/libs" + runTime.javaArch;
     runTime.fpSysLibs = runTime.fpJarLibs.substring(1);
 
-    Debug.log(3, "RunTimeINIT: user.home");
+    Debug.log(4, "RunTimeINIT: user.home");
     String aFolder = System.getProperty("user.home");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fUserDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.home not valid");
     }
 
-    Debug.log(3, "RunTimeINIT: user.dir");
+    Debug.log(4, "RunTimeINIT: user.dir");
     aFolder = System.getProperty("user.dir");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.dir not valid");
     }
 
-    Debug.log(3, "RunTimeINIT: app data path");
+    Debug.log(4, "RunTimeINIT: app data path");
     runTime.fSikulixAppPath = new File("SikulixAppDataNotAvailable");
     if (runTime.runningWindows) {
       appDataMsg = "init: Windows: %APPDATA% not valid (null or empty) or is not accessible:\n%s";
@@ -338,13 +338,10 @@ public class RunTime {
     runTime.fSikulixStore.mkdirs();
     //</editor-fold>
 
-    sxOptions = Options.init(typ);
+    sxOptions = Options.init(runTime);
     int dl = sxOptions.getOptionInteger("Debug.level");
     if (dl > 0 && Debug.getDebugLevel() < 2) {
       Debug.setDebugLevel(dl);
-    }
-    if (Debug.getDebugLevel() == 2) {
-      sxOptions.dumpOptions();
     }
 
     Settings.init(); // force Settings initialization
@@ -458,7 +455,7 @@ public class RunTime {
         log(lvl, line);
       }
     }
-    log(lvl, "global init: entering as: %s", typ);
+    log(4, "global init: entering as: %s", typ);
 
     sxBuild = SXBuild;
     sxBuildStamp = sxBuild.replace("_", "").replace("-", "").replace(":", "").substring(0, 12);
@@ -558,17 +555,17 @@ public class RunTime {
       fSxBaseJar = new File(base);
       String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
-      log(lvl, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
+      log(4, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
       Debug.setWithTimeElapsed();
       if (baseJarName.contains("classes")) {
         runningJar = false;
         fSxProject = fSxBase.getParentFile().getParentFile();
-        log(lvl, "not jar - supposing Maven project: %s", fSxProject);
+        log(4, "not jar - supposing Maven project: %s", fSxProject);
         appType = "in Maven project from classes";
         runningInProject = true;
       } else if ("target".equals(fSxBase.getName())) {
         fSxProject = fSxBase.getParentFile().getParentFile();
-        log(lvl, "folder target detected - supposing Maven project: %s", fSxProject);
+        log(4, "folder target detected - supposing Maven project: %s", fSxProject);
         appType = "in Maven project from some jar";
         runningInProject = true;
       } else {
@@ -626,7 +623,7 @@ public class RunTime {
     if (Debug.getDebugLevel() == minLvl) {
       show();
     }
-    log(lvl, "global init: leaving");
+    log(4, "global init: leaving");
   }
   //</editor-fold>
 
@@ -635,18 +632,14 @@ public class RunTime {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       ScreenHighlighter.closeAll();
-      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
     Observing.cleanUp();
-    if (isTerminating) {
-      HotkeyManager.stop();
-    } else {
-      HotkeyManager.reset();
-    }
+    HotkeyManager.reset(isTerminating);
     Screen.getGlobalRobot().keyUp();
     Mouse.reset();
+    Debug.off();
   }
   //</editor-fold>
 
@@ -696,7 +689,7 @@ public class RunTime {
       Sikulix.endError(999);
     }
 
-    log(lvl, "version: %s build: %s", SXVersion, SXBuild);
+    log(4, "version: %s build: %s", SXVersion, SXBuild);
 
     SXVersionIDE = "SikulixIDE-" + SXVersion;
     SXVersionAPI = "SikulixAPI " + SXVersion;
@@ -1030,24 +1023,23 @@ public class RunTime {
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
   private void initIDEbefore() {
-    log(lvl, "initIDEbefore: entering");
+    log(4, "initIDEbefore: entering");
 
     Settings.isRunningIDE = true;
 
-    log(lvl, "initIDEbefore: leaving");
+    log(4, "initIDEbefore: leaving");
   }
 
   private void initIDEafter() {
-    log(lvl, "initIDEafter: entering");
-    log(lvl, "initIDEafter: leaving");
+    log(4, "initIDEafter: entering");
+    log(4, "initIDEafter: leaving");
   }
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private void initAPI() {
-    log(lvl, "initAPI: entering");
-    //Screen.initScreens(false);
-    log(lvl, "initAPI: leaving");
+    log(4, "initAPI: entering");
+    log(4, "initAPI: leaving");
   }
 
   private static boolean isLibExported = false;

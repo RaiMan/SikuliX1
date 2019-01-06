@@ -9,6 +9,8 @@ import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
+
+import org.sikuli.script.RunTime;
 import org.sikuli.util.JythonHelper;
 
 /**
@@ -93,7 +95,8 @@ public class Debug {
     }
     setLogFile(null);
     setUserLogFile(null);
-  }
+		RunTime.get();
+	}
 
   public static void highlightOn() {
     searchHighlight = true;

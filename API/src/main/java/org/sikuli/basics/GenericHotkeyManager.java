@@ -6,6 +6,8 @@ package org.sikuli.basics;
 
 import org.sikuli.hotkey.HotkeyController;
 
+import java.util.Map;
+
 public class GenericHotkeyManager extends HotkeyManager {
 
   HotkeyController controller = null;
@@ -24,6 +26,20 @@ public class GenericHotkeyManager extends HotkeyManager {
       return false;
     }
     return controller.removeHotkey(keyCode, modifiers);
+  }
+
+  @Override
+  public int _removeAll(Map<String, Integer[]> hotkeys, boolean isTerminating) {
+    if (controller == null) {
+      return 0;
+    }
+    controller.setTerminating(isTerminating);
+    for (Integer[] keyMods : hotkeys.values()) {
+      if (!controller.removeHotkey(keyMods[0], keyMods[1])) {
+        return -1;
+      }
+    }
+    return hotkeys.size();
   }
 
   @Override

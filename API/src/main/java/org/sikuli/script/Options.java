@@ -38,9 +38,13 @@ public class Options {
 
   static boolean testing = false;
 
-  static Options init(RunTime.Type typ) {
+  static Options init(RunTime pRunTime) {
+    runtime = pRunTime;
+    return init();
+  }
+
+  private static Options init() {
     if (sxOptions == null) {
-      runtime = RunTime.get();
       sxOptions = new Options();
       sxOptions.loadOptions();
     }
@@ -114,7 +118,6 @@ public class Options {
       }
     } else {
       for (File aFile : new File[]{runtime.fWorkDir, runtime.fUserDir, runtime.fSikulixStore}) {
-        log(lvl, "loadOptions: check: %s", aFile);
         fOptions = new File(aFile, fpOptions);
         if (fOptions.exists()) {
           break;
@@ -191,8 +194,6 @@ public class Options {
    */
   public String getOption(String pName, String sDefault) {
     if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, sDefault);
       return sDefault;
     }
     String pVal = options.getProperty(pName, sDefault);
@@ -220,7 +221,7 @@ public class Options {
    * @param sValue the value to be set
    */
   public void setOption(String pName, String sValue) {
-    getOption(pName, sValue);
+    init();
     options.setProperty(pName, sValue);
   }
 
@@ -233,8 +234,6 @@ public class Options {
    */
   public int getOptionInteger(String pName, Integer nDefault) {
     if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, "" + nDefault);
       return nDefault;
     }
     String pVal = options.getProperty(pName, nDefault.toString());
@@ -263,7 +262,7 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionInteger(String pName, int nValue) {
-    getOptionInteger(pName, nValue);
+    init();
     options.setProperty(pName, "" + nValue);
   }
 
@@ -275,8 +274,6 @@ public class Options {
    */
   public float getOptionFloat(String pName, float nDefault) {
     if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, "" + nDefault);
       return nDefault;
     }
     String pVal = options.getProperty(pName, "0");
@@ -305,7 +302,7 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionFloat(String pName, float nValue) {
-    getOptionFloat(pName, nValue);
+    init();
     options.setProperty(pName, "" + nValue);
   }
 
@@ -317,8 +314,6 @@ public class Options {
    */
   public double getOptionDouble(String pName, double nDefault) {
     if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, "" + nDefault);
       return nDefault;
     }
     String pVal = options.getProperty(pName, "0");
@@ -347,7 +342,7 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionDouble(String pName, double nValue) {
-    getOptionDouble(pName, nValue);
+    init();
     options.setProperty(pName, "" + nValue);
   }
 
@@ -360,8 +355,6 @@ public class Options {
    */
   public boolean isOption(String pName, boolean bDefault) {
     if (options == null) {
-      options = new Properties();
-      options.setProperty(pName, bDefault ? "true" : "false");
       return bDefault;
     }
     String pVal = options.getProperty(pName, bDefault ? "true" : "false").toLowerCase();
@@ -369,10 +362,8 @@ public class Options {
       return bDefault;
     } else if (pVal.contains("yes") || pVal.contains("true") || pVal.contains("on")) {
       return true;
-    } else if (pVal.contains("no") || pVal.contains("false") || pVal.contains("off")) {
-      return false;
     }
-    return true;
+    return false;
   }
 
   /**
@@ -392,6 +383,7 @@ public class Options {
    * @param bValue the value to be set
    */
   public void setOptionBool(String pName, boolean bValue) {
+    init();
     options.setProperty(pName, isOption(pName, bValue) ? "true" : "false");
   }
 
