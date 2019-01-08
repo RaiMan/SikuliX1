@@ -76,7 +76,9 @@ public class Debug {
 
 	public static long elapsedStart = -1;
 
-  static {
+	private static RunTime runTime;
+
+	static {
   	elapsedStart = new Date().getTime();
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null && "".equals(debug)) {
@@ -93,9 +95,17 @@ public class Debug {
       } catch (NumberFormatException numberFormatException) {
       }
     }
-    setLogFile(null);
+    if (DEBUG_LEVEL == 9) {
+      Debug.setDebugLevel(3);
+      Debug.setWithTimeElapsed(0);
+      Debug.globalTraceOn();
+    }
+		setLogFile(null);
     setUserLogFile(null);
-		RunTime.get();
+		runTime = RunTime.get();
+		if (runTime.debugLevel > DEBUG_LEVEL) {
+			DEBUG_LEVEL = runTime.debugLevel;
+		}
 	}
 
   public static void highlightOn() {
@@ -148,6 +158,23 @@ public class Debug {
 	public static void reset() {
   	globalTraceOff();
   	setDebugLevel(0);
+	}
+
+	static boolean withTimeElapsed = false;
+
+	public static void setWithTimeElapsed() {
+		withTimeElapsed = true;
+	}
+
+	public static void setWithTimeElapsed(long start) {
+		withTimeElapsed = true;
+		if (start > 0) {
+			elapsedStart = start;
+		}
+	}
+
+	public static void unsetWithTimeElapsed() {
+		withTimeElapsed = false;
 	}
 
 	/**
@@ -726,23 +753,6 @@ public class Debug {
       return;
     }
     log(3, message);
-  }
-
-  static boolean withTimeElapsed = false;
-
-  public static void setWithTimeElapsed() {
-  	withTimeElapsed = true;
-	}
-
-  public static void setWithTimeElapsed(long start) {
-    withTimeElapsed = true;
-    if (start > 0) {
-      elapsedStart = start;
-    }
-  }
-
-  public static void unsetWithTimeElapsed() {
-    withTimeElapsed = false;
   }
 
   /**

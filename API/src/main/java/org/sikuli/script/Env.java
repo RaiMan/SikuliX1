@@ -16,12 +16,6 @@ import org.sikuli.natives.SysUtil;
 public class Env {
 
   /**
-   * @deprecated use Settings.getVersion() instead
-   */
-  @Deprecated
-  public static String SikuliVersion = "";
-
-  /**
    *
    * @return where we store Sikuli specific data
    * @deprecated use Settings. ... instead
@@ -40,10 +34,6 @@ public class Env {
     return RunTime.get().SXVersion;
   }
 
-  protected static void setSikuliVersion(String version) {
-    SikuliVersion = version;
-  }
-
   /**
    * @return current Location
    * @deprecated use {@link Mouse#at()} instead
@@ -51,11 +41,6 @@ public class Env {
   @Deprecated
   public static Location getMouseLocation() {
     return Mouse.at();
-  }
-
-  @Deprecated
-  public static OSUtil getOSUtil() {
-    return SysUtil.getOSUtil();
   }
 
   /**

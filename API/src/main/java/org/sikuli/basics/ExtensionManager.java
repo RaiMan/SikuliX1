@@ -12,13 +12,13 @@ import java.util.regex.Pattern;
 public class ExtensionManager {
 	private static ExtensionManager _instance = null;
 	private ArrayList<Extension> extensions;
+	private File fExtensions = RunTime.get().fSikulixExtensions;
 
   private ExtensionManager() {
     extensions = new ArrayList<Extension>();
     Extension e;
     String p, n, v;
-    File dir = new File(Settings.getUserExtPath());
-    for (File d : dir.listFiles()) {
+    for (File d : fExtensions.listFiles()) {
       if (d.getAbsolutePath().endsWith(".jar")) {
         p = d.getAbsolutePath();
         n = d.getName();
@@ -46,7 +46,7 @@ public class ExtensionManager {
     if (url.startsWith("---extensions---")) {
       url = RunTime.get().SikuliRepo + name + "-" + version + ".jar";
     }
-		String extPath = Settings.getUserExtPath();
+		String extPath = fExtensions.getAbsolutePath();
 		String tmpdir = RunTime.get().fpBaseTempPath;
 		try {
 			File localFile = new File(FileManager.downloadURL(new URL(url), tmpdir));

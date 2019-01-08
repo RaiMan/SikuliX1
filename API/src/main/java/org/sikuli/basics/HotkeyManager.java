@@ -8,9 +8,7 @@ import org.sikuli.script.RunTime;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,9 +26,12 @@ public abstract class HotkeyManager {
   private static int HotkeyTypeAbortKey;
   private static int HotkeyTypeAbortMod;
 
+  private static RunTime runTime;
+
   public static HotkeyManager getInstance() {
     if (_instance == null) {
-      if (Settings.isWindows() || Settings.isMac()) {
+      runTime = RunTime.get();
+      if (runTime.runningWindows || runTime.runningMac) {
         _instance = new GenericHotkeyManager();
       } else {
         String cls = getOSHotkeyManagerClass();
@@ -82,19 +83,17 @@ public abstract class HotkeyManager {
 
   private static String getOSHotkeyManagerClass() {
     String pkg = "org.sikuli.basics.";
-    int theOS = Settings.getOS();
-    switch (theOS) {
-      case Settings.ISMAC:
-        return pkg + "MacHotkeyManager";
-      case Settings.ISWINDOWS:
-        return pkg + "WindowsHotkeyManager";
-      case Settings.ISLINUX:
-        return pkg + "LinuxHotkeyManager";
-      default:
-        Debug.error("HotkeyManager: Hotkey registration is not supported on your OS.");
+    if (runTime.runningMac) {
+      return pkg + "MacHotkeyManager";
+    } else if (runTime.runningWindows) {
+      return pkg + "WindowsHotkeyManager";
+    } else if (runTime.runningLinux) {
+      return pkg + "LinuxHotkeyManager";
+    } else {
+      Debug.error("HotkeyManager: not supported on your OS.");
+      return null;
     }
-    return null;
-  }
+}
 
   private static String getKeyCodeText(int key) {
     return KeyEvent.getKeyText(key).toUpperCase();

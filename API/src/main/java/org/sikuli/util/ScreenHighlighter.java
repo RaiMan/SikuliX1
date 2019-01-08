@@ -103,9 +103,11 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     }
   }
 
-  private void init() {
+  public static Set<ScreenHighlighter> highlights = new HashSet<ScreenHighlighter>();
 
-    RunTime.highlights.add(this);
+  private void init() {
+    RunTime.get();
+    highlights.add(this);
     if (RunTime.get().runningLinux) {
       _double_buffered = true;
     } else if (RunTime.get().runningMac) {
@@ -126,7 +128,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   @Override
   public void close() {
     setVisible(false);
-    RunTime.highlights.remove(this);
+    highlights.remove(this);
     clean();
     if (!noWaitAfter) {
       try {
@@ -146,15 +148,15 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   }
 
   public static void closeAll() {
-    if (RunTime.highlights.size() > 0) {
+    if (highlights.size() > 0) {
       Debug.log(3, "ScreenHighlighter: closing highlights");
-      for (ScreenHighlighter s : RunTime.highlights) {
+      for (ScreenHighlighter s : highlights) {
         if (s.isVisible()) {
           s.setVisible(false);
           s.clean();
         }
       }
-      RunTime.highlights.clear();
+      highlights.clear();
     }
   }
 

@@ -126,11 +126,11 @@ public class Sikulix {
       String separator = File.pathSeparator;
       fExtensions = fDirExtensions.listFiles();
       for (File fExtension : fExtensions) {
-        if (!ClassPath.isEmpty()) {
-          ClassPath += separator;
-        }
         String pExtension = fExtension.getAbsolutePath();
         if (pExtension.endsWith(".jar")) {
+          if (!ClassPath.isEmpty()) {
+            ClassPath += separator;
+          }
           if (pExtension.contains("jython") && pExtension.contains("standalone")) {
             if (pExtension.contains(jythonVersion)) {
               jythonLatest = true;

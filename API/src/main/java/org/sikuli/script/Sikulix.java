@@ -73,17 +73,11 @@ public class Sikulix {
       //Debug.off();
       Debug.on(3);
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-      //Screen scr = new Screen();
-      Key.addHotkey(Key.F10, KeyModifier.CTRL + KeyModifier.SHIFT, new HotkeyListener() {
-        @Override
-        public void hotkeyPressed(HotkeyEvent e) {
-          p("***************** Hotkey pressed");
-        }
-      });
+      Screen scr = new Screen();
+      scr.click();
       terminate();
     }
 
-    RunTime.checkArgs(RunTime.get(), args, RunTime.Type.API);
     if (RunTime.get().runningScripts) {
       int exitCode = Runner.runScripts(args);
       terminate(exitCode, "");

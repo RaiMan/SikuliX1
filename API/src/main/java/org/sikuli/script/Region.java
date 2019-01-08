@@ -2113,16 +2113,21 @@ public class Region {
     if (isOtherScreen()) {
       return this;
     }
-    Debug.log(lvl, "highlight " + (toEnable ? "on: " : "off: ") + toStringShort());
+    if (!silent) {
+      Debug.log(lvl, "highlight " + (toEnable ? "on: " : "off: ") + toStringShort());
+    }
     if (toEnable) {
-      overlay = new ScreenHighlighter(getScreen(), color);
-      overlay.setWaitAfter(silent);
-      overlay.highlight(this);
-    } else {
-      if (overlay != null) {
+      if (null == overlay) {
+        overlay = new ScreenHighlighter(getScreen(), color);
+        overlay.setWaitAfter(silent);
+        overlay.highlight(this);
+      } else {
+        toEnable = false;
+      }
+    }
+    if (!toEnable && null != overlay){
         overlay.close();
         overlay = null;
-      }
     }
     return this;
   }

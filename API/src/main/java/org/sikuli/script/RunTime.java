@@ -54,7 +54,7 @@ public class RunTime {
   }
 
   private void logp(int level, String message, Object... args) {
-    if (level <= Debug.getDebugLevel()) {
+    if (level <= debugLevel) {
       logp(message, args);
     }
   }
@@ -194,6 +194,7 @@ public class RunTime {
   public boolean runningInteractive = false;
   public boolean runningTests = false;
   public String interactiveRunner;
+  public int debugLevel = -1;
 
   public final static String runCmdError = "*****error*****";
   public static String NL = "\n";
@@ -204,10 +205,7 @@ public class RunTime {
   public boolean shouldCleanDownloads = false;
   public boolean isJythonReady = false;
 
-  static String sikulixGlobalDebug = null;
   //</editor-fold>
-
-  public static Set<ScreenHighlighter> highlights = new HashSet<ScreenHighlighter>();
 
   //<editor-fold defaultstate="collapsed" desc="instance">
   private RunTime() {
@@ -230,19 +228,38 @@ public class RunTime {
     }
     runTime = new RunTime();
 
-    sikulixGlobalDebug = System.getenv("SIKULIXDEBUG");
-    if (sikulixGlobalDebug != null) {
-      Debug.setDebugLevel(3);
-      Debug.setWithTimeElapsed(0);
-      Debug.globalTraceOn();
+    if (clArgs != null && clArgs.length > 0) {
+      int debugLevel = -99;
+      runTime.runningScripts = false;
+      runTime.allowMultipleInstances = false;
+      List<String> options = new ArrayList<String>();
+      options.addAll(Arrays.asList(clArgs));
+      for (int n = 0; n < options.size(); n++) {
+        String opt = options.get(n);
+        if ("-s".equals(opt.toLowerCase())) {
+          runTime.shouldRunServer = true;
+        }
+        if (!opt.startsWith("-")) {
+          continue;
+        }
+        if (opt.startsWith("-d")) {
+          try {
+            //Debug.on(debugLevel);
+            runTime.debugLevel = n + 1 == options.size() ? -1 : Integer.decode(options.get(n + 1));
+          } catch (Exception ex) {
+          }
+        } else if (opt.startsWith("-r")) {
+          runTime.runningScripts = true;
+        } else if (opt.startsWith("-i")) {
+          runTime.runningInteractive = true;
+        } else if (opt.startsWith("-m")) {
+          runTime.allowMultipleInstances = true;
+        }
+      }
     }
-    Debug.log(4, "RunTimeINIT: starting %s", typ);
-
-    checkArgs(runTime, clArgs, typ);
 
     //<editor-fold defaultstate="collapsed" desc="versions">
-    Debug.log(4, "RunTimeINIT: java version");
-    if (Debug.getDebugLevel() > 3) {
+    if (runTime.debugLevel > 3) {
       runTime.dumpSysProps();
     }
     String vJava = System.getProperty("java.specification.version");
@@ -276,7 +293,7 @@ public class RunTime {
     }
 
     if (null == vSysArch) {
-      runTime.terminate(999, "Java arch not 64 Bit or not detected (%s)", runTime.javaShow);
+      runTime.terminate(999, "Java arch must be 64 Bit (%s)", runTime.javaShow);
     }
 
     runTime.osVersion = runTime.osVersionSysProp;
@@ -304,19 +321,16 @@ public class RunTime {
     runTime.fpJarLibs += runTime.sysName + "/libs" + runTime.javaArch;
     runTime.fpSysLibs = runTime.fpJarLibs.substring(1);
 
-    Debug.log(4, "RunTimeINIT: user.home");
     String aFolder = System.getProperty("user.home");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fUserDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.home not valid");
     }
 
-    Debug.log(4, "RunTimeINIT: user.dir");
     aFolder = System.getProperty("user.dir");
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.dir not valid");
     }
 
-    Debug.log(4, "RunTimeINIT: app data path");
     runTime.fSikulixAppPath = new File("SikulixAppDataNotAvailable");
     if (runTime.runningWindows) {
       appDataMsg = "init: Windows: %APPDATA% not valid (null or empty) or is not accessible:\n%s";
@@ -339,12 +353,12 @@ public class RunTime {
     //</editor-fold>
 
     sxOptions = Options.init(runTime);
-    int dl = sxOptions.getOptionInteger("Debug.level");
-    if (dl > 0 && Debug.getDebugLevel() < 2) {
-      Debug.setDebugLevel(dl);
+    int dl = sxOptions.getOptionInteger("Debug.level", -1);
+    if (runTime.debugLevel < 1) {
+      runTime.debugLevel = dl;
     }
 
-    Settings.init(); // force Settings initialization
+    Settings.init(runTime); // force Settings initialization
     runTime.initSikulixOptions();
 
     if (typ.equals(Type.SETUP)) {
@@ -718,7 +732,6 @@ public class RunTime {
     }
     SXSystemVersion = osn + System.getProperty("os.version");
     SXJavaVersion = "Java" + javaVersion + "(" + javaArch + ")" + jreVersion;
-    Env.setSikuliVersion(SXVersion);
   }
 
   String getOption(String oName) {
@@ -1061,39 +1074,6 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="helpers">
-  public static void checkArgs(RunTime runTime, String[] args, Type typ) {
-    if (args == null) {
-      return;
-    }
-    int debugLevel = -99;
-    boolean runningScripts = false;
-    boolean allowMultipleInstances = false;
-    List<String> options = new ArrayList<String>();
-    options.addAll(Arrays.asList(args));
-    for (int n = 0; n < options.size(); n++) {
-      String opt = options.get(n);
-      if ("-s".equals(opt.toLowerCase())) {
-        runTime.shouldRunServer = true;
-      }
-      if (!opt.startsWith("-")) {
-        continue;
-      }
-      if (opt.startsWith("-d")) {
-        try {
-          debugLevel = n + 1 == options.size() ? -1 : Integer.decode(options.get(n + 1));
-          Debug.on(debugLevel);
-        } catch (Exception ex) {
-        }
-      } else if (opt.startsWith("-r")) {
-        runTime.runningScripts = true;
-      } else if (opt.startsWith("-i")) {
-        runTime.runningInteractive = true;
-      } else if (opt.startsWith("-m")) {
-        runTime.allowMultipleInstances = true;
-      }
-    }
-  }
-
   public static void pause(int time) {
     try {
       Thread.sleep(time * 1000);

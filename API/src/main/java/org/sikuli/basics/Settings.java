@@ -4,6 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.Image;
+import org.sikuli.script.RunTime;
 //import org.sikuli.script.RunTime;
 
 import java.io.File;
@@ -16,9 +17,11 @@ import java.util.Date;
  */
 public class Settings {
 
-  public static synchronized void init() {
-    getOS();
+  public static synchronized void init(RunTime givenRunTime) {
+    runTime = givenRunTime;
   }
+
+  private static RunTime runTime = null;
 
   public static boolean experimental = false;
 
@@ -52,9 +55,6 @@ public class Settings {
     }
     return major;
   }
-
-  public static final String JREVersion = java.lang.System.getProperty("java.runtime.version");
-  public static final String JavaArch = System.getProperty("os.arch");
 
   public static String proxyName = "";
   public static String proxyIP = "";
@@ -189,10 +189,6 @@ public class Settings {
     return JavaVersion < 7;
   }
 
-//  public static void showJavaInfo() {
-//		Debug.log(1, "Running on Java " + JavaVersion + " (" + JREVersion + ")");
-//	}
-
   public static String getFilePathSeperator() {
     return File.separator;
   }
@@ -205,32 +201,7 @@ public class Settings {
   }
 
   public static String getSikuliDataPath() {
-    String home, sikuliPath;
-    if (isWindows()) {
-      home = System.getenv("APPDATA");
-      sikuliPath = "Sikulix";
-    } else if (isMac()) {
-      home = System.getProperty("user.home")
-              + "/Library/Application Support";
-      sikuliPath = "Sikulix";
-    } else {
-      home = System.getProperty("user.home");
-      sikuliPath = ".Sikulix";
-    }
-    File fHome = new File(home, sikuliPath);
-    return fHome.getAbsolutePath();
-  }
-
-  /**
-   * @return absolute path to the user's extension path
-   */
-  public static String getUserExtPath() {
-    String ret = getSikuliDataPath() + File.separator + "Extensions";
-    File f = new File(ret);
-    if (!f.exists()) {
-      f.mkdirs();
-    }
-    return ret;
+    return runTime.fSikulixAppPath.getAbsolutePath();
   }
 
   public static int getOS() {
@@ -247,32 +218,15 @@ public class Settings {
   }
 
   public static boolean isWindows() {
-    return getOS() == ISWINDOWS;
+    return runTime.runningWindows;
   }
 
   public static boolean isLinux() {
-    return getOS() == ISLINUX;
+    return runTime.runningLinux;
   }
 
   public static boolean isMac() {
-    return getOS() == ISMAC;
-  }
-
-  public static boolean isMac10() {
-    if (isMac() && Settings.getOSVersion().startsWith("10.1")) {
-      return true;
-    }
-    return false;
-  }
-
-  public static String getShortOS() {
-    if (isWindows()) {
-      return "win";
-    }
-    if (isMac()) {
-      return "mac";
-    }
-    return "lux";
+    return runTime.runningMac;
   }
 
   public static String getOSVersion() {
