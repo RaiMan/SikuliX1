@@ -78,7 +78,7 @@ public class Sikulix {
       terminate();
     }
 
-    if (RunTime.get().runningScripts) {
+    if (RunTime.get(RunTime.Type.API, args).runningScripts) {
       int exitCode = Runner.runScripts(args);
       terminate(exitCode, "");
     }

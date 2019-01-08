@@ -651,7 +651,9 @@ public class RunTime {
     ADBScreen.stop();
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);
-    Screen.getGlobalRobot().keyUp();
+    if (null != cleanupRobot) {
+      cleanupRobot.keyUp();
+    }
     Mouse.reset();
     Debug.off();
   }
@@ -1050,8 +1052,14 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="init for API">
+  private static RobotDesktop cleanupRobot = null;
   private void initAPI() {
     log(4, "initAPI: entering");
+    try {
+      cleanupRobot = new RobotDesktop();
+    } catch (AWTException e) {
+      throw new RuntimeException(String.format("SikuliX: Screen: getGlobalRobot: %s", e.getMessage()));
+    }
     log(4, "initAPI: leaving");
   }
 

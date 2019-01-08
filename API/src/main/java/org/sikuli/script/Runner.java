@@ -164,22 +164,11 @@ public class Runner {
 
   public static int run(String givenName, String[] args) {
     String savePath = ImagePath.getBundlePathSet();
-    int retVal = new RunBox(givenName, args, false).run();
+    int retVal = new RunBox(givenName, args).run();
     if (savePath != null) {
       ImagePath.setBundlePath(savePath);
     }
     lastReturnCode = retVal;
-    return retVal;
-  }
-
-  public static int runTest(String givenName) {
-    return runTest(givenName, new String[0]);
-  }
-
-  public static int runTest(String givenName, String[] args) {
-    String savePath = ImagePath.getBundlePath();
-    int retVal = new RunBox(givenName, args, true).run();
-    ImagePath.setBundlePath(savePath);
     return retVal;
   }
 
@@ -192,7 +181,6 @@ public class Runner {
     String someJS = "";
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
-      boolean runAsTest = runTime.runningTests;
       for (String givenScriptName : runScripts) {
         if (lastReturnCode == -1) {
           log(lvl, "Exit code -1: Terminating multi-script-run");
@@ -203,7 +191,7 @@ public class Runner {
           log(lvl, "Options.runsetup: %s", someJS);
           new RunBox().runjs(null, null, someJS, null);
         }
-        RunBox rb = new RunBox(givenScriptName, runTime.getArgs(), runAsTest);
+        RunBox rb = new RunBox(givenScriptName, runTime.getArgs());
         exitCode = rb.run();
         someJS = runTime.getOption("runteardown");
         if (!someJS.isEmpty()) {
@@ -1038,7 +1026,7 @@ public class Runner {
     URL uGivenScriptFile = null;
     boolean givenScriptExists = true;
 
-    RunBox(String givenName, String[] givenArgs, boolean isTest) {
+    RunBox(String givenName, String[] givenArgs) {
       Object[] vars = Runner.runBoxInit(givenName, RunTime.scriptProject, RunTime.uScriptProject);
       givenScriptHost = (String) vars[0];
       givenScriptFolder = (String) vars[1];
@@ -1052,7 +1040,6 @@ public class Runner {
       RunTime.scriptProject = (File) vars[9];
       RunTime.uScriptProject = (URL) vars[10];
       args = givenArgs;
-      asTest = isTest;
     }
 
     int run() {
