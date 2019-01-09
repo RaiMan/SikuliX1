@@ -61,13 +61,13 @@ public class RobotDesktop extends Robot implements IRobot {
 
 
   private void doMouseDown(int buttons) {
-    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
       Region.getFakeRegion().silentHighlight(true);
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
     setAutoWaitForIdle(Settings.ClickFast);
-    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
       delay(20);
       Region.getFakeRegion().silentHighlight(false);
       delay(20);
@@ -93,13 +93,13 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void doKeyPress(int keyCode) {
-    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
       Region.getFakeRegion().silentHighlight(true);
     }
     logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
     setAutoWaitForIdle(false);
-    if (Settings.RobotFake && RunTime.get().needsRobotFake()) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
       delay(20);
       Region.getFakeRegion().silentHighlight(false);
       delay(20);

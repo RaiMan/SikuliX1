@@ -358,7 +358,6 @@ public class RunSetup {
     }
 
     //<editor-fold defaultstate="collapsed" desc="general preps">
-    Settings.runningSetup = true;
     Settings.LogTime = true;
 
     //TODO runTime.makeFolders();
@@ -789,7 +788,7 @@ public class RunSetup {
     if (getJython) {
       sDownloaded = "Jython";
       targetJar = new File(workDir, localJython).getAbsolutePath();
-      if (Settings.isJava6()) {
+      if (false) { //if (Settings.isJava6()) {
         logPlus(lvl, "running on Java 6: need to use Jython 2.5 - which is downloaded");
         fDownloaded = downloadedAlready("python25", "Jython 2.5", false);
         if (fDownloaded == null) {

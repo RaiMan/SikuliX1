@@ -69,7 +69,7 @@ public class ClickableWindow extends OverlayTransparentWindow
   public void toFront() {
     if (Settings.isMac()) {
       // this call is necessary to allow clicks to go through the window (ignoreMouse == true)
-      if (Settings.JavaVersion < 7) {
+      if (Guide.JavaVersion < 7) {
         SysUtil.getOSUtil().bringWindowToFront(this, true);
       } else {
       }

@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.sikuli.basics.Animator;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.IScreen;
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
@@ -49,7 +50,6 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   BasicStroke _StrokeCircle = new BasicStroke(2);
   BasicStroke _StrokeBorder = new BasicStroke(3);
   Animator _aniX, _aniY;
-  boolean noWaitAfter = false;
 
   boolean _native_transparent = false;
   boolean _double_buffered = false;
@@ -121,6 +121,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     addMouseListener(this);
   }
 
+  boolean noWaitAfter = false;
   public void setWaitAfter(boolean state) {
     noWaitAfter = state;
   }
@@ -132,8 +133,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     clean();
     if (!noWaitAfter) {
       try {
-//        Thread.sleep((int) (Settings.WaitAfterHighlight > 0.3f ? Settings.WaitAfterHighlight * 1000 - 300 : 300));
-        Thread.sleep(300);
+        Thread.sleep((long) Settings.WaitAfterHighlight * 1000);
       } catch (InterruptedException e) {
       }
     }
@@ -187,8 +187,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   @Override
   public void mouseClicked(MouseEvent e) {
-    setVisible(false);
-    clean();
+    close();
   }
 
   public void highlight(Region r_) {

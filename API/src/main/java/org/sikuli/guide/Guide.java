@@ -33,6 +33,7 @@ import org.sikuli.natives.SysUtil;
 
 public class Guide extends OverlayTransparentWindow implements EventObserver {
 
+  public static final int JavaVersion = makeJavaVersion();
   static float DEFAULT_TIMEOUT = 10.0f;
   static public final int FIRST = 0;
   static public final int MIDDLE = 1;
@@ -66,6 +67,21 @@ public class Guide extends OverlayTransparentWindow implements EventObserver {
     super(new Color(0.1f, 0f, 0f, 0.1f), null);
     super.addObserver(this);
     init(region);
+  }
+
+  private static int makeJavaVersion() {
+    int major = 0;
+    try {
+      String vJava = System.getProperty("java.specification.version");
+      if (vJava.startsWith("1.")) {
+        major = Integer.parseInt(vJava.substring(2, 3));
+      } else {
+        String[] parts = vJava.split("\\.");
+        major = Integer.parseInt(parts[0]);
+      }
+    } catch (Exception ex) {
+    }
+    return major;
   }
 
   private void init(Region region) {
@@ -116,7 +132,7 @@ public class Guide extends OverlayTransparentWindow implements EventObserver {
   public void toFront() {
     if (Settings.isMac() || Settings.isWindows()) {
       // this call is necessary to allow clicks to go through the window (ignoreMouse == true)
-      if (Settings.JavaVersion < 7) {
+      if (JavaVersion < 7) {
         SysUtil.getOSUtil().bringWindowToFront(this, true);
       } else {
       }

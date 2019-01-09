@@ -49,10 +49,6 @@ public class OverlayTransparentWindow extends JFrame implements EventSubject {
           if (g instanceof Graphics2D) {
             Graphics2D g2d = (Graphics2D) g;
             _currG2D = g2d;
-            if (Settings.JavaVersion < 7) {
-              g2d.setColor(_col);
-              g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
             if (_obs != null) {
               _obs.update(_win);
             }

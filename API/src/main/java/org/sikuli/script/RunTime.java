@@ -459,6 +459,10 @@ public class RunTime {
 
 
   //<editor-fold defaultstate="collapsed" desc="global init">
+  File isRunning = null;
+  FileOutputStream isRunningFile = null;
+  String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
+
   private void init(Type typ) {
     if ("winapp".equals(sxOptions.getOption("testing"))) {
       log(lvl, "***** for testing: simulating WinApp");
@@ -800,11 +804,7 @@ public class RunTime {
       log(-1, "Problematic lib: %s (...TEMP...)", fLib);
       log(-1, "%s loaded, but it might be a problem with needed dependent libraries\nERROR: %s",
               libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
-      if (Settings.runningSetup) {
-        return false;
-      } else {
-        terminate(999, "problem with native library: " + libName);
-      }
+      terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
     log(level, msg + " (success)", libName);
@@ -1033,15 +1033,11 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="init for IDE">
-  File isRunning = null;
-  FileOutputStream isRunningFile = null;
-  String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
+  public static boolean isRunningIDE = false;
 
   private void initIDEbefore() {
     log(4, "initIDEbefore: entering");
-
-    Settings.isRunningIDE = true;
-
+    isRunningIDE = true;
     log(4, "initIDEbefore: leaving");
   }
 
@@ -1053,6 +1049,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="init for API">
   private static RobotDesktop cleanupRobot = null;
+
   private void initAPI() {
     log(4, "initAPI: entering");
     try {
