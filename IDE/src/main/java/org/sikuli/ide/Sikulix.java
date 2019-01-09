@@ -53,11 +53,9 @@ public class Sikulix {
       sxFolder = new File(jarName).getParentFile();
     }
 
-    if (args.length > 0 && args[0].startsWith("-v")) {
+    if (args.length > 0 && args[0].equals("-v")) {
       verbose = true;
       args[0] += start;
-      Debug.globalTraceOn();
-      Debug.setStartWithTrace();
     }
 
     fAppData = makeAppData();
