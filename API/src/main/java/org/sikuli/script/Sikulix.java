@@ -71,10 +71,8 @@ public class Sikulix {
 
     if (args.length > 0 && "play".equals(args[0])) {
       //Debug.off();
-      Debug.on(3);
+      //Debug.on(3);
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
-      Screen scr = new Screen();
-      scr.click();
       terminate();
     }
 
