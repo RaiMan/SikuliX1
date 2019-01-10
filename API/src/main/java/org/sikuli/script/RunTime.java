@@ -229,7 +229,6 @@ public class RunTime {
     runTime = new RunTime();
 
     if (clArgs != null && clArgs.length > 0) {
-      int debugLevel = -99;
       runTime.runningScripts = false;
       runTime.allowMultipleInstances = false;
       List<String> options = new ArrayList<String>();

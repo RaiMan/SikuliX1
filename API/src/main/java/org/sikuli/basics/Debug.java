@@ -3,15 +3,14 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.util.JythonHelper;
+
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
-
-import org.sikuli.script.RunTime;
-import org.sikuli.util.JythonHelper;
 
 /**
  * Debug is a utility class that wraps println statements and allows more or less command line
@@ -76,8 +75,6 @@ public class Debug {
 
 	public static long elapsedStart = -1;
 
-	private static RunTime runTime;
-
 	static {
   	elapsedStart = new Date().getTime();
     String debug = System.getProperty("sikuli.Debug");
@@ -102,10 +99,10 @@ public class Debug {
     }
 		setLogFile(null);
     setUserLogFile(null);
-		runTime = RunTime.get();
-		if (runTime.debugLevel > DEBUG_LEVEL) {
-			DEBUG_LEVEL = runTime.debugLevel;
-		}
+//		runTime = RunTime.get();
+//		if (runTime.debugLevel > DEBUG_LEVEL) {
+//			DEBUG_LEVEL = runTime.debugLevel;
+//		}
 	}
 
   public static void highlightOn() {

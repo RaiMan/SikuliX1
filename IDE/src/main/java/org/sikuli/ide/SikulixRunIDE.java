@@ -26,6 +26,8 @@ public class SikulixRunIDE {
         Debug.setWithTimeElapsed();
       }
       Debug.setDebugLevel(3);
+      Debug.globalTraceOn();
+      Debug.setStartWithTrace();
       Debug.log(3,"Sikulix: starting IDE");
     }
 
@@ -36,5 +38,7 @@ public class SikulixRunIDE {
     RunTime runTime = RunTime.get(RunTime.Type.IDE, args);
 
     SikuliIDE.run(runTime, args);
+
+    Debug.logp("");
   }
 }
