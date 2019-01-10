@@ -79,6 +79,7 @@ public class TextRecognizer {
     if (null == textRecognizer) {
       RunTime.get().terminate(999, "fatal: TextRecognizer could not be initialized");
     }
+    textRecognizer.setLanguage(textRecognizer.language);
     return textRecognizer;
   }
 
