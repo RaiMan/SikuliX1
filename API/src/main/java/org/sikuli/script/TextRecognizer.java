@@ -16,6 +16,10 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 public class TextRecognizer {
@@ -48,14 +52,41 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
       if (RunTime.get().runningWindows && RunTime.get().runningAs.equals(RunTime.RunType.OTHER)) {
-        String tessLib = LoadLibs.LIB_NAME;
+        File fLibs = RunTime.get().fLibsFolder;
+        String pLibs = fLibs.getAbsolutePath();
+        System.setProperty("jna.library.path", pLibs);
+        String libFolder = "/" + Platform.RESOURCE_PREFIX + "/";
         Class tessClass = net.sourceforge.tess4j.Tesseract.class;
-        String leptLib = net.sourceforge.lept4j.util.LoadLibs.LIB_NAME;
+        String tessLib = LoadLibs.LIB_NAME;
+        String nTessLib = tessLib + ".dll";
+        String pTessLib = libFolder + nTessLib;
+        File fTessLib = new File(fLibs, nTessLib);
+        if (!fTessLib.exists()) {
+          try (FileOutputStream outFile = new FileOutputStream(fTessLib);
+               InputStream inpTessLib = tessClass.getResourceAsStream(pTessLib)) {
+            RunTime.copy(inpTessLib, outFile);
+          } catch (IOException ex) {
+            Debug.error("TextRecognizer: export native lib: %s (%s)", pTessLib, ex.getMessage());
+            return null;
+          }
+        }
         Class leptClass = net.sourceforge.lept4j.Box.class;
-        String libFolder = Platform.RESOURCE_PREFIX;
-        //TODO Windows: export tesseract libs
+        String leptLib = net.sourceforge.lept4j.util.LoadLibs.LIB_NAME;
+        String nLeptLib = leptLib + ".dll";
+        String pLeptLib = libFolder + nLeptLib;
+        File fLeptLib = new File(fLibs, nLeptLib);
+        if (!fLeptLib.exists()) {
+          try (FileOutputStream outFile = new FileOutputStream(fLeptLib);
+               InputStream inpLeptLib = leptClass.getResourceAsStream(pLeptLib)) {
+            RunTime.copy(inpLeptLib, outFile);
+          } catch (IOException ex) {
+            Debug.error("TextRecognizer: export native lib: %s (%s)", pLeptLib, ex.getMessage());
+            return null;
+          }
+        }
+      } else {
+        System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
       }
       try {
         textRecognizer.tess = new Tesseract1();

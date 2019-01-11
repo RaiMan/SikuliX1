@@ -107,7 +107,6 @@ public class RunTime {
   public Preferences optionsIDE = null;
   public ClassLoader classLoader = RunTime.class.getClassLoader();
   public String userName = "";
-  public String fpBaseTempPath = "";
 
   private Class clsRef = RunTime.class;
 
@@ -115,6 +114,7 @@ public class RunTime {
   private List<String> classPathList = new ArrayList<>();
   public File fTempPath = null;
   public File fBaseTempPath = null;
+  public String fpBaseTempPath = "";
   public File fLibsFolder = null;
   public String fpJarLibs = "/sikulixlibs/";
   public String fpSysLibs = null;
@@ -202,7 +202,6 @@ public class RunTime {
   public File fLibsLocal;
   public boolean useLibsProvided = false;
   private String lastResult = "";
-  public boolean shouldCleanDownloads = false;
   public boolean isJythonReady = false;
 
   //</editor-fold>
@@ -220,6 +219,16 @@ public class RunTime {
 
   public static synchronized RunTime get(Type typ) {
     return get(typ, null);
+  }
+
+  static final long started = new Date().getTime();
+  static final long obsolete = started - 2 * 24 * 60 * 60 * 1000;
+
+  static boolean isObsolete(long refTime) {
+    if (refTime == 0) {
+      return false;
+    }
+    return refTime < obsolete;
   }
 
   public static synchronized RunTime get(Type typ, String[] clArgs) {
@@ -367,59 +376,8 @@ public class RunTime {
     //<editor-fold desc="addShutdownHook">
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
-      public void run() {
-        isTerminating = true;
-        if (Debug.isStartWithTrace()) {
-          Debug.on(3);
-          Debug.globalTraceOn();
-        }
-        runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
-        cleanUp();
-
-        if (runTime.isRunning != null) {
-          try {
-            runTime.isRunningFile.close();
-          } catch (IOException ex) {
-          }
-          runTime.isRunning.delete();
-        }
-
-        if (runTime.shouldCleanDownloads) {
-          FileManager.deleteFileOrFolder(runTime.fSikulixDownloadsBuild);
-        }
-        for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            File aFile = new File(dir, name);
-            boolean isObsolete = false;
-            long lastTime = aFile.lastModified();
-            if (lastTime == 0) {
-              return false;
-            }
-            if (lastTime < ((new Date().getTime()) - 7 * 24 * 60 * 60 * 1000)) {
-              isObsolete = true;
-            }
-            if (name.contains("BridJExtractedLibraries") && isObsolete) {
-              return true;
-            }
-            if (name.toLowerCase().contains("sikuli")) {
-              if (name.contains("Sikulix_")) {
-                if (isObsolete || aFile.equals(runTime.fBaseTempPath)) {
-                  return true;
-                }
-              } else {
-                return true;
-              }
-            }
-            return false;
-          }
-        })) {
-          runTime.log(4, "cleanTemp: " + f.getName());
-          FileManager.deleteFileOrFolder(f.getAbsolutePath());
-        }
-      }
+      public void run() {runShutdownHook();}
     });
-    //</editor-fold>
 
     runTime.init(typ);
     if (Type.IDE.equals(typ)) {
@@ -490,8 +448,7 @@ public class RunTime {
     } else {
       terminate(999, "init: java.io.tmpdir not valid (null or empty");
     }
-    fBaseTempPath = new File(fTempPath,
-            String.format("Sikulix_%d", FileManager.getRandomInt()));
+    fBaseTempPath = new File(fTempPath, String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
 
@@ -659,6 +616,43 @@ public class RunTime {
     }
     Mouse.reset();
     Debug.off();
+  }
+
+  private static void runShutdownHook() {
+    isTerminating = true;
+    if (Debug.isStartWithTrace()) {
+      Debug.on(3);
+      Debug.globalTraceOn();
+    }
+    runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
+    cleanUp();
+
+    if (runTime.isRunning != null) {
+      try {
+        runTime.isRunningFile.close();
+      } catch (IOException ex) {
+      }
+      runTime.isRunning.delete();
+    }
+
+    for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.toLowerCase().contains("sikuli")) {
+          if (name.contains("Sikulix_")) {
+            if (isObsolete(new File(dir, name).lastModified()) || name.equals(runTime.fBaseTempPath.getName())) {
+              return true;
+            }
+          } else {
+            return true;
+          }
+        }
+        return false;
+      }
+    })) {
+      runTime.log(4, "cleanTemp: " + f.getName());
+      FileManager.deleteFileOrFolder(f.getAbsolutePath());
+    }
   }
   //</editor-fold>
 
@@ -967,6 +961,18 @@ public class RunTime {
   }
 
   private void addToWindowsSystemPath(File fLibsFolder) {
+    for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.contains("BridJExtractedLibraries")) {
+          return true;
+        }
+        return false;
+      }
+    })) {
+      runTime.log(4, "cleanTemp: " + f.getName());
+      FileManager.deleteFileOrFolder(f.getAbsolutePath());
+    }
     String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
     if (syspath == null) {
       terminate(999, "addToWindowsSystemPath: cannot access system path");
@@ -1927,7 +1933,7 @@ public class RunTime {
     return true;
   }
 
-  private void copy(InputStream in, OutputStream out) throws IOException {
+  protected static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
     while (true) {

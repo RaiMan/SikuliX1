@@ -157,7 +157,6 @@ public class RunSetup {
 
     if (!testingMaven && (runTime.runningInProject || runningWithProject)) {
       runningWithProject = true;
-      runTime.shouldCleanDownloads = true;
       downloadIDE = String.format("sikulixsetupIDE-%s-%s.jar", version, runTime.sxBuildStamp);
       downloadAPI = String.format("sikulixsetupAPI-%s-%s.jar", version, runTime.sxBuildStamp);
       downloadLibsMac = String.format("sikulixlibsmac-%s-%s.jar", version, runTime.sxBuildStamp);
