@@ -4,17 +4,28 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
+import org.sikuli.script.App;
+import org.sikuli.script.Region;
+import org.sikuli.script.RunTime;
 import org.sikuli.util.ProcessRunner;
 
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.Kernel32;
 
 public class WinUtil implements OSUtil {
+
+  final int BUFFERSIZE = 32 * 1024 - 1;
+
+  public String getEnv(String token) {
+    char[] charResult = new char[0];
+    Kernel32.INSTANCE.GetEnvironmentVariable("PATH", charResult, BUFFERSIZE);
+    return "";
+  }
 
   @Override
   public void checkFeatureAvailability() {
