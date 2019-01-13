@@ -17,7 +17,11 @@
 
 package com.tulskiy.keymaster.windows;
 
-import com.sun.jna.*;
+import com.sun.jna.IntegerType;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
+import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
 import com.sun.jna.win32.W32APIOptions;
 
 import java.util.Arrays;

@@ -12,19 +12,58 @@ import org.sikuli.util.ProcessRunner;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.Kernel32;
 
 public class WinUtil implements OSUtil {
 
-  final int BUFFERSIZE = 32 * 1024 - 1;
+  static final int BUFFERSIZE = 32 * 1024 - 1;
+  static final Kernel32 kernel32 = Kernel32.INSTANCE;
+  static final SXUser32 sxuser32 = SXUser32.INSTANCE;
 
-  public String getEnv(String token) {
-    char[] charResult = new char[0];
-    Kernel32.INSTANCE.GetEnvironmentVariable("PATH", charResult, BUFFERSIZE);
-    return "";
+  public static String getEnv(String envKey) {
+    char[] retChar = new char[BUFFERSIZE];
+    String envVal = null;
+    int retInt = kernel32.GetEnvironmentVariable(envKey, retChar, BUFFERSIZE);
+    if (retInt > 0) {
+      envVal = new String(Arrays.copyOfRange(retChar, 0, retInt));
+    }
+    return envVal;
+  }
+
+  public static String setEnv(String envKey, String envVal) {
+    boolean retOK = kernel32.SetEnvironmentVariable(envKey, envVal);
+    if (retOK) {
+      return getEnv(envKey);
+    }
+    return null;
+  }
+
+  /*
+  https://msdn.microsoft.com/pt-br/library/windows/desktop/dd375731
+  VK_NUM_LOCK 0x90
+  VK_SCROLL 0x91
+  VK_CAPITAL 0x14
+  */
+  private static int WinNumLock = 0x90;
+  private static int WinScrollLock = 0x91;
+  private static int WinCapsLock = 0x14;
+
+  public static int isNumLockOn() {
+    int state = sxuser32.GetKeyState(WinNumLock);
+    return state;
+  }
+
+  public static int isScrollLockOn() {
+    int state = sxuser32.GetKeyState(WinScrollLock);
+    return state;
+  }
+
+  public static int isCapsLockOn() {
+    int state = sxuser32.GetKeyState(WinCapsLock);
+    return state;
   }
 
   @Override

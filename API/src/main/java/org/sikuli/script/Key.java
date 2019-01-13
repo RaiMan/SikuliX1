@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.util.SysJNA;
+import org.sikuli.natives.WinUtil;
 
 /**
  * this class implements an interface to the Java key system
@@ -811,13 +811,13 @@ public class Key {
     int state = 0;
     switch (key) {
       case '\ue025':
-        state = SysJNA.WinUser32.isScrollLockOn();
+        state = WinUtil.isScrollLockOn();
         break;
       case '\ue027':
-        state =  SysJNA.WinUser32.isCapsLockOn();
+        state =  WinUtil.isCapsLockOn();
         break;
       case '\ue03B':
-        state = SysJNA.WinUser32.isNumLockOn();
+        state = WinUtil.isNumLockOn();
         break;
       default:
         return false;

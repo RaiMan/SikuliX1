@@ -9,9 +9,9 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.natives.WinUtil;
 import org.sikuli.util.JythonHelper;
 import org.sikuli.util.ScreenHighlighter;
-import org.sikuli.util.SysJNA;
 import org.sikuli.vnc.VNCScreen;
 
 import java.awt.*;
@@ -376,7 +376,9 @@ public class RunTime {
     //<editor-fold desc="addShutdownHook">
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
-      public void run() {runShutdownHook();}
+      public void run() {
+        runShutdownHook();
+      }
     });
 
     runTime.init(typ);
@@ -973,14 +975,15 @@ public class RunTime {
       runTime.log(4, "cleanTemp: " + f.getName());
       FileManager.deleteFileOrFolder(f.getAbsolutePath());
     }
-    String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
+    //TODO String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
+    String syspath = WinUtil.getEnv("PATH");
     if (syspath == null) {
       terminate(999, "addToWindowsSystemPath: cannot access system path");
     } else {
       String libsPath = (fLibsFolder.getAbsolutePath()).replaceAll("/", "\\");
       if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
-        if (SysJNA.WinKernel32.setEnvironmentVariable("PATH", libsPath + ";" + syspath)) {
-          syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
+        // TODO if (SysJNA.WinKernel32.setEnvironmentVariable("PATH", libsPath + ";" + syspath)) {
+        if (null != (syspath = WinUtil.setEnv("PATH", libsPath + ";" + syspath))) {
           if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
             log(-1, "addToWindowsSystemPath: adding to system path did not work:\n%s", syspath);
             terminate(999, "addToWindowsSystemPath: did not work - see error");
