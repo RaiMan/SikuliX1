@@ -3,6 +3,9 @@
  */
 package org.sikuli.natives;
 
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
@@ -30,7 +33,22 @@ public class WinUtil implements OSUtil {
     if (retInt > 0) {
       envVal = new String(Arrays.copyOfRange(retChar, 0, retInt));
     }
+    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
+      @Override
+      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
+        return false;
+      }
+    }, null);
     return envVal;
+  }
+
+  public static void allWindows() {
+    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
+      @Override
+      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
+        return false;
+      }
+    }, null);
   }
 
   public static String setEnv(String envKey, String envVal) {
