@@ -4,8 +4,10 @@
 package org.sikuli.natives;
 
 import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Psapi;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import com.sun.jna.ptr.IntByReference;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
@@ -25,6 +27,43 @@ public class WinUtil implements OSUtil {
   static final int BUFFERSIZE = 32 * 1024 - 1;
   static final Kernel32 kernel32 = Kernel32.INSTANCE;
   static final SXUser32 sxuser32 = SXUser32.INSTANCE;
+  static final Psapi psapi = Psapi.INSTANCE;
+
+  public static void allWindows() {
+    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
+      @Override
+      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
+        char[] retChar = new char[BUFFERSIZE];
+        String prefix = "";
+        int retInt = sxuser32.GetWindowText(hwnd, retChar, BUFFERSIZE);
+        if (!sxuser32.IsWindowVisible(hwnd)) {
+          return true;
+        }
+/*
+        if (sxuser32.IsIconic(hwnd)) {
+          prefix = "MINIMIZED: ";
+        }
+*/
+        if (retInt < 2) {
+          return true;
+        }
+        String winText = new String(Arrays.copyOfRange(retChar, 0, retInt));
+        if (winText.endsWith("IME") || winText.endsWith("UI")) {
+          return true;
+        }
+        IntByReference pid = new IntByReference();
+        int threadID = sxuser32.GetWindowThreadProcessId(hwnd, pid);
+        String strPid = String.format("(%d) ", pid.getValue());
+        System.out.println(prefix + strPid + winText);
+        return true;
+      }
+    }, null);
+  }
+
+  public static void allProcesses() {
+//    psapi.EnumProcesses
+//    kernel32.EnumProcesses();
+  }
 
   public static String getEnv(String envKey) {
     char[] retChar = new char[BUFFERSIZE];
@@ -40,15 +79,6 @@ public class WinUtil implements OSUtil {
       }
     }, null);
     return envVal;
-  }
-
-  public static void allWindows() {
-    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
-      @Override
-      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
-        return false;
-      }
-    }, null);
   }
 
   public static String setEnv(String envKey, String envVal) {

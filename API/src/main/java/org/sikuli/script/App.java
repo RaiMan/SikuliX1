@@ -634,6 +634,7 @@ public class App {
       return 1;
     }
     focus();
+    RunTime.pause(1);
     if (RunTime.get().runningWindows) {
       window().type(Key.F4, Key.ALT);
     } else if (RunTime.get().runningMac) {
