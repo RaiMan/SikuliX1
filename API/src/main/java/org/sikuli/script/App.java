@@ -610,9 +610,9 @@ public class App {
       log("App.close: %s", this);
     } else {
       log("App.close: did not work: %s", this);
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
 
   /**
