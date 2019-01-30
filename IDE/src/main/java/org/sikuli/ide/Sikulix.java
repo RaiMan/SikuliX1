@@ -168,6 +168,7 @@ public class Sikulix {
     cmd.addAll(Arrays.asList(args));
     int exitValue = ProcessRunner.detach(cmd);
     log(1, "terminating: returned: %d", exitValue);
+    System.exit(exitValue);
   }
 
   private static void log(int level, String msg, Object... args) {
