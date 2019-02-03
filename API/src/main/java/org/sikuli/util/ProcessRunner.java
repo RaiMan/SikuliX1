@@ -141,9 +141,13 @@ public class ProcessRunner {
       cmd.add("start");
       cmd.add("\"\"");
       cmd.add("/B");
+      if (!givenCmd.get(1).isEmpty()) {
+        cmd.add("/D");
+        cmd.add("\"" + givenCmd.get(1) + "\"");
+      }
       cmd.add("\"" + givenCmd.get(0) + "\"");
-      if (givenCmd.size() > 1) {
-        for (int np = 1; np < givenCmd.size(); np ++) {
+      if (givenCmd.size() > 2) {
+        for (int np = 2; np < givenCmd.size(); np ++) {
           startAppParams(cmd, givenCmd.get(np));
         }
       }

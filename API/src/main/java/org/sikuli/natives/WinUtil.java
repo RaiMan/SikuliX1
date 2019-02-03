@@ -331,10 +331,11 @@ public class WinUtil implements OSUtil {
       return 0 == switchApp(app.getPID(), 0);
     } else {
       String cmd = app.getExec();
+      String workDir = app.getWorkDir();
       if (!app.getOptions().isEmpty()) {
-        start(cmd, app.getOptions());
+        start(cmd, workDir, app.getOptions());
       } else {
-        start(cmd);
+        start(cmd, workDir);
       }
     }
     return true;

@@ -278,6 +278,8 @@ public class App {
   private String appName = "";
   private String appToken = "";
   private String appExec = "";
+  private String appExecPath = "";
+  private String appWorkDir = "";
   private String appOptions = "";
   private String appWindow = "";
   private int appPID = -1;
@@ -339,11 +341,12 @@ public class App {
     }
     File fExec = new File(appExec);
     if (fExec.isAbsolute()) {
-      if (!fExec.exists()) {
-        log("App: init: does not exist: %s", fExec);
+      if (!fExec.exists() || !fExec.isFile()) {
+        log("App: init: does not exist or not valid: %s", fExec);
         appExec = "";
       } else {
         appExec = fExec.getAbsolutePath();
+        appExecPath = fExec.getParent();
       }
     }
     if (!appExec.isEmpty()) {
@@ -470,6 +473,30 @@ public class App {
 
   public int getPID() {
     return appPID;
+  }
+
+  public boolean setWorkDir() {
+    if (appExecPath.isEmpty()) {
+      return false;
+    }
+    appWorkDir = appExecPath;
+    return true;
+  }
+
+  public boolean setWorkDir(String workDirPath) {
+    if (workDirPath == null || workDirPath.isEmpty()) {
+      return false;
+    }
+    File fWorkDir = new File(workDirPath);
+    if (!fWorkDir.isAbsolute() || !fWorkDir.isDirectory() || !fWorkDir.exists()) {
+      return false;
+    }
+    appWorkDir = fWorkDir.getAbsolutePath();
+    return true;
+  }
+
+  public String getWorkDir() {
+    return appWorkDir;
   }
   //</editor-fold>
 
