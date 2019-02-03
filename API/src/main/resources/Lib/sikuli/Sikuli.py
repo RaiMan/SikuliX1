@@ -10,7 +10,7 @@ class Debug(JDebug):
 
 Debug.log(3, "Jython: sikuli: Sikuli: starting init")
 import time
-import __builtin__
+#import __builtin__
 # import __main__
 import types
 import sys
@@ -641,7 +641,7 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
                     'create', 'observeInBackground', 'waitAll',
                     'updateSelf', 'findNow', 'findAllNow', 'getEventManager',
                     'lastMatch', 'lastMatches', 'lastScreenImage', 'lastScreenImageFile',
-                    'capture', 'wait', 'lineList', 'wordList'
+                    'capture', 'wait', 'lineList', 'wordList', 'all'
                    ]
   Debug.trace("Sikuli: _exposeAllMethods: %s called from: %s", anyObject, theGlobals['__name__'])
   tosave = []
