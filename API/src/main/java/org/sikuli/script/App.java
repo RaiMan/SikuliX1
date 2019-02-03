@@ -341,7 +341,7 @@ public class App {
     }
     File fExec = new File(appExec);
     if (fExec.isAbsolute()) {
-      if (!fExec.exists() || !fExec.isFile()) {
+      if (!fExec.exists()) {
         log("App: init: does not exist or not valid: %s", fExec);
         appExec = "";
       } else {
