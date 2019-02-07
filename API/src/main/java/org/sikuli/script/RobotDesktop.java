@@ -8,6 +8,7 @@ import org.sikuli.basics.AnimatorOutQuarticEase;
 import org.sikuli.basics.AnimatorTimeBased;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
+
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.MouseInfo;
@@ -57,7 +58,6 @@ public class RobotDesktop extends Robot implements IRobot {
   private void doMouseMove(int x, int y) {
     mouseMove(x, y);
   }
-
 
 
   private void doMouseDown(int buttons) {
@@ -149,7 +149,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
-    Debug.log(4, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), ms/1000f);
+    Debug.log(4, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), ms / 1000f);
     if (ms == 0) {
       doMouseMove(dest.x, dest.y);
       waitForIdle();
@@ -178,11 +178,13 @@ public class RobotDesktop extends Robot implements IRobot {
       pc = mp.getLocation();
       if (pc.x != p.x || pc.y != p.y) {
         if (isMouseInitialized) {
-          Debug.error("RobotDesktop: checkMousePosition: should be %s\nbut after move is %s"
-                          + "\nPossible cause in case you did not touch the mouse while script was running:\n"
-                          + " Mouse actions are blocked generally or by the frontmost application."
-                          + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
-                  p, new Location(pc));
+          if (Settings.checkMousePosition) {
+            Debug.error("RobotDesktop: checkMousePosition: should be %s\nbut after move is %s"
+                            + "\nPossible cause in case you did not touch the mouse while script was running:\n"
+                            + " Mouse actions are blocked generally or by the frontmost application."
+                            + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
+                    p, new Location(pc));
+          }
         }
       }
     }

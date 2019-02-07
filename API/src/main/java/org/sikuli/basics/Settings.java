@@ -84,6 +84,9 @@ public class Settings {
   // setting to false reverses the wheel direction
   public static boolean WheelNatural = true;
 
+  //setting to false supresses error message in RobotDesktop
+  public static boolean checkMousePosition = true;
+
   /**
    * Specify a delay between the key presses in seconds as 0.nnn. This only
    * applies to the next type and is then reset to 0 again. A value &gt; 1 is cut
