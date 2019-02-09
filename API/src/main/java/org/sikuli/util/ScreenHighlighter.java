@@ -126,14 +126,18 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     noWaitAfter = state;
   }
 
+  long minHighlightShown = 100;
+  long minWaitAfter = 300;
+
   @Override
   public void close() {
     setVisible(false);
     highlights.remove(this);
     clean();
     if (!noWaitAfter) {
+      long waitafter = (long) (Settings.WaitAfterHighlight * 1000);
       try {
-        Thread.sleep((long) Settings.WaitAfterHighlight * 1000);
+        Thread.sleep(Math.max(minWaitAfter, waitafter));
       } catch (InterruptedException e) {
       }
     }
@@ -141,7 +145,8 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   private void closeAfter(float secs) {
     try {
-      Thread.sleep((int) secs * 1000 - 300);
+      long highlightOpen =(long) ((secs - Settings.WaitAfterHighlight) * 1000);
+      Thread.sleep(Math.max(minHighlightShown, highlightOpen));
     } catch (InterruptedException e) {
     }
     close();
