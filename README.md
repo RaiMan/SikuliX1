@@ -7,7 +7,7 @@ GUI components and can act on them with mouse and keyboard actions.
 This is handy in cases when there is no easy access to a GUI's internals or 
 the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
-[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014)
+<a href="https://stackexchange.com/users/2164793/raiman"><img src="https://stackexchange.com/users/flair/2164793.png" width="208" height="58" alt="profile for RaiMan on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for RaiMan on Stack Exchange, a network of free, community-driven Q&amp;A sites" /></a>      [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX-2014)
 
 Since version 2 is still in a very experimental stage and needs a complete revision, I thought, that it might be the
 time, to implement some of the version-2-ideas into the current version 1.
