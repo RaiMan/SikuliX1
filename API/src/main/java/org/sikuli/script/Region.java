@@ -2248,7 +2248,7 @@ public class Region {
       log(lvl, "wait: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
       if (rf.repeat(timeout)) {
         lastMatch = rf.getMatch();
-        lastMatch.setImage(img);
+        //lastMatch.setImage(img);
         if (isOtherScreen()) {
           lastMatch.setOtherScreen();
         } else if (img != null) {
@@ -2324,7 +2324,6 @@ public class Region {
       log(lvl, "find: waiting 0 secs for %s to appear in %s", targetStr, this.toStringShort());
       lastMatch = doFind(target, img, null);
       if (lastMatch != null) {
-        lastMatch.setImage(img);
         if (isOtherScreen()) {
           lastMatch.setOtherScreen();
         } else if (img != null) {
@@ -2376,7 +2375,7 @@ public class Region {
     log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
     if (rf.repeat(timeout)) {
       lastMatch = rf.getMatch();
-      lastMatch.setImage(img);
+      //lastMatch.setImage(img);
       if (isOtherScreen()) {
         lastMatch.setOtherScreen();
       } else if (img != null) {
@@ -2872,6 +2871,9 @@ public class Region {
         lastFindTime = (new Date()).getTime() - lastFindTime;
         match = finder.next();
         match.setTimes(lastFindTime, lastSearchTime);
+        if (Settings.Highlight) {
+          match.highlight(Settings.DefaultHighlightTime);
+        }
         if (Settings.FindProfiling) {
           Debug.logp("[FindProfiling] Region.doFind final: %d msec", lastSearchTime);
         }
@@ -3252,7 +3254,7 @@ public class Region {
     }
     if (finder.hasNext()) {
       match = finder.next();
-      match.setImage(img);
+      //match.setImage(img);
       img.setLastSeen(match.getRect(), match.getScore());
     }
     return match;

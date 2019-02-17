@@ -608,6 +608,10 @@ public class RunTime {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       ScreenHighlighter.closeAll();
+      Settings.DefaultHighlightColor = "RED";
+      Settings.DefaultHighlightTime = 2.0f;
+      Settings.Highlight = false;
+      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();

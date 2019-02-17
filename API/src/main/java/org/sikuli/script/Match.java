@@ -194,9 +194,6 @@ public class Match extends Region implements Comparable<Match> {
    */
   protected void setImage(Image img) {
     image = img;
-    if (Settings.Highlight) {
-      highlight(Settings.DefaultHighlightTime);
-    }
   }
 
   /**

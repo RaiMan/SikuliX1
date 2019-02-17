@@ -18,6 +18,7 @@ import java.awt.image.RescaleOp;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.sikuli.basics.Animator;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
@@ -37,7 +38,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   final static int TARGET_SIZE = 50;
   final static int DRAGGING_TIME = 200;
   static int MARGIN = 20;
-//  static Set<ScreenHighlighter> _opened = new HashSet<ScreenHighlighter>();
+  //  static Set<ScreenHighlighter> _opened = new HashSet<ScreenHighlighter>();
   IScreen _scr;
   BufferedImage _screen = null;
   BufferedImage _darker_screen = null;
@@ -61,44 +62,45 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     setVisible(false);
     setAlwaysOnTop(true);
 
-    if (color != null) {
-      // a frame color is specified
-      // if not decodable, then predefined Color.RED is used
-      if (color.startsWith("#")) {
-        if (color.length() > 7) {
-          // might be the version #nnnnnnnnn
-          if (color.length() == 10) {
-            int cR = 255, cG = 0, cB = 0;
-            try {
-              cR = Integer.decode(color.substring(1, 4));
-              cG = Integer.decode(color.substring(4, 7));
-              cB = Integer.decode(color.substring(7, 10));
-            } catch (NumberFormatException ex) {
-            }
-            try {
-              _targetColor = new Color(cR, cG, cB);
-            } catch (IllegalArgumentException ex) {
-            }
-          }
-        } else {
-          // supposing it is a hex value
+    if (color == null) {
+      color = Settings.DefaultHighlightColor;
+    }
+    // a frame color is specified
+    // if not decodable, then predefined Color.RED is used
+    if (color.startsWith("#")) {
+      if (color.length() > 7) {
+        // might be the version #nnnnnnnnn
+        if (color.length() == 10) {
+          int cR = 255, cG = 0, cB = 0;
           try {
-            _targetColor = new Color(Integer.decode(color));
-          } catch (NumberFormatException nex) {
+            cR = Integer.decode(color.substring(1, 4));
+            cG = Integer.decode(color.substring(4, 7));
+            cB = Integer.decode(color.substring(7, 10));
+          } catch (NumberFormatException ex) {
+          }
+          try {
+            _targetColor = new Color(cR, cG, cB);
+          } catch (IllegalArgumentException ex) {
           }
         }
       } else {
-        // supposing color contains one of the defined color names
-        if (!color.endsWith("Gray") || "Gray".equals(color)) {
-          // the name might be given with any mix of lower/upper-case
-          // only lightGray, LIGHT_GRAY, darkGray and DARK_GRAY must be given exactly
-          color = color.toUpperCase();
-        }
+        // supposing it is a hex value
         try {
-          Field field = Class.forName("java.awt.Color").getField(color);
-          _targetColor = (Color) field.get(null);
-        } catch (Exception e) {
+          _targetColor = new Color(Integer.decode(color));
+        } catch (NumberFormatException nex) {
         }
+      }
+    } else {
+      // supposing color contains one of the defined color names
+      if (!color.endsWith("Gray") || "Gray".equals(color)) {
+        // the name might be given with any mix of lower/upper-case
+        // only lightGray, LIGHT_GRAY, darkGray and DARK_GRAY must be given exactly
+        color = color.toUpperCase();
+      }
+      try {
+        Field field = Class.forName("java.awt.Color").getField(color);
+        _targetColor = (Color) field.get(null);
+      } catch (Exception e) {
       }
     }
   }
@@ -122,6 +124,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   }
 
   boolean noWaitAfter = false;
+
   public void setWaitAfter(boolean state) {
     noWaitAfter = state;
   }
@@ -145,7 +148,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   private void closeAfter(float secs) {
     try {
-      long highlightOpen =(long) ((secs - Settings.WaitAfterHighlight) * 1000);
+      long highlightOpen = (long) ((secs - Settings.WaitAfterHighlight) * 1000);
       Thread.sleep(Math.max(minHighlightShown, highlightOpen));
     } catch (InterruptedException e) {
     }
