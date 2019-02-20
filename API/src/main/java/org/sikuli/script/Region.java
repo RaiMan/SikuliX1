@@ -2053,13 +2053,6 @@ public class Region {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="highlight">
-  protected void updateSelf() {
-    if (overlay != null) {
-      highlight(false, null);
-      highlight(true, null);
-    }
-  }
-
   protected Region silentHighlight(boolean onOff) {
     if (onOff && overlay == null) {
       return doHighlight(true, null, true);
@@ -2071,18 +2064,43 @@ public class Region {
   }
 
   /**
-   * Toggle the regions Highlight visibility (red frame)
+   * switches off all actual highlights
+   */
+  public static void highlightOff() {
+    ScreenHighlighter.closeAll();
+  }
+
+  /**
+   * Switch on/off the regions highlight border (red frame)
+   *
+   * @param toEnable true/false: set overlay enabled or disabled
+   */
+  public Region highlight(boolean toEnable) {
+    return highlight(toEnable, null);
+  }
+
+  /**
+   * Switch on/off the regions highlight border (given color)
+   *
+   * @param toEnable true/false: set overlay enabled or disabled
+   * @param color    Color of frame (see method highlight(color))
+   */
+  public Region highlight(boolean toEnable, String color) {
+    return doHighlight(toEnable, color, false);
+  }
+
+  /**
+   * Toggle the regions highlight border (red frame)
    *
    * @return the region itself
    */
   public Region highlight() {
-    // Pass true if overlay is null, false otherwise
-    highlight(overlay == null, null);
+    doHighlight(overlay == null, null, false);
     return this;
   }
 
   /**
-   * Toggle the regions Highlight visibility (frame of specified color)<br>
+   * Toggle the regions Highlight border (given color)<br>
    * allowed color specifications for frame color: <br>
    * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
    * uppercase can be mixed, internally transformed to all uppercase) <br>
@@ -2094,19 +2112,8 @@ public class Region {
    * @return the region itself
    */
   public Region highlight(String color) {
-    // Pass true if overlay is null, false otherwise
-    highlight(overlay == null, color);
+    doHighlight(overlay == null, color, false);
     return this;
-  }
-
-  /**
-   * Sets the regions Highlighting border
-   *
-   * @param toEnable set overlay enabled or disabled
-   * @param color    Color of frame (see method highlight(color))
-   */
-  private Region highlight(boolean toEnable, String color) {
-    return doHighlight(toEnable, color, false);
   }
 
   private Region doHighlight(boolean toEnable, String color, boolean silent) {
@@ -2118,18 +2125,28 @@ public class Region {
     }
     if (toEnable) {
       if (null == overlay) {
-        overlay = new ScreenHighlighter(getScreen(), color);
-        overlay.setWaitAfter(silent);
-        overlay.highlight(this);
+        setHighlight(color, silent);
       } else {
-        toEnable = false;
+        if (!overlay.isSameColor(color)) {
+          overlay.close();
+          overlay = null;
+          setHighlight(color, silent);
+        }
       }
-    }
-    if (!toEnable && null != overlay){
-        overlay.close();
-        overlay = null;
+    } else {
+      if (null == overlay) {
+        return this;
+      }
+      overlay.close();
+      overlay = null;
     }
     return this;
+  }
+
+  private void setHighlight(String color, boolean silent) {
+    overlay = new ScreenHighlighter(getScreen(), color);
+    overlay.setNotWaitAfter(silent);
+    overlay.highlight(this);
   }
 
   /**
@@ -2160,8 +2177,7 @@ public class Region {
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
             + (color != null ? " color: " + color : ""));
-    ScreenHighlighter _overlay = new ScreenHighlighter(getScreen(), color);
-    _overlay.highlight(this, secs);
+    new ScreenHighlighter(getScreen(), color).highlight(this, secs);
     return this;
   }
 

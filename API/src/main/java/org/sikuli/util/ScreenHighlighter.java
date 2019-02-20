@@ -61,12 +61,14 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     init();
     setVisible(false);
     setAlwaysOnTop(true);
+    _targetColor = evalColor(color);
+  }
 
+  private Color evalColor(String color) {
+    Color targetColor = Color.RED;
     if (color == null) {
       color = Settings.DefaultHighlightColor;
     }
-    // a frame color is specified
-    // if not decodable, then predefined Color.RED is used
     if (color.startsWith("#")) {
       if (color.length() > 7) {
         // might be the version #nnnnnnnnn
@@ -79,14 +81,14 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
           } catch (NumberFormatException ex) {
           }
           try {
-            _targetColor = new Color(cR, cG, cB);
+            targetColor = new Color(cR, cG, cB);
           } catch (IllegalArgumentException ex) {
           }
         }
       } else {
         // supposing it is a hex value
         try {
-          _targetColor = new Color(Integer.decode(color));
+          targetColor = new Color(Integer.decode(color));
         } catch (NumberFormatException nex) {
         }
       }
@@ -99,10 +101,15 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
       }
       try {
         Field field = Class.forName("java.awt.Color").getField(color);
-        _targetColor = (Color) field.get(null);
+        targetColor = (Color) field.get(null);
       } catch (Exception e) {
       }
     }
+    return targetColor;
+  }
+
+  public boolean isSameColor(String color) {
+    return evalColor(color).equals(_targetColor);
   }
 
   public static Set<ScreenHighlighter> highlights = new HashSet<ScreenHighlighter>();
@@ -125,7 +132,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   boolean noWaitAfter = false;
 
-  public void setWaitAfter(boolean state) {
+  public void setNotWaitAfter(boolean state) {
     noWaitAfter = state;
   }
 

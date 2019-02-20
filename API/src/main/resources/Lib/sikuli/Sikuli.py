@@ -366,10 +366,6 @@ def makeFolder(*paths):
 def setShowActions(flag):
   Settings.setShowActions(flag)
 
-def highlightOff():
-  import org.sikuli.util.ScreenHighlighter as SH
-  SH.closeAll()
-
 ## ----------------------------------------------------------------------
 # set location, where the center of the pop... should be
 # no-args: use center screen where SikuliX is running (default)
