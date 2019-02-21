@@ -206,8 +206,8 @@ public class ADBRobot implements IRobot {
 
   @Override
   public Color getColorAt(int x, int y) {
-    notSupported("getColorAt");
-    return null;
+    ScreenImage image = captureScreen(new Rectangle(x, y, 1, 1));
+    return new Color(image.getImage().getRGB(0, 0));
   }
 
   @Override
