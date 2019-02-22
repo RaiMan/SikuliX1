@@ -115,7 +115,7 @@
 						<version>2.10.3</version>
 						<configuration>
 							<excludePackageNames>
-								org.opencv:jxgrabkey:org.sikuli.natives
+								org.opencv:jxgrabkey:org.sikuli.natives:com.tulskiy.keymaster:se.vidstige.jadb
 							</excludePackageNames>
 						</configuration>
 						<executions>

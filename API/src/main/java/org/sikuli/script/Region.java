@@ -2066,27 +2066,33 @@ public class Region {
   /**
    * switches off all actual highlights
    */
-  public static void highlightOff() {
+  public static void highlightAllOff() {
     ScreenHighlighter.closeAll();
   }
 
   /**
-   * Switch on/off the regions highlight border (red frame)
+   * Switch on the regions highlight border (red frame)
    *
-   * @param toEnable true/false: set overlay enabled or disabled
    */
-  public Region highlight(boolean toEnable) {
-    return highlight(toEnable, null);
+  public Region highlightOn() {
+    return highlightOn(null);
   }
 
   /**
-   * Switch on/off the regions highlight border (given color)
+   * Switch on the regions highlight border (given color)
    *
-   * @param toEnable true/false: set overlay enabled or disabled
    * @param color    Color of frame (see method highlight(color))
    */
-  public Region highlight(boolean toEnable, String color) {
-    return doHighlight(toEnable, color, false);
+  public Region highlightOn(String color) {
+    return doHighlight(true, color, false);
+  }
+
+  /**
+   * Switch on the regions highlight border (red frame)
+   *
+   */
+  public Region highlightOff() {
+    return doHighlight(false, null, false);
   }
 
   /**
