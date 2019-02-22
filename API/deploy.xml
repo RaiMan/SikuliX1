@@ -115,7 +115,7 @@
 						<version>2.10.3</version>
 						<configuration>
 							<excludePackageNames>
-								org.opencv:jxgrabkey
+								org.opencv:jxgrabkey:com.sun.jna.platform.win32
 							</excludePackageNames>
 						</configuration>
 						<executions>
