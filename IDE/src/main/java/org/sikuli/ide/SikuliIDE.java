@@ -759,7 +759,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             + "Tsung-Hsiang Chang aka vgod\n"
             + "Tom Yeh\n"
             + "Raimund Hocke aka RaiMan\n\n"
-            + "\n\nBuild: " + runTime.SXBuild;
+            + "\n\n" + String.format("Build#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
     JOptionPane.showMessageDialog(this, info,
             "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }

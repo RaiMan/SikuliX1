@@ -71,8 +71,10 @@ public class Sikulix {
 
     if (args.length > 0 && "play".equals(args[0])) {
       //Debug.off();
-      //Debug.on(3);
+      Debug.on(4);
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
+      RunTime rt = RunTime.get();
+      String sikuliVersionBuild = Env.getSikuliVersionBuild();
       terminate();
     }
 

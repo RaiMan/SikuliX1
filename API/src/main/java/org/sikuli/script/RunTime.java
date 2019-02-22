@@ -165,6 +165,7 @@ public class RunTime {
   public String SXVersionLong;
   public String SXVersionShort;
   public String SXBuild = "";
+  public String SXBuildNumber = "";
   public String SXVersionIDE;
   public String SXVersionAPI;
 
@@ -692,6 +693,12 @@ public class RunTime {
       SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
 //    sikulixbuild=2018-12-12_15:13
       SXBuild = prop.getProperty("sikulixbuild");
+//    sikulixbuildnumber=999 BE-AWARE: only real in deployed artefacts (TravisCI)
+//    in dev contect:
+      SXBuildNumber = prop.getProperty("sikulixbuildnumber");
+      if (SXBuildNumber.contains("TRAVIS_BUILD_NUMBER")) {
+        SXBuildNumber = "-DEV-";
+      }
 //    sikulixvproject=1.1.4-SNAPSHOT
       SXVersion = prop.getProperty("sikulixvproject");
 //    sikulixvused=1.1.4-SNAPSHOT
@@ -708,11 +715,11 @@ public class RunTime {
       Sikulix.endError(999);
     }
 
-    log(4, "version: %s build: %s", SXVersion, SXBuild);
+    log(4, "version: %s build#: %s (%s)", SXVersion, SXBuildNumber, SXBuild);
 
     SXVersionIDE = "SikulixIDE-" + SXVersion;
     SXVersionAPI = "SikulixAPI " + SXVersion;
-    SXVersionLong = SXVersion + "-" + SXBuild;
+    SXVersionLong = SXVersion + String.format("-#%s-%s", SXBuildNumber, SXBuild);
     SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
 
     SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);

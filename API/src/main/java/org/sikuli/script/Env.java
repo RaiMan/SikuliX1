@@ -18,11 +18,11 @@ public class Env {
   /**
    *
    * @return where we store Sikuli specific data
-   * @deprecated use Settings. ... instead
+   * @deprecated use Settings.getDataPath() instead
    */
   @Deprecated
   public static String getSikuliDataPath() {
-    return Settings.getSikuliDataPath();
+    return Settings.getDataPath();
   }
 
   /**
@@ -31,8 +31,15 @@ public class Env {
    */
   @Deprecated
   public static String getSikuliVersion() {
-    return RunTime.get().SXVersion;
+    return Settings.getVersion();
   }
+
+  /**
+   * @return version incl. build info
+   * @deprecated use Settings.getVersionBuild() instead
+   */
+  @Deprecated
+  public static String getSikuliVersionBuild() { return Settings.getVersionBuild(); }
 
   /**
    * @return current Location

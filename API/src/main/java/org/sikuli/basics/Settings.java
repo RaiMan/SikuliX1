@@ -168,7 +168,7 @@ public class Settings {
     return ":";
   }
 
-  public static String getSikuliDataPath() {
+  public static String getDataPath() {
     return runTime.fSikulixAppPath.getAbsolutePath();
   }
 
@@ -202,5 +202,13 @@ public class Settings {
 
   public static String getTimestamp() {
     return (new Date()).getTime() + "";
+  }
+
+  public static String getVersion() {
+    return runTime.getVersion();
+  }
+
+  public static String getVersionBuild() {
+    return runTime.SXVersionLong;
   }
 }

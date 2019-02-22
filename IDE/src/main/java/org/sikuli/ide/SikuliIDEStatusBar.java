@@ -65,7 +65,7 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    setMessage(SikuliIDE.runTime.SXVersionIDE + " (" + SikuliIDE.runTime.SXBuild + ")");
+    setMessage(SikuliIDE.runTime.SXVersionIDE + String.format(" build#: %s (%s)", SikuliIDE.runTime.SXBuildNumber, SikuliIDE.runTime.SXBuild));
     starting = 0;
   }
 //  @Override
