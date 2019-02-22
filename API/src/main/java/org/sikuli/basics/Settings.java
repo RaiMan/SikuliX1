@@ -18,6 +18,7 @@ import java.util.Date;
  */
 public class Settings {
 
+
   public static synchronized void init(RunTime givenRunTime) {
     runTime = givenRunTime;
   }
@@ -169,7 +170,7 @@ public class Settings {
   }
 
   public static String getDataPath() {
-    return runTime.fSikulixAppPath.getAbsolutePath();
+    return RunTime.get().fSikulixAppPath.getAbsolutePath();
   }
 
   public static final int ISWINDOWS = 0;
@@ -185,15 +186,15 @@ public class Settings {
   }
 
   public static boolean isWindows() {
-    return runTime.runningWindows;
+    return RunTime.get().runningWindows;
   }
 
   public static boolean isLinux() {
-    return runTime.runningLinux;
+    return RunTime.get().runningLinux;
   }
 
   public static boolean isMac() {
-    return runTime.runningMac;
+    return RunTime.get().runningMac;
   }
 
   public static String getOSVersion() {
@@ -205,10 +206,10 @@ public class Settings {
   }
 
   public static String getVersion() {
-    return runTime.getVersion();
+    return RunTime.get().getVersion();
   }
 
   public static String getVersionBuild() {
-    return runTime.SXVersionLong;
+    return RunTime.get().SXVersionLong;
   }
 }
