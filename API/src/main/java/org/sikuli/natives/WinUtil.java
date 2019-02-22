@@ -4,7 +4,6 @@
 package org.sikuli.natives;
 
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Psapi;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
@@ -27,7 +26,6 @@ public class WinUtil implements OSUtil {
   static final int BUFFERSIZE = 32 * 1024 - 1;
   static final Kernel32 kernel32 = Kernel32.INSTANCE;
   static final SXUser32 sxuser32 = SXUser32.INSTANCE;
-  static final Psapi psapi = Psapi.INSTANCE;
 
   public static void allWindows() {
     sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
