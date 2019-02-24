@@ -24,6 +24,10 @@ public class Match extends Region implements Comparable<Match> {
   private int index = -1;
   private boolean onScreen = true;
 
+  public Match() {
+
+  }
+
   public void setOnScreen(boolean state) {
     onScreen = state;
   }
@@ -185,7 +189,7 @@ public class Match extends Region implements Comparable<Match> {
    * @return the relative offset to the center
    */
   public Location getTargetOffset() {
-    return (getCenter().getOffset(getTarget()));
+    return new Location(getCenter().getOffset(getTarget()));
   }
 
   /**

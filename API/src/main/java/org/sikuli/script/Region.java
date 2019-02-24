@@ -1435,11 +1435,12 @@ public class Region {
   /**
    * create region with same size at top left corner offset
    *
-   * @param loc use its x and y to set the offset
+   * @param whatever offset taken from Region, Match, Image, Location or Offset
    * @return the new region
    */
-  public Region offset(Location loc) {
-    return Region.create(x + loc.x, y + loc.y, w, h, scr);
+  public Region offset(Object whatever) {
+    Offset offset = new Offset(whatever);
+    return Region.create(x + offset.x, y + offset.y, w, h, scr);
   }
 
   /**

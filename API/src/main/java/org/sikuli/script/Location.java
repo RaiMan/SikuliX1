@@ -41,6 +41,11 @@ public class Location implements Comparable<Location>{
     this.y = y;
   }
 
+  public Location(Offset offset) {
+    x = offset.x;
+    y = offset.y;
+  }
+
   /**
    * duplicates the point
    * @param loc other Location
@@ -210,8 +215,8 @@ public class Location implements Comparable<Location>{
    * @param loc the other Location
    * @return relative offset
    */
-  public Location getOffset(Location loc) {
-    return new Location(loc.x - x, loc.y - y);
+  public Offset getOffset(Location loc) {
+    return new Offset(loc.x - x, loc.y - y);
   }
 
   /**
@@ -324,11 +329,12 @@ public class Location implements Comparable<Location>{
    * creates a point at the given offset, might be negative <br>might create a point outside of
    * any screen, not checked
    *
-   * @param loc offset given as Location
-   * @return new location
+   * @param whatever offset taken from Region, Match, Image, Location or Offset
+   * @return new location relocated with offset
    */
-  public Location offset(Location loc) {
-    return new Location(x + loc.x, y + loc.y);
+  public Location offset(Object whatever) {
+    Offset offset = new Offset(whatever);
+    return new Location(x + offset.x, y + offset.y);
   }
 
 /**

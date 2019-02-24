@@ -70,10 +70,15 @@ def wait(target, timeout=None):
 Debug.trace("Jython: sikuli: Sikuli: import ScreenUnion")
 from org.sikuli.script import ScreenUnion
 
-Debug.trace("Jython: sikuli: Sikuli: import Location")
+Debug.trace("Jython: sikuli: Sikuli: import Location, Offset")
 import org.sikuli.script.Location as JLocation
 
 class Location(JLocation):
+  pass
+
+import org.sikuli.script.Offset as JOffset
+
+class Offset(JOffset):
   pass
 
 Debug.trace("Jython: sikuli: Sikuli: import Finder")
