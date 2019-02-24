@@ -2353,7 +2353,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       promptText = "Select a Location";
       buttonText = "Location";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Select location as center of selection";
+      buttonHint = "Define a Location as center of your selection";
     }
 
     @Override
@@ -2375,7 +2375,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       promptText = "Select an Offset";
       buttonText = "Offset";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Select offset as topLeft to buttomRight of selection";
+      buttonHint = "Define an Offset as width and height of your selection";
     }
 
     @Override
@@ -2383,11 +2383,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       int x, y, ox, oy;
       if (simg != null) {
         Rectangle roi = simg.getROI();
-        x = (int) roi.getX();
-        y = (int) roi.getY();
         ox = (int) roi.getWidth();
         oy = (int) roi.getHeight();
-        getCurrentCodePane().insertString(String.format("Region(%d, %d, %d, %d).asOffset()", x, y, ox, oy));
+        getCurrentCodePane().insertString(String.format("Offset(%d, %d)", ox, oy));
       }
     }
   }
@@ -2402,7 +2400,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super();
       buttonText = "Show";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Show the item at the cursor";
+      buttonHint = "Find and highlight the image in the line having the cursor";
     }
 
     public ButtonShow init() {
@@ -2433,17 +2431,21 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           eval = "new " + item + ".grow(10).highlight(2);";
         } else if (item.startsWith("Pattern")) {
           eval = "m = Screen.all().exists(new " + item
-                  + ", 0); if (m != null) m.highlight(2); else print(m);";
+                  + ", 0); if (m != null) m.highlight(2);";
         } else if (item.startsWith("\"")) {
           eval = "m = Screen.all().exists(" + item
-                  + ", 0); if (m != null) m.highlight(2); else print(m);";
+                  + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
-          Runner.runjsEval(eval);
+          Runner.runjsEval("#" + eval);
           return;
         }
       }
-      Sikulix.popup("Nothing to show");
+      Sikulix.popup("Nothing to show!" +
+              "\nThe line with the cursor should contain:" +
+              "\n- an absolute Region or Location" +
+              "\n- an image file name or" +
+              "\n- a Pattern with an image file name");
     }
   }
 
@@ -2455,7 +2457,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super();
       buttonText = "Show in";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Show the item at the cursor in the selected region";
+      buttonHint = "Same as Show, but in the selected region";
     }
 
     @Override

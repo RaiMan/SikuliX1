@@ -936,9 +936,16 @@ public class Runner {
       return retval;
     }
 
+    private boolean silent = false;
+
     public void runjsEval(String script) {
       if (script.isEmpty()) {
         return;
+      }
+      silent = false;
+      if (script.startsWith("#")) {
+        script = script.substring(1);
+        silent = true;
       }
       String initSikulix = "";
       if (Runner.jsRunner == null) {
@@ -950,7 +957,9 @@ public class Runner {
           initSikulix = Runner.prologjs(initSikulix);
           Runner.jsRunner.eval(initSikulix);
         }
-        Runner.log(lvl, "JavaScript: eval: %s", script);
+        if (!silent) {
+          Runner.log(lvl, "JavaScript: eval: %s", script);
+        }
         jsScript = script;
         Thread evalThread = new Thread() {
           @Override
@@ -960,7 +969,9 @@ public class Runner {
               Runner.jsRunner.eval(jsScript);
               Runner.mShow.invoke(null);
             } catch (Exception ex) {
-              Runner.log(-1, "not possible:\n%s", ex);
+              if (!silent) {
+                Runner.log(-1, "not possible:\n%s", ex);
+              }
               try {
                 Runner.mShow.invoke(null);
               } catch (Exception e) {
@@ -971,7 +982,9 @@ public class Runner {
         };
         evalThread.start();
       } catch (Exception ex) {
-        Runner.log(-1, "init not possible:\n%s", ex);
+        if (!silent) {
+          Runner.log(-1, "init not possible:\n%s", ex);
+        }
       }
     }
 
