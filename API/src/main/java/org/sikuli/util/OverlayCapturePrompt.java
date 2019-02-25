@@ -271,6 +271,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     rectSelection.x += scrOCP.getX();
     rectSelection.y += scrOCP.getY();
     ScreenImage ret = new ScreenImage(rectSelection, cropImg);
+    ret.setStartEnd(srcScreenLocation, destScreenLocation);
     return ret;
   }
 
