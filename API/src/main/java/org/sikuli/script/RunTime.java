@@ -65,6 +65,8 @@ public class RunTime {
       if (!outMsg.isEmpty()) {
         System.out.println(outMsg);
       }
+      isTerminating = true;
+      cleanUp();
       System.exit(retval);
     }
     throw new SikuliXception(String.format("fatal: " + outMsg));

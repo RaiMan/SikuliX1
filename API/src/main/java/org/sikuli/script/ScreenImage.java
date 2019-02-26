@@ -30,6 +30,21 @@ public class ScreenImage {
 	protected Rectangle _roi;
 	protected BufferedImage _img;
 	protected String _filename = null;
+	public Location start;
+	public Location end;
+
+	public void setStartEnd(Location start, Location end) {
+		this.start = start;
+		this.end = end;
+	}
+
+	public Location getStart() {
+		return start;
+	}
+
+	public Location getEnd() {
+		return end;
+	}
 
 	/**
 	 * create ScreenImage with given

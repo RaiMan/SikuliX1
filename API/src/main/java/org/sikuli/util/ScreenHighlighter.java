@@ -164,9 +164,14 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
 
   public static void closeAll() {
     if (highlights.size() > 0) {
-      Debug.log(3, "ScreenHighlighter: closing highlights");
+      if (!Settings.ActionLogs) {
+        Debug.log(3, "ScreenHighlighter: closing highlights");
+      } else {
+        Debug.action("highlightAllOff: closing open highlights");
+      }
       for (ScreenHighlighter s : highlights) {
         if (s.isVisible()) {
+          Debug.action("highlight off: " + s.target.toStringShort());
           s.setVisible(false);
           s.clean();
         }
@@ -205,6 +210,8 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     close();
   }
 
+  Region target = null;
+
   public void highlight(Region r_) {
     //change due to oracle blog: https://blogs.oracle.com/thejavatutorials/entry/translucent_and_shaped_windows_in
     if (!_isTransparentSupported) {
@@ -212,6 +219,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
       _transparentColor = Color.pink;
     }
     _borderOnly = true;
+    target = r_;
     Region r;
     r = r_.grow(3);
     if (!_native_transparent) {
