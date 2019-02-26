@@ -38,7 +38,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   private BufferedImage scr_img_darker = null;
   private BufferedImage bi = null;
   private float darker_factor;
-  private Rectangle rectSelection;
+  private Rectangle rSel;
   private int srcScreenId = -1;
   private Location srcScreenLocation = null;
   private Location destScreenLocation = null;
@@ -53,6 +53,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   private double scr_img_scale = 1;
   private Rectangle scr_img_rect = null;
   private ScreenImage scr_img_original = null;
+  private int destMinX, destMaxX, destMinY, destMaxY;
 
   private boolean isLocalScreen = true;
 
@@ -69,7 +70,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     setAlwaysOnTop(true);
 
     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-    rectSelection = new Rectangle();
+    rSel = new Rectangle();
 
     if (scr.isOtherScreen()) {
       isLocalScreen = false;
@@ -106,6 +107,10 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
           srcScreenLocation = new Location(srcx + scrOCP.getX(), srcy + scrOCP.getY());
           Debug.log(3, "CapturePrompt: started at (%d,%d) as %s on %d", srcx, srcy,
                   srcScreenLocation.toStringShort(), srcScreenId);
+          destMinX = 0;
+          destMaxX = scrOCP.getW() - 1;
+          destMinY = 0;
+          destMaxY = scrOCP.getH() - 1;
         }
         promptMsg = null;
         repaint();
@@ -268,19 +273,19 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     if (cropImg == null) {
       return null;
     }
-    rectSelection.x += scrOCP.getX();
-    rectSelection.y += scrOCP.getY();
-    ScreenImage ret = new ScreenImage(rectSelection, cropImg);
+    rSel.x += scrOCP.getX();
+    rSel.y += scrOCP.getY();
+    ScreenImage ret = new ScreenImage(rSel, cropImg);
     return ret;
   }
 
   private BufferedImage cropSelection() {
-    int w = rectSelection.width, h = rectSelection.height;
+    int w = rSel.width, h = rSel.height;
     if (w <= 0 || h <= 0) {
       return null;
     }
-    int x = rectSelection.x;
-    int y = rectSelection.y;
+    int x = rSel.x;
+    int y = rSel.y;
     if (!isLocalScreen && scr_img_scale != 1) {
       x = (int) (x / scr_img_scale);
       y = (int) (y / scr_img_scale);
@@ -320,29 +325,37 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
 
   private void drawSelection(Graphics2D g2d) {
     if (srcx != destx || srcy != desty) {
-      int x1 = (srcx < destx) ? srcx : destx;
-      int y1 = (srcy < desty) ? srcy : desty;
-      int x2 = (srcx > destx) ? srcx : destx;
-      int y2 = (srcy > desty) ? srcy : desty;
+      if (destx < destMinX) {
+        destx = destMinX;
+      } else if (destx > destMaxX) {
+        destx = destMaxX;
+      }
+      if (desty < destMinY) {
+        desty = destMinY;
+      } else if (desty > destMaxY) {
+        desty = destMaxY;
+      }
+      rSel.x = (srcx < destx) ? srcx : destx;
+      rSel.y = (srcy < desty) ? srcy : desty;
+      int xEnd = (srcx > destx) ? srcx : destx;
+      int yEnd = (srcy > desty) ? srcy : desty;
 
-      rectSelection.x = x1;
-      rectSelection.y = y1;
-      rectSelection.width = (x2 - x1) + 1;
-      rectSelection.height = (y2 - y1) + 1;
-      if (rectSelection.width > 0 && rectSelection.height > 0) {
-        g2d.drawImage(scr_img.getSubimage(x1, y1, x2 - x1 + 1, y2 - y1 + 1),
-                null, x1, y1);
+      rSel.width = (xEnd - rSel.x) + 1;
+      rSel.height = (yEnd - rSel.y) + 1;
+      if (rSel.width > 0 && rSel.height > 0) {
+        g2d.drawImage(scr_img.getSubimage(rSel.x, rSel.y, rSel.width, rSel.height),null, rSel.x, rSel.y);
       }
 
       g2d.setColor(selFrameColor);
       g2d.setStroke(bs);
-      g2d.draw(rectSelection);
-      int cx = (x1 + x2) / 2;
-      int cy = (y1 + y2) / 2;
+      g2d.draw(rSel);
+
+      int cx = (rSel.x + xEnd) / 2;
+      int cy = (rSel.y + yEnd) / 2;
       g2d.setColor(selCrossColor);
       g2d.setStroke(_StrokeCross);
-      g2d.drawLine(cx, y1, cx, y2);
-      g2d.drawLine(x1, cy, x2, cy);
+      g2d.drawLine(cx, rSel.y, cx, yEnd);
+      g2d.drawLine(rSel.x, cy, xEnd, cy);
 
       if (isLocalScreen && Screen.getNumberScreens() > 1) {
         drawScreenFrame(g2d, srcScreenId);
