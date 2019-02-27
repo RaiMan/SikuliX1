@@ -2128,7 +2128,8 @@ public class Region {
       return this;
     }
     if (!silent) {
-      Debug.action("highlight " + (toEnable ? "on: " : "off: ") + toStringShort());
+      Debug.action("highlight " + (color != null ? " color: " + color : "") +
+              (toEnable ? "on: " : "off: ") + toStringShort());
     }
     if (toEnable) {
       if (null == overlay) {
