@@ -25,7 +25,7 @@ class SikuliIDEStatusBar extends JPanel {
     JPanel rightPanel = new JPanel(new BorderLayout());
     rightPanel.setOpaque(false);
     _lblMsg = new JLabel();
-    _lblMsg.setPreferredSize(new Dimension(400, 20));
+    _lblMsg.setPreferredSize(new Dimension(500, 20));
     _lblMsg.setUI(new EmphasizedLabelUI());
     _lblMsg.setFont(new Font("Monaco", Font.TRUETYPE_FONT, 11));
     _lblCaretPos = new JLabel();
