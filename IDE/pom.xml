@@ -41,54 +41,6 @@
       <version>${sikulixjrubyversion}</version>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-autocomplete</artifactId>
-      <version>1.6.5-1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-action</artifactId>
-      <version>1.6.5-1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-plaf</artifactId>
-      <version>1.6.5-1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-graphics</artifactId>
-      <version>1.6.5-1</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-painters</artifactId>
-      <version>1.6.5-1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.swinglabs.swingx</groupId>
-      <artifactId>swingx-mavensupport</artifactId>
-      <version>1.6.5-1</version>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.jgoodies</groupId>
-      <artifactId>forms</artifactId>
-      <version>1.2.1</version>
-    </dependency>
-    <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
       <version>0.9.5</version>
@@ -97,6 +49,11 @@
       <groupId>org.swinglabs</groupId>
       <artifactId>swing-layout</artifactId>
       <version>1.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
