@@ -4,33 +4,19 @@
 package org.sikuli.ide;
 
 import org.apache.commons.cli.CommandLine;
-import org.jdesktop.swingx.JXCollapsiblePane;
-import org.jdesktop.swingx.JXTaskPane;
-import org.jdesktop.swingx.JXTaskPaneContainer;
 import org.sikuli.android.ADBClient;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.android.ADBTest;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyEvent;
-import org.sikuli.basics.HotkeyListener;
-import org.sikuli.basics.HotkeyManager;
-import org.sikuli.basics.PreferencesUser;
-import org.sikuli.basics.Settings;
+import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDESplash;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
-import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.*;
 import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
-import org.sikuli.util.CommandArgs;
-import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.util.EventObserver;
-import org.sikuli.util.EventSubject;
-import org.sikuli.util.OverlayCapturePrompt;
-import org.sikuli.util.SikulixFileChooser;
+import org.sikuli.util.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -49,8 +35,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class SikuliIDE extends JFrame implements InvocationHandler {
 
@@ -76,7 +62,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private JTabbedPane msgPane;
   private boolean msgPaneCollapsed = false;
   private EditorConsolePane _console;
-  private JXCollapsiblePane _cmdList;
+//  private JXCollapsiblePane _cmdList;
   private SikuliIDEStatusBar _status = null;
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
@@ -92,7 +78,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private JMenu _viewMenu = null; //new JMenu(_I("menuView"));
   private JMenu _toolMenu = null; //new JMenu(_I("menuTool"));
   private JMenu _helpMenu = null; //new JMenu(_I("menuHelp"));
-  private JXCollapsiblePane _sidePane;
+  //private JXCollapsiblePane _sidePane;
   private JCheckBoxMenuItem _chkShowUnitTest;
   private JMenuItem chkShowCmdList = null;
   private JCheckBoxMenuItem chkShowThumbs;
@@ -1713,10 +1699,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
-    public void toggleCmdList(ActionEvent ae) {
-      _cmdList.setCollapsed(!_cmdList.isCollapsed());
-    }
-
     public void toggleShowThumbs(ActionEvent ae) {
       boolean showThumbsState = chkShowThumbs.getState();
       getCurrentCodePane().showThumbs = showThumbsState;
@@ -1728,6 +1710,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
     }
 
+/*
+    public void toggleCmdList(ActionEvent ae) {
+      _cmdList.setCollapsed(!_cmdList.isCollapsed());
+    }
+
     public void toggleUnitTest(ActionEvent ae) {
       if (_chkShowUnitTest.getState()) {
         _sidePane.setCollapsed(false);
@@ -1735,6 +1722,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         _sidePane.setCollapsed(true);
       }
     }
+*/
   }
   //</editor-fold>
 
@@ -2129,6 +2117,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return CommandsOnToolbar;
   }
 
+/*
   private JComponent createCommandPane() {
     JXTaskPaneContainer con = new JXTaskPaneContainer();
 
@@ -2189,6 +2178,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     _cmdList.setCollapsed(false);
     return _cmdList;
   }
+*/
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Init ToolBar Buttons">

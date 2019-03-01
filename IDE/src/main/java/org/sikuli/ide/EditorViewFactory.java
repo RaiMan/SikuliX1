@@ -154,14 +154,18 @@ class SyntaxHighlightLabelView extends LabelView {
 		"__FILE__", "__LINE__", "require"
   };
   private static String[] keywordsSikuliClass = {
-    "Screen", "Region", "Location", "Match", "Pattern",
+    "Screen", "Region", "Location", "Offset", "Match", "Pattern",
     "Env", "Key", "Button", "Finder",
     "App", "KeyModifier", "Mouse", "Keys", "Image", "ImagePath", "ImageGroup",
-		"ImageFind", "ImageFinder", "Settings",
+		"Settings"
   };
   private static String[] keywordsSikuli = {
-    "find", "wait", "findAll", "findText", "findAllText",
-    "waitVanish", "exists", "text",
+    "find", "wait", "findAll", "getAll", "findAllList", "findAllByRow", "findAllByColumn",
+    "findBest", "findBestList", "findAny", "findAnyList",
+    "findText", "findT", "findAllText", "findAllT",
+    "waitText", "waitT", "hasText", "hasT", "findWord", "findWords", "findLine", "findLines",
+    "unionAll", "unionAny", "unionAnyList",
+    "waitVanish", "exists", "has", "text",
     "click", "doubleClick", "rightClick", "hover", "wheel", "delayClick",
     "type", "paste", "write", "delayType",
     "dragDrop", "drag", "dropAt",
@@ -179,7 +183,7 @@ class SyntaxHighlightLabelView extends LabelView {
     "getScreen", "getCenter", "setCenter", "setSize", "setLocation",
     "setX", "setY", "setW", "setH", "setRect", "setROI",
     "getX", "getY", "getW", "getH", "getRect", "getROI",
-    "highlight", "add", "getLastScreenImageFile",
+    "highlight", "highlightOn", "highlightOff", "highlightAllOff", "add", "getLastScreenImageFile",
     "getNumberScreens", "getBounds",
     "contains", "containsMouse", "atMouse",
     "getTopLeft", "setTopLeft", "getTopRight", "setTopRight",
