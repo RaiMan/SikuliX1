@@ -4869,7 +4869,7 @@ public class Region {
   }
 
   public List<Match> collectWords() {
-    return findWords("");
+    return findWords("...");
   }
 
   public List<String> collectWordsText() {
@@ -4882,7 +4882,7 @@ public class Region {
   }
 
   public List<Match> collectLines() {
-    return findLines("");
+    return findLines("...");
   }
 
   public List<String> collectLinesText() {

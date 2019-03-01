@@ -125,6 +125,9 @@ public class Finder2 {
       BufferedImage bimg = where.getScreen().capture(where).getImage();
       BufferedImage bimgWork = null;
       String text = fInput.getTargetText();
+      if ("...".equals(text)) {
+        text = "";
+      }
       TextRecognizer tr = TextRecognizer.start();
       if (tr.isValid()) {
         Tesseract1 tapi = tr.getAPI();
