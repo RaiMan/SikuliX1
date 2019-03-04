@@ -3,17 +3,17 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.util.JythonHelper;
-import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
+import py4Java.GatewayServer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.security.CodeSource;
+import java.util.Date;
 import java.util.List;
 
 public class Sikulix {
@@ -57,6 +57,7 @@ public class Sikulix {
   //</editor-fold>
 
   public static void main(String[] args) throws FindFailed {
+    long start = new Date().getTime();
 
     if (args.length == 1 && "buildDate".equals(args[0])) {
       RunTime runTime = RunTime.get(RunTime.Type.SETUP);
@@ -75,6 +76,16 @@ public class Sikulix {
       //ImagePath.setBundlePath(new File(runTime.fWorkDir, showBase).getAbsolutePath());
       RunTime rt = RunTime.get();
       String sikuliVersionBuild = Env.getSikuliVersionBuild();
+      terminate();
+    }
+
+    if (args.length > 0 && "pythonserver".equals(args[0])) {
+      RunTime rt = RunTime.get();
+      if (Debug.getDebugLevel() == 3) {
+//        GatewayServer.turnAllLoggingOn();
+      }
+      GatewayServer pythonserver = new GatewayServer(new Object());
+      pythonserver.start(false);
       terminate();
     }
 

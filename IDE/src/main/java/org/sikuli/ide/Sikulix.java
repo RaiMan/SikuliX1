@@ -4,7 +4,6 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.util.ProcessRunner;
 
 import javax.swing.*;
@@ -30,7 +29,7 @@ public class Sikulix {
   static File fDirExtensions = null;
   static File[] fExtensions = null;
   static List<String> extensions = new ArrayList<>();
-  static String ClassPath = "";
+  static String classPath = "";
   static String start = String.format("%d", new Date().getTime());
   static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
   static String jythonVersion = "2.7.1";
@@ -64,11 +63,12 @@ public class Sikulix {
 
     if (jarName.endsWith(".jar")) {
       log(1, "starting");
-      ClassPath = jarName;
+      classPath = jarName;
     } else {
       SikulixRunIDE.main(args);
       return;
     }
+
     File[] sxFolderList = sxFolder.listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -126,8 +126,8 @@ public class Sikulix {
       for (File fExtension : fExtensions) {
         String pExtension = fExtension.getAbsolutePath();
         if (pExtension.endsWith(".jar")) {
-          if (!ClassPath.isEmpty()) {
-            ClassPath += separator;
+          if (!classPath.isEmpty()) {
+            classPath += separator;
           }
           if (pExtension.contains("jython") && pExtension.contains("standalone")) {
             if (pExtension.contains(jythonVersion)) {
@@ -138,7 +138,7 @@ public class Sikulix {
               jrubyLatest = true;
             }
           }
-          ClassPath += pExtension;
+          classPath += pExtension;
           extensions.add(pExtension);
           log(1, "adding extension: %s", fExtension);
         }
@@ -163,7 +163,7 @@ public class Sikulix {
 //      cmd.add("-Xdock:icon=\"" + new File(fAppData, "SikulixLibs/sikulix.icns").getAbsolutePath() + "\"");
 //    }
     cmd.add("-cp");
-    cmd.add(ClassPath);
+    cmd.add(classPath);
     cmd.add("org.sikuli.ide.SikulixRunIDE");
     cmd.addAll(Arrays.asList(args));
     int exitValue = ProcessRunner.detach(cmd);

@@ -18,7 +18,7 @@ public class Offset {
     this.y = y;
   }
 
-  public Offset(Object whatEver) {
+  public <RMILO> Offset(RMILO whatEver) {
     if (whatEver instanceof Region || whatEver instanceof Match) {
       Region what = (Region) whatEver;
       x = what.w;
@@ -40,7 +40,7 @@ public class Offset {
     }
   }
 
-  public Offset modify(Object whatever) {
+  public <RMILO> Offset modify(RMILO whatever) {
     Offset offset = new Offset(whatever);
     offset.x = this.x + offset.x;
     offset.y = this.y + offset.y;
