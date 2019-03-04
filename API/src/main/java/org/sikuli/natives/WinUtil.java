@@ -420,21 +420,17 @@ public class WinUtil implements OSUtil {
   public List<App> getApps(String name) {            
     List<App> apps = new ArrayList<>();
 
-    try {
-      List<ProcessInfo> processes = allProcesses();  
-    
-      for(ProcessInfo p : processes){
-        if(p.getImageName().equals(name)){        
-          App theApp = new App();
-          theApp.setName(p.getImageName());
-          theApp.setWindow(getTopWindowTitle(p.getPid()));
-          theApp.setPID(p.getPid());
-          apps.add(theApp); 
-        }
-      }    
-    } catch (Exception e) {
-      Debug.error(e.getMessage());
-    }
+    List<ProcessInfo> processes = allProcesses();  
+  
+    for(ProcessInfo p : processes){
+      if(p.getImageName().equals(name)){        
+        App theApp = new App();
+        theApp.setName(p.getImageName());
+        theApp.setWindow(getTopWindowTitle(p.getPid()));
+        theApp.setPID(p.getPid());
+        apps.add(theApp); 
+      }
+    }     
     
     return apps;
   }
