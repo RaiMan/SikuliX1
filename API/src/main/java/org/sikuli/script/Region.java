@@ -463,6 +463,32 @@ public class Region {
     this.rows = 0;
   }
 
+  public static Region make(ArrayList args) {
+    log(3, "make: args: %s", args);
+    Region reg = new Screen();
+    if (null != args) {
+      for (Object arg : args) {
+        log(3, "%s", arg.getClass().getName());
+      }
+      if (args.size() == 4) {
+        //case1: Region(x,y,w,h)
+        int num = 4;
+        for (Object arg : args) {
+          if (arg instanceof Integer) {
+            num--;
+          }
+        }
+        if (num == 0) {
+          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
+        }
+      } else if (args.size() == 1) {
+        //case2: Region(Region)
+        reg = create((Region) args.get(0));
+      }
+    }
+    return reg;
+  }
+
   /**
    * Create a region with the provided top left corner and size
    *
