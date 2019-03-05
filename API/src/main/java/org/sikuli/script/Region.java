@@ -2080,6 +2080,35 @@ public class Region {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="highlight">
+
+  /**
+   * highlight (internal use for Python support)           :
+   * () -> Region,
+   * (int) -> Region
+   * (String) -> Region,
+   * (int,String) -> Region,
+   * (float) -> Region,
+   * (float,String) -> Region,
+   * @param args
+   * @return this
+   */
+  public Region highlight(ArrayList args) {
+    if (args.size() > 0) {
+      log(3, "highlight: %s", args);
+      if (args.get(0) instanceof String) {
+        highlight((String) args.get(0));
+      } else if (args.get(0) instanceof Number) {
+        int highlightTime = ((Number) args.get(0)).intValue();
+        if (args.size() == 1) {
+          highlight(highlightTime);
+        } else {
+          highlight(highlightTime, (String) args.get(1));
+        }
+      }
+    }
+    return this;
+  }
+
   protected Region silentHighlight(boolean onOff) {
     if (onOff && overlay == null) {
       return doHighlight(true, null, true);
@@ -2123,10 +2152,14 @@ public class Region {
   }
 
   /**
-   * Toggle the regions highlight border (red frame)
+   * show a colored frame around the region for a given time or switch on/off
    *
-   * @return the region itself
-   */
+   * () or (color) switch on/off with color (default red)
+   *
+   * (number) or (number, color) show in color (default red) for number seconds (cut to int)
+   *
+   * @return this region
+   **/
   public Region highlight() {
     doHighlight(overlay == null, null, false);
     return this;
@@ -2138,8 +2171,9 @@ public class Region {
    * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
    * uppercase can be mixed, internally transformed to all uppercase) <br>
    * - these colornames exactly written: lightGray, LIGHT_GRAY, darkGray and DARK_GRAY <br>
-   * - a hex value like in HTML: #XXXXXX (max 6 hex digits) - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb
-   * are integer values in range 0 - 255 padded with leading zeros if needed (hence exactly 9 digits)
+   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)
+   * - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb are integer values in range 0 - 255
+   * padded with leading zeros if needed (hence exactly 9 digits)
    *
    * @param color Color of frame
    * @return the region itself
@@ -3956,8 +3990,16 @@ public class Region {
    * @throws FindFailed for Pattern or Filename
    */
   public <PFRML> int click(PFRML target, Integer modifiers) throws FindFailed {
-    Location loc = getLocationFromTarget(target);
     int ret = 0;
+    if (target instanceof ArrayList) {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() > 0) {
+        target = (PFRML) parms.get(0);
+      } else {
+        return ret;
+      }
+    }
+    Location loc = getLocationFromTarget(target);
     if (null != loc) {
       ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
     }
@@ -4252,8 +4294,17 @@ public class Region {
    * @throws FindFailed for Pattern or Filename
    */
   public <PFRML> int mouseMove(PFRML target) throws FindFailed {
-    Location loc = getLocationFromTarget(target);
     int ret = 0;
+    if (target instanceof ArrayList) {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() > 0) {
+        target = (PFRML) parms.get(0);
+      }
+      else {
+        return ret;
+      }
+    }
+    Location loc = getLocationFromTarget(target);
     if (null != loc) {
       ret = Mouse.move(loc, this);
     }
