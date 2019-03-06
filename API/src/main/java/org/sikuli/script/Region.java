@@ -1611,7 +1611,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on left edge
    */
   public Location leftAt(int offset) {
-    return checkAndSetRemote(new Location(x + offset, y + h / 2));
+    return checkAndSetRemote(new Location(x - offset, y + h / 2));
   }
 
   /**
@@ -1656,7 +1656,7 @@ public class Region {
    * @return point with given offset vertically to middle point on top edge
    */
   public Location aboveAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + offset));
+    return checkAndSetRemote(new Location(x + w / 2, y - offset));
   }
 
   /**
@@ -1701,7 +1701,7 @@ public class Region {
    * @return point with given offset vertically to middle point on bottom edge
    */
   public Location belowAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + h - offset));
+    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
   }
 
   /**

@@ -4,6 +4,8 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
+
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -217,6 +219,15 @@ public class Location implements Comparable<Location>{
    */
   public Offset getOffset(Location loc) {
     return new Offset(loc.x - x, loc.y - y);
+  }
+
+  /**
+   * create a region with this point as center and size Settings.DefaultPadding
+   *
+   * @return the new region
+   */
+  public Region grow() {
+    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
   }
 
   /**
