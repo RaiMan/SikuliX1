@@ -52,6 +52,10 @@ public class Screen extends Region implements IScreen {
   static Rectangle[] monitorBounds = null;
   static int mainMonitor = -1;
 
+  public static Screen getDefaultInstance() {
+    return new Screen();
+  }
+
   //<editor-fold defaultstate="collapsed" desc="monitors">
   static GraphicsEnvironment genv = null;
   static GraphicsDevice[] gdevs;

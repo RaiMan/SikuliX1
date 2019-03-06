@@ -22,6 +22,10 @@ public class Location implements Comparable<Location>{
   public int y;
   private IScreen otherScreen = null;
 
+  public static Location getDefaultInstance() {
+    return new Location(0,0);
+  }
+
   /**
    * to allow calculated x and y that might not be integers
    * @param x column

@@ -28,6 +28,10 @@ public class Region {
   private static int lvl = 3;
   private static Region fakeRegion;
 
+  public static Region getDefaultInstance() {
+    return new Screen();
+  }
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
