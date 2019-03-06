@@ -1,198 +1,143 @@
 package org.sikuli.script;
 
 import java.awt.event.KeyEvent;
-import java.awt.im.InputContext;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
+import org.sikuli.natives.SXUser32;
+
+import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.WinDef.HWND;
+
 public class KeyboardLayout {
-  private static final Locale defaultLocale = new Locale("en", "US");
-  
-  private static final Map<Locale, Map<Character, int[]>> LAYOUTS = buildLayouts();
-  
-  private static final int VK_OEM_1 = 0xBA; //OEM_1 (: ;)
-  private static final int VK_OEM_102 = 0xE2; //OEM_102 (> <)
-  private static final int VK_OEM_2 = 0xBF; //OEM_2 (? /)
-  private static final int VK_OEM_3 = 0xC0; //OEM_3 (~ `)
-  private static final int VK_OEM_4 = 0xDB; //OEM_4 ({ [)
-  private static final int VK_OEM_5 = 0xDC; //OEM_5 (| \)
-  private static final int VK_OEM_6 = 0xDD; //OEM_6 (} ])
-  private static final int VK_OEM_7 = 0xDE; //OEM_7 (" ')
-  private static final int VK_OEM_8 = 0xDF; //OEM_8 (§ !)
-  
-  private static final int VK_OEM_ATTN = 0xF0; //Oem Attn
-  private static final int VK_OEM_AUTO = 0xF3; //Auto
-  private static final int VK_OEM_AX = 0xE1; //Ax
-  private static final int VK_OEM_BACKTAB = 0xF5; //Back Tab
-  private static final int VK_OEM_CLEAR = 0xFE; //OemClr
-  private static final int VK_OEM_COMMA = 0xBC; //OEM_COMMA (< ,)
-  private static final int VK_OEM_COPY = 0xF2; //Copy
-  private static final int VK_OEM_CUSEL = 0xEF; //Cu Sel
-  private static final int VK_OEM_ENLW = 0xF4; //Enlw
-  private static final int VK_OEM_FINISH = 0xF1; //Finish
-  private static final int VK_OEM_FJ_LOYA = 0x95; //Loya
-  private static final int VK_OEM_FJ_MASSHOU = 0x93; //Mashu
-  private static final int VK_OEM_FJ_ROYA = 0x96; //Roya
-  private static final int VK_OEM_FJ_TOUROKU = 0x94; //Touroku
-  private static final int  VK_OEM_JUMP = 0xEA; //Jump
-  private static final int VK_OEM_MINUS = 0xBD; //OEM_MINUS (_ -)
-  private static final int VK_OEM_PA1 = 0xEB; //OemPa1
-  private static final int VK_OEM_PA2 = 0xEC; //OemPa2
-  private static final int VK_OEM_PA3 = 0xED; //OemPa3
-  private static final int VK_OEM_PERIOD = 0xBE; //OEM_PERIOD (> .)
-  private static final int VK_OEM_PLUS = 0xBB; //OEM_PLUS (+ =)
-  private static final int VK_OEM_RESET = 0xE9; //Reset
-  private static final int VK_OEM_WSCTR = 0xEE; //WsCtrl
-  
-  private static final int VK_RMENU = 0xA5; //Right ALT
-  private static final int VK_RETURN =  0x0D; //Ente
+  private static final int DEFAULT_KEYBOARD_LAYOUT_ID = 0x0409; // en-US;
+  private static final Map<Character, int[]> DEFAULT_KEYBOARD_LAYOUT = buildAwtEnUs(); // en-US;
 
-  private static Map<Locale, Map<Character, int[]>> buildLayouts() {
-        
-    Map<Locale, Map<Character, int[]>> layouts = new HashMap<>();
+  private static final Map<Integer, Map<Character, int[]>> LAYOUTS = new HashMap<>();
+  
+  private static final SXUser32 sxuser32 = SXUser32.INSTANCE;
 
-    layouts.put(defaultLocale, buildEnUs());
-    layouts.put(new Locale("de", "CH"), buildDeCh());
+  private enum VkCode {
+    // Numbers
+    VK_1(KeyEvent.VK_1), VK_2(KeyEvent.VK_2), VK_3(KeyEvent.VK_3), VK_4(KeyEvent.VK_4), VK_5(KeyEvent.VK_5),
+    VK_6(KeyEvent.VK_6), VK_7(KeyEvent.VK_7), VK_8(KeyEvent.VK_8), VK_9(KeyEvent.VK_9), VK_0(KeyEvent.VK_0),
 
-    return layouts;
+    // ASCII
+    VK_A(KeyEvent.VK_A), VK_B(KeyEvent.VK_B), VK_C(KeyEvent.VK_C), VK_D(KeyEvent.VK_D), VK_E(KeyEvent.VK_E),
+    VK_F(KeyEvent.VK_F), VK_G(KeyEvent.VK_G), VK_H(KeyEvent.VK_H), VK_I(KeyEvent.VK_I), VK_J(KeyEvent.VK_J),
+    VK_K(KeyEvent.VK_K), VK_L(KeyEvent.VK_L), VK_M(KeyEvent.VK_M), VK_N(KeyEvent.VK_N), VK_O(KeyEvent.VK_O),
+    VK_P(KeyEvent.VK_P), VK_Q(KeyEvent.VK_Q), VK_R(KeyEvent.VK_R), VK_S(KeyEvent.VK_S), VK_T(KeyEvent.VK_T),
+    VK_U(KeyEvent.VK_U), VK_V(KeyEvent.VK_V), VK_W(KeyEvent.VK_W), VK_X(KeyEvent.VK_X), VK_Y(KeyEvent.VK_Y),
+    VK_Z(KeyEvent.VK_Z),
+
+    // OEM Codes
+    VK_OEM_1(0xBA), // OEM_1 (: ),)
+    VK_OEM_102(0xE2), // OEM_102 (> <)
+    VK_OEM_2(0xBF), // OEM_2 (? /)
+    VK_OEM_3(0xC0), // OEM_3 (~ `)
+    VK_OEM_4(0xDB), // OEM_4 ({ [)
+    VK_OEM_5(0xDC), // OEM_5 (| \)
+    VK_OEM_6(0xDD), // OEM_6 (} ])
+    VK_OEM_7(0xDE), // OEM_7 (" ')
+    VK_OEM_8(0xDF), // OEM_8 (§ !)
+
+    VK_OEM_ATTN(0xF0), // Oem Attn
+    VK_OEM_AUTO(0xF3), // Auto
+    VK_OEM_AX(0xE1), // Ax
+    VK_OEM_BACKTAB(0xF5), // Back Tab
+    VK_OEM_CLEAR(0xFE), // OemClr
+    VK_OEM_COMMA(0xBC), // OEM_COMMA (< ,)
+    VK_OEM_COPY(0xF2), // Copy
+    VK_OEM_CUSEL(0xEF), // Cu Sel
+    VK_OEM_ENLW(0xF4), // Enlw
+    VK_OEM_FINISH(0xF1), // Finish
+    VK_OEM_FJ_LOYA(0x95), // Loya
+    VK_OEM_FJ_MASSHOU(0x93), // Mashu
+    VK_OEM_FJ_ROYA(0x96), // Roya
+    VK_OEM_FJ_TOUROKU(0x94), // Touroku
+    VK_OEM_JUMP(0xEA), // Jump
+    VK_OEM_MINUS(0xBD), // OEM_MINUS (_ -)
+    VK_OEM_PA1(0xEB), // OemPa1
+    VK_OEM_PA2(0xEC), // OemPa2
+    VK_OEM_PA3(0xED), // OemPa3
+    VK_OEM_PERIOD(0xBE), // OEM_PERIOD (> .)
+    VK_OEM_PLUS(0xBB), // OEM_PLUS (+ =)
+    VK_OEM_RESET(0xE9), // Reset
+    VK_OEM_WSCTR(0xEE); // WsCtrl
+
+    private int code;
+
+    private VkCode(int code) {
+      this.code = code;
+    }
+
+    public int getCode() {
+      return code;
+    }
   }
 
-  private static Map<Character, int[]> buildEnUs() {
+  private static final int VK_RETURN = 0x0D; // Enter
+
+  private static final int MAPVK_VK_TO_VSC = 0;
+
+  private static Map<Character, int[]> mapKeyCodes(int[] modifiers, int keyboarLayoutId) {
+    Map<Character, int[]> mappings = new HashMap<>();
+
+    int spaceScanCode = sxuser32.MapVirtualKeyExW(KeyEvent.VK_SPACE, MAPVK_VK_TO_VSC, keyboarLayoutId);
+
+    for (VkCode vk : VkCode.values()) {
+      byte[] keyStates = new byte[256];
+
+      for (int modifier : modifiers) {
+        keyStates[modifier] |= 0x80;
+      }
+
+      keyStates[vk.getCode()] |= 0x80;
+
+      int scanCode = sxuser32.MapVirtualKeyExW(vk.getCode(), MAPVK_VK_TO_VSC, keyboarLayoutId);
+
+      char[] buff = new char[1];
+
+      int ret = sxuser32.ToUnicodeEx(vk.getCode(), scanCode, keyStates, buff, 1, 0, keyboarLayoutId);
+
+      int[] codes = Arrays.copyOf(modifiers, modifiers.length + 1);
+      codes[modifiers.length] = vk.getCode();
+
+      if (ret > 0) {
+        mappings.put(buff[0], codes);
+      } else if (ret < 0) {
+        // Get DEAD key
+        keyStates = new byte[256];
+        keyStates[KeyEvent.VK_SPACE] |= 0x80;
+        ret = sxuser32.ToUnicodeEx(KeyEvent.VK_SPACE, spaceScanCode, keyStates, buff, 1, 0, keyboarLayoutId);
+        if (ret > 0) {
+          mappings.put(buff[0], codes);
+        }
+      }
+    }
+
+    return mappings;
+  }
+
+  private static Map<Character, int[]> buildWindowsLayout(int keyboarLayoutId) {
     Map<Character, int[]> layout = new HashMap<>();
 
-    layout.putAll(buildLatinLowercase());
-    layout.putAll(buildLatinUppercase());
-    layout.putAll(buildArabicNumbers());
-    layout.putAll(buildCommonFunctional());
-
-    // Row 3 (below function keys)
-    // layout.put('§', new int[]{192}); //not producable
-    layout.put('!', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_1 });
-    layout.put('@', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_2 });
-    layout.put('#', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_3 });
-    layout.put('$', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_4 });
-    layout.put('%', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_5 });
-    layout.put('^', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_6 });
-    layout.put('&', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_7 });
-    layout.put('*', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_8 });
-    layout.put('(', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_9 });
-    layout.put(')', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_0 });
-    layout.put('-', new int[] { VK_OEM_MINUS });
-    layout.put('_', new int[] { KeyEvent.VK_SHIFT, VK_OEM_MINUS });
-    layout.put('=', new int[] { VK_OEM_PLUS });
-    layout.put('+', new int[] { KeyEvent.VK_SHIFT, VK_OEM_PLUS });
-    // Row 2
-    // q w e r t y u i o p
-    layout.put('[', new int[] { VK_OEM_4});
-    layout.put('{', new int[] { KeyEvent.VK_SHIFT, VK_OEM_4 });
-    layout.put(']', new int[] { VK_OEM_6 });
-    layout.put('}', new int[] { KeyEvent.VK_SHIFT, VK_OEM_6 });
-    // Row 1
-    // a s d f g h j k l
-    layout.put(';', new int[] { VK_OEM_1 });
-    layout.put(':', new int[] { KeyEvent.VK_SHIFT, VK_OEM_1 });
-    layout.put('\'', new int[] { VK_OEM_7 });
-    layout.put('"', new int[] { KeyEvent.VK_SHIFT, VK_OEM_7 });
-    layout.put('\\', new int[] { VK_OEM_5 });
-    layout.put('|', new int[] { KeyEvent.VK_SHIFT, VK_OEM_5 });
-    // RETURN, BACKSPACE, TAB
-    layout.put('\b', new int[] { KeyEvent.VK_BACK_SPACE });
-    layout.put('\t', new int[] { KeyEvent.VK_TAB });
+    layout.putAll(mapKeyCodes(new int[] { KeyEvent.VK_CONTROL, KeyEvent.VK_ALT }, keyboarLayoutId));
+    layout.putAll(mapKeyCodes(new int[] { KeyEvent.VK_SHIFT }, keyboarLayoutId));
+    layout.putAll(mapKeyCodes(new int[0], keyboarLayoutId));
     layout.put('\r', new int[] { VK_RETURN });
     layout.put('\n', new int[] { VK_RETURN });
-    // SPACE
-    layout.put(' ', new int[] { KeyEvent.VK_SPACE });
-    // Row 0 (first above SPACE)
-    layout.put('`', new int[] { VK_OEM_3 });
-    layout.put('~', new int[] { KeyEvent.VK_SHIFT, VK_OEM_3 });
-    // z x c v b n m
-    layout.put(',', new int[] { VK_OEM_COMMA });
-    layout.put('<', new int[] { KeyEvent.VK_SHIFT, VK_OEM_COMMA });
-    layout.put('.', new int[] { VK_OEM_PERIOD });
-    layout.put('>', new int[] { KeyEvent.VK_SHIFT, VK_OEM_PERIOD });
-    layout.put('/', new int[] { VK_OEM_2 });
-    layout.put('?', new int[] { KeyEvent.VK_SHIFT, VK_OEM_2 });
+    layout.putAll(buildCommon());
 
     return layout;
   }
 
-  private static Map<Character, int[]> buildDeCh() {
-        
+  // build default en-US layout for platforms where we can't detect layout
+  // automatically and use AWT Robot to type keys
+  private static Map<Character, int[]> buildAwtEnUs() {
     Map<Character, int[]> layout = new HashMap<>();
 
-    layout.putAll(buildLatinLowercase());
-    layout.putAll(buildLatinUppercase());
-    layout.putAll(buildArabicNumbers());
-    layout.putAll(buildCommonFunctional());
-
-    // Row 3 (below function keys)    
-    layout.put('¨', new int[] { VK_OEM_3 });
-    layout.put('!', new int[] { KeyEvent.VK_SHIFT, VK_OEM_3 });
-    layout.put('@', new int[] { VK_RMENU, KeyEvent.VK_2 });
-    layout.put('#', new int[] { VK_RMENU, KeyEvent.VK_3 });
-    layout.put('$', new int[] { VK_OEM_8 });
-    layout.put('£', new int[] { KeyEvent.VK_SHIFT, VK_OEM_8 });
-    layout.put('%', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_5 });
-    layout.put('^', new int[] { VK_OEM_6 });
-    layout.put('&', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_6 });
-    layout.put('*', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_3 });
-    layout.put('(', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_8 });
-    layout.put(')', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_9 });
-    layout.put('-', new int[] { VK_OEM_MINUS });
-    layout.put('_', new int[] { KeyEvent.VK_SHIFT, VK_OEM_MINUS });
-    layout.put('=', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_0 });
-    layout.put('+', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_1 });
-    layout.put('§', new int[] { VK_OEM_2 });
-    layout.put('°', new int[] { KeyEvent.VK_SHIFT, VK_OEM_2 });
-    layout.put('€', new int[] { VK_RMENU, KeyEvent.VK_E });
-    // Row 2
-    // q w e r t y u i o p
-                   
-    layout.put('[', new int[] { VK_RMENU, VK_OEM_1 }); 
-    layout.put('{', new int[] { VK_RMENU, VK_OEM_5 });
-    layout.put(']', new int[] { VK_RMENU, VK_OEM_3 });
-    layout.put('}', new int[] { VK_RMENU, VK_OEM_8 });
-    // Row 1
-    // a s d f g h j k l
-    layout.put(';', new int[] { KeyEvent.VK_SHIFT, VK_OEM_COMMA });
-    layout.put(':', new int[] { KeyEvent.VK_SHIFT, VK_OEM_PERIOD });
-    layout.put('\'', new int[] { VK_OEM_4 });
-    layout.put('"', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_2 });
-    layout.put('\\', new int[] { VK_RMENU, VK_OEM_102});
-    layout.put('¦', new int[] { VK_RMENU, KeyEvent.VK_1 });
-    layout.put('|', new int[] { VK_RMENU, KeyEvent.VK_7 });
-    // RETURN, BACKSPACE, TAB
-    layout.put('\b', new int[] { KeyEvent.VK_BACK_SPACE });
-    layout.put('\t', new int[] { KeyEvent.VK_TAB });
-    layout.put('\r', new int[] { VK_RETURN });
-    layout.put('\n', new int[] { VK_RETURN });
-    // SPACE
-    layout.put(' ', new int[] { KeyEvent.VK_SPACE });
-    // Row 0 (first above SPACE)
-    layout.put('`', new int[] { KeyEvent.VK_SHIFT, VK_OEM_6 });
-    layout.put('~', new int[] { VK_RMENU, VK_OEM_6 });
-    // z x c v b n m
-    layout.put(',', new int[] { VK_OEM_COMMA });
-    layout.put('<', new int[] { VK_OEM_102 });
-    layout.put('.', new int[] { VK_OEM_PERIOD });
-    layout.put('>', new int[] { KeyEvent.VK_SHIFT, VK_OEM_102 });
-    layout.put('/', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_7 });
-    layout.put('?', new int[] { KeyEvent.VK_SHIFT, VK_OEM_4 });
-    
-    // Umlauts
-    layout.put('ü', new int[] { VK_OEM_1 });
-    layout.put('è', new int[] { KeyEvent.VK_SHIFT, VK_OEM_1 });
-    layout.put('ö', new int[] { VK_OEM_7 });
-    layout.put('é', new int[] { KeyEvent.VK_SHIFT, VK_OEM_7 });
-    layout.put('ä', new int[] { VK_OEM_5 });
-    layout.put('à', new int[] { KeyEvent.VK_SHIFT, VK_OEM_5 });
-            
-    return layout;
-  }
-
-  private static Map<Character, int[]> buildLatinLowercase() {
-    Map<Character, int[]> layout = new HashMap<>();
     layout.put('a', new int[] { KeyEvent.VK_A });
     layout.put('b', new int[] { KeyEvent.VK_B });
     layout.put('c', new int[] { KeyEvent.VK_C });
@@ -219,11 +164,7 @@ public class KeyboardLayout {
     layout.put('x', new int[] { KeyEvent.VK_X });
     layout.put('y', new int[] { KeyEvent.VK_Y });
     layout.put('z', new int[] { KeyEvent.VK_Z });
-    return layout;
-  }
-
-  private static Map<Character, int[]> buildLatinUppercase() {
-    Map<Character, int[]> layout = new HashMap<>();
+    // Uppercase
     layout.put('A', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_A });
     layout.put('B', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_B });
     layout.put('C', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_C });
@@ -250,25 +191,72 @@ public class KeyboardLayout {
     layout.put('X', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_X });
     layout.put('Y', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_Y });
     layout.put('Z', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_Z });
-    return layout;
-  }
-
-  private static Map<Character, int[]> buildArabicNumbers() {
-    Map<Character, int[]> layout = new HashMap<>();
+    // Row 3 (below function keys)
+//	      layout.put('§', new int[]{192}); //not producable
     layout.put('1', new int[] { KeyEvent.VK_1 });
+    layout.put('!', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_1 });
     layout.put('2', new int[] { KeyEvent.VK_2 });
+    layout.put('@', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_2 });
     layout.put('3', new int[] { KeyEvent.VK_3 });
+    layout.put('#', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_3 });
     layout.put('4', new int[] { KeyEvent.VK_4 });
+    layout.put('$', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_4 });
     layout.put('5', new int[] { KeyEvent.VK_5 });
+    layout.put('%', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_5 });
     layout.put('6', new int[] { KeyEvent.VK_6 });
+    layout.put('^', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_6 });
     layout.put('7', new int[] { KeyEvent.VK_7 });
+    layout.put('&', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_7 });
     layout.put('8', new int[] { KeyEvent.VK_8 });
+    layout.put('*', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_8 });
     layout.put('9', new int[] { KeyEvent.VK_9 });
+    layout.put('(', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_9 });
     layout.put('0', new int[] { KeyEvent.VK_0 });
+    layout.put(')', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_0 });
+    layout.put('-', new int[] { KeyEvent.VK_MINUS });
+    layout.put('_', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_MINUS });
+    layout.put('=', new int[] { KeyEvent.VK_EQUALS });
+    layout.put('+', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_EQUALS });
+    // Row 2
+    // q w e r t y u i o p
+    layout.put('[', new int[] { KeyEvent.VK_OPEN_BRACKET });
+    layout.put('{', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_OPEN_BRACKET });
+    layout.put(']', new int[] { KeyEvent.VK_CLOSE_BRACKET });
+    layout.put('}', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_CLOSE_BRACKET });
+    // Row 1
+    // a s d f g h j k l
+    layout.put(';', new int[] { KeyEvent.VK_SEMICOLON });
+    layout.put(':', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_SEMICOLON });
+    layout.put('\'', new int[] { KeyEvent.VK_QUOTE });
+    layout.put('"', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_QUOTE });
+    layout.put('\\', new int[] { KeyEvent.VK_BACK_SLASH });
+    layout.put('|', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_BACK_SLASH });
+    // RETURN, BACKSPACE, TAB
+    layout.put('\b', new int[] { KeyEvent.VK_BACK_SPACE });
+    layout.put('\t', new int[] { KeyEvent.VK_TAB });
+    layout.put('\r', new int[] { KeyEvent.VK_ENTER });
+    layout.put('\n', new int[] { KeyEvent.VK_ENTER });
+    // SPACE
+    layout.put(' ', new int[] { KeyEvent.VK_SPACE });
+    // Row 0 (first above SPACE)
+    layout.put('`', new int[] { KeyEvent.VK_BACK_QUOTE });
+    layout.put('~', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_BACK_QUOTE });
+    // z x c v b n m
+    layout.put(',', new int[] { KeyEvent.VK_COMMA });
+    layout.put('<', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_COMMA });
+    layout.put('.', new int[] { KeyEvent.VK_PERIOD });
+    layout.put('>', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_PERIOD });
+    layout.put('/', new int[] { KeyEvent.VK_SLASH });
+    layout.put('?', new int[] { KeyEvent.VK_SHIFT, KeyEvent.VK_SLASH });
+    layout.put('\r', new int[] { KeyEvent.VK_ENTER });
+    layout.put('\n', new int[] { KeyEvent.VK_ENTER });
+
+    layout.putAll(buildCommon());
+
     return layout;
   }
 
-  private static Map<Character, int[]> buildCommonFunctional() {
+  private static Map<Character, int[]> buildCommon() {
     Map<Character, int[]> layout = new HashMap<>();
     // Modifier
     layout.put(Key.C_SHIFT, new int[] { KeyEvent.VK_SHIFT });
@@ -332,23 +320,43 @@ public class KeyboardLayout {
     layout.put(Key.C_WIN, new int[] { KeyEvent.VK_WINDOWS });
     // hack: alternative tab in GUI
     layout.put(Key.C_NEXT, new int[] { -KeyEvent.VK_TAB });
+    // RETURN, BACKSPACE, TAB
+    layout.put('\b', new int[] { KeyEvent.VK_BACK_SPACE });
+    layout.put('\t', new int[] { KeyEvent.VK_TAB });
+    // SPACE
+    layout.put(' ', new int[] { KeyEvent.VK_SPACE });
+
     return layout;
   }
   
-  public static int[] toJavaKeyCode(char c) {              
-    Map<Character, int[]> layout = LAYOUTS.get(InputContext.getInstance().getLocale());   
-    
-    if(layout == null){
-      layout = LAYOUTS.get(defaultLocale);
-    }
-    
-    int[] codes = layout.get(c);
+  private static Map<Character, int[]> getCurrentLayout(){
+    Map<Character, int[]> layout = DEFAULT_KEYBOARD_LAYOUT;
 
-    if (codes == null) {
+    if (Platform.isWindows()) {
+          int keyboarLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
+      HWND hwnd = sxuser32.GetForegroundWindow();
+      if (hwnd != null) {
+          int threadID = sxuser32.GetWindowThreadProcessId(hwnd, null);               
+          keyboarLayoutId = sxuser32.GetKeyboardLayout(threadID);       
+      }
+                  
+      layout = LAYOUTS.get(keyboarLayoutId);
+      
+      if (layout == null) {
+        layout = buildWindowsLayout(keyboarLayoutId);
+        LAYOUTS.put(keyboarLayoutId, layout);
+      }
+    }
+    return layout;
+  }
+
+  public static int[] toJavaKeyCode(char c) {    
+    int[] keyCodes = getCurrentLayout().get(c);
+
+    if (keyCodes == null) {
       throw new IllegalArgumentException("Key: Not supported character: " + c);
     }
 
-    return codes;
+    return keyCodes;
   }
-
 }
