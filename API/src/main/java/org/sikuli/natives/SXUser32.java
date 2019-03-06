@@ -9,5 +9,14 @@ public interface SXUser32 extends User32 {
   SXUser32 INSTANCE = (SXUser32) Native.loadLibrary("user32", SXUser32.class, W32APIOptions.DEFAULT_OPTIONS);
 
   short GetKeyState(int vKey);
+  
+  int GetKeyboardLayout(int dwLayout);
+  
+  int MapVirtualKeyExW (int uCode, int nMapType, int dwhkl);
+
+  boolean GetKeyboardState(byte[] lpKeyState);
+
+  int ToUnicodeEx(int wVirtKey, int wScanCode, byte[] lpKeyState, char[] pwszBuff, int cchBuff, int wFlags, int dwhkl);
+  
 }
 
