@@ -9,6 +9,12 @@ import org.sikuli.basics.AnimatorTimeBased;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 
+import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.BaseTSD;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinUser;
+
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.MouseInfo;
@@ -104,7 +110,27 @@ public class RobotDesktop extends Robot implements IRobot {
       Region.getFakeRegion().silentHighlight(false);
       delay(20);
     }
-    keyPress(keyCode);
+    
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key press
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+      WinUser.INPUT input = new WinUser.INPUT();
+      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+      input.input.setType("ki");
+      input.input.ki.wScan = new WinDef.WORD(0);
+      input.input.ki.time = new WinDef.DWORD(0);
+      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+      input.input.ki.wVk = new WinDef.WORD(keyCode);
+      input.input.ki.dwFlags = new WinDef.DWORD(0);
+
+      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+          (WinUser.INPUT[]) input.toArray(1), input.size());
+    }else{
+      keyPress(keyCode);
+    }
+    
+    
     if (stdAutoDelay == 0) {
       delay(stdDelay);
     }
@@ -115,7 +141,27 @@ public class RobotDesktop extends Robot implements IRobot {
     logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
     setAutoWaitForIdle(false);
-    keyRelease(keyCode);
+    
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key release
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+      WinUser.INPUT input = new WinUser.INPUT();
+      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+      input.input.setType("ki");
+      input.input.ki.wScan = new WinDef.WORD(0);
+      input.input.ki.time = new WinDef.DWORD(0);
+      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);  
+      input.input.ki.wVk = new WinDef.WORD(keyCode);
+      input.input.ki.dwFlags = new WinDef.DWORD(
+          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+
+      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+          (WinUser.INPUT[]) input.toArray(1), input.size());
+    }else{
+      keyRelease(keyCode);
+    }
+    
     if (stdAutoDelay == 0) {
       delay(stdDelay);
     }
