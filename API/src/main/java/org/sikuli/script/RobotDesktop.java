@@ -114,7 +114,7 @@ public class RobotDesktop extends Robot implements IRobot {
     // on Windows we detect the current layout in KeyboardLayout.
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key press
-    if (Platform.isWindows()) {
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
       WinUser.INPUT input = new WinUser.INPUT();
       input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
       input.input.setType("ki");
@@ -145,7 +145,7 @@ public class RobotDesktop extends Robot implements IRobot {
     // on Windows we detect the current layout in KeyboardLayout.
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key release
-    if (Platform.isWindows()) {
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
       WinUser.INPUT input = new WinUser.INPUT();
       input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
       input.input.setType("ki");

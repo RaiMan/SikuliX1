@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.sikuli.basics.Settings;
 import org.sikuli.natives.SXUser32;
 
 import com.sun.jna.Platform;
@@ -332,7 +333,7 @@ public class KeyboardLayout {
   private static Map<Character, int[]> getCurrentLayout(){
     Map<Character, int[]> layout = DEFAULT_KEYBOARD_LAYOUT;
 
-    if (Platform.isWindows()) {
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
           int keyboarLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
       HWND hwnd = sxuser32.GetForegroundWindow();
       if (hwnd != null) {

@@ -57,6 +57,7 @@ public class Settings {
   public static double MinSimilarity = 0.7;
   public static float AlwaysResize = 0;
   public static int DefaultPadding = 50;
+  public static boolean AutoDetectKeyboardLayout = true;  
 
   public static boolean CheckLastSeen = true;
   public static float CheckLastSeenSimilar = 0.95f;
