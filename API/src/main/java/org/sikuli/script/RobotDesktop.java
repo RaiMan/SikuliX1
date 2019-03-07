@@ -25,6 +25,7 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -307,48 +308,46 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public void pressModifiers(int modifiers) {
-    if (modifiers > 15) {
+  public void pressModifiers(int modifiers) {    
+    if (modifiers > 0xAF) { // ALTGR has 2 bytes
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      doKeyPress(KeyEvent.VK_SHIFT);
+      typeChar(Key.C_SHIFT, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      doKeyPress(KeyEvent.VK_CONTROL);
+      typeChar(Key.C_CTRL, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      doKeyPress(KeyEvent.VK_ALT);
+      typeChar(Key.C_ALT, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      if (Settings.isWindows()) {
-        doKeyPress(KeyEvent.VK_WINDOWS);
-      } else {
-        doKeyPress(KeyEvent.VK_META);
-      }
+      typeChar(Key.C_META, KeyMode.PRESS_ONLY);
+    }
+    if ((modifiers & KeyModifier.ALTGR) != 0) {
+      typeChar(Key.C_ALTGR, KeyMode.PRESS_ONLY);
     }
   }
 
   @Override
   public void releaseModifiers(int modifiers) {
-    if (modifiers > 15) {
+    if (modifiers > 0xAF) { //ALT GR has 2 bytes
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      doKeyRelease(KeyEvent.VK_SHIFT);
+      typeChar(Key.C_SHIFT, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      doKeyRelease(KeyEvent.VK_CONTROL);
+      typeChar(Key.C_CTRL, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      doKeyRelease(KeyEvent.VK_ALT);
+      typeChar(Key.C_ALT, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      if (Settings.isWindows()) {
-        doKeyRelease(KeyEvent.VK_WINDOWS);
-      } else {
-        doKeyRelease(KeyEvent.VK_META);
-      }
+      typeChar(Key.C_META, KeyMode.RELEASE_ONLY);
+    }
+    if ((modifiers & KeyModifier.ALTGR) != 0) {
+      typeChar(Key.C_ALTGR, KeyMode.RELEASE_ONLY);
     }
   }
 
