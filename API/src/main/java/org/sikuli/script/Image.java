@@ -429,7 +429,7 @@ public class Image {
             : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
 
-  public static Image getDefaultInstance() {
+  public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
   }
 

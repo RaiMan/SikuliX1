@@ -22,7 +22,7 @@ public class Location implements Comparable<Location>{
   public int y;
   private IScreen otherScreen = null;
 
-  public static Location getDefaultInstance() {
+  public static Location getDefaultInstance4py() {
     return new Location(0,0);
   }
 

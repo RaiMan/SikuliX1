@@ -52,7 +52,7 @@ public class Screen extends Region implements IScreen {
   static Rectangle[] monitorBounds = null;
   static int mainMonitor = -1;
 
-  public static Screen getDefaultInstance() {
+  public static Screen getDefaultInstance4py() {
     return new Screen();
   }
 
@@ -198,7 +198,7 @@ public class Screen extends Region implements IScreen {
     initScreen();
   }
 
-  public static Screen make(ArrayList args) {
+  public static Screen make4py(ArrayList args) {
     Screen theScreen = new Screen();
     if (args.size() == 1 && args.get(0) instanceof Integer) {
       theScreen = new Screen((Integer) args.get(0));
