@@ -549,26 +549,36 @@ public class WinUtil implements OSUtil {
     
     return regions;    
   }
+  
+  private int switchAppWindow(WindowInfo window) {
+    HWND hwnd = window.getHwnd();
+    
+    WinUser.WINDOWPLACEMENT lpwndpl = new WinUser.WINDOWPLACEMENT();
+    
+    user32.GetWindowPlacement(hwnd, lpwndpl);
+            
+    if(lpwndpl.showCmd == WinUser.SW_SHOWMINIMIZED || lpwndpl.showCmd == WinUser.SW_MINIMIZE) {
+      user32.ShowWindow(hwnd, WinUser.SW_RESTORE);
+    }
+           
+    boolean success = user32.SetForegroundWindow(hwnd);             
+      
+    if(success){         
+      user32.SetFocus(hwnd);
+      IntByReference windowPid = new IntByReference();
+      user32.GetWindowThreadProcessId(hwnd, windowPid);
+      
+      return windowPid.getValue();
+    }else{
+      return 0;
+    }
+  }
 
   public int switchApp(String appName, int num){        
     List<WindowInfo> windows = getWindowsForName(appName);
     
     if (windows.size() > num){
-       WindowInfo window = windows.get(num);
-       
-       HWND hwnd = window.getHwnd();
-              
-       boolean success = user32.SetForegroundWindow(hwnd);
-         
-       if(success){
-         user32.SetFocus(hwnd);
-         IntByReference windowPid = new IntByReference();
-         user32.GetWindowThreadProcessId(hwnd, windowPid);
-         
-         return windowPid.getValue();
-       }else{
-         return 0;
-       }
+       return switchAppWindow(windows.get(num)) ;      
     }    
     
     return 0;
@@ -578,16 +588,7 @@ public class WinUtil implements OSUtil {
     List<WindowInfo> windows = getWindowsForPid(pid);
     
     if(windows.size() > num){ 
-      WindowInfo window = windows.get(num); 
-      
-      HWND hwnd = window.getHwnd();
-      
-      boolean success = user32.SetForegroundWindow(hwnd);
-      
-      if (success){
-        user32.SetFocus(hwnd);
-        return pid;
-      }
+      return switchAppWindow(windows.get(num)) ;
     }      
     
     return 0;
