@@ -211,10 +211,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       this.setText("");
     }
     SikuliIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
-    if (!ScriptingSupport.hasTypeRunner(getSikuliContentType())) {
-      Sikulix.popup("No installed runner supports (" + getSikuliContentType() + ")\n"
-              + "Trying to run the script will crash IDE!", "... serious problem detected!");
-    }
+//    if (!ScriptingSupport.hasTypeRunner(getSikuliContentType())) {
+//      Sikulix.popup("No installed runner supports (" + getSikuliContentType() + ")\n"
+//              + "Trying to run the script might crash IDE!", "... serious problem detected!");
+//    }
      log(lvl, "InitTab: (%s)", getSikuliContentType());
   }
 

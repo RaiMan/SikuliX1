@@ -262,6 +262,16 @@ public class ScriptingSupport {
   }
 //</editor-fold>
 
+  static class ScriptRunnerInit extends Thread {
+    IScriptRunner current = null;
+    ScriptRunnerInit(IScriptRunner current) {
+      this.current = current;
+    }
+    public void run() {
+      current.init(null);
+    }
+  }
+
   public static void init() {
     if (isReady) {
       return;
@@ -271,7 +281,7 @@ public class ScriptingSupport {
       ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
       Iterator<IScriptRunner> rIterator = rloader.iterator();
       while (rIterator.hasNext()) {
-				IScriptRunner current = null;
+        IScriptRunner current = null;
 				try {
 					current = rIterator.next();
 				} catch (ServiceConfigurationError e) {
@@ -281,13 +291,14 @@ public class ScriptingSupport {
         String name = current.getName();
         if (name != null && !name.startsWith("Not")) {
           scriptRunner.put(name, current);
-          current.init(null);
+          Thread currentInit = new ScriptRunnerInit(current) {
+          };
+          currentInit.start();
 					log(lvl, "initScriptingSupport: added: %s", name);
         }
       }
     }
     if (scriptRunner.isEmpty()) {
-      Debug.error("Settings: No scripting support available. Rerun Setup!");
       String em = "Terminating: No scripting support available. Rerun Setup!";
       log(-1, em);
       if (runTime.isRunningIDE) {
@@ -348,6 +359,7 @@ public class ScriptingSupport {
     if (currentRunner == null) {
       log(-1, "getRunner: no runner found for:\n%s", (script == null ? type : script));
     }
+    currentRunner.init(null);
     return currentRunner;
   }
 

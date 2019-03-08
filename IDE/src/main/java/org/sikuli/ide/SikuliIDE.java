@@ -507,19 +507,17 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     return true;
   }
 
-  private void restoreSession(int tabIndex) {
+  private int restoreSession(int tabIndex) {
     String session_str = prefs.getIdeSession();
-    if (session_str == null && loadScripts == null && macOpenFiles == null) {
-      return;
-    }
+    int filesLoaded = 0;
     List<File> filesToLoad = new ArrayList<File>();
-    if (macOpenFiles != null) {
+    if (macOpenFiles != null && macOpenFiles.size() > 0) {
       for (File f : macOpenFiles) {
         filesToLoad.add(f);
-        restoreScriptFromSession(f);
+        if (restoreScriptFromSession(f)) filesLoaded++;
       }
     }
-    if (session_str != null) {
+    if (session_str != null && !session_str.isEmpty()) {
       String[] filenames = session_str.split(";");
       for (int i = 0; i < filenames.length; i++) {
         if (filenames[i].isEmpty()) {
@@ -529,11 +527,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         if (f.exists() && !filesToLoad.contains(f)) {
           Debug.log(3, "restore session: %s", f);
           filesToLoad.add(f);
-          restoreScriptFromSession(f);
+          if (restoreScriptFromSession(f)) filesLoaded++;
         }
       }
     }
-    if (loadScripts != null) {
+    if (loadScripts != null && loadScripts.length > 0) {
       for (int i = 0; i < loadScripts.length; i++) {
         if (loadScripts[i].isEmpty()) {
           continue;
@@ -541,11 +539,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           Debug.log(3, "preload script: %s", f);
-          filesToLoad.add(f);
-          restoreScriptFromSession(f);
+          if (restoreScriptFromSession(f)) filesLoaded++;
         }
       }
     }
+    return filesLoaded;
   }
 
   private boolean restoreScriptFromSession(File file) {
@@ -556,7 +554,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       return true;
     }
     log(-1, "restoreScriptFromSession: Can't load: %s", file);
-//    (new FileAction()).doCloseTab(null);
     return false;
   }
 //</editor-fold>
