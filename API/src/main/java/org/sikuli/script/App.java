@@ -452,7 +452,7 @@ public class App {
   }
 
   public String getWindow() {
-    return appWindow;
+    return appWindow == null ? "" : appWindow;
   }
 
   public void setWindow(String appWindow) {
@@ -578,7 +578,7 @@ public class App {
    */
   public boolean open(int waitTime) {
     openAndWait(waitTime);
-    return isValid();
+    return isValid() & hasWindow();
   }
 
   private void openAndWait(int waitTime) {
@@ -589,7 +589,13 @@ public class App {
           log("App.open: not running after %d secs (%s)", waitTime, appNameGiven);
         } else {
           log("App.open: %s", this);
-          focus();
+          if (!focus()) {
+            while (!hasWindow() && waitTime > 0) {
+              waitTime -= 1;
+              pause(1);
+              focus();
+            }
+          }
         }
       } else {
         log("App.open: %s: did not work - app not valid", appNameGiven);
@@ -737,7 +743,7 @@ public class App {
     if (!isOpen && !isRunning(0)) {
       log("App.focus: not running: %s", toString());
       return false;
-    }        
+    }
     isOpen = false;
     if (!_osUtil.switchto(this)) {
       log("App.focus: no window for %s", toString());

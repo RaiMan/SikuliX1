@@ -28,7 +28,7 @@ public class Region {
   private static int lvl = 3;
   private static Region fakeRegion;
 
-  public static Region getDefaultInstance() {
+  public static Region getDefaultInstance4py() {
     return new Screen();
   }
 
@@ -467,7 +467,7 @@ public class Region {
     this.rows = 0;
   }
 
-  public static Region make(ArrayList args) {
+  public static Region make4py(ArrayList args) {
     log(3, "make: args: %s", args);
     Region reg = new Screen();
     if (null != args) {
@@ -2096,7 +2096,7 @@ public class Region {
    * @param args
    * @return this
    */
-  public Region highlight(ArrayList args) {
+  public Region highlight4py(ArrayList args) {
     if (args.size() > 0) {
       log(3, "highlight: %s", args);
       if (args.get(0) instanceof String) {
