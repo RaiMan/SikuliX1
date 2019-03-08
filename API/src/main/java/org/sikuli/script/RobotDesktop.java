@@ -34,6 +34,8 @@ import java.util.Date;
 public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
+  public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT |  KeyModifier.META | KeyModifier.ALTGR;
+  
   private static int heldButtons = 0;
   private static String heldKeys = "";
   private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
@@ -308,8 +310,8 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public void pressModifiers(int modifiers) {    
-    if (modifiers > 0xAF) { // ALTGR has 2 bytes
+  public void pressModifiers(int modifiers) {
+    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
@@ -331,7 +333,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void releaseModifiers(int modifiers) {
-    if (modifiers > 0xAF) { //ALT GR has 2 bytes
+    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
