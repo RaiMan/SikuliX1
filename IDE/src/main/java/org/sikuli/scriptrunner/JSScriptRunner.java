@@ -29,7 +29,7 @@ public class JSScriptRunner implements IScriptRunner {
     if (isReady) {
       return;
     }
-    new Screen();
+//    new Screen();
     isReady = true;
   }
 

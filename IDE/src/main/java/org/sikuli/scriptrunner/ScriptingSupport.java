@@ -53,8 +53,6 @@ public class ScriptingSupport {
   private static String[] testScripts = null;
   private static int lastReturnCode = 0;
 
-  private static boolean isReady = false;
-
   private static ServerSocket server = null;
   private static boolean isHandling = false;
   private static boolean shouldStop = false;
@@ -272,10 +270,21 @@ public class ScriptingSupport {
     }
   }
 
+  private static boolean isReady = false;
+  private static boolean runningInit = false;
+
   public static void init() {
     if (isReady) {
       return;
     }
+    if (runningInit) {
+      System.out.println("ScriptingSupport: waiting for startup init");
+      while (runningInit) {
+        RunTime.pause(1);
+      }
+      return;
+    }
+    runningInit = true;
 		log(lvl, "initScriptingSupport: enter");
     if (scriptRunner.isEmpty()) {
       ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
@@ -322,6 +331,7 @@ public class ScriptingSupport {
       }
     }
 		log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
+    runningInit = false;
     isReady = true;
   }
 
