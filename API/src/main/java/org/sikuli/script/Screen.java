@@ -4,6 +4,7 @@
 package org.sikuli.script;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.sikuli.basics.Debug;
@@ -50,6 +51,10 @@ public class Screen extends Region implements IScreen {
   static int nMonitors = 0;
   static Rectangle[] monitorBounds = null;
   static int mainMonitor = -1;
+
+  public static Screen getDefaultInstance() {
+    return new Screen();
+  }
 
   //<editor-fold defaultstate="collapsed" desc="monitors">
   static GraphicsEnvironment genv = null;
@@ -191,6 +196,14 @@ public class Screen extends Region implements IScreen {
     }
     monitor = screens[curID].monitor;
     initScreen();
+  }
+
+  public static Screen make(ArrayList args) {
+    Screen theScreen = new Screen();
+    if (args.size() == 1 && args.get(0) instanceof Integer) {
+      theScreen = new Screen((Integer) args.get(0));
+    }
+    return theScreen;
   }
 
   private void initScreen() {

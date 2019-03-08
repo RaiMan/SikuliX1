@@ -82,7 +82,6 @@ public class Sikulix {
     if (args.length > 0 && "pythonserver".equals(args[0])) {
       RunTime rt = RunTime.get();
       if (Debug.getDebugLevel() == 3) {
-//        GatewayServer.turnAllLoggingOn();
       }
       GatewayServer pythonserver = new GatewayServer(new Object());
       pythonserver.start(false);

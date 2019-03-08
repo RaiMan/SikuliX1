@@ -28,6 +28,10 @@ public class Region {
   private static int lvl = 3;
   private static Region fakeRegion;
 
+  public static Region getDefaultInstance() {
+    return new Screen();
+  }
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -461,6 +465,32 @@ public class Region {
   protected Region(boolean isScreenUnion) {
     this.isScreenUnion = isScreenUnion;
     this.rows = 0;
+  }
+
+  public static Region make(ArrayList args) {
+    log(3, "make: args: %s", args);
+    Region reg = new Screen();
+    if (null != args) {
+      for (Object arg : args) {
+        log(3, "%s", arg.getClass().getName());
+      }
+      if (args.size() == 4) {
+        //case1: Region(x,y,w,h)
+        int num = 4;
+        for (Object arg : args) {
+          if (arg instanceof Integer) {
+            num--;
+          }
+        }
+        if (num == 0) {
+          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
+        }
+      } else if (args.size() == 1) {
+        //case2: Region(Region)
+        reg = create((Region) args.get(0));
+      }
+    }
+    return reg;
   }
 
   /**
@@ -1585,7 +1615,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on left edge
    */
   public Location leftAt(int offset) {
-    return checkAndSetRemote(new Location(x + offset, y + h / 2));
+    return checkAndSetRemote(new Location(x - offset, y + h / 2));
   }
 
   /**
@@ -1630,7 +1660,7 @@ public class Region {
    * @return point with given offset vertically to middle point on top edge
    */
   public Location aboveAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + offset));
+    return checkAndSetRemote(new Location(x + w / 2, y - offset));
   }
 
   /**
@@ -1675,7 +1705,7 @@ public class Region {
    * @return point with given offset vertically to middle point on bottom edge
    */
   public Location belowAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + h - offset));
+    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
   }
 
   /**
@@ -2054,6 +2084,35 @@ public class Region {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="highlight">
+
+  /**
+   * highlight (internal use for Python support)           :
+   * () -> Region,
+   * (int) -> Region
+   * (String) -> Region,
+   * (int,String) -> Region,
+   * (float) -> Region,
+   * (float,String) -> Region,
+   * @param args
+   * @return this
+   */
+  public Region highlight(ArrayList args) {
+    if (args.size() > 0) {
+      log(3, "highlight: %s", args);
+      if (args.get(0) instanceof String) {
+        highlight((String) args.get(0));
+      } else if (args.get(0) instanceof Number) {
+        int highlightTime = ((Number) args.get(0)).intValue();
+        if (args.size() == 1) {
+          highlight(highlightTime);
+        } else {
+          highlight(highlightTime, (String) args.get(1));
+        }
+      }
+    }
+    return this;
+  }
+
   protected Region silentHighlight(boolean onOff) {
     if (onOff && overlay == null) {
       return doHighlight(true, null, true);
@@ -2097,10 +2156,14 @@ public class Region {
   }
 
   /**
-   * Toggle the regions highlight border (red frame)
+   * show a colored frame around the region for a given time or switch on/off
    *
-   * @return the region itself
-   */
+   * () or (color) switch on/off with color (default red)
+   *
+   * (number) or (number, color) show in color (default red) for number seconds (cut to int)
+   *
+   * @return this region
+   **/
   public Region highlight() {
     doHighlight(overlay == null, null, false);
     return this;
@@ -2112,8 +2175,9 @@ public class Region {
    * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
    * uppercase can be mixed, internally transformed to all uppercase) <br>
    * - these colornames exactly written: lightGray, LIGHT_GRAY, darkGray and DARK_GRAY <br>
-   * - a hex value like in HTML: #XXXXXX (max 6 hex digits) - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb
-   * are integer values in range 0 - 255 padded with leading zeros if needed (hence exactly 9 digits)
+   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)
+   * - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb are integer values in range 0 - 255
+   * padded with leading zeros if needed (hence exactly 9 digits)
    *
    * @param color Color of frame
    * @return the region itself
@@ -3930,8 +3994,16 @@ public class Region {
    * @throws FindFailed for Pattern or Filename
    */
   public <PFRML> int click(PFRML target, Integer modifiers) throws FindFailed {
-    Location loc = getLocationFromTarget(target);
     int ret = 0;
+    if (target instanceof ArrayList) {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() > 0) {
+        target = (PFRML) parms.get(0);
+      } else {
+        return ret;
+      }
+    }
+    Location loc = getLocationFromTarget(target);
     if (null != loc) {
       ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
     }
@@ -4226,8 +4298,17 @@ public class Region {
    * @throws FindFailed for Pattern or Filename
    */
   public <PFRML> int mouseMove(PFRML target) throws FindFailed {
-    Location loc = getLocationFromTarget(target);
     int ret = 0;
+    if (target instanceof ArrayList) {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() > 0) {
+        target = (PFRML) parms.get(0);
+      }
+      else {
+        return ret;
+      }
+    }
+    Location loc = getLocationFromTarget(target);
     if (null != loc) {
       ret = Mouse.move(loc, this);
     }

@@ -4,9 +4,18 @@
 package org.sikuli.natives;
 
 import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Psapi;
+import com.sun.jna.platform.win32.Tlhelp32;
+import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinDef.DWORD;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.RECT;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
+
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
@@ -18,6 +27,7 @@ import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sun.jna.platform.win32.Kernel32;
 
@@ -26,41 +36,169 @@ public class WinUtil implements OSUtil {
   static final int BUFFERSIZE = 32 * 1024 - 1;
   static final Kernel32 kernel32 = Kernel32.INSTANCE;
   static final SXUser32 sxuser32 = SXUser32.INSTANCE;
+  static final User32 user32 = User32.INSTANCE;  
+  static final Psapi psapi = Psapi.INSTANCE;
+  
+  public static final class ProcessInfo {    
+    private int pid;  
+    private String imageName;
 
-  public static void allWindows() {
-    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
-      @Override
-      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
-        char[] retChar = new char[BUFFERSIZE];
-        String prefix = "";
-        int retInt = sxuser32.GetWindowText(hwnd, retChar, BUFFERSIZE);
-        if (!sxuser32.IsWindowVisible(hwnd)) {
-          return true;
-        }
-/*
-        if (sxuser32.IsIconic(hwnd)) {
-          prefix = "MINIMIZED: ";
-        }
-*/
-        if (retInt < 2) {
-          return true;
-        }
-        String winText = new String(Arrays.copyOfRange(retChar, 0, retInt));
-        if (winText.endsWith("IME") || winText.endsWith("UI")) {
-          return true;
-        }
-        IntByReference pid = new IntByReference();
-        int threadID = sxuser32.GetWindowThreadProcessId(hwnd, pid);
-        String strPid = String.format("(%d) ", pid.getValue());
-        System.out.println(prefix + strPid + winText);
-        return true;
-      }
-    }, null);
+    public ProcessInfo(
+            final int pid,            
+            final String imageName) {
+        this.pid = pid;        
+        this.imageName = imageName;
+    }
+
+    public int getPid() {
+      return pid;
+    }
+
+    public String getImageName() {
+      return imageName;
+    }       
+  }  
+  
+  public static final class WindowInfo{
+    public HWND hwnd;
+    public int pid;
+    public String title;
+    
+    public WindowInfo(HWND hwnd, int pid, String title) {
+      super();
+      this.hwnd = hwnd;
+      this.pid = pid;
+      this.title = title;
+    }
+
+    public HWND getHwnd() {
+      return hwnd;
+    }
+
+    public int getPid() {
+      return pid;
+    }
+
+    public String getTitle() {
+      return title;
+    }        
   }
 
-  public static void allProcesses() {
-//    psapi.EnumProcesses
-//    kernel32.EnumProcesses();
+  public static List<WindowInfo> allWindows() {
+    /* Initialize the empty window list. */
+    final List<WindowInfo> windows = new ArrayList<>();
+
+    /* Enumerate all of the windows and add all of the one for the
+     * given process id to our list. */
+    boolean result = user32.EnumWindows(
+        new WinUser.WNDENUMPROC() {
+            public boolean callback(
+                    final HWND hwnd, final Pointer data) {                 
+              
+              if (user32.IsWindowVisible(hwnd)){
+                IntByReference windowPid = new IntByReference();
+                user32.GetWindowThreadProcessId(hwnd, windowPid);
+                
+                String windowTitle = getWindowTitle(hwnd); 
+                
+                windows.add(new WindowInfo(hwnd, windowPid.getValue(), windowTitle));               
+              }
+
+              return true;
+            }
+        },
+        null);
+
+    /* Handle errors. */
+    if (!result && Kernel32.INSTANCE.GetLastError() != 0) {
+        throw new RuntimeException("Couldn't enumerate windows.");
+    }
+
+    /* Return the window list. */
+    return windows;
+  }
+  
+  public static String getWindowTitle(HWND hWnd){
+    char[] text = new char[1024];
+    int length = user32.GetWindowText(hWnd, text, 1024);
+    return length > 0 ? new String(text,0,length) : null;
+  }
+  
+  public static String getTopWindowTitle(int pid){
+    List<WindowInfo> windows = getWindowsForPid(pid);
+    if (!windows.isEmpty()){    
+      return getWindowsForPid(pid).get(0).getTitle();     
+    }
+    return null;
+  }
+
+  public static List<ProcessInfo> allProcesses() {
+    List<ProcessInfo> processList = new ArrayList<ProcessInfo>();
+
+    HANDLE snapshot = Kernel32.INSTANCE.CreateToolhelp32Snapshot(
+            Tlhelp32.TH32CS_SNAPPROCESS, new DWORD(0));
+
+    try {    
+      Tlhelp32.PROCESSENTRY32.ByReference pe
+          = new Tlhelp32.PROCESSENTRY32.ByReference();
+      for (boolean more = Kernel32.INSTANCE.Process32First(snapshot, pe);
+              more;
+              more = Kernel32.INSTANCE.Process32Next(snapshot, pe)) {        
+          processList.add(new ProcessInfo(
+              pe.th32ProcessID.intValue(),
+              getProcessImageName(pe.th32ProcessID.intValue())));
+      }
+    
+      return processList;
+    } finally {
+      Kernel32.INSTANCE.CloseHandle(snapshot);
+    }
+  }
+  
+  private static String getProcessImageName(int pid){
+    HANDLE hProcess = Kernel32.INSTANCE.OpenProcess(
+            0x1000,
+            false,
+            pid);
+    
+    if (hProcess == null) {
+        return null;
+    }
+    
+    try{    
+      char[] imageNameChars = new char[1024];
+      IntByReference imageNameLen
+          = new IntByReference(imageNameChars.length);
+      boolean success = Kernel32.INSTANCE.QueryFullProcessImageName(
+              hProcess, 0, imageNameChars, imageNameLen);    
+      
+      return success ? FilenameUtils.getName(new String(imageNameChars, 0, imageNameLen.getValue())) : null;
+    
+    } finally {
+      Kernel32.INSTANCE.CloseHandle(hProcess);
+    }
+  }
+  
+  private static List<WindowInfo> getWindowsForPid(int pid){
+    return allWindows().stream().filter((w) -> w.getPid() == pid).collect(Collectors.toList());
+  }
+  
+  private static List<WindowInfo> getWindowsForName(String name){            
+    return allWindows().stream().filter((w) -> {        
+        String imageName = getProcessImageName(w.getPid());
+        
+        if (imageName != null && imageName.equals(name + ".exe")){
+          return true;
+        }
+        
+        String windowTitle = w.getTitle();
+        
+        if(windowTitle != null && windowTitle.contains(name)){
+          return true;
+        }
+        
+        return false;        
+    }).collect(Collectors.toList());
   }
 
   public static String getEnv(String envKey) {
@@ -225,101 +363,75 @@ public class WinUtil implements OSUtil {
 */
   //</editor-fold>
 
-  private static App getTaskByName(App app) {
-    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"",
-            (app.getToken().isEmpty() ? app.getName() + ".exe" : app.getToken()));
-    String sysout = RunTime.get().runcmd(cmd);
-    String[] lines = sysout.split("\r\n");
-    String[] parts = null;
-    app.reset();
-    if ("0".equals(lines[0].trim())) {
-      for (int n = 1; n < lines.length; n++) {
-        parts = lines[n].split("\"");
-        if (parts.length < 2) {
-          continue;
-        }
-        if (parts[parts.length - 1].contains("N/A")) continue;
-        app.setPID(parts[3]);
-        app.setWindow(parts[parts.length - 1]);
-        break;
-      }
-    }
-    return app;
+  private static App getTaskByName(App app) { 
+    
+    String appName = app.getToken().isEmpty() ? app.getName() + ".exe" : app.getToken();
+   
+    List<ProcessInfo> processes = allProcesses();    
+  
+    for(ProcessInfo p : processes){
+      if (p.getImageName() != null && p.getImageName().equals(appName)){
+        app.setPID(p.getPid());
+        app.setWindow(getTopWindowTitle(p.getPid()));
+        return app;
+      }         
+    } 
+                
+    return getTaskByWindow(app);
   }
 
   private static App getTaskByPID(App app) {
     if (!app.isValid()) {
       return app;
-    }
-    String[] name_pid_window = evalTaskByPID(app.getPID());
-    if (name_pid_window[1].isEmpty()) {
-      app.reset();
-    } else {
-      app.setWindow(name_pid_window[2]);
-    }
-    return app;
+    }    
+   
+    List<ProcessInfo> processes = allProcesses();    
+  
+    for(ProcessInfo p : processes){
+      if (p.getPid() == app.getPID()){         
+        app.setWindow(getTopWindowTitle(p.getPid()));
+        return app;
+      }         
+    }    
+   
+    app.reset();
+    return app;   
   }
 
-  private static String[] evalTaskByPID(int pid) {
-    String cmd = String.format("!tasklist /V /FO CSV /NH /FI \"PID eq %d\"", pid);
-    String sysout = RunTime.get().runcmd(cmd);
-    String[] lines = sysout.split("\r\n");
-    String[] parts = null;
-    if ("0".equals(lines[0].trim())) {
-      for (int n = 1; n < lines.length; n++) {
-        parts = lines[n].split("\"");
-        if (parts.length < 2) {
-          continue;
-        }
-        return new String[]{parts[1], "pid", parts[parts.length - 1]}; //name, window
+  private static App getTaskByWindow(App app) {
+    String title = app.getName();
+   
+    List<WindowInfo> windows = allWindows();
+    
+    for (WindowInfo window : windows){
+      String windowTitle = window.getTitle();
+          
+      if (windowTitle != null && windowTitle.contains(title)){
+        app.setPID(window.getPid());
+        app.setWindow(windowTitle);
+        return app;
       }
-    }
-    return new String[]{"", "", ""};
-  }
-
-  private static App getTaskByWindow(String title) {
-    App app = new App();
+    }         
+     
     return app;
   }
 
   @Override
-  public List<App> getApps(String name) {
+  public List<App> getApps(String name) {            
     List<App> apps = new ArrayList<>();
-    String cmd;
-    if (name == null || name.isEmpty()) {
-      cmd = cmd = "!tasklist /V /FO CSV /NH /FI \"SESSIONNAME eq Console\" /FI \"status eq running\" /FI \"username ne N/A\"";
-    } else {
-      cmd = String.format("!tasklist /V /FO CSV /NH /FI \"IMAGENAME eq %s\"", name);
-    }
-    String result = RunTime.get().runcmd(cmd);
-    String[] lines = result.split("\r\n");
-    if ("0".equals(lines[0].trim())) {
-      for (int nl = 1; nl < lines.length; nl++) {
-        String[] parts = lines[nl].split("\"");
-        if (parts.length < 3) {
-          continue;
-        }
-        String thePID = parts[3].trim();
-        Integer pid = -1;
-        try {
-          pid = Integer.parseInt(thePID);
-        } catch (Exception ex) {
-        }
-        String theWindow = parts[parts.length - 1].trim();
-        if (pid != -1) {
-          if (theWindow.contains("N/A")) {
-            pid = -pid;
-          }
-          App theApp = new App();
-          theApp.setName(parts[1].trim());
-          theApp.setWindow(theWindow);
-          theApp.setPID(pid);
-          apps.add(theApp);
-        }
+
+    List<ProcessInfo> processes = allProcesses();  
+  
+    for(ProcessInfo p : processes){
+      if(p.getImageName().equals(name)){        
+        App theApp = new App();
+        theApp.setName(p.getImageName());
+        theApp.setWindow(getTopWindowTitle(p.getPid()));
+        theApp.setPID(p.getPid());
+        apps.add(theApp); 
       }
-    } else {
-      Debug.logp(result);
-    }
+    }     
+    
     return apps;
   }
 
@@ -350,10 +462,11 @@ public class WinUtil implements OSUtil {
     }
     int loopCount = 0;
     while (loopCount < 100) {
-      int pid = switchApp(app.getWindow(), 0);
+      int pid = switchApp(app.getPID(), 0);
       if (pid > 0) {
-        if (pid == app.getPID()) {
+        if (pid == app.getPID()) {          
           app.setFocused(true);
+          getTaskByPID(app);
           return true;
         }
       } else {
@@ -370,11 +483,9 @@ public class WinUtil implements OSUtil {
     int pid = switchApp(title, index);
     if (pid > 0) {
       app.setPID(pid);
-      String[] name_pid_window = evalTaskByPID(pid);
-      app.setName(name_pid_window[0]);
-      app.setWindow(name_pid_window[2]);
+      return getTaskByPID(app);
     }
-    return app;
+    return app;  
   }
 
   @Override
@@ -406,34 +517,82 @@ public class WinUtil implements OSUtil {
   }
 
   private Rectangle getWindow(String title, int winNum) {
-    long hwnd = getHwnd(title, winNum);
-    return _getWindow(hwnd, winNum);
+    HWND hwnd = getHwnd(title, winNum);
+    return hwnd != null ? _getWindow(hwnd, winNum) : null;
   }
 
   private Rectangle getWindow(int pid, int winNum) {
-    long hwnd = getHwnd(pid, winNum);
-    return _getWindow(hwnd, winNum);
+    HWND hwnd = getHwnd(pid, winNum);
+    return hwnd != null ? _getWindow(hwnd, winNum) : null;
   }
 
-  private Rectangle _getWindow(long hwnd, int winNum) {
+  private Rectangle _getWindow(HWND hwnd, int winNum) {    
     Rectangle rect = getRegion(hwnd, winNum);
     return rect;
   }
 
   @Override
   public Rectangle getFocusedWindow() {
-    Rectangle rect = getFocusedRegion();
-    return rect;
+    return getFocusedRegion();    
   }
 
   @Override
   public List<Region> getWindows(App app) {
-    return new ArrayList<>();
+    app = get(app);        
+    List<WindowInfo> windows = getWindowsForPid(app.getPID());
+    
+    List<Region> regions = new ArrayList<>();
+    
+    for(WindowInfo w : windows){
+      regions.add(Region.create(_getWindow(w.getHwnd(),0)));
+    }    
+    
+    return regions;    
+  }
+  
+  private int switchAppWindow(WindowInfo window) {
+    HWND hwnd = window.getHwnd();
+    
+    WinUser.WINDOWPLACEMENT lpwndpl = new WinUser.WINDOWPLACEMENT();
+    
+    user32.GetWindowPlacement(hwnd, lpwndpl);
+            
+    if(lpwndpl.showCmd == WinUser.SW_SHOWMINIMIZED || lpwndpl.showCmd == WinUser.SW_MINIMIZE) {
+      user32.ShowWindow(hwnd, WinUser.SW_RESTORE);
+    }
+           
+    boolean success = user32.SetForegroundWindow(hwnd);             
+      
+    if(success){         
+      user32.SetFocus(hwnd);
+      IntByReference windowPid = new IntByReference();
+      user32.GetWindowThreadProcessId(hwnd, windowPid);
+      
+      return windowPid.getValue();
+    }else{
+      return 0;
+    }
   }
 
-  public native int switchApp(String appName, int num);
+  public int switchApp(String appName, int num){        
+    List<WindowInfo> windows = getWindowsForName(appName);
+    
+    if (windows.size() > num){
+       return switchAppWindow(windows.get(num)) ;      
+    }    
+    
+    return 0;
+  };
 
-  public native int switchApp(int pid, int num);
+  public int switchApp(int pid, int num){        
+    List<WindowInfo> windows = getWindowsForPid(pid);
+    
+    if(windows.size() > num){ 
+      return switchAppWindow(windows.get(num)) ;
+    }      
+    
+    return 0;
+  };
 
   public native int openApp(String appName);
 
@@ -444,11 +603,34 @@ public class WinUtil implements OSUtil {
   @Override
   public native void bringWindowToFront(Window win, boolean ignoreMouse);
 
-  private static native long getHwnd(String appName, int winNum);
+  private static HWND getHwnd(String appName, int winNum){
+    List<WindowInfo> windows = getWindowsForName(appName);
+    
+    if(windows.size() > winNum){
+      return windows.get(winNum).getHwnd();     
+    }
+    return null;
+  }
 
-  private static native long getHwnd(int pid, int winNum);
+  private static HWND getHwnd(int pid, int winNum){
+    List<WindowInfo> windows = getWindowsForPid(pid);
+    
+    if(windows.size() > winNum){
+      return windows.get(winNum).getHwnd();     
+    }
+    return null;
+  }
 
-  private static native Rectangle getRegion(long hwnd, int winNum);
+  private static Rectangle getRegion(HWND hwnd, int winNum){
+    RECT rect = new User32.RECT();    
+    boolean success = user32.GetWindowRect(hwnd, rect);    
+    return success ? rect.toRectangle() : null;
+  };
 
-  private static native Rectangle getFocusedRegion();
+  private static Rectangle getFocusedRegion(){
+    HWND hwnd = user32.GetForegroundWindow();
+    RECT rect = new User32.RECT();
+    boolean success = user32.GetWindowRect(hwnd, rect);
+    return success ? rect.toRectangle() : null;
+  }
 }

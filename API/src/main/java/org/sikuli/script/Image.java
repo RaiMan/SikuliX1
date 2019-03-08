@@ -429,6 +429,10 @@ public class Image {
             : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
 
+  public static Image getDefaultInstance() {
+    return new Image(new Screen().capture());
+  }
+
   private Image() {
   }
 

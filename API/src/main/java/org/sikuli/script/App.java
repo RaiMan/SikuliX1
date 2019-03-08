@@ -718,9 +718,12 @@ public class App {
   public static App focus(String title, int index) {
     App app = new App(title);
     app.focus();
-    if (!app.isRunning()) {
-      app.open();
-    }
+
+    // Does not make sense if title is not a valid executable name
+    // -> gives error popup on windows
+//    if (!app.isRunning()) {
+//      app.open();
+//    }
     return app;
   }
 
@@ -734,7 +737,7 @@ public class App {
     if (!isOpen && !isRunning(0)) {
       log("App.focus: not running: %s", toString());
       return false;
-    }
+    }        
     isOpen = false;
     if (!_osUtil.switchto(this)) {
       log("App.focus: no window for %s", toString());
