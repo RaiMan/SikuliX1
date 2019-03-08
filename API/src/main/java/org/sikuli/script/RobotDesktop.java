@@ -25,6 +25,7 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -33,6 +34,8 @@ import java.util.Date;
 public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
+  public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT |  KeyModifier.META | KeyModifier.ALTGR;
+  
   private static int heldButtons = 0;
   private static String heldKeys = "";
   private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
@@ -308,47 +311,45 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void pressModifiers(int modifiers) {
-    if (modifiers > 15) {
+    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      doKeyPress(KeyEvent.VK_SHIFT);
+      typeChar(Key.C_SHIFT, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      doKeyPress(KeyEvent.VK_CONTROL);
+      typeChar(Key.C_CTRL, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      doKeyPress(KeyEvent.VK_ALT);
+      typeChar(Key.C_ALT, KeyMode.PRESS_ONLY);
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      if (Settings.isWindows()) {
-        doKeyPress(KeyEvent.VK_WINDOWS);
-      } else {
-        doKeyPress(KeyEvent.VK_META);
-      }
+      typeChar(Key.C_META, KeyMode.PRESS_ONLY);
+    }
+    if ((modifiers & KeyModifier.ALTGR) != 0) {
+      typeChar(Key.C_ALTGR, KeyMode.PRESS_ONLY);
     }
   }
 
   @Override
   public void releaseModifiers(int modifiers) {
-    if (modifiers > 15) {
+    if (modifiers > ALL_MODIFIERS) { // TODO: Do we  really have to handle this?
       return;
     }
     if ((modifiers & KeyModifier.SHIFT) != 0) {
-      doKeyRelease(KeyEvent.VK_SHIFT);
+      typeChar(Key.C_SHIFT, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.CTRL) != 0) {
-      doKeyRelease(KeyEvent.VK_CONTROL);
+      typeChar(Key.C_CTRL, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.ALT) != 0) {
-      doKeyRelease(KeyEvent.VK_ALT);
+      typeChar(Key.C_ALT, KeyMode.RELEASE_ONLY);
     }
     if ((modifiers & KeyModifier.META) != 0) {
-      if (Settings.isWindows()) {
-        doKeyRelease(KeyEvent.VK_WINDOWS);
-      } else {
-        doKeyRelease(KeyEvent.VK_META);
-      }
+      typeChar(Key.C_META, KeyMode.RELEASE_ONLY);
+    }
+    if ((modifiers & KeyModifier.ALTGR) != 0) {
+      typeChar(Key.C_ALTGR, KeyMode.RELEASE_ONLY);
     }
   }
 
