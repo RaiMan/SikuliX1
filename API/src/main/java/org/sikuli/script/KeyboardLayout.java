@@ -16,16 +16,7 @@ public class KeyboardLayout {
   private static final Map<Character, int[]> DEFAULT_KEYBOARD_LAYOUT = buildAwtEnUs(); // en-US;
 
   private static final Map<Integer, Map<Character, int[]>> LAYOUTS = new HashMap<>();
-
-  private static SXUser32 sxuser32 = null;
-
-  private static SXUser32 getSXUser32() {
-    if (null == sxuser32 && RunTime.get().runningWindows) {
-      sxuser32 = SXUser32.INSTANCE;
-    }
-    return sxuser32;
-  }
-
+  
   class WindowsVkCodes {
     public static final int VK_SHIFT = 0x10; // SHIFT key
     public static final int VK_CONTROL = 0x11; // CTRL key
@@ -280,7 +271,7 @@ public class KeyboardLayout {
   private static Map<Character, int[]> mapKeyCodes(int[] modifiers, int keyboarLayoutId) {
     Map<Character, int[]> mappings = new HashMap<>();
 
-    int spaceScanCode = getSXUser32().MapVirtualKeyExW(WindowsVkCodes.VK_SPACE, MAPVK_VK_TO_VSC, keyboarLayoutId);
+    int spaceScanCode = SXUser32.INSTANCE.MapVirtualKeyExW(WindowsVkCodes.VK_SPACE, MAPVK_VK_TO_VSC, keyboarLayoutId);
 
     for (int vk : AUTO_DETECT_VK_CODES) {
       byte[] keyStates = new byte[256];
@@ -291,11 +282,11 @@ public class KeyboardLayout {
 
       keyStates[vk] |= 0x80;
 
-      int scanCode = getSXUser32().MapVirtualKeyExW(vk, MAPVK_VK_TO_VSC, keyboarLayoutId);
+      int scanCode = SXUser32.INSTANCE.MapVirtualKeyExW(vk, MAPVK_VK_TO_VSC, keyboarLayoutId);
 
       char[] buff = new char[1];
 
-      int ret = getSXUser32().ToUnicodeEx(vk, scanCode, keyStates, buff, 1, 0, keyboarLayoutId);
+      int ret = SXUser32.INSTANCE.ToUnicodeEx(vk, scanCode, keyStates, buff, 1, 0, keyboarLayoutId);
 
       int[] codes = Arrays.copyOf(modifiers, modifiers.length + 1);
       codes[modifiers.length] = vk;
@@ -306,7 +297,7 @@ public class KeyboardLayout {
         // Get DEAD key
         keyStates = new byte[256];
         keyStates[WindowsVkCodes.VK_SPACE] |= 0x80;
-        ret = getSXUser32().ToUnicodeEx(WindowsVkCodes.VK_SPACE, spaceScanCode, keyStates, buff, 1, 0, keyboarLayoutId);
+        ret = SXUser32.INSTANCE.ToUnicodeEx(WindowsVkCodes.VK_SPACE, spaceScanCode, keyStates, buff, 1, 0, keyboarLayoutId);
         if (ret > 0) {
           mappings.put(buff[0], codes);
         }
@@ -592,10 +583,10 @@ public class KeyboardLayout {
 
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
       int keyboarLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
-      HWND hwnd = getSXUser32().GetForegroundWindow();
+      HWND hwnd = SXUser32.INSTANCE.GetForegroundWindow();
       if (hwnd != null) {
-        int threadID = getSXUser32().GetWindowThreadProcessId(hwnd, null);
-        keyboarLayoutId = getSXUser32().GetKeyboardLayout(threadID);
+        int threadID = SXUser32.INSTANCE.GetWindowThreadProcessId(hwnd, null);
+        keyboarLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID);
       }
 
       layout = LAYOUTS.get(keyboarLayoutId);
