@@ -64,6 +64,10 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
+  public void putMouse(int x, int y) {
+    doMouseMove(x, y);
+  }
+
   private void doMouseMove(int x, int y) {
     mouseMove(x, y);
   }

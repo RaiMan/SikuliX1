@@ -7,6 +7,7 @@ package org.sikuli.ide;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -183,6 +184,8 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   private void popTabMenu() {
     try {
+      add(createMenuItem("About", new PopTabAction(PopTabAction.ABOUT)));
+      createMenuSeperator();
       add(createMenuItem("Set Type", new PopTabAction(PopTabAction.SET_TYPE)));
       createMenuSeperator();
       add(createMenuItem("Move Tab", new PopTabAction(PopTabAction.MOVE_TAB)));
@@ -205,6 +208,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   class PopTabAction extends MenuAction {
 
+    static final String ABOUT = "doAbout";
     static final String SET_TYPE = "doSetType";
     static final String MOVE_TAB = "doMoveTab";
     static final String DUPLICATE = "doDuplicate";
@@ -222,6 +226,49 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public PopTabAction(String item) throws NoSuchMethodException {
       super(item);
+    }
+
+    public void doAbout(ActionEvent ae) {
+      Debug.log(3, "doAbout: selected");
+      EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
+      String srcBundle = cp.getSrcBundle();
+      String bundlePath = cp.getBundlePath();
+      String currentFilename = cp.getCurrentFilename();
+      String currentSrcDir = cp.getCurrentSrcDir();
+      if (!cp.hasEditingFile()) {
+        (new Thread() {
+          @Override
+          public void run() {
+            Region at = Mouse.at().offset(100,52).grow(10);
+            ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+            Do.popup( "Script not yet saved","IDE: About: script info", "", false, 2, at);
+          }
+        }).start();
+      } else {
+        if (cp.isPython) {
+          (new Thread() {
+            @Override
+            public void run() {
+              String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
+                      cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
+              Region at = Mouse.at().offset(200,78).grow(10);
+              ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+              Do.popup( msg,"IDE: About: script info", "", false,10, at);
+            }
+          }).start();
+        } else {
+          (new Thread() {
+            @Override
+            public void run() {
+              String msg = String.format("SikuliX script: %s\nin Folder: %s",
+                      cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
+              Region at = Mouse.at().offset(100,65).grow(10);
+              ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+              Do.popup( msg,"IDE: About: script info", "", false, 10, at);
+            }
+          }).start();
+        }
+      }
     }
 
     public void doSetType(ActionEvent ae) {
@@ -382,8 +429,13 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       log(lvl, "Reset: entered");
       checkAndResetMoveTab();
       ImagePath.reset();
-      SikuliIDE.getInstance().getCurrentCodePane().reparse();
-      SikuliIDE.getInstance().getCurrentCodePane().getRunner().doSomethingSpecial("reset", null);
+      EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
+      cp.paneReset();
+      cp.reparse();
+      if (cp.isShouldReparse()) {
+        cp.reparse();
+      }
+      cp.getRunner().doSomethingSpecial("reset", null);
     }
   }
 

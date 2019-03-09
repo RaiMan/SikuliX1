@@ -62,7 +62,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private JTabbedPane msgPane;
   private boolean msgPaneCollapsed = false;
   private EditorConsolePane _console;
-//  private JXCollapsiblePane _cmdList;
+  //  private JXCollapsiblePane _cmdList;
   private SikuliIDEStatusBar _status = null;
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
@@ -345,7 +345,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
-    Debug.reset();
+    if (!Debug.isGlobalTrace()) {
+      Debug.reset();
+    }
 
     stopSplash();
     setVisible(true);
@@ -491,12 +493,14 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         }
         File f = codePane.getCurrentFile();
         if (f != null) {
-          String bundlePath = codePane.getSrcBundle();
-          Debug.log(5, "save session: " + bundlePath);
+          String filename = codePane.getSrcBundle();
+          if (codePane.isPython) {
+            filename = f.getAbsolutePath();
+          }
           if (tabIndex != 0) {
             sbuf.append(";");
           }
-          sbuf.append(bundlePath);
+          sbuf.append(filename);
         }
       } catch (Exception e) {
         log(-1, "Problem while trying to save all changed-not-saved scripts!\nError: %s", e.getMessage());
@@ -618,11 +622,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   public void setFileTabTitle(String fName, int tabIndex) {
     String sName = new File(fName).getName();
-    int i = sName.lastIndexOf(".");
-    if (i > 0) {
-      tabPane.setTitleAt(tabIndex, sName.substring(0, i));
-    } else {
+    if (sName.endsWith(".py")) {
       tabPane.setTitleAt(tabIndex, sName);
+    } else {
+      int i = sName.lastIndexOf(".");
+      if (i > 0) {
+        tabPane.setTitleAt(tabIndex, sName.substring(0, i));
+      } else {
+        tabPane.setTitleAt(tabIndex, sName);
+      }
     }
     this.setTitle(new File(fName).getAbsolutePath());
   }
@@ -638,7 +646,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         file = codePane.getCurrentFile(false);
         if (file != null) {
           filePath = FileManager.slashify(file.getAbsolutePath(), false);
-          filePath = filePath.substring(0, filePath.lastIndexOf("/"));
+          if (!codePane.isPython) {
+            filePath = filePath.substring(0, filePath.lastIndexOf("/"));
+          }
           filenames.add(filePath);
         } else {
           filenames.add("");
@@ -1116,7 +1126,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         EditorPane codePane = getCurrentCodePane();
         fname = codePane.saveFile();
         if (fname != null) {
-          fname = codePane.getSrcBundle();
+          if (codePane.isPython)
+            fname = codePane.getCurrentFilename();
+          else {
+            fname = codePane.getSrcBundle();
+          }
           setCurrentFileTabTitle(fname);
           tabPane.setLastClosed(fname);
         }
@@ -1140,6 +1154,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       try {
         fname = codePane.saveFile();
         if (fname != null) {
+          if (codePane.isPython) {
+            fname = codePane.getCurrentFilename();
+          }
           setFileTabTitle(fname, tabIndex);
         } else {
           retval = false;
@@ -2777,7 +2794,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
                 EditorPane codePane;
                 try {
                   codePane = getPaneAtIndex(i);
-                  tabPane.setLastClosed(codePane.getSrcBundle());
+                  if (codePane.isPython) {
+                    tabPane.setLastClosed(codePane.getCurrentFilename());
+                  } else {
+                    tabPane.setLastClosed(codePane.getSrcBundle());
+                  }
                   Debug.log(4, "close tab " + i + " n:" + tabPane.getComponentCount());
                   boolean ret = codePane.close();
                   Debug.log(4, "after close tab n:" + tabPane.getComponentCount());

@@ -296,22 +296,33 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     if (_editingFile == null) {
       return null;
     }
-    return _editingFile.getParent();
+    return isPython ? _editingFile.getAbsolutePath() : _editingFile.getParent();
   }
+
+  public boolean isPython = false;
 
   public void loadFile(String filename) {
     log(lvl, "loadfile: %s", filename);
     filename = FileManager.slashify(filename, false);
     File script = new File(filename);
-    _editingFile = Runner.getScriptFile(script);
+    if (filename.endsWith(".py")) {
+      _editingFile = script;
+      isPython = true;
+    } else {
+      _editingFile = Runner.getScriptFile(script);
+    }
     if (_editingFile != null) {
       setSrcBundle(FileManager.slashify(_editingFile.getParent(), true));
       scriptType = _editingFile.getAbsolutePath().substring(_editingFile.getAbsolutePath().lastIndexOf(".") + 1);
       initBeforeLoad(scriptType);
+      lookForSetBundlePath = true;
       if (!readScript(_editingFile)) {
         _editingFile = null;
       }
       updateDocumentListeners("loadFile");
+      if (shouldReparse) {
+        reparse();
+      }
       setDirty(false);
     }
     if (_editingFile == null) {
@@ -319,6 +330,21 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     } else {
       _srcBundleTemp = false;
     }
+  }
+
+  static Pattern patSetBundlePath = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)");
+  boolean shouldReparse = false;
+  boolean lookForSetBundlePath = false;
+  boolean isPaneReset = false;
+
+  public void paneReset() {
+    isPaneReset = true;
+  }
+
+  public boolean isShouldReparse() {
+    boolean ret = shouldReparse;
+    shouldReparse = false;
+    return ret;
   }
 
   private boolean readScript(Object script) {
@@ -340,6 +366,28 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     } catch (Exception ex) {
       log(-1, "read returned %s", ex.getMessage());
       return false;
+    }
+    String scriptText = getText();
+    shouldReparse = false;
+    if (isPython && (lookForSetBundlePath || isPaneReset)) {
+      Matcher matcher = patSetBundlePath.matcher(scriptText);
+      if (matcher.find()) {
+        String path = matcher.group(1);
+        String msg = String.format("found in script: setBundlePath: %s", path);
+        if (setImagePath(path)) {
+          shouldReparse = true;
+          Debug.log(3, msg);
+        } else {
+          Debug.error(msg);
+        }
+        isPaneReset = false;
+        lookForSetBundlePath = false;
+      } else {
+        if (isPaneReset) {
+          setImagePath(getBundlePath());
+          shouldReparse = true;
+        }
+      }
     }
     return true;
   }
@@ -367,32 +415,52 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   }
 
   public String saveAsFile(boolean accessingAsFile) throws IOException {
-    File file = new SikulixFileChooser(sikuliIDE, accessingAsFile).save();
+    SikulixFileChooser fileChooser = new SikulixFileChooser(sikuliIDE, accessingAsFile);
+    if (_srcBundleTemp) {
+      fileChooser.setUntitled();
+    } else if (isPython) {
+      fileChooser.setPython();
+    }
+    File file = fileChooser.save();
     if (file == null) {
       return null;
     }
-    String bundlePath = FileManager.slashify(file.getAbsolutePath(), false);
-    if (!file.getAbsolutePath().endsWith(".sikuli")) {
-      bundlePath += ".sikuli";
+    String filename = file.getAbsolutePath();
+    if (filename.endsWith(".py")) {
+      isPython = true;
     }
-    if (FileManager.exists(bundlePath)) {
+    if (!isPython) {
+      String bundlePath = FileManager.slashify(filename, false);
+      if (!file.getAbsolutePath().endsWith(".sikuli")) {
+        bundlePath += ".sikuli";
+      }
+      filename = bundlePath;
+    }
+    if (FileManager.exists(filename)) {
       int res = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", bundlePath),
+              null, SikuliIDEI18N._I("msgFileExists", filename),
               SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (res != JOptionPane.YES_OPTION) {
         return null;
       }
-      FileManager.deleteFileOrFolder(bundlePath);
+      FileManager.deleteFileOrFolder(filename);
     }
-    FileManager.mkdir(bundlePath);
-    try {
-      saveAsBundle(bundlePath, (sikuliIDE.getCurrentFileTabTitle()));
-      if (Settings.isMac()) {
-        if (!Settings.handlesMacBundles) {
-          makeBundle(bundlePath, accessingAsFile);
-        }
+    if (isPython) {
+      try {
+        saveAsFile(filename);
+      } catch (IOException iOException) {
       }
-    } catch (IOException iOException) {
+    } else {
+      FileManager.mkdir(filename);
+      try {
+        saveAsBundle(filename);
+        if (Settings.isMac()) {
+          if (!Settings.handlesMacBundles) {
+            makeBundle(filename, accessingAsFile);
+          }
+        }
+      } catch (IOException iOException) {
+      }
     }
     return getCurrentShortFilename();
   }
@@ -413,7 +481,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     }
   }
 
-  private void saveAsBundle(String bundlePath, String current) throws IOException {
+  private void saveAsBundle(String bundlePath) throws IOException {
 //TODO allow other file types
     log(lvl, "saveAsBundle: " + getSrcBundle());
     bundlePath = FileManager.slashify(bundlePath, true);
@@ -433,6 +501,15 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     reparse();
   }
 
+  private void saveAsFile(String filename) throws IOException {
+    log(lvl, "saveAsFile: " + filename);
+    filename = FileManager.slashify(filename, false);
+    setSrcBundle(new File(filename).getParent());
+    _editingFile = new File(filename);
+    writeSrcFile();
+    reparse();
+  }
+
   private File createSourceFile(String bundlePath, String ext) {
     if (ext != null) {
       String name = new File(bundlePath).getName();
@@ -447,28 +524,30 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     log(lvl, "writeSrcFile: " + _editingFile.getName());
     this.write(new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
-    boolean shouldDeleteHTML = true;
-    if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
-      try {
-        convertSrcToHtml(getSrcBundle());
-        shouldDeleteHTML = false;
-      } catch (Exception ex) {
-        log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+    if (!isPython) {
+      boolean shouldDeleteHTML = true;
+      if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
+        try {
+          convertSrcToHtml(getSrcBundle());
+          shouldDeleteHTML = false;
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+        }
       }
-    }
-    if (shouldDeleteHTML) {
-      String snameDir = new File(_editingFile.getAbsolutePath()).getParentFile().getName();
-      String sname = snameDir.replace(".sikuli", "") + ".html";
-      (new File(snameDir, sname)).delete();
-    }
-    if (PreferencesUser.getInstance().getAtSaveCleanBundle()) {
-      if (!sikuliContentType.equals(Runner.CPYTHON)) {
-        log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
+      if (shouldDeleteHTML) {
+        String snameDir = new File(_editingFile.getAbsolutePath()).getParentFile().getName();
+        String sname = snameDir.replace(".sikuli", "") + ".html";
+        (new File(snameDir, sname)).delete();
       }
-      try {
-        cleanBundle();
-      } catch (Exception ex) {
-        log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+      if (PreferencesUser.getInstance().getAtSaveCleanBundle()) {
+        if (!sikuliContentType.equals(Runner.CPYTHON)) {
+          log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
+        }
+        try {
+          cleanBundle();
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+        }
       }
     }
     setDirty(false);
@@ -697,14 +776,33 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return true;
   }
 
-  private void setSrcBundle(String newBundlePath) {
+  private String _imagePath = null;
+
+  public String getImagePath() {
+    return _imagePath;
+  }
+
+  public boolean setImagePath(String newBundlePath) {
     try {
       newBundlePath = new File(newBundlePath).getCanonicalPath();
     } catch (Exception ex) {
-      return;
+      return false;
+    }
+    _imagePath = newBundlePath;
+    ImagePath.setBundlePath(_imagePath);
+    return true;
+  }
+
+  private boolean setSrcBundle(String newBundlePath) {
+    try {
+      newBundlePath = new File(newBundlePath).getCanonicalPath();
+    } catch (Exception ex) {
+      return false;
     }
     _srcBundlePath = newBundlePath;
-    ImagePath.setBundlePath(_srcBundlePath);
+    _imagePath = newBundlePath;
+    ImagePath.setBundlePath(_imagePath);
+    return true;
   }
 
   public String getSrcBundle() {
@@ -739,8 +837,12 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   public String getCurrentShortFilename() {
     if (_srcBundlePath != null) {
-      File f = new File(_srcBundlePath);
-      return f.getName();
+      if (isPython) {
+        return _editingFile.getName();
+      } else {
+        File f = new File(_srcBundlePath);
+        return f.getName();
+      }
     }
     return "Untitled";
   }

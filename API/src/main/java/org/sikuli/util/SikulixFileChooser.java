@@ -38,6 +38,18 @@ public class SikulixFileChooser {
     this.accessingAsFile = accessingAsFile;
   }
 
+  private boolean isPython = false;
+
+  public void setPython() {
+    isPython = true;
+  }
+
+  private boolean isUntitled = false;
+
+  public void setUntitled() {
+    isUntitled = true;
+  }
+
   private boolean isGeneric() {
     if (_parent == null) {
       return false;
@@ -53,14 +65,26 @@ public class SikulixFileChooser {
   public File load() {
     String type = "Sikuli Script (*.sikuli, *.skl)";
     String title = "Open a Sikuli Script";
-    File ret = showFileChooser(title, LOAD, DIRSANDFILES, new SikulixFileFilter(type, "o"));
+    File ret = showFileChooser(title, LOAD, DIRSANDFILES, new SikulixFileFilter(type, "o"),
+            new SikulixFileFilter("Python script (*.py)", "op"));
     return ret;
   }
 
   public File save() {
-    String type = "Sikuli Script (*.sikuli)";
-    String title = "Save a Sikuli Script";
-    File ret = showFileChooser(title, SAVE, DIRS, new SikulixFileFilter(type, "s"));
+    File ret;
+    if (isUntitled) {
+      String type = "Sikuli Script (*.sikuli)";
+      String title = "Save a Sikuli Script";
+      ret = showFileChooser(title, SAVE, DIRSANDFILES, new SikulixFileFilter(type, "s"),
+              new SikulixFileFilter("Python script (*.py)", "sp"));
+    } else if (isPython) {
+      ret = showFileChooser("Save a Python script", SAVE, FILES,
+              new SikulixFileFilter("Python script (*.py)", "sp"));
+    } else {
+      String type = "Sikuli Script (*.sikuli)";
+      String title = "Save a Sikuli Script";
+      ret = showFileChooser(title, SAVE, DIRS, new SikulixFileFilter(type, "s"));
+    }
     return ret;
   }
 
@@ -80,8 +104,8 @@ public class SikulixFileChooser {
 
   private File showFileChooser(final String title, final int mode, final int theSelectionMode, final Object... filters) {
     final String theLast_dir = PreferencesUser.getInstance().get("LAST_OPEN_DIR", "");
-    Debug.log(3,"showFileChooser: %s at %s", title.split(" ")[0], theLast_dir);
-    final Object[] result = new Object[] {null};
+    Debug.log(3, "showFileChooser: %s at %s", title.split(" ")[0], theLast_dir);
+    final Object[] result = new Object[]{null};
     if (isGeneric()) {
       try {
         EventQueue.invokeAndWait(new Runnable() {
@@ -109,7 +133,7 @@ public class SikulixFileChooser {
   }
 
   private void processDialog(int selectionMode, String last_dir, String title, int mode, Object[] filters,
-                                 Object[] result) {
+                             Object[] result) {
     JFileChooser fchooser = new JFileChooser();
     File file_Choosen = null;
     while (true) {
@@ -156,14 +180,27 @@ public class SikulixFileChooser {
         file_Choosen = null;
       } else {
         file_Choosen = fchooser.getSelectedFile();
-        // folders must contain a valid scriptfile
-        if (!isGeneric() && mode == FileDialog.LOAD && !isValidScript(file_Choosen)) {
-          Sikulix.popError("Folder not a valid SikuliX script\nTry again.");
-          last_dir = file_Choosen.getParentFile().getAbsolutePath();
-          continue;
+        FileFilter choosenFilter = fchooser.getFileFilter();
+        if (choosenFilter instanceof SikulixFileFilter) {
+          if (!((SikulixFileFilter) choosenFilter).isPython()) {
+            // folders must contain a valid scriptfile
+            if (!isGeneric() && mode == FileDialog.LOAD && !isValidScript(file_Choosen)) {
+              Sikulix.popError("Folder not a valid SikuliX script\nTry again.");
+              last_dir = file_Choosen.getParentFile().getAbsolutePath();
+              continue;
+            }
+          }
         }
       }
       break;
+    }
+    FileFilter filter = fchooser.getFileFilter();
+    if (filter instanceof SikulixFileFilter) {
+      if (((SikulixFileFilter) filter).isPython()) {
+        if (!file_Choosen.getName().endsWith(".py")) {
+          file_Choosen = new File(file_Choosen.getAbsolutePath() + ".py");
+        }
+      }
     }
     result[0] = file_Choosen;
   }
@@ -196,6 +233,10 @@ public class SikulixFileChooser {
     return false;
   }
 
+  private static boolean isFolder(File file) {
+    return file.isDirectory();
+  }
+
   class SikulixFileFilter extends FileFilter {
 
     private String _type, _desc;
@@ -205,12 +246,22 @@ public class SikulixFileChooser {
       _desc = desc;
     }
 
+    public boolean isPython() {
+      return _type == "op" || _type == "sp";
+    }
+
     @Override
     public boolean accept(File f) {
       if ("o".equals(_type) && (isExt(f.getName(), "sikuli") || isExt(f.getName(), "skl"))) {
         return true;
       }
+      if ("op".equals(_type) && (isExt(f.getName(), "py"))) {
+        return true;
+      }
       if ("s".equals(_type) && isExt(f.getName(), "sikuli")) {
+        return true;
+      }
+      if ("sp".equals(_type) && isExt(f.getName(), "py")) {
         return true;
       }
       if ("e".equals(_type)) {
