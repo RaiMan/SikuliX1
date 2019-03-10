@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BoxLayout;
@@ -25,9 +26,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.json.simple.JSONValue;
+import org.sikuli.basics.*;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.basics.Settings;
 import org.sikuli.ide.SikuliIDE;
 import org.sikuli.script.RunTime;
@@ -55,6 +55,12 @@ public class ExtensionManagerFrame extends JFrame {
 
   private File[] fExtensions;
 
+  public List<String> getClasspath() {
+    return classpath;
+  }
+
+  private List<String> classpath;
+
   public List<File> getExtensionFiles() {
     List<File> extensions = new ArrayList<>();
     for (File extension : fExtensions) {
@@ -72,6 +78,18 @@ public class ExtensionManagerFrame extends JFrame {
     for (File extension : fExtensions) {
       String name = extension.getName();
       if (name.startsWith(".") || !name.endsWith(".jar")) {
+        if (name.startsWith("extension_classpath.txt")) {
+          extensions.add(0, name);
+          classpath = new ArrayList<>();
+          List<String> content = Arrays.asList(FileManager.readFileToString(extension).split("\\n"));
+          for (String line : content) {
+            line = line.trim();
+            if (line.startsWith("#") || line.startsWith("//")) {
+              continue;
+            }
+            classpath.add(line);
+          }
+        }
         continue;
       }
       extensions.add(name);

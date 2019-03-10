@@ -292,6 +292,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Debug.log(3, "IDE: creating tabbed editor");
     initTabPane();
     Debug.log(3, "IDE: creating message area");
+    if (runTime.isTesting()) {
+      System.setProperty("sikuli.console", "false");
+    }
     initMsgPane();
     Debug.log(3, "IDE: creating combined work window");
     JPanel codeAndUnitPane = new JPanel(new BorderLayout(10, 10));
@@ -345,7 +348,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
-    if (!Debug.isGlobalTrace()) {
+    if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
 
@@ -555,6 +558,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     ep.loadFile(file.getAbsolutePath());
     if (ep.hasEditingFile()) {
       setCurrentFileTabTitle(file.getAbsolutePath());
+      ep.setCaretPosition(0);
       return true;
     }
     log(-1, "restoreScriptFromSession: Can't load: %s", file);
@@ -897,7 +901,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSaveAs"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-                    InputEvent.SHIFT_MASK | scMask),
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
             new FileAction(FileAction.SAVE_AS)));
     jmi.setName("SAVE_AS");
 
@@ -912,12 +916,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 //TODO    _fileMenu.add(createMenuItem(_I("menuFileSaveAll"),
     _fileMenu.add(createMenuItem("Save all",
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-                    InputEvent.CTRL_MASK | scMask),
+                    InputEvent.CTRL_DOWN_MASK | scMask),
             new FileAction(FileAction.SAVE_ALL)));
 
     _fileMenu.add(createMenuItem(_I("menuFileExport"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
-                    InputEvent.SHIFT_MASK | scMask),
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
             new FileAction(FileAction.EXPORT)));
 
     _fileMenu.add(createMenuItem("Export as jar",
@@ -942,8 +946,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
               new FileAction(FileAction.PREFERENCES)));
     }
 
+    _fileMenu.addSeparator();
+    _fileMenu.add(createMenuItem("Restart IDE",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+                    InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
+            new FileAction(FileAction.RESTART)));
+
     if (showQuit) {
-      _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFileQuit"),
               null, new FileAction(FileAction.QUIT)));
     }
@@ -972,6 +981,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     static final String PREFERENCES = "doPreferences";
     static final String QUIT = "doQuit";
     static final String ENTRY = "doRecent";
+    static final String RESTART = "doRestart";
     private int targetTab = -1;
 
     public FileAction() {
@@ -991,10 +1001,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       sikulixIDE.doAbout();
     }
 
-    public void doQuit(ActionEvent ae) {
-      log(lvl, "doQuit requested");
+    private boolean closeIDE() {
       if (!doBeforeQuit()) {
-        return;
+        return false;
       }
       while (true) {
         EditorPane codePane = sikulixIDE.getCurrentCodePane();
@@ -1002,10 +1011,27 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           break;
         }
         if (!sikulixIDE.closeCurrentTab()) {
-          return;
+          return false;
         }
       }
-      runTime.terminate(0, "");
+      return true;
+    }
+
+    public void doRestart(ActionEvent ae) {
+      log(lvl, "Restart IDE requested");
+      if (closeIDE()) {
+        log(lvl, "Restarting IDE");
+        runTime.terminate(255, "Restarting IDE");
+      }
+      log(-1, "Restart IDE: did not work");
+    }
+
+    public void doQuit(ActionEvent ae) {
+      log(lvl, "Quit IDE requested");
+      if (closeIDE()) {
+        runTime.terminate(0, "");
+      }
+      log(-1, "Quit IDE: did not work");
     }
 
     public void doPreferences(ActionEvent ae) {
@@ -1779,14 +1805,22 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   private void showExtensionsFrame() {
     ExtensionManagerFrame extensionManager = ExtensionManagerFrame.getInstance();
+    String extensionsPath = runTime.fSikulixExtensions.getAbsolutePath();
     String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + runTime.fSikulixExtensions.getAbsolutePath() +
+            "\nExtensions folder: \n" + extensionsPath +
             "\n\nCurrent content:";
     if (extensionManager != null) {
-      for (String extension : extensionManager.getExtensionNames()) {
+      List<String> extensionNames = extensionManager.getExtensionNames();
+      for (String extension : extensionNames) {
         warn += "\n" + extension;
       }
-      //extmg.setVisible(true);
+      List<String> classpath = extensionManager.getClasspath();
+      if (!classpath.isEmpty()) {
+        warn += "\n\n" + "---------- extension_classpath";
+        for (String line : classpath) {
+          warn += "\n" + line;
+        }
+      }
     }
     String title = "SikuliX1 Extensions";
     String[] options = new String[3];
@@ -1797,9 +1831,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
-    }
-    if (extensionManager != null) {
-      //extmg.setVisible(true);
     }
   }
 

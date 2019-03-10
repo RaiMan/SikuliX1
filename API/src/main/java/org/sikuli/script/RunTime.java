@@ -234,6 +234,12 @@ public class RunTime {
     return refTime < obsolete;
   }
 
+  static boolean optTesting = false;
+
+  public boolean isTesting() {
+    return optTesting;
+  }
+
   public static synchronized RunTime get(Type typ, String[] clArgs) {
     if (runTime != null) {
       return runTime;
@@ -364,9 +370,17 @@ public class RunTime {
     //</editor-fold>
 
     sxOptions = Options.init(runTime);
-    int dl = sxOptions.getOptionInteger("Debug.level", -1);
+    optTesting = sxOptions.isOption("testing", false);
+    int dl = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
     if (runTime.debugLevel < 1) {
       runTime.debugLevel = dl;
+    }
+    if (optTesting) {
+      Debug.info("Options: testing = on");
+    }
+    if (dl > Debug.getDebugLevel()) {
+      Debug.info("Options: Debug.level = %d", dl);
+      Debug.on(dl);
     }
 
     Settings.init(runTime); // force Settings initialization
