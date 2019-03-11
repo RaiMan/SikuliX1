@@ -337,6 +337,10 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   boolean lookForSetBundlePath = false;
   boolean isPaneReset = false;
 
+  public void shouldLookForSetBundlePath() {
+    lookForSetBundlePath = true;
+  }
+
   public void paneReset() {
     isPaneReset = true;
   }
@@ -367,6 +371,11 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       log(-1, "read returned %s", ex.getMessage());
       return false;
     }
+    checkSourceForBundlePath();
+    return true;
+  }
+
+  public void checkSourceForBundlePath() {
     String scriptText = getText();
     shouldReparse = false;
     if (isPython && (lookForSetBundlePath || isPaneReset)) {
@@ -389,7 +398,6 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
         }
       }
     }
-    return true;
   }
 
   @Override

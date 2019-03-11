@@ -38,6 +38,10 @@ public class Options {
 
   static boolean testing = false;
 
+  public String getOptionsFile() {
+    return getOption(propOptionsFile);
+  }
+
   static Options init(RunTime pRunTime) {
     runtime = pRunTime;
     return init();

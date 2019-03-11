@@ -256,6 +256,10 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     sikulixIDE.initSikuliIDE(args);
   }
 
+  public void clearMessageArea() {
+    _console.clear();
+  }
+
   private void initSikuliIDE(String[] args) {
     Debug.log(3, "IDE: Reading Preferences");
     //ideSplash.showStep("IDE: Reading Preferences");
@@ -526,26 +530,38 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
     if (session_str != null && !session_str.isEmpty()) {
       String[] filenames = session_str.split(";");
-      for (int i = 0; i < filenames.length; i++) {
-        if (filenames[i].isEmpty()) {
-          continue;
-        }
-        File f = new File(filenames[i]);
-        if (f.exists() && !filesToLoad.contains(f)) {
-          Debug.log(3, "restore session: %s", f);
-          filesToLoad.add(f);
-          if (restoreScriptFromSession(f)) filesLoaded++;
+      if (filenames.length > 0) {
+        Debug.log(3, "Restore scripts from last session");
+        for (int i = 0; i < filenames.length; i++) {
+          if (filenames[i].isEmpty()) {
+            continue;
+          }
+          File f = new File(filenames[i]);
+          if (f.exists() && !filesToLoad.contains(f)) {
+            if (f.getName().endsWith(".py")) {
+              Debug.info("Python script: %s", f.getName());
+            } else {
+              Debug.log(3, "Sikuli script: %s", f);
+            }
+            filesToLoad.add(f);
+            if (restoreScriptFromSession(f)) filesLoaded++;
+          }
         }
       }
     }
     if (loadScripts != null && loadScripts.length > 0) {
+      Debug.log(3, "Preload given scripts");
       for (int i = 0; i < loadScripts.length; i++) {
         if (loadScripts[i].isEmpty()) {
           continue;
         }
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
-          Debug.log(3, "preload script: %s", f);
+          if (f.getName().endsWith(".py")) {
+            Debug.info("Python script: %s", f.getName());
+          } else {
+            Debug.log(3, "Sikuli script: %s", f);
+          }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }
       }
@@ -947,6 +963,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     _fileMenu.addSeparator();
+    _fileMenu.add(createMenuItem("Open Special Files",
+            null, new FileAction(FileAction.OPEN_SPECIAL)));
+
     _fileMenu.add(createMenuItem("Restart IDE",
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
                     InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
@@ -982,6 +1001,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     static final String QUIT = "doQuit";
     static final String ENTRY = "doRecent";
     static final String RESTART = "doRestart";
+    static final String OPEN_SPECIAL = "doOpenSpecial";
     private int targetTab = -1;
 
     public FileAction() {
@@ -1015,6 +1035,22 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         }
       }
       return true;
+    }
+
+    public void doOpenSpecial(ActionEvent ae) {
+      log(lvl, "Open Special requested");
+      Map<String, String> specialFiles = runTime.collectSpecialFiles();
+      String msg = "";
+      for (String specialFile : specialFiles.keySet()) {
+        msg += specialFile + ": " + specialFiles.get(specialFile) + "\n";
+      }
+      final String finalMsg = msg;
+      (new Thread() {
+        @Override
+        public void run() {
+          Do.popup(finalMsg, "IDE: Open special files", "", false, 5);
+        }
+      }).start();
     }
 
     public void doRestart(ActionEvent ae) {
@@ -2853,10 +2889,20 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         if (i >= 0) {
           codePane = getPaneAtIndex(i);
           String fname = codePane.getCurrentSrcDir();
+
           if (fname == null) {
             SikuliIDE.this.setTitle(tab.getTitleAt(i));
           } else {
-            ImagePath.setBundlePath(fname);
+            if (codePane.isPython) {
+              Debug.log(3, "Tab is Python (%s)", codePane.getCurrentShortFilename());
+              codePane.shouldLookForSetBundlePath();
+              codePane.checkSourceForBundlePath();
+              if (codePane.isShouldReparse()) {
+                codePane.reparse();
+              }
+            } else {
+              ImagePath.setBundlePath(fname);
+            }
             SikuliIDE.this.setTitle(fname);
           }
           SikuliIDE.this.chkShowThumbs.setState(SikuliIDE.this.getCurrentCodePane().showThumbs);

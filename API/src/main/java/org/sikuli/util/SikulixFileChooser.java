@@ -61,11 +61,18 @@ public class SikulixFileChooser {
     return ret;
   }
 
+  SikulixFileFilter sikuliFilter = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "o");
+  SikulixFileFilter pythonFilter = new SikulixFileFilter("Python script (*.py)", "op");
+
   public File load() {
-    String type = "Sikuli Script (*.sikuli, *.skl)";
-    String title = "Open a Sikuli Script";
-    File ret = show(title, LOAD, DIRSANDFILES, new SikulixFileFilter(type, "o"),
-            new SikulixFileFilter("Python script (*.py)", "op"));
+    String title = "Open a Sikuli or Python Script";
+    String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+    File ret;
+    if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+      ret = show(title, LOAD, DIRSANDFILES, pythonFilter, sikuliFilter);
+    } else {
+      ret = show(title, LOAD, DIRSANDFILES, sikuliFilter, pythonFilter);
+    }
     return ret;
   }
 
@@ -73,10 +80,13 @@ public class SikulixFileChooser {
     File ret;
     File selectedFile;
     if (isUntitled) {
-      String type = "Sikuli Script (*.sikuli)";
-      String title = "Save a Sikuli Script";
-      selectedFile = show(title, SAVE, DIRSANDFILES, new SikulixFileFilter(type, "s"),
-              new SikulixFileFilter("Python script (*.py)", "sp"));
+      String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+      String title = "Save as Sikuli or Python Script";
+      if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+        selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilter, sikuliFilter);
+      } else {
+        selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilter, pythonFilter);
+      }
       ret = selectedFile;
     } else if (isPython) {
       selectedFile = show("Save a Python script", SAVE, FILES,
@@ -140,11 +150,12 @@ public class SikulixFileChooser {
         if (fileChoosen.isDirectory()) {
           theLastDir = fileChoosen.getAbsolutePath();
         }
+        filterChosen = result[1];
         if (tryAgain) {
-          filterChosen = result[1];
           continue;
         }
         PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
+        PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
         return fileChoosen;
       } else {
         return null;

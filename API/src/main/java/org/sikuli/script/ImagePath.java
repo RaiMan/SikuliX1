@@ -641,7 +641,7 @@ public class ImagePath {
 			try {
 				cls = Class.forName(klassName);
 			} catch (ClassNotFoundException ex) {
-        log(-1,"add: class %s not found on classpath.", klassName);
+        log(-1,"add: %s not found or does not exist", klassName);
 			}
 			if (cls != null) {
 				CodeSource codeSrc = cls.getProtectionDomain().getCodeSource();

@@ -35,6 +35,12 @@ public class Do {
     return null;
   }
 
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, "", false, timeout)
+   * @return
+   */
   public static Boolean popup(Object... args) {
     if (SX.isHeadless()) {
       log.error("running headless: popup");

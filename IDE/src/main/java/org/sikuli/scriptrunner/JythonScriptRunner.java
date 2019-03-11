@@ -552,7 +552,7 @@ public class JythonScriptRunner implements IScriptRunner {
       interpreter = null;
       init(null);
       if (isReady && interpreter != null) {
-        log(-1, "reset requested (experimental: please report oddities)");
+        log(3, "reset requested (experimental: please report oddities)");
       } else {
         log(-1, "reset requested but did not work. Please report this case." +
                 "Do not run scripts anymore and restart the IDE after having saved your work");

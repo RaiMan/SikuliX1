@@ -427,6 +427,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doReset(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "Reset: entered");
+      SikuliIDE.getInstance().clearMessageArea();
       checkAndResetMoveTab();
       ImagePath.reset();
       EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();

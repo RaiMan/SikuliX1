@@ -71,6 +71,15 @@ public class RunTime {
     }
     throw new SikuliXception(String.format("fatal: " + outMsg));
   }
+
+  public Map<String, String> collectSpecialFiles() {
+    Map<String, String> specialFiles = new HashMap<>();
+    if (null != sxOptions) {
+      specialFiles.put("Options", sxOptions.getOptionsFile());
+
+    }
+    return specialFiles;
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="variables">
