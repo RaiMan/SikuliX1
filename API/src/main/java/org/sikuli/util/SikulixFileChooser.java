@@ -61,17 +61,19 @@ public class SikulixFileChooser {
     return ret;
   }
 
-  SikulixFileFilter sikuliFilter = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "o");
-  SikulixFileFilter pythonFilter = new SikulixFileFilter("Python script (*.py)", "op");
+  SikulixFileFilter sikuliFilterO = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "o");
+  SikulixFileFilter pythonFilterO = new SikulixFileFilter("Python script (*.py)", "op");
+  SikulixFileFilter sikuliFilterS = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "s");
+  SikulixFileFilter pythonFilterS = new SikulixFileFilter("Python script (*.py)", "sp");
 
   public File load() {
     String title = "Open a Sikuli or Python Script";
     String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
     File ret;
     if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-      ret = show(title, LOAD, DIRSANDFILES, pythonFilter, sikuliFilter);
+      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO);
     } else {
-      ret = show(title, LOAD, DIRSANDFILES, sikuliFilter, pythonFilter);
+      ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO);
     }
     return ret;
   }
@@ -83,9 +85,9 @@ public class SikulixFileChooser {
       String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
       String title = "Save as Sikuli or Python Script";
       if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-        selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilter, sikuliFilter);
+        selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
       } else {
-        selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilter, pythonFilter);
+        selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
       }
       ret = selectedFile;
     } else if (isPython) {
