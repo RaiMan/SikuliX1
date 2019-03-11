@@ -155,7 +155,9 @@ public class SikulixFileChooser {
           continue;
         }
         PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
-        PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+        if (filterChosen instanceof SikulixFileFilter) {
+          PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+        }
         return fileChoosen;
       } else {
         return null;
