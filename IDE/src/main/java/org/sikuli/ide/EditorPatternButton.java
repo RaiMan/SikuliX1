@@ -201,7 +201,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 	public String getFilename() {
 		File img = new File(_imgFilename);
 		String oldBundle = img.getParent();
-		String newBundle = _pane.getSrcBundle();
+		String newBundle = _pane.getImagePath();
 		Debug.log(4, "ImageButton.getFilename: old: " + oldBundle + "\nnew: " + newBundle);
 		if (FileManager.pathEquals(newBundle, oldBundle)) {
 			return _imgFilename;

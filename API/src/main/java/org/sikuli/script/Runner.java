@@ -996,9 +996,10 @@ public class Runner {
       }
       try {
         if (null != fScript) {
+
           File innerBundle = new File(fScript.getParentFile(), scriptName + ".sikuli");
           if (innerBundle.exists()) {
-            ImagePath.setBundlePath(innerBundle.getCanonicalPath());
+            ImagePath.setBundlePath(innerBundle.getPath());
           } else {
             ImagePath.setBundlePath(fScript.getParent());
           }

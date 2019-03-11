@@ -154,7 +154,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       }
 
       if (filename != null) {
-        fullpath = FileManager.saveImage(simg.getImage(), filename, pane.getBundlePath());
+        fullpath = FileManager.saveImage(simg.getImage(), filename, pane.getImagePath());
         if (fullpath != null) {
           fullpath = FileManager.slashify(fullpath, false);
         }

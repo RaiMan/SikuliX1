@@ -792,7 +792,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   public boolean setImagePath(String newBundlePath) {
     try {
-      newBundlePath = new File(newBundlePath).getCanonicalPath();
+      newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
     } catch (Exception ex) {
       return false;
     }
@@ -803,7 +803,7 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
 
   private boolean setSrcBundle(String newBundlePath) {
     try {
-      newBundlePath = new File(newBundlePath).getCanonicalPath();
+      newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
     } catch (Exception ex) {
       return false;
     }

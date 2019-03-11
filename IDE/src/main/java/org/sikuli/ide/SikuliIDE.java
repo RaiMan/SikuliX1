@@ -172,7 +172,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     if (cmdLineValid && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
             && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
-            && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())) {
+            && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())
+            && Debug.getDebugLevel() < 3) {
       ideSplash = new IDESplash();
     }
 

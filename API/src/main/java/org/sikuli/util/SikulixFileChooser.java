@@ -326,9 +326,9 @@ public class SikulixFileChooser {
           return false;
         }
       }
-//      if (f.isDirectory()) {
-//        return true;
-//      }
+      if (Settings.isWindows() && f.isDirectory()) {
+        return true;
+      }
       return false;
     }
 
