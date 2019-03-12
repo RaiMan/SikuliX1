@@ -260,83 +260,77 @@ public class ScriptingSupport {
   }
 //</editor-fold>
 
-  static class ScriptRunnerInit extends Thread {
-    IScriptRunner current = null;
-    ScriptRunnerInit(IScriptRunner current) {
-      this.current = current;
-    }
+  static class ScriptRunnerInit extends Thread {        
     public void run() {
-      current.init(null);
+      synchronized(scriptRunner) {
+        log(lvl, "initScriptingSupport: enter");
+        if (scriptRunner.isEmpty()) {
+          ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
+          Iterator<IScriptRunner> rIterator = rloader.iterator();
+          while (rIterator.hasNext()) {
+            IScriptRunner current = null;
+            try {
+              current = rIterator.next();
+            } catch (ServiceConfigurationError e) {
+              log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
+              continue;
+            }
+            String name = current.getName();
+            if (name != null && !name.startsWith("Not")) {
+              scriptRunner.put(name, current);                       
+              current.init(null);            
+              log(lvl, "initScriptingSupport: added: %s", name);
+            }
+          }
+        }
+        if (scriptRunner.isEmpty()) {
+          String em = "Terminating: No scripting support available. Rerun Setup!";
+          log(-1, em);
+          if (runTime.isRunningIDE) {
+            Sikulix.popError(em, "IDE has problems ...");
+          }
+          System.exit(1);
+        } else {
+          //TODO JavaScript only script support
+          Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
+          Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+          if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
+            Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
+            Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+          }
+          for (IScriptRunner r : scriptRunner.values()) {
+            for (String e : r.getFileEndings()) {
+              if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
+                supportedRunner.put(Runner.endingTypes.get(e), r);
+              }
+            }
+          }
+        }
+        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
+        isReady = true;
+      }
     }
   }
 
   private static boolean isReady = false;
-  private static boolean runningInit = false;
-
-  public static void init() {
-    if (isReady) {
-      return;
+ 
+  public static void init(boolean async) {
+    synchronized(scriptRunner) {
+      if (isReady) {
+        return;
+      }
+           
+      if(async) {
+        new ScriptRunnerInit().start();
+      }else {
+        // Doesn't run asynchronously because we call run directly
+        new ScriptRunnerInit().run();
+      }  
     }
-    if (runningInit) {
-      System.out.println("ScriptingSupport: waiting for startup init");
-      while (runningInit) {
-        RunTime.pause(1);
-      }
-      return;
-    }
-    runningInit = true;
-		log(lvl, "initScriptingSupport: enter");
-    if (scriptRunner.isEmpty()) {
-      ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
-      Iterator<IScriptRunner> rIterator = rloader.iterator();
-      while (rIterator.hasNext()) {
-        IScriptRunner current = null;
-				try {
-					current = rIterator.next();
-				} catch (ServiceConfigurationError e) {
-					log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
-					continue;
-				}
-        String name = current.getName();
-        if (name != null && !name.startsWith("Not")) {
-          scriptRunner.put(name, current);
-          Thread currentInit = new ScriptRunnerInit(current) {
-          };
-          currentInit.start();
-					log(lvl, "initScriptingSupport: added: %s", name);
-        }
-      }
-    }
-    if (scriptRunner.isEmpty()) {
-      String em = "Terminating: No scripting support available. Rerun Setup!";
-      log(-1, em);
-      if (runTime.isRunningIDE) {
-        Sikulix.popError(em, "IDE has problems ...");
-      }
-      System.exit(1);
-    } else {
-      //TODO JavaScript only script support
-      Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
-      Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-      if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
-        Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
-        Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-      }
-      for (IScriptRunner r : scriptRunner.values()) {
-        for (String e : r.getFileEndings()) {
-          if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
-            supportedRunner.put(Runner.endingTypes.get(e), r);
-          }
-        }
-      }
-    }
-		log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
-    runningInit = false;
-    isReady = true;
   }
 
   public static IScriptRunner getRunner(String script, String type) {
-    init();
+    init(false);
     IScriptRunner currentRunner = null;
     String ending = null;
     if (script != null) {
@@ -479,7 +473,7 @@ public class ScriptingSupport {
    */
   public static int run(String scriptPath, String[] args) {
     runAsTest = false;
-    init();
+    init(false);
     String savePath = ImagePath.getBundlePath();
     int retVal = new RunBox(scriptPath, args, runAsTest).run();
     ImagePath.setBundlePath(savePath);
@@ -587,7 +581,7 @@ public class ScriptingSupport {
         if (Runner.RJSCRIPT.equals(givenScriptScriptType)) {
           exitCode = Runner.runjs(null, uGivenScript, givenScriptScript, args);
         } else {
-          ScriptingSupport.init();
+          ScriptingSupport.init(false);
 					currentRunner = scriptRunner.get(givenScriptScriptType);
           if (null == currentRunner) {
             log(-1, "running from net not supported for %s\n%s", givenScriptScriptType, uGivenScript);

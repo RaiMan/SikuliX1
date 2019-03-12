@@ -252,7 +252,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Debug.log(3, "IDE: Init ScriptingSupport");
     //ideSplash.showStep("Init ScriptingSupport");
 
-    ScriptingSupport.init();
+    ScriptingSupport.init(true);
     IDESupport.initIDESupport();
     sikulixIDE.initSikuliIDE(args);
   }
