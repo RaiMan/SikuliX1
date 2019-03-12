@@ -260,13 +260,55 @@ public class ScriptingSupport {
   }
 //</editor-fold>
 
-  static class ScriptRunnerInit extends Thread {
-    IScriptRunner current = null;
-    ScriptRunnerInit(IScriptRunner current) {
-      this.current = current;
-    }
+  static class ScriptRunnerInit extends Thread {        
     public void run() {
-      current.init(null);
+      synchronized(scriptRunner) {
+        log(lvl, "initScriptingSupport: enter");
+        if (scriptRunner.isEmpty()) {
+          ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
+          Iterator<IScriptRunner> rIterator = rloader.iterator();
+          while (rIterator.hasNext()) {
+            IScriptRunner current = null;
+            try {
+              current = rIterator.next();
+            } catch (ServiceConfigurationError e) {
+              log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
+              continue;
+            }
+            String name = current.getName();
+            if (name != null && !name.startsWith("Not")) {
+              scriptRunner.put(name, current);                       
+              current.init(null);            
+              log(lvl, "initScriptingSupport: added: %s", name);
+            }
+          }
+        }
+        if (scriptRunner.isEmpty()) {
+          String em = "Terminating: No scripting support available. Rerun Setup!";
+          log(-1, em);
+          if (runTime.isRunningIDE) {
+            Sikulix.popError(em, "IDE has problems ...");
+          }
+          System.exit(1);
+        } else {
+          //TODO JavaScript only script support
+          Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
+          Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+          if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
+            Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
+            Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
+          }
+          for (IScriptRunner r : scriptRunner.values()) {
+            for (String e : r.getFileEndings()) {
+              if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
+                supportedRunner.put(Runner.endingTypes.get(e), r);
+              }
+            }
+          }
+        }
+        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
+        isReady = true;
+      }
     }
   }
 
@@ -277,60 +319,13 @@ public class ScriptingSupport {
       if (isReady) {
         return;
       }
-      
-  		log(lvl, "initScriptingSupport: enter");
-      if (scriptRunner.isEmpty()) {
-        ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
-        Iterator<IScriptRunner> rIterator = rloader.iterator();
-        while (rIterator.hasNext()) {
-          IScriptRunner current = null;
-  				try {
-  					current = rIterator.next();
-  				} catch (ServiceConfigurationError e) {
-  					log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
-  					continue;
-  				}
-          String name = current.getName();
-          if (name != null && !name.startsWith("Not")) {
-            scriptRunner.put(name, current);
-            
-            if(async) {
-              Thread currentInit = new ScriptRunnerInit(current) {
-              };
-              currentInit.start();
-            }else {
-              current.init(null);
-            }  					
-            
-            log(lvl, "initScriptingSupport: added: %s", name);
-          }
-        }
-      }
-      if (scriptRunner.isEmpty()) {
-        String em = "Terminating: No scripting support available. Rerun Setup!";
-        log(-1, em);
-        if (runTime.isRunningIDE) {
-          Sikulix.popError(em, "IDE has problems ...");
-        }
-        System.exit(1);
-      } else {
-        //TODO JavaScript only script support
-        Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
-        Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-        if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
-          Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
-          Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-        }
-        for (IScriptRunner r : scriptRunner.values()) {
-          for (String e : r.getFileEndings()) {
-            if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
-              supportedRunner.put(Runner.endingTypes.get(e), r);
-            }
-          }
-        }
-      }
-  		log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
-      isReady = true;
+           
+      if(async) {
+        new ScriptRunnerInit().start();
+      }else {
+        // Doesn't run asynchronously because we call run directly
+        new ScriptRunnerInit().run();
+      }  
     }
   }
 
