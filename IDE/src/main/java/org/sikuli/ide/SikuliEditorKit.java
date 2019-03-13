@@ -559,6 +559,7 @@ public class SikuliEditorKit extends StyledEditorKit {
 
     }
   }
+  
 
   private static class NextVisualLineAction extends TextAction {
 
