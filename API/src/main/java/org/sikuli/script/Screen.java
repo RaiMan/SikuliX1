@@ -527,7 +527,7 @@ public class Screen extends Region implements IScreen {
         Object arg1 = args[1];
         String path = "";
         String name = "";
-        if ((arg0 instanceof Region || arg0 instanceof String) && arg1 instanceof String) {
+        if ((arg0 instanceof Region || arg0 instanceof String || arg0 instanceof Rectangle) && arg1 instanceof String) {
           if (args.length == 3) {
             Object arg2 = args[2];
             if (arg2 instanceof String) {
@@ -540,6 +540,8 @@ public class Screen extends Region implements IScreen {
           if (!name.isEmpty()) {
             if (arg0 instanceof Region) {
               shot = capture((Region) arg0);
+            } else if (arg0 instanceof Rectangle){
+              shot = capture((Rectangle) arg0);
             } else {
               shot = userCapture((String) arg0);
             }
