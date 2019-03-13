@@ -234,22 +234,8 @@ public class ScreenImage {
     if(other == null || !(other instanceof ScreenImage)) {
       return false;
     }    
-           
-    BufferedImage img1 = this.getImage();
-    BufferedImage img2 = ((ScreenImage) other).getImage();
-    
-    if (img1.getWidth() == img2.getWidth() && img1.getHeight() == img2.getHeight()) {
-      for (int x = 0; x < img1.getWidth(); x++) {
-          for (int y = 0; y < img1.getHeight(); y++) {
-              if (img1.getRGB(x, y) != img2.getRGB(x, y))
-                  return false;
-          }
-      }
-    } else {
-        return false;
-    }
-    
-    return true;    
+      
+    return new Finder(this).findChanges(other).isEmpty();
   }
 
 }
