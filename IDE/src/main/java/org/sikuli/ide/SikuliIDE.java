@@ -1811,13 +1811,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           lastWhen = new Date().getTime();
         } else {
           long delay = new Date().getTime() - lastWhen;
+          lastWhen = -1;
           if (delay < 500) {
-            lastWhen = -1;
             JCheckBoxMenuItem source = (JCheckBoxMenuItem) ae.getSource();
             source.setState(!source.getState());
             return;
           }
-          lastWhen = -1;
         }
       }
       boolean showThumbsState = chkShowThumbs.getState();
