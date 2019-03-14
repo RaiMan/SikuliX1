@@ -528,7 +528,7 @@ public class JythonScriptRunner implements IScriptRunner {
     }
   }
 
-  private PythonInterpreter getInterpreter() {
+  private synchronized PythonInterpreter getInterpreter() {
     if (interpreter == null) {
       sysargv.add("");
       PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
