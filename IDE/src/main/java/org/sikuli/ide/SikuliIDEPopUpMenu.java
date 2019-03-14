@@ -442,7 +442,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   private void popImageMenu() {
     try {
-      add(createMenuItem("Preview", new PopImageAction(PopImageAction.PREVIEW)));
+      add(createMenuItem("copy", new PopImageAction(PopImageAction.COPY)));
     } catch (NoSuchMethodException ex) {
       validMenu = false;
     }
@@ -450,7 +450,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
   class PopImageAction extends MenuAction {
 
-    static final String PREVIEW = "doPreview";
+    static final String COPY = "doCopy";
 
     public PopImageAction() {
       super();
@@ -460,8 +460,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       super(item);
     }
 
-    public void doPreview(ActionEvent ae) {
-      log(lvl, "doPreview:");
+    public void doCopy(ActionEvent ae) {
+      String line = refEditorPane.getLine(refEditorPane.getLineNumberAtCaret(refEditorPane.getCaretPosition()));
+      log(lvl, "Image: copy from: %s", line);
     }
   }
 

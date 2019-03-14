@@ -1803,7 +1803,22 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       super(item);
     }
 
+    private long lastWhen = -1;
+
     public void toggleShowThumbs(ActionEvent ae) {
+      if (runTime.runningMac) {
+        if (lastWhen < 0) {
+          lastWhen = new Date().getTime();
+        } else {
+          long delay = new Date().getTime() - lastWhen;
+          if (delay < 500) {
+            lastWhen = -1;
+            JCheckBoxMenuItem source = (JCheckBoxMenuItem) ae.getSource();
+            source.setState(!source.getState());
+            return;
+          }
+        }
+      }
       boolean showThumbsState = chkShowThumbs.getState();
       getCurrentCodePane().showThumbs = showThumbsState;
       getCurrentCodePane().saveCaretPosition();
@@ -1812,6 +1827,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         chkShowThumbs.setState(!chkShowThumbs.getState());
         getCurrentCodePane().showThumbs = chkShowThumbs.getState();
       }
+      return;
     }
 
 /*
