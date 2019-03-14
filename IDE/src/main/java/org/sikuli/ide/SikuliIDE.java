@@ -763,7 +763,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       this.setVisible(false);
       parent = null;
       warn += "\n\nProblem on Mac 10.13.4+ and Java 9+" +
-              "\nIDE must be restarted.";
+              "\nIDE must be restarted. Use one of the buttons!";
       options = new String[2];
       options[WARNING_DO_NOTHING] = typ + " immediately";
       options[WARNING_ACCEPTED] = "Save all and " + typ;
