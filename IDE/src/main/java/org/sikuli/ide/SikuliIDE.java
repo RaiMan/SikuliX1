@@ -746,11 +746,39 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 //TODO I18N
     String warn = "Some scripts are not saved yet!";
     String title = SikuliIDEI18N._I("dlgAskCloseTab");
-    String[] options = new String[3];
-    options[WARNING_DO_NOTHING] = typ + " immediately";
-    options[WARNING_ACCEPTED] = "Save all and " + typ;
-    options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
-    int ret = JOptionPane.showOptionDialog(this, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    String[] options;
+    int ret = -1;
+    boolean shouldHide = false;
+    if (runTime.runningMac) {
+      String osVersion = runTime.osVersion;
+      if (osVersion.startsWith("10.13.")) {
+        if (runTime.isJava9()) {
+          int subVersion = Integer.parseInt(osVersion.replace("10.13.", ""));
+          if (subVersion > 3 && runTime.isJava9())
+            shouldHide = true;
+        }
+      }
+    }
+    SikuliIDE parent = this;
+    if (shouldHide) {
+      this.setVisible(false);
+      parent = null;
+      warn += "\n\nProblem on Mac 10.13.4+ and Java 9+" +
+              "\nIDE must be restarted.";
+      options = new String[2];
+      options[WARNING_DO_NOTHING] = typ + " immediately";
+      options[WARNING_ACCEPTED] = "Save all and " + typ;
+    } else {
+      options = new String[3];
+      options[WARNING_DO_NOTHING] = typ + " immediately";
+      options[WARNING_ACCEPTED] = "Save all and " + typ;
+      options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
+    }
+    ret = JOptionPane.showOptionDialog(parent, warn, title, 0, JOptionPane.WARNING_MESSAGE,
+            null, options, options[options.length - 1]);
+    if (shouldHide) {
+      this.setVisible(true);
+    }
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return -1;
     }
