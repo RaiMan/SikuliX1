@@ -630,21 +630,20 @@ public class App {
       log("App.close: not running: %s", this);
       return false;
     }
-    if (_osUtil.close(this)) {
-      int timeTowait = maxWait;
-      if (waitTime > 0) {
-        timeTowait = waitTime;
-      }
-      while (isRunning(0) && timeTowait > 0) {
-        timeTowait--;
-      }
-    }
-    if (!isValid()) {
-      log("App.close: %s", this);
-    } else {
+    boolean success = _osUtil.close(this);
+//    if (success) {
+//      int timeTowait = maxWait;
+//      if (waitTime > 0) {
+//        timeTowait = waitTime;
+//      }
+//      while (isRunning(0) && timeTowait > 0) {
+//        timeTowait--;
+//      }
+//    }
+    if (isValid() || !success) {
       log("App.close: did not work: %s", this);
       return false;
-    }
+    } log("App.close: %s", this);
     return true;
   }
 
