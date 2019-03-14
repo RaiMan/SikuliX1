@@ -88,7 +88,7 @@ public class JythonScriptRunner implements IScriptRunner {
   private boolean isFromIDE = false;
 
   @Override
-  public void init(String[] param) {
+  public synchronized void init(String[] param) {
     if (isReady && interpreter != null) {
       return;
     }
@@ -528,7 +528,7 @@ public class JythonScriptRunner implements IScriptRunner {
     }
   }
 
-  private PythonInterpreter getInterpreter() {
+  private synchronized PythonInterpreter getInterpreter() {
     if (interpreter == null) {
       sysargv.add("");
       PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));

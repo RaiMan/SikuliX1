@@ -18,7 +18,7 @@ public class RemoteRunner {
     init(adr, p);
   }
 
-  private void init(String adr, String p) {
+  private synchronized void init(String adr, String p) {
 
   }
 

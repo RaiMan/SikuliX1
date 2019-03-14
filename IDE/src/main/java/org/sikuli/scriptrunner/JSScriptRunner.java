@@ -25,7 +25,7 @@ public class JSScriptRunner implements IScriptRunner {
 
 
   @Override
-  public void init(String[] args) {
+  public synchronized void init(String[] args) {
     if (isReady) {
       return;
     }

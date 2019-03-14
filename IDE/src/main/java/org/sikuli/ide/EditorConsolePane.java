@@ -92,25 +92,30 @@ public class EditorConsolePane extends JPanel implements Runnable {
       for (int i = 0; i < NUM_PIPES; i++) {
         pin[i] = new PipedInputStream();
       }
+      
+      (new Thread() {
+        @Override
+        public void run() {
+          int irunner = 0;
+          for (IScriptRunner srunner : ScriptingSupport.scriptRunner.values()) {
+            Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
+            if (srunner.doSomethingSpecial("redirect", Arrays.copyOfRange(pin, irunner*npipes, irunner*npipes+2))) {
+              Debug.log(3, "EditorConsolePane: redirection success for %s", srunner.getName());
+              quit = false; // signals the Threads that they should exit
+    //TODO Hack to avoid repeated redirect of stdout/err
+              ScriptingSupport.systemRedirected = true;
 
-      int irunner = 0;
-      for (IScriptRunner srunner : ScriptingSupport.scriptRunner.values()) {
-				Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
-        if (srunner.doSomethingSpecial("redirect", Arrays.copyOfRange(pin, irunner*npipes, irunner*npipes+2))) {
-          Debug.log(3, "EditorConsolePane: redirection success for %s", srunner.getName());
-          quit = false; // signals the Threads that they should exit
-//TODO Hack to avoid repeated redirect of stdout/err
-          ScriptingSupport.systemRedirected = true;
-
-          // Starting two seperate threads to read from the PipedInputStreams
-          for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
-            reader[i] = new Thread(this);
-            reader[i].setDaemon(true);
-            reader[i].start();
-          }
-          irunner++;
-        }
-      }
+              // Starting two seperate threads to read from the PipedInputStreams
+              for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
+                reader[i] = new Thread(EditorConsolePane.this);
+                reader[i].setDaemon(true);
+                reader[i].start();
+              }
+              irunner++;
+            }
+          }          
+        }        
+      }).start();      
     }
 
     //Create the popup menu.

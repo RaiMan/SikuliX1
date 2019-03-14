@@ -260,8 +260,15 @@ public class ScriptingSupport {
   }
 //</editor-fold>
 
-  static class ScriptRunnerInit extends Thread {        
+  static class ScriptRunnerInit extends Thread {
+    @Override
     public void run() {
+      // if we run asynchronously (through Thread.start()) we can load 
+      // all the runners right now
+      run(true);
+    }
+      
+    public void run(boolean greedy) {
       synchronized(scriptRunner) {
         log(lvl, "initScriptingSupport: enter");
         if (scriptRunner.isEmpty()) {
@@ -277,8 +284,10 @@ public class ScriptingSupport {
             }
             String name = current.getName();
             if (name != null && !name.startsWith("Not")) {
-              scriptRunner.put(name, current);                       
-              current.init(null);            
+              scriptRunner.put(name, current); 
+              if (greedy) {
+                current.init(null);
+              }
               log(lvl, "initScriptingSupport: added: %s", name);
             }
           }
@@ -324,47 +333,52 @@ public class ScriptingSupport {
         new ScriptRunnerInit().start();
       }else {
         // Doesn't run asynchronously because we call run directly
-        new ScriptRunnerInit().run();
+        // Additionally we set the greedy flag to false. This way
+        // we activate lazy loading of runners in getRunner() when a runnee
+        // is started for the first time
+        new ScriptRunnerInit().run(false);
       }  
     }
   }
 
   public static IScriptRunner getRunner(String script, String type) {
-    init(false);
-    IScriptRunner currentRunner = null;
-    String ending = null;
-    if (script != null) {
-      for (String suffix : Runner.endingTypes.keySet()) {
-        if (script.endsWith(suffix)) {
-          ending = suffix;
-          break;
+    synchronized(scriptRunner) {
+      init(false);
+      IScriptRunner currentRunner = null;
+      String ending = null;
+      if (script != null) {
+        for (String suffix : Runner.endingTypes.keySet()) {
+          if (script.endsWith(suffix)) {
+            ending = suffix;
+            break;
+          }
+        }
+      } else if (type != null) {
+        currentRunner = scriptRunner.get(type);
+        if (currentRunner != null) {
+          return currentRunner;
+        }
+        ending = Runner.typeEndings.get(type);
+        if (ending == null) {
+          if (Runner.endingTypes.containsKey(type)) {
+            ending = type;
+          }
         }
       }
-    } else if (type != null) {
-      currentRunner = scriptRunner.get(type);
-      if (currentRunner != null) {
-        return currentRunner;
-      }
-      ending = Runner.typeEndings.get(type);
-      if (ending == null) {
-        if (Runner.endingTypes.containsKey(type)) {
-          ending = type;
+      if (ending != null) {
+        for (IScriptRunner r : scriptRunner.values()) {
+          if (r.hasFileEnding(ending) != null) {
+            currentRunner = r;
+            break;
+          }
         }
       }
-    }
-    if (ending != null) {
-      for (IScriptRunner r : scriptRunner.values()) {
-        if (r.hasFileEnding(ending) != null) {
-          currentRunner = r;
-          break;
-        }
+      if (currentRunner == null) {
+        log(-1, "getRunner: no runner found for:\n%s", (script == null ? type : script));
       }
+      currentRunner.init(null);
+      return currentRunner;
     }
-    if (currentRunner == null) {
-      log(-1, "getRunner: no runner found for:\n%s", (script == null ? type : script));
-    }
-    currentRunner.init(null);
-    return currentRunner;
   }
 
   public static boolean hasTypeRunner(String type) {

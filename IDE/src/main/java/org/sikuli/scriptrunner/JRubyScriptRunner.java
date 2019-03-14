@@ -86,7 +86,7 @@ public class JRubyScriptRunner implements IScriptRunner {
   private static ThreadContext context;
 
 	@Override
-	public void init(String[] args) {
+	public synchronized void init(String[] args) {
 		//TODO classpath and other path handlings
 		sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
 	}
