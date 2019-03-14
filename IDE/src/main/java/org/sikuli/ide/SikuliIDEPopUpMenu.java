@@ -16,6 +16,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -461,8 +462,17 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     }
 
     public void doCopy(ActionEvent ae) {
-      String line = refEditorPane.getLine(refEditorPane.getLineNumberAtCaret(refEditorPane.getCaretPosition()));
-      log(lvl, "Image: copy from: %s", line);
+      //int caretPosition = refEditorPane.getCaretPosition();
+      Element elementLine = refEditorPane.getLineAtCaret(-1);
+      int elementCount = elementLine.getElementCount();
+      int startOffset = elementLine.getStartOffset();
+      int endOffset = elementLine.getEndOffset();
+      String lineText = "###notvalid###";
+      try {
+        lineText = elementLine.getDocument().getText(startOffset, endOffset - startOffset);
+      } catch (BadLocationException e) {
+      }
+      log(lvl, "Image: copy from: %s", lineText);
     }
   }
 

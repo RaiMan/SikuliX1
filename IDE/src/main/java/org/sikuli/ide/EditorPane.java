@@ -16,10 +16,7 @@ import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 import javax.swing.text.*;
 import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
@@ -40,7 +37,7 @@ import org.sikuli.syntaxhighlight.grammar.Token;
 import org.sikuli.syntaxhighlight.grammar.TokenType;
 import org.sikuli.util.SikulixFileChooser;
 
-public class EditorPane extends JTextPane implements KeyListener, CaretListener {
+public class EditorPane extends JTextPane {
 
   private static final String me = "EditorPane: ";
   private static final int lvl = 3;
@@ -183,8 +180,8 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
       _highlighter = new EditorCurrentLineHighlighter(this);
       addCaretListener(_highlighter);
       initKeyMap();
-      addKeyListener(this);
-      addCaretListener(this);
+      //addKeyListener(this);
+      //addCaretListener(this);
     }
 
     setFont(new Font(pref.getFontName(), Font.PLAIN, pref.getFontSize()));
@@ -268,17 +265,17 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), SikuliEditorKit.completionAction);
   }
 
-  @Override
-  public void keyPressed(java.awt.event.KeyEvent ke) {
-  }
-
-  @Override
-  public void keyReleased(java.awt.event.KeyEvent ke) {
-  }
-
-  @Override
-  public void keyTyped(java.awt.event.KeyEvent ke) {
-  }
+//  @Override
+//  public void keyPressed(java.awt.event.KeyEvent ke) {
+//  }
+//
+//  @Override
+//  public void keyReleased(java.awt.event.KeyEvent ke) {
+//  }
+//
+//  @Override
+//  public void keyTyped(java.awt.event.KeyEvent ke) {
+// }
   //</editor-fold>
 
   public String loadFile(boolean accessingAsFile) throws IOException {
@@ -944,18 +941,19 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
   }
 
   //</editor-fold>
+
   //<editor-fold defaultstate="collapsed" desc="Caret handling">
 //TODO not used
-  @Override
-  public void caretUpdate(CaretEvent evt) {
-    /* seems not to be used
-     * if (_can_update_caret_last_x) {
-		 * _caret_last_x = -1;
-		 * } else {
-		 * _can_update_caret_last_x = true;
-		 * }
-		 */
-  }
+//  @Override
+//  public void caretUpdate(CaretEvent evt) {
+//    /* seems not to be used
+//     * if (_can_update_caret_last_x) {
+//		 * _caret_last_x = -1;
+//		 * } else {
+//		 * _can_update_caret_last_x = true;
+//		 * }
+//		 */
+//  }
 
   public int getLineNumberAtCaret(int caretPosition) {
     Element root = getDocument().getDefaultRootElement();
@@ -1191,13 +1189,13 @@ public class EditorPane extends JTextPane implements KeyListener, CaretListener 
     return false;
   }
 
-  //TODO not clear what this is for LOL (SikuliIDEPopUpMenu.doSetType)
-  public boolean reparseCheckContent() {
-    if (this.getText().contains(ScriptingSupport.TypeCommentToken)) {
-      return true;
-    }
-    return false;
-  }
+//TODO not clear what this is for LOL (SikuliIDEPopUpMenu.doSetType)
+//  public boolean reparseCheckContent() {
+//    if (this.getText().contains(ScriptingSupport.TypeCommentToken)) {
+//      return true;
+//    }
+//    return false;
+//  }
 
   private void parse(Element node) {
     if (!showThumbs) {
