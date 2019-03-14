@@ -1817,6 +1817,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             source.setState(!source.getState());
             return;
           }
+          lastWhen = -1;
         }
       }
       boolean showThumbsState = chkShowThumbs.getState();
