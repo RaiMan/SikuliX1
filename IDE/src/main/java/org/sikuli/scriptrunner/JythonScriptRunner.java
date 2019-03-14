@@ -88,7 +88,7 @@ public class JythonScriptRunner implements IScriptRunner {
   private boolean isFromIDE = false;
 
   @Override
-  public void init(String[] param) {
+  public synchronized void init(String[] param) {
     if (isReady && interpreter != null) {
       return;
     }
