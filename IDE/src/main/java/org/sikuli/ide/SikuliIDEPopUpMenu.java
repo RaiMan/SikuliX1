@@ -282,9 +282,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         selOptionsType = new String[types.size()];
         int i = 0;
         for (String e : types) {
-          if (e.contains("plain")) {
-            continue;
-          }
           selOptionsType[i++] = e.replaceFirst(".*?\\/", "");
         }
       }
