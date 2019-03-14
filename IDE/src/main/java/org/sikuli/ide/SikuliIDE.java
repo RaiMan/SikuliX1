@@ -749,14 +749,13 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     String[] options;
     int ret = -1;
     boolean shouldHide = false;
-    if (runTime.runningMac) {
+    if (runTime.runningMac && runTime.isJava9()) {
       String osVersion = runTime.osVersion;
       if (osVersion.startsWith("10.13.")) {
-        if (runTime.isJava9()) {
           int subVersion = Integer.parseInt(osVersion.replace("10.13.", ""));
-          if (subVersion > 3 && runTime.isJava9())
+          if (subVersion > 3) {
             shouldHide = true;
-        }
+          }
       }
     }
     SikuliIDE parent = this;
