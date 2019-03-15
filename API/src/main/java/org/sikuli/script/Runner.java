@@ -47,7 +47,7 @@ public class Runner {
   public static String CJSCRIPT = "text/javascript";
   public static String CASCRIPT = "text/applescript";
   public static String CSSCRIPT = "text/powershell";
-  public static String CPLAIN = "text/plain";
+  public static String CPLAIN = "text/text";
   public static String RPYTHON = "jython";
   public static String RRUBY = "jruby";
   public static String RJSCRIPT = "JavaScript";

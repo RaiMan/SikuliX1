@@ -63,17 +63,19 @@ public class SikulixFileChooser {
 
   SikulixFileFilter sikuliFilterO = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "o");
   SikulixFileFilter pythonFilterO = new SikulixFileFilter("Python script (*.py)", "op");
+  SikulixFileFilter anyFilterO = new SikulixFileFilter("any type as text (*.*)", "oa");
   SikulixFileFilter sikuliFilterS = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "s");
   SikulixFileFilter pythonFilterS = new SikulixFileFilter("Python script (*.py)", "sp");
+  SikulixFileFilter anyFilterS = new SikulixFileFilter("any type as text (*.*)", "sa");
 
   public File load() {
     String title = "Open a Sikuli or Python Script";
     String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
     File ret;
     if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO);
+      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO, anyFilterO);
     } else {
-      ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO);
+      ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO, anyFilterS);
     }
     return ret;
   }
@@ -291,6 +293,16 @@ public class SikulixFileChooser {
         if (!selectedFile.getName().endsWith(".sikuli") || !selectedFile.exists()) {
           validatedFile = selectedFile.getAbsolutePath() + error;
         }
+      } else if (_type == "oa") {
+        if (selectedFile.isDirectory() || !selectedFile.exists()) {
+          validatedFile = selectedFile.getAbsolutePath() + error;
+        } else {
+          String name = selectedFile.getName();
+          if (name.endsWith(".txt") || !name.contains(".")) {
+            return validatedFile;
+          }
+          validatedFile = selectedFile.getAbsolutePath() + error;
+        }
       } else if (_type == "op") {
         if (!selectedFile.getName().endsWith(".py") || selectedFile.isDirectory() || !selectedFile.exists()) {
           validatedFile = selectedFile.getAbsolutePath() + error;
@@ -314,10 +326,16 @@ public class SikulixFileChooser {
       if ("op".equals(_type) && (isExt(f.getName(), "py"))) {
         return true;
       }
+      if ("oa".equals(_type) && f.isFile()) {
+        return true;
+      }
       if ("s".equals(_type) && isExt(f.getName(), "sikuli")) {
         return true;
       }
       if ("sp".equals(_type) && isExt(f.getName(), "py")) {
+        return true;
+      }
+      if ("sa".equals(_type) && f.isFile()) {
         return true;
       }
       if ("e".equals(_type)) {
