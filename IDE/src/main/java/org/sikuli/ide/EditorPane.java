@@ -435,7 +435,8 @@ public class EditorPane extends JTextPane {
       return saveAsFile(Settings.isMac());
     } else {
       writeSrcFile();
-      return getCurrentShortFilename();
+      String currentShortFilename = getCurrentShortFilename();
+      return currentShortFilename;
     }
   }
 
@@ -549,7 +550,7 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + _editingFile.getName());
     this.write(new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
-    if (!isPython) {
+    if (!isPython && !isText) {
       boolean shouldDeleteHTML = true;
       if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
         try {
@@ -864,6 +865,9 @@ public class EditorPane extends JTextPane {
   }
 
   public String getCurrentShortFilename() {
+    if (isText) {
+      return _editingFile.getName();
+    }
     if (_srcBundlePath != null) {
       if (isPython) {
         return _editingFile.getName();

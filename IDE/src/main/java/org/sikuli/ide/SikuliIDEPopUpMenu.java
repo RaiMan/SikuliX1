@@ -257,7 +257,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
               Do.popup( msg,"IDE: About: script info", "", false,10, at);
             }
           }).start();
-        } else {
+        } else if (!cp.isText){
           (new Thread() {
             @Override
             public void run() {

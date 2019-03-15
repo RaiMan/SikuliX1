@@ -504,6 +504,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
           String filename = codePane.getSrcBundle();
           if (codePane.isPython) {
             filename = f.getAbsolutePath();
+          } else if (codePane.isText) {
+            filename = f.getAbsolutePath() + "###isText";
           }
           if (tabIndex != 0) {
             sbuf.append(";");
@@ -667,7 +669,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         file = codePane.getCurrentFile(false);
         if (file != null) {
           filePath = FileManager.slashify(file.getAbsolutePath(), false);
-          if (!codePane.isPython) {
+          if (!codePane.isPython && !codePane.isText) {
             filePath = filePath.substring(0, filePath.lastIndexOf("/"));
           }
           filenames.add(filePath);
@@ -1216,7 +1218,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         EditorPane codePane = getCurrentCodePane();
         fname = codePane.saveFile();
         if (fname != null) {
-          if (codePane.isPython)
+          if (codePane.isPython || codePane.isText)
             fname = codePane.getCurrentFilename();
           else {
             fname = codePane.getSrcBundle();
@@ -1244,7 +1246,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       try {
         fname = codePane.saveFile();
         if (fname != null) {
-          if (codePane.isPython) {
+          if (codePane.isPython || codePane.isText) {
             fname = codePane.getCurrentFilename();
           }
           setFileTabTitle(fname, tabIndex);
@@ -2358,6 +2360,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     @Override
     public void actionPerformed(ActionEvent ae) {
       EditorPane codePane = getCurrentCodePane();
+      if (codePane.isText) {
+        return;
+      }
       File file = new SikulixFileChooser(sikulixIDE).loadImage();
       if (file == null) {
         return;
@@ -2630,6 +2635,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
+      if (getCurrentCodePane().isText) {
+        return;
+      }
       runCurrentScript();
     }
 
@@ -2905,7 +2913,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
                 EditorPane codePane;
                 try {
                   codePane = getPaneAtIndex(i);
-                  if (codePane.isPython) {
+                  if (codePane.isPython || codePane.isText) {
                     tabPane.setLastClosed(codePane.getCurrentFilename());
                   } else {
                     tabPane.setLastClosed(codePane.getSrcBundle());
@@ -2945,7 +2953,9 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
                 codePane.reparse();
               }
             } else {
-              ImagePath.setBundlePath(fname);
+              if (!codePane.isText) {
+                ImagePath.setBundlePath(fname);
+              }
             }
             SikuliIDE.this.setTitle(fname);
           }

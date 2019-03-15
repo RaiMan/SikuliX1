@@ -71,6 +71,9 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (_codePane.isText) {
+      return;
+    }
     Debug.log(3, "ButtonCapture: capture!");
     captureWithAutoDelay();
   }
