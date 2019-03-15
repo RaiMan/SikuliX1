@@ -160,7 +160,11 @@ public class SikulixFileChooser {
         }
         PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
         if (filterChosen instanceof SikulixFileFilter) {
-          PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+          if (!((SikulixFileFilter) filterChosen)._type.endsWith("a")) {
+            PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+          } else {
+            fileChoosen = new File(fileChoosenPath += "###isText");
+          }
         }
         return fileChoosen;
       } else {

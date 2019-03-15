@@ -149,11 +149,14 @@ public class EditorPane extends JTextPane {
     } else if (Runner.EJSCRIPT.equals(scriptType)) {
       scrType = Runner.CJSCRIPT;
       _indentationLogic = null;
+    } else if (Runner.EPLAIN.equals(scriptType)) {
+      scrType = Runner.CPLAIN;
+      _indentationLogic = null;
     }
 
 //TODO should know, that scripttype not changed here to avoid unnecessary new setups
-    if (scrType != null) {
-      sikuliContentType = scrType;
+    sikuliContentType = scrType;
+    if (scrType != null && scrType != Runner.CPLAIN) {
       editorKit = new SikuliEditorKit();
       editorViewFactory = (EditorViewFactory) editorKit.getViewFactory();
       setEditorKit(editorKit);
@@ -171,17 +174,29 @@ public class EditorPane extends JTextPane {
       }
     }
 
-    if (transferHandler == null) {
-      transferHandler = new MyTransferHandler();
-    }
-    setTransferHandler(transferHandler);
+    if (!isText) {
+      if (transferHandler == null) {
+        transferHandler = new MyTransferHandler();
+      }
+      setTransferHandler(transferHandler);
 
-    if (_highlighter == null) {
-      _highlighter = new EditorCurrentLineHighlighter(this);
-      addCaretListener(_highlighter);
-      initKeyMap();
-      //addKeyListener(this);
-      //addCaretListener(this);
+      if (_highlighter == null) {
+        _highlighter = new EditorCurrentLineHighlighter(this);
+        addCaretListener(_highlighter);
+        initKeyMap();
+        //addKeyListener(this);
+        //addCaretListener(this);
+      }
+
+      popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+      if (!popMenuImage.isValidMenu()) {
+        popMenuImage = null;
+      }
+
+      popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+      if (!popMenuCompletion.isValidMenu()) {
+        popMenuCompletion = null;
+      }
     }
 
     setFont(new Font(pref.getFontName(), Font.PLAIN, pref.getFontSize()));
@@ -193,26 +208,12 @@ public class EditorPane extends JTextPane {
 
     updateDocumentListeners("initBeforeLoad");
 
-    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-    if (!popMenuImage.isValidMenu()) {
-      popMenuImage = null;
-    }
-
-    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-    if (!popMenuCompletion.isValidMenu()) {
-      popMenuCompletion = null;
-    }
-
     if (paneIsEmpty || reInit) {
-//			this.setText(String.format(Settings.TypeCommentDefault, getSikuliContentType()));
       this.setText("");
     }
+
     SikuliIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
-//    if (!ScriptingSupport.hasTypeRunner(getSikuliContentType())) {
-//      Sikulix.popup("No installed runner supports (" + getSikuliContentType() + ")\n"
-//              + "Trying to run the script might crash IDE!", "... serious problem detected!");
-//    }
-     log(lvl, "InitTab: (%s)", getSikuliContentType());
+    log(lvl, "InitTab: (%s)", getSikuliContentType());
   }
 
   public String getSikuliContentType() {
@@ -284,6 +285,10 @@ public class EditorPane extends JTextPane {
       return null;
     }
     String fname = FileManager.slashify(file.getAbsolutePath(), false);
+    if (fname.endsWith("###isText")) {
+      fname = fname.replace("###isText", "");
+      isText = true;
+    }
     int i = sikuliIDE.isAlreadyOpen(fname);
     if (i > -1) {
       log(lvl, "loadFile: Already open in IDE: " + fname);
@@ -293,39 +298,50 @@ public class EditorPane extends JTextPane {
     if (_editingFile == null) {
       return null;
     }
-    return isPython ? _editingFile.getAbsolutePath() : _editingFile.getParent();
+    return isPython || isText ? _editingFile.getAbsolutePath() : _editingFile.getParent();
   }
 
   public boolean isPython = false;
+  public boolean isText = false;
 
   public void loadFile(String filename) {
     log(lvl, "loadfile: %s", filename);
     filename = FileManager.slashify(filename, false);
-    File script = new File(filename);
+    File fileToLoad = new File(filename);
     if (filename.endsWith(".py")) {
-      _editingFile = script;
+      _editingFile = fileToLoad;
       isPython = true;
+    } else if (isText) {
+      _editingFile = fileToLoad;
     } else {
-      _editingFile = Runner.getScriptFile(script);
+      _editingFile = Runner.getScriptFile(fileToLoad);
     }
     if (_editingFile != null) {
-      setSrcBundle(FileManager.slashify(_editingFile.getParent(), true));
-      scriptType = _editingFile.getAbsolutePath().substring(_editingFile.getAbsolutePath().lastIndexOf(".") + 1);
+      if (isText) {
+        scriptType = "txt";
+      } else {
+        setSrcBundle(FileManager.slashify(_editingFile.getParent(), true));
+        scriptType = _editingFile.getAbsolutePath().substring(_editingFile.getAbsolutePath().lastIndexOf(".") + 1);
+        lookForSetBundlePath = true;
+      }
       initBeforeLoad(scriptType);
-      lookForSetBundlePath = true;
-      if (!readScript(_editingFile)) {
+      if (!readContent(_editingFile)) {
         _editingFile = null;
       }
       updateDocumentListeners("loadFile");
-      if (shouldReparse) {
+      if (!isText && shouldReparse) {
         reparse();
       }
       setDirty(false);
     }
-    if (_editingFile == null) {
-      _srcBundlePath = null;
+    if (isText) {
+
     } else {
-      _srcBundleTemp = false;
+      if (_editingFile == null) {
+        _srcBundlePath = null;
+      } else {
+        _srcBundleTemp = false;
+      }
     }
   }
 
@@ -348,7 +364,7 @@ public class EditorPane extends JTextPane {
     return ret;
   }
 
-  private boolean readScript(Object script) {
+  private boolean readContent(Object script) {
     InputStreamReader isr;
     try {
       if (script instanceof String) {
@@ -360,15 +376,17 @@ public class EditorPane extends JTextPane {
                 new FileInputStream((File) script),
                 Charset.forName("utf-8"));
       } else {
-        log(-1, "readScript: not supported %s as %s", script, script.getClass());
+        log(-1, "readContent: not supported %s as %s", script, script.getClass());
         return false;
       }
       this.read(new BufferedReader(isr), null);
     } catch (Exception ex) {
-      log(-1, "read returned %s", ex.getMessage());
+      log(-1, "readContent: read returned %s", ex.getMessage());
       return false;
     }
-    checkSourceForBundlePath();
+    if (!isText) {
+      checkSourceForBundlePath();
+    }
     return true;
   }
 
@@ -402,7 +420,9 @@ public class EditorPane extends JTextPane {
     super.read(in, desc);
     Document doc = getDocument();
     Element root = doc.getDefaultRootElement();
-    parse(root);
+    if (!isText) {
+      parse(root);
+    }
     restoreCaretPosition();
   }
 
@@ -580,7 +600,7 @@ public class EditorPane extends JTextPane {
     return images;
   }
 
-//TODO " and ' in comments - line numbers not reported correctly in case
+  //TODO " and ' in comments - line numbers not reported correctly in case
   private void parseforImagesWalk(String pbundle, Lexer lexer,
                                   String text, int pos, Map<String, List<Integer>> images, Integer line) {
     //log(3, "parseforImagesWalk");
@@ -1181,7 +1201,7 @@ public class EditorPane extends JTextPane {
     if (paneContent.length() < 7) {
       return true;
     }
-    boolean readScriptReturn = readScript(paneContent);
+    boolean readScriptReturn = readContent(paneContent);
     if (readScriptReturn) {
       updateDocumentListeners("reparse");
       return true;
@@ -1407,27 +1427,27 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold defaultstate="collapsed" desc="feature search">
   /*
-	 * public int search(Pattern pattern){
-	 * return search(pattern, true);
-	 * }
-	 *
-	 * public int search(Pattern pattern, boolean forward){
-	 * if(!pattern.equals(_lastSearchPattern)){
-	 * _lastSearchPattern = pattern;
-	 * Document doc = getDocument();
-	 * int pos = getCaretPosition();
-	 * Debug.log("caret: "  + pos);
-	 * try{
-	 * String body = doc.getText(pos, doc.getLength()-pos);
-	 * _lastSearchMatcher = pattern.matcher(body);
-	 * }
-	 * catch(BadLocationException e){
-	 * e.printStackTrace();
-	 * }
-	 * }
-	 * return continueSearch(forward);
-	 * }
-	 */
+   * public int search(Pattern pattern){
+   * return search(pattern, true);
+   * }
+   *
+   * public int search(Pattern pattern, boolean forward){
+   * if(!pattern.equals(_lastSearchPattern)){
+   * _lastSearchPattern = pattern;
+   * Document doc = getDocument();
+   * int pos = getCaretPosition();
+   * Debug.log("caret: "  + pos);
+   * try{
+   * String body = doc.getText(pos, doc.getLength()-pos);
+   * _lastSearchMatcher = pattern.matcher(body);
+   * }
+   * catch(BadLocationException e){
+   * e.printStackTrace();
+   * }
+   * }
+   * return continueSearch(forward);
+   * }
+   */
 
   /*
    * public int search(String str){

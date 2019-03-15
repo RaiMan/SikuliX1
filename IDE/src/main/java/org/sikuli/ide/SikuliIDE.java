@@ -643,7 +643,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   public void setFileTabTitle(String fName, int tabIndex) {
     String sName = new File(fName).getName();
-    if (sName.endsWith(".py")) {
+    if (sName.endsWith(".py") || getCurrentCodePane().isText) {
       tabPane.setTitleAt(tabIndex, sName);
     } else {
       int i = sName.lastIndexOf(".");
