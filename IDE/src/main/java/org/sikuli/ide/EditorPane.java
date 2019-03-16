@@ -152,11 +152,12 @@ public class EditorPane extends JTextPane {
     } else if (Runner.EPLAIN.equals(scriptType)) {
       scrType = Runner.CPLAIN;
       _indentationLogic = null;
+      isText = true;
     }
 
 //TODO should know, that scripttype not changed here to avoid unnecessary new setups
     sikuliContentType = scrType;
-    if (scrType != null && scrType != Runner.CPLAIN) {
+    if (scrType != null) {
       editorKit = new SikuliEditorKit();
       editorViewFactory = (EditorViewFactory) editorKit.getViewFactory();
       setEditorKit(editorKit);
@@ -174,20 +175,20 @@ public class EditorPane extends JTextPane {
       }
     }
 
+    if (transferHandler == null) {
+      transferHandler = new MyTransferHandler();
+    }
+    setTransferHandler(transferHandler);
+
+    if (_highlighter == null) {
+      _highlighter = new EditorCurrentLineHighlighter(this);
+      addCaretListener(_highlighter);
+      initKeyMap();
+      //addKeyListener(this);
+      //addCaretListener(this);
+    }
+
     if (!isText) {
-      if (transferHandler == null) {
-        transferHandler = new MyTransferHandler();
-      }
-      setTransferHandler(transferHandler);
-
-      if (_highlighter == null) {
-        _highlighter = new EditorCurrentLineHighlighter(this);
-        addCaretListener(_highlighter);
-        initKeyMap();
-        //addKeyListener(this);
-        //addCaretListener(this);
-      }
-
       popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
       if (!popMenuImage.isValidMenu()) {
         popMenuImage = null;
@@ -319,6 +320,7 @@ public class EditorPane extends JTextPane {
     if (_editingFile != null) {
       if (isText) {
         scriptType = "txt";
+        setSrcBundle(FileManager.slashify(_editingFile.getParent(), true));
       } else {
         setSrcBundle(FileManager.slashify(_editingFile.getParent(), true));
         scriptType = _editingFile.getAbsolutePath().substring(_editingFile.getAbsolutePath().lastIndexOf(".") + 1);
@@ -384,7 +386,7 @@ public class EditorPane extends JTextPane {
       log(-1, "readContent: read returned %s", ex.getMessage());
       return false;
     }
-    if (!isText) {
+    if (isPython) {
       checkSourceForBundlePath();
     }
     return true;
@@ -444,8 +446,13 @@ public class EditorPane extends JTextPane {
     SikulixFileChooser fileChooser = new SikulixFileChooser(sikuliIDE, accessingAsFile);
     if (_srcBundleTemp) {
       fileChooser.setUntitled();
+      if (isText) {
+        fileChooser.setText();
+      }
     } else if (isPython) {
       fileChooser.setPython();
+    } else if (isText) {
+      fileChooser.setText();
     }
     File file = fileChooser.save();
     if (file == null) {
@@ -455,7 +462,13 @@ public class EditorPane extends JTextPane {
     if (filename.endsWith(".py")) {
       isPython = true;
     }
-    if (!isPython) {
+    if (isText) {
+      filename = filename.replace("###isText", "");
+      if (!filename.endsWith(".txt")) {
+        filename += ".txt";
+      }
+    }
+    if (!isPython && !isText) {
       String bundlePath = FileManager.slashify(filename, false);
       if (!file.getAbsolutePath().endsWith(".sikuli")) {
         bundlePath += ".sikuli";
@@ -471,7 +484,7 @@ public class EditorPane extends JTextPane {
       }
       FileManager.deleteFileOrFolder(filename);
     }
-    if (isPython) {
+    if (isPython || isText) {
       try {
         saveAsFile(filename);
       } catch (IOException iOException) {

@@ -68,9 +68,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     if (popType.equals(POP_TAB)) {
       refTab = (CloseableTabbedPane) ref;
       popTabMenu();
-    } else if (popType.equals(POP_IMAGE)) {
-      refEditorPane = (EditorPane) ref;
-      popImageMenu();
+//    } else if (popType.equals(POP_IMAGE)) {
+//      refEditorPane = (EditorPane) ref;
+//      popImageMenu();
     } else if (popType.equals(POP_LINE)) {
       refLineNumberView = (EditorLineNumberView) ref;
       refEditorPane = ((EditorLineNumberView) ref).getEditorPane();
@@ -286,7 +286,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         }
       }
       String currentType = cp.getSikuliContentType();
-      String targetType = Sikulix.popSelect("Select the Scripting Language ...",
+      Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
+      Sikulix.popat(mouseAt.offset(100, 85));
+      String targetType = Sikulix.popSelect("Select the Content Type ...",
               selOptionsType, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
         targetType = currentType;
@@ -299,7 +301,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       String targetEnding = Runner.typeEndings.get(targetType);
       if (cp.getText().length() > 0) {
-//				if (!cp.reparseCheckContent()) {
         if (!Sikulix.popAsk(String.format(
                 "Switch to %s requested, but tab is not empty!\n"
                         + "Click YES, to discard content and switch\n"
@@ -310,7 +311,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       if (error.isEmpty()) {
         cp.reInit(targetEnding);
-//				cp.setText(String.format(Settings.TypeCommentDefault, cp.getSikuliContentType()));
         cp.setText("");
         error = ": (" + targetType + ")";
       }

@@ -287,7 +287,7 @@ public class CloseableModernTabbedPaneUI extends BasicTabbedPaneUI {
 		public void mouseReleased(MouseEvent e) {
 			int oldTabPressed = tabPressed;
 			tabPressed = -1;
-			if (oldTabPressed != -1) {
+			if (oldTabPressed > 1) {
 				tabPane.repaint(getTabBounds(tabPane, oldTabPressed));
 			}
 		}

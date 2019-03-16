@@ -16,6 +16,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Options;
+import org.sikuli.script.RunTime;
 
 public class SikulixFileChooser {
   static final int FILES = JFileChooser.FILES_ONLY;
@@ -41,6 +43,12 @@ public class SikulixFileChooser {
 
   public void setPython() {
     isPython = true;
+  }
+
+  private boolean isText = false;
+
+  public void setText() {
+    isText = true;
   }
 
   private boolean isUntitled = false;
@@ -84,22 +92,26 @@ public class SikulixFileChooser {
     File ret;
     File selectedFile;
     if (isUntitled) {
-      String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
-      String title = "Save as Sikuli or Python Script";
-      if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-        selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+      if (isText) {
+        selectedFile = show("Save a Text File", SAVE, DIRSANDFILES, anyFilterS);
       } else {
-        selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+        String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+        String title = "Save as Sikuli or Python Script";
+        if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+          selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+        } else {
+          selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+        }
       }
       ret = selectedFile;
     } else if (isPython) {
-      selectedFile = show("Save a Python script", SAVE, FILES,
-              new SikulixFileFilter("Python script (*.py)", "sp"));
+      selectedFile = show("Save a Python script", SAVE, FILES, pythonFilterS);
+      ret = selectedFile;
+    } else if (isText) {
+      selectedFile = show("Save a Text File", SAVE, FILES, anyFilterS);
       ret = selectedFile;
     } else {
-      String type = "Sikuli Script (*.sikuli)";
-      String title = "Save a Sikuli Script";
-      selectedFile = show(title, SAVE, DIRSANDFILES, new SikulixFileFilter(type, "s"));
+      selectedFile = show("Save a Sikuli Script", SAVE, DIRSANDFILES, sikuliFilterS);
       ret = selectedFile;
     }
     return ret;
@@ -146,9 +158,14 @@ public class SikulixFileChooser {
       if (null != result[0]) {
         fileChoosen = (File) result[0];
         String fileChoosenPath = fileChoosen.getAbsolutePath();
-        if (fileChoosenPath.contains("###")) {
+        if (fileChoosenPath.contains("###Error")) {
           tryAgain = true;
           fileChoosen = new File(fileChoosenPath.split("###")[0]);
+        }
+        boolean isTextFile = false;
+        if (fileChoosenPath.contains("###")) {
+          fileChoosen = new File(fileChoosenPath.split("###")[0]);
+          isTextFile = true;
         }
         theLastDir = fileChoosen.getParent();
         if (fileChoosen.isDirectory()) {
@@ -160,10 +177,10 @@ public class SikulixFileChooser {
         }
         PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
         if (filterChosen instanceof SikulixFileFilter) {
-          if (!((SikulixFileFilter) filterChosen)._type.endsWith("a")) {
+          if (!((SikulixFileFilter) filterChosen)._type.endsWith("a") && !isTextFile) {
             PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
           } else {
-            fileChoosen = new File(fileChoosenPath += "###isText");
+            fileChoosen = new File(fileChoosen.getAbsolutePath() + "###isText");
           }
         }
         return fileChoosen;
@@ -276,8 +293,11 @@ public class SikulixFileChooser {
     public String validateFile(File selectedFile) {
       String validatedFile = selectedFile.getAbsolutePath();
       String errorTag = "###";
-      String error = errorTag + "notPossible";
-      if (_type == "sp") {
+      String error = errorTag + "Error: notPossible";
+      String isTextFile = errorTag + "textFile";
+      if (_type.contains("o") && isTextFile(selectedFile)) {
+        validatedFile = selectedFile.getAbsolutePath() + isTextFile;
+      } else if (_type == "sp") {
         if (!selectedFile.getName().endsWith(".py")) {
           if (selectedFile.isDirectory()) {
             validatedFile = selectedFile.getAbsolutePath() + error;
@@ -301,11 +321,11 @@ public class SikulixFileChooser {
         if (selectedFile.isDirectory() || !selectedFile.exists()) {
           validatedFile = selectedFile.getAbsolutePath() + error;
         } else {
-          String name = selectedFile.getName();
-          if (name.endsWith(".txt") || !name.contains(".")) {
-            return validatedFile;
+          if (isTextFile(selectedFile)) {
+            validatedFile = selectedFile.getAbsolutePath() + isTextFile;
+          } else {
+            validatedFile = selectedFile.getAbsolutePath() + error;
           }
-          validatedFile = selectedFile.getAbsolutePath() + error;
         }
       } else if (_type == "op") {
         if (!selectedFile.getName().endsWith(".py") || selectedFile.isDirectory() || !selectedFile.exists()) {
@@ -320,6 +340,27 @@ public class SikulixFileChooser {
         Debug.log(3, "SikulixFileChooser: error: (%s) %s", _type, validatedFile);
       }
       return validatedFile;
+    }
+
+    private boolean isTextFile(File file) {
+      String name = file.getName();
+      String[] nameStrings = name.split("\\.");
+      if (nameStrings.length > 1) {
+        String textfiles = RunTime.get().options().getOption("ide.textfiles", "txt,");
+        if (!textfiles.endsWith(",")) {
+          textfiles += ",";
+        }
+        textfiles = textfiles.replace(" ", "");
+        String nameEnding = nameStrings[nameStrings.length - 1] + ",";
+        if (textfiles.contains(nameEnding)) {
+          return true;
+        }
+      } else {
+        if (!file.isDirectory()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override

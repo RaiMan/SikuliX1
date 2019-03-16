@@ -774,6 +774,10 @@ public class RunTime {
   String getOption(String oName) {
     return sxOptions.getOption(oName);
   }
+
+  public Options options() {
+    return sxOptions;
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="libs export">
