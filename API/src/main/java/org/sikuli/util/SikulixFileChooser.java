@@ -79,11 +79,16 @@ public class SikulixFileChooser {
   public File load() {
     String title = "Open a Sikuli or Python Script";
     String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+    boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
     File ret;
-    if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO, anyFilterO);
+    if (pythonOnly) {
+      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, anyFilterO);
     } else {
-      ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO, anyFilterS);
+      if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+        ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO, anyFilterO);
+      } else {
+        ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO, anyFilterS);
+      }
     }
     return ret;
   }
@@ -96,11 +101,17 @@ public class SikulixFileChooser {
         selectedFile = show("Save a Text File", SAVE, DIRSANDFILES, anyFilterS);
       } else {
         String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+        boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
         String title = "Save as Sikuli or Python Script";
-        if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-          selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+        if (pythonOnly) {
+          title = "Save as Python Script";
+          selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS);
         } else {
-          selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+          if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+            selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+          } else {
+            selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+          }
         }
       }
       ret = selectedFile;
@@ -118,8 +129,12 @@ public class SikulixFileChooser {
   }
 
   public File export() {
-    String type = "Sikuli packed Script (*.skl)";
+    String type = "Save packed as (*.skl)";
     String title = "Export as Sikuli packed Script";
+    if (isPython || isText) {
+      type = "Save packed as (*.zip)";
+      title = "Export as Sikuli packed Sources";
+    }
     File ret = show(title, SAVE, FILES, new SikulixFileFilter(type, "e"));
     return ret;
   }
@@ -332,9 +347,9 @@ public class SikulixFileChooser {
           validatedFile = selectedFile.getAbsolutePath() + error;
         }
       } else if (_type == "e") {
-        if (!selectedFile.getName().endsWith(".skl")) {
-          validatedFile = selectedFile.getAbsolutePath() + ".skl";
-        }
+//        if (!selectedFile.getName().endsWith(".skl")) {
+//          validatedFile = selectedFile.getAbsolutePath() + ".skl";
+//        }
       }
       if (validatedFile.contains(errorTag)) {
         Debug.log(3, "SikulixFileChooser: error: (%s) %s", _type, validatedFile);

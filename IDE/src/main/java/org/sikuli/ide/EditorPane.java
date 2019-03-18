@@ -308,6 +308,10 @@ public class EditorPane extends JTextPane {
   public void loadFile(String filename) {
     log(lvl, "loadfile: %s", filename);
     filename = FileManager.slashify(filename, false);
+    if (filename.endsWith("###isText")) {
+      filename = filename.replace("###isText", "");
+      isText = true;
+    }
     File fileToLoad = new File(filename);
     if (filename.endsWith(".py")) {
       _editingFile = fileToLoad;
@@ -721,13 +725,25 @@ public class EditorPane extends JTextPane {
   }
 
   public String exportAsZip() {
-    File file = new SikulixFileChooser(sikuliIDE).export();
+    SikulixFileChooser chooser = new SikulixFileChooser(sikuliIDE);
+    if (isPython) {
+      chooser.setPython();
+    } else if (isText) {
+      chooser.setText();
+    }
+    File file = chooser.export();
     if (file == null) {
       return null;
     }
     String zipPath = file.getAbsolutePath();
-    if (!file.getAbsolutePath().endsWith(".skl")) {
-      zipPath += ".skl";
+    if (isPython || isText) {
+      if (!file.getAbsolutePath().endsWith(".zip")) {
+        zipPath += ".zip";
+      }
+    } else {
+      if (!file.getAbsolutePath().endsWith(".skl")) {
+        zipPath += ".skl";
+      }
     }
     if (new File(zipPath).exists()) {
       if (!Sikulix.popAsk(String.format("Overwrite existing file?\n%s", zipPath),

@@ -362,7 +362,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     _mainSplitPane.setDividerLocation(0.6);
     _inited = true;
     try {
-      getCurrentCodePane().requestFocusInWindow();
+      EditorPane codePane = getCurrentCodePane();
+      if (codePane.isText) {
+        collapseConsole();
+      }
+      codePane.requestFocusInWindow();
     } catch (Exception e) {
     }
   }
@@ -655,18 +659,22 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   }
 
   public void setFileTabTitle(String fName, int tabIndex) {
-    String sName = new File(fName).getName();
-    if (sName.endsWith(".py") || getCurrentCodePane().isText) {
-      tabPane.setTitleAt(tabIndex, sName);
+    String ideTitle;
+    EditorPane codePane = getCurrentCodePane();
+    if (codePane.isPython ||codePane.isText) {
+      tabPane.setTitleAt(tabIndex, codePane.getCurrentFile().getName());
+      ideTitle = codePane.getCurrentFilename();
     } else {
-      int i = sName.lastIndexOf(".");
+      String shortName = new File(fName).getName();
+      ideTitle = new File(fName).getAbsolutePath();
+      int i = shortName.lastIndexOf(".");
       if (i > 0) {
-        tabPane.setTitleAt(tabIndex, sName.substring(0, i));
+        tabPane.setTitleAt(tabIndex, shortName.substring(0, i));
       } else {
-        tabPane.setTitleAt(tabIndex, sName);
+        tabPane.setTitleAt(tabIndex, shortName);
       }
     }
-    this.setTitle(new File(fName).getAbsolutePath());
+    this.setTitle(ideTitle);
   }
 
   public ArrayList<String> getOpenedFilenames() {
@@ -1005,7 +1013,8 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     _fileMenu.addSeparator();
     _fileMenu.add(createMenuItem("Open Special Files",
-            null, new FileAction(FileAction.OPEN_SPECIAL)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
+            new FileAction(FileAction.OPEN_SPECIAL)));
 
     _fileMenu.add(createMenuItem("Restart IDE",
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
@@ -1079,32 +1088,28 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void doOpenSpecial(ActionEvent ae) {
+      (new Thread() {
+        @Override
+        public void run() {
+          runOpenSpecial();
+        }
+      }).start();
+    }
+
+    public void runOpenSpecial() {
       log(lvl, "Open Special requested");
       Map<String, String> specialFiles = runTime.collectSpecialFiles();
       String msg = "";
       for (String specialFile : specialFiles.keySet()) {
-        msg += specialFile + ": " + specialFiles.get(specialFile) + "\n";
+        msg += specialFile + "\n";
       }
-      final String[] specialFilesMsg = new String[]{msg, "notset"};
-      (new Thread() {
-        @Override
-        public void run() {
-          Boolean answer = Do.popAsk(specialFilesMsg[0], "IDE: Open special files", "", false, 5);
-          if (answer) {
-            specialFilesMsg[1] = specialFilesMsg[0];
-          } else {
-            specialFilesMsg[1] = "";
-          }
-        }
-      }).start();
-      while (specialFilesMsg[1].contains("notset")) {
-        RunTime.pause(1);
+      Boolean answer = Do.popAsk(msg, "", false, 5);
+      if (null != answer && answer) {
+        log(lvl, "Open Special: should load");
+        String selectedFile = specialFiles.get(msg.trim()) + "###isText";
+        tabPane.setLastClosed(selectedFile);
+        doLoad(null);
       }
-//      if (specialFilesMsg[1].isEmpty()) {
-//        return;
-//      }
-//      tabPane.setLastClosed(specialFilesMsg[1]);
-//      doLoad(null);
     }
 
     public void doRestart(ActionEvent ae) {
@@ -1173,6 +1178,12 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         if (ae != null || fname == null) {
           codePane.isSourceBundleTemp();
           fname = codePane.loadFile(accessingAsFile);
+          if (fname != null) {
+            sikulixIDE.setCurrentFileTabTitle(fname);
+          } else {
+            doCloseTab(null);
+            tabPane.setSelectedIndex(alreadyOpenedTab);
+          }
         } else {
           codePane.loadFile(fname);
           if (codePane.hasEditingFile()) {
@@ -1181,15 +1192,10 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
             fname = null;
           }
         }
-        if (fname != null) {
-          sikulixIDE.setCurrentFileTabTitle(fname);
-        } else {
-          if (ae != null) {
-            doCloseTab(null);
-          }
-          tabPane.setSelectedIndex(alreadyOpenedTab);
-        }
         doRecentAdd(getCurrentCodePane());
+        if (codePane.isText) {
+          collapseConsole();
+        }
       } catch (IOException eio) {
         log(-1, "Problem when trying to load %s\nError: %s",
                 fname, eio.getMessage());
