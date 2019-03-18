@@ -29,7 +29,6 @@ import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
-import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 import org.sikuli.syntaxhighlight.ResolutionException;
 import org.sikuli.syntaxhighlight.grammar.Lexer;
@@ -501,7 +500,7 @@ public class EditorPane extends JTextPane {
       _srcBundleTemp = false;
     }
     setSrcBundle(bundlePath);
-    _editingFile = createSourceFile(bundlePath, "." + Runner.typeEndings.get(sikuliContentType));
+    _editingFile = createSourceFile(bundlePath, "." + Runner.getExtension(sikuliContentType));
     writeSrcFile();
     reparse();
   }
@@ -1101,7 +1100,7 @@ public class EditorPane extends JTextPane {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        getRunner().runLines(lines);
+        getRunner().runLines(lines, null);
         SikuliIDE.showAgain();
       }
     }).start();
@@ -1360,7 +1359,7 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   public IScriptRunner getRunner() {
-    IScriptRunner runner = ScriptingSupport.getRunner(null, getContentType());
+    IScriptRunner runner = Runner.getRunner(getContentType());
     return runner;
   }
 

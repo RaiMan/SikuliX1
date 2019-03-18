@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.scriptrunner;
+package org.sikuli.script;
 
 import java.io.File;
+import java.io.PipedInputStream;
+import java.net.URI;
+import java.util.Map;
 
 /**
  * Interface for ScriptRunners like Jython.
@@ -16,8 +19,8 @@ public interface IScriptRunner {
    *
    * @param args All arguments that were passed to the main-method
    */
-  public void init(String[] args);
-
+  public void init(String[] args) throws SikuliXception;
+  
   /**
    * Executes the Script.
    *
@@ -26,9 +29,11 @@ public interface IScriptRunner {
    * @param scriptArgs Arguments to be passed directly to the script with --args
    * @return exitcode for the script execution
    */
-  public int runScript(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE);
+  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options);
+  
+  public int evalScript(String script, Map<String,Object> options);
 
-  public void runLines(String lines);
+  public void runLines(String lines, Map<String,Object> options);
 
   /**
    * Executes the Script as Test.
@@ -39,7 +44,7 @@ public interface IScriptRunner {
    * @param forIDE when called from Sikuli IDE additional info
    * @return exitcode for the script execution
    */
-  public int runTest(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE);
+  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options);
 
   /**
    * Starts an interactive session with the scriptrunner.
@@ -62,7 +67,14 @@ public interface IScriptRunner {
    * @return The helptext
    */
   public String getInteractiveHelp();
-
+  
+  /**
+   * Checks if the current platform supports this runner.
+   * 
+   * @return true, if platform supports this runner, false otherwise 
+   */
+  public boolean isSupported();
+  
   /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
    * between different ScriptRunners.
@@ -76,14 +88,16 @@ public interface IScriptRunner {
    *
    * @return array of strings
    */
-  public String[] getFileEndings();
+  public String[] getExtensions();
+  
+  public String getType();
 
   /**
    * checks wether this ScriptRunner supports the given fileending
    *
    * @return the lowercase fileending
    */
-  public String hasFileEnding(String ending);
+  public String hasExtension(String ending);
 
   /**
    * Is executed before Sikuli closes. Can be used to cleanup the ScriptRunner
@@ -111,4 +125,8 @@ public interface IScriptRunner {
    * @param stmts string array of statements (null resets the statement buffer)
    */
   public void execAfter(String[] stmts);
+  
+  public boolean canHandle(String identifier);
+  
+  public boolean redirect(PipedInputStream[] pin);
 }

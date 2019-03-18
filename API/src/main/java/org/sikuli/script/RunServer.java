@@ -10,9 +10,12 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import javax.script.ScriptEngine;
+
+import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
 
 /**
@@ -483,62 +486,28 @@ public class RunServer {
     }
 
     private boolean startRunner(String runType, File fScript, File fScriptScript, String[] args) {
-      if (runTypeJS.equals(runType)) {
-        if (jsRunner == null) {
-          try {
-            jsRunner = Runner.initjs();
-            String prolog = "";
-            prolog = Runner.prologjs(prolog);
-            prolog = Runner.prologjs(prolog);
-            jsRunner.eval(prolog);
-          } catch (Exception ex) {
-            rMessage = "startRunner JavaScript: not possible";
-            rStatus = rStatusServiceNotAvail;
-            return false;
-          }
-        }
-        if (fScript == null) {
-          return true;
-        }
-        if (jsRunner != null) {
-          try {
-            evalReturnObject = jsRunner.eval(new java.io.FileReader(fScriptScript));
-            rMessage = "runScript: returned: "
-                    + (evalReturnObject == null ? "null" : evalReturnObject.toString());
-            return evalReturnObject != null;
-          } catch (Exception ex) {
-            rMessage = "runScript: script raised exception on run: " + ex.toString();
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else if (runTypePY.equals(runType)) {
-        Integer retval = 0;
-        if (!Runner.initpy()) {
-          retval = -1;
-        }
-        if (fScript != null && retval == 0) {
-          // Arguments are passed to Python in the long format: --name=value
-          evalReturnObject = Runner.run(fScript.getAbsolutePath(), args);
-          try {
-            retval = Integer.parseInt(evalReturnObject.toString());
-            if (retval == -999) {
-              retval = 0;
-            }
-          } catch (Exception ex) {
-            retval = 0;
-          }
-        }
-        if (retval < 0) {
-          rMessage = "startRunner Python: not possible or crashed with exception";
-          rStatus = rStatusServiceNotAvail;
-          return false;
-        }
-        if (fScript != null) {
-          rMessage = "runScript: returned: " + retval.toString();
-        }
+      if (fScript == null) {
+        return true;
       }
+      
+      IScriptRunner runner = Runner.getRunner(runType);
+      
+      try {
+        runner.init(null);       
+      }catch (Exception ex) {
+        rMessage = "startRunner " + runner.getName() + ": not possible";
+        rStatus = rStatusServiceNotAvail;
+        return false;
+      }      
+      
+      int retval = Runner.run(fScript.toString(), args);
+                  
+      rMessage = "runScript: returned: " + retval;
+     
+      if (retval < 0) {         
+        rStatus = rStatusServiceNotAvail;
+        return false;
+      }  
       return true;
     }
   }

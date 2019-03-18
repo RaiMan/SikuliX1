@@ -1,15 +1,17 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.scriptrunner;
+package org.sikuli.script.runners;
 
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.Sikulix;
 import org.sikuli.util.JythonHelper;
 
@@ -17,15 +19,22 @@ import java.io.File;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
  */
-public class JythonScriptRunner implements IScriptRunner {
+
+public class JythonRunner extends AbstractScriptRunner {
+  
+  public static final String NAME = "jython";
+  public static final String TYPE = "text/python";
+  public static final String[] EXTENSIONS = new String[] {"py"};
 
   private static RunTime runTime = RunTime.get();
 
@@ -54,6 +63,7 @@ public class JythonScriptRunner implements IScriptRunner {
    */
   private static String[] SCRIPT_HEADER = new String[]{
           "# -*- coding: utf-8 -*- ",
+          "import org.sikuli.script.SikulixForJython",
           "from sikuli import *",
           "use() #resetROI()",
           "setShowActions(False)"
@@ -83,20 +93,13 @@ public class JythonScriptRunner implements IScriptRunner {
 //  static String pyConverter
 //          = FileManager.convertStreamToString(SikuliToHtmlConverter);
   private String sikuliLibPath = null;
-  private boolean isReady = false;
   private boolean isCompileOnly = false;
   private boolean isFromIDE = false;
 
   @Override
-  public synchronized void init(String[] param) {
-    if (isReady && interpreter != null) {
-      return;
-    }
-    isReady = false;
-
-    try {
+  protected void doInit(String[] param) {   
       getInterpreter();
-      helper = JythonHelper.set(interpreter);
+      helper = getHelper();
       helper.getSysPath();
 //JAVA9
 //      String fpAPI = null;
@@ -116,15 +119,11 @@ public class JythonScriptRunner implements IScriptRunner {
       helper.addSitePackages();
       helper.showSysPath();
       interpreter.exec("from sikuli import *");
-      log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
-    } catch (Exception ex) {
-      helper.terminate(999, "JythonScriptRunner: cannot be initialized:\n%s", ex);
-    }
-    isReady = true;
+      log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString()); 
   }
 
   @Override
-  public void runLines(String lines) {
+  public void runLines(String lines, Map<String,Object> options) {
     if (lines.contains("\n")) {
       if (lines.startsWith(" ") || lines.startsWith("\t")) {
         lines = "if True:\n" + lines;
@@ -135,6 +134,12 @@ public class JythonScriptRunner implements IScriptRunner {
     } catch (Exception ex) {
       log(-1, "runPython: (%s) raised: %s", lines, ex);
     }
+  }
+  
+  @Override
+  public int evalScript(String script, Map<String,Object> options) {
+    interpreter.exec(script);
+    return 0;
   }
 
   /**
@@ -147,9 +152,10 @@ public class JythonScriptRunner implements IScriptRunner {
    * @return The exitcode
    */
   @Override
-  public int runScript(File pyFile, File fScriptPath, String[] argv, String[] forIDE) {
-    if (null == pyFile) {
+  public int runScript(URI pyURL, String[] argv, Map<String,Object> options) {
+    if (null == pyURL) {                 
       //run the Python statements from argv (special for setup functional test)
+            
       executeScriptHeader(null);
       log(lvl, "runPython: running statements");
       try {
@@ -162,28 +168,32 @@ public class JythonScriptRunner implements IScriptRunner {
       }
       return 0;
     }
-    isFromIDE = !(forIDE == null);
-    if (isFromIDE && forIDE.length > 1 && forIDE[0] != null) {
-      isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
-    }
-    if (isFromIDE) {
-      JythonHelper.get().insertSysPath(fScriptPath);
-      JythonHelper.get().reloadImported();
-    }
-    pyFile = new File(pyFile.getAbsolutePath());
-    fillSysArgv(pyFile, argv);
-    int exitCode = 0;
-    if (isFromIDE) {
-      executeScriptHeader(new String[]{forIDE[0]});
-      ScriptingSupport.setProject();
-      exitCode = runPython(pyFile, null, forIDE);
-      JythonHelper.get().removeSysPath(fScriptPath);
-    } else {
+    
+    File pyFile = new File(pyURL);
+    File fScriptPath = new File(pyFile.getParent());
+        
+//    isFromIDE = !(forIDE == null);
+//    if (isFromIDE && forIDE.length > 1 && forIDE[0] != null) {
+//      isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
+//    }
+//    if (isFromIDE) {
+//      JythonHelper.get().insertSysPath(fScriptPath);
+//      JythonHelper.get().reloadImported();
+//    }
+//    pyFile = new File(pyFile.getAbsolutePath());
+//    fillSysArgv(pyFile, argv);
+//    int exitCode = 0;
+//    if (isFromIDE) {
+//      executeScriptHeader(new String[]{forIDE[0]});
+//      ScriptingSupport.setProject();
+//      exitCode = runPython(pyFile, null, forIDE);
+//      JythonHelper.get().removeSysPath(fScriptPath);
+//    } else {
       executeScriptHeader(new String[]{
               pyFile.getParent(),
               pyFile.getParentFile().getParent()});
-      exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
-    }
+      int exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
+//    }
     return exitCode;
   }
 
@@ -413,7 +423,7 @@ public class JythonScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public int runTest(File scriptfile, File imagepath, String[] argv, String[] forIDE) {
+  public int runTest(URI scriptfile, URI imagepath, String[] argv, Map<String,Object> options) {
     log(-1, "runTest: Sikuli Test Feature is not implemented at the moment");
     return -1;
   }
@@ -464,41 +474,38 @@ public class JythonScriptRunner implements IScriptRunner {
             + "-- use a captured image later:\n"
             + "click(img)";
   }
-
-  /**
-   * {@inheritDoc}
-   */
+  
   @Override
-  public String getName() {
+  public boolean isSupported() {
     try {
       Class.forName("org.python.util.PythonInterpreter");
+      return true;
     } catch (ClassNotFoundException ex) {
-      return null;
+      return false;
     }
-    return Runner.RPYTHON;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public String[] getFileEndings() {
-    return new String[]{"py"};
+  public String getName() {   
+    return NAME;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public String hasFileEnding(String ending) {
-    for (String suf : getFileEndings()) {
-      if (suf.equals(ending.toLowerCase())) {
-        return suf;
-      }
-    }
-    return null;
+  public String[] getExtensions() {
+    return EXTENSIONS.clone();
   }
-
+  
+  @Override
+  public String getType() {   
+    return TYPE;
+  }
+  
   /**
    * {@inheritDoc}
    */
@@ -528,13 +535,20 @@ public class JythonScriptRunner implements IScriptRunner {
     }
   }
 
-  private synchronized PythonInterpreter getInterpreter() {
+  protected synchronized PythonInterpreter getInterpreter() {
     if (interpreter == null) {
       sysargv.add("");
       PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
       interpreter = new PythonInterpreter();
     }
     return interpreter;
+  }
+  
+  protected synchronized JythonHelper getHelper() {
+    if(helper == null) {
+      helper = JythonHelper.set(getInterpreter());
+    }
+    return helper;
   }
 
   @Override
@@ -550,10 +564,10 @@ public class JythonScriptRunner implements IScriptRunner {
       return true;
     } else if ("reset".equals(action)) {
       interpreter = null;
-      init(null);
-      if (isReady && interpreter != null) {
+      try {
+        init(null);
         log(3, "reset requested (experimental: please report oddities)");
-      } else {
+      } catch(Exception e) {     
         log(-1, "reset requested but did not work. Please report this case." +
                 "Do not run scripts anymore and restart the IDE after having saved your work");
       }
@@ -620,16 +634,15 @@ public class JythonScriptRunner implements IScriptRunner {
       jyargv.add(item);
     }
   }
-
-  private boolean doRedirect(PipedInputStream[] pin) {
+  
+  @Override
+  protected boolean doRedirect(PipedInputStream[] pin) {
     PythonInterpreter py = getInterpreter();
     Debug.saveRedirected(System.out, System.err);
     try {
       PipedOutputStream pout = new PipedOutputStream(pin[0]);
-      PrintStream ps = new PrintStream(pout, true);
-      if (!ScriptingSupport.systemRedirected) {
-        System.setOut(ps);
-      }
+      PrintStream ps = new PrintStream(pout, true);     
+      System.setOut(ps);
       py.setOut(ps);
     } catch (Exception e) {
       log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
@@ -638,9 +651,7 @@ public class JythonScriptRunner implements IScriptRunner {
     try {
       PipedOutputStream eout = new PipedOutputStream(pin[1]);
       PrintStream eps = new PrintStream(eout, true);
-      if (!ScriptingSupport.systemRedirected) {
-        System.setErr(eps);
-      }
+      System.setErr(eps);
       py.setErr(eps);
     } catch (Exception e) {
       log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());

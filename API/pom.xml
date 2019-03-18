@@ -82,6 +82,21 @@
       <artifactId>slf4j-nop</artifactId>
       <version>1.7.25</version>
     </dependency>
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>${sikulixjythonversion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby</groupId>
+      <artifactId>jruby-complete</artifactId>
+      <version>${sikulixjrubyversion}</version>
+    </dependency>
+    <dependency>
+	  <groupId>org.reflections</groupId>
+	  <artifactId>reflections</artifactId>
+	  <version>0.9.10</version>
+	</dependency>   
   </dependencies>
 
   <build>

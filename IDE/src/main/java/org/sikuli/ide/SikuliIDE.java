@@ -14,7 +14,6 @@ import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
-import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 import org.sikuli.util.*;
 
@@ -251,8 +250,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
     //ideSplash.showStep("Init ScriptingSupport");
-
-    ScriptingSupport.init(true);
+ 
     IDESupport.initIDESupport();
     sikulixIDE.initSikuliIDE(args);
   }
@@ -2655,7 +2653,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       String cType = codePane.getContentType();
       File scriptFile = null;
       if (codePane.isDirty()) {
-        scriptFile = FileManager.createTempFile(Runner.typeEndings.get(cType));
+        scriptFile = FileManager.createTempFile(Runner.getExtension(cType));
         if (scriptFile != null) {
           try {
             codePane.write(new BufferedWriter(new OutputStreamWriter(
@@ -2678,7 +2676,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       if (path != null && !codePane.isSourceBundleTemp()) {
         parent = path.getParent();
       }
-      IScriptRunner srunner = ScriptingSupport.getRunner(null, cType);
+      IScriptRunner srunner = Runner.getRunner(cType);
       if (srunner == null) {
         log(-1, "runCurrentScript: Could not load a script runner for: %s", cType);
         return;
@@ -2729,8 +2727,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       @Override
       public void run() {
         try {
-          ret = srunners[0].runScript(scriptFile, path, runTime.getArgs(),
-                  new String[]{parent, tabtitle});
+          ret = srunners[0].runScript(scriptFile.toURI(), runTime.getArgs(), null);
         } catch (Exception ex) {
           log(-1, "(%s).runScript: Exception: %s", srunners[0], ex);
         }

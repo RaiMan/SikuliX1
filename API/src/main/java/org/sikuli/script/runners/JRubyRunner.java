@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.scriptrunner;
+package org.sikuli.script.runners;
 
 //import java.io.File;
 import java.io.BufferedReader;
@@ -11,9 +11,11 @@ import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jruby.CompatVersion;import org.jruby.Ruby;
@@ -30,7 +32,11 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 
-public class JRubyScriptRunner implements IScriptRunner {
+public class JRubyRunner extends AbstractScriptRunner {
+  
+  public static final String NAME = "jruby";
+  public static final String TYPE = "text/ruby";
+  public static final String[] EXTENSIONS = new String[] {"rb"};
 
   static RunTime sxRunTime = RunTime.get();
 
@@ -86,18 +92,23 @@ public class JRubyScriptRunner implements IScriptRunner {
   private static ThreadContext context;
 
 	@Override
-	public synchronized void init(String[] args) {
+	protected void doInit(String[] args) {
 		//TODO classpath and other path handlings
 		sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
 	}
-
+	
 	@Override
-	public void runLines(String lines) {
+	public void runLines(String lines, Map<String,Object> options) {
 		log(-1, "runLines: not yet implemented");
 	}
+	
+	@Override
+  public int evalScript(String script, Map<String,Object> options) {
+    return -1;
+  }
 
 	@Override
-	public int runScript(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE) {
+	public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
 		if (null == scriptfile) {
 			//run the Ruby statements from argv (special for setup functional test)
 			fillSysArgv(null, null);
@@ -105,24 +116,24 @@ public class JRubyScriptRunner implements IScriptRunner {
 			executeScriptHeader(new String[0]);
 			return runRuby(null, scriptArgs, null);
 		}
-		scriptfile = new File(scriptfile.getAbsolutePath());
-		fillSysArgv(scriptfile, scriptArgs);
+		File file = new File(new File(scriptfile).getAbsolutePath());
+		fillSysArgv(file, scriptArgs);
 		createScriptingContainer();
 		int exitCode = 0;
-		isFromIDE = ! (forIDE == null);
-		if (isFromIDE && forIDE.length > 1 && forIDE[0] != null ) {
-			isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
-		}
-		if (forIDE == null) {
-			executeScriptHeader(new String[]{
-				scriptfile.getParentFile().getAbsolutePath(),
-				scriptfile.getParentFile().getParentFile().getAbsolutePath()});
-			exitCode = runRuby(scriptfile, null,
-							new String[]{scriptfile.getParentFile().getAbsolutePath()});
-		} else {
-			executeScriptHeader(new String[]{forIDE[0]});
-			exitCode = runRuby(scriptfile, null, forIDE);
-		}
+//		isFromIDE = ! (forIDE == null);
+//		if (isFromIDE && forIDE.length > 1 && forIDE[0] != null ) {
+//			isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
+//		}
+//		if (forIDE == null) {
+//			executeScriptHeader(new String[]{
+//			    file.getParentFile().getAbsolutePath(),
+//			    file.getParentFile().getParentFile().getAbsolutePath()});
+//			exitCode = runRuby(file, null,
+//							new String[]{file.getParentFile().getAbsolutePath()});
+//		} else {
+//			executeScriptHeader(new String[]{forIDE[0]});
+//			exitCode = runRuby(file, null, forIDE);
+//		}
 		log(lvl + 1, "runScript: at exit: path:");
 		for (Object p : interpreter.getLoadPaths()) {
 			log(lvl + 1, "runScript: " + p.toString());
@@ -132,7 +143,7 @@ public class JRubyScriptRunner implements IScriptRunner {
 	}
 
 	@Override
-	public int runTest(File scriptfile, File imagedirectory, String[] scriptArgs, String[] forIDE) {
+	public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -184,32 +195,34 @@ public class JRubyScriptRunner implements IScriptRunner {
                     + "-- use a captured image later:\n"
                     + "click(img)";
 	}
-
+	
 	@Override
-	public String getName() {
-    try {
+	public boolean isSupported() {
+	  try {
       Class.forName("org.jruby.embed.ScriptingContainer");
+      return true;
     } catch (ClassNotFoundException ex) {
-      return null;
+      return false;
     }
-		return Runner.RRUBY;
+	  
+	}
+	
+
+	@Override
+	public String getName() {   
+		return NAME;
 	}
 
 	@Override
-	public String[] getFileEndings() {
-		return new String[]{"rb"};
+	public String[] getExtensions() {
+		return EXTENSIONS.clone();
 	}
-
+	
 	@Override
-	public String hasFileEnding(String ending) {
-		for (String suf : getFileEndings()) {
-			if (suf.equals(ending.toLowerCase())) {
-				return suf;
-			}
-		}
-		return null;
-	}
-
+  public String getType() {   
+    return TYPE;
+  }
+	
 	@Override
 	public void close() {
 		if (interpreter != null) {
@@ -556,25 +569,23 @@ public class JRubyScriptRunner implements IScriptRunner {
 		}
 	}
 
-	private boolean doRedirect(PipedInputStream[] pin) {
+	@Override
+  protected boolean doRedirect(PipedInputStream[] pin) {
 		ScriptingContainer interpreter = getScriptingContainer();
 		try {
 			PipedOutputStream pout = new PipedOutputStream(pin[0]);
 			PrintStream ps = new PrintStream(pout, true);
-      if (!ScriptingSupport.systemRedirected) {
-        System.setOut(ps);
-      }
+      System.setOut(ps);  
 			interpreter.setOutput(ps);
 		} catch (Exception e) {
+		  e.printStackTrace();
 			log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
 			return false;
 		}
 		try {
 			PipedOutputStream pout = new PipedOutputStream(pin[1]);
 			PrintStream ps = new PrintStream(pout, true);
-      if (!ScriptingSupport.systemRedirected) {
-        System.setErr(ps);
-      }
+      System.setErr(ps);
 			interpreter.setError(ps);
 		} catch (Exception e) {
 			log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());

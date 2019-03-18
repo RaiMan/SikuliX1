@@ -22,7 +22,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
-import org.sikuli.scriptrunner.IScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
@@ -278,7 +277,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       String error = "";
       EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
       if (selOptionsType == null) {
-        Set<String> types = Runner.typeEndings.keySet();
+        Set<String> types = Runner.getExtensions();
         selOptionsType = new String[types.size()];
         int i = 0;
         for (String e : types) {
@@ -297,7 +296,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         SikuliIDE.getStatusbar().setCurrentContentType(currentType);
         return;
       }
-      String targetEnding = Runner.typeEndings.get(targetType);
+      String targetEnding = Runner.getExtension(targetType);
       if (cp.getText().length() > 0) {
 //				if (!cp.reparseCheckContent()) {
         if (!Sikulix.popAsk(String.format(
