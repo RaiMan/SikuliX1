@@ -121,7 +121,7 @@ public class Options {
         log(-1, "loadOptions: not exists: %s", fOptions);
       }
     } else {
-      for (File aFile : new File[]{runtime.fWorkDir, runtime.fUserDir, runtime.fSikulixStore}) {
+      for (File aFile : new File[]{runtime.fSikulixStore, runtime.fWorkDir, runtime.fUserDir}) {
         fOptions = new File(aFile, fpOptions);
         if (fOptions.exists()) {
           break;
@@ -423,9 +423,10 @@ public class Options {
    */
   public void dumpOptions() {
     if (hasOptions()) {
+      Map<String, String> mapOptions = getOptions();
       logp("*** options dump");
-      for (String sOpt : getOptions().keySet()) {
-        logp("%s = %s", sOpt, getOption(sOpt));
+      for (String sOpt : mapOptions.keySet()) {
+        logp("%s = %s", sOpt, mapOptions.get(sOpt));
       }
       logp("*** options dump end");
     }
