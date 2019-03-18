@@ -211,6 +211,9 @@ public class Runner {
     if (fScriptFolder == null) {
       return null;
     }
+    if (fScriptFolder.getName().endsWith(".py")) {
+      return fScriptFolder;
+    }
     File[] content = FileManager.getScriptFile(fScriptFolder);
     if (null == content) {
       return null;
