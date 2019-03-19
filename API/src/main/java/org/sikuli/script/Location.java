@@ -259,8 +259,8 @@ public class Location implements Comparable<Location>{
    * create a region with a corner at this point<br>as specified with x y<br> 0 0 top left<br>
    * 0 1 bottom left<br> 1 0 top right<br> 1 1 bottom right<br>
    *
-   * @param CREATE_X_DIRECTION == 0 is left side !=0 is right side, see {@link Region#CREATE_X_DIRECTION_LEFT}, {@link Region#CREATE_X_DIRECTION_RIGHT}
-   * @param CREATE_Y_DIRECTION == 0 is top side !=0 is bottom side, see {@link Region#CREATE_Y_DIRECTION_TOP}, {@link Region#CREATE_Y_DIRECTION_BOTTOM}
+   * @param CREATE_X_DIRECTION == 0 is left side !=0 is right side, see {@link Region#LEFT}, {@link Region#RIGHT}
+   * @param CREATE_Y_DIRECTION == 0 is top side !=0 is bottom side, see {@link Region#TOP}, {@link Region#BOTTOM}
    * @param w the width
    * @param h the height
    * @return the new region

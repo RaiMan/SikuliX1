@@ -20,10 +20,6 @@ import org.sikuli.util.ScreenHighlighter;
  */
 public class Region {
 
-//  static {
-//    System.out.println("************************************************** First Touch: Region");
-//  }
-
   private static String me = "Region: ";
   private static int lvl = 3;
   private static Region fakeRegion;
@@ -32,11 +28,282 @@ public class Region {
     return new Screen();
   }
 
+  public static Region make4py(ArrayList args) {
+    log(3, "make: args: %s", args);
+    Region reg = new Screen();
+    if (null != args) {
+      int argn = 1;
+      for (Object arg : args) {
+        log(3, "%d: %s (%s)", argn++, arg.getClass().getSimpleName(), arg);
+      }
+      if (args.size() == 4) {
+        //case1: Region(x,y,w,h)
+        int num = 4;
+        for (Object arg : args) {
+          if (arg instanceof Integer) {
+            num--;
+          }
+        }
+        if (num == 0) {
+          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
+        }
+      } else if (args.size() == 1) {
+        //case2: Region(Region)
+        reg = create((Region) args.get(0));
+      }
+    }
+    return reg;
+  }
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
 
-  //<editor-fold desc="housekeeping">
+  //<editor-fold desc="001 Fields x, y, w, h">
+  /**
+   * @return x of top left corner
+   */
+  public int getX() {
+    return x;
+  }
+
+  /**
+   * @param X new x position of top left corner
+   */
+  public void setX(int X) {
+    x = X;
+    initScreen(null);
+  }
+
+  /**
+   * X-coordinate of the Region
+   */
+  public int x;
+
+  /**
+   * @return y of top left corner
+   */
+  public int getY() {
+    return y;
+  }
+
+  /**
+   * @param Y new y position of top left corner
+   */
+  public void setY(int Y) {
+    y = Y;
+    initScreen(null);
+  }
+
+  /**
+   * Y-coordinate of the Region
+   */
+  public int y;
+
+  /**
+   * @return width of region
+   */
+  public int getW() {
+    return w;
+  }
+
+  /**
+   * @param W new width
+   */
+  public void setW(int W) {
+    w = W > 1 ? W : 1;
+    initScreen(null);
+  }
+
+  /**
+   * Width of the Region
+   */
+  public int w;
+
+  /**
+   * @return height of region
+   */
+  public int getH() {
+    return h;
+  }
+
+  /**
+   * @param H new height
+   */
+  public void setH(int H) {
+    h = H > 1 ? H : 1;
+    initScreen(null);
+  }
+
+  /**
+   * Height of the Region
+   */
+  public int h;
+  //</editor-fold>
+
+  //<editor-fold desc="002 Fields throwException, handling findFailed/imageMissing">
+  //<editor-fold desc="1 throwexception">
+  /**
+   * true - should throw {@link FindFailed} if not found in this region<br>
+   * false - do not abort script on FindFailed (might lead to NPE's later)<br>
+   * default: {@link Settings#ThrowException}<br>
+   * sideEffects: {@link #setFindFailedResponse(FindFailedResponse)} true:ABORT, false:SKIP<br>
+   * see also: {@link #setFindFailedResponse(FindFailedResponse)}<br>
+   * and: {@link #setFindFailedHandler(Object)}
+   *
+   * @param flag true/false
+   */
+  public void setThrowException(boolean flag) {
+    throwException = flag;
+    if (throwException) {
+      findFailedResponse = FindFailedResponse.ABORT;
+    } else {
+      findFailedResponse = FindFailedResponse.SKIP;
+    }
+  }
+
+  /**
+   * reset to default {@link #setThrowException(boolean)}
+   */
+  public void resetThrowException() {
+    setThrowException(throwExceptionDefault);
+  }
+
+  /**
+   * current setting {@link #setThrowException(boolean)}
+   *
+   * @return true/false
+   */
+  public boolean getThrowException() {
+    return throwException;
+  }
+
+  private boolean throwExceptionDefault = Settings.ThrowException;
+  private boolean throwException = throwExceptionDefault;
+  //</editor-fold>
+  //<editor-fold desc="2 findFailedResponse">
+  /**
+   * FindFailedResponse.<br>
+   * ABORT - abort script on FindFailed <br>
+   * SKIP - ignore FindFailed<br>
+   * PROMPT - display prompt on FindFailed to let user decide how to proceed<br>
+   * RETRY - continue to wait for appearence after FindFailed<br>
+   * HANDLE - call a handler on exception {@link #setFindFailedHandler(Object)}<br>
+   * default: ABORT<br>
+   * see also: {@link #setThrowException(boolean)}
+   *
+   * @param response {@link FindFailed}
+   */
+  public void setFindFailedResponse(FindFailedResponse response) {
+    findFailedResponse = response;
+  }
+
+  /**
+   * reset to default {@link #setFindFailedResponse(FindFailedResponse)}
+   */
+  public void resetFindFailedResponse() {
+    setFindFailedResponse(findFailedResponseDefault);
+  }
+
+  /**
+   * @return the current setting {@link #setFindFailedResponse(FindFailedResponse)}
+   */
+  public FindFailedResponse getFindFailedResponse() {
+    return findFailedResponse;
+  }
+
+  private FindFailedResponse findFailedResponseDefault = FindFailed.getResponse();
+  private FindFailedResponse findFailedResponse = findFailedResponseDefault;
+  //</editor-fold>
+  //<editor-fold desc="3 findFailedHandler">
+  public void setFindFailedHandler(Object handler) {
+    findFailedHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
+    log(lvl, "Setting FindFailedHandler");
+  }
+
+  private Object findFailedHandler = FindFailed.getFindFailedHandler();
+  //</editor-fold>
+  //<editor-fold desc="4 imageMissingHandler">
+  public void setImageMissingHandler(Object handler) {
+    imageMissingHandler = setHandler(handler, ObserveEvent.Type.MISSING);
+    log(lvl, "Setting ImageMissingHandler");
+  }
+
+  private Object imageMissingHandler = FindFailed.getImageMissingHandler();
+  //</editor-fold>
+
+  private Object setHandler(Object handler, ObserveEvent.Type type) {
+    findFailedResponse = FindFailedResponse.HANDLE;
+    if (handler != null && (handler.getClass().getName().contains("org.python")
+            || handler.getClass().getName().contains("org.jruby"))) {
+      handler = new ObserverCallBack(handler, type);
+    } else {
+      ((ObserverCallBack) handler).setType(type);
+    }
+    return handler;
+  }
+  //</editor-fold>
+
+  /**
+   * the time in seconds a find operation should wait
+   *
+   * for the appearence of the target in this region<br>
+   * initial value is the global AutoWaitTimeout setting at time of Region creation<br>
+   *
+   *
+   * @param sec seconds
+   */
+  public void setAutoWaitTimeout(double sec) {
+    autoWaitTimeout = sec;
+  }
+
+  /**
+   * current setting for this region (see setAutoWaitTimeout)
+   *
+   * @return value of seconds
+   */
+  public double getAutoWaitTimeout() {
+    return autoWaitTimeout;
+  }
+
+  /**
+   * Default time to wait for an image {@link Settings}
+   */
+  private double autoWaitTimeoutDefault = Settings.AutoWaitTimeout;
+  private double autoWaitTimeout = autoWaitTimeoutDefault;
+
+  private float waitScanRate = Settings.WaitScanRate;
+
+  /**
+   * Flag, if an observer is running on this region {@link Settings}
+   */
+  private boolean observing = false;
+  private boolean observingInBackground = false;
+  private float observeScanRate = Settings.ObserveScanRate;
+  private int repeatWaitTime = Settings.RepeatWaitTime;
+
+  /**
+   * The {@link Observer} Singleton instance
+   */
+  private Observer regionObserver = null;
+
+  /**
+   * The last found {@link Match} in the Region
+   */
+  private Match lastMatch = null;
+
+  /**
+   * The last found {@link Match}es in the Region
+   */
+  private Iterator<Match> lastMatches = null;
+  private long lastSearchTime = -1;
+  private long lastFindTime = -1;
+  private long lastSearchTimeRepeat = -1;
+//<editor-fold desc="housekeeping">
+
+  private boolean isScreenUnion = false;
+  private boolean isVirtual = false;
+
   /**
    * The Screen containing the Region
    */
@@ -47,62 +314,6 @@ public class Region {
    * The ScreenHighlighter for this Region
    */
   private ScreenHighlighter overlay = null;
-  /**
-   * X-coordinate of the Region
-   */
-  public int x;
-  /**
-   * Y-coordinate of the Region
-   */
-  public int y;
-  /**
-   * Width of the Region
-   */
-  public int w;
-  /**
-   * Height of the Region
-   */
-  public int h;
-  /**
-   * Setting, how to react if an image is not found {@link FindFailed}
-   */
-  private FindFailedResponse findFailedResponse = FindFailed.defaultFindFailedResponse;
-  private Object findFailedHandler = FindFailed.getFindFailedHandler();
-  private Object imageMissingHandler = FindFailed.getImageMissingHandler();
-  /**
-   * Setting {@link Settings}, if exception is thrown if an image is not found
-   */
-  private boolean throwException = Settings.ThrowException;
-  /**
-   * Default time to wait for an image {@link Settings}
-   */
-  private double autoWaitTimeout = Settings.AutoWaitTimeout;
-  private float waitScanRate = Settings.WaitScanRate;
-  /**
-   * Flag, if an observer is running on this region {@link Settings}
-   */
-  private boolean observing = false;
-  private boolean observingInBackground = false;
-  private float observeScanRate = Settings.ObserveScanRate;
-  private int repeatWaitTime = Settings.RepeatWaitTime;
-  /**
-   * The {@link Observer} Singleton instance
-   */
-  private Observer regionObserver = null;
-
-  /**
-   * The last found {@link Match} in the Region
-   */
-  private Match lastMatch = null;
-  /**
-   * The last found {@link Match}es in the Region
-   */
-  private Iterator<Match> lastMatches = null;
-  private long lastSearchTime = -1;
-  private long lastFindTime = -1;
-  private boolean isScreenUnion = false;
-  private boolean isVirtual = false;
-  private long lastSearchTimeRepeat = -1;
 
   protected static Region getFakeRegion() {
     if (fakeRegion == null) {
@@ -467,32 +678,6 @@ public class Region {
     this.rows = 0;
   }
 
-  public static Region make4py(ArrayList args) {
-    log(3, "make: args: %s", args);
-    Region reg = new Screen();
-    if (null != args) {
-      for (Object arg : args) {
-        log(3, "%s", arg.getClass().getName());
-      }
-      if (args.size() == 4) {
-        //case1: Region(x,y,w,h)
-        int num = 4;
-        for (Object arg : args) {
-          if (arg instanceof Integer) {
-            num--;
-          }
-        }
-        if (num == 0) {
-          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
-        }
-      } else if (args.size() == 1) {
-        //case2: Region(Region)
-        reg = create((Region) args.get(0));
-      }
-    }
-    return reg;
-  }
-
   /**
    * Create a region with the provided top left corner and size
    *
@@ -543,22 +728,22 @@ public class Region {
    * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on the left corner of
    * the new Region.
    */
-  public final static int CREATE_X_DIRECTION_LEFT = 0;
+  public final static int LEFT = 0;
   /**
    * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on the right corner of
    * the new Region.
    */
-  public final static int CREATE_X_DIRECTION_RIGHT = 1;
+  public final static int RIGHT = 1;
   /**
    * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on the top corner of the
    * new Region.
    */
-  public final static int CREATE_Y_DIRECTION_TOP = 0;
+  public final static int TOP = 0;
   /**
    * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on the bottom corner of
    * the new Region.
    */
-  public final static int CREATE_Y_DIRECTION_BOTTOM = 1;
+  public final static int BOTTOM = 1;
 
   /**
    * create a region with a corner at the given point<br>as specified with x y<br> 0 0 top left<br> 0 1 bottom left<br>
@@ -583,8 +768,8 @@ public class Region {
     int Y;
     int W = w;
     int H = h;
-    if (create_x_direction == CREATE_X_DIRECTION_LEFT) {
-      if (create_y_direction == CREATE_Y_DIRECTION_TOP) {
+    if (create_x_direction == LEFT) {
+      if (create_y_direction == TOP) {
         X = _x;
         Y = _y;
       } else {
@@ -592,7 +777,7 @@ public class Region {
         Y = _y - h;
       }
     } else {
-      if (create_y_direction == CREATE_Y_DIRECTION_TOP) {
+      if (create_y_direction == TOP) {
         X = _x - w;
         Y = _y;
       } else {
@@ -753,90 +938,6 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="handle Settings">
   //TODO should be possible to reset to current global value resetXXX()
-
-  /**
-   * true - (initial setting) should throw exception FindFailed if findX unsuccessful in this region<br> false - do not
-   * abort script on FindFailed (might leed to null pointer exceptions later)
-   *
-   * @param flag true/false
-   */
-  public void setThrowException(boolean flag) {
-    throwException = flag;
-    if (throwException) {
-      findFailedResponse = FindFailedResponse.ABORT;
-    } else {
-      findFailedResponse = FindFailedResponse.SKIP;
-    }
-  }
-
-  /**
-   * current setting for this region (see setThrowException)
-   *
-   * @return true/false
-   */
-  public boolean getThrowException() {
-    return throwException;
-  }
-
-  /**
-   * the time in seconds a find operation should wait for the appearence of the target in this region<br> initial value
-   * is the global AutoWaitTimeout setting at time of Region creation
-   *
-   * @param sec seconds
-   */
-  public void setAutoWaitTimeout(double sec) {
-    autoWaitTimeout = sec;
-  }
-
-  /**
-   * current setting for this region (see setAutoWaitTimeout)
-   *
-   * @return value of seconds
-   */
-  public double getAutoWaitTimeout() {
-    return autoWaitTimeout;
-  }
-
-  /**
-   * FindFailedResponse.<br>
-   * ABORT - (initial value) abort script on FindFailed (= setThrowException(true) )<br>
-   * SKIP - ignore FindFailed (same as setThrowException(false) )<br>
-   * PROMPT - display prompt on FindFailed to let user decide how to proceed<br>
-   * RETRY - continue to wait for appearence after FindFailed (caution: endless loop)
-   *
-   * @param response the FindFailedResponse
-   */
-  public void setFindFailedResponse(FindFailedResponse response) {
-    findFailedResponse = response;
-  }
-
-  public void setFindFailedHandler(Object handler) {
-    findFailedHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
-    log(lvl, "Setting FindFailedHandler");
-  }
-
-  public void setImageMissingHandler(Object handler) {
-    imageMissingHandler = setHandler(handler, ObserveEvent.Type.MISSING);
-    log(lvl, "Setting ImageMissingHandler");
-  }
-
-  private Object setHandler(Object handler, ObserveEvent.Type type) {
-    findFailedResponse = FindFailedResponse.HANDLE;
-    if (handler != null && (handler.getClass().getName().contains("org.python")
-            || handler.getClass().getName().contains("org.jruby"))) {
-      handler = new ObserverCallBack(handler, type);
-    } else {
-      ((ObserverCallBack) handler).setType(type);
-    }
-    return handler;
-  }
-
-  /**
-   * @return the current setting (see setFindFailedResponse)
-   */
-  public FindFailedResponse getFindFailedResponse() {
-    return findFailedResponse;
-  }
 
   /**
    * @return the regions current WaitScanRate
@@ -1066,67 +1167,6 @@ public class Region {
 
   // ************************************************
 
-  /**
-   * @return x of top left corner
-   */
-  public int getX() {
-    return x;
-  }
-
-  /**
-   * @return y of top left corner
-   */
-  public int getY() {
-    return y;
-  }
-
-  /**
-   * @return width of region
-   */
-  public int getW() {
-    return w;
-  }
-
-  /**
-   * @return height of region
-   */
-  public int getH() {
-    return h;
-  }
-
-  /**
-   * @param X new x position of top left corner
-   */
-  public void setX(int X) {
-    x = X;
-    initScreen(null);
-  }
-
-  /**
-   * @param Y new y position of top left corner
-   */
-  public void setY(int Y) {
-    y = Y;
-    initScreen(null);
-  }
-
-  /**
-   * @param W new width
-   */
-  public void setW(int W) {
-    w = W > 1 ? W : 1;
-    initScreen(null);
-  }
-
-  /**
-   * @param H new height
-   */
-  public void setH(int H) {
-    h = H > 1 ? H : 1;
-    initScreen(null);
-  }
-
-  // ************************************************
 
   /**
    * @param W new width
@@ -2347,7 +2387,7 @@ public class Region {
       } else {
         response = handleFindFailed(target, img);
         if (null == response) {
-          shouldAbort = FindFailed.createdefault(this, img);
+          shouldAbort = FindFailed.createErrorMessage(this, img);
           break;
         } else if (response) {
           if (img.isRecaptured()) {
@@ -2426,7 +2466,7 @@ public class Region {
       }
     }
     if (null == response) {
-      throw new FindFailed(FindFailed.createdefault(this, img));
+      throw new FindFailed(FindFailed.createErrorMessage(this, img));
     }
     return lastMatch;
   }
@@ -2598,7 +2638,7 @@ public class Region {
       }
     }
     if (null == response) {
-      throw new FindFailed(FindFailed.createdefault(this, img));
+      throw new FindFailed(FindFailed.createErrorMessage(this, img));
     }
     return lastMatches;
   }
