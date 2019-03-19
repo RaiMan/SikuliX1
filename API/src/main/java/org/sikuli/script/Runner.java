@@ -39,6 +39,8 @@ public class Runner {
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
   
+  public static String[] DEFAULT_RUNNERS = new String[] {"jython", "jruby"};
+  
   public static String EDEFAULT = "py";  
   public static String RDEFAULT = "jython";
 
@@ -146,26 +148,34 @@ public class Runner {
             runners.add(current);
             if( current.isSupported()) {
               supportedRunners.add(current);
-            }
-            log(lvl, "initScriptingSupport: added: %s", name);
+              log(lvl, "initScriptingSupport: added: %s", name);
+            }            
           }
         }
       }
-      if (runners.isEmpty()) {
+      if (supportedRunners.isEmpty()) {
         String em = "Terminating: No scripting support available. Rerun Setup!";
         log(-1, em);
         if (RunTime.isRunningIDE) {
           Sikulix.popError(em, "IDE has problems ...");
         }
         System.exit(1);
-      } else {               
-        for (IScriptRunner runner : runners) {
-          if(runner.canBeDefault()) {
-            Runner.RDEFAULT = runner.getName();
-            Runner.EDEFAULT = runner.getExtensions()[0];
+      } else {
+        boolean defaultFound = false;
+        for (String name : DEFAULT_RUNNERS) {
+          for (IScriptRunner runner : runners) {
+            if(runner.getName().equals(name)) {
+              Runner.RDEFAULT = runner.getName();
+              Runner.EDEFAULT = runner.getExtensions()[0];
+              defaultFound = true;
+              break;
+            }
+          }
+          
+          if (defaultFound) {
             break;
           }
-        }        
+        }                      
       }
       log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
       isReady = true;

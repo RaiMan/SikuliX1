@@ -565,12 +565,10 @@ public class JythonRunner extends AbstractScriptRunner {
   
   @Override
   protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
-    PythonInterpreter py = getInterpreter();
-    Debug.saveRedirected(System.out, System.err);
+    PythonInterpreter py = getInterpreter();    
     try {
       PipedOutputStream pout = new PipedOutputStream(stdout);
       PrintStream ps = new PrintStream(pout, true);     
-      System.setOut(ps);
       py.setOut(ps);
     } catch (Exception e) {
       log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
@@ -579,7 +577,6 @@ public class JythonRunner extends AbstractScriptRunner {
     try {
       PipedOutputStream eout = new PipedOutputStream(stderr);
       PrintStream eps = new PrintStream(eout, true);
-      System.setErr(eps);
       py.setErr(eps);
     } catch (Exception e) {
       log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());

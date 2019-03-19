@@ -486,7 +486,6 @@ public class JRubyRunner extends AbstractScriptRunner {
 		try {
 			PipedOutputStream pout = new PipedOutputStream(stdout);
 			PrintStream ps = new PrintStream(pout, true);
-      System.setOut(ps);  
 			interpreter.setOutput(ps);
 		} catch (Exception e) {
 		  e.printStackTrace();
@@ -496,7 +495,6 @@ public class JRubyRunner extends AbstractScriptRunner {
 		try {
 			PipedOutputStream pout = new PipedOutputStream(stderr);
 			PrintStream ps = new PrintStream(pout, true);
-      System.setErr(ps);
 			interpreter.setError(ps);
 		} catch (Exception e) {
 			log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());

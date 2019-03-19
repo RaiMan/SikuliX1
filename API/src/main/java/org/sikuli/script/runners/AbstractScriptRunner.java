@@ -94,7 +94,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   
   @Override
   public final int runScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
-    synchronized(this) {
+    synchronized(this) {      
       init(null);
       return doRunScript(scriptfile, scriptArgs, options);
     }

@@ -35,7 +35,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
   private static final String me = "EditorConsolePane: ";
   static boolean ENABLE_IO_REDIRECT = true;
-
+  
   static {
     String flag = System.getProperty("sikuli.console");
     if (flag != null && flag.equals("false")) {
@@ -87,13 +87,13 @@ public class EditorConsolePane extends JPanel implements Runnable {
     if (ENABLE_IO_REDIRECT) {
 			Debug.log(3, "EditorConsolePane: starting redirection to message area");
       int npipes = 2;
-      NUM_PIPES = npipes * Runner.getRunners().size();
+      NUM_PIPES = npipes * Runner.getRunners().size() + npipes;
       pin = new PipedInputStream[NUM_PIPES];
       reader = new Thread[NUM_PIPES];
       for (int i = 0; i < NUM_PIPES; i++) {
         pin[i] = new PipedInputStream();
       }
-      
+         
       (new Thread() {
         @Override
         public void run() {
@@ -112,7 +112,29 @@ public class EditorConsolePane extends JPanel implements Runnable {
               }
               irunner++;
             }
-          }          
+          }
+          
+          // redirect System IO to console
+          try {
+            int sysOutIndex = irunner * npipes;
+            PipedOutputStream oout = new PipedOutputStream(pin[sysOutIndex]);
+            PrintStream ops = new PrintStream(oout, true);
+            System.setOut(ops);        
+            reader[sysOutIndex] = new Thread(EditorConsolePane.this);
+            reader[sysOutIndex].setDaemon(true);
+            reader[sysOutIndex].start();
+            
+            int sysErrIndex = irunner * npipes + 1;
+            PipedOutputStream eout = new PipedOutputStream(pin[sysErrIndex]);
+            PrintStream eps = new PrintStream(eout, true);
+            System.setErr(eps);
+            
+            reader[sysErrIndex] = new Thread(EditorConsolePane.this);
+            reader[sysErrIndex].setDaemon(true);
+            reader[sysErrIndex].start();
+          } catch (IOException e1) {
+            Debug.log(-1, "Redirecting System IO failes", e1.getMessage());
+          }           
         }        
       }).start();      
     }
