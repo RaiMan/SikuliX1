@@ -116,7 +116,7 @@ public class Runner {
   
   private static boolean isReady = false;
  
-  public static void initRunners(boolean async) {
+  public static void initRunners() {
     synchronized(runners) {
       if (isReady) {
         return;
@@ -178,7 +178,7 @@ public class Runner {
     }
     
     synchronized(runners) {            
-      initRunners(false);                       
+      initRunners();                       
 
       for(IScriptRunner r : supportedRunners) {
         if(r.canHandle(identifier)) {
@@ -194,7 +194,7 @@ public class Runner {
   
   public static List<IScriptRunner> getRunners(){
     synchronized(runners) {          
-      initRunners(false);
+      initRunners();
     
       return new LinkedList<IScriptRunner>(supportedRunners);
     }
@@ -202,7 +202,7 @@ public class Runner {
       
   public static IScriptRunner getRunner(Class<? extends IScriptRunner> runnerClass) {
     synchronized(runners) {            
-      initRunners(false);
+      initRunners();
       
       for(IScriptRunner r : supportedRunners) {
         if(r.getClass().equals(runnerClass)) {
@@ -216,7 +216,7 @@ public class Runner {
   
   public static Set<String> getExtensions() {
     synchronized(runners) {            
-      initRunners(false);
+      initRunners();
       
       Set<String> extensions = new HashSet<>();
       
@@ -232,7 +232,7 @@ public class Runner {
   
   public static String getExtension(String identifier) {
     synchronized(runners) {            
-      initRunners(false);
+      initRunners();
       
       for(IScriptRunner r : runners) {
         if(r.canHandle(identifier)) {
@@ -245,8 +245,7 @@ public class Runner {
       }      
       return null;
     }
-  } 
-  
+  }   
 
   public static synchronized int run(String script, String[] args) {
     String savePath = ImagePath.getBundlePathSet();
@@ -352,7 +351,7 @@ public class Runner {
     return fScript;
   }  
   
-  // Since this class is marked as INTERNAL, we don't really have to deprecate stuff here.  
+// Since this class is marked as INTERNAL USE, we don't really have to deprecate stuff here.  
 //  /**
 //   * @deprecated Use JRubyRunner.EXTENSIONS[0]
 //   */

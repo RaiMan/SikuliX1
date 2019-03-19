@@ -99,9 +99,13 @@ public class RunTime {
   RunType runningAs = RunType.OTHER;
 
   private static Options sxOptions = null;
-
+  
+  //don't know exactly what this is for
+  // RunTime.scriptProject doesn't seem to be used anywhere
   public static File scriptProject = null;
   public static URL uScriptProject = null;
+  
+  
   private static boolean isTerminating = false;
 
   public static String appDataMsg = "";

@@ -726,7 +726,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     Settings.DebugLogs = prefs.getPrefMoreLogDebug();
     Settings.InfoLogs = prefs.getPrefMoreLogInfo();
     Settings.Highlight = prefs.getPrefMoreHighlight();
-    runTime.resetProject();
+    RunTime.resetProject();
     return true;
   }
 

@@ -8,6 +8,7 @@ import java.net.URI;
 import java.util.Map;
 
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 
 /**
@@ -34,7 +35,7 @@ public class SikulixRunner extends AbstractScriptRunner {
     }
     
     File innerScriptFile = Runner.getScriptFile(new File(scriptFile));
-    
+            
     return Runner.run(innerScriptFile.getAbsolutePath());     
   }
    

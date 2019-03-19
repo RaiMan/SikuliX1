@@ -46,7 +46,6 @@ public class JythonRunner extends AbstractScriptRunner {
   private PythonInterpreter interpreter = null;
   private JythonHelper helper = null;
 
-  private static final String COMPILE_ONLY = "# COMPILE ONLY";
   /**
    * sys.argv for the jython script
    */
@@ -85,9 +84,6 @@ public class JythonRunner extends AbstractScriptRunner {
 //          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
 //  static String pyConverter
 //          = FileManager.convertStreamToString(SikuliToHtmlConverter);
-  private String sikuliLibPath = null;
-  private boolean isCompileOnly = false;
-  private boolean isFromIDE = false;
 
   @Override
   protected void doInit(String[] param) {   
@@ -163,30 +159,13 @@ public class JythonRunner extends AbstractScriptRunner {
     }
     
     File pyFile = new File(scriptFile);
-    File fScriptPath = new File(pyFile.getParent());
-        
-//    isFromIDE = !(forIDE == null);
-//    if (isFromIDE && forIDE.length > 1 && forIDE[0] != null) {
-//      isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
-//    }
-//    if (isFromIDE) {
-//      JythonHelper.get().insertSysPath(fScriptPath);
-//      JythonHelper.get().reloadImported();
-//    }
-//    pyFile = new File(pyFile.getAbsolutePath());
-//    fillSysArgv(pyFile, argv);
-//    int exitCode = 0;
-//    if (isFromIDE) {
-//      executeScriptHeader(new String[]{forIDE[0]});
-//      ScriptingSupport.setProject();
-//      exitCode = runPython(pyFile, null, forIDE);
-//      JythonHelper.get().removeSysPath(fScriptPath);
-//    } else {
-      executeScriptHeader(new String[]{
-              pyFile.getParent(),
-              pyFile.getParentFile().getParent()});
-      int exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
-//    }
+         
+    executeScriptHeader(new String[]{
+            pyFile.getParent(),
+            pyFile.getParentFile().getParent()});
+    
+    int exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
+
     return exitCode;
   }
 
@@ -195,11 +174,6 @@ public class JythonRunner extends AbstractScriptRunner {
     String stmt = "";
     try {
       if (scriptPaths != null) {
-// TODO implement compile only
-        if (isCompileOnly) {
-          log(lvl, "runPython: running COMPILE_ONLY");
-          interpreter.compile(pyFile.getAbsolutePath());
-        } else {
           String scr;
           if (scriptPaths.length > 1) {
             scr = FileManager.slashify(scriptPaths[0], true) + scriptPaths[1] + ".sikuli";
@@ -210,8 +184,7 @@ public class JythonRunner extends AbstractScriptRunner {
             log(lvl, "runPython: running script: \n%s", scr);
             interpreter.exec("sys.argv[0] = \"" + scr + "\"");
           }
-          interpreter.execfile(pyFile.getAbsolutePath());
-        }
+          interpreter.execfile(pyFile.getAbsolutePath());     
       } else {
         log(-1, "runPython: invalid arguments");
         exitCode = -1;
@@ -230,12 +203,8 @@ public class JythonRunner extends AbstractScriptRunner {
           exitCode = findErrorSource(e, pyFile.getAbsolutePath(), scriptPaths);
         } else {
           Debug.error("runPython: Python exception: %s with %s", e.getMessage(), stmt);
-        }
-        if (isFromIDE) {
-          exitCode *= -1;
-        } else {
-          exitCode = 1;
-        }
+        }       
+        exitCode = 1;       
       }
     }
     if (System.out.checkError()) {
@@ -592,9 +561,7 @@ public class JythonRunner extends AbstractScriptRunner {
         interpreter.exec(line);
       }
     }
-    if (isCompileOnly) {
-      return;
-    }
+    
     PyList jyargv = interpreter.getSystemState().argv;
     jyargv.clear();
     for (String item : sysargv) {

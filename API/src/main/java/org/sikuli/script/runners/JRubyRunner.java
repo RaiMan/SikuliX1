@@ -44,7 +44,6 @@ public class JRubyRunner extends AbstractScriptRunner {
 	 */
 	private static ScriptingContainer interpreter = null;
 	private static int savedpathlen = 0;
-	private static final String COMPILE_ONLY = "# COMPILE ONLY";
 	/**
 	 * sys.argv for the jruby script
 	 */
@@ -76,16 +75,14 @@ public class JRubyRunner extends AbstractScriptRunner {
 
 	private static String sikuliLibPath;
 
-	private boolean isFromIDE;
-	private boolean isCompileOnly;
-
   private static Ruby runtime;
   private static ThreadContext context;
 
 	@Override
 	protected void doInit(String[] args) {
 		//TODO classpath and other path handlings
-		sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
+		sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();		
+    createScriptingContainer();    
 	}
 		
 	@Override
@@ -93,34 +90,29 @@ public class JRubyRunner extends AbstractScriptRunner {
 		if (null == scriptFile) {
 			//run the Ruby statements from argv (special for setup functional test)
 			fillSysArgv(null, null);
-			createScriptingContainer();
 			executeScriptHeader(new String[0]);
 			return runRuby(null, scriptArgs, null);
 		}
 		File file = new File(new File(scriptFile).getAbsolutePath());
 		fillSysArgv(file, scriptArgs);
-		createScriptingContainer();
-		int exitCode = 0;
-//		isFromIDE = ! (forIDE == null);
-//		if (isFromIDE && forIDE.length > 1 && forIDE[0] != null ) {
-//			isCompileOnly = forIDE[0].toUpperCase().equals(COMPILE_ONLY);
-//		}
-//		if (forIDE == null) {
-//			executeScriptHeader(new String[]{
-//			    file.getParentFile().getAbsolutePath(),
-//			    file.getParentFile().getParentFile().getAbsolutePath()});
-//			exitCode = runRuby(file, null,
-//							new String[]{file.getParentFile().getAbsolutePath()});
-//		} else {
-//			executeScriptHeader(new String[]{forIDE[0]});
-//			exitCode = runRuby(file, null, forIDE);
-//		}
+
+		executeScriptHeader(new String[]{
+		    file.getParentFile().getAbsolutePath(),
+		    file.getParentFile().getParentFile().getAbsolutePath()});
+		int exitCode = runRuby(file, null, new String[]{file.getParentFile().getAbsolutePath()});
 		log(lvl + 1, "runScript: at exit: path:");
 		for (Object p : interpreter.getLoadPaths()) {
 			log(lvl + 1, "runScript: " + p.toString());
 		}
 		log(lvl + 1, "runScript: at exit: --- end ---");
 		return exitCode;
+	}
+	
+	@Override
+	public int evalScript(String script, Map<String,Object> options) {
+	  executeScriptHeader(new String[0]);
+    interpreter.runScriptlet(script);
+    return 0;
 	}
 
 	@Override
@@ -250,26 +242,21 @@ public class JRubyRunner extends AbstractScriptRunner {
 					BufferedReader script = new BufferedReader(
 						new InputStreamReader(
 							new FileInputStream(ruFile.getAbsolutePath()), "UTF-8"));
-// TODO implement compile only !!!
-					if (isCompileOnly) {
-						log(lvl, "runRuby: running COMPILE_ONLY");
-						EvalUnit unit = interpreter.parse(script, filename);
-						//unit.run();
-					} else {
-						if (scriptPaths.length > 1) {
-							filename = FileManager.slashify(scriptPaths[0], true)
-											+ scriptPaths[1] + ".sikuli";
-							log(lvl, "runRuby: running script from IDE: \n" + filename);
-							if (scriptPaths[0] == null) {
-								filename = "";
-							}
-							fromIDE = true;
-						} else {
-							filename = scriptPaths[0];
-							log(lvl, "runRuby: running script: \n" + filename);
+					
+					if (scriptPaths.length > 1) {
+						filename = FileManager.slashify(scriptPaths[0], true)
+										+ scriptPaths[1] + ".sikuli";
+						log(lvl, "runRuby: running script from IDE: \n" + filename);
+						if (scriptPaths[0] == null) {
+							filename = "";
 						}
-						interpreter.runScriptlet(script, filename);
+						fromIDE = true;
+					} else {
+						filename = scriptPaths[0];
+						log(lvl, "runRuby: running script: \n" + filename);
 					}
+					interpreter.runScriptlet(script, filename);
+					
 				} else {
 					log(-1, "runRuby: invalid arguments");
 					exitCode = -1;
@@ -448,10 +435,6 @@ public class JRubyRunner extends AbstractScriptRunner {
 	 * @param syspaths List of all syspath entries
 	 */
 	private void executeScriptHeader(String[] syspaths) {
-// TODO implement compile only
-		if (isCompileOnly) {
-			return;
-		}
 		List<String> path = interpreter.getLoadPaths();
 		if (path.size() == 0 || !FileManager.pathEquals((String) path.get(0), sikuliLibPath)) {
 			log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);

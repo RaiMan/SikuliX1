@@ -4,88 +4,96 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.RunTime;
+import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
 
 public class NetworkRunner extends AbstractScriptRunner {
 
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String, Object> options) {
+
+    try {
+
+      URL scriptURL = new URL(scriptFile);
+
+      String path = scriptURL.getPath();
+
+      if (path.endsWith("/")) {
+        path = path.substring(0, path.length() - 1);
+      }
+
+      String basename = FilenameUtils.getBaseName(path);
+
+      String host = scriptURL.getHost();
+
+      if (host.contains("github.com")) {
+        host = "https://raw.githubusercontent.com";
+        path = path.replace("tree/", "");
+      } else {
+        host = scriptFile.substring(0, scriptFile.indexOf(path));               
+      }
+
+      String identifier = host + path;
+      
+      for (IScriptRunner runner : Runner.getRunners()) {
+
+        if (!SikulixRunner.NAME.equals(runner.getName())) {
+
+          for (String extension : runner.getExtensions()) {
+
+            String url;
+
+            if (identifier.endsWith("." + extension)) {
+              url = identifier;
+            } else {
+              url = identifier + "/" + basename + "." + extension;
+            }
+                        
+            if (FileManager.isUrlUseabel(url) > 0) {
+              String content = FileManager.downloadURLtoString(url);
+
+              if (content != null && !content.isEmpty()) {
+
+                String identifierParent = url.substring(0, url.lastIndexOf("/"));
+
+                ImagePath.addHTTP(identifierParent);
+                int retval = runner.evalScript(content, null);
+                ImagePath.removeHTTP(identifierParent);
+
+                if (Debug.is() > 2) {
+                  FileManager.writeStringToFile(content,
+                      new File(RunTime.get().fSikulixStore, "LastScriptFromNet.txt"));
+                }
+
+                return retval;
+              }
+            }
+          }
+        }
+      }
+    } catch (MalformedURLException e) {
+      log(-1, "Invalid URL:\n%s", scriptFile);
       return -1;
-    
-//    String givenScriptFolder = scriptfile.getPath().substring(1);
-//        
-//    
-//    if (givenScriptHost.contains("github.com")) {
-//      givenScriptHost = "https://raw.githubusercontent.com";
-//      givenScriptFolder = givenScriptFolder.replace("tree/", "");
-//    } else {
-//      givenScriptHost = "http://" + givenScriptHost;
-//    }
-//    if (givenScriptName.endsWith(".zip")) {
-//      scriptLocation = givenScriptHost + givenScriptFolder + givenScriptName;
-//      if (0 < FileManager.isUrlUseabel(scriptLocation)) {
-//        Sikulix.terminate(999, ".zip from net not yet supported\n%s", scriptLocation);
-//      }
-//    } else {
-//      for (String suffix : endingTypes.keySet()) {
-//        String dlsuffix = "";
-//        if (suffix != "js") {
-//          dlsuffix = ".txt";
-//        }
-//        givenScriptScript = givenScriptName + "/" + givenScriptName + "." + suffix;
-//        scriptLocation = givenScriptHost + "/" + givenScriptFolder + givenScriptScript;
-//        givenScriptScriptType = runnerTypes.get(suffix);
-//        if (0 < FileManager.isUrlUseabel(scriptLocation)) {
-//          content = FileManager.downloadURLtoString(scriptLocation);
-//          break;
-//        } else if (!dlsuffix.isEmpty()) {
-//          givenScriptScript = givenScriptName + "/" + givenScriptName + "." + suffix + dlsuffix;
-//          scriptLocation = givenScriptHost + "/" + givenScriptFolder + givenScriptScript;
-//          if (0 < FileManager.isUrlUseabel(scriptLocation)) {
-//            content = FileManager.downloadURLtoString(scriptLocation);
-//            break;
-//          }
-//        }
-//        scriptLocation = givenScriptHost + "/" + givenScriptFolder + givenScriptName;
-//      }
-//      if (content != null && !content.isEmpty()) {
-//        givenScriptType = "NET";
-//        givenScriptScript = content;
-//        givenScriptExists = true;
-//        try {
-//          uGivenScript = new URL(givenScriptHost + "/" + givenScriptFolder + givenScriptName);
-//        } catch (Exception ex) {
-//          givenScriptExists = false;
-//        }
-//      } else {
-//        givenScriptExists = false;
-//      }
-//    }
-//    if (!givenScriptExists) {
-//      log(-1, "given script location not supported or not valid:\n%s", scriptLocation);
-//    } else {
-//      String header = "# ";
-//      String trailer = "\n";
-//      if (RJSCRIPT.equals(givenScriptScriptType)) {
-//        header = "/*\n";
-//        trailer = "*/\n";
-//      }
-//      header += scriptLocation + "\n";
-//      if (Debug.is() > 2) {
-//        FileManager.writeStringToFile(header + trailer + content,
-//                new File(runTime.fSikulixStore, "LastScriptFromNet.txt"));
-//      }
-//    }
+    }
+
+    log(-1, "given script location not supported or not valid:\n%s", scriptFile);
+    return -1;
+
   }
 
   @Override
-  public boolean isSupported() {   
+  public boolean isSupported() {
     return true;
   }
 
@@ -93,16 +101,16 @@ public class NetworkRunner extends AbstractScriptRunner {
   public String getName() {
     return "NetworkRunner";
   }
-  
-  @Override 
-  public boolean canHandle(String identifier) {       
-    if (identifier != null && identifier.indexOf(":") > 5){
-      String[] parts = identifier.split(":");
+
+  @Override
+  public boolean canHandle(String identifier) {
+    if (identifier != null && identifier.indexOf("://") <= 5) {
+      String[] parts = identifier.split("://");
       if (parts.length > 1 && !parts[1].isEmpty()) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -113,7 +121,7 @@ public class NetworkRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public String getType() {    
+  public String getType() {
     return "NET";
   }
 }

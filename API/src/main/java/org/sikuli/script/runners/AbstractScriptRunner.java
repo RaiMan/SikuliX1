@@ -60,7 +60,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
   
   public boolean canHandle(String identifier) {
-    return identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") || getType().equals(identifier) || hasExtension(identifier) || hasExtension(FilenameUtils.getExtension(identifier));
+    return identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") || 
+           getType().equals(identifier) ||
+           hasExtension(identifier) ||
+           (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier)));
   };
   
   protected void doInit(String[] args) throws Exception{
