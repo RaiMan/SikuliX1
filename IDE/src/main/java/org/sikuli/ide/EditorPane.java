@@ -29,6 +29,7 @@ import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 import org.sikuli.syntaxhighlight.ResolutionException;
 import org.sikuli.syntaxhighlight.grammar.Lexer;
@@ -137,17 +138,15 @@ public class EditorPane extends JTextPane {
       scriptType = Runner.EDEFAULT;
       paneIsEmpty = true;
     }
+    
+    IScriptRunner runner = Runner.getRunner(scriptType);
+    
+    scrType = runner.getType();
+    _indentationLogic = null;
 
-    if (Runner.EPYTHON.equals(scriptType)) {
-      scrType = Runner.CPYTHON;
+    if (JythonRunner.TYPE.equals(scrType)) {      
       _indentationLogic = SikuliIDE.getIDESupport(scriptType).getIndentationLogic();
       _indentationLogic.setTabWidth(pref.getTabWidth());
-    } else if (Runner.ERUBY.equals(scriptType)) {
-      scrType = Runner.CRUBY;
-      _indentationLogic = null;
-    } else if (Runner.EJSCRIPT.equals(scriptType)) {
-      scrType = Runner.CJSCRIPT;
-      _indentationLogic = null;
     }
 
 //TODO should know, that scripttype not changed here to avoid unnecessary new setups
@@ -544,7 +543,7 @@ public class EditorPane extends JTextPane {
         (new File(snameDir, sname)).delete();
       }
       if (PreferencesUser.getInstance().getAtSaveCleanBundle()) {
-        if (!sikuliContentType.equals(Runner.CPYTHON)) {
+        if (!sikuliContentType.equals(JythonRunner.TYPE)) {
           log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
         }
         try {

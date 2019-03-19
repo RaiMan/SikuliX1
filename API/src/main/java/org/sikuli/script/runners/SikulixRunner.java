@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
 package org.sikuli.script.runners;
 
 import java.io.File;
@@ -8,10 +11,10 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.Runner;
 
 /**
- * Runs a text file.
+ * Runs Sikulix scripts.
  * 
- * NOT SUPPORTED YET.
- * 
+ * A sikulix script is a directory (optionally with a .sikuli extension)
+ *  
  * @author mbalmer
  *
  */
@@ -23,54 +26,18 @@ public class SikulixRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[] {"sikuli"};
 
   @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
     if (null == ImagePath.getBundlePathSet())
-      ImagePath.setBundlePath(new File(scriptfile).getAbsolutePath());
+      ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
     else {
-      ImagePath.add(new File(scriptfile).getAbsolutePath());
+      ImagePath.add(new File(scriptFile).getAbsolutePath());
     }
     
-    File innerScriptFile = Runner.getScriptFile(new File(scriptfile));
+    File innerScriptFile = Runner.getScriptFile(new File(scriptFile));
     
     return Runner.run(innerScriptFile.getAbsolutePath());     
   }
    
-  @Override
-  public int evalScript(String script, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return -1;
-  }
-
-  @Override
-  public void runLines(String lines, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   @Override
   public boolean isSupported() {    
     return true;
@@ -96,35 +63,4 @@ public class SikulixRunner extends AbstractScriptRunner {
   public String getType() {    
     return TYPE;
   }
-
-  @Override
-  public void close() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  protected void doInit(String[] args) {
-    // TODO Auto-generated method stub
-
-  }
-
 }

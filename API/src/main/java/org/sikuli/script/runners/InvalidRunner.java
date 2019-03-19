@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.script.runners;
 
 import java.net.URI;
@@ -19,60 +23,10 @@ public class InvalidRunner extends AbstractScriptRunner {
   public InvalidRunner(Class<? extends IScriptRunner> cl) {
     this(cl.getName());
   }
-  
-  private void logError() {
-    Debug.log(-1, "Invalid runner: %s", identifier);
-  }
-
-  @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String, Object> options) {  
-    logError();
-    return -1;
-  }
-
-  @Override
-  public int evalScript(String script, Map<String, Object> options) {
-    logError();
-    return -1;
-  }
-
-  @Override
-  public void runLines(String lines, Map<String, Object> options) {
-    logError();
-  }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
-    logError();
-    return -1;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    logError();
-    return -1;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    logError();
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    logError();
-    return null;
-  }
-
-  @Override
-  public boolean isSupported() {  
-    return false;
-  }
 
   @Override
   public String getName() {    
-    return "InvalidRunner";
+    return "InvalidRunner: " + identifier;
   }
 
   @Override
@@ -83,37 +37,6 @@ public class InvalidRunner extends AbstractScriptRunner {
 
   @Override
   public String getType() {    
-    return "invalid";
-  }
-
-  @Override
-  public void close() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    logError();
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    logError();
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    logError();
-
-  }
-
-  @Override
-  protected void doInit(String[] args) throws Exception {
-    logError();
-    throw new SikuliXception("Invalid");
-  }
-
+    return "invalid/" + identifier;
+  } 
 }

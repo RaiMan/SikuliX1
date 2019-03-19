@@ -13,6 +13,7 @@ import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
 import org.sikuli.scriptrunner.ScriptingSupport;
 import org.sikuli.util.*;
@@ -2550,7 +2551,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
                   + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
-          Runner.runjsEval("#" + eval);
+          Runner.getRunner(JavaScriptRunner.class).evalScript("#" + eval, null);
           return;
         }
       }
@@ -2603,7 +2604,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
         Region reg = new Region(simg.getROI());
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
-        Runner.runjsEval(item);
+        Runner.getRunner(JavaScriptRunner.class).evalScript(item, null);
       } else {
         SikuliIDE.showAgain();
         nothingTodo();
@@ -2727,7 +2728,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       @Override
       public void run() {
         try {
-          ret = srunners[0].runScript(scriptFile.toURI(), runTime.getArgs(), null);
+          ret = srunners[0].runScript(scriptFile.getAbsolutePath(), runTime.getArgs(), null);
         } catch (Exception ex) {
           log(-1, "(%s).runScript: Exception: %s", srunners[0], ex);
         }

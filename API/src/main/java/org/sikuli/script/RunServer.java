@@ -199,8 +199,8 @@ public class RunServer {
     String rStatusServiceNotAvail = "503 Service Unavailable";
 		Object evalReturnObject;
     String runTypeJS = "JavaScript";
-    String runTypePY = "Python";
-    String runTypeRB = "Ruby";
+    String runTypePY = "jython";
+    String runTypeRB = "jruby";
     String runType = runTypeJS;
 
     @Override
@@ -486,28 +486,28 @@ public class RunServer {
     }
 
     private boolean startRunner(String runType, File fScript, File fScriptScript, String[] args) {
-      if (fScript == null) {
-        return true;
-      }
-      
-      IScriptRunner runner = Runner.getRunner(runType);
       
       try {
-        runner.init(null);       
+        Runner.getRunner(runType).init(null);     
       }catch (Exception ex) {
-        rMessage = "startRunner " + runner.getName() + ": not possible";
+        rMessage = "startRunner not possible:" + ex.getMessage();
+        rStatus = rStatusServiceNotAvail;
+        return false;
+      } 
+      
+      if (fScript == null) {
+        return true;
+      }        
+
+      int retval = Runner.run(fScript.toString(), args);
+                  
+      rMessage = "runScript: returned: " + retval;
+           
+      if (retval < 0) {         
         rStatus = rStatusServiceNotAvail;
         return false;
       }      
       
-      int retval = Runner.run(fScript.toString(), args);
-                  
-      rMessage = "runScript: returned: " + retval;
-     
-      if (retval < 0) {         
-        rStatus = rStatusServiceNotAvail;
-        return false;
-      }  
       return true;
     }
   }

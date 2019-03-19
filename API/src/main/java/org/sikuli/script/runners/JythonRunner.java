@@ -37,16 +37,9 @@ public class JythonRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[] {"py"};
 
   private static RunTime runTime = RunTime.get();
-
-  //<editor-fold defaultstate="collapsed" desc="new logging concept">
-  private static final String me = "JythonScriptRunner: ";
+ 
   private int lvl = 3;
-
-  private void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-  //</editor-fold>
-
+ 
   /**
    * The PythonInterpreter instance
    */
@@ -152,8 +145,8 @@ public class JythonRunner extends AbstractScriptRunner {
    * @return The exitcode
    */
   @Override
-  public int runScript(URI pyURL, String[] argv, Map<String,Object> options) {
-    if (null == pyURL) {                 
+  public int runScript(String scriptFile, String[] argv, Map<String,Object> options) {
+    if (null == scriptFile) {                 
       //run the Python statements from argv (special for setup functional test)
             
       executeScriptHeader(null);
@@ -169,7 +162,7 @@ public class JythonRunner extends AbstractScriptRunner {
       return 0;
     }
     
-    File pyFile = new File(pyURL);
+    File pyFile = new File(scriptFile);
     File fScriptPath = new File(pyFile.getParent());
         
 //    isFromIDE = !(forIDE == null);
@@ -510,7 +503,7 @@ public class JythonRunner extends AbstractScriptRunner {
    * {@inheritDoc}
    */
   @Override
-  public void close() {
+  public void doClose() {
     if (interpreter != null) {
       try {
         interpreter.cleanup();
@@ -550,33 +543,7 @@ public class JythonRunner extends AbstractScriptRunner {
     }
     return helper;
   }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    if ("redirect".equals(action)) {
-      return doRedirect((PipedInputStream[]) args);
-//TODO SikuliToHtmlConverter implement in Java
-//    } else if ("convertSrcToHtml".equals(action)) {
-//      convertSrcToHtml((String) args[0]);
-//      return true;
-    } else if ("createRegionForWith".equals(action)) {
-      args[0] = createRegionForWith(args[0]);
-      return true;
-    } else if ("reset".equals(action)) {
-      interpreter = null;
-      try {
-        init(null);
-        log(3, "reset requested (experimental: please report oddities)");
-      } catch(Exception e) {     
-        log(-1, "reset requested but did not work. Please report this case." +
-                "Do not run scripts anymore and restart the IDE after having saved your work");
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
+    
 //TODO revise the before/after concept (to support IDE reruns)
 
   /**
@@ -636,11 +603,11 @@ public class JythonRunner extends AbstractScriptRunner {
   }
   
   @Override
-  protected boolean doRedirect(PipedInputStream[] pin) {
+  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
     PythonInterpreter py = getInterpreter();
     Debug.saveRedirected(System.out, System.err);
     try {
-      PipedOutputStream pout = new PipedOutputStream(pin[0]);
+      PipedOutputStream pout = new PipedOutputStream(stdout);
       PrintStream ps = new PrintStream(pout, true);     
       System.setOut(ps);
       py.setOut(ps);
@@ -649,7 +616,7 @@ public class JythonRunner extends AbstractScriptRunner {
       return false;
     }
     try {
-      PipedOutputStream eout = new PipedOutputStream(pin[1]);
+      PipedOutputStream eout = new PipedOutputStream(stderr);
       PrintStream eps = new PrintStream(eout, true);
       System.setErr(eps);
       py.setErr(eps);
@@ -670,8 +637,9 @@ public class JythonRunner extends AbstractScriptRunner {
     py.exec(pyConverter);
   }
 */
-
-  private Object createRegionForWith(Object reg) {
-    return null;
-  }
+    
+  @Override
+  public boolean canBeDefault() {
+    return true;
+  } 
 }

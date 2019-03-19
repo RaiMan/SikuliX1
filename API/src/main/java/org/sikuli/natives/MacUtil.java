@@ -5,6 +5,7 @@ package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
+import org.sikuli.script.runners.AppleScriptRunner;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,6 +66,11 @@ public class MacUtil implements OSUtil {
   end repeat
   theWindows
   */
+  
+  private static final Map<String,Object> SILENT_OPTIONS = new HashMap<>();
+  static{
+    SILENT_OPTIONS.put("silent", true);
+  }
 
   String cmdGetWindows = "set theWindows to {}\n" +
           "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
@@ -92,8 +98,8 @@ public class MacUtil implements OSUtil {
       return app;
     } else {
       theCmd = cmd.replace("#LINE#", cmdLinePID);
-      theCmd = theCmd.replaceAll("#PID#", "" + pid);
-      int retVal = Runner.runas(theCmd, true);
+      theCmd = theCmd.replaceAll("#PID#", "" + pid);      
+      int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
       String result = RunTime.get().getLastCommandResult().trim();
       if (retVal > -1) {
         if (!result.contains("NotFound")) {
@@ -146,7 +152,7 @@ public class MacUtil implements OSUtil {
       String cmd = "tell application \""
               + app.getName()
               + "\" to activate";
-      return 0 == Runner.runas(cmd, true);
+      return 0 == Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
     }
     return false;
   }
@@ -239,7 +245,7 @@ public class MacUtil implements OSUtil {
   public List<Region> getWindows(App app) {
     List<Region> windows = new ArrayList<>();
     String theCmd = cmdGetWindows.replace("#APP#", app.getName());
-    int retVal = Runner.runas(theCmd, true);
+    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
     String result = RunTime.get().getLastCommandResult().trim();
     if (retVal > -1 && !result.isEmpty()) {
       Debug.trace("getWindows: %s", result);
@@ -296,7 +302,7 @@ public class MacUtil implements OSUtil {
             "end repeat\n" +
             "end tell\n" +
             "resultlist";
-    int retVal = Runner.runas(cmd, true);
+    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
     String result = RunTime.get().getLastCommandResult().trim();
     String[] processes = result.split(", ###");
     List<App> appList = new ArrayList<>();

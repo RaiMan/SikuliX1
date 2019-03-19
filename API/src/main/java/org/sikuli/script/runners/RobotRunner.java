@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
 package org.sikuli.script.runners;
 
 import java.io.File;
@@ -20,13 +23,7 @@ public class RobotRunner extends JythonRunner {
   public static final String[] EXTENSIONS = new String[] {"robot"};
   
   private static final RunTime RUN_TIME = RunTime.get();
-  
-  private static final String ME = "RobotTunner: ";
-  
-  static void log(int level, String message, Object... args) {
-    Debug.logx(level, ME + message, args);
-  }
- 
+   
   @Override
   public int evalScript(String code, Map<String,Object> options) {
     boolean showReport = true;
@@ -89,44 +86,7 @@ public class RobotRunner extends JythonRunner {
     }
     return 0;
   }
-  
-  
-  @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return -1;
-  }
-
-  @Override
-  public void runLines(String lines, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-  
+    
   @Override
   public boolean isSupported() {
     File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
@@ -148,30 +108,6 @@ public class RobotRunner extends JythonRunner {
     return TYPE;
   }
  
-  @Override
-  public void close() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
   @Override
   protected void doInit(String[] args) {
     super.doInit(args);

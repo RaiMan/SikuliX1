@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.script.runners;
 
 import java.io.File;
@@ -18,12 +22,7 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   
   private static final int LVL = 3;
   private static final RunTime RUN_TIME = RunTime.get();
-  static final String ME = "Runner: ";
-  
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, ME + message, args);
-  }
-      
+        
   @Override
   public int evalScript(String script, Map<String,Object> options) {
     String osascriptShebang = "#!/usr/bin/osascript\n";
@@ -32,10 +31,10 @@ public class AppleScriptRunner extends AbstractScriptRunner {
     aFile.setExecutable(true);
     FileManager.writeStringToFile(script, aFile);
    
-    int retcode = runScript(URI.create(aFile.getAbsolutePath()), null, options);
+    int retcode = runScript(aFile.getAbsolutePath(), null, options);
     
     if (retcode != 0) {
-      if (Boolean.TRUE.equals(options.get(SILENT_OPTION))) {
+      if (options != null && Boolean.TRUE.equals(options.get(SILENT_OPTION))) {
         log(LVL, "AppleScript:\n%s\nreturned:\n%s", script, RUN_TIME.getLastCommandResult());
       } else {
         log(-1, "AppleScript:\n%s\nreturned:\n%s", script, RUN_TIME.getLastCommandResult());
@@ -45,10 +44,10 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
-    String prefix = options.containsKey("silent") ? "!" : ""; 
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+    String prefix = options != null && Boolean.TRUE.equals(options.get(SILENT_OPTION)) ? "!" : ""; 
         
-    String retVal = RUN_TIME.runcmd(new String[]{prefix + new File(scriptfile).getAbsolutePath()});
+    String retVal = RUN_TIME.runcmd(new String[]{prefix + new File(scriptFile).getAbsolutePath()});
     String[] parts = retVal.split("\n");
     int retcode = -1;
     try {
@@ -57,41 +56,10 @@ public class AppleScriptRunner extends AbstractScriptRunner {
     }
     return retcode;
   }
-
-  @Override
-  public void runLines(String lines, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return -1;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    // TODO Auto-generated method stub
-    return -1;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
   
   @Override
   public boolean isSupported() {
-    return RunTime.get().runningMac;
-        
+    return RunTime.get().runningMac;        
   }
 
   @Override
@@ -108,35 +76,4 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   public String getType() {   
     return TYPE;
   }
- 
-  @Override
-  public void close() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  protected void doInit(String[] args) {
-    // TODO Auto-generated method stub
-
-  }
-
 }

@@ -3,7 +3,6 @@
  */
 package org.sikuli.script.runners;
 
-//import java.io.File;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,19 +17,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jruby.CompatVersion;import org.jruby.Ruby;
+
+import org.jruby.CompatVersion;
+import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig.CompileMode;
-import org.jruby.RubyProc;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
-import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.ThreadContext;
-import org.jruby.runtime.builtin.IRubyObject;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
 
 public class JRubyRunner extends AbstractScriptRunner {
   
@@ -39,15 +36,9 @@ public class JRubyRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[] {"rb"};
 
   static RunTime sxRunTime = RunTime.get();
-
-	//<editor-fold defaultstate="collapsed" desc="new logging concept">
-	private static final String me = "JRubyScriptRunner: ";
+		
 	private int lvl = 3;
-	private void log(int level, String message, Object... args) {
-		Debug.logx(level,	me + message, args);
-	}
-	//</editor-fold>
-
+	
 	/**
 	 * The ScriptingContainer instance
 	 */
@@ -96,27 +87,17 @@ public class JRubyRunner extends AbstractScriptRunner {
 		//TODO classpath and other path handlings
 		sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
 	}
-	
+		
 	@Override
-	public void runLines(String lines, Map<String,Object> options) {
-		log(-1, "runLines: not yet implemented");
-	}
-	
-	@Override
-  public int evalScript(String script, Map<String,Object> options) {
-    return -1;
-  }
-
-	@Override
-	public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
-		if (null == scriptfile) {
+	public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+		if (null == scriptFile) {
 			//run the Ruby statements from argv (special for setup functional test)
 			fillSysArgv(null, null);
 			createScriptingContainer();
 			executeScriptHeader(new String[0]);
 			return runRuby(null, scriptArgs, null);
 		}
-		File file = new File(new File(scriptfile).getAbsolutePath());
+		File file = new File(new File(scriptFile).getAbsolutePath());
 		fillSysArgv(file, scriptArgs);
 		createScriptingContainer();
 		int exitCode = 0;
@@ -140,11 +121,6 @@ public class JRubyRunner extends AbstractScriptRunner {
 		}
 		log(lvl + 1, "runScript: at exit: --- end ---");
 		return exitCode;
-	}
-
-	@Override
-	public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -205,8 +181,7 @@ public class JRubyRunner extends AbstractScriptRunner {
       return false;
     }
 	  
-	}
-	
+	}	
 
 	@Override
 	public String getName() {   
@@ -224,60 +199,13 @@ public class JRubyRunner extends AbstractScriptRunner {
   }
 	
 	@Override
-	public void close() {
+	public void doClose() {
 		if (interpreter != null) {
 			interpreter.terminate();
 			interpreter = null;
 		}
 	}
-
-	@Override
-	public boolean doSomethingSpecial(String action, Object[] args) {
-		if ("redirect".equals(action)) {
-			return doRedirect((PipedInputStream[]) args);
-		} else if ("checkCallback".equals(action)) {
-			return checkCallback(args);
-		} else if ("runLoggerCallback".equals(action)) {
-			return runLoggerCallback(args);
-		} else if ("runObserveCallback".equals(action)) {
-			return runObserveCallback(args);
-		} else if ("runCallback".equals(action)) {
-			return runCallback(args);
-		} else {
-			return false;
-		}
-	}
-
-  private boolean checkCallback(Object[] args) {
-    log(-1, "checkCallback: no implementation yet");
-    return false;
-  }
-
-  private boolean runLoggerCallback(Object[] args) {
-    log(-1, "runLoggerCallback: no implementation yet");
-    return false;
-  }
-
-  private boolean runObserveCallback(Object[] args) {
-    if (runtime == null) {
-      runtime = ((RubyProc) args[0]).getRuntime();
-      context = runtime.getCurrentContext();
-    }
-    IRubyObject[] pargs;
-    try {
-      pargs = new IRubyObject[] {JavaUtil.convertJavaToRuby(runtime, args[1])};
-      ((RubyProc) args[0]).call(context, pargs);
-    } catch (Exception ex) {
-      log(-1, "runObserveCallback: jruby invoke: %s\n%s\n%s", args[0].getClass(),args[0], ex.getMessage());
-    }
-    return true;
-  }
-
-  private boolean runCallback(Object[] args) {
-    log(-1, "runCallback: no implementation yet");
-    return false;
-  }
-
+	
 	@Override
 	public void execBefore(String[] stmts) {
 		if (stmts == null) {
@@ -570,10 +498,10 @@ public class JRubyRunner extends AbstractScriptRunner {
 	}
 
 	@Override
-  protected boolean doRedirect(PipedInputStream[] pin) {
+  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
 		ScriptingContainer interpreter = getScriptingContainer();
 		try {
-			PipedOutputStream pout = new PipedOutputStream(pin[0]);
+			PipedOutputStream pout = new PipedOutputStream(stdout);
 			PrintStream ps = new PrintStream(pout, true);
       System.setOut(ps);  
 			interpreter.setOutput(ps);
@@ -583,7 +511,7 @@ public class JRubyRunner extends AbstractScriptRunner {
 			return false;
 		}
 		try {
-			PipedOutputStream pout = new PipedOutputStream(pin[1]);
+			PipedOutputStream pout = new PipedOutputStream(stderr);
 			PrintStream ps = new PrintStream(pout, true);
       System.setErr(ps);
 			interpreter.setError(ps);
@@ -610,4 +538,10 @@ public class JRubyRunner extends AbstractScriptRunner {
 			sysargv.addAll(Arrays.asList(argv));
 		}
 	}
+	
+	@Override
+	public boolean canBeDefault() {
+	  return true;
+	}	
+	
 }

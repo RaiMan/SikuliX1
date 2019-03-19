@@ -100,7 +100,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
           int irunner = 0;
           for (IScriptRunner srunner : Runner.getRunners()) {
             Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
-            if (srunner.redirect(Arrays.copyOfRange(pin, irunner*npipes, irunner*npipes+2))) {
+            if (srunner.redirect(pin[irunner*npipes], pin[irunner*npipes+1])) {
               Debug.log(3, "EditorConsolePane: redirection success for %s", srunner.getName());
               quit = false; // signals the Threads that they should exit
 

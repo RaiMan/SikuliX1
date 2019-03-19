@@ -15,6 +15,8 @@ import javax.swing.text.*;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Runner;
+import org.sikuli.script.runners.JRubyRunner;
+import org.sikuli.script.runners.JythonRunner;
 
 public class EditorViewFactory implements ViewFactory {
 
@@ -277,9 +279,9 @@ class SyntaxHighlightLabelView extends LabelView {
 	public SyntaxHighlightLabelView(Element elm, String contentType) {
 		super(elm);
 		sikuliContentType = contentType;
-		if (Runner.CPYTHON.equals(sikuliContentType)) {
+		if (JythonRunner.TYPE.equals(sikuliContentType)) {
 			patternColors = patternColorsPython;
-		} else if (Runner.CRUBY.equals(sikuliContentType)) {
+		} else if (JRubyRunner.TYPE.equals(sikuliContentType)) {
 			patternColors = patternColorsRuby;
 		}
 	}

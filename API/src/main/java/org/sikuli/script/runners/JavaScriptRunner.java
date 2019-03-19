@@ -46,10 +46,6 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   
   ScriptEngine engine;
 
-  private void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
   @Override
   protected void doInit(String[] args) throws Exception {
     ScriptEngineManager jsFactory = new ScriptEngineManager();
@@ -78,25 +74,10 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public void runLines(String lines, Map<String,Object> options){
-    log(-1, "runLines: not yet implemented");
-  }
-
-  @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
-    
-//    File fScript = new File(scriptfile);
-    
-//    File innerBundle = new File(fScript.getParentFile(), scriptName + ".sikuli");
-//    if (innerBundle.exists()) {
-//      ImagePath.setBundlePath(innerBundle.getPath());
-//    } else {
-//      ImagePath.setBundlePath(fScript.getParent());
-//    }
-    
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {        
     log(lvl, "runJavaScript: running statements");
     try {
-      engine.eval(new FileReader(new File(scriptfile)));
+      engine.eval(new FileReader(new File(scriptFile)));
     } catch (FileNotFoundException | ScriptException e) {      
       log(-1, "runTest failed", e);
       return -1;
@@ -121,27 +102,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     }
     return 0;
   }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {    
-    return -1;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    return -1;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    return null;
-  }
-
+  
   @Override
   public String getName() {
     return NAME;
@@ -161,25 +122,5 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   @Override
   public String getType() {   
     return TYPE;
-  }
-
-  @Override
-  public void close() {
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-
-  }   
+  }  
 }

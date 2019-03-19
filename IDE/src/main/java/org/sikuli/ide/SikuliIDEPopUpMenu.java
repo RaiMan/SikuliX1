@@ -433,7 +433,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (cp.isShouldReparse()) {
         cp.reparse();
       }
-      cp.getRunner().doSomethingSpecial("reset", null);
+      cp.getRunner().reset();
     }
   }
 

@@ -3,7 +3,6 @@
  */
 package org.sikuli.script;
 
-import java.io.File;
 import java.io.PipedInputStream;
 import java.net.URI;
 import java.util.Map;
@@ -20,19 +19,35 @@ public interface IScriptRunner {
    * @param args All arguments that were passed to the main-method
    */
   public void init(String[] args) throws SikuliXception;
-  
+    
   /**
    * Executes the Script.
    *
-   * @param scriptfile File containing the script
-   * @param imagedirectory Directory containing the images (might be null: parent of script)
+   * @param scriptFile Identifier pointing to the script. This can either by a file path
+   *                   or an URI, depending on the runner implementation   
    * @param scriptArgs Arguments to be passed directly to the script with --args
+   * @param options Implementation specific options.
    * @return exitcode for the script execution
    */
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options);
-  
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options);
+    
+  /**
+   * Evaluates the Script.
+   *
+   * @param script Script content  
+   * @param options Implementation specific options.
+   * @return exitcode for the script execution
+   */
   public int evalScript(String script, Map<String,Object> options);
-
+ 
+  /**
+   * Run the given script lines.
+   * The implementation might perform some optimizations on
+   * the code (e.g. fix indentation) before executing it.
+   *   
+   * @param lines Code do execute
+   * @param options Implementation specific options.
+   */
   public void runLines(String lines, Map<String,Object> options);
 
   /**
@@ -84,34 +99,31 @@ public interface IScriptRunner {
   public String getName();
 
   /**
-   * returns the list of possible script file endings, first is the default
+   * returns the list of possible script file extensions, first is the default
    *
-   * @return array of strings
+   * @return array of strings 
    */
   public String[] getExtensions();
   
+  /**
+   * return the type of script this handler can execute.
+   * 
+   * @return
+   */
   public String getType();
 
   /**
-   * checks wether this ScriptRunner supports the given fileending
+   * checks whether this ScriptRunner supports the given file extension
    *
-   * @return the lowercase fileending
+   * @return true if the runner has the given extension, false otherwise
    */
-  public String hasExtension(String ending);
+  public boolean hasExtension(String ending);
 
   /**
    * Is executed before Sikuli closes. Can be used to cleanup the ScriptRunner
    */
   public void close();
-
-  /**
-   * generic interface to a special runner action
-   * @param action identifies what to do
-   * @param args contains the needed parameters
-   * @return true if successful, false otherwise
-   */
-  public boolean doSomethingSpecial(String action, Object[] args);
-
+ 
   /**
    * add statements to be run after SCRIPT_HEADER, but before script is executed
    *
@@ -126,7 +138,39 @@ public interface IScriptRunner {
    */
   public void execAfter(String[] stmts);
   
+  /**
+   * Checks if this runner can handle the given identifier.
+   *   
+   * @param identifier Can be Runner name, type or one of its supported extensions
+   *                   Can also be script code prefixed with the runnerName 
+   *                   (e.g. JavaScriptconsolel.log("hello"))
+   * @return true if the runner can handle the identifier, false otherwise
+   */
   public boolean canHandle(String identifier);
   
-  public boolean redirect(PipedInputStream[] pin);
+  /**
+   * Redirects the runner's STDIO to the given PipedInputStreams.
+   * 
+   * Redirection can be done only once per Runner instance.
+   * 
+   * @param stdout PipedInputStreams for STDOUT
+   * @param stderr PipedInputStreams for STDERR
+   * 
+   * @return
+   */
+  public boolean redirect(PipedInputStream stdout, PipedInputStream stderr);
+  
+  /**
+   * Resets this runner.
+   * 
+   * The runner gets closed and initialized again using init.
+   */
+  public void reset();
+  
+  /**
+   * Checks if this Runner can be uses as the default runner within SikuliX.
+   * 
+   * @return
+   */
+  public boolean canBeDefault();
 }

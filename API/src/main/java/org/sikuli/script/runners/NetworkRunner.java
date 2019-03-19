@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
 package org.sikuli.script.runners;
 
 import java.io.File;
@@ -12,7 +15,7 @@ import org.sikuli.script.Sikulix;
 public class NetworkRunner extends AbstractScriptRunner {
 
   @Override
-  public int runScript(URI scriptfile, String[] scriptArgs, Map<String,Object> options) {
+  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
       return -1;
     
 //    String givenScriptFolder = scriptfile.getPath().substring(1);
@@ -82,45 +85,8 @@ public class NetworkRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public int evalScript(String script, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public void runLines(String lines, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public int runInteractive(String[] scriptArgs) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public boolean isSupported() {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean isSupported() {   
+    return true;
   }
 
   @Override
@@ -150,35 +116,4 @@ public class NetworkRunner extends AbstractScriptRunner {
   public String getType() {    
     return "NET";
   }
-
-  @Override
-  public void close() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean doSomethingSpecial(String action, Object[] args) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  protected void doInit(String[] args) {
-    // TODO Auto-generated method stub
-
-  }
-
 }
