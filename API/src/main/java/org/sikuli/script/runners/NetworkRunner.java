@@ -21,7 +21,7 @@ import org.sikuli.script.Sikulix;
 public class NetworkRunner extends AbstractScriptRunner {
 
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String, Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String, Object> options) {
 
     try {
 

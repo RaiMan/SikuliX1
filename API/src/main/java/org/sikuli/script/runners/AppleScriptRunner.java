@@ -24,7 +24,7 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   private static final RunTime RUN_TIME = RunTime.get();
         
   @Override
-  public int evalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, Map<String,Object> options) {
     String osascriptShebang = "#!/usr/bin/osascript\n";
     script = osascriptShebang + script;
     File aFile = FileManager.createTempFile("script");
@@ -44,7 +44,7 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
     String prefix = options != null && Boolean.TRUE.equals(options.get(SILENT_OPTION)) ? "!" : ""; 
         
     String retVal = RUN_TIME.runcmd(new String[]{prefix + new File(scriptFile).getAbsolutePath()});

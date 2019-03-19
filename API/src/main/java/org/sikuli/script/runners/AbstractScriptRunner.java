@@ -43,6 +43,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
   }
   
+  protected void doInit(String[] args) throws Exception{
+    // noop if not implemented
+  };
+  
   public final boolean isReady() {
     synchronized(this) {
       return ready;
@@ -65,11 +69,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
            hasExtension(identifier) ||
            (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier)));
   };
-  
-  protected void doInit(String[] args) throws Exception{
-    // noop if not implemented
-  };
-  
+   
   @Override
   public final boolean redirect(PipedInputStream stdout, PipedInputStream stderr) {
     synchronized(this) {
@@ -91,30 +91,65 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
   
   @Override
-  public int runScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {  
+  public final int runScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
+    synchronized(this) {
+      init(null);
+      return doRunScript(scriptfile, scriptArgs, options);
+    }
+  }
+  
+  protected int doRunScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
     logNotSupported("runScript");
     return -1;
   }
 
   @Override
-  public int evalScript(String script, Map<String, Object> options) {
+  public final int evalScript(String script, Map<String, Object> options) {
+    synchronized(this) {
+      init(null);
+      return doEvalScript(script, options);
+    }
+  }
+  
+  protected int doEvalScript(String script, Map<String, Object> options) {
     logNotSupported("evalScript");
     return -1;
   }
 
   @Override
-  public void runLines(String lines, Map<String, Object> options) {
+  public final void runLines(String lines, Map<String, Object> options) {
+    synchronized(this) {
+      init(null);
+      doRunLines(lines, options);
+    }
+  }
+  
+  protected void doRunLines(String lines, Map<String, Object> options) {
     logNotSupported("runLines");
   }
 
   @Override
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
+  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
+    synchronized(this) {
+      init(null);
+      return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
+    }
+  }
+  
+  protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
     logNotSupported("runTest");
     return -1;
   }
 
   @Override
-  public int runInteractive(String[] scriptArgs) {
+  public final int runInteractive(String[] scriptArgs) {
+    synchronized(this) {
+      init(null);
+      return doRunInteractive(scriptArgs);
+    }
+  }
+  
+  protected int doRunInteractive(String[] scriptArgs) {
     logNotSupported("runInteractive");
     return -1;
   }

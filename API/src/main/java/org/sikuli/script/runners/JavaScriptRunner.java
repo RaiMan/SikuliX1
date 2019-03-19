@@ -74,7 +74,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {        
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {        
     log(lvl, "runJavaScript: running statements");
     try {
       engine.eval(new FileReader(new File(scriptFile)));
@@ -86,7 +86,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public int evalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, Map<String,Object> options) {
     try {
       boolean silent = false;
       if (script.startsWith("#")) {

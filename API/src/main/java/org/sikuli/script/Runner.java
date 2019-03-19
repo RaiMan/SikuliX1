@@ -181,8 +181,7 @@ public class Runner {
       initRunners();                       
 
       for(IScriptRunner r : supportedRunners) {
-        if(r.canHandle(identifier)) {
-          r.init(null);            
+        if(r.canHandle(identifier)) {          
           return r;
         }
       }                  
@@ -206,7 +205,6 @@ public class Runner {
       
       for(IScriptRunner r : supportedRunners) {
         if(r.getClass().equals(runnerClass)) {
-          r.init(null);
           return r;
         }
       }

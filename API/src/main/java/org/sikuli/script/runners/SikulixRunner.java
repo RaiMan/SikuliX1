@@ -27,7 +27,7 @@ public class SikulixRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[] {"sikuli"};
 
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
     if (null == ImagePath.getBundlePathSet())
       ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
     else {

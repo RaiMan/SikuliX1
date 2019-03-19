@@ -25,7 +25,7 @@ public class RobotRunner extends JythonRunner {
   private static final RunTime RUN_TIME = RunTime.get();
    
   @Override
-  public int evalScript(String code, Map<String,Object> options) {
+  protected int doEvalScript(String code, Map<String,Object> options) {
     boolean showReport = true;
     if (code.length() > 7 && code.substring(0, 7).contains("silent\n")) {
       code = code.substring(7);

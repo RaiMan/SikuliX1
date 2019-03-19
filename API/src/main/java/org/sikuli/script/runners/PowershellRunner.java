@@ -20,14 +20,14 @@ public class PowershellRunner extends AbstractScriptRunner {
   private static final RunTime RUN_TIME = RunTime.get();
   
   @Override
-  public int evalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, Map<String,Object> options) {
     File aFile = FileManager.createTempFile("ps1");
     FileManager.writeStringToFile(script, aFile);
     return runScript(aFile.getAbsolutePath(), null, null);
   }
   
   @Override
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {    
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {    
     File fScriptFile = new File(scriptFile);
     
     String[] psDirect = new String[]{

@@ -86,7 +86,7 @@ public class JRubyRunner extends AbstractScriptRunner {
 	}
 		
 	@Override
-	public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+	protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
 		if (null == scriptFile) {
 			//run the Ruby statements from argv (special for setup functional test)
 			fillSysArgv(null, null);
@@ -109,14 +109,14 @@ public class JRubyRunner extends AbstractScriptRunner {
 	}
 	
 	@Override
-	public int evalScript(String script, Map<String,Object> options) {
+	protected int doEvalScript(String script, Map<String,Object> options) {
 	  executeScriptHeader(new String[0]);
     interpreter.runScriptlet(script);
     return 0;
 	}
 
 	@Override
-	public int runInteractive(String[] scriptArgs) {
+	protected int doRunInteractive(String[] scriptArgs) {
             fillSysArgv(null, scriptArgs);
 
             String[] args = null;

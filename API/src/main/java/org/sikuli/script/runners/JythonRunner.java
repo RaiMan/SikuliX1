@@ -112,7 +112,7 @@ public class JythonRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public void runLines(String lines, Map<String,Object> options) {
+  protected void doRunLines(String lines, Map<String,Object> options) {
     if (lines.contains("\n")) {
       if (lines.startsWith(" ") || lines.startsWith("\t")) {
         lines = "if True:\n" + lines;
@@ -126,7 +126,7 @@ public class JythonRunner extends AbstractScriptRunner {
   }
   
   @Override
-  public int evalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, Map<String,Object> options) {
     interpreter.exec(script);
     return 0;
   }
@@ -141,7 +141,7 @@ public class JythonRunner extends AbstractScriptRunner {
    * @return The exitcode
    */
   @Override
-  public int runScript(String scriptFile, String[] argv, Map<String,Object> options) {
+  protected int doRunScript(String scriptFile, String[] argv, Map<String,Object> options) {
     if (null == scriptFile) {                 
       //run the Python statements from argv (special for setup functional test)
             
@@ -384,17 +384,11 @@ public class JythonRunner extends AbstractScriptRunner {
     }
   }
 
-  @Override
-  public int runTest(URI scriptfile, URI imagepath, String[] argv, Map<String,Object> options) {
-    log(-1, "runTest: Sikuli Test Feature is not implemented at the moment");
-    return -1;
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
-  public int runInteractive(String[] argv) {
+  protected int doRunInteractive(String[] argv) {
     String[] jy_args = null;
     String[] iargs = {"-i", "-c",
             "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "

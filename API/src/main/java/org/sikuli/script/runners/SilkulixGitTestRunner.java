@@ -29,7 +29,7 @@ public class SilkulixGitTestRunner extends NetworkRunner {
   
   String GIT_SCRIPTS = "https://github.com/RaiMan/SikuliX-2014/tree/master/TestScripts/";
     
-  public int evalScript(String scriptFile, Map<String,Object> options) {
+  protected int doEvalScript(String scriptFile, Map<String,Object> options) {
     if (scriptFile.endsWith(GIT_SCRIPTS)) {
       scriptFile = scriptFile + "showcase";            
     }    
