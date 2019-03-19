@@ -22,8 +22,11 @@ public class Region {
 
   private static String me = "Region: ";
   private static int lvl = 3;
-  private static Region fakeRegion;
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, me + message, args);
+  }
 
+  //<editor-fold desc="000 for Python">
   public static Region getDefaultInstance4py() {
     return new Screen();
   }
@@ -54,10 +57,7 @@ public class Region {
     }
     return reg;
   }
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
+  //</editor-fold>
 
   //<editor-fold desc="001 Fields x, y, w, h">
   /**
@@ -141,7 +141,7 @@ public class Region {
   public int h;
   //</editor-fold>
 
-  //<editor-fold desc="002 Fields throwException, handling findFailed/imageMissing">
+  //<editor-fold desc="010 Fields throwException, findFailed/imageMissing">
   //<editor-fold desc="1 throwexception">
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
@@ -215,6 +215,7 @@ public class Region {
   private FindFailedResponse findFailedResponseDefault = FindFailed.getResponse();
   private FindFailedResponse findFailedResponse = findFailedResponseDefault;
   //</editor-fold>
+
   //<editor-fold desc="3 findFailedHandler">
   public void setFindFailedHandler(Object handler) {
     findFailedHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
@@ -223,6 +224,7 @@ public class Region {
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
   //</editor-fold>
+
   //<editor-fold desc="4 imageMissingHandler">
   public void setImageMissingHandler(Object handler) {
     imageMissingHandler = setHandler(handler, ObserveEvent.Type.MISSING);
@@ -244,6 +246,7 @@ public class Region {
   }
   //</editor-fold>
 
+  //<editor-fold desc="011 Fields wait observe timing">
   /**
    * the time in seconds a find operation should wait
    *
@@ -272,34 +275,68 @@ public class Region {
   private double autoWaitTimeoutDefault = Settings.AutoWaitTimeout;
   private double autoWaitTimeout = autoWaitTimeoutDefault;
 
-  private float waitScanRate = Settings.WaitScanRate;
+  /**
+   * @return the regions current WaitScanRate
+   */
+  public float getWaitScanRate() {
+    return waitScanRate;
+  }
 
   /**
-   * Flag, if an observer is running on this region {@link Settings}
+   * set the regions individual WaitScanRate
+   *
+   * @param waitScanRate decimal number
    */
-  private boolean observing = false;
-  private boolean observingInBackground = false;
-  private float observeScanRate = Settings.ObserveScanRate;
-  private int repeatWaitTime = Settings.RepeatWaitTime;
+  public void setWaitScanRate(float waitScanRate) {
+    this.waitScanRate = waitScanRate;
+  }
+
+  private float waitScanRateDefault = Settings.WaitScanRate;
+  private float waitScanRate = waitScanRateDefault;
+
 
   /**
-   * The {@link Observer} Singleton instance
+   * @return the regions current ObserveScanRate
    */
-  private Observer regionObserver = null;
+  public float getObserveScanRate() {
+    return observeScanRate;
+  }
 
   /**
-   * The last found {@link Match} in the Region
+   * set the regions individual ObserveScanRate
+   *
+   * @param observeScanRate decimal number
    */
-  private Match lastMatch = null;
+  public void setObserveScanRate(float observeScanRate) {
+    this.observeScanRate = observeScanRate;
+  }
+
+  private float observeScanRateDefault = Settings.ObserveScanRate;
+  private float observeScanRate = observeScanRateDefault;
 
   /**
-   * The last found {@link Match}es in the Region
+   * INTERNAL USE: Observe
+   *
+   * @return the regions current RepeatWaitTime time in seconds
    */
-  private Iterator<Match> lastMatches = null;
-  private long lastSearchTime = -1;
-  private long lastFindTime = -1;
-  private long lastSearchTimeRepeat = -1;
-//<editor-fold desc="housekeeping">
+  public int getRepeatWaitTime() {
+    return repeatWaitTime;
+  }
+
+  /**
+   * INTERNAL USE: Observe set the regions individual WaitForVanish
+   *
+   * @param time in seconds
+   */
+  public void setRepeatWaitTime(int time) {
+    repeatWaitTime = time;
+  }
+
+  private int repeatWaitTimeDefault = Settings.RepeatWaitTime;
+  private int repeatWaitTime = repeatWaitTimeDefault;
+  //</editor-fold>
+
+  //<editor-fold desc="004 housekeeping">
 
   private boolean isScreenUnion = false;
   private boolean isVirtual = false;
@@ -321,6 +358,8 @@ public class Region {
     }
     return fakeRegion;
   }
+
+  private static Region fakeRegion;
 
   public String getName() {
     return name;
@@ -359,30 +398,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="OFF: Specials for scripting environment">
-  /*
-   public Object __enter__() {
-   Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
-   IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
-   if (runner != null) {
-   Object[] jyreg = new Object[]{this};
-   if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
-   if (jyreg[0] != null) {
-   return jyreg[0];
-   }
-   }
-   }
-   Debug.error("Region: with(__enter__): Sorry, not possible");
-   return null;
-   }
-
-   public void __exit__(Object type, Object value, Object traceback) {
-   Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
-   }
-   */
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="Initialization">
+  //<editor-fold defaultstate="collapsed" desc="005 Init & special use">
 
   /**
    * INTERNAL USE
@@ -562,7 +578,21 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Constructors to be used with Jython">
+  //<editor-fold defaultstate="collapsed" desc="002 Constructors">
+  /**
+   * internal use only, used for new Screen objects to get the Region behavior
+   */
+  protected Region() {
+    rows = 0;
+  }
+
+  /**
+   * internal use only, used for new Screen objects to get the Region behavior
+   */
+  protected Region(boolean isScreenUnion) {
+    this.isScreenUnion = isScreenUnion;
+    this.rows = 0;
+  }
 
   /**
    * Create a region with the provided coordinate / size and screen
@@ -657,25 +687,6 @@ public class Region {
     waitScanRate = r.waitScanRate;
     observeScanRate = r.observeScanRate;
     repeatWaitTime = r.repeatWaitTime;
-  }
-
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="Quasi-Constructors to be used in Java">
-
-  /**
-   * internal use only, used for new Screen objects to get the Region behavior
-   */
-  protected Region() {
-    rows = 0;
-  }
-
-  /**
-   * internal use only, used for new Screen objects to get the Region behavior
-   */
-  protected Region(boolean isScreenUnion) {
-    this.isScreenUnion = isScreenUnion;
-    this.rows = 0;
   }
 
   /**
@@ -879,7 +890,7 @@ public class Region {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="handle coordinates">
+  //<editor-fold defaultstate="collapsed" desc="008 handle coordinates">
 
   /**
    * check if current region contains given point
@@ -936,62 +947,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="handle Settings">
-  //TODO should be possible to reset to current global value resetXXX()
-
-  /**
-   * @return the regions current WaitScanRate
-   */
-  public float getWaitScanRate() {
-    return waitScanRate;
-  }
-
-  /**
-   * set the regions individual WaitScanRate
-   *
-   * @param waitScanRate decimal number
-   */
-  public void setWaitScanRate(float waitScanRate) {
-    this.waitScanRate = waitScanRate;
-  }
-
-  /**
-   * @return the regions current ObserveScanRate
-   */
-  public float getObserveScanRate() {
-    return observeScanRate;
-  }
-
-  /**
-   * set the regions individual ObserveScanRate
-   *
-   * @param observeScanRate decimal number
-   */
-  public void setObserveScanRate(float observeScanRate) {
-    this.observeScanRate = observeScanRate;
-  }
-
-  /**
-   * INTERNAL USE: Observe
-   *
-   * @return the regions current RepeatWaitTime time in seconds
-   */
-  public int getRepeatWaitTime() {
-    return repeatWaitTime;
-  }
-
-  /**
-   * INTERNAL USE: Observe set the regions individual WaitForVanish
-   *
-   * @param time in seconds
-   */
-  public void setRepeatWaitTime(int time) {
-    repeatWaitTime = time;
-  }
-
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="getters / setters / modificators">
+  //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
 
   /**
    * @return the Screen object containing the region
@@ -1392,31 +1348,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold desc="lastMatch">
-  // ************************************************
-
-  /**
-   * a find operation saves its match on success in the used region object<br>unchanged if not successful
-   *
-   * @return the Match object from last successful find in this region
-   */
-  public Match getLastMatch() {
-    return lastMatch;
-  }
-
-  // ************************************************
-
-  /**
-   * a searchAll operation saves its matches on success in the used region object<br>unchanged if not successful
-   *
-   * @return a Match-Iterator of matches from last successful searchAll in this region
-   */
-  public Iterator<Match> getLastMatches() {
-    return lastMatches;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="save capture to file">
+  //<editor-fold desc="050 save capture to file">
   public String saveScreenCapture() {
     return getScreen().capture(this).save();
   }
@@ -1481,7 +1413,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
+  //<editor-fold defaultstate="collapsed" desc="007 spatial operators - new regions">
 
   /**
    * check if current region contains given region
@@ -1804,7 +1736,7 @@ public class Region {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="parts of a Region">
+  //<editor-fold defaultstate="collapsed" desc="006 parts of a Region">
 
   /**
    * select the specified part of the region.
@@ -2123,7 +2055,7 @@ public class Region {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="highlight">
+  //<editor-fold defaultstate="collapsed" desc="028 highlight">
 
   /**
    * highlight (internal use for Python support)           :
@@ -2329,7 +2261,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="find public methods">
+  //<editor-fold defaultstate="collapsed" desc="020 find public methods">
 
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
@@ -2913,7 +2845,7 @@ public class Region {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="find internal methods">
+  //<editor-fold defaultstate="collapsed" desc="021 find internal methods">
 
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
@@ -3287,7 +3219,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Find internal support">
+  //<editor-fold defaultstate="collapsed" desc="022 Find internal support">
   private class SubFindRun implements Runnable {
 
     Match[] mArray;
@@ -3559,7 +3491,53 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Observing">
+  //<editor-fold desc="025 lastMatch">
+  /**
+   * The last found {@link Match} in the Region
+   */
+  private Match lastMatch = null;
+
+  /**
+   * The last found {@link Match}es in the Region
+   */
+  private Iterator<Match> lastMatches = null;
+  private long lastSearchTime = -1;
+  private long lastFindTime = -1;
+  private long lastSearchTimeRepeat = -1;
+
+  /**
+   * a find operation saves its match on success in the used region object<br>unchanged if not successful
+   *
+   * @return the Match object from last successful find in this region
+   */
+  public Match getLastMatch() {
+    return lastMatch;
+  }
+
+  // ************************************************
+
+  /**
+   * a searchAll operation saves its matches on success in the used region object<br>unchanged if not successful
+   *
+   * @return a Match-Iterator of matches from last successful searchAll in this region
+   */
+  public Iterator<Match> getLastMatches() {
+    return lastMatches;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="030 Observing">
+  /**
+   * Flag, if an observer is running on this region {@link Settings}
+   */
+  private boolean observing = false;
+  private boolean observingInBackground = false;
+
+  /**
+   * The {@link Observer} Singleton instance
+   */
+  private Observer regionObserver = null;
+
   protected Observer getObserver() {
     if (regionObserver == null) {
       regionObserver = new Observer(this);
@@ -3957,7 +3935,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Mouse actions - clicking">
+  //<editor-fold defaultstate="collapsed" desc="040 Mouse actions - clicking">
   protected Location checkMatch() {
     if (lastMatch != null) {
       return lastMatch.getTarget();
@@ -4158,7 +4136,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Mouse actions - drag & drop">
+  //<editor-fold defaultstate="collapsed" desc="041 Mouse actions - drag & drop">
 
   /**
    * Drag from region's last match and drop at given target <br>applying Settings.DelayAfterDrag and DelayBeforeDrop
@@ -4283,7 +4261,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Mouse actions - low level + Wheel">
+  //<editor-fold defaultstate="collapsed" desc="042 Mouse actions - low level + Wheel">
 
   /**
    * press and hold the specified buttons - use + to combine Button.LEFT left mouse button Button.MIDDLE middle mouse
@@ -4433,7 +4411,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Keyboard actions + paste">
+  //<editor-fold defaultstate="collapsed" desc="045 Keyboard actions + paste">
 
   /**
    * press and hold the given key use a constant from java.awt.event.KeyEvent which might be special in the current
@@ -4828,7 +4806,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold desc="Mobile actions (Android)">
+  //<editor-fold desc="048 Mobile actions (Android)">
   private ADBDevice adbDevice = null;
   private ADBScreen adbScreen = null;
 
@@ -4975,7 +4953,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
+  //<editor-fold defaultstate="collapsed" desc="035 OCR - read text">
 
   /**
    * tries to read the text in this region<br> might contain misread characters, NL characters and

@@ -9,6 +9,7 @@ import org.sikuli.basics.Settings;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 
 /**
  * A point like AWT.Point using global coordinates (x, y).
@@ -18,14 +19,176 @@ import java.awt.Rectangle;
  */
 public class Location implements Comparable<Location>{
 
-  public int x;
-  public int y;
-  private IScreen otherScreen = null;
-
+  //<editor-fold desc="000 for Python">
   public static Location getDefaultInstance4py() {
-    return new Location(0,0);
+    return new Location(0, 0);
   }
 
+  public static Location make4py(ArrayList args) {
+    Debug.log(3, "make: args: %s", args);
+    Location loc = getDefaultInstance4py();
+    if (null != args) {
+      int argn = 1;
+      for (Object arg : args) {
+        Debug.log(3, "%d: %s (%s)", argn++, arg.getClass().getSimpleName(), arg);
+      }
+      if (args.size() == 2) {
+        //case1: Location(x,y)
+        int num = 2;
+        for (Object arg : args) {
+          if (arg instanceof Integer || arg instanceof Double) {
+            num--;
+          }
+        }
+        if (num == 0) {
+          loc = new Location((Integer) args.get(0), (Integer) args.get(1));
+        }
+      } else if (args.size() == 1) {
+        //case2: Location(Location)
+        loc = new Location((Location) args.get(0));
+      }
+    }
+    return loc;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="002 getter/setter">
+  /**
+   * sets x to the given value
+   * @param x new x
+   * @return this
+   */
+  public Location setX(int x) {
+    this.x = x;
+    return this;
+  }
+
+  /**
+   * sets x to the given value
+   * @param x new x
+   * @return this
+   */
+  public Location setX(double x) {
+    this.x = (int) x;
+    return this;
+  }
+
+  /**
+   *
+   * @return x value
+   */
+  public int getX() {
+    return x;
+  }
+
+  /**
+   * x coordinate
+   */
+  public int x;
+
+  /**
+   * sets y to the given value
+   * @param y new y
+   * @return this
+   */
+  public Location setY(int y) {
+    this.y = y;
+    return this;
+  }
+
+  /**
+   * sets y to the given value
+   * @param y new y
+   * @return this
+   */
+  public Location setY(double y) {
+    this.y = (int) y;
+    return this;
+  }
+
+  /**
+   *
+   * @return y value
+   */
+  public int getY() {
+    return y;
+  }
+
+  /**
+   * y coordinate
+   */
+  public int y;
+
+  /**
+   * sets the coordinates to the given values (moves it)
+   * @param x new x might be non-int
+   * @param y new y might be non-int
+   * @return this
+   */
+  public Location set(int x, int y) {
+    this.x = (int) x;
+    this.y = (int) y;
+    return this;
+  }
+
+  /**
+   * sets the coordinates to the given values (moves it)
+   * @param x new x double
+   * @param y new y double
+   * @return this
+   */
+  public Location set(double x, double y) {
+    set((int) x, (int) y);
+    return this;
+  }
+
+  /**
+   * get as AWT point
+   * @return Point
+   */
+  public Point getPoint() {
+    return new Point(x,y);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="009 otherScreen">
+  /**
+   * INTERNAL USE
+   * reveals wether the containing screen is a DeskTopScreen or not
+   * @return null if DeskTopScreen
+   */
+  public boolean isOtherScreen() {
+    return (otherScreen != null);
+  }
+
+  /**
+   * INTERNAL USE
+   * identifies the point as being on a non-desktop-screen
+   * @param scr Screen
+   * @return this
+   */
+  public Location setOtherScreen(IScreen scr) {
+    otherScreen = scr;
+    return this;
+  }
+
+  /**
+   * INTERNAL USE
+   * identifies the point as being on a non-desktop-screen
+   * if this is true for the given location
+   * @return this
+   */
+  private Location setOtherScreen(Location loc) {
+    if (loc.isOtherScreen()) {
+      setOtherScreen(loc.getScreen());
+    }
+    return this;
+  }
+
+  private IScreen otherScreen = null;
+  //</editor-fold>
+
+  //<editor-fold desc="001 Constructors">
   /**
    * to allow calculated x and y that might not be integers
    * @param x column
@@ -72,55 +235,9 @@ public class Location implements Comparable<Location>{
     x = (int) point.x;
     y = (int) point.y;
   }
+  //</editor-fold>
 
-	/**
-	 *
-	 * @return x value
-	 */
-	public int getX() {
-    return x;
-  }
-
-	/**
-	 *
-	 * @return y value
-	 */
-	public int getY() {
-    return y;
-  }
-
-  /**
-   * get as AWT point
-   * @return Point
-   */
-  public Point getPoint() {
-    return new Point(x,y);
-  }
-
-  /**
-   * sets the coordinates to the given values (moves it)
-   * @param x new x
-   * @param y new y
-   * @return this
-   */
-  public Location setLocation(int x, int y) {
-    this.x = x;
-    this.y = y;
-    return this;
-  }
-
-  /**
-   * sets the coordinates to the given values (moves it)
-   * @param x new x might be non-int
-   * @param y new y might be non-int
-   * @return this
-   */
-  public Location setLocation(double x, double y) {
-    this.x = (int) x;
-    this.y = (int) y;
-    return this;
-  }
-
+  //<editor-fold desc="010 screen related">
   /**
     * Returns null, if outside of any screen and not contained in a non-Desktop Screen instance (e.g. remote screen)<br>
     * subsequent actions WILL crash if not tested for null return
@@ -169,39 +286,6 @@ public class Location implements Comparable<Location>{
     return scr;
   }
 
-	/**
-	 * INTERNAL USE
-	 * reveals wether the containing screen is a DeskTopScreen or not
-	 * @return null if DeskTopScreen
-	 */
-	public boolean isOtherScreen() {
-    return (otherScreen != null);
-  }
-
-	/**
-	 * INTERNAL USE
-	 * identifies the point as being on a non-desktop-screen
-	 * @param scr Screen
-	 * @return this
-	 */
-  public Location setOtherScreen(IScreen scr) {
-    otherScreen = scr;
-    return this;
-  }
-
-	/**
-	 * INTERNAL USE
-	 * identifies the point as being on a non-desktop-screen
-	 * if this is true for the given location
-	 * @return this
-	 */
-  private Location setOtherScreen(Location loc) {
-    if (loc.isOtherScreen()) {
-      setOtherScreen(loc.getScreen());
-    }
-    return this;
-  }
-
 // TODO Location.getColor() implement more support and make it useable
   /**
    * Get the color at the given Point for details: see java.awt.Robot and ...Color
@@ -214,17 +298,9 @@ public class Location implements Comparable<Location>{
     }
     return getScreen().getRobot().getColorAt(x, y);
   }
+  //</editor-fold>
 
-  /**
-   * the offset of given point to this Location
-   *
-   * @param loc the other Location
-   * @return relative offset
-   */
-  public Offset getOffset(Location loc) {
-    return new Offset(loc.x - x, loc.y - y);
-  }
-
+  //<editor-fold desc="005 make Regions">
   /**
    * create a region with this point as center and size Settings.DefaultPadding
    *
@@ -269,16 +345,24 @@ public class Location implements Comparable<Location>{
     return Region.create(this, CREATE_X_DIRECTION, CREATE_Y_DIRECTION, w, h);
   }
 
+  /**
+   * creates a {@link Region} with the given points as top-left and bottom-right corners
+   *
+   * @param loc the other corner
+   * @return
+   */
   public Region union(Location loc) {
     Rectangle r1 = new Rectangle(this.x, this.y, 0, 0);
     Rectangle r2 = new Rectangle(loc.x, loc.y, 0, 0);
     Region reg = new Region(r1.union(r2));
     return reg;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="003 change this">
   /**
-   * moves the point the given amounts in the x and y direction, might be negative <br>might move
-   * point outside of any screen, not checked
+   * moves the point the given amounts in the x and y direction, might be negative <br>
+   * might move point outside of any screen, not checked
    *
    * @param dx x offset
    * @param dy y offset
@@ -326,6 +410,42 @@ public class Location implements Comparable<Location>{
    */
   public Location move(int X, int Y) {
     return moveTo(X, Y);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="006 make Location Offset">
+  /**
+   * the offset of given point to this Location
+   *
+   * @param loc the other Location
+   * @return relative offset
+   */
+  public Offset getOffset(Location loc) {
+    return new Offset(loc.x - x, loc.y - y);
+  }
+
+  /**
+   * new point with same offset to current screen's top left on given screen
+   *
+   * @param scrID number of screen
+   * @return new location
+   */
+  public Location copyTo(int scrID) {
+    return copyTo(Screen.getScreen(scrID));
+  }
+
+  /**
+   * New point with same offset to current screen's top left on given screen
+   *
+   * @param screen new parent screen
+   * @return new location
+   */
+  public Location copyTo(IScreen screen) {
+    IScreen s = getScreen();
+    s = (s == null ? Screen.getPrimaryScreen() : s);
+    Location o = new Location(s.getBounds().getLocation());
+    Location n = new Location(screen.getBounds().getLocation());
+    return new Location(n.x + x - o.x, n.y + y - o.y);
   }
 
   /**
@@ -395,31 +515,9 @@ public class Location implements Comparable<Location>{
   public Location below(int dy) {
     return new Location(x, y + dy).setOtherScreen(this);
   }
+  //</editor-fold>
 
-  /**
-   * new point with same offset to current screen's top left on given screen
-   *
-   * @param scrID number of screen
-   * @return new location
-   */
-  public Location copyTo(int scrID) {
-    return copyTo(Screen.getScreen(scrID));
-  }
-
-  /**
-   * New point with same offset to current screen's top left on given screen
-   *
-   * @param screen new parent screen
-   * @return new location
-   */
-  public Location copyTo(IScreen screen) {
-    IScreen s = getScreen();
-    s = (s == null ? Screen.getPrimaryScreen() : s);
-    Location o = new Location(s.getBounds().getLocation());
-    Location n = new Location(screen.getBounds().getLocation());
-    return new Location(n.x + x - o.x, n.y + y - o.y);
-  }
-
+  //<editor-fold desc="011 actions">
   /**
    * Move the mouse to this location point
    *
@@ -459,7 +557,9 @@ public class Location implements Comparable<Location>{
     Mouse.click(this, "R");
     return this;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="008 internal">
   @Override
   public boolean equals(Object oThat) {
     if (this == oThat) {
@@ -514,9 +614,9 @@ public class Location implements Comparable<Location>{
     return "L(" + x + "," + y + ")";
   }
 
-	public String toJSON() {
-		return String.format("[\"L\", %d, %d]", x, y);
-	}
+  public String toJSON() {
+    return String.format("[\"L\", %d, %d]", x, y);
+  }
 
   protected IRobot getRobotForPoint(String action) {
     if (getScreen() == null) {
@@ -525,4 +625,5 @@ public class Location implements Comparable<Location>{
     }
     return getScreen().getRobot();
   }
+  //</editor-fold>
 }

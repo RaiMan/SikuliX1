@@ -5,6 +5,7 @@
 package org.sikuli.util;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -40,6 +41,7 @@ public class Crawler {
         p("------- Class: %s (%s)", className, superClass);
         Method[] declaredMethods = aClass.getDeclaredMethods();
         Constructor<?>[] declaredConstructors = aClass.getDeclaredConstructors();
+        Field[] declaredFields = aClass.getDeclaredFields();
         for (Constructor c : declaredConstructors) {
           signature = c.toGenericString();
           if (!signature.startsWith("public")) {
