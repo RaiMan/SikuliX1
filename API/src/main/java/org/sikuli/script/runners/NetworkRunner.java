@@ -48,8 +48,7 @@ public class NetworkRunner extends AbstractScriptRunner {
       
       for (IScriptRunner runner : Runner.getRunners()) {
 
-        if (!SikulixRunner.NAME.equals(runner.getName())) {
-
+        if (!SikulixRunner.NAME.equals(runner.getName())) { // SikuliX bundles can't be downloaded directly 
           for (String extension : runner.getExtensions()) {
 
             String url;
