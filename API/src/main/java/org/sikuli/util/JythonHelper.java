@@ -616,7 +616,7 @@ public class JythonHelper implements JLangHelperInterface {
     synchronized(sysPath) {
       sysPath.clear();
       if (null == cInterpreter) {
-        sysPath = null;
+        sysPath.clear();
         return;
       }
       try {
@@ -630,7 +630,7 @@ public class JythonHelper implements JLangHelperInterface {
           sysPath.add(entry);
         }
       } catch (Exception ex) {
-        sysPath.clear();;
+        sysPath.clear();
       }
     }
   }
