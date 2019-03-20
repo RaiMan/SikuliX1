@@ -2788,7 +2788,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
       public void afterRun() {
         addErrorMark(ret);
-        srunners[0].close();
+        //srunners[0].close();
         srunners[0] = null;
         if (Image.getIDEshouldReload()) {
           EditorPane pane = sikulixIDE.getCurrentCodePane();
