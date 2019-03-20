@@ -56,7 +56,7 @@ public interface IScriptRunner {
    * @param scriptfile File containing the script
    * @param imagedirectory Directory containing the images (might be null: parent of script)
    * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @param forIDE when called from Sikuli IDE additional info
+   * @param options when called from Sikuli IDE additional info
    * @return exitcode for the script execution
    */
   public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options);
