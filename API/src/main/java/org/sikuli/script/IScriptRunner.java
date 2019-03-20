@@ -166,11 +166,4 @@ public interface IScriptRunner {
    * The runner gets closed and initialized again using init.
    */
   public void reset();
-  
-  /**
-   * Checks if this Runner can be uses as the default runner within SikuliX.
-   * 
-   * @return
-   */
-  public boolean canBeDefault();
 }

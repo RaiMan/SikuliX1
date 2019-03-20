@@ -524,10 +524,4 @@ public class JRubyRunner extends AbstractScriptRunner {
       sysargv.addAll(Arrays.asList(argv));
     }
   }
-
-  @Override
-  public boolean canBeDefault() {
-    return true;
-  }
-
 }

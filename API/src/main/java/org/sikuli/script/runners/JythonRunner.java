@@ -606,9 +606,4 @@ public class JythonRunner extends AbstractScriptRunner {
    * " to HTML"); py.set("local_convert", true); py.set("sikuli_src", bundle);
    * py.exec(pyConverter); }
    */
-
-  @Override
-  public boolean canBeDefault() {
-    return true;
-  }
 }

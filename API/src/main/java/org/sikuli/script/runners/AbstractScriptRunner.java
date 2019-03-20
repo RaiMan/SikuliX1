@@ -208,9 +208,4 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public void execAfter(String[] stmts) {
     logNotSupported("execBefore");
   }
-  
-  @Override
-  public boolean canBeDefault() {
-     return false; 
-  }  
 }

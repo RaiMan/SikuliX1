@@ -25,7 +25,9 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
+import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -39,10 +41,10 @@ public class Runner {
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
   
-  public static String[] DEFAULT_RUNNERS = new String[] {"jython", "jruby"};
+  public static String[] DEFAULT_RUNNERS = new String[] {JythonRunner.NAME, JRubyRunner.NAME, JavaScriptRunner.NAME};
   
-  public static String EDEFAULT = "py";  
-  public static String RDEFAULT = "jython";
+  public static String EDEFAULT = JythonRunner.EXTENSIONS[0];  
+  public static String RDEFAULT = JythonRunner.NAME;
 
   private static String[] runScripts = null;
   private static int lastReturnCode = 0;
@@ -163,7 +165,7 @@ public class Runner {
       } else {
         boolean defaultFound = false;
         for (String name : DEFAULT_RUNNERS) {
-          for (IScriptRunner runner : runners) {
+          for (IScriptRunner runner : supportedRunners) {
             if(runner.getName().equals(name)) {
               Runner.RDEFAULT = runner.getName();
               Runner.EDEFAULT = runner.getExtensions()[0];
