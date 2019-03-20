@@ -70,9 +70,10 @@ public class Region {
   /**
    * @param X new x position of top left corner
    */
-  public void setX(int X) {
+  public Region setX(int X) {
     x = X;
     initScreen(null);
+    return this;
   }
 
   /**
@@ -90,9 +91,10 @@ public class Region {
   /**
    * @param Y new y position of top left corner
    */
-  public void setY(int Y) {
+  public Region setY(int Y) {
     y = Y;
     initScreen(null);
+    return this;
   }
 
   /**
@@ -110,9 +112,10 @@ public class Region {
   /**
    * @param W new width
    */
-  public void setW(int W) {
+  public Region setW(int W) {
     w = W > 1 ? W : 1;
     initScreen(null);
+    return this;
   }
 
   /**
@@ -130,9 +133,10 @@ public class Region {
   /**
    * @param H new height
    */
-  public void setH(int H) {
+  public Region setH(int H) {
     h = H > 1 ? H : 1;
     initScreen(null);
+    return this;
   }
 
   /**
