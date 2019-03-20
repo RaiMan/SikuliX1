@@ -74,6 +74,7 @@ public class JRubyRunner extends AbstractScriptRunner {
 
   private static Ruby runtime;
   private static ThreadContext context;
+  private static boolean redirected = false;
 
   @Override
   protected void doInit(String[] args) {
@@ -112,7 +113,7 @@ public class JRubyRunner extends AbstractScriptRunner {
 
   @Override
   protected int doEvalScript(String script, Map<String, Object> options) {
- // Since we have a static interpreter, we have to synchronize class wide
+    // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       executeScriptHeader(new String[0]);
       interpreter.runScriptlet(script);
@@ -479,25 +480,32 @@ public class JRubyRunner extends AbstractScriptRunner {
 
   @Override
   protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
-    ScriptingContainer interpreter = getScriptingContainer();
-    try {
-      PipedOutputStream pout = new PipedOutputStream(stdout);
-      PrintStream ps = new PrintStream(pout, true);
-      interpreter.setOutput(ps);
-    } catch (Exception e) {
-      e.printStackTrace();
-      log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
-      return false;
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized (JRubyRunner.class) {
+      if (!redirected) {
+        redirected = true;
+
+        ScriptingContainer interpreter = getScriptingContainer();
+        try {
+          PipedOutputStream pout = new PipedOutputStream(stdout);
+          PrintStream ps = new PrintStream(pout, true);
+          interpreter.setOutput(ps);
+        } catch (Exception e) {
+          e.printStackTrace();
+          log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
+          return false;
+        }
+        try {
+          PipedOutputStream pout = new PipedOutputStream(stderr);
+          PrintStream ps = new PrintStream(pout, true);
+          interpreter.setError(ps);
+        } catch (Exception e) {
+          log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());
+          return false;
+        }        
+      }
+      return true;
     }
-    try {
-      PipedOutputStream pout = new PipedOutputStream(stderr);
-      PrintStream ps = new PrintStream(pout, true);
-      interpreter.setError(ps);
-    } catch (Exception e) {
-      log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());
-      return false;
-    }
-    return true;
   }
 
   /**
