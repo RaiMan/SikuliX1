@@ -40,11 +40,16 @@ public class JythonRunner extends AbstractScriptRunner {
  
   private int lvl = 3;
  
-  /**
+  /*
    * The PythonInterpreter instance
+   * 
+   * Currently this has to be static because JythonHelper is a global object
+   * and takes the interpreter to work with. Having multiple interpreters in the
+   * same VM doesn't work.
+   * TODO Refactoring to make JythonHelper non global or get rid of it entirely.
    */
-  private PythonInterpreter interpreter = null;
-  private JythonHelper helper = null;
+  private static PythonInterpreter interpreter = null;
+  private static JythonHelper helper = null;
 
   /**
    * sys.argv for the jython script
@@ -86,9 +91,11 @@ public class JythonRunner extends AbstractScriptRunner {
 //          = FileManager.convertStreamToString(SikuliToHtmlConverter);
 
   @Override
-  protected void doInit(String[] param) {   
+  protected void doInit(String[] param) { 
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
       getInterpreter();
-      helper = getHelper();
+      getHelper();
       helper.getSysPath();
 //JAVA9
 //      String fpAPI = null;
@@ -108,27 +115,34 @@ public class JythonRunner extends AbstractScriptRunner {
       helper.addSitePackages();
       helper.showSysPath();
       interpreter.exec("from sikuli import *");
-      log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString()); 
+      log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
+    }
   }
 
   @Override
   protected void doRunLines(String lines, Map<String,Object> options) {
-    if (lines.contains("\n")) {
-      if (lines.startsWith(" ") || lines.startsWith("\t")) {
-        lines = "if True:\n" + lines;
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
+      if (lines.contains("\n")) {
+        if (lines.startsWith(" ") || lines.startsWith("\t")) {
+          lines = "if True:\n" + lines;
+        }
       }
-    }
-    try {
-      interpreter.exec(lines);
-    } catch (Exception ex) {
-      log(-1, "runPython: (%s) raised: %s", lines, ex);
+      try {
+        interpreter.exec(lines);
+      } catch (Exception ex) {
+        log(-1, "runPython: (%s) raised: %s", lines, ex);
+      }
     }
   }
   
   @Override
   protected int doEvalScript(String script, Map<String,Object> options) {
-    interpreter.exec(script);
-    return 0;
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
+      interpreter.exec(script);
+      return 0;
+    }
   }
 
   /**
@@ -142,31 +156,35 @@ public class JythonRunner extends AbstractScriptRunner {
    */
   @Override
   protected int doRunScript(String scriptFile, String[] argv, Map<String,Object> options) {
-    if (null == scriptFile) {                 
-      //run the Python statements from argv (special for setup functional test)
-            
-      executeScriptHeader(null);
-      log(lvl, "runPython: running statements");
-      try {
-        for (String e : argv) {
-          interpreter.exec(e);
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
+      if (null == scriptFile) {                 
+        //run the Python statements from argv (special for setup functional test)
+              
+        executeScriptHeader(null);
+        log(lvl, "runPython: running statements");
+        try {
+          for (String e : argv) {
+            interpreter.exec(e);
+          }
+        } catch (Exception ex) {
+          log(-1, "runPython: raised: %s", ex.getMessage());
+          return -1;
         }
-      } catch (Exception ex) {
-        log(-1, "runPython: raised: %s", ex.getMessage());
-        return -1;
+        return 0;
       }
-      return 0;
+      
+      File pyFile = new File(scriptFile);      
+      fillSysArgv(pyFile, argv);
+           
+      executeScriptHeader(new String[]{
+              pyFile.getParent(),
+              pyFile.getParentFile().getParent()});
+      
+      int exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
+  
+      return exitCode;
     }
-    
-    File pyFile = new File(scriptFile);
-         
-    executeScriptHeader(new String[]{
-            pyFile.getParent(),
-            pyFile.getParentFile().getParent()});
-    
-    int exitCode = runPython(pyFile, null, new String[]{pyFile.getParentFile().getAbsolutePath()});
-
-    return exitCode;
   }
 
   private int runPython(File pyFile, String[] stmts, String[] scriptPaths) {
@@ -491,20 +509,26 @@ public class JythonRunner extends AbstractScriptRunner {
     }
   }
 
-  protected synchronized PythonInterpreter getInterpreter() {
-    if (interpreter == null) {
-      sysargv.add("");
-      PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
-      interpreter = new PythonInterpreter();
+  protected PythonInterpreter getInterpreter() {
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
+      if (interpreter == null) {
+        sysargv.add("");
+        PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
+        interpreter = new PythonInterpreter();
+      }
+      return interpreter;
     }
-    return interpreter;
   }
   
-  protected synchronized JythonHelper getHelper() {
-    if(helper == null) {
-      helper = JythonHelper.set(getInterpreter());
+  protected JythonHelper getHelper() {
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized(JythonRunner.class) {
+      if(helper == null) {
+        helper = JythonHelper.set(getInterpreter());
+      }
+      return helper;
     }
-    return helper;
   }
     
 //TODO revise the before/after concept (to support IDE reruns)
