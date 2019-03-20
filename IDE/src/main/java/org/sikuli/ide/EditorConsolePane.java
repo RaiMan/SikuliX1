@@ -128,7 +128,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
             PipedOutputStream eout = new PipedOutputStream(pin[sysErrIndex]);
             PrintStream eps = new PrintStream(eout, true);
             System.setErr(eps);
-            
+                                    
             reader[sysErrIndex] = new Thread(EditorConsolePane.this);
             reader[sysErrIndex].setDaemon(true);
             reader[sysErrIndex].start();
@@ -209,9 +209,11 @@ public class EditorConsolePane extends JPanel implements Runnable {
           }
           if (pin[i].available() != 0) {
             String input = this.readLine(pin[i]);
-            appendMsg(htmlize(input));
-            if (textArea.getDocument().getLength() > 0) {
-              textArea.setCaretPosition(textArea.getDocument().getLength() - 1);
+            synchronized(textArea) {
+              appendMsg(htmlize(input));
+              if (textArea.getDocument().getLength() > 0) {
+                textArea.setCaretPosition(textArea.getDocument().getLength() - 1);
+              }
             }
           }
           if (quit) {
