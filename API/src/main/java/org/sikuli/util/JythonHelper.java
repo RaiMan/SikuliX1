@@ -613,116 +613,128 @@ public class JythonHelper implements JLangHelperInterface {
   }
 
   public void getSysPath() {
-    sysPath = new ArrayList<String>();
-    if (null == cInterpreter) {
-      sysPath = null;
-      return;
-    }
-    try {
-      Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
-      Field fPath = aState.getClass().getField("path");
-      Object pyPath = fPath.get(aState);
-      Integer pathLen = (Integer) mLen.invoke(pyPath, (Object[]) null);
-      for (int i = 0; i < pathLen; i++) {
-        String entry = (String) mGet.invoke(pyPath, i);
-        log(lvl + 1, "sys.path[%2d] = %s", i, entry);
-        sysPath.add(entry);
+    synchronized(sysPath) {
+      sysPath.clear();
+      if (null == cInterpreter) {
+        sysPath = null;
+        return;
       }
-    } catch (Exception ex) {
-      sysPath = null;
+      try {
+        Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
+        Field fPath = aState.getClass().getField("path");
+        Object pyPath = fPath.get(aState);
+        Integer pathLen = (Integer) mLen.invoke(pyPath, (Object[]) null);
+        for (int i = 0; i < pathLen; i++) {
+          String entry = (String) mGet.invoke(pyPath, i);
+          log(lvl + 1, "sys.path[%2d] = %s", i, entry);
+          sysPath.add(entry);
+        }
+      } catch (Exception ex) {
+        sysPath.clear();;
+      }
     }
   }
 
   public void setSysPath() {
-    if (null == cInterpreter || null == sysPath) {
-      return;
-    }
-    try {
-      Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
-      Field fPath = aState.getClass().getField("path");
-      Object pyPath = fPath.get(aState);
-      Integer pathLen = (Integer) mLen.invoke(pyPath, (Object[]) null);
-      for (int i = 0; i < pathLen && i < sysPath.size(); i++) {
-        String entry = sysPath.get(i);
-        log(lvl + 1, "sys.path.set[%2d] = %s", i, entry);
-        mSet.invoke(pyPath, i, entry);
+    synchronized(sysPath) {
+      if (null == cInterpreter || null == sysPath) {
+        return;
       }
-      if (pathLen < sysPath.size()) {
-        for (int i = pathLen; i < sysPath.size(); i++) {
+      try {
+        Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
+        Field fPath = aState.getClass().getField("path");
+        Object pyPath = fPath.get(aState);
+        Integer pathLen = (Integer) mLen.invoke(pyPath, (Object[]) null);
+        for (int i = 0; i < pathLen && i < sysPath.size(); i++) {
           String entry = sysPath.get(i);
-          log(lvl + 1, "sys.path.add[%2d] = %s", i, entry);
-          mAdd.invoke(pyPath, entry);
+          log(lvl + 1, "sys.path.set[%2d] = %s", i, entry);
+          mSet.invoke(pyPath, i, entry);
         }
-      }
-      if (pathLen > sysPath.size()) {
-        for (int i = sysPath.size(); i < pathLen; i++) {
-          String entry = (String) mGet.invoke(pyPath, i);
-          log(lvl + 1, "sys.path.rem[%2d] = %s", i, entry);
-          mRemove.invoke(pyPath, i);
+        if (pathLen < sysPath.size()) {
+          for (int i = pathLen; i < sysPath.size(); i++) {
+            String entry = sysPath.get(i);
+            log(lvl + 1, "sys.path.add[%2d] = %s", i, entry);
+            mAdd.invoke(pyPath, entry);
+          }
         }
+        if (pathLen > sysPath.size()) {
+          for (int i = sysPath.size(); i < pathLen; i++) {
+            String entry = (String) mGet.invoke(pyPath, i);
+            log(lvl + 1, "sys.path.rem[%2d] = %s", i, entry);
+            mRemove.invoke(pyPath, i);
+          }
+        }
+      } catch (Exception ex) {
+        sysPath.clear();
       }
-    } catch (Exception ex) {
-      sysPath = null;
     }
   }
 
   public void addSitePackages() {
-    File fLibFolder = runTime.fSikulixLib;
-    File fSitePackages = new File(fLibFolder, "site-packages");
-    if (fSitePackages.exists()) {
-      addSysPath(fSitePackages);
-      if (hasSysPath(fSitePackages.getAbsolutePath())) {
-        log(lvl, "added as Jython::sys.path[0]:\n%s", fSitePackages);
-      }
-      File fSites = new File(fSitePackages, "sites.txt");
-      String sSites = "";
-      if (fSites.exists()) {
-        sSites = FileManager.readFileToString(fSites);
-        if (!sSites.isEmpty()) {
-          log(lvl, "found Lib/site-packages/sites.txt");
-          String[] listSites = sSites.split("\n");
-          for (String site : listSites) {
-            String path = site.trim();
-            if (path.startsWith("#")) {
-              continue;
-            }
-            if (!path.isEmpty()) {
-              appendSysPath(path);
-              log(lvl, "adding from Lib/site-packages/sites.txt:\n%s", path);
+    synchronized(sysPath) {
+      File fLibFolder = runTime.fSikulixLib;
+      File fSitePackages = new File(fLibFolder, "site-packages");
+      if (fSitePackages.exists()) {
+        addSysPath(fSitePackages);
+        if (hasSysPath(fSitePackages.getAbsolutePath())) {
+          log(lvl, "added as Jython::sys.path[0]:\n%s", fSitePackages);
+        }
+        File fSites = new File(fSitePackages, "sites.txt");
+        String sSites = "";
+        if (fSites.exists()) {
+          sSites = FileManager.readFileToString(fSites);
+          if (!sSites.isEmpty()) {
+            log(lvl, "found Lib/site-packages/sites.txt");
+            String[] listSites = sSites.split("\n");
+            for (String site : listSites) {
+              String path = site.trim();
+              if (path.startsWith("#")) {
+                continue;
+              }
+              if (!path.isEmpty()) {
+                appendSysPath(path);
+                log(lvl, "adding from Lib/site-packages/sites.txt:\n%s", path);
+              }
             }
           }
         }
       }
-    }
-    String fpBundle = ImagePath.getPath(0);
-    if (fpBundle != null) {
-      addSysPath(fpBundle);
+      String fpBundle = ImagePath.getPath(0);
+      if (fpBundle != null) {
+        addSysPath(fpBundle);
+      }
     }
   }
 
   public void addSysPath(String fpFolder) {
-    if (!hasSysPath(fpFolder)) {
-      sysPath.add(0, fpFolder);
-      setSysPath();
-      nPathAdded++;
+    synchronized(sysPath) {
+      if (!hasSysPath(fpFolder)) {
+        sysPath.add(0, fpFolder);
+        setSysPath();
+        nPathAdded++;
+      }
     }
   }
 
   public void appendSysPath(String fpFolder) {
-    if (!hasSysPath(fpFolder)) {
-      sysPath.add(fpFolder);
-      setSysPath();
-      nPathAdded++;
+    synchronized(sysPath) {
+      if (!hasSysPath(fpFolder)) {
+        sysPath.add(fpFolder);
+        setSysPath();
+        nPathAdded++;
+      }
     }
   }
 
   public void putSysPath(String fpFolder, int n) {
-    if (n < 1 || n > sysPath.size()) {
-      addSysPath(fpFolder);
-    } else {
-      sysPath.add(n, fpFolder);
-      setSysPath();
-      nPathAdded++;
+    synchronized(sysPath) {
+      if (n < 1 || n > sysPath.size()) {
+        addSysPath(fpFolder);
+      } else {
+        sysPath.add(n, fpFolder);
+        setSysPath();
+        nPathAdded++;
+      }
     }
   }
 
@@ -731,77 +743,91 @@ public class JythonHelper implements JLangHelperInterface {
   }
 
   public void insertSysPath(File fFolder) {
-    getSysPath();
-    sysPath.add((nPathSaved > -1 ? nPathSaved : 0), fFolder.getAbsolutePath());
-    setSysPath();
-    nPathSaved = -1;
+    synchronized(sysPath) {
+      getSysPath();
+      sysPath.add((nPathSaved > -1 ? nPathSaved : 0), fFolder.getAbsolutePath());
+      setSysPath();
+      nPathSaved = -1;
+    }
   }
 
   public void removeSysPath(File fFolder) {
-    int n;
-    if (-1 < (n = getSysPathEntry(fFolder))) {
-      sysPath.remove(n);
-      nPathSaved = n;
-      setSysPath();
-      nPathAdded = nPathAdded == 0 ? 0 : nPathAdded--;
+    synchronized(sysPath) {
+      int n;
+      if (-1 < (n = getSysPathEntry(fFolder))) {
+        sysPath.remove(n);
+        nPathSaved = n;
+        setSysPath();
+        nPathAdded = nPathAdded == 0 ? 0 : nPathAdded--;
+      }
     }
   }
 
   public boolean hasSysPath(String fpFolder) {
-    getSysPath();
-    for (String fpPath : sysPath) {
-      if (FileManager.pathEquals(fpPath, fpFolder)) {
-        return true;
+    synchronized(sysPath) {
+      getSysPath();
+      for (String fpPath : sysPath) {
+        if (FileManager.pathEquals(fpPath, fpFolder)) {
+          return true;
+        }
       }
-    }
-    return false;
+      return false;
+      }
   }
 
   public int getSysPathEntry(File fFolder) {
-    getSysPath();
-    int n = 0;
-    for (String fpPath : sysPath) {
-      if (FileManager.pathEquals(fpPath, fFolder.getAbsolutePath())) {
-        return n;
+    synchronized(sysPath) {
+      getSysPath();
+      int n = 0;
+      for (String fpPath : sysPath) {
+        if (FileManager.pathEquals(fpPath, fFolder.getAbsolutePath())) {
+          return n;
+        }
+        n++;
       }
-      n++;
+      return -1;
     }
-    return -1;
   }
 
   public File existsSysPathModule(String modname) {
-    getSysPath();
-    File fModule = null;
-    for (String fpPath : sysPath) {
-      fModule = existsModule(modname, new File(fpPath));
-      if (null != fModule) {
-        break;
+    synchronized(sysPath) {
+      getSysPath();
+      File fModule = null;
+      for (String fpPath : sysPath) {
+        fModule = existsModule(modname, new File(fpPath));
+        if (null != fModule) {
+          break;
+        }
       }
+      return fModule;
     }
-    return fModule;
   }
 
   public File existsSysPathJar(String fpJar) {
-    getSysPath();
-    File fJar = null;
-    for (String fpPath : sysPath) {
-      fJar = new File(fpPath, fpJar);
-      if (fJar.exists()) {
-        break;
+    synchronized(sysPath) {
+      getSysPath();
+      File fJar = null;
+      for (String fpPath : sysPath) {
+        fJar = new File(fpPath, fpJar);
+        if (fJar.exists()) {
+          break;
+        }
+        fJar = null;
       }
-      fJar = null;
+      return fJar;
     }
-    return fJar;
   }
 
   public void showSysPath() {
-    if (Debug.is(lvl)) {
-      getSysPath();
-      log(lvl, "***** Jython sys.path");
-      for (int i = 0; i < sysPath.size(); i++) {
-        logp(lvl, "%2d: %s", i, sysPath.get(i));
+    synchronized(sysPath) {
+      if (Debug.is(lvl)) {
+        getSysPath();
+        log(lvl, "***** Jython sys.path");
+        for (int i = 0; i < sysPath.size(); i++) {
+          logp(lvl, "%2d: %s", i, sysPath.get(i));
+        }
+        log(lvl, "***** Jython sys.path end");
       }
-      log(lvl, "***** Jython sys.path end");
     }
   }
 
