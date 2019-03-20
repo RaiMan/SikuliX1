@@ -23,6 +23,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.AbstractScriptRunner;
+import org.sikuli.scriptrunner.ScriptingSupport;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 
@@ -279,10 +280,8 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (selOptionsTypes == null) {
         String types = "";
         List<IScriptRunner> runners = Runner.getRunners();
-        for (IScriptRunner runner : runners) {
-          if (((AbstractScriptRunner) runner).isIdeContent()) {
-            types += runner.getType().replaceFirst(".*?\\/", "") + " ";
-          }
+        for (IScriptRunner runner : ScriptingSupport.getIDERunners()) {
+          types += runner.getType().replaceFirst(".*?\\/", "") + " ";
         }
         if (!types.isEmpty()) {
           types = types.trim();

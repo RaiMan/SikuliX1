@@ -6,13 +6,9 @@ package org.sikuli.script;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
@@ -25,9 +21,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
-import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -40,11 +34,6 @@ public class Runner {
   static final String me = "Runner: ";
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
-
-  public static String[] DEFAULT_RUNNERS = new String[]{JythonRunner.NAME, JRubyRunner.NAME, JavaScriptRunner.NAME};
-
-  public static String EDEFAULT = JythonRunner.EXTENSIONS[0];
-  public static String RDEFAULT = JythonRunner.NAME;
 
   private static String[] runScripts = null;
   private static int lastReturnCode = 0;
@@ -126,7 +115,6 @@ public class Runner {
         return;
       }
 
-      log(lvl, "initScriptingSupport: enter");
       if (runners.isEmpty()) {
 
         Reflections reflections = new Reflections(ClasspathHelper.forPackage("org.sikuli.script.runners"), new SubTypesScanner());
@@ -141,7 +129,7 @@ public class Runner {
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                   | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
-            log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
+            log(lvl, "initRunners: warning: %s", e.getMessage());
             continue;
           }
 
@@ -149,37 +137,12 @@ public class Runner {
           if (name != null && !name.startsWith("Not")) {
             runners.add(current);
             if (current.isSupported()) {
+              log(lvl, "initRunners: added: %s", current.getName());
               supportedRunners.add(current);
-              log(lvl, "initScriptingSupport: added: %s", name);
             }
           }
         }
       }
-      if (supportedRunners.isEmpty()) {
-        String em = "Terminating: No scripting support available. Rerun Setup!";
-        log(-1, em);
-        if (RunTime.isRunningIDE) {
-          Sikulix.popError(em, "IDE has problems ...");
-        }
-        System.exit(1);
-      } else {
-        boolean defaultFound = false;
-        for (String name : DEFAULT_RUNNERS) {
-          for (IScriptRunner runner : supportedRunners) {
-            if (runner.getName().equals(name)) {
-              Runner.RDEFAULT = runner.getName();
-              Runner.EDEFAULT = runner.getExtensions()[0];
-              defaultFound = true;
-              break;
-            }
-          }
-
-          if (defaultFound) {
-            break;
-          }
-        }
-      }
-      log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
       isReady = true;
     }
   }
@@ -294,8 +257,8 @@ public class Runner {
 
     if (script.toLowerCase().startsWith(runner.getName().toLowerCase() + "*")) {
       // in the previous implementation it was possible to prefix
-      // script code with the runner name + * (at least I think it is a *) and then 
-      // eval it with the given runner. 
+      // script code with the runner name + * (at least I think it is a *) and then
+      // eval it with the given runner.
       // We just keep this behavior although it feels a bit odd.
       // TODO Deprecate this behavior??
       retVal = runner.evalScript(script.substring(runner.getName().length() + 1), null);
@@ -349,7 +312,7 @@ public class Runner {
       return null;
     }
 
-    // check if fScriptFolder is a supported script file 
+    // check if fScriptFolder is a supported script file
     if (fScriptFolder.isFile()) {
       for (IScriptRunner runner : getRunners()) {
         for (String extension : runner.getExtensions()) {
@@ -389,162 +352,162 @@ public class Runner {
     return fScript;
   }
 
-// Since this class is marked as INTERNAL USE, we don't really have to deprecate stuff here.  
+// Since this class is marked as INTERNAL USE, we don't really have to deprecate stuff here.
 //  /**
 //   * @deprecated Use JRubyRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String ERUBY = "rb";
-//  
+//
 //  /**
 //   * @deprecated Use JythonRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String EPYTHON = "py";
-//  
+//
 //  /**
 //   * @deprecated Use JavaScriptRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String EJSCRIPT = "js";
-//  
+//
 //  /**
 //   * @deprecated Use AppleScriptRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String EASCRIPT = "script";
-//  
+//
 //  /**
 //   * @deprecated Use PowershellRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String ESSCRIPT = "ps1";
-//  
+//
 //  /**
 //   * @deprecated Use TextRunner.EXTENSIONS[0]
 //   */
 //  @Deprecated
 //  public static String EPLAIN = "txt";
-//  
+//
 //  /**
 //   * @deprecated Use JythonRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CPYTHON = "text/python";
-//  
+//
 //  /**
 //   * @deprecated Use JRubyRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CRUBY = "text/ruby";
-//  
+//
 //  /**
 //   * @deprecated Use JavaScriptRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CJSCRIPT = "text/javascript";
-//  
+//
 //  /**
 //   * @deprecated Use AppleScriptRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CASCRIPT = "text/applescript";
-//  
+//
 //  /**
 //   * @deprecated Use PowershellRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CSSCRIPT = "text/powershell";
-//  
+//
 //  /**
 //   * @deprecated Use TextRunner.TYPE
 //   */
 //  @Deprecated
 //  public static String CPLAIN = "text/plain";
-//  
+//
 //  /**
 //   * @deprecated Use JythonRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RPYTHON = "jython";
-//  
+//
 //  /**
 //   * @deprecated Use JythonRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RRUBY = "jruby";
-//  
+//
 //  /**
 //   * @deprecated Use JavaScriptRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RJSCRIPT = "JavaScript";
-//  
+//
 //  /**
 //   * @deprecated Use AppleScriptRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RASCRIPT = "AppleScript";
-//  
+//
 //  /**
 //   * @deprecated Use PowershellRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RSSCRIPT = "PowerShell";
-//  
+//
 //  /**
 //   * @deprecated Use RobotRunner.NAME
 //   */
 //  @Deprecated
 //  public static String RRSCRIPT = "Robot";
-//  
+//
 //  /**
 //   * @deprecated Use Runner.getRunner(JavaScriptRunner.class).evalScript(script, null)
 //   */
 //  @Deprecated
 //  public static void runjsEval(String script) {
-//    getRunner(RJSCRIPT).evalScript(script, null);    
+//    getRunner(RJSCRIPT).evalScript(script, null);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runjs(File fScript, URL uGivenScript, String givenScriptScript, String[] args) {
-//     return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString());    
+//     return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString());
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runas(String givenScriptScript) {
-//    return Runner.getRunner(RASCRIPT).evalScript(givenScriptScript, null);    
+//    return Runner.getRunner(RASCRIPT).evalScript(givenScriptScript, null);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runrobot(String code) {
 //    return Runner.getRunner(RRSCRIPT).evalScript(code, null);
-//  }  
-//  
+//  }
+//
 //  @Deprecated
 //  public static int runas(String givenScriptScript, boolean silent) {
 //    Map<String,Object> options = new HashMap<>();
-//    options.put("silent", silent);    
-//    return Runner.getRunner(RASCRIPT).evalScript(givenScriptScript, options);    
+//    options.put("silent", silent);
+//    return Runner.getRunner(RASCRIPT).evalScript(givenScriptScript, options);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runps(String givenScriptScript) {
 //    return Runner.getRunner(RSSCRIPT).evalScript(givenScriptScript, null);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runpy(File fScript, URL uGivenScript, String givenScriptScript, String[] args) {
-//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args);       
+//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runrb(File fScript, URL uGivenScript, String givenScriptScript, String[] args) {
-//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args); 
+//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args);
 //  }
-//  
+//
 //  @Deprecated
 //  public static int runtxt(File fScript, URL uGivenScript, String givenScriptScript, String[] args) {
-//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args); 
-//  }  
+//    return Runner.run(fScript != null ? fScript.getAbsolutePath() : uGivenScript.toString(), args);
+//  }
 }

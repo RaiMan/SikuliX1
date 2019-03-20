@@ -24,13 +24,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 public class JavaScriptRunner extends AbstractScriptRunner {
-  
+
   public static final String NAME = "JavaScript";
   public static final String TYPE = "text/javascript";
   public static final String[] EXTENSIONS = new String[] {"js"};
-  
+
   private static final RunTime RUN_TIME = RunTime.get();
-  
+
   private static String BEFORE_JS_JAVA_8 = "load(\"nashorn:mozilla_compat.js\");";
   private static String BEFORE_JS
           = "importPackage(Packages.org.sikuli.script); "
@@ -39,17 +39,12 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   private static final String me = "JSScriptRunner: ";
   private int lvl = 3;
-  
+
 //  Class cIDE;
 //  Method mShow;
 //  Method mHide;
-  
-  ScriptEngine engine;
 
-  @Override
-  public boolean isIdeContent() {
-    return true;
-  }
+  ScriptEngine engine;
 
   @Override
   protected void doInit(String[] args) throws Exception {
@@ -57,15 +52,15 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     ScriptEngine engine = jsFactory.getEngineByName("JavaScript");
 
     log(lvl, "ScriptingEngine started: JavaScript (ending .js)");
-       
+
     String prolog = "";
     if(RUN_TIME.isJava8()) {
       prolog += BEFORE_JS_JAVA_8;
     }
-    prolog += BEFORE_JS;            
-    prolog += RUN_TIME.extractResourceToString("JavaScript", "commands.js", "");      
-    engine.eval(prolog);       
-    
+    prolog += BEFORE_JS;
+    prolog += RUN_TIME.extractResourceToString("JavaScript", "commands.js", "");
+    engine.eval(prolog);
+
     // TODO move this to proper place
 //    if (RunTime.Type.IDE.equals(RunTime.get().runType)) {
 //      try {
@@ -75,21 +70,21 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 //      } catch (Exception ex) {
 //        log(-1, "initjs: getIDE");
 //      }
-//    }    
+//    }
   }
-  
+
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {        
+  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
     log(lvl, "runJavaScript: running statements");
     try {
       engine.eval(new FileReader(new File(scriptFile)));
-    } catch (FileNotFoundException | ScriptException e) {      
+    } catch (FileNotFoundException | ScriptException e) {
       log(-1, "runTest failed", e);
       return -1;
     }
     return 0;
   }
-  
+
   @Override
   protected int doEvalScript(String script, Map<String,Object> options) {
     try {
@@ -98,21 +93,21 @@ public class JavaScriptRunner extends AbstractScriptRunner {
         script = script.substring(1);
         silent = true;
       }
-      
-      
+
+
       engine.eval(script);
     } catch (ScriptException e) {
       log(-1, "evalScript failed", e);
-      return -1;     
+      return -1;
     }
     return 0;
   }
-  
+
   @Override
   public String getName() {
     return NAME;
   }
-  
+
   @Override
   public boolean isSupported() {
     ScriptEngineManager jsFactory = new ScriptEngineManager();
@@ -123,9 +118,9 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   public String[] getExtensions() {
     return EXTENSIONS.clone();
   }
-  
+
   @Override
-  public String getType() {   
+  public String getType() {
     return TYPE;
-  }  
+  }
 }

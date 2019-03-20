@@ -100,6 +100,7 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   public EditorPane(SikuliIDE ide) {
+    ScriptingSupport.init();
     pref = PreferencesUser.getInstance();
     showThumbs = !pref.getPrefMorePlainText();
     sikuliIDE = ide;
@@ -136,16 +137,16 @@ public class EditorPane extends JTextPane {
 
     log(lvl, "initBeforeLoad: %s", scriptType);
     if (scriptType == null) {
-      scriptType = Runner.EDEFAULT;
+      scriptType = ScriptingSupport.getDefaultExtension();
       paneIsEmpty = true;
     }
-    
+
     IScriptRunner runner = Runner.getRunner(scriptType);
-    
+
     scrType = runner.getType();
     _indentationLogic = null;
 
-    if (JythonRunner.TYPE.equals(scrType)) {      
+    if (JythonRunner.TYPE.equals(scrType)) {
       _indentationLogic = SikuliIDE.getIDESupport(scriptType).getIndentationLogic();
       _indentationLogic.setTabWidth(pref.getTabWidth());
     } else if (TextRunner.TYPE.equals(scrType)) {
