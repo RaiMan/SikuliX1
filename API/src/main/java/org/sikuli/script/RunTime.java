@@ -641,7 +641,7 @@ public class RunTime {
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
-      //Debug.off();
+      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
@@ -651,7 +651,7 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
-    //Debug.off();
+    Debug.off();
   }
 
   private static void runShutdownHook() {
