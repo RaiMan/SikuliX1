@@ -71,6 +71,7 @@ public class Screen extends Region implements IScreen {
       log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
       gdevs = genv.getScreenDevices();
       nMonitors = gdevs.length;
+      mainMonitor = -1;
       if (nMonitors == 0) {
         throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
       }
@@ -119,9 +120,19 @@ public class Screen extends Region implements IScreen {
     return null;
   }
 
+  private static Boolean initScreensFirstTime = null;
+
   protected static void initScreens(boolean reset) {
     if (screens != null && !reset) {
       return;
+    }
+    if (null == initScreensFirstTime) {
+      initScreensFirstTime = true;
+    } else {
+      if (initScreensFirstTime) {
+        initScreensFirstTime = false;
+        return;
+      }
     }
     log(lvl, "initScreens: starting");
     initMonitors();
@@ -336,6 +347,10 @@ public class Screen extends Region implements IScreen {
     Debug.error("*** end new monitor configuration ***");
   }
 
+  public static void resetMonitorsQuiet() {
+    initScreens(true);
+  }
+
   private static int getValidMonitor(int id) {
     if (id < 0 || id >= nMonitors) {
       Debug.error("Screen: invalid screen id %d - using primary screen", id);
@@ -540,7 +555,7 @@ public class Screen extends Region implements IScreen {
           if (!name.isEmpty()) {
             if (arg0 instanceof Region) {
               shot = capture((Region) arg0);
-            } else if (arg0 instanceof Rectangle){
+            } else if (arg0 instanceof Rectangle) {
               shot = capture((Rectangle) arg0);
             } else {
               shot = userCapture((String) arg0);
