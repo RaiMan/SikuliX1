@@ -2687,7 +2687,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       sikulixIDE.setIsRunningScript(true);
       final IScriptRunner[] srunners = new IScriptRunner[]{null};
       EditorPane codePane = getCurrentCodePane();
-      String cType = codePane.getContentType();
+      String cType = codePane.getSikuliContentType();
       File scriptFile = null;
       if (codePane.isDirty()) {
         scriptFile = FileManager.createTempFile(Runner.typeEndings.get(cType));
