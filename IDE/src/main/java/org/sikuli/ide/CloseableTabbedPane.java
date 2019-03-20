@@ -179,7 +179,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
    */
   @Override
   public void mouseClicked(MouseEvent e) {
-    processMouseEvents(e);
+    //processMouseEvents(e);
   }
 
   /**
@@ -240,7 +240,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
    */
   @Override
   public void mouseDragged(MouseEvent e) {
-    processMouseEvents(e);
+    //processMouseEvents(e);
   }
 
   /**
@@ -271,6 +271,9 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
       }
       return;
     }
+    if (e.getID() == e.MOUSE_PRESSED) {
+      return;
+    }
     CloseTabIcon icon = (CloseTabIcon) getIconAt(tabNumber);
     if (icon != null) {
       Rectangle rect = icon.getBounds();
@@ -279,19 +282,21 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
       Rectangle drawRect = new Rectangle(
               rect.x - pos.x, rect.y - pos.y, rect.width, rect.height);
 
-      if (e.getID() == e.MOUSE_PRESSED) {
-        icon.mousepressed = e.getModifiers() == e.BUTTON1_MASK;
-        repaint(drawRect);
-      } else if (e.getID() == e.MOUSE_MOVED || e.getID() == e.MOUSE_DRAGGED
-              || e.getID() == e.MOUSE_CLICKED) {
+//      if (e.getID() == e.MOUSE_PRESSED) {
+//        icon.mousepressed = e.getModifiers() == e.BUTTON1_MASK;
+//        repaint(drawRect);
+//        return;
+//      } else
+        if (e.getID() == e.MOUSE_MOVED || e.getID() == e.MOUSE_RELEASED) {
         pos.x += e.getX();
         pos.y += e.getY();
         if (rect.contains(pos)) {
-          if (e.getID() == e.MOUSE_CLICKED) {
+          if (e.getID() == e.MOUSE_RELEASED) {
             if (!fireCloseTab(e, tabNumber)) {
               icon.mouseover = false;
               icon.mousepressed = false;
               repaint(drawRect);
+              return;
             }
           } else {
             icon.mouseover = true;

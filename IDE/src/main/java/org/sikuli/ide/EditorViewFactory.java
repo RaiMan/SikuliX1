@@ -132,7 +132,8 @@ class SyntaxHighlightLabelView extends LabelView {
   static FontMetrics _fMetrics = null;
   static String tabStr = nSpaces(PreferencesUser.getInstance().getTabWidth());
 
-  private static Map<Pattern, Color> patternColors;
+  private Map<Pattern, Color> patternColors;
+  private static Map<Pattern, Color> patternColorsBasic;
   private static Map<Pattern, Color> patternColorsPython;
   private static Map<Pattern, Color> patternColorsRuby;
   private static Map<Pattern, Color> patternColorsSikuli;
@@ -245,17 +246,17 @@ class SyntaxHighlightLabelView extends LabelView {
     fontParenthesis = new Font("Osaka-Mono", Font.PLAIN, 30);
 
     // NOTE: the order is important!
-		patternColors = new HashMap<Pattern, Color>();
+		patternColorsBasic = new HashMap<Pattern, Color>();
     patternColorsPython = new HashMap<Pattern, Color>();
     patternColorsRuby = new HashMap<Pattern, Color>();
     patternColorsSikuli = new HashMap<Pattern, Color>();
-    patternColors.put(Pattern.compile("(#:.*$)"), new Color(220, 220, 220));
-    patternColors.put(Pattern.compile("(#.*$)"), new Color(138, 140, 193));
-    patternColors.put(Pattern.compile("(\"[^\"]*\"?)"), new Color(128, 0, 0));
-    patternColors.put(Pattern.compile("(\'[^\']*\'?)"), new Color(128, 0, 0));
-    patternColors.put(Pattern.compile("\\b([0-9]+)\\b"), new Color(128, 64, 0));
-		patternColorsPython.putAll(patternColors);
-		patternColorsRuby.putAll(patternColors);
+    patternColorsBasic.put(Pattern.compile("(#:.*$)"), new Color(220, 220, 220));
+    patternColorsBasic.put(Pattern.compile("(#.*$)"), new Color(138, 140, 193));
+    patternColorsBasic.put(Pattern.compile("(\"[^\"]*\"?)"), new Color(128, 0, 0));
+    patternColorsBasic.put(Pattern.compile("(\'[^\']*\'?)"), new Color(128, 0, 0));
+    patternColorsBasic.put(Pattern.compile("\\b([0-9]+)\\b"), new Color(128, 64, 0));
+		patternColorsPython.putAll(patternColorsBasic);
+		patternColorsRuby.putAll(patternColorsBasic);
     for (int i = 0; i < keywordsPython.length; i++) { patternColorsPython.put(Pattern.compile(
               "\\b(" + keywordsPython[i] + ")\\b"), Color.blue);
     }
@@ -283,7 +284,9 @@ class SyntaxHighlightLabelView extends LabelView {
 			patternColors = patternColorsPython;
 		} else if (JRubyRunner.TYPE.equals(sikuliContentType)) {
 			patternColors = patternColorsRuby;
-		}
+		} else {
+		  patternColors = patternColorsBasic;
+    }
 	}
 
 	private static String nSpaces(int n) {

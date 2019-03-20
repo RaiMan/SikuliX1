@@ -75,7 +75,7 @@ public class RunTime {
   public Map<String, String> collectSpecialFiles() {
     Map<String, String> specialFiles = new HashMap<>();
     if (null != sxOptions) {
-      specialFiles.put("Options", sxOptions.getOptionsFile());
+      specialFiles.put("SikuliX Global Options", sxOptions.getOptionsFile());
 
     }
     return specialFiles;
@@ -777,6 +777,10 @@ public class RunTime {
 
   String getOption(String oName) {
     return sxOptions.getOption(oName);
+  }
+
+  public Options options() {
+    return sxOptions;
   }
   //</editor-fold>
 

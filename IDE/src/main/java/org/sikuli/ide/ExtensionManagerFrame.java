@@ -3,6 +3,11 @@
  */
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.script.RunTime;
+
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -20,17 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import org.json.simple.JSONValue;
-import org.sikuli.basics.*;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.ide.SikuliIDE;
-import org.sikuli.script.RunTime;
 
 public class ExtensionManagerFrame extends JFrame {
 
@@ -43,6 +37,7 @@ public class ExtensionManagerFrame extends JFrame {
   private ExtensionManagerFrame() {
     super();
     fExtensions = RunTime.get().fSikulixExtensions.listFiles();
+//TODO show and select extensions
 //    init();
   }
 
@@ -162,7 +157,8 @@ public class ExtensionManagerFrame extends JFrame {
 
     String json = ExtensionManagerFrame.html2txt(EXTENSION_LIST_URL);
 
-    Object obj = JSONValue.parse(json);
+    //TODO use Jackson
+    Object obj = null; //JSONValue.parse(json);
     Map map = (Map) obj;
 
     Map extension_list = (Map) map.get("extension-list");

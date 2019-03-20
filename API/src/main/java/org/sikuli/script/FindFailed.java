@@ -6,15 +6,13 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 
 /**
- * implements the SikuliX FindFailed exception class
- * and defines constants and settings for the feature FindFailedResponse
+ * SikuliX FindFailed exception<br>
+ * constants and settings for the features<br>
+ * FindFailedResponse<br>
+ * FindFailedHandler<br>
+ * ImageMissingHandler
  */
 public class FindFailed extends SikuliException {
-
-	/**
-	 * default FindFailedResponse is ABORT
-	 */
-	public static FindFailedResponse defaultFindFailedResponse = FindFailedResponse.ABORT;
 
 	/**
 	 * FindFailedResponse PROMPT: should display a prompt dialog with the failing image
@@ -38,13 +36,9 @@ public class FindFailed extends SikuliException {
 	public static final FindFailedResponse ABORT = FindFailedResponse.ABORT;
 
 	/**
-	 * FindFailedResponse HANDLE: should call a given handler on FindFailed
+	 * FindFailedResponse HANDLE: should call a handler {@link #setFindFailedHandler(Object)} on FindFailed
 	 */
 	public static final FindFailedResponse HANDLE = FindFailedResponse.HANDLE;
-
-  private static Object ffHandler = null;
-  private static Object imHandler = null;
-  private static Object defaultHandler = null;
 
   /**
 	 * the exception
@@ -55,50 +49,111 @@ public class FindFailed extends SikuliException {
     _name = "FindFailed";
   }
 
-  public static String createdefault(Region reg, Image img) {
-    String msg = "";
-    if (img.isText()) {
-      msg = String.format("%s as text", img.getName());
-    } else if (img.getSize().width < 0 && img.getSize().height < 0) {
-      msg = String.format("%s not loaded", img.getName());
-    } else {
-      msg = String.format("%s in %s", img, reg);
-    }
-    return msg;
+  /**
+   * reset all: response ABORT, findFailedHandler null, imageMissingHandler null
+   */
+  public static void reset() {
+    response = ABORT;
+    ffHandler = null;
+    imHandler = null;
   }
 
+  //************************* FindFailedResponse
+
+  /**
+   * Global FindFailedResponse for new {@link Region}s<br>
+   * ABORT - abort script on FindFailed <br>
+   * SKIP - ignore FindFailed<br>
+   * PROMPT - display prompt on FindFailed to let user decide how to proceed<br>
+   * RETRY - continue to wait for appearence after FindFailed<br>
+   * HANDLE - (set implicit) call a handler on exception {@link #setFindFailedHandler(Object)}<br>
+   * default: ABORT
+   *
+   * @param response {@link FindFailed}
+   */
+  public static void setResponse(FindFailedResponse response) {
+    if (!HANDLE.equals(response)) {
+      FindFailed.response = response;
+    }
+  }
+
+  /**
+   * reset to default {@link #setResponse(FindFailedResponse)}
+   */
+  public static void resetResponse() {
+    FindFailed.response = ABORT;
+  }
+
+  /**
+   * @return the current setting {@link #setResponse(FindFailedResponse)}
+   */
   public static FindFailedResponse getResponse() {
-    return defaultFindFailedResponse;
+    return response;
   }
 
-  public static FindFailedResponse setResponse(FindFailedResponse response) {
-    defaultFindFailedResponse = response;
-    return defaultFindFailedResponse;
-  }
+  private static FindFailedResponse response = FindFailedResponse.ABORT;
 
-  public static FindFailedResponse setHandler(Object observer) {
-    defaultFindFailedResponse = HANDLE;
-    if (observer != null && (observer.getClass().getName().contains("org.python")
-            || observer.getClass().getName().contains("org.jruby"))) {
-      observer = new ObserverCallBack(observer, ObserveEvent.Type.FINDFAILED);
-    } else {
-      ((ObserverCallBack) observer).setType(ObserveEvent.Type.FINDFAILED);
-    }
-    ffHandler = observer;
-    Debug.log(3, "Setting Default FindFailedHandler");
-    return defaultFindFailedResponse;
-  }
+  //************************* FindFailedHandler
 
-  protected void setFindFailedHandler(Object handler) {
+  /**
+   * Global FindFailedHandler for new {@link Region}s<br>
+   * default: none
+   *
+   * @param handler {@link ObserverCallBack}
+   */
+  public void setFindFailedHandler(Object handler) {
     ffHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
   }
 
+  /**
+   * reset to default: no handler, response ABORT
+   */
+  public void resetFindFailedHandler() {
+    response = ABORT;
+    ffHandler = null;
+  }
+
+  /**
+   * @return the current handler
+   */
+  public static Object getFindFailedHandler() {
+    return ffHandler;
+  }
+
+  private static Object ffHandler = null;
+
+  //************************* ImageMissingHandler
+
+  /**
+   * Global ImageMissingHandler for new {@link Region}s<br>
+   * default: none
+   *
+   * @param handler {@link ObserverCallBack}
+   */
   public void setImageMissingHandler(Object handler) {
     imHandler = setHandler(handler, ObserveEvent.Type.MISSING);
   }
 
+  /**
+   * reset to default: no handler
+   */
+  public void resetImageMissingHandler() {
+    imHandler = null;
+  }
+
+  /**
+   * @return the current handler
+   */
+  public static Object getImageMissingHandler() {
+    return imHandler;
+  }
+
+  private static Object imHandler = null;
+
+  //************************* intern
+
   private Object setHandler(Object handler, ObserveEvent.Type type) {
-    defaultFindFailedResponse = HANDLE;
+    response = HANDLE;
     if (handler != null && (handler.getClass().getName().contains("org.python")
             || handler.getClass().getName().contains("org.jruby"))) {
       handler = new ObserverCallBack(handler, type);
@@ -108,18 +163,15 @@ public class FindFailed extends SikuliException {
     return handler;
   }
 
-  public static Object getFindFailedHandler() {
-    return ffHandler;
-  }
-
-  public static Object getImageMissingHandler() {
-    return imHandler;
-  }
-
-  public static FindFailedResponse reset() {
-    defaultFindFailedResponse = ABORT;
-    ffHandler = null;
-    imHandler = null;
-    return defaultFindFailedResponse;
+  public static String createErrorMessage(Region reg, Image img) {
+    String msg = "";
+    if (img.isText()) {
+      msg = String.format("%s as text", img.getName());
+    } else if (img.getSize().width < 0 && img.getSize().height < 0) {
+      msg = String.format("%s not loaded", img.getName());
+    } else {
+      msg = String.format("%s in %s", img, reg);
+    }
+    return msg;
   }
 }

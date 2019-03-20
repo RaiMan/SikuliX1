@@ -25,7 +25,7 @@ public class ObserveEvent {
   private Object pattern = null;
   private Match match = null;
   private Image image = null;
-  private FindFailedResponse response = FindFailed.defaultFindFailedResponse;
+  private FindFailedResponse response = FindFailed.getResponse();
   private int index = -1;
   private List<Match> changes = null;
   private long time;

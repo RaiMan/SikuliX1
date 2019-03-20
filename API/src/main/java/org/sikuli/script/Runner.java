@@ -328,8 +328,8 @@ public class Runner {
           }
         }
       }
-    }
-            
+    }            
+
     File[] content = FileManager.getScriptFile(fScriptFolder);
     if (null == content) {
       return null;

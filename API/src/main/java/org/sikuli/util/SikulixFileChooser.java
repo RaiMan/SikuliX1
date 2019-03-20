@@ -16,6 +16,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Options;
+import org.sikuli.script.RunTime;
 
 public class SikulixFileChooser {
   static final int FILES = JFileChooser.FILES_ONLY;
@@ -43,6 +45,12 @@ public class SikulixFileChooser {
     isPython = true;
   }
 
+  private boolean isText = false;
+
+  public void setText() {
+    isText = true;
+  }
+
   private boolean isUntitled = false;
 
   public void setUntitled() {
@@ -63,17 +71,24 @@ public class SikulixFileChooser {
 
   SikulixFileFilter sikuliFilterO = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "o");
   SikulixFileFilter pythonFilterO = new SikulixFileFilter("Python script (*.py)", "op");
+  SikulixFileFilter anyFilterO = new SikulixFileFilter("any type as text (*.*)", "oa");
   SikulixFileFilter sikuliFilterS = new SikulixFileFilter("Sikuli Script (*.sikuli, *.skl)", "s");
   SikulixFileFilter pythonFilterS = new SikulixFileFilter("Python script (*.py)", "sp");
+  SikulixFileFilter anyFilterS = new SikulixFileFilter("any type as text (*.*)", "sa");
 
   public File load() {
     String title = "Open a Sikuli or Python Script";
     String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+    boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
     File ret;
-    if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO);
+    if (pythonOnly) {
+      ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, anyFilterO);
     } else {
-      ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO);
+      if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+        ret = show(title, LOAD, DIRSANDFILES, pythonFilterO, sikuliFilterO, anyFilterO);
+      } else {
+        ret = show(title, LOAD, DIRSANDFILES, sikuliFilterO, pythonFilterO, anyFilterS);
+      }
     }
     return ret;
   }
@@ -82,30 +97,44 @@ public class SikulixFileChooser {
     File ret;
     File selectedFile;
     if (isUntitled) {
-      String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
-      String title = "Save as Sikuli or Python Script";
-      if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-        selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+      if (isText) {
+        selectedFile = show("Save a Text File", SAVE, DIRSANDFILES, anyFilterS);
       } else {
-        selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+        String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+        boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
+        String title = "Save as Sikuli or Python Script";
+        if (pythonOnly) {
+          title = "Save as Python Script";
+          selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS);
+        } else {
+          if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
+            selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
+          } else {
+            selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
+          }
+        }
       }
       ret = selectedFile;
     } else if (isPython) {
-      selectedFile = show("Save a Python script", SAVE, FILES,
-              new SikulixFileFilter("Python script (*.py)", "sp"));
+      selectedFile = show("Save a Python script", SAVE, FILES, pythonFilterS);
+      ret = selectedFile;
+    } else if (isText) {
+      selectedFile = show("Save a Text File", SAVE, FILES, anyFilterS);
       ret = selectedFile;
     } else {
-      String type = "Sikuli Script (*.sikuli)";
-      String title = "Save a Sikuli Script";
-      selectedFile = show(title, SAVE, DIRSANDFILES, new SikulixFileFilter(type, "s"));
+      selectedFile = show("Save a Sikuli Script", SAVE, DIRSANDFILES, sikuliFilterS);
       ret = selectedFile;
     }
     return ret;
   }
 
   public File export() {
-    String type = "Sikuli packed Script (*.skl)";
+    String type = "Save packed as (*.skl)";
     String title = "Export as Sikuli packed Script";
+    if (isPython || isText) {
+      type = "Save packed as (*.zip)";
+      title = "Export as Sikuli packed Sources";
+    }
     File ret = show(title, SAVE, FILES, new SikulixFileFilter(type, "e"));
     return ret;
   }
@@ -144,9 +173,14 @@ public class SikulixFileChooser {
       if (null != result[0]) {
         fileChoosen = (File) result[0];
         String fileChoosenPath = fileChoosen.getAbsolutePath();
-        if (fileChoosenPath.contains("###")) {
+        if (fileChoosenPath.contains("###Error")) {
           tryAgain = true;
           fileChoosen = new File(fileChoosenPath.split("###")[0]);
+        }
+        boolean isTextFile = false;
+        if (fileChoosenPath.contains("###")) {
+          fileChoosen = new File(fileChoosenPath.split("###")[0]);
+          isTextFile = true;
         }
         theLastDir = fileChoosen.getParent();
         if (fileChoosen.isDirectory()) {
@@ -158,7 +192,11 @@ public class SikulixFileChooser {
         }
         PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
         if (filterChosen instanceof SikulixFileFilter) {
-          PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+          if (!((SikulixFileFilter) filterChosen)._type.endsWith("a") && !isTextFile) {
+            PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+          } else {
+            fileChoosen = new File(fileChoosen.getAbsolutePath() + "###isText");
+          }
         }
         return fileChoosen;
       } else {
@@ -270,8 +308,11 @@ public class SikulixFileChooser {
     public String validateFile(File selectedFile) {
       String validatedFile = selectedFile.getAbsolutePath();
       String errorTag = "###";
-      String error = errorTag + "notPossible";
-      if (_type == "sp") {
+      String error = errorTag + "Error: notPossible";
+      String isTextFile = errorTag + "textFile";
+      if (_type.contains("o") && isTextFile(selectedFile)) {
+        validatedFile = selectedFile.getAbsolutePath() + isTextFile;
+      } else if (_type == "sp") {
         if (!selectedFile.getName().endsWith(".py")) {
           if (selectedFile.isDirectory()) {
             validatedFile = selectedFile.getAbsolutePath() + error;
@@ -291,19 +332,50 @@ public class SikulixFileChooser {
         if (!selectedFile.getName().endsWith(".sikuli") || !selectedFile.exists()) {
           validatedFile = selectedFile.getAbsolutePath() + error;
         }
+      } else if (_type == "oa") {
+        if (selectedFile.isDirectory() || !selectedFile.exists()) {
+          validatedFile = selectedFile.getAbsolutePath() + error;
+        } else {
+          if (isTextFile(selectedFile)) {
+            validatedFile = selectedFile.getAbsolutePath() + isTextFile;
+          } else {
+            validatedFile = selectedFile.getAbsolutePath() + error;
+          }
+        }
       } else if (_type == "op") {
         if (!selectedFile.getName().endsWith(".py") || selectedFile.isDirectory() || !selectedFile.exists()) {
           validatedFile = selectedFile.getAbsolutePath() + error;
         }
       } else if (_type == "e") {
-        if (!selectedFile.getName().endsWith(".skl")) {
-          validatedFile = selectedFile.getAbsolutePath() + ".skl";
-        }
+//        if (!selectedFile.getName().endsWith(".skl")) {
+//          validatedFile = selectedFile.getAbsolutePath() + ".skl";
+//        }
       }
       if (validatedFile.contains(errorTag)) {
         Debug.log(3, "SikulixFileChooser: error: (%s) %s", _type, validatedFile);
       }
       return validatedFile;
+    }
+
+    private boolean isTextFile(File file) {
+      String name = file.getName();
+      String[] nameStrings = name.split("\\.");
+      if (nameStrings.length > 1) {
+        String textfiles = RunTime.get().options().getOption("ide.textfiles", "txt,");
+        if (!textfiles.endsWith(",")) {
+          textfiles += ",";
+        }
+        textfiles = textfiles.replace(" ", "");
+        String nameEnding = nameStrings[nameStrings.length - 1] + ",";
+        if (textfiles.contains(nameEnding)) {
+          return true;
+        }
+      } else {
+        if (!file.isDirectory()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override
@@ -314,10 +386,16 @@ public class SikulixFileChooser {
       if ("op".equals(_type) && (isExt(f.getName(), "py"))) {
         return true;
       }
+      if ("oa".equals(_type) && f.isFile()) {
+        return true;
+      }
       if ("s".equals(_type) && isExt(f.getName(), "sikuli")) {
         return true;
       }
       if ("sp".equals(_type) && isExt(f.getName(), "py")) {
+        return true;
+      }
+      if ("sa".equals(_type) && f.isFile()) {
         return true;
       }
       if ("e".equals(_type)) {
