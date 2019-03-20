@@ -20,10 +20,15 @@ public class TextRunner extends AbstractScriptRunner {
   public static final String NAME = "Text";
   public static final String TYPE = "text/text";
   public static final String[] EXTENSIONS = new String[] {"txt"};
-  
+
+  @Override
+  public boolean isIdeContent() {
+    return true;
+  }
+
   @Override
   public boolean isSupported() {    
-    return false;
+    return true;
   }
   
   @Override

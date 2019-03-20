@@ -33,25 +33,25 @@ import org.sikuli.util.CommandArgsEnum;
 
 /**
  * INTERNAL USE --- NOT official API<br>
- *   not in version 2
+ * not in version 2
  */
 public class Runner {
 
   static final String me = "Runner: ";
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
-  
-  public static String[] DEFAULT_RUNNERS = new String[] {JythonRunner.NAME, JRubyRunner.NAME, JavaScriptRunner.NAME};
-  
-  public static String EDEFAULT = JythonRunner.EXTENSIONS[0];  
+
+  public static String[] DEFAULT_RUNNERS = new String[]{JythonRunner.NAME, JRubyRunner.NAME, JavaScriptRunner.NAME};
+
+  public static String EDEFAULT = JythonRunner.EXTENSIONS[0];
   public static String RDEFAULT = JythonRunner.NAME;
 
   private static String[] runScripts = null;
   private static int lastReturnCode = 0;
-     
+
   private static List<IScriptRunner> runners = new LinkedList<>();
   private static List<IScriptRunner> supportedRunners = new LinkedList<>();
-    
+
   static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -104,7 +104,7 @@ public class Runner {
     if (lvl > 2) {
       runTime.printArgs();
     }
- 
+
     String[] runScripts = null;
     runTime.runningTests = false;
     if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
@@ -117,41 +117,41 @@ public class Runner {
   public static int run(String givenName) {
     return run(givenName, new String[0]);
   }
-  
+
   private static boolean isReady = false;
- 
+
   public static void initRunners() {
-    synchronized(runners) {
+    synchronized (runners) {
       if (isReady) {
         return;
       }
-           
+
       log(lvl, "initScriptingSupport: enter");
       if (runners.isEmpty()) {
-                           
+
         Reflections reflections = new Reflections(ClasspathHelper.forPackage("org.sikuli.script.runners"), new SubTypesScanner());
-        
-        Set<Class<? extends AbstractScriptRunner>> classes = reflections.getSubTypesOf(AbstractScriptRunner.class);                 
-        
+
+        Set<Class<? extends AbstractScriptRunner>> classes = reflections.getSubTypesOf(AbstractScriptRunner.class);
+
         for (Class<? extends AbstractScriptRunner> cl : classes) {
           IScriptRunner current = null;
-                 
+
           try {
             current = cl.getConstructor().newInstance();
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-              | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
             log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
             continue;
-          }             
-         
+          }
+
           String name = current.getName();
           if (name != null && !name.startsWith("Not")) {
             runners.add(current);
-            if( current.isSupported()) {
+            if (current.isSupported()) {
               supportedRunners.add(current);
               log(lvl, "initScriptingSupport: added: %s", name);
-            }            
+            }
           }
         }
       }
@@ -166,115 +166,143 @@ public class Runner {
         boolean defaultFound = false;
         for (String name : DEFAULT_RUNNERS) {
           for (IScriptRunner runner : supportedRunners) {
-            if(runner.getName().equals(name)) {
+            if (runner.getName().equals(name)) {
               Runner.RDEFAULT = runner.getName();
               Runner.EDEFAULT = runner.getExtensions()[0];
               defaultFound = true;
               break;
             }
           }
-          
+
           if (defaultFound) {
             break;
           }
-        }                      
+        }
       }
       log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
       isReady = true;
     }
   }
-  
+
   public static IScriptRunner getRunner(String identifier) {
     if (identifier == null) {
       return null;
     }
-    
-    synchronized(runners) {            
-      initRunners();                       
 
-      for(IScriptRunner r : supportedRunners) {
-        if(r.canHandle(identifier)) {          
+    synchronized (runners) {
+      initRunners();
+
+      for (IScriptRunner r : supportedRunners) {
+        if (r.canHandle(identifier)) {
           return r;
         }
-      }                  
-     
+      }
+
       log(-1, "getRunner: no runner found for:\n%s", identifier);
-      return new InvalidRunner(identifier);       
+      return new InvalidRunner(identifier);
     }
   }
-  
-  public static List<IScriptRunner> getRunners(){
-    synchronized(runners) {          
+
+  public static List<IScriptRunner> getRunners() {
+    synchronized (runners) {
       initRunners();
-    
+
       return new LinkedList<IScriptRunner>(supportedRunners);
     }
   }
-      
+
   public static IScriptRunner getRunner(Class<? extends IScriptRunner> runnerClass) {
-    synchronized(runners) {            
+    synchronized (runners) {
       initRunners();
-      
-      for(IScriptRunner r : supportedRunners) {
-        if(r.getClass().equals(runnerClass)) {
+
+      for (IScriptRunner r : supportedRunners) {
+        if (r.getClass().equals(runnerClass)) {
           return r;
         }
       }
     }
     return new InvalidRunner(runnerClass);
   }
-  
+
   public static Set<String> getExtensions() {
-    synchronized(runners) {            
+    synchronized (runners) {
       initRunners();
-      
+
       Set<String> extensions = new HashSet<>();
-      
+
       for (IScriptRunner runner : runners) {
-        for(String ex : runner.getExtensions()) {
-           extensions.add(ex);   
-        }     
+        for (String ex : runner.getExtensions()) {
+          extensions.add(ex);
+        }
       }
-      
+
       return extensions;
     }
   }
-  
-  public static String getExtension(String identifier) {
-    synchronized(runners) {            
+
+  public static Set<String> getNames() {
+    synchronized (runners) {
       initRunners();
-      
-      for(IScriptRunner r : runners) {
-        if(r.canHandle(identifier)) {
-           String[] extensions = r.getExtensions();
-           
-           if (extensions.length > 0) {
-             return extensions[0];
-           }
+
+      Set<String> names = new HashSet<>();
+
+      for (IScriptRunner runner : runners) {
+        names.add(runner.getName());
+      }
+
+      return names;
+    }
+  }
+
+  public static Set<String> getTypes() {
+    synchronized (runners) {
+      initRunners();
+
+      Set<String> types = new HashSet<>();
+
+      for (IScriptRunner runner : runners) {
+        types.add(runner.getType());
+      }
+
+      return types;
+    }
+  }
+
+  public static String getExtension(String identifier) {
+    synchronized (runners) {
+      initRunners();
+
+      for (IScriptRunner r : runners) {
+        if (r.canHandle(identifier)) {
+          String[] extensions = r.getExtensions();
+
+          if (extensions.length > 0) {
+            return extensions[0];
+          }
         }
-      }      
+      }
       return null;
     }
-  }   
+  }
 
   public static synchronized int run(String script, String[] args) {
     String savePath = ImagePath.getBundlePathSet();
-    
+
     IScriptRunner runner = Runner.getRunner(script);
-    
+
     int retVal;
-    
-    if(script.toLowerCase().startsWith(runner.getName().toLowerCase() + "*")) {      
+
+    if (script.toLowerCase().startsWith(runner.getName().toLowerCase() + "*")) {
       // in the previous implementation it was possible to prefix
       // script code with the runner name + * (at least I think it is a *) and then 
       // eval it with the given runner. 
       // We just keep this behavior although it feels a bit odd.
       // TODO Deprecate this behavior??
       retVal = runner.evalScript(script.substring(runner.getName().length() + 1), null);
-    } else {      
+    } else {
       retVal = runner.runScript(script, args, null);
     }
-           
+
     if (savePath != null) {
       ImagePath.setBundlePath(savePath);
     }
@@ -298,14 +326,14 @@ public class Runner {
         }
         someJS = runTime.getOption("runsetup");
         if (!someJS.isEmpty()) {
-          log(lvl, "Options.runsetup: %s", someJS);          
-          getRunner(JavaScriptRunner.class).evalScript(someJS, null);                   
-        }       
+          log(lvl, "Options.runsetup: %s", someJS);
+          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
+        }
         exitCode = run(givenScriptName, runTime.getArgs());
         someJS = runTime.getOption("runteardown");
         if (!someJS.isEmpty()) {
           log(lvl, "Options.runteardown: %s", someJS);
-          getRunner(JavaScriptRunner.class).evalScript(someJS, null); 
+          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
         }
         if (exitCode == -999) {
           exitCode = lastReturnCode;
@@ -320,25 +348,25 @@ public class Runner {
     if (fScriptFolder == null) {
       return null;
     }
-    
+
     // check if fScriptFolder is a supported script file 
-    if(fScriptFolder.isFile()) {
-      for (IScriptRunner runner : getRunners()) {        
+    if (fScriptFolder.isFile()) {
+      for (IScriptRunner runner : getRunners()) {
         for (String extension : runner.getExtensions()) {
           if (FilenameUtils.getExtension(fScriptFolder.getName()).equals(extension)) {
-               return fScriptFolder;       
+            return fScriptFolder;
           }
         }
       }
-    }            
+    }
 
     File[] content = FileManager.getScriptFile(fScriptFolder);
     if (null == content) {
       return null;
     }
     File fScript = null;
-    for (File aFile : content) {                  
-      for (IScriptRunner runner : getRunners()) {        
+    for (File aFile : content) {
+      for (IScriptRunner runner : getRunners()) {
         for (String extension : runner.getExtensions()) {
           if (!FilenameUtils.getExtension(aFile.getName()).equals(extension)) {
             continue;
@@ -359,8 +387,8 @@ public class Runner {
       fScript = content[0];
     }
     return fScript;
-  }  
-  
+  }
+
 // Since this class is marked as INTERNAL USE, we don't really have to deprecate stuff here.  
 //  /**
 //   * @deprecated Use JRubyRunner.EXTENSIONS[0]

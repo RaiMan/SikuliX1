@@ -23,7 +23,12 @@ public class RobotRunner extends JythonRunner {
   public static final String[] EXTENSIONS = new String[] {"robot"};
   
   private static final RunTime RUN_TIME = RunTime.get();
-   
+
+  @Override
+  public boolean isIdeContent() {
+    return false;
+  }
+
   @Override
   protected int doEvalScript(String code, Map<String,Object> options) {
     boolean showReport = true;

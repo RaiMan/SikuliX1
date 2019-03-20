@@ -20,7 +20,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   boolean ready = false;
   boolean redirected = false;
-  
+
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + ": " + message, args);
   }
@@ -51,6 +51,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     synchronized(this) {
       return ready;
     }
+  }
+
+  public boolean isIdeContent() {
+    return false;
   }
     
   @Override

@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 public class JythonRunner extends AbstractScriptRunner {
 
-  public static final String NAME = "jython";
+  public static final String NAME = "Jython";
   public static final String TYPE = "text/python";
   public static final String[] EXTENSIONS = new String[] { "py" };
 
@@ -87,6 +87,7 @@ public class JythonRunner extends AbstractScriptRunner {
 //  static String pyConverter
 //          = FileManager.convertStreamToString(SikuliToHtmlConverter);
 
+
   @Override
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
@@ -114,6 +115,11 @@ public class JythonRunner extends AbstractScriptRunner {
       interpreter.exec("from sikuli import *");
       log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
     }
+  }
+
+  @Override
+  public boolean isIdeContent() {
+    return true;
   }
 
   @Override

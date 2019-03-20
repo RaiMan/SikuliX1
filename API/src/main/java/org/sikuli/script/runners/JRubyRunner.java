@@ -77,6 +77,11 @@ public class JRubyRunner extends AbstractScriptRunner {
   private static boolean redirected = false;
 
   @Override
+  public boolean isIdeContent() {
+    return true;
+  }
+
+  @Override
   protected void doInit(String[] args) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {

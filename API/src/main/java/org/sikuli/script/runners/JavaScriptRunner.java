@@ -47,6 +47,11 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   ScriptEngine engine;
 
   @Override
+  public boolean isIdeContent() {
+    return true;
+  }
+
+  @Override
   protected void doInit(String[] args) throws Exception {
     ScriptEngineManager jsFactory = new ScriptEngineManager();
     ScriptEngine engine = jsFactory.getEngineByName("JavaScript");
