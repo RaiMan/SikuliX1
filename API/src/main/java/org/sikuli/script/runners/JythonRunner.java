@@ -470,7 +470,8 @@ public class JythonRunner extends AbstractScriptRunner {
   public void doClose() {
     if (interpreter != null) {
       try {
-        interpreter.cleanup();
+        interpreter.close();
+        interpreter = null;
       } catch (Exception e) {
       }
     }
