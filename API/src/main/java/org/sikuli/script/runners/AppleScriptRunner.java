@@ -19,8 +19,6 @@ public class AppleScriptRunner extends AbstractScriptRunner {
   public static final String TYPE = "text/applescript";
   public static final String[] EXTENSIONS = new String[] {"script"};
 
-  public static final String SILENT_OPTION = "silent";
-
   private static final int LVL = 3;
   private static final RunTime RUN_TIME = RunTime.get();
 
