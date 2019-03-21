@@ -24,39 +24,35 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + ": " + message, args);
   }
-  
+
   private void logNotSupported(String method) {
     Debug.log(-1, "%s does not (yet) support %s",getName(), method);
   }
-  
+
   @Override
   public final void init(String[] args) throws SikuliXception {
     synchronized(this) {
       if(!ready) {
-        try {          
+        try {
           doInit(args);
           ready = true;
         } catch (Exception e) {
-          throw new SikuliXception("Cannot initialize Script runner " + this.getName(), e);        
+          throw new SikuliXception("Cannot initialize Script runner " + this.getName(), e);
         }
       }
     }
   }
-  
+
   protected void doInit(String[] args) throws Exception{
     // noop if not implemented
   };
-  
+
   public final boolean isReady() {
     synchronized(this) {
       return ready;
     }
   }
 
-  public boolean isIdeContent() {
-    return false;
-  }
-    
   @Override
   public final boolean hasExtension(String ending) {
     for (String suf : getExtensions()) {
@@ -66,44 +62,44 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
     return false;
   }
-  
+
   public boolean canHandle(String identifier) {
     return identifier != null && (
-           identifier.toLowerCase().equals(getName().toLowerCase()) ||      
-           identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") || 
+           identifier.toLowerCase().equals(getName().toLowerCase()) ||
+           identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") ||
            getType().equals(identifier) ||
            hasExtension(identifier) ||
            (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
   };
-   
+
   @Override
   public final boolean redirect(PipedInputStream stdout, PipedInputStream stderr) {
     synchronized(this) {
       boolean ret = false;
-      
+
       if (!redirected) {
         init(null);
         ret = doRedirect(stdout, stderr);
         redirected = true;
       }
-      
+
       return ret;
     }
   }
-  
+
   protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
     // noop if not implemented
     return false;
   }
-  
+
   @Override
   public final int runScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
-    synchronized(this) {      
+    synchronized(this) {
       init(null);
       return doRunScript(scriptfile, scriptArgs, options);
     }
   }
-  
+
   protected int doRunScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
     logNotSupported("runScript");
     return -1;
@@ -116,7 +112,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       return doEvalScript(script, options);
     }
   }
-  
+
   protected int doEvalScript(String script, Map<String, Object> options) {
     logNotSupported("evalScript");
     return -1;
@@ -129,7 +125,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       doRunLines(lines, options);
     }
   }
-  
+
   protected void doRunLines(String lines, Map<String, Object> options) {
     logNotSupported("runLines");
   }
@@ -141,7 +137,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
     }
   }
-  
+
   protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
     logNotSupported("runTest");
     return -1;
@@ -154,7 +150,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       return doRunInteractive(scriptArgs);
     }
   }
-  
+
   protected int doRunInteractive(String[] scriptArgs) {
     logNotSupported("runInteractive");
     return -1;
@@ -173,36 +169,36 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public boolean isSupported() {  
+  public boolean isSupported() {
     return false;
   }
- 
+
   @Override
   public final void close() {
     synchronized(this) {
       ready = false;
-      doClose();      
-    }   
+      doClose();
+    }
   }
-  
+
   protected void doClose() {
     // noop if not implemented
-  } 
-  
-  @Override 
+  }
+
+  @Override
   public final void reset() {
-    synchronized(this) {            
-      try {      
+    synchronized(this) {
+      try {
         close();
         init(null);
         log(3, "reset requested (experimental: please report oddities)");
-      } catch(Exception e) {     
+      } catch(Exception e) {
         log(-1, "reset requested but did not work. Please report this case." +
                 "Do not run scripts anymore and restart the IDE after having saved your work");
       }
-    }   
+    }
   }
-    
+
   @Override
   public void execBefore(String[] stmts) {
     logNotSupported("execBefore");

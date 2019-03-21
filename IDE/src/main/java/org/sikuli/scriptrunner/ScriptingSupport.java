@@ -11,7 +11,10 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -24,8 +27,60 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runners.JRubyRunner;
+import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.TextRunner;
 
 public class ScriptingSupport {
+
+  private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
+  private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
+
+  public static void init() {
+    synchronized(IDE_RUNNERS) {
+      if(IDE_RUNNERS.isEmpty()) {
+        log(lvl, "initScriptingSupport: enter");
+
+        List<IScriptRunner> runners = Runner.getRunners();
+
+        for (Class<?> runnerClass : IDE_RUNNER_CLASSES) {
+          for (IScriptRunner runner : runners) {
+            if(runnerClass.equals(runner.getClass())) {
+              log(lvl, "initScriptingSupport: added: %s", runner.getName());
+              IDE_RUNNERS.add(runner);
+              break;
+            }
+          }
+        }
+
+        if (IDE_RUNNERS.isEmpty()) {
+          String em = "Terminating: No scripting support available. Rerun Setup!";
+          log(-1, em);
+          Sikulix.popError(em, "IDE has problems ...");
+          System.exit(1);
+        }
+
+        IScriptRunner defaultRunner = IDE_RUNNERS.get(0);
+        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
+      }
+    }
+  }
+
+  public static String getDefaultExtension() {
+    return getDefaultRunner().getExtensions()[0];
+  }
+
+  public static IScriptRunner getDefaultRunner() {
+    return getRunners().get(0);
+  }
+
+  public static synchronized List<IScriptRunner> getRunners(){
+    synchronized(IDE_RUNNERS) {
+      init();
+      return new ArrayList<IScriptRunner>(IDE_RUNNERS);
+    }
+  }
 
   private static RunTime runTime = RunTime.get();
 
@@ -36,7 +91,7 @@ public class ScriptingSupport {
   }
 
   private static Boolean runAsTest;
-	
+
 	public static String TypeCommentToken = "---SikuliX---";
 	public static String TypeCommentDefault = "# This script uses %s " + TypeCommentToken + "\n";
 
@@ -52,7 +107,7 @@ public class ScriptingSupport {
   private static ObjectOutputStream out = null;
   private static Scanner in = null;
   private static int runnerID = -1;
-  
+
 //  //<editor-fold defaultstate="collapsed" desc="remote runner support">
   public static void startRemoteRunner(String[] args) {
     int port = getPort(args.length > 0 ? args[0] : null);
@@ -284,7 +339,7 @@ public class ScriptingSupport {
       if (currentRunner == null) {
         String givenRunnerName = runTime.interactiveRunner;
         if (givenRunnerName == null) {
-          currentRunner = Runner.getRunner(Runner.RDEFAULT);
+          currentRunner = ScriptingSupport.getDefaultRunner();
         } else {
           currentRunner = Runner.getRunner(givenRunnerName);
         }
@@ -375,8 +430,8 @@ public class ScriptingSupport {
     return true;
   }
 //</editor-fold>
-  
+
   public static int getLastReturnCode() {
     return lastReturnCode;
-  }  
+  }
 }

@@ -17,17 +17,12 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.util.JythonHelper;
 
 public class RobotRunner extends JythonRunner {
-  
+
   public static final String NAME = "Robot";
   public static final String TYPE = "text/robot";
   public static final String[] EXTENSIONS = new String[] {"robot"};
-  
-  private static final RunTime RUN_TIME = RunTime.get();
 
-  @Override
-  public boolean isIdeContent() {
-    return false;
-  }
+  private static final RunTime RUN_TIME = RunTime.get();
 
   @Override
   protected int doEvalScript(String code, Map<String,Object> options) {
@@ -71,7 +66,7 @@ public class RobotRunner extends JythonRunner {
     }
     File fRobot = new File(fRobotWork, sName + ".robot");
     FileManager.writeStringToFile(code, fRobot);
-    
+
     getInterpreter().exec("from sikuli import *; from threading import currentThread; currentThread().name = \"MainThread\"");
     //pyRunner.exec("import robot.run;");
     String robotCmd = String.format(
@@ -91,7 +86,7 @@ public class RobotRunner extends JythonRunner {
     }
     return 0;
   }
-    
+
   @Override
   public boolean isSupported() {
     File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
@@ -107,19 +102,19 @@ public class RobotRunner extends JythonRunner {
   public String[] getExtensions() {
     return EXTENSIONS.clone();
   }
-  
+
   @Override
-  public String getType() {   
+  public String getType() {
     return TYPE;
   }
- 
+
   @Override
   protected void doInit(String[] args) {
     super.doInit(args);
-    
+
     JythonHelper helper = getHelper();
-    
-    if (RUN_TIME.isRunningFromJar()) {      
+
+    if (RUN_TIME.isRunningFromJar()) {
       if (!helper.hasSysPath(RUN_TIME.fSikulixLib.getAbsolutePath())) {
         helper.insertSysPath(RUN_TIME.fSikulixLib);
       }
@@ -129,7 +124,7 @@ public class RobotRunner extends JythonRunner {
     }
     this.getInterpreter().exec("import robot");
   }
-  
+
 //<editor-fold defaultstate="collapsed" desc="robot run options">
 //-N --name name           Set the name of the top level test suite. Underscores
 //                        in the name are converted to spaces. Default name is

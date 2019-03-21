@@ -42,7 +42,7 @@ public class JythonRunner extends AbstractScriptRunner {
 
   /*
    * The PythonInterpreter instance
-   * 
+   *
    * Currently this has to be static because JythonHelper is a global object and
    * takes the interpreter to work with. Having multiple interpreters in the same
    * VM doesn't work. TODO Refactoring to make JythonHelper non global or get rid
@@ -115,11 +115,6 @@ public class JythonRunner extends AbstractScriptRunner {
       interpreter.exec("from sikuli import *");
       log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
     }
-  }
-
-  @Override
-  public boolean isIdeContent() {
-    return true;
   }
 
   @Override
