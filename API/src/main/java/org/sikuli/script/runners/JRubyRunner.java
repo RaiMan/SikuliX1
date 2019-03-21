@@ -80,7 +80,6 @@ public class JRubyRunner extends AbstractScriptRunner {
   protected void doInit(String[] args) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      Debug.info("JRuby init");
       // TODO classpath and other path handlings
       sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
       createScriptingContainer();
@@ -200,6 +199,7 @@ public class JRubyRunner extends AbstractScriptRunner {
     if (interpreter != null) {
       interpreter.terminate();
       interpreter = null;
+      redirected = false;
     }
   }
 
@@ -483,7 +483,6 @@ public class JRubyRunner extends AbstractScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       if (!redirected) {
-        Debug.info("JRuby redirect");
         redirected = true;
 
         ScriptingContainer interpreter = getScriptingContainer();

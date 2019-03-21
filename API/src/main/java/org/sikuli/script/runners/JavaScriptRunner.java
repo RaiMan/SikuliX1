@@ -48,7 +48,6 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   @Override
   protected void doInit(String[] args) throws Exception {
-    Debug.info("JavaScript init");
     ScriptEngineManager jsFactory = new ScriptEngineManager();
     ScriptEngine engine = jsFactory.getEngineByName("JavaScript");
 

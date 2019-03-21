@@ -158,7 +158,7 @@ public interface IScriptRunner {
    * 
    * @return
    */
-  public boolean redirect(PipedInputStream stdout, PipedInputStream stderr);
+  public void redirect(PipedInputStream stdout, PipedInputStream stderr);
   
   /**
    * Resets this runner.

@@ -143,6 +143,14 @@ public class EditorPane extends JTextPane {
 
     IScriptRunner runner = Runner.getRunner(scriptType);
 
+    // initialize runner to speed up first script run
+    (new Thread() {
+      @Override
+      public void run() {
+        runner.init(null);
+      }
+    }).start();
+
     scrType = runner.getType();
     _indentationLogic = null;
 

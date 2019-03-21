@@ -19,7 +19,9 @@ import org.sikuli.script.SikuliXception;
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
   boolean ready = false;
-  boolean redirected = false;
+
+  PipedInputStream redirectedStdout;
+  PipedInputStream redirectedStderr;
 
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + ": " + message, args);
@@ -35,6 +37,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       if(!ready) {
         try {
           doInit(args);
+
+          if(redirectedStdout != null && redirectedStderr != null) {
+            redirectNow(redirectedStdout, redirectedStderr);
+          }
+
           ready = true;
         } catch (Exception e) {
           throw new SikuliXception("Cannot initialize Script runner " + this.getName(), e);
@@ -73,17 +80,25 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   };
 
   @Override
-  public final boolean redirect(PipedInputStream stdout, PipedInputStream stderr) {
+  public final void redirect(PipedInputStream stdout, PipedInputStream stderr) {
     synchronized(this) {
-      boolean ret = false;
+      Debug.log(3, "%s: Initiate IO redirect", getName());
 
-      if (!redirected) {
-        init(null);
-        ret = doRedirect(stdout, stderr);
-        redirected = true;
+      this.redirectedStdout = stdout;
+      this.redirectedStderr = stderr;
+
+      if (ready) {
+       redirectNow(stdout, stderr);
       }
+    }
+  }
 
-      return ret;
+  private final void redirectNow(PipedInputStream stdout, PipedInputStream stderr) {
+    boolean ret = doRedirect(stdout, stderr);
+    if (ret) {
+      Debug.log(3, "%s: IO redirect established", getName());
+    } else {
+      logNotSupported("IO redirection");
     }
   }
 

@@ -80,7 +80,6 @@ public class JythonRunner extends AbstractScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      Debug.info("Jython init");
       getInterpreter();
       getHelper();
 
@@ -317,9 +316,10 @@ public class JythonRunner extends AbstractScriptRunner {
     if (interpreter != null) {
       try {
         interpreter.close();
-        interpreter = null;
       } catch (Exception e) {
       }
+      interpreter = null;
+      redirected = false;
     }
   }
 
@@ -328,7 +328,6 @@ public class JythonRunner extends AbstractScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       if (!redirected) {
-        Debug.info("Jython redirect");
         redirected = true;
         PythonInterpreter py = getInterpreter();
         try {

@@ -35,7 +35,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
   private static final String me = "EditorConsolePane: ";
   static boolean ENABLE_IO_REDIRECT = true;
-  
+
   static {
     String flag = System.getProperty("sikuli.console");
     if (flag != null && flag.equals("false")) {
@@ -93,50 +93,41 @@ public class EditorConsolePane extends JPanel implements Runnable {
       for (int i = 0; i < NUM_PIPES; i++) {
         pin[i] = new PipedInputStream();
       }
-         
-      (new Thread() {
-        @Override
-        public void run() {
-          int irunner = 0;
-          for (IScriptRunner srunner : Runner.getRunners()) {
-            Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
-            if (srunner.redirect(pin[irunner*npipes], pin[irunner*npipes+1])) {
-              Debug.log(3, "EditorConsolePane: redirection success for %s", srunner.getName());
-              quit = false; // signals the Threads that they should exit
 
-              // Starting two seperate threads to read from the PipedInputStreams
-              for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
-                reader[i] = new Thread(EditorConsolePane.this);
-                reader[i].setDaemon(true);
-                reader[i].start();
-              }
-              irunner++;
-            }
-          }
-          
-          // redirect System IO to console
-          try {
-            int sysOutIndex = irunner * npipes;
-            PipedOutputStream oout = new PipedOutputStream(pin[sysOutIndex]);
-            PrintStream ops = new PrintStream(oout, true);
-            System.setOut(ops);        
-            reader[sysOutIndex] = new Thread(EditorConsolePane.this);
-            reader[sysOutIndex].setDaemon(true);
-            reader[sysOutIndex].start();
-            
-            int sysErrIndex = irunner * npipes + 1;
-            PipedOutputStream eout = new PipedOutputStream(pin[sysErrIndex]);
-            PrintStream eps = new PrintStream(eout, true);
-            System.setErr(eps);
-                                    
-            reader[sysErrIndex] = new Thread(EditorConsolePane.this);
-            reader[sysErrIndex].setDaemon(true);
-            reader[sysErrIndex].start();
-          } catch (IOException e1) {
-            Debug.log(-1, "Redirecting System IO failes", e1.getMessage());
-          }           
-        }        
-      }).start();      
+      // redirect System IO to console
+      try {
+        PipedOutputStream oout = new PipedOutputStream(pin[0]);
+        PrintStream ops = new PrintStream(oout, true);
+        System.setOut(ops);
+        reader[0] = new Thread(EditorConsolePane.this);
+        reader[0].setDaemon(true);
+        reader[0].start();
+
+        PipedOutputStream eout = new PipedOutputStream(pin[1]);
+        PrintStream eps = new PrintStream(eout, true);
+        System.setErr(eps);
+
+        reader[1] = new Thread(EditorConsolePane.this);
+        reader[1].setDaemon(true);
+        reader[1].start();
+      } catch (IOException e1) {
+        Debug.log(-1, "Redirecting System IO failes", e1.getMessage());
+      }
+
+      int irunner = 1;
+
+      for (IScriptRunner srunner : Runner.getRunners()) {
+        Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
+        srunner.redirect(pin[irunner*npipes], pin[irunner*npipes+1]);
+        quit = false; // signals the Threads that they should exit
+        // Starting two seperate threads to read from the PipedInputStreams
+        for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
+          reader[i] = new Thread(EditorConsolePane.this);
+          reader[i].setDaemon(true);
+          reader[i].start();
+        }
+        irunner++;
+      }
     }
 
     //Create the popup menu.
