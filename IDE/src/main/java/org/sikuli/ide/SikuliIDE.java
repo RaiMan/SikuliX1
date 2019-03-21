@@ -2684,7 +2684,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       sikulixIDE.setVisible(false);
       RunTime.pause(0.1f);
       sikulixIDE.setIsRunningScript(true);
-      final IScriptRunner[] srunners = new IScriptRunner[]{null};
       EditorPane codePane = getCurrentCodePane();
       String cType = codePane.getSikuliContentType();
       File scriptFile = null;
@@ -2707,24 +2706,15 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
       _console.clear();
       resetErrorMark();
-      String parent = null;
       File path = new File(getCurrentBundlePath());
-      if (path != null && !codePane.isSourceBundleTemp()) {
-        parent = path.getParent();
-      }
-      IScriptRunner srunner = Runner.getRunner(cType);
-      if (srunner == null) {
+      IScriptRunner scriptRunner = Runner.getRunner(cType);
+      if (scriptRunner == null) {
         log(-1, "runCurrentScript: Could not load a script runner for: %s", cType);
         return;
       }
-      addScriptCode(srunner);
-      srunners[0] = srunner;
+      addScriptCode(scriptRunner);
       ImagePath.reset(path.getAbsolutePath());
-      String tabtitle = tabPane.getTitleAt(tabPane.getSelectedIndex());
-      if (tabtitle.startsWith("*")) {
-        tabtitle = tabtitle.substring(1);
-      }
-      final SubRun doRun = new SubRun(srunners, scriptFile, path, parent, tabtitle);
+      final SubRun doRun = new SubRun(scriptRunner, scriptFile);
       _runningThread = new Thread(doRun);
       _runningThread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
         @Override
@@ -2745,27 +2735,22 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     private class SubRun implements Runnable {
       private boolean finished = false;
       private int ret = 0;
-      private IScriptRunner[] srunners = null;
       private File scriptFile = null;
-      private File path = null;
-      private String tabtitle = "";
-      private String parent;
+      private IScriptRunner scriptRunner = null;
+      private Map<String,Object> options = new HashMap<>();
 
-      public SubRun(IScriptRunner[] srunners, File scriptFile, File path,
-                    String parent, String tabtitle) {
-        this.srunners = srunners;
+      public SubRun(IScriptRunner scriptRunner, File scriptFile) {
         this.scriptFile = scriptFile;
-        this.path = path;
-        this.tabtitle = tabtitle;
-        this.parent = parent;
+        this.scriptRunner = scriptRunner;
+        options.put(Runner.RETURN_ERROR_LINE, new Integer[]{0});
       }
 
       @Override
       public void run() {
         try {
-          ret = srunners[0].runScript(scriptFile.getAbsolutePath(), runTime.getArgs(), null);
+          ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), runTime.getArgs(), options);
         } catch (Exception ex) {
-          log(-1, "(%s).runScript: Exception: %s", srunners[0], ex);
+          log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);
         }
         hasFinished(true);
         afterRun();
@@ -2787,8 +2772,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
 
       public void afterRun() {
-        addErrorMark(ret);       
-        srunners[0] = null;
+        addErrorMark(((Integer[]) options.get(Runner.RETURN_ERROR_LINE))[0]);
         if (Image.getIDEshouldReload()) {
           EditorPane pane = sikulixIDE.getCurrentCodePane();
           int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
@@ -2832,9 +2816,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     }
 
     public void addErrorMark(int line) {
-      if (line < 0) {
-        line *= -1;
-      } else {
+      if (line < 1) {
         return;
       }
       JScrollPane scrPane = (JScrollPane) tabPane.getSelectedComponent();

@@ -6,10 +6,7 @@ package org.sikuli.script;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
@@ -37,6 +34,8 @@ public class Runner {
 
   private static String[] runScripts = null;
   private static int lastReturnCode = 0;
+
+  public static final String RETURN_ERROR_LINE = "RETURN_ERROR_LINE";
 
   private static List<IScriptRunner> runners = new LinkedList<>();
   private static List<IScriptRunner> supportedRunners = new LinkedList<>();
@@ -249,22 +248,17 @@ public class Runner {
   }
 
   public static synchronized int run(String script, String[] args) {
+   return run(script, args, null);
+  }
+
+  public static synchronized int run(String script, String[] args, Map<String,Object> options) {
     String savePath = ImagePath.getBundlePathSet();
 
     IScriptRunner runner = Runner.getRunner(script);
 
     int retVal;
 
-    if (script.toLowerCase().startsWith(runner.getName().toLowerCase() + "*")) {
-      // in the previous implementation it was possible to prefix
-      // script code with the runner name + * (at least I think it is a *) and then
-      // eval it with the given runner.
-      // We just keep this behavior although it feels a bit odd.
-      // TODO Deprecate this behavior??
-      retVal = runner.evalScript(script.substring(runner.getName().length() + 1), null);
-    } else {
-      retVal = runner.runScript(script, args, null);
-    }
+    retVal = runner.runScript(script, args, options);
 
     if (savePath != null) {
       ImagePath.setBundlePath(savePath);

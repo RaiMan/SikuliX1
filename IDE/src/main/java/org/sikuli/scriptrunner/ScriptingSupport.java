@@ -90,8 +90,6 @@ public class ScriptingSupport {
     Debug.logx(level, me + message, args);
   }
 
-  private static Boolean runAsTest;
-
 	public static String TypeCommentToken = "---SikuliX---";
 	public static String TypeCommentDefault = "# This script uses %s " + TypeCommentToken + "\n";
 
@@ -311,26 +309,6 @@ public class ScriptingSupport {
 
     IScriptRunner currentRunner = null;
 
-    if (args != null && args.length > 1 && args[0].startsWith("-testSetup")) {
-      currentRunner = Runner.getRunner(args[1]);
-      if (currentRunner == null) {
-        args[0] = null;
-      } else {
-        String[] stmts = new String[0];
-        if (args.length > 2) {
-          stmts = new String[args.length - 2];
-          for (int i = 0; i < stmts.length; i++) {
-            stmts[i] = args[i+2];
-          }
-        }
-        if (0 != currentRunner.runScript(null, null, null)) {
-          args[0] = null;
-        }
-      }
-      isRunningScript = false;
-      return;
-    }
-
     runScripts = Runner.evalArgs(args);
     isRunningScript = true;
 
@@ -366,7 +344,6 @@ public class ScriptingSupport {
 
     if (runScripts != null && runScripts.length > 0) {
       int exitCode = 0;
-      runAsTest = runTime.runningTests;
       for (String givenScriptName : runScripts) {
         if (lastReturnCode == -1) {
           log(lvl, "Exit code -1: Terminating multi-script-run");
