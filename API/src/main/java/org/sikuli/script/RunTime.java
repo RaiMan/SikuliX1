@@ -384,16 +384,17 @@ public class RunTime {
 
     sxOptions = Options.init(runTime);
     optTesting = sxOptions.isOption("testing", false);
-    int dl = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
-    if (runTime.debugLevel < 1) {
-      runTime.debugLevel = dl;
-    }
     if (optTesting) {
       Debug.info("Options: testing = on");
     }
-    if (dl > Debug.getDebugLevel()) {
-      Debug.info("Options: Debug.level = %d", dl);
-      Debug.on(dl);
+
+    int optDebugLevel = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
+    if (runTime.debugLevel < 1) {
+      runTime.debugLevel = optDebugLevel;
+    }
+    if (optDebugLevel > Debug.getDebugLevel()) {
+      Debug.info("Options: Debug.level = %d", optDebugLevel);
+      Debug.on(optDebugLevel);
     }
 
     Settings.init(runTime); // force Settings initialization
