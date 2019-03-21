@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.util;
+package org.sikuli.script.runnerHelpers;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -13,7 +13,7 @@ import org.sikuli.script.RunTime;
 /**
  * This class implements JRuby specific parts
  */
-public class JRubyHelper implements JLangHelperInterface {
+public class JRubyHelper implements IScriptLanguageHelper {
     private static final String me = "JRubyHelper: ";
 
     /**

@@ -154,7 +154,7 @@ except:
 
 import org.sikuli.script.Runner as Runner
 
-import org.sikuli.util.JythonHelper as JythonHelper
+import org.sikuli.script.runnerHelpers.JythonHelper as JythonHelper
 
 def load(jar):
   """

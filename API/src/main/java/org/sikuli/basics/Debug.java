@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;

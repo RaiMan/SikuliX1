@@ -6,8 +6,7 @@ package org.sikuli.script;
 import java.io.File;
 import java.net.URL;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 
 /**
  * Can be used in pure Jython environments to add the Sikuli Python API to sys.path<br>

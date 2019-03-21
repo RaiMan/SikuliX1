@@ -7,19 +7,14 @@ import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
-import org.sikuli.script.SikuliXception;
 import org.sikuli.script.Sikulix;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.File;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -56,32 +51,37 @@ public class JythonRunner extends AbstractScriptRunner {
    * sys.argv for the jython script
    */
   private ArrayList<String> sysargv = new ArrayList<String>();
+
   /**
    * The header commands, that are executed before every script
    */
-  private static String[] SCRIPT_HEADER = new String[] { "# -*- coding: utf-8 -*- ",
-      "import org.sikuli.script.SikulixForJython", "from sikuli import *", "use() #resetROI()",
-      "setShowActions(False)" };
+  private static String[] SCRIPT_HEADER = new String[] {
+          "# -*- coding: utf-8 -*- ",
+          "import org.sikuli.script.SikulixForJython",
+          "from sikuli import *",
+          "use() #resetROI()",
+          "setShowActions(False)" };
 
   private ArrayList<String> codeBefore = null;
   private ArrayList<String> codeAfter = null;
-  /**
-   * CommandLine args
-   */
+
   private int errorLine;
   private int errorColumn;
   private String errorType;
   private String errorText;
   private int errorClass;
   private String errorTrace;
+
   private static final int PY_SYNTAX = 0;
   private static final int PY_RUNTIME = 1;
   private static final int PY_JAVA = 2;
   private static final int SX_RUNTIME = 3;
   private static final int SX_ABORT = 4;
   private static final int PY_UNKNOWN = -1;
+
   private static final String NL = String.format("%n");
-  // TODO SikuliToHtmlConverter implement in Java
+
+// TODO SikuliToHtmlConverter implement in Java
 //  final static InputStream SikuliToHtmlConverter
 //          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
 //  static String pyConverter
@@ -94,19 +94,8 @@ public class JythonRunner extends AbstractScriptRunner {
     synchronized (JythonRunner.class) {
       getInterpreter();
       getHelper();
+
       helper.getSysPath();
-//JAVA9
-//      String fpAPI = null;
-//      String[] possibleJars = new String[]{"sikulixapi", "API/target/classes", "sikulix.jar"};
-//      for (String aJar : possibleJars) {
-//        if (null != (fpAPI = runTime.isOnClasspath(aJar))) {
-//          break;
-//        }
-//      }
-//      if (null == fpAPI) {
-//        runTime.terminate(1, "JythonScriptRunner: no sikulix....jar on classpath");
-//      }
-//      String fpAPILib = new File(fpAPI, "Lib").getAbsolutePath();
       String fpAPILib = runTime.fSikulixLib.getAbsolutePath();
       helper.putSysPath(fpAPILib, 0);
       helper.setSysPath();
@@ -146,63 +135,65 @@ public class JythonRunner extends AbstractScriptRunner {
   /**
    * Executes the jythonscript
    *
-   * @param pyFile      The file containing the script
-   * @param fScriptPath The directory containing the images
-   * @param argv        The arguments passed by the --args parameter
-   * @param forIDE
+   * @param scriptFile
+   * @param argv    arguments to be populated into sys.argv
+   * @param options
    * @return The exitcode
    */
   @Override
   protected int doRunScript(String scriptFile, String[] argv, Map<String, Object> options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      if (null == scriptFile) {
-        // run the Python statements from argv (special for setup functional test)
 
-        executeScriptHeader(null);
-        log(lvl, "runPython: running statements");
-        try {
-          for (String e : argv) {
-            interpreter.exec(e);
-          }
-        } catch (Exception ex) {
-          log(-1, "runPython: raised: %s", ex.getMessage());
-          return -1;
-        }
-        return 0;
-      }
+//TODO obsolete (setup related)
+//      if (null == scriptFile) {
+//        // run the Python statements from argv (special for setup functional test)
+//
+//        executeScriptHeader(null);
+//        log(lvl, "runPython: running statements");
+//        try {
+//          for (String e : argv) {
+//            interpreter.exec(e);
+//          }
+//        } catch (Exception ex) {
+//          log(-1, "runPython: raised: %s", ex.getMessage());
+//          return -1;
+//        }
+//        return 0;
+//      }
 
       File pyFile = new File(scriptFile);
       fillSysArgv(pyFile, argv);
 
       executeScriptHeader(new String[] { pyFile.getParent(), pyFile.getParentFile().getParent() });
 
-      int exitCode = runPython(pyFile, null, new String[] { pyFile.getParentFile().getAbsolutePath() });
+      int exitCode = runPython(pyFile);
 
       return exitCode;
     }
   }
 
-  private int runPython(File pyFile, String[] stmts, String[] scriptPaths) {
+//  private int runPython(File pyFile, String[] stmts, String[] scriptPaths) {
+  private int runPython(File pyFile) {
     int exitCode = 0;
     String stmt = "";
     try {
-      if (scriptPaths != null) {
-        String scr;
-        if (scriptPaths.length > 1) {
-          scr = FileManager.slashify(scriptPaths[0], true) + scriptPaths[1] + ".sikuli";
-          log(lvl, "runPython: running script from IDE: \n" + scr);
-          interpreter.exec("sys.argv[0] = \"" + scr + "\"");
-        } else {
-          scr = FileManager.slashify(scriptPaths[0], false);
-          log(lvl, "runPython: running script: \n%s", scr);
-          interpreter.exec("sys.argv[0] = \"" + scr + "\"");
-        }
+//      if (scriptPaths != null) {
+//        String scr;
+//        if (scriptPaths.length > 1) {
+//          scr = FileManager.slashify(scriptPaths[0], true) + scriptPaths[1] + ".sikuli";
+//          log(lvl, "runPython: running script from IDE: \n" + scr);
+//          interpreter.exec("sys.argv[0] = \"" + scr + "\"");
+//        } else {
+//          scr = FileManager.slashify(scriptPaths[0], false);
+//          log(lvl, "runPython: running script: \n%s", scr);
+//          interpreter.exec("sys.argv[0] = \"" + scr + "\"");
+//        }
         interpreter.execfile(pyFile.getAbsolutePath());
-      } else {
-        log(-1, "runPython: invalid arguments");
-        exitCode = -1;
-      }
+//      } else {
+//        log(-1, "runPython: invalid arguments");
+//        exitCode = -1;
+//      }
     } catch (Exception e) {
       java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
       Matcher matcher = p.matcher(e.toString());
@@ -213,11 +204,11 @@ public class JythonRunner extends AbstractScriptRunner {
       } else {
         // log(-1,_I("msgStopped"));
         if (null != pyFile) {
-          exitCode = findErrorSource(e, pyFile.getAbsolutePath(), scriptPaths);
+          exitCode = findErrorSource(e, pyFile.getAbsolutePath(), new String[]{"", ""});
         } else {
           Debug.error("runPython: Python exception: %s with %s", e.getMessage(), stmt);
         }
-        exitCode = 1;
+//        exitCode = 1;
       }
     }
     if (System.out.checkError()) {
@@ -417,14 +408,6 @@ public class JythonRunner extends AbstractScriptRunner {
    * {@inheritDoc}
    */
   @Override
-  public String getCommandLineHelp() {
-    return "You are using the Jython ScriptRunner";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public String getInteractiveHelp() {
     return "**** this might be helpful ****\n" + "-- execute a line of code by pressing <enter>\n"
         + "-- separate more than one statement on a line using ;\n"
@@ -433,6 +416,17 @@ public class JythonRunner extends AbstractScriptRunner {
         + "img = capture()\n" + "-- use a captured image later:\n" + "click(img)";
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getCommandLineHelp() {
+    return "You are using the Jython ScriptRunner";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isSupported() {
     try {

@@ -5,7 +5,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.*;
 import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;

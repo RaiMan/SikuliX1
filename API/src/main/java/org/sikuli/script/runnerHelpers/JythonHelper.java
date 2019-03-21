@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.util;
+package org.sikuli.script.runnerHelpers;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -19,7 +19,7 @@ import org.sikuli.script.RunTime;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.SikulixForJython;
 
-public class JythonHelper implements JLangHelperInterface {
+public class JythonHelper implements IScriptLanguageHelper {
 
   private static RunTime runTime;
 

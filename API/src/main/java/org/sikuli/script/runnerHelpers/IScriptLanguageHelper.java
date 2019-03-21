@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.util;
+package org.sikuli.script.runnerHelpers;
 
 /**
  * This interface provides script language specific methods which are non a part
@@ -11,7 +11,7 @@ package org.sikuli.util;
  * These methods may be used both in case of a script running from IDE or from
  * sikulixapi library without IDE.
  */
-public interface JLangHelperInterface {
+public interface IScriptLanguageHelper {
     /**
      * Run callback for observers.
      *
