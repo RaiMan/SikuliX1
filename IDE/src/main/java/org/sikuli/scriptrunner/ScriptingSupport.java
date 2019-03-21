@@ -49,6 +49,7 @@ public class ScriptingSupport {
             if(runnerClass.equals(runner.getClass())) {
               log(lvl, "initScriptingSupport: added: %s", runner.getName());
               IDE_RUNNERS.add(runner);
+              break;
             }
           }
         }
@@ -67,13 +68,14 @@ public class ScriptingSupport {
   }
 
   public static String getDefaultExtension() {
-    synchronized(IDE_RUNNERS) {
-      init();
-      return IDE_RUNNERS.get(0).getExtensions()[0];
-    }
+    return getDefaultRunner().getExtensions()[0];
   }
 
-  public static synchronized List<IScriptRunner> getIDERunners(){
+  public static IScriptRunner getDefaultRunner() {
+    return getRunners().get(0);
+  }
+
+  public static synchronized List<IScriptRunner> getRunners(){
     synchronized(IDE_RUNNERS) {
       init();
       return new ArrayList<IScriptRunner>(IDE_RUNNERS);
@@ -337,7 +339,7 @@ public class ScriptingSupport {
       if (currentRunner == null) {
         String givenRunnerName = runTime.interactiveRunner;
         if (givenRunnerName == null) {
-          currentRunner = ScriptingSupport.getIDERunners().get(0);
+          currentRunner = ScriptingSupport.getDefaultRunner();
         } else {
           currentRunner = Runner.getRunner(givenRunnerName);
         }

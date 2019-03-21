@@ -279,8 +279,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
       if (selOptionsTypes == null) {
         String types = "";
-        List<IScriptRunner> runners = Runner.getRunners();
-        for (IScriptRunner runner : ScriptingSupport.getIDERunners()) {
+        for (IScriptRunner runner : ScriptingSupport.getRunners()) {
           types += runner.getType().replaceFirst(".*?\\/", "") + " ";
         }
         if (!types.isEmpty()) {
