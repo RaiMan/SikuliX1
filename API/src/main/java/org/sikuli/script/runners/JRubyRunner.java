@@ -280,8 +280,10 @@ public class JRubyRunner extends AbstractScriptRunner {
         Debug.info("Exit code: " + exitCode);
       } else {
         if (null != ruFile) {
-          int errorExit = findErrorSource(e, filename);
-          options.setErrorLine(errorExit);
+          if (null != options) {
+            int errorExit = findErrorSource(e, filename);
+            options.setErrorLine(errorExit);
+          }
         } else {
           Debug.error("runRuby: Ruby exception: %s with %s", e.getMessage(), stmt);
         }

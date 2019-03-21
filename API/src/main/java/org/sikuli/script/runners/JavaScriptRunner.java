@@ -16,9 +16,15 @@ import org.sikuli.script.Sikulix;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -45,12 +51,14 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 //  Method mShow;
 //  Method mHide;
 
-  ScriptEngine engine;
+  private ScriptEngine engine;
+
+  private PrintStream stderr;
 
   @Override
   protected void doInit(String[] args) throws Exception {
     ScriptEngineManager jsFactory = new ScriptEngineManager();
-    ScriptEngine engine = jsFactory.getEngineByName("JavaScript");
+    engine = jsFactory.getEngineByName("JavaScript");
 
     log(lvl, "ScriptingEngine started: JavaScript (ending .js)");
 
@@ -80,7 +88,16 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     try {
       engine.eval(new FileReader(new File(scriptFile)));
     } catch (FileNotFoundException | ScriptException e) {
-      log(-1, "runTest failed", e);
+      log(lvl, "runScript failed", e);
+
+      if(null != stderr) {
+        stderr.print(e);
+      }
+
+      if(null != options) {
+        options.setErrorLine(findErrorSource(e, scriptFile));
+      }
+
       return -1;
     }
     return 0;
@@ -94,11 +111,18 @@ public class JavaScriptRunner extends AbstractScriptRunner {
         script = script.substring(1);
         silent = true;
       }
-
-
       engine.eval(script);
     } catch (ScriptException e) {
-      log(-1, "evalScript failed", e);
+      log(lvl, "evalScript failed", e);
+
+      if(null != stderr) {
+        stderr.print(e);
+      }
+
+      if(null != options) {
+        options.setErrorLine(findErrorSource(e, null));
+      }
+
       return -1;
     }
     return 0;
@@ -123,5 +147,26 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   @Override
   public String getType() {
     return TYPE;
+  }
+
+  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
+    PipedOutputStream pout;
+    try {
+      pout = new PipedOutputStream(stderr);
+      this.stderr = new PrintStream(pout, true);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  private int findErrorSource(Throwable thr, String filename) {
+    Matcher m = Pattern.compile("at line number (\\d+)").matcher(thr.toString());
+
+    if(m.find()) {
+      return Integer.parseInt(m.group(1));
+    }
+
+    return -1;
   }
 }
