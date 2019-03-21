@@ -95,14 +95,17 @@ public class JRubyRunner extends AbstractScriptRunner {
         // run the Ruby statements from argv (special for setup functional test)
         fillSysArgv(null, null);
         executeScriptHeader(new String[0]);
-        return runRuby(null, scriptArgs, null);
+        return runRuby(null, scriptArgs, null, options);
       }
+
       File file = new File(new File(scriptFile).getAbsolutePath());
       fillSysArgv(file, scriptArgs);
 
       executeScriptHeader(new String[] { file.getParentFile().getAbsolutePath(),
           file.getParentFile().getParentFile().getAbsolutePath() });
-      int exitCode = runRuby(file, null, new String[] { file.getParentFile().getAbsolutePath() });
+
+      int exitCode = runRuby(file, null, new String[] { file.getParentFile().getAbsolutePath() }, options);
+
       log(lvl + 1, "runScript: at exit: path:");
       for (Object p : interpreter.getLoadPaths()) {
         log(lvl + 1, "runScript: " + p.toString());
@@ -228,7 +231,7 @@ public class JRubyRunner extends AbstractScriptRunner {
     codeAfter.addAll(Arrays.asList(stmts));
   }
 
-  private int runRuby(File ruFile, String[] stmts, String[] scriptPaths) {
+  private int runRuby(File ruFile, String[] stmts, String[] scriptPaths, IScriptRunner.Options options) {
     int exitCode = 0;
     String stmt = "";
     boolean fromIDE = false;
@@ -267,6 +270,8 @@ public class JRubyRunner extends AbstractScriptRunner {
         }
       }
     } catch (Exception e) {
+      exitCode = 1;
+
       java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
       Matcher matcher = p.matcher(e.toString());
 //TODO error stop I18N
@@ -275,21 +280,17 @@ public class JRubyRunner extends AbstractScriptRunner {
         Debug.info("Exit code: " + exitCode);
       } else {
         if (null != ruFile) {
-          exitCode = findErrorSource(e, filename, scriptPaths);
+          int errorExit = findErrorSource(e, filename);
+          options.setErrorLine(errorExit);
         } else {
           Debug.error("runRuby: Ruby exception: %s with %s", e.getMessage(), stmt);
-        }
-        if (fromIDE) {
-          exitCode *= -1;
-        } else {
-          exitCode = 1;
         }
       }
     }
     return exitCode;
   }
 
-  private int findErrorSource(Throwable thr, String filename, String[] forIDE) {
+  private int findErrorSource(Throwable thr, String filename) {
     String err = thr.getMessage();
 
     errorLine = -1;
@@ -350,9 +351,6 @@ public class JRubyRunner extends AbstractScriptRunner {
     }
 
     msg = "script";
-    if (forIDE != null) {
-      msg += " [ " + forIDE[1] + " ]";
-    }
     if (errorLine != -1) {
       // log(-1,_I("msgErrorLine", srcLine));
       msg += " stopped with error in line " + errorLine;

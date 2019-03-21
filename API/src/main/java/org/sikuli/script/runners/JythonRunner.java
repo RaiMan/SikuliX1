@@ -146,6 +146,7 @@ public class JythonRunner extends AbstractScriptRunner {
       try {
         interpreter.execfile(pyFile.getAbsolutePath());
       } catch (Exception scriptException) {
+        exitCode = 1;
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
         Matcher matcher = p.matcher(scriptException.toString());
         if (matcher.find()) {
@@ -158,7 +159,6 @@ public class JythonRunner extends AbstractScriptRunner {
           } else {
             Debug.error("%s", scriptException);
           }
-          exitCode = 1;
         }
       }
       if (System.out.checkError()) {
