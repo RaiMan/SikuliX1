@@ -7,6 +7,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
@@ -27,7 +28,7 @@ public class SikulixRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[] {"sikuli"};
 
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     if (null == ImagePath.getBundlePathSet())
       ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
     else {

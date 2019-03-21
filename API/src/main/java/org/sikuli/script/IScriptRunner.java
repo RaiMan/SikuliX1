@@ -12,6 +12,28 @@ import java.util.Map;
  */
 public interface IScriptRunner {
 
+  public class Options {
+    private boolean silent = false;
+    private int errorLine = -1;
+
+    public boolean isSilent() {
+      return silent;
+    }
+
+    public Options setSilent(boolean silent) {
+      this.silent = silent;
+      return this;
+    }
+
+    public int getErrorLine() {
+      return errorLine;
+    }
+
+    public void setErrorLine(int errorLine) {
+      this.errorLine = errorLine;
+    }
+  }
+
   /**
    * Can be used to initialize the ScriptRunner. This method is called at the beginning of program
    * execution. The given parameters can be used to parse any ScriptRunner specific custom options.
@@ -19,36 +41,36 @@ public interface IScriptRunner {
    * @param args All arguments that were passed to the main-method
    */
   public void init(String[] args) throws SikuliXception;
-    
+
   /**
    * Executes the Script.
    *
    * @param scriptFile Identifier pointing to the script. This can either by a file path
-   *                   or an URI, depending on the runner implementation   
+   *                   or an URI, depending on the runner implementation
    * @param scriptArgs Arguments to be passed directly to the script with --args
    * @param options Implementation specific options.
    * @return exitcode for the script execution
    */
-  public int runScript(String scriptFile, String[] scriptArgs, Map<String,Object> options);
-    
+  public int runScript(String scriptFile, String[] scriptArgs, Options options);
+
   /**
    * Evaluates the Script.
    *
-   * @param script Script content  
+   * @param script Script content
    * @param options Implementation specific options.
    * @return exitcode for the script execution
    */
-  public int evalScript(String script, Map<String,Object> options);
- 
+  public int evalScript(String script, Options options);
+
   /**
    * Run the given script lines.
    * The implementation might perform some optimizations on
    * the code (e.g. fix indentation) before executing it.
-   *   
+   *
    * @param lines Code do execute
    * @param options Implementation specific options.
    */
-  public void runLines(String lines, Map<String,Object> options);
+  public void runLines(String lines, Options options);
 
   /**
    * Executes the Script as Test.
@@ -59,7 +81,7 @@ public interface IScriptRunner {
    * @param options when called from Sikuli IDE additional info
    * @return exitcode for the script execution
    */
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String,Object> options);
+  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Options options);
 
   /**
    * Starts an interactive session with the scriptrunner.
@@ -82,14 +104,14 @@ public interface IScriptRunner {
    * @return The helptext
    */
   public String getInteractiveHelp();
-  
+
   /**
    * Checks if the current platform supports this runner.
-   * 
-   * @return true, if platform supports this runner, false otherwise 
+   *
+   * @return true, if platform supports this runner, false otherwise
    */
   public boolean isSupported();
-  
+
   /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
    * between different ScriptRunners.
@@ -101,13 +123,13 @@ public interface IScriptRunner {
   /**
    * returns the list of possible script file extensions, first is the default
    *
-   * @return array of strings 
+   * @return array of strings
    */
   public String[] getExtensions();
-  
+
   /**
    * return the type of script this handler can execute.
-   * 
+   *
    * @return
    */
   public String getType();
@@ -123,7 +145,7 @@ public interface IScriptRunner {
    * Is executed before Sikuli closes. Can be used to cleanup the ScriptRunner
    */
   public void close();
- 
+
   /**
    * add statements to be run after SCRIPT_HEADER, but before script is executed
    *
@@ -137,32 +159,32 @@ public interface IScriptRunner {
    * @param stmts string array of statements (null resets the statement buffer)
    */
   public void execAfter(String[] stmts);
-  
+
   /**
    * Checks if this runner can handle the given identifier.
-   *   
+   *
    * @param identifier Can be Runner name, type or one of its supported extensions
-   *                   Can also be script code prefixed with the runnerName 
+   *                   Can also be script code prefixed with the runnerName
    *                   (e.g. JavaScriptconsolel.log("hello"))
    * @return true if the runner can handle the identifier, false otherwise
    */
   public boolean canHandle(String identifier);
-  
+
   /**
    * Redirects the runner's STDIO to the given PipedInputStreams.
-   * 
+   *
    * Redirection can be done only once per Runner instance.
-   * 
+   *
    * @param stdout PipedInputStreams for STDOUT
    * @param stderr PipedInputStreams for STDERR
-   * 
+   *
    * @return
    */
   public void redirect(PipedInputStream stdout, PipedInputStream stderr);
-  
+
   /**
    * Resets this runner.
-   * 
+   *
    * The runner gets closed and initialized again using init.
    */
   public void reset();

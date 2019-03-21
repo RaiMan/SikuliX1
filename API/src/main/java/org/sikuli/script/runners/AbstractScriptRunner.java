@@ -108,52 +108,52 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
+  public final int runScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     synchronized(this) {
       init(null);
       return doRunScript(scriptfile, scriptArgs, options);
     }
   }
 
-  protected int doRunScript(String scriptfile, String[] scriptArgs, Map<String, Object> options) {
+  protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runScript");
     return -1;
   }
 
   @Override
-  public final int evalScript(String script, Map<String, Object> options) {
+  public final int evalScript(String script, IScriptRunner.Options options) {
     synchronized(this) {
       init(null);
       return doEvalScript(script, options);
     }
   }
 
-  protected int doEvalScript(String script, Map<String, Object> options) {
+  protected int doEvalScript(String script, IScriptRunner.Options options) {
     logNotSupported("evalScript");
     return -1;
   }
 
   @Override
-  public final void runLines(String lines, Map<String, Object> options) {
+  public final void runLines(String lines, IScriptRunner.Options options) {
     synchronized(this) {
       init(null);
       doRunLines(lines, options);
     }
   }
 
-  protected void doRunLines(String lines, Map<String, Object> options) {
+  protected void doRunLines(String lines, IScriptRunner.Options options) {
     logNotSupported("runLines");
   }
 
   @Override
-  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
+  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
     synchronized(this) {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
     }
   }
 
-  protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Map<String, Object> options) {
+  protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runTest");
     return -1;
   }

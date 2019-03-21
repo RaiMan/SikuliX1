@@ -9,27 +9,28 @@ import java.util.Map;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
 
 public class PowershellRunner extends AbstractScriptRunner {
-  
+
   public static final String NAME = "PowerShell";
   public static final String TYPE = "text/powershell";
   public static final String[] EXTENSIONS = new String[] {"ps1"};
-  
+
   private static final RunTime RUN_TIME = RunTime.get();
-  
+
   @Override
-  protected int doEvalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, IScriptRunner.Options options) {
     File aFile = FileManager.createTempFile("ps1");
     FileManager.writeStringToFile(script, aFile);
     return runScript(aFile.getAbsolutePath(), null, null);
   }
-  
+
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {    
+  protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     File fScriptFile = new File(scriptFile);
-    
+
     String[] psDirect = new String[]{
             "powershell.exe", "-ExecutionPolicy", "UnRestricted",
             "-NonInteractive", "-NoLogo", "-NoProfile", "-WindowStyle", "Hidden",
@@ -51,14 +52,14 @@ public class PowershellRunner extends AbstractScriptRunner {
     }
     return retcode;
   }
-    
+
   @Override
   public boolean isSupported() {
     return RunTime.get().runningWindows;
   }
 
   @Override
-  public String getName() {    
+  public String getName() {
     return NAME;
   }
 
@@ -66,9 +67,9 @@ public class PowershellRunner extends AbstractScriptRunner {
   public String[] getExtensions() {
     return EXTENSIONS.clone();
   }
-  
+
   @Override
-  public String getType() {   
+  public String getType() {
     return TYPE;
-  }   
+  }
 }

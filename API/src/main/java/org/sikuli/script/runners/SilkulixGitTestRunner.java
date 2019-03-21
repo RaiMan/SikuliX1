@@ -8,6 +8,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.Runner;
 
 /**
@@ -29,7 +30,7 @@ public class SilkulixGitTestRunner extends NetworkRunner {
   
   String GIT_SCRIPTS = "https://github.com/RaiMan/SikuliX-2014/tree/master/TestScripts/";
     
-  protected int doEvalScript(String scriptFile, Map<String,Object> options) {
+  protected int doEvalScript(String scriptFile, IScriptRunner.Options options) {
     if (scriptFile.endsWith(GIT_SCRIPTS)) {
       scriptFile = scriptFile + "showcase";            
     }    

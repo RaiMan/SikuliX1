@@ -35,8 +35,6 @@ public class Runner {
   private static String[] runScripts = null;
   private static int lastReturnCode = 0;
 
-  public static final String RETURN_ERROR_LINE = "RETURN_ERROR_LINE";
-
   private static List<IScriptRunner> runners = new LinkedList<>();
   private static List<IScriptRunner> supportedRunners = new LinkedList<>();
 
@@ -251,7 +249,7 @@ public class Runner {
    return run(script, args, null);
   }
 
-  public static synchronized int run(String script, String[] args, Map<String,Object> options) {
+  public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
     String savePath = ImagePath.getBundlePathSet();
 
     IScriptRunner runner = Runner.getRunner(script);

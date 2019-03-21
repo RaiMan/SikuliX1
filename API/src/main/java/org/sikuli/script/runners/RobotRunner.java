@@ -9,6 +9,7 @@ import java.util.Map;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
@@ -22,7 +23,7 @@ public class RobotRunner extends JythonRunner {
   private static final RunTime RUN_TIME = RunTime.get();
 
   @Override
-  protected int doEvalScript(String code, Map<String,Object> options) {
+  protected int doEvalScript(String code, IScriptRunner.Options options) {
     boolean showReport = true;
     if (code.length() > 7 && code.substring(0, 7).contains("silent\n")) {
       code = code.substring(7);

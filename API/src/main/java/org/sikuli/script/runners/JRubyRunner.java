@@ -27,6 +27,7 @@ import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
 
 public class JRubyRunner extends AbstractScriptRunner {
@@ -87,7 +88,7 @@ public class JRubyRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String, Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       if (null == scriptFile) {
@@ -112,7 +113,7 @@ public class JRubyRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doEvalScript(String script, Map<String, Object> options) {
+  protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       executeScriptHeader(new String[0]);

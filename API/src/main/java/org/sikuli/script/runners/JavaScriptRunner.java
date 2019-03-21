@@ -5,6 +5,7 @@
 package org.sikuli.script.runners;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
@@ -74,7 +75,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, Map<String,Object> options) {
+  protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     log(lvl, "runJavaScript: running statements");
     try {
       engine.eval(new FileReader(new File(scriptFile)));
@@ -86,7 +87,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doEvalScript(String script, Map<String,Object> options) {
+  protected int doEvalScript(String script, IScriptRunner.Options options) {
     try {
       boolean silent = false;
       if (script.startsWith("#")) {

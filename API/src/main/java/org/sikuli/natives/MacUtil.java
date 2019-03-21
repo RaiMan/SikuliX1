@@ -66,11 +66,8 @@ public class MacUtil implements OSUtil {
   end repeat
   theWindows
   */
-  
-  private static final Map<String,Object> SILENT_OPTIONS = new HashMap<>();
-  static{
-    SILENT_OPTIONS.put("silent", true);
-  }
+
+  private static final IScriptRunner.Options SILENT_OPTIONS = new IScriptRunner.Options().setSilent(true);
 
   String cmdGetWindows = "set theWindows to {}\n" +
           "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
@@ -98,7 +95,7 @@ public class MacUtil implements OSUtil {
       return app;
     } else {
       theCmd = cmd.replace("#LINE#", cmdLinePID);
-      theCmd = theCmd.replaceAll("#PID#", "" + pid);      
+      theCmd = theCmd.replaceAll("#PID#", "" + pid);
       int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
       String result = RunTime.get().getLastCommandResult().trim();
       if (retVal > -1) {

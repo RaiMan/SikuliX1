@@ -251,7 +251,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
     //ideSplash.showStep("Init ScriptingSupport");
- 
+
     IDESupport.initIDESupport();
     sikulixIDE.initSikuliIDE(args);
   }
@@ -2737,12 +2737,11 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       private int ret = 0;
       private File scriptFile = null;
       private IScriptRunner scriptRunner = null;
-      private Map<String,Object> options = new HashMap<>();
+      private IScriptRunner.Options options = new IScriptRunner.Options();
 
       public SubRun(IScriptRunner scriptRunner, File scriptFile) {
         this.scriptFile = scriptFile;
         this.scriptRunner = scriptRunner;
-        options.put(Runner.RETURN_ERROR_LINE, new Integer[]{0});
       }
 
       @Override
@@ -2772,7 +2771,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
       }
 
       public void afterRun() {
-        addErrorMark(((Integer[]) options.get(Runner.RETURN_ERROR_LINE))[0]);
+        addErrorMark(options.getErrorLine());
         if (Image.getIDEshouldReload()) {
           EditorPane pane = sikulixIDE.getCurrentCodePane();
           int line = pane.getLineNumberAtCaret(pane.getCaretPosition());

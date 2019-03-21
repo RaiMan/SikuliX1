@@ -7,6 +7,7 @@ import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
@@ -95,7 +96,7 @@ public class JythonRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected void doRunLines(String lines, Map<String, Object> options) {
+  protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       if (lines.contains("\n")) {
@@ -112,7 +113,7 @@ public class JythonRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doEvalScript(String script, Map<String, Object> options) {
+  protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       interpreter.exec(script);
@@ -129,7 +130,7 @@ public class JythonRunner extends AbstractScriptRunner {
    * @return The exitcode
    */
   @Override
-  protected int doRunScript(String scriptFile, String[] argv, Map<String, Object> options) {
+  protected int doRunScript(String scriptFile, String[] argv, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       File pyFile = new File(scriptFile);
@@ -151,9 +152,9 @@ public class JythonRunner extends AbstractScriptRunner {
           exitCode = Integer.parseInt(matcher.group(1));
           Debug.info("Exit code: " + exitCode);
         } else {
-          if (null != options && options.containsKey(Runner.RETURN_ERROR_LINE)) {
+          if (null != options) {
             int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
-            ((Integer[]) options.get(Runner.RETURN_ERROR_LINE))[0] = errorExit;
+            options.setErrorLine(errorExit);
           } else {
             Debug.error("%s", scriptException);
           }
