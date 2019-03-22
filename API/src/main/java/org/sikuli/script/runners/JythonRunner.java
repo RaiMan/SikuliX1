@@ -76,6 +76,7 @@ public class JythonRunner extends AbstractScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
+      log(lvl, "starting initialization");
       getInterpreter();
       getHelper();
 
@@ -85,8 +86,10 @@ public class JythonRunner extends AbstractScriptRunner {
       helper.setSysPath();
       helper.addSitePackages();
       helper.showSysPath();
-      interpreter.exec("from sikuli import *");
-      log(3, "running Jython %s", interpreter.eval("SIKULIX_IS_WORKING").toString());
+      interpreter.exec("import sys");
+      Debug.setWithTimeElapsed();
+      log(lvl, "ready: version %s", interpreter.eval("sys.version.split(\"(\")[0]\n").toString());
+      Debug.unsetWithTimeElapsed();
     }
   }
 
