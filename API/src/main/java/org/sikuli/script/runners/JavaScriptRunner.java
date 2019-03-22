@@ -123,8 +123,9 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isSupported() {
-    ScriptEngineManager jsFactory = new ScriptEngineManager();
-    return jsFactory.getEngineByName("JavaScript") != null;
+//    ScriptEngineManager jsFactory = new ScriptEngineManager();
+//    return jsFactory.getEngineByName("JavaScript") != null;
+    return false;
   }
 
   @Override
