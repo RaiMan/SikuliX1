@@ -31,7 +31,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.scriptrunner.ScriptingSupport;
+import org.sikuli.idesupport.ScriptingSupport;
 import org.sikuli.syntaxhighlight.ResolutionException;
 import org.sikuli.syntaxhighlight.grammar.Lexer;
 import org.sikuli.syntaxhighlight.grammar.Token;

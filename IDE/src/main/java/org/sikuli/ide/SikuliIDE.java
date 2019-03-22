@@ -15,7 +15,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
-import org.sikuli.scriptrunner.ScriptingSupport;
+import org.sikuli.idesupport.ScriptingSupport;
 import org.sikuli.util.*;
 
 import javax.swing.*;

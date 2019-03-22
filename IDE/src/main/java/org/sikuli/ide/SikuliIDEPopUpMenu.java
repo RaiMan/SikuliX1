@@ -10,7 +10,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -22,8 +21,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
-import org.sikuli.script.runners.AbstractScriptRunner;
-import org.sikuli.scriptrunner.ScriptingSupport;
+import org.sikuli.idesupport.ScriptingSupport;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 

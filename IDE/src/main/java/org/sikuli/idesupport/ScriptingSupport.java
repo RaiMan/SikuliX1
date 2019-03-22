@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.scriptrunner;
+package org.sikuli.idesupport;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -12,10 +12,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import javax.swing.ImageIcon;
