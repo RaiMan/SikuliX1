@@ -12,6 +12,15 @@ import java.util.Map;
  */
 public interface IScriptRunner {
 
+  /**
+   * Special options to pass to the runner.
+   *
+   * Options are more to be interpreted as hints instead of strict directions.
+   * A specific runner implementation can decide to ignore an option entirely.
+   *
+   * @author mbalmer
+   *
+   */
   public class Options {
     private boolean silent = false;
     private int errorLine = -1;
@@ -20,15 +29,35 @@ public interface IScriptRunner {
       return silent;
     }
 
+    /**
+     * Indicates that the runner should behave silent. E.g. not making
+     * output to SDTIO.
+     *
+     * @param silent
+     * @return this to allow chaining
+     */
     public Options setSilent(boolean silent) {
       this.silent = silent;
       return this;
     }
 
+    /**
+     * Get the error source line set by the runner.
+     *
+     * @return source line where the error happened
+     */
     public int getErrorLine() {
       return errorLine;
     }
 
+    /**
+     * If a script run fails, the runner can set the source
+     * line where the error happened.
+     *
+     * There is no effect setting this from the outside.
+     *
+     * @param errorLine
+     */
     public void setErrorLine(int errorLine) {
       this.errorLine = errorLine;
     }
