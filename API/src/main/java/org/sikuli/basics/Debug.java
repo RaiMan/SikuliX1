@@ -73,10 +73,19 @@ public class Debug {
 
 	private static PrintStream redirectedOut = null, redirectedErr = null;
 
-	public static long elapsedStart = -1;
+
+	public static long getElapsedStart() {
+		return elapsedStart;
+	}
+
+	public static void setElapsedStart(long elapsedStart) {
+		Debug.elapsedStart = elapsedStart;
+	}
+
+	private static long elapsedStart = -1;
 
 	static {
-  	elapsedStart = new Date().getTime();
+		setElapsedStart(new Date().getTime());
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null) {
 			if ("".equals(debug)) {
@@ -95,26 +104,31 @@ public class Debug {
 			}
 		}
     if (DEBUG_LEVEL == 9) {
-      Debug.setDebugLevel(3);
-      Debug.setWithTimeElapsed(0);
-      Debug.globalTraceOn();
+      setDebugLevel(3);
+      setWithTimeElapsed(0);
+      globalTraceOn();
     }
 		setLogFile(null);
     setUserLogFile(null);
     if (DEBUG_LEVEL > 0) {
-			setGlobalDebug();
+			setGlobalDebug(DEBUG_LEVEL);
 		}
 	}
 
 	public static boolean isGlobalDebug() {
-		return globalDebug;
+		return globalDebug > 0;
 	}
 
-	public static void setGlobalDebug() {
-		Debug.globalDebug = globalDebug;
+	public static void setGlobalDebug(int level) {
+		globalDebug = level;
+		setDebugLevel(level);
 	}
 
-	static boolean globalDebug = false;
+	public static void resetGlobalDebug() {
+		setDebugLevel(globalDebug);
+	}
+
+	static int globalDebug = 0;
 
   public static void highlightOn() {
     searchHighlight = true;
@@ -177,7 +191,7 @@ public class Debug {
 	public static void setWithTimeElapsed(long start) {
 		withTimeElapsed = true;
 		if (start > 0) {
-			elapsedStart = start;
+			setElapsedStart(start);
 		}
 	}
 
@@ -818,7 +832,7 @@ public class Debug {
 					long traceElapsed = 0;
         	long actual = new Date().getTime();
         	if (withTimeElapsed) {
-        		traceElapsed = actual - elapsedStart;
+        		traceElapsed = actual - getElapsedStart();
 					}
 					if (level == -999) {
 						if (traceLast < 0) {

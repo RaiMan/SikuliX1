@@ -636,13 +636,13 @@ public class RunTime {
 
   //<editor-fold desc="cleanUp">
   public static void cleanUp() {
+    Debug.resetGlobalDebug();
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       ScreenHighlighter.closeAll();
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
-      Debug.off();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();

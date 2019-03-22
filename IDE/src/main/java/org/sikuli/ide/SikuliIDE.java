@@ -159,7 +159,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
     getInstance();
 
-    start = Debug.elapsedStart;
+    start = Debug.getElapsedStart();
 
     CommandArgs cmdArgs = new CommandArgs("IDE");
     cmdLine = cmdArgs.getCommandLine(CommandArgs.scanArgs(args));

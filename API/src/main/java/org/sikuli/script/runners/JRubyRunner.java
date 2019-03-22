@@ -27,7 +27,7 @@ import org.sikuli.script.RunTime;
 
 public class JRubyRunner extends AbstractScriptRunner {
 
-  public static final String NAME = "jruby";
+  public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";
   public static final String[] EXTENSIONS = new String[] { "rb" };
 

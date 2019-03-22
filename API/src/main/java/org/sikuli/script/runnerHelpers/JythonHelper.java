@@ -26,7 +26,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   private static RunTime runTime;
 
   //<editor-fold defaultstate="collapsed" desc="new logging concept">
-  private static final String me = "JythonSupport: ";
+  private static final String me = "Jython: ";
   private static int lvl = 3;
 
   public void log(int level, String message, Object... args) {
@@ -77,7 +77,7 @@ public class JythonHelper implements IScriptLanguageHelper {
       runTime = RunTime.get();
       runTime.exportLib();
       instance = new JythonHelper();
-      instance.log(lvl, "init: starting");
+      //instance.log(lvl, "init: starting");
       try {
         cInterpreter = Class.forName("org.python.util.PythonInterpreter");
         mGetSystemState = cInterpreter.getMethod("getSystemState", nc);
@@ -102,7 +102,7 @@ public class JythonHelper implements IScriptLanguageHelper {
       } catch (Exception ex) {
         cInterpreter = null;
       }
-      instance.log(lvl, "init: success");
+      //instance.log(lvl, "init: success");
     }
     if (cInterpreter == null) {
       instance.terminate(999, "JythonHelper: no Jython available");
@@ -824,11 +824,13 @@ public class JythonHelper implements IScriptLanguageHelper {
     synchronized(sysPath) {
       if (Debug.is(lvl)) {
         getSysPath();
-        log(lvl, "***** Jython sys.path");
+        log(lvl, "***** sys.path");
         for (int i = 0; i < sysPath.size(); i++) {
+          if (sysPath.get(i).startsWith("__")) {
+            continue;
+          }
           logp(lvl, "%2d: %s", i, sysPath.get(i));
         }
-        log(lvl, "***** Jython sys.path end");
       }
     }
   }
