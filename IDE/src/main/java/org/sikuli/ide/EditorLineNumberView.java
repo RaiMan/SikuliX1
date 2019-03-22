@@ -293,6 +293,9 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
 
   @Override
   public void mouseReleased(MouseEvent me) {
+    if (me.isPopupTrigger()) {
+      shouldPopup = true;
+    }
   }
 
   //</editor-fold>
