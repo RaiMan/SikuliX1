@@ -15,7 +15,7 @@ public interface IScriptRunner {
   /**
    * Special options to pass to the runner.
    *
-   * Options are more to be interpreted as hints instead of strict directions.
+   * Options are more to be interpreted as hints instead of strict directives.
    * A specific runner implementation can decide to ignore an option entirely.
    *
    * @author mbalmer
