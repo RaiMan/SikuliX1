@@ -3,6 +3,38 @@
  */
 package org.sikuli.ide;
 
+import java.awt.BorderLayout;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.TransferHandler;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+
+import org.sikuli.basics.Debug;
 //
 // A simple Java Console for your application (Swing version)
 // Requires Java 1.1.5 or higher
@@ -13,23 +45,8 @@ package org.sikuli.ide;
 //
 // RJHM van den Bergh , rvdb@comweb.nl
 import org.sikuli.basics.PreferencesUser;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.io.*;
-import java.util.Arrays;
-import java.util.regex.*;
-import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.text.html.*;
-import javax.swing.JMenuItem;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.Runner;
-import org.sikuli.scriptrunner.ScriptingSupport;
 
 public class EditorConsolePane extends JPanel implements Runnable {
 
@@ -110,23 +127,31 @@ public class EditorConsolePane extends JPanel implements Runnable {
         reader[1] = new Thread(EditorConsolePane.this);
         reader[1].setDaemon(true);
         reader[1].start();
+
+        int irunner = 1;
+
+        for (IScriptRunner srunner : Runner.getRunners()) {
+          Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
+
+          PipedOutputStream pout = new PipedOutputStream(pin[irunner*npipes]);
+          PrintStream psout = new PrintStream(pout, true);
+
+          PipedOutputStream perr = new PipedOutputStream(pin[irunner*npipes+1]);
+          PrintStream pserr = new PrintStream(perr, true);
+
+          srunner.redirect(psout, pserr);
+          quit = false; // signals the Threads that they should exit
+          // Starting two seperate threads to read from the PipedInputStreams
+          for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
+            reader[i] = new Thread(EditorConsolePane.this);
+            reader[i].setDaemon(true);
+            reader[i].start();
+          }
+          irunner++;
+        }
+
       } catch (IOException e1) {
         Debug.log(-1, "Redirecting System IO failes", e1.getMessage());
-      }
-
-      int irunner = 1;
-
-      for (IScriptRunner srunner : Runner.getRunners()) {
-        Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
-        srunner.redirect(pin[irunner*npipes], pin[irunner*npipes+1]);
-        quit = false; // signals the Threads that they should exit
-        // Starting two seperate threads to read from the PipedInputStreams
-        for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
-          reader[i] = new Thread(EditorConsolePane.this);
-          reader[i].setDaemon(true);
-          reader[i].start();
-        }
-        irunner++;
       }
     }
 

@@ -7,14 +7,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +19,6 @@ import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig.CompileMode;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
-import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -480,7 +475,7 @@ public class JRubyRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
+  protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       if (!redirected) {
@@ -488,18 +483,14 @@ public class JRubyRunner extends AbstractScriptRunner {
 
         ScriptingContainer interpreter = getScriptingContainer();
         try {
-          PipedOutputStream pout = new PipedOutputStream(stdout);
-          PrintStream ps = new PrintStream(pout, true);
-          interpreter.setOutput(ps);
+          interpreter.setOutput(stdout);
         } catch (Exception e) {
           e.printStackTrace();
           log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
           return false;
         }
         try {
-          PipedOutputStream pout = new PipedOutputStream(stderr);
-          PrintStream ps = new PrintStream(pout, true);
-          interpreter.setError(ps);
+          interpreter.setError(stderr);
         } catch (Exception e) {
           log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());
           return false;

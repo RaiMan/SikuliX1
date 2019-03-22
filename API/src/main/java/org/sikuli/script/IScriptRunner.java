@@ -3,9 +3,8 @@
  */
 package org.sikuli.script;
 
-import java.io.PipedInputStream;
+import java.io.PrintStream;
 import java.net.URI;
-import java.util.Map;
 
 /**
  * Interface for ScriptRunners like Jython.
@@ -200,16 +199,19 @@ public interface IScriptRunner {
   public boolean canHandle(String identifier);
 
   /**
-   * Redirects the runner's STDIO to the given PipedInputStreams.
+   * Redirects the runner's STDIO to the given PrintStream.
    *
-   * Redirection can be done only once per Runner instance.
+   * Subsequent calls to this function override the previously set streams.
    *
-   * @param stdout PipedInputStreams for STDOUT
-   * @param stderr PipedInputStreams for STDERR
+   * If one of the parameters is set to null, STDIO redirection is reset to
+   * System.out and System.err.
+   *
+   * @param stdout PrintStream for STDOUT
+   * @param stderr PrintStream for STDERR
    *
    * @return
    */
-  public void redirect(PipedInputStream stdout, PipedInputStream stderr);
+  public void redirect(PrintStream stdout, PrintStream stderr);
 
   /**
    * Resets this runner.

@@ -5,12 +5,9 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.io.PipedInputStream;
+import java.io.PrintStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.IScriptRunner;
@@ -20,8 +17,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   boolean ready = false;
 
-  PipedInputStream redirectedStdout;
-  PipedInputStream redirectedStderr;
+  PrintStream redirectedStdout;
+  PrintStream redirectedStderr;
 
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + ": " + message, args);
@@ -80,7 +77,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   };
 
   @Override
-  public final void redirect(PipedInputStream stdout, PipedInputStream stderr) {
+  public final void redirect(PrintStream stdout, PrintStream stderr) {
     synchronized(this) {
       Debug.log(3, "%s: Initiate IO redirect", getName());
 
@@ -88,12 +85,16 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       this.redirectedStderr = stderr;
 
       if (ready) {
-       redirectNow(stdout, stderr);
+       if (stdout != null && stderr != null) {
+         redirectNow(stdout, stderr);
+       } else {
+         doRedirect(System.out, System.err);
+       }
       }
     }
   }
 
-  private final void redirectNow(PipedInputStream stdout, PipedInputStream stderr) {
+  private final void redirectNow(PrintStream stdout, PrintStream stderr) {
     boolean ret = doRedirect(stdout, stderr);
     if (ret) {
       Debug.log(3, "%s: IO redirect established", getName());
@@ -102,7 +103,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
   }
 
-  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
+  protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
     // noop if not implemented
     return false;
   }

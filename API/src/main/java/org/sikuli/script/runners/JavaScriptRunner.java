@@ -4,31 +4,19 @@
 
 package org.sikuli.script.runners;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
-import org.sikuli.script.Screen;
-import org.sikuli.script.SikuliXception;
-import org.sikuli.script.Sikulix;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+
+import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.RunTime;
 
 public class JavaScriptRunner extends AbstractScriptRunner {
 
@@ -149,15 +137,10 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     return TYPE;
   }
 
-  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
-    PipedOutputStream pout;
-    try {
-      pout = new PipedOutputStream(stderr);
-      this.stderr = new PrintStream(pout, true);
-      return true;
-    } catch (IOException e) {
-      return false;
-    }
+  @Override
+  protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
+    this.stderr = stderr;
+    return true;
   }
 
   private int findErrorSource(Throwable thr, String filename) {

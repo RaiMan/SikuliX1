@@ -3,25 +3,20 @@
  */
 package org.sikuli.script.runners;
 
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
-
-import java.io.File;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
@@ -325,24 +320,20 @@ public class JythonRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected boolean doRedirect(PipedInputStream stdout, PipedInputStream stderr) {
+  protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       if (!redirected) {
         redirected = true;
         PythonInterpreter py = getInterpreter();
         try {
-          PipedOutputStream pout = new PipedOutputStream(stdout);
-          PrintStream ps = new PrintStream(pout, true);
-          py.setOut(ps);
+          py.setOut(stdout);
         } catch (Exception e) {
           log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
           return false;
         }
         try {
-          PipedOutputStream eout = new PipedOutputStream(stderr);
-          PrintStream eps = new PrintStream(eout, true);
-          py.setErr(eps);
+          py.setErr(stderr);
         } catch (Exception e) {
           log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());
           return false;
