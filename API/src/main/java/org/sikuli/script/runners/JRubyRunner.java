@@ -111,6 +111,18 @@ public class JRubyRunner extends AbstractScriptRunner {
   }
 
   @Override
+  protected void doRunLines(String lines, IScriptRunner.Options options) {
+    // Since we have a static interpreter, we have to synchronize class wide
+    synchronized (JRubyRunner.class) {
+      try {
+        interpreter.runScriptlet(lines);
+      } catch (Exception ex) {
+        log(-1, "runLines: (%s) raised: %s", lines, ex);
+      }
+    }
+  }
+
+  @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
