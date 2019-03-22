@@ -24,7 +24,7 @@ import org.sikuli.script.Runner;
 
 public class SilkulixGitTestRunner extends NetworkRunner {
   
-  public static final String NAME = "git";
+  public static final String NAME = "Git";
   public static final String TYPE = "git";
   public static final String[] EXTENSIONS = new String[0];
   
@@ -39,7 +39,7 @@ public class SilkulixGitTestRunner extends NetworkRunner {
 
   @Override
   public boolean isSupported() {
-    return true;
+    return false;
   }
 
   @Override
