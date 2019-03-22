@@ -151,11 +151,9 @@ public class JythonRunner extends AbstractScriptRunner {
           exitCode = Integer.parseInt(matcher.group(1));
           Debug.info("Exit code: " + exitCode);
         } else {
+          int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
           if (null != options) {
-            int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
             options.setErrorLine(errorExit);
-          } else {
-            Debug.error("%s", scriptException);
           }
         }
       }
