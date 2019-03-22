@@ -11,24 +11,76 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
+
 import javax.swing.ImageIcon;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runners.JRubyRunner;
+import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.TextRunner;
 
 public class ScriptingSupport {
+
+  private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
+  private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
+
+  public static void init() {
+    synchronized(IDE_RUNNERS) {
+      if(IDE_RUNNERS.isEmpty()) {
+        log(lvl, "initScriptingSupport: enter");
+
+        List<IScriptRunner> runners = Runner.getRunners();
+
+        for (Class<?> runnerClass : IDE_RUNNER_CLASSES) {
+          for (IScriptRunner runner : runners) {
+            if(runnerClass.equals(runner.getClass())) {
+              log(lvl, "initScriptingSupport: added: %s", runner.getName());
+              IDE_RUNNERS.add(runner);
+              break;
+            }
+          }
+        }
+
+        if (IDE_RUNNERS.isEmpty()) {
+          String em = "Terminating: No scripting support available. Rerun Setup!";
+          log(-1, em);
+          Sikulix.popError(em, "IDE has problems ...");
+          System.exit(1);
+        }
+
+        IScriptRunner defaultRunner = IDE_RUNNERS.get(0);
+        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
+      }
+    }
+  }
+
+  public static String getDefaultExtension() {
+    return getDefaultRunner().getExtensions()[0];
+  }
+
+  public static IScriptRunner getDefaultRunner() {
+    return getRunners().get(0);
+  }
+
+  public static synchronized List<IScriptRunner> getRunners(){
+    synchronized(IDE_RUNNERS) {
+      init();
+      return new ArrayList<IScriptRunner>(IDE_RUNNERS);
+    }
+  }
 
   private static RunTime runTime = RunTime.get();
 
@@ -37,12 +89,6 @@ public class ScriptingSupport {
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
-
-  private static Boolean runAsTest;
-
-	public static Map<String, IScriptRunner> scriptRunner = new HashMap<String, IScriptRunner>();
-	private static Map<String, IScriptRunner> supportedRunner = new HashMap<String, IScriptRunner>();
-  public static boolean systemRedirected = false;
 
 	public static String TypeCommentToken = "---SikuliX---";
 	public static String TypeCommentDefault = "# This script uses %s " + TypeCommentToken + "\n";
@@ -59,9 +105,8 @@ public class ScriptingSupport {
   private static ObjectOutputStream out = null;
   private static Scanner in = null;
   private static int runnerID = -1;
-  private static Map<String, RemoteRunner> remoteRunners = new HashMap<String, RemoteRunner>();
 
-  //<editor-fold defaultstate="collapsed" desc="remote runner support">
+//  //<editor-fold defaultstate="collapsed" desc="remote runner support">
   public static void startRemoteRunner(String[] args) {
     int port = getPort(args.length > 0 ? args[0] : null);
     try {
@@ -234,155 +279,8 @@ public class ScriptingSupport {
     }
   }
 
-  public static String getRemoteRunner(String adr, String p) {
-    RemoteRunner rr = new RemoteRunner(adr, p);
-    String rname = null;
-    if (rr.isValid()) {
-      rname = getNextRunnerName();
-      remoteRunners.put(rname, rr);
-    } else {
-      log(-1, "getRemoteRunner: adr(%s) port(%s) not available");
-    }
-    return rname;
-  }
-
   static synchronized String getNextRunnerName() {
     return String.format("remoterunner%d", runnerID++);
-  }
-
-  public int runRemote(String rname, String script, String[] args) {
-    RemoteRunner rr = remoteRunners.get(rname);
-    if (rr == null) {
-      log(-1, "runRemote: RemortRunner(%s) not available");
-      return rr.runRemote(args);
-    }
-    return 0;
-  }
-//</editor-fold>
-
-  static class ScriptRunnerInit extends Thread {
-    @Override
-    public void run() {
-      // if we run asynchronously (through Thread.start()) we can load 
-      // all the runners right now
-      run(true);
-    }
-      
-    public void run(boolean greedy) {
-      synchronized(scriptRunner) {
-        log(lvl, "initScriptingSupport: enter");
-        if (scriptRunner.isEmpty()) {
-          ServiceLoader<IScriptRunner> rloader = ServiceLoader.load(IScriptRunner.class);
-          Iterator<IScriptRunner> rIterator = rloader.iterator();
-          while (rIterator.hasNext()) {
-            IScriptRunner current = null;
-            try {
-              current = rIterator.next();
-            } catch (ServiceConfigurationError e) {
-              log(lvl, "initScriptingSupport: warning: %s", e.getMessage());
-              continue;
-            }
-            String name = current.getName();
-            if (name != null && !name.startsWith("Not")) {
-              scriptRunner.put(name, current); 
-              if (greedy) {
-                current.init(null);
-              }
-              log(lvl, "initScriptingSupport: added: %s", name);
-            }
-          }
-        }
-        if (scriptRunner.isEmpty()) {
-          String em = "Terminating: No scripting support available. Rerun Setup!";
-          log(-1, em);
-          if (runTime.isRunningIDE) {
-            Sikulix.popError(em, "IDE has problems ...");
-          }
-          System.exit(1);
-        } else {
-          //TODO JavaScript only script support
-          Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[0];
-          Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-          if (Runner.EDEFAULT == "js" && scriptRunner.size() > 1) {
-            Runner.RDEFAULT = (String) scriptRunner.keySet().toArray()[1];
-            Runner.EDEFAULT = scriptRunner.get(Runner.RDEFAULT).getFileEndings()[0];
-          }
-          for (IScriptRunner r : scriptRunner.values()) {
-            for (String e : r.getFileEndings()) {
-              if (!supportedRunner.containsKey(Runner.endingTypes.get(e))) {
-                supportedRunner.put(Runner.endingTypes.get(e), r);
-              }
-            }
-          }
-        }
-        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", Runner.RDEFAULT, Runner.EDEFAULT);
-        isReady = true;
-      }
-    }
-  }
-
-  private static boolean isReady = false;
- 
-  public static void init(boolean async) {
-    synchronized(scriptRunner) {
-      if (isReady) {
-        return;
-      }
-           
-      if(async) {
-        new ScriptRunnerInit().start();
-      }else {
-        // Doesn't run asynchronously because we call run directly
-        // Additionally we set the greedy flag to false. This way
-        // we activate lazy loading of runners in getRunner() when a runnee
-        // is started for the first time
-        new ScriptRunnerInit().run(false);
-      }  
-    }
-  }
-
-  public static IScriptRunner getRunner(String script, String type) {
-    synchronized(scriptRunner) {
-      init(false);
-      IScriptRunner currentRunner = null;
-      String ending = null;
-      if (script != null) {
-        for (String suffix : Runner.endingTypes.keySet()) {
-          if (script.endsWith(suffix)) {
-            ending = suffix;
-            break;
-          }
-        }
-      } else if (type != null) {
-        currentRunner = scriptRunner.get(type);
-        if (currentRunner != null) {
-          return currentRunner;
-        }
-        ending = Runner.typeEndings.get(type);
-        if (ending == null) {
-          if (Runner.endingTypes.containsKey(type)) {
-            ending = type;
-          }
-        }
-      }
-      if (ending != null) {
-        for (IScriptRunner r : scriptRunner.values()) {
-          if (r.hasFileEnding(ending) != null) {
-            currentRunner = r;
-            break;
-          }
-        }
-      }
-      if (currentRunner == null) {
-        log(-1, "getRunner: no runner found for:\n%s", (script == null ? type : script));
-      }
-      currentRunner.init(null);
-      return currentRunner;
-    }
-  }
-
-  public static boolean hasTypeRunner(String type) {
-    return supportedRunner.containsKey(type);
   }
 
   public static void runningInteractive() {
@@ -411,26 +309,6 @@ public class ScriptingSupport {
 
     IScriptRunner currentRunner = null;
 
-    if (args != null && args.length > 1 && args[0].startsWith("-testSetup")) {
-      currentRunner = getRunner(null, args[1]);
-      if (currentRunner == null) {
-        args[0] = null;
-      } else {
-        String[] stmts = new String[0];
-        if (args.length > 2) {
-          stmts = new String[args.length - 2];
-          for (int i = 0; i < stmts.length; i++) {
-            stmts[i] = args[i+2];
-          }
-        }
-        if (0 != currentRunner.runScript(null, null, stmts, null)) {
-          args[0] = null;
-        }
-      }
-      isRunningScript = false;
-      return;
-    }
-
     runScripts = Runner.evalArgs(args);
     isRunningScript = true;
 
@@ -439,9 +317,9 @@ public class ScriptingSupport {
       if (currentRunner == null) {
         String givenRunnerName = runTime.interactiveRunner;
         if (givenRunnerName == null) {
-          currentRunner = getRunner(null, Runner.RDEFAULT);
+          currentRunner = ScriptingSupport.getDefaultRunner();
         } else {
-          currentRunner = getRunner(null, givenRunnerName);
+          currentRunner = Runner.getRunner(givenRunnerName);
         }
       }
       if (currentRunner == null) {
@@ -466,13 +344,12 @@ public class ScriptingSupport {
 
     if (runScripts != null && runScripts.length > 0) {
       int exitCode = 0;
-      runAsTest = runTime.runningTests;
       for (String givenScriptName : runScripts) {
         if (lastReturnCode == -1) {
           log(lvl, "Exit code -1: Terminating multi-script-run");
           break;
         }
-        exitCode = new RunBox(givenScriptName, runTime.getArgs(), runAsTest).run();
+        exitCode = Runner.run(givenScriptName, runTime.getArgs());
         lastReturnCode = exitCode;
       }
       System.exit(exitCode);
@@ -486,10 +363,8 @@ public class ScriptingSupport {
    * @return exit code
    */
   public static int run(String scriptPath, String[] args) {
-    runAsTest = false;
-    init(false);
     String savePath = ImagePath.getBundlePath();
-    int retVal = new RunBox(scriptPath, args, runAsTest).run();
+    int retVal = Runner.run(scriptPath, args);
     ImagePath.setBundlePath(savePath);
     return retVal;
   }
@@ -513,7 +388,7 @@ public class ScriptingSupport {
         } else if (entry.getName().endsWith(".$py.class")) {
           return false;
         } else {
-          for (String ending : Runner.endingTypes.keySet()) {
+          for (String ending : Runner.getExtensions()) {
             if (entry.getName().endsWith("." + ending)) {
               return false;
             }
@@ -533,113 +408,7 @@ public class ScriptingSupport {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="helpers">
-  public static void setProject() {
-    RunBox.setProject();
-  }
-
   public static int getLastReturnCode() {
     return lastReturnCode;
-  }
-
-  private static class RunBox {
-
-    boolean asTest = false;
-    String[] args = new String[0];
-
-    String givenScriptHost = "";
-    String givenScriptFolder = "";
-    String givenScriptName = "";
-    String givenScriptScript = "";
-    String givenScriptType = "sikuli";
-    String givenScriptScriptType = Runner.RDEFAULT;
-		URL uGivenScript = null;
-    URL uGivenScriptFile = null;
-    boolean givenScriptExists = true;
-
-    private RunBox(String givenName, String[] givenArgs, boolean isTest) {
-      Object[] vars = Runner.runBoxInit(givenName, RunTime.scriptProject, RunTime.uScriptProject);
-      givenScriptHost = (String) vars[0];
-      givenScriptFolder = (String) vars[1];
-      givenScriptName = (String) vars[2];
-      givenScriptScript = (String) vars[3];
-      givenScriptType = (String) vars[4];
-      givenScriptScriptType = (String) vars[5];
-      uGivenScript = (URL) vars[6];
-      uGivenScriptFile = (URL) vars[7];
-      givenScriptExists = (Boolean) vars[8];
-      RunTime.scriptProject = (File) vars[9];
-      RunTime.uScriptProject = (URL) vars[10];
-      args = givenArgs;
-      asTest = isTest;
-    }
-
-    private static void setProject() {
-      if (RunTime.scriptProject == null) {
-        RunTime.scriptProject = new File(FileManager.normalizeAbsolute(ImagePath.getBundlePath(), false)).getParentFile();
-      }
-    }
-
-    private int run() {
-      if (Runner.RASCRIPT.equals(givenScriptScriptType)) {
-        return Runner.runas(givenScriptScript);
-      } else if (Runner.RSSCRIPT.equals(givenScriptScriptType)) {
-        return Runner.runps(givenScriptScript);
-      } else if (Runner.RRSCRIPT.equals(givenScriptScriptType)) {
-        return Runner.runrobot(givenScriptScript);
-      }
-      int exitCode = -1;
-      IScriptRunner currentRunner = null;
-      if (givenScriptType == "NET" && givenScriptExists) {
-        log(lvl, "running script from net:\n%s", uGivenScript);
-        if (Runner.RJSCRIPT.equals(givenScriptScriptType)) {
-          exitCode = Runner.runjs(null, uGivenScript, givenScriptScript, args);
-        } else {
-          ScriptingSupport.init(false);
-					currentRunner = scriptRunner.get(givenScriptScriptType);
-          if (null == currentRunner) {
-            log(-1, "running from net not supported for %s\n%s", givenScriptScriptType, uGivenScript);
-          } else {
-            ImagePath.addHTTP(uGivenScript.toExternalForm());
-            exitCode = currentRunner.runScript(null, null, new String[] {givenScriptScript}, null);
-          }
-        }
-      } else {
-        log(lvl, "givenScriptName:\n%s", givenScriptName);
-        if (givenScriptName.endsWith(".skl")) {
-          givenScriptName = FileManager.unzipSKL(givenScriptName);
-          if (givenScriptName == null) {
-            log(-1, "not possible to make .skl runnable");
-            return -9999;
-          }
-        }
-        File fScript = Runner.getScriptFile(new File(givenScriptName));
-        if (fScript == null) {
-          return -9999;
-        }
-        fScript = new File(FileManager.normalizeAbsolute(fScript.getPath(), true));
-        if (givenScriptName.endsWith(".jar") && fScript.getName().endsWith("$py.class")) {
-          log(lvl, "Trying to run script: %s/%s", givenScriptName, fScript.getName());
-          return JythonHelper.get().runJar(givenScriptName);
-        }
-        log(lvl, "Trying to run script:\n%s", fScript);
-        if (fScript.getName().endsWith(".js")) {
-          return Runner.runjs(fScript, null, givenScriptScript, args);
-        }
-        currentRunner = getRunner(fScript.getName(), null);
-        if (currentRunner != null) {
-          ImagePath.setBundlePath(fScript.getParent());
-          if (asTest) {
-            exitCode = currentRunner.runTest(fScript, null, args, null);
-          } else {
-            exitCode = currentRunner.runScript(fScript, null, args, null);
-          }
-        }
-      }
-      if (currentRunner != null) {
-        currentRunner.close();
-      }
-      return exitCode;
-    }
   }
 }

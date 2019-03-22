@@ -10,8 +10,8 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -22,7 +22,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
-import org.sikuli.scriptrunner.IScriptRunner;
+import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
@@ -44,7 +44,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
   public static final String POP_LINE = "POP_LINE";
   private EditorLineNumberView refLineNumberView = null;
 
-  private static String[] selOptionsType = null;
+  private static String[] selOptionsTypes = null;
 
   private MouseEvent mouseTrigger;
   private int menuCount = 0;
@@ -277,19 +277,24 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       Debug.log(3, "doSetType: selected");
       String error = "";
       EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
-      if (selOptionsType == null) {
-        Set<String> types = Runner.typeEndings.keySet();
-        selOptionsType = new String[types.size()];
-        int i = 0;
-        for (String e : types) {
-          selOptionsType[i++] = e.replaceFirst(".*?\\/", "");
+      if (selOptionsTypes == null) {
+        String types = "";
+        for (IScriptRunner runner : ScriptingSupport.getRunners()) {
+          types += runner.getType().replaceFirst(".*?\\/", "") + " ";
         }
+        if (!types.isEmpty()) {
+          types = types.trim();
+          selOptionsTypes = types.split(" ");
+        }
+      }
+      if (null == selOptionsTypes) {
+        return;
       }
       String currentType = cp.getSikuliContentType();
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
-              selOptionsType, currentType.replaceFirst(".*?\\/", ""));
+              selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
         targetType = currentType;
       } else {
@@ -299,7 +304,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         SikuliIDE.getStatusbar().setCurrentContentType(currentType);
         return;
       }
-      String targetEnding = Runner.typeEndings.get(targetType);
+      String targetEnding = Runner.getExtension(targetType);
       if (cp.getText().length() > 0) {
         if (!Sikulix.popAsk(String.format(
                 "Switch to %s requested, but tab is not empty!\n"
@@ -434,7 +439,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (cp.isShouldReparse()) {
         cp.reparse();
       }
-      cp.getRunner().doSomethingSpecial("reset", null);
+      cp.getRunner().reset();
     }
   }
 

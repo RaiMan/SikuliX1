@@ -10,7 +10,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
 
@@ -99,9 +99,13 @@ public class RunTime {
   RunType runningAs = RunType.OTHER;
 
   private static Options sxOptions = null;
-
+  
+  //don't know exactly what this is for
+  // RunTime.scriptProject doesn't seem to be used anywhere
   public static File scriptProject = null;
   public static URL uScriptProject = null;
+  
+  
   private static boolean isTerminating = false;
 
   public static String appDataMsg = "";
@@ -380,16 +384,17 @@ public class RunTime {
 
     sxOptions = Options.init(runTime);
     optTesting = sxOptions.isOption("testing", false);
-    int dl = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
-    if (runTime.debugLevel < 1) {
-      runTime.debugLevel = dl;
-    }
     if (optTesting) {
       Debug.info("Options: testing = on");
     }
-    if (dl > Debug.getDebugLevel()) {
-      Debug.info("Options: Debug.level = %d", dl);
-      Debug.on(dl);
+
+    int optDebugLevel = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
+    if (runTime.debugLevel < 1) {
+      runTime.debugLevel = optDebugLevel;
+    }
+    if (optDebugLevel > Debug.getDebugLevel()) {
+      Debug.info("Options: Debug.level = %d", optDebugLevel);
+      Debug.on(optDebugLevel);
     }
 
     Settings.init(runTime); // force Settings initialization

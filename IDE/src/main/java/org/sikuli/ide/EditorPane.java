@@ -29,7 +29,8 @@ import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
-import org.sikuli.scriptrunner.IScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.TextRunner;
 import org.sikuli.scriptrunner.ScriptingSupport;
 import org.sikuli.syntaxhighlight.ResolutionException;
 import org.sikuli.syntaxhighlight.grammar.Lexer;
@@ -135,23 +136,27 @@ public class EditorPane extends JTextPane {
 
     log(lvl, "initBeforeLoad: %s", scriptType);
     if (scriptType == null) {
-      scriptType = Runner.EDEFAULT;
+      scriptType = ScriptingSupport.getDefaultExtension();
       paneIsEmpty = true;
     }
 
-    if (Runner.EPYTHON.equals(scriptType)) {
-      scrType = Runner.CPYTHON;
+    IScriptRunner runner = Runner.getRunner(scriptType);
+
+    // initialize runner to speed up first script run
+    (new Thread() {
+      @Override
+      public void run() {
+        runner.init(null);
+      }
+    }).start();
+
+    scrType = runner.getType();
+    _indentationLogic = null;
+
+    if (JythonRunner.TYPE.equals(scrType)) {
       _indentationLogic = SikuliIDE.getIDESupport(scriptType).getIndentationLogic();
       _indentationLogic.setTabWidth(pref.getTabWidth());
-    } else if (Runner.ERUBY.equals(scriptType)) {
-      scrType = Runner.CRUBY;
-      _indentationLogic = null;
-    } else if (Runner.EJSCRIPT.equals(scriptType)) {
-      scrType = Runner.CJSCRIPT;
-      _indentationLogic = null;
-    } else if (Runner.EPLAIN.equals(scriptType)) {
-      scrType = Runner.CPLAIN;
-      _indentationLogic = null;
+    } else if (TextRunner.TYPE.equals(scrType)) {
       isText = true;
     }
 
@@ -539,7 +544,7 @@ public class EditorPane extends JTextPane {
       _srcBundleTemp = false;
     }
     setSrcBundle(bundlePath);
-    _editingFile = createSourceFile(bundlePath, "." + Runner.typeEndings.get(sikuliContentType));
+    _editingFile = createSourceFile(bundlePath, "." + Runner.getExtension(sikuliContentType));
     writeSrcFile();
     reparse();
   }
@@ -583,7 +588,7 @@ public class EditorPane extends JTextPane {
         (new File(snameDir, sname)).delete();
       }
       if (PreferencesUser.getInstance().getAtSaveCleanBundle()) {
-        if (!sikuliContentType.equals(Runner.CPYTHON)) {
+        if (!sikuliContentType.equals(JythonRunner.TYPE)) {
           log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
         }
         try {
@@ -1154,7 +1159,7 @@ public class EditorPane extends JTextPane {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        getRunner().runLines(lines);
+        getRunner().runLines(lines, null);
         SikuliIDE.showAgain();
       }
     }).start();
@@ -1413,7 +1418,7 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   public IScriptRunner getRunner() {
-    IScriptRunner runner = ScriptingSupport.getRunner(null, getContentType());
+    IScriptRunner runner = Runner.getRunner(getContentType());
     return runner;
   }
 

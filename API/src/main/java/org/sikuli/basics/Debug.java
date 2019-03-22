@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -78,20 +78,22 @@ public class Debug {
 	static {
   	elapsedStart = new Date().getTime();
     String debug = System.getProperty("sikuli.Debug");
-    if (debug != null && "".equals(debug)) {
-      DEBUG_LEVEL = 0;
-      Settings.DebugLogs = false;
-    } else {
-      try {
-        DEBUG_LEVEL = Integer.parseInt(debug);
-        if (DEBUG_LEVEL > 0) {
-          Settings.DebugLogs = true;
-        } else {
-          Settings.DebugLogs = false;
-        }
-      } catch (NumberFormatException numberFormatException) {
-      }
-    }
+    if (debug != null) {
+			if ("".equals(debug)) {
+				DEBUG_LEVEL = 0;
+				Settings.DebugLogs = false;
+			} else {
+				try {
+					DEBUG_LEVEL = Integer.parseInt(debug);
+					if (DEBUG_LEVEL > 0) {
+						Settings.DebugLogs = true;
+					} else {
+						Settings.DebugLogs = false;
+					}
+				} catch (NumberFormatException numberFormatException) {
+				}
+			}
+		}
     if (DEBUG_LEVEL == 9) {
       Debug.setDebugLevel(3);
       Debug.setWithTimeElapsed(0);
@@ -99,11 +101,20 @@ public class Debug {
     }
 		setLogFile(null);
     setUserLogFile(null);
-//		runTime = RunTime.get();
-//		if (runTime.debugLevel > DEBUG_LEVEL) {
-//			DEBUG_LEVEL = runTime.debugLevel;
-//		}
+    if (DEBUG_LEVEL > 0) {
+			setGlobalDebug();
+		}
 	}
+
+	public static boolean isGlobalDebug() {
+		return globalDebug;
+	}
+
+	public static void setGlobalDebug() {
+		Debug.globalDebug = globalDebug;
+	}
+
+	static boolean globalDebug = false;
 
   public static void highlightOn() {
     searchHighlight = true;

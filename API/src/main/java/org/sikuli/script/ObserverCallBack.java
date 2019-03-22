@@ -3,14 +3,12 @@
  */
 package org.sikuli.script;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.util.EventListener;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.util.JLangHelperInterface;
-import org.sikuli.util.JRubyHelper;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runnerHelpers.IScriptLanguageHelper;
+import org.sikuli.script.runnerHelpers.JRubyHelper;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 
 /**
  * Use this class to implement callbacks for<br>
@@ -34,7 +32,7 @@ import org.sikuli.util.JythonHelper;
 public class ObserverCallBack implements EventListener {
 
   private Object callback = null;
-  private JLangHelperInterface scriptHelper = null;
+  private IScriptLanguageHelper scriptHelper = null;
   private String scriptRunnerType = null;
 
   /**

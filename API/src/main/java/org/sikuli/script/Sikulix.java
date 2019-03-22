@@ -4,7 +4,8 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.*;
-import org.sikuli.util.JythonHelper;
+import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
@@ -149,7 +150,7 @@ public class Sikulix {
       } else {
         while (null != runSomeJS && !runSomeJS.isEmpty()) {
           FileManager.writeStringToFile(runSomeJS, lastSession);
-          Runner.runjs(null, null, runSomeJS, null);
+          Runner.getRunner(JavaScriptRunner.class).runScript(runSomeJS, null, null);
           runSomeJS = inputText("Edit the JavaScript and/or press OK to run it (again)\n"
                           + "Press Cancel to terminate",
                   "API::JavaScriptRunner " + version, 10, 60, runSomeJS);

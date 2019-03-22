@@ -11,4 +11,8 @@ public class SikuliXception extends RuntimeException {
   public SikuliXception(String message) {
     super(message);
   }
+  
+  public SikuliXception(String message, Exception e) {
+    super(message, e);
+  }
 }
