@@ -1418,7 +1418,7 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   public IScriptRunner getRunner() {
-    IScriptRunner runner = Runner.getRunner(getContentType());
+    IScriptRunner runner = Runner.getRunner(getSikuliContentType());
     return runner;
   }
 
