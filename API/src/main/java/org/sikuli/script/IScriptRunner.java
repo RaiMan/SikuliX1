@@ -136,7 +136,7 @@ public interface IScriptRunner {
   /**
    * Checks if the current platform supports this runner.
    *
-   * @return true, if platform supports this runner, false otherwise
+   * @return true if platform supports this runner, false otherwise
    */
   public boolean isSupported();
 
@@ -193,7 +193,7 @@ public interface IScriptRunner {
    *
    * @param identifier Can be Runner name, type or one of its supported extensions
    *                   Can also be script code prefixed with the runnerName
-   *                   (e.g. JavaScriptconsolel.log("hello"))
+   *                   (e.g. JavaScript*console.log("hello"))
    * @return true if the runner can handle the identifier, false otherwise
    */
   public boolean canHandle(String identifier);
