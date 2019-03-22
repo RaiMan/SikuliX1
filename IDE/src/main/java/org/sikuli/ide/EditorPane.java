@@ -100,7 +100,6 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   public EditorPane(SikuliIDE ide) {
-    ScriptingSupport.init();
     pref = PreferencesUser.getInstance();
     showThumbs = !pref.getPrefMorePlainText();
     sikuliIDE = ide;
