@@ -40,14 +40,14 @@ public class ScriptingSupport {
   public static void init() {
     synchronized(IDE_RUNNERS) {
       if(IDE_RUNNERS.isEmpty()) {
-        log(lvl, "initScriptingSupport: enter");
+        log(lvl, "enter");
 
         List<IScriptRunner> runners = Runner.getRunners();
 
         for (Class<?> runnerClass : IDE_RUNNER_CLASSES) {
           for (IScriptRunner runner : runners) {
             if(runnerClass.equals(runner.getClass())) {
-              log(lvl, "initScriptingSupport: added: %s", runner.getName());
+              log(lvl, "added: %s", runner.getName());
               IDE_RUNNERS.add(runner);
               break;
             }
@@ -62,7 +62,7 @@ public class ScriptingSupport {
         }
 
         IScriptRunner defaultRunner = IDE_RUNNERS.get(0);
-        log(lvl, "initScriptingSupport: exit with defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
+        log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
       }
     }
   }

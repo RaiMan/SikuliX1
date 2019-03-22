@@ -126,7 +126,7 @@ public class Runner {
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
                   | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
-            log(lvl, "initRunners: warning: %s", e.getMessage());
+            log(lvl, "warning: %s", e.getMessage());
             continue;
           }
 
@@ -134,7 +134,7 @@ public class Runner {
           if (name != null && !name.startsWith("Not")) {
             runners.add(current);
             if (current.isSupported()) {
-              log(lvl, "initRunners: added: %s", current.getName());
+              log(lvl, "added: %s", current.getName());
               supportedRunners.add(current);
             }
           }
