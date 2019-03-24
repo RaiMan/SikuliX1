@@ -18,39 +18,12 @@ import org.sikuli.basics.Debug;
 
 public class CommandArgs {
 
-  private static String _callerType = "";
-  Options _options;
+  private Options cmdArgs;
   ArrayList<String> userArgs = new ArrayList<String>();
   ArrayList<String> sikuliArgs = new ArrayList<String>();
   static String argsOrg = "";
 
-  private static boolean isIDE(String callerType) {
-    return ("IDE".equals(callerType));
-  }
-
-  public static boolean isIDE() {
-    return ("IDE".equals(_callerType));
-  }
-
-  private static boolean isScript(String callerType) {
-    return ("SCRIPT".equals(callerType));
-  }
-
-  public static boolean isScript() {
-    return ("SCRIPT".equals(_callerType));
-  }
-
-  private static boolean isOther(String callerType) {
-    return (!isIDE(callerType) && !isScript(callerType));
-  }
-
-  public CommandArgs(String type) {
-    if (!isIDE(type) && !isScript(type)) {
-      Debug.error("Commandline Parser not configured for " + type);
-      _callerType = "OTHER";
-    } else {
-      _callerType = type;
-    }
+  public CommandArgs() {
     init();
   }
 
@@ -71,7 +44,7 @@ public class CommandArgs {
       }
     }
     try {
-      cmd = parser.parse(_options, sikuliArgs.toArray(new String[]{}), true);
+      cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
     } catch (ParseException exp) {
       Debug.error(exp.getMessage());
     }
@@ -91,69 +64,55 @@ public class CommandArgs {
    */
   @SuppressWarnings("static-access")
   private void init() {
-    _options = new Options();
-    _options.addOption(CommandArgsEnum.HELP.shortname(),
+    cmdArgs = new Options();
+    cmdArgs.addOption(CommandArgsEnum.HELP.shortname(),
             CommandArgsEnum.HELP.longname(), false, CommandArgsEnum.HELP.description());
 
-    _options.addOption(
+    cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.DEBUG.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.DEBUG.argname())
             .withDescription(CommandArgsEnum.DEBUG.description())
             .create(CommandArgsEnum.DEBUG.shortname().charAt(0)));
 
-    _options.addOption(
+    cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.LOGFILE.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.LOGFILE.argname())
             .withDescription(CommandArgsEnum.LOGFILE.description())
             .create(CommandArgsEnum.LOGFILE.shortname().charAt(0)));
 
-    _options.addOption(
+    cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.USERLOGFILE.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.USERLOGFILE.argname())
             .withDescription(CommandArgsEnum.USERLOGFILE.description())
             .create(CommandArgsEnum.USERLOGFILE.shortname().charAt(0)));
 
-    _options.addOption(CommandArgsEnum.CONSOLE.shortname(),
+    cmdArgs.addOption(CommandArgsEnum.CONSOLE.shortname(),
             CommandArgsEnum.CONSOLE.longname(), false, CommandArgsEnum.CONSOLE.description());
 
-    _options.addOption(CommandArgsEnum.VERBOSE.shortname(),
+    cmdArgs.addOption(CommandArgsEnum.VERBOSE.shortname(),
             CommandArgsEnum.VERBOSE.longname(), false, CommandArgsEnum.VERBOSE.description());
 
-    _options.addOption(CommandArgsEnum.QUIET.shortname(),
+    cmdArgs.addOption(CommandArgsEnum.QUIET.shortname(),
             CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
 
-//    _options.addOption(
-//            OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())
-//            .hasOptionalArg()
-//            .withArgName(CommandArgsEnum.INTERACTIVE.argname())
-//            .withDescription(CommandArgsEnum.INTERACTIVE.description())
-//            .create(CommandArgsEnum.INTERACTIVE.shortname().charAt(0)));
-
-    _options.addOption(
+    cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.SERVER.argname())
             .withDescription(CommandArgsEnum.SERVER.description())
             .create(CommandArgsEnum.SERVER.shortname().charAt(0)));
 
-     _options.addOption(
+     cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.LOAD.longname())
             .withDescription(CommandArgsEnum.LOAD.description())
             .hasOptionalArgs()
             .withArgName(CommandArgsEnum.LOAD.argname())
             .create(CommandArgsEnum.LOAD.shortname().charAt(0)));
 
-//    _options.addOption(
-//            OptionBuilder.withLongOpt(CommandArgsEnum.TEST.longname())
-//            .withDescription(CommandArgsEnum.TEST.description())
-//            .hasOptionalArgs()
-//            .withArgName(CommandArgsEnum.TEST.argname())
-//            .create(CommandArgsEnum.TEST.shortname().charAt(0)));
-
-    _options.addOption(
+    cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
             .withDescription(CommandArgsEnum.RUN.description())
             .hasOptionalArgs()
@@ -168,7 +127,7 @@ public class CommandArgs {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp(80, "\n",
         "----- Running SikuliX " + "-------------",
-      _options,
+            cmdArgs,
         "-----\n<foobar.sikuli> (.sikuli might be omitted, is assumed)\n"
       + "path relative to current working directory or absolute path\n"
       + "though deprecated: so called executables .skl can be used too\n"

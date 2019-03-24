@@ -22,10 +22,6 @@ import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
-/**
- * INTERNAL USE --- NOT official API<br>
- * not in version 2
- */
 public class Runner {
 
   static final String me = "Runner: ";
@@ -43,7 +39,7 @@ public class Runner {
   }
 
   public static String[] evalArgs(String[] args) {
-    CommandArgs cmdArgs = new CommandArgs("SCRIPT");
+    CommandArgs cmdArgs = new CommandArgs();
     CommandLine cmdLine = cmdArgs.getCommandLine(CommandArgs.scanArgs(args));
     String cmdValue;
 
@@ -96,7 +92,6 @@ public class Runner {
     if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
       runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
     }
-
     return runScripts;
   }
 

@@ -40,8 +40,6 @@ public class SikulixIDE {
     RunTime runTime = RunTime.get(RunTime.Type.IDE, args);
 
     SikuliIDE.run(runTime, args);
-
-    Debug.logp("");
   }
 
   private static void prepareMac() {
