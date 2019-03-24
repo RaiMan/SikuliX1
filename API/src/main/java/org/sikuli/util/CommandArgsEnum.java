@@ -25,17 +25,9 @@ public enum CommandArgsEnum {
 	 */
 	USERLOGFILE("userlog", "u", "User logfile", "a valid filename (WorkingDir/UserLog.txt)"),
 	/**
-	 * Starts an interactive session
-	 */
-	//INTERACTIVE("interactive", "i", "[runner (jython)]", "start interactive session and/or select ScriptRunner"),
-	/**
 	 * Runs the script
 	 */
 	RUN("run", "r", "foobar.sikuli", "run script"),
-	/**
-	 * Runs the script as testcase
-	 */
-	//TEST("test", "t", "foobar.sikuli", "runs script as unittest"),
 	/**
 	 * Prints all errormessages to stdout
 	 */
