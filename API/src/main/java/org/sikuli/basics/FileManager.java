@@ -886,7 +886,7 @@ public class FileManager {
   }
 
   public static String normalizeAbsolute(String filename, boolean withTrailingSlash) {
-    if (!new File(filename).isAbsolute()) {
+    if (!new File(filename).isAbsolute() && !filename.startsWith("\\")) {
       filename = new File(RunTime.get().fUserDir, filename).getPath();
     }
     filename = slashify(filename, false);

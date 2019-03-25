@@ -5,7 +5,9 @@ package org.sikuli.script;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 
+import org.sikuli.basics.Settings;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 
 /**
@@ -50,6 +52,12 @@ public class SikulixForJython {
       }
     }
     helper.addSitePackages();
+    List<String> sysArgv = helper.getSysArgv();
+    if (sysArgv.size() > 0) {
+      String path = sysArgv.get(0);
+      Settings.BundlePath = new File(path).getParent();
+      helper.log(lvl, "Default ImagePath: %s", Settings.BundlePath);
+    }
     helper.log(lvl, "SikulixForJython: init: success");
   }
 

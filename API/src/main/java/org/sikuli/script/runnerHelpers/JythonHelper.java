@@ -576,11 +576,11 @@ public class JythonHelper implements IScriptLanguageHelper {
     return null;
   }
 
-  public void getSysArgv() {
+  public List<String> getSysArgv() {
     sysArgv = new ArrayList<String>();
     if (null == cInterpreter) {
       sysArgv = null;
-      return;
+      return null;
     }
     try {
       Object aState = mGetSystemState.invoke(interpreter, (Object[]) null);
@@ -595,6 +595,7 @@ public class JythonHelper implements IScriptLanguageHelper {
     } catch (Exception ex) {
       sysArgv = null;
     }
+    return sysArgv;
   }
 
   public void setSysArgv(String[] args) {

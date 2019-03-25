@@ -13,6 +13,7 @@ import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Sikulix;
@@ -26,7 +27,7 @@ public class JythonRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/python";
-  public static final String[] EXTENSIONS = new String[] { "py" };
+  public static final String[] EXTENSIONS = new String[]{"py"};
 
   private static RunTime runTime = RunTime.get();
 
@@ -123,7 +124,7 @@ public class JythonRunner extends AbstractScriptRunner {
    * Executes the jythonscript
    *
    * @param scriptFile
-   * @param argv    arguments to be populated into sys.argv
+   * @param argv       arguments to be populated into sys.argv
    * @param options
    * @return The exitcode
    */
@@ -133,9 +134,8 @@ public class JythonRunner extends AbstractScriptRunner {
     synchronized (JythonRunner.class) {
       File pyFile = new File(scriptFile);
       sysargv = new ArrayList<String>();
-      if (pyFile != null) {
-        sysargv.add(pyFile.getAbsolutePath());
-      }
+      sysargv.add(pyFile.getAbsolutePath());
+      Settings.BundlePath = pyFile.getParent();
       if (argv != null) {
         sysargv.addAll(Arrays.asList(argv));
       }
@@ -159,7 +159,7 @@ public class JythonRunner extends AbstractScriptRunner {
       }
       if (System.out.checkError()) {
         Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
-                + "\nSave your work and restart the IDE!", "Fatal Error");
+            + "\nSave your work and restart the IDE!", "Fatal Error");
       }
       return exitCode;
     }
@@ -222,12 +222,12 @@ public class JythonRunner extends AbstractScriptRunner {
   /**
    * The header commands, that are executed before every script
    */
-  private static String[] SCRIPT_HEADER = new String[] {
-          "# -*- coding: utf-8 -*- ",
-          "import org.sikuli.script.SikulixForJython",
-          "from sikuli import *",
-          "use() #resetROI()",
-          "setShowActions(False)" };
+  private static String[] SCRIPT_HEADER = new String[]{
+      "# -*- coding: utf-8 -*- ",
+      "import org.sikuli.script.SikulixForJython",
+      "from sikuli import *",
+      "use() #resetROI()",
+      "setShowActions(False)"};
 
   /**
    * {@inheritDoc}
@@ -235,11 +235,11 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected int doRunInteractive(String[] argv) {
     String[] jy_args = null;
-    String[] iargs = { "-i", "-c",
+    String[] iargs = {"-i", "-c",
         "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "
             + "print \"Hello, this is your interactive Sikuli (rules for interactive Python apply)\\n"
             + "use the UP/DOWN arrow keys to walk through the input history\\n"
-            + "help()<enter> will output some basic Python information\\n" + "... use ctrl-d to end the session\"" };
+            + "help()<enter> will output some basic Python information\\n" + "... use ctrl-d to end the session\""};
     if (argv != null && argv.length > 0) {
       jy_args = new String[argv.length + iargs.length];
       System.arraycopy(iargs, 0, jy_args, 0, iargs.length);
