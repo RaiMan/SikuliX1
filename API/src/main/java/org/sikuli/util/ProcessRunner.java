@@ -18,7 +18,7 @@ public class ProcessRunner {
     System.out.println(String.format(form, args));
   }
 
-  public static String run(String... args) throws IOException, InterruptedException {
+  public static String runCommand(String... args) throws IOException, InterruptedException {
     String result = "";
     String work = null;
     if (args.length > 0) {
@@ -77,6 +77,54 @@ public class ProcessRunner {
     return result;
   }
 
+  public static String run(String... args) {
+    List<String> cmd = new ArrayList<String>();
+    for (String arg : args) {
+      cmd.add(arg);
+    }
+    return run(cmd);
+  }
+
+  public static String run(List<String> cmd) {
+    int exitValue = 0;
+    String stdout = "";
+    if (cmd.size() > 0) {
+      ProcessBuilder app = new ProcessBuilder();
+      Map<String, String> processEnv = app.environment();
+      app.command(cmd);
+      app.redirectErrorStream(true);
+      Process process = null;
+      try {
+        process = app.start();
+      } catch (Exception e) {
+        p("[Error] ProcessRunner: start: %s", e.getMessage());
+      }
+      try {
+        if (process != null) {
+          InputStreamReader reader = new InputStreamReader(process.getInputStream());
+          BufferedReader processOut = new BufferedReader(reader);
+          String line = processOut.readLine();
+          while (null != line) {
+            //System.out.println(line);
+            stdout += line;
+            line = processOut.readLine();
+          }
+        }
+      } catch (IOException e) {
+        p("[Error] ProcessRunner: read: %s", e.getMessage());
+      }
+      try {
+        if (process != null) {
+          process.waitFor();
+          exitValue = process.exitValue();
+        }
+      } catch (InterruptedException e) {
+        p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+      }
+    }
+    return "" + exitValue + "\n" + stdout;
+  }
+
   public static int detach(String... args) {
     List<String> cmd = new ArrayList<String>();
     for (String arg : args) {
@@ -100,19 +148,6 @@ public class ProcessRunner {
       } catch (Exception e) {
         p("[Error] ProcessRunner: start: %s", e.getMessage());
       }
-//      try {
-//        if (process != null) {
-//          InputStreamReader reader = new InputStreamReader(process.getInputStream());
-//          BufferedReader processOut = new BufferedReader(reader);
-//          String line = processOut.readLine();
-//          while (null != line) {
-//            System.out.println(line);
-//            line = processOut.readLine();
-//          }
-//        }
-//      } catch (IOException e) {
-//        p("[Error] ProcessRunner: read: %s", e.getMessage());
-//      }
       try {
         if (process != null) {
           process.waitFor();
@@ -147,7 +182,7 @@ public class ProcessRunner {
       }
       cmd.add("\"" + givenCmd.get(0) + "\"");
       if (givenCmd.size() > 2) {
-        for (int np = 2; np < givenCmd.size(); np ++) {
+        for (int np = 2; np < givenCmd.size(); np++) {
           startAppParams(cmd, givenCmd.get(np));
         }
       }
@@ -156,8 +191,8 @@ public class ProcessRunner {
         Map<String, String> processEnv = app.environment();
         app.command(cmd);
         app.redirectErrorStream(true);
-//      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
-//      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         Process process = null;
         try {
           process = app.start();

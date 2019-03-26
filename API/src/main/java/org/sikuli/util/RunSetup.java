@@ -1098,7 +1098,7 @@ public class RunSetup {
       if (runTime.isJava9("setup API test - with ProcessRunner")) {
         String result = null;
         try {
-          result = ProcessRunner.run("work=" + workDir, "java", "-jar", "?sikulixapi", apiTest);
+          result = ProcessRunner.runCommand("work=" + workDir, "java", "-jar", "?sikulixapi", apiTest);
           if (!result.startsWith("success")) {
             log(-1, "setup API test: did not work\n%s", result);
             throw new Exception("testSetup returned false");
@@ -1244,7 +1244,7 @@ public class RunSetup {
         if (runTime.runningMac) {
           jarSikulix = "SikuliX.app/Contents/Java/sikulix.jar";
         }
-        result = ProcessRunner.run("work=" + workDir, "java", "-jar", jarSikulix,
+        result = ProcessRunner.runCommand("work=" + workDir, "java", "-jar", jarSikulix,
                 testargs[0], testargs[1], testargs[2]);
         if (!result.startsWith("success")) {
           log(-1, "setup run script test " + testargs[1] + ": did not work\n%s", result);

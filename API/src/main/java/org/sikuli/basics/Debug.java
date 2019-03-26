@@ -3,6 +3,7 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.SikulixStart;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.FileNotFoundException;
@@ -74,18 +75,7 @@ public class Debug {
 	private static PrintStream redirectedOut = null, redirectedErr = null;
 
 
-	public static long getElapsedStart() {
-		return elapsedStart;
-	}
-
-	public static void setElapsedStart(long elapsedStart) {
-		Debug.elapsedStart = elapsedStart;
-	}
-
-	private static long elapsedStart = -1;
-
 	static {
-		setElapsedStart(new Date().getTime());
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null) {
 			if ("".equals(debug)) {
@@ -190,9 +180,6 @@ public class Debug {
 
 	public static void setWithTimeElapsed(long start) {
 		withTimeElapsed = true;
-		if (start > 0) {
-			setElapsedStart(start);
-		}
 	}
 
 	public static void unsetWithTimeElapsed() {
@@ -832,7 +819,7 @@ public class Debug {
 					long traceElapsed = 0;
         	long actual = new Date().getTime();
         	if (withTimeElapsed) {
-        		traceElapsed = actual - getElapsedStart();
+        		traceElapsed = actual - SikulixStart.getElapsedStart();
 					}
 					if (level == -999) {
 						if (traceLast < 0) {

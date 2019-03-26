@@ -6,6 +6,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.RunTime;
+import org.sikuli.script.SikulixStart;
 
 import javax.swing.*;
 
@@ -15,22 +16,16 @@ public class SikulixIDE {
 
   public static void main(String[] args) {
 
-    if (args.length > 0 && args[0].startsWith("-v")) {
-      String argV = args[0];
-      long start = 0;
-      if (argV.length() > 2) {
-        try {
-          start = Long.parseLong(args[0].substring(2));
-        } catch(Exception ex) { }
-        Debug.setWithTimeElapsed(start);
-        args[0] = "-v";
-      } else {
-        Debug.setWithTimeElapsed();
-      }
+    if (SikulixStart.isVerbose()) {
+      Debug.setWithTimeElapsed(SikulixStart.getElapsedStart());
       Debug.setGlobalDebug(3);
       Debug.globalTraceOn();
       Debug.setStartWithTrace();
       Debug.log(3,"Sikulix: starting IDE");
+    }
+
+    if (SikulixStart.isQuiet()) {
+      Debug.quietOn();
     }
 
     if ("m".equals(osName)) {

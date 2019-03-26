@@ -92,7 +92,6 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
   private int alreadyOpenedTab = -1;
   private PreferencesUser prefs;
   private boolean ACCESSING_AS_FOLDER = false;
-  private static long start;
   private boolean showAbout = true;
   private boolean showPrefs = true;
   private boolean showQuit = true;
@@ -157,92 +156,25 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
 
   public static void run(RunTime rt, String[] args) {
 
+    runTime = rt;
+
     getInstance();
 
-    start = Debug.getElapsedStart();
-
-    CommandArgs cmdArgs = new CommandArgs();
-    cmdLine = cmdArgs.getCommandLine(CommandArgs.scanArgs(args));
-
-    boolean cmdLineValid = true;
-    if (cmdLine == null) {
-      Debug.error("Did not find any valid option on command line!");
-      cmdLineValid = false;
-    }
-
-    if (cmdLineValid && !cmdLine.hasOption(CommandArgsEnum.RUN.shortname())
-            && !cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())
-            && !cmdLine.hasOption(CommandArgsEnum.VERBOSE.shortname())
-            && Debug.getDebugLevel() < 3) {
+    if (Debug.getDebugLevel() < 3) {
       ideSplash = new IDESplash();
     }
 
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.QUIET.shortname())) {
-      Debug.quietOn();
-    }
-
-    runTime = rt; //RunTime.get(RunTime.Type.IDE, args);
-
-    runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
+    runTime.setArgs(SikulixStart.getUserArgs(), SikulixStart.getSikuliArgs());
 
     if (runTime.shouldRunServer) {
       RunServer.run(null);
       System.exit(0);
     }
 
-    if (cmdLineValid && cmdLine.hasOption("h")) {
-      cmdArgs.printHelp();
-      System.exit(0);
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      log(lvl, "Switching to ScriptRunner with option -r");
-      ScriptingSupport.runscript(args);
-    }
-
     log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
 
     sikulixIDE.initNativeSupport();
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue != null) {
-        Debug.on(cmdValue);
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("c")) {
-      System.setProperty("sikuli.console", "false");
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
-      if (!Debug.setLogFile(cmdValue == null ? "" : cmdValue)) {
-        System.exit(1);
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.USERLOGFILE.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.USERLOGFILE.longname());
-      if (!Debug.setUserLogFile(cmdValue == null ? "" : cmdValue)) {
-        System.exit(1);
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOAD.shortname())) {
-      loadScripts = cmdLine.getOptionValues(CommandArgsEnum.LOAD.longname());
-      log(lvl, "requested to load: %s", loadScripts);
-    }
-
-//TODO how to differentiate open and run for doubleclick/drop scripts
-    if (macOpenFiles != null) {
-      for (File f : macOpenFiles) {
-        if (f.getName().endsWith(".sikuli") || f.getName().endsWith(".skl")) {
-          ScriptingSupport.runscript(new String[]{"-r", f.getAbsolutePath()});
-        }
-      }
-    }
-
+    
     if (Debug.getDebugLevel() > 2) {
       runTime.printArgs();
     }
@@ -351,7 +283,7 @@ public class SikuliIDE extends JFrame implements InvocationHandler {
     if (runTime.isJava9()) {
       j9Message = "*** Running on Java 9+";
     }
-    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - start) / 1000.0, j9Message);
+    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - SikulixStart.getElapsedStart()) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();

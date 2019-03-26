@@ -24,14 +24,12 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.RunTime;
 import org.sikuli.script.Runner;
 import org.sikuli.script.Sikulix;
-import org.sikuli.script.runners.JRubyRunner;
-import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.TextRunner;
+import org.sikuli.script.runners.*;
 
 public class ScriptingSupport {
 
-  private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
+  private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, PythonRunner.class,
+      JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
   private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
 
   public static void init() {

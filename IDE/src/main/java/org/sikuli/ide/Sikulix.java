@@ -15,18 +15,14 @@ import java.util.List;
 
 public class Sikulix {
 
-  static String start = String.format("%d", new Date().getTime());
-
   public static void main(String[] args) {
 
-    if (args.length > 0 && args[0].equals("-v")) {
-      SikulixStart.setVerbose(true);
-      args[0] += start;
-    }
+    SikulixStart.getArgs(args);
 
     File runningJar = SikulixStart.getRunningJar();
     String jarName = runningJar.getName();
     File fAppData = SikulixStart.getAppPath();
+    String classPath = SikulixStart.makeClassPath(runningJar);
     SikulixStart.log(1, "Running: %s", runningJar);
     SikulixStart.log(1, "AppData: %s", fAppData);
 
@@ -36,7 +32,6 @@ public class Sikulix {
       return;
     } else {
       while (true) {
-        String classPath = SikulixStart.makeClassPath(runningJar);
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
         if (!classPath.isEmpty()) {
@@ -50,6 +45,7 @@ public class Sikulix {
           System.out.println(String.format("IDE terminated: returned: %d", exitValue));
         } else {
           System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
+          classPath = SikulixStart.makeClassPath(runningJar);
           continue;
         }
         System.exit(exitValue);

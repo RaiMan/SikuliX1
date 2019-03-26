@@ -26,7 +26,7 @@ import org.sikuli.script.runnerHelpers.JythonHelper;
 public class JythonRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Jython";
-  public static final String TYPE = "text/python";
+  public static final String TYPE = "text/jython";
   public static final String[] EXTENSIONS = new String[]{"py"};
 
   private static RunTime runTime = RunTime.get();
