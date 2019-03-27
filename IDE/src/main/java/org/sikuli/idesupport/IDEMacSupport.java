@@ -4,7 +4,7 @@
 
 package org.sikuli.idesupport;
 
-import org.sikuli.ide.SikuliIDE;
+import org.sikuli.ide.SikulixIDE;
 
 import java.awt.Desktop;
 import java.awt.desktop.*;
@@ -16,9 +16,9 @@ import java.awt.desktop.*;
  */
 public class IDEMacSupport implements AboutHandler, PreferencesHandler, QuitHandler, OpenFilesHandler {
 
-  static SikuliIDE ide = null;
+  static SikulixIDE ide = null;
 
-  public static void support(SikuliIDE theIDE) {
+  public static void support(SikulixIDE theIDE) {
     ide = theIDE;
     IDEMacSupport macSupport = new IDEMacSupport();
     Desktop desktop = Desktop.getDesktop();
