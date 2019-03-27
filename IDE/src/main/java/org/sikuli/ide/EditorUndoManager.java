@@ -143,6 +143,6 @@ public class EditorUndoManager extends AbstractUndoableEdit
    }
 
    public void refreshControls() {
-      SikuliIDE.getInstance().updateUndoRedoStates();
+      SikulixIDE.getInstance().updateUndoRedoStates();
    }
 }

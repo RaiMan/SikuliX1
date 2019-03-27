@@ -36,9 +36,9 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
 
   @Override
   public void actionPerformed(ActionEvent ae) {
-    SikuliIDE ide = SikuliIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.getInstance();
     ide.setVisible(false);
-    Screen.doPrompt(SikuliIDE._I("msgCapturePrompt"), this);
+    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this);
   }
 
   @Override
@@ -61,7 +61,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
       setToolTipText(this.toString());
     }
     Screen.resetPrompt(ocp);
-    SikuliIDE.showAgain();
+    SikulixIDE.showAgain();
   }
 
   private BufferedImage getRegionImage(int x, int y, int w, int h) {

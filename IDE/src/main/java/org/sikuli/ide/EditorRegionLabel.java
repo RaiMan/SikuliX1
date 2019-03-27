@@ -104,12 +104,12 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
       wasPopup = false;
       return;
     }
-    SikuliIDE ide = SikuliIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.getInstance();
     ide.setVisible(false);
     setForeground(fc);
     setBorder(bfinal);
     RunTime.pause(0.5f);
-    Screen.doPrompt(SikuliIDE._I("msgCapturePrompt"), this);
+    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this);
   }
 
   @Override
@@ -129,7 +129,7 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
       pyText = "Region(" + pyText + ")";
     }
     Screen.resetPrompt(ocp);
-    SikuliIDE.showAgain();
+    SikulixIDE.showAgain();
   }
 
   @Override

@@ -36,13 +36,13 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public ButtonCapture() {
     super();
-    URL imageURL = SikuliIDE.class.getResource("/icons/camera-icon.png");
+    URL imageURL = SikulixIDE.class.getResource("/icons/camera-icon.png");
     setIcon(new ImageIcon(imageURL));
     PreferencesUser pref = PreferencesUser.getInstance();
     String strHotkey = Key.convertKeyToText(
             pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
-    setToolTipText(SikuliIDE._I("btnCaptureHint", strHotkey));
-    setText(SikuliIDE._I("btnCaptureLabel"));
+    setToolTipText(SikulixIDE._I("btnCaptureHint", strHotkey));
+    setText(SikulixIDE._I("btnCaptureLabel"));
     //setBorderPainted(false);
     //setMaximumSize(new Dimension(26,26));
     addActionListener(this);
@@ -57,7 +57,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     setBorderPainted(true);
     setCursor(new Cursor(Cursor.HAND_CURSOR));
     setText(null);
-    URL imageURL = SikuliIDE.class.getResource("/icons/capture-small.png");
+    URL imageURL = SikulixIDE.class.getResource("/icons/capture-small.png");
     setIcon(new ImageIcon(imageURL));
   }
 
@@ -86,14 +86,14 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public void capture(final int delay) {
     String line = "";
-    SikuliIDE ide = SikuliIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.getInstance();
     ide.setVisible(false);
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
     givenName = codePane.parseLineText("#" + line.trim());
     Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
     RunTime.pause(((float) delay)/1000);
-    defaultScreen = SikuliIDE.getDefaultScreen();
+    defaultScreen = SikulixIDE.getDefaultScreen();
     if (defaultScreen == null) {
       Screen.doPrompt("Select an image", this);
     } else {
@@ -128,7 +128,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     }
     String filename = null;
     String fullpath = null;
-    EditorPane pane = SikuliIDE.getInstance().getCurrentCodePane();
+    EditorPane pane = SikulixIDE.getInstance().getCurrentCodePane();
     boolean saveOverwrite = Settings.OverwriteImages;
     if (simg != null) {
       if (!givenName.isEmpty()) {
@@ -165,7 +165,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     if (ocp != null) {
       Screen.resetPrompt(ocp);
     }
-    SikuliIDE.showAgain();
+    SikulixIDE.showAgain();
   }
 
   public void captureCompleted(String imgFullPath) {
@@ -175,7 +175,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       if (src == null) {
         if (_codePane == null) {
           if (_lbl == null) {
-            insertAtCursor(SikuliIDE.getInstance().getCurrentCodePane(), imgFullPath);
+            insertAtCursor(SikulixIDE.getInstance().getCurrentCodePane(), imgFullPath);
           } else {
             _lbl.setFile(imgFullPath);
           }

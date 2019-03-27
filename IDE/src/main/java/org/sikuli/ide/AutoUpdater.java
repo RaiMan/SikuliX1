@@ -11,7 +11,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
 
 public class AutoUpdater {
 
@@ -74,12 +73,12 @@ public class AutoUpdater {
   }
 
   public int checkUpdate() {
-    for (String s : SikuliIDE.runTime.ServerList) {
+    for (String s : SikulixIDE.runTime.ServerList) {
       try {
         if (checkUpdate(s)) {
-          smajor = SikuliIDE.runTime.SikuliVersionMajor;
-          sminor = SikuliIDE.runTime.SikuliVersionMinor;
-          ssub = SikuliIDE.runTime.SikuliVersionSub;
+          smajor = SikulixIDE.runTime.SikuliVersionMajor;
+          sminor = SikulixIDE.runTime.SikuliVersionMinor;
+          ssub = SikulixIDE.runTime.SikuliVersionSub;
           if (sbeta > 0) {
             if (smajor == major && sminor == minor) {
               available = FINAL;

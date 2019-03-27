@@ -105,20 +105,20 @@ public class PatternWindow extends JFrame {
       Debug.error(me + "Problem while setting up pattern pane\n%s", e.getMessage());
 		}
 		setDirty(false);
-    currentPane = SikuliIDE.getInstance().getCurrentCodePane();
+    currentPane = SikulixIDE.getInstance().getCurrentCodePane();
     setLocation(pLoc);
 		setVisible(true);
 	}
 
 	void takeScreenshot() {
-		SikuliIDE ide = SikuliIDE.getInstance();
+		SikulixIDE ide = SikulixIDE.getInstance();
 		ide.setVisible(false);
 		try {
 			Thread.sleep(500);
 		} catch (Exception e) {
 		}
 		_simg = (new ScreenUnion()).getScreen().capture();
-		SikuliIDE.showAgain();
+		SikulixIDE.showAgain();
 	}
 
 	private JPanel createPreviewPanel() {

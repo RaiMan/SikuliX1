@@ -320,7 +320,7 @@ public class ScriptingSupport {
       if (currentRunner == null) {
         Sikulix.endError(1);
       }
-      exitCode = currentRunner.runInteractive(runTime.getSikuliArgs());
+      exitCode = currentRunner.runInteractive(RunTime.Start.getSikuliArgs());
       currentRunner.close();
       Sikulix.endNormal(exitCode);
     }
@@ -332,7 +332,7 @@ public class ScriptingSupport {
     if (runScripts.length > 0) {
 			String scriptName = runScripts[0];
 			if (scriptName != null && !scriptName.isEmpty() && scriptName.startsWith("git*")) {
-				run(scriptName, runTime.getSikuliArgs());
+				run(scriptName, RunTime.Start.getSikuliArgs());
 				return;
 			}
 		}
@@ -344,7 +344,7 @@ public class ScriptingSupport {
           log(lvl, "Exit code -1: Terminating multi-script-run");
           break;
         }
-        exitCode = Runner.run(givenScriptName, runTime.getArgs());
+        exitCode = Runner.run(givenScriptName, RunTime.Start.getArgs());
         lastReturnCode = exitCode;
       }
       System.exit(exitCode);

@@ -39,7 +39,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
   }
 
   static String getParamHTML(String p, boolean first, boolean showOptParam) {
-    URL imgPattern = SikuliIDE.class.getResource("/icons/capture-small.png");
+    URL imgPattern = SikulixIDE.class.getResource("/icons/capture-small.png");
     String item = "";
     if (!first) {
       item += ", ";
@@ -100,7 +100,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
 
   @Override
   public void actionPerformed(ActionEvent ae) {
-    SikuliIDE ide = SikuliIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.getInstance();
     pane = ide.getCurrentCodePane();
     pref = PreferencesUser.getInstance();
     SwingUtilities.invokeLater(new Runnable() {

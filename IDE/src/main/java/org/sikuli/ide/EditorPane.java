@@ -91,15 +91,15 @@ public class EditorPane extends JTextPane {
   private SikuliEditorKit editorKit;
   private EditorViewFactory editorViewFactory;
 
-  public SikuliIDE getIDE() {
+  public SikulixIDE getIDE() {
     return sikuliIDE;
   }
 
-  private SikuliIDE sikuliIDE = null;
+  private SikulixIDE sikuliIDE = null;
   private int caretPosition = -1;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
-  public EditorPane(SikuliIDE ide) {
+  public EditorPane(SikulixIDE ide) {
     pref = PreferencesUser.getInstance();
     showThumbs = !pref.getPrefMorePlainText();
     sikuliIDE = ide;
@@ -154,7 +154,7 @@ public class EditorPane extends JTextPane {
     _indentationLogic = null;
 
     if (JythonRunner.TYPE.equals(scrType)) {
-      _indentationLogic = SikuliIDE.getIDESupport(scriptType).getIndentationLogic();
+      _indentationLogic = SikulixIDE.getIDESupport(scriptType).getIndentationLogic();
       _indentationLogic.setTabWidth(pref.getTabWidth());
     } else if (TextRunner.TYPE.equals(scrType)) {
       isText = true;
@@ -218,7 +218,7 @@ public class EditorPane extends JTextPane {
       this.setText("");
     }
 
-    SikuliIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
+    SikulixIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
     log(lvl, "InitTab: (%s)", getSikuliContentType());
   }
 
@@ -1160,7 +1160,7 @@ public class EditorPane extends JTextPane {
       @Override
       public void run() {
         getRunner().runLines(lines, null);
-        SikuliIDE.showAgain();
+        SikulixIDE.showAgain();
       }
     }).start();
   }

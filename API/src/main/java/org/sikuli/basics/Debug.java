@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.SikulixStart;
+import org.sikuli.script.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.FileNotFoundException;
@@ -819,7 +819,7 @@ public class Debug {
 					long traceElapsed = 0;
         	long actual = new Date().getTime();
         	if (withTimeElapsed) {
-        		traceElapsed = actual - SikulixStart.getElapsedStart();
+        		traceElapsed = actual - RunTime.Start.getElapsedStart();
 					}
 					if (level == -999) {
 						if (traceLast < 0) {

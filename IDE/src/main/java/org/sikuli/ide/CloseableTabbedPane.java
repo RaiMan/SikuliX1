@@ -44,15 +44,15 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
   /**
    * The normal closeicon.
    */
-  private Icon normalCloseIcon = SikuliIDE.getIconResource("/icons/close-normal.gif");
+  private Icon normalCloseIcon = SikulixIDE.getIconResource("/icons/close-normal.gif");
   /**
    * The closeicon when the mouse is over.
    */
-  private Icon hooverCloseIcon = SikuliIDE.getIconResource("/icons/close-hover.gif");
+  private Icon hooverCloseIcon = SikulixIDE.getIconResource("/icons/close-hover.gif");
   /**
    * The closeicon when the mouse is pressed.
    */
-  private Icon pressedCloseIcon = SikuliIDE.getIconResource("/icons/close-pressed.gif");
+  private Icon pressedCloseIcon = SikulixIDE.getIconResource("/icons/close-pressed.gif");
   private SikuliIDEPopUpMenu popMenuTab = null;
   private String lastClosed = null;
 	public boolean isLastClosedByMove = false;
@@ -375,7 +375,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
         dispatchEvent(event);
       }
       remove(tabIndexToClose);
-      SikuliIDE.showAgain();
+      SikulixIDE.showAgain();
     }
     return closeit;
   }

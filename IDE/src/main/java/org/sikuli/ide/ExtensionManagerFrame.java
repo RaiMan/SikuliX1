@@ -29,7 +29,7 @@ import java.util.Map;
 public class ExtensionManagerFrame extends JFrame {
 
   final static String EXTENSION_LIST_URL =
-          SikuliIDE.runTime.SikuliRepo + "extensions.json";
+          SikulixIDE.runTime.SikuliRepo + "extensions.json";
   private static ExtensionManagerFrame _instance = null;
   private int selected_idx = 0;
   ArrayList<ExtensionItem> _extensions;

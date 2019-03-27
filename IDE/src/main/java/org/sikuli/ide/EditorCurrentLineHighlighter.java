@@ -47,8 +47,8 @@ public class EditorCurrentLineHighlighter implements CaretListener {
       Element root = doc.getDefaultRootElement();
       int line = root.getElementIndex(pos);
       Debug.log(5, "LineHighlight: Caret at " + pos + " line " + line + " for " + start + "-" + end);
-      if (SikuliIDE.getStatusbar() != null) {
-        SikuliIDE.getStatusbar().setCaretPosition(line + 1, pos - start + 1);
+      if (SikulixIDE.getStatusbar() != null) {
+        SikulixIDE.getStatusbar().setCaretPosition(line + 1, pos - start + 1);
       }
       removeLineHighlight(comp);
       try {

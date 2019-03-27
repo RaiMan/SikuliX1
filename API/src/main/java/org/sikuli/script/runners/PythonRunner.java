@@ -1,6 +1,6 @@
 package org.sikuli.script.runners;
 
-import org.sikuli.script.SikulixStart;
+import org.sikuli.script.RunTime;
 
 public class PythonRunner extends AbstractScriptRunner {
 
@@ -24,7 +24,7 @@ public class PythonRunner extends AbstractScriptRunner {
   }
 
   public boolean isSupported() {
-    if (SikulixStart.hasPython()) {
+    if (RunTime.Start.hasPython()) {
       return true;
     }
     return false;

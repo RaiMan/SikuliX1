@@ -87,11 +87,11 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
   }
 
   private void fireIDEFileMenu(String name) throws NoSuchMethodException {
-    fireIDEMenu(SikuliIDE.getInstance().getFileMenu(), name);
+    fireIDEMenu(SikulixIDE.getInstance().getFileMenu(), name);
   }
 
   private void fireIDERunMenu(String name) throws NoSuchMethodException {
-    fireIDEMenu(SikuliIDE.getInstance().getRunMenu(), name);
+    fireIDEMenu(SikulixIDE.getInstance().getRunMenu(), name);
   }
 
   private void fireIDEMenu(JMenu menu, String name) throws NoSuchMethodException {
@@ -113,7 +113,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
   }
 
   private void fireInsertTabAndLoad(int tabIndex) {
-    SikuliIDE.FileAction insertNewTab = SikuliIDE.getInstance().getFileAction(tabIndex);
+    SikulixIDE.FileAction insertNewTab = SikulixIDE.getInstance().getFileAction(tabIndex);
     insertNewTab.doInsert(null);
   }
 
@@ -229,7 +229,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
-      EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
+      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
       String srcBundle = cp.getSrcBundle();
       String bundlePath = cp.getBundlePath();
       String currentFilename = cp.getCurrentFilename();
@@ -274,7 +274,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       //TODO use a popUpSelect for more language options
       Debug.log(3, "doSetType: selected");
       String error = "";
-      EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
+      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : ScriptingSupport.getRunners()) {
@@ -299,7 +299,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         targetType = "text/" + targetType;
       }
       if (currentType.equals(targetType)) {
-        SikuliIDE.getStatusbar().setCurrentContentType(currentType);
+        SikulixIDE.getStatusbar().setCurrentContentType(currentType);
         return;
       }
       String targetEnding = Runner.getExtension(targetType);
@@ -318,8 +318,8 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         error = ": (" + targetType + ")";
       }
       String msg = "doSetType: completed" + error;
-      SikuliIDE.getStatusbar().setMessage(msg);
-      SikuliIDE.getStatusbar().setCurrentContentType(targetType);
+      SikulixIDE.getStatusbar().setMessage(msg);
+      SikulixIDE.getStatusbar().setCurrentContentType(targetType);
       Debug.log(3, msg);
     }
 
@@ -332,7 +332,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       log(lvl, "doMoveTab: entered at move");
       refTab.resetLastClosed();
-      if (SikuliIDE.getInstance().getCurrentCodePane().isSourceBundleTemp()) {
+      if (SikulixIDE.getInstance().getCurrentCodePane().isSourceBundleTemp()) {
         log(-1, "Untitled tab cannot be moved");
         return;
       }
@@ -366,7 +366,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doDuplicate(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "doDuplicate: entered");
-      EditorPane ep = SikuliIDE.getInstance().getCurrentCodePane();
+      EditorPane ep = SikulixIDE.getInstance().getCurrentCodePane();
       checkAndResetMoveTab();
       fireIDEFileMenu("SAVE");
       if (ep.isSourceBundleTemp()) {
@@ -428,10 +428,10 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doReset(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "Reset: entered");
-      SikuliIDE.getInstance().clearMessageArea();
+      SikulixIDE.getInstance().clearMessageArea();
       checkAndResetMoveTab();
       ImagePath.reset();
-      EditorPane cp = SikuliIDE.getInstance().getCurrentCodePane();
+      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
       cp.paneReset();
       cp.reparse();
       if (cp.isShouldReparse()) {

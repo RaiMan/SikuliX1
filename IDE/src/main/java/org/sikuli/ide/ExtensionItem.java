@@ -21,9 +21,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.ExtensionManager;
-import org.sikuli.basics.Settings;
-import org.sikuli.ide.SikuliIDEI18N;
-import org.sikuli.ide.SikuliIDEI18N;
 
 class ExtensionItem extends JPanel implements ActionListener {
 
@@ -70,7 +67,7 @@ class ExtensionItem extends JPanel implements ActionListener {
     }
     if (image == null) {
       try {
-        url = new URL(SikuliIDE.runTime.SikuliRepo + "extensionImage.jpg");
+        url = new URL(SikulixIDE.runTime.SikuliRepo + "extensionImage.jpg");
         image = ImageIO.read(url);
       } catch (Exception e) {
       }

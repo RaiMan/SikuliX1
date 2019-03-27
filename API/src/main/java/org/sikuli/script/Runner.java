@@ -80,12 +80,12 @@ public class Runner {
         Debug.setDebugLevel(cmdValue);
       }
     }
-
-    runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
-    log(lvl, "commandline: %s", cmdArgs.getArgsOrg());
-    if (lvl > 2) {
-      runTime.printArgs();
-    }
+//TODO setArgs
+//    runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
+//    log(lvl, "commandline: %s", cmdArgs.getArgsOrg());
+//    if (lvl > 2) {
+//      runTime.printArgs();
+//    }
 
     String[] runScripts = null;
     runTime.runningTests = false;
@@ -279,7 +279,7 @@ public class Runner {
           log(lvl, "Options.runsetup: %s", someJS);
           getRunner(JavaScriptRunner.class).evalScript(someJS, null);
         }
-        exitCode = run(givenScriptName, runTime.getArgs());
+        exitCode = run(givenScriptName, RunTime.Start.getArgs());
         someJS = runTime.getOption("runteardown");
         if (!someJS.isEmpty()) {
           log(lvl, "Options.runteardown: %s", someJS);

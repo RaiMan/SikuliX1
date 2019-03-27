@@ -10,7 +10,6 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -46,7 +45,7 @@ public class EditorPaneUndoRedo implements UndoableEditListener {
     undoManager.addEdit(e.getEdit());
     undoAction.update();
     redoAction.update();
-    SikuliIDE.getInstance().updateUndoRedoStates();
+    SikulixIDE.getInstance().updateUndoRedoStates();
   }
 
   public UndoAction getUndoAction() {
