@@ -429,7 +429,7 @@ public class JRubyRunner extends AbstractScriptRunner {
     if (interpreter == null) {
       sysargv = new ArrayList<String>();
       sysargv.add("--???--");
-      sysargv.addAll(Arrays.asList(RunTime.Start.getArgs()));
+      sysargv.addAll(Arrays.asList(RunTime.getUserArgs()));
       createScriptingContainer();
     }
     return interpreter;

@@ -28,6 +28,12 @@ import org.sikuli.script.runners.*;
 
 public class ScriptingSupport {
 
+  private static final String me = "ScriptingSupport: ";
+  private static final int lvl = 3;
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, me + message, args);
+  }
+
   private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, PythonRunner.class,
       JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
   private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
@@ -67,7 +73,7 @@ public class ScriptingSupport {
   }
 
   public static IScriptRunner getDefaultRunner() {
-    return getRunners().get(0);
+    return Runner.getRunner(RunTime.getDefaultRunnerType());
   }
 
   public static synchronized List<IScriptRunner> getRunners(){
@@ -77,23 +83,7 @@ public class ScriptingSupport {
     }
   }
 
-  private static RunTime runTime = RunTime.get();
-
-	private static final String me = "ScriptingSupport: ";
-  private static final int lvl = 3;
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
-	public static String TypeCommentToken = "---SikuliX---";
-	public static String TypeCommentDefault = "# This script uses %s " + TypeCommentToken + "\n";
-
-  private static boolean isRunningInteractive = false;
-
-  private static String[] runScripts = null;
-  private static String[] testScripts = null;
-  private static int lastReturnCode = 0;
-
+  //<editor-fold defaultstate="collapsed" desc="remote runner support">
   private static ServerSocket server = null;
   private static boolean isHandling = false;
   private static boolean shouldStop = false;
@@ -101,7 +91,6 @@ public class ScriptingSupport {
   private static Scanner in = null;
   private static int runnerID = -1;
 
-//  //<editor-fold defaultstate="collapsed" desc="remote runner support">
   public static void startRemoteRunner(String[] args) {
     int port = getPort(args.length > 0 ? args[0] : null);
     try {
@@ -277,101 +266,7 @@ public class ScriptingSupport {
   static synchronized String getNextRunnerName() {
     return String.format("remoterunner%d", runnerID++);
   }
-
-  public static void runningInteractive() {
-    isRunningInteractive = true;
-  }
-
-  public static boolean getRunningInteractive() {
-    return isRunningInteractive;
-  }
-
-  //<editor-fold defaultstate="collapsed" desc="run scripts">
-  private static boolean isRunningScript = false;
-
-  /**
-   * INTERNAL USE: run scripts when sikulix.jar is used on commandline with args -r, -t or -i<br>
-   * If you want to use it the args content must be according to the Sikulix command line parameter rules<br>
-   * use run(script, args) to run one script from a script or Java program
-   * @param args parameters given on commandline
-   */
-  public static void runscript(String[] args) {
-
-    if (isRunningScript) {
-      log(-1, "can run only one script at a time!");
-      return;
-    }
-
-    IScriptRunner currentRunner = null;
-
-    runScripts = Runner.evalArgs(args);
-    isRunningScript = true;
-
-    if (runTime.runningInteractive) {
-      int exitCode = 0;
-      if (currentRunner == null) {
-        String givenRunnerName = runTime.interactiveRunner;
-        if (givenRunnerName == null) {
-          currentRunner = ScriptingSupport.getDefaultRunner();
-        } else {
-          currentRunner = Runner.getRunner(givenRunnerName);
-        }
-      }
-      if (currentRunner == null) {
-        Sikulix.endError(1);
-      }
-      exitCode = currentRunner.runInteractive(RunTime.Start.getSikuliArgs());
-      currentRunner.close();
-      Sikulix.endNormal(exitCode);
-    }
-
-		if (runScripts == null) {
-			Sikulix.terminate(999, "option -r without any script");
-		}
-
-    if (runScripts.length > 0) {
-			String scriptName = runScripts[0];
-			if (scriptName != null && !scriptName.isEmpty() && scriptName.startsWith("git*")) {
-				run(scriptName, RunTime.Start.getSikuliArgs());
-				return;
-			}
-		}
-
-    if (runScripts != null && runScripts.length > 0) {
-      int exitCode = 0;
-      for (String givenScriptName : runScripts) {
-        if (lastReturnCode == -1) {
-          log(lvl, "Exit code -1: Terminating multi-script-run");
-          break;
-        }
-        exitCode = Runner.run(givenScriptName, RunTime.Start.getArgs());
-        lastReturnCode = exitCode;
-      }
-      System.exit(exitCode);
-    }
-  }
-
-  /**
-   * run a script at scriptPath (.sikuli or .skl)
-   * @param scriptPath absolute or relative to working folder
-   * @param args parameter given to the script
-   * @return exit code
-   */
-  public static int run(String scriptPath, String[] args) {
-    String savePath = ImagePath.getBundlePath();
-    int retVal = Runner.run(scriptPath, args);
-    ImagePath.setBundlePath(savePath);
-    return retVal;
-  }
-
-  /**
-   * run a script at scriptPath (.sikuli or .skl)
-   * @param scriptPath absolute or relative to working folder
-   * @return exit code
-   */
-  public static int run(String scriptPath) {
-    return run(scriptPath, new String[0]);
-  }
+//</editor-fold>
 
   public static boolean transferScript(String src, String dest) {
     log(lvl, "transferScript: %s\nto: %s", src, dest);
@@ -400,10 +295,5 @@ public class ScriptingSupport {
     }
     log(lvl, "transferScript: completed");
     return true;
-  }
-//</editor-fold>
-
-  public static int getLastReturnCode() {
-    return lastReturnCode;
   }
 }

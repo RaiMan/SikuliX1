@@ -28,7 +28,6 @@ public class Runner {
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
 
-  private static String[] runScripts = null;
   private static int lastReturnCode = 0;
 
   private static List<IScriptRunner> runners = new LinkedList<>();
@@ -40,7 +39,7 @@ public class Runner {
 
   public static String[] evalArgs(String[] args) {
     CommandArgs cmdArgs = new CommandArgs();
-    CommandLine cmdLine = cmdArgs.getCommandLine(CommandArgs.scanArgs(args));
+    CommandLine cmdLine = cmdArgs.getCommandLine(args);
     String cmdValue;
 
     if (cmdLine == null || cmdLine.getOptions().length == 0) {
@@ -80,7 +79,8 @@ public class Runner {
         Debug.setDebugLevel(cmdValue);
       }
     }
-//TODO setArgs
+
+    //TODO setArgs
 //    runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
 //    log(lvl, "commandline: %s", cmdArgs.getArgsOrg());
 //    if (lvl > 2) {
@@ -88,7 +88,6 @@ public class Runner {
 //    }
 
     String[] runScripts = null;
-    runTime.runningTests = false;
     if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
       runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
     }
@@ -265,7 +264,7 @@ public class Runner {
   }
 
   public static int runScripts(String[] args) {
-    runScripts = Runner.evalArgs(args);
+    String[] runScripts = null;
     String someJS = "";
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
@@ -279,7 +278,7 @@ public class Runner {
           log(lvl, "Options.runsetup: %s", someJS);
           getRunner(JavaScriptRunner.class).evalScript(someJS, null);
         }
-        exitCode = run(givenScriptName, RunTime.Start.getArgs());
+        exitCode = run(givenScriptName, RunTime.getUserArgs());
         someJS = runTime.getOption("runteardown");
         if (!someJS.isEmpty()) {
           log(lvl, "Options.runteardown: %s", someJS);

@@ -316,10 +316,10 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         cp.reInit(targetEnding);
         cp.setText("");
         error = ": (" + targetType + ")";
+        SikulixIDE.getStatusbar().setCurrentContentType(targetType);
       }
       String msg = "doSetType: completed" + error;
       SikulixIDE.getStatusbar().setMessage(msg);
-      SikulixIDE.getStatusbar().setCurrentContentType(targetType);
       Debug.log(3, msg);
     }
 

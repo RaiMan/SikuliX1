@@ -1,5 +1,7 @@
 package org.sikuli.script.runners;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.IScriptRunner;
 import org.sikuli.script.RunTime;
 
 public class PythonRunner extends AbstractScriptRunner {
@@ -24,9 +26,28 @@ public class PythonRunner extends AbstractScriptRunner {
   }
 
   public boolean isSupported() {
-    if (RunTime.Start.hasPython()) {
+    if (RunTime.hasPython()) {
       return true;
     }
     return false;
+  }
+
+  @Override
+  protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
+    if (!isSupported()) {
+      return -1;
+    }
+    Debug.info("Python: running script: %s", scriptfile);
+    return 0;
+  }
+
+  @Override
+  public void execBefore(String[] stmts) {
+
+  }
+
+  @Override
+  public void execAfter(String[] stmts) {
+
   }
 }

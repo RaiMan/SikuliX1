@@ -140,9 +140,14 @@ public class RunSetup {
   }
 //</editor-fold>
 
+  private static boolean shouldNotRun = true;
+
   public static void main(String[] args) throws IOException {
 
-    runTime = RunTime.get(RunTime.Type.SETUP, args);
+    if (shouldNotRun) {
+      return;
+    }
+    runTime = RunTime.get();
 
     version = runTime.getVersionShort();
     minorversion = runTime.getVersionShort().substring(0, 5);

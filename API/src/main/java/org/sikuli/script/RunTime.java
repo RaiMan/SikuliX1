@@ -47,18 +47,22 @@ import java.util.zip.ZipInputStream;
  */
 public class RunTime {
 
+  private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
+
   public static boolean start(RunTime.Type type, String[] args) {
 
     boolean isIDE = Type.IDE.equals(type);
 
-    RunTime.Start.evalArgs(args);
+    evalArgsStart(args);
 
-    File runningJar = RunTime.Start.getRunningJar();
+    File runningJar = getRunningJar();
     String jarName = runningJar.getName();
-    File fAppData = RunTime.Start.getAppPath();
-    String classPath = RunTime.Start.makeClassPath(runningJar);
+    File fAppData = getAppPath();
+    readExtensions(false);
+    String classPath = makeClassPath(runningJar);
     RunTime.startLog(1, "Running: %s", runningJar);
     RunTime.startLog(1, "AppData: %s", fAppData);
+    RunTime.startLog(1, "Classpath: %s", classPath);
 
     if (!jarName.endsWith(".jar")) {
       return false;
@@ -71,7 +75,7 @@ public class RunTime {
           cmd.add("-cp");
           cmd.add(classPath);
         }
-        if (Type.IDE.equals(type)) {
+        if (isIDE) {
           cmd.add("org.sikuli.ide.SikulixIDE");
         } else {
           cmd.add("org.sikuli.ide.SikulixAPI");
@@ -83,7 +87,7 @@ public class RunTime {
         } else {
           if (isIDE) {
             System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
-            classPath = RunTime.Start.makeClassPath(runningJar);
+            classPath = makeClassPath(runningJar);
             continue;
           }
         }
@@ -92,6 +96,416 @@ public class RunTime {
     }
 
   }
+
+  private static File getRunningJar() {
+    File jarFile = null;
+    String jarName = "notKnown";
+    CodeSource codeSrc = Start.class.getProtectionDomain().getCodeSource();
+    if (codeSrc != null && codeSrc.getLocation() != null) {
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        startLog(-1, "URLDecoder: not possible: %s", jarName);
+        System.exit(1);
+      }
+      jarFile = new File(jarName);
+    }
+    return jarFile;
+  }
+
+  private static boolean moveJython = false;
+  private static boolean moveJRuby = false;
+  private static File sxExtensions = new File(getAppPath(), "Extensions");
+  private static boolean jythonReady = false;
+  private static boolean jrubyReady = false;
+  private static String classPath = "";
+
+  private static String makeClassPath(File jarFile) {
+    startLog(1, "starting");
+    boolean isDev = false;
+    String jarPath = jarFile.getAbsolutePath();
+    if (!jarPath.endsWith(".jar")) {
+      isDev = true;
+    }
+    if (!classPath.isEmpty()) {
+      classPath += File.pathSeparator;
+    }
+    classPath += jarPath;
+
+    File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.endsWith(".jar")) {
+          if (name.contains("jython") && name.contains("standalone")) {
+            moveJython = true;
+            return true;
+          }
+          if (name.contains("jruby") && name.contains("complete")) {
+            moveJRuby = true;
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+    boolean extensionsOK = true;
+
+    if (!sxExtensions.exists()) {
+      sxExtensions.mkdir();
+    }
+    if (!sxExtensions.exists()) {
+      startLog(1, "folder extension not available: %s", sxExtensions);
+      extensionsOK = false;
+    }
+
+    if (extensionsOK) {
+      File[] fExtensions = sxExtensions.listFiles();
+      if (moveJython || moveJRuby) {
+        for (File fExtension : fExtensions) {
+          String name = fExtension.getName();
+          if ((name.contains("jython") && name.contains("standalone")) ||
+              (name.contains("jruby") && name.contains("complete"))) {
+            fExtension.delete();
+          }
+        }
+      }
+      if (null != sxFolderList && sxFolderList.length > 0) {
+        for (File fJar : sxFolderList) {
+          try {
+            Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            startLog(1, "moving to extensions: %s", fJar);
+          } catch (IOException e) {
+            startLog(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
+          }
+        }
+      }
+
+      //log(1, "looking for extension jars in: %s", sxExtensions);
+      for (File fExtension : fExtensions) {
+        String pExtension = fExtension.getAbsolutePath();
+        if (pExtension.endsWith(".jar")) {
+          if (!classPath.isEmpty()) {
+            classPath += File.pathSeparator;
+          }
+          if (pExtension.contains("jython") && pExtension.contains("standalone")) {
+            if (pExtension.contains(jythonVersion)) {
+              jythonReady = true;
+            }
+          } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
+            if (pExtension.contains(jrubyVersion)) {
+              jrubyReady = true;
+            }
+          }
+          classPath += pExtension;
+          startLog(1, "adding extension: %s", fExtension);
+        }
+      }
+      if (!jythonReady && !jrubyReady && !isDev) {
+        String message = "Neither Jython nor JRuby available" +
+            "\nIDE not yet useable with JavaScript only" +
+            "\nPlease consult the docs for a solution";
+        if (!verbose) {
+          JOptionPane.showMessageDialog(null, message, "IDE not useable", JOptionPane.ERROR_MESSAGE);
+        } else {
+          startLog(-1, message);
+        }
+        System.exit(-1);
+      }
+    }
+    return classPath;
+  }
+
+  public static void readExtensions(boolean afterStart) {
+    String txtExtensions = FileManager.readFileToString(new File(sxExtensions, "extensions.txt"));
+    List<String> extGiven = new ArrayList<>();
+    if (!txtExtensions.isEmpty()) {
+      String[] lines = txtExtensions.split("\\n");
+      String extlines = "";
+      for (String line : lines) {
+        line = line.trim();
+        if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
+          continue;
+        }
+        extlines += line + "\n";
+        extGiven.add(line);
+      }
+      startLog(1, "extensions.txt\n%s", extlines);
+    }
+    if (extGiven.size() == 0) {
+      startLog(1, "no extensions.txt nor valid content");
+    }
+    for (String line : extGiven) {
+      String token = "";
+      String extPath = line;
+      String[] lineParts = line.split("=");
+      if (lineParts.length > 1) {
+        token = lineParts[0].trim();
+        extPath = lineParts[1].trim();
+      }
+      File extFile = new File(extPath);
+      if (extFile.isAbsolute() && !extFile.exists()) {
+        continue;
+      }
+      if (!token.isEmpty()) {
+        if (!afterStart && "jython".equals(token)) {
+          jythonReady = true;
+          setJythonExtern(true);
+        }
+        if ("python".equals(token)) {
+          if (extFile.isAbsolute()) {
+            if (extFile.exists()) {
+              startLog(1, "Python available at: %s", extPath);
+              python = extPath;
+            }
+          } else {
+            String runOut = ProcessRunner.run(extPath, "-V");
+            if (runOut.startsWith("0\n")) {
+              python = "#" + extPath;
+              startLog(1, "Python available as command: %s (%s)", extPath, runOut.substring(2));
+            }
+          }
+          continue;
+        }
+        if (!afterStart) {
+          if (!classPath.isEmpty()) {
+            classPath += File.pathSeparator;
+          }
+          classPath += extPath;
+          startLog(1, "adding extension: %s", extPath);
+        }
+      }
+    }
+  }
+
+  public static void evalArgs(String[] args) {
+
+    CommandLine cmdLine;
+    String cmdValue;
+
+    CommandArgs cmdArgs = new CommandArgs();
+    cmdLine = cmdArgs.getCommandLine(args);
+
+    boolean cmdLineValid = true;
+    if (cmdLine == null) {
+      startLog(-1, "Did not find any valid option on command line!");
+      cmdLineValid = false;
+    } else {
+      setArgs(cmdArgs.getUserArgs(), cmdArgs.getSXArgs());
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("h")) {
+      cmdArgs.printHelp();
+      System.exit(0);
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("v")) {
+      setVerbose(true);
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("q")) {
+      setQuiet(true);
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("s")) {
+      asServer = true;
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("m")) {
+      setAllowMultiple();
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
+      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
+      if (cmdValue != null) {
+        debugLevelString = cmdValue;
+      }
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
+      logFile = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.USERLOGFILE.shortname())) {
+      userLogFile = cmdLine.getOptionValue(CommandArgsEnum.USERLOGFILE.longname());
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("c")) {
+      System.setProperty("sikuli.console", "false");
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOAD.shortname())) {
+      loadScripts = cmdLine.getOptionValues(CommandArgsEnum.LOAD.longname());
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
+      runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
+    }
+  }
+
+  private static void evalArgsStart(String[] args) {
+    for (String arg : args) {
+      if ("-v".equals(arg)) {
+        setVerbose(true);
+      } else  if ("-q".equals(arg)) {
+        setQuiet(true);
+      }
+    }
+  }
+
+  private static String[] userArgs = new String[0];
+  private static String[] sxArgs = new String[0];
+
+  private static void setArgs(String[] args, String[] sargs) {
+    userArgs = args;
+    sxArgs = sargs;
+  }
+
+  public static String[] getSXArgs() {
+    return sxArgs;
+  }
+
+  public static String[] getUserArgs() {
+    return userArgs;
+  }
+
+  public static void printArgs() {
+    String[] xargs = getSXArgs();
+    if (xargs.length > 0) {
+      startLog(1, "--- Sikuli parameters ---");
+      for (int i = 0; i < xargs.length; i++) {
+        startLog(1, "%d: %s", i + 1, xargs[i]);
+      }
+    }
+    xargs = getUserArgs();
+    if (xargs.length > 0) {
+      startLog(1, "--- User parameters ---");
+      for (int i = 0; i < xargs.length; i++) {
+        startLog(1, "%d: %s", i + 1, xargs[i]);
+      }
+    }
+  }
+
+  public static long getElapsedStart() {
+    return elapsedStart;
+  }
+
+  private static long elapsedStart = new Date().getTime();
+
+  private static String defaultRunnerType = "text/jython";
+
+  public static String getDefaultRunnerType() {
+    return defaultRunnerType;
+  }
+
+  static String jythonVersion = "2.7.1";
+
+  public static boolean isJythonExtern() {
+    return jythonExtern;
+  }
+
+  public static void setJythonExtern(boolean jythonExtern) {
+    RunTime.jythonExtern = jythonExtern;
+  }
+
+  private static boolean jythonExtern = false;
+
+  public static boolean hasPython() {
+    return !python.isEmpty();
+  }
+
+  public static String getPython() {
+    return python;
+  }
+
+  private static String python = "";
+
+  private static String jrubyVersion = "9.2.0.0";
+
+  private static boolean jrubyExtern = false;
+
+  public static String getDebugLevel() {
+    return debugLevelString;
+  }
+
+  private static String debugLevelString = "0";
+
+  public static String getLogFile() {
+    return logFile;
+  }
+
+  private static String logFile = "";
+
+  public static String getUserLogFile() {
+    return userLogFile;
+  }
+
+  private static String userLogFile = "";
+
+  public static String[] getLoadScripts() {
+    return loadScripts;
+  }
+
+  private static String[] loadScripts = new String[0];
+
+  public static String[] getRunScripts() {
+    return runScripts;
+  }
+
+  private static String[] runScripts = new String[0];
+
+  public static boolean runningScripts() {
+    return runScripts.length > 0;
+  }
+
+  public static boolean shouldRunServer() {
+    return asServer;
+  }
+
+  private static boolean asServer = false;
+
+  public static void setAllowMultiple() {
+    allowMultiple = true;
+  }
+
+  public static boolean isAllowMultiple() {
+    return allowMultiple;
+  }
+
+  private static boolean allowMultiple = false;
+
+  public static File getAppPath() {
+    if (null != sxAppPath) {
+      return sxAppPath;
+    }
+    File fUserDir;
+    String userHome = System.getProperty("user.home");
+    if (userHome == null || userHome.isEmpty() || !(fUserDir = new File(userHome)).exists()) {
+      startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
+      System.exit(-1);
+    } else {
+      if ("w".equals(osNameShort)) {
+        String appPath = System.getenv("APPDATA");
+        if (appPath != null && !appPath.isEmpty()) {
+          sxAppPath = new File(new File(appPath), "Sikulix");
+        }
+      } else if ("m".equals(osNameShort)) {
+        sxAppPath = new File(new File(fUserDir, "Library/Application Support"), "Sikulix");
+      } else {
+        sxAppPath = new File(fUserDir, ".Sikulix");
+      }
+      if (!sxAppPath.exists()) {
+        sxAppPath.mkdirs();
+      }
+      if (!sxAppPath.exists()) {
+        startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
+        System.exit(-1);
+      }
+    }
+    return sxAppPath;
+  }
+
+  private static File sxAppPath = null;
 
   //<editor-fold defaultstate="collapsed" desc="logging">
   private final String me = "RunTime%s: ";
@@ -104,10 +518,20 @@ public class RunTime {
   }
 
   public static void setVerbose(boolean verbose) {
-    verbose = verbose;
+    RunTime.verbose = verbose;
   }
 
-  static boolean verbose = false;
+  private static boolean verbose = false;
+
+  public static boolean isQuiet() {
+    return quiet;
+  }
+
+  public static void setQuiet(boolean quiet) {
+    RunTime.quiet = quiet;
+  }
+
+  private static boolean quiet = false;
 
   public static void startLog(int level, String msg, Object... args) {
     String msgShow = "[DEBUG] RunIDE: " + msg;
@@ -116,7 +540,9 @@ public class RunTime {
     } else if (!isVerbose()) {
       return;
     }
-    System.out.println(String.format(msgShow, args));
+    if (!isQuiet()) {
+      System.out.println(String.format(msgShow, args));
+    }
   }
 
   private void log(int level, String message, Object... args) {
@@ -128,7 +554,7 @@ public class RunTime {
   }
 
   private void logp(int level, String message, Object... args) {
-    if (level <= debugLevel) {
+    if (level <= Debug.getDebugLevel()) {
       logp(message, args);
     }
   }
@@ -158,8 +584,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="variables">
   public enum Type {
-    IDE, API, SETUP, INIT
-//    IDE, API, INIT
+    IDE, API, INIT
   }
 
   private enum theSystem {
@@ -199,7 +624,7 @@ public class RunTime {
 
   private Class clsRef = RunTime.class;
 
-  private List<URL> classPath = new ArrayList<>();
+  private List<URL> classPathActual = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
   public File fTempPath = null;
   public File fBaseTempPath = null;
@@ -278,14 +703,6 @@ public class RunTime {
   public String SikuliJRubyMaven;
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-  public boolean allowMultipleInstances = false;
-  public boolean shouldRunServer = false;
-  public boolean runningScripts = false;
-  public boolean runningInteractive = false;
-  public boolean runningTests = false;
-  public String interactiveRunner;
-  public int debugLevel = -1;
-
   public final static String runCmdError = "*****error*****";
   public static String NL = "\n";
   public File fLibsProvided;
@@ -307,10 +724,6 @@ public class RunTime {
     return runTime;
   }
 
-  public static synchronized RunTime get(Type typ) {
-    return get(typ, null);
-  }
-
   static final long started = new Date().getTime();
   static final long obsolete = started - 2 * 24 * 60 * 60 * 1000;
 
@@ -327,43 +740,14 @@ public class RunTime {
     return optTesting;
   }
 
-  public static synchronized RunTime get(Type typ, String[] clArgs) {
+  public static synchronized RunTime get(Type typ) {
     if (runTime != null) {
       return runTime;
     }
     runTime = new RunTime();
 
-    if (clArgs != null && clArgs.length > 0) {
-      runTime.runningScripts = false;
-      runTime.allowMultipleInstances = false;
-      List<String> options = new ArrayList<String>();
-      options.addAll(Arrays.asList(clArgs));
-      for (int n = 0; n < options.size(); n++) {
-        String opt = options.get(n);
-        if ("-s".equals(opt.toLowerCase())) {
-          runTime.shouldRunServer = true;
-        }
-        if (!opt.startsWith("-")) {
-          continue;
-        }
-        if (opt.startsWith("-d")) {
-          try {
-            //Debug.on(debugLevel);
-            runTime.debugLevel = n + 1 == options.size() ? -1 : Integer.decode(options.get(n + 1));
-          } catch (Exception ex) {
-          }
-        } else if (opt.startsWith("-r")) {
-          runTime.runningScripts = true;
-        } else if (opt.startsWith("-i")) {
-          runTime.runningInteractive = true;
-        } else if (opt.startsWith("-m")) {
-          runTime.allowMultipleInstances = true;
-        }
-      }
-    }
-
     //<editor-fold defaultstate="collapsed" desc="versions">
-    if (runTime.debugLevel > 3) {
+    if (isVerbose()) {
       runTime.dumpSysProps();
     }
     String vJava = System.getProperty("java.specification.version");
@@ -463,9 +847,6 @@ public class RunTime {
     }
 
     int optDebugLevel = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
-    if (runTime.debugLevel < 1) {
-      runTime.debugLevel = optDebugLevel;
-    }
     if (optDebugLevel > Debug.getDebugLevel()) {
       Debug.info("Options: Debug.level = %d", optDebugLevel);
       Debug.on(optDebugLevel);
@@ -473,10 +854,6 @@ public class RunTime {
 
     Settings.init(runTime); // force Settings initialization
     runTime.initSikulixOptions();
-
-    if (typ.equals(Type.SETUP)) {
-      return runTime;
-    }
 
     //<editor-fold desc="addShutdownHook">
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -559,7 +936,7 @@ public class RunTime {
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
 
-    if (Type.IDE.equals(typ) && !runningScripts && !allowMultipleInstances) {
+    if (Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
       isRunning = new File(fTempPath, isRunningFilename);
       boolean shouldTerminate = false;
       try {
@@ -1287,7 +1664,7 @@ public class RunTime {
     logp("user.dir (work dir): %s", fWorkDir);
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
-    logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osName,
+    logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
             (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
@@ -2105,11 +2482,11 @@ public class RunTime {
       String cp = System.getProperty("java.class.path");
       classPathList = Arrays.asList(cp.split(separator));
     } else {
-      classPath.clear();
+      classPathActual.clear();
       URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-      classPath = Arrays.asList(sysLoader.getURLs());
+      classPathActual = Arrays.asList(sysLoader.getURLs());
       classPathList.clear();
-      for (URL urlPath : classPath) {
+      for (URL urlPath : classPathActual) {
         classPathList.add(urlPath.toExternalForm());
       }
     }
@@ -2191,7 +2568,7 @@ public class RunTime {
     artefact = FileManager.slashify(artefact, false).toUpperCase();
     URL cpe = null;
     String scpe = null;
-    if (classPath.isEmpty()) {
+    if (classPathActual.isEmpty()) {
       storeClassPath();
     }
     for (String entry : classPathList) {
@@ -2217,7 +2594,7 @@ public class RunTime {
    * @return true if found else otherwise
    */
   public boolean isOnClasspath(URL path) {
-    if (classPath.isEmpty()) {
+    if (classPathActual.isEmpty()) {
       storeClassPath();
     }
     for (String entry : classPathList) {
@@ -2441,376 +2818,5 @@ public class RunTime {
 
   public static class Start {
 
-    private static String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
-
-    public static long getElapsedStart() {
-      return elapsedStart;
-    }
-
-    static long elapsedStart = new Date().getTime();
-
-    public static String getStart() {
-      return start;
-    }
-
-    static String start = String.format("%d", elapsedStart);
-
-    static String jythonVersion = "2.7.1";
-
-    public static boolean isJythonExtern() {
-      return jythonExtern;
-    }
-
-    public static void setJythonExtern(boolean jythonExtern) {
-      Start.jythonExtern = jythonExtern;
-    }
-
-    static boolean jythonExtern = false;
-
-    public static boolean hasPython() {
-      return !python.isEmpty();
-    }
-
-    public static String getPython() {
-      return python;
-    }
-
-    static String python = "";
-
-    static String jrubyVersion = "9.2.0.0";
-
-    static boolean jrubyExtern = false;
-
-    public static String getDebugLevel() {
-      return debugLevel;
-    }
-
-    private static String debugLevel = "0";
-
-    public static String getLogFile() {
-      return logFile;
-    }
-
-    private static String logFile = "";
-
-    public static String getUserLogFile() {
-      return userLogFile;
-    }
-
-    private static String userLogFile = "";
-
-    public static String[] getLoadScripts() {
-      return loadScripts;
-    }
-
-    private static String[] loadScripts = new String[0];
-
-    public static boolean isQuiet() {
-      return quiet;
-    }
-
-    private static boolean quiet = false;
-
-    public static boolean shouldRunServer() {
-      return asServer;
-    }
-
-    private static boolean asServer = false;
-
-    //<editor-fold defaultstate="collapsed" desc="args handling for scriptrunner">
-    private static String[] userArgs = new String[0];
-    private static String[] sxArgs = new String[0];
-
-    public static void setArgs(String[] args, String[] sargs) {
-      userArgs = args;
-      sxArgs = sargs;
-    }
-
-    public static String[] getSikuliArgs() {
-      return sxArgs;
-    }
-
-    public static String[] getArgs() {
-      return userArgs;
-    }
-
-    public static void printArgs() {
-      String[] xargs = getSikuliArgs();
-      if (xargs.length > 0) {
-        startLog(1, "--- Sikuli parameters ---");
-        for (int i = 0; i < xargs.length; i++) {
-          startLog(1, "%d: %s", i + 1, xargs[i]);
-        }
-      }
-      xargs = getArgs();
-      if (xargs.length > 0) {
-        startLog(1, "--- User parameters ---");
-        for (int i = 0; i < xargs.length; i++) {
-          startLog(1, "%d: %s", i + 1, xargs[i]);
-        }
-      }
-    }
-
-    //</editor-fold>
-    public static void evalArgs(String[] args) {
-      CommandLine cmdLine;
-      String cmdValue;
-
-      CommandArgs cmdArgs = new CommandArgs();
-      cmdLine = cmdArgs.getCommandLine(CommandArgs.scanArgs(args));
-
-      boolean cmdLineValid = true;
-      if (cmdLine == null) {
-        startLog(-1, "Did not find any valid option on command line!");
-        cmdLineValid = false;
-      }
-
-      if (cmdLineValid && cmdLine.hasOption("h")) {
-        cmdArgs.printHelp();
-        System.exit(0);
-      }
-
-      if (cmdLineValid && cmdLine.hasOption("v")) {
-        setVerbose(true);
-      }
-
-      if (cmdLineValid && cmdLine.hasOption("q")) {
-        quiet = true;
-      }
-
-      if (cmdLineValid && cmdLine.hasOption("s")) {
-        asServer = true;
-      }
-
-      if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-        cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-        if (cmdValue != null) {
-          debugLevel = cmdValue;
-        }
-      }
-
-      if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
-        logFile = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
-      }
-
-      if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.USERLOGFILE.shortname())) {
-        userLogFile = cmdLine.getOptionValue(CommandArgsEnum.USERLOGFILE.longname());
-      }
-
-      if (cmdLineValid && cmdLine.hasOption("c")) {
-        System.setProperty("sikuli.console", "false");
-      }
-
-      if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOAD.shortname())) {
-        loadScripts = cmdLine.getOptionValues(CommandArgsEnum.LOAD.longname());
-      }
-
-      if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      }
-    }
-
-    public static File getAppPath() {
-      File sxAppPath = new File("");
-      File fUserDir = null;
-      String userHome = System.getProperty("user.home");
-      if (userHome == null || userHome.isEmpty() || !(fUserDir = new File(userHome)).exists()) {
-        startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
-        System.exit(-1);
-      } else {
-        if ("w".equals(osName)) {
-          String appPath = System.getenv("APPDATA");
-          if (appPath != null && !appPath.isEmpty()) {
-            sxAppPath = new File(new File(appPath), "Sikulix");
-          }
-        } else if ("m".equals(osName)) {
-          sxAppPath = new File(new File(fUserDir, "Library/Application Support"), "Sikulix");
-        } else {
-          sxAppPath = new File(fUserDir, ".Sikulix");
-        }
-        if (!sxAppPath.exists()) {
-          sxAppPath.mkdirs();
-        }
-        if (!sxAppPath.exists()) {
-          startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
-          System.exit(-1);
-        }
-      }
-      return sxAppPath;
-    }
-
-    public static File getRunningJar() {
-      File jarFile = null;
-      String jarName = "notKnown";
-      CodeSource codeSrc = Start.class.getProtectionDomain().getCodeSource();
-      if (codeSrc != null && codeSrc.getLocation() != null) {
-        try {
-          jarName = codeSrc.getLocation().getPath();
-          jarName = URLDecoder.decode(jarName, "utf8");
-        } catch (UnsupportedEncodingException e) {
-          startLog(-1, "URLDecoder: not possible: %s", jarName);
-          System.exit(1);
-        }
-        jarFile = new File(jarName);
-      }
-      return jarFile;
-    }
-
-    static boolean moveJython = false;
-    static boolean moveJRuby = false;
-
-    public static String makeClassPath(File jarFile) {
-      startLog(1, "starting");
-      boolean isDev = false;
-      String jarPath = jarFile.getAbsolutePath();
-      if (!jarPath.endsWith(".jar")) {
-        isDev = true;
-      }
-      String classPath = jarPath;
-
-      File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          if (name.endsWith(".jar")) {
-            if (name.contains("jython") && name.contains("standalone")) {
-              moveJython = true;
-              return true;
-            }
-            if (name.contains("jruby") && name.contains("complete")) {
-              moveJRuby = true;
-              return true;
-            }
-          }
-          return false;
-        }
-      });
-
-      File sxExtensions = new File(getAppPath(), "Extensions");
-      boolean extensionsOK = true;
-
-      if (!sxExtensions.exists()) {
-        sxExtensions.mkdir();
-      }
-      if (!sxExtensions.exists()) {
-        startLog(1, "folder extension not available: %s", sxExtensions);
-        extensionsOK = false;
-      }
-
-      boolean jythonReady = false;
-      boolean jrubyReady = false;
-
-      if (extensionsOK) {
-        File[] fExtensions = sxExtensions.listFiles();
-        if (moveJython || moveJRuby) {
-          for (File fExtension : fExtensions) {
-            String name = fExtension.getName();
-            if ((name.contains("jython") && name.contains("standalone")) ||
-                    (name.contains("jruby") && name.contains("complete"))) {
-              fExtension.delete();
-            }
-          }
-        }
-        if (null != sxFolderList && sxFolderList.length > 0) {
-          for (File fJar : sxFolderList) {
-            try {
-              Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-              startLog(1, "moving to extensions: %s", fJar);
-            } catch (IOException e) {
-              startLog(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
-            }
-          }
-        }
-
-        //log(1, "looking for extension jars in: %s", sxExtensions);
-        String separator = File.pathSeparator;
-        for (File fExtension : fExtensions) {
-          String pExtension = fExtension.getAbsolutePath();
-          if (pExtension.endsWith(".jar")) {
-            if (!classPath.isEmpty()) {
-              classPath += separator;
-            }
-            if (pExtension.contains("jython") && pExtension.contains("standalone")) {
-              if (pExtension.contains(jythonVersion)) {
-                jythonReady = true;
-              }
-            } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
-              if (pExtension.contains(jrubyVersion)) {
-                jrubyReady = true;
-              }
-            }
-            classPath += pExtension;
-            startLog(1, "adding extension: %s", fExtension);
-          }
-        }
-        String txtExtensions = FileManager.readFileToString(new File(sxExtensions, "extensions.txt"));
-        List<String> extGiven = new ArrayList<>();
-        if (!txtExtensions.isEmpty()) {
-          String[] lines = txtExtensions.split("\\n");
-          String extlines = "";
-          for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
-              continue;
-            }
-            extlines += line + "\n";
-            extGiven.add(line);
-          }
-          startLog(1, "extensions.txt\n%s", extlines);
-        }
-        if (extGiven.size() == 0) {
-          startLog(1, "no extensions.txt nor valid content");
-        }
-        for (String line : extGiven) {
-          String token = "";
-          String extPath = line;
-          String[] lineParts = line.split("=");
-          if (lineParts.length > 1) {
-            token = lineParts[0].trim();
-            extPath = lineParts[1].trim();
-          }
-          File extFile = new File(extPath);
-          if (extFile.isAbsolute() && !extFile.exists()) {
-            continue;
-          }
-          if (!token.isEmpty()) {
-            if ("jython".equals(token)) {
-              jythonReady = true;
-              setJythonExtern(true);
-            }
-            if ("python".equals(token)) {
-              if (extFile.isAbsolute()) {
-                if (extFile.exists()) {
-                  startLog(1, "Python available at: %s", extPath);
-                  Start.python = extPath;
-                }
-              } else {
-                String runOut = ProcessRunner.run(extPath, "-V");
-                if (runOut.startsWith("0\n")) {
-                  python = "#" + extPath;
-                  startLog(1, "Python available as command: %s (%s)", extPath, runOut.substring(2));
-                }
-              }
-              continue;
-            }
-            if (!classPath.isEmpty()) {
-              classPath += separator;
-            }
-            classPath += extPath;
-            startLog(1, "adding extension: %s", extPath);
-          }
-        }
-        if (!jythonReady && !jrubyReady && !isDev) {
-          String message = "Neither Jython nor JRuby available" +
-                  "\nIDE not yet useable with JavaScript only" +
-                  "\nPlease consult the docs for a solution";
-          if (!verbose) {
-            JOptionPane.showMessageDialog(null, message, "IDE not useable", JOptionPane.ERROR_MESSAGE);
-          } else {
-            startLog(-1, message);
-          }
-          System.exit(-1);
-        }
-      }
-      return classPath;
-    }
   }
 }

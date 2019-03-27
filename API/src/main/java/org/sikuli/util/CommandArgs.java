@@ -55,7 +55,7 @@ public class CommandArgs {
     return userArgs.toArray(new String[0]);
   }
 
-  public String[] getSikuliArgs() {
+  public String[] getSXArgs() {
     return sikuliArgs.toArray(new String[0]);
   }
 
@@ -97,6 +97,9 @@ public class CommandArgs {
 
     cmdArgs.addOption(CommandArgsEnum.QUIET.shortname(),
             CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
+
+    cmdArgs.addOption(CommandArgsEnum.MULTI.shortname(),
+        CommandArgsEnum.MULTI.longname(), false, CommandArgsEnum.MULTI.description());
 
     cmdArgs.addOption(
             OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())

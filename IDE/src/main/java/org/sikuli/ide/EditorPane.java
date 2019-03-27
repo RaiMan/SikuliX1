@@ -25,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
@@ -130,17 +131,17 @@ public class EditorPane extends JTextPane {
     initBeforeLoad(scriptType, true);
   }
 
-  private void initBeforeLoad(String scriptType, boolean reInit) {
+  private void initBeforeLoad(String scriptIdentifier, boolean reInit) {
     String scrType = null;
     boolean paneIsEmpty = false;
 
-    log(lvl, "initBeforeLoad: %s", scriptType);
-    if (scriptType == null) {
-      scriptType = ScriptingSupport.getDefaultExtension();
+    log(lvl, "initBeforeLoad: %s", scriptIdentifier);
+    if (scriptIdentifier == null) {
+      scriptIdentifier = ScriptingSupport.getDefaultExtension();
       paneIsEmpty = true;
     }
 
-    IScriptRunner runner = Runner.getRunner(scriptType);
+    IScriptRunner runner = Runner.getRunner(scriptIdentifier);
 
     // initialize runner to speed up first script run
     (new Thread() {
@@ -154,7 +155,8 @@ public class EditorPane extends JTextPane {
     _indentationLogic = null;
 
     if (JythonRunner.TYPE.equals(scrType)) {
-      _indentationLogic = SikulixIDE.getIDESupport(scriptType).getIndentationLogic();
+      IIDESupport ideSupport = SikulixIDE.getIDESupport(scriptIdentifier);
+      _indentationLogic = ideSupport.getIndentationLogic();
       _indentationLogic.setTabWidth(pref.getTabWidth());
     } else if (TextRunner.TYPE.equals(scrType)) {
       isText = true;
@@ -403,6 +405,11 @@ public class EditorPane extends JTextPane {
 
   public void checkSourceForBundlePath() {
     String scriptText = getText();
+    if (scriptText.startsWith("#!PYTHON")){
+      sikuliContentType = "text/python";
+    } else {
+      sikuliContentType = "text/jython";
+    }
     shouldReparse = false;
     if (isPython && (lookForSetBundlePath || isPaneReset)) {
       Matcher matcher = patSetBundlePath.matcher(scriptText);

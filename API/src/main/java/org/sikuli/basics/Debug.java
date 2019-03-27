@@ -819,7 +819,7 @@ public class Debug {
 					long traceElapsed = 0;
         	long actual = new Date().getTime();
         	if (withTimeElapsed) {
-        		traceElapsed = actual - RunTime.Start.getElapsedStart();
+        		traceElapsed = actual - RunTime.getElapsedStart();
 					}
 					if (level == -999) {
 						if (traceLast < 0) {

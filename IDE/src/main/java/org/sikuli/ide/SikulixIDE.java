@@ -103,25 +103,24 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   public static void main(String[] args) {
 
-    if (RunTime.isVerbose()) {
-      Debug.setWithTimeElapsed(RunTime.Start.getElapsedStart());
+    RunTime.evalArgs(args);
+    RunTime.readExtensions(true);
+
+    if (RunTime.isQuiet()) {
+      Debug.quietOn();
+    } else if (RunTime.isVerbose()) {
+      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
       Debug.setGlobalDebug(3);
       Debug.globalTraceOn();
       Debug.setStartWithTrace();
       Debug.log(3,"Sikulix: starting IDE");
     }
 
-    if (RunTime.Start.isQuiet()) {
-      Debug.quietOn();
-    }
-
     if ("m".equals(osName)) {
       prepareMac();
     }
 
-    RunTime runTime = RunTime.get(RunTime.Type.IDE, args);
-
-    run(runTime, args);
+    run(args);
   }
 
   private static void prepareMac() {
@@ -203,9 +202,16 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   private static Boolean newBuildAvailable = null;
   private static String newBuildStamp = "";
 
-  public static void run(RunTime rt, String[] args) {
+  public static void run(String[] args) {
 
-    runTime = rt;
+    RunTime.evalArgs(args);
+
+    runTime = RunTime.get(RunTime.Type.IDE);
+
+    if (runTime.shouldRunServer()) {
+      RunServer.run(null);
+      System.exit(0);
+    }
 
     getInstance();
 
@@ -213,40 +219,31 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       ideSplash = new IDESplash();
     }
 
-    if (runTime.shouldRunServer) {
-      RunServer.run(null);
-      System.exit(0);
-    }
-
     log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
 
     sikulixIDE.initNativeSupport();
     
     if (Debug.getDebugLevel() > 2) {
-      RunTime.Start.printArgs();
+      RunTime.printArgs();
     }
 
     sikulixIDE.initHotkeys();
-    //ideSplash.showAction("Interrupt with " + HotkeyManager.getInstance().getHotKeyText("Abort"));
     Debug.log(3, "IDE: Init ScriptingSupport");
-    //ideSplash.showStep("Init ScriptingSupport");
 
     ScriptingSupport.init();
     IDESupport.initIDESupport();
-    sikulixIDE.initSikuliIDE(args);
+    sikulixIDE.initSikuliIDE();
   }
 
   public void clearMessageArea() {
     _console.clear();
   }
 
-  private void initSikuliIDE(String[] args) {
+  private void initSikuliIDE() {
     Debug.log(3, "IDE: Reading Preferences");
-    //ideSplash.showStep("IDE: Reading Preferences");
     prefs = PreferencesUser.getInstance();
     //prefs.exportPrefs(new File(runTime.fUserDir, "SikulixIDEprefs.txt").getAbsolutePath());
     if (prefs.getUserType() < 0) {
-      //prefs.setUserType(PreferencesUser.NEWBEE);
       prefs.setIdeSession("");
       prefs.setDefaults();
     }
@@ -268,7 +265,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     setSize(win.getSize());
     setLocation(_windowLocation);
 
-    //ideSplash.showStep("Init Window");
     Debug.log(3, "IDE: Adding components to window");
     initMenuBars(this);
     final Container ideContainer = getContentPane();
@@ -300,7 +296,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     Debug.log(3, "IDE: Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
-    ideContainer.add(tb, BorderLayout.NORTH); // the buttons
+    ideContainer.add(tb, BorderLayout.NORTH);
     Debug.log(3, "IDE: Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
@@ -313,12 +309,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     initWindowListener();
     initTooltip();
 
-    Debug.log(3, "IDE: Putting all together - Check for Updates");
-    //ideSplash.showStep("Check for Updates");
-    autoCheckUpdate();
+
+    //Debug.log(3, "IDE: Putting all together - Check for Updates");
+    //TODO autoCheckUpdate();
 
     //waitPause();
-    //ideSplash.showStep("Restore last Session");
     Debug.log(3, "IDE: Putting all together - Restore last Session");
     restoreSession(0);
     if (tabPane.getTabCount() == 0) {
@@ -330,7 +325,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     if (runTime.isJava9()) {
       j9Message = "*** Running on Java 9+";
     }
-    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - RunTime.Start.getElapsedStart()) / 1000.0, j9Message);
+    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0, j9Message);
     Debug.unsetWithTimeElapsed();
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
@@ -580,8 +575,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Support SikuliIDE">
-  public static IIDESupport getIDESupport(String ending) {
-    return IDESupport.ideSupporter.get(ending);
+  public static IIDESupport getIDESupport(String identifier) {
+    return IDESupport.ideSupporter.get(identifier);
   }
 
   public JMenu getFileMenu() {
@@ -2727,7 +2722,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       @Override
       public void run() {
         try {
-          ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.Start.getArgs(), options);
+          ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), options);
         } catch (Exception ex) {
           log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);
         }

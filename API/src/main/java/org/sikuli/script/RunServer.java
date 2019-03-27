@@ -52,7 +52,7 @@ public class RunServer {
 			args = new String[0];
 		}
     String userArgs = "";
-    for (String userArg : RunTime.Start.getArgs()) {
+    for (String userArg : RunTime.getUserArgs()) {
       userArgs += userArg + " ";
     }
     if (!userArgs.isEmpty()) {

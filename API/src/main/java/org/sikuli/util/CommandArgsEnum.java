@@ -47,7 +47,11 @@ public enum CommandArgsEnum {
 	/**
 	 * run as server
 	 */
-	SERVER("server", "s", "[port (50001)]", "run as server on optional port");
+	SERVER("server", "s", "[port (50001)]", "run as server on optional port"),
+	/**
+	 * run as server
+	 */
+	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed");
 
 	/**
 	 * Longname of the parameter
