@@ -58,7 +58,6 @@ public class RunTime {
     File runningJar = getRunningJar();
     String jarName = runningJar.getName();
     File fAppData = getAppPath();
-    readExtensions(false);
     String classPath = makeClassPath(runningJar);
     RunTime.startLog(1, "Running: %s", runningJar);
     RunTime.startLog(1, "AppData: %s", fAppData);
@@ -100,7 +99,7 @@ public class RunTime {
   private static File getRunningJar() {
     File jarFile = null;
     String jarName = "notKnown";
-    CodeSource codeSrc = Start.class.getProtectionDomain().getCodeSource();
+    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
       try {
         jarName = codeSrc.getLocation().getPath();
@@ -160,6 +159,7 @@ public class RunTime {
     }
 
     if (extensionsOK) {
+      readExtensions(false);
       File[] fExtensions = sxExtensions.listFiles();
       if (moveJython || moveJRuby) {
         for (File fExtension : fExtensions) {
@@ -189,10 +189,16 @@ public class RunTime {
             classPath += File.pathSeparator;
           }
           if (pExtension.contains("jython") && pExtension.contains("standalone")) {
+            if (jythonReady) {
+              continue;
+            }
             if (pExtension.contains(jythonVersion)) {
               jythonReady = true;
             }
           } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
+            if (jrubyReady) {
+              continue;
+            }
             if (pExtension.contains(jrubyVersion)) {
               jrubyReady = true;
             }
@@ -248,11 +254,17 @@ public class RunTime {
         continue;
       }
       if (!token.isEmpty()) {
-        if (!afterStart && "jython".equals(token)) {
+        if ("jython".equals(token)) {
+          if (afterStart) {
+            continue;
+          }
           jythonReady = true;
           setJythonExtern(true);
         }
         if ("python".equals(token)) {
+          if (!afterStart) {
+            continue;
+          }
           if (extFile.isAbsolute()) {
             if (extFile.exists()) {
               startLog(1, "Python available at: %s", extPath);
@@ -2815,8 +2827,4 @@ public class RunTime {
     return lastResult;
   }
 //</editor-fold>
-
-  public static class Start {
-
-  }
 }
