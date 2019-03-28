@@ -106,7 +106,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private static final String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
 
-  public static void run(String[] args) {
+  public static void main(String[] args) {
+
+    if (null == System.getProperty("sikuli.IDE_should_run")) {
+      System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
+      System.exit(1);
+    }
 
     RunTime.evalArgs(args);
     RunTime.readExtensions(true);

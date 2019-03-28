@@ -72,6 +72,7 @@ public class RunTime {
       while (true) {
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
+        cmd.add("-Dsikuli.IDE_should_run");
         if (!classPath.isEmpty()) {
           cmd.add("-cp");
           cmd.add(classPath);

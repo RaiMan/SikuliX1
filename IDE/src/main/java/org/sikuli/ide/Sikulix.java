@@ -11,7 +11,7 @@ public class Sikulix {
   public static void main(String[] args) {
 
     if (!RunTime.start(RunTime.Type.IDE, args)) {
-      SikulixIDE.run(args);
+      SikulixIDE.main(args);
     }
   }
 }
