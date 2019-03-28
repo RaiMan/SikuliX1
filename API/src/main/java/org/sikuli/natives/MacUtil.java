@@ -6,13 +6,14 @@ package org.sikuli.natives;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 import org.sikuli.script.runners.AppleScriptRunner;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MacUtil implements OSUtil {
 

@@ -16,8 +16,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Options;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 public class SikulixFileChooser {
   static final int FILES = JFileChooser.FILES_ONLY;

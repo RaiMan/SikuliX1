@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;

@@ -22,10 +22,10 @@ import java.util.Set;
 import org.sikuli.basics.Animator;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.IScreen;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.ScreenImage;
 
 /**

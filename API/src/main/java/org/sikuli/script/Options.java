@@ -1,6 +1,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.support.RunTime;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -44,7 +45,7 @@ public class Options {
     return getOption(propOptionsFile);
   }
 
-  static Options init(RunTime pRunTime) {
+  public static Options init(RunTime pRunTime) {
     runtime = pRunTime;
     return init();
   }

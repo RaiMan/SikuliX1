@@ -10,10 +10,30 @@ import java.net.URI;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
+
+//  a copy template
+//  public static final String NAME = "SomeName";
+//  public static final String TYPE = "text/something";
+//  public static final String[] EXTENSIONS = new String[0];
+//
+//  @Override
+//  public String getName() {
+//    return NAME;
+//  }
+//
+//  @Override
+//  public String[] getExtensions() {
+//    return EXTENSIONS;
+//  }
+//
+//  @Override
+//  public String getType() {
+//    return TYPE;
+//  }
 
   boolean ready = false;
 

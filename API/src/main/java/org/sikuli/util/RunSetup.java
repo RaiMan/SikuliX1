@@ -6,8 +6,9 @@ package org.sikuli.util;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Screen;
+import org.sikuli.script.runners.ProcessRunner;
 
 import java.io.File;
 import java.io.FilenameFilter;

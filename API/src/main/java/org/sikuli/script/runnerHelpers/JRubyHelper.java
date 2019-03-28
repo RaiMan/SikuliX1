@@ -8,7 +8,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 /**
  * This class implements JRuby specific parts

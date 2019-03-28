@@ -16,11 +16,10 @@ import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
 
 import org.apache.commons.io.FilenameUtils;
-import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
-import org.sikuli.script.RunTime;
-import org.sikuli.util.ProcessRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.runners.ProcessRunner;
 
 import java.awt.Rectangle;
 import java.awt.Window;

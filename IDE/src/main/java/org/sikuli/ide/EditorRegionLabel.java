@@ -12,7 +12,7 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Screen;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;

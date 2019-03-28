@@ -14,8 +14,8 @@ import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 

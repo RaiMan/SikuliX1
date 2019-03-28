@@ -5,7 +5,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 import javax.swing.*;
 import java.awt.BorderLayout;

@@ -4,14 +4,12 @@
 package org.sikuli.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.PrintStream;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 /**
  * INTERNAL USE: all things needed with Linux at setup or runtime

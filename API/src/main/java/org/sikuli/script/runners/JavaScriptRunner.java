@@ -15,8 +15,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class JavaScriptRunner extends AbstractScriptRunner {
 

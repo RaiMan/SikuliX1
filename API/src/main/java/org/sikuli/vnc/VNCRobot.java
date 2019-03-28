@@ -5,12 +5,13 @@ package org.sikuli.vnc;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 

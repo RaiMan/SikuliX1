@@ -3,7 +3,7 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Settings;
+import org.sikuli.script.support.IScreen;
 
 /**
  * holds the result of a find operation, is itself the region on the screen,
@@ -66,7 +66,7 @@ public class Match extends Region implements Comparable<Match> {
    * @param m other Match
    */
   public Match(Match m) {
-    if (Do.SX.isNull(m)) {
+    if (SX.isNull(m)) {
       init(0, 0, 1, 1, Screen.getPrimaryScreen());
     }
     init(m.x, m.y, m.w, m.h, m.getScreen());

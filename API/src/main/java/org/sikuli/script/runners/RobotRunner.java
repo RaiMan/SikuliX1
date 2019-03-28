@@ -4,14 +4,13 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.util.Map;
 
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
-import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 
 public class RobotRunner extends JythonRunner {

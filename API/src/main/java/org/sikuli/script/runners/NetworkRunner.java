@@ -5,18 +5,15 @@ package org.sikuli.script.runners;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
-import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 
 public class NetworkRunner extends AbstractScriptRunner {
 

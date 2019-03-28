@@ -4,7 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.Key;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;

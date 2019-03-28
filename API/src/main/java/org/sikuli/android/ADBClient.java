@@ -6,14 +6,13 @@ package org.sikuli.android;
 
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import se.vidstige.jadb.AdbServerLauncher;
 import se.vidstige.jadb.JadbConnection;
 import se.vidstige.jadb.JadbDevice;
 import se.vidstige.jadb.Subprocess;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**

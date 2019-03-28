@@ -15,7 +15,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 /**
  *

@@ -5,13 +5,10 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.net.URI;
-import java.util.Map;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class AppleScriptRunner extends AbstractScriptRunner {
 

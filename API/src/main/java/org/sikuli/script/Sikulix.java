@@ -4,23 +4,21 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.*;
-import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
-import py4Java.GatewayServer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.security.CodeSource;
-import java.util.List;
 
 public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
     if (!RunTime.start(RunTime.Type.API, args)) {
-      SikulixAPI.main(args);
+      SikulixAPI.run(args);
     }
   }
 

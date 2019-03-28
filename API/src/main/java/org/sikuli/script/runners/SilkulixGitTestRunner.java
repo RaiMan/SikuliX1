@@ -4,12 +4,7 @@
 
 package org.sikuli.script.runners;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Map;
-
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.Runner;
+import org.sikuli.script.support.IScriptRunner;
 
 /**
  * Runs the Sikulix test scripts from

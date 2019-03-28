@@ -17,6 +17,7 @@ import java.util.Map;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.RunTime;
 
 /**
  * This class was used to locate image files in the filesystem <br>

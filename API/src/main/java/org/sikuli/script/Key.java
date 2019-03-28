@@ -5,7 +5,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.HotkeyListener;
-import java.awt.Toolkit;
+
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +13,8 @@ import java.util.TreeMap;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
+import org.sikuli.script.support.KeyboardLayout;
+import org.sikuli.script.support.RunTime;
 
 /**
  * this class implements an interface to the Java key system

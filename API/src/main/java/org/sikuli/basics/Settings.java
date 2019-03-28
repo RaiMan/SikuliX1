@@ -5,7 +5,7 @@ package org.sikuli.basics;
 
 import org.sikuli.guide.Guide;
 import org.sikuli.script.Image;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 //import org.sikuli.script.RunTime;
 
 import java.io.File;

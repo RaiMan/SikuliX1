@@ -1,8 +1,8 @@
 package org.sikuli.script.runners;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class PythonRunner extends AbstractScriptRunner {
 

@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.natives.OSUtil;
 import org.sikuli.natives.SysUtil;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.Desktop;
 import java.awt.Rectangle;

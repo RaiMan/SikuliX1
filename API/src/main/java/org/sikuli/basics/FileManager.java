@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
@@ -12,7 +12,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -35,7 +34,6 @@ import java.util.*;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 

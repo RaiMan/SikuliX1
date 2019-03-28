@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.support.RunTime;
 
 /**
  * Can be used in pure Jython environments to add the Sikuli Python API to sys.path<br>

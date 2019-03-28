@@ -4,16 +4,13 @@
 
 package org.sikuli.script.runners;
 
-import java.net.URI;
-import java.util.Map;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.IScriptRunner;
 
 public class InvalidRunner extends AbstractScriptRunner {
   
   String identifier;
+
+  public InvalidRunner() {}
     
   public InvalidRunner(String identifier) {
     super();

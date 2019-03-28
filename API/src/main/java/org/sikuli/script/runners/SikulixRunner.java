@@ -4,13 +4,10 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.net.URI;
-import java.util.Map;
 
-import org.sikuli.script.IScriptRunner;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.RunTime;
-import org.sikuli.script.Runner;
+import org.sikuli.script.support.Runner;
 
 /**
  * Runs Sikulix scripts.

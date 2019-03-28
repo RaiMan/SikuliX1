@@ -33,6 +33,8 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.idesupport.ScriptingSupport;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.Runner;
 import org.sikuli.syntaxhighlight.ResolutionException;
 import org.sikuli.syntaxhighlight.grammar.Lexer;
 import org.sikuli.syntaxhighlight.grammar.Token;

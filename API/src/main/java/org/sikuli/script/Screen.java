@@ -9,6 +9,7 @@ import java.util.Date;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.OverlayCapturePrompt;
 import org.sikuli.util.ScreenHighlighter;

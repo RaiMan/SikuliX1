@@ -30,10 +30,11 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.ImageGroup;
 
 /**
  * This class hides the complexity behind image names given as string.
- * <br>Image does not have public nor protected constructors: use create()
+ * <br>Image does not have public nor public constructors: use create()
  * <br>It's companion is {@link ImagePath} that maintains a list of places, where image files are
  * loaded from.<br>
  * Another companion {@link ImageGroup} will allow to look at images in a folder as a
@@ -136,7 +137,7 @@ public class Image {
   }
 
   private static boolean ideShouldReload = false;
-  protected boolean wasRecaptured = false;
+  public boolean wasRecaptured = false;
   public static void setIDEshouldReload(Image img) {
     ideShouldReload = true;
     img.wasRecaptured = true;
@@ -196,7 +197,7 @@ public class Image {
 //<editor-fold defaultstate="collapsed" desc="bimg">
   private BufferedImage bimg = null;
 
-  protected Image setBimg(BufferedImage bimg) {
+  public Image setBimg(BufferedImage bimg) {
     this.bimg = bimg;
     if (bimg != null) {
       bwidth = bimg.getWidth();
@@ -233,7 +234,7 @@ public class Image {
     return imageIsText;
   }
 
-  protected Image setIsText(boolean val) {
+  public Image setIsText(boolean val) {
     imageIsText = val;
     return this;
   }
@@ -399,7 +400,7 @@ public class Image {
    * @param sim SimilarityScore
    * @return the image
    */
-  protected Image setLastSeen(Rectangle lastSeen, double sim) {
+  public Image setLastSeen(Rectangle lastSeen, double sim) {
     this.lastSeen = lastSeen;
     this.lastScore = sim;
     if (group != null) {
@@ -600,7 +601,7 @@ public class Image {
     return createImageValidate(img, true);
   }
 
-  protected static <PSI> Image getImageFromTarget(PSI target) {
+  public static <PSI> Image getImageFromTarget(PSI target) {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {
@@ -670,7 +671,7 @@ public class Image {
    * @param fName image filename
    * @return this
    */
-  protected static Image get(String fName) {
+  public static Image get(String fName) {
     return get(fName, false);
   }
 
@@ -733,7 +734,7 @@ public class Image {
     return img;
   }
 
-	protected static void set(Image img) {
+	public static void set(Image img) {
     URL fURL = null;
     File imgFile = new File(img.getName());
     if (imgFile.isAbsolute()) {
@@ -751,7 +752,7 @@ public class Image {
     }
   }
 
-  protected static Image get(URL imgURL) {
+  public static Image get(URL imgURL) {
     return imageFiles.get(imgURL);
   }
 
@@ -845,14 +846,14 @@ public class Image {
     purge(pathURL);
   }
 
-  protected static void purge(ImagePath.PathEntry path) {
+  public static void purge(ImagePath.PathEntry path) {
     if (path == null) {
       return;
     }
     purge(path.pathURL);
   }
 
-  protected static synchronized void purge(URL pathURL) {
+  public static synchronized void purge(URL pathURL) {
     List<Image> imagePurgeList = new ArrayList<>();
     List<String> imageNamePurgeList = new ArrayList<>();
     URL imgURL;
@@ -923,7 +924,7 @@ public class Image {
 
   private String hasBackup = "";
 
-  protected boolean backup() {
+  public boolean backup() {
     if (isValid()) {
       File fOrg = new File(fileURL.getPath());
       File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
@@ -937,7 +938,7 @@ public class Image {
     return false;
   }
 
-  protected boolean restore() {
+  public boolean restore() {
     if (!hasBackup.isEmpty()) {
       File fBack = new File(hasBackup);
       File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
@@ -1101,7 +1102,7 @@ public class Image {
     return get(true);
   }
 
-  protected BufferedImage get(boolean shouldLoad) {
+  public BufferedImage get(boolean shouldLoad) {
     if (bimg != null) {
       if (fileURL == null) {
         log(lvl + 1, "getImage inMemory: %s", imageName);
@@ -1143,7 +1144,7 @@ public class Image {
     return resize(get(), factor);
   }
 
-  protected static BufferedImage resize(BufferedImage bimg, float factor) {
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
     int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
     int width = (int) (bimg.getWidth() * factor);
     int height = (int) (bimg.getHeight() * factor);
@@ -1340,7 +1341,7 @@ public class Image {
 //    return createMat(get());
 //  }
 //
-//  protected static Mat createMat(BufferedImage img) {
+//  public static Mat createMat(BufferedImage img) {
 //    if (img != null) {
 //      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
 //      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
@@ -1371,7 +1372,7 @@ public class Image {
 //    }
 //  }
 
-//TODO  protected static MatNative convertBufferedImageToMat(BufferedImage img) {
+//TODO  public static MatNative convertBufferedImageToMat(BufferedImage img) {
 //    if (img != null) {
 //      long theMatTime = new Date().getTime();
 //      byte[] data = convertBufferedImageToByteArray(img);
@@ -1386,7 +1387,7 @@ public class Image {
 //    }
 //  }
 
-  protected static byte[] convertBufferedImageToByteArray(BufferedImage img) {
+  public static byte[] convertBufferedImageToByteArray(BufferedImage img) {
     if (img != null) {
       BufferedImage cvImg = createBufferedImage(img.getWidth(), img.getHeight());
       Graphics2D g = cvImg.createGraphics();
@@ -1398,7 +1399,7 @@ public class Image {
     }
   }
 
-  protected static BufferedImage createBufferedImage(int w, int h) {
+  public static BufferedImage createBufferedImage(int w, int h) {
     ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
     int[] nBits = {8, 8, 8, 8};
     ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);

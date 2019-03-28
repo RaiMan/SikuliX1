@@ -5,6 +5,8 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
 
 import java.awt.Color;
 import java.awt.Point;

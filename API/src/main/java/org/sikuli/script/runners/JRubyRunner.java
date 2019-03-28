@@ -22,8 +22,8 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.IScriptRunner;
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class JRubyRunner extends AbstractScriptRunner {
 

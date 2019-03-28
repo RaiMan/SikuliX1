@@ -14,7 +14,6 @@ import javax.swing.JComponent;
 import javax.swing.text.*;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.Runner;
 import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.runners.JythonRunner;
 

@@ -3,7 +3,7 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.RunTime;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 
 import java.io.FileNotFoundException;

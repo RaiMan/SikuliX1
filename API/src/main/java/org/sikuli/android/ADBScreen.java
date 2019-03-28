@@ -5,8 +5,9 @@
 package org.sikuli.android;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.util.*;
 
 import java.awt.*;

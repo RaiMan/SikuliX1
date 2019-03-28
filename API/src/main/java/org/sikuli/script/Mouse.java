@@ -9,6 +9,9 @@ import java.util.Random;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Device;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
 
 /**
  * Main pupose is to coordinate the mouse usage among threads <br>

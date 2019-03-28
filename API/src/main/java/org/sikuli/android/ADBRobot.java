@@ -6,9 +6,11 @@ package org.sikuli.android;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Created by Törcsi on 2016. 06. 26.

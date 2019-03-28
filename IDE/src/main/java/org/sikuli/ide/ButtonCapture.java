@@ -16,6 +16,8 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.util.OverlayCapturePrompt;
 import org.sikuli.basics.Settings;
 import org.sikuli.util.EventObserver;

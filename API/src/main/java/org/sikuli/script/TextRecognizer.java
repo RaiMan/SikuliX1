@@ -11,6 +11,7 @@ import net.sourceforge.tess4j.util.LoadLibs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -19,7 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
 public class TextRecognizer {
@@ -28,7 +28,7 @@ public class TextRecognizer {
 
   private static TextRecognizer textRecognizer = null;
   private TextRecognizer() {
-    Finder2.init();
+    Finder.Finder2.init();
   }
 
   public boolean isValid() {

@@ -7,6 +7,7 @@ package org.sikuli.android;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
+import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 

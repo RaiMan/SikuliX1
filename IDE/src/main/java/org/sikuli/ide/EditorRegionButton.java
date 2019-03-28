@@ -8,7 +8,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import javax.swing.*;
 import org.sikuli.util.OverlayCapturePrompt;
-import org.sikuli.script.IScreen;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.script.Region;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.basics.Debug;

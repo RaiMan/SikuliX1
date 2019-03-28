@@ -15,6 +15,8 @@ import java.awt.image.RescaleOp;
 import javax.swing.JFrame;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
 
 /**
  * INTERNAL USE implements the screen overlay used with the capture feature

@@ -13,6 +13,8 @@ import org.sikuli.android.ADBDevice;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.*;
+import org.sikuli.script.support.Observer;
 import org.sikuli.util.ScreenHighlighter;
 
 /**
@@ -2089,7 +2091,7 @@ public class Region {
     return this;
   }
 
-  protected Region silentHighlight(boolean onOff) {
+  public Region silentHighlight(boolean onOff) {
     if (onOff && overlay == null) {
       return doHighlight(true, null, true);
     }
@@ -3538,11 +3540,11 @@ public class Region {
   private boolean observingInBackground = false;
 
   /**
-   * The {@link Observer} Singleton instance
+   * The {@link org.sikuli.script.support.Observer} Singleton instance
    */
-  private Observer regionObserver = null;
+  private org.sikuli.script.support.Observer regionObserver = null;
 
-  protected Observer getObserver() {
+  public org.sikuli.script.support.Observer getObserver() {
     if (regionObserver == null) {
       regionObserver = new Observer(this);
     }
@@ -3940,7 +3942,7 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="040 Mouse actions - clicking">
-  protected Location checkMatch() {
+  public Location checkMatch() {
     if (lastMatch != null) {
       return lastMatch.getTarget();
     }

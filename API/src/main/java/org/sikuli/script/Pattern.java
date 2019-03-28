@@ -120,7 +120,7 @@ public class Pattern {
     return image.isValid() || imagePattern;
   }
 
-  private Mat patternMask = Finder2.getNewMat();
+  private Mat patternMask = Finder.Finder2.getNewMat();
 
   public Mat getMask() {
     return patternMask;
@@ -131,7 +131,7 @@ public class Pattern {
   }
 
   private Mat extractMask() {
-    List<Mat> mats = Finder2.extractMask(Finder2.makeMat(image.get(), false), false);
+    List<Mat> mats = Finder.Finder2.extractMask(Finder.Finder2.makeMat(image.get(), false), false);
     return mats.get(1);
   }
 
@@ -171,7 +171,7 @@ public class Pattern {
 
   public Pattern withMask(Pattern pMask) {
     if (isValid()) {
-      Mat mask = Finder2.getNewMat();
+      Mat mask = Finder.Finder2.getNewMat();
       if (pMask.isValid()) {
         if (pMask.hasMask()) {
           mask = pMask.getMask();
@@ -183,7 +183,7 @@ public class Pattern {
               || image.getSize().getWidth() != mask.width()
               || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
-        mask = Finder2.getNewMat();
+        mask = Finder.Finder2.getNewMat();
       } else {
         Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
       }

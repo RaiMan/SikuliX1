@@ -16,6 +16,11 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
 import org.sikuli.idesupport.ScriptingSupport;
+import org.sikuli.script.runners.ServerRunner;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -101,7 +106,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private static final String osName = System.getProperty("os.name").substring(0, 1).toLowerCase();
 
-  public static void main(String[] args) {
+  public static void run(String[] args) {
 
     RunTime.evalArgs(args);
     RunTime.readExtensions(true);
@@ -120,7 +125,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       prepareMac();
     }
 
-    run(args);
+    doRun(args);
   }
 
   private static void prepareMac() {
@@ -202,16 +207,18 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   private static Boolean newBuildAvailable = null;
   private static String newBuildStamp = "";
 
-  public static void run(String[] args) {
+  public static void doRun(String[] args) {
 
     RunTime.evalArgs(args);
 
-    runTime = RunTime.get(RunTime.Type.IDE);
-
-    if (runTime.shouldRunServer()) {
-      RunServer.run(null);
-      System.exit(0);
+    if (RunTime.shouldRunServer()) {
+      if (ServerRunner.run(null)) {
+        Sikulix.terminate(1, "");
+      }
+      Sikulix.terminate();
     }
+
+    runTime = RunTime.get(RunTime.Type.IDE);
 
     getInstance();
 
@@ -1077,7 +1084,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       for (String specialFile : specialFiles.keySet()) {
         msg += specialFile + "\n";
       }
-      Boolean answer = Do.popAsk(msg, "", false, 5);
+      Boolean answer = SX.popAsk(msg, "", false, 5);
       if (null != answer && answer) {
         log(lvl, "Open Special: should load");
         String selectedFile = specialFiles.get(msg.trim()) + "###isText";

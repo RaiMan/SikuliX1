@@ -32,13 +32,13 @@ public class ObserveEvent {
   private String name;
   private Object[] vals = new Object[] {null, null, null};
 
-  protected ObserveEvent() {
+  public ObserveEvent() {
   }
 
   /**
    * INTERNAL USE ONLY: creates an observed event
    */
-  protected ObserveEvent(String name, Type type, Object v1, Object v2, Object v3, long now) {
+  public ObserveEvent(String name, Type type, Object v1, Object v2, Object v3, long now) {
     init(name, type, v1, v2, v3, now);
   }
 
@@ -126,7 +126,7 @@ public class ObserveEvent {
    * @param v2
    * @param v3
    */
-  protected void setVals(Object v1, Object v2, Object v3) {
+  public void setVals(Object v1, Object v2, Object v3) {
     vals[0] = v1;
     vals[1] = v2;
     vals[2] = v3;
@@ -156,7 +156,7 @@ public class ObserveEvent {
     return region;
   }
 
-  protected void setRegion(Object r) {
+  public void setRegion(Object r) {
     if (r instanceof Region) {
       region = (Region) r;
     }
@@ -170,13 +170,13 @@ public class ObserveEvent {
     return match;
   }
 
-  protected void setMatch(Object m) {
+  public void setMatch(Object m) {
     if (null != m && m instanceof Match) {
       match = new Match((Match) m);
     }
   }
 
-  protected void setIndex(int index) {
+  public void setIndex(int index) {
     this.index = index;
   }
 
@@ -188,7 +188,7 @@ public class ObserveEvent {
     return changes;
   }
 
-  protected void setChanges(List<Match> actualChanges) {
+  public void setChanges(List<Match> actualChanges) {
     if (actualChanges != null) {
       this.changes = new ArrayList<Match>();
       this.changes.addAll(actualChanges);

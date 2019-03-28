@@ -22,6 +22,9 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
 import org.sikuli.idesupport.ScriptingSupport;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RobotDesktop;
+import org.sikuli.script.support.Runner;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 
@@ -240,7 +243,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           public void run() {
             Region at = Mouse.at().offset(100,52).grow(10);
             ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-            Do.popup( "Script not yet saved","IDE: About: script info", "", false, 2, at);
+            SX.popup( "Script not yet saved","IDE: About: script info", "", false, 2, at);
           }
         }).start();
       } else {
@@ -252,7 +255,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
                       cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
               Region at = Mouse.at().offset(200,78).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-              Do.popup( msg,"IDE: About: script info", "", false,10, at);
+              SX.popup( msg,"IDE: About: script info", "", false,10, at);
             }
           }).start();
         } else if (!cp.isText){
@@ -263,7 +266,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
                       cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
               Region at = Mouse.at().offset(100,65).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-              Do.popup( msg,"IDE: About: script info", "", false, 10, at);
+              SX.popup( msg,"IDE: About: script info", "", false, 10, at);
             }
           }).start();
         }

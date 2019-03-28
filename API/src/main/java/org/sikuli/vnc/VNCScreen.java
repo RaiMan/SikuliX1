@@ -4,10 +4,10 @@
 package org.sikuli.vnc;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.util.OverlayCapturePrompt;
-import org.sikuli.util.ScreenHighlighter;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
