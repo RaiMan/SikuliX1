@@ -14,6 +14,7 @@ import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Sikulix;
@@ -136,6 +137,8 @@ public class JythonRunner extends AbstractScriptRunner {
       sysargv = new ArrayList<String>();
       sysargv.add(pyFile.getAbsolutePath());
       Settings.BundlePath = pyFile.getParent();
+      if (null == ImagePath.getBundlePathSet())
+        ImagePath.getBundlePath();
       if (argv != null) {
         sysargv.addAll(Arrays.asList(argv));
       }

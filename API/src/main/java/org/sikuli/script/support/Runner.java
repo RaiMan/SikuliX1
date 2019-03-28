@@ -119,7 +119,7 @@ public class Runner {
           try {
             current = cl.getConstructor().newInstance();
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+              | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
             log(lvl, "warning: %s", e.getMessage());
             continue;
@@ -241,21 +241,15 @@ public class Runner {
   }
 
   public static synchronized int run(String script, String[] args) {
-   return run(script, args, null);
+    return run(script, args, null);
   }
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
     String savePath = ImagePath.getBundlePathSet();
-
     IScriptRunner runner = Runner.getRunner(script);
-
     int retVal;
-
     retVal = runner.runScript(script, args, options);
-
-    if (savePath != null) {
-      ImagePath.setBundlePath(savePath);
-    }
+    ImagePath.setBundlePathForce(savePath);
     lastReturnCode = retVal;
     return retVal;
   }
@@ -264,8 +258,7 @@ public class Runner {
     return lastReturnCode;
   }
 
-  public static int runScripts(String[] args) {
-    String[] runScripts = null;
+  public static int runScripts(String[] runScripts) {
     String someJS = "";
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {

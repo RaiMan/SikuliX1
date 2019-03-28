@@ -17,7 +17,7 @@ import java.util.List;
 
 public class SikulixTest {
 
-  //<editor-fold desc="housekeeping">
+  //<editor-fold desc="00 housekeeping">
   private static Screen scr;
 
   private static long start = -1;
@@ -242,7 +242,7 @@ public class SikulixTest {
       after();
     }
 
-    //<editor-fold desc="test1 exists">
+    //<editor-fold desc="test01 exists">
     if (shouldRunTest(1)) {
       before("test1", "scr.exists(testImage)");
       show(testImage, 0);
@@ -253,7 +253,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test2 findChange">
+    //<editor-fold desc="test02 findChange">
     if (shouldRunTest(2)) {
       before("test2", "findChanges");
       show(testImage, 0);
@@ -269,7 +269,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test3 text OCR">
+    //<editor-fold desc="test03 text OCR">
     if (shouldRunTest(3)) {
       before("test3", "text OCR");
       if (openTestPage()) {
@@ -283,7 +283,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test4 find word">
+    //<editor-fold desc="test04 find word">
     if (shouldRunTest(4)) {
       before("test4", "findWord");
       String aWord = "brown";
@@ -298,7 +298,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test5 findLines with RegEx">
+    //<editor-fold desc="test05 findLines with RegEx">
     if (shouldRunTest(5)) {
       before("test5", "findLines with RegEx");
       String aRegex = "jumps.*?lazy";
@@ -317,7 +317,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test6 Region.find(someText)">
+    //<editor-fold desc="test06 Region.find(someText)">
     if (shouldRunTest(6)) {
       before("test6", "Region.find(someText)");
       String[] aTexts = new String[]{"another", "very, very lazy dog", "very + dog"};
@@ -333,7 +333,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test7 Region.findAll(someText)">
+    //<editor-fold desc="test07 Region.findAll(someText)">
     if (shouldRunTest(7)) {
       before("test7", "Region.findAll(someText)");
       String aText = "very lazy dog";
@@ -349,7 +349,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test8 Region.getWordList/getLineList">
+    //<editor-fold desc="test08 Region.getWordList/getLineList">
     if (shouldRunTest(8)) {
       before("test8", "Region.getWords/getLines");
       if (openTestPage()) {
@@ -377,7 +377,7 @@ public class SikulixTest {
     }
     //</editor-fold>
 
-    //<editor-fold desc="test9 basic transparency">
+    //<editor-fold desc="test09 basic transparency">
     if (shouldRunTest(9)) {
       before("test9", "basic transparency");
       Pattern imgBG = new Pattern(Image.create("buttonTextOpa"));
@@ -474,29 +474,25 @@ public class SikulixTest {
         firefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
         notepad = "C:\\Program Files\\Notepad++\\notepad++.exe";
       }
-      App appN = App.open(notepad);
-      App app = new App("/Applications/Brackets.app");
+      App app = new App(notepad);
+//      App app = new App("/Applications/Brackets.app");
 //      App app = new App("preview");
 //      App apps = new App("safari");
 //      app = new App(firefox);
 //      app = new App(chrome);
       app.open(10);
-      RunTime.pause(3);
+      //RunTime.pause(3);
       app.focus();
       if (app.isRunning(5)) {
         List<Region> windows = app.getWindows();
         for (Region window : windows) {
-          p("%s", window);
+          p("window: %s", window);
         }
-        RunTime.pause(10);
-        //p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
-        //RunTime.pause(2);
+        RunTime.pause(3);
         //app.close();
         app.closeByKey();
-        //p("app: %s (%s)", app, app.window());
         app.open(5);
-        //app = App.open(chrome);
         p("app: %s (%s)", app, app.focusedWindow());
         app.focusedWindow().highlight(2);
       }

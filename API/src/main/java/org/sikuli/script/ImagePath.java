@@ -589,6 +589,14 @@ public class ImagePath {
     return true;
   }
 
+  public static void setBundlePathForce(String bPath) {
+    if (bPath == null) {
+      imagePaths.set(0, null);
+    } else {
+      setBundlePath(bPath);
+    }
+  }
+
   /**
    * no trailing path separator
    *

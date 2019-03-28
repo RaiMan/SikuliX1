@@ -17,10 +17,10 @@ import os
 import inspect
 
 #Debug.log(3, "Jython: sikuli: Sikuli: backports from Version 2: Do")
-import org.sikuli.script.Do as Do
+import org.sikuli.script.SX as Do
 
 #Debug.log(3, "Jython: sikuli: Sikuli: RunTime, Setting, Debug")
-import org.sikuli.script.RunTime as JRunTime
+import org.sikuli.script.support.RunTime as JRunTime
 
 class RunTime(JRunTime):
   pass
@@ -66,7 +66,7 @@ def wait(target, timeout=None):
     return SCREEN.wait(target, timeout)
 
 #Debug.log(3, "Jython: sikuli: Sikuli: import ScreenUnion")
-from org.sikuli.script import ScreenUnion
+#from org.sikuli.script import ScreenUnion
 
 #Debug.log(3, "Jython: sikuli: Sikuli: import Location, Offset")
 import org.sikuli.script.Location as JLocation
@@ -125,7 +125,7 @@ class Key(JKey):
 
 from org.sikuli.script import KeyModifier
 from org.sikuli.script.KeyModifier import KEY_CTRL, KEY_SHIFT, KEY_META, KEY_CMD, KEY_WIN, KEY_ALT
-from org.sikuli.script import Device
+#from org.sikuli.script import Device
 
 from org.sikuli.script import Mouse
 
@@ -143,14 +143,8 @@ import SikuliImporter
 #Debug.log(3, "Jython: sikuli: Sikuli: import Sikulix")
 from org.sikuli.script import Sikulix
 
-#Debug.log(3, "Jython: sikuli: Sikuli: import ScriptingSupport")
-SCRIPT_SUPPORT = True
-try:
-  from org.sikuli.scriptrunner import ScriptingSupport
-except:
-  SCRIPT_SUPPORT = False
-
-import org.sikuli.script.Runner as Runner
+#Debug.log(3, "Jython: sikuli: Sikuli: import Runner")
+import org.sikuli.script.support.Runner as Runner
 
 import org.sikuli.script.runnerHelpers.JythonHelper as JythonHelper
 
@@ -576,16 +570,10 @@ def run(cmd):
 # @args the parameters for the called script (sys.argv)
 # @return returns the scripts return code given with exit(n)
 def runScript(script, *args):
-  if SCRIPT_SUPPORT:
-    return ScriptingSupport.run(unicd(script), args)
-  else:
-    return Runner.run(unicd(script), args)
+  return Runner.run(unicd(script), args)
 
 def getLastReturnCode():
-  if SCRIPT_SUPPORT:
-    return ScriptingSupport.getLastReturnCode()
-  else:
-    return Runner.getLastReturnCode()
+  return Runner.getLastReturnCode()
 
 ##
 # helper functions, that can be used when sorting lists of regions

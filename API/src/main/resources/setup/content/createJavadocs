@@ -9,6 +9,7 @@ echo $apisrc/Match.java >>createJavadocsClasses
 echo $apisrc/Screen.java >>createJavadocsClasses
 echo $apisrc/Pattern.java >>createJavadocsClasses
 echo $apisrc/Location.java >>createJavadocsClasses
+echo $apisrc/Offset.java >>createJavadocsClasses
 echo $apisrc/Image.java >>createJavadocsClasses
 echo $apisrc/ImagePath.java >>createJavadocsClasses
 echo $apisrc/ScreenImage.java >>createJavadocsClasses

@@ -22,6 +22,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.util.*;
+import py4Java.GatewayServer;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -126,6 +127,27 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       Debug.log(3,"Sikulix: starting IDE");
     }
 
+    if (RunTime.get().runningScripts()) {
+      int exitCode = Runner.runScripts(RunTime.getRunScripts());
+      Sikulix.terminate(exitCode, "");
+    }
+
+    if (RunTime.get().shouldRunServer()) {
+      if (ServerRunner.run(null)) {
+        Sikulix.terminate(1, "");
+      }
+      Sikulix.terminate();
+    }
+
+    if (RunTime.get().shouldRunPythonServer()) {
+      RunTime rt = RunTime.get();
+      if (Debug.getDebugLevel() == 3) {
+      }
+      GatewayServer pythonserver = new GatewayServer(new Object());
+      pythonserver.start(false);
+      Sikulix.terminate();
+    }
+
     if ("m".equals(osName)) {
       prepareMac();
     }
@@ -213,15 +235,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   private static String newBuildStamp = "";
 
   public static void doRun(String[] args) {
-
-    RunTime.evalArgs(args);
-
-    if (RunTime.shouldRunServer()) {
-      if (ServerRunner.run(null)) {
-        Sikulix.terminate(1, "");
-      }
-      Sikulix.terminate();
-    }
 
     runTime = RunTime.get(RunTime.Type.IDE);
 

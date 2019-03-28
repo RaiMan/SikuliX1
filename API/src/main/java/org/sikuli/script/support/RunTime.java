@@ -49,11 +49,12 @@ import java.util.zip.ZipInputStream;
 public class RunTime {
 
   private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
+  private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
   public static boolean start(RunTime.Type type, String[] args) {
 
-    boolean isIDE = Type.IDE.equals(type);
+     if (Type.API.equals(type)) startAsIDE = false;
 
     evalArgsStart(args);
 
@@ -72,22 +73,28 @@ public class RunTime {
       while (true) {
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
-        cmd.add("-Dsikuli.IDE_should_run");
+        if (startAsIDE) {
+          cmd.add("-Dsikuli.IDE_should_run");
+        } else {
+          cmd.add("-Dsikuli.API_should_run");
+        }
         if (!classPath.isEmpty()) {
           cmd.add("-cp");
           cmd.add(classPath);
         }
-        if (isIDE) {
+        if (startAsIDE) {
           cmd.add("org.sikuli.ide.SikulixIDE");
         } else {
-          cmd.add("org.sikuli.ide.SikulixAPI");
+          cmd.add("org.sikuli.script.support.SikulixAPI");
         }
         cmd.addAll(Arrays.asList(args));
         exitValue = ProcessRunner.detach(cmd);
         if (exitValue < 255) {
-          System.out.println(String.format("%s terminated: returned: %d", type, exitValue));
+          if (startAsIDE) {
+            System.out.println(String.format("%s terminated: returned: %d", type, exitValue));
+          }
         } else {
-          if (isIDE) {
+          if (startAsIDE) {
             System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
             classPath = makeClassPath(runningJar);
             continue;
@@ -326,6 +333,10 @@ public class RunTime {
       asServer = true;
     }
 
+    if (cmdLineValid && cmdLine.hasOption("p")) {
+      asPyServer = true;
+    }
+
     if (cmdLineValid && cmdLine.hasOption("m")) {
       setAllowMultiple();
     }
@@ -362,7 +373,7 @@ public class RunTime {
     for (String arg : args) {
       if ("-v".equals(arg)) {
         setVerbose(true);
-      } else  if ("-q".equals(arg)) {
+      } else if ("-q".equals(arg)) {
         setQuiet(true);
       }
     }
@@ -479,6 +490,12 @@ public class RunTime {
 
   private static boolean asServer = false;
 
+  public static boolean shouldRunPythonServer() {
+    return asPyServer;
+  }
+
+  private static boolean asPyServer = false;
+
   public static void setAllowMultiple() {
     allowMultiple = true;
   }
@@ -550,15 +567,27 @@ public class RunTime {
   private static boolean quiet = false;
 
   public static void startLog(int level, String msg, Object... args) {
-    String msgShow = "[DEBUG] RunIDE: " + msg;
+    String typ = startAsIDE ? "IDE" : "API";
+    String msgShow = String.format("[DEBUG] %s: ", typ) + msg;
     if (level < 0) {
-      msgShow = "[ERROR] RunIDE: " + msg;
+      msgShow = String.format("[ERROR] %s: ", typ) + msg;
     } else if (!isVerbose()) {
       return;
     }
     if (!isQuiet()) {
       System.out.println(String.format(msgShow, args));
     }
+  }
+
+  public static String arrayToString(String[] args) {
+    String ret = "";
+    for (String s : args) {
+      if (s.contains(" ")) {
+        s = "\"" + s + "\"";
+      }
+      ret += s + " ";
+    }
+    return ret;
   }
 
   private void log(int level, String message, Object... args) {
@@ -763,7 +792,7 @@ public class RunTime {
     runTime = new RunTime();
 
     //<editor-fold defaultstate="collapsed" desc="versions">
-    if (isVerbose()) {
+    if (Debug.getDebugLevel() > 3) {
       runTime.dumpSysProps();
     }
     String vJava = System.getProperty("java.specification.version");
@@ -788,7 +817,7 @@ public class RunTime {
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
       runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
-              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
+          runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
@@ -976,7 +1005,7 @@ public class RunTime {
 
     for (String aFile : fTempPath.list()) {
       if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
-              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+          || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
         FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
       }
     }
@@ -1221,13 +1250,13 @@ public class RunTime {
 
     SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
     SikuliJythonMaven = "org/python/jython-standalone/"
-            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+        + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
     SikuliJythonMaven25 = "org/python/jython-standalone/"
-            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+        + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
     SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
     SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
     SikuliJRubyMaven = "org/jruby/jruby-complete/"
-            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+        + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
     SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
 
     String osn = "UnKnown";
@@ -1310,7 +1339,7 @@ public class RunTime {
     if (loadError != null) {
       log(-1, "Problematic lib: %s (...TEMP...)", fLib);
       log(-1, "%s loaded, but it might be a problem with needed dependent libraries\nERROR: %s",
-              libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
+          libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
@@ -1383,7 +1412,7 @@ public class RunTime {
         }
       }
       if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-              libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
+          libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
       }
@@ -1395,7 +1424,7 @@ public class RunTime {
         terminate(999, "libsExport: folder not available: " + fLibsFolder.toString());
       }
       String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-              getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
+          getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
       FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
@@ -1587,8 +1616,8 @@ public class RunTime {
       return;
     }
     if (!fSikulixLib.exists()
-            || !new File(fSikulixLib, "robot").exists()
-            || !new File(fSikulixLib, "sikuli").exists()) {
+        || !new File(fSikulixLib, "robot").exists()
+        || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
       extractResourcesToFolder("Lib", fSikulixLib, null);
     } else {
@@ -1681,7 +1710,7 @@ public class RunTime {
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
     logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
-            (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
+        (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
     //logp("libs folder: %s", fLibsFolder);
@@ -2788,9 +2817,9 @@ public class RunTime {
     try {
       if (!silent) {
         if (lvl <= Debug.getDebugLevel()) {
-          log(lvl, Sikulix.arrayToString(args));
+          log(lvl, arrayToString(args));
         } else {
-          Debug.info("runcmd: " + Sikulix.arrayToString(args));
+          Debug.info("runcmd: " + arrayToString(args));
         }
       }
       //TODO use ProcessRunner

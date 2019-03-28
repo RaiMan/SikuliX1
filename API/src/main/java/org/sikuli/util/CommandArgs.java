@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -32,7 +33,7 @@ public class CommandArgs {
     CommandLine cmd = null;
 
     boolean isUserArg = false;
-    for (int i=0; i < args.length; i++) {
+    for (int i = 0; i < args.length; i++) {
       if (!isUserArg && args[i].startsWith("--")) {
         isUserArg = true;
         continue;
@@ -66,57 +67,64 @@ public class CommandArgs {
   private void init() {
     cmdArgs = new Options();
     cmdArgs.addOption(CommandArgsEnum.HELP.shortname(),
-            CommandArgsEnum.HELP.longname(), false, CommandArgsEnum.HELP.description());
+        CommandArgsEnum.HELP.longname(), false, CommandArgsEnum.HELP.description());
 
     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.DEBUG.longname())
+        OptionBuilder.withLongOpt(CommandArgsEnum.DEBUG.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.DEBUG.argname())
             .withDescription(CommandArgsEnum.DEBUG.description())
             .create(CommandArgsEnum.DEBUG.shortname().charAt(0)));
 
     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.LOGFILE.longname())
+        OptionBuilder.withLongOpt(CommandArgsEnum.LOGFILE.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.LOGFILE.argname())
             .withDescription(CommandArgsEnum.LOGFILE.description())
             .create(CommandArgsEnum.LOGFILE.shortname().charAt(0)));
 
     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.USERLOGFILE.longname())
+        OptionBuilder.withLongOpt(CommandArgsEnum.USERLOGFILE.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.USERLOGFILE.argname())
             .withDescription(CommandArgsEnum.USERLOGFILE.description())
             .create(CommandArgsEnum.USERLOGFILE.shortname().charAt(0)));
 
     cmdArgs.addOption(CommandArgsEnum.CONSOLE.shortname(),
-            CommandArgsEnum.CONSOLE.longname(), false, CommandArgsEnum.CONSOLE.description());
+        CommandArgsEnum.CONSOLE.longname(), false, CommandArgsEnum.CONSOLE.description());
 
     cmdArgs.addOption(CommandArgsEnum.VERBOSE.shortname(),
-            CommandArgsEnum.VERBOSE.longname(), false, CommandArgsEnum.VERBOSE.description());
+        CommandArgsEnum.VERBOSE.longname(), false, CommandArgsEnum.VERBOSE.description());
 
     cmdArgs.addOption(CommandArgsEnum.QUIET.shortname(),
-            CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
+        CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
 
     cmdArgs.addOption(CommandArgsEnum.MULTI.shortname(),
         CommandArgsEnum.MULTI.longname(), false, CommandArgsEnum.MULTI.description());
 
     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
+        OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
             .hasOptionalArg()
             .withArgName(CommandArgsEnum.SERVER.argname())
             .withDescription(CommandArgsEnum.SERVER.description())
             .create(CommandArgsEnum.SERVER.shortname().charAt(0)));
 
-     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.LOAD.longname())
+    cmdArgs.addOption(
+        OptionBuilder.withLongOpt(CommandArgsEnum.PYTHONSERVER.longname())
+            .hasOptionalArg()
+            .withArgName(CommandArgsEnum.PYTHONSERVER.argname())
+            .withDescription(CommandArgsEnum.PYTHONSERVER.description())
+            .create(CommandArgsEnum.PYTHONSERVER.shortname().charAt(0)));
+
+    cmdArgs.addOption(
+        OptionBuilder.withLongOpt(CommandArgsEnum.LOAD.longname())
             .withDescription(CommandArgsEnum.LOAD.description())
             .hasOptionalArgs()
             .withArgName(CommandArgsEnum.LOAD.argname())
             .create(CommandArgsEnum.LOAD.shortname().charAt(0)));
 
     cmdArgs.addOption(
-            OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
+        OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
             .withDescription(CommandArgsEnum.RUN.description())
             .hasOptionalArgs()
             .withArgName(CommandArgsEnum.RUN.argname())
@@ -130,16 +138,16 @@ public class CommandArgs {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp(80, "\n",
         "----- Running SikuliX " + "-------------",
-            cmdArgs,
+        cmdArgs,
         "-----\n<foobar.sikuli> (.sikuli might be omitted, is assumed)\n"
-      + "path relative to current working directory or absolute path\n"
-      + "though deprecated: so called executables .skl can be used too\n"
-      + "------\nanything after --\nor after something beginning with --\n"
-      + "go to script as user parameters (respecting enclosing \")\n"
-      + "------\n-d use this option if you encounter any weird problems\n"
-      + "DebugLevel=3 and all output goes to <workingFolder>/SikuliLog.text\n"
-      + "----------------------------------------------------------------",
-      true);
+            + "path relative to current working directory or absolute path\n"
+            + "though deprecated: so called executables .skl can be used too\n"
+            + "------\nanything after --\nor after something beginning with --\n"
+            + "go to script as user parameters (respecting enclosing \")\n"
+            + "------\n-d use this option if you encounter any weird problems\n"
+            + "DebugLevel=3 and all output goes to <workingFolder>/SikuliLog.text\n"
+            + "----------------------------------------------------------------",
+        true);
   }
 
   public static String[] scanArgs(String[] args) {
