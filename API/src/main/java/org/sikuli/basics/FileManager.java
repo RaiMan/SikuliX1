@@ -556,7 +556,7 @@ public class FileManager {
       return temp;
     } catch (IOException ex) {
       log(-1, "createTempFile: IOException: %s\n%s", ex.getMessage(),
-              fpath + File.separator + temp1 + "12....56" + temp2);
+          fpath + File.separator + temp1 + "12....56" + temp2);
       return null;
     }
   }
@@ -652,7 +652,7 @@ public class FileManager {
       }
     } catch (Exception ex) {
       log(-1, "unzip: not possible: source:\n%s\ntarget:\n%s\n(%s)%s",
-              fpZip, fpTarget, entry.getName(), ex);
+          fpZip, fpTarget, entry.getName(), ex);
       return false;
     } finally {
       try {
@@ -881,6 +881,14 @@ public class FileManager {
 
   public static String normalize(String filename) {
     return slashify(filename, false);
+  }
+
+  public static String normalize(String fileName, String folder) {
+    File file = new File(fileName);
+    if (!file.isAbsolute() && !fileName.startsWith("\\")) {
+      file = new File(folder, fileName);
+    }
+    return normalizeAbsolute(file.getPath(), false);
   }
 
   public static String normalizeAbsolute(String filename, boolean withTrailingSlash) {
@@ -1326,15 +1334,15 @@ public class FileManager {
       FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
       String script = "";
       String prolog = "import org.sikuli.script.SikulixForJython\n" +
-              "from sikuli import *\n" +
-              "Debug.on(3)\n" +
-              "for e in sys.path:\n" +
-              "    print e\n" +
-              "    if e.endswith(\".jar\"):\n" +
-              "        jar = e\n" +
-              "        break\n" +
-              "ImagePath.addJar(jar, \"\")\n" +
-              "import " + scriptName + "\n";
+          "from sikuli import *\n" +
+          "Debug.on(3)\n" +
+          "for e in sys.path:\n" +
+          "    print e\n" +
+          "    if e.endswith(\".jar\"):\n" +
+          "        jar = e\n" +
+          "        break\n" +
+          "ImagePath.addJar(jar, \"\")\n" +
+          "import " + scriptName + "\n";
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
       script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));

@@ -29,74 +29,12 @@ public class Runner {
   static final int lvl = 3;
   static final RunTime runTime = RunTime.get();
 
-  private static int lastReturnCode = 0;
-
+  //<editor-fold desc="00 runner handling">
   private static List<IScriptRunner> runners = new LinkedList<>();
   private static List<IScriptRunner> supportedRunners = new LinkedList<>();
 
   static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
-  }
-
-  public static String[] evalArgs(String[] args) {
-    CommandArgs cmdArgs = new CommandArgs();
-    CommandLine cmdLine = cmdArgs.getCommandLine(args);
-    String cmdValue;
-
-    if (cmdLine == null || cmdLine.getOptions().length == 0) {
-      log(-1, "Did not find any valid option on command line!");
-      cmdArgs.printHelp();
-      System.exit(1);
-    }
-
-    if (cmdLine.hasOption(CommandArgsEnum.HELP.shortname())) {
-      cmdArgs.printHelp();
-      System.exit(1);
-    }
-
-    if (cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
-      if (!Debug.setLogFile(cmdValue == null ? "" : cmdValue)) {
-        System.exit(1);
-      }
-    }
-
-    if (cmdLine.hasOption(CommandArgsEnum.USERLOGFILE.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.USERLOGFILE.longname());
-      if (!Debug.setUserLogFile(cmdValue == null ? "" : cmdValue)) {
-        System.exit(1);
-      }
-    }
-
-    if (cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue == null) {
-        Debug.setDebugLevel(3);
-        Settings.LogTime = true;
-        if (!Debug.isLogToFile()) {
-          Debug.setLogFile("");
-        }
-      } else {
-        Debug.setDebugLevel(cmdValue);
-      }
-    }
-
-    //TODO setArgs
-//    runTime.setArgs(cmdArgs.getUserArgs(), cmdArgs.getSikuliArgs());
-//    log(lvl, "commandline: %s", cmdArgs.getArgsOrg());
-//    if (lvl > 2) {
-//      runTime.printArgs();
-//    }
-
-    String[] runScripts = null;
-    if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
-    }
-    return runScripts;
-  }
-
-  public static int run(String givenName) {
-    return run(givenName, new String[0]);
   }
 
   private static boolean isReady = false;
@@ -239,45 +177,37 @@ public class Runner {
       return null;
     }
   }
-
-  public static synchronized int run(String script, String[] args) {
-    return run(script, args, null);
-  }
-
-  public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
-    String savePath = ImagePath.getBundlePathSet();
-    IScriptRunner runner = Runner.getRunner(script);
-    int retVal;
-    retVal = runner.runScript(script, args, options);
-    ImagePath.setBundlePathForce(savePath);
-    lastReturnCode = retVal;
-    return retVal;
-  }
+  //</editor-fold>
 
   public static int getLastReturnCode() {
     return lastReturnCode;
   }
 
+  private static int lastReturnCode = 0;
+  private static String lastWorkFolder = null;
+
   public static int runScripts(String[] runScripts) {
     String someJS = "";
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
-      for (String givenScriptName : runScripts) {
-        if (lastReturnCode == -1) {
+      for (String scriptGiven : runScripts) {
+        String  scriptName = FileManager.normalize(scriptGiven, lastWorkFolder);
+        lastWorkFolder = new File(scriptName).getParent();
+        if (lastReturnCode < 0) {
           log(lvl, "Exit code -1: Terminating multi-script-run");
           break;
         }
-        someJS = runTime.getOption("runsetup");
-        if (!someJS.isEmpty()) {
-          log(lvl, "Options.runsetup: %s", someJS);
-          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
-        }
-        exitCode = run(givenScriptName, RunTime.getUserArgs());
-        someJS = runTime.getOption("runteardown");
-        if (!someJS.isEmpty()) {
-          log(lvl, "Options.runteardown: %s", someJS);
-          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
-        }
+//        someJS = runTime.getOption("runsetup");
+//        if (!someJS.isEmpty()) {
+//          log(lvl, "Options.runsetup: %s", someJS);
+//          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
+//        }
+        exitCode = run(scriptName, RunTime.getUserArgs());
+//        someJS = runTime.getOption("runteardown");
+//        if (!someJS.isEmpty()) {
+//          log(lvl, "Options.runteardown: %s", someJS);
+//          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
+//        }
         if (exitCode == -999) {
           exitCode = lastReturnCode;
         }
@@ -285,6 +215,23 @@ public class Runner {
       }
     }
     return exitCode;
+  }
+
+  public static synchronized int run(String givenName) {
+    return run(givenName, new String[0]);
+  }
+
+  public static synchronized int run(String script, String[] args) {
+    return run(script, args, null);
+  }
+
+  public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
+    String savePath = ImagePath.getBundlePathSet();
+    IScriptRunner runner = getRunner(script);
+    int retVal;
+    retVal = runner.runScript(script, args, options);
+    ImagePath.setBundlePathForce(savePath);
+    return retVal;
   }
 
   public static File getScriptFile(File fScriptFolder) {
