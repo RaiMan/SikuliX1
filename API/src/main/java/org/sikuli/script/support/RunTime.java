@@ -542,6 +542,7 @@ public class RunTime {
       if (usePython) {
         return "text/python".equals(type);
       }
+      return "text/jython".equals(type);
     }
     return true;
   }
