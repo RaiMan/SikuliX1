@@ -15,7 +15,6 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
-import org.sikuli.idesupport.ScriptingSupport;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.IScriptRunner;
@@ -255,7 +254,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     sikulixIDE.initHotkeys();
     Debug.log(3, "IDE: Init ScriptingSupport");
 
-    ScriptingSupport.init();
+    IDESupport.init();
     IDESupport.initIDESupport();
     sikulixIDE.initSikuliIDE();
   }

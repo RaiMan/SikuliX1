@@ -19,9 +19,9 @@ import javax.swing.text.Element;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IDESupport;
 import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
-import org.sikuli.idesupport.ScriptingSupport;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RobotDesktop;
 import org.sikuli.script.support.Runner;
@@ -280,7 +280,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
       if (selOptionsTypes == null) {
         String types = "";
-        for (IScriptRunner runner : ScriptingSupport.getRunners()) {
+        for (IScriptRunner runner : IDESupport.getRunners()) {
           types += runner.getType().replaceFirst(".*?\\/", "") + " ";
         }
         if (!types.isEmpty()) {

@@ -25,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
@@ -32,13 +33,12 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.idesupport.ScriptingSupport;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
-import org.sikuli.syntaxhighlight.ResolutionException;
-import org.sikuli.syntaxhighlight.grammar.Lexer;
-import org.sikuli.syntaxhighlight.grammar.Token;
-import org.sikuli.syntaxhighlight.grammar.TokenType;
+import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
+import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.util.SikulixFileChooser;
 
 public class EditorPane extends JTextPane {
@@ -139,7 +139,7 @@ public class EditorPane extends JTextPane {
 
     log(lvl, "initBeforeLoad: %s", scriptIdentifier);
     if (scriptIdentifier == null) {
-      scriptIdentifier = ScriptingSupport.getDefaultExtension();
+      scriptIdentifier = IDESupport.getDefaultExtension();
       paneIsEmpty = true;
     }
 
@@ -543,7 +543,7 @@ public class EditorPane extends JTextPane {
     log(lvl, "saveAsBundle: " + getSrcBundle());
     bundlePath = FileManager.slashify(bundlePath, true);
     if (_srcBundlePath != null) {
-      if (!ScriptingSupport.transferScript(_srcBundlePath, bundlePath)) {
+      if (!IDESupport.transferScript(_srcBundlePath, bundlePath)) {
         log(-1, "saveAsBundle: did not work - ");
       }
     }
