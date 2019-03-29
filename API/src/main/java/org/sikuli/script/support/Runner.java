@@ -67,7 +67,7 @@ public class Runner {
           if (name != null && !name.startsWith("Not")) {
             runners.add(current);
             if (current.isSupported()) {
-              log(lvl, "added: %s", current.getName());
+              log(lvl, "added: %s %s %s", current.getName(), Arrays.toString(current.getExtensions()), current.getType());
               supportedRunners.add(current);
             }
           }
@@ -81,16 +81,16 @@ public class Runner {
     if (identifier == null) {
       return null;
     }
-
     synchronized (runners) {
       initRunners();
-
       for (IScriptRunner r : supportedRunners) {
         if (r.canHandle(identifier)) {
+          if (!RunTime.shouldCheckContent(r.getType(), identifier)) {
+            continue;
+          }
           return r;
         }
       }
-
       log(-1, "getRunner: no runner found for:\n%s", identifier);
       return new InvalidRunner(identifier);
     }
@@ -107,7 +107,6 @@ public class Runner {
   public static IScriptRunner getRunner(Class<? extends IScriptRunner> runnerClass) {
     synchronized (runners) {
       initRunners();
-
       for (IScriptRunner r : supportedRunners) {
         if (r.getClass().equals(runnerClass)) {
           return r;
@@ -168,7 +167,6 @@ public class Runner {
       for (IScriptRunner r : runners) {
         if (r.canHandle(identifier)) {
           String[] extensions = r.getExtensions();
-
           if (extensions.length > 0) {
             return extensions[0];
           }
@@ -191,8 +189,13 @@ public class Runner {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
       for (String scriptGiven : runScripts) {
-        String  scriptName = FileManager.normalize(scriptGiven, lastWorkFolder);
-        lastWorkFolder = new File(scriptName).getParent();
+        String  scriptFileName = FileManager.normalize(scriptGiven, lastWorkFolder);
+        if (!new File(scriptFileName).exists()) {
+          log(-1, "Script file not found: %s", scriptFileName);
+          exitCode = 1;
+          break;
+        }
+        lastWorkFolder = new File(scriptFileName).getParent();
         if (lastReturnCode < 0) {
           log(lvl, "Exit code -1: Terminating multi-script-run");
           break;
@@ -202,7 +205,7 @@ public class Runner {
 //          log(lvl, "Options.runsetup: %s", someJS);
 //          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
 //        }
-        exitCode = run(scriptName, RunTime.getUserArgs());
+        exitCode = run(scriptFileName, RunTime.getUserArgs());
 //        someJS = runTime.getOption("runteardown");
 //        if (!someJS.isEmpty()) {
 //          log(lvl, "Options.runteardown: %s", someJS);

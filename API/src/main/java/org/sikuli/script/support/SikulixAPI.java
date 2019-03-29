@@ -16,55 +16,9 @@ public class SikulixAPI {
 
   public static void main(String[] args) {
 
-    if (null == System.getProperty("sikuli.API_should_run")) {
-      System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
-      System.exit(1);
-    }
+    RunTime.afterStart(RunTime.Type.API, args);
 
-    if (args.length == 1 && "buildDate".equals(args[0])) {
-      RunTime runTime = RunTime.get();
-      System.out.println(runTime.SXBuild);
-      System.exit(0);
-    }
-
-    if (args.length == 0) {
-      TextRecognizer.extractTessdata();
-      Sikulix.terminate();
-    }
-
-    RunTime.evalArgs(args);
-    RunTime.readExtensions(true);
-
-    if (RunTime.isQuiet()) {
-      Debug.quietOn();
-    } else if (RunTime.isVerbose()) {
-      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
-      Debug.setGlobalDebug(3);
-      Debug.globalTraceOn();
-      Debug.setStartWithTrace();
-      Debug.log(3,"Sikulix: starting API");
-    }
-
-    if (RunTime.get().runningScripts()) {
-      int exitCode = Runner.runScripts(RunTime.getRunScripts());
-      Sikulix.terminate(exitCode, "");
-    }
-
-    if (RunTime.get().shouldRunServer()) {
-      if (ServerRunner.run(null)) {
-        Sikulix.terminate(1, "");
-      }
-      Sikulix.terminate();
-    }
-
-    if (RunTime.get().shouldRunPythonServer()) {
-      RunTime rt = RunTime.get();
-      if (Debug.getDebugLevel() == 3) {
-      }
-      GatewayServer pythonserver = new GatewayServer(new Object());
-      pythonserver.start(false);
-      Sikulix.terminate();
-    }
+    Debug.log(3,"Sikulix: starting API");
 
     if (args.length == 1 && "runtest".equals(args[0])) {
       SikulixTest.main(new String[]{});

@@ -305,7 +305,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         SikulixIDE.getStatusbar().setCurrentContentType(currentType);
         return;
       }
-      String targetEnding = Runner.getExtension(targetType);
+      //String targetEnding = Runner.getExtension(targetType);
       if (cp.getText().length() > 0) {
         if (!Sikulix.popAsk(String.format(
                 "Switch to %s requested, but tab is not empty!\n"
@@ -316,7 +316,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         }
       }
       if (error.isEmpty()) {
-        cp.reInit(targetEnding);
+        cp.reInit(targetType);
         cp.setText("");
         error = ": (" + targetType + ")";
         SikulixIDE.getStatusbar().setCurrentContentType(targetType);

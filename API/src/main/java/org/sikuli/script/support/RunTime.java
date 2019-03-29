@@ -14,11 +14,14 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.PythonRunner;
+import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
+import py4Java.GatewayServer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,7 +58,7 @@ public class RunTime {
   //<editor-fold desc="01 startup">
   public static boolean start(RunTime.Type type, String[] args) {
 
-     if (Type.API.equals(type)) startAsIDE = false;
+    if (Type.API.equals(type)) startAsIDE = false;
 
     evalArgsStart(args);
 
@@ -105,6 +108,65 @@ public class RunTime {
       }
     }
 
+  }
+
+  public static void afterStart(RunTime.Type type, String[] args) {
+
+    if (startAsIDE) {
+      if (null == System.getProperty("sikuli.IDE_should_run")) {
+        System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
+        System.exit(1);
+      }
+    } else {
+      if (null == System.getProperty("sikuli.API_should_run")) {
+        System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
+        System.exit(1);
+      }
+
+      if (args.length == 1 && "buildDate".equals(args[0])) {
+        RunTime runTime = RunTime.get();
+        System.out.println(runTime.SXBuild);
+        System.exit(0);
+      }
+
+      if (args.length == 0) {
+        TextRecognizer.extractTessdata();
+        Sikulix.terminate();
+      }
+    }
+
+    RunTime.evalArgs(args);
+    RunTime.readExtensions(true);
+
+    if (RunTime.isQuiet()) {
+      Debug.quietOn();
+    } else if (RunTime.isVerbose()) {
+      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
+      Debug.setGlobalDebug(3);
+      Debug.globalTraceOn();
+      Debug.setStartWithTrace();
+    }
+
+    if (RunTime.get().runningScripts()) {
+      int exitCode = Runner.runScripts(RunTime.getRunScripts());
+      Sikulix.terminate(exitCode, "");
+    }
+
+    if (RunTime.get().shouldRunServer()) {
+      if (ServerRunner.run(null)) {
+        Sikulix.terminate(1, "");
+      }
+      Sikulix.terminate();
+    }
+
+    if (RunTime.get().shouldRunPythonServer()) {
+      RunTime rt = RunTime.get();
+      if (Debug.getDebugLevel() == 3) {
+      }
+      GatewayServer pythonserver = new GatewayServer(new Object());
+      pythonserver.start(false);
+      Sikulix.terminate();
+    }
   }
 
   private static File getRunningJar() {
@@ -237,6 +299,7 @@ public class RunTime {
     String txtExtensions = FileManager.readFileToString(new File(sxExtensions, "extensions.txt"));
     List<String> extGiven = new ArrayList<>();
     if (!txtExtensions.isEmpty()) {
+      sxExtensionsFile = new File(sxExtensions, "extensions.txt");
       String[] lines = txtExtensions.split("\\n");
       String extlines = "";
       for (String line : lines) {
@@ -301,6 +364,16 @@ public class RunTime {
     }
   }
 
+  public static boolean hasExtensionsFile() {
+    return sxExtensionsFile != null;
+  }
+
+  public static File getSxExtensionsFile() {
+    return sxExtensionsFile;
+  }
+
+  private static File sxExtensionsFile = null;
+
   public static void evalArgs(String[] args) {
 
     CommandLine cmdLine;
@@ -345,7 +418,7 @@ public class RunTime {
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
       cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
       if (cmdValue != null) {
-        debugLevelString = cmdValue;
+        debugLevelStart = cmdValue;
       }
     }
 
@@ -455,11 +528,48 @@ public class RunTime {
 
   private static boolean jrubyExtern = false;
 
-  public static String getDebugLevel() {
-    return debugLevelString;
+  public static boolean shouldCheckContent(String type, String identifier) {
+    boolean usePython = false;
+    if (type.contains("ython") && hasPython()) {
+      if (type.equals(identifier)) {
+        return true;
+      }
+      if (asPyServer) {
+        usePython = true;
+      } else if (hasShebang("#!PYTHON", identifier)) {
+        usePython = true;
+      }
+      if (usePython) {
+        return "text/python".equals(type);
+      }
+    }
+    return true;
   }
 
-  private static String debugLevelString = "0";
+  public static boolean hasShebang(String type, String scriptFile) {
+    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
+      char[] chars = new char[type.length()];
+      int read = reader.read(chars);
+      if (read == type.length()) {
+        if (type.equals(new String(chars))) {
+          return true;
+        }
+      }
+    } catch (Exception ex) {
+    }
+    return false;
+  }
+
+  public static int getDebugLevelStart() {
+    int level = 0;
+    try {
+      level = Integer.parseInt(debugLevelStart);
+    } catch (NumberFormatException ex) {
+    }
+    return level;
+  }
+
+  private static String debugLevelStart = "0";
 
   public static String getLogFile() {
     return logFile;
@@ -626,7 +736,9 @@ public class RunTime {
     Map<String, String> specialFiles = new HashMap<>();
     if (null != sxOptions) {
       specialFiles.put("SikuliX Global Options", sxOptions.getOptionsFile());
-
+    }
+    if (hasExtensionsFile()) {
+      specialFiles.put("SikuliX Extensions Options", sxExtensionsFile.getAbsolutePath());
     }
     return specialFiles;
   }
@@ -1137,7 +1249,6 @@ public class RunTime {
 
   //<editor-fold desc="99 cleanUp">
   public static void cleanUp() {
-    Debug.resetGlobalDebug();
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       ScreenHighlighter.closeAll();
@@ -1153,7 +1264,6 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
-    Debug.off();
   }
 
   private static void runShutdownHook() {
@@ -1903,7 +2013,8 @@ public class RunTime {
    * @param filter       implementation of interface FilenameFilter or null for no filtering
    * @return the filtered list of files (compact sikulixcontent format)
    */
-  public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter filter) {
+  public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
+      filter) {
     List<String> content = new ArrayList<String>();
     File faJar = new File(aJar);
     URL uaJar = null;
@@ -2181,7 +2292,8 @@ public class RunTime {
    * @param filter       implementation of interface FilenameFilter or null for no filtering
    * @return success
    */
-  public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter filter) {
+  public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
+      filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
     if (contentList == null || contentList.size() == 0) {
       log(-1, "resourceListAsSikulixContentFromJar: did not work: %s", folder);

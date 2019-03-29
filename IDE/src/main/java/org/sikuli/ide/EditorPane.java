@@ -413,7 +413,7 @@ public class EditorPane extends JTextPane {
 
   public void checkSourceForBundlePath() {
     String scriptText = getText();
-    if (scriptText.startsWith("#!PYTHON")){
+    if (RunTime.hasPython() && scriptText.startsWith("#!PYTHON")){
       sikuliContentType = "text/python";
     } else {
       sikuliContentType = "text/jython";

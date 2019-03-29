@@ -131,9 +131,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int runScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     synchronized(this) {
-      Debug.off();
       init(null);
-      return doRunScript(scriptfile, scriptArgs, options);
+      int savedLevel = Debug.getDebugLevel();
+      Debug.off();
+      int exitValue = doRunScript(scriptfile, scriptArgs, options);
+      Debug.setDebugLevel(savedLevel);
+      return exitValue;
     }
   }
 
@@ -238,11 +241,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public void execBefore(String[] stmts) {
-    logNotSupported("execBefore");
+    // noop if not implemented
   }
 
   @Override
   public void execAfter(String[] stmts) {
-    logNotSupported("execBefore");
+    // noop if not implemented
   }
 }
