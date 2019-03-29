@@ -8,7 +8,7 @@ import org.sikuli.idesupport.IIndentationLogic;
 
 public interface IIDESupport {
 
-	public String[] getEndings();
+	public String[] getTypes();
 
 	public IIndentationLogic getIndentationLogic();
 

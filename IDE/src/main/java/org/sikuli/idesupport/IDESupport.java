@@ -31,7 +31,7 @@ public class IDESupport {
 		while (supIterator.hasNext()) {
 			IIDESupport current = supIterator.next();
 			try {
-				for (String ending : current.getEndings()) {
+				for (String ending : current.getTypes()) {
 					ideSupporter.put(ending, current);
 				}
 			} catch (Exception ex) {
@@ -100,14 +100,6 @@ public class IDESupport {
 				log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
 			}
 		}
-	}
-
-	public static String getDefaultExtension() {
-		return getDefaultRunner().getExtensions()[0];
-	}
-
-	public static IScriptRunner getDefaultRunner() {
-		return Runner.getRunner(RunTime.getDefaultRunnerType());
 	}
 
 	public static synchronized List<IScriptRunner> getRunners(){

@@ -13,6 +13,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
@@ -418,10 +419,14 @@ public class RunTime {
 
   private static long elapsedStart = new Date().getTime();
 
-  private static String defaultRunnerType = "text/jython";
+  private static String defaultRunnerType = JythonRunner.TYPE;
 
   public static String getDefaultRunnerType() {
     return defaultRunnerType;
+  }
+
+  public static IScriptRunner getDefaultRunner() {
+    return Runner.getRunner(getDefaultRunnerType());
   }
 
   static String jythonVersion = "2.7.1";

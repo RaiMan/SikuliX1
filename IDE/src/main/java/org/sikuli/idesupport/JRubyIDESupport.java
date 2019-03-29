@@ -3,14 +3,16 @@
  */
 package org.sikuli.idesupport;
 
+import org.sikuli.script.runners.JRubyRunner;
+
 /**
  * all methods from/for IDE, that are JRuby specific
  */
 public class JRubyIDESupport implements IIDESupport {
 
 	@Override
-	public String[] getEndings() {
-		return new String [] {"rb"};
+	public String[] getTypes() {
+		return new String[]{JRubyRunner.TYPE};
 	}
 
 	@Override

@@ -34,6 +34,7 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
 import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
@@ -67,7 +68,6 @@ public class EditorPane extends JTextPane {
   //	private String scriptType = null;
   private String _srcBundlePath = null;
   private boolean _srcBundleTemp = false;
-  private String sikuliContentType;
 
   private EditorCurrentLineHighlighter _highlighter = null;
   private EditorUndoManager _undo = null;
@@ -89,8 +89,6 @@ public class EditorPane extends JTextPane {
   //TODO what is it for???
   private int _caret_last_x = -1;
   private boolean _can_update_caret_last_x = true;
-  private SikuliIDEPopUpMenu popMenuImage;
-  private SikuliIDEPopUpMenu popMenuCompletion;
   private SikuliEditorKit editorKit;
   private EditorViewFactory editorViewFactory;
 
@@ -133,17 +131,20 @@ public class EditorPane extends JTextPane {
     initBeforeLoad(scriptType, true);
   }
 
+  private IScriptRunner runner = null;
+
   private void initBeforeLoad(String scriptIdentifier, boolean reInit) {
+    String currentScrType = sikuliContentType;
     String scrType = null;
     boolean paneIsEmpty = false;
 
     log(lvl, "initBeforeLoad: %s", scriptIdentifier);
     if (scriptIdentifier == null) {
-      scriptIdentifier = IDESupport.getDefaultExtension();
+      runner = RunTime.getDefaultRunner();
       paneIsEmpty = true;
+    } else {
+      runner = Runner.getRunner(scriptIdentifier);
     }
-
-    IScriptRunner runner = Runner.getRunner(scriptIdentifier);
 
     // initialize runner to speed up first script run
     (new Thread() {
@@ -154,89 +155,94 @@ public class EditorPane extends JTextPane {
     }).start();
 
     scrType = runner.getType();
-    _indentationLogic = null;
+    if (!scrType.equals(sikuliContentType)) {
+      sikuliContentType = scrType;
+      _indentationLogic = null;
 
-    if (JythonRunner.TYPE.equals(scrType)) {
-      IIDESupport ideSupport = SikulixIDE.getIDESupport(scriptIdentifier);
-      _indentationLogic = ideSupport.getIndentationLogic();
-      _indentationLogic.setTabWidth(pref.getTabWidth());
-    } else if (TextRunner.TYPE.equals(scrType)) {
-      isText = true;
-    }
+      if (JythonRunner.TYPE.equals(sikuliContentType)) {
+        IIDESupport ideSupport = SikulixIDE.getIDESupport(sikuliContentType);
+        _indentationLogic = ideSupport.getIndentationLogic();
+        _indentationLogic.setTabWidth(pref.getTabWidth());
+      } else if (TextRunner.TYPE.equals(sikuliContentType)) {
+        isText = true;
+      }
 
-//TODO should know, that scripttype not changed here to avoid unnecessary new setups
-    sikuliContentType = scrType;
-    if (scrType != null) {
-      editorKit = new SikuliEditorKit();
-      editorViewFactory = (EditorViewFactory) editorKit.getViewFactory();
-      setEditorKit(editorKit);
-      setContentType(scrType);
+      if (sikuliContentType != null) {
+        editorKit = new SikuliEditorKit();
+        editorViewFactory = (EditorViewFactory) editorKit.getViewFactory();
+        setEditorKit(editorKit);
+        setContentType(sikuliContentType);
 
-      if (_indentationLogic != null) {
-        pref.addPreferenceChangeListener(new PreferenceChangeListener() {
-          @Override
-          public void preferenceChange(PreferenceChangeEvent event) {
-            if (event.getKey().equals("TAB_WIDTH")) {
-              _indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+        if (_indentationLogic != null) {
+          pref.addPreferenceChangeListener(new PreferenceChangeListener() {
+            @Override
+            public void preferenceChange(PreferenceChangeEvent event) {
+              if (event.getKey().equals("TAB_WIDTH")) {
+                _indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+              }
             }
-          }
-        });
-      }
-    }
-
-    if (transferHandler == null) {
-      transferHandler = new MyTransferHandler();
-    }
-    setTransferHandler(transferHandler);
-
-    if (_highlighter == null) {
-      _highlighter = new EditorCurrentLineHighlighter(this);
-      addCaretListener(_highlighter);
-      initKeyMap();
-      //addKeyListener(this);
-      //addCaretListener(this);
-    }
-
-    if (!isText) {
-      popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-      if (!popMenuImage.isValidMenu()) {
-        popMenuImage = null;
+          });
+        }
       }
 
-      popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-      if (!popMenuCompletion.isValidMenu()) {
-        popMenuCompletion = null;
+      if (transferHandler == null) {
+        transferHandler = new MyTransferHandler();
       }
+      setTransferHandler(transferHandler);
+
+      if (_highlighter == null) {
+        _highlighter = new EditorCurrentLineHighlighter(this);
+        addCaretListener(_highlighter);
+        initKeyMap();
+        //addKeyListener(this);
+        //addCaretListener(this);
+      }
+
+      if (!isText) {
+        popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+        if (!popMenuImage.isValidMenu()) {
+          popMenuImage = null;
+        }
+
+        popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+        if (!popMenuCompletion.isValidMenu()) {
+          popMenuCompletion = null;
+        }
+      }
+
+      setFont(new Font(pref.getFontName(), Font.PLAIN, pref.getFontSize()));
+      setMargin(new Insets(3, 3, 3, 3));
+      setBackground(Color.WHITE);
+      if (!Settings.isMac()) {
+        setSelectionColor(new Color(170, 200, 255));
+      }
+
+      updateDocumentListeners("initBeforeLoad");
+
+      if (paneIsEmpty || reInit) {
+        this.setText("");
+      }
+
+
+      SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
+      log(lvl, "InitTab: (%s)", sikuliContentType);
     }
-
-    setFont(new Font(pref.getFontName(), Font.PLAIN, pref.getFontSize()));
-    setMargin(new Insets(3, 3, 3, 3));
-    setBackground(Color.WHITE);
-    if (!Settings.isMac()) {
-      setSelectionColor(new Color(170, 200, 255));
-    }
-
-    updateDocumentListeners("initBeforeLoad");
-
-    if (paneIsEmpty || reInit) {
-      this.setText("");
-    }
-
-    SikulixIDE.getStatusbar().setCurrentContentType(getSikuliContentType());
-    log(lvl, "InitTab: (%s)", getSikuliContentType());
   }
 
   public String getSikuliContentType() {
     return sikuliContentType;
   }
+  private String sikuliContentType;
 
   public SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
   }
+  private SikuliIDEPopUpMenu popMenuImage;
 
   public SikuliIDEPopUpMenu getPopMenuCompletion() {
     return popMenuCompletion;
   }
+  private SikuliIDEPopUpMenu popMenuCompletion;
 
   private void updateDocumentListeners(String source) {
     log(lvl, "updateDocumentListeners from: %s", source);

@@ -3,14 +3,17 @@
  */
 package org.sikuli.idesupport;
 
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.PythonRunner;
+
 /**
  * all methods from/for IDE, that are Python specific
  */
 public class JythonIDESupport implements IIDESupport {
 
 	@Override
-	public String[] getEndings() {
-		return new String [] {"py"};
+	public String[] getTypes() {
+		return new String[]{JythonRunner.TYPE, PythonRunner.TYPE};
 	}
 
 	@Override
