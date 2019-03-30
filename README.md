@@ -26,9 +26,14 @@ time, to implement some of the version-2-ideas into the current version 1.
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
-**You need at least Java 8, but it works on Java 9, 10, 11 also**
+**You need at least Java 8, but it works on Java 9 up to 12 also**
 
-**Developement is done on Java 11 now (OpenJDK release)**
+**Developement is done on**
+
+ - Java 12 (OpenJDK release)
+ - Windows 10 latest
+ - Mac 10.14 latest
+ - Ubuntu 18.04 in VirtualBox on Windows 10
 
 <hr>
 
@@ -48,4 +53,8 @@ The coordinates are:
 
 **Works out of the box for Mac and Windows**
 
-**For Linux** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people))
+**For Linux** 
+
+ - you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people))
+
+ - there might be other oddities, since testing is mainly done on Windows 10 and Mac 10.14
