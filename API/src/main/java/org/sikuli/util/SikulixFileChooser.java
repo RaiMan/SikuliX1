@@ -405,7 +405,7 @@ public class SikulixFileChooser {
           return false;
         }
       }
-      if (Settings.isWindows() && f.isDirectory()) {
+      if (!Settings.isMac() && f.isDirectory()) {
         return true;
       }
       return false;
