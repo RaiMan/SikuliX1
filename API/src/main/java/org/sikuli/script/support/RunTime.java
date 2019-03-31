@@ -58,7 +58,19 @@ public class RunTime {
   //<editor-fold desc="01 startup">
   public static boolean start(RunTime.Type type, String[] args) {
 
-    if (Type.API.equals(type)) startAsIDE = false;
+    if (Type.API.equals(type)) {
+      startAsIDE = false;
+      if (args.length == 1 && "buildDate".equals(args[0])) {
+        RunTime runTime = RunTime.get();
+        System.out.println(runTime.SXBuild);
+        System.exit(0);
+      }
+
+      if (args.length == 0) {
+        TextRecognizer.extractTessdata();
+        Sikulix.terminate();
+      }
+    }
 
     evalArgsStart(args);
 
@@ -121,17 +133,6 @@ public class RunTime {
       if (null == System.getProperty("sikuli.API_should_run")) {
         System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
         System.exit(1);
-      }
-
-      if (args.length == 1 && "buildDate".equals(args[0])) {
-        RunTime runTime = RunTime.get();
-        System.out.println(runTime.SXBuild);
-        System.exit(0);
-      }
-
-      if (args.length == 0) {
-        TextRecognizer.extractTessdata();
-        Sikulix.terminate();
       }
     }
 
