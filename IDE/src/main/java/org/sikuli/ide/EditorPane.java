@@ -32,6 +32,7 @@ import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
@@ -134,7 +135,6 @@ public class EditorPane extends JTextPane {
   private IScriptRunner runner = null;
 
   private void initBeforeLoad(String scriptIdentifier, boolean reInit) {
-    String currentScrType = sikuliContentType;
     String scrType = null;
     boolean paneIsEmpty = false;
 
@@ -159,7 +159,7 @@ public class EditorPane extends JTextPane {
       sikuliContentType = scrType;
       _indentationLogic = null;
 
-      if (JythonRunner.TYPE.equals(sikuliContentType)) {
+      if (JythonRunner.TYPE.equals(sikuliContentType) || PythonRunner.TYPE.equals(sikuliContentType)) {
         IIDESupport ideSupport = SikulixIDE.getIDESupport(sikuliContentType);
         _indentationLogic = ideSupport.getIndentationLogic();
         _indentationLogic.setTabWidth(pref.getTabWidth());
@@ -223,7 +223,6 @@ public class EditorPane extends JTextPane {
         this.setText("");
       }
 
-
       SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
       log(lvl, "InitTab: (%s)", sikuliContentType);
     }
@@ -232,6 +231,11 @@ public class EditorPane extends JTextPane {
   public String getSikuliContentType() {
     return sikuliContentType;
   }
+
+  public void setSikuliContentType(String sikuliContentType) {
+    this.sikuliContentType = sikuliContentType;
+  }
+
   private String sikuliContentType;
 
   public SikuliIDEPopUpMenu getPopMenuImage() {
@@ -252,6 +256,7 @@ public class EditorPane extends JTextPane {
     getDocument().addDocumentListener(dirtyHandler);
 //    getDocument().addUndoableEditListener(getUndoManager());
     getDocument().addUndoableEditListener(getUndoRedo(this));
+    SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
   }
 
   private EditorPaneUndoRedo undoRedo = null;
@@ -349,6 +354,12 @@ public class EditorPane extends JTextPane {
       if (!readContent(_editingFile)) {
         _editingFile = null;
       }
+      if (isPython && !(PythonRunner.TYPE).equals(sikuliContentType) && RunTime.hasPython()) {
+        if (RunTime.hasShebang(RunTime.shebangPython, getText())) {
+          sikuliContentType = PythonRunner.TYPE;
+          SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
+        }
+      }
       updateDocumentListeners("loadFile");
       if (!isText && shouldReparse) {
         reparse();
@@ -413,10 +424,10 @@ public class EditorPane extends JTextPane {
 
   public void checkSourceForBundlePath() {
     String scriptText = getText();
-    if (RunTime.hasPython() && scriptText.startsWith("#!PYTHON")){
-      sikuliContentType = "text/python";
+    if (RunTime.hasPython() && scriptText.startsWith(RunTime.shebangPython)){
+      sikuliContentType = PythonRunner.TYPE;
     } else {
-      sikuliContentType = "text/jython";
+      sikuliContentType = JythonRunner.TYPE;
     }
     shouldReparse = false;
     if (isPython && (lookForSetBundlePath || isPaneReset)) {
@@ -454,6 +465,18 @@ public class EditorPane extends JTextPane {
 
   public boolean hasEditingFile() {
     return _editingFile != null;
+  }
+
+  public void checkPaneContentType() {
+    if (isPython) {
+      if (RunTime.hasPython() && RunTime.hasShebang(RunTime.shebangPython, getText())) {
+        setSikuliContentType(PythonRunner.TYPE);
+        SikulixIDE.getStatusbar().setCurrentContentType(PythonRunner.TYPE);
+      } else {
+        setSikuliContentType(JythonRunner.TYPE);
+        SikulixIDE.getStatusbar().setCurrentContentType(JythonRunner.TYPE);
+      }
+    }
   }
 
   public String saveFile() throws IOException {

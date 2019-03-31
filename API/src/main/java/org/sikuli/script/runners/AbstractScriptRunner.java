@@ -45,17 +45,17 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   private void logNotSupported(String method) {
-    Debug.log(-1, "%s does not (yet) support %s",getName(), method);
+    Debug.log(-1, "%s does not (yet) support %s", getName(), method);
   }
 
   @Override
   public final void init(String[] args) throws SikuliXception {
-    synchronized(this) {
-      if(!ready) {
+    synchronized (this) {
+      if (!ready) {
         try {
           doInit(args);
 
-          if(redirectedStdout != null && redirectedStderr != null) {
+          if (redirectedStdout != null && redirectedStderr != null) {
             redirectNow(redirectedStdout, redirectedStderr);
           }
 
@@ -67,12 +67,14 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
   }
 
-  protected void doInit(String[] args) throws Exception{
+  protected void doInit(String[] args) throws Exception {
     // noop if not implemented
-  };
+  }
+
+  ;
 
   public final boolean isReady() {
-    synchronized(this) {
+    synchronized (this) {
       return ready;
     }
   }
@@ -89,27 +91,29 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   public boolean canHandle(String identifier) {
     return identifier != null && (
-           identifier.toLowerCase().equals(getName().toLowerCase()) ||
-           identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") ||
-           getType().equals(identifier) ||
-           hasExtension(identifier) ||
-           (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
-  };
+            identifier.toLowerCase().equals(getName().toLowerCase()) ||
+                    identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") ||
+                    getType().equals(identifier) ||
+                    hasExtension(identifier) ||
+                    (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
+  }
+
+  ;
 
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
-    synchronized(this) {
+    synchronized (this) {
       Debug.log(3, "%s: Initiate IO redirect", getName());
 
       this.redirectedStdout = stdout;
       this.redirectedStderr = stderr;
 
       if (ready) {
-       if (stdout != null && stderr != null) {
-         redirectNow(stdout, stderr);
-       } else {
-         doRedirect(System.out, System.err);
-       }
+        if (stdout != null && stderr != null) {
+          redirectNow(stdout, stderr);
+        } else {
+          doRedirect(System.out, System.err);
+        }
       }
     }
   }
@@ -118,19 +122,17 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     boolean ret = doRedirect(stdout, stderr);
     if (ret) {
       Debug.log(3, "%s: IO redirect established", getName());
-    } else {
-      logNotSupported("IO redirection");
     }
   }
 
   protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
-    // noop if not implemented
+    logNotSupported("IO redirection");
     return false;
   }
 
   @Override
   public final int runScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized(this) {
+    synchronized (this) {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       Debug.off();
@@ -147,7 +149,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int evalScript(String script, IScriptRunner.Options options) {
-    synchronized(this) {
+    synchronized (this) {
       init(null);
       return doEvalScript(script, options);
     }
@@ -160,7 +162,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void runLines(String lines, IScriptRunner.Options options) {
-    synchronized(this) {
+    synchronized (this) {
       init(null);
       doRunLines(lines, options);
     }
@@ -172,7 +174,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized(this) {
+    synchronized (this) {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
     }
@@ -185,7 +187,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runInteractive(String[] scriptArgs) {
-    synchronized(this) {
+    synchronized (this) {
       init(null);
       return doRunInteractive(scriptArgs);
     }
@@ -215,7 +217,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void close() {
-    synchronized(this) {
+    synchronized (this) {
       ready = false;
       doClose();
     }
@@ -227,12 +229,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void reset() {
-    synchronized(this) {
+    synchronized (this) {
       try {
         close();
         init(null);
         log(3, "reset requested (experimental: please report oddities)");
-      } catch(Exception e) {
+      } catch (Exception e) {
         log(-1, "reset requested but did not work. Please report this case." +
                 "Do not run scripts anymore and restart the IDE after having saved your work");
       }

@@ -1,8 +1,13 @@
 package org.sikuli.script.runners;
 
+import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+
+import java.io.File;
+import java.io.PrintStream;
 
 public class PythonRunner extends AbstractScriptRunner {
 
@@ -32,12 +37,27 @@ public class PythonRunner extends AbstractScriptRunner {
     return false;
   }
 
+  protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
+    return false;
+  }
+
   @Override
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     if (!isSupported()) {
       return -1;
     }
-    Debug.info("Python: running script: %s", scriptfile);
+    if (Debug.isGlobalTrace()) {
+      Debug.setDebugLevel(3);
+    }
+    String scriptContent = FileManager.readFileToString(new File(scriptfile));
+    Debug.log(3,"Python: running script: %s\n%s\n********** end", scriptfile, scriptContent);
+    String runOut = ProcessRunner.run(RunTime.getPython(), scriptfile);
+    int runExitValue = 0;
+    if (!runOut.startsWith("0\n")) {
+      Debug.error("%s", runOut);
+    } else {
+      Debug.logp("%s", runOut.substring(2));
+    }
     return 0;
   }
 
