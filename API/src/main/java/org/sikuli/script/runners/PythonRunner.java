@@ -8,6 +8,9 @@ import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class PythonRunner extends AbstractScriptRunner {
 
@@ -51,7 +54,11 @@ public class PythonRunner extends AbstractScriptRunner {
     }
     String scriptContent = FileManager.readFileToString(new File(scriptfile));
     Debug.log(3,"Python: running script: %s\n%s\n********** end", scriptfile, scriptContent);
-    String runOut = ProcessRunner.run(RunTime.getPython(), scriptfile);
+    List<String> runArgs = new ArrayList<>();
+    runArgs.add(RunTime.getPython());
+    runArgs.add(scriptfile);
+    runArgs.addAll(Arrays.asList(scriptArgs));
+    String runOut = ProcessRunner.run(runArgs);
     int runExitValue = 0;
     if (!runOut.startsWith("0\n")) {
       Debug.error("%s", runOut);
