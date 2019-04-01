@@ -1727,7 +1727,6 @@ public class RunTime {
     try {
       cleanupRobot = new RobotDesktop();
     } catch (AWTException e) {
-      throw new RuntimeException(String.format("SikuliX: Screen: getGlobalRobot: %s", e.getMessage()));
     }
     log(4, "initAPI: leaving");
   }
