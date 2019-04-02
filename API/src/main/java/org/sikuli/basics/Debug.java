@@ -134,8 +134,6 @@ public class Debug {
     return searchHighlight;
   }
 
-  private static boolean beQuiet = false;
-
   public static void quietOn() {
     beQuiet = true;
   }
@@ -143,6 +141,12 @@ public class Debug {
   public static void quietOff() {
     beQuiet = false;
   }
+
+	public static boolean isBeQuiet() {
+		return beQuiet;
+	}
+
+	private static boolean beQuiet = false;
 
 	public static boolean isStartWithTrace() {
 		return startWithTrace;
@@ -806,6 +810,9 @@ public class Debug {
 
   private static synchronized String log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
+		if (beQuiet) {
+			return "";
+		}
     String sout = "";
     String stime = "";
     if (level <= DEBUG_LEVEL) {

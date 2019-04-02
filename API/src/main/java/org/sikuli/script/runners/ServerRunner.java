@@ -53,6 +53,9 @@ public class ServerRunner extends AbstractScriptRunner {
 //TODO set loglevel at runtime
   private static int logLevel = 0;
   private static void dolog(int lvl, String message, Object... args) {
+    if (Debug.isBeQuiet()) {
+      return;
+    }
     if (lvl < 0 || lvl >= logLevel) {
       System.out.println((lvl < 0 ? "[error] " : "[info] ") +
               String.format("RunServer: " + message, args));
