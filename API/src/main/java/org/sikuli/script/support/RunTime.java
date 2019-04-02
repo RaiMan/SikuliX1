@@ -22,6 +22,8 @@ import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
+import py4Java.GatewayServerListener;
+import py4Java.Py4JServerConnection;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,7 +70,30 @@ public class RunTime {
 
       if (args.length == 0) {
         TextRecognizer.extractTessdata();
-        Sikulix.terminate();
+        System.exit(0);
+      }
+
+      if (args.length == 1 && "createlibs".equals(args[0])) {
+        Debug.off();
+        CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
+        if (codeSource != null && codeSource.getLocation().toString().endsWith("classes/")) {
+          File libsSource = new File(new File(codeSource.getLocation().getFile()).getParentFile().getParentFile(), "src/main/resources");
+          for (String sys : new String[]{"mac", "windows", "linux"}) {
+            Sikulix.print("******* %s", sys);
+            String sxcontentFolder = String.format("sikulixlibs/%s/libs64", sys);
+            List<String> sikulixlibs = RunTime.get().getResourceList(sxcontentFolder);
+            String sxcontent = "";
+            for (String lib : sikulixlibs) {
+              if (lib.equals("sikulixcontent")) {
+                continue;
+              }
+              sxcontent += lib + "\n";
+            }
+            Sikulix.print("%s", sxcontent);
+            FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
+          }
+        }
+        System.exit(0);
       }
     }
 
@@ -129,11 +154,13 @@ public class RunTime {
         System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
         System.exit(1);
       }
+      Debug.log(3, "Sikulix: starting IDE");
     } else {
       if (null == System.getProperty("sikuli.API_should_run")) {
         System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
         System.exit(1);
       }
+      Debug.log(3, "Sikulix: starting API");
     }
 
     RunTime.evalArgs(args);
@@ -164,11 +191,33 @@ public class RunTime {
       RunTime rt = RunTime.get();
       if (Debug.getDebugLevel() == 3) {
       }
-      GatewayServer pythonserver = new GatewayServer(new Object());
-      pythonserver.start(false);
+      startPythonServer();
+      Sikulix.popError("click ok to stop",
+          "sikulix4python");
+      stopPythonServer();
       Sikulix.terminate();
     }
   }
+
+  public static void startPythonServer() {
+    if (null == pythonServer) {
+      pythonServer = new GatewayServer();
+      pythonServer.start(true);
+    }
+  }
+
+  public static void stopPythonServer() {
+    if (null != pythonServer) {
+      pythonServer.shutdown();
+      pythonServer = null;
+    }
+  }
+
+  public static boolean isRunningPyServer() {
+    return null != pythonServer;
+  }
+
+  private static GatewayServer pythonServer = null;
 
   private static File getRunningJar() {
     File jarFile = null;
@@ -239,7 +288,7 @@ public class RunTime {
         for (File fExtension : fExtensions) {
           String name = fExtension.getName();
           if ((name.contains("jython") && name.contains("standalone")) ||
-                  (name.contains("jruby") && name.contains("complete"))) {
+              (name.contains("jruby") && name.contains("complete"))) {
             fExtension.delete();
           }
         }
@@ -283,8 +332,8 @@ public class RunTime {
       }
       if (!jythonReady && !jrubyReady && !isDev) {
         String message = "Neither Jython nor JRuby available" +
-                "\nIDE not yet useable with JavaScript only" +
-                "\nPlease consult the docs for a solution";
+            "\nIDE not yet useable with JavaScript only" +
+            "\nPlease consult the docs for a solution";
         if (!verbose) {
           JOptionPane.showMessageDialog(null, message, "IDE not useable", JOptionPane.ERROR_MESSAGE);
         } else {
@@ -369,11 +418,45 @@ public class RunTime {
     return sxExtensionsFile != null;
   }
 
-  public static File getSxExtensionsFile() {
+  public static File getExtensionsFile() {
     return sxExtensionsFile;
   }
 
   private static File sxExtensionsFile = null;
+
+  public static String getExtensionsFileDefault() {
+    return "# add absolute paths one per line, that point to other jars,\n" +
+        "# that need to be available on Java's classpath at runtime\n" +
+        "# They will be added automatically at startup in the given sequence\n" +
+        "\n" +
+        "# empty lines and lines beginning with # or // are ignored\n" +
+        "# delete the leading # to activate a prepared keyword line\n" +
+        "\n" +
+        "# pointer to a Jython install outside SikuliX\n" +
+        "# jython = c:/jython2.7.1/jython.jar\n" +
+        "\n" +
+        "# the Python executable as used on a commandline\n" +
+        "# activating will enable the support for real Python\n" +
+        "# python = python\n";
+  }
+
+  public static boolean hasSitesTxt() {
+    return sxSitesTxt != null && sxSitesTxt.exists();
+  }
+
+  public static File getSitesTxt() {
+    return sxSitesTxt;
+  }
+
+  private static File sxSitesTxt = new File(getAppPath(), "Lib/site-packages/sites.txt");
+
+  public static String getSitesTxtDefault() {
+    return "# add absolute paths one per line, that point to other directories/jars,\n" +
+        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+        "\n" +
+        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+  }
 
   public static void evalArgs(String[] args) {
 
@@ -559,7 +642,7 @@ public class RunTime {
       }
     } catch (Exception ex) {
       if (scriptFile.length() >= type.length()
-              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
+          && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
         return true;
       }
     }
@@ -738,17 +821,6 @@ public class RunTime {
       System.exit(retval);
     }
     throw new SikuliXception(String.format("fatal: " + outMsg));
-  }
-
-  public Map<String, String> collectSpecialFiles() {
-    Map<String, String> specialFiles = new HashMap<>();
-    if (null != sxOptions) {
-      specialFiles.put("SikuliX Global Options", sxOptions.getOptionsFile());
-    }
-    if (hasExtensionsFile()) {
-      specialFiles.put("SikuliX Extensions Options", sxExtensionsFile.getAbsolutePath());
-    }
-    return specialFiles;
   }
   //</editor-fold>
 
@@ -942,7 +1014,7 @@ public class RunTime {
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
       runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
-              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
+          runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
@@ -1130,7 +1202,7 @@ public class RunTime {
 
     for (String aFile : fTempPath.list()) {
       if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
-              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+          || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
         FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
       }
     }
@@ -1272,6 +1344,9 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
+    if (isTerminating) {
+      stopPythonServer();
+    }
   }
 
   private static void runShutdownHook() {
@@ -1373,13 +1448,13 @@ public class RunTime {
 
     SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
     SikuliJythonMaven = "org/python/jython-standalone/"
-            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+        + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
     SikuliJythonMaven25 = "org/python/jython-standalone/"
-            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+        + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
     SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
     SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
     SikuliJRubyMaven = "org/jruby/jruby-complete/"
-            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+        + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
     SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
 
     String osn = "UnKnown";
@@ -1462,7 +1537,7 @@ public class RunTime {
     if (loadError != null) {
       log(-1, "Problematic lib: %s (...TEMP...)", fLib);
       log(-1, "%s loaded, but it might be a problem with needed dependent libraries\nERROR: %s",
-              libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
+          libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
@@ -1535,7 +1610,7 @@ public class RunTime {
         }
       }
       if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-              libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
+          libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
       }
@@ -1547,7 +1622,7 @@ public class RunTime {
         terminate(999, "libsExport: folder not available: " + fLibsFolder.toString());
       }
       String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-              getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
+          getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
       FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
@@ -1738,8 +1813,8 @@ public class RunTime {
       return;
     }
     if (!fSikulixLib.exists()
-            || !new File(fSikulixLib, "robot").exists()
-            || !new File(fSikulixLib, "sikuli").exists()) {
+        || !new File(fSikulixLib, "robot").exists()
+        || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
       extractResourcesToFolder("Lib", fSikulixLib, null);
     } else {
@@ -1832,7 +1907,7 @@ public class RunTime {
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
     logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
-            (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
+        (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
     //logp("libs folder: %s", fLibsFolder);
@@ -2021,7 +2096,7 @@ public class RunTime {
    * @return the filtered list of files (compact sikulixcontent format)
    */
   public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
-          filter) {
+      filter) {
     List<String> content = new ArrayList<String>();
     File faJar = new File(aJar);
     URL uaJar = null;
@@ -2300,7 +2375,7 @@ public class RunTime {
    * @return success
    */
   public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
-          filter) {
+      filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
     if (contentList == null || contentList.size() == 0) {
       log(-1, "resourceListAsSikulixContentFromJar: did not work: %s", folder);

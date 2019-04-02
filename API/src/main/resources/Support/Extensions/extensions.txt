@@ -1,6 +1,0 @@
-# or // are comments
-// a jar per line to append to classpath
-# with absolute path given
-#/as_an_example/myjars/someExtension.jar
-jython = /usr/local/Cellar/jython/2.7.1/libexec/jython.jar
-python = python3

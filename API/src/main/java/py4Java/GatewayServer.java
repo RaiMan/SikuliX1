@@ -686,7 +686,9 @@ public class GatewayServer extends DefaultGatewayServerListener implements Py4JJ
 				processSocket(socket);
 			}
 		} catch (Exception e) {
-			fireServerError(e);
+			if (!isShutdown) {
+				fireServerError(e);
+			}
 		}
 		fireServerStopped();
 		removeListener(this);

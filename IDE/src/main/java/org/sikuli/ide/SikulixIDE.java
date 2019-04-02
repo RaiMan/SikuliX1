@@ -15,15 +15,11 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
-import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.PythonRunner;
-import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.util.*;
-import py4Java.GatewayServer;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -111,8 +107,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   public static void main(String[] args) {
 
     RunTime.afterStart(RunTime.Type.IDE, args);
-
-    Debug.log(3, "Sikulix: starting IDE");
 
     if ("m".equals(osName)) {
       prepareMac();
@@ -1063,20 +1057,31 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     public void runOpenSpecial() {
       log(lvl, "Open Special requested");
-      Map<String, String> specialFiles = runTime.collectSpecialFiles();
+      Map<String, String> specialFiles = new Hashtable<>();
+      specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
+      specialFiles.put("2 SikuliX Extensions Options", runTime.getExtensionsFile().getAbsolutePath());
+      specialFiles.put("3 SikuliX Additional Sites", runTime.getSitesTxt().getAbsolutePath());
+      String[] defaults = new String[specialFiles.size()];
+      defaults[0] = "";
+      defaults[1] = runTime.getExtensionsFileDefault();
+      defaults[2] = runTime.getSitesTxtDefault();
       String msg = "";
       int num = 1;
       String[] files = new String[specialFiles.size()];
       for (String specialFile : specialFiles.keySet()) {
-        files[num - 1] = specialFile;
-        msg += "" + num++ + " " + specialFile + "\n";
+        files[num - 1] = specialFiles.get(specialFile).trim();
+        msg += specialFile + "\n";
+        num++;
       }
-      String answer = SX.input(msg, "", false, 5);
+      String answer = SX.input(msg, "", false, 10);
       if (null != answer && !answer.isEmpty()) {
         try {
           num = Integer.parseInt(answer.substring(0, 1));
           if (num > 0 && num <= specialFiles.size()) {
-            String file = specialFiles.get(files[num - 1].trim());
+            String file = files[num - 1];
+            if (!new File(file).exists() && !defaults[num - 1].isEmpty()) {
+              FileManager.writeStringToFile(defaults[num - 1], file);
+            }
             String selectedFile = file + "###isText";
             tabPane.setLastClosed(selectedFile);
             log(lvl, "Open Special: should load: %s", file);
