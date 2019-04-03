@@ -10,7 +10,7 @@ module Sikulix
   #   'include Sikulix' is used.
   java_import java.net.Socket
 
-  java_import org.sikuli.script.RunTime
+  java_import org.sikuli.script.support.RunTime
 	$RUNTIME = RunTime.get()
 
   java_import org.sikuli.script.Sikulix
