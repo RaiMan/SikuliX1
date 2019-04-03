@@ -10,8 +10,38 @@ import java.util.Map;
 
 public class SX {
 
+  static public class Log {
+    public static void error(String msg, Object... args) {
+      Debug.error("SX: " + msg, args);
+    }
+  }
+
   private static Log log = new Log();
 
+  //<editor-fold desc="01 input, popup, popAsk, popError">
+  private enum PopType {
+    POPUP, POPASK, POPERROR, POPINPUT
+  }
+
+  private static  boolean isVersion1() { return true; }
+
+  private static boolean isHeadless() {
+    return GraphicsEnvironment.isHeadless();
+  }
+
+  private static void pause(double time) {
+    try {
+      Thread.sleep((int) (time * 1000));
+    } catch (InterruptedException ex) {
+    }
+  }
+
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever)
+   * @return
+   */
   public static String input(Object... args) {
     if (isHeadless()) {
       log.error("running headless: input");
@@ -24,7 +54,7 @@ public class SX {
   /**
    * optionally timed popup (self-vanishing)
    *
-   * @param args (message, title, "", false, timeout)
+   * @param args (message, title, preset, hidden = false, timeout = forever)
    * @return
    */
   public static Boolean popup(Object... args) {
@@ -36,6 +66,12 @@ public class SX {
     return false;
   }
 
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever)
+   * @return
+   */
   public static Boolean popAsk(Object... args) {
     if (isHeadless()) {
       log.error("running headless: popAsk");
@@ -45,6 +81,12 @@ public class SX {
     return false;
   }
 
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever)
+   * @return
+   */
   public static Boolean popError(Object... args) {
     if (isHeadless()) {
       log.error("running headless: popError");
@@ -210,46 +252,6 @@ public class SX {
     return Screen.getPrimaryScreen();
   }
 
-  public static boolean isNotNull(Object obj) {
-    return null != obj;
-  }
-
-  public static boolean isNull(Object obj) {
-    return null == obj;
-  }
-
-  public static void pause(double time) {
-    try {
-      Thread.sleep((int) (time * 1000));
-    } catch (InterruptedException ex) {
-    }
-  }
-
-  public static boolean isHeadless() {
-    return GraphicsEnvironment.isHeadless();
-  }
-
-  public static  boolean isVersion1() { return true; }
-
-  public void reset() {
-    Debug.log(3, "SX.reset()");
-    Screen.resetMonitorsQuiet();
-    Mouse.reset();
-  }
-
-  //<editor-fold desc="popup, popAsk, popError, input">
-  private enum PopType {
-    POPUP, POPASK, POPERROR, POPINPUT
-  }
-
-  static public class Log {
-    public static void error(String msg, Object... args) {
-      Debug.error("Do: " + msg, args);
-    }
-  }
-
-  static class Element extends Region {}
-
   static private class Parameters {
 
     private Map<String, String> parameterTypes = new HashMap<>();
@@ -352,4 +354,23 @@ public class SX {
       return params;
     }
   }
+
+  static class Element extends Region {}
+  //</editor-fold>
+
+  public static boolean isNotNull(Object obj) {
+    return null != obj;
+  }
+
+  public static boolean isNull(Object obj) {
+    return null == obj;
+  }
+
+  //<editor-fold desc="10 Python support">
+  public void reset() {
+    Debug.log(3, "SX.reset()");
+    Screen.resetMonitorsQuiet();
+    Mouse.reset();
+  }
+  //</editor-fold>
 }

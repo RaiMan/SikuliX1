@@ -52,7 +52,7 @@ public class Region {
         if (num == 0) {
           reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
         }
-      } else if (args.size() == 1) {
+      } else if (args.size() == 1 && args.get(0) instanceof Region) {
         //case2: Region(Region)
         reg = create((Region) args.get(0));
       }
@@ -3366,6 +3366,18 @@ public class Region {
   }
 
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
+    if (target instanceof ArrayList) {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() == 1) {
+        target = (PSIMRL) parms.get(0);
+      } else if (parms.size() == 2) {
+        if (parms.get(0) instanceof Integer && parms.get(0) instanceof Integer) {
+          return new Location((Integer) parms.get(0), (Integer) parms.get(1));
+        }
+      } else {
+        return null;
+      }
+    }
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = wait(target);
       if (m != null) {
@@ -4323,15 +4335,6 @@ public class Region {
    */
   public <PFRML> int mouseMove(PFRML target) throws FindFailed {
     int ret = 0;
-    if (target instanceof ArrayList) {
-      ArrayList parms = (ArrayList) target;
-      if (parms.size() > 0) {
-        target = (PFRML) parms.get(0);
-      }
-      else {
-        return ret;
-      }
-    }
     Location loc = getLocationFromTarget(target);
     if (null != loc) {
       ret = Mouse.move(loc, this);
