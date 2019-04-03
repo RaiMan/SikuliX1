@@ -107,26 +107,18 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
     return device;
   }
 
-  public List<ADBDevice> getDevices() {
-    List<ADBDevice> devices = new ArrayList<>();
-    if (device != null) {
-
-    }
-    return devices;
-  }
-
-  public ADBScreen getScreenWithDevice(int id) {
-    if (screen == null) {
-      log(-1, "getScreenWithDevice: Android support not started");
-      return null;
-    }
-    ADBScreen multiScreen = new ADBScreen(id);
-    if (!multiScreen.isValid()) {
-      log(-1, "getScreenWithDevice: no device with id = %d", id);
-      return null;
-    }
-    return multiScreen;
-  }
+//  private ADBScreen getScreenWithDevice(int id) {
+//    if (screen == null) {
+//      log(-1, "getScreenWithDevice: Android support not started");
+//      return null;
+//    }
+//    ADBScreen multiScreen = new ADBScreen(id);
+//    if (!multiScreen.isValid()) {
+//      log(-1, "getScreenWithDevice: no device with id = %d", id);
+//      return null;
+//    }
+//    return multiScreen;
+//  }
 
   public String toString() {
     if (null == device) {
