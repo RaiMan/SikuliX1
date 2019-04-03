@@ -604,7 +604,9 @@ public class ImagePath {
    */
   public static String getBundlePath() {
     if (bundlePath == null) {
-      setBundlePath(null);
+      if (!setBundlePath(null)) {
+        return "";
+      }
     }
     return new File(FileManager.slashify(bundlePath.getPath(), false)).getAbsolutePath();
   }
