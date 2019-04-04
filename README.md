@@ -58,3 +58,7 @@ The coordinates are:
  - you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people))
 
  - there might be other oddities, since testing is mainly done on Windows 10 and Mac 10.14
+ 
+**For use with your own JRuby installation**
+
+[You can find some basic information here](https://github.com/RaiMan/SikuliX1/tree/master/API/src/main/resources/Support/Ruby/JRubyGem)
