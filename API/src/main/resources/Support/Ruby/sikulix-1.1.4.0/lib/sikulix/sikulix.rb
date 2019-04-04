@@ -6,53 +6,41 @@ require 'java'
 # Classes and methods for using SikuliX
 module Sikulix
   private
-
   # 'private' for avoiding of unexpected effects when
   #   'include Sikulix' is used.
+  java_import java.net.Socket
+
+  java_import org.sikuli.script.support.RunTime
+	$RUNTIME = RunTime.get()
 
   java_import org.sikuli.script.Sikulix
-  java_import org.sikuli.script.Screen
-  java_import org.sikuli.script.Region
-  java_import org.sikuli.script.ScreenUnion
 
-  java_import org.sikuli.script.Observing
-  java_import org.sikuli.script.ObserverCallBack
-
+  java_import org.sikuli.basics.Settings
   java_import org.sikuli.script.Constants
-  java_import org.sikuli.script.Finder
-  java_import org.sikuli.script.ImageFinder
-  java_import org.sikuli.script.ImageFind
-
   java_import org.sikuli.script.Button
   java_import org.sikuli.basics.OS
 
-  java_import org.sikuli.script.Match
-  java_import org.sikuli.script.Pattern
+  java_import org.sikuli.basics.Debug
+
+  java_import org.sikuli.script.Screen
+  java_import org.sikuli.script.Region
   java_import org.sikuli.script.Location
+  java_import org.sikuli.script.Offset
 
   java_import org.sikuli.script.ImagePath
   java_import org.sikuli.script.Image
-  java_import org.sikuli.script.ImageGroup
+
+  java_import org.sikuli.script.ObserverCallBack
+  java_import org.sikuli.script.ObserveEvent
+
+  java_import org.sikuli.script.Finder
+  java_import org.sikuli.script.Match
+  java_import org.sikuli.script.Pattern
 
   java_import org.sikuli.script.App
   java_import org.sikuli.script.Key
   java_import org.sikuli.script.KeyModifier
   java_import org.sikuli.script.Mouse
-  java_import org.sikuli.script.Keys
-
-  java_import org.sikuli.basics.Settings
-  java_import org.sikuli.basics.ExtensionManager
-
-  java_import org.sikuli.script.compare.DistanceComparator
-  java_import org.sikuli.script.compare.VerticalComparator
-  java_import org.sikuli.script.compare.HorizontalComparator
-
-  java_import org.sikuli.basics.Debug
-
-	begin
-	  java_import org.sikuli.scriptrunner.ScriptRunner
-	rescue
-  end
 
   #
   # This method generates a wrapper for Java Native exception processing
@@ -92,47 +80,6 @@ module Sikulix
     private name
   end
 
-  # Redefinition of native org.sikuli.script.Region class
-  class Region
-    # Service class for all callbacks processing
-    class RObserverCallBack < ObserverCallBack # :nodoc: all
-      def initialize(block)
-        super()
-        @block = block
-      end
-      %w(appeared vanished changed).each do |name|
-        define_method(name) do |*args|
-          @block.call(*(args.first @block.arity))
-        end
-      end
-    end
-    alias_method :java_onAppear, :onAppear
-    alias_method :java_onVanish, :onVanish
-    alias_method :java_onChange, :onChange
-
-    # Redefinition of the java method for Ruby specific
-    def onAppear(target, &block)
-      java_onAppear target, RObserverCallBack.new(block)
-    end
-
-    # Redefinition of the java method for Ruby specific
-    def onVanish(target, &block)
-      java_onVanish target, RObserverCallBack.new(block)
-    end
-
-    # Redefinition of the java method for Ruby specific
-    def onChange(&block)
-      java_onChange RObserverCallBack.new(block)
-    end
-
-    # alias_method :java_findAll,  :findAll
-    # def findAll(*args)
-    #   begin
-    #     java_findAll(*args)
-    #   rescue NativeException => e; raise e.message; end
-    # end
-  end
-
   # Wrap following java-methods by an exception processor
   native_exception_protect(
     Region,
@@ -141,8 +88,22 @@ module Sikulix
      :type, :paste, :observe]
    )
 
-  # Default screen object for "undotted" methods.
+  # Default screen of host machine.
   $SIKULI_SCREEN = Screen.new
+  # Screen used for undotted methods.
+  $DEFAULT_SCREEN = $SIKULI_SCREEN
+
+  # Replaces default screen for which all undotted methods are
+  # called with another screen
+  # example:
+  # setDefaultScreen($SIKULI_SCREEN)
+  # click(Location(10,10)) <- click will be performed on local screen
+  def setDefaultScreen(screen)
+    if screen.respond_to?(:click)
+      $DEFAULT_SCREEN = screen
+      Debug.log("Screen switched")
+    end
+  end
 
 # This is an alternative for method generation using define_method
 #  # Generate hash of ('method name'=>method)
@@ -171,12 +132,13 @@ module Sikulix
 
   # Generate static methods in Sikulix context
   # for possible "undotted" methods.
-  [$SIKULI_SCREEN, Sikulix].each do |obj|
-    mtype = (obj.class == Class ? :java_class_methods : :java_instance_methods)
-    obj.java_class.method(mtype).call.map(&:name).uniq.each do |name|
-      obj_meth = obj.method(name)
-      dynamic_def(name) { |*args, &block| obj_meth.call(*args, &block) }
-    end
+  Sikulix.java_class.java_class_methods.map(&:name).uniq.each do |name|
+    obj_method = Sikulix.method(name)
+    dynamic_def(name) { |*args, &block| obj_method.call(*args, &block) }
+  end
+
+  $SIKULI_SCREEN.java_class.java_instance_methods.map(&:name).uniq.each do |name|
+    dynamic_def(name) { |*args, &block| $DEFAULT_SCREEN.method(name).call(*args, &block) }
   end
 
   # TODO: check it after Env Java-class refactoring
@@ -219,10 +181,11 @@ module Sikulix
 
   # Generate methods like constructors.
   # Example: Pattern("123.png").similar(0.5)
-  [Pattern, Region, Screen, App, Location].each do |cl|
+  [Pattern, Region, Screen, App].each do |cl|
     name = cl.java_class.simple_name
     dynamic_def(name) { |*args| cl.new(*args) }
   end
+  dynamic_def("Location") { |*args| Location.new(*args).setOtherScreen($DEFAULT_SCREEN) }
 end
 
 # This is an alternative for method generation using define_method

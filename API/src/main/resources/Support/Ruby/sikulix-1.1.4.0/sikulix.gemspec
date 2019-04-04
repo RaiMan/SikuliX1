@@ -3,14 +3,14 @@
 
 Gem::Specification.new do |s|
   s.name = "sikulix".freeze
-  s.version = "1.1.0.3"
+  s.version = "1.1.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Roman S Samarev".freeze, "Raimund Hocke".freeze]
-  s.date = "2014-09-10"
+  s.date = "2019-04-04"
   s.description = "A wrapper over SikuliX java lib (sikulixapi.jar)".freeze
-  s.email = "rssdev10@gmail.com".freeze
+  s.email = "sikulix@outlook.com".freeze
   s.homepage = "http://sikulix.com".freeze
   s.licenses = ["MIT".freeze]
   s.rubygems_version = "2.5.2.3".freeze
