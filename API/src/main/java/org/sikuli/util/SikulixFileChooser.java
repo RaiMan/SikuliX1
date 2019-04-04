@@ -147,7 +147,7 @@ public class SikulixFileChooser {
 
   private File show(final String title, final int mode, final int theSelectionMode, Object... filters) {
     Debug.log(3, "showFileChooser: %s at %s", title.split(" ")[0], theLastDir);
-    File fileChoosen = null;
+    File fileChosen = null;
     Object filterChosen = null;
     final Object[] genericFilters = filters;
     final Object[] result = new Object[]{null, null};
@@ -170,20 +170,20 @@ public class SikulixFileChooser {
         processDialog(theSelectionMode, theLastDir, title, mode, filters, result);
       }
       if (null != result[0]) {
-        fileChoosen = (File) result[0];
-        String fileChoosenPath = fileChoosen.getAbsolutePath();
-        if (fileChoosenPath.contains("###Error")) {
+        fileChosen = (File) result[0];
+        String fileChosenPath = fileChosen.getAbsolutePath();
+        if (fileChosenPath.contains("###Error")) {
           tryAgain = true;
-          fileChoosen = new File(fileChoosenPath.split("###")[0]);
+          fileChosen = new File(fileChosenPath.split("###")[0]);
         }
         boolean isTextFile = false;
-        if (fileChoosenPath.contains("###")) {
-          fileChoosen = new File(fileChoosenPath.split("###")[0]);
+        if (fileChosenPath.contains("###")) {
+          fileChosen = new File(fileChosenPath.split("###")[0]);
           isTextFile = true;
         }
-        theLastDir = fileChoosen.getParent();
-        if (fileChoosen.isDirectory()) {
-          theLastDir = fileChoosen.getAbsolutePath();
+        theLastDir = fileChosen.getParent();
+        if (fileChosen.isDirectory() && !fileChosen.getName().endsWith(".sikuli")) {
+          theLastDir = fileChosen.getAbsolutePath();
         }
         filterChosen = result[1];
         if (tryAgain) {
@@ -194,10 +194,10 @@ public class SikulixFileChooser {
           if (!((SikulixFileFilter) filterChosen)._type.endsWith("a") && !isTextFile) {
             PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
           } else {
-            fileChoosen = new File(fileChoosen.getAbsolutePath() + "###isText");
+            fileChosen = new File(fileChosen.getAbsolutePath() + "###isText");
           }
         }
-        return fileChoosen;
+        return fileChosen;
       } else {
         return null;
       }
