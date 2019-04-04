@@ -7,9 +7,11 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
+  s.files = ['sikulix.rb', 'sikulix/platform.rb', 'sikulix/sikulix.rb'].map {|f| 'lib/' + f}
+
   s.authors = ["Roman S Samarev".freeze, "Raimund Hocke".freeze]
   s.date = "2019-04-04"
-  s.description = "A wrapper over SikuliX java lib (sikulixapi.jar)".freeze
+  s.description = "SikuliX Java API Wrapper (sikulixapi.jar version 1.1.4+)".freeze
   s.email = "sikulix@outlook.com".freeze
   s.homepage = "http://sikulix.com".freeze
   s.licenses = ["MIT".freeze]
