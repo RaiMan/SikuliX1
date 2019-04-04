@@ -9,53 +9,38 @@ module Sikulix
   # 'private' for avoiding of unexpected effects when
   #   'include Sikulix' is used.
   java_import java.net.Socket
+
+  java_import org.sikuli.script.support.RunTime
+	$RUNTIME = RunTime.get()
+
   java_import org.sikuli.script.Sikulix
-  java_import org.sikuli.script.Screen
-  java_import org.sikuli.script.Region
-  java_import org.sikuli.script.ScreenUnion
 
-  java_import org.sikuli.script.Observing
-  java_import org.sikuli.script.ObserverCallBack
-
+  java_import org.sikuli.basics.Settings
   java_import org.sikuli.script.Constants
-  java_import org.sikuli.script.Finder
-  java_import org.sikuli.script.ImageFinder
-  java_import org.sikuli.script.ImageFind
-
   java_import org.sikuli.script.Button
   java_import org.sikuli.basics.OS
 
-  java_import org.sikuli.script.Match
-  java_import org.sikuli.script.Pattern
+  java_import org.sikuli.basics.Debug
+
+  java_import org.sikuli.script.Screen
+  java_import org.sikuli.script.Region
   java_import org.sikuli.script.Location
+  java_import org.sikuli.script.Offset
 
   java_import org.sikuli.script.ImagePath
   java_import org.sikuli.script.Image
-  java_import org.sikuli.script.ImageGroup
+
+  java_import org.sikuli.script.ObserverCallBack
+  java_import org.sikuli.script.ObserveEvent
+
+  java_import org.sikuli.script.Finder
+  java_import org.sikuli.script.Match
+  java_import org.sikuli.script.Pattern
 
   java_import org.sikuli.script.App
   java_import org.sikuli.script.Key
   java_import org.sikuli.script.KeyModifier
   java_import org.sikuli.script.Mouse
-
-  java_import org.sikuli.basics.Settings
-  java_import org.sikuli.basics.ExtensionManager
-
-  java_import org.sikuli.script.compare.DistanceComparator
-  java_import org.sikuli.script.compare.VerticalComparator
-  java_import org.sikuli.script.compare.HorizontalComparator
-
-  java_import org.sikuli.basics.Debug
-
-	$SCRIPT_SUPPORT = true
-  begin
-    java_import org.sikuli.scriptrunner.ScriptRunner
-  rescue
-		$SCRIPT_SUPPORT = false
-  end
-  java_import org.sikuli.script.Runner
-  java_import org.sikuli.script.RunTime
-	$RUNTIME = RunTime.get()
 
   #
   # This method generates a wrapper for Java Native exception processing
