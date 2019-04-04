@@ -1,66 +1,33 @@
-Sikuli JRubyGem 2014 (version 1.1.x)
+Sikuli JRubyGem 2019 (version 1.1.4+)
 ===
 
-<hr>
-**TAKE CARE:**<br>
-**the latest version 1.1.0.2 on rubygems**<br>
-**cannot be used with 1.1.0-Beta4 and later**<br>
-Until fixed, you can download a compatible version 1.1.0.3 from here:<br>
-https://dl.dropboxusercontent.com/u/42895525/SikuliX-1.1/sikulix-1.1.0.3.gem
-<br>install it locally according to the infos below
-<hr>
+Implements the Ruby gem for using the SikuliX Java API in JRuby scripts.
 
-Implements the Ruby gem for using the SikuliX Java API in JRuby scripts.<br />
-(Requires environment variable SIKULIXAPI_JAR <br />with full path to `sikulixapi.jar` version 1.1.0-Beta4+)
+This is only needed if you want to use your own JRuby installation to run scripts or use other Ruby IDE`s.
+
+In the SikuliX IDE you can create, edit and run Ruby scripts as well and also run from command line.
 
 ## Where to get
-It is possible:
 
-* to download `sikulix` from http://rubygems.org/gems/sikulix
-* build it from sources using `mvn` or `gem`.
-  Run in this path
+Install it using 
 
-  ```
-  mvn
-  ```
-
-  Or run (needs a valid JRuby/gem environment)
-
-  ```
-  jgem build sikulix.gemspec
-  ```
-
-## Install
-
-needs a valid JRuby/gem environment
-
-* Install from rubygems:
-
-  ```
-  jgem install sikulix
-  ```
-
-* Local install:
-
-  ```
-  jgem install sikulix-x.x.x.x.gem --local
-  ```
-
-## How to use
-
+```
+jgem install sikulix
+```
+This should install the latest gem version (1.1.4.0 as of April 2019)
+ 
 ### Prerequisits
-* Download [sikulixsetup.jar](https://launchpad.net/sikuli/sikulix/1.1.0) and install Pack 2 ('I want to develop in Java,JRuby....')<br />**Until availability** of a stable version 1.1.0-Beta4<br />you might download a ready to use `sikulixapi-1.1.0-Beta4.jar` from [nightly build](http://nightly.sikuli.de)
-* Download and install [JRuby](http://jruby.org/)
+* Download the SikuliX IDE and SikuliX API [jars from here](https://raiman.github.io/SikuliX1/downloads.html) 
 
-### Running scripts
+### Running scripts using JRuby
 
 * Set SIKULIXAPI_JAR environment variable to sikulixapi.jar with full path<br />examples:
 
   ```
-  Windows: set SIKULIXAPI_JAR=c:\...\...\..\sikulixapi-1.1.0-Beta4.jar
-  Mac/Linux: export SIKULIXAPI_JAR=/.../.../../sikulixapi-1.1.0-Beta4.jar
+  Windows: set SIKULIXAPI_JAR=c:\...\...\..\sikulixapi.jar
+  Mac/Linux: export SIKULIXAPI_JAR=/.../.../../sikulixapi.jar
   ```
-* Create ruby script that includes following strings
+* Create ruby scripts with the following lines at the beginning
 
     ```ruby
     require 'sikulix'
@@ -69,9 +36,9 @@ needs a valid JRuby/gem environment
     # place your code here
 
     ```
-* Run it with jruby
+* Run it with JRuby
 
-## Special for Ruby
+## Special for Ruby scripting
 
 * After 'include Sikulix' it is possible to use “undotted” methods. E.g. click(), exists(), etc in global context.
 * Registration of hot-keys:
@@ -113,4 +80,4 @@ needs a valid JRuby/gem environment
 
 ## Other docs
 
-**Usage docs now on [ReadTheDocs](http://sikulix-2014.readthedocs.org/en/latest/#) (work in progress)**
+**Usage docs now on [ReadTheDocs](http://sikulix-2014.readthedocs.org/en/latest/#)**
