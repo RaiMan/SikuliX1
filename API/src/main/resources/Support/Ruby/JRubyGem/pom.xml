@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2016, Sikuli.org, sikulix.com
+  ~ Released under the MIT License.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <!--
+  * Copyright 2010-2015, Sikuli.org, sikulix.com
+  * Released under the MIT License.
+  -->
+
+  <parent>
+    <groupId>com.sikulix</groupId>
+    <artifactId>SikuliX-2014</artifactId>
+    <version>1.1.1</version>
+    <relativePath>../</relativePath>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixjrubyGem</artifactId>
+  <version>1.1.1</version>
+
+  <developers>
+    <developer>
+      <id>RomanSSamarev</id>
+      <name>Roman S Samarev</name>
+      <email>samarev@acm.org</email>
+    </developer>
+  </developers>
+
+  <build>
+    <defaultGoal>package gem:package</defaultGoal>
+    <plugins>
+      <plugin>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>gem-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <gemspec>sikulix.gemspec</gemspec>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
