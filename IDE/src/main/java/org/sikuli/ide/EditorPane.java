@@ -572,7 +572,7 @@ public class EditorPane extends JTextPane {
     log(lvl, "saveAsBundle: " + getSrcBundle());
     bundlePath = FileManager.slashify(bundlePath, true);
     if (_srcBundlePath != null) {
-      if (!IDESupport.transferScript(_srcBundlePath, bundlePath)) {
+      if (!IDESupport.transferScript(_srcBundlePath, bundlePath, getRunner())) {
         log(-1, "saveAsBundle: did not work - ");
       }
     }

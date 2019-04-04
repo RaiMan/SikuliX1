@@ -43,7 +43,7 @@ public class IDESupport {
 					JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
 	private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
 
-	public static boolean transferScript(String src, String dest) {
+	public static boolean transferScript(String src, String dest, IScriptRunner runner) {
 		log(lvl, "transferScript: %s\nto: %s", src, dest);
 		FileManager.FileFilter filter = new FileManager.FileFilter() {
 			@Override
@@ -53,7 +53,7 @@ public class IDESupport {
 				} else if (entry.getName().endsWith(".$py.class")) {
 					return false;
 				} else {
-					for (String ending : Runner.getExtensions()) {
+					for (String ending : runner.getExtensions()) {
 						if (entry.getName().endsWith("." + ending)) {
 							return false;
 						}

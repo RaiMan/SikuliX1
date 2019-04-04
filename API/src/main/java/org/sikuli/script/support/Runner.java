@@ -127,7 +127,6 @@ public class Runner {
           extensions.add(ex);
         }
       }
-
       return extensions;
     }
   }
