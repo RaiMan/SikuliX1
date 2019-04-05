@@ -69,9 +69,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     if (popType.equals(POP_TAB)) {
       refTab = (CloseableTabbedPane) ref;
       popTabMenu();
-//    } else if (popType.equals(POP_IMAGE)) {
-//      refEditorPane = (EditorPane) ref;
-//      popImageMenu();
+    } else if (popType.equals(POP_IMAGE)) {
+      refEditorPane = (EditorPane) ref;
+      popImageMenu();
     } else if (popType.equals(POP_LINE)) {
       refLineNumberView = (EditorLineNumberView) ref;
       refEditorPane = ((EditorLineNumberView) ref).getEditorPane();
@@ -189,6 +189,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       add(createMenuItem("About", new PopTabAction(PopTabAction.ABOUT)));
       createMenuSeperator();
       add(createMenuItem("Set Type", new PopTabAction(PopTabAction.SET_TYPE)));
+      add(createMenuItem("Insert Path", new PopTabAction(PopTabAction.INSERT_PATH)));
       createMenuSeperator();
       add(createMenuItem("Move Tab", new PopTabAction(PopTabAction.MOVE_TAB)));
       add(createMenuItem("Duplicate", new PopTabAction(PopTabAction.DUPLICATE)));
@@ -221,6 +222,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     static final String RUN = "doRun";
     static final String RUN_SLOW = "doRunSlow";
     static final String RESET = "doReset";
+    static final String INSERT_PATH = "doInsertPath";
 
     public PopTabAction() {
       super();
@@ -241,9 +243,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         (new Thread() {
           @Override
           public void run() {
-            Region at = Mouse.at().offset(100,52).grow(10);
+            Region at = Mouse.at().offset(100, 52).grow(10);
             ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-            SX.popup( "Script not yet saved","IDE: About: script info", "", false, 2, at);
+            SX.popup("Script not yet saved", "IDE: About: script info", "", false, 2, at);
           }
         }).start();
       } else {
@@ -253,20 +255,20 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
             public void run() {
               String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
                       cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
-              Region at = Mouse.at().offset(200,78).grow(10);
+              Region at = Mouse.at().offset(200, 78).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup( msg,"IDE: About: script info", "", false,10, at);
+              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
             }
           }).start();
-        } else if (!cp.isText){
+        } else if (!cp.isText) {
           (new Thread() {
             @Override
             public void run() {
               String msg = String.format("SikuliX script: %s\nin Folder: %s",
                       cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
-              Region at = Mouse.at().offset(100,65).grow(10);
+              Region at = Mouse.at().offset(100, 65).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup( msg,"IDE: About: script info", "", false, 10, at);
+              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
             }
           }).start();
         }
@@ -324,6 +326,22 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       String msg = "doSetType: completed" + error;
       SikulixIDE.getStatusbar().setMessage(msg);
       Debug.log(3, msg);
+    }
+
+    public void doInsertPath(ActionEvent ae) {
+      (new Thread() {
+        @Override
+        public void run() {
+          String popFile = Sikulix.popFile("test");
+          log(3, "file selected: %s", popFile);
+          if (popFile.endsWith("/") || popFile.endsWith("\\")) {
+            popFile = popFile.substring(0, popFile.length() - 1);
+          }
+          popFile.replace("\\", "\\\\");
+          popFile = "\"" + popFile + "\"";
+          SikulixIDE.getInstance().getCurrentCodePane().insertString(popFile);
+        }
+      }).start();
     }
 
     public void doMoveTab(ActionEvent ae) throws NoSuchMethodException {

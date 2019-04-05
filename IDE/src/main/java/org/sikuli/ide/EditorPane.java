@@ -29,6 +29,7 @@ import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.*;
+import org.sikuli.script.Button;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
@@ -105,6 +106,20 @@ public class EditorPane extends JTextPane {
     pref = PreferencesUser.getInstance();
     showThumbs = !pref.getPrefMorePlainText();
     sikuliIDE = ide;
+    addMouseListener(new MouseInputAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON3) {
+          new Thread(new Runnable() {
+            @Override
+            public void run() {
+              handlePopup();
+            }
+          }).start();
+        }
+        super.mouseClicked(e);
+      }
+    });
     log(lvl, "EditorPane: creating new pane (constructor)");
   }
 
@@ -1015,6 +1030,7 @@ public class EditorPane extends JTextPane {
     sikuliIDE.setCurrentFileTabTitleDirty(scriptIsDirty);
   }
 
+
   private class DirtyHandler implements DocumentListener {
 
     @Override
@@ -1498,6 +1514,10 @@ public class EditorPane extends JTextPane {
     } catch (Exception e) {
       log(-1, "appendString: Problem while trying to append\n%s", e.getMessage());
     }
+  }
+
+  private void handlePopup() {
+    //log(0, "text popup");
   }
   //</editor-fold>
 
