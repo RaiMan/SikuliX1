@@ -188,7 +188,16 @@ public class Runner {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
       for (String scriptGiven : runScripts) {
-        String  scriptFileName = FileManager.normalize(scriptGiven, lastWorkFolder);
+        String actualFolder = lastWorkFolder;
+        if (!scriptGiven.endsWith(".sikuli")) {
+          scriptGiven += ".sikuli";
+        }
+        if (null == actualFolder && !new File(scriptGiven).isAbsolute()) {
+          if (new File(runTime.fWorkDir, scriptGiven).exists()) {
+            actualFolder = runTime.fWorkDir.getAbsolutePath();
+          }
+        }
+        String  scriptFileName = FileManager.normalize(scriptGiven, actualFolder);
         if (!new File(scriptFileName).exists()) {
           log(-1, "Script file not found: %s", scriptFileName);
           exitCode = 1;
