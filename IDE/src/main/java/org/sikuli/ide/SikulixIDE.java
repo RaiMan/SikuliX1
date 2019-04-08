@@ -2668,11 +2668,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       RunTime.pause(0.1f);
       sikulixIDE.setIsRunningScript(true);
       EditorPane codePane = getCurrentCodePane();
-      String cType = codePane.getSikuliContentType();
-      File scriptFile = null;
+      File scriptFile;
       if (codePane.isDirty()) {
         codePane.checkPaneContentType();
-        scriptFile = FileManager.createTempFile(Runner.getExtension(cType));
+        scriptFile = FileManager.createTempFile(Runner.getExtension(codePane.getSikuliContentType()));
         if (scriptFile != null) {
           try {
             codePane.write(new BufferedWriter(new OutputStreamWriter(
@@ -2691,9 +2690,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       _console.clear();
       resetErrorMark();
       File path = new File(getCurrentBundlePath());
-      IScriptRunner scriptRunner = Runner.getRunner(cType);
+      IScriptRunner scriptRunner = Runner.getRunner(codePane.getSikuliContentType());
       if (scriptRunner == null) {
-        log(-1, "runCurrentScript: Could not load a script runner for: %s", cType);
+        log(-1, "runCurrentScript: Could not load a script runner for: %s", codePane.getSikuliContentType());
         return;
       }
       addScriptCode(scriptRunner);
