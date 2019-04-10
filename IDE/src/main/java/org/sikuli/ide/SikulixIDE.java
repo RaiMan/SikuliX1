@@ -3157,7 +3157,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   public void installStopHotkey() {
-    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+    HotkeyManager.getInstance(). addHotkey("Abort", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
         onStopRunning();

@@ -6,10 +6,7 @@ package org.sikuli.script.support;
 import org.apache.commons.cli.CommandLine;
 import org.opencv.core.Core;
 import org.sikuli.android.ADBScreen;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyManager;
-import org.sikuli.basics.Settings;
+import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
@@ -188,12 +185,25 @@ public class RunTime {
     }
 
     if (RunTime.get().shouldRunPythonServer()) {
-      RunTime rt = RunTime.get();
+      RunTime.get().installStopHotkey();
       if (Debug.getDebugLevel() == 3) {
       }
       startPythonServer();
-      Sikulix.popError("click ok to stop",
-          "sikulix4python");
+    }
+  }
+
+  public void installStopHotkey() {
+    HotkeyManager.getInstance(). addHotkey("Abort", new HotkeyListener() {
+      @Override
+      public void hotkeyPressed(HotkeyEvent e) {
+        onStopHotkey();
+      }
+    });
+  }
+
+  private void onStopHotkey() {
+    Debug.log(3, "Stop HotKey was pressed");
+    if (RunTime.get().shouldRunPythonServer()) {
       stopPythonServer();
       Sikulix.terminate();
     }
@@ -202,7 +212,7 @@ public class RunTime {
   public static void startPythonServer() {
     if (null == pythonServer) {
       pythonServer = new GatewayServer();
-      pythonServer.start(true);
+      pythonServer.start(false);
     }
   }
 
