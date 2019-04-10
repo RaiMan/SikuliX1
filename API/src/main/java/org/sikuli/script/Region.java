@@ -2064,13 +2064,13 @@ public class Region {
   //<editor-fold defaultstate="collapsed" desc="028 highlight">
 
   /**
-   * highlight (internal use for Python support)           :
-   * () -> Region,
-   * (int) -> Region
-   * (String) -> Region,
-   * (int,String) -> Region,
-   * (float) -> Region,
-   * (float,String) -> Region,
+   * highlight (internal use for Python support):
+   * all act on the related Region
+   * () - on/off,
+   * (int) - int seconds
+   * (String) - on/off with given color
+   * (int,String) - int seconds with given color
+   * (float), (float,String) - same as int
    * @param args
    * @return this
    */
