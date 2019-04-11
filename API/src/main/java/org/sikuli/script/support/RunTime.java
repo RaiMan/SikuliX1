@@ -26,6 +26,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -1800,7 +1801,41 @@ public class RunTime {
 
   private void initIDEafter() {
     log(4, "initIDEafter: entering");
+    try {
+      cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+      mHide = cIDE.getMethod("hideIDE", new Class[0]);
+      mShow = cIDE.getMethod("showIDE", new Class[0]);
+    } catch (Exception ex) {
+      log(-1, "SikulixIDE: reflection: %s", ex.getMessage());
+    }
     log(4, "initIDEafter: leaving");
+  }
+
+  Class<?> cIDE = null;
+  Method mHide = null;
+  Method mShow = null;
+
+  public void hideIDE() {
+    if (null != cIDE) {
+      try {
+        mHide.invoke(null, new Object[0]);
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  public void showIDE() {
+    if (null != cIDE) {
+      try {
+        mShow.invoke(null, new Object[0]);
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+    }
   }
 //</editor-fold>
 
