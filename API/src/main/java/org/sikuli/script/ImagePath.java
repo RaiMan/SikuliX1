@@ -645,6 +645,7 @@ public class ImagePath {
       pathURL = FileManager.makeURL(fPath.getAbsolutePath());
     } else {
       if (fpMainPath.contains("\\")) {
+        log(-1, "add: folder does not exist (%s)", fPath);
         return null;
       }
       Class cls = null;
@@ -662,7 +663,7 @@ public class ImagePath {
       try {
         cls = Class.forName(klassName);
       } catch (ClassNotFoundException ex) {
-        log(-1, "add: %s not found or does not exist", klassName);
+        log(-1, "add: class not found (%s) or folder does not exist (%s)", klassName, fPath);
       }
       if (cls != null) {
         CodeSource codeSrc = cls.getProtectionDomain().getCodeSource();
