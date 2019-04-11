@@ -22,22 +22,20 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   public static final String NAME = "JavaScript";
   public static final String TYPE = "text/javascript";
-  public static final String[] EXTENSIONS = new String[] {"js"};
+  public static final String[] EXTENSIONS = new String[]{"js"};
 
   private static final RunTime RUN_TIME = RunTime.get();
 
   private static String BEFORE_JS_JAVA_8 = "load(\"nashorn:mozilla_compat.js\");";
   private static String BEFORE_JS
-          = "importPackage(Packages.org.sikuli.script); "
-          + "importClass(Packages.org.sikuli.basics.Debug); "
-          + "importClass(Packages.org.sikuli.basics.Settings);";
+      = "importPackage(Packages.org.sikuli.script); "
+      + "importClass(Packages.org.sikuli.script.support.RunTime); "
+      + "importClass(Packages.org.sikuli.script.runnerHelpers.Commands); "
+      + "importClass(Packages.org.sikuli.basics.Debug); "
+      + "importClass(Packages.org.sikuli.basics.Settings);";
 
   private static final String me = "JSScriptRunner: ";
   private int lvl = 3;
-
-//  Class cIDE;
-//  Method mShow;
-//  Method mHide;
 
   private ScriptEngine engine;
 
@@ -51,23 +49,14 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     log(lvl, "ScriptingEngine started: JavaScript (ending .js)");
 
     String prolog = "";
-    if(RUN_TIME.isJava8()) {
-      prolog += BEFORE_JS_JAVA_8;
-    }
+    prolog += BEFORE_JS_JAVA_8;
     prolog += BEFORE_JS;
     prolog += RUN_TIME.extractResourceToString("JavaScript", "commands.js", "");
-    engine.eval(prolog);
-
-    // TODO move this to proper place
-//    if (RunTime.Type.IDE.equals(RunTime.get().runType)) {
-//      try {
-//        cIDE = Class.forName("org.sikuli.ide.SikuliIDE");
-//        mHide = cIDE.getMethod("hideIDE", new Class[0]);
-//        mShow = cIDE.getMethod("showIDE", new Class[0]);
-//      } catch (Exception ex) {
-//        log(-1, "initjs: getIDE");
-//      }
-//    }
+    try {
+      engine.eval(prolog);
+    } catch (ScriptException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -78,11 +67,11 @@ public class JavaScriptRunner extends AbstractScriptRunner {
     } catch (FileNotFoundException | ScriptException e) {
       log(lvl, "runScript failed", e);
 
-      if(null != stderr) {
+      if (null != stderr) {
         stderr.print(e);
       }
 
-      if(null != options) {
+      if (null != options) {
         options.setErrorLine(findErrorSource(e, scriptFile));
       }
 
@@ -93,21 +82,21 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
+    boolean silent = false;
+    if (script.startsWith("#")) {
+      script = script.substring(1);
+      silent = true;
+    }
     try {
-      boolean silent = false;
-      if (script.startsWith("#")) {
-        script = script.substring(1);
-        silent = true;
-      }
       engine.eval(script);
     } catch (ScriptException e) {
       log(lvl, "evalScript failed", e);
 
-      if(null != stderr) {
+      if (null != stderr) {
         stderr.print(e);
       }
 
-      if(null != options) {
+      if (null != options) {
         options.setErrorLine(findErrorSource(e, null));
       }
 
@@ -123,9 +112,8 @@ public class JavaScriptRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isSupported() {
-//    ScriptEngineManager jsFactory = new ScriptEngineManager();
-//    return jsFactory.getEngineByName("JavaScript") != null;
-    return false;
+    ScriptEngineManager jsFactory = new ScriptEngineManager();
+    return jsFactory.getEngineByName("JavaScript") != null;
   }
 
   @Override
@@ -147,7 +135,7 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   private int findErrorSource(Throwable thr, String filename) {
     Matcher m = Pattern.compile("at line number (\\d+)").matcher(thr.toString());
 
-    if(m.find()) {
+    if (m.find()) {
       return Integer.parseInt(m.group(1));
     }
 

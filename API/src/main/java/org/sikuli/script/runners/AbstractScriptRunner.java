@@ -135,7 +135,9 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     synchronized (this) {
       init(null);
       int savedLevel = Debug.getDebugLevel();
-      Debug.off();
+      if (!Debug.isGlobalDebug()) {
+        Debug.off();
+      }
       int exitValue = doRunScript(scriptfile, scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
