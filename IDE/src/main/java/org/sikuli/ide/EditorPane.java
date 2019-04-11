@@ -123,6 +123,10 @@ public class EditorPane extends JTextPane {
     log(lvl, "EditorPane: creating new pane (constructor)");
   }
 
+  private void handlePopup() {
+    log(3, "text popup");
+  }
+
   public void saveCaretPosition() {
     caretPosition = getCaretPosition();
   }
@@ -1516,9 +1520,6 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  private void handlePopup() {
-    //log(0, "text popup");
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="feature search">

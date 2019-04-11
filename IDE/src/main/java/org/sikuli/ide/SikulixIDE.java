@@ -822,12 +822,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="isInited --- RaiMan not used">
-  public boolean isInited() {
-    return _inited;
-  }
-  //</editor-fold>
-
   private JMenuItem createMenuItem(JMenuItem item, KeyStroke shortcut, ActionListener listener) {
     if (shortcut != null) {
       item.setAccelerator(shortcut);
@@ -2175,6 +2169,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       return false;
     }
   }
+  //</editor-fold>
 
   private void initMenuBars(JFrame frame) {
     try {
@@ -2197,7 +2192,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     frame.setJMenuBar(_menuBar);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Init LeftBar Commands">
+  //<editor-fold defaultstate="collapsed" desc="91 Init LeftBar Commands --- not used">
   private String[] getCommandCategories() {
     String[] CommandCategories = {
             _I("cmdListFind"),
@@ -2320,7 +2315,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 */
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Init ToolBar Buttons">
+  //<editor-fold defaultstate="collapsed" desc="10 Init ToolBar Buttons">
   private JToolBar initToolbar() {
 //    if (ENABLE_UNIFIED_TOOLBAR) {
 //      MacUtils.makeWindowLeopardStyle(this.getRootPane());
@@ -2566,7 +2561,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
                   + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
-          Runner.getRunner(JavaScriptRunner.class).evalScript("#" + eval, null);
+          IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
+          runner.evalScript("#" + eval, null);
           return;
         }
       }
@@ -2604,6 +2600,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         item = "m = null; r = #region#; "
                 + "if (r != null) m = r.exists(" + item + ", 0); "
                 + "if (m != null) m.highlight(2); else print(m);";
+      } else {
+        item = "";
       }
       return !item.isEmpty();
     }
@@ -3146,7 +3144,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   public void onQuickCapture(String arg) {
-    if (isInited()) {
+    if (_inited) {
       Debug.log(3, "QuickCapture");
       _btnCapture.capture(0);
     }
@@ -3189,7 +3187,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="IDE Unit Testing --- RaiMan not used">
+  //<editor-fold defaultstate="collapsed" desc="90 IDE Unit Testing --- not used">
   /*
    private void initSidePane() {
    initUnitPane();
