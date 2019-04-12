@@ -375,6 +375,8 @@ public class RunTime {
     }
     if (extGiven.size() == 0) {
       startLog(1, "no extensions.txt nor valid content");
+      sxExtensionsFile = null;
+      return;
     }
     for (String line : extGiven) {
       String token = "";

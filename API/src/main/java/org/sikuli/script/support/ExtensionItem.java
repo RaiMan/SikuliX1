@@ -1,26 +1,20 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.ide;
+package org.sikuli.script.support;
 
-import java.awt.BorderLayout;
-import java.awt.Image;
+import org.sikuli.basics.Debug;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
-import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.ExtensionManager;
 
 class ExtensionItem extends JPanel implements ActionListener {
 
@@ -67,8 +61,8 @@ class ExtensionItem extends JPanel implements ActionListener {
     }
     if (image == null) {
       try {
-        url = new URL(SikulixIDE.runTime.SikuliRepo + "extensionImage.jpg");
-        image = ImageIO.read(url);
+//        url = new URL(RunTime.get().getSikuliRepo() + "extensionImage.jpg");
+//        image = ImageIO.read(url);
       } catch (Exception e) {
       }
     }
@@ -84,13 +78,15 @@ class ExtensionItem extends JPanel implements ActionListener {
     _content.add(_htmlLabel);
     add(_content);
 
-    JButton btn = new JButton(SikuliIDEI18N._I("extBtnInstall"));
+//    JButton btn = new JButton(SikuliIDEI18N._I("extBtnInstall"));
+    JButton btn = new JButton("extBtnInstall");
     btn.addActionListener(this);
     btn.setActionCommand("Install");
     _installCtrl = btn;
     _installCtrl.setFocusable(false);
 
-    btn = new JButton(SikuliIDEI18N._I("extBtnInfo"));
+//    btn = new JButton(SikuliIDEI18N._I("extBtnInfo"));
+    btn = new JButton("extBtnInfo");
     btn.addActionListener(this);
     btn.setActionCommand("Info");
     _infoCtrl = btn;
@@ -151,13 +147,16 @@ class ExtensionItem extends JPanel implements ActionListener {
 
     if (status == INSTALLED) {
       _installCtrl.setEnabled(false);
-      _installCtrl.setText(SikuliIDEI18N._I("extMsgInstalled"));
+//      _installCtrl.setText(SikuliIDEI18N._I("extMsgInstalled"));
+      _installCtrl.setText("extMsgInstalled");
     } else if (status == NOT_INSTALLED) {
       _installCtrl.setEnabled(true);
-      _installCtrl.setText(SikuliIDEI18N._I("extBtnInstallVer", _version));
+//      _installCtrl.setText(SikuliIDEI18N._I("extBtnInstallVer", _version));
+      _installCtrl.setText("extBtnInstallVer");
     } else if (status == OUT_OF_DATE) {
       _installCtrl.setEnabled(true);
-      _installCtrl.setText(SikuliIDEI18N._I("extBtnUpdateVer", _version));
+//      _installCtrl.setText(SikuliIDEI18N._I("extBtnUpdateVer", _version));
+      _installCtrl.setText("extBtnUpdateVer");
     }
 
     _htmlLabel.setText(renderHTML());

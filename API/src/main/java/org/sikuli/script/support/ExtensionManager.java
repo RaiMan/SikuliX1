@@ -1,9 +1,11 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.basics;
+package org.sikuli.script.support;
 
-import org.sikuli.script.support.RunTime;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;

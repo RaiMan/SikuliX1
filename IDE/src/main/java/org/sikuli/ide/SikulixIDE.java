@@ -15,10 +15,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.support.*;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -1902,13 +1899,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       for (String extension : extensionNames) {
         warn += "\n" + extension;
       }
-      List<String> classpath = extensionManager.getClasspath();
-      if (!classpath.isEmpty()) {
-        warn += "\n\n" + "---------- extension_classpath";
-        for (String line : classpath) {
-          warn += "\n" + line;
-        }
-      }
+//      List<String> classpath = extensionManager.getClasspath();
+//      if (!classpath.isEmpty()) {
+//        warn += "\n\n" + "---------- extension_classpath";
+//        for (String line : classpath) {
+//          warn += "\n" + line;
+//        }
+//      }
     }
     String title = "SikuliX1 Extensions";
     String[] options = new String[3];

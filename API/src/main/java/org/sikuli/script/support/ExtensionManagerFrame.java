@@ -1,11 +1,10 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.ide;
+package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.support.RunTime;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -28,8 +27,8 @@ import java.util.Map;
 
 public class ExtensionManagerFrame extends JFrame {
 
-  final static String EXTENSION_LIST_URL =
-          SikulixIDE.runTime.SikuliRepo + "extensions.json";
+  final static String EXTENSION_LIST_URL = "";
+//          SikulixIDE.runTime.SikuliRepo + "extensions.json";
   private static ExtensionManagerFrame _instance = null;
   private int selected_idx = 0;
   ArrayList<ExtensionItem> _extensions;
