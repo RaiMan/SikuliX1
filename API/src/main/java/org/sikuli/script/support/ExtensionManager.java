@@ -168,13 +168,13 @@ public class ExtensionManager {
 		return sb.toString();
 	}
 
-}
-
-class Extension implements Serializable {
-	public String name, path, version;
-	public Extension(String name_, String path_, String version_) {
-		name = name_;
-		path = path_;
-		version = version_;
+	static class Extension implements Serializable {
+		public String name, path, version;
+		public Extension(String name_, String path_, String version_) {
+			name = name_;
+			path = path_;
+			version = version_;
+		}
 	}
 }
+
