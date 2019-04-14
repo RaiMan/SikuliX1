@@ -1880,7 +1880,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
 
     public void extensions(ActionEvent ae) {
-      showExtensionsFrame();
+      showExtensions();
     }
 
     public void android(ActionEvent ae) {
@@ -1888,7 +1888,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
   }
 
-  private void showExtensionsFrame() {
+  private void showExtensions() {
     ExtensionManagerFrame extensionManager = ExtensionManagerFrame.getInstance();
     String extensionsPath = runTime.fSikulixExtensions.getAbsolutePath();
     String warn = "Nothing to do here currently - click what you like ;-)\n" +
@@ -2725,6 +2725,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       @Override
       public void run() {
         try {
+          options.setRunningInIDE();
           ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), options);
         } catch (Exception ex) {
           log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);

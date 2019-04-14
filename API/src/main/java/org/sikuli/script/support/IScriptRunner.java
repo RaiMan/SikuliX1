@@ -62,6 +62,16 @@ public interface IScriptRunner {
     public void setErrorLine(int errorLine) {
       this.errorLine = errorLine;
     }
+
+    public boolean isRunningInIDE() {
+      return runningInIDE;
+    }
+
+    public void setRunningInIDE() {
+      this.runningInIDE = true;
+    }
+
+    private boolean runningInIDE = false;
   }
 
   /**
