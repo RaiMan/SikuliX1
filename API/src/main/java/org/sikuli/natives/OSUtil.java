@@ -42,6 +42,4 @@ public interface OSUtil {
   Rectangle getFocusedWindow();
 
   List<Region> getWindows(App app);
-
-  void bringWindowToFront(Window win, boolean ignoreMouse);
 }

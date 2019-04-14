@@ -400,6 +400,8 @@ public class WinUtil implements OSUtil {
     return false;
   }
 
+  public native int closeApp(int pid);
+
   @Override
   public Rectangle getWindow(App app) {
     return getWindow(app, 0);
@@ -496,15 +498,6 @@ public class WinUtil implements OSUtil {
 
     return 0;
   }
-
-  public native int openApp(String appName);
-
-  public native int closeApp(String appName);
-
-  public native int closeApp(int pid);
-
-  @Override
-  public native void bringWindowToFront(Window win, boolean ignoreMouse);
 
   private static HWND getHwnd(String appName, int winNum) {
     List<WindowInfo> windows = getWindowsForName(appName);

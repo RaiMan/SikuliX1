@@ -402,10 +402,6 @@ public class LinuxUtil implements OSUtil {
   }
   
   @Override
-  public void bringWindowToFront(Window win, boolean ignoreMouse) {
-  }
-
-  @Override
   public List<Region> getWindows(App app) {
     return new ArrayList<>();
   }

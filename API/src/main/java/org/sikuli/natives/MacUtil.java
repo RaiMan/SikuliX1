@@ -22,7 +22,6 @@ public class MacUtil implements OSUtil {
   @Override
   public void checkFeatureAvailability() {
     RunTime.get().loadLibrary("MacUtil");
-    checkAxEnabled();
   }
 
   /*
@@ -196,18 +195,6 @@ public class MacUtil implements OSUtil {
     return shRun(cmd);
   }
 
-  private void checkAxEnabled() {
-    if (RunTime.get().isOSX10() && !isAxEnabled()) {
-      JOptionPane.showMessageDialog(null,
-              "SikuliX needs access to the Mac's assistive device support.\n"
-                      + "You have to explicitly allow this in the System Preferences.\n"
-                      + "(... -> Security & Privacy -> Privacy -> Accessibility)\n"
-                      + "Please check the System Preferences and come back.",
-              "macOS Accessibility", JOptionPane.ERROR_MESSAGE);
-      Sikulix.terminate(999, "App: MacUtil: no access to assistive device support");
-    }
-  }
-
   @Override
   public Rectangle getWindow(App app) {
     return getWindow(app, 0);
@@ -271,21 +258,6 @@ public class MacUtil implements OSUtil {
   }
 
   @Override
-  public native void bringWindowToFront(Window win, boolean ignoreMouse);
-
-  public static native boolean _openApp(String appName);
-
-  public static native int getPID(String appName);
-
-  public static native Rectangle getRegion(int pid, int winNum);
-
-  public static native Rectangle getFocusedRegion();
-
-  public static native boolean isAxEnabled();
-
-  public static native void openAxSetting();
-
-  @Override
   public List<App> getApps(String name) {
     new App();
     String cmd = "tell application \"System Events\"\n" +
@@ -334,4 +306,10 @@ public class MacUtil implements OSUtil {
     }
     return appList;
   }
+
+  public static native int getPID(String appName);
+
+  public static native Rectangle getRegion(int pid, int winNum);
+
+  public static native Rectangle getFocusedRegion();
 }
