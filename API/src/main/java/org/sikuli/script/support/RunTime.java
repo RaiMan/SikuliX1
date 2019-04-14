@@ -1190,7 +1190,25 @@ public class RunTime {
     fBaseTempPath = new File(fTempPath, String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
-
+    try {
+      File tempTest = new File(fBaseTempPath, "tempTest.txt");
+      FileManager.writeStringToFile("temp test", tempTest);
+      boolean success = true;
+      if (tempTest.exists()) {
+        tempTest.delete();
+        if (tempTest.exists()) {
+          success = false;
+        }
+      } else {
+        success = false;
+      }
+      if (!success) {
+        terminate(999, "init: java.io.tmpdir not useable");
+      }
+    } catch (Exception e) {
+      terminate(999, "init: java.io.tmpdir not writable");
+    }
+    log(3, "temp folder ok: %s", fpBaseTempPath);
     if (Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
       isRunning = new File(fTempPath, isRunningFilename);
       boolean shouldTerminate = false;
