@@ -100,7 +100,7 @@ public class RunTime {
     File runningJar = getRunningJar();
     String jarName = runningJar.getName();
     File fAppData = getAppPath();
-    String classPath = makeClassPath(runningJar);
+    String classPath = ExtensionManager.makeClassPath(runningJar);
     RunTime.startLog(1, "Running: %s", runningJar);
     RunTime.startLog(1, "AppData: %s", fAppData);
     RunTime.startLog(1, "Classpath: %s", classPath);
@@ -135,7 +135,7 @@ public class RunTime {
         } else {
           if (startAsIDE) {
             System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
-            classPath = makeClassPath(runningJar);
+            classPath = ExtensionManager.makeClassPath(runningJar);
             continue;
           }
         }
@@ -143,6 +143,23 @@ public class RunTime {
       }
     }
 
+  }
+
+  private static File getRunningJar() {
+    File jarFile = null;
+    String jarName = "notKnown";
+    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
+    if (codeSrc != null && codeSrc.getLocation() != null) {
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        startLog(-1, "URLDecoder: not possible: %s", jarName);
+        System.exit(1);
+      }
+      jarFile = new File(jarName);
+    }
+    return jarFile;
   }
 
   public static void afterStart(RunTime.Type type, String[] args) {
@@ -161,32 +178,32 @@ public class RunTime {
       Debug.log(3, "Sikulix: starting API");
     }
 
-    RunTime.evalArgs(args);
-    RunTime.readExtensions(true);
+    evalArgs(args);
+    ExtensionManager.readExtensions(true);
 
-    if (RunTime.isQuiet()) {
+    if (isQuiet()) {
       Debug.quietOn();
-    } else if (RunTime.isVerbose()) {
+    } else if (isVerbose()) {
       Debug.setWithTimeElapsed(RunTime.getElapsedStart());
       Debug.setGlobalDebug(3);
       Debug.globalTraceOn();
       Debug.setStartWithTrace();
     }
 
-    if (RunTime.get().runningScripts()) {
+    if (runningScripts()) {
       int exitCode = Runner.runScripts(RunTime.getRunScripts());
       Sikulix.terminate(exitCode, "");
     }
 
-    if (RunTime.get().shouldRunServer()) {
+    if (shouldRunServer()) {
       if (ServerRunner.run(null)) {
         Sikulix.terminate(1, "");
       }
       Sikulix.terminate();
     }
 
-    if (RunTime.get().shouldRunPythonServer()) {
-      RunTime.get().installStopHotkey();
+    if (shouldRunPythonServer()) {
+      get().installStopHotkey();
       if (Debug.getDebugLevel() == 3) {
       }
       startPythonServer();
@@ -229,247 +246,6 @@ public class RunTime {
   }
 
   private static GatewayServer pythonServer = null;
-
-  private static File getRunningJar() {
-    File jarFile = null;
-    String jarName = "notKnown";
-    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      try {
-        jarName = codeSrc.getLocation().getPath();
-        jarName = URLDecoder.decode(jarName, "utf8");
-      } catch (UnsupportedEncodingException e) {
-        startLog(-1, "URLDecoder: not possible: %s", jarName);
-        System.exit(1);
-      }
-      jarFile = new File(jarName);
-    }
-    return jarFile;
-  }
-
-  private static boolean moveJython = false;
-  private static boolean moveJRuby = false;
-  private static File sxExtensions = new File(getAppPath(), "Extensions");
-  private static boolean jythonReady = false;
-  private static boolean jrubyReady = false;
-  private static String classPath = "";
-
-  private static String makeClassPath(File jarFile) {
-    startLog(1, "starting");
-    boolean isDev = false;
-    String jarPath = jarFile.getAbsolutePath();
-    if (!jarPath.endsWith(".jar")) {
-      isDev = true;
-    }
-    if (!classPath.isEmpty()) {
-      classPath += File.pathSeparator;
-    }
-    classPath += jarPath;
-
-    File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.endsWith(".jar")) {
-          if (name.contains("jython") && name.contains("standalone")) {
-            moveJython = true;
-            return true;
-          }
-          if (name.contains("jruby") && name.contains("complete")) {
-            moveJRuby = true;
-            return true;
-          }
-        }
-        return false;
-      }
-    });
-    boolean extensionsOK = true;
-
-    if (!sxExtensions.exists()) {
-      sxExtensions.mkdir();
-    }
-    if (!sxExtensions.exists()) {
-      startLog(1, "folder extension not available: %s", sxExtensions);
-      extensionsOK = false;
-    }
-
-    if (extensionsOK) {
-      readExtensions(false);
-      File[] fExtensions = sxExtensions.listFiles();
-      if (moveJython || moveJRuby) {
-        for (File fExtension : fExtensions) {
-          String name = fExtension.getName();
-          if ((name.contains("jython") && name.contains("standalone")) ||
-              (name.contains("jruby") && name.contains("complete"))) {
-            fExtension.delete();
-          }
-        }
-      }
-      if (null != sxFolderList && sxFolderList.length > 0) {
-        for (File fJar : sxFolderList) {
-          try {
-            Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-            startLog(1, "moving to extensions: %s", fJar);
-          } catch (IOException e) {
-            startLog(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
-          }
-        }
-      }
-
-      //log(1, "looking for extension jars in: %s", sxExtensions);
-      for (File fExtension : fExtensions) {
-        String pExtension = fExtension.getAbsolutePath();
-        if (pExtension.endsWith(".jar")) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
-          }
-          if (pExtension.contains("jython") && pExtension.contains("standalone")) {
-            if (jythonReady) {
-              continue;
-            }
-            if (pExtension.contains(jythonVersion)) {
-              jythonReady = true;
-            }
-          } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
-            if (jrubyReady) {
-              continue;
-            }
-            if (pExtension.contains(jrubyVersion)) {
-              jrubyReady = true;
-            }
-          }
-          classPath += pExtension;
-          startLog(1, "adding extension: %s", fExtension);
-        }
-      }
-      if (!jythonReady && !jrubyReady && !isDev) {
-        String message = "Neither Jython nor JRuby available" +
-            "\nIDE not yet useable with JavaScript only" +
-            "\nPlease consult the docs for a solution";
-        if (!verbose) {
-          JOptionPane.showMessageDialog(null, message, "IDE not useable", JOptionPane.ERROR_MESSAGE);
-        } else {
-          startLog(-1, message);
-        }
-        System.exit(-1);
-      }
-    }
-    return classPath;
-  }
-
-  public static void readExtensions(boolean afterStart) {
-    String txtExtensions = FileManager.readFileToString(new File(sxExtensions, "extensions.txt"));
-    List<String> extGiven = new ArrayList<>();
-    if (!txtExtensions.isEmpty()) {
-      sxExtensionsFile = new File(sxExtensions, "extensions.txt");
-      String[] lines = txtExtensions.split("\\n");
-      String extlines = "";
-      for (String line : lines) {
-        line = line.trim();
-        if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
-          continue;
-        }
-        extlines += line + "\n";
-        extGiven.add(line);
-      }
-      startLog(1, "extensions.txt\n%s", extlines);
-    }
-    if (extGiven.size() == 0) {
-      startLog(1, "no extensions.txt nor valid content");
-      sxExtensionsFile = null;
-      return;
-    }
-    for (String line : extGiven) {
-      String token = "";
-      String extPath = line;
-      String[] lineParts = line.split("=");
-      if (lineParts.length > 1) {
-        token = lineParts[0].trim();
-        extPath = lineParts[1].trim();
-      }
-      File extFile = new File(extPath);
-      if (extFile.isAbsolute() && !extFile.exists()) {
-        continue;
-      }
-      if (!token.isEmpty()) {
-        if ("jython".equals(token)) {
-          if (afterStart) {
-            continue;
-          }
-          jythonReady = true;
-          setJythonExtern(true);
-        }
-        if ("python".equals(token)) {
-          if (!afterStart) {
-            continue;
-          }
-          if (extFile.isAbsolute()) {
-            if (extFile.exists()) {
-              startLog(1, "Python available at: %s", extPath);
-              python = extPath;
-            }
-          } else {
-            String runOut = ProcessRunner.run(extPath, "-V");
-            if (runOut.startsWith("0\n")) {
-              python = extPath;
-              startLog(1, "Python available as command: %s (%s)", extPath, runOut.substring(2));
-            }
-          }
-          continue;
-        }
-        if (!afterStart) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
-          }
-          classPath += extPath;
-          startLog(1, "adding extension: %s", extPath);
-        }
-      }
-    }
-  }
-
-  public static boolean hasExtensionsFile() {
-    return sxExtensionsFile != null;
-  }
-
-  public static File getExtensionsFile() {
-    return sxExtensionsFile;
-  }
-
-  private static File sxExtensionsFile = null;
-
-  public static String getExtensionsFileDefault() {
-    return "# add absolute paths one per line, that point to other jars,\n" +
-        "# that need to be available on Java's classpath at runtime\n" +
-        "# They will be added automatically at startup in the given sequence\n" +
-        "\n" +
-        "# empty lines and lines beginning with # or // are ignored\n" +
-        "# delete the leading # to activate a prepared keyword line\n" +
-        "\n" +
-        "# pointer to a Jython install outside SikuliX\n" +
-        "# jython = c:/jython2.7.1/jython.jar\n" +
-        "\n" +
-        "# the Python executable as used on a commandline\n" +
-        "# activating will enable the support for real Python\n" +
-        "# python = python\n";
-  }
-
-  public static boolean hasSitesTxt() {
-    return sxSitesTxt != null && sxSitesTxt.exists();
-  }
-
-  public static File getSitesTxt() {
-    return sxSitesTxt;
-  }
-
-  private static File sxSitesTxt = new File(getAppPath(), "Lib/site-packages/sites.txt");
-
-  public static String getSitesTxtDefault() {
-    return "# add absolute paths one per line, that point to other directories/jars,\n" +
-        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-        "\n" +
-        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
-  }
 
   public static void evalArgs(String[] args) {
 
@@ -598,71 +374,6 @@ public class RunTime {
   public static IScriptRunner getDefaultRunner() {
     return Runner.getRunner(getDefaultRunnerType());
   }
-
-  static String jythonVersion = "2.7.1";
-
-  public static boolean isJythonExtern() {
-    return jythonExtern;
-  }
-
-  public static void setJythonExtern(boolean jythonExtern) {
-    RunTime.jythonExtern = jythonExtern;
-  }
-
-  private static boolean jythonExtern = false;
-
-  public static boolean hasPython() {
-    return !python.isEmpty();
-  }
-
-  public static String getPython() {
-    return python;
-  }
-
-  private static String python = "";
-
-  private static String jrubyVersion = "9.2.0.0";
-
-  private static boolean jrubyExtern = false;
-
-  public static boolean shouldCheckContent(String type, String identifier) {
-    boolean usePython = false;
-    if (type.contains("ython") && hasPython()) {
-      if (type.equals(identifier)) {
-        return true;
-      }
-      if (asPyServer) {
-        usePython = true;
-      } else if (hasShebang(shebangPython, identifier)) {
-        usePython = true;
-      }
-      if (usePython) {
-        return "text/python".equals(type);
-      }
-      return "text/jython".equals(type);
-    }
-    return true;
-  }
-
-  public static boolean hasShebang(String type, String scriptFile) {
-    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
-      char[] chars = new char[type.length()];
-      int read = reader.read(chars);
-      if (read == type.length()) {
-        if (type.equals(new String(chars).toUpperCase())) {
-          return true;
-        }
-      }
-    } catch (Exception ex) {
-      if (scriptFile.length() >= type.length()
-          && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static final String shebangPython = "#!PYTHON";
 
   public static int getDebugLevelStart() {
     int level = 0;

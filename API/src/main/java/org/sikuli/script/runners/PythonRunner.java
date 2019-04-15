@@ -3,6 +3,7 @@ package org.sikuli.script.runners;
 import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
@@ -34,7 +35,7 @@ public class PythonRunner extends AbstractScriptRunner {
   }
 
   public boolean isSupported() {
-    if (RunTime.hasPython()) {
+    if (ExtensionManager.hasPython()) {
       return true;
     }
     return false;
@@ -56,7 +57,7 @@ public class PythonRunner extends AbstractScriptRunner {
     String scriptContent = FileManager.readFileToString(new File(scriptfile));
     Debug.log(3,"Python: running script: %s\n%s\n********** end", scriptfile, scriptContent);
     List<String> runArgs = new ArrayList<>();
-    runArgs.add(RunTime.getPython());
+    runArgs.add(ExtensionManager.getPython());
     runArgs.add(scriptfile);
     runArgs.addAll(Arrays.asList(scriptArgs));
     String runOut = ProcessRunner.run(runArgs);

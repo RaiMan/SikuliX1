@@ -1050,12 +1050,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       log(lvl, "Open Special requested");
       Map<String, String> specialFiles = new Hashtable<>();
       specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
-      specialFiles.put("2 SikuliX Extensions Options", runTime.getExtensionsFile().getAbsolutePath());
-      specialFiles.put("3 SikuliX Additional Sites", runTime.getSitesTxt().getAbsolutePath());
+      specialFiles.put("2 SikuliX Extensions Options", ExtensionManager.getExtensionsFile().getAbsolutePath());
+      specialFiles.put("3 SikuliX Additional Sites", ExtensionManager.getSitesTxt().getAbsolutePath());
       String[] defaults = new String[specialFiles.size()];
       defaults[0] = "";
-      defaults[1] = runTime.getExtensionsFileDefault();
-      defaults[2] = runTime.getSitesTxtDefault();
+      defaults[1] = ExtensionManager.getExtensionsFileDefault();
+      defaults[2] = ExtensionManager.getSitesTxtDefault();
       String msg = "";
       int num = 1;
       String[] files = new String[specialFiles.size()];
@@ -1064,7 +1064,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         msg += specialFile + "\n";
         num++;
       }
-      String answer = SX.input(msg, "", false, 10);
+      msg += "\n" + "Enter a number to select a file";
+      String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
       if (null != answer && !answer.isEmpty()) {
         try {
           num = Integer.parseInt(answer.substring(0, 1));
@@ -1889,34 +1890,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   private void showExtensions() {
-    ExtensionManagerFrame extensionManager = ExtensionManagerFrame.getInstance();
-    String extensionsPath = runTime.fSikulixExtensions.getAbsolutePath();
-    String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + extensionsPath +
-            "\n\nCurrent content:";
-    if (extensionManager != null) {
-      List<String> extensionNames = extensionManager.getExtensionNames();
-      for (String extension : extensionNames) {
-        warn += "\n" + extension;
-      }
-//      List<String> classpath = extensionManager.getClasspath();
-//      if (!classpath.isEmpty()) {
-//        warn += "\n\n" + "---------- extension_classpath";
-//        for (String line : classpath) {
-//          warn += "\n" + line;
-//        }
-//      }
-    }
-    String title = "SikuliX1 Extensions";
-    String[] options = new String[3];
-    options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "More ...";
-    options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-      return;
-    }
+    ExtensionManager.show();
   }
 
   private static IScreen defaultScreen = null;

@@ -85,7 +85,7 @@ public class Runner {
       initRunners();
       for (IScriptRunner r : supportedRunners) {
         if (r.canHandle(identifier)) {
-          if (!RunTime.shouldCheckContent(r.getType(), identifier)) {
+          if (!ExtensionManager.shouldCheckContent(r.getType(), identifier)) {
             continue;
           }
           return r;

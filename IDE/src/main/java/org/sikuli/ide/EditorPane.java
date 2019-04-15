@@ -35,6 +35,7 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
+import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
@@ -373,8 +374,8 @@ public class EditorPane extends JTextPane {
       if (!readContent(_editingFile)) {
         _editingFile = null;
       }
-      if (isPython && !(PythonRunner.TYPE).equals(sikuliContentType) && RunTime.hasPython()) {
-        if (RunTime.hasShebang(RunTime.shebangPython, getText())) {
+      if (isPython && !(PythonRunner.TYPE).equals(sikuliContentType) && ExtensionManager.hasPython()) {
+        if (ExtensionManager.hasShebang(ExtensionManager.shebangPython, getText())) {
           sikuliContentType = PythonRunner.TYPE;
           SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
         }
@@ -443,7 +444,7 @@ public class EditorPane extends JTextPane {
 
   public void checkSourceForBundlePath() {
     String scriptText = getText();
-    if (RunTime.hasPython() && scriptText.startsWith(RunTime.shebangPython)){
+    if (ExtensionManager.hasPython() && scriptText.startsWith(ExtensionManager.shebangPython)){
       sikuliContentType = PythonRunner.TYPE;
     } else {
       sikuliContentType = JythonRunner.TYPE;
@@ -488,7 +489,7 @@ public class EditorPane extends JTextPane {
 
   public void checkPaneContentType() {
     if (isPython) {
-      if (RunTime.hasPython() && RunTime.hasShebang(RunTime.shebangPython, getText())) {
+      if (ExtensionManager.hasPython() && ExtensionManager.hasShebang(ExtensionManager.shebangPython, getText())) {
         setSikuliContentType(PythonRunner.TYPE);
         SikulixIDE.getStatusbar().setCurrentContentType(PythonRunner.TYPE);
       } else {

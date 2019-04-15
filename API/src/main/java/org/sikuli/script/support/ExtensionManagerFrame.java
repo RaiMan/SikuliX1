@@ -68,30 +68,6 @@ public class ExtensionManagerFrame extends JFrame {
     return extensions;
   }
 
-  public List<String> getExtensionNames() {
-    List<String> extensions = new ArrayList<>();
-    for (File extension : fExtensions) {
-      String name = extension.getName();
-      if (name.startsWith(".") || !name.endsWith(".jar")) {
-        if (name.startsWith("extension_classpath.txt")) {
-          extensions.add(0, name);
-          classpath = new ArrayList<>();
-          List<String> content = Arrays.asList(FileManager.readFileToString(extension).split("\\n"));
-          for (String line : content) {
-            line = line.trim();
-            if (line.startsWith("#") || line.startsWith("//")) {
-              continue;
-            }
-            classpath.add(line);
-          }
-        }
-        continue;
-      }
-      extensions.add(name);
-    }
-    return extensions;
-  }
-
   private void init() {
     setTitle("Sikuli Extensions");
     setResizable(false);
