@@ -112,6 +112,7 @@ public class RunTime {
       while (true) {
         List<String> cmd = new ArrayList<>();
         cmd.add("java");
+        cmd.add("-Dfile.encoding=UTF-8");
         if (startAsIDE) {
           cmd.add("-Dsikuli.IDE_should_run");
         } else {
