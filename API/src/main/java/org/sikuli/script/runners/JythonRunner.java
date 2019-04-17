@@ -145,7 +145,7 @@ public class JythonRunner extends AbstractScriptRunner {
       executeScriptHeader();
       int exitCode = 0;
       try {
-        if (options.isRunningInIDE()) {
+        if (null != options && options.isRunningInIDE()) {
           helper.reloadImported();
         }
         interpreter.execfile(pyFile.getAbsolutePath());
