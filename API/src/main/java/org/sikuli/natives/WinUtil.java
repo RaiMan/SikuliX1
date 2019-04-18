@@ -411,7 +411,7 @@ public class WinUtil implements OSUtil {
   public Rectangle getWindow(App app, int winNum) {
     get(app);
     if (!app.isValid()) {
-      return new Rectangle();
+      return null;
     }
     return getWindow(app.getPID(), winNum);
   }
