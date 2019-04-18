@@ -2827,7 +2827,11 @@ public class Region {
   }
 
   public List<Match> findWords(String word) {
-    return ((Finder) doFindText(word, levelWord, true)).getList();
+    Finder finder = ((Finder) doFindText(word, levelWord, true));
+    if (null != finder) {
+      return finder.getList();
+    }
+    return new ArrayList<>();
   }
 
   public Match findLine(String text) {
