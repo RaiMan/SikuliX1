@@ -239,8 +239,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
       if (_image != null) {
         img = _image.get();
       } else {
-
-//TODO ????        Debug.error("EditorPatternButton: createThumbnailImage: not using Image for: " + imgFname);
+//TODO Debug.error("EditorPatternButton: createThumbnailImage: not using Image for: " + imgFname);
         img = ImageIO.read(new File(imgFname));
       }
 			int w = img.getWidth(null), h = img.getHeight(null);

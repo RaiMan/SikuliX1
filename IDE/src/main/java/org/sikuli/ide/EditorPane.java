@@ -55,7 +55,6 @@ public class EditorPane extends JTextPane {
   }
 
   private static TransferHandler transferHandler = null;
-  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
   private PreferencesUser pref;
 
   private File scriptSource = null;
@@ -83,11 +82,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
 
   //TODO what is it for???
   private int _caret_last_x = -1;
@@ -261,11 +260,13 @@ public class EditorPane extends JTextPane {
   public SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
   }
+
   private SikuliIDEPopUpMenu popMenuImage;
 
   public SikuliIDEPopUpMenu getPopMenuCompletion() {
     return popMenuCompletion;
   }
+
   private SikuliIDEPopUpMenu popMenuCompletion;
 
   private void updateDocumentListeners(String source) {
@@ -421,12 +422,12 @@ public class EditorPane extends JTextPane {
     try {
       if (script instanceof String) {
         isr = new InputStreamReader(
-                new ByteArrayInputStream(((String) script).getBytes(Charset.forName("utf-8"))),
-                Charset.forName("utf-8"));
+            new ByteArrayInputStream(((String) script).getBytes(Charset.forName("utf-8"))),
+            Charset.forName("utf-8"));
       } else if (script instanceof File) {
         isr = new InputStreamReader(
-                new FileInputStream((File) script),
-                Charset.forName("utf-8"));
+            new FileInputStream((File) script),
+            Charset.forName("utf-8"));
       } else {
         log(-1, "readContent: not supported %s as %s", script, script.getClass());
         return false;
@@ -444,7 +445,7 @@ public class EditorPane extends JTextPane {
 
   public void checkSourceForBundlePath() {
     String scriptText = getText();
-    if (ExtensionManager.hasPython() && scriptText.startsWith(ExtensionManager.shebangPython)){
+    if (ExtensionManager.hasPython() && scriptText.startsWith(ExtensionManager.shebangPython)) {
       sikuliContentType = PythonRunner.TYPE;
     } else {
       sikuliContentType = JythonRunner.TYPE;
@@ -461,14 +462,12 @@ public class EditorPane extends JTextPane {
         } else {
           Debug.error(msg);
         }
-        isPaneReset = false;
-        lookForSetBundlePath = false;
       } else {
-        if (isPaneReset) {
-          setImagePath(getBundlePath());
-          shouldReparse = true;
-        }
+        setImagePath(getCurrentSrcDir());
+        shouldReparse = true;
       }
+      isPaneReset = false;
+      lookForSetBundlePath = false;
     }
   }
 
@@ -544,8 +543,8 @@ public class EditorPane extends JTextPane {
     }
     if (FileManager.exists(filename)) {
       int res = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (res != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -579,7 +578,7 @@ public class EditorPane extends JTextPane {
     }
     if (asFile) {
       if (!FileManager.writeStringToFile("/Applications/SikuliX-IDE.app",
-              (new File(path, ".LSOverride")).getAbsolutePath())) {
+          (new File(path, ".LSOverride")).getAbsolutePath())) {
         log(-1, "makeBundle: not possible: .LSOverride");
       }
     } else {
@@ -629,7 +628,7 @@ public class EditorPane extends JTextPane {
   private void writeSrcFile() throws IOException {
     log(lvl, "writeSrcFile: " + _editingFile.getName());
     this.write(new BufferedWriter(new OutputStreamWriter(
-            new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
+        new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
     if (!isPython && !isText) {
       boolean shouldDeleteHTML = true;
       if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
@@ -658,6 +657,13 @@ public class EditorPane extends JTextPane {
     }
     setDirty(false);
   }
+  
+  private void convertSrcToHtml(String bundle) {
+//    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
+//    if (runner != null) {
+//      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
+//    }
+  }
 
   private void cleanBundle() {
     log(3, "cleanBundle");
@@ -667,123 +673,6 @@ public class EditorPane extends JTextPane {
     } else {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
       log(lvl, "cleanBundle finished");
-    }
-  }
-
-  private Map<String, List<Integer>> parseforImages() {
-    String pbundle = FileManager.slashify(getSrcBundle(), false);
-    log(3, "parseforImages: in \n%s", pbundle);
-    String scriptText = getText();
-    Lexer lexer = getLexer();
-    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    parseforImagesWalk(pbundle, lexer, scriptText, 0, images, 0);
-    log(3, "parseforImages finished");
-    return images;
-  }
-
-  //TODO " and ' in comments - line numbers not reported correctly in case
-  private void parseforImagesWalk(String pbundle, Lexer lexer,
-                                  String text, int pos, Map<String, List<Integer>> images, Integer line) {
-    //log(3, "parseforImagesWalk");
-    Iterable<Token> tokens = lexer.getTokens(text);
-    boolean inString = false;
-    String current;
-    String innerText;
-    String[] possibleImage = new String[]{""};
-    String[] stringType = new String[]{""};
-    for (Token t : tokens) {
-      current = t.getValue();
-      if (current.endsWith("\n")) {
-        line++;
-        if (inString) {
-          boolean answer = Sikulix.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "\"%s\"\n" +
-                  "Yes: No images will be deleted!\n" +
-                  "No: Ignore and continue", line, text), "Delete images on save");
-          if (answer) {
-            log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
-            images.clear();
-            images.put("uncomplete_comment_error", null);
-          }
-          break;
-        }
-      }
-      if (t.getType() == TokenType.Comment) {
-        //log(3, "parseforImagesWalk::Comment");
-        innerText = t.getValue().substring(1);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images, line);
-        continue;
-      }
-      if (t.getType() == TokenType.String_Doc) {
-        //log(3, "parseforImagesWalk::String_Doc");
-        innerText = t.getValue().substring(3, t.getValue().length() - 3);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images, line);
-        continue;
-      }
-      if (!inString) {
-        inString = parseforImagesGetName(current, inString, possibleImage, stringType);
-        continue;
-      }
-      if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
-        inString = false;
-        parseforImagesCollect(pbundle, possibleImage[0], pos + t.getPos(), images);
-        continue;
-      }
-    }
-  }
-
-  private boolean parseforImagesGetName(String current, boolean inString,
-                                        String[] possibleImage, String[] stringType) {
-    //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
-    if (!inString) {
-      if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
-        possibleImage[0] = "";
-        stringType[0] = current.substring(current.length() - 1, current.length());
-        return true;
-      }
-    }
-    if (!current.isEmpty() && "'\"".contains(current) && stringType[0].equals(current)) {
-      return false;
-    }
-    if (inString) {
-      possibleImage[0] += current;
-    }
-    return inString;
-  }
-
-  private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
-    String fimg;
-    //log(3, "parseforImagesCollect");
-    if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
-      fimg = FileManager.slashify(img, false);
-      if (fimg.contains("/")) {
-        if (!fimg.contains(pbundle)) {
-          return;
-        }
-        img = new File(fimg).getName();
-      }
-      if (images.containsKey(img)) {
-        images.get(img).add(pos);
-      } else {
-        List<Integer> poss = new ArrayList<Integer>();
-        poss.add(pos);
-        images.put(img, poss);
-      }
-    }
-  }
-
-  private Lexer getLexer() {
-//TODO this only works for cleanbundle to find the image strings
-    String scriptType = "python";
-    if (null != lexers.get(scriptType)) {
-      return lexers.get(scriptType);
-    }
-    try {
-      Lexer lexer = Lexer.getByName(scriptType);
-      lexers.put(scriptType, lexer);
-      return lexer;
-    } catch (ResolutionException ex) {
-      return null;
     }
   }
 
@@ -810,7 +699,7 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       if (!Sikulix.popAsk(String.format("Overwrite existing file?\n%s", zipPath),
-              "Exporting packed SikuliX Script")) {
+          "Exporting packed SikuliX Script")) {
         return null;
       }
     }
@@ -867,14 +756,14 @@ public class EditorPane extends JTextPane {
     if (isDirty()) {
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION
-              || ans == JOptionPane.CLOSED_OPTION) {
+          || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
         if (saveFile() == null) {
@@ -902,6 +791,9 @@ public class EditorPane extends JTextPane {
 
   public boolean setImagePath(String newBundlePath) {
     try {
+      if (!new File(newBundlePath).isAbsolute()) {
+        newBundlePath = new File(_srcBundlePath, newBundlePath).getCanonicalPath();
+      }
       newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
     } catch (Exception ex) {
       return false;
@@ -981,7 +873,7 @@ public class EditorPane extends JTextPane {
         saveAsFile(Settings.isMac());
       } catch (IOException e) {
         log(-1, "getCurrentFile: Problem while trying to save %s\n%s",
-                _editingFile.getAbsolutePath(), e.getMessage());
+            _editingFile.getAbsolutePath(), e.getMessage());
       }
     }
     return _editingFile;
@@ -993,15 +885,6 @@ public class EditorPane extends JTextPane {
     }
     return _editingFile.getAbsolutePath();
   }
-
-  //TODO convertSrcToHtml has to be completely revised
-  private void convertSrcToHtml(String bundle) {
-//    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
-//    if (runner != null) {
-//      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
-//    }
-  }
-
   public File copyFileToBundle(String filename) {
     File f = new File(filename);
     String bundlePath = getSrcBundle();
@@ -1011,7 +894,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }
@@ -1183,6 +1066,7 @@ public class EditorPane extends JTextPane {
     }
     return line;
   }
+  //</editor-fold>
 
   public void runSelection() {
     int start = getSelectionStart();
@@ -1224,42 +1108,10 @@ public class EditorPane extends JTextPane {
     }).start();
   }
 
-  //<editor-fold defaultstate="collapsed" desc="TODO only used for UnitTest">
-  public void jumpTo(String funcName) throws BadLocationException {
-    log(lvl + 1, "jumpTo function: " + funcName);
-    Element root = getDocument().getDefaultRootElement();
-    int pos = getFunctionStartOffset(funcName, root);
-    if (pos >= 0) {
-      setCaretPosition(pos);
-    } else {
-      throw new BadLocationException("Can't find function " + funcName, -1);
-    }
+  public IScriptRunner getRunner() {
+    IScriptRunner runner = Runner.getRunner(getSikuliContentType());
+    return runner;
   }
-
-  private int getFunctionStartOffset(String func, Element node) throws BadLocationException {
-    Document doc = getDocument();
-    int count = node.getElementCount();
-    Pattern patDef = Pattern.compile("def\\s+" + func + "\\s*\\(");
-    for (int i = 0; i < count; i++) {
-      Element elm = node.getElement(i);
-      if (elm.isLeaf()) {
-        int start = elm.getStartOffset(), end = elm.getEndOffset();
-        String line = doc.getText(start, end - start);
-        Matcher matcher = patDef.matcher(line);
-        if (matcher.find()) {
-          return start;
-        }
-      } else {
-        int p = getFunctionStartOffset(func, elm);
-        if (p >= 0) {
-          return p;
-        }
-      }
-    }
-    return -1;
-  }
-  //</editor-fold>
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="replace text patterns with image buttons">
   public boolean reparse(String oldName, String newName, boolean fileOverWritten) {
@@ -1408,7 +1260,7 @@ public class EditorPane extends JTextPane {
   }
 
   private boolean replaceWithImage(int startOff, int endOff, Pattern ptn)
-          throws BadLocationException {
+      throws BadLocationException {
     Document doc = getDocument();
     String imgStr = doc.getText(startOff, endOff - startOff);
     JComponent comp = null;
@@ -1474,12 +1326,126 @@ public class EditorPane extends JTextPane {
     }
     return patternString;
   }
-  //</editor-fold>
 
-  public IScriptRunner getRunner() {
-    IScriptRunner runner = Runner.getRunner(getSikuliContentType());
-    return runner;
+  private Map<String, List<Integer>> parseforImages() {
+    String pbundle = FileManager.slashify(getSrcBundle(), false);
+    log(3, "parseforImages: in \n%s", pbundle);
+    String scriptText = getText();
+    Lexer lexer = getLexer();
+    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
+    parseforImagesWalk(pbundle, lexer, scriptText, 0, images, 0);
+    log(3, "parseforImages finished");
+    return images;
   }
+
+  //TODO " and ' in comments - line numbers not reported correctly in case
+  private void parseforImagesWalk(String pbundle, Lexer lexer,
+                                  String text, int pos, Map<String, List<Integer>> images, Integer line) {
+    //log(3, "parseforImagesWalk");
+    Iterable<Token> tokens = lexer.getTokens(text);
+    boolean inString = false;
+    String current;
+    String innerText;
+    String[] possibleImage = new String[]{""};
+    String[] stringType = new String[]{""};
+    for (Token t : tokens) {
+      current = t.getValue();
+      if (current.endsWith("\n")) {
+        line++;
+        if (inString) {
+          boolean answer = Sikulix.popAsk(String.format("Possible incomplete string in line %d\n" +
+              "\"%s\"\n" +
+              "Yes: No images will be deleted!\n" +
+              "No: Ignore and continue", line, text), "Delete images on save");
+          if (answer) {
+            log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
+            images.clear();
+            images.put("uncomplete_comment_error", null);
+          }
+          break;
+        }
+      }
+      if (t.getType() == TokenType.Comment) {
+        //log(3, "parseforImagesWalk::Comment");
+        innerText = t.getValue().substring(1);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images, line);
+        continue;
+      }
+      if (t.getType() == TokenType.String_Doc) {
+        //log(3, "parseforImagesWalk::String_Doc");
+        innerText = t.getValue().substring(3, t.getValue().length() - 3);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images, line);
+        continue;
+      }
+      if (!inString) {
+        inString = parseforImagesGetName(current, inString, possibleImage, stringType);
+        continue;
+      }
+      if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
+        inString = false;
+        parseforImagesCollect(pbundle, possibleImage[0], pos + t.getPos(), images);
+        continue;
+      }
+    }
+  }
+
+  private boolean parseforImagesGetName(String current, boolean inString,
+                                        String[] possibleImage, String[] stringType) {
+    //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
+    if (!inString) {
+      if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
+        possibleImage[0] = "";
+        stringType[0] = current.substring(current.length() - 1, current.length());
+        return true;
+      }
+    }
+    if (!current.isEmpty() && "'\"".contains(current) && stringType[0].equals(current)) {
+      return false;
+    }
+    if (inString) {
+      possibleImage[0] += current;
+    }
+    return inString;
+  }
+
+  private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
+    String fimg;
+    //log(3, "parseforImagesCollect");
+    if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
+      fimg = FileManager.slashify(img, false);
+      if (fimg.contains("/")) {
+        if (!fimg.contains(pbundle)) {
+          return;
+        }
+        img = new File(fimg).getName();
+      }
+      if (images.containsKey(img)) {
+        images.get(img).add(pos);
+      } else {
+        List<Integer> poss = new ArrayList<Integer>();
+        poss.add(pos);
+        images.put(img, poss);
+      }
+    }
+  }
+
+  private Lexer getLexer() {
+//TODO this only works for cleanbundle to find the image strings
+    String scriptType = "python";
+    if (null != lexers.get(scriptType)) {
+      return lexers.get(scriptType);
+    }
+    try {
+      Lexer lexer = Lexer.getByName(scriptType);
+      lexers.put(scriptType, lexer);
+      return lexer;
+    } catch (ResolutionException ex) {
+      return null;
+    }
+  }
+
+  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="content insert append">
   public void insertString(String str) {
@@ -1716,7 +1682,7 @@ public class EditorPane extends JTextPane {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="currently not used">
+  //<editor-fold defaultstate="collapsed" desc="90 currently not used">
   private String _tabString = "   ";
 
   private void setTabSize(int charactersPerTab) {
@@ -1800,6 +1766,42 @@ public class EditorPane extends JTextPane {
       doc.insertString(pos + 2, ")", null);
     }
 
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="95 UnitTest not used">
+  public void jumpTo(String funcName) throws BadLocationException {
+    log(lvl + 1, "jumpTo function: " + funcName);
+    Element root = getDocument().getDefaultRootElement();
+    int pos = getFunctionStartOffset(funcName, root);
+    if (pos >= 0) {
+      setCaretPosition(pos);
+    } else {
+      throw new BadLocationException("Can't find function " + funcName, -1);
+    }
+  }
+
+  private int getFunctionStartOffset(String func, Element node) throws BadLocationException {
+    Document doc = getDocument();
+    int count = node.getElementCount();
+    Pattern patDef = Pattern.compile("def\\s+" + func + "\\s*\\(");
+    for (int i = 0; i < count; i++) {
+      Element elm = node.getElement(i);
+      if (elm.isLeaf()) {
+        int start = elm.getStartOffset(), end = elm.getEndOffset();
+        String line = doc.getText(start, end - start);
+        Matcher matcher = patDef.matcher(line);
+        if (matcher.find()) {
+          return start;
+        }
+      } else {
+        int p = getFunctionStartOffset(func, elm);
+        if (p >= 0) {
+          return p;
+        }
+      }
+    }
+    return -1;
   }
   //</editor-fold>
 }
