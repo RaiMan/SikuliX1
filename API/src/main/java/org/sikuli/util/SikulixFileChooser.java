@@ -27,7 +27,7 @@ public class SikulixFileChooser {
   Frame _parent;
   boolean accessingAsFile = false;
   boolean loadingImage = false;
-  String theLastDir = PreferencesUser.getInstance().get("LAST_OPEN_DIR", "");
+  String theLastDir = PreferencesUser.get().get("LAST_OPEN_DIR", "");
 
   public SikulixFileChooser(Frame parent) {
     _parent = parent;
@@ -77,7 +77,7 @@ public class SikulixFileChooser {
 
   public File load() {
     String title = "Open a Sikuli or Python Script";
-    String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+    String lastUsedFilter = PreferencesUser.get().get("LAST_USED_FILTER", "");
     boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
     File ret;
     if (pythonOnly) {
@@ -99,7 +99,7 @@ public class SikulixFileChooser {
       if (isText) {
         selectedFile = show("Save a Text File", SAVE, DIRSANDFILES, anyFilterS);
       } else {
-        String lastUsedFilter = PreferencesUser.getInstance().get("LAST_USED_FILTER", "");
+        String lastUsedFilter = PreferencesUser.get().get("LAST_USED_FILTER", "");
         boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
         String title = "Save as Sikuli or Python Script";
         if (pythonOnly) {
@@ -189,10 +189,10 @@ public class SikulixFileChooser {
         if (tryAgain) {
           continue;
         }
-        PreferencesUser.getInstance().put("LAST_OPEN_DIR", theLastDir);
+        PreferencesUser.get().put("LAST_OPEN_DIR", theLastDir);
         if (filterChosen instanceof SikulixFileFilter) {
           if (!((SikulixFileFilter) filterChosen)._type.endsWith("a") && !isTextFile) {
-            PreferencesUser.getInstance().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
+            PreferencesUser.get().put("LAST_USED_FILTER", ((SikulixFileFilter) filterChosen)._type);
           } else {
             fileChosen = new File(fileChosen.getAbsolutePath() + "###isText");
           }

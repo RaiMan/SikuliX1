@@ -94,7 +94,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
     textArea = new JTextPane();
     textArea.setEditorKit(new HTMLEditorKit());
     textArea.setTransferHandler(new JTextPaneHTMLTransferHandler());
-    String css = PreferencesUser.getInstance().getConsoleCSS();
+    String css = PreferencesUser.get().getConsoleCSS();
     ((HTMLEditorKit) textArea.getEditorKit()).getStyleSheet().addRule(css);
     textArea.setEditable(false);
 

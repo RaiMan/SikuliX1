@@ -22,7 +22,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		boolean debug = DEBUG;
 		DEBUG = false;
 		openingWindow = true;
-		prefs = PreferencesUser.getInstance();
+		prefs = PreferencesUser.get();
 		prefMoreClean.setSelected(prefs.getAtSaveCleanBundle());
 		prefMoreRunSave.setSelected(prefs.getPrefMoreRunSave());
 		prefMoreHighlight.setSelected(prefs.getPrefMoreHighlight());

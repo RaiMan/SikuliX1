@@ -16,11 +16,11 @@ public class SikuliIDEI18N {
    static {
       Locale locale_en = new Locale("en","US");
       i18nRB_en = ResourceBundle.getBundle("i18n/IDE",locale_en);
-      Locale locale = PreferencesUser.getInstance().getLocale();
+      Locale locale = PreferencesUser.get().getLocale();
       curLocale = locale;
       if(!setLocale(locale)){
          locale = locale_en;
-         PreferencesUser.getInstance().setLocale(locale);
+         PreferencesUser.get().setLocale(locale);
       }
    }
 

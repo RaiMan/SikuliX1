@@ -129,7 +129,7 @@ class LineBoxView extends BoxView {
 class SyntaxHighlightLabelView extends LabelView {
 
   static FontMetrics _fMetrics = null;
-  static String tabStr = nSpaces(PreferencesUser.getInstance().getTabWidth());
+  static String tabStr = nSpaces(PreferencesUser.get().getTabWidth());
 
   private Map<Pattern, Color> patternColors;
   private static Map<Pattern, Color> patternColorsBasic;
@@ -232,7 +232,7 @@ class SyntaxHighlightLabelView extends LabelView {
   //</editor-fold>
 
   static {
-    PreferencesUser.getInstance().addPreferenceChangeListener(
+    PreferencesUser.get().addPreferenceChangeListener(
             new PreferenceChangeListener() {
               @Override
               public void preferenceChange(PreferenceChangeEvent event) {

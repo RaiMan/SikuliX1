@@ -213,19 +213,19 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   public void setFilename(String fileName) {
     _image = Image.createThumbNail(fileName);
     _imgFilename = _image.getFilename();
-    setIcon(new ImageIcon(createThumbnailImage(_imgFilename, PreferencesUser.getInstance().getDefaultThumbHeight())));
+    setIcon(new ImageIcon(createThumbnailImage(_imgFilename, PreferencesUser.get().getDefaultThumbHeight())));
     setButtonText();
   }
 
   private void setFilename(Image img) {
     _image = img;
     _imgFilename = _image.getFilename();
-    setIcon(new ImageIcon(createThumbnailImage(_imgFilename, PreferencesUser.getInstance().getDefaultThumbHeight())));
+    setIcon(new ImageIcon(createThumbnailImage(_imgFilename, PreferencesUser.get().getDefaultThumbHeight())));
     setButtonText();
   }
 
   private String createThumbnail(String imgFname) {
-    return createThumbnail(imgFname, PreferencesUser.getInstance().getDefaultThumbHeight());
+    return createThumbnail(imgFname, PreferencesUser.get().getDefaultThumbHeight());
   }
 
 	private String createThumbnail(String imgFname, int maxHeight) {

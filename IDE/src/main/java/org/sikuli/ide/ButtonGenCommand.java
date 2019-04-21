@@ -102,7 +102,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
   public void actionPerformed(ActionEvent ae) {
     SikulixIDE ide = SikulixIDE.get();
     pane = ide.getCurrentCodePane();
-    pref = PreferencesUser.getInstance();
+    pref = PreferencesUser.get();
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -112,7 +112,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
   }
 
   public void insertCommand() {
-    pref = PreferencesUser.getInstance();
+    pref = PreferencesUser.get();
     int endPos = -1, endPosLen = 0;
     boolean first = true;
     ButtonCapture btnCapture;

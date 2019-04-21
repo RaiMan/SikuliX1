@@ -62,8 +62,7 @@ public class EditorPane extends JTextPane {
   }
 
   public EditorPane() {
-    pref = PreferencesUser.getInstance();
-    showThumbs = !pref.getPrefMorePlainText();
+    showThumbs = !PreferencesUser.get().getPrefMorePlainText();
     addMouseListener(new MouseInputAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -81,21 +80,19 @@ public class EditorPane extends JTextPane {
     log(lvl, "EditorPane: creating new pane (constructor)");
   }
 
-  private PreferencesUser pref;
-
-  public void initBeforeLoad(String scriptType) {
-    initBeforeLoad(scriptType, false);
+  public void init(String scriptType) {
+    doInit(scriptType, false);
   }
 
   public void reInit(String scriptType) {
-    initBeforeLoad(scriptType, true);
+    doInit(scriptType, true);
   }
 
-  private void initBeforeLoad(String scriptIdentifier, boolean reInit) {
+  private void doInit(String scriptIdentifier, boolean reInit) {
     String scrType = null;
     boolean paneIsEmpty = false;
 
-    log(lvl, "initBeforeLoad: %s", scriptIdentifier);
+    log(lvl, "doInit: %s", scriptIdentifier);
     if (scriptIdentifier == null) {
       runner = RunTime.getDefaultRunner();
       paneIsEmpty = true;
@@ -119,7 +116,7 @@ public class EditorPane extends JTextPane {
       if (JythonRunner.TYPE.equals(sikuliContentType) || PythonRunner.TYPE.equals(sikuliContentType)) {
         IIDESupport ideSupport = SikulixIDE.getIDESupport(sikuliContentType);
         _indentationLogic = ideSupport.getIndentationLogic();
-        _indentationLogic.setTabWidth(pref.getTabWidth());
+        _indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
       } else if (TextRunner.TYPE.equals(sikuliContentType)) {
         isText = true;
       }
@@ -130,7 +127,7 @@ public class EditorPane extends JTextPane {
         setContentType(sikuliContentType);
 
         if (_indentationLogic != null) {
-          pref.addPreferenceChangeListener(new PreferenceChangeListener() {
+          PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
             @Override
             public void preferenceChange(PreferenceChangeEvent event) {
               if (event.getKey().equals("TAB_WIDTH")) {
@@ -166,7 +163,7 @@ public class EditorPane extends JTextPane {
         }
       }
 
-      setFont(new Font(pref.getFontName(), Font.PLAIN, pref.getFontSize()));
+      setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
       setMargin(new Insets(3, 3, 3, 3));
       setBackground(Color.WHITE);
       if (!Settings.isMac()) {
@@ -257,7 +254,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold desc="03 load content">
+  //<editor-fold desc="10 load content">
   public String loadFile(boolean accessingAsFile) throws IOException {
     File file = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
     if (file == null) {
@@ -305,7 +302,7 @@ public class EditorPane extends JTextPane {
         scriptType = _editingFile.getAbsolutePath().substring(_editingFile.getAbsolutePath().lastIndexOf(".") + 1);
         lookForSetBundlePath = true;
       }
-      initBeforeLoad(scriptType);
+      init(scriptType);
       if (!readContent(_editingFile)) {
         _editingFile = null;
       }
@@ -374,7 +371,7 @@ public class EditorPane extends JTextPane {
   public boolean isText = false;
   //</editor-fold>
 
-  //<editor-fold desc="04 check content">
+  //<editor-fold desc="11 check content">
   public void shouldLookForSetBundlePath() {
     lookForSetBundlePath = true;
   }
@@ -434,7 +431,7 @@ public class EditorPane extends JTextPane {
   static Pattern patSetBundlePath = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)");
   //</editor-fold>
 
-  //<editor-fold desc="05 content file">
+  //<editor-fold desc="15 content file">
   private File _editingFile;
 
   public boolean hasEditingFile() {
@@ -504,7 +501,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold desc="06 image path">
+  //<editor-fold desc="16 image path">
   public String getImagePath() {
     return _imagePath;
   }
@@ -561,7 +558,7 @@ public class EditorPane extends JTextPane {
   private boolean _srcBundleTemp = false;
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="07 Caret handling">
+  //<editor-fold defaultstate="collapsed" desc="17 Caret handling">
   public void saveCaretPosition() {
     caretPosition = getCaretPosition();
   }
@@ -693,7 +690,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="08 content insert append">
+  //<editor-fold defaultstate="collapsed" desc="18 content insert append">
   public void insertString(String str) {
     int sel_start = getSelectionStart();
     int sel_end = getSelectionEnd();
@@ -735,7 +732,7 @@ public class EditorPane extends JTextPane {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="09 replace text patterns with image buttons">
+  //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
   public boolean reparse(String oldName, String newName, boolean fileOverWritten) {
     boolean success;
     if (fileOverWritten) {
@@ -879,13 +876,13 @@ public class EditorPane extends JTextPane {
     JComponent comp = null;
 
     if (ptn == patPatternStr || ptn == patPngStr) {
-      if (pref.getPrefMoreImageThumbs()) {
+      if (PreferencesUser.get().getPrefMoreImageThumbs()) {
         comp = EditorPatternButton.createFromString(this, imgStr, null);
       } else {
         comp = EditorPatternLabel.labelFromString(this, imgStr);
       }
     } else if (ptn == patRegionStr) {
-      if (pref.getPrefMoreImageThumbs()) {
+      if (PreferencesUser.get().getPrefMoreImageThumbs()) {
         comp = EditorRegionButton.createFromString(this, imgStr);
       } else {
         comp = EditorRegionLabel.labelFromString(this, imgStr);
@@ -1070,7 +1067,7 @@ public class EditorPane extends JTextPane {
           "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="10 Dirty handling">
+  //<editor-fold defaultstate="collapsed" desc="20 Dirty handling">
   public boolean isDirty() {
     return scriptIsDirty;
   }
@@ -1108,7 +1105,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold desc="12 save, close">
+  //<editor-fold desc="22 save, close">
   public String saveFile() throws IOException {
     if (_editingFile == null) {
       return saveAsFile(Settings.isMac());
@@ -1242,7 +1239,7 @@ public class EditorPane extends JTextPane {
             new FileOutputStream(_editingFile.getAbsolutePath()), "UTF8")));
     if (!isPython && !isText) {
       boolean shouldDeleteHTML = true;
-      if (PreferencesUser.getInstance().getAtSaveMakeHTML()) {
+      if (PreferencesUser.get().getAtSaveMakeHTML()) {
         try {
           convertSrcToHtml(getSrcBundle());
           shouldDeleteHTML = false;
@@ -1255,7 +1252,7 @@ public class EditorPane extends JTextPane {
         String sname = snameDir.replace(".sikuli", "") + ".html";
         (new File(snameDir, sname)).delete();
       }
-      if (PreferencesUser.getInstance().getAtSaveCleanBundle()) {
+      if (PreferencesUser.get().getAtSaveCleanBundle()) {
         if (!sikuliContentType.equals(JythonRunner.TYPE)) {
           log(lvl, "delete-not-used-images for %s using Python string syntax", sikuliContentType);
         }
@@ -1395,7 +1392,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="15 Transfer code incl. images between code panes">
+  //<editor-fold defaultstate="collapsed" desc="25 Transfer code incl. images between code panes">
   private class MyTransferHandler extends TransferHandler {
 
     private static final String me = "EditorPaneTransferHandler: ";
@@ -1506,7 +1503,7 @@ public class EditorPane extends JTextPane {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="17 feature search">
+  //<editor-fold defaultstate="collapsed" desc="27 feature search">
   /*
    * public int search(Pattern pattern){
    * return search(pattern, true);
@@ -1605,7 +1602,7 @@ public class EditorPane extends JTextPane {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 run lines">
+  //<editor-fold desc="30 run lines">
   public void runSelection() {
     int start = getSelectionStart();
     int end = getSelectionEnd();

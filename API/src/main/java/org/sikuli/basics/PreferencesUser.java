@@ -42,7 +42,7 @@ public class PreferencesUser {
   static PreferencesUser _instance = null;
   Preferences pref = Preferences.userNodeForPackage(Sikulix.class);
 
-  public static PreferencesUser getInstance() {
+  public static PreferencesUser get() {
     if (_instance == null) {
       _instance = new PreferencesUser();
     }

@@ -195,7 +195,7 @@ public class FileManager {
       Settings.proxyIP = adr;
       Settings.proxyPort = pPort;
       Settings.proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(a, p));
-      PreferencesUser prefs = PreferencesUser.getInstance();
+      PreferencesUser prefs = PreferencesUser.get();
       prefs.put("ProxyName", (host == null ? "" : host));
       prefs.put("ProxyIP", (adr == null ? "" : adr));
       prefs.put("ProxyPort", "" + p);

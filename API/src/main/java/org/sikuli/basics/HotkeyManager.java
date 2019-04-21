@@ -119,7 +119,7 @@ public abstract class HotkeyManager {
    * @return success
    */
   public boolean addHotkey(String hotkeyType, HotkeyListener callback) {
-    PreferencesUser pref = PreferencesUser.getInstance();
+    PreferencesUser pref = PreferencesUser.get();
     if (hotkeyType == HotkeyTypeCapture) {
       HotkeyTypeCaptureKey = pref.getCaptureHotkey();
       HotkeyTypeCaptureMod = pref.getCaptureHotkeyModifiers();
@@ -135,7 +135,7 @@ public abstract class HotkeyManager {
   }
 
   public String getHotKeyText(String hotkeyType) {
-    PreferencesUser pref = PreferencesUser.getInstance();
+    PreferencesUser pref = PreferencesUser.get();
     String key = "";
     String mod = "";
     if (hotkeyType == HotkeyTypeCapture) {

@@ -99,7 +99,7 @@ public class PythonIndentation implements IIndentationLogic {
 
      }
      int lws = leadingWhitespace.length();
-     int tws = PreferencesUser.getInstance().getTabWhitespace().length();
+     int tws = PreferencesUser.get().getTabWhitespace().length();
 //TODo obsolete, when indentation is checked at load time
      if(tws > 1 && leadingWhitespace.contains("\t") && leadingWhitespace.contains(" ")) {
        Debug.error("PythonIndentation: indent has mixed tab and space in line " + line);
@@ -113,7 +113,7 @@ public class PythonIndentation implements IIndentationLogic {
 	 @Override
    public int checkDedent(String leadingWhitespace, int line) {
      int lws = leadingWhitespace.length();
-     int tws = PreferencesUser.getInstance().getTabWhitespace().length();
+     int tws = PreferencesUser.get().getTabWhitespace().length();
      if (lws < tws) {
        return lws;
      }

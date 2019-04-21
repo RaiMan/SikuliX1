@@ -78,7 +78,7 @@ public class SikuliEditorKit extends StyledEditorKit {
       boolean indentError = false;
       Document doc = text.getDocument();
       Element map = doc.getDefaultRootElement();
-      String tabWhitespace = PreferencesUser.getInstance().getTabWhitespace();
+      String tabWhitespace = PreferencesUser.get().getTabWhitespace();
       Caret c = text.getCaret();
       int dot = c.getDot();
       int mark = c.getMark();
@@ -331,7 +331,7 @@ public class SikuliEditorKit extends StyledEditorKit {
     // TODO: make this a method of SikuliDocument, no need to pass document as argument
     private void changeIndentation(DefaultStyledDocument doc, int linenum,
                                    int columns) throws BadLocationException {
-      PreferencesUser pref = PreferencesUser.getInstance();
+      PreferencesUser pref = PreferencesUser.get();
       boolean expandTab = pref.getExpandTab();
       int tabWidth = pref.getTabWidth();
 

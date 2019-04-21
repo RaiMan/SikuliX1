@@ -41,7 +41,7 @@ import org.sikuli.script.Key;
  */
 public class PreferencesWin extends JFrame {
 
-  PreferencesUser pref = PreferencesUser.getInstance();
+  PreferencesUser pref = PreferencesUser.get();
   private boolean isInitialized = false;
   int cap_hkey, cap_mod;
   int old_cap_hkey, old_cap_mod;

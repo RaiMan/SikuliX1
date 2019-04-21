@@ -40,7 +40,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     super();
     URL imageURL = SikulixIDE.class.getResource("/icons/camera-icon.png");
     setIcon(new ImageIcon(imageURL));
-    PreferencesUser pref = PreferencesUser.getInstance();
+    PreferencesUser pref = PreferencesUser.get();
     String strHotkey = Key.convertKeyToText(
             pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
     setToolTipText(SikulixIDE._I("btnCaptureHint", strHotkey));
@@ -78,7 +78,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   }
 
   public void captureWithAutoDelay() {
-    PreferencesUser pref = PreferencesUser.getInstance();
+    PreferencesUser pref = PreferencesUser.get();
     int delay = (int) (pref.getCaptureDelay() * 1000.0) + 1;
     capture(delay);
   }
@@ -137,7 +137,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
         filename = givenName + ".png";
         Settings.OverwriteImages = true;
       } else {
-        int naming = PreferencesUser.getInstance().getAutoNamingMethod();
+        int naming = PreferencesUser.get().getAutoNamingMethod();
         if (naming == PreferencesUser.AUTO_NAMING_TIMESTAMP) {
           filename = Settings.getTimestamp();
         } else if (naming == PreferencesUser.AUTO_NAMING_OCR) {
@@ -231,7 +231,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   private boolean replaceButton(Element src, String imgFullPath) {
     if (captureCancelled) {
-      if (_codePane.showThumbs && PreferencesUser.getInstance().getPrefMoreImageThumbs()
+      if (_codePane.showThumbs && PreferencesUser.get().getPrefMoreImageThumbs()
               || !_codePane.showThumbs) {
         return true;
       }
@@ -258,7 +258,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
             if (!_codePane.showThumbs) {
               _codePane.insertString((new EditorPatternLabel(_codePane, imgFullPath, true)).toString());
             } else {
-              if (PreferencesUser.getInstance().getPrefMoreImageThumbs()) {
+              if (PreferencesUser.get().getPrefMoreImageThumbs()) {
                 com = new EditorPatternButton(_codePane, imgFullPath);
               } else {
                 if (captureCancelled) {
@@ -287,7 +287,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     if (!pane.showThumbs) {
       pane.insertString(img);
     } else {
-      if (PreferencesUser.getInstance().getPrefMoreImageThumbs()) {
+      if (PreferencesUser.get().getPrefMoreImageThumbs()) {
         EditorPatternButton comp = EditorPatternButton.createFromFilename(pane, imgFilename, null);
         if (comp != null) {
           pane.insertComponent(comp);
