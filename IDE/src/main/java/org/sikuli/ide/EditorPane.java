@@ -61,7 +61,7 @@ public class EditorPane extends JTextPane {
     Debug.logx(level, me + message, args);
   }
 
-  public EditorPane() {
+  EditorPane() {
     showThumbs = !PreferencesUser.get().getPrefMorePlainText();
     addMouseListener(new MouseInputAdapter() {
       @Override
@@ -77,29 +77,37 @@ public class EditorPane extends JTextPane {
         super.mouseClicked(e);
       }
     });
+    scrollPane = new JScrollPane(this);
     log(lvl, "EditorPane: creating new pane (constructor)");
   }
 
-  public void init(String scriptType) {
-    doInit(scriptType, false);
+  JScrollPane getScrollPane() {
+    return scrollPane;
   }
 
-  public void reInit(String scriptType) {
-    doInit(scriptType, true);
+  JScrollPane scrollPane = null;
+
+  void initEmpty() {
+    runner = RunTime.getDefaultRunner();
+    setText("");
+    doInit(runner);
   }
 
-  private void doInit(String scriptIdentifier, boolean reInit) {
+  void init(String scriptType) {
+    runner = Runner.getRunner(scriptType);
+    doInit(runner);
+  }
+
+  void reInit(String scriptType) {
+    runner = Runner.getRunner(scriptType);
+    setText("");
+    doInit(runner);
+  }
+
+  private void doInit(final IScriptRunner runner) {
     String scrType = null;
-    boolean paneIsEmpty = false;
 
-    log(lvl, "doInit: %s", scriptIdentifier);
-    if (scriptIdentifier == null) {
-      runner = RunTime.getDefaultRunner();
-      paneIsEmpty = true;
-    } else {
-      runner = Runner.getRunner(scriptIdentifier);
-    }
-
+    log(lvl, "doInit: %s", runner);
     // initialize runner to speed up first script run
     (new Thread() {
       @Override
@@ -111,12 +119,12 @@ public class EditorPane extends JTextPane {
     scrType = runner.getType();
     if (!scrType.equals(sikuliContentType)) {
       sikuliContentType = scrType;
-      _indentationLogic = null;
+      indentationLogic = null;
 
       if (JythonRunner.TYPE.equals(sikuliContentType) || PythonRunner.TYPE.equals(sikuliContentType)) {
         IIDESupport ideSupport = SikulixIDE.getIDESupport(sikuliContentType);
-        _indentationLogic = ideSupport.getIndentationLogic();
-        _indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+        indentationLogic = ideSupport.getIndentationLogic();
+        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
       } else if (TextRunner.TYPE.equals(sikuliContentType)) {
         isText = true;
       }
@@ -126,12 +134,12 @@ public class EditorPane extends JTextPane {
         setEditorKit(editorKit);
         setContentType(sikuliContentType);
 
-        if (_indentationLogic != null) {
+        if (indentationLogic != null) {
           PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
             @Override
             public void preferenceChange(PreferenceChangeEvent event) {
               if (event.getKey().equals("TAB_WIDTH")) {
-                _indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+                indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
               }
             }
           });
@@ -143,9 +151,9 @@ public class EditorPane extends JTextPane {
       }
       setTransferHandler(transferHandler);
 
-      if (_highlighter == null) {
-        _highlighter = new EditorCurrentLineHighlighter(this);
-        addCaretListener(_highlighter);
+      if (lineHighlighter == null) {
+        lineHighlighter = new EditorCurrentLineHighlighter(this);
+        addCaretListener(lineHighlighter);
         initKeyMap();
         //addKeyListener(this);
         //addCaretListener(this);
@@ -172,38 +180,35 @@ public class EditorPane extends JTextPane {
 
       updateDocumentListeners("initBeforeLoad");
 
-      if (paneIsEmpty || reInit) {
-        this.setText("");
-      }
-
       SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
       log(lvl, "InitTab: (%s)", sikuliContentType);
     }
   }
 
-  private SikuliEditorKit editorKit;
-  private IIndentationLogic _indentationLogic = null;
-  private EditorCurrentLineHighlighter _highlighter = null;
-  private static TransferHandler transferHandler = null;
   private IScriptRunner runner = null;
 
-  public String getSikuliContentType() {
+  private SikuliEditorKit editorKit;
+  private IIndentationLogic indentationLogic = null;
+  private EditorCurrentLineHighlighter lineHighlighter = null;
+  private TransferHandler transferHandler = null;
+
+  String getSikuliContentType() {
     return sikuliContentType;
   }
 
-  public void setSikuliContentType(String sikuliContentType) {
+  void setSikuliContentType(String sikuliContentType) {
     this.sikuliContentType = sikuliContentType;
   }
 
   private String sikuliContentType;
 
-  public SikuliIDEPopUpMenu getPopMenuImage() {
+  SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
   }
 
   private SikuliIDEPopUpMenu popMenuImage;
 
-  public SikuliIDEPopUpMenu getPopMenuCompletion() {
+  SikuliIDEPopUpMenu getPopMenuCompletion() {
     return popMenuCompletion;
   }
 
@@ -224,14 +229,14 @@ public class EditorPane extends JTextPane {
     SikulixIDE.getStatusbar().setCurrentContentType(sikuliContentType);
   }
 
-  public EditorPaneUndoRedo getUndoRedo(EditorPane pane) {
+  EditorPaneUndoRedo getUndoRedo(EditorPane pane) {
     if (undoRedo == null) {
       undoRedo = new EditorPaneUndoRedo(pane);
     }
     return undoRedo;
   }
 
-  public EditorUndoManager getUndoManager() {
+  EditorUndoManager getUndoManager() {
     if (_undo == null) {
       _undo = new EditorUndoManager();
     }
@@ -241,8 +246,8 @@ public class EditorPane extends JTextPane {
   private EditorPaneUndoRedo undoRedo = null;
   private EditorUndoManager _undo = null;
 
-  public IIndentationLogic getIndentationLogic() {
-    return _indentationLogic;
+  IIndentationLogic getIndentationLogic() {
+    return indentationLogic;
   }
 
   private void initKeyMap() {
@@ -255,7 +260,7 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="10 load content">
-  public String loadFile(boolean accessingAsFile) throws IOException {
+  public String selectFile(boolean accessingAsFile) {
     File file = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
     if (file == null) {
       return null;
