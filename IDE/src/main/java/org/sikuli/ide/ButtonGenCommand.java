@@ -100,7 +100,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
 
   @Override
   public void actionPerformed(ActionEvent ae) {
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     pane = ide.getCurrentCodePane();
     pref = PreferencesUser.getInstance();
     SwingUtilities.invokeLater(new Runnable() {

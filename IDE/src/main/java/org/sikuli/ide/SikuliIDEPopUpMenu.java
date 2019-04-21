@@ -24,7 +24,6 @@ import org.sikuli.script.*;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RobotDesktop;
-import org.sikuli.script.support.Runner;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 
@@ -90,11 +89,11 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
   }
 
   private void fireIDEFileMenu(String name) throws NoSuchMethodException {
-    fireIDEMenu(SikulixIDE.getInstance().getFileMenu(), name);
+    fireIDEMenu(SikulixIDE.get().getFileMenu(), name);
   }
 
   private void fireIDERunMenu(String name) throws NoSuchMethodException {
-    fireIDEMenu(SikulixIDE.getInstance().getRunMenu(), name);
+    fireIDEMenu(SikulixIDE.get().getRunMenu(), name);
   }
 
   private void fireIDEMenu(JMenu menu, String name) throws NoSuchMethodException {
@@ -116,7 +115,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
   }
 
   private void fireInsertTabAndLoad(int tabIndex) {
-    SikulixIDE.FileAction insertNewTab = SikulixIDE.getInstance().getFileAction(tabIndex);
+    SikulixIDE.FileAction insertNewTab = SikulixIDE.get().getFileAction(tabIndex);
     insertNewTab.doInsert(null);
   }
 
@@ -234,7 +233,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
-      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
+      EditorPane cp = SikulixIDE.get().getCurrentCodePane();
       String srcBundle = cp.getSrcBundle();
       String bundlePath = cp.getBundlePath();
       String currentFilename = cp.getCurrentFilename();
@@ -279,7 +278,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       //TODO use a popUpSelect for more language options
       Debug.log(3, "doSetType: selected");
       String error = "";
-      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
+      EditorPane cp = SikulixIDE.get().getCurrentCodePane();
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : IDESupport.getRunners()) {
@@ -339,7 +338,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           }
           popFile.replace("\\", "\\\\");
           popFile = "\"" + popFile + "\"";
-          SikulixIDE.getInstance().getCurrentCodePane().insertString(popFile);
+          SikulixIDE.get().getCurrentCodePane().insertString(popFile);
         }
       }).start();
     }
@@ -353,7 +352,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       log(lvl, "doMoveTab: entered at move");
       refTab.resetLastClosed();
-      if (SikulixIDE.getInstance().getCurrentCodePane().isSourceBundleTemp()) {
+      if (SikulixIDE.get().getCurrentCodePane().isSourceBundleTemp()) {
         log(-1, "Untitled tab cannot be moved");
         return;
       }
@@ -387,7 +386,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doDuplicate(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "doDuplicate: entered");
-      EditorPane ep = SikulixIDE.getInstance().getCurrentCodePane();
+      EditorPane ep = SikulixIDE.get().getCurrentCodePane();
       checkAndResetMoveTab();
       fireIDEFileMenu("SAVE");
       if (ep.isSourceBundleTemp()) {
@@ -449,11 +448,11 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doReset(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "Reset: entered");
-      SikulixIDE.getInstance().clearMessageArea();
+      SikulixIDE.get().clearMessageArea();
       checkAndResetMoveTab();
       ImagePath.reset();
-      EditorPane cp = SikulixIDE.getInstance().getCurrentCodePane();
-      cp.paneReset();
+      EditorPane cp = SikulixIDE.get().getCurrentCodePane();
+      cp.shouldPaneReset();
       cp.reparse();
       if (cp.isShouldReparse()) {
         cp.reparse();

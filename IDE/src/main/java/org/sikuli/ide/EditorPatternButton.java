@@ -211,7 +211,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 	}
 
   public void setFilename(String fileName) {
-    _image = _pane.getImageInBundle(fileName);
+    _image = Image.createThumbNail(fileName);
     _imgFilename = _image.getFilename();
     setIcon(new ImageIcon(createThumbnailImage(_imgFilename, PreferencesUser.getInstance().getDefaultThumbHeight())));
     setButtonText();
@@ -224,7 +224,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     setButtonText();
   }
 
-	private String createThumbnail(String imgFname) {
+  private String createThumbnail(String imgFname) {
     return createThumbnail(imgFname, PreferencesUser.getInstance().getDefaultThumbHeight());
   }
 

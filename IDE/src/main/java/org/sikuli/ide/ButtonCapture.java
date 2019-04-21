@@ -88,7 +88,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public void capture(final int delay) {
     String line = "";
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     ide.setVisible(false);
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
@@ -130,7 +130,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     }
     String filename = null;
     String fullpath = null;
-    EditorPane pane = SikulixIDE.getInstance().getCurrentCodePane();
+    EditorPane pane = SikulixIDE.get().getCurrentCodePane();
     boolean saveOverwrite = Settings.OverwriteImages;
     if (simg != null) {
       if (!givenName.isEmpty()) {
@@ -177,7 +177,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       if (src == null) {
         if (_codePane == null) {
           if (_lbl == null) {
-            insertAtCursor(SikulixIDE.getInstance().getCurrentCodePane(), imgFullPath);
+            insertAtCursor(SikulixIDE.get().getCurrentCodePane(), imgFullPath);
           } else {
             _lbl.setFile(imgFullPath);
           }

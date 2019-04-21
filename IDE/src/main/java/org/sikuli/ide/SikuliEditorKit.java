@@ -45,7 +45,7 @@ public class SikuliEditorKit extends StyledEditorKit {
   private static SikuliIDEPopUpMenu popCompletion = null;
 
   public SikuliEditorKit() {
-    pane = SikulixIDE.getInstance().getCurrentCodePane();
+    pane = SikulixIDE.get().getCurrentCodePane();
     _viewFactory = new EditorViewFactory();
     ((EditorViewFactory) _viewFactory).setContentType(pane.getSikuliContentType());
     SikuliIDEPopUpMenu popCompletion = pane.getPopMenuCompletion();
@@ -581,7 +581,7 @@ public class SikuliEditorKit extends StyledEditorKit {
 
       Caret caret = textArea.getCaret();
       int dot = caret.getDot();
-      EditorPane currentCodePane = SikulixIDE.getInstance().getCurrentCodePane();
+      EditorPane currentCodePane = SikulixIDE.get().getCurrentCodePane();
       int lineNumberAtCaret = currentCodePane.getLineNumberAtCaret(dot);
 
       Element line = currentCodePane.getLineAtCaret(dot);

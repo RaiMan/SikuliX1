@@ -58,7 +58,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     runTime = RunTime.get(RunTime.Type.IDE);
 
-    getInstance();
+    get();
 
     if (Debug.getDebugLevel() < 3) {
       ideSplash = new IDESplash();
@@ -85,7 +85,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     super("SikulixIDE");
   }
 
-  public static synchronized SikulixIDE getInstance() {
+  public static synchronized SikulixIDE get() {
     if (sikulixIDE == null) {
       sikulixIDE = new SikulixIDE();
     }
@@ -113,13 +113,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   public static void hideIDE() {
-    getInstance().setVisible(false);
+    get().setVisible(false);
     RunTime.pause(0.5f);
   }
 
   public static void showAgain() {
-    getInstance().setVisible(true);
-    EditorPane codePane = getInstance().getCurrentCodePane();
+    get().setVisible(true);
+    EditorPane codePane = get().getCurrentCodePane();
     codePane.requestFocusInWindow();
   }
 
@@ -1132,7 +1132,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     public EditorPane doNew(ActionEvent ae, int tabIndex) {
       log(lvl, "doNew: create new tab at: %d", tabIndex);
-      EditorPane codePane = new EditorPane(sikulixIDE);
+      EditorPane codePane = new EditorPane();
       JScrollPane scrPane = new JScrollPane(codePane);
       lineNumberColumn = new EditorLineNumberView(codePane);
       scrPane.setRowHeaderView(lineNumberColumn);

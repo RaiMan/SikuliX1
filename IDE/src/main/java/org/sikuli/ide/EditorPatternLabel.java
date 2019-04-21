@@ -146,7 +146,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 						&& FileManager.isFilenameDotted(givenName)) {
 			return;
 		}
-		Image img = pane.getImageInBundle(givenName);
+		Image img = Image.createThumbNail(givenName);
 		if (img.isValid()) {
 			if (isFromCapture || !img.isAbsolute() || img.isBundled()) {
 				image = img;

@@ -45,7 +45,7 @@ public class EditorPaneUndoRedo implements UndoableEditListener {
     undoManager.addEdit(e.getEdit());
     undoAction.update();
     redoAction.update();
-    SikulixIDE.getInstance().updateUndoRedoStates();
+    SikulixIDE.get().updateUndoRedoStates();
   }
 
   public UndoAction getUndoAction() {

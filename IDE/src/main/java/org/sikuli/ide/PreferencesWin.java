@@ -443,7 +443,7 @@ public class PreferencesWin extends JFrame {
   }
 
   private void loadPrefs() {
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     _delay = pref.getCaptureDelay();
     spnDelay.setValue(_delay);
     _old_cap_hkey = old_cap_hkey = cap_hkey = pref.getCaptureHotkey();
@@ -484,7 +484,7 @@ public class PreferencesWin extends JFrame {
   }
 
   private void savePrefs() {
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     pref.setCaptureDelay((Double) spnDelay.getValue());
     pref.setCaptureHotkey(cap_hkey);
     pref.setCaptureHotkeyModifiers(cap_mod);
@@ -510,7 +510,7 @@ public class PreferencesWin extends JFrame {
   }
 
   private void resetPrefs() {
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     pref.setCaptureDelay(_delay);
     pref.setCaptureHotkey(_old_cap_hkey);
     pref.setCaptureHotkeyModifiers(_old_cap_mod);
@@ -653,7 +653,7 @@ public class PreferencesWin extends JFrame {
     if (! isInitialized || codePane == null) {
       return;
     }
-    SikulixIDE ide = SikulixIDE.getInstance();
+    SikulixIDE ide = SikulixIDE.get();
     Font font = new Font((String) _cmbFontName.getSelectedItem(), Font.PLAIN,
             (Integer) _spnFontSize.getValue());
     try {
