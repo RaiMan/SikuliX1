@@ -39,7 +39,7 @@ public class IDEMacSupport implements AboutHandler, PreferencesHandler, QuitHand
 
   @Override
   public void handleAbout(AboutEvent e) {
-    ide.doAbout();
+    ide.showAbout();
   }
 
   @Override
