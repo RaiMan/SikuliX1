@@ -103,6 +103,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     return true;
   }
+
   private boolean doBeforeQuit() {
     if (checkDirtyPanes()) {
       int action = askForSaveAll("Quit");
@@ -113,6 +114,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     return saveSession(WARNING_DO_NOTHING, true);
   }
+
   private int askForSaveAll(String typ) {
 //TODO I18N
     String warn = "Some scripts are not saved yet!";
@@ -540,11 +542,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     for (int tabIndex = 0; tabIndex < nTab; tabIndex++) {
       try {
         EditorPane codePane = getPaneAtIndex(tabIndex);
+        String fileName = codePane.editorPaneFileSelected;
         if (action == WARNING_DO_NOTHING) {
           if (quitting) {
             codePane.setDirty(false);
           }
-          if (codePane.getCurrentFilename() == null) {
+          if (fileName == null) {
             continue;
           }
         } else if (codePane.isDirty()) {
@@ -558,19 +561,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         if (action == IS_SAVE_ALL) {
           continue;
         }
-        File f = codePane.getCurrentFile();
-        if (f != null) {
-          String filename = codePane.getSrcBundle();
-          if (codePane.isPython) {
-            filename = f.getAbsolutePath();
-          } else if (codePane.isText) {
-            filename = f.getAbsolutePath() + "###isText";
-          }
-          if (tabIndex != 0) {
-            sbuf.append(";");
-          }
-          sbuf.append(filename);
+        if (codePane.isText) {
+          fileName += "###isText";
         }
+        if (sbuf.length() >0) {
+          sbuf.append(";");
+        }
+        sbuf.append(fileName);
       } catch (Exception e) {
         log(-1, "Problem while trying to save all changed-not-saved scripts!\nError: %s", e.getMessage());
         return false;
@@ -707,7 +704,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     EditorPane editorPane = makeTab();
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
-    editorPane.initEmpty();
+    editorPane.init(null);
   }
 
   String newTabWithContent(String fname) {
@@ -729,7 +726,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       fname = loadTabContent(editorPane, fname);
     } else {
       closeCurrentTab();
-      tabs.setSelectedIndex(selectedTab);
+      int alreadyOpen = tabs.getAlreadyOpen();
+      if (alreadyOpen < 0) {
+        tabs.setSelectedIndex(selectedTab);
+      } else {
+        tabs.setSelectedIndex(alreadyOpen);
+      }
     }
     return fname;
   }
@@ -1196,6 +1198,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       super();
       targetTab = tabIndex;
     }
+
     private int targetTab = -1;
 
     public void doNew(ActionEvent ae) {
@@ -1222,6 +1225,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     public void doRecent(ActionEvent ae) {
       log(3, "doRecent: menuOpenRecent: %s", ae.getActionCommand());
     }
+
     class OpenRecent extends MenuAction {
 
       OpenRecent() {

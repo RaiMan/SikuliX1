@@ -542,4 +542,16 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
 
   private String lastClosed = null;
   public boolean isLastClosedByMove = false;
+
+  public int getAlreadyOpen() {
+    int state = alreadyOpen;
+    alreadyOpen = -1;
+    return state;
+  }
+
+  public void setAlreadyOpen(int alreadyOpen) {
+    this.alreadyOpen = alreadyOpen;
+  }
+
+  private int alreadyOpen = -1;
 }

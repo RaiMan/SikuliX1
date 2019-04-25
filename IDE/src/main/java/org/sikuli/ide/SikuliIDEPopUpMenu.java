@@ -278,7 +278,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       //TODO use a popUpSelect for more language options
       Debug.log(3, "doSetType: selected");
       String error = "";
-      EditorPane cp = SikulixIDE.get().getCurrentCodePane();
+      EditorPane editorPane = SikulixIDE.get().getCurrentCodePane();
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : IDESupport.getRunners()) {
@@ -292,7 +292,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (null == selOptionsTypes) {
         return;
       }
-      String currentType = cp.getSikuliContentType();
+      String currentType = editorPane.getSikuliContentType();
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
@@ -307,7 +307,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         return;
       }
       //String targetEnding = Runner.getExtension(targetType);
-      if (cp.getText().length() > 0) {
+      if (editorPane.getText().length() > 0) {
         if (!Sikulix.popAsk(String.format(
                 "Switch to %s requested, but tab is not empty!\n"
                         + "Click YES, to discard content and switch\n"
@@ -317,8 +317,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         }
       }
       if (error.isEmpty()) {
-        cp.reInit(targetType);
-        cp.setText("");
+        editorPane.init(targetType);
         error = ": (" + targetType + ")";
         SikulixIDE.getStatusbar().setCurrentContentType(targetType);
       }
