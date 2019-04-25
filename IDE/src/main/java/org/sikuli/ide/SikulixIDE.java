@@ -3,7 +3,6 @@
  */
 package org.sikuli.ide;
 
-import org.apache.commons.cli.CommandLine;
 import org.sikuli.android.ADBClient;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.android.ADBTest;
@@ -20,7 +19,6 @@ import org.sikuli.util.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
 import javax.swing.undo.CannotRedoException;
@@ -40,6 +38,7 @@ import java.util.*;
 
 public class SikulixIDE extends JFrame implements InvocationHandler {
 
+  //<editor-fold desc="00 startup / quit">
   private static String me = "IDE: ";
   private static int lvl = 3;
 
@@ -80,7 +79,84 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     sikulixIDE.initSikuliIDE();
   }
 
-  //<editor-fold desc="02 IDE instance">
+  public boolean quit() {
+    (new FileAction()).doQuit(null);
+    if (getCurrentCodePane() == null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean closeIDE() {
+    if (!doBeforeQuit()) {
+      return false;
+    }
+    while (true) {
+      EditorPane codePane = sikulixIDE.getCurrentCodePane();
+      if (codePane == null) {
+        break;
+      }
+      if (!sikulixIDE.closeCurrentTab()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  private boolean doBeforeQuit() {
+    if (checkDirtyPanes()) {
+      int action = askForSaveAll("Quit");
+      if (action < 0) {
+        return false;
+      }
+      return saveSession(action, true);
+    }
+    return saveSession(WARNING_DO_NOTHING, true);
+  }
+  private int askForSaveAll(String typ) {
+//TODO I18N
+    String warn = "Some scripts are not saved yet!";
+    String title = SikuliIDEI18N._I("dlgAskCloseTab");
+    String[] options;
+    int ret = -1;
+    boolean shouldHide = false;
+    if (runTime.runningMac && runTime.isJava9()) {
+      String osVersion = runTime.osVersion;
+      if (osVersion.startsWith("10.13.")) {
+        int subVersion = Integer.parseInt(osVersion.replace("10.13.", ""));
+        if (subVersion > 3) {
+          shouldHide = true;
+        }
+      }
+    }
+    SikulixIDE parent = this;
+    if (shouldHide) {
+      this.setVisible(false);
+      parent = null;
+      warn += "\n\nProblem on Mac 10.13.4+ and Java 9+" +
+          "\nIDE must be restarted. Use one of the buttons!";
+      options = new String[2];
+      options[WARNING_DO_NOTHING] = typ + " immediately";
+      options[WARNING_ACCEPTED] = "Save all and " + typ;
+    } else {
+      options = new String[3];
+      options[WARNING_DO_NOTHING] = typ + " immediately";
+      options[WARNING_ACCEPTED] = "Save all and " + typ;
+      options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
+    }
+    ret = JOptionPane.showOptionDialog(parent, warn, title, 0, JOptionPane.WARNING_MESSAGE,
+        null, options, options[options.length - 1]);
+    if (shouldHide) {
+      this.setVisible(true);
+    }
+    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+      return -1;
+    }
+    return ret;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="01 IDE instance">
   private SikulixIDE() {
     super("SikulixIDE");
   }
@@ -93,6 +169,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   private static SikulixIDE sikulixIDE = null;
+
+  static IIDESupport getIDESupport(String identifier) {
+    return IDESupport.ideSupporter.get(identifier);
+  }
 
   @Override
   public void setTitle(String title) {
@@ -133,129 +213,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
   //</editor-fold>
 
-  //<editor-fold desc="04 init for Mac">
-  private static void prepareMacUI() {
-    try {
-      // set the brushed metal look and feel, if desired
-      System.setProperty("apple.awt.brushMetalLook", "true");
-
-      // use the mac system menu bar
-      System.setProperty("apple.laf.useScreenMenuBar", "true");
-
-      // set the "About" menu item name
-      System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiStar");
-
-      // use smoother fonts
-      System.setProperty("apple.awt.textantialiasing", "true");
-
-      // ref: http://developer.apple.com/releasenotes/Java/Java142RNTiger/1_NewFeatures/chapter_2_section_3.html
-      System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
-
-      // use the system look and feel
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    } catch (Exception e) {
-      // put your debug code here ...
-    }
-  }
-
-  private void prepareMacMenus() {
-    if (!Settings.isMac()) {
-      return;
-    }
-    log(lvl, "initNativeSupport: starting");
-    if (System.getProperty("sikulix.asapp") != null) {
-      Settings.isMacApp = true;
-    }
-    try {
-      if (runTime.isJava9()) {
-        log(lvl, "initNativeSupport: Java 9: trying with java.awt.Desktop");
-        Class sysclass = URLClassLoader.class;
-        Class clazzMacSupport = sysclass.forName("org.sikuli.idesupport.IDEMacSupport");
-        Method macSupport = clazzMacSupport.getDeclaredMethod("support", SikulixIDE.class);
-        macSupport.invoke(null, sikulixIDE);
-        showAbout = showPrefs = showQuit = false;
-      } else {
-        Class sysclass = URLClassLoader.class;
-        Class comAppleEawtApplication = sysclass.forName("com.apple.eawt.Application");
-        Method mGetApplication = comAppleEawtApplication.getDeclaredMethod("getApplication", null);
-        Object instApplication = mGetApplication.invoke(null, null);
-
-        Class clAboutHandler = sysclass.forName("com.apple.eawt.AboutHandler");
-        Class clPreferencesHandler = sysclass.forName("com.apple.eawt.PreferencesHandler");
-        Class clQuitHandler = sysclass.forName("com.apple.eawt.QuitHandler");
-        Class clOpenHandler = sysclass.forName("com.apple.eawt.OpenFilesHandler");
-
-        Object appHandler = Proxy.newProxyInstance(
-                comAppleEawtApplication.getClassLoader(),
-                new Class[]{clAboutHandler, clPreferencesHandler, clQuitHandler, clOpenHandler},
-                this);
-        Method m = comAppleEawtApplication.getMethod("setAboutHandler", new Class[]{clAboutHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showAbout = false;
-        m = comAppleEawtApplication.getMethod("setPreferencesHandler", new Class[]{clPreferencesHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showPrefs = false;
-        m = comAppleEawtApplication.getMethod("setQuitHandler", new Class[]{clQuitHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showQuit = false;
-        m = comAppleEawtApplication.getMethod("setOpenFileHandler", new Class[]{clOpenHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-      }
-    } catch (Exception ex) {
-      String em = String.format("initNativeSupport: Mac: error:\n%s", ex.getMessage());
-      log(-1, em);
-      Sikulix.popError(em, "IDE has problems ...");
-      System.exit(1);
-    }
-    log(lvl, "initNativeSupport: success");
-  }
-
-  private static List<File> macOpenFiles = null;
-  private boolean showAbout = true;
-  private boolean showPrefs = true;
-  private boolean showQuit = true;
-
-  @Override
-  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    String mName = method.getName();
-    if ("handleAbout".equals(mName)) {
-      sikulixIDE.showAbout();
-    } else if ("handlePreferences".equals(mName)) {
-      sikulixIDE.showPreferencesWindow();
-    } else if ("openFiles".equals(mName)) {
-      log(lvl, "nativeSupport: should open files");
-      try {
-        Method mOpenFiles = args[0].getClass().getMethod("getFiles", new Class[]{});
-        macOpenFiles = (List<File>) mOpenFiles.invoke(args[0], new Class[]{});
-        for (File f : macOpenFiles) {
-          log(lvl, "nativeSupport: openFiles: %s", macOpenFiles);
-        }
-      } catch (Exception ex) {
-        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
-        System.exit(1);
-      }
-    } else if ("handleQuitRequestWith".equals(mName)) {
-      try {
-        Class sysclass = URLClassLoader.class;
-        Class comAppleEawtQuitResponse = sysclass.forName("com.apple.eawt.QuitResponse");
-        Method mCancelQuit = comAppleEawtQuitResponse.getMethod("cancelQuit", null);
-        Method mPerformQuit = comAppleEawtQuitResponse.getMethod("performQuit", null);
-        Object resp = args[1];
-        if (!sikulixIDE.quit()) {
-          mCancelQuit.invoke(resp, null);
-        } else {
-          mPerformQuit.invoke(resp, null);
-        }
-      } catch (Exception ex) {
-        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
-        System.exit(1);
-      }
-    }
-    return new Object();
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="08 init IDE">
+  //<editor-fold desc="02 init IDE">
   private void initSikuliIDE() {
     Debug.log(3, "IDE: Reading Preferences");
     prefs = PreferencesUser.get();
@@ -333,7 +291,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     Debug.log(3, "IDE: Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
-      (new FileAction()).doNew(null);
+      newTabEmpty();
     }
     tabs.setSelectedIndex(0);
 
@@ -391,7 +349,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           boolean ret = editorPane.close();
           Debug.log(4, "after close tab n:" + tabs.getComponentCount());
           if (ret && tabs.getTabCount() < 2) {
-            (new FileAction()).doNew(null);
+            newTabEmpty();
           }
           return ret;
         } catch (Exception e) {
@@ -439,10 +397,136 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     });
   }
 
+  CloseableTabbedPane getTabs() {
+    return tabs;
+  }
+
   private CloseableTabbedPane tabs;
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="09 save / restore session">
+  //<editor-fold desc="03 init for Mac">
+  private static void prepareMacUI() {
+    try {
+      // set the brushed metal look and feel, if desired
+      System.setProperty("apple.awt.brushMetalLook", "true");
+
+      // use the mac system menu bar
+      System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+      // set the "About" menu item name
+      System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiStar");
+
+      // use smoother fonts
+      System.setProperty("apple.awt.textantialiasing", "true");
+
+      // ref: http://developer.apple.com/releasenotes/Java/Java142RNTiger/1_NewFeatures/chapter_2_section_3.html
+      System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+
+      // use the system look and feel
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    } catch (Exception e) {
+      // put your debug code here ...
+    }
+  }
+
+  private void prepareMacMenus() {
+    if (!Settings.isMac()) {
+      return;
+    }
+    log(lvl, "initNativeSupport: starting");
+    if (System.getProperty("sikulix.asapp") != null) {
+      Settings.isMacApp = true;
+    }
+    try {
+      if (runTime.isJava9()) {
+        log(lvl, "initNativeSupport: Java 9: trying with java.awt.Desktop");
+        Class sysclass = URLClassLoader.class;
+        Class clazzMacSupport = sysclass.forName("org.sikuli.idesupport.IDEMacSupport");
+        Method macSupport = clazzMacSupport.getDeclaredMethod("support", SikulixIDE.class);
+        macSupport.invoke(null, sikulixIDE);
+        showAbout = showPrefs = showQuit = false;
+      } else {
+        Class sysclass = URLClassLoader.class;
+        Class comAppleEawtApplication = sysclass.forName("com.apple.eawt.Application");
+        Method mGetApplication = comAppleEawtApplication.getDeclaredMethod("getApplication", null);
+        Object instApplication = mGetApplication.invoke(null, null);
+
+        Class clAboutHandler = sysclass.forName("com.apple.eawt.AboutHandler");
+        Class clPreferencesHandler = sysclass.forName("com.apple.eawt.PreferencesHandler");
+        Class clQuitHandler = sysclass.forName("com.apple.eawt.QuitHandler");
+        Class clOpenHandler = sysclass.forName("com.apple.eawt.OpenFilesHandler");
+
+        Object appHandler = Proxy.newProxyInstance(
+            comAppleEawtApplication.getClassLoader(),
+            new Class[]{clAboutHandler, clPreferencesHandler, clQuitHandler, clOpenHandler},
+            this);
+        Method m = comAppleEawtApplication.getMethod("setAboutHandler", new Class[]{clAboutHandler});
+        m.invoke(instApplication, new Object[]{appHandler});
+        showAbout = false;
+        m = comAppleEawtApplication.getMethod("setPreferencesHandler", new Class[]{clPreferencesHandler});
+        m.invoke(instApplication, new Object[]{appHandler});
+        showPrefs = false;
+        m = comAppleEawtApplication.getMethod("setQuitHandler", new Class[]{clQuitHandler});
+        m.invoke(instApplication, new Object[]{appHandler});
+        showQuit = false;
+        m = comAppleEawtApplication.getMethod("setOpenFileHandler", new Class[]{clOpenHandler});
+        m.invoke(instApplication, new Object[]{appHandler});
+      }
+    } catch (Exception ex) {
+      String em = String.format("initNativeSupport: Mac: error:\n%s", ex.getMessage());
+      log(-1, em);
+      Sikulix.popError(em, "IDE has problems ...");
+      System.exit(1);
+    }
+    log(lvl, "initNativeSupport: success");
+  }
+
+  private static List<File> macOpenFiles = null;
+  private boolean showAbout = true;
+  private boolean showPrefs = true;
+  private boolean showQuit = true;
+
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    String mName = method.getName();
+    if ("handleAbout".equals(mName)) {
+      sikulixIDE.showAbout();
+    } else if ("handlePreferences".equals(mName)) {
+      sikulixIDE.showPreferencesWindow();
+    } else if ("openFiles".equals(mName)) {
+      log(lvl, "nativeSupport: should open files");
+      try {
+        Method mOpenFiles = args[0].getClass().getMethod("getFiles", new Class[]{});
+        macOpenFiles = (List<File>) mOpenFiles.invoke(args[0], new Class[]{});
+        for (File f : macOpenFiles) {
+          log(lvl, "nativeSupport: openFiles: %s", macOpenFiles);
+        }
+      } catch (Exception ex) {
+        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
+        System.exit(1);
+      }
+    } else if ("handleQuitRequestWith".equals(mName)) {
+      try {
+        Class sysclass = URLClassLoader.class;
+        Class comAppleEawtQuitResponse = sysclass.forName("com.apple.eawt.QuitResponse");
+        Method mCancelQuit = comAppleEawtQuitResponse.getMethod("cancelQuit", null);
+        Method mPerformQuit = comAppleEawtQuitResponse.getMethod("performQuit", null);
+        Object resp = args[1];
+        if (!sikulixIDE.quit()) {
+          mCancelQuit.invoke(resp, null);
+        } else {
+          mPerformQuit.invoke(resp, null);
+        }
+      } catch (Exception ex) {
+        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
+        System.exit(1);
+      }
+    }
+    return new Object();
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="04 save / restore session">
   final static int WARNING_CANCEL = 2;
   final static int WARNING_ACCEPTED = 1;
   final static int WARNING_DO_NOTHING = 0;
@@ -494,6 +578,32 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     PreferencesUser.get().setIdeSession(sbuf.toString());
     return true;
+  }
+
+  boolean saveIntern(int tabIndex) {
+    int currentTab = tabs.getSelectedIndex();
+    tabs.setSelectedIndex(tabIndex);
+    boolean retval = true;
+    EditorPane codePane = getPaneAtIndex(tabIndex);
+    String fname = null;
+    try {
+      fname = codePane.saveFile();
+      if (fname != null) {
+        if (codePane.isPython || codePane.isText) {
+          fname = codePane.getCurrentFilename();
+          codePane.checkPaneContentType();
+        }
+        setFileTabTitle(fname, tabIndex);
+      } else {
+        retval = false;
+      }
+    } catch (Exception ex) {
+      log(-1, "Problem when trying to save %s\nError: %s",
+          fname, ex.getMessage());
+      retval = false;
+    }
+    tabs.setSelectedIndex(currentTab);
+    return retval;
   }
 
   private int restoreSession(int tabIndex) {
@@ -571,14 +681,70 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="06 support IDE">
-  public boolean quit() {
-    (new FileAction()).doQuit(null);
-    if (getCurrentCodePane() == null) {
-      return true;
+  //<editor-fold defaultstate="collapsed" desc="06 tabs handling">
+  EditorPane makeTab() {
+    EditorPane editorPane = new EditorPane();
+    lineNumberColumn = new EditorLineNumberView(editorPane);
+    editorPane.getScrollPane().setRowHeaderView(lineNumberColumn);
+    return editorPane;
+  }
+
+  EditorPane makeTab(int tabIndex) {
+    log(lvl, "doNew: create new tab at: %d", tabIndex);
+    EditorPane editorPane = makeTab();
+    JScrollPane scrPane = editorPane.getScrollPane();
+    if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
+      tabs.addTab(_I("tabUntitled"), scrPane);
     } else {
-      return false;
+      tabs.addTab(_I("tabUntitled"), scrPane, tabIndex);
     }
+    tabs.setSelectedIndex(tabIndex < 0 ? tabs.getTabCount() - 1 : tabIndex);
+    editorPane.requestFocus();
+    return editorPane;
+  }
+
+  void newTabEmpty() {
+    EditorPane editorPane = makeTab();
+    tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
+    tabs.setSelectedIndex(0);
+    editorPane.initEmpty();
+  }
+
+  String newTabWithContent(String fname) {
+    return newTabWithContent(fname, -1);
+  }
+
+  String newTabWithContent(String fname, int tabIndex) {
+    boolean accessingAsFile = false;
+    if (Settings.isMac()) {
+      accessingAsFile = !ACCESSING_AS_FOLDER;
+      ACCESSING_AS_FOLDER = false;
+    }
+    int selectedTab = tabs.getSelectedIndex();
+    EditorPane editorPane = makeTab(tabIndex);
+    if (null == fname) {
+      fname = editorPane.selectFile(accessingAsFile);
+    }
+    if (fname != null) {
+      fname = loadTabContent(editorPane, fname);
+    } else {
+      closeCurrentTab();
+      tabs.setSelectedIndex(selectedTab);
+    }
+    return fname;
+  }
+
+  String loadTabContent(EditorPane editorPane, String fname) {
+    editorPane.loadFile(fname);
+    if (editorPane.hasEditingFile()) {
+      setCurrentFileTabTitle(fname);
+      recentAdd(fname);
+      if (editorPane.isText) {
+        collapseMessageArea();
+      }
+      return fname;
+    }
+    return null;
   }
 
   boolean checkDirtyPanes() {
@@ -604,171 +770,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       return false;
     }
     return true;
-  }
-
-  boolean saveIntern(int tabIndex) {
-    int currentTab = tabs.getSelectedIndex();
-    tabs.setSelectedIndex(tabIndex);
-    boolean retval = true;
-    EditorPane codePane = getPaneAtIndex(tabIndex);
-    String fname = null;
-    try {
-      fname = codePane.saveFile();
-      if (fname != null) {
-        if (codePane.isPython || codePane.isText) {
-          fname = codePane.getCurrentFilename();
-          codePane.checkPaneContentType();
-        }
-        setFileTabTitle(fname, tabIndex);
-      } else {
-        retval = false;
-      }
-    } catch (Exception ex) {
-      log(-1, "Problem when trying to save %s\nError: %s",
-              fname, ex.getMessage());
-      retval = false;
-    }
-    tabs.setSelectedIndex(currentTab);
-    return retval;
-  }
-
-  void recentAdd(String fPath) {
-    if (Settings.experimental) {
-      log(3, "doRecentAdd: %s", fPath);
-      String fName = new File(fPath).getName();
-      if (recentProjectsMenu.contains(fName)) {
-        recentProjectsMenu.remove(fName);
-      } else {
-        recentProjects.put(fName, fPath);
-        if (recentProjectsMenu.size() == recentMaxMax) {
-          String fObsolete = recentProjectsMenu.remove(recentMax - 1);
-          recentProjects.remove(fObsolete);
-        }
-      }
-      recentProjectsMenu.add(0, fName);
-      recentMenu.removeAll();
-      for (String entry : recentProjectsMenu.subList(1, recentProjectsMenu.size())) {
-        if (isAlreadyOpen(recentProjects.get(entry)) > -1) {
-          continue;
-        }
-        try {
-          recentMenu.add(createMenuItem(entry,
-                  null,
-                  new FileAction(FileAction.ENTRY)));
-        } catch (NoSuchMethodException ex) {
-        }
-      }
-    }
-  }
-
-  public void showAbout() {
-    //TODO full featured About
-    String info = "You are running " + runTime.SXVersionIDE
-            + "\n\nNeed help? -> start with Help Menu\n\n"
-            + "*** Have fun ;-)\n\n"
-            + "Tsung-Hsiang Chang aka vgod\n"
-            + "Tom Yeh\n"
-            + "Raimund Hocke aka RaiMan\n\n"
-            + "\n\n" + String.format("Build#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
-    JOptionPane.showMessageDialog(this, info,
-            "Sikuli About", JOptionPane.PLAIN_MESSAGE);
-  }
-
-  public void showPreferencesWindow() {
-    PreferencesWin pwin = new PreferencesWin();
-    pwin.setAlwaysOnTop(true);
-    pwin.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    if (!Settings.isJava7()) {
-      pwin.setLocation(getLocation());
-    }
-    pwin.setVisible(true);
-  }
-
-  EditorPane makeTab() {
-    EditorPane editorPane = new EditorPane();
-    lineNumberColumn = new EditorLineNumberView(editorPane);
-    editorPane.getScrollPane().setRowHeaderView(lineNumberColumn);
-    return editorPane;
-  }
-
-  EditorPane makeTab(int tabIndex) {
-    log(lvl, "doNew: create new tab at: %d", tabIndex);
-    EditorPane editorPane = makeTab();
-    JScrollPane scrPane = editorPane.getScrollPane();
-    if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
-      tabs.addTab(_I("tabUntitled"), scrPane);
-    } else {
-      tabs.addTab(_I("tabUntitled"), scrPane, tabIndex);
-    }
-    tabs.setSelectedIndex(tabIndex < 0 ? tabs.getTabCount() - 1 : tabIndex);
-    editorPane.requestFocus();
-    return editorPane;
-  }
-
-  void runOpenSpecial() {
-    log(lvl, "Open Special requested");
-    Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
-    specialFiles.put("2 SikuliX Extensions Options", ExtensionManager.getExtensionsFile().getAbsolutePath());
-    specialFiles.put("3 SikuliX Additional Sites", ExtensionManager.getSitesTxt().getAbsolutePath());
-    String[] defaults = new String[specialFiles.size()];
-    defaults[0] = "";
-    defaults[1] = ExtensionManager.getExtensionsFileDefault();
-    defaults[2] = ExtensionManager.getSitesTxtDefault();
-    String msg = "";
-    int num = 1;
-    String[] files = new String[specialFiles.size()];
-    for (String specialFile : specialFiles.keySet()) {
-      files[num - 1] = specialFiles.get(specialFile).trim();
-      msg += specialFile + "\n";
-      num++;
-    }
-    msg += "\n" + "Enter a number to select a file";
-    String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
-    if (null != answer && !answer.isEmpty()) {
-      try {
-        num = Integer.parseInt(answer.substring(0, 1));
-        if (num > 0 && num <= specialFiles.size()) {
-          String file = files[num - 1];
-          if (!new File(file).exists() && !defaults[num - 1].isEmpty()) {
-            FileManager.writeStringToFile(defaults[num - 1], file);
-          }
-          String selectedFile = file + "###isText";
-          tabs.setLastClosed(selectedFile);
-          log(lvl, "Open Special: should load: %s", file);
-          (new FileAction()).doLoad(null);
-        }
-      } catch (NumberFormatException e) {
-      }
-    }
-  }
-
-  private boolean closeIDE() {
-    if (!doBeforeQuit()) {
-      return false;
-    }
-    while (true) {
-      EditorPane codePane = sikulixIDE.getCurrentCodePane();
-      if (codePane == null) {
-        break;
-      }
-      if (!sikulixIDE.closeCurrentTab()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static IIDESupport getIDESupport(String identifier) {
-    return IDESupport.ideSupporter.get(identifier);
-  }
-
-  JMenu getFileMenu() {
-    return _fileMenu;
-  }
-
-  JMenu getRunMenu() {
-    return _runMenu;
   }
 
   EditorPane getCurrentCodePane() {
@@ -864,103 +865,96 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   private int alreadyOpenedTab = -1;
+  //</editor-fold>
 
-  private void autoCheckUpdate() {
-    PreferencesUser pref = PreferencesUser.get();
-    if (!pref.getCheckUpdate()) {
-      return;
-    }
-    long last_check = pref.getCheckUpdateTime();
-    long now = (new Date()).getTime();
-    if (now - last_check > 1000 * 604800) {
-      Debug.log(3, "autocheck update");
-      (new HelpAction()).checkUpdate(true);
-    }
-    pref.setCheckUpdateTime();
-  }
-
-  synchronized boolean isRunningScript() {
-    return ideIsRunningScript;
-  }
-
-  synchronized void setIsRunningScript(boolean state) {
-    ideIsRunningScript = state;
-  }
-
-  private boolean ideIsRunningScript = false;
-
-  protected boolean doBeforeRun() {
-    int action;
-    if (checkDirtyPanes()) {
-      if (prefs.getPrefMoreRunSave()) {
-        action = WARNING_ACCEPTED;
+  //<editor-fold desc="07 menu helpers">
+  void recentAdd(String fPath) {
+    if (Settings.experimental) {
+      log(3, "doRecentAdd: %s", fPath);
+      String fName = new File(fPath).getName();
+      if (recentProjectsMenu.contains(fName)) {
+        recentProjectsMenu.remove(fName);
       } else {
-        action = askForSaveAll("Run");
-        if (action < 0) {
-          return false;
+        recentProjects.put(fName, fPath);
+        if (recentProjectsMenu.size() == recentMaxMax) {
+          String fObsolete = recentProjectsMenu.remove(recentMax - 1);
+          recentProjects.remove(fObsolete);
         }
       }
-      saveSession(action, false);
-    }
-    Settings.ActionLogs = prefs.getPrefMoreLogActions();
-    Settings.DebugLogs = prefs.getPrefMoreLogDebug();
-    Settings.InfoLogs = prefs.getPrefMoreLogInfo();
-    Settings.Highlight = prefs.getPrefMoreHighlight();
-    RunTime.resetProject();
-    return true;
-  }
-
-  protected boolean doBeforeQuit() {
-    if (checkDirtyPanes()) {
-      int action = askForSaveAll("Quit");
-      if (action < 0) {
-        return false;
-      }
-      return saveSession(action, true);
-    }
-    return saveSession(WARNING_DO_NOTHING, true);
-  }
-
-  private int askForSaveAll(String typ) {
-//TODO I18N
-    String warn = "Some scripts are not saved yet!";
-    String title = SikuliIDEI18N._I("dlgAskCloseTab");
-    String[] options;
-    int ret = -1;
-    boolean shouldHide = false;
-    if (runTime.runningMac && runTime.isJava9()) {
-      String osVersion = runTime.osVersion;
-      if (osVersion.startsWith("10.13.")) {
-        int subVersion = Integer.parseInt(osVersion.replace("10.13.", ""));
-        if (subVersion > 3) {
-          shouldHide = true;
+      recentProjectsMenu.add(0, fName);
+      recentMenu.removeAll();
+      for (String entry : recentProjectsMenu.subList(1, recentProjectsMenu.size())) {
+        if (isAlreadyOpen(recentProjects.get(entry)) > -1) {
+          continue;
+        }
+        try {
+          recentMenu.add(createMenuItem(entry,
+              null,
+              new FileAction(FileAction.ENTRY)));
+        } catch (NoSuchMethodException ex) {
         }
       }
     }
-    SikulixIDE parent = this;
-    if (shouldHide) {
-      this.setVisible(false);
-      parent = null;
-      warn += "\n\nProblem on Mac 10.13.4+ and Java 9+" +
-              "\nIDE must be restarted. Use one of the buttons!";
-      options = new String[2];
-      options[WARNING_DO_NOTHING] = typ + " immediately";
-      options[WARNING_ACCEPTED] = "Save all and " + typ;
-    } else {
-      options = new String[3];
-      options[WARNING_DO_NOTHING] = typ + " immediately";
-      options[WARNING_ACCEPTED] = "Save all and " + typ;
-      options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
+  }
+
+  public void showAbout() {
+    //TODO full featured About
+    String info = "You are running " + runTime.SXVersionIDE
+        + "\n\nNeed help? -> start with Help Menu\n\n"
+        + "*** Have fun ;-)\n\n"
+        + "Tsung-Hsiang Chang aka vgod\n"
+        + "Tom Yeh\n"
+        + "Raimund Hocke aka RaiMan\n\n"
+        + "\n\n" + String.format("Build#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
+    JOptionPane.showMessageDialog(this, info,
+        "Sikuli About", JOptionPane.PLAIN_MESSAGE);
+  }
+
+  public void showPreferencesWindow() {
+    PreferencesWin pwin = new PreferencesWin();
+    pwin.setAlwaysOnTop(true);
+    pwin.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    if (!Settings.isJava7()) {
+      pwin.setLocation(getLocation());
     }
-    ret = JOptionPane.showOptionDialog(parent, warn, title, 0, JOptionPane.WARNING_MESSAGE,
-            null, options, options[options.length - 1]);
-    if (shouldHide) {
-      this.setVisible(true);
+    pwin.setVisible(true);
+  }
+
+  void openSpecial() {
+    log(lvl, "Open Special requested");
+    Map<String, String> specialFiles = new Hashtable<>();
+    specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
+    specialFiles.put("2 SikuliX Extensions Options", ExtensionManager.getExtensionsFile().getAbsolutePath());
+    specialFiles.put("3 SikuliX Additional Sites", ExtensionManager.getSitesTxt().getAbsolutePath());
+    String[] defaults = new String[specialFiles.size()];
+    defaults[0] = "";
+    defaults[1] = ExtensionManager.getExtensionsFileDefault();
+    defaults[2] = ExtensionManager.getSitesTxtDefault();
+    String msg = "";
+    int num = 1;
+    String[] files = new String[specialFiles.size()];
+    for (String specialFile : specialFiles.keySet()) {
+      files[num - 1] = specialFiles.get(specialFile).trim();
+      msg += specialFile + "\n";
+      num++;
     }
-    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-      return -1;
+    msg += "\n" + "Enter a number to select a file";
+    String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
+    if (null != answer && !answer.isEmpty()) {
+      try {
+        num = Integer.parseInt(answer.substring(0, 1));
+        if (num > 0 && num <= specialFiles.size()) {
+          String file = files[num - 1];
+          if (!new File(file).exists() && !defaults[num - 1].isEmpty()) {
+            FileManager.writeStringToFile(defaults[num - 1], file);
+          }
+          String selectedFile = file + "###isText";
+          log(lvl, "Open Special: should load: %s", file);
+          newTabWithContent(selectedFile);
+        }
+      } catch (NumberFormatException e) {
+      }
     }
-    return ret;
   }
   //</editor-fold>
 
@@ -1038,7 +1032,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           actMethod.invoke(this, params);
         } catch (Exception ex) {
           log(-1, "Problem when trying to invoke menu action %s\nError: %s",
-                  action, ex.getMessage());
+              action, ex.getMessage());
         }
       }
     }
@@ -1052,6 +1046,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="11 Init FileMenu">
+  JMenu getFileMenu() {
+    return _fileMenu;
+  }
+
   private boolean ACCESSING_AS_FOLDER = false;
   private EditorLineNumberView lineNumberColumn;
 
@@ -1064,18 +1062,18 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     if (showAbout) {
       _fileMenu.add(createMenuItem("About SikuliX",
-              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
-              new FileAction(FileAction.ABOUT)));
+          KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
+          new FileAction(FileAction.ABOUT)));
       _fileMenu.addSeparator();
     }
 
     _fileMenu.add(createMenuItem(_I("menuFileNew"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, scMask),
-            new FileAction(FileAction.NEW)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, scMask),
+        new FileAction(FileAction.NEW)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileOpen"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
-            new FileAction(FileAction.OPEN)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
+        new FileAction(FileAction.OPEN)));
     jmi.setName("OPEN");
 
     recentMenu = new JMenu(_I("menuRecent"));
@@ -1086,44 +1084,44 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     if (Settings.isMac() && !Settings.handlesMacBundles) {
       _fileMenu.add(createMenuItem("Open folder.sikuli ...",
-              null,
-              //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
-              new FileAction(FileAction.OPEN_FOLDER)));
+          null,
+          //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
+          new FileAction(FileAction.OPEN_FOLDER)));
     }
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSave"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, scMask),
-            new FileAction(FileAction.SAVE)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, scMask),
+        new FileAction(FileAction.SAVE)));
     jmi.setName("SAVE");
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSaveAs"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-                    InputEvent.SHIFT_DOWN_MASK | scMask),
-            new FileAction(FileAction.SAVE_AS)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+            InputEvent.SHIFT_DOWN_MASK | scMask),
+        new FileAction(FileAction.SAVE_AS)));
     jmi.setName("SAVE_AS");
 
     if (Settings.isMac() && !Settings.handlesMacBundles) {
       _fileMenu.add(createMenuItem(_I("Save as folder.sikuli ..."),
-              //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-              //            InputEvent.SHIFT_MASK | scMask),
-              null,
-              new FileAction(FileAction.SAVE_AS_FOLDER)));
+          //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+          //            InputEvent.SHIFT_MASK | scMask),
+          null,
+          new FileAction(FileAction.SAVE_AS_FOLDER)));
     }
 
 //TODO    _fileMenu.add(createMenuItem(_I("menuFileSaveAll"),
     _fileMenu.add(createMenuItem("Save all",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-                    InputEvent.CTRL_DOWN_MASK | scMask),
-            new FileAction(FileAction.SAVE_ALL)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+            InputEvent.CTRL_DOWN_MASK | scMask),
+        new FileAction(FileAction.SAVE_ALL)));
 
     _fileMenu.add(createMenuItem(_I("menuFileExport"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
-                    InputEvent.SHIFT_DOWN_MASK | scMask),
-            new FileAction(FileAction.EXPORT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
+            InputEvent.SHIFT_DOWN_MASK | scMask),
+        new FileAction(FileAction.EXPORT)));
 
     _fileMenu.add(createMenuItem("Export as jar",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
-            new FileAction(FileAction.ASJAR)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
+        new FileAction(FileAction.ASJAR)));
 
 //TODO export as runnable jar
 //    _fileMenu.add(createMenuItem("Export as runnable jar",
@@ -1132,30 +1130,30 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 //            new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
-            new FileAction(FileAction.CLOSE_TAB)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
+        new FileAction(FileAction.CLOSE_TAB)));
     jmi.setName("CLOSE_TAB");
 
     if (showPrefs) {
       _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFilePreferences"),
-              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, scMask),
-              new FileAction(FileAction.PREFERENCES)));
+          KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, scMask),
+          new FileAction(FileAction.PREFERENCES)));
     }
 
     _fileMenu.addSeparator();
     _fileMenu.add(createMenuItem("Open Special Files",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
-            new FileAction(FileAction.OPEN_SPECIAL)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
+        new FileAction(FileAction.OPEN_SPECIAL)));
 
     _fileMenu.add(createMenuItem("Restart IDE",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
-            new FileAction(FileAction.RESTART)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+            InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
+        new FileAction(FileAction.RESTART)));
 
     if (showQuit) {
       _fileMenu.add(createMenuItem(_I("menuFileQuit"),
-              null, new FileAction(FileAction.QUIT)));
+          null, new FileAction(FileAction.QUIT)));
     }
   }
 
@@ -1185,127 +1183,54 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     static final String ENTRY = "doRecent";
     static final String RESTART = "doRestart";
     static final String OPEN_SPECIAL = "doOpenSpecial";
-    private int targetTab = -1;
 
     FileAction() {
       super();
-    }
-
-    FileAction(int tabIndex) {
-      super();
-      targetTab = tabIndex;
     }
 
     FileAction(String item) throws NoSuchMethodException {
       super(item);
     }
 
-    public void doAbout(ActionEvent ae) {
-      sikulixIDE.showAbout();
+    FileAction(int tabIndex) {
+      super();
+      targetTab = tabIndex;
     }
-
-    public void doPreferences(ActionEvent ae) {
-      showPreferencesWindow();
-    }
-
-    public void doOpenSpecial(ActionEvent ae) {
-      (new Thread() {
-        @Override
-        public void run() {
-          runOpenSpecial();
-        }
-      }).start();
-    }
-
-    public void doRestart(ActionEvent ae) {
-      log(lvl, "Restart IDE requested");
-      if (closeIDE()) {
-        log(lvl, "Restarting IDE");
-        runTime.terminate(255, "Restarting IDE");
-      }
-      log(-1, "Restart IDE: did not work");
-    }
-
-    public void doQuit(ActionEvent ae) {
-      log(lvl, "Quit IDE requested");
-      if (closeIDE()) {
-        runTime.terminate(0, "");
-      }
-      log(-1, "Quit IDE: did not work");
-    }
+    private int targetTab = -1;
 
     public void doNew(ActionEvent ae) {
-      EditorPane editorPane = makeTab();
-      tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
-      tabs.setSelectedIndex(0);
-      editorPane.initEmpty();
+      newTabEmpty();
     }
 
+    //TODO not used
     public void doInsert(ActionEvent ae) {
-      doLoad(null);
+      newTabWithContent(tabs.getLastClosed(), targetTab);
     }
 
     public void doLoad(ActionEvent ae) {
-      boolean accessingAsFile = false;
-      if (Settings.isMac()) {
-        accessingAsFile = !ACCESSING_AS_FOLDER;
-        ACCESSING_AS_FOLDER = false;
-      }
-      int selectedTab = tabs.getSelectedIndex();
-      EditorPane codePane = makeTab(targetTab);
-      codePane.isSourceBundleTemp();
-      String fname = codePane.selectFile(accessingAsFile);
-      if (fname != null) {
-        setCurrentFileTabTitle(fname);
-        recentAdd(fname);
-        if (codePane.isText) {
-          collapseMessageArea();
-        }
-      } else {
-        doCloseTab(null);
-        tabs.setSelectedIndex(selectedTab);
-      }
+      newTabWithContent(null);
     }
 
-    void loadTabContent(String fname) {
-      boolean accessingAsFile = false;
-      if (Settings.isMac()) {
-        accessingAsFile = !ACCESSING_AS_FOLDER;
-        ACCESSING_AS_FOLDER = false;
-      }
-      alreadyOpenedTab = tabs.getSelectedIndex();
-      EditorPane codePane = makeTab(targetTab);
-      if (fname == null) {
-        codePane.isSourceBundleTemp();
-        fname = codePane.selectFile(accessingAsFile);
-        if (fname != null) {
-          setCurrentFileTabTitle(fname);
-        } else {
-          doCloseTab(null);
-          tabs.setSelectedIndex(alreadyOpenedTab);
-        }
-      } else {
-        codePane.loadFile(fname);
-        if (codePane.hasEditingFile()) {
-          setCurrentFileTabTitle(fname);
-        } else {
-          fname = null;
-        }
-      }
-      recentAdd(fname);
-      if (codePane.isText) {
-        collapseMessageArea();
-      }
-    }
-
-    public void doRecent(ActionEvent ae) {
-      log(3, "doRecent: menuOpenRecent: %s", ae.getActionCommand());
-    }
-
+    //TODO not used
     public void doLoadFolder(ActionEvent ae) {
       Debug.log(3, "IDE: doLoadFolder requested");
       ACCESSING_AS_FOLDER = true;
       doLoad(ae);
+    }
+
+    //TODO not used
+    public void doRecent(ActionEvent ae) {
+      log(3, "doRecent: menuOpenRecent: %s", ae.getActionCommand());
+    }
+    class OpenRecent extends MenuAction {
+
+      OpenRecent() {
+        super();
+      }
+
+      void openRecent(ActionEvent ae) {
+        log(lvl, "openRecent: %s", ae.getActionCommand());
+      }
     }
 
     public void doSave(ActionEvent ae) {
@@ -1326,10 +1251,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       } catch (Exception ex) {
         if (ex instanceof IOException) {
           log(-1, "Problem when trying to save %s\nError: %s",
-                  fname, ex.getMessage());
+              fname, ex.getMessage());
         } else {
           log(-1, "A non-IOException-problem when trying to save %s\nError: %s",
-                  fname, ex.getMessage());
+              fname, ex.getMessage());
         }
       }
     }
@@ -1356,6 +1281,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
     }
 
+    //TODO not used
     public void doSaveAsFolder(ActionEvent ae) {
       log(lvl, "doSaveAsFolder requested");
       ACCESSING_AS_FOLDER = true;
@@ -1379,7 +1305,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         fname = codePane.exportAsZip();
       } catch (Exception ex) {
         log(-1, "Problem when trying to save %s\nError: %s",
-                fname, ex.getMessage());
+            fname, ex.getMessage());
       }
     }
 
@@ -1403,6 +1329,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
     }
 
+    //TODO not used
     public void doAsRunJar(ActionEvent ae) {
       EditorPane codePane = getCurrentCodePane();
       String orgName = codePane.getCurrentShortFilename();
@@ -1414,8 +1341,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         List<String> options = new ArrayList<>();
         options.add(fScript.getParentFile().getAbsolutePath());
         Sikulix.popup("... this may take some 10 seconds\nclick ok and wait for result popup" +
-                        "\nthere is no progressindication",
-                "Export as runnable jar");
+                "\nthere is no progressindication",
+            "Export as runnable jar");
         String fpJar = FileManager.makeScriptjar(options);
         if (null != fpJar) {
           Sikulix.popup(fpJar, "Export as runnable jar ...");
@@ -1444,19 +1371,42 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       if (codePane != null) {
         codePane.requestFocus();
       } else if (ae != null) {
-        (new FileAction()).doNew(null);
+        newTabEmpty();
       }
     }
-  }
 
-  class OpenRecent extends MenuAction {
-
-    OpenRecent() {
-      super();
+    public void doAbout(ActionEvent ae) {
+      sikulixIDE.showAbout();
     }
 
-    void openRecent(ActionEvent ae) {
-      log(lvl, "openRecent: %s", ae.getActionCommand());
+    public void doPreferences(ActionEvent ae) {
+      showPreferencesWindow();
+    }
+
+    public void doOpenSpecial(ActionEvent ae) {
+      (new Thread() {
+        @Override
+        public void run() {
+          openSpecial();
+        }
+      }).start();
+    }
+
+    public void doRestart(ActionEvent ae) {
+      log(lvl, "Restart IDE requested");
+      if (closeIDE()) {
+        log(lvl, "Restarting IDE");
+        runTime.terminate(255, "Restarting IDE");
+      }
+      log(-1, "Restart IDE: did not work");
+    }
+
+    public void doQuit(ActionEvent ae) {
+      log(lvl, "Quit IDE requested");
+      if (closeIDE()) {
+        runTime.terminate(0, "");
+      }
+      log(-1, "Quit IDE: did not work");
     }
   }
   //</editor-fold>
@@ -1475,53 +1425,53 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     _undoAction = new UndoAction();
     JMenuItem undoItem = _editMenu.add(_undoAction);
     undoItem.setAccelerator(
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask));
     _redoAction = new RedoAction();
     JMenuItem redoItem = _editMenu.add(_redoAction);
     redoItem.setAccelerator(
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
 
     _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditCopy"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
-            new EditAction(EditAction.COPY)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
+        new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem("Copy line",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMaskCTRL),
-            new EditAction(EditAction.COPY)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMaskCTRL),
+        new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem(_I("menuEditCut"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
-            new EditAction(EditAction.CUT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
+        new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem("Cut line",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMaskCTRL),
-            new EditAction(EditAction.CUT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMaskCTRL),
+        new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem(_I("menuEditPaste"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
-            new EditAction(EditAction.PASTE)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
+        new EditAction(EditAction.PASTE)));
     _editMenu.add(createMenuItem(_I("menuEditSelectAll"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
-            new EditAction(EditAction.SELECT_ALL)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
+        new EditAction(EditAction.SELECT_ALL)));
 
     _editMenu.addSeparator();
     JMenu findMenu = new JMenu(_I("menuFind"));
     findMenu.setMnemonic(KeyEvent.VK_F);
     findMenu.add(createMenuItem(_I("menuFindFind"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
-            new FindAction(FindAction.FIND)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
+        new FindAction(FindAction.FIND)));
     findMenu.add(createMenuItem(_I("menuFindFindNext"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask),
-            new FindAction(FindAction.FIND_NEXT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask),
+        new FindAction(FindAction.FIND_NEXT)));
     findMenu.add(createMenuItem(_I("menuFindFindPrev"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask | InputEvent.SHIFT_MASK),
-            new FindAction(FindAction.FIND_PREV)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask | InputEvent.SHIFT_MASK),
+        new FindAction(FindAction.FIND_PREV)));
     _editMenu.add(findMenu);
 
     _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditIndent"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, 0),
-            new EditAction(EditAction.INDENT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, 0),
+        new EditAction(EditAction.INDENT)));
     _editMenu.add(createMenuItem(_I("menuEditUnIndent"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, InputEvent.SHIFT_MASK),
-            new EditAction(EditAction.UNINDENT)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, InputEvent.SHIFT_MASK),
+        new EditAction(EditAction.UNINDENT)));
   }
 
   class EditAction extends MenuAction {
@@ -1605,9 +1555,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 //      _searchField.selectAll();
 //      _searchField.requestFocus();
       findText = Sikulix.input(
-              "Enter text to be searched (case sensitive)\n" +
-                      "Start with ! to search case insensitive\n",
-              findText, "SikuliX IDE -- Find");
+          "Enter text to be searched (case sensitive)\n" +
+              "Start with ! to search case insensitive\n",
+          findText, "SikuliX IDE -- Find");
       if (null == findText) {
         return;
       }
@@ -1662,8 +1612,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     boolean findNext(String str) {
       if (getCurrentCodePane() != null) {
         return _find(str,
-                getCurrentCodePane().getCaretPosition() + str.length(),
-                true);
+            getCurrentCodePane().getCaretPosition() + str.length(),
+            true);
       }
       return false;
     }
@@ -1750,21 +1700,25 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="13 Init Run Menu">
+  JMenu getRunMenu() {
+    return _runMenu;
+  }
+
   private void initRunMenu() throws NoSuchMethodException {
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     _runMenu = new JMenu(_I("menuRun"));
     _runMenu.setMnemonic(java.awt.event.KeyEvent.VK_R);
     _runMenu.add(createMenuItem(_I("menuRunRun"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
-            new RunAction(RunAction.RUN)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
+        new RunAction(RunAction.RUN)));
     _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.ALT_DOWN_MASK | scMask),
-            new RunAction(RunAction.RUN_SHOW_ACTIONS)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+            InputEvent.ALT_DOWN_MASK | scMask),
+        new RunAction(RunAction.RUN_SHOW_ACTIONS)));
     _runMenu.add(createMenuItem("Run selection",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.SHIFT_DOWN_MASK | scMask),
-            new RunAction(RunAction.RUN_SELECTION)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+            InputEvent.SHIFT_DOWN_MASK | scMask),
+        new RunAction(RunAction.RUN_SELECTION)));
   }
 
   class RunAction extends MenuAction {
@@ -1812,8 +1766,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     chkShowThumbs = new JCheckBoxMenuItem(_I("menuViewShowThumbs"), false);
     _viewMenu.add(createMenuItem(chkShowThumbs,
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, scMask),
-            new ViewAction(ViewAction.SHOW_THUMBS)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, scMask),
+        new ViewAction(ViewAction.SHOW_THUMBS)));
 
 //TODO Message Area clear
 //TODO Message Area LineBreak
@@ -1867,12 +1821,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     _toolMenu.setMnemonic(java.awt.event.KeyEvent.VK_T);
 
     _toolMenu.add(createMenuItem(_I("menuToolExtensions"),
-            null,
-            new ToolAction(ToolAction.EXTENSIONS)));
+        null,
+        new ToolAction(ToolAction.EXTENSIONS)));
 
     _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-            null,
-            new ToolAction(ToolAction.ANDROID)));
+        null,
+        new ToolAction(ToolAction.ANDROID)));
   }
 
   class ToolAction extends MenuAction {
@@ -1913,10 +1867,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     String title = "Android Support - !!EXPERIMENTAL!!";
     if (aScr.isValid()) {
       String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
-              "click Check: a short test is run with the device\n" +
-              "click Default...: set device as default screen for capture\n" +
-              "click Cancel: capture is reset to local screen\n" +
-              "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
+          "click Check: a short test is run with the device\n" +
+          "click Default...: set device as default screen for capture\n" +
+          "click Cancel: capture is reset to local screen\n" +
+          "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
       String[] options = new String[3];
       options[WARNING_DO_NOTHING] = "Check";
       options[WARNING_ACCEPTED] = "Default Android";
@@ -1963,31 +1917,31 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     _helpMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
 
     _helpMenu.add(createMenuItem(_I("menuHelpQuickStart"),
-            null, new HelpAction(HelpAction.QUICK_START)));
+        null, new HelpAction(HelpAction.QUICK_START)));
     _helpMenu.addSeparator();
 
     _helpMenu.add(createMenuItem(_I("menuHelpGuide"),
-            null, new HelpAction(HelpAction.OPEN_DOC)));
+        null, new HelpAction(HelpAction.OPEN_DOC)));
 //    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
 //            null, new HelpAction(HelpAction.OPEN_GUIDE)));
     _helpMenu.add(createMenuItem(_I("menuHelpFAQ"),
-            null, new HelpAction(HelpAction.OPEN_FAQ)));
+        null, new HelpAction(HelpAction.OPEN_FAQ)));
     _helpMenu.add(createMenuItem(_I("menuHelpAsk"),
-            null, new HelpAction(HelpAction.OPEN_ASK)));
+        null, new HelpAction(HelpAction.OPEN_ASK)));
     _helpMenu.add(createMenuItem(_I("menuHelpBugReport"),
-            null, new HelpAction(HelpAction.OPEN_BUG_REPORT)));
+        null, new HelpAction(HelpAction.OPEN_BUG_REPORT)));
 
 //    _helpMenu.add(createMenuItem(_I("menuHelpTranslation"),
 //            null, new HelpAction(HelpAction.OPEN_TRANSLATION)));
     _helpMenu.addSeparator();
     _helpMenu.add(createMenuItem(_I("menuHelpHomepage"),
-            null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
+        null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
 
     _helpMenu.addSeparator();
     _helpMenu.add(createMenuItem("SikuliX1 Downloads",
-            null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
+        null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
     _helpMenu.add(createMenuItem(_I("menuHelpCheckUpdate"),
-            null, new HelpAction(HelpAction.CHECK_UPDATE)));
+        null, new HelpAction(HelpAction.CHECK_UPDATE)));
   }
 
   private void lookUpdate() {
@@ -2058,31 +2012,31 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     public void openAsk(ActionEvent ae) {
       String title = "SikuliX - Ask a question";
       String msg = "If you want to ask a question about SikuliX\n%s\n"
-              + "\nplease do the following:"
-              + "\n- after having clicked yes"
-              + "\n   the page on Launchpad should open in your browser."
-              + "\n- You should first check using Launchpad's search funktion,"
-              + "\n   wether similar questions have already been asked."
-              + "\n- If you decide to ask a new question,"
-              + "\n   try to enter a short but speaking title"
-              + "\n- In a new questions's text field first paste using ctrl/cmd-v"
-              + "\n   which should enter the SikuliX version/system/java info"
-              + "\n   that was internally stored in the clipboard before"
-              + "\n\nIf you do not want to ask a question now: click No";
+          + "\nplease do the following:"
+          + "\n- after having clicked yes"
+          + "\n   the page on Launchpad should open in your browser."
+          + "\n- You should first check using Launchpad's search funktion,"
+          + "\n   wether similar questions have already been asked."
+          + "\n- If you decide to ask a new question,"
+          + "\n   try to enter a short but speaking title"
+          + "\n- In a new questions's text field first paste using ctrl/cmd-v"
+          + "\n   which should enter the SikuliX version/system/java info"
+          + "\n   that was internally stored in the clipboard before"
+          + "\n\nIf you do not want to ask a question now: click No";
       askBugOrAnswer(msg, title, "https://answers.launchpad.net/sikuli");
     }
 
     public void openBugReport(ActionEvent ae) {
       String title = "SikuliX - Report a bug";
       String msg = "If you want to report a bug for SikuliX\n%s\n"
-              + "\nplease do the following:"
-              + "\n- after having clicked yes"
-              + "\n   the page on Launchpad should open in your browser"
-              + "\n- fill in a short but speaking bug title and create the bug"
-              + "\n- in the bug's text field first paste using ctrl/cmd-v"
-              + "\n   which should enter the SikuliX version/system/java info"
-              + "\n   that was internally stored in the clipboard before"
-              + "\n\nIf you do not want to report a bug now: click No";
+          + "\nplease do the following:"
+          + "\n- after having clicked yes"
+          + "\n   the page on Launchpad should open in your browser"
+          + "\n- fill in a short but speaking bug title and create the bug"
+          + "\n- in the bug's text field first paste using ctrl/cmd-v"
+          + "\n   which should enter the SikuliX version/system/java info"
+          + "\n   that was internally stored in the clipboard before"
+          + "\n\nIf you do not want to report a bug now: click No";
       askBugOrAnswer(msg, title, "https://bugs.launchpad.net/sikuli/+filebug");
     }
 
@@ -2115,10 +2069,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         lookUpdate();
         int msgType = newBuildAvailable != null ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE;
         String updMsg = newBuildAvailable != null ? (newBuildAvailable ?
-                _I("msgUpdate") + ": " + newBuildStamp :
-                _I("msgNoUpdate")) : _I("msgUpdateError");
+            _I("msgUpdate") + ": " + newBuildStamp :
+            _I("msgNoUpdate")) : _I("msgUpdateError");
         JOptionPane.showMessageDialog(null, updMsg,
-                runTime.SXVersionIDE, msgType);
+            runTime.SXVersionIDE, msgType);
       }
     }
 
@@ -2294,7 +2248,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
             codePane.insertComponent(new EditorRegionButton(codePane, x, y, w, h));
           } else {
             codePane.insertComponent(new EditorRegionLabel(codePane,
-                    new EditorRegionButton(codePane, x, y, w, h).toString()));
+                new EditorRegionButton(codePane, x, y, w, h).toString()));
           }
         } else {
           codePane.insertString(codePane.getRegionString(x, y, w, h));
@@ -2396,10 +2350,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           eval = "new " + item + ".grow(10).highlight(2);";
         } else if (item.startsWith("Pattern")) {
           eval = "m = Screen.all().exists(new " + item
-                  + ", 0); if (m != null) m.highlight(2);";
+              + ", 0); if (m != null) m.highlight(2);";
         } else if (item.startsWith("\"")) {
           eval = "m = Screen.all().exists(" + item
-                  + ", 0); if (m != null) m.highlight(2);";
+              + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
           IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
@@ -2408,10 +2362,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         }
       }
       Sikulix.popup("Nothing to show!" +
-              "\nThe line with the cursor should contain:" +
-              "\n- an absolute Region or Location" +
-              "\n- an image file name or" +
-              "\n- a Pattern with an image file name");
+          "\nThe line with the cursor should contain:" +
+          "\n- an absolute Region or Location" +
+          "\n- an image file name or" +
+          "\n- a Pattern with an image file name");
     }
   }
 
@@ -2435,12 +2389,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       item = item.replaceAll("\"", "\\\"");
       if (item.startsWith("Pattern")) {
         item = "m = null; r = #region#; "
-                + "if (r != null) m = r.exists(new " + item + ", 0); "
-                + "if (m != null) m.highlight(2); else print(m);";
+            + "if (r != null) m = r.exists(new " + item + ", 0); "
+            + "if (m != null) m.highlight(2); else print(m);";
       } else if (item.startsWith("\"")) {
         item = "m = null; r = #region#; "
-                + "if (r != null) m = r.exists(" + item + ", 0); "
-                + "if (m != null) m.highlight(2); else print(m);";
+            + "if (r != null) m = r.exists(" + item + ", 0); "
+            + "if (m != null) m.highlight(2); else print(m);";
       } else {
         item = "";
       }
@@ -2484,7 +2438,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     private void initTooltip() {
       PreferencesUser pref = PreferencesUser.get();
       String strHotkey = Key.convertKeyToText(
-              pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+          pref.getStopHotkey(), pref.getStopHotkeyModifiers());
       String stopHint = _I("btnRunStopHint", strHotkey);
       setToolTipText(_I("btnRun", stopHint));
     }
@@ -2500,14 +2454,14 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     void runCurrentScript() {
       if (System.out.checkError()) {
         Sikulix.popError("System.out is broken (console output)!"
-                + "\nYou will not see any messages anymore!"
-                + "\nSave your work and restart the IDE!"
-                + "\nYou may ignore this on your own risk!", "Fatal Error");
+            + "\nYou will not see any messages anymore!"
+            + "\nSave your work and restart the IDE!"
+            + "\nYou may ignore this on your own risk!", "Fatal Error");
       }
       SikulixIDE.getStatusbar().setMessage("... PLEASE WAIT ... checking IDE state before running script");
       if (isRunningScript()
-              || getCurrentCodePane().getDocument().getLength() == 0
-              || !doBeforeRun()) {
+          || getCurrentCodePane().getDocument().getLength() == 0
+          || !doBeforeRun()) {
         return;
       }
       SikulixIDE.getStatusbar().resetMessage();
@@ -2522,7 +2476,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         if (scriptFile != null) {
           try {
             codePane.write(new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(scriptFile), "UTF8")));
+                new FileOutputStream(scriptFile), "UTF8")));
           } catch (Exception ex) {
             scriptFile = null;
           }
@@ -2551,8 +2505,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         public void uncaughtException(Thread t, Throwable e) {
           if (System.out.checkError()) {
             Sikulix.popError("System.out is broken (console output)!"
-                    + "\nYou will not see any messages anymore!"
-                    + "\nSave your work and restart the IDE!", "Fatal Error");
+                + "\nYou will not see any messages anymore!"
+                + "\nSave your work and restart the IDE!", "Fatal Error");
           }
           log(lvl, "Scriptrun: cleanup in handler for uncaughtException: %s", e.toString());
           doRun.hasFinished(true);
@@ -2656,6 +2610,37 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
   }
 
+  protected boolean doBeforeRun() {
+    int action;
+    if (checkDirtyPanes()) {
+      if (prefs.getPrefMoreRunSave()) {
+        action = WARNING_ACCEPTED;
+      } else {
+        action = askForSaveAll("Run");
+        if (action < 0) {
+          return false;
+        }
+      }
+      saveSession(action, false);
+    }
+    Settings.ActionLogs = prefs.getPrefMoreLogActions();
+    Settings.DebugLogs = prefs.getPrefMoreLogDebug();
+    Settings.InfoLogs = prefs.getPrefMoreLogInfo();
+    Settings.Highlight = prefs.getPrefMoreHighlight();
+    RunTime.resetProject();
+    return true;
+  }
+
+  synchronized boolean isRunningScript() {
+    return ideIsRunningScript;
+  }
+
+  synchronized void setIsRunningScript(boolean state) {
+    ideIsRunningScript = state;
+  }
+
+  private boolean ideIsRunningScript = false;
+
   class ButtonRunViz extends ButtonRun {
 
     ButtonRunViz() {
@@ -2677,58 +2662,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     EditorPane pane = getCurrentCodePane();
     return pane.getBundlePath();
   }
-
-/*
-  private JComponent createSearchField() {
-    _searchField = new JXSearchField("Find");
-    //_searchField.setUseNativeSearchFieldIfPossible(true);
-    //_searchField.setLayoutStyle(JXSearchField.LayoutStyle.MAC);
-    _searchField.setMinimumSize(new Dimension(220, 30));
-    _searchField.setPreferredSize(new Dimension(220, 30));
-    _searchField.setMaximumSize(new Dimension(380, 30));
-    _searchField.setMargin(new Insets(0, 3, 0, 3));
-    _searchField.setToolTipText("Search is case sensitive - "
-            + "start with ! to make search not case sensitive");
-
-    _searchField.setCancelAction(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent evt) {
-        getCurrentCodePane().requestFocus();
-        _findHelper.setFailed(false);
-      }
-    });
-    _searchField.setFindAction(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent evt) {
-        //FIXME: On Linux the found selection disappears somehow
-        if (!Settings.isLinux()) //HACK
-        {
-          _searchField.selectAll();
-        }
-        boolean ret = _findHelper.findNext(_searchField.getText());
-        _findHelper.setFailed(!ret);
-      }
-    });
-    _searchField.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(java.awt.event.KeyEvent ke) {
-        boolean ret;
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
-          //FIXME: On Linux the found selection disappears somehow
-          if (!Settings.isLinux()) //HACK
-          {
-            _searchField.selectAll();
-          }
-          ret = _findHelper.findNext(_searchField.getText());
-        } else {
-          ret = _findHelper.findStr(_searchField.getText());
-        }
-        _findHelper.setFailed(!ret);
-      }
-    });
-    return _searchField;
-  }
-*/
   //</editor-fold>
 
   //<editor-fold desc="30 MsgArea, Statusbar">
@@ -2861,11 +2794,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
       private boolean isKeyNextTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-                && ke.getModifiers() == InputEvent.CTRL_MASK) {
+            && ke.getModifiers() == InputEvent.CTRL_MASK) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
-                && ke.getModifiers() == (InputEvent.META_MASK | InputEvent.SHIFT_MASK)) {
+            && ke.getModifiers() == (InputEvent.META_MASK | InputEvent.SHIFT_MASK)) {
           return true;
         }
         return false;
@@ -2873,11 +2806,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
       private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-                && ke.getModifiers() == (InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK)) {
+            && ke.getModifiers() == (InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK)) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
-                && ke.getModifiers() == (InputEvent.META_MASK | InputEvent.SHIFT_MASK)) {
+            && ke.getModifiers() == (InputEvent.META_MASK | InputEvent.SHIFT_MASK)) {
           return true;
         }
         return false;
@@ -2960,190 +2893,4 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     installStopHotkey();
   }
   //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="90 IDE Unit Testing --- not used">
-  /*
-   private void initSidePane() {
-   initUnitPane();
-   _sidePane = new JXCollapsiblePane(JXCollapsiblePane.Direction.RIGHT);
-   _sidePane.setMinimumSize(new Dimension(0, 0));
-   CloseableTabbedPane tabPane = new CloseableTabbedPane();
-   _sidePane.getContentPane().add(tabPane);
-   tabPane.setMinimumSize(new Dimension(0, 0));
-   tabPane.addTab(_I("tabUnitTest"), _unitPane);
-   tabPane.addCloseableTabbedPaneListener(new CloseableTabbedPaneListener() {
-   @Override
-   public boolean closeTab(int tabIndexToClose) {
-   _sidePane.setCollapsed(true);
-   _chkShowUnitTest.setState(false);
-   return false;
-   }
-   });
-   _sidePane.setCollapsed(true);
-   }
-
-   private void initUnitPane() {
-   _testRunner = new UnitTestRunner();
-   _unitPane = _testRunner.getPanel();
-   _chkShowUnitTest.setState(false);
-   addAuxTab(_I("paneTestTrace"), _testRunner.getTracePane());
-   }
-   */
-  void addAuxTab(String tabName, JComponent com) {
-    messageArea.addTab(tabName, com);
-  }
-
-  void jumpTo(String funcName) throws BadLocationException {
-    EditorPane pane = getCurrentCodePane();
-    pane.jumpTo(funcName);
-    pane.grabFocus();
-  }
-
-  void jumpTo(int lineNo) throws BadLocationException {
-    EditorPane pane = getCurrentCodePane();
-    pane.jumpTo(lineNo);
-    pane.grabFocus();
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="91 Init LeftBar Commands --- not used">
-  private String[] getCommandCategories() {
-    String[] CommandCategories = {
-            _I("cmdListFind"),
-            _I("cmdListMouse"),
-            _I("cmdListKeyboard"),
-            _I("cmdListObserver")
-    };
-    return CommandCategories;
-  }
-
-  private String[][] getCommandsOnToolbar() {
-    String[][] CommandsOnToolbar = {
-            {"find"}, {"PATTERN"},
-            {_I("cmdFind")},
-            {"findAll"}, {"PATTERN"},
-            {_I("cmdFindAll")},
-            {"wait"}, {"PATTERN", "[timeout]"},
-            {_I("cmdWait")},
-            {"waitVanish"}, {"PATTERN", "[timeout]"},
-            {_I("cmdWaitVanish")},
-            {"exists"}, {"PATTERN", "[timeout]"},
-            {_I("cmdExists")},
-            {"----"}, {}, {},
-            {"click"}, {"PATTERN", "[modifiers]"},
-            {_I("cmdClick")},
-            {"doubleClick"}, {"PATTERN", "[modifiers]"},
-            {_I("cmdDoubleClick")},
-            {"rightClick"}, {"PATTERN", "[modifiers]"},
-            {_I("cmdRightClick")},
-            {"hover"}, {"PATTERN"},
-            {_I("cmdHover")},
-            {"dragDrop"}, {"PATTERN", "PATTERN", "[modifiers]"},
-            {_I("cmdDragDrop")},
-            /* RaiMan not used
-             * {"drag"}, {"PATTERN"},
-             * {"dropAt"}, {"PATTERN", "[delay]"},
-             * RaiMan not used */
-            {"----"}, {}, {},
-            {"type"}, {"_text", "[modifiers]"},
-            {_I("cmdType")},
-            {"type"}, {"PATTERN", "_text", "[modifiers]"},
-            {_I("cmdType2")},
-            {"paste"}, {"_text", "[modifiers]"},
-            {_I("cmdPaste")},
-            {"paste"}, {"PATTERN", "_text", "[modifiers]"},
-            {_I("cmdPaste2")},
-            {"----"}, {}, {},
-            {"onAppear"}, {"PATTERN", "_hnd"},
-            {_I("cmdOnAppear")},
-            {"onVanish"}, {"PATTERN", "_hnd"},
-            {_I("cmdOnVanish")},
-            {"onChange"}, {"_hnd"},
-            {_I("cmdOnChange")},
-            {"observe"}, {"[time]", "[background]"},
-            {_I("cmdObserve")},};
-    return CommandsOnToolbar;
-  }
-
-/*
-  private JComponent createCommandPane() {
-    JXTaskPaneContainer con = new JXTaskPaneContainer();
-
-    PreferencesUser pref = PreferencesUser.getInstance();
-    JCheckBox chkAutoCapture
-            = new JCheckBox(_I("cmdListAutoCapture"),
-            pref.getAutoCaptureForCmdButtons());
-    chkAutoCapture.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(javax.swing.event.ChangeEvent e) {
-        boolean flag = ((JCheckBox) e.getSource()).isSelected();
-        PreferencesUser pref = PreferencesUser.getInstance();
-        pref.setAutoCaptureForCmdButtons(flag);
-      }
-    });
-    JXTaskPane setPane = new JXTaskPane();
-    setPane.setTitle(_I("cmdListSettings"));
-    setPane.add(chkAutoCapture);
-    setPane.setCollapsed(true);
-    con.add(setPane);
-    int cat = 0;
-    JXTaskPane taskPane = new JXTaskPane();
-    taskPane.setTitle(getCommandCategories()[cat++]);
-    con.add(taskPane);
-    String[][] CommandsOnToolbar = getCommandsOnToolbar();
-    boolean collapsed;
-    for (int i = 0; i < CommandsOnToolbar.length; i++) {
-      String cmd = CommandsOnToolbar[i++][0];
-      String[] params = CommandsOnToolbar[i++];
-      String[] desc = CommandsOnToolbar[i];
-//TODO: more elegeant way, to handle special cases
-      if (cmd.equals("----")) {
-        if (cat == 2) {
-          collapsed = true;
-        } else {
-          collapsed = false;
-        }
-        if (cat == 3) {
-          if (prefs.getUserType() == PreferencesUser.NEWBEE) {
-            break;
-          } else {
-            collapsed = true;
-          }
-        }
-        taskPane = new JXTaskPane();
-        taskPane.setTitle(getCommandCategories()[cat++]);
-        con.add(taskPane);
-        taskPane.setCollapsed(collapsed);
-      } else {
-        taskPane.add(new ButtonGenCommand(cmd, desc[0], params));
-      }
-    }
-    Dimension conDim = con.getSize();
-    con.setPreferredSize(new Dimension(250, 1000));
-    _cmdList = new JXCollapsiblePane(JXCollapsiblePane.Direction.LEFT);
-    _cmdList.setMinimumSize(new Dimension(0, 0));
-    _cmdList.add(new JScrollPane(con));
-    _cmdList.setCollapsed(false);
-    return _cmdList;
-  }
-*/
-  //</editor-fold>
-
-  //<editor-fold desc="92 attributes not used">
-  boolean idePause = false;
-  int waitBeforeVisible = 0;
-  final static boolean ENABLE_UNIFIED_TOOLBAR = true;
-  final static Color COLOR_SEARCH_FAILED = Color.red;
-  final static Color COLOR_SEARCH_NORMAL = Color.black;
-  //  private JXCollapsiblePane _cmdList;
-  //private JXSearchField _searchField;
-  //private JXCollapsiblePane _sidePane;
-  //private UnitTestRunner _testRunner;
-  private JCheckBoxMenuItem _chkShowUnitTest;
-  private JMenuItem chkShowCmdList = null;
-  private static CommandLine cmdLine;
-  private static String cmdValue;
-  private int restoredScripts = 0;
-  //</editor-fold>
-
 }
