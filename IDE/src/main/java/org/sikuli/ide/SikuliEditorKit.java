@@ -47,7 +47,7 @@ public class SikuliEditorKit extends StyledEditorKit {
   public SikuliEditorKit() {
     pane = SikulixIDE.get().getCurrentCodePane();
     _viewFactory = new EditorViewFactory();
-    ((EditorViewFactory) _viewFactory).setContentType(pane.getSikuliContentType());
+    ((EditorViewFactory) _viewFactory).setContentType(pane.getEditorPaneType());
     SikuliIDEPopUpMenu popCompletion = pane.getPopMenuCompletion();
     if (null == popCompletion || !popCompletion.isValidMenu()) {
       popCompletion = null;
@@ -633,7 +633,7 @@ public class SikuliEditorKit extends StyledEditorKit {
 
   @Override
   public String getContentType() {
-    return pane.getSikuliContentType();
+    return pane.getEditorPaneType();
   }
 
   @Override

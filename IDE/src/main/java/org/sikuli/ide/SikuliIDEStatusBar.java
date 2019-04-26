@@ -39,11 +39,11 @@ class SikuliIDEStatusBar extends JPanel {
 //    add(rightPanel, BorderLayout.EAST);
   }
 
-  public void setCurrentContentType(String ct) {
-    if (ct == null) {
+  public void setType(String contentType) {
+    if (contentType == null) {
       return;
     }
-    currentContentType = ct.replaceFirst(".*?\\/", "");
+    currentContentType = contentType.replaceFirst(".*?\\/", "");
     setCaretPosition(-1, 0);
   }
 

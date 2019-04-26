@@ -236,7 +236,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
       String srcBundle = cp.getSrcBundle();
       String bundlePath = cp.getBundlePath();
-      String currentFilename = cp.getCurrentFilename();
+      String currentFilename = cp.getFilePath();
       String currentSrcDir = cp.getCurrentSrcDir();
       if (!cp.hasEditingFile()) {
         (new Thread() {
@@ -292,7 +292,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (null == selOptionsTypes) {
         return;
       }
-      String currentType = editorPane.getSikuliContentType();
+      String currentType = editorPane.getEditorPaneType();
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
@@ -303,7 +303,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         targetType = "text/" + targetType;
       }
       if (currentType.equals(targetType)) {
-        SikulixIDE.getStatusbar().setCurrentContentType(currentType);
+        SikulixIDE.getStatusbar().setType(currentType);
         return;
       }
       //String targetEnding = Runner.getExtension(targetType);
@@ -319,7 +319,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (error.isEmpty()) {
         editorPane.init(targetType);
         error = ": (" + targetType + ")";
-        SikulixIDE.getStatusbar().setCurrentContentType(targetType);
+        SikulixIDE.getStatusbar().setType(targetType);
       }
       String msg = "doSetType: completed" + error;
       SikulixIDE.getStatusbar().setMessage(msg);
