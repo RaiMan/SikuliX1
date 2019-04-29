@@ -699,6 +699,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
     editorPane.init(null);
+    editorPane.setEditorPaneTempFile();
   }
 
   String newTabWithContent(String fname) {
@@ -2488,14 +2489,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
       messages.clear();
       resetErrorMark();
-      File path = new File(getCurrentBundlePath());
       IScriptRunner scriptRunner = Runner.getRunner(codePane.getEditorPaneType());
       if (scriptRunner == null) {
         log(-1, "runCurrentScript: Could not load a script runner for: %s", codePane.getEditorPaneType());
         return;
       }
       addScriptCode(scriptRunner);
-      ImagePath.reset(path.getAbsolutePath());
+//      ImagePath.reset();
       final SubRun doRun = new SubRun(scriptRunner, scriptFile);
       _runningThread = new Thread(doRun);
       _runningThread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -2654,11 +2654,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       srunner.execBefore(null);
       srunner.execBefore(new String[]{"Settings.setShowActions(Settings.TRUE)"});
     }
-  }
-
-  protected String getCurrentBundlePath() {
-    EditorPane pane = getCurrentCodePane();
-    return pane.getBundlePath();
   }
   //</editor-fold>
 

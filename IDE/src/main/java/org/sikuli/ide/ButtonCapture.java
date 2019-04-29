@@ -130,7 +130,6 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     }
     String filename = null;
     String fullpath = null;
-    EditorPane pane = SikulixIDE.get().getCurrentCodePane();
     boolean saveOverwrite = Settings.OverwriteImages;
     if (simg != null) {
       if (!givenName.isEmpty()) {
@@ -156,7 +155,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       }
 
       if (filename != null) {
-        fullpath = FileManager.saveImage(simg.getImage(), filename, pane.getImagePath());
+        fullpath = FileManager.saveImage(simg.getImage(), filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
         if (fullpath != null) {
           fullpath = FileManager.slashify(fullpath, false);
         }

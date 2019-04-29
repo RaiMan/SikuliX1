@@ -78,7 +78,8 @@ public class EditorPane extends JTextPane {
       }
     });
     scrollPane = new JScrollPane(this);
-    log(lvl, "EditorPane: creating new pane (constructor)");
+    editorPaneID = new Date().getTime();
+    log(lvl, "created %d", editorPaneID);
   }
 
   JScrollPane getScrollPane() {
@@ -249,15 +250,7 @@ public class EditorPane extends JTextPane {
         setDirty(false);
       }
     }
-    if (!isText) {
-      if (fileLoaded == null) {
-        _srcBundlePath = null;
-      } else {
-        isTemp = false;
-      }
-    }
-    editorPaneFile = fileLoaded;
-    editorPaneFileSelected = fileToLoad.getAbsolutePath();
+    setEditorPaneFile(fileLoaded, fileToLoad.getAbsolutePath());
   }
 
   private void initForScriptType() {
@@ -447,12 +440,24 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold desc="15 content file">
   boolean isBundle() {
-    if (isPython || isText) {
-      return false;
+    if (editorPaneIsBundle) {
+      return true;
     }
-    return true;
+    if (isPython || isText) {
+      setIsNotBundle();
+    }
+    return editorPaneIsBundle;
   }
-  private boolean editorPaneIsBundle = false;
+
+  public void setIsBundle() {
+    editorPaneIsBundle = true;
+  }
+
+  public void setIsNotBundle() {
+    editorPaneIsBundle = false;
+  }
+
+  private boolean editorPaneIsBundle = true;
 
   public String getFilePath() {
     if (!hasEditingFile()) {
@@ -460,6 +465,7 @@ public class EditorPane extends JTextPane {
     }
     return editorPaneFile.getAbsolutePath();
   }
+
   public String getFolderPath() {
     if (!hasEditingFile()) {
       return null;
@@ -478,10 +484,32 @@ public class EditorPane extends JTextPane {
     }
   }
 
+  public void setEditorPaneTempFile() {
+    String editorPaneType = getEditorPaneType();
+    String extension = Runner.getExtension(editorPaneType);
+    File tempPath = new File(RunTime.get().fpBaseTempPath, "temp" + editorPaneID);
+    File tempFile = FileManager.createTempFile(extension, tempPath.getAbsolutePath());
+    setEditorPaneFile(tempFile);
+  }
+
+  public void setEditorPaneFile(File editorPaneFile) {
+    setEditorPaneFile(editorPaneFile, null);
+  }
+
+  public void setEditorPaneFile(File editorPaneFile, String editorPaneFileSelected) {
+    this.editorPaneFile = editorPaneFile;
+    editorPaneFolder = editorPaneFile.getParentFile();
+    setImageFolder(editorPaneFolder);
+    if (null != editorPaneFileSelected) {
+      this.editorPaneFileSelected = editorPaneFileSelected;
+    }
+  }
+
+  long editorPaneID = 0;
   File editorPaneFile = null;
+  File editorPaneFolder = null;
 
   String editorPaneFileSelected = null;
-  File editorPaneImageFolder = null;
 
   String getEditorPaneType() {
     return editorPaneType;
@@ -510,9 +538,9 @@ public class EditorPane extends JTextPane {
   }
 
   public String getCurrentSrcDir() {
-    if (_srcBundlePath != null) {
+    if (getSrcBundle() != null) {
       if (!hasEditingFile() || isTemp) {
-        return FileManager.normalize(_srcBundlePath);
+        return FileManager.normalize(getSrcBundle());
       } else {
         return editorPaneFile.getParent();
       }
@@ -524,11 +552,11 @@ public class EditorPane extends JTextPane {
     if (isText) {
       return editorPaneFile.getName();
     }
-    if (_srcBundlePath != null) {
+    if (getSrcBundle() != null) {
       if (isPython) {
         return editorPaneFile.getName();
       } else {
-        File f = new File(_srcBundlePath);
+        File f = new File(getSrcBundle());
         return f.getName();
       }
     }
@@ -553,25 +581,33 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="16 image path">
-  public String getImagePath() {
-    return _imagePath;
+  public File getImageFolder() {
+    return editorPaneImageFolder;
   }
+
+  public String getImagePath() {
+    return editorPaneImageFolder.getAbsolutePath();
+  }
+
+  public void setImageFolder(File imageFolder) {
+    editorPaneImageFolder = imageFolder;
+    ImagePath.setBundlePath(editorPaneImageFolder.getAbsolutePath());
+  }
+
+  File editorPaneImageFolder = null;
 
   public boolean setImagePath(String newBundlePath) {
     try {
       if (!new File(newBundlePath).isAbsolute()) {
-        newBundlePath = new File(_srcBundlePath, newBundlePath).getCanonicalPath();
+        newBundlePath = new File(getSrcBundle(), newBundlePath).getCanonicalPath();
       }
       newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
     } catch (Exception ex) {
       return false;
     }
-    _imagePath = newBundlePath;
-    ImagePath.setBundlePath(_imagePath);
+    setImageFolder(new File(newBundlePath));
     return true;
   }
-
-  private String _imagePath = null;
 
   private boolean setSrcBundle(String newBundlePath) {
     try {
@@ -579,33 +615,21 @@ public class EditorPane extends JTextPane {
     } catch (Exception ex) {
       return false;
     }
-    _srcBundlePath = newBundlePath;
-    _imagePath = newBundlePath;
-    ImagePath.setBundlePath(_imagePath);
+    setImageFolder(new File(newBundlePath));
     return true;
   }
 
   public String getSrcBundle() {
-    if (_srcBundlePath == null) {
-      File tmp = FileManager.createTempDir();
-      setSrcBundle(FileManager.slashify(tmp.getAbsolutePath(), true));
-      isTemp = true;
-    }
-    return _srcBundlePath;
+    return editorPaneFolder.getAbsolutePath();
   }
 
   public String getBundlePath() {
-    if (_imagePath != null) {
-      return _imagePath;
-    }
-    return _srcBundlePath;
+    return editorPaneImageFolder.getAbsolutePath();
   }
 
   public boolean isSourceBundleTemp() {
     return isTemp;
   }
-
-  private String _srcBundlePath = null;
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="17 caret handling">
@@ -959,7 +983,7 @@ public class EditorPane extends JTextPane {
     }
     String imgName = new File(ifn).getName();
     if (img != null) {
-      imgName = img.getName();
+      imgName = new File(img.getName()).getName();
     }
     String pat = "Pattern(\"" + imgName + "\")";
     String patternString = "";
@@ -1433,10 +1457,10 @@ public class EditorPane extends JTextPane {
       }
       setDirty(false);
     }
-    if (_srcBundlePath != null) {
-      ImagePath.remove(_srcBundlePath);
+    if (getSrcBundle() != null) {
+      ImagePath.remove(getSrcBundle());
       if (isTemp) {
-        FileManager.deleteTempDir(_srcBundlePath);
+        FileManager.deleteTempDir(getSrcBundle());
       }
     }
     return true;

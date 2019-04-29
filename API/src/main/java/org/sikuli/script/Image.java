@@ -182,7 +182,6 @@ public class Image {
 
 //<editor-fold defaultstate="collapsed" desc="fileURL">
   private URL fileURL = null;
-  private String imageAsFile = null;
 
   public URL getFileURL() {
     return fileURL;
@@ -664,6 +663,8 @@ public class Image {
     }
     return imageAsFile;
   }
+
+  private String imageAsFile = null;
 
   /**
    * FOR INTERNAL USE: see get(String, boolean)

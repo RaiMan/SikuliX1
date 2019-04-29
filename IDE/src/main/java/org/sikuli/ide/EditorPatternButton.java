@@ -224,6 +224,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     setButtonText();
   }
 
+/*
   private String createThumbnail(String imgFname) {
     return createThumbnail(imgFname, PreferencesUser.get().getDefaultThumbHeight());
   }
@@ -232,6 +233,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		BufferedImage thumb = createThumbnailImage(imgFname, maxHeight);
 		return FileManager.saveTmpImage(thumb);
 	}
+*/
 
 	private BufferedImage createThumbnailImage(String imgFname, int maxHeight) {
 		try {
