@@ -432,7 +432,6 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     if (tabNumber < 0) {
       return;
     }
-    //Debug.log("click tab: "  + tabNumber + " cur: " + getSelectedIndex());
     if (e.isPopupTrigger()) {
       if (popMenuTab != null) {
         popMenuTab.doShow(this, e);
@@ -450,21 +449,16 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
       Rectangle drawRect = new Rectangle(
               rect.x - pos.x, rect.y - pos.y, rect.width, rect.height);
 
-//      if (e.getID() == e.MOUSE_PRESSED) {
-//        icon.mousepressed = e.getModifiers() == e.BUTTON1_MASK;
-//        repaint(drawRect);
-//        return;
-//      } else
         if (e.getID() == e.MOUSE_MOVED || e.getID() == e.MOUSE_RELEASED) {
         pos.x += e.getX();
         pos.y += e.getY();
         if (rect.contains(pos)) {
           if (e.getID() == e.MOUSE_RELEASED) {
-            if (!fireCloseTab(e, tabNumber)) {
+            System.out.println("TabClose: "  + tabNumber + " cur: " + getSelectedIndex());
+            boolean tabClosed = fireCloseTab(e, tabNumber);
+            if (!tabClosed) {
               icon.mouseover = false;
               icon.mousepressed = false;
-              repaint(drawRect);
-              return;
             }
           } else {
             icon.mouseover = true;
@@ -482,9 +476,10 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     boolean closeit = true;
     // Guaranteed to return a non-null array
     Object[] listeners = listenerList.getListenerList();
-    for (Object i : listeners) {
-      if (i instanceof CloseableTabbedPaneListener) {
-        if (!((CloseableTabbedPaneListener) i).closeTab(tabIndexToClose)) {
+    for (Object listener : listeners) {
+      if (listener instanceof CloseableTabbedPaneListener) {
+        boolean tabCanBeClosed = ((CloseableTabbedPaneListener) listener).closeTab(tabIndexToClose);
+        if (!tabCanBeClosed) {
           closeit = false;
           break;
         }

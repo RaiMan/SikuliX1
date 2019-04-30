@@ -362,8 +362,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         int i = tab.getSelectedIndex();
         if (i >= 0) {
           editorPane = getPaneAtIndex(i);
-          String fname = editorPane.getCurrentSrcDir();
-          if (fname == null) {
+          if (editorPane.isTemp()) {
             SikulixIDE.this.setTitle(tab.getTitleAt(i));
           } else {
             if (editorPane.isPython) {
@@ -375,10 +374,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
                 editorPane.reparse();
                 editorPane.setCaretPosition(dot);
               }
-            } else {
-              ImagePath.setBundlePath(fname);
             }
-            SikulixIDE.this.setTitle(fname);
+            SikulixIDE.this.setTitle(editorPane.getFilePath());
           }
           if (editorPane.isText) {
             collapseMessageArea();
@@ -386,7 +383,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
             uncollapseMessageArea();
           }
           SikulixIDE.this.chkShowThumbs.setState(SikulixIDE.this.getCurrentCodePane().showThumbs);
-          SikulixIDE.getStatusbar().setType(SikulixIDE.this.getCurrentCodePane().getEditorPaneType());
+          SikulixIDE.getStatusbar().setType(SikulixIDE.this.getCurrentCodePane().getType());
         }
         updateUndoRedoStates();
       }
@@ -582,7 +579,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       if (fname != null) {
         if (codePane.isPython || codePane.isText) {
           fname = codePane.getFilePath();
-          codePane.showEditorPaneType();
+          codePane.showType();
         }
         setFileTabTitle(fname, tabIndex);
       } else {
@@ -696,10 +693,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   void newTabEmpty() {
     EditorPane editorPane = makeTab();
+    editorPane.setTemp(true);
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
     editorPane.init(null);
-    editorPane.setEditorPaneTempFile();
+    editorPane.setTempFile();
   }
 
   String newTabWithContent(String fname) {
@@ -1240,7 +1238,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         if (fname != null) {
           if (codePane.isPython || codePane.isText) {
             fname = codePane.getFilePath();
-            codePane.showEditorPaneType();
+            codePane.showType();
           } else {
             fname = codePane.getSrcBundle();
           }
@@ -2470,8 +2468,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       EditorPane codePane = getCurrentCodePane();
       File scriptFile;
       if (codePane.isDirty()) {
-        codePane.showEditorPaneType();
-        scriptFile = FileManager.createTempFile(Runner.getExtension(codePane.getEditorPaneType()));
+        codePane.showType();
+        scriptFile = FileManager.createTempFile(Runner.getExtension(codePane.getType()));
         if (scriptFile != null) {
           try {
             codePane.write(new BufferedWriter(new OutputStreamWriter(
@@ -2489,9 +2487,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
       messages.clear();
       resetErrorMark();
-      IScriptRunner scriptRunner = Runner.getRunner(codePane.getEditorPaneType());
+      IScriptRunner scriptRunner = Runner.getRunner(codePane.getType());
       if (scriptRunner == null) {
-        log(-1, "runCurrentScript: Could not load a script runner for: %s", codePane.getEditorPaneType());
+        log(-1, "runCurrentScript: Could not load a script runner for: %s", codePane.getType());
         return;
       }
       addScriptCode(scriptRunner);

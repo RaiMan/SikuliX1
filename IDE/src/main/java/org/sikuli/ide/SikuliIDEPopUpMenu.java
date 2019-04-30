@@ -234,10 +234,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      String srcBundle = cp.getSrcBundle();
-      String bundlePath = cp.getBundlePath();
-      String currentFilename = cp.getFilePath();
-      String currentSrcDir = cp.getCurrentSrcDir();
       if (!cp.hasEditingFile()) {
         (new Thread() {
           @Override
@@ -292,7 +288,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (null == selOptionsTypes) {
         return;
       }
-      String currentType = editorPane.getEditorPaneType();
+      String currentType = editorPane.getType();
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
