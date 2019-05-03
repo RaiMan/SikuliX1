@@ -376,7 +376,7 @@ public class ServerRunner extends AbstractScriptRunner {
 
                       if (pair != null && pair.length == 2) {
                         // Needs both a variable name and value, and supports repeated parameters
-                        String arg = String.format("--%1$s=%2$s", pair[0], pair[1]);
+                        String arg = String.format("%1$s=%2$s", pair[0], pair[1]);
                         ServerRunner.dolog("Parameter: %s", arg);
                         args.add(arg);
                       }
