@@ -28,6 +28,8 @@ public class ServerRunner extends AbstractScriptRunner {
   public static final String NAME = "Server";
   public static final String TYPE = "text/server";
   public static final String[] EXTENSIONS = new String[0];
+  
+  private static final RunTime RUN_TIME = RunTime.get();
 
   @Override
   public String getName() {
@@ -206,6 +208,7 @@ public class ServerRunner extends AbstractScriptRunner {
     }
 
     boolean isHTTP = false;
+    boolean isCommand = true;
     String request;
     String rCommand;
     String rRessource;
@@ -399,20 +402,32 @@ public class ServerRunner extends AbstractScriptRunner {
                   rStatus = rStatusServiceNotAvail;
                   success = false;
                 }
+              // index : SikuliX-Server Control Box
+              } else if (rCommand.equals("")) {
+                isCommand = false;
+                rMessage = createHtmlResponse("text/html", "SikuliXServerControlBox.html");
               }
             }
             String retVal = "";
             if (isHTTP) {
-              retVal = "HTTP/1.1 " + rStatus;
-              String state = (success ? "PASS " : "FAIL ") + rStatus.substring(0,3) + " ";
-              retVal += "\r\n\r\n" + state + rMessage + "\r";
+              if(isCommand) {
+                retVal = "HTTP/1.1 " + rStatus;
+                String state = (success ? "PASS " : "FAIL ") + rStatus.substring(0,3) + " ";
+                retVal += "\r\n\r\n" + state + rMessage + "\r";
+              } else {
+                retVal = "HTTP/1.1 " + rStatus +  "\r\n" + rMessage;
+              }
             } else {
               retVal = (success ? "isok:\n" : "fail:\n") + rMessage + "\n###+++###";
             }
             try {
               out.println(retVal);
               out.flush();
-              ServerRunner.dolog("returned:\n"  + retVal.replace("###+++###", ""));
+              if(isCommand) {
+                ServerRunner.dolog("returned:\n"  + retVal.replace("###+++###", ""));
+              } else {
+                ServerRunner.dolog("returned:\ntext/html %d-byte\n", retVal.length());
+              }
             } catch (Exception ex) {
               ServerRunner.dolog(-1, "write response: Exception:\n" + ex.getMessage());
             }
@@ -531,6 +546,13 @@ public class ServerRunner extends AbstractScriptRunner {
       }      
       
       return true;
+    }
+    
+    private String createHtmlResponse(String contentType, String path) {
+      String body = RUN_TIME.extractResourceToString("htdocs", path, "UTF-8");
+      contentType = (contentType == null || contentType.isEmpty()) ? "text/html" : contentType;
+      String header = String.format("Content-Length: %d\r\nContent-Type: %s", body.length(), contentType);
+      return (header + "\r\n\r\n" + body);
     }
   }
 }

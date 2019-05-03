@@ -1,0 +1,233 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>SikuliX-Server Control Box</title>
+        <style>
+            body {
+                display: flex; flex-direction: column; justify-content: center; align-items: center;
+            }
+            input[type="text"], textarea {
+                font-size: 14px;
+            }
+            #container {
+                width: 800px; height: 500px; margin-top: 50px; display: flex; flex-wrap: nowrap;
+            }
+            #container>* {
+                flex: auto;
+            }
+            #commands {
+                width: 300px;
+            }
+            #commands>div {
+                width: 280px; text-align: center;
+            }
+            #commands>div>* {
+                margin-bottom: 5px;
+            }
+            #commands .caption {
+                overflow: hidden; text-align: center; margin: 0px;
+            }
+            #commands .caption>span {
+                position: relative; display: inline-block; margin: 0 2.5em; padding: 0 1em; font-size: 14px; text-align: left;
+            }
+            #commands .caption>span::before,
+            #commands .caption>span::after {
+                position: absolute; top: 50%; content: ''; width: 400%; height: 1px; background-color: black;
+            }
+            #commands .caption>span::before {
+                right: 100%;
+            }
+            #commands .caption>span::after {
+                left: 100%;
+            }
+            #commands button {
+                width: 100px; height: 30px; padding: 0px; background-color: white; border: solid 3px black;
+            }
+            #commands button:disabled {
+                background-color:lightgray;
+            }
+            #set-part>input {
+                width: 250px; display: inline-block; vertical-align: middle;
+            }
+            #run-part>*:not(.caption) {
+                display: inline-block; vertical-align: middle;
+            }
+            #run-part>input {
+                width: 250px;
+            }
+            #run-part>textarea {
+                width: 250px; height: 100px; resize: none;
+            }
+            #stop-part {
+                margin-top: 10px;
+            }
+            #monitor {
+                width: 500px;
+            }
+            #monitor pre {
+                width: 100%; height: 90%; margin: 0px; padding: 5px; overflow-y: scroll; white-space: pre-wrap; border: solid;
+            }
+            #monitor kbd::before {
+                content: "> "; white-space: pre;
+            }
+            #monitor kbd::after,
+            #monitor samp::after {
+                content: "\A"; white-space: pre;
+            }
+            footer {
+                width: 800px; text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <header><!-- now nothing --></header>
+        <main id="container">
+            <section id="commands">
+                <div id="initialize-part">
+                    <h1 class="caption"><span>runner initializations</span></h1>
+                    <button type="button" id="start" title="initiates a JavaScript runner, so the next run request will start the script without delay">start</button>
+                    <button type="button" id="startp" title="initiates a Jython runner, so the next run request will start the script without delay">startp</button>
+                </div>
+                <div id="set-part">
+                    <h1 class="caption"><span>folder settings</span></h1>
+                    <input type="text" id="folder-path" placeholder="input the folder path"/>
+                    <button type="button" id="scripts" title="sets the folder where the runner finds the scripts">scripts</button>
+                    <button type="button" id="images" title="adds the folder where the runner finds the used images (image path)">images</button>
+                </div>
+                <div id="run-part">
+                    <h1 class="caption"><span>run script</span></h1>
+                    <input type="text" id="script-name" placeholder="input the script name"/>
+                    <textarea id="script-args" placeholder="if give the parameters, input like this: parm1=value1&parm2=value2"></textarea>
+                    <button type="button" id="run" title="looks for the script in the given folder and runs it">run</button>
+                </div>
+                <div id="stop-part">
+                    <h1 class="caption"><span>stop server</span></h1>
+                    <button type="button" id="stop" title="stops the server">stop</button>
+                </div>
+            </section>
+            <section id="monitor">
+                <pre><samp>Welcome to SikuliX-Server Control Box.<br>Use the buttons on the left to send the command to the server.<br></samp></pre>
+            </section>
+        </main>
+        <footer>
+            <a href="https://sikulix-2014.readthedocs.io/en/latest/scenarios.html#experimental-runserver-run-scripts-from-anywhere-with-zero-delay" target="_blank">SikuliX:ServerRunner Guide</a>
+            <div>
+                <p>&copy; 2019 sikuli.org, sikulix.com - MIT license</p>
+            </div>
+        </footer>
+        <script>
+            var serverAddress = location.protocol + "//" + location.host;
+
+            document.querySelector("button#start").addEventListener("click", initCmd);
+            document.querySelector("button#startp").addEventListener("click", initCmd);
+            document.querySelector("button#scripts").addEventListener("click", setCmd);
+            document.querySelector("button#images").addEventListener("click", setCmd);
+            document.querySelector("button#run").addEventListener("click", runCmd);
+            document.querySelector("button#stop").addEventListener("click", stopCmd);
+
+            function initCmd(e) {
+                var command = e.target.id;
+                var url = encodeURI(serverAddress + "/" + command);
+                outputToMonitor(true, command + ": GET " + url);
+                ajax("GET", url);
+            }
+
+            function setCmd(e) {
+                var folderPath = document.querySelector("input#folder-path").value;
+                if (folderPath === null || folderPath.trim() == "") {
+                    alert("Input the folder path.");
+                    return false;
+                }
+
+                var command = e.target.id;
+                var url = encodeURI(serverAddress + "/" + command + "/" + folderPath.replace(/\\|:\\/gi, "/"));
+                outputToMonitor(true, command + ": GET " + url);
+                ajax("GET", url);
+            }
+
+            function runCmd(e) {
+                var scriptName = document.querySelector("input#script-name").value;
+                if (scriptName === null || scriptName.trim() == "") {
+                    alert("Input the script name.");
+                    return false;
+                }
+                var scriptArgs = document.querySelector("textarea#script-args").value;
+
+                var command = e.target.id;
+                var url = (scriptArgs !== null && scriptArgs.trim() != "") ? (scriptName + "?" + scriptArgs) : scriptName;
+                url = encodeURI(serverAddress + "/" + command + "/" + url);
+                outputToMonitor(true, command + ": GET " + url);
+                ajax("GET", url);
+            }
+
+            function stopCmd(e) {
+                var command = e.target.id;
+                var url = encodeURI(serverAddress + "/" + command);
+                outputToMonitor(true, command + ": GET " + url);
+                ajax("GET", url);
+            }
+
+            function ajax(method, url, body) {
+                switchButtonsDisabled(true);
+
+                var xhr = new XMLHttpRequest();
+                xhr.addEventListener("load", xhrEventListener);
+                xhr.addEventListener("timeout", xhrEventListener);
+                xhr.addEventListener("error", xhrEventListener);
+                xhr.addEventListener("abort", xhrEventListener);
+                xhr.open(method, url);
+                xhr.setRequestHeader('If-Modified-Since', 'Thu, 01 Jun 1970 00:00:00 GMT');
+                xhr.send(body);
+            }
+
+            function xhrEventListener(e) {
+                if (e.type == "load") {
+                    outputToMonitor(false, this.responseText);
+                } else if(e.type == "timeout") {
+                    outputToMonitor(false, "Command transmission timed out.");
+                } else {
+                    outputToMonitor(false, "An error occurred when sending command to the server.");
+                }
+
+                switchButtonsDisabled(false);
+            }
+
+            function switchButtonsDisabled(toDisable) {
+                var buttons = document.querySelectorAll("button");
+                for (var i=0, len=buttons.length; i<len; i++) {
+                    if (!buttons[i].hasAttribute("disabled")) {
+                        if (toDisable)
+                            buttons[i].setAttribute("disabled", "disabled");
+                    } else {
+                        if (!toDisable)
+                            buttons[i].removeAttribute("disabled");
+                    }
+                }
+            }
+
+            function outputToMonitor(isRequest, message) {
+                var monitor = document.querySelector("#monitor pre");
+
+                var beforeScrollTop = monitor.scrollTop;
+                var beforeScrollTopMax = monitor.scrollHeight-monitor.clientHeight;
+
+                var padding = monitor.querySelector("samp#padding");
+                if (padding !== null) {
+                    monitor.removeChild(padding);
+                }
+                var element = document.createElement(isRequest?"kbd":"samp");
+                element.textContent = message;
+                monitor.appendChild(element);
+                padding = document.createElement("samp");
+                padding.id = "padding";
+                monitor.appendChild(padding);
+
+                // scrolling
+                if (((monitor.scrollHeight-monitor.clientHeight) > 0) && (beforeScrollTop == beforeScrollTopMax)) {
+                    monitor.scrollTop = monitor.scrollHeight-monitor.clientHeight;
+                }
+            }
+        </script>
+    </body>
+</html>
