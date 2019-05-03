@@ -127,6 +127,7 @@ public class ServerRunner extends AbstractScriptRunner {
       while (true) {
         dolog("now waiting on port: %d at %s", port, theIP);
         Socket socket = server.accept();
+        socket.setSoTimeout(10 * 1000); // avoid to the rare symptom of Scanner#nexLine() blocking
         out = new PrintWriter(socket.getOutputStream());
         in = new Scanner(socket.getInputStream());
         HandleClient client = new HandleClient(socket);
