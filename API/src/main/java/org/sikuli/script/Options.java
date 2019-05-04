@@ -29,7 +29,10 @@ public class Options {
     loadOptions(fpOptions);
   }
 
-
+  public static String getOptionsFileDefault() {
+    String defaultContent = "# key = value";
+    return defaultContent;
+  }
 
   static Options sxOptions = null;
   static RunTime runtime = null;
@@ -133,8 +136,8 @@ public class Options {
         }
       }
     }
+    options = new Properties();
     if (fOptions != null) {
-      options = new Properties();
       try {
         InputStream is;
         is = new FileInputStream(fOptions);
@@ -146,6 +149,8 @@ public class Options {
         log(-1, "loadOptions: %s: %s", fOptions, ex.getMessage());
         options = null;
       }
+    } else {
+      setOption(propOptionsFile, new File(runtime.fSikulixStore, fpOptions).getAbsolutePath());
     }
   }
 

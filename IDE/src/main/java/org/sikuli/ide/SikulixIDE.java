@@ -928,7 +928,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     File sitesTxt = ExtensionManager.getSitesTxt();
     specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
     String[] defaults = new String[specialFiles.size()];
-    defaults[0] = "";
+    defaults[0] = Options.getOptionsFileDefault();
     defaults[1] = ExtensionManager.getExtensionsFileDefault();
     defaults[2] = ExtensionManager.getSitesTxtDefault();
     String msg = "";
@@ -946,7 +946,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         num = Integer.parseInt(answer.substring(0, 1));
         if (num > 0 && num <= specialFiles.size()) {
           String file = files[num - 1];
-          if (!new File(file).exists() && !defaults[num - 1].isEmpty()) {
+          if (!new File(file).exists()) {
             FileManager.writeStringToFile(defaults[num - 1], file);
           }
           String selectedFile = file + "###isText";
