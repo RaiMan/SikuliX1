@@ -200,8 +200,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   static void showAgain() {
-    get().setVisible(true);
     EditorPane codePane = get().getCurrentCodePane();
+    if (codePane == null) {
+      get().newTabEmpty();
+      codePane = get().getCurrentCodePane();
+    }
+    get().setVisible(true);
     codePane.requestFocusInWindow();
   }
 
@@ -338,18 +342,18 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     tabs.setUI(new AquaCloseableTabbedPaneUI());
     tabs.addCloseableTabbedPaneListener(new CloseableTabbedPaneListener() {
       @Override
-      public boolean closeTab(int i) {
+      public boolean closeTab(int tabIndexToClose) {
         EditorPane editorPane;
         try {
-          editorPane = getPaneAtIndex(i);
+          editorPane = getPaneAtIndex(tabIndexToClose);
           tabs.setLastClosed(editorPane.getSourceReference());
           boolean ret = editorPane.close();
-          if (ret && tabs.getTabCount() < 2) {
-            newTabEmpty();
-          }
+//          if (ret && tabs.getTabCount() < 2) {
+//            newTabEmpty();
+//          }
           return ret;
         } catch (Exception e) {
-          log(-1, "Problem closing tab %d\nError: %s", i, e.getMessage());
+          log(-1, "Problem closing tab %d\nError: %s", tabIndexToClose, e.getMessage());
           return false;
         }
       }
@@ -575,7 +579,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     EditorPane codePane = getPaneAtIndex(tabIndex);
     String fname = null;
     try {
-      fname = codePane.saveFile();
+      fname = codePane.saveTabContent();
       if (fname != null) {
         if (codePane.isPython || codePane.isText) {
           fname = codePane.getFilePath();
@@ -768,7 +772,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   EditorPane getCurrentCodePane() {
-    if (tabs.getSelectedIndex() == -1) {
+    if (tabs.getTabCount() == 0) {
       return null;
     }
     JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
@@ -811,10 +815,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   void setFileTabTitle(String fName, int tabIndex) {
     String ideTitle;
     EditorPane codePane = getCurrentCodePane();
-    if (codePane.isPython || codePane.isText) {
-      tabs.setTitleAt(tabIndex, codePane.getCurrentFile().getName());
-      ideTitle = codePane.getFilePath();
-    } else {
+    if (codePane.isBundle()) {
       String shortName = new File(fName).getName();
       ideTitle = new File(fName).getAbsolutePath();
       int i = shortName.lastIndexOf(".");
@@ -823,6 +824,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       } else {
         tabs.setTitleAt(tabIndex, shortName);
       }
+    } else {
+      tabs.setTitleAt(tabIndex, codePane.getCurrentFile().getName());
+      ideTitle = codePane.getFilePath();
     }
     this.setTitle(ideTitle);
   }
@@ -919,8 +923,10 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     log(lvl, "Open Special requested");
     Map<String, String> specialFiles = new Hashtable<>();
     specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
-    specialFiles.put("2 SikuliX Extensions Options", ExtensionManager.getExtensionsFile().getAbsolutePath());
-    specialFiles.put("3 SikuliX Additional Sites", ExtensionManager.getSitesTxt().getAbsolutePath());
+    File extensionsFile = ExtensionManager.getExtensionsFile();
+    specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
+    File sitesTxt = ExtensionManager.getSitesTxt();
+    specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
     String[] defaults = new String[specialFiles.size()];
     defaults[0] = "";
     defaults[1] = ExtensionManager.getExtensionsFileDefault();
@@ -1234,7 +1240,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       String fname = null;
       try {
         EditorPane codePane = getCurrentCodePane();
-        fname = codePane.saveFile();
+        fname = codePane.saveTabContent();
         if (fname != null) {
           if (codePane.isPython || codePane.isText) {
             fname = codePane.getFilePath();
@@ -1267,7 +1273,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       String orgName = codePane.getCurrentShortFilename();
       log(lvl, "doSaveAs requested: %s", orgName);
       try {
-        fname = codePane.saveAsFile(accessingAsFile);
+        fname = codePane.saveAsSelect(accessingAsFile);
         if (fname != null) {
           setCurrentFileTabTitle(fname);
         } else {

@@ -454,6 +454,8 @@ public class EditorPane extends JTextPane {
     }
     if (isPython || isText) {
       setIsNotBundle();
+    } else {
+      setIsBundle();
     }
     return editorPaneIsBundle;
   }
@@ -506,6 +508,9 @@ public class EditorPane extends JTextPane {
   }
 
   public void setFile(File editorPaneFile, String editorPaneFileSelected) {
+    if (editorPaneFile == null) {
+      return;
+    }
     this.editorPaneFile = editorPaneFile;
     editorPaneFolder = editorPaneFile.getParentFile();
     setImageFolder(editorPaneFolder);
@@ -567,12 +572,7 @@ public class EditorPane extends JTextPane {
 
   public File getCurrentFile(boolean shouldSave) {
     if (shouldSave && hasEditingFile() && isDirty()) {
-      try {
-        saveAsFile(Settings.isMac());
-      } catch (IOException e) {
-        log(-1, "getCurrentFile: Problem while trying to save %s\n%s",
-            editorPaneFile, e.getMessage());
-      }
+      saveAsSelect(Settings.isMac());
     }
     return editorPaneFile;
   }
@@ -1189,17 +1189,18 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="22 save, close">
-  public String saveFile() throws IOException {
+  public String saveTabContent() {
     if (editorPaneFile == null || isTemp()) {
-      return saveAsFile(Settings.isMac());
+      return saveAsSelect(Settings.isMac());
     } else {
-      writeSrcFile();
-      String currentShortFilename = getCurrentShortFilename();
-      return currentShortFilename;
+      if (writeSriptFile()) {
+        return editorPaneFile.getAbsolutePath();
+      }
+      return null;
     }
   }
 
-  public String saveAsFile(boolean accessingAsFile) throws IOException {
+  public String saveAsSelect(boolean accessingAsFile) {
     SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile);
     if (notYetSaved) {
       fileChooser.setUntitled();
@@ -1225,12 +1226,10 @@ public class EditorPane extends JTextPane {
         filename += ".txt";
       }
     }
-    if (!isPython && !isText) {
-      String bundlePath = FileManager.slashify(filename, false);
-      if (!file.getAbsolutePath().endsWith(".sikuli")) {
-        bundlePath += ".sikuli";
+    if (isBundle()) {
+      if (!filename.endsWith(".sikuli")) {
+        filename += ".sikuli";
       }
-      filename = bundlePath;
     }
     if (FileManager.exists(filename)) {
       int res = JOptionPane.showConfirmDialog(
@@ -1241,24 +1240,19 @@ public class EditorPane extends JTextPane {
       }
       FileManager.deleteFileOrFolder(filename);
     }
-    if (isPython || isText) {
-      try {
-        saveAsFile(filename);
-      } catch (IOException iOException) {
-      }
-    } else {
+    File savedFile = null;
+    if (isBundle()) {
       FileManager.mkdir(filename);
-      try {
-        saveAsBundle(filename);
+        savedFile = saveAsBundle(filename);
         if (Settings.isMac()) {
           if (!Settings.handlesMacBundles) {
             makeBundle(filename, accessingAsFile);
           }
         }
-      } catch (IOException iOException) {
-      }
+    } else {
+        savedFile = saveAsFile(filename);
     }
-    return getCurrentShortFilename();
+    return savedFile.getAbsolutePath();
   }
 
   private void makeBundle(String path, boolean asFile) {
@@ -1277,49 +1271,52 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  //TODO sourceFolder????
-  private void saveAsBundle(String targetFolder) throws IOException {
-    String sourceFolder = editorPaneFolder.getAbsolutePath();
-    log(lvl, "saveAsBundle: " + sourceFolder);
-    targetFolder = FileManager.slashify(targetFolder, true);
-    if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
-      log(-1, "saveAsBundle: did not work - ");
-    }
-    ImagePath.remove(getImagePath());
-    if (notYetSaved) {
-      FileManager.deleteTempDir(sourceFolder);
-      notYetSaved = false;
-    }
-    setFile(createSourceFile(targetFolder, "." + Runner.getExtension(editorPaneType)),
-            targetFolder);
-    writeSrcFile();
-    reparse();
-  }
-
-  private void saveAsFile(String filename) throws IOException {
-    log(lvl, "saveAsFile: " + filename);
-    filename = FileManager.slashify(filename, false);
-    setSrcBundle(new File(filename).getParent());
-    editorPaneFile = new File(filename);
-    writeSrcFile();
-    reparse();
-  }
-
-  private File createSourceFile(String bundlePath, String ext) {
-    if (ext != null) {
-      String name = new File(bundlePath).getName();
+  private File saveAsBundle(String targetFolder) {
+    String extension = Runner.getExtension(editorPaneType);
+    if (extension != null) {
+      String sourceFolder = editorPaneFolder.getAbsolutePath();
+      log(lvl, "saveAsBundle: " + sourceFolder);
+      targetFolder = FileManager.slashify(targetFolder, true);
+      if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
+        log(-1, "saveAsBundle: did not work");
+      }
+      ImagePath.remove(getImagePath());
+      if (notYetSaved) {
+        FileManager.deleteTempDir(sourceFolder);
+        notYetSaved = false;
+      }
+      String name = new File(targetFolder).getName();
       name = name.substring(0, name.lastIndexOf("."));
-      return new File(bundlePath, name + ext);
-    } else {
-      return new File(bundlePath);
+      File scriptFile = new File(targetFolder, name + "." + extension);
+      setFile(scriptFile, targetFolder);
+      if (writeSriptFile()) {
+        reparse();
+        return editorPaneFolder;
+      }
     }
+    return null;
   }
 
-  private void writeSrcFile() throws IOException {
+  private File saveAsFile(String filename) {
+    log(lvl, "saveAsFile: " + filename);
+    setFile(new File(filename));
+    if (writeSriptFile()) {
+      reparse();
+      return editorPaneFolder;
+    }
+    return null;
+  }
+
+  private boolean writeSriptFile() {
     log(lvl, "writeSrcFile: " + editorPaneFile);
-    this.write(new BufferedWriter(new OutputStreamWriter(
-        new FileOutputStream(editorPaneFile.getAbsolutePath()), "UTF8")));
-    if (!isPython && !isText) {
+    try {
+      this.write(new BufferedWriter(new OutputStreamWriter(
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
+    } catch (IOException e) {
+      return false;
+    }
+    if (isBundle()) {
       boolean shouldDeleteHTML = true;
       if (PreferencesUser.get().getAtSaveMakeHTML()) {
         try {
@@ -1348,6 +1345,7 @@ public class EditorPane extends JTextPane {
       }
     }
     setDirty(false);
+    return true;
   }
 
   public String exportAsZip() {
@@ -1378,13 +1376,14 @@ public class EditorPane extends JTextPane {
       }
     }
     String pSource = editorPaneFile.getParent();
-    try {
-      writeSrcFile();
-      zipDir(pSource, zipPath, editorPaneFile.getName());
-      log(lvl, "Exported packed SikuliX Script to:\n%s", zipPath);
-    } catch (Exception ex) {
-      log(-1, "Exporting packed SikuliX Script did not work:\n%s", zipPath);
-      return null;
+    if (writeSriptFile()) {
+      try {
+        zipDir(pSource, zipPath, editorPaneFile.getName());
+        log(lvl, "Exported packed SikuliX Script to:\n%s", zipPath);
+      } catch (Exception ex) {
+        log(-1, "Exporting packed SikuliX Script did not work:\n%s", zipPath);
+        return null;
+      }
     }
     return zipPath;
   }
@@ -1444,8 +1443,13 @@ public class EditorPane extends JTextPane {
   }
 
   public boolean close() throws IOException {
-    log(lvl, "Tab close clicked");
+    if (!isTemp()) {
+      log(lvl, "Tab close: %s", getCurrentShortFilename());
+    }
     if (isDirty()) {
+      if (isTemp()) {
+        log(lvl, "Tab close: temp-%s", getCurrentShortFilename());
+      }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
           SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
@@ -1454,23 +1458,20 @@ public class EditorPane extends JTextPane {
           JOptionPane.WARNING_MESSAGE,
           null,
           options, options[0]);
-      if (ans == JOptionPane.CANCEL_OPTION
-          || ans == JOptionPane.CLOSED_OPTION) {
+      if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
-        if (saveFile() == null) {
+        String fileSaved = saveTabContent();
+        if (fileSaved == null) {
           return false;
         }
+        SikulixIDE.get().setCurrentFileTabTitle(fileSaved);
       } else {
-//				SikulixIDE.get().getTabPane().resetLastClosed();
+        return false;
       }
-      setDirty(false);
     }
-    if (getSrcBundle() != null) {
-      ImagePath.remove(getSrcBundle());
-      if (notYetSaved) {
-        FileManager.deleteTempDir(getSrcBundle());
-      }
+    if (getImageFolder() != null) {
+      ImagePath.remove(getImagePath());
     }
     return true;
   }

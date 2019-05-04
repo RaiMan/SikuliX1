@@ -83,9 +83,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     }
   }
 
-  public void doShow(CloseableTabbedPane comp, MouseEvent me) {
-    mouseTrigger = me;
-    show(comp, me.getX(), me.getY());
+  public void doShow(CloseableTabbedPane comp, MouseEvent event) {
+    mouseTrigger = event;
+    show(comp, event.getX(), event.getY());
   }
 
   private void fireIDEFileMenu(String name) throws NoSuchMethodException {

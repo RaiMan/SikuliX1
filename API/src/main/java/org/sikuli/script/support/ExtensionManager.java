@@ -127,10 +127,10 @@ public class ExtensionManager {
   private static String classPath = "";
 
   public static void readExtensions(boolean afterStart) {
-    String txtExtensions = FileManager.readFileToString(new File(sxExtensions, "extensions.txt"));
     sxExtensionsFileContent = new ArrayList<>();
+    sxExtensionsFile = new File(sxExtensions, "extensions.txt");
+    String txtExtensions = FileManager.readFileToString(sxExtensionsFile);
     if (!txtExtensions.isEmpty()) {
-      sxExtensionsFile = new File(sxExtensions, "extensions.txt");
       String[] lines = txtExtensions.split("\\n");
       String extlines = "";
       for (String line : lines) {
@@ -145,7 +145,6 @@ public class ExtensionManager {
     }
     if (sxExtensionsFileContent.size() == 0) {
       RunTime.startLog(1, "no extensions.txt nor valid content");
-      sxExtensionsFile = null;
       return;
     }
     for (String line : sxExtensionsFileContent) {

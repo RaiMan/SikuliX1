@@ -287,7 +287,9 @@ public class CloseableModernTabbedPaneUI extends BasicTabbedPaneUI {
     public void mouseReleased(MouseEvent e) {
       int oldTabPressed = tabPressed;
       tabPressed = -1;
-      tabPane.repaint(getTabBounds(tabPane, Math.min(tabPane.getTabCount() - 1, oldTabPressed)));
+      int tabCount = tabPane.getTabCount();
+      int tabRepaint = Math.max(0,Math.min(tabCount - 1, oldTabPressed));
+      tabPane.repaint(getTabBounds(tabPane, tabRepaint));
     }
   }
 
