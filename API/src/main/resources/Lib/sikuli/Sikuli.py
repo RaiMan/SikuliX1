@@ -273,18 +273,17 @@ def removeImagePath(path):
 # reset the image path, so it only contains the bundlepath
 #
 def resetImagePath(path=None):
-  if not path:
-    path = getBundlePath();
   ImagePath.reset(path)
 
 ## ----------------------------------------------------------------------
 # Sets the path for searching images in all Sikuli Script methods. <br/>
 # Sikuli IDE sets this to the path of the bundle of source code (.sikuli)
-# automatically. If you write Sikuli scripts using Sikuli IDE, you should
+# automatically. <br/>If you write Sikuli scripts using Sikuli IDE, you should
 # know what you are doing.
+# with no path given: Settings.BundlePath is taken
 # returns true if path is valid and exists, false otherwise (no changes)
 #
-def setBundlePath(path):
+def setBundlePath(path=None):
   return ImagePath.setBundlePath(path)
 
 ##

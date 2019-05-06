@@ -1465,13 +1465,14 @@ public class EditorPane extends JTextPane {
         if (fileSaved == null) {
           return false;
         }
+        if (getImageFolder() != null) {
+          ImagePath.remove(getImagePath());
+        }
         SikulixIDE.get().setCurrentFileTabTitle(fileSaved);
-      } else {
-        return false;
       }
-    }
-    if (getImageFolder() != null) {
-      ImagePath.remove(getImagePath());
+      else {
+        setDirty(false);
+      }
     }
     return true;
   }

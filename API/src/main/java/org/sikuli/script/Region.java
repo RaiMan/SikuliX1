@@ -1408,6 +1408,9 @@ public class Region {
    * @throws java.io.IOException if not possible
    */
   public String getLastScreenImageFile(String path, String name) throws IOException {
+    if (null == getScreen().getLastScreenImageFromScreen() || path == null) {
+      return null;
+    }
     return getScreen().getLastScreenImageFromScreen().getFile(path, name);
   }
 

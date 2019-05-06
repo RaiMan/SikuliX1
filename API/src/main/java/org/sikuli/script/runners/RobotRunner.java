@@ -28,12 +28,16 @@ public class RobotRunner extends JythonRunner {
       code = code.substring(7);
       showReport = false;
     }
-    File script = new File(ImagePath.getBundlePath());
-    File fRobotWork = new File(script.getAbsolutePath() + ".robot");
+    File scriptFolder = new File(ImagePath.getBundlePath());
+    if (null == scriptFolder) {
+      log(-1, "runRobot: no scriptfolder (bundle path)");
+      return -1;
+    }
+    File fRobotWork = new File(scriptFolder.getAbsolutePath() + ".robot");
     FileManager.deleteFileOrFolder(fRobotWork);
     fRobotWork.mkdir();
-    String sName = script.getName().replace(".sikuli", "");
-    File fPyCode = new File(script, sName + ".py");
+    String sName = scriptFolder.getName().replace(".sikuli", "");
+    File fPyCode = new File(scriptFolder, sName + ".py");
     String pyCode = FileManager.readFileToString(fPyCode);
     int prefix = pyCode.indexOf("\"\"\")");
     if (prefix > 0) {

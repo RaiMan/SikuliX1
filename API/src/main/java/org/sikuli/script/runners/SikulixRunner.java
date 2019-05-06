@@ -26,7 +26,7 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
-    if (null == ImagePath.getBundlePathSet())
+    if (!ImagePath.hasBundlePath())
       ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
     else {
       ImagePath.add(new File(scriptFile).getAbsolutePath());

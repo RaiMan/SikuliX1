@@ -425,58 +425,38 @@ public class JythonHelper implements IScriptLanguageHelper {
     return load(fpJarOrFolder, false);
   }
 
-  public String load(String fpJarOrFolder, boolean scriptOnly) {
-//##
-//# loads a Sikuli extension (.jar) from
-//#  1. user's sikuli data path
-//#  2. bundle path
-//#
-//def load(jar):
-//    def _load(abspath):
-//        if os.path.exists(abspath):
-//            if not abspath in sys.path:
-//                sys.path.append(abspath)
-//            return True
-//        return False
-//
-//    if JythonHelper.load(jar):
-//        return True
-//
-//    if _load(jar):
-//        return True
-//    path = getBundlePath()
-//    if path:
-//        jarInBundle = os.path.join(path, jar)
-//        if _load(jarInBundle):
-//            return True
-//    path = ExtensionManager.getInstance().getLoadPath(jar)
-//    if path and _load(path):
-//        return True
-//    return False
-    log(lvl, "load: to be loaded:\n%s", fpJarOrFolder);
-    if (!fpJarOrFolder.endsWith(".jar")) {
-      fpJarOrFolder += ".jar";
+  public String load(String fpJar, boolean scriptOnly) {
+    log(lvl, "load: %s", fpJar);
+    if (!fpJar.endsWith(".jar")) {
+      fpJar += ".jar";
     }
-    File fJar = new File(FileManager.normalizeAbsolute(fpJarOrFolder, false));
-    String fpBundle = ImagePath.getBundlePath();
+    File fJar = new File(FileManager.normalizeAbsolute(fpJar, false));
     if (!fJar.exists()) {
-      fJar = new File(fpBundle, fpJarOrFolder);
-      if (!fJar.exists()) { // in bundle
-        fJar = new File(new File(fpBundle).getParentFile(), fpJarOrFolder);
-        if (!fJar.exists()) { // in bundles parent
-          fJar = new File(runTime.fSikulixExtensions, fpJarOrFolder);
-          if (!fJar.exists()) { // in extensions
-            fJar = new File(runTime.fSikulixLib, fpJarOrFolder);
-            if (!fJar.exists()) { // in Lib folder
-              fJar = null;
-            }
+      String fpBundle = ImagePath.getBundlePath();
+      fJar = null;
+      if (null != fpBundle) {
+        fJar = new File(fpBundle, fpJar);
+        if (!fJar.exists()) { // in bundle
+          fJar = new File(new File(fpBundle).getParentFile(), fpJar);
+          if (!fJar.exists()) { // in bundle parent
+            fJar = null;
+          }
+        }
+
+      }
+      if (fJar == null) {
+        fJar = new File(runTime.fSikulixExtensions, fpJar);
+        if (!fJar.exists()) { // in extensions
+          fJar = new File(runTime.fSikulixLib, fpJar);
+          if (!fJar.exists()) { // in Lib folder
+            fJar = null;
           }
         }
       }
     }
     if (fJar == null) {
       log(-1, "load: not found: %s", fJar);
-      return fpJarOrFolder;
+      return fpJar;
     } else {
       if (!hasSysPath(fJar.getPath())) {
         insertSysPath(fJar);
@@ -527,11 +507,9 @@ public class JythonHelper implements IScriptLanguageHelper {
     if (nDot > -1) {
       modName = modName.substring(nDot + 1);
     }
-    String fpBundle = ImagePath.getBundlePath();
-    File fParentBundle = null;
     File fModule = null;
-    if (fpBundle != null) {
-      fParentBundle = new File(fpBundle).getParentFile();
+    if (ImagePath.getBundlePath() != null) {
+      File fParentBundle = new File(ImagePath.getBundlePath()).getParentFile();
       fModule = existsModule(modName, fParentBundle);
     }
     if (fModule == null) {
@@ -616,7 +594,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void getSysPath() {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       sysPath.clear();
       if (null == cInterpreter) {
         sysPath.clear();
@@ -639,7 +617,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void setSysPath() {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       if (null == cInterpreter || null == sysPath) {
         return;
       }
@@ -674,7 +652,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void addSitePackages() {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       File fLibFolder = runTime.fSikulixLib;
       File fSitePackages = new File(fLibFolder, "site-packages");
       if (fSitePackages.exists()) {
@@ -710,7 +688,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void addSysPath(String fpFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       if (!hasSysPath(fpFolder)) {
         sysPath.add(0, fpFolder);
         setSysPath();
@@ -720,7 +698,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void appendSysPath(String fpFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       if (!hasSysPath(fpFolder)) {
         sysPath.add(fpFolder);
         setSysPath();
@@ -730,7 +708,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void putSysPath(String fpFolder, int n) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       if (n < 1 || n > sysPath.size()) {
         addSysPath(fpFolder);
       } else {
@@ -746,7 +724,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void insertSysPath(File fFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       getSysPath();
       sysPath.add((nPathSaved > -1 ? nPathSaved : 0), fFolder.getAbsolutePath());
       setSysPath();
@@ -755,7 +733,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void removeSysPath(File fFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       int n;
       if (-1 < (n = getSysPathEntry(fFolder))) {
         sysPath.remove(n);
@@ -767,7 +745,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public boolean hasSysPath(String fpFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       getSysPath();
       for (String fpPath : sysPath) {
         if (FileManager.pathEquals(fpPath, fpFolder)) {
@@ -775,11 +753,11 @@ public class JythonHelper implements IScriptLanguageHelper {
         }
       }
       return false;
-      }
+    }
   }
 
   public int getSysPathEntry(File fFolder) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       getSysPath();
       int n = 0;
       for (String fpPath : sysPath) {
@@ -793,7 +771,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public File existsSysPathModule(String modname) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       getSysPath();
       File fModule = null;
       for (String fpPath : sysPath) {
@@ -807,7 +785,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public File existsSysPathJar(String fpJar) {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       getSysPath();
       File fJar = null;
       for (String fpPath : sysPath) {
@@ -822,7 +800,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public void showSysPath() {
-    synchronized(sysPath) {
+    synchronized (sysPath) {
       if (Debug.is(lvl)) {
         getSysPath();
         log(lvl, "***** sys.path");

@@ -136,9 +136,7 @@ public class JythonRunner extends AbstractScriptRunner {
       File pyFile = new File(scriptFile);
       sysargv = new ArrayList<String>();
       sysargv.add(pyFile.getAbsolutePath());
-      Settings.BundlePath = pyFile.getParent();
-      if (null == ImagePath.getBundlePathSet())
-        ImagePath.getBundlePath();
+      ImagePath.setBundlePath(pyFile.getParent());
       if (argv != null) {
         sysargv.addAll(Arrays.asList(argv));
       }

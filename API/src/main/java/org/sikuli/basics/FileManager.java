@@ -585,11 +585,18 @@ public class FileManager {
 
   public static String saveTimedImage(BufferedImage img, String path, String name) {
     RunTime.pause(0.01f);
+    if (null == path) {
+      return null;
+    }
+    if (name == null) {
+      name = "nonamegiven";
+    }
     File fImage = new File(path, String.format("%s-%d.png", name, new Date().getTime()));
     try {
       ImageIO.write(img, "png", fImage);
     } catch (Exception ex) {
-      return "";
+      log(-1, "saveTimedImage: did not work: %s (%s)", fImage, ex.getMessage());
+      return null;
     }
     return fImage.getAbsolutePath();
   }

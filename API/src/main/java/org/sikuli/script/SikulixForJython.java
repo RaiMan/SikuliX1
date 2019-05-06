@@ -53,12 +53,15 @@ public class SikulixForJython {
       }
     }
     helper.addSitePackages();
+//TODO default ImagePath???
+/*
     List<String> sysArgv = helper.getSysArgv();
     if (sysArgv.size() > 0) {
       String path = sysArgv.get(0);
       Settings.BundlePath = new File(path).getParent();
       helper.log(lvl, "Default ImagePath: %s", Settings.BundlePath);
     }
+*/
     helper.log(lvl, "SikulixForJython: init: success");
   }
 
