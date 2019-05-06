@@ -7,9 +7,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import javax.script.ScriptEngine;
@@ -502,7 +504,11 @@ public class ServerRunner extends AbstractScriptRunner {
       cmd = parts[0];
       rQuery = "";
       if (parts.length > 1) {
-        rQuery = parts[1];
+        try {
+          rQuery = URLDecoder.decode(parts[1], "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          // This exception throws when UTF-8 is not supported. That wouldn't happen.
+        }
       }
       parts = cmd.split("/");
       if (!"START,STARTP,STOP,EXIT,SCRIPTS,IMAGES,RUN,EVAL,".contains((parts[0]+",").toUpperCase())) {
@@ -514,7 +520,11 @@ public class ServerRunner extends AbstractScriptRunner {
       rStatus = rStatusOK;
       rRessource = "";
       if (parts.length > 1) {
-        rRessource = cmd.substring(rCommand.length());
+        try {
+          rRessource = URLDecoder.decode(cmd.substring(rCommand.length()), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          // This exception throws when UTF-8 is not supported. That wouldn't happen.
+        }
       }
       return true;
     }
