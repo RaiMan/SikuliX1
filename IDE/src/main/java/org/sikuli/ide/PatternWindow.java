@@ -295,7 +295,7 @@ public class PatternWindow extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
 			if (fileRenameOld != null) {
-				currentPane.reparse(fileRenameOld, fileRenameNew, isFileOverwritten);
+				currentPane.reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
 			}
 			_imgBtn.getWindow().close();
 			_parent.dispose();

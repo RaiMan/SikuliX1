@@ -442,16 +442,13 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     }
 
     public void doReset(ActionEvent ae) throws NoSuchMethodException {
-      log(lvl, "Reset: entered");
+      log(lvl, "doReset: entered");
       SikulixIDE.get().clearMessageArea();
       checkAndResetMoveTab();
       ImagePath.reset();
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      cp.shouldPaneReset();
-      cp.reparse();
-      if (cp.isShouldReparse()) {
-        cp.reparse();
-      }
+      cp.checkSource();
+      cp.doReparse();
       cp.getRunner().reset();
     }
   }

@@ -147,7 +147,7 @@ public class SikulixFileChooser {
 
   private File show(final String title, final int mode, final int theSelectionMode, Object... filters) {
     Debug.log(3, "showFileChooser: %s at %s", title.split(" ")[0], theLastDir);
-    File fileChosen = null;
+    File fileChosen;
     Object filterChosen = null;
     final Object[] genericFilters = filters;
     final Object[] result = new Object[]{null, null};

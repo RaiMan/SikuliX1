@@ -364,28 +364,28 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         int i = tab.getSelectedIndex();
         if (i >= 0) {
           editorPane = getPaneAtIndex(i);
-          if (editorPane.isTemp()) {
-            SikulixIDE.this.setTitle(tab.getTitleAt(i));
-          } else {
-            if (editorPane.isPython) {
-              Debug.log(3, "Tab (%s) is plain .py file", editorPane.getCurrentShortFilename());
-              editorPane.shouldLookForSetBundlePath();
-              editorPane.checkSourceForBundlePath();
-              if (editorPane.isShouldReparse()) {
-                int dot = editorPane.getCaret().getDot();
-                editorPane.reparse();
-                editorPane.setCaretPosition(dot);
-              }
-            }
-            SikulixIDE.this.setTitle(editorPane.getFilePath());
+          if (!editorPane.hasEditingFile()) {
+            return;
           }
+          if (editorPane.isTemp()) {
+            setTitle(tab.getTitleAt(i));
+          } else {
+            if (editorPane.isBundle()) {
+              setTitle(editorPane.getFolderPath());
+            } else {
+              setTitle(editorPane.getFilePath());
+            }
+          }
+          int dot = editorPane.getCaret().getDot();
+          editorPane.checkSource();
+          editorPane.setCaretPosition(dot);
           if (editorPane.isText) {
             collapseMessageArea();
           } else {
             uncollapseMessageArea();
           }
-          SikulixIDE.this.chkShowThumbs.setState(SikulixIDE.this.getCurrentCodePane().showThumbs);
-          SikulixIDE.getStatusbar().setType(SikulixIDE.this.getCurrentCodePane().getType());
+          chkShowThumbs.setState(getCurrentCodePane().showThumbs);
+          getStatusbar().setType(getCurrentCodePane().getType());
         }
         updateUndoRedoStates();
       }
@@ -1762,14 +1762,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     _viewMenu = new JMenu(_I("menuView"));
     _viewMenu.setMnemonic(java.awt.event.KeyEvent.VK_V);
 
-//    if (prefs.getPrefMoreCommandBar()) {
-//      chkShowCmdList = new JCheckBoxMenuItem(_I("menuViewCommandList"), true);
-//      _viewMenu.add(createMenuItem(chkShowCmdList,
-//              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, scMask),
-//              new ViewAction(ViewAction.CMD_LIST)));
-//    }
+    boolean prefMorePlainText = PreferencesUser.get().getPrefMorePlainText();
 
-    chkShowThumbs = new JCheckBoxMenuItem(_I("menuViewShowThumbs"), false);
+    chkShowThumbs = new JCheckBoxMenuItem(_I("menuViewShowThumbs"), !prefMorePlainText);
     _viewMenu.add(createMenuItem(chkShowThumbs,
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, scMask),
             new ViewAction(ViewAction.SHOW_THUMBS)));
@@ -1808,12 +1803,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
       boolean showThumbsState = chkShowThumbs.getState();
       getCurrentCodePane().showThumbs = showThumbsState;
-      getCurrentCodePane().saveCaretPosition();
-      boolean reparseReturn = getCurrentCodePane().reparse();
-      if (!reparseReturn) {
-        chkShowThumbs.setState(!chkShowThumbs.getState());
-        getCurrentCodePane().showThumbs = chkShowThumbs.getState();
-      }
+      getCurrentCodePane().doReparse();
       return;
     }
   }
@@ -2473,15 +2463,18 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       SikulixIDE.hideIDE();
       RunTime.pause(0.1f);
       sikulixIDE.setIsRunningScript(true);
-      EditorPane codePane = getCurrentCodePane();
+      EditorPane editorPane = getCurrentCodePane();
       File scriptFile;
-      if (codePane.isDirty()) {
-        codePane.showType();
-        scriptFile = FileManager.createTempFile(Runner.getExtension(codePane.getType()));
+      if (editorPane.isDirty()) {
+        editorPane.checkSource();
+        if (editorPane.isTemp()) {
+          scriptFile = editorPane.getCurrentFile(false);
+        } else {
+          scriptFile = FileManager.createTempFile(Runner.getExtension(editorPane.getType()));
+        }
         if (scriptFile != null) {
           try {
-            codePane.write(new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(scriptFile), "UTF8")));
+            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile),"UTF8")));
           } catch (Exception ex) {
             scriptFile = null;
           }
@@ -2491,13 +2484,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           return;
         }
       } else {
-        scriptFile = codePane.getCurrentFile();
+        scriptFile = editorPane.getCurrentFile();
       }
       messages.clear();
       resetErrorMark();
-      IScriptRunner scriptRunner = Runner.getRunner(codePane.getType());
+      IScriptRunner scriptRunner = Runner.getRunner(editorPane.getType());
       if (scriptRunner == null) {
-        log(-1, "runCurrentScript: Could not load a script runner for: %s", codePane.getType());
+        log(-1, "runCurrentScript: Could not load a script runner for: %s", editorPane.getType());
         return;
       }
       addScriptCode(scriptRunner);
@@ -2564,15 +2557,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         if (Image.getIDEshouldReload()) {
           EditorPane pane = getCurrentCodePane();
           int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-          getCurrentCodePane().reparse();
+          getCurrentCodePane().doReparse();
           getCurrentCodePane().jumpTo(line);
         }
         setIsRunningScript(false);
 
         RunTime.cleanUp();
         _runningThread = null;
-//TODO  sikulixIDE.toFront();
-//        sikulixIDE.setVisible(true);
         SikulixIDE.showAgain();
       }
     }
