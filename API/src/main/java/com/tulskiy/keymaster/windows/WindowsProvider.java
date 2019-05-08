@@ -50,10 +50,15 @@ public class WindowsProvider extends Provider {
     private Queue<HotKey> registerQueue = new LinkedList<HotKey>();
 
     public void init() {
+        // Initializing msg outside of the Runnable ensures that the
+        // keymaster's User32 (together with its native library) gets loaded during
+        // the class loading phase. Loading it inside the Runnable gives a
+        // UnsatisfiedLinkError sometimes.
+        MSG msg = new MSG();
+      
         Runnable runnable = new Runnable() {
             public void run() {
-                //LOGGER.info("Starting Windows global hotkey provider");
-                MSG msg = new MSG();
+                //LOGGER.info("Starting Windows global hotkey provider");               
                 listen = true;
                 while (listen) {
                     while (PeekMessage(msg, null, 0, 0, PM_REMOVE)) {
