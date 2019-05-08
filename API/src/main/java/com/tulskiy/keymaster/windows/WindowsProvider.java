@@ -53,7 +53,7 @@ public class WindowsProvider extends Provider {
         /*
          * Loading keymaster's User32 (together with its native library) inside the 
          * Runnable thread sometimes throws an UnsatisfiedLinkError.
-         * This mainly happens slower machines, seems to be a timing issue.
+         * This mainly happens on slower machines, seems to be a timing issue.
          * Having the msg initialization outside the Runnable triggers the native
          * library loading in the main tread.
          */
@@ -61,7 +61,7 @@ public class WindowsProvider extends Provider {
       
         Runnable runnable = new Runnable() {
             public void run() {
-                //LOGGER.info("Starting Windows global hotkey provider"); 
+                //LOGGER.info("Starting Windows global hotkey provider");
                 //MSG msg = new MSG();
                 listen = true;
                 while (listen) {
