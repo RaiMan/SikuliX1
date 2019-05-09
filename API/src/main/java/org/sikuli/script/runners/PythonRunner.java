@@ -69,14 +69,4 @@ public class PythonRunner extends AbstractScriptRunner {
     }
     return 0;
   }
-
-  @Override
-  public void execBefore(String[] stmts) {
-
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-
-  }
 }

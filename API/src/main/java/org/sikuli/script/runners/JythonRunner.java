@@ -169,42 +169,6 @@ public class JythonRunner extends AbstractScriptRunner {
     }
   }
 
-//TODO revise the before/after concept (to support IDE reruns)
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void execBefore(String[] stmts) {
-    if (stmts == null) {
-      codeBefore = null;
-      return;
-    }
-    if (codeBefore == null) {
-      codeBefore = new ArrayList<String>();
-    }
-    codeBefore.addAll(Arrays.asList(stmts));
-  }
-
-  private ArrayList<String> codeBefore = null;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void execAfter(String[] stmts) {
-    if (stmts == null) {
-      codeAfter = null;
-      return;
-    }
-    if (codeAfter == null) {
-      codeAfter = new ArrayList<String>();
-    }
-    codeAfter.addAll(Arrays.asList(stmts));
-  }
-
-  private ArrayList<String> codeAfter = null;
-
   private void executeScriptHeader() {
     for (String line : SCRIPT_HEADER) {
       log(lvl + 1, "executeScriptHeader: %s", line);

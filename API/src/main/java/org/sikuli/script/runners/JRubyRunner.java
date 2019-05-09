@@ -50,8 +50,6 @@ public class JRubyRunner extends AbstractScriptRunner {
    */
   private final static String SCRIPT_HEADER = "# coding: utf-8\n" + "require 'Lib/sikulix'\n" + "include Sikulix\n";
 
-  private static ArrayList<String> codeBefore = null;
-  private static ArrayList<String> codeAfter = null;
   /**
    * CommandLine args
    */
@@ -213,30 +211,6 @@ public class JRubyRunner extends AbstractScriptRunner {
       interpreter = null;
       redirected = false;
     }
-  }
-
-  @Override
-  public void execBefore(String[] stmts) {
-    if (stmts == null) {
-      codeBefore = null;
-      return;
-    }
-    if (codeBefore == null) {
-      codeBefore = new ArrayList<String>();
-    }
-    codeBefore.addAll(Arrays.asList(stmts));
-  }
-
-  @Override
-  public void execAfter(String[] stmts) {
-    if (stmts == null) {
-      codeAfter = null;
-      return;
-    }
-    if (codeAfter == null) {
-      codeAfter = new ArrayList<String>();
-    }
-    codeAfter.addAll(Arrays.asList(stmts));
   }
 
   private int runRuby(File ruFile, String[] stmts, String[] scriptPaths, IScriptRunner.Options options) {

@@ -7,6 +7,8 @@ package org.sikuli.script.runners;
 import java.io.File;
 import java.io.PrintStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
@@ -245,11 +247,28 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public void execBefore(String[] stmts) {
-    // noop if not implemented
+    if (stmts == null) {
+      codeBefore = null;
+      return;
+    }
+    if (codeBefore == null) {
+      codeBefore = new ArrayList<String>();
+    }
+    codeBefore.addAll(Arrays.asList(stmts));
   }
 
   @Override
   public void execAfter(String[] stmts) {
-    // noop if not implemented
+    if (stmts == null) {
+      codeAfter = null;
+      return;
+    }
+    if (codeAfter == null) {
+      codeAfter = new ArrayList<String>();
+    }
+    codeAfter.addAll(Arrays.asList(stmts));
   }
+
+  static ArrayList<String> codeBefore = null;
+  static ArrayList<String> codeAfter = null;
 }
