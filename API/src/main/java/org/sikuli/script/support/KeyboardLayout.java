@@ -599,8 +599,6 @@ public class KeyboardLayout {
             LAYOUTS.put(keyboardLayoutId, layout);
           }
         }
-      } else {
-        layout = DEFAULT_KEYBOARD_LAYOUT;
       }
     }
     return layout;
