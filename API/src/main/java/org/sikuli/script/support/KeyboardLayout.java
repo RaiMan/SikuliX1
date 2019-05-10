@@ -583,20 +583,24 @@ public class KeyboardLayout {
     Map<Character, int[]> layout = DEFAULT_KEYBOARD_LAYOUT;
 
     if (isWindowsAutoDetect()) {
-      int keyboarLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
+      int keyboardLayoutId = DEFAULT_KEYBOARD_LAYOUT_ID;
       HWND hwnd = SXUser32.INSTANCE.GetForegroundWindow();
       if (hwnd != null) {
         int threadID = SXUser32.INSTANCE.GetWindowThreadProcessId(hwnd, null);
-        keyboarLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID);
+        keyboardLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID);
       }
 
-      synchronized(LAYOUTS) {
-        layout = LAYOUTS.get(keyboarLayoutId);
+      if(keyboardLayoutId > 0) {
+        synchronized(LAYOUTS) {
+          layout = LAYOUTS.get(keyboardLayoutId);
 
-        if (layout == null) {
-          layout = buildWindowsLayout(keyboarLayoutId);
-          LAYOUTS.put(keyboarLayoutId, layout);
+          if (layout == null) {
+            layout = buildWindowsLayout(keyboardLayoutId);
+            LAYOUTS.put(keyboardLayoutId, layout);
+          }
         }
+      } else {
+        layout = DEFAULT_KEYBOARD_LAYOUT;
       }
     }
     return layout;
