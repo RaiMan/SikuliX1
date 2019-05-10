@@ -101,7 +101,6 @@ public class Settings {
    * &gt; 1 is cut to 1.0 (max delay of 1 second)
    */
   public static double ClickDelay = 0.0;
-  public static boolean ClickFast = false;
 
   public static boolean ClickTypeHack = false;
 

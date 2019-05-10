@@ -43,7 +43,6 @@ public class RobotDesktop extends Robot implements IRobot {
   public static int stdMaxElapsed = 1000;
   private Screen scr = null;
   private long start;
-  private static boolean alwaysNewRobot = false;
   private static boolean isMouseInitialized = false;
 
   private void logRobot(int delay, String msg) {
@@ -59,123 +58,40 @@ public class RobotDesktop extends Robot implements IRobot {
     if (elapsed > maxElapsed) {
       Debug.log(0, msg, elapsed);
       setAutoDelay(stdAutoDelay);
-      setAutoWaitForIdle(false);
     }
   }
 
-  public void putMouse(int x, int y) {
-    doMouseMove(x, y);
-  }
-
-  private void doMouseMove(int x, int y) {
-    mouseMove(x, y);
-  }
-
-
-  private void doMouseDown(int buttons) {
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      new Region(0, 0, 5, 5).silentHighlight(true);
-    }
-    logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
+  public RobotDesktop() throws AWTException {
+    super();
     setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(!Settings.ClickFast);
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      delay(20);
-      new Region(0, 0, 5, 5).silentHighlight(false);
-      delay(20);
-    }
-    mousePress(buttons);
-    setAutoWaitForIdle(false);
-    if (!Settings.ClickFast && stdAutoDelay == 0) {
-      delay(stdDelay);
-    }
-    logRobot("MouseDown: extended delay: %d", stdMaxElapsed);
   }
 
-  private void doMouseUp(int buttons) {
-    logRobot(stdAutoDelay, "MouseUp: WaitForIdle: %s - Delay: %d");
-    setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(Settings.ClickFast);
-    mouseRelease(buttons);
-    setAutoWaitForIdle(false);
-    if (!Settings.ClickFast && stdAutoDelay == 0) {
-      delay(stdDelay);
+  @Override
+  public void delay(int ms) {
+    if (ms < 0) {
+      return;
     }
-    logRobot("MouseUp: extended delay: %d", stdMaxElapsed);
+    while (ms > MAX_DELAY) {
+      super.delay(MAX_DELAY);
+      ms -= MAX_DELAY;
+    }
+    super.delay(ms);
   }
 
-  private void doKeyPress(int keyCode) {
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      new Region(0, 0, 5, 5).silentHighlight(true);
-    }
-    logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
-    setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(false);
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      delay(20);
-      new Region(0, 0, 5, 5).silentHighlight(false);
-      delay(20);
-    }
-    
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key press
-    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-      WinUser.INPUT input = new WinUser.INPUT();
-      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-      input.input.setType("ki");
-      input.input.ki.wScan = new WinDef.WORD(0);
-      input.input.ki.time = new WinDef.DWORD(0);
-      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-      input.input.ki.wVk = new WinDef.WORD(keyCode);
-      input.input.ki.dwFlags = new WinDef.DWORD(0);
-
-      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-          (WinUser.INPUT[]) input.toArray(1), input.size());
-    }else{
-      keyPress(keyCode);
-    }
-    
-    
-    if (stdAutoDelay == 0) {
-      delay(stdDelay);
-    }
-    logRobot("KeyPress: extended delay: %d", stdMaxElapsed);
+  @Override
+  public ScreenImage captureScreen(Rectangle rect) {
+//    Rectangle s = scr.getBounds();
+    Rectangle cRect = new Rectangle(rect);
+//    cRect.translate(-s.x, -s.y);
+    BufferedImage img = createScreenCapture(rect);
+    Debug.log(4, "RobotDesktop: captureScreen: [%d,%d, %dx%d]",
+        rect.x, rect.y, rect.width, rect.height);
+    return new ScreenImage(rect, img);
   }
 
-  private void doKeyRelease(int keyCode) {
-    logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
-    setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(false);
-    
-    // on Windows we detect the current layout in KeyboardLayout.
-    // Since this layout is not compatible to AWT Robot, we have to use
-    // the User32 API to simulate the key release
-    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-      WinUser.INPUT input = new WinUser.INPUT();
-      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-      input.input.setType("ki");
-      input.input.ki.wScan = new WinDef.WORD(0);
-      input.input.ki.time = new WinDef.DWORD(0);
-      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);  
-      input.input.ki.wVk = new WinDef.WORD(keyCode);
-      input.input.ki.dwFlags = new WinDef.DWORD(
-          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
-
-      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-          (WinUser.INPUT[]) input.toArray(1), input.size());
-    }else{
-      keyRelease(keyCode);
-    }
-    
-    if (stdAutoDelay == 0) {
-      delay(stdDelay);
-    }
-    logRobot("KeyRelease: extended delay: %d", stdMaxElapsed);
-  }
-
-  private Robot getRobot() {
-    return null;
+  @Override
+  public Color getColorAt(int x, int y) {
+    return getPixelColor(x, y);
   }
 
   @Override
@@ -186,12 +102,6 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public Screen getScreen() {
     return scr;
-  }
-
-  public RobotDesktop() throws AWTException {
-    super();
-    setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(false);
   }
 
   @Override
@@ -221,6 +131,10 @@ public class RobotDesktop extends Robot implements IRobot {
     checkMousePosition(new Location((int) x, (int) y));
   }
 
+  private void doMouseMove(int x, int y) {
+    mouseMove(x, y);
+  }
+
   private void checkMousePosition(Location p) {
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point pc;
@@ -245,6 +159,10 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
+  public void moveMouse(int x, int y) {
+    doMouseMove(x, y);
+  }
+
   @Override
   public void mouseDown(int buttons) {
     if (heldButtons != 0) {
@@ -253,6 +171,24 @@ public class RobotDesktop extends Robot implements IRobot {
       heldButtons = buttons;
     }
     doMouseDown(heldButtons);
+  }
+
+  private void doMouseDown(int buttons) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+      new Region(0, 0, 5, 5).silentHighlight(true);
+    }
+    logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+      delay(20);
+      new Region(0, 0, 5, 5).silentHighlight(false);
+      delay(20);
+    }
+    mousePress(buttons);
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("MouseDown: extended delay: %d", stdMaxElapsed);
   }
 
   @Override
@@ -267,10 +203,19 @@ public class RobotDesktop extends Robot implements IRobot {
     return heldButtons;
   }
 
+  private void doMouseUp(int buttons) {
+    logRobot(stdAutoDelay, "MouseUp: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    mouseRelease(buttons);
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("MouseUp: extended delay: %d", stdMaxElapsed);
+  }
+
   @Override
   public void mouseReset() {
     if (heldButtons != 0) {
-      setAutoWaitForIdle(false);
       mouseRelease(heldButtons);
       heldButtons = 0;
     }
@@ -282,34 +227,6 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void clickEnds() {
-  }
-
-  @Override
-  public void delay(int ms) {
-    if (ms < 0) {
-      return;
-    }
-    while (ms > MAX_DELAY) {
-      super.delay(MAX_DELAY);
-      ms -= MAX_DELAY;
-    }
-    super.delay(ms);
-  }
-
-  @Override
-  public ScreenImage captureScreen(Rectangle rect) {
-//    Rectangle s = scr.getBounds();
-    Rectangle cRect = new Rectangle(rect);
-//    cRect.translate(-s.x, -s.y);
-    BufferedImage img = createScreenCapture(rect);
-    Debug.log(4, "RobotDesktop: captureScreen: [%d,%d, %dx%d]",
-            rect.x, rect.y, rect.width, rect.height);
-    return new ScreenImage(rect, img);
-  }
-
-  @Override
-  public Color getColorAt(int x, int y) {
-    return getPixelColor(x, y);
   }
 
   @Override
@@ -377,6 +294,44 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
+  private void doKeyPress(int keyCode) {
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+      new Region(0, 0, 5, 5).silentHighlight(true);
+    }
+    logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+      delay(20);
+      new Region(0, 0, 5, 5).silentHighlight(false);
+      delay(20);
+    }
+
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key press
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+      WinUser.INPUT input = new WinUser.INPUT();
+      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+      input.input.setType("ki");
+      input.input.ki.wScan = new WinDef.WORD(0);
+      input.input.ki.time = new WinDef.DWORD(0);
+      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+      input.input.ki.wVk = new WinDef.WORD(keyCode);
+      input.input.ki.dwFlags = new WinDef.DWORD(0);
+
+      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+          (WinUser.INPUT[]) input.toArray(1), input.size());
+    }else{
+      keyPress(keyCode);
+    }
+
+
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("KeyPress: extended delay: %d", stdMaxElapsed);
+  }
+
   @Override
   public void keyUp(String keys) {
     if (keys != null && !"".equals(keys)) {
@@ -408,25 +363,33 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
-  private void doType(KeyMode mode, int... keyCodes) {
-    waitForIdle();
-    if (mode == KeyMode.PRESS_ONLY) {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyPress(keyCodes[i]);
-      }
-    } else if (mode == KeyMode.RELEASE_ONLY) {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyRelease(keyCodes[i]);
-      }
-    } else {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyPress(keyCodes[i]);
-      }
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyRelease(keyCodes[i]);
-      }
+  private void doKeyRelease(int keyCode) {
+    logRobot(stdAutoDelay, "KeyRelease: WaitForIdle: %s - Delay: %d");
+    setAutoDelay(stdAutoDelay);
+    // on Windows we detect the current layout in KeyboardLayout.
+    // Since this layout is not compatible to AWT Robot, we have to use
+    // the User32 API to simulate the key release
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+      WinUser.INPUT input = new WinUser.INPUT();
+      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+      input.input.setType("ki");
+      input.input.ki.wScan = new WinDef.WORD(0);
+      input.input.ki.time = new WinDef.DWORD(0);
+      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+      input.input.ki.wVk = new WinDef.WORD(keyCode);
+      input.input.ki.dwFlags = new WinDef.DWORD(
+          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+
+      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+          (WinUser.INPUT[]) input.toArray(1), input.size());
+    }else{
+      keyRelease(keyCode);
     }
-    waitForIdle();
+
+    if (stdAutoDelay == 0) {
+      delay(stdDelay);
+    }
+    logRobot("KeyRelease: extended delay: %d", stdMaxElapsed);
   }
 
   @Override
@@ -462,6 +425,27 @@ public class RobotDesktop extends Robot implements IRobot {
       }
     }
     doType(KeyMode.PRESS_RELEASE, key);
+  }
+
+  private void doType(KeyMode mode, int... keyCodes) {
+    waitForIdle();
+    if (mode == KeyMode.PRESS_ONLY) {
+      for (int i = 0; i < keyCodes.length; i++) {
+        doKeyPress(keyCodes[i]);
+      }
+    } else if (mode == KeyMode.RELEASE_ONLY) {
+      for (int i = 0; i < keyCodes.length; i++) {
+        doKeyRelease(keyCodes[i]);
+      }
+    } else {
+      for (int i = 0; i < keyCodes.length; i++) {
+        doKeyPress(keyCodes[i]);
+      }
+      for (int i = 0; i < keyCodes.length; i++) {
+        doKeyRelease(keyCodes[i]);
+      }
+    }
+    waitForIdle();
   }
 
   @Override
