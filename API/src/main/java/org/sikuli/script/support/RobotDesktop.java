@@ -78,7 +78,7 @@ public class RobotDesktop extends Robot implements IRobot {
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
-    setAutoWaitForIdle(Settings.ClickFast);
+    setAutoWaitForIdle(!Settings.ClickFast);
     if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
       delay(20);
       new Region(0, 0, 5, 5).silentHighlight(false);
