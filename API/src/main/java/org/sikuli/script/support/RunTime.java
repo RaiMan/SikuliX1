@@ -566,12 +566,6 @@ public class RunTime {
 
   private static Options sxOptions = null;
 
-  //don't know exactly what this is for
-  // RunTime.scriptProject doesn't seem to be used anywhere
-  public static File scriptProject = null;
-  public static URL uScriptProject = null;
-
-
   private static boolean isTerminating = false;
 
   public static String appDataMsg = "";
@@ -1633,11 +1627,6 @@ public class RunTime {
     current.stop();
   }
 */
-
-  public static void resetProject() {
-    scriptProject = null;
-    uScriptProject = null;
-  }
 
   /**
    * INTERNAL USE: to check whether we are running in compiled classes context

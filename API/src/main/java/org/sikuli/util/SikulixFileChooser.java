@@ -146,7 +146,7 @@ public class SikulixFileChooser {
   }
 
   private File show(final String title, final int mode, final int theSelectionMode, Object... filters) {
-    Debug.log(3, "showFileChooser: %s at %s", title.split(" ")[0], theLastDir);
+    Debug.log(3, "SikulixFileChooser: %s at %s", title.split(" ")[0], theLastDir);
     File fileChosen;
     Object filterChosen = null;
     final Object[] genericFilters = filters;
@@ -199,6 +199,7 @@ public class SikulixFileChooser {
         }
         return fileChosen;
       } else {
+        Debug.log(-1, "SikulixFileChooser: action cancelled or did not work");
         return null;
       }
     }

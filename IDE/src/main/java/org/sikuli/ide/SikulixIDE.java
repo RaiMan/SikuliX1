@@ -81,7 +81,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   public boolean quit() {
     terminate();
-    (new FileAction()).doQuit(null);
     if (getCurrentCodePane() == null) {
       return true;
     } else {
@@ -113,7 +112,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
       return saveSession(action, true);
     }
-    return saveSession(WARNING_DO_NOTHING, true);
+    return saveSession(DO_NOT_SAVE, true);
   }
 
   private int askForSaveAll(String typ) {
@@ -122,36 +121,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     String title = SikuliIDEI18N._I("dlgAskCloseTab");
     String[] options;
     int ret = -1;
-    boolean shouldHide = false;
-    if (runTime.runningMac && runTime.isJava9()) {
-      String osVersion = runTime.osVersion;
-      if (osVersion.startsWith("10.13.")) {
-        int subVersion = Integer.parseInt(osVersion.replace("10.13.", ""));
-        if (subVersion > 3) {
-          shouldHide = true;
-        }
-      }
-    }
     SikulixIDE parent = this;
-    if (shouldHide) {
-      this.setVisible(false);
-      parent = null;
-      warn += "\n\nProblem on Mac 10.13.4+ and Java 9+" +
-              "\nIDE must be restarted. Use one of the buttons!";
-      options = new String[2];
-      options[WARNING_DO_NOTHING] = typ + " immediately";
-      options[WARNING_ACCEPTED] = "Save all and " + typ;
-    } else {
-      options = new String[3];
-      options[WARNING_DO_NOTHING] = typ + " immediately";
-      options[WARNING_ACCEPTED] = "Save all and " + typ;
-      options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
-    }
+    options = new String[3];
+    options[WARNING_DO_NOTHING] = typ + " immediately";
+    options[WARNING_ACCEPTED] = "Save all and " + typ;
+    options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
     ret = JOptionPane.showOptionDialog(parent, warn, title, 0, JOptionPane.WARNING_MESSAGE,
             null, options, options[options.length - 1]);
-    if (shouldHide) {
-      this.setVisible(true);
-    }
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return -1;
     }
@@ -525,36 +501,40 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   final static int WARNING_CANCEL = 2;
   final static int WARNING_ACCEPTED = 1;
   final static int WARNING_DO_NOTHING = 0;
-  final static int IS_SAVE_ALL = 3;
+  final static int DO_SAVE_ALL = 3;
+  final static int DO_NOT_SAVE = 0;
   private PreferencesUser prefs;
   private static String[] loadScripts = null;
 
   private boolean saveSession(int action, boolean quitting) {
     int nTab = tabs.getTabCount();
+    int selectedTab = tabs.getSelectedIndex();
     StringBuilder sbuf = new StringBuilder();
+    EditorPane editorPane = null;
+    boolean success = true;
     for (int tabIndex = 0; tabIndex < nTab; tabIndex++) {
       try {
-        EditorPane codePane = getPaneAtIndex(tabIndex);
-        String fileName = codePane.editorPaneFileSelected;
-        if (action == WARNING_DO_NOTHING) {
+        editorPane = getPaneAtIndex(tabIndex);
+        String fileName = editorPane.editorPaneFileSelected;
+        if (action == DO_NOT_SAVE) {
           if (quitting) {
-            codePane.setDirty(false);
+            editorPane.setDirty(false);
           }
           if (fileName == null) {
             continue;
           }
-        } else if (codePane.isDirty()) {
-          if (!saveIntern(tabIndex)) {
+        } else if (editorPane.isDirty()) {
+          if (!saveQietly(tabIndex)) {
             if (quitting) {
-              codePane.setDirty(false);
+              editorPane.setDirty(false);
             }
             continue;
           }
         }
-        if (action == IS_SAVE_ALL) {
+        if (action == DO_SAVE_ALL) {
           continue;
         }
-        if (codePane.isText) {
+        if (editorPane.isText) {
           fileName += "###isText";
         }
         if (sbuf.length() > 0) {
@@ -562,15 +542,20 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         }
         sbuf.append(fileName);
       } catch (Exception e) {
-        log(-1, "Problem while trying to save all changed-not-saved scripts!\nError: %s", e.getMessage());
-        return false;
+        log(-1, "Save all: %s: %s", editorPane.getCurrentFile(), e.getMessage());
+        success = false;
+        break;
       }
+
     }
-    PreferencesUser.get().setIdeSession(sbuf.toString());
-    return true;
+    if (success) {
+      PreferencesUser.get().setIdeSession(sbuf.toString());
+    }
+    tabs.setSelectedIndex(selectedTab);
+    return success;
   }
 
-  boolean saveIntern(int tabIndex) {
+  boolean saveQietly(int tabIndex) {
     int currentTab = tabs.getSelectedIndex();
     tabs.setSelectedIndex(tabIndex);
     boolean retval = true;
@@ -579,7 +564,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     try {
       fname = codePane.saveTabContent();
       if (fname != null) {
-        if (codePane.isPython || codePane.isText) {
+        if (!codePane.isBundle()) {
           fname = codePane.getFilePath();
           codePane.showType();
         }
@@ -673,11 +658,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   //<editor-fold defaultstate="collapsed" desc="06 tabs handling">
   void terminate() {
-    log(lvl, "Quit IDE requested");
+    log(lvl, "Quit requested");
     if (closeIDE()) {
       runTime.terminate(0, "");
     }
-    log(-1, "Quit IDE: did not work");
+    log(-1, "Quit: cancelled or did not work");
   }
 
   EditorPane makeTab() {
@@ -1321,7 +1306,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       if (!checkDirtyPanes()) {
         return;
       }
-      saveSession(IS_SAVE_ALL, false);
+      saveSession(DO_SAVE_ALL, false);
     }
 
     public void doExport(ActionEvent ae) {
@@ -2113,12 +2098,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     JToolBar toolbar = new JToolBar();
     JButton btnInsertImage = new ButtonInsertImage();
-    _btnCapture = new ButtonCapture();
     JButton btnSubregion = new ButtonSubregion().init();
     JButton btnLocation = new ButtonLocation().init();
     JButton btnOffset = new ButtonOffset().init();
     JButton btnShow = new ButtonShow().init();
     JButton btnShowIn = new ButtonShowIn().init();
+    _btnCapture = new ButtonCapture();
     toolbar.add(_btnCapture);
     toolbar.add(btnInsertImage);
     toolbar.add(btnSubregion);
@@ -2415,9 +2400,56 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
   }
 
+  //</editor-fold>
+
+  //<editor-fold desc="21 Init Run Buttons">
+  boolean doBeforeRun() {
+    int action;
+    if (checkDirtyPanes()) {
+      if (prefs.getPrefMoreRunSave()) {
+        action = WARNING_ACCEPTED;
+      } else {
+        action = askForSaveAll("Run");
+        if (action < 0) {
+          return false;
+        }
+      }
+      saveSession(action, false);
+    }
+    return true;
+  }
+
+  synchronized boolean isRunningScript() {
+    return ideIsRunningScript;
+  }
+
+  synchronized void setIsRunningScript(boolean state) {
+    ideIsRunningScript = state;
+  }
+
+  private boolean ideIsRunningScript = false;
+
+  void addErrorMark(int line) {
+    if (line < 1) {
+      return;
+    }
+    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
+    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
+    lnview.addErrorMark(line);
+    EditorPane codePane = SikulixIDE.this.getCurrentCodePane();
+    codePane.jumpTo(line);
+    codePane.requestFocus();
+  }
+
+  void resetErrorMark() {
+    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
+    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
+    lnview.resetErrorMark();
+  }
+
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
 
-    private Thread _runningThread = null;
+    private Thread thread = null;
 
     ButtonRun() {
       super();
@@ -2474,7 +2506,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         }
         if (scriptFile != null) {
           try {
-            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile),"UTF8")));
+            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
           } catch (Exception ex) {
             scriptFile = null;
           }
@@ -2493,11 +2525,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         log(-1, "runCurrentScript: Could not load a script runner for: %s", editorPane.getType());
         return;
       }
-      addScriptCode(scriptRunner);
-//      ImagePath.reset();
-      final SubRun doRun = new SubRun(scriptRunner, scriptFile);
-      _runningThread = new Thread(doRun);
-      _runningThread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      beforeRun();
+      //      ImagePath.reset();
+      final SubRun doRun = new SubRun(scriptRunner, scriptFile, this);
+      thread = new Thread(doRun);
+      thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
           if (System.out.checkError()) {
@@ -2510,131 +2542,35 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           doRun.afterRun();
         }
       });
-      _runningThread.start();
+      thread.start();
     }
 
-    private class SubRun implements Runnable {
-      private boolean finished = false;
-      private int ret = 0;
-      private File scriptFile = null;
-      private IScriptRunner scriptRunner = null;
-      private IScriptRunner.Options options = new IScriptRunner.Options();
-
-      SubRun(IScriptRunner scriptRunner, File scriptFile) {
-        this.scriptFile = scriptFile;
-        this.scriptRunner = scriptRunner;
-      }
-
-      @Override
-      public void run() {
-        try {
-          options.setRunningInIDE();
-          ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), options);
-        } catch (Exception ex) {
-          log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);
-        }
-        hasFinished(true);
-        afterRun();
-      }
-
-      int getRet() {
-        return ret;
-      }
-
-      boolean hasFinished() {
-        return hasFinished(false);
-      }
-
-      synchronized boolean hasFinished(boolean state) {
-        if (state) {
-          finished = true;
-        }
-        return finished;
-      }
-
-      void afterRun() {
-        addErrorMark(options.getErrorLine());
-        if (Image.getIDEshouldReload()) {
-          EditorPane pane = getCurrentCodePane();
-          int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-          getCurrentCodePane().doReparse();
-          getCurrentCodePane().jumpTo(line);
-        }
-        setIsRunningScript(false);
-
-        RunTime.cleanUp();
-        _runningThread = null;
-        SikulixIDE.showAgain();
-      }
-    }
-
-    protected void addScriptCode(IScriptRunner srunner) {
-      srunner.execBefore(null);
-      srunner.execBefore(new String[]{"Settings.setShowActions(Settings.FALSE)"});
+    void beforeRun() {
+      Settings.ActionLogs = prefs.getPrefMoreLogActions();
+      Settings.DebugLogs = prefs.getPrefMoreLogDebug();
+      Settings.InfoLogs = prefs.getPrefMoreLogInfo();
+      Settings.Highlight = prefs.getPrefMoreHighlight();
+      Settings.setShowActions(false);
     }
 
     boolean isRunning() {
-      return _runningThread != null;
+      return thread != null;
+    }
+
+    void notRunning() {
+      thread = null;
     }
 
     boolean stopRunScript() {
-      if (_runningThread != null) {
-        _runningThread.interrupt();
-        _runningThread.stop();
+      if (thread != null) {
+        thread.interrupt();
+        thread.stop();
+        thread = null;
         return true;
       }
       return false;
     }
-
-    void addErrorMark(int line) {
-      if (line < 1) {
-        return;
-      }
-      JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
-      EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
-      lnview.addErrorMark(line);
-      EditorPane codePane = SikulixIDE.this.getCurrentCodePane();
-      codePane.jumpTo(line);
-      codePane.requestFocus();
-    }
-
-    void resetErrorMark() {
-      JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
-      EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
-      lnview.resetErrorMark();
-    }
   }
-
-  protected boolean doBeforeRun() {
-    int action;
-    if (checkDirtyPanes()) {
-      if (prefs.getPrefMoreRunSave()) {
-        action = WARNING_ACCEPTED;
-      } else {
-        action = askForSaveAll("Run");
-        if (action < 0) {
-          return false;
-        }
-      }
-      saveSession(action, false);
-    }
-    Settings.ActionLogs = prefs.getPrefMoreLogActions();
-    Settings.DebugLogs = prefs.getPrefMoreLogDebug();
-    Settings.InfoLogs = prefs.getPrefMoreLogInfo();
-    Settings.Highlight = prefs.getPrefMoreHighlight();
-    RunTime.resetProject();
-    return true;
-  }
-
-  synchronized boolean isRunningScript() {
-    return ideIsRunningScript;
-  }
-
-  synchronized void setIsRunningScript(boolean state) {
-    ideIsRunningScript = state;
-  }
-
-  private boolean ideIsRunningScript = false;
 
   class ButtonRunViz extends ButtonRun {
 
@@ -2647,9 +2583,65 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
 
     @Override
-    protected void addScriptCode(IScriptRunner srunner) {
-      srunner.execBefore(null);
-      srunner.execBefore(new String[]{"Settings.setShowActions(Settings.TRUE)"});
+    protected void beforeRun() {
+      super.beforeRun();
+      Settings.setShowActions(true);
+    }
+  }
+
+  private class SubRun implements Runnable {
+    private boolean finished = false;
+    private int ret = 0;
+    private File scriptFile = null;
+    private IScriptRunner scriptRunner = null;
+    private IScriptRunner.Options options = new IScriptRunner.Options();
+    ButtonRun buttonRun;
+
+    SubRun(IScriptRunner scriptRunner, File scriptFile, ButtonRun buttonRun) {
+      this.scriptFile = scriptFile;
+      this.scriptRunner = scriptRunner;
+      this.buttonRun = buttonRun;
+    }
+
+    @Override
+    public void run() {
+      try {
+        options.setRunningInIDE();
+        ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), options);
+      } catch (Exception ex) {
+        log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);
+      }
+      hasFinished(true);
+      afterRun();
+    }
+
+    int getRet() {
+      return ret;
+    }
+
+    boolean hasFinished() {
+      return hasFinished(false);
+    }
+
+    synchronized boolean hasFinished(boolean state) {
+      if (state) {
+        finished = true;
+      }
+      return finished;
+    }
+
+    void afterRun() {
+      addErrorMark(options.getErrorLine());
+      if (Image.getIDEshouldReload()) {
+        EditorPane pane = getCurrentCodePane();
+        int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
+        getCurrentCodePane().doReparse();
+        getCurrentCodePane().jumpTo(line);
+      }
+      setIsRunningScript(false);
+      RunTime.cleanUp();
+      buttonRun.notRunning();
+      SikulixIDE.showAgain();
     }
   }
   //</editor-fold>
