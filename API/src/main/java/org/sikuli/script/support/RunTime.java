@@ -1657,7 +1657,7 @@ public class RunTime {
   }
 
   public boolean needsRobotFake() {
-    return !Settings.ClickFast && runningMac && isOSX10();
+    return runningMac && isOSX10();
   }
 
   /**

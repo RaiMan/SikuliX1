@@ -97,7 +97,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
     mousePress(buttons);
 
-    if (!Settings.ClickFast && stdAutoDelay == 0) {
+    if (stdAutoDelay == 0) {
       delay(stdDelay);
     }
 
@@ -115,7 +115,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
     mouseRelease(buttons);
 
-    if (!Settings.ClickFast && stdAutoDelay == 0) {
+    if (stdAutoDelay == 0) {
       delay(stdDelay);
     }
 

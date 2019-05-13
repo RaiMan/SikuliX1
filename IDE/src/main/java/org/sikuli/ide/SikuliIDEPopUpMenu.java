@@ -239,7 +239,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           @Override
           public void run() {
             Region at = Mouse.at().offset(100, 52).grow(10);
-            ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+            ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
             SX.popup("Script not yet saved", "IDE: About: script info", "", false, 2, at);
           }
         }).start();
@@ -251,7 +251,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
               String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
                       cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
               Region at = Mouse.at().offset(200, 78).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
               SX.popup(msg, "IDE: About: script info", "", false, 10, at);
             }
           }).start();
@@ -262,7 +262,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
               String msg = String.format("SikuliX script: %s\nin Folder: %s",
                       cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
               Region at = Mouse.at().offset(100, 65).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).putMouse(at.getCenter().x, at.getCenter().y + 20);
+              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
               SX.popup(msg, "IDE: About: script info", "", false, 10, at);
             }
           }).start();
