@@ -190,7 +190,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     try {
       return SikuliIDEI18N._I(key, args);
     } catch (Exception e) {
-      Debug.log(3, "[I18N] " + key);
+      log(3, "[I18N] " + key);
       return key;
     }
   }
@@ -335,6 +335,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     tabs.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(javax.swing.event.ChangeEvent e) {
+        log(3, "Tab switched");
         EditorPane editorPane;
         JTabbedPane tab = (JTabbedPane) e.getSource();
         int i = tab.getSelectedIndex();
@@ -594,7 +595,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     if (session_str != null && !session_str.isEmpty()) {
       String[] filenames = session_str.split(";");
       if (filenames.length > 0) {
-        Debug.log(3, "Restore scripts from last session");
+        log(3, "Restore scripts from last session");
         for (int i = 0; i < filenames.length; i++) {
           if (filenames[i].isEmpty()) {
             continue;
@@ -604,11 +605,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           String shortName = fileToLoad.getName();
           if (fileToLoadClean.exists() && !filesToLoad.contains(fileToLoad)) {
             if (shortName.endsWith(".py")) {
-              Debug.log(3, "Python script: %s", fileToLoad.getName());
+              log(3, "Restore Python script: %s", fileToLoad.getName());
             } else if (shortName.endsWith("###isText")) {
-              Debug.log(3, "Text file: %s", fileToLoad.getName());
+              log(3, "Restore Text file: %s", fileToLoad.getName());
             } else {
-              Debug.log(3, "Sikuli script: %s", fileToLoad);
+              log(3, "Restore Sikuli script: %s", fileToLoad);
             }
             filesToLoad.add(fileToLoad);
             if (restoreScriptFromSession(fileToLoad)) {
@@ -619,7 +620,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
     }
     if (loadScripts != null && loadScripts.length > 0) {
-      Debug.log(3, "Preload given scripts");
+      log(3, "Preload given scripts");
       for (int i = 0; i < loadScripts.length; i++) {
         if (loadScripts[i].isEmpty()) {
           continue;
@@ -629,7 +630,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
           if (f.getName().endsWith(".py")) {
             Debug.info("Python script: %s", f.getName());
           } else {
-            Debug.log(3, "Sikuli script: %s", f);
+            log(3, "Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }
@@ -647,6 +648,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     editorPane.loadFile(filePath);
     if (editorPane.hasEditingFile()) {
+      //editorPane.checkSource();
       setCurrentFileTabTitle(filePath);
       editorPane.setCaretPosition(0);
       return true;
@@ -1037,7 +1039,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     public void actionPerformed(ActionEvent e) {
       if (actMethod != null) {
         try {
-          Debug.log(3, "MenuAction." + action);
+          log(3, "MenuAction." + action);
           Object[] params = new Object[1];
           params[0] = e;
           actMethod.invoke(this, params);
@@ -1578,7 +1580,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       }
       EditorPane codePane = getCurrentCodePane();
       int pos = codePane.search(str, begin, forward);
-      Debug.log(4, "find \"" + str + "\" at " + begin + ", found: " + pos);
+      log(4, "find \"" + str + "\" at " + begin + ", found: " + pos);
       if (pos < 0) {
         return false;
       }
@@ -2061,7 +2063,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       String details;
       AutoUpdater au = new AutoUpdater();
       PreferencesUser pref = PreferencesUser.get();
-      Debug.log(3, "being asked to check update");
+      log(3, "being asked to check update");
       int whatUpdate = au.checkUpdate();
       if (whatUpdate >= AutoUpdater.SOMEBETA) {
 //TODO add Prefs wantBeta check
@@ -2199,7 +2201,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
 
     boolean shouldRun() {
-      Debug.log(3, "TRACE: ButtonSubRegion triggered");
+      log(3, "TRACE: ButtonSubRegion triggered");
       return true;
     }
 
@@ -2362,7 +2364,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     @Override
     public boolean shouldRun() {
-      Debug.log(3, "TRACE: ButtonShowIn triggered");
+      log(3, "TRACE: ButtonShowIn triggered");
       EditorPane codePane = getCurrentCodePane();
       String line = codePane.getLineTextAtCaret();
       item = codePane.parseLineText(line);
@@ -2834,7 +2836,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   void onQuickCapture(String arg) {
     if (_inited) {
-      Debug.log(3, "QuickCapture");
+      log(3, "QuickCapture");
       _btnCapture.capture(0);
     }
   }
@@ -2861,12 +2863,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       shouldCleanUp = _btnRunViz.stopRunScript();
     }
     if (shouldCleanUp) {
-      Debug.log(3, "AbortKey was pressed");
+      log(3, "AbortKey was pressed");
       //RunTime.cleanUp();
       //setVisible(true);
       showAgain();
     } else {
-      Debug.log(3, "AbortKey was pressed, but nothing to stop here ;-)");
+      log(3, "AbortKey was pressed, but nothing to stop here ;-)");
     }
   }
 

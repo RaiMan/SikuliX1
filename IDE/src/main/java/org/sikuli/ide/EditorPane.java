@@ -215,16 +215,17 @@ public class EditorPane extends JTextPane {
     if (fileLoaded != null) {
       if (isText) {
         scriptType = "txt";
-        setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
+        //setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
       } else {
-        setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
+        //setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
         scriptType = fileLoaded.getAbsolutePath().substring(fileLoaded.getAbsolutePath().lastIndexOf(".") + 1);
       }
       runner = Runner.getRunner(scriptType);
       initForScriptType();
       if (!readContent(fileLoaded)) {
-        fileLoaded = null;
+        setFiles(null, fileToLoad.getAbsolutePath());
       } else {
+        setFiles(fileLoaded, fileToLoad.getAbsolutePath());
         updateDocumentListeners("loadFile");
         checkSource();
         doParse();
@@ -232,7 +233,6 @@ public class EditorPane extends JTextPane {
         setDirty(false);
       }
     }
-    setFile(fileLoaded, fileToLoad.getAbsolutePath());
   }
 
   private void initForScriptType() {
@@ -348,6 +348,7 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold desc="11 check content">
   public void checkSource() {
+    log(3, "checkSource: started (%s)", editorPaneFile);
     String scriptText = getText();
     if (!isBundle()) {
       if (isPython) {
@@ -364,12 +365,8 @@ public class EditorPane extends JTextPane {
     Matcher matcher = patSetBundlePath.matcher(scriptText);
     if (matcher.find()) {
       String path = matcher.group(1);
-      String msg = String.format("found in script: setBundlePath: %s", path);
-      if (setImagePath(path)) {
-        Debug.log(3, msg);
-      } else {
-        Debug.error(msg);
-      }
+      log(3, "checkSource: found setBundlePath: %s", path);
+      setImagePath(path);
     } else {
       setImagePath();
     }
@@ -441,18 +438,19 @@ public class EditorPane extends JTextPane {
     String extension = Runner.getExtension(editorPaneType);
     File tempPath = new File(RunTime.get().fpBaseTempPath, "temp" + editorPaneID);
     File tempFile = FileManager.createTempFile(extension, tempPath.getAbsolutePath());
-    setFile(tempFile);
+    setFiles(tempFile);
     updateDocumentListeners("empty tab");
   }
 
-  public void setFile(File editorPaneFile) {
-    setFile(editorPaneFile, null);
+  public void setFiles(File editorPaneFile) {
+    setFiles(editorPaneFile, null);
   }
 
-  public void setFile(File editorPaneFile, String editorPaneFileSelected) {
+  public void setFiles(File editorPaneFile, String editorPaneFileSelected) {
     if (editorPaneFile == null) {
       return;
     }
+    log(3, "setFiles: for: %s", editorPaneFileSelected);
     this.editorPaneFile = editorPaneFile;
     editorPaneFolder = editorPaneFile.getParentFile();
     setImageFolder(editorPaneFolder);
@@ -547,12 +545,19 @@ public class EditorPane extends JTextPane {
     return true;
   }
 
-  public boolean setImagePath(String newBundlePath) {
+  private String pathFromText(String givenPath) {
+    String path = new File(givenPath.replace("\\\\", "\\")).getPath();
+    return path;
+  }
+
+  public boolean setImagePath(String givenBundlePath) {
+    String newBundlePath = pathFromText(givenBundlePath);
     try {
-      if (!new File(newBundlePath).isAbsolute()) {
+      if (new File(newBundlePath).isAbsolute()) {
+        newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
+      } else {
         newBundlePath = new File(editorPaneFolder, newBundlePath).getCanonicalPath();
       }
-      newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
     } catch (Exception ex) {
       return false;
     }
@@ -1237,7 +1242,7 @@ public class EditorPane extends JTextPane {
       String name = new File(targetFolder).getName();
       name = name.substring(0, name.lastIndexOf("."));
       File scriptFile = new File(targetFolder, name + "." + extension);
-      setFile(scriptFile, targetFolder);
+      setFiles(scriptFile, targetFolder);
       if (writeSriptFile()) {
         checkSource();
         doReparse();
@@ -1249,7 +1254,7 @@ public class EditorPane extends JTextPane {
 
   private File saveAsFile(String filename) {
     log(lvl, "saveAsFile: " + filename);
-    setFile(new File(filename));
+    setFiles(new File(filename));
     if (writeSriptFile()) {
       checkSource();
       doReparse();
@@ -1550,7 +1555,7 @@ public class EditorPane extends JTextPane {
    * _lastSearchPattern = pattern;
    * Document doc = getDocument();
    * int pos = getCaretPosition();
-   * Debug.log("caret: "  + pos);
+   * log("caret: "  + pos);
    * try{
    * String body = doc.getText(pos, doc.getLength()-pos);
    * _lastSearchMatcher = pattern.matcher(body);
@@ -1577,7 +1582,7 @@ public class EditorPane extends JTextPane {
     }
     int ret = -1;
     Document doc = getDocument();
-    Debug.log(4, "search: %s from %d forward: %s", str, pos, forward);
+    log(4, "search: %s from %d forward: %s", str, pos, forward);
     try {
       String body;
       int begin;
@@ -1760,7 +1765,7 @@ public class EditorPane extends JTextPane {
     Element line = root.getElement(lineIdx);
     int start = line.getStartOffset(), len = line.getEndOffset() - start;
     String strLine = doc.getText(start, len - 1);
-    Debug.log(9, "[" + strLine + "]");
+    log(9, "[" + strLine + "]");
     if (strLine.endsWith("find") && ke.getKeyChar() == '(') {
       ke.consume();
       doc.insertString(pos, "(", null);
