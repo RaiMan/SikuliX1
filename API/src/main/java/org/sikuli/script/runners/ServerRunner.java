@@ -207,6 +207,7 @@ public class ServerRunner extends AbstractScriptRunner {
     ResourceHandler resource = new ResourceHandler(resourceManager,
                                    new RequestLimitingHandler(1,
                                        new PreRoutingHttpHandler(commands)));
+    resource.addWelcomeFiles("ControlBox.html");
 
     RootHttpHandler root = new RootHttpHandler(resource);
     root.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
