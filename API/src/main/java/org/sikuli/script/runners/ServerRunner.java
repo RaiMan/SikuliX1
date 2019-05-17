@@ -6,12 +6,11 @@ package org.sikuli.script.runners;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.script.ScriptEngine;
 
 import org.sikuli.basics.Debug;
@@ -19,11 +18,33 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
+import io.undertow.Handlers;
+import io.undertow.Undertow;
+import io.undertow.predicate.Predicates;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.server.RoutingHandler;
+import io.undertow.server.ServerConnection;
+import io.undertow.server.ServerConnection.CloseListener;
+import io.undertow.server.handlers.ExceptionHandler;
+import io.undertow.server.handlers.RequestLimitingHandler;
+import io.undertow.server.handlers.resource.ClassPathResourceManager;
+import io.undertow.server.handlers.resource.ResourceHandler;
+import io.undertow.server.handlers.resource.ResourceManager;
+import io.undertow.util.Headers;
+import io.undertow.util.Methods;
+import io.undertow.util.StatusCodes;
+import io.undertow.util.URLUtils;
+
 /**
  * EXPERIMENTAL --- NOT official API<br>
  *   not as is in version 2
  */
 public class ServerRunner extends AbstractScriptRunner {
+  static {
+    // change Undertow-Logging(org.jboss.logging) from log4j to slf4j
+    System.setProperty("org.jboss.logging.provider", "slf4j");
+  }
 
   public static final String NAME = "Server";
   public static final String TYPE = "text/server";
@@ -44,11 +65,10 @@ public class ServerRunner extends AbstractScriptRunner {
     return TYPE;
   }
 
-  private static ServerSocket server = null;
-  private static PrintWriter out = null;
-  private static Scanner in = null;
+  private static Undertow server = null;
   private static boolean isHandling = false;
   private static boolean shouldStop = false;
+  private static Object lock = new Object();
 
 //TODO set loglevel at runtime
   private static int logLevel = 0;
@@ -82,18 +102,6 @@ public class ServerRunner extends AbstractScriptRunner {
     }
     int port = getPort(args.length > 0 ? args[0] : null);
     try {
-      try {
-        if (port > 0) {
-					dolog(3, "Starting: trying port: %d %s", port, userArgs);
-          server = new ServerSocket(port);
-        }
-      } catch (Exception ex) {
-        dolog(-1, "Starting: " + ex.getMessage());
-      }
-      if (server == null) {
-        dolog(-1, "could not be started");
-        return false;
-      }
       String theIP = InetAddress.getLocalHost().getHostAddress();
       String theServer = String.format("%s %d", theIP, port);
       isRunning = new File(RunTime.get().fSikulixStore, "RunServer.txt");
@@ -109,6 +117,21 @@ public class ServerRunner extends AbstractScriptRunner {
         dolog(-1, "Terminating on FatalError: cannot access to lock for/n" + isRunning);
         return false;
       }
+      try {
+        if (port > 0) {
+					dolog(3, "Starting: trying port: %d %s", port, userArgs);
+          server = createServer(port, theIP);
+          server.start();
+          Debug.on(3);
+          dolog("now waiting on port: %d at %s", port, theIP);
+        }
+      } catch (Exception ex) {
+        dolog(-1, "Starting: " + ex.getMessage());
+      }
+      if (server == null) {
+        dolog(-1, "could not be started");
+        return false;
+      }
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override
         public void run() {
@@ -122,25 +145,9 @@ public class ServerRunner extends AbstractScriptRunner {
           }
         }
       });
-      while (true) {
-        dolog("now waiting on port: %d at %s", port, theIP);
-        Socket socket = server.accept();
-        out = new PrintWriter(socket.getOutputStream());
-        in = new Scanner(socket.getInputStream());
-        HandleClient client = new HandleClient(socket);
-        isHandling = true;
-        while (true) {
-          if (socket.isClosed()) {
-            shouldStop = client.getShouldStop();
-            break;
-          }
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException ex) {
-          }
-        }
-        if (shouldStop) {
-          break;
+      synchronized (lock) {
+        while (!shouldStop) {
+          lock.wait();
         }
       }
     } catch (Exception e) {
@@ -172,281 +179,330 @@ public class ServerRunner extends AbstractScriptRunner {
     return port;
   }
 
-  static ScriptEngine jsRunner = null;
-	static File scriptFolder = null;
-	static String scriptFolderNet = null;
-	static File imageFolder = null;
-	static String imageFolderNet = null;
-
-  private static class HandleClient implements Runnable {
-
-    private volatile boolean keepRunning;
-    private boolean shouldKeep = false;
-    Thread thread;
-    Socket socket;
-    Boolean shouldStop = false;
-
-    public HandleClient(Socket sock) {
-      init(sock);
-    }
-
-    private void init(Socket sock) {
-      socket = sock;
-      if (in == null || out == null) {
-        ServerRunner.dolog(-1, "communication not established");
-        System.exit(1);
-      }
-      thread = new Thread(this, "HandleClient");
-      keepRunning = true;
-      thread.start();
-    }
-
-    public boolean getShouldStop() {
-      return shouldStop;
-    }
-
-    boolean isHTTP = false;
-    String request;
-    String rCommand;
-    String rRessource;
-    String rVersion = "HTTP/1.1";
-    String rQuery;
-    String[] rArgs;
-    String rMessage = "";
-    String rStatus;
-    String rStatusOK = "200 OK";
-    String rStatusBadRequest = "400 Bad Request";
-    String rStatusNotFound = "404 Not Found";
-    String rStatusServerError = "500 Internal Server Error";
-    String rStatusServiceNotAvail = "503 Service Unavailable";
-		Object evalReturnObject;
-    String runTypeJS = "JavaScript";
-    String runTypePY = "jython";
-    String runTypeRB = "jruby";
-    String runType = runTypeJS;
-
-    @Override
-    public void run() {
-			Debug.on(3);
-      ServerRunner.dolog("now handling client: " + socket);
-      while (keepRunning) {
-        try {
-          String inLine = in.nextLine();
-          if (inLine != null) {
-            if (!isHTTP) {
-              ServerRunner.dolog("processing: <%s>", inLine);
-            }
-						boolean success = true;
-            if (inLine.startsWith("GET /") && inLine.contains("HTTP/")) {
-              isHTTP = true;
-							request = inLine;
-              continue;
-            }
-            if (isHTTP) {
-              if (!inLine.isEmpty()) {
-                continue;
-              }
-            }
-            if (!isHTTP) {
-              request = "GET /" + inLine + " HTTP/1.1";
-            }
-            success = checkRequest(request);
-            if (success) {
-              // STOP
-              if (rCommand.contains("STOP")) {
-                rMessage = "stopping server";
-                shouldStop = true;
-                shouldKeep = false;
-              } else if (rCommand.contains("EXIT")) {
-                rMessage = "stopping client";
-                shouldKeep = false;
-              // START
-              } else if (rCommand.startsWith("START")) {
-                runType = runTypeJS;
-                if (rCommand.length() > 5) {
-                  if ("P".equals(rCommand.substring(5, 6))) {
-                    runType = runTypePY;
-                  } else if ("R".equals(rCommand.substring(5, 6))) {
-                    runType = runTypeRB;
-                  }
-                }
-                success = startRunner(runType, null, null);
-                rMessage = "startRunner for: " + runType;
-                if (!success) {
-                  rMessage = "startRunner: not possible for: " + runType;
-                  rStatus = rStatusServiceNotAvail;
-                }
-              // SCRIPTS
-              } else if (rCommand.startsWith("SCRIPTS")) {
-                if (rRessource.isEmpty()) {
-                  rMessage = "no scriptFolder given ";
-                  rStatus = rStatusBadRequest;
-                  success = false;
-                } else {
-                  scriptFolder = getFolder(rRessource);
-                  if (scriptFolder.getPath().startsWith("__NET/")) {
-                    scriptFolderNet = "http://" + scriptFolder.getPath().substring(6);
-                    rMessage = "scriptFolder now: " + scriptFolderNet;
-                  } else {
-                    scriptFolderNet = null;
-                    rMessage = "scriptFolder now: " + scriptFolder.getAbsolutePath();
-                    if (!scriptFolder.exists()) {
-                      rMessage = "scriptFolder not found: " + scriptFolder.getAbsolutePath();
-                      rStatus = rStatusNotFound;
-                      success = false;
-                    }
-                  }
-                }
-              // IMAGES
-              } else if (rCommand.startsWith("IMAGES")) {
-                String asImagePath;
-                if (rRessource.isEmpty()) {
-                  rMessage = "no imageFolder given ";
-                  rStatus = rStatusBadRequest;
-                  success = false;
-                } else {
-                  imageFolder = getFolder(rRessource);
-                  if (imageFolder.getPath().startsWith("__NET/")) {
-                    imageFolderNet = "http://" + imageFolder.getPath().substring(6);
-                    rMessage = "imageFolder now: " + imageFolderNet;
-                    asImagePath = imageFolderNet;
-                  } else {
-                    String fpGiven = imageFolder.getAbsolutePath();
-                    if (!imageFolder.exists()) {
-                      imageFolder = new File(imageFolder.getAbsolutePath() + ".sikuli");
-                      if (!imageFolder.exists()) {
-                        rMessage = "imageFolder not found: " + fpGiven;
-                        rStatus = rStatusNotFound;
-                        success = false;
-                      }
-                    }
-                    asImagePath = imageFolder.getAbsolutePath();
-                  }
-                  rMessage = "imageFolder now: " + asImagePath;
-                  ImagePath.add(asImagePath);
-                }
-                // RUN
-              } else if (rCommand.startsWith("RUN")) {
-                String script = rRessource;
-                File fScript = null;
-                File fScriptScript = null;
-                if (scriptFolderNet != null) {
-                  rMessage = "runScript from net not yet supported";
-                  rStatus = rStatusServiceNotAvail;
-                  success = false;
-                }
-                if (success) {
-                  Debug.log("Using script folder: " + ServerRunner.scriptFolder);
-                  fScript = new File(ServerRunner.scriptFolder, script);
-                  if (!fScript.exists()) {
-                    if (script.endsWith(".sikuli")) {
-                      script = script.replace(".sikuli", "");
-                    } else {
-                      script = script + ".sikuli";
-                    }
-                    fScript = new File(scriptFolder, script);
-                  }
-                  String scriptScript = script.replace(".sikuli", "");
-                  fScriptScript = new File(fScript, scriptScript + ".js");
-                  success = fScriptScript.exists();
-                  if (!success) {
-                    fScriptScript = new File(fScript, scriptScript + ".py");
-                    success = fScript.exists() && fScriptScript.exists();
-                    if (!success) {
-                      ServerRunner.dolog("Script folder path: " + fScript.getAbsolutePath());
-                      ServerRunner.dolog("Script file path: " + fScriptScript.getAbsolutePath());
-                      rMessage = "runScript: script not found, not valid or not supported "
-                              + fScriptScript.toString();
-                    }
-                    runType = runTypePY;
-                  }
-                }
-                if (success) {
-                  ImagePath.setBundlePath(fScript.getAbsolutePath());
-                  List<String> args = new ArrayList<String>();
-
-                  if (this.rQuery != null && this.rQuery.length() > 0) {
-                    String[] params = this.rQuery.split("[;&]");
-
-                    for (String param : params) {
-                      String[] pair = param.split("[=]");
-
-                      if (pair != null && pair.length == 2) {
-                        // Needs both a variable name and value, and supports repeated parameters
-                        String arg = String.format("--%1$s=%2$s", pair[0], pair[1]);
-                        ServerRunner.dolog("Parameter: %s", arg);
-                        args.add(arg);
-                      }
-                    }
-                  }
-
-                  success = this.startRunner(this.runType, fScript, fScriptScript, args.toArray(new String[0]));
-                }
-              } else if (rCommand.startsWith("EVAL")) {
-                if (jsRunner != null) {
-                  String line = rQuery;
-                  try {
-                    evalReturnObject = jsRunner.eval(line);
-                    rMessage = "runStatement: returned: "
-                            + (evalReturnObject == null ? "null" : evalReturnObject.toString());
-                    success = true;
-                  } catch (Exception ex) {
-                    rMessage = "runStatement: raised exception on eval: " + ex.toString();
-                    success = false;
-                  }
-                } else {
-                  rMessage = "runStatement: not possible --- no runner";
-                  rStatus = rStatusServiceNotAvail;
-                  success = false;
-                }
-              }
-            }
-            String retVal = "";
-            if (isHTTP) {
-              retVal = "HTTP/1.1 " + rStatus;
-              String state = (success ? "PASS " : "FAIL ") + rStatus.substring(0,3) + " ";
-              retVal += "\r\n\r\n" + state + rMessage + "\r";
-            } else {
-              retVal = (success ? "isok:\n" : "fail:\n") + rMessage + "\n###+++###";
-            }
-            try {
-              out.println(retVal);
-              out.flush();
-              ServerRunner.dolog("returned:\n"  + retVal.replace("###+++###", ""));
-            } catch (Exception ex) {
-              ServerRunner.dolog(-1, "write response: Exception:\n" + ex.getMessage());
-            }
-            stopRunning();
+  private static Undertow createServer(int port, String ipAddr) {
+    RoutingHandler commands = Handlers.routing()
+        .add(Methods.GET, "/stop*",    Predicates.prefix("stop"),
+             new StopCommandHttpHandler())
+        .add(Methods.GET, "/exit*",    Predicates.prefix("exit"),
+             new ExitCommandHttpHandler())
+        .add(Methods.GET, "/start*",   Predicates.prefixes("startp", "startr", "start"),
+             new StartCommandHttpHandler())
+        .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
+             new ScriptsCommandHttpHandler())
+        .add(Methods.GET, "/images*",  Predicates.prefix("images"),
+             new ImagesCommandHttpHandler())
+        .add(Methods.GET, "/run*",     Predicates.prefix("run"),
+             new RunCommandHttpHandler())
+        .add(Methods.GET, "/eval*",    Predicates.prefix("eval"),
+             new EvalCommandHttpHandler())
+        .setFallbackHandler(new AbstractCommandHttpHandler(){
+          @Override
+          public void handleRequest(HttpServerExchange exchange) throws Exception {
+            sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
+                         "invalid command: " + exchange.getRelativePath());
           }
-        } catch (Exception ex) {
-          ServerRunner.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
-          shouldKeep = false;
-          stopRunning();
+        });
+
+    ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
+    ResourceHandler resource = new ResourceHandler(resourceManager,
+                                   new RequestLimitingHandler(1,
+                                       new PreRoutingHttpHandler(commands)));
+
+    RootHttpHandler root = new RootHttpHandler(resource);
+    root.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
+      @Override
+      public void handleRequest(HttpServerExchange exchange) throws Exception {
+        Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
+        ServerRunner.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+        sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
+                     "server error: " + ex.getMessage());
+      }
+    });
+
+    Undertow server = Undertow.builder()
+                              .addHttpListener(port, "localhost")
+                              .addHttpListener(port, ipAddr)
+                              .setHandler(root)
+                              .build();
+    return server;
+  }
+
+  private static class StopCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      sendResponse(exchange, true, StatusCodes.OK, "stopping server");
+      exchange.getConnection().addCloseListener(new CloseListener() {
+        @Override
+        public void closed(ServerConnection connection) {
+          synchronized (lock) {
+            shouldStop = true;
+            lock.notify();
+          }
+        }
+      });
+      server.stop();
+    }
+  }
+
+  private static class ExitCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      sendResponse(exchange, true, StatusCodes.OK, "stopping client");
+      exchange.getConnection().close();
+    }
+  }
+
+  private static class StartCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      String runType = RUNTYPE_JS;
+      String path = exchange.getRelativePath();
+      if (path.length() > 6) {
+        if ("p".equals(path.substring(6, 7))) {
+          runType = RUNTYPE_PY;
+        } else if ("r".equals(path.substring(6, 7))) {
+          runType = RUNTYPE_RB;
         }
       }
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException ex) {
-        shouldKeep = false;
-        stopRunning();
+      int statusCode;
+      String message;
+      int retval = startRunner(runType, null, null);
+      if (retval == 0) {
+        setRunType(runType);
+        message = "startRunner for: " + getRunType();
+        statusCode = StatusCodes.OK;
+      } else {
+        message = "startRunner: not possible for: " + runType;
+        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
       }
+      sendResponse(exchange, (retval==0), statusCode, message);
     }
+  }
 
-    public void stopRunning() {
-      if (!shouldKeep) {
-        in.close();
-        out.close();
+  private static class ScriptsCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      String resource = exchange.getQueryParameters().get("*").getFirst();
+      boolean success = true;
+      int statusCode = StatusCodes.OK;
+      String message = null;
+      if (resource.isEmpty()) {
+        message = "no scriptFolder given ";
+        statusCode = StatusCodes.BAD_REQUEST;
+        success = false;
+      } else {
+        setScriptFolder(getFolder(resource));
+        if (getScriptFolder().getPath().startsWith("__NET/")) {
+          setScriptFolderNet("http://" + getScriptFolder().getPath().substring(6));
+          message = "scriptFolder now: " + getScriptFolderNet();
+        } else {
+          setScriptFolderNet(null);
+          message = "scriptFolder now: " + getScriptFolder().getAbsolutePath();
+          if (!getScriptFolder().exists()) {
+            message = "scriptFolder not found: " + getScriptFolder().getAbsolutePath();
+            statusCode = StatusCodes.NOT_FOUND;
+            success = false;
+          }
+        }
+      }
+      sendResponse(exchange, success, statusCode, message);
+    }
+  }
+
+  private static class ImagesCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      String resource = exchange.getQueryParameters().get("*").getFirst();
+      String asImagePath;
+      boolean success = true;
+      int statusCode = StatusCodes.OK;
+      String message = null;
+      if (resource.isEmpty()) {
+        message = "no imageFolder given ";
+        statusCode = StatusCodes.BAD_REQUEST;
+        success = false;
+      } else {
+        setImageFolder(getFolder(resource));
+        if (getImageFolder().getPath().startsWith("__NET/")) {
+          setImageFolderNet("http://" + getImageFolder().getPath().substring(6));
+          message = "imageFolder now: " + getImageFolderNet();
+          asImagePath = getImageFolderNet();
+        } else {
+          String fpGiven = getImageFolder().getAbsolutePath();
+          if (!getImageFolder().exists()) {
+            setImageFolder(new File(getImageFolder().getAbsolutePath() + ".sikuli"));
+            if (!getImageFolder().exists()) {
+              message = "imageFolder not found: " + fpGiven;
+              statusCode = StatusCodes.NOT_FOUND;
+              success = false;
+            }
+          }
+          asImagePath = getImageFolder().getAbsolutePath();
+        }
+        message = "imageFolder now: " + asImagePath;
+        ImagePath.add(asImagePath);
+      }
+      sendResponse(exchange, success, statusCode, message);
+    }
+  }
+
+  private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      String script = exchange.getQueryParameters().get("*").getFirst();
+      File fScript = null;
+      File fScriptScript = null;
+      boolean success = true;
+      int statusCode = StatusCodes.OK;
+      String message = null;
+      if (getScriptFolderNet() != null) {
+        message = "runScript from net not yet supported";
+        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+        success = false;
+      }
+      if (success) {
+        Debug.log("Using script folder: " + getScriptFolder());
+        fScript = new File(getScriptFolder(), script);
+        if (!fScript.exists()) {
+          if (script.endsWith(".sikuli")) {
+            script = script.replace(".sikuli", "");
+          } else {
+            script = script + ".sikuli";
+          }
+          fScript = new File(getScriptFolder(), script);
+        }
+        String scriptScript = script.replace(".sikuli", "");
+        fScriptScript = new File(fScript, scriptScript + ".js");
+        success = fScriptScript.exists();
+        if (!success) {
+          fScriptScript = new File(fScript, scriptScript + ".py");
+          success = fScript.exists() && fScriptScript.exists();
+          if (!success) {
+            ServerRunner.dolog("Script folder path: " + fScript.getAbsolutePath());
+            ServerRunner.dolog("Script file path: " + fScriptScript.getAbsolutePath());
+            message = "runScript: script not found, not valid or not supported "
+                    + fScriptScript.toString();
+            statusCode = StatusCodes.NOT_FOUND;
+          }
+          setRunType(RUNTYPE_PY);
+        }
+      }
+      if (success) {
+        ImagePath.setBundlePath(fScript.getAbsolutePath());
+        List<String> args = new ArrayList<String>();
+
+        if (exchange.getQueryString() != null && !exchange.getQueryString().isEmpty()) {
+          String[] params = exchange.getQueryString().split("[;&]");
+
+          for (String param : params) {
+            String[] pair = param.split("[=]");
+
+            if (pair != null && pair.length == 2) {
+              // Needs both a variable name and value, and supports repeated parameters
+              String arg = String.format("%1$s=%2$s", pair[0], pair[1]);
+              ServerRunner.dolog("Parameter: %s", arg);
+              args.add(arg);
+            }
+          }
+        }
+
+        int retval = startRunner(getRunType() , fScript, fScriptScript, args.toArray(new String[0]));
+        message = "runScript: returned: " + retval;
+        if (retval < 0) {
+          statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+        } 
+      }
+      sendResponse(exchange, success, statusCode, message);
+    }
+  }
+
+  private static class EvalCommandHttpHandler extends AbstractCommandHttpHandler {
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      boolean success = true;
+      int statusCode = StatusCodes.OK;
+      String message = null;
+      if (getJsRunner() != null) {
+        String line = exchange.getQueryString();
         try {
-          socket.close();
-        } catch (IOException ex) {
-          ServerRunner.dolog(-1, "fatal: socket not closeable");
-          System.exit(1);
+          Object evalReturnObject = getJsRunner().eval(line);
+          message = "runStatement: returned: "
+                  + (evalReturnObject == null ? "null" : evalReturnObject.toString());
+          success = true;
+        } catch (Exception ex) {
+          message = "runStatement: raised exception on eval: " + ex.toString();
+          success = false;
         }
-        keepRunning = false;
+      } else {
+        message = "runStatement: not possible --- no runner";
+        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+        success = false;
       }
+      sendResponse(exchange, success, statusCode, message);
+    }
+  }
+
+  private static abstract class AbstractCommandHttpHandler implements HttpHandler {
+    protected static final String RUNTYPE_JS = "JavaScript";
+    protected static final String RUNTYPE_PY = "jython";
+    protected static final String RUNTYPE_RB = "jruby";
+
+    private static String runType = RUNTYPE_JS;
+    private static File scriptFolder = null;
+    private static String scriptFolderNet = null;
+    private static File imageFolder = null;
+    private static String imageFolderNet = null;
+    private static ScriptEngine jsRunner = null;
+
+    protected void setRunType(String runType) {
+      AbstractCommandHttpHandler.runType = runType;
+    }
+    protected String getRunType() {
+      return AbstractCommandHttpHandler.runType;
+    }
+    protected void setScriptFolder(File scriptFolder) {
+      AbstractCommandHttpHandler.scriptFolder = scriptFolder;
+    }
+    protected File getScriptFolder() {
+      return AbstractCommandHttpHandler.scriptFolder;
+    }
+    protected void setScriptFolderNet(String scriptFolderNet) {
+      AbstractCommandHttpHandler.scriptFolderNet = scriptFolderNet;
+    }
+    protected String getScriptFolderNet() {
+      return AbstractCommandHttpHandler.scriptFolderNet;
+    }
+    protected void setImageFolder(File imageFolder) {
+      AbstractCommandHttpHandler.imageFolder = imageFolder;
+    }
+    protected File getImageFolder() {
+      return AbstractCommandHttpHandler.imageFolder;
+    }
+    protected void setImageFolderNet(String imageFolderNet) {
+      AbstractCommandHttpHandler.imageFolderNet = imageFolderNet;
+    }
+    protected String getImageFolderNet() {
+      return AbstractCommandHttpHandler.imageFolderNet;
+    }
+    @SuppressWarnings("unused")
+    protected void setJsRunner(ScriptEngine jsRunner) {
+      AbstractCommandHttpHandler.jsRunner = jsRunner;
+    }
+    protected ScriptEngine getJsRunner() {
+      return AbstractCommandHttpHandler.jsRunner;
     }
 
-    private File getFolder(String path) {
+    protected void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
+      exchange.setStatusCode(stateCode);
+      exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+      String head = exchange.getProtocol() + " " + StatusCodes.getReason(exchange.getStatusCode());
+      String body = (success ? "PASS " : "FAIL ") + exchange.getStatusCode() + " " + message;
+      exchange.getResponseSender().send(body);
+
+      ServerRunner.dolog("returned:\n" + (head + "\n\n" + body));
+    }
+
+    protected File getFolder(String path) {
       File aFolder = new File(path);
       Debug.log("Original path: " + aFolder);
       if (path.toLowerCase().startsWith("/home/")) {
@@ -464,74 +520,64 @@ public class ServerRunner extends AbstractScriptRunner {
       Debug.log("Transformed path: " + aFolder);
       return aFolder;
     }
-    
-    private boolean checkRequest(String request) {
-      shouldKeep = false;
-      rCommand = "NOOP";
-      rMessage = "invalid: " + request;
-      rStatus = rStatusBadRequest;
-      String[] parts = request.split("\\s");
-      if (parts.length != 3 || !"GET".equals(parts[0]) || !parts[1].startsWith("/")) {
-        return false;
-      }
-      if (!rVersion.equals(parts[2])) {
-        return false;
-      }
-      String cmd = parts[1].substring(1);
-      if (cmd.startsWith("X")) {
-        cmd = cmd.substring(1);
-        shouldKeep = true;
-      }
-      parts = cmd.split("\\?");
-      cmd = parts[0];
-      rQuery = "";
-      if (parts.length > 1) {
-        rQuery = parts[1];
-      }
-      parts = cmd.split("/");
-      if (!"START,STARTP,STOP,EXIT,SCRIPTS,IMAGES,RUN,EVAL,".contains((parts[0]+",").toUpperCase())) {
-        rMessage = "invalid command: " + request;
-        return false;
-      }
-      rCommand = parts[0].toUpperCase();
-      rMessage = "";
-      rStatus = rStatusOK;
-      rRessource = "";
-      if (parts.length > 1) {
-        rRessource = cmd.substring(rCommand.length());
-      }
-      return true;
+
+    protected int startRunner(String runType, File fScript, File fScriptScript) {
+      return startRunner(runType, fScript, fScriptScript, new String[0]);
     }
 
-    private boolean startRunner(String runType, File fScript, File fScriptScript) {
-      return this.startRunner(runType, fScript, fScriptScript, new String[0]);
-    }
-
-    private boolean startRunner(String runType, File fScript, File fScriptScript, String[] args) {
-      
+    protected int startRunner(String runType, File fScript, File fScriptScript, String[] args) {
       try {
         Runner.getRunner(runType).init(null);
-      }catch (Exception ex) {
-        rMessage = "startRunner not possible:" + ex.getMessage();
-        rStatus = rStatusServiceNotAvail;
-        return false;
-      } 
-      
-      if (fScript == null) {
-        return true;
+      } catch (Exception ex) {
+        ServerRunner.dolog("startRunner not possible:" + ex.getMessage());
+        return -1;
       }
-
+      if (fScript == null) {
+        return 0;
+      }
       //TODO int retval = Runner.run(fScript.toString(), args);
-      int retval = Runner.run(fScript.toString(), args, null);
-                  
-      rMessage = "runScript: returned: " + retval;
-           
-      if (retval < 0) {         
-        rStatus = rStatusServiceNotAvail;
-        return false;
-      }      
-      
-      return true;
+      return Runner.run(fScript.toString(), args, null);
+    }
+  }
+
+  private static class PreRoutingHttpHandler implements HttpHandler {
+    private static final Pattern PATTERN = Pattern.compile("^(?<command>/[^/]+)(?<resource>/.*)*");
+    private HttpHandler next;
+
+    public PreRoutingHttpHandler(HttpHandler next) {
+        this.next = next;
+    }
+
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+        String path = exchange.getRelativePath();
+        Matcher matcher = PATTERN.matcher(path);
+        if (matcher.find()) {
+            String command = matcher.group("command").toLowerCase();
+            String resource = Optional.ofNullable(matcher.group("resource")).orElse("");
+            path = command+resource;
+        }
+        exchange.setRelativePath(path);
+
+        String query = exchange.getQueryString();
+        exchange.setQueryString(URLUtils.decode(query, "UTF-8", false, new StringBuilder()));
+
+        next.handleRequest(exchange);
+    }
+  }
+
+  private static class RootHttpHandler extends ExceptionHandler {
+    public RootHttpHandler(HttpHandler handler) {
+      super(handler);
+    }
+
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      isHandling = true;
+      ServerRunner.dolog("received request: <%s %s %s> from %s", 
+                         exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
+                         exchange.getSourceAddress());
+      super.handleRequest(exchange);
     }
   }
 }
