@@ -22,6 +22,7 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
+import com.sun.jna.platform.win32.WinUser.MSG;
 import com.sun.jna.win32.W32APIOptions;
 
 import java.util.Arrays;
@@ -54,30 +55,4 @@ public class User32 {
 
     public static native boolean PeekMessage(MSG lpMsg, Pointer hWnd, int wMsgFilterMin, int wMsgFilterMax, int wRemoveMsg);
 
-    @SuppressWarnings({"UnusedDeclaration"})
-    public static class MSG extends Structure {
-        public Pointer hWnd;
-        public int message;
-        public Parameter wParam;
-        public Parameter lParam;
-        public int time;
-        public int x;
-        public int y;
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("hWnd", "message", "wParam", "lParam", "time", "x", "y");
-        }
-    }
-
-    public static class Parameter extends IntegerType {
-        @SuppressWarnings("UnusedDeclaration")
-        public Parameter() {
-            this(0);
-        }
-
-        public Parameter(long value) {
-            super(Pointer.SIZE, value);
-        }
-    }
 }

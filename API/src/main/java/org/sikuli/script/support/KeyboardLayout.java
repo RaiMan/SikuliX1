@@ -587,7 +587,7 @@ public class KeyboardLayout {
       HWND hwnd = SXUser32.INSTANCE.GetForegroundWindow();
       if (hwnd != null) {
         int threadID = SXUser32.INSTANCE.GetWindowThreadProcessId(hwnd, null);
-        keyboarLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID);
+        keyboarLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID).getLanguageIdentifier();
       }
 
       layout = LAYOUTS.get(keyboarLayoutId);

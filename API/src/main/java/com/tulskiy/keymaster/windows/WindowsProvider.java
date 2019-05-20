@@ -17,6 +17,7 @@
 
 package com.tulskiy.keymaster.windows;
 
+import com.sun.jna.platform.win32.WinUser.MSG;
 import com.tulskiy.keymaster.common.HotKey;
 import com.tulskiy.keymaster.common.HotKeyListener;
 import com.tulskiy.keymaster.common.MediaKey;
