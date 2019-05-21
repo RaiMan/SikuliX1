@@ -8,7 +8,7 @@ import java.util.Map;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.SXUser32;
 
-import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.WinDef.HKL;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import org.sikuli.script.Key;
 
@@ -17,7 +17,7 @@ public class KeyboardLayout {
   private static final Map<Character, int[]> DEFAULT_KEYBOARD_LAYOUT = buildAwtEnUs(); // en-US;
 
   private static final Map<Integer, Map<Character, int[]>> LAYOUTS = new HashMap<>();
-  
+
   class WindowsVkCodes {
     public static final int VK_SHIFT = 0x10; // SHIFT key
     public static final int VK_CONTROL = 0x11; // CTRL key
@@ -314,7 +314,7 @@ public class KeyboardLayout {
     layout.putAll(mapKeyCodes(new int[] { WindowsVkCodes.VK_CONTROL, WindowsVkCodes.VK_MENU }, keyboarLayoutId));
     layout.putAll(mapKeyCodes(new int[] { WindowsVkCodes.VK_SHIFT }, keyboarLayoutId));
     layout.putAll(mapKeyCodes(new int[0], keyboarLayoutId));
-    
+
     // Modifier
     layout.put(Key.C_SHIFT, new int[] { WindowsVkCodes.VK_SHIFT });
     layout.put(Key.C_CTRL, new int[] { WindowsVkCodes.VK_CONTROL });
@@ -374,7 +374,7 @@ public class KeyboardLayout {
     layout.put(Key.C_MULTIPLY, new int[] { WindowsVkCodes.VK_MULTIPLY });
     layout.put(Key.C_DIVIDE, new int[] { WindowsVkCodes.VK_DIVIDE });
     layout.put(Key.C_DECIMAL, new int[] { WindowsVkCodes.VK_DECIMAL });
-    layout.put(Key.C_CONTEXT, new int[] { WindowsVkCodes.VK_APPS });    
+    layout.put(Key.C_CONTEXT, new int[] { WindowsVkCodes.VK_APPS });
     layout.put(Key.C_WIN, new int[] { WindowsVkCodes.VK_LWIN });
     // hack: alternative tab in GUI
     layout.put(Key.C_NEXT, new int[] { -WindowsVkCodes.VK_TAB });
@@ -587,7 +587,10 @@ public class KeyboardLayout {
       HWND hwnd = SXUser32.INSTANCE.GetForegroundWindow();
       if (hwnd != null) {
         int threadID = SXUser32.INSTANCE.GetWindowThreadProcessId(hwnd, null);
-        keyboarLayoutId = SXUser32.INSTANCE.GetKeyboardLayout(threadID).getLanguageIdentifier();
+        HKL keyboardLayoutHKL = SXUser32.INSTANCE.GetKeyboardLayout(threadID);
+        if (keyboardLayoutHKL != null) {
+          keyboarLayoutId = keyboardLayoutHKL.getLanguageIdentifier();
+        }
       }
 
       layout = LAYOUTS.get(keyboarLayoutId);
