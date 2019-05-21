@@ -139,8 +139,8 @@ public class ImagePath {
    */
   public static class PathEntry {
 
-    public URL pathURL;
-    public String path;
+    public URL pathURL = null;
+    public String path = null;
 
     /**
      * create a new image path entry
@@ -155,7 +155,21 @@ public class ImagePath {
       } else {
         pathURL = makePathURL(path, null).pathURL;
       }
-      log(lvl + 1, "PathEntry: %s \nas %s", path, pathURL);
+      log(lvl, "ImagePathEntry: %s (%s)", path, pathURL);
+    }
+
+    public PathEntry(File folder) {
+      try {
+        path = folder.getCanonicalPath();
+        pathURL = new URL("file", null, path);
+        log(lvl, "ImagePathEntry: %s (%s)", path, pathURL);
+      } catch (IOException e) {
+        log(-1, "ImagePathEntry: %s", folder);
+      }
+    }
+
+    public boolean isValid() {
+      return path != null && pathURL != null;
     }
 
     public String getPath() {
@@ -209,7 +223,12 @@ public class ImagePath {
           }
         } else if (other instanceof String) {
           if (isFile()) {
-            return FileManager.pathEquals(pathURL.getPath(), (String) other);
+            return new File(pathURL.getFile()).equals(new File((String) other));
+          }
+          return false;
+        } else if (other instanceof File) {
+          if (isFile()) {
+            return new File(pathURL.getFile()).equals(other);
           }
           return false;
         }
@@ -532,6 +551,25 @@ public class ImagePath {
       }
       if (pathEntry.existsFile()) {
         Image.purge(imagePaths.get(0));
+        imagePaths.set(0, pathEntry);
+        log(lvl, "new BundlePath: %s", pathEntry);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean setBundleFolder(File folder) {
+    if (null == folder) {
+      return false;
+    }
+    if (bundleEquals(folder)) {
+      return true;
+    }
+    if (folder.exists()) {
+      Image.purge(imagePaths.get(0));
+      PathEntry pathEntry = new PathEntry(folder);
+      if (pathEntry.isValid()) {
         imagePaths.set(0, pathEntry);
         log(lvl, "new BundlePath: %s", pathEntry);
         return true;

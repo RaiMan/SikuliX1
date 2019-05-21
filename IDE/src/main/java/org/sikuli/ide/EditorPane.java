@@ -150,18 +150,18 @@ public class EditorPane extends JTextPane {
     initForScriptType();
   }
 
-  public String selectFile(boolean accessingAsFile) {
-    File file = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
-    if (file == null) {
+  public File selectFile(boolean accessingAsFile) {
+    File fileSelected = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
+    if (fileSelected == null) {
       return null;
     }
-    String fileSelected = FileManager.slashify(file.getAbsolutePath(), false);
-    if (fileSelected.endsWith("###isText")) {
-      fileSelected = fileSelected.replace("###isText", "");
+//    String fileSelected = FileManager.slashify(file.getAbsolutePath(), false);
+    if (fileSelected.getPath().endsWith("###isText")) {
+      fileSelected = new File(fileSelected.getPath().replace("###isText", ""));
       isText = true;
     }
     //int i = SikulixIDE.get().isAlreadyOpen(fname);
-    if (alreadyOpen(fileSelected)) {
+    if (alreadyOpen(fileSelected.getPath())) {
       log(lvl, "loadFile: Already open in IDE: " + fileSelected);
       return null;
     }
@@ -195,16 +195,15 @@ public class EditorPane extends JTextPane {
     return SikulixIDE.get().getTabs();
   }
 
-  public void loadFile(String filename) {
-    log(lvl, "loadfile: %s", filename);
+  public void loadFile(File file) {
+    log(lvl, "loadfile: %s", file);
     File fileLoaded = null;
-    filename = FileManager.slashify(filename, false);
-    if (filename.endsWith("###isText")) {
-      filename = filename.replace("###isText", "");
+    if (file.getPath().endsWith("###isText")) {
+      file = new File(file.getPath().replace("###isText", ""));
       isText = true;
     }
-    File fileToLoad = new File(filename);
-    if (filename.endsWith(".py")) {
+    File fileToLoad = file;
+    if (file.getPath().endsWith(".py")) {
       fileLoaded = fileToLoad;
       isPython = true;
     } else if (isText) {
@@ -547,13 +546,13 @@ public class EditorPane extends JTextPane {
 
   public void setImageFolder() {
     if (null != editorPaneImageFolder) {
-      ImagePath.setBundlePath(editorPaneImageFolder.getAbsolutePath());
+      ImagePath.setBundleFolder(editorPaneImageFolder);
     }
   }
 
   public void setImageFolder(File imageFolder) {
     editorPaneImageFolder = imageFolder;
-    ImagePath.setBundlePath(editorPaneImageFolder.getAbsolutePath());
+    ImagePath.setBundleFolder(editorPaneImageFolder);
   }
 
   File editorPaneImageFolder = null;

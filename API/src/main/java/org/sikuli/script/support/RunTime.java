@@ -626,7 +626,7 @@ public class RunTime {
   public int javaArch = 32;
   public String osArch = "??";
   public int javaVersion = 0;
-  public String javahome = FileManager.slashify(System.getProperty("java.home"), false);
+  public File javahome = new File(System.getProperty("java.home"));
   public String osName = "NotKnown";
   public String sysName = "NotKnown";
   public String osVersion = "";
@@ -969,14 +969,14 @@ public class RunTime {
 
     clsRef = RunTime.class;
     CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
-    String base = null;
+    fSxBaseJar = null;
     URL urlCodeSrc = null;
     String urlCodeSrcProto = "not-set";
     if (codeSrc != null) {
       urlCodeSrc = codeSrc.getLocation();
       urlCodeSrcProto = urlCodeSrc.getProtocol();
       if (null != codeSrc) {
-        base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
+        fSxBaseJar = new File(codeSrc.getLocation().getPath());
         if (urlCodeSrcProto == "file") {
           runningAs = RunType.CLASSES;
           if (urlCodeSrc.getPath().endsWith(".jar")) {
@@ -988,8 +988,7 @@ public class RunTime {
       }
     }
     appType = "from a jar";
-    if (base != null) {
-      fSxBaseJar = new File(base);
+    if (fSxBaseJar != null) {
       String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
       log(4, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
@@ -1405,7 +1404,7 @@ public class RunTime {
       String lib = "jawt.dll";
       File fJawtDll = new File(fLibsFolder, lib);
       FileManager.deleteFileOrFolder(fJawtDll);
-      FileManager.xcopy(new File(javahome + "/bin/" + lib), fJawtDll);
+      FileManager.xcopy(new File(javahome, "bin/" + lib), fJawtDll);
       if (!fJawtDll.exists()) {
         terminate(999, "problem copying %s", fJawtDll);
       }

@@ -641,15 +641,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private boolean restoreScriptFromSession(File file) {
     EditorPane editorPane = makeTab(-1);
-    String filePath = file.getAbsolutePath();
-    if (filePath.endsWith("###isText")) {
-      filePath = filePath.replace("###isText", "");
+    if (file.getPath().endsWith("###isText")) {
+      file = new File(file.getPath().replace("###isText", ""));
       editorPane.isText = true;
     }
-    editorPane.loadFile(filePath);
+    editorPane.loadFile(file);
     if (editorPane.hasEditingFile()) {
-      //editorPane.checkSource();
-      setCurrentFileTabTitle(filePath);
+      setCurrentFileTabTitle(file.getAbsolutePath());
       editorPane.setCaretPosition(0);
       return true;
     }
@@ -709,11 +707,21 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     int selectedTab = tabs.getSelectedIndex();
     EditorPane editorPane = makeTab(tabIndex);
+    File tabFile;
     if (null == fname) {
-      fname = editorPane.selectFile(accessingAsFile);
+      tabFile = editorPane.selectFile(accessingAsFile);
+    } else {
+      tabFile = new File(fname);
     }
-    if (fname != null) {
-      fname = loadTabContent(editorPane, fname);
+    if (tabFile != null) {
+      editorPane.loadFile(tabFile);
+      if (editorPane.hasEditingFile()) {
+        setCurrentFileTabTitle(tabFile.getAbsolutePath());
+        recentAdd(tabFile.getAbsolutePath());
+        if (editorPane.isText) {
+          collapseMessageArea();
+        }
+      }
     } else {
       log(3, "selectFile: cancelled");
       removeCurrentTab();
@@ -724,20 +732,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         tabs.setSelectedIndex(alreadyOpen);
       }
     }
-    return fname;
-  }
-
-  String loadTabContent(EditorPane editorPane, String fname) {
-    editorPane.loadFile(fname);
-    if (editorPane.hasEditingFile()) {
-      setCurrentFileTabTitle(fname);
-      recentAdd(fname);
-      if (editorPane.isText) {
-        collapseMessageArea();
-      }
-      return fname;
+    if (null == tabFile) {
+      return null;
+    } else {
+      return tabFile.getAbsolutePath();
     }
-    return null;
   }
 
   boolean checkDirtyPanes() {

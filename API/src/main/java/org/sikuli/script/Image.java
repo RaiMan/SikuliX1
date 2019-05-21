@@ -629,7 +629,9 @@ public class Image {
 
   private static Image createImageValidate(Image img, boolean verbose) {
     if (img == null) {
-      log(-1, "Image not valid, creating empty Image");
+      if (verbose) {
+        log(-1, "Image not valid, creating empty Image");
+      }
       return new Image("", null);
     }
     if (!img.isValid()) {
@@ -694,32 +696,31 @@ public class Image {
       img = new Image();
       img.setIsText(true);
     } else {
-      fName = FileManager.slashify(fName, false);
-      URL fURL = null;
-      String fileName = FileManager.getValidImageFilename(fName);
-      if (fileName.isEmpty()) {
+      URL imageURL = null;
+      String imageFileName = FileManager.getValidImageFilename(fName);
+      if (imageFileName.isEmpty()) {
         log(-1, "not a valid image type: " + fName);
-        fileName = fName;
+        imageFileName = fName;
       }
-      File imgFile = new File(fileName);
+      File imgFile = new File(imageFileName);
       if (imgFile.isAbsolute()) {
         if (imgFile.exists()) {
-          fURL = FileManager.makeURL(fileName);
+          imageURL = FileManager.makeURL(imageFileName);
         }
       } else {
-        fURL = imageNames.get(fileName);
-        if (fURL == null) {
-          fURL = ImagePath.find(fileName);
+        imageURL = imageNames.get(imageFileName);
+        if (imageURL == null) {
+          imageURL = ImagePath.find(imageFileName);
         }
       }
-      if (fURL != null) {
-        img = imageFiles.get(fURL);
+      if (imageURL != null) {
+        img = imageFiles.get(imageURL);
         if (img != null && null == imageNames.get(img.imageName)) {
-          imageNames.put(img.imageName, fURL);
+          imageNames.put(img.imageName, imageURL);
         }
       }
       if (img == null) {
-        img = new Image(fileName, fURL, silent);
+        img = new Image(imageFileName, imageURL, silent);
         img.setIsAbsolute(imgFile.isAbsolute());
       } else {
         if (img.bimg != null) {
