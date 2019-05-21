@@ -194,8 +194,7 @@ public class JythonRunner extends AbstractScriptRunner {
       "# -*- coding: utf-8 -*- ",
       "import org.sikuli.script.SikulixForJython",
       "from sikuli import *",
-      "use() #resetROI()",
-      "setShowActions(False)"};
+      "use() #resetROI()"};
 
   /**
    * {@inheritDoc}

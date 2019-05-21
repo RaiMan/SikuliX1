@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Random;
@@ -12,6 +13,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Device;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RobotDesktop;
 
 /**
  * Main pupose is to coordinate the mouse usage among threads <br>
@@ -253,51 +255,56 @@ public class Mouse {
       shouldMove = false;
       loc = at();
     }
-    IRobot r = null;
-    IScreen s = loc.getScreen();
-    if (s == null) {
+    IRobot robot = null;
+    IScreen screen = loc.getScreen();
+    if (screen == null) {
       profiler.end();
       return 0;
     }
-    r = s.getRobot();
-    if (r == null) {
+    robot = screen.getRobot();
+    if (robot == null) {
       profiler.end();
       return 0;
     }
     get().device.use(region);
     profiler.lap("after use");
     if (shouldMove) {
-      r.smoothMove(loc);
+      if (Settings.isShowActions() && !screen.isOtherScreen()) {
+        ((Screen) screen).showTarget(loc);
+        ((RobotDesktop) robot).smoothMoveSlow(loc);
+      } else {
+        robot.smoothMove(loc);
+      }
       profiler.lap("after move");
     }
-    r.clickStarts();
+    robot.clickStarts();
     if (modifiers > 0) {
-      r.pressModifiers(modifiers);
+      robot.pressModifiers(modifiers);
     }
     int pause = Settings.ClickDelay > 1 ? 1 : (int) (Settings.ClickDelay * 1000);
     Settings.ClickDelay = 0.0;
     profiler.lap("before Down");
     if (dblClick) {
-      r.mouseDown(buttons);
+      robot.mouseDown(buttons);
       profiler.lap("before Up");
-      r.mouseUp(buttons);
+      robot.mouseUp(buttons);
       profiler.lap("before Down");
-      r.delay(pause);
-      r.mouseDown(buttons);
+      robot.delay(pause);
+      robot.mouseDown(buttons);
       profiler.lap("before Up");
-      r.mouseUp(buttons);
+      robot.mouseUp(buttons);
     } else {
-      r.mouseDown(buttons);
-      r.delay(pause);
+      robot.mouseDown(buttons);
+      robot.delay(pause);
       profiler.lap("before Up");
-      r.mouseUp(buttons);
+      robot.mouseUp(buttons);
     }
     profiler.lap("after click");
     if (modifiers > 0) {
-      r.releaseModifiers(modifiers);
+      robot.releaseModifiers(modifiers);
     }
-    r.clickEnds();
-    r.waitForIdle();
+    robot.clickEnds();
+    robot.waitForIdle();
     profiler.lap("before let");
     get().device.let(region);
     long duration = profiler.end();

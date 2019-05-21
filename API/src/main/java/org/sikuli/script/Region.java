@@ -24,6 +24,7 @@ public class Region {
 
   private static String me = "Region: ";
   private static int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -62,6 +63,7 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="001 Fields x, y, w, h">
+
   /**
    * @return x of top left corner
    */
@@ -149,6 +151,7 @@ public class Region {
 
   //<editor-fold desc="010 Fields throwException, findFailed/imageMissing">
   //<editor-fold desc="1 throwexception">
+
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
    * false - do not abort script on FindFailed (might lead to NPE's later)<br>
@@ -187,7 +190,9 @@ public class Region {
   private boolean throwExceptionDefault = Settings.ThrowException;
   private boolean throwException = throwExceptionDefault;
   //</editor-fold>
+
   //<editor-fold desc="2 findFailedResponse">
+
   /**
    * FindFailedResponse.<br>
    * ABORT - abort script on FindFailed <br>
@@ -224,7 +229,8 @@ public class Region {
 
   //<editor-fold desc="3 findFailedHandler">
   public void setFindFailedHandler(Object handler) {
-    findFailedHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
+    findFailedResponse = FindFailedResponse.HANDLE;
+    findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
     log(lvl, "Setting FindFailedHandler");
   }
 
@@ -233,32 +239,22 @@ public class Region {
 
   //<editor-fold desc="4 imageMissingHandler">
   public void setImageMissingHandler(Object handler) {
-    imageMissingHandler = setHandler(handler, ObserveEvent.Type.MISSING);
+    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
     log(lvl, "Setting ImageMissingHandler");
   }
 
   private Object imageMissingHandler = FindFailed.getImageMissingHandler();
   //</editor-fold>
 
-  private Object setHandler(Object handler, ObserveEvent.Type type) {
-    findFailedResponse = FindFailedResponse.HANDLE;
-    if (handler != null && (handler.getClass().getName().contains("org.python")
-            || handler.getClass().getName().contains("org.jruby"))) {
-      handler = new ObserverCallBack(handler, type);
-    } else {
-      ((ObserverCallBack) handler).setType(type);
-    }
-    return handler;
-  }
   //</editor-fold>
 
   //<editor-fold desc="011 Fields wait observe timing">
+
   /**
    * the time in seconds a find operation should wait
-   *
+   * <p>
    * for the appearence of the target in this region<br>
    * initial value is the global AutoWaitTimeout setting at time of Region creation<br>
-   *
    *
    * @param sec seconds
    */
@@ -385,7 +381,7 @@ public class Region {
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }
@@ -585,6 +581,7 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="002 Constructors">
+
   /**
    * internal use only, used for new Screen objects to get the Region behavior
    */
@@ -2074,6 +2071,7 @@ public class Region {
    * (String) - on/off with given color
    * (int,String) - int seconds with given color
    * (float), (float,String) - same as int
+   *
    * @param args
    * @return this
    */
@@ -2113,7 +2111,6 @@ public class Region {
 
   /**
    * Switch on the regions highlight border (red frame)
-   *
    */
   public Region highlightOn() {
     return highlightOn(null);
@@ -2122,7 +2119,7 @@ public class Region {
   /**
    * Switch on the regions highlight border (given color)
    *
-   * @param color    Color of frame (see method highlight(color))
+   * @param color Color of frame (see method highlight(color))
    */
   public Region highlightOn(String color) {
     return doHighlight(true, color, false);
@@ -2130,7 +2127,6 @@ public class Region {
 
   /**
    * Switch on the regions highlight border (red frame)
-   *
    */
   public Region highlightOff() {
     return doHighlight(false, null, false);
@@ -2138,9 +2134,9 @@ public class Region {
 
   /**
    * show a colored frame around the region for a given time or switch on/off
-   *
+   * <p>
    * () or (color) switch on/off with color (default red)
-   *
+   * <p>
    * (number) or (number, color) show in color (default red) for number seconds (cut to int)
    *
    * @return this region
@@ -2174,7 +2170,7 @@ public class Region {
     }
     if (!silent) {
       Debug.action("highlight " + (color != null ? " color: " + color : "") +
-              (toEnable ? "on: " : "off: ") + toStringShort());
+          (toEnable ? "on: " : "off: ") + toStringShort());
     }
     if (toEnable) {
       if (null == overlay) {
@@ -2229,7 +2225,7 @@ public class Region {
       return highlight((int) secs, color);
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-            + (color != null ? " color: " + color : ""));
+        + (color != null ? " color: " + color : ""));
     new ScreenHighlighter(getScreen(), color).highlight(this, secs);
     return this;
   }
@@ -2301,7 +2297,7 @@ public class Region {
     String targetStr = img.getName();
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
+      response = handleImageMissing(img, false); //wait
       if (response == null) {
         if (Settings.SwitchToText) {
           log(lvl, "wait: image missing: switching to text search (deprecated - use text methods)");
@@ -2428,7 +2424,7 @@ public class Region {
     Image img = rf._image;
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
+      response = handleImageMissing(img, false);//exists
       if (response == null) {
         if (Settings.SwitchToText) {
           log(lvl, "Exists: image missing: switching to text search (deprecated - use text methods)");
@@ -2516,7 +2512,7 @@ public class Region {
     String targetStr = img.getName();
     Boolean response = true;
     if (!img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
+      response = handleImageMissing(img, false);//waitVanish
     }
     if (null != response && response) {
       log(lvl, "waiting for " + targetStr + " to vanish within %.1f secs", timeout);
@@ -2556,14 +2552,14 @@ public class Region {
     String targetStr = img.getName();
     Boolean response = true;
     if (!img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);
+      response = handleImageMissing(img, false);//findAll
       if (response == null) {
         throw new RuntimeException(String.format("SikuliX: findAll: ImageMissing: %s", target));
       }
     }
     while (null != response && response) {
       log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-              autoWaitTimeout, targetStr, this.toStringShort());
+          autoWaitTimeout, targetStr, this.toStringShort());
       if (autoWaitTimeout > 0) {
         rf.repeat(autoWaitTimeout);
         lastMatches = rf.getMatches();
@@ -2623,11 +2619,11 @@ public class Region {
       public int compare(Match m1, Match m2) {
         int xMid1 = m1.getCenter().x;
         int yMid1 = m1.getCenter().y;
-        int yTop = yMid1 - m1.h/2;
-        int yBottom = yMid1 + m1.h/2;
+        int yTop = yMid1 - m1.h / 2;
+        int yBottom = yMid1 + m1.h / 2;
         int xMid2 = m2.getCenter().x;
         int yMid2 = m2.getCenter().y;
-        if (yMid2 > yTop &&  yMid2 < yBottom) {
+        if (yMid2 > yTop && yMid2 < yBottom) {
           if (xMid1 > xMid2) {
             return 1;
           }
@@ -2651,11 +2647,11 @@ public class Region {
       public int compare(Match m1, Match m2) {
         int xMid1 = m1.getCenter().x;
         int yMid1 = m1.getCenter().y;
-        int xLeft = xMid1 - m1.w/2;
-        int xRight = xMid1 + m1.w/2;
+        int xLeft = xMid1 - m1.w / 2;
+        int xRight = xMid1 + m1.w / 2;
         int xMid2 = m2.getCenter().x;
         int yMid2 = m2.getCenter().y;
-        if (xMid2 > xLeft &&  xMid2 < xRight) {
+        if (xMid2 > xLeft && xMid2 < xRight) {
           if (yMid1 > yMid2) {
             return 1;
           }
@@ -2882,7 +2878,7 @@ public class Region {
       finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
-                new Date().getTime() - lastSearchTimeRepeat);
+            new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
       finder.findRepeat();
@@ -3164,7 +3160,7 @@ public class Region {
       if (img == null) {
         _image = Image.getImageFromTarget(target);
       } else if (target instanceof ScreenImage) {
-        _image = new Image (((ScreenImage) target).getImage());
+        _image = new Image(((ScreenImage) target).getImage());
       } else {
         _image = img;
       }
@@ -3440,7 +3436,7 @@ public class Region {
       // TODO HACK to allow recapture on FindFailed PROMPT
       if (img.backup()) {
         img.delete();
-        state = handleImageMissing(img, true);
+        state = handleImageMissing(img, true); //hack: FindFailed-ReCapture
         if (state == null || !state) {
           if (!img.restore()) {
             state = null;
@@ -3459,26 +3455,23 @@ public class Region {
     log(lvl, "handleImageMissing: %s", img.getName());
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
-    if (FindFailedResponse.HANDLE.equals(response)) {
-      ObserveEvent.Type type = ObserveEvent.Type.MISSING;
-      if (imageMissingHandler != null && ((ObserverCallBack) imageMissingHandler).getType().equals(type)) {
-        log(lvl, "handleImageMissing: Response.HANDLE: calling handler");
-        evt = new ObserveEvent("", type, null, img, this, 0);
-        ((ObserverCallBack) imageMissingHandler).missing(evt);
-        response = evt.getResponse();
-      } else {
-        response = FindFailedResponse.PROMPT;
-      }
+    if (!recap && imageMissingHandler != null) {
+      log(lvl, "handleImageMissing: calling handler");
+      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
+      ((ObserverCallBack) imageMissingHandler).missing(evt);
+      response = evt.getResponse();
     }
-    if (FindFailedResponse.PROMPT.equals(response)) {
-      log(lvl, "handleImageMissing: Response.PROMPT");
+    if (recap || FindFailedResponse.PROMPT.equals(response)) {
+      if (!recap) {
+        log(lvl, "handleImageMissing: Response.PROMPT");
+      }
       response = handleFindFailedShowDialog(img, true);
     }
-    if (findFailedResponse.RETRY.equals(response)) {
+    if (FindFailedResponse.RETRY.equals(response)) {
       log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForRegion().delay(500);
       ScreenImage simg = getScreen().userCapture(
-              (recap ? "recapture " : "capture missing ") + img.getName());
+          (recap ? "recapture " : "capture missing ") + img.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
@@ -3669,23 +3662,23 @@ public class Region {
 
   private <PSIC> String onEvent(PSIC targetThreshhold, Object observer, ObserveEvent.Type obsType) {
     if (observer != null && (observer.getClass().getName().contains("org.python")
-            || observer.getClass().getName().contains("org.jruby"))) {
+        || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
       Image img = Image.getImageFromTarget(targetThreshhold);
       Boolean response = true;
       if (!img.isValid() && img.hasIOException()) {
-        response = handleImageMissing(img, false);
+        response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(
-                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
+              String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
     log(lvl, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
-            (observer == null ? "" : " with callback"), name, targetThreshhold);
+        (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
 
@@ -3728,7 +3721,7 @@ public class Region {
    */
   public String onChange(Integer threshold, Object observer) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            observer, ObserveEvent.Type.CHANGE);
+        observer, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3741,7 +3734,7 @@ public class Region {
    */
   public String onChange(Integer threshold) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            null, ObserveEvent.Type.CHANGE);
+        null, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3808,7 +3801,7 @@ public class Region {
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
     log(lvl, "%s: onChange%s: %s minSize: %d", toStringShort(),
-            (observer == null ? "" : " with callback"), name, threshold);
+        (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
 
@@ -3888,7 +3881,7 @@ public class Region {
     if (observing) {
       observing = false;
       log(lvl, "observe: stopped due to timeout in "
-              + this.toStringShort() + " for " + secs + " seconds");
+          + this.toStringShort() + " for " + secs + " seconds");
     } else {
       log(lvl, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);
@@ -4838,14 +4831,14 @@ public class Region {
     return false;
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
- *
- * @param <PFRML> Pattern, String, Image, Match, Region or Location
- * @param target  PFRML
- * @throws FindFailed image not found
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   *
+   * @param <PFRML> Pattern, String, Image, Match, Region or Location
+   * @param target  PFRML
+   * @throws FindFailed image not found
+   */
 
 
   public <PFRML> void aTap(PFRML target) throws FindFailed {
@@ -4858,12 +4851,12 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
- *
- * @param text text
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   *
+   * @param text text
+   */
 
 
   public void aInput(String text) {
@@ -4872,12 +4865,12 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
- *
- * @param key key
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   *
+   * @param key key
+   */
 
 
   public void aKey(int key) {
@@ -4886,15 +4879,15 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
- *
- * @param <PFRML> Pattern, String, Image, Match, Region or Location
- * @param from    PFRML
- * @param to      PFRML
- * @throws FindFailed image not found
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   *
+   * @param <PFRML> Pattern, String, Image, Match, Region or Location
+   * @param from    PFRML
+   * @param to      PFRML
+   * @throws FindFailed image not found
+   */
 
 
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
@@ -4908,10 +4901,10 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   */
 
 
   public void aSwipeUp() {
@@ -4923,10 +4916,10 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   */
 
 
   public void aSwipeDown() {
@@ -4938,10 +4931,10 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   */
 
 
   public void aSwipeLeft() {
@@ -4953,10 +4946,10 @@ public class Region {
     }
   }
 
-/*
-*
- * EXPERIMENTAL: for Android over ADB
-*/
+  /*
+   *
+   * EXPERIMENTAL: for Android over ADB
+   */
 
 
   public void aSwipeRight() {

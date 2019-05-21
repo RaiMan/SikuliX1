@@ -109,6 +109,10 @@ public class RobotDesktop extends Robot implements IRobot {
     smoothMove(Mouse.at(), dest, (long) (Settings.MoveMouseDelay * 1000L));
   }
 
+  public void smoothMoveSlow(Location dest) {
+    smoothMove(Mouse.at(), dest, (long) (Settings.SlowMotionDelay * 1000L));
+  }
+
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
     Debug.log(4, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), ms / 1000f);

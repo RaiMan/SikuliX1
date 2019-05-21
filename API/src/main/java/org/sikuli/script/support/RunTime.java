@@ -1072,6 +1072,8 @@ public class RunTime {
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
+      Settings.setShowActions(false);
+      FindFailed.reset();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();

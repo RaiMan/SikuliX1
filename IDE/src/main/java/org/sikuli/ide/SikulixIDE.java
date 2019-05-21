@@ -2552,7 +2552,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       Settings.DebugLogs = prefs.getPrefMoreLogDebug();
       Settings.InfoLogs = prefs.getPrefMoreLogInfo();
       Settings.Highlight = prefs.getPrefMoreHighlight();
-      Settings.setShowActions(false);
     }
 
     boolean isRunning() {
