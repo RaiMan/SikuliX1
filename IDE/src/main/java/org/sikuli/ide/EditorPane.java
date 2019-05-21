@@ -366,10 +366,28 @@ public class EditorPane extends JTextPane {
     if (matcher.find()) {
       String path = matcher.group(1);
       log(3, "checkSource: found setBundlePath: %s", path);
-      setImagePath(path);
-    } else {
-      setImagePath();
+      File newPath = new File(path.replace("\\\\", "\\"));
+      if (RunTime.get().runningWindows && (newPath.getPath().startsWith("\\") || newPath.getPath().startsWith("/"))) {
+        try {
+          newPath = new File(new File("\\").getCanonicalPath(), newPath.getPath().substring(1));
+        } catch (IOException e) {
+          setImagePath();
+          return;
+        }
+      }
+      try {
+        if (newPath.isAbsolute()) {
+          newPath = new File(FileManager.normalizeAbsolute(newPath.getAbsolutePath(), false));
+        } else {
+          newPath = new File(editorPaneFolder, newPath.getPath()).getCanonicalFile();
+        }
+        setImageFolder(newPath);
+      } catch (Exception ex) {
+        setImagePath();
+        return;
+      }
     }
+    setImagePath();
   }
 
   static Pattern patSetBundlePath = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)");
@@ -542,36 +560,6 @@ public class EditorPane extends JTextPane {
 
   public boolean setImagePath() {
     setImageFolder();
-    return true;
-  }
-
-  private String pathFromText(String givenPath) {
-    String path = new File(givenPath.replace("\\\\", "\\")).getPath();
-    return path;
-  }
-
-  public boolean setImagePath(String givenBundlePath) {
-    String newBundlePath = pathFromText(givenBundlePath);
-    try {
-      if (new File(newBundlePath).isAbsolute()) {
-        newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
-      } else {
-        newBundlePath = new File(editorPaneFolder, newBundlePath).getCanonicalPath();
-      }
-    } catch (Exception ex) {
-      return false;
-    }
-    setImageFolder(new File(newBundlePath));
-    return true;
-  }
-
-  private boolean setSrcBundle(String newBundlePath) {
-    try {
-      newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
-    } catch (Exception ex) {
-      return false;
-    }
-    setImageFolder(new File(newBundlePath));
     return true;
   }
 

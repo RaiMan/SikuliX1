@@ -858,7 +858,7 @@ public class FileManager {
         try {
           path = URLDecoder.decode(path, "UTF-8");
         } catch (Exception ex) {
-          log(lvl, "slashify: decoding problem with %s\nwarning: filename might not be useable.", path);
+          log(-1, "slashify: filename might not be useable: %s", path);
         }
       }
       if (File.separatorChar != '/') {
@@ -876,8 +876,10 @@ public class FileManager {
       if (path.startsWith("./")) {
         path = path.substring(2);
       }
+      log(lvl, "slashify: file: %s", path);
       return path;
     } else {
+      log(lvl, "slashify: file: null");
       return "";
     }
   }
@@ -891,6 +893,7 @@ public class FileManager {
     if (!file.isAbsolute() && !fileName.startsWith("\\")) {
       file = new File(folder, fileName);
     }
+    log(lvl, "normalize: file: %s", file);
     return normalizeAbsolute(file.getPath(), false);
   }
 
@@ -912,6 +915,7 @@ public class FileManager {
     if (!fpFile.startsWith("/")) {
       fpFile = "/" + fpFile;
     }
+    log(lvl, "normalizeAbsolute: file: %s", aFile);
     return slashify(fpFile + jarSuffix, withTrailingSlash);
   }
 
