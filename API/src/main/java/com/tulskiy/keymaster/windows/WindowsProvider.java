@@ -51,10 +51,11 @@ public class WindowsProvider extends Provider {
     private Queue<HotKey> registerQueue = new LinkedList<HotKey>();
 
     public void init() {
+        MSG msg = new MSG();
+        
         Runnable runnable = new Runnable() {
             public void run() {
-                //LOGGER.info("Starting Windows global hotkey provider");
-                MSG msg = new MSG();
+                //LOGGER.info("Starting Windows global hotkey provider");                
                 listen = true;
                 while (listen) {
                     while (PeekMessage(msg, null, 0, 0, PM_REMOVE)) {
