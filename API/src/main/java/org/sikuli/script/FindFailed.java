@@ -3,8 +3,6 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Debug;
-
 /**
  * SikuliX FindFailed exception<br>
  * constants and settings for the features<br>
@@ -91,7 +89,7 @@ public class FindFailed extends SikuliException {
     return response;
   }
 
-  private static FindFailedResponse response = FindFailedResponse.ABORT;
+  private static FindFailedResponse response = ABORT;
 
   //************************* FindFailedHandler
 
@@ -101,14 +99,15 @@ public class FindFailed extends SikuliException {
    *
    * @param handler {@link ObserverCallBack}
    */
-  public void setFindFailedHandler(Object handler) {
+  public static void setFindFailedHandler(Object handler) {
+    response = HANDLE;
     ffHandler = setHandler(handler, ObserveEvent.Type.FINDFAILED);
   }
 
   /**
    * reset to default: no handler, response ABORT
    */
-  public void resetFindFailedHandler() {
+  public static void resetFindFailedHandler() {
     response = ABORT;
     ffHandler = null;
   }
@@ -130,14 +129,14 @@ public class FindFailed extends SikuliException {
    *
    * @param handler {@link ObserverCallBack}
    */
-  public void setImageMissingHandler(Object handler) {
+  public static void setImageMissingHandler(Object handler) {
     imHandler = setHandler(handler, ObserveEvent.Type.MISSING);
   }
 
   /**
    * reset to default: no handler
    */
-  public void resetImageMissingHandler() {
+  public static void resetImageMissingHandler() {
     imHandler = null;
   }
 
@@ -152,8 +151,7 @@ public class FindFailed extends SikuliException {
 
   //************************* intern
 
-  private Object setHandler(Object handler, ObserveEvent.Type type) {
-    response = HANDLE;
+  static Object setHandler(Object handler, ObserveEvent.Type type) {
     if (handler != null && (handler.getClass().getName().contains("org.python")
             || handler.getClass().getName().contains("org.jruby"))) {
       handler = new ObserverCallBack(handler, type);
