@@ -593,11 +593,13 @@ public class KeyboardLayout {
         }
       }
 
-      layout = LAYOUTS.get(keyboarLayoutId);
+      synchronized(LAYOUTS) {
+        layout = LAYOUTS.get(keyboarLayoutId);
 
-      if (layout == null) {
-        layout = buildWindowsLayout(keyboarLayoutId);
-        LAYOUTS.put(keyboarLayoutId, layout);
+        if (layout == null) {
+          layout = buildWindowsLayout(keyboarLayoutId);
+          LAYOUTS.put(keyboarLayoutId, layout);
+        }
       }
     }
     return layout;
