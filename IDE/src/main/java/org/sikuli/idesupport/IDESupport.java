@@ -44,7 +44,7 @@ public class IDESupport {
 	private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
 
 	public static boolean transferScript(String src, String dest, IScriptRunner runner) {
-		log(lvl, "transferScript: %s\nto: %s", src, dest);
+		log(lvl, "transferScript: %s to: %s", src, dest);
 		FileManager.FileFilter filter = new FileManager.FileFilter() {
 			@Override
 			public boolean accept(File entry) {
@@ -65,10 +65,9 @@ public class IDESupport {
 		try {
 			FileManager.xcopy(src, dest, filter);
 		} catch (IOException ex) {
-			log(-1, "transferScript: IOError: %s", ex.getMessage(), src, dest);
+			log(-1, "transferScript: %s", ex.getMessage());
 			return false;
 		}
-		log(lvl, "transferScript: completed");
 		return true;
 	}
 

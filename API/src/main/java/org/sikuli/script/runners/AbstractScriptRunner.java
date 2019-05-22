@@ -12,6 +12,7 @@ import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
 
@@ -139,6 +140,9 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
+      }
+      if (!options.isRunningInIDE()) {
+        ImagePath.setBundleFolder(new File(scriptfile).getParentFile());
       }
       int exitValue = doRunScript(scriptfile, scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
