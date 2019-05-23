@@ -155,14 +155,14 @@ public class ImagePath {
       } else {
         pathURL = makePathURL(path, null).pathURL;
       }
-      log(lvl, "ImagePathEntry: %s (%s)", path, pathURL);
+      log(lvl + 1, "ImagePathEntry: %s (%s)", path, pathURL);
     }
 
     public PathEntry(File folder) {
       try {
         path = folder.getCanonicalPath();
         pathURL = new URL("file", null, path);
-        log(lvl, "ImagePathEntry: %s (%s)", path, pathURL);
+        log(lvl + 1, "ImagePathEntry: %s (%s)", path, pathURL);
       } catch (IOException e) {
         log(-1, "ImagePathEntry: %s", folder);
       }
@@ -544,19 +544,14 @@ public class ImagePath {
         return false;
       }
     }
-    PathEntry pathEntry = makePathURL(FileManager.normalizeAbsolute(newBundlePath, false), null);
-    if (pathEntry != null && pathEntry.isFile()) {
-      if (bundleEquals(pathEntry)) {
-        return true;
+    File newBundleFile = new File(newBundlePath);
+    if (!newBundleFile.isAbsolute()) {
+      if (null == imagePaths.get(0).pathURL) {
+        return false;
       }
-      if (pathEntry.existsFile()) {
-        Image.purge(imagePaths.get(0));
-        imagePaths.set(0, pathEntry);
-        log(lvl, "new BundlePath: %s", pathEntry);
-        return true;
-      }
+      newBundleFile = new File(imagePaths.get(0).pathURL.getPath(), newBundlePath);
     }
-    return false;
+    return setBundleFolder(newBundleFile);
   }
 
   public static boolean setBundleFolder(File folder) {
