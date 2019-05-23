@@ -7,7 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -160,7 +162,7 @@ public class ImagePath {
 
     public PathEntry(File folder) {
       try {
-        path = folder.getCanonicalPath();
+        path = folder.getPath();
         pathURL = new URL("file", null, path);
         log(lvl + 1, "ImagePathEntry: %s (%s)", path, pathURL);
       } catch (IOException e) {
@@ -554,23 +556,21 @@ public class ImagePath {
     return setBundleFolder(newBundleFile);
   }
 
-  public static boolean setBundleFolder(File folder) {
-    if (null == folder) {
-      return false;
-    }
-    if (bundleEquals(folder)) {
-      return true;
+  public static File setBundleFolder(File folder) {
+    if (null == folder || bundleEquals(folder)) {
+      return folder;
     }
     if (folder.exists()) {
-      Image.purge(imagePaths.get(0));
+      PathEntry oldBundle = imagePaths.get(0);
+      Image.purge(oldBundle);
       PathEntry pathEntry = new PathEntry(folder);
       if (pathEntry.isValid()) {
         imagePaths.set(0, pathEntry);
         log(lvl, "new BundlePath: %s", pathEntry);
-        return true;
+        return oldBundle == null ? null : new File(oldBundle.path);
       }
     }
-    return false;
+    return null;
   }
 
   /**
@@ -606,46 +606,46 @@ public class ImagePath {
    * starting from entry 0, the first found existence is taken<br>
    * absolute file names are checked for existence
    *
-   * @param fname relative or absolute filename
+   * @param imageFileName relative or absolute filename
    * @return a valid URL or null if not found/exists
    */
-  public static URL find(String fname) {
+  public static URL find(String imageFileName) {
     URL fURL = null;
     String proto = "";
-    fname = FileManager.normalize(fname);
-    if (new File(fname).isAbsolute()) {
-      if (new File(fname).exists()) {
-        fURL = FileManager.makeURL(fname);
+    File imageFile = new File(imageFileName);
+    if (imageFile.isAbsolute()) {
+      if (imageFile.exists()) {
+        try {
+          fURL = new URL("file", null, new File(imageFileName).getPath());
+        } catch (MalformedURLException e) {
+        }
       } else {
-        log(-1, "find: File does not exist: " + fname);
+        log(-1, "find: File does not exist: %s", imageFileName);
       }
       return fURL;
     } else {
-      if (!hasBundlePath()) {
-        setBundlePath();
-      }
       for (PathEntry path : getPaths()) {
         if (path == null) {
           continue;
         }
         proto = path.pathURL.getProtocol();
         if ("file".equals(proto)) {
-          fURL = FileManager.makeURL(path.pathURL, fname);
-          if (new File(fURL.getPath()).exists()) {
-            break;
+          if (new File(path.pathURL.getPath(), imageFileName).exists()) {
+            try {
+              fURL = new URL("file", null, new File(path.pathURL.getPath(), imageFileName).getPath());
+              break;
+            } catch (MalformedURLException e) {
+            }
           }
         } else if ("jar".equals(proto) || proto.startsWith("http")) {
-          fURL = FileManager.getURLForContentFromURL(path.pathURL, fname);
+          fURL = FileManager.getURLForContentFromURL(path.pathURL, imageFileName);
           if (fURL != null) {
             break;
           }
-        } else {
-          log(-1, "find: URL not supported: " + path.pathURL);
-          return fURL;
         }
       }
       if (fURL == null) {
-        log(-1, "find: not on image path: " + fname);
+        log(-1, "find: not on image path: %s",imageFileName);
         dump(lvl);
       }
       return fURL;

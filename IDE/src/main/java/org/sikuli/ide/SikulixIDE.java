@@ -167,11 +167,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     return new ImageIcon(url);
   }
 
-  static void showIDE() {
+  public static void showIDE() {
     showAgain();
   }
 
-  static void hideIDE() {
+  public static void hideIDE() {
     get().setVisible(false);
     RunTime.pause(0.5f);
   }
@@ -335,7 +335,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     tabs.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(javax.swing.event.ChangeEvent e) {
-        log(3, "Tab switched");
+        log(4, "********** Tab switched");
         EditorPane editorPane;
         JTabbedPane tab = (JTabbedPane) e.getSource();
         int i = tab.getSelectedIndex();
@@ -353,8 +353,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
               setTitle(editorPane.getFilePath());
             }
           }
+          editorPane.setBundleFolder();
+          if (editorPane.isDirty()) {
+            editorPane.checkSource(); // tab switch
+          }
           int dot = editorPane.getCaret().getDot();
-          editorPane.checkSource();
           editorPane.setCaretPosition(dot);
           if (editorPane.isText) {
             collapseMessageArea();
@@ -673,7 +676,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   EditorPane makeTab(int tabIndex) {
-    log(lvl, "doNew: create new tab at: %d", tabIndex);
+    log(lvl + 1, "makeTab: %d", tabIndex);
     EditorPane editorPane = makeTab();
     JScrollPane scrPane = editorPane.getScrollPane();
     if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
@@ -2499,7 +2502,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       EditorPane editorPane = getCurrentCodePane();
       File scriptFile;
       if (editorPane.isDirty()) {
-        editorPane.checkSource();
+        editorPane.checkSource(); // runCurrentScript
         if (editorPane.isTemp()) {
           scriptFile = editorPane.getCurrentFile(false);
         } else {

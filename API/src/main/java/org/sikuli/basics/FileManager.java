@@ -716,24 +716,28 @@ public class FileManager {
             continue;
           }
           doXcopy(new File(fSrc, child), new File(fDest, child), filter);
-
         }
       }
     } else {
       if (filter == null || filter.accept(fSrc)) {
-        if (fDest.isDirectory()) {
-          fDest = new File(fDest, fSrc.getName());
+        try {
+          if (fDest.isDirectory()) {
+            fDest = new File(fDest, fSrc.getName());
+          }
+          InputStream in = new FileInputStream(fSrc);
+          OutputStream out = new FileOutputStream(fDest);
+          // Copy the bits from instream to outstream
+          byte[] buf = new byte[1024];
+          int len;
+          while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+          }
+          in.close();
+          out.close();
+        } catch(IOException ex) {
+          log(-1, "xcopy: %s to: %s (%s)", fSrc, fDest, ex.getMessage());
+          throw new IOException(ex.getMessage(), ex.getCause());
         }
-        InputStream in = new FileInputStream(fSrc);
-        OutputStream out = new FileOutputStream(fDest);
-        // Copy the bits from instream to outstream
-        byte[] buf = new byte[1024];
-        int len;
-        while ((len = in.read(buf)) > 0) {
-          out.write(buf, 0, len);
-        }
-        in.close();
-        out.close();
       }
     }
   }
