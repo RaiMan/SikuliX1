@@ -553,7 +553,7 @@ public class ImagePath {
       }
       newBundleFile = new File(imagePaths.get(0).pathURL.getPath(), newBundlePath);
     }
-    return setBundleFolder(newBundleFile);
+    return null != setBundleFolder(newBundleFile);
   }
 
   public static File setBundleFolder(File folder) {
