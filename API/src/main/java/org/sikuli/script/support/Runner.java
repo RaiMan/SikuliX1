@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -186,41 +187,50 @@ public class Runner {
   public static int runScripts(String[] runScripts) {
     String someJS = "";
     int exitCode = 0;
+    File scriptFile;
     if (runScripts != null && runScripts.length > 0) {
       for (String scriptGiven : runScripts) {
         String actualFolder = lastWorkFolder;
-        if (!scriptGiven.endsWith(".sikuli")) {
-          scriptGiven += ".sikuli";
+        scriptFile = new File(scriptGiven);
+        if (scriptFile.getPath().startsWith("\\")) {
+          scriptFile = scriptFile.getAbsoluteFile();
         }
-        if (null == actualFolder && !new File(scriptGiven).isAbsolute()) {
-          if (new File(runTime.fWorkDir, scriptGiven).exists()) {
+        if (!scriptFile.getName().contains(".")) {
+          scriptFile = new File(scriptFile.getPath() + ".sikuli");
+        }
+        if (null == actualFolder && !scriptFile.isAbsolute()) {
+          if (!scriptFile.isAbsolute() && new File(runTime.fWorkDir, scriptFile.getPath()).exists()) {
             actualFolder = runTime.fWorkDir.getAbsolutePath();
           }
         }
-        String  scriptFileName = FileManager.normalize(scriptGiven, actualFolder);
-        if (!new File(scriptFileName).exists()) {
-          log(-1, "Script file not found: %s", scriptFileName);
+        if (!scriptFile.isAbsolute()) {
+          scriptFile = new File(actualFolder, scriptFile.getPath());
+        }
+        try {
+          scriptFile = scriptFile.getCanonicalFile();
+        } catch (IOException e) {
+        }
+        if (!scriptFile.exists()) {
+          log(-1, "runScripts: %s not found: %s", scriptGiven, scriptFile);
           exitCode = 1;
-          break;
+          continue;
         }
-        lastWorkFolder = new File(scriptFileName).getParent();
-        if (lastReturnCode < 0) {
-          log(lvl, "Exit code -1: Terminating multi-script-run");
-          break;
-        }
+        lastWorkFolder = scriptFile.getParent();
 //        someJS = runTime.getOption("runsetup");
 //        if (!someJS.isEmpty()) {
 //          log(lvl, "Options.runsetup: %s", someJS);
 //          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
 //        }
-        exitCode = run(scriptFileName, RunTime.getUserArgs());
+        log(lvl, "runScripts: %s running: %s", scriptGiven, scriptFile);
+        exitCode = run(scriptFile.getPath(), RunTime.getUserArgs());
 //        someJS = runTime.getOption("runteardown");
 //        if (!someJS.isEmpty()) {
 //          log(lvl, "Options.runteardown: %s", someJS);
 //          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
 //        }
-        if (exitCode == -999) {
-          exitCode = lastReturnCode;
+        if (exitCode < 0) {
+          log(lvl, "Exit code <0: Terminating multi-script-run");
+          break;
         }
         lastReturnCode = exitCode;
       }
