@@ -188,6 +188,8 @@ public class Runner {
     String someJS = "";
     int exitCode = 0;
     File scriptFile;
+    File scriptFolder = null;
+    String scriptName = null;
     if (runScripts != null && runScripts.length > 0) {
       for (String scriptGiven : runScripts) {
         String actualFolder = lastWorkFolder;
@@ -196,24 +198,21 @@ public class Runner {
           scriptFile = scriptFile.getAbsoluteFile();
         }
         if (!scriptFile.getName().contains(".")) {
+          scriptFolder = new File(scriptFile.getPath());
+          scriptName = scriptFolder.getName();
           scriptFile = new File(scriptFile.getPath() + ".sikuli");
         }
-        if (null == actualFolder && !scriptFile.isAbsolute()) {
-          if (!scriptFile.isAbsolute() && new File(runTime.fWorkDir, scriptFile.getPath()).exists()) {
-            actualFolder = runTime.fWorkDir.getAbsolutePath();
-          }
-        }
-        if (!scriptFile.isAbsolute()) {
-          scriptFile = new File(actualFolder, scriptFile.getPath());
-        }
-        try {
-          scriptFile = scriptFile.getCanonicalFile();
-        } catch (IOException e) {
-        }
+        scriptFile = checkScriptFolderOrFile(actualFolder, scriptFile);
         if (!scriptFile.exists()) {
-          log(-1, "runScripts: %s not found: %s", scriptGiven, scriptFile);
-          exitCode = 1;
-          continue;
+          if (null != scriptFolder) {
+            log(lvl, "runScripts: %s as .sikuli not found - trying as folder", scriptGiven);
+            scriptFile = checkScriptFolderOrFile(actualFolder, scriptFolder);
+          }
+          if (!scriptFile.exists()) {
+            log(-1, "runScripts: %s not found: %s", scriptGiven, scriptFile);
+            exitCode = 1;
+            continue;
+          }
         }
         lastWorkFolder = scriptFile.getParent();
 //        someJS = runTime.getOption("runsetup");
@@ -221,15 +220,21 @@ public class Runner {
 //          log(lvl, "Options.runsetup: %s", someJS);
 //          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
 //        }
+        if (scriptFile.isDirectory()) {
+          for (File file : scriptFile.listFiles()) {
+            if (file.getName().startsWith(scriptName + "."))
+              scriptFile = new File(scriptFile, file.getName());
+          }
+        }
         log(lvl, "runScripts: %s running: %s", scriptGiven, scriptFile);
-        exitCode = run(scriptFile.getPath(), RunTime.getUserArgs());
+        exitCode = run(scriptFile.getPath(), RunTime.getUserArgs(), null);
 //        someJS = runTime.getOption("runteardown");
 //        if (!someJS.isEmpty()) {
 //          log(lvl, "Options.runteardown: %s", someJS);
 //          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
 //        }
         if (exitCode < 0) {
-          log(lvl, "Exit code <0: Terminating multi-script-run");
+          log(lvl, "Exit code < 0: Terminating multi-script-run");
           break;
         }
         lastReturnCode = exitCode;
@@ -238,12 +243,22 @@ public class Runner {
     return exitCode;
   }
 
-  public static synchronized int run(String givenName) {
-    return run(givenName, new String[0]);
-  }
-
-  public static synchronized int run(String script, String[] args) {
-    return run(script, args, null);
+  private static File checkScriptFolderOrFile(String baseFolder, File folderOrFile) {
+    if (null == baseFolder && !folderOrFile.isAbsolute()) {
+      if (!folderOrFile.isAbsolute() && new File(runTime.fWorkDir, folderOrFile.getPath()).exists()) {
+        baseFolder = runTime.fWorkDir.getAbsolutePath();
+      } else if (!folderOrFile.isAbsolute() && new File(runTime.fUserDir, folderOrFile.getPath()).exists()) {
+        baseFolder = runTime.fUserDir.getAbsolutePath();
+      }
+    }
+    if (!folderOrFile.isAbsolute()) {
+      folderOrFile = new File(baseFolder, folderOrFile.getPath());
+    }
+    try {
+      folderOrFile = folderOrFile.getCanonicalFile();
+    } catch (IOException e) {
+    }
+    return folderOrFile;
   }
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {

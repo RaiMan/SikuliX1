@@ -34,12 +34,12 @@ public class SikulixRunner extends AbstractScriptRunner {
     
     File innerScriptFile = Runner.getScriptFile(new File(scriptFile));
             
-    return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs);     
+    return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
   }
    
   @Override
   public boolean isSupported() {    
-    return true;
+    return false;
   }
   
   @Override 

@@ -101,8 +101,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
                     (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
   }
 
-  ;
-
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
     synchronized (this) {
