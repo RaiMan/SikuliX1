@@ -85,6 +85,17 @@ public class ADBDevice {
     return adbDevice;
   }
 
+  public static ADBDevice init(int id) {
+    ADBDevice adbDevice = new ADBDevice();
+    adbDevice.device = ADBClient.getDevice(id);
+    if (adbDevice.device == null) {
+      return null;
+    }
+    adbDevice.initDevice(adbDevice);
+    adbDevice.adbExec = ADBClient.getADB();
+    return adbDevice;
+  }
+
   private void initDevice(ADBDevice device) {
     device.deviceProps = Arrays.asList(device.exec("getprop").split("\n"));
     //[ro.build.version.release]: [6.0.1]
@@ -113,16 +124,6 @@ public class ADBDevice {
       }
     }
     log(lvl, "init: %s", device.toString());
-  }
-
-  public static ADBDevice init(int id) {
-    ADBDevice device = new ADBDevice();
-    device.device = ADBClient.getDevice(id);
-    if (device.device == null) {
-      return null;
-    }
-    device.initDevice(device);
-    return device;
   }
 
   public static void reset() {
