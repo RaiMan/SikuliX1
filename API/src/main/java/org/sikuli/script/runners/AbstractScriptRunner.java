@@ -15,6 +15,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.Runner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -93,12 +94,24 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public boolean canHandle(String identifier) {
-    return identifier != null && (
-            identifier.toLowerCase().equals(getName().toLowerCase()) ||
-                    identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") ||
-                    getType().equals(identifier) ||
-                    hasExtension(identifier) ||
-                    (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
+    if (identifier != null) {
+      if (getType().equals(identifier)) {
+        return true;
+      }
+      if (hasExtension(identifier)) {
+        return true;
+      }
+      if (hasExtension(FilenameUtils.getExtension(identifier))) {
+        return true;
+      }
+      if (identifier.toLowerCase().equals(getName().toLowerCase())) {
+        return true;
+      }
+      if (identifier.toLowerCase().startsWith(getName().toLowerCase() + "*")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -132,17 +145,31 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
+  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options options) {
     synchronized (this) {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
-      if (null == options || !options.isRunningInIDE()) {
-        ImagePath.setBundleFolder(new File(scriptfile).getParentFile());
+      File scriptFile = new File(script);
+      if (!scriptFile.isAbsolute()) {
+        if (null != options) {
+          scriptFile = Runner.checkScriptFolderOrFile(options.getWorkFolder(), scriptFile);
+        } else {
+          scriptFile = Runner.checkScriptFolderOrFile(null, scriptFile);
+        }
       }
-      int exitValue = doRunScript(scriptfile, scriptArgs, options);
+      if (!scriptFile.exists()) {
+        return Runner.FILE_NOT_FOUND;
+      }
+      if (null == options || !options.isRunningInIDE()) {
+        ImagePath.setBundleFolder(scriptFile.getParentFile());
+      }
+      if (null != options) {
+        options.setWorkFolder(scriptFile.getParentFile().getParent());
+      }
+      int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     }

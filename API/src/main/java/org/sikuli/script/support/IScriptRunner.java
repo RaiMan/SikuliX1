@@ -23,8 +23,6 @@ public interface IScriptRunner {
    *
    */
   public class Options {
-    private boolean silent = false;
-    private int errorLine = -1;
 
     public boolean isSilent() {
       return silent;
@@ -41,6 +39,8 @@ public interface IScriptRunner {
       this.silent = silent;
       return this;
     }
+
+    private boolean silent = false;
 
     /**
      * Get the error source line set by the runner.
@@ -63,6 +63,8 @@ public interface IScriptRunner {
       this.errorLine = errorLine;
     }
 
+    private int errorLine = -1;
+
     public boolean isRunningInIDE() {
       return runningInIDE;
     }
@@ -72,6 +74,26 @@ public interface IScriptRunner {
     }
 
     private boolean runningInIDE = false;
+
+    public String getWorkFolder() {
+      return workFolder;
+    }
+
+    public void setWorkFolder(String workFolder) {
+      this.workFolder = workFolder;
+    }
+
+    private String workFolder = null;
+
+    public String getScriptName() {
+      return scriptName;
+    }
+
+    public void setScriptName(String scriptName) {
+      this.scriptName = scriptName;
+    }
+
+    private String scriptName = null;
   }
 
   /**

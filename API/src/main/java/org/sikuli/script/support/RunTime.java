@@ -534,19 +534,6 @@ public class RunTime {
       logp(message, args);
     }
   }
-
-  public void terminate(int retval, String message, Object... args) {
-    String outMsg = String.format(message, args);
-    if (retval < 999) {
-      if (!outMsg.isEmpty()) {
-        System.out.println(outMsg);
-      }
-      isTerminating = true;
-      cleanUp();
-      System.exit(retval);
-    }
-    throw new SikuliXception(String.format("fatal: " + outMsg));
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
@@ -1064,6 +1051,19 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold desc="99 cleanUp">
+  public void terminate(int retval, String message, Object... args) {
+    String outMsg = String.format(message, args);
+    if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        System.out.println(outMsg);
+      }
+      isTerminating = true;
+      cleanUp();
+      System.exit(retval);
+    }
+    throw new SikuliXception(String.format("fatal: " + outMsg));
+  }
+
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
