@@ -23,7 +23,7 @@ public class TextRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isSupported() {
-    return false;
+    return true;
   }
 
   @Override

@@ -45,7 +45,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   PrintStream redirectedStderr;
 
   protected void log(int level, String message, Object... args) {
-    Debug.logx(level, getName() + ": " + message, args);
+    Debug.logx(level, getName() + "Runner: " + message, args);
   }
 
   private void logNotSupported(String method) {

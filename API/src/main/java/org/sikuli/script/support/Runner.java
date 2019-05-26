@@ -21,6 +21,7 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.SikulixRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -92,8 +93,14 @@ public class Runner {
           return runner;
         }
       }
-      log(-1, "getRunner: none found for: %s", identifier);
-      return new InvalidRunner(identifier);
+//    File possibleScriptFileOrFolder = new File(identifier);
+//    if (possibleScriptFileOrFolder.isDirectory()) {
+//      return true;
+//    }
+//    String extension = FilenameUtils.getExtension(identifier);
+//    return extension.isEmpty() || "sikuli".equals(extension);
+//      log(-1, "getRunner: none found for: %s", identifier);
+      return new SikulixRunner();
     }
   }
 
@@ -196,18 +203,27 @@ public class Runner {
         if (scriptFile.getPath().startsWith("\\")) {
           scriptFile = scriptFile.getAbsoluteFile();
         }
-        log(lvl, "runScripts: %s running: %s", scriptGiven, scriptFile);
+        if (scriptFile.isAbsolute()) {
+          log(lvl, "runScript: %s", scriptGiven);
+        } else {
+          log(lvl, "runScript: %s / %s",
+                  null == lastWorkFolder ? "unknown" : lastWorkFolder, scriptGiven);
+        }
         runOptions.setWorkFolder(lastWorkFolder);
         runOptions.setScriptName(scriptGiven);
         exitCode = run(scriptFile.getPath(), RunTime.getUserArgs(), runOptions);
-        lastWorkFolder = runOptions.getWorkFolder();
+        String workFolder = runOptions.getWorkFolder();
+        if (lastWorkFolder != workFolder) {
+          lastWorkFolder = runOptions.getWorkFolder();
+          log(lvl, "runScript: new workfolder: %s", workFolder);
+        }
         if (exitCode == FILE_NOT_FOUND_SILENT) {
           continue;
         } else if (exitCode == FILE_NOT_FOUND) {
-          log(-1, "runScripts: not found: %s", scriptGiven);
+          log(-1, "runScript: not found: %s / %s", lastWorkFolder, scriptGiven);
           exitCode = -1;
         } else if (exitCode < 0) {
-          log(lvl, "Exit code < 0: Terminating multi-script-run");
+          log(lvl, "runscript: Exit code < 0: Terminating multi-script-run");
           break;
         }
         lastReturnCode = exitCode;

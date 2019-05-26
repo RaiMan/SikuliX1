@@ -1184,7 +1184,7 @@ public class RunTime {
     SXVersionLong = SXVersion + String.format("-#%s-%s", SXBuildNumber, SXBuild);
     SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
 
-    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
+//    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
     SikuliJythonMaven = "org/python/jython-standalone/"
         + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
     SikuliJythonMaven25 = "org/python/jython-standalone/"

@@ -178,11 +178,10 @@ public class ImagePath {
       if (pathURL == null) {
         return "-- empty --";
       }
-      String uPath = pathURL.toExternalForm();
-      if (isFile() && uPath.startsWith("file:")) {
-        uPath = uPath.substring(5);
+      if (isFile()) {
+        return pathURL.getFile();
       }
-      return uPath;
+      return null;
     }
 
     public boolean isFile() {
@@ -584,19 +583,7 @@ public class ImagePath {
         return null;
       }
     }
-    return new File(FileManager.slashify(imagePaths.get(0).getPath(), false)).getAbsolutePath();
-  }
-
-  /**
-   * no trailing path separator
-   *
-   * @return the current bundle path (might be the fallback working folder)
-   */
-  public static String getBundleFolder() {
-    if (!hasBundlePath()) {
-      setBundlePath();
-    }
-    return new File(FileManager.slashify(imagePaths.get(0).getPath(), true)).getAbsolutePath();
+    return imagePaths.get(0).getPath();
   }
   //</editor-fold>
 

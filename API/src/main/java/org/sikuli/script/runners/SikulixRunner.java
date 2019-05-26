@@ -33,16 +33,6 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public boolean canHandle(String identifier) {
-    File possibleScriptFileOrFolder = new File(identifier);
-    if (possibleScriptFileOrFolder.isDirectory()) {
-      return true;
-    }
-    String extension = FilenameUtils.getExtension(identifier);
-    return extension.isEmpty() || "sikuli".equals(extension);
-  }
-
-  @Override
   public String getName() {
     return NAME;
   }
@@ -94,7 +84,13 @@ public class SikulixRunner extends AbstractScriptRunner {
       options.setWorkFolder(scriptFile.getParent());
       return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
     } else {
-      options.setWorkFolder(scriptFile.getPath());
+      if (scriptFile.isFile()) {
+        log(3, "not supported: (.%s) %s",
+                FilenameUtils.getExtension(scriptFile.getPath()), scriptFile);
+        options.setWorkFolder(scriptFile.getParent());
+      } else {
+        options.setWorkFolder(scriptFile.getPath());
+      }
       return Runner.FILE_NOT_FOUND_SILENT;
     }
   }

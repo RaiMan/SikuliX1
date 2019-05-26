@@ -1605,73 +1605,6 @@ public class FileManager {
     in.close();
   }
 
-  public static File[] getScriptFile(File fScriptFolder) {
-    if (fScriptFolder == null) {
-      return null;
-    }
-    String scriptName;
-    String scriptType = "";
-    String fpUnzippedSkl = null;
-    File[] content = null;
-
-    if (fScriptFolder.getName().endsWith(".skl") || fScriptFolder.getName().endsWith(".zip")) {
-      fpUnzippedSkl = FileManager.unzipSKL(fScriptFolder.getAbsolutePath());
-      if (fpUnzippedSkl == null) {
-        return null;
-      }
-      scriptType = "sikuli-zipped";
-      fScriptFolder = new File(fpUnzippedSkl);
-    }
-
-    int pos = fScriptFolder.getName().lastIndexOf(".");
-    if (pos == -1) {
-      scriptName = fScriptFolder.getName();
-      scriptType = "sikuli-plain";
-    } else {
-      scriptName = fScriptFolder.getName().substring(0, pos);
-      scriptType = fScriptFolder.getName().substring(pos + 1);
-    }
-
-    boolean success = true;
-    if (!fScriptFolder.exists()) {
-      if ("sikuli-plain".equals(scriptType)) {
-        fScriptFolder = new File(fScriptFolder.getAbsolutePath() + ".sikuli");
-        if (!fScriptFolder.exists()) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-    }
-    if (!success) {
-      log(-1, "Not a valid Sikuli script project:\n%s", fScriptFolder.getAbsolutePath());
-      return null;
-    }
-    if (scriptType.startsWith("sikuli")) {
-      content = fScriptFolder.listFiles(new FileFilterScript(scriptName + "."));
-      if (content == null || content.length == 0) {
-        log(-1, "Script project %s \n has no script file %s.xxx", fScriptFolder, scriptName);
-        return null;
-      }
-    } else if ("jar".equals(scriptType)) {
-      URL jarURL = makeJarURL(fScriptFolder);
-      scriptName = scriptName.replace("_sikuli", "");
-      List<String> filesInJar = RunTime.get().listFilesInJar(jarURL);
-      String sScriptFile = null;
-      for (String sFile : filesInJar) {
-        if (sFile.equals(scriptName + "$py.class")) {
-          sScriptFile = sFile;
-        }
-      }
-      if (null == sScriptFile) {
-        log(-1, "Script project %s \n has no script file %s.xxx", fScriptFolder, scriptName);
-        return null;
-      }
-      return new File[]{new File(sScriptFile)};
-    }
-    return content;
-  }
-
   public static boolean isValidImageFilename(String fname) {
     String validEndings = ".png.jpg.jpeg";
     String defaultEnding = ".png";
@@ -1691,19 +1624,6 @@ public class FileManager {
       return fname;
     }
     return fname + ".png";
-  }
-
-  private static class FileFilterScript implements FilenameFilter {
-    private String _check;
-
-    public FileFilterScript(String check) {
-      _check = check;
-    }
-
-    @Override
-    public boolean accept(File dir, String fileName) {
-      return fileName.startsWith(_check);
-    }
   }
 
   public static String unzipSKL(String fpSkl) {
@@ -1726,11 +1646,11 @@ public class FileManager {
   }
 
   public interface JarFileFilter {
-    public boolean accept(ZipEntry entry, String jarname);
+    boolean accept(ZipEntry entry, String jarname);
   }
 
   public interface FileFilter {
-    public boolean accept(File entry);
+    boolean accept(File entry);
   }
 
   public static String extractResourceAsLines(String src) {
@@ -1788,18 +1708,8 @@ public class FileManager {
     out.flush();
   }
 
-  /**
-   * compares to path strings using java.io.File.equals()
-   *
-   * @param path1 string
-   * @param path2 string
-   * @return true if same file or folder
-   */
   public static boolean pathEquals(String path1, String path2) {
-    File f1 = new File(path1);
-    File f2 = new File(path2);
-    boolean isEqual = f1.equals(f2);
-    return isEqual;
+    return new File(path1).equals(new File(path2));
   }
 
 }
