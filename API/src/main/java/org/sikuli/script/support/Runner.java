@@ -58,7 +58,7 @@ public class Runner {
           try {
             current = cl.getConstructor().newInstance();
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-              | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
             log(lvl, "warning: %s", e.getMessage());
             continue;
@@ -184,23 +184,26 @@ public class Runner {
   private static int lastReturnCode = 0;
   private static String lastWorkFolder = null;
   public static final int FILE_NOT_FOUND = 256;
+  public static final int FILE_NOT_FOUND_SILENT = 257;
 
   public static int runScripts(String[] runScripts) {
     int exitCode = 0;
     File scriptFile;
     if (runScripts != null && runScripts.length > 0) {
+      IScriptRunner.Options runOptions = new IScriptRunner.Options();
       for (String scriptGiven : runScripts) {
         scriptFile = new File(scriptGiven);
         if (scriptFile.getPath().startsWith("\\")) {
           scriptFile = scriptFile.getAbsoluteFile();
         }
         log(lvl, "runScripts: %s running: %s", scriptGiven, scriptFile);
-        IScriptRunner.Options runOptions = new IScriptRunner.Options();
         runOptions.setWorkFolder(lastWorkFolder);
         runOptions.setScriptName(scriptGiven);
         exitCode = run(scriptFile.getPath(), RunTime.getUserArgs(), runOptions);
         lastWorkFolder = runOptions.getWorkFolder();
-        if (exitCode == FILE_NOT_FOUND) {
+        if (exitCode == FILE_NOT_FOUND_SILENT) {
+          continue;
+        } else if (exitCode == FILE_NOT_FOUND) {
           log(-1, "runScripts: not found: %s", scriptGiven);
           exitCode = -1;
         } else if (exitCode < 0) {
@@ -221,16 +224,23 @@ public class Runner {
   }
 
   public static File checkScriptFolderOrFile(String baseFolder, File folderOrFile) {
-    RunTime runTime = RunTime.get();
-    if (null == baseFolder && !folderOrFile.isAbsolute()) {
-      if (!folderOrFile.isAbsolute() && new File(runTime.fWorkDir, folderOrFile.getPath()).exists()) {
-        baseFolder = runTime.fWorkDir.getAbsolutePath();
-      } else if (!folderOrFile.isAbsolute() && new File(runTime.fUserDir, folderOrFile.getPath()).exists()) {
-        baseFolder = runTime.fUserDir.getAbsolutePath();
-      }
+    if (null == folderOrFile) {
+      return null;
     }
+    RunTime runTime = RunTime.get();
+    File fBaseFolder = null;
     if (!folderOrFile.isAbsolute()) {
-      folderOrFile = new File(baseFolder, folderOrFile.getPath());
+      if (null == baseFolder) {
+        if (!folderOrFile.isAbsolute() && new File(runTime.fWorkDir, folderOrFile.getPath()).exists()) {
+          fBaseFolder = runTime.fWorkDir;
+        } else if (!folderOrFile.isAbsolute() && new File(runTime.fUserDir, folderOrFile.getPath()).exists()) {
+          fBaseFolder = runTime.fUserDir;
+        }
+      }
+      else {
+        fBaseFolder = new File(baseFolder);
+      }
+      folderOrFile = new File(fBaseFolder, folderOrFile.getPath());
     }
     try {
       folderOrFile = folderOrFile.getCanonicalFile();

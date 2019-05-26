@@ -167,7 +167,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         ImagePath.setBundleFolder(scriptFile.getParentFile());
       }
       if (null != options) {
-        options.setWorkFolder(scriptFile.getParentFile().getParent());
+        options.setWorkFolder(scriptFile.getParent());
       }
       int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
       Debug.setDebugLevel(savedLevel);

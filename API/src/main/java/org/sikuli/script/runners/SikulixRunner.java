@@ -15,18 +15,17 @@ import org.sikuli.script.support.Runner;
 
 /**
  * Runs Sikulix scripts.
- * 
+ * <p>
  * A sikulix script is a directory (optionally with a .sikuli extension)
- *  
- * @author mbalmer
  *
+ * @author mbalmer
  */
 
 public class SikulixRunner extends AbstractScriptRunner {
-  
+
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
-  public static final String[] EXTENSIONS = new String[] {"sikuli"};
+  public static final String[] EXTENSIONS = new String[]{"sikuli"};
 
   @Override
   public boolean isSupported() {
@@ -67,15 +66,17 @@ public class SikulixRunner extends AbstractScriptRunner {
     String scriptGiven = options.getScriptName();
     if (FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
       scriptFolder = new File(scriptFile.getPath());
-      scriptFile = new File(scriptFile.getPath() + ".sikuli");
+      if (!scriptGiven.endsWith("/")) {
+        scriptFile = new File(scriptFile.getPath() + ".sikuli");
+      }
     }
     scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFile);
-    if (!scriptFile.exists()) {
+    if (null == scriptFile || !scriptFile.exists()) {
       if (null != scriptFolder) {
         log(3, "runScripts: %s as .sikuli not found - trying as folder", scriptGiven);
         scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFolder);
       }
-      if (!scriptFile.exists()) {
+      if (null == scriptFile || !scriptFile.exists()) {
         return Runner.FILE_NOT_FOUND;
       }
     }
@@ -87,10 +88,14 @@ public class SikulixRunner extends AbstractScriptRunner {
 //    else {
 //      ImagePath.add(new File(scriptFile).getAbsolutePath());
 //    }
-    
-    options.setWorkFolder(scriptFile.getParent());
+
     File innerScriptFile = Runner.getScriptFile(scriptFile);
-            
-    return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+    if (null != innerScriptFile) {
+      options.setWorkFolder(scriptFile.getParent());
+      return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+    } else {
+      options.setWorkFolder(scriptFile.getPath());
+      return Runner.FILE_NOT_FOUND_SILENT;
+    }
   }
 }
