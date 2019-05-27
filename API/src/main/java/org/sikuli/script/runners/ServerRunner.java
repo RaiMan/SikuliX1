@@ -256,27 +256,29 @@ public class ServerRunner extends AbstractScriptRunner {
   private static class StartCommandHttpHandler extends AbstractCommandHttpHandler {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String runType = RUNTYPE_JS;
+      String runType = JavaScriptRunner.NAME;
       String path = exchange.getRelativePath();
       if (path.length() > 6) {
         if ("p".equals(path.substring(6, 7))) {
-          runType = RUNTYPE_PY;
+          runType = JythonRunner.NAME;
         } else if ("r".equals(path.substring(6, 7))) {
-          runType = RUNTYPE_RB;
+          runType = JRubyRunner.NAME;
         }
       }
+      boolean success = true;
       int statusCode;
       String message;
-      int retval = startRunner(runType, null, null);
-      if (retval == 0) {
-        setRunType(runType);
-        message = "startRunner for: " + getRunType();
+      try {
+        Runner.getRunner(runType).init(null);
+        message = "ready to run: " + runType;
         statusCode = StatusCodes.OK;
-      } else {
-        message = "startRunner: not possible for: " + runType;
+      } catch (Exception ex) {
+        ServerRunner.dolog("ScriptRunner init not possible: " + ex.getMessage());
+        message = "not ready to run: " + runType;
         statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+        success = false;
       }
-      sendResponse(exchange, (retval==0), statusCode, message);
+      sendResponse(exchange, success, statusCode, message);
     }
   }
 
@@ -385,7 +387,6 @@ public class ServerRunner extends AbstractScriptRunner {
                     + fScriptScript.toString();
             statusCode = StatusCodes.NOT_FOUND;
           }
-          setRunType(RUNTYPE_PY);
         }
       }
       if (success) {
@@ -407,7 +408,8 @@ public class ServerRunner extends AbstractScriptRunner {
           }
         }
 
-        int retval = startRunner(getRunType() , fScript, fScriptScript, args.toArray(new String[0]));
+        //TODO int retval = Runner.run(fScript.toString(), args);
+        int retval = Runner.run(fScript.toString(), args.toArray(new String[0]), null);
         message = "runScript: returned: " + retval;
         if (retval < 0) {
           statusCode = StatusCodes.SERVICE_UNAVAILABLE;
@@ -444,23 +446,12 @@ public class ServerRunner extends AbstractScriptRunner {
   }
 
   private static abstract class AbstractCommandHttpHandler implements HttpHandler {
-    protected static final String RUNTYPE_JS = "JavaScript";
-    protected static final String RUNTYPE_PY = "jython";
-    protected static final String RUNTYPE_RB = "jruby";
-
-    private static String runType = RUNTYPE_JS;
     private static File scriptFolder = null;
     private static String scriptFolderNet = null;
     private static File imageFolder = null;
     private static String imageFolderNet = null;
     private static ScriptEngine jsRunner = null;
 
-    protected void setRunType(String runType) {
-      AbstractCommandHttpHandler.runType = runType;
-    }
-    protected String getRunType() {
-      return AbstractCommandHttpHandler.runType;
-    }
     protected void setScriptFolder(File scriptFolder) {
       AbstractCommandHttpHandler.scriptFolder = scriptFolder;
     }
@@ -520,24 +511,6 @@ public class ServerRunner extends AbstractScriptRunner {
       }
       Debug.log("Transformed path: " + aFolder);
       return aFolder;
-    }
-
-    protected int startRunner(String runType, File fScript, File fScriptScript) {
-      return startRunner(runType, fScript, fScriptScript, new String[0]);
-    }
-
-    protected int startRunner(String runType, File fScript, File fScriptScript, String[] args) {
-      try {
-        Runner.getRunner(runType).init(null);
-      } catch (Exception ex) {
-        ServerRunner.dolog("startRunner not possible:" + ex.getMessage());
-        return -1;
-      }
-      if (fScript == null) {
-        return 0;
-      }
-      //TODO int retval = Runner.run(fScript.toString(), args);
-      return Runner.run(fScript.toString(), args, null);
     }
   }
 
