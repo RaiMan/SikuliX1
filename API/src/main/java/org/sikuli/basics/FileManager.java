@@ -29,6 +29,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarOutputStream;
@@ -734,7 +735,7 @@ public class FileManager {
           }
           in.close();
           out.close();
-        } catch(IOException ex) {
+        } catch (IOException ex) {
           log(-1, "xcopy: %s to: %s (%s)", fSrc, fDest, ex.getMessage());
           throw new IOException(ex.getMessage(), ex.getCause());
         }
@@ -888,39 +889,37 @@ public class FileManager {
     }
   }
 
-  public static String normalize(String filename) {
-    return slashify(filename, false);
-  }
-
-  public static String normalize(String fileName, String folder) {
-    File file = new File(fileName);
-    if (!file.isAbsolute() && !fileName.startsWith("\\")) {
-      file = new File(folder, fileName);
+  public static String normalize(String path) {
+    String pathNormalized = "";
+    if (path != null) {
+      if (path.contains("%")) {
+        try {
+          pathNormalized = URLDecoder.decode(path, "UTF-8");
+        } catch (Exception ex) {
+        }
+      }
+      if (pathNormalized.startsWith("\\")) {
+        pathNormalized = new File(pathNormalized).getAbsoluteFile().getPath();
+      }
     }
-    log(lvl, "normalize: file: %s", file);
-    return normalizeAbsolute(file.getPath(), false);
+    return pathNormalized;
   }
 
-  public static String normalizeAbsolute(String filename, boolean withTrailingSlash) {
-    filename = slashify(filename, false);
+  public static String normalizeAbsolute(String filename) {
+    filename = normalize(filename);
     String jarSuffix = "";
     int nJarSuffix;
-    if (-1 < (nJarSuffix = filename.indexOf(".jar!/"))) {
+    if (0 < (nJarSuffix = filename.indexOf(".jar!"))) {
       jarSuffix = filename.substring(nJarSuffix + 4);
       filename = filename.substring(0, nJarSuffix + 4);
     }
     File aFile = new File(filename);
     try {
-      filename = aFile.getCanonicalPath();
-      aFile = new File(filename);
+      aFile = aFile.getCanonicalFile();
     } catch (Exception ex) {
     }
-    String fpFile = aFile.getAbsolutePath();
-    if (!fpFile.startsWith("/")) {
-      fpFile = "/" + fpFile;
-    }
     log(lvl, "normalizeAbsolute: file: %s", aFile);
-    return slashify(fpFile + jarSuffix, withTrailingSlash);
+    return aFile.getPath() + jarSuffix;
   }
 
   public static boolean isFilenameDotted(String name) {
@@ -955,7 +954,7 @@ public class FileManager {
   public static URL makeURL(String fName, String type) {
     try {
       if ("file".equals(type)) {
-        fName = normalizeAbsolute(fName, false);
+        fName = normalizeAbsolute(fName);
         if (!fName.startsWith("/")) {
           fName = "/" + fName;
         }

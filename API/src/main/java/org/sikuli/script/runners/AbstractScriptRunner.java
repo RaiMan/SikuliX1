@@ -75,12 +75,20 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     // noop if not implemented
   }
 
-  ;
-
   public final boolean isReady() {
     synchronized (this) {
       return ready;
     }
+  }
+
+  @Override
+  public boolean isSupported() {
+    return false;
+  }
+
+  @Override
+  public boolean isWrapper() {
+    return false;
   }
 
   @Override
@@ -163,7 +171,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       if (!scriptFile.exists()) {
         return Runner.FILE_NOT_FOUND;
       }
-      if (null == options || !options.isRunningInIDE()) {
+      if (null == options || (!options.isRunningInIDE() && !isWrapper())) {
         ImagePath.setBundleFolder(scriptFile.getParentFile());
       }
       if (null != options) {
@@ -241,11 +249,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public String getInteractiveHelp() {
     logNotSupported("getInteractiveHelp");
     return null;
-  }
-
-  @Override
-  public boolean isSupported() {
-    return false;
   }
 
   @Override

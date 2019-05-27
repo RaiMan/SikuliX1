@@ -736,7 +736,7 @@ public class RunSetup {
         boolean dlLibsWinOK = copyFromDownloads(fDownloaded, libsWin, jarsList[6]);
         if (dlLibsWinOK) {
           FileManager.resetFolder(folderLibsWin);
-          String aJar = FileManager.normalizeAbsolute(jarsList[6], false);
+          String aJar = FileManager.normalizeAbsolute(jarsList[6]);
           if (null == runTime.resourceListAsSikulixContentFromJar(aJar, "sikulixlibs/windows", folderLibsWin, null)) {
             terminate("libswin content list could not be created", 999);
           }

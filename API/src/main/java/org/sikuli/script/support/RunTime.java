@@ -11,7 +11,6 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -19,10 +18,7 @@ import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
-import py4Java.GatewayServerListener;
-import py4Java.Py4JServerConnection;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -32,8 +28,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -2032,7 +2026,7 @@ public class RunTime {
     try {
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
-      String sFolder = FileManager.normalizeAbsolute(fFolder.getPath(), false);
+      String sFolder = FileManager.normalizeAbsolute(fFolder.getPath());
       if (":".equals(sFolder.substring(2, 3))) {
         sFolder = sFolder.substring(1);
       }
@@ -2649,7 +2643,7 @@ public class RunTime {
   }
 
   public File asExtension(String fpJar) {
-    File fJarFound = new File(FileManager.normalizeAbsolute(fpJar, false));
+    File fJarFound = new File(FileManager.normalizeAbsolute(fpJar));
     if (!fJarFound.exists()) {
       String fpCPEntry = runTime.isOnClasspath(fJarFound.getName());
       if (fpCPEntry == null) {

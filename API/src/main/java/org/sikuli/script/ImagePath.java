@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,7 +128,7 @@ public class ImagePath {
       }
       Image.purge(pathEntry.pathURL);
     }
-    PathEntry bundlePath = imagePaths.get(0);
+    PathEntry bundlePath = getBundle();
     imagePaths.clear();
     imagePaths.add(bundlePath);
   }
@@ -179,7 +178,7 @@ public class ImagePath {
         return "-- empty --";
       }
       if (isFile()) {
-        return pathURL.getFile();
+        return pathURL.getPath();
       }
       return null;
     }
@@ -203,6 +202,13 @@ public class ImagePath {
         return false;
       }
       return pathURL.getProtocol().startsWith("http");
+    }
+
+    public File getFile() {
+      if (isFile()) {
+        return new File(getPath());
+      }
+      return null;
     }
 
     public boolean existsFile() {
@@ -252,7 +258,7 @@ public class ImagePath {
       return null;
     }
     URL pathURL = null;
-    File fPath = new File(FileManager.normalizeAbsolute(fpMainPath, false));
+    File fPath = new File(FileManager.normalizeAbsolute(fpMainPath));
     if (fPath.exists()) {
       pathURL = FileManager.makeURL(fPath.getAbsolutePath());
     } else {
@@ -287,8 +293,8 @@ public class ImagePath {
             if (fpAltPath == null || fpAltPath.isEmpty()) {
               fpAltPath = jarURL.getPath();
             }
-            if (new File(FileManager.normalizeAbsolute(fpAltPath, false), fpSubPath).exists()) {
-              File fAltPath = new File(FileManager.normalizeAbsolute(fpAltPath, false), fpSubPath);
+            if (new File(FileManager.normalizeAbsolute(fpAltPath), fpSubPath).exists()) {
+              File fAltPath = new File(FileManager.normalizeAbsolute(fpAltPath), fpSubPath);
               pathURL = FileManager.makeURL(fAltPath.getPath());
             }
           }
@@ -303,15 +309,6 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="03 handle path entry">
-  public static String getPath(int ix) {
-    PathEntry pe = imagePaths.get(0);
-    String path = null;
-    if (pe != null) {
-      path = pe.getPath();
-    }
-    return path;
-  }
-
   /**
    * create a new PathEntry from the given absolute path name and add it to the
    * end of the current image path<br>
@@ -393,20 +390,20 @@ public class ImagePath {
    * @return true if successful otherwise false
    */
   public static boolean add(String mainPath, String altPath) {
-    PathEntry path = null;
+    PathEntry pathEntry = null;
     File fPath = new File(mainPath);
     if (!fPath.isAbsolute() && mainPath.contains(":")) {
       if (fPath.getAbsolutePath().charAt(2) != ":".charAt(0)) {
         return addHTTP(mainPath);
       }
     }
-    path = makePathURL(mainPath, altPath);
-    if (path != null) {
-      if (hasPath(path) < 0) {
-        log(lvl, "add: %s", path);
-        imagePaths.add(path);
+    pathEntry = makePathURL(mainPath, altPath);
+    if (pathEntry != null) {
+      if (hasPath(pathEntry) < 0) {
+        log(lvl, "add: %s", pathEntry);
+        imagePaths.add(pathEntry);
       } else {
-        log(lvl, "duplicate not added: %s", path);
+        log(lvl, "duplicate not added: %s", pathEntry);
       }
       return true;
     } else {
@@ -436,15 +433,15 @@ public class ImagePath {
   }
 
   private static int hasPath(PathEntry path) {
-    PathEntry pe = imagePaths.get(0);
-    if (imagePaths.size() == 1 && pe == null) {
+    PathEntry bundle = getBundle();
+    if (imagePaths.size() == 1 && bundle == null) {
       return -1;
     }
-    if (pe != null && pe.equals(path)) {
+    if (bundle != null && bundle.equals(path)) {
       return 0;
     }
-    for (PathEntry p : imagePaths.subList(1, imagePaths.size())) {
-      if (p != null && p.equals(path)) {
+    for (PathEntry pathEntry : imagePaths.subList(1, imagePaths.size())) {
+      if (pathEntry != null && pathEntry.equals(path)) {
         return 1;
       }
     }
@@ -503,12 +500,12 @@ public class ImagePath {
 
   //<editor-fold desc="05 bundle path">
   public static boolean hasBundlePath() {
-    return imagePaths.get(0) != null;
+    return getBundle() != null;
   }
 
   private static boolean bundleEquals(Object path) {
     if (hasBundlePath()) {
-      return imagePaths.get(0).equals(path);
+      return getBundle().equals(path);
     }
     return false;
   }
@@ -547,10 +544,10 @@ public class ImagePath {
     }
     File newBundleFile = new File(newBundlePath);
     if (!newBundleFile.isAbsolute()) {
-      if (null == imagePaths.get(0).pathURL) {
+      if (hasBundlePath()) {
         return false;
       }
-      newBundleFile = new File(imagePaths.get(0).pathURL.getPath(), newBundlePath);
+      newBundleFile = new File(getBundlePath(), newBundlePath);
     }
     return null != setBundleFolder(newBundleFile);
   }
@@ -560,16 +557,24 @@ public class ImagePath {
       return folder;
     }
     if (folder.exists()) {
-      PathEntry oldBundle = imagePaths.get(0);
+      PathEntry oldBundle = getBundle();
       Image.purge(oldBundle);
       PathEntry pathEntry = new PathEntry(folder);
       if (pathEntry.isValid()) {
-        imagePaths.set(0, pathEntry);
+        setBundle(pathEntry);
         log(lvl, "new BundlePath: %s", pathEntry);
-        return oldBundle == null ? null : new File(oldBundle.path);
+        return pathEntry.getFile();
       }
     }
     return null;
+  }
+
+  private static PathEntry getBundle() {
+    return imagePaths.get(0);
+  }
+
+  private static void setBundle(PathEntry pathEntry) {
+    imagePaths.set(0, pathEntry);
   }
 
   /**
@@ -583,7 +588,7 @@ public class ImagePath {
         return null;
       }
     }
-    return imagePaths.get(0).getPath();
+    return getBundle().getPath();
   }
   //</editor-fold>
 

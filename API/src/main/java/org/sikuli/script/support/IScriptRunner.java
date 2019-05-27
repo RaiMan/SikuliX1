@@ -175,6 +175,13 @@ public interface IScriptRunner {
   public boolean isSupported();
 
   /**
+   * A wrapping runner does not run directly, but evaluates a scriptfile to be run
+   *
+   * @return true if this is a wrapping runner
+   */
+  public boolean isWrapper();
+
+  /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
    * between different ScriptRunners.
    *
