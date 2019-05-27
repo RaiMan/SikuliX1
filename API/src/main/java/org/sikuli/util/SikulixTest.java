@@ -66,7 +66,7 @@ public class SikulixTest {
     if (!image.endsWith(".png")) {
       image += ".png";
     }
-    showLink = "file://" + Image.create(image).getFileURL().getPath();
+    showLink = "file://" + Image.create(image).getURL().getPath();
     showWait = wait;
     showBefore = before;
     Thread runnable = new Thread() {

@@ -127,7 +127,7 @@ public class ImagePath {
       if (pathEntry == null) {
         continue;
       }
-      Image.purge(pathEntry.pathURL);
+      Image.purge(pathEntry);
     }
     PathEntry bundlePath = imagePaths.get(0);
     imagePaths.clear();
@@ -484,7 +484,7 @@ public class ImagePath {
    */
   private static boolean remove(URL pURL) {
     if (bundleEquals(pURL)) {
-      Image.purge(pURL);
+      Image.purge();
       return true;
     }
     Iterator<PathEntry> it = imagePaths.subList(1, imagePaths.size()).iterator();
@@ -495,7 +495,7 @@ public class ImagePath {
         continue;
       }
       it.remove();
-      Image.purge(pathEntry.pathURL);
+      Image.purge(pathEntry);
     }
     return true;
   }
@@ -584,6 +584,10 @@ public class ImagePath {
       }
     }
     return imagePaths.get(0).getPath();
+  }
+
+  public static PathEntry getBundle() {
+    return imagePaths.get(0);
   }
   //</editor-fold>
 

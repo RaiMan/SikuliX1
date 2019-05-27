@@ -1605,27 +1605,6 @@ public class FileManager {
     in.close();
   }
 
-  public static boolean isValidImageFilename(String fname) {
-    String validEndings = ".png.jpg.jpeg";
-    String defaultEnding = ".png";
-    int dot = fname.lastIndexOf(".");
-    String ending = defaultEnding;
-    if (dot > 0) {
-      ending = fname.substring(dot);
-      if (validEndings.contains(ending.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static String getValidImageFilename(String fname) {
-    if (isValidImageFilename(fname)) {
-      return fname;
-    }
-    return fname + ".png";
-  }
-
   public static String unzipSKL(String fpSkl) {
     File fSkl = new File(fpSkl);
     if (!fSkl.exists()) {
