@@ -2319,7 +2319,7 @@ public class Region {
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
-        log(lvl, "wait: %s appeared (%s)", img.isText() ? img.getName() : img.getImageName(), lastMatch);
+        log(lvl, "wait: %s appeared (%s)", img.getName(), lastMatch);
         return lastMatch;
       } else {
         response = handleFindFailed(target, img);
@@ -2898,7 +2898,7 @@ public class Region {
             }
           } else if (img.isText()) {
             findingText = true;
-            someText = img.getText();
+            someText = img.getNameAsText();
           }
         }
         if (findingText) {
@@ -3033,7 +3033,7 @@ public class Region {
             finder.findAll(img);
           } else if (img.isText()) {
             findingText = true;
-            someText = img.getText();
+            someText = img.getNameAsText();
           }
         }
         if (findingText) {
@@ -3478,8 +3478,8 @@ public class Region {
           log(-1, "handleImageMissing: no bundle path - aborting");
           return null;
         }
-        simg.getFile(path, img.getImageName());
-        Image.set(img);
+        simg.getFile(path, img.getName());
+        Image.reinit(img);
         if (img.isValid()) {
           log(lvl, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
           Image.setIDEshouldReload(img);
