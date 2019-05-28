@@ -744,7 +744,7 @@ public class EditorPane extends JTextPane {
   //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
   public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
     if (fileOverWritten) {
-      Image.unCacheBundledImage(newName);
+      Image.unCache(newName);
     }
     Map<String, List<Integer>> images = parseforImages();
     oldName = new File(oldName).getName();

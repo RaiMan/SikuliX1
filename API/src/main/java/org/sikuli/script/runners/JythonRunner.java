@@ -28,7 +28,7 @@ public class JythonRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
-  public static final String[] EXTENSIONS = new String[]{"py"};
+  public static final String[] EXTENSIONS = new String[]{"py", "$py.class"};
 
   private static RunTime runTime = RunTime.get();
 

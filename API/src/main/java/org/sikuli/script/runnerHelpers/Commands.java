@@ -90,7 +90,7 @@ public class Commands {
                 scriptArgs[i - 1] = args[i].toString();
             }
         }
-        return Runner.run(script, scriptArgs);
+        return Runner.run(script, scriptArgs, null);
     }
 
     public static Object circle(Object args) {

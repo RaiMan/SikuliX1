@@ -2476,9 +2476,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-      if (getCurrentCodePane().isText) {
-        return;
-      }
+//      if (getCurrentCodePane().isText) {
+//        return;
+//      }
       runCurrentScript();
     }
 

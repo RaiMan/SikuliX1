@@ -430,7 +430,7 @@ public class JythonHelper implements IScriptLanguageHelper {
     if (!fpJar.endsWith(".jar")) {
       fpJar += ".jar";
     }
-    File fJar = new File(FileManager.normalizeAbsolute(fpJar, false));
+    File fJar = new File(FileManager.normalizeAbsolute(fpJar));
     if (!fJar.exists()) {
       String fpBundle = ImagePath.getBundlePath();
       fJar = null;
@@ -680,7 +680,7 @@ public class JythonHelper implements IScriptLanguageHelper {
           }
         }
       }
-      String fpBundle = ImagePath.getPath(0);
+      String fpBundle = ImagePath.getBundlePath();
       if (fpBundle != null) {
         addSysPath(fpBundle);
       }

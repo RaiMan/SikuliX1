@@ -29,6 +29,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarOutputStream;
@@ -734,7 +735,7 @@ public class FileManager {
           }
           in.close();
           out.close();
-        } catch(IOException ex) {
+        } catch (IOException ex) {
           log(-1, "xcopy: %s to: %s (%s)", fSrc, fDest, ex.getMessage());
           throw new IOException(ex.getMessage(), ex.getCause());
         }
@@ -888,39 +889,37 @@ public class FileManager {
     }
   }
 
-  public static String normalize(String filename) {
-    return slashify(filename, false);
-  }
-
-  public static String normalize(String fileName, String folder) {
-    File file = new File(fileName);
-    if (!file.isAbsolute() && !fileName.startsWith("\\")) {
-      file = new File(folder, fileName);
+  public static String normalize(String path) {
+    String pathNormalized = "";
+    if (path != null) {
+      if (path.contains("%")) {
+        try {
+          pathNormalized = URLDecoder.decode(path, "UTF-8");
+        } catch (Exception ex) {
+        }
+      }
+      if (pathNormalized.startsWith("\\")) {
+        pathNormalized = new File(pathNormalized).getAbsoluteFile().getPath();
+      }
     }
-    log(lvl, "normalize: file: %s", file);
-    return normalizeAbsolute(file.getPath(), false);
+    return pathNormalized;
   }
 
-  public static String normalizeAbsolute(String filename, boolean withTrailingSlash) {
-    filename = slashify(filename, false);
+  public static String normalizeAbsolute(String filename) {
+    filename = normalize(filename);
     String jarSuffix = "";
     int nJarSuffix;
-    if (-1 < (nJarSuffix = filename.indexOf(".jar!/"))) {
+    if (0 < (nJarSuffix = filename.indexOf(".jar!"))) {
       jarSuffix = filename.substring(nJarSuffix + 4);
       filename = filename.substring(0, nJarSuffix + 4);
     }
     File aFile = new File(filename);
     try {
-      filename = aFile.getCanonicalPath();
-      aFile = new File(filename);
+      aFile = aFile.getCanonicalFile();
     } catch (Exception ex) {
     }
-    String fpFile = aFile.getAbsolutePath();
-    if (!fpFile.startsWith("/")) {
-      fpFile = "/" + fpFile;
-    }
     log(lvl, "normalizeAbsolute: file: %s", aFile);
-    return slashify(fpFile + jarSuffix, withTrailingSlash);
+    return aFile.getPath() + jarSuffix;
   }
 
   public static boolean isFilenameDotted(String name) {
@@ -955,7 +954,7 @@ public class FileManager {
   public static URL makeURL(String fName, String type) {
     try {
       if ("file".equals(type)) {
-        fName = normalizeAbsolute(fName, false);
+        fName = normalizeAbsolute(fName);
         if (!fName.startsWith("/")) {
           fName = "/" + fName;
         }
@@ -1605,107 +1604,6 @@ public class FileManager {
     in.close();
   }
 
-  public static File[] getScriptFile(File fScriptFolder) {
-    if (fScriptFolder == null) {
-      return null;
-    }
-    String scriptName;
-    String scriptType = "";
-    String fpUnzippedSkl = null;
-    File[] content = null;
-
-    if (fScriptFolder.getName().endsWith(".skl") || fScriptFolder.getName().endsWith(".zip")) {
-      fpUnzippedSkl = FileManager.unzipSKL(fScriptFolder.getAbsolutePath());
-      if (fpUnzippedSkl == null) {
-        return null;
-      }
-      scriptType = "sikuli-zipped";
-      fScriptFolder = new File(fpUnzippedSkl);
-    }
-
-    int pos = fScriptFolder.getName().lastIndexOf(".");
-    if (pos == -1) {
-      scriptName = fScriptFolder.getName();
-      scriptType = "sikuli-plain";
-    } else {
-      scriptName = fScriptFolder.getName().substring(0, pos);
-      scriptType = fScriptFolder.getName().substring(pos + 1);
-    }
-
-    boolean success = true;
-    if (!fScriptFolder.exists()) {
-      if ("sikuli-plain".equals(scriptType)) {
-        fScriptFolder = new File(fScriptFolder.getAbsolutePath() + ".sikuli");
-        if (!fScriptFolder.exists()) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-    }
-    if (!success) {
-      log(-1, "Not a valid Sikuli script project:\n%s", fScriptFolder.getAbsolutePath());
-      return null;
-    }
-    if (scriptType.startsWith("sikuli")) {
-      content = fScriptFolder.listFiles(new FileFilterScript(scriptName + "."));
-      if (content == null || content.length == 0) {
-        log(-1, "Script project %s \n has no script file %s.xxx", fScriptFolder, scriptName);
-        return null;
-      }
-    } else if ("jar".equals(scriptType)) {
-      URL jarURL = makeJarURL(fScriptFolder);
-      scriptName = scriptName.replace("_sikuli", "");
-      List<String> filesInJar = RunTime.get().listFilesInJar(jarURL);
-      String sScriptFile = null;
-      for (String sFile : filesInJar) {
-        if (sFile.equals(scriptName + "$py.class")) {
-          sScriptFile = sFile;
-        }
-      }
-      if (null == sScriptFile) {
-        log(-1, "Script project %s \n has no script file %s.xxx", fScriptFolder, scriptName);
-        return null;
-      }
-      return new File[]{new File(sScriptFile)};
-    }
-    return content;
-  }
-
-  public static boolean isValidImageFilename(String fname) {
-    String validEndings = ".png.jpg.jpeg";
-    String defaultEnding = ".png";
-    int dot = fname.lastIndexOf(".");
-    String ending = defaultEnding;
-    if (dot > 0) {
-      ending = fname.substring(dot);
-      if (validEndings.contains(ending.toLowerCase())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static String getValidImageFilename(String fname) {
-    if (isValidImageFilename(fname)) {
-      return fname;
-    }
-    return fname + ".png";
-  }
-
-  private static class FileFilterScript implements FilenameFilter {
-    private String _check;
-
-    public FileFilterScript(String check) {
-      _check = check;
-    }
-
-    @Override
-    public boolean accept(File dir, String fileName) {
-      return fileName.startsWith(_check);
-    }
-  }
-
   public static String unzipSKL(String fpSkl) {
     File fSkl = new File(fpSkl);
     if (!fSkl.exists()) {
@@ -1726,11 +1624,11 @@ public class FileManager {
   }
 
   public interface JarFileFilter {
-    public boolean accept(ZipEntry entry, String jarname);
+    boolean accept(ZipEntry entry, String jarname);
   }
 
   public interface FileFilter {
-    public boolean accept(File entry);
+    boolean accept(File entry);
   }
 
   public static String extractResourceAsLines(String src) {
@@ -1788,18 +1686,8 @@ public class FileManager {
     out.flush();
   }
 
-  /**
-   * compares to path strings using java.io.File.equals()
-   *
-   * @param path1 string
-   * @param path2 string
-   * @return true if same file or folder
-   */
   public static boolean pathEquals(String path1, String path2) {
-    File f1 = new File(path1);
-    File f2 = new File(path2);
-    boolean isEqual = f1.equals(f2);
-    return isEqual;
+    return new File(path1).equals(new File(path2));
   }
 
 }

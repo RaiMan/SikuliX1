@@ -4,51 +4,41 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
 /**
  * Runs Sikulix scripts.
- * 
+ * <p>
  * A sikulix script is a directory (optionally with a .sikuli extension)
- *  
- * @author mbalmer
  *
+ * @author mbalmer
  */
 
 public class SikulixRunner extends AbstractScriptRunner {
-  
+
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
-  public static final String[] EXTENSIONS = new String[] {"sikuli"};
+  public static final String[] EXTENSIONS = new String[]{"sikuli"};
 
   @Override
-  protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
-    if (!ImagePath.hasBundlePath())
-      ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
-    else {
-      ImagePath.add(new File(scriptFile).getAbsolutePath());
-    }
-    
-    File innerScriptFile = Runner.getScriptFile(new File(scriptFile));
-            
-    return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs);     
-  }
-   
-  @Override
-  public boolean isSupported() {    
+  public boolean isSupported() {
     return true;
   }
-  
-  @Override 
-  public boolean canHandle(String identifier) {       
-     return new File(identifier).isDirectory();    
+
+  @Override
+  public boolean isWrapper() {
+    return true;
   }
 
   @Override
-  public String getName() {   
+  public String getName() {
     return NAME;
   }
 
@@ -59,7 +49,54 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public String getType() {    
+  public String getType() {
     return TYPE;
+  }
+
+  @Override
+  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
+    File scriptFile = new File(scriptFileOrFolder);
+    File scriptFolder = null;
+    String workFolder = options.getWorkFolder();
+    String scriptGiven = options.getScriptName();
+    if (FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
+      scriptFolder = new File(scriptFile.getPath());
+      if (!scriptGiven.endsWith("/")) {
+        scriptFile = new File(scriptFile.getPath() + ".sikuli");
+      }
+    }
+    scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFile);
+    if (null == scriptFile || !scriptFile.exists()) {
+      if (null != scriptFolder) {
+        log(3, "runScripts: %s as .sikuli not found - trying as folder", scriptGiven);
+        scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFolder);
+      }
+      if (null == scriptFile || !scriptFile.exists()) {
+        return Runner.FILE_NOT_FOUND;
+      }
+    }
+
+//TODO BundlePath
+
+//    if (!ImagePath.hasBundlePath())
+//      ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
+//    else {
+//      ImagePath.add(new File(scriptFile).getAbsolutePath());
+//    }
+
+    File innerScriptFile = Runner.getScriptFile(scriptFile);
+    if (null != innerScriptFile) {
+      options.setWorkFolder(scriptFile.getParent());
+      return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+    } else {
+      if (scriptFile.isFile()) {
+        log(3, "not supported: (.%s) %s",
+                FilenameUtils.getExtension(scriptFile.getPath()), scriptFile);
+        options.setWorkFolder(scriptFile.getParent());
+      } else {
+        options.setWorkFolder(scriptFile.getPath());
+      }
+      return Runner.FILE_NOT_FOUND_SILENT;
+    }
   }
 }
