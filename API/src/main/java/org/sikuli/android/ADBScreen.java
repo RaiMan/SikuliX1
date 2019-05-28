@@ -82,7 +82,7 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
     init();
   }
 
-  public ADBScreen(int id) {
+  private ADBScreen(int id) {
     super();
     setOtherScreen(this);
     device = ADBDevice.init(id);

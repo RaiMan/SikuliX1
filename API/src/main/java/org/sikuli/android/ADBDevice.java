@@ -92,7 +92,7 @@ public class ADBDevice {
       return null;
     }
     device.initDevice(device);
-    adbDevice.adbExec = ADBClient.getADB();
+    device.adbExec = ADBClient.getADB();
     return device;
   }
 
