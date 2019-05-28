@@ -1,0 +1,29 @@
+jquery.min
+----------
+http://jquery.com/download
+Version: 3.3.1
+
+jquery.tmpl.min
+---------------
+from version control, edited on 10th June 2011 (revision 07d08cb72c7556e95059)
+https://github.com/jquery/jquery-tmpl
+
+Includes our in-place fix for escaping &. See following links before update!
+https://github.com/robotframework/robotframework/commit/b72ff951fa8e06b1c336bc8447228904d8fdcc5d
+https://github.com/jquery/jquery-tmpl/issues/79
+
+jsxcompressor.min
+-----------------
+https://jsxgraph.org/wp/jsxcompressor/index.html
+Downloaded: 2018-06-13
+
+jquery.tablesorter.min
+----------------------
+https://github.com/Mottie/tablesorter
+Version: 2.30.5
+
+jquery.highlight.min
+--------------------
+https://github.com/bartaz/sandbox.js/blob/master/jquery.highlight.js
+Date: 2010-12-01
+Minimized using http://jscompress.com/

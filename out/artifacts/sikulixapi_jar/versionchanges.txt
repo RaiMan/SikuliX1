@@ -1,0 +1,89 @@
+Lept4J Change Summary
+
+Version 1.0 (25 July 2015):
+- Initial commit for Leptonica 1.71
+- Embed Windows native resources in JAR
+- Autoload Windows native libraries
+- Change type from ByReference[] to PointerByReference
+- Add support for image conversion
+
+Version 1.1 (22 August 2015):
+- Upgrade to Leptonica 1.72
+- Additional use cases
+
+Version 1.1.1 (15 November 2015):
+- Update JNA 4.2.1
+- Additional test cases
+
+Version 1.1.2 (17 March 2016):
+- Update jna-4.2.2
+- Update jai-imageio-1.3.1
+
+Version 1.2 (19 March 2016):
+- Upgrade to Leptonica 1.73
+
+Version 1.2.1 (11 May 2016):
+- Implement removeLines method
+- Add back a few methods accidentally commented out
+- Revert jna to 4.1.0
+
+Version 1.2.2 (15 May 2016):
+- Include more API methods related to TIFF and PNG
+
+Version 1.2.3 (29 May 2016):
+- Include more API methods related to box array operations
+
+Version 1.2.4 (24 September 2016):
+- Fix Invalid memory access error caused by memory leaks in convertPixToImage
+- Add Otsu test case
+
+Version 1.3.0 (15 February 2017):
+- Upgrade to Leptonica 1.74.1
+
+Version 1.3.1 (23 March 2017):
+- Use correct type; remove unneeded dependency
+
+Version 1.3.2 (20 May 2017):
+- Correct filename and version number for Leptonica 1.74.1 binary
+- Add webp support
+
+Version 1.4.0 (21 May 2017):
+- The native DLL filename change was a breaking change, which warrants a minor version number bump
+
+Version 1.5.0 (6 June 2017):
+- Upgrade to Leptonica 1.74.2
+
+Version 1.6.0 (13 June 2017):
+- Upgrade to Leptonica 1.74.4
+
+Version 1.6.1 (22 September 2017)
+- Not extract/copy native resource if it exists and has same file size
+- Add jp2k support
+
+Version 1.6.2 (30 October 2017)
+- Update libpng, libtiff, and libopenjp2 libraries
+
+Version 1.6.3 (22 February 2018)
+- Fix convertPixToImage method, which caused JVM crash in round-trip conversion
+
+Version 1.7.0 (28 January 2018):
+- Upgrade to Leptonica 1.75.0
+
+Version 1.8.0 (5 February 2018):
+- Upgrade to Leptonica 1.75.1
+
+Version 1.9.0 (17 February 2018):
+- Upgrade to Leptonica 1.75.3
+
+Version 1.9.1 (22 February 2018):
+- Fix convertPixToImage method, which caused JVM crash in round-trip conversion
+
+Version 1.9.2 (24 February 2018):
+- Implement despeckle method
+
+Version 1.9.3 (16 April 2018):
+- Update jai-imageio-core to 1.4.0 for Java 9 fixes
+
+Version 1.9.4 (3 May 2018):
+- Fix a path issue when extracting native resources from JAR to temp directory on Windows server
+- Replace JNA string constant Platform.RESOURCE_PREFIX

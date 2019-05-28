@@ -86,14 +86,14 @@ public class ADBDevice {
   }
 
   public static ADBDevice init(int id) {
-    ADBDevice adbDevice = new ADBDevice();
-    adbDevice.device = ADBClient.getDevice(id);
-    if (adbDevice.device == null) {
+    ADBDevice device = new ADBDevice();
+    device.device = ADBClient.getDevice(id);
+    if (device.device == null) {
       return null;
     }
-    adbDevice.initDevice(adbDevice);
+    device.initDevice(device);
     adbDevice.adbExec = ADBClient.getADB();
-    return adbDevice;
+    return device;
   }
 
   private void initDevice(ADBDevice device) {

@@ -1,0 +1,8 @@
+..
+.
+local.rb
+lock.rb
+installed.rb
+vendor.rb
+git.rb
+specific_file.rb
