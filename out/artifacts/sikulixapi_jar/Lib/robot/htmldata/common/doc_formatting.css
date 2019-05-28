@@ -1,0 +1,49 @@
+.doc > * {
+    margin: 0.7em 1em 0.1em 1em;
+    padding: 0;
+}
+.doc > p, .doc > h1, .doc > h2, .doc > h3, .doc > h4 {
+    margin: 0.7em 0 0.1em 0;
+}
+.doc > *:first-child {
+    margin-top: 0.1em;
+}
+.doc table {
+    border: 1px solid #ccc;
+    background: transparent;
+    border-collapse: collapse;
+    empty-cells: show;
+    font-size: 0.9em;
+}
+.doc table th, .doc table td {
+    border: 1px solid #ccc;
+    background: transparent;
+    padding: 0.1em 0.3em;
+    height: 1.2em;
+}
+.doc table th {
+    text-align: center;
+    letter-spacing: 0.1em;
+}
+.doc pre {
+    font-size: 1.1em;
+    letter-spacing: 0.05em;
+    background: #f4f4f4;
+}
+.doc code {
+    padding: 0 0.2em;
+    letter-spacing: 0.05em;
+    background: #eee;
+}
+.doc li {
+    list-style-position: inside;
+    list-style-type: square;
+}
+.doc img {
+    border: 1px solid #ccc;
+}
+.doc hr {
+    background: #ccc;
+    height: 1px;
+    border: 0;
+}

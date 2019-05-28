@@ -1,0 +1,81 @@
+%!PS
+% Ghost4J: a Java wrapper for Ghostscript API.
+%
+% Distributable under LGPL license.
+% See terms of license at http://www.gnu.org/licenses/lgpl.html.
+%
+% List fonts of a PDF file.
+% Based on pdf_info.ps provided with Ghostscript
+%
+% Usage: gs -dNODISPLAY -q -sFile=____.pdf analysePDFFonts.ps
+
+% Check parameters 
+/File where not {
+  (\n   *** Missing input file name \(use -sFile=____.pdf\)\n) =
+  (    usage: gs -dNODISPLAY -q -sFile=____.pdf analysePDFFonts.ps\n) =
+  () =
+  flush
+  quit
+} if
+pop
+
+% Count pages
+File dup (r) file runpdfbegin
+/PDFPageCount pdfpagecount def
+
+% Function: Concatenates two strings together.
+/append {
+         2 copy length exch length add  % find the length of the new.
+         string dup     % string1 string2 string string
+         4 2 roll       % string string string1 string2
+         2 index 0 3 index
+         % string string string1 string2 string 0 string1
+         putinterval    % stuff the first string in.
+         % string string string1 string2
+         exch length exch putinterval
+} bind def
+
+ % Function: Analyse PDF file fonts and output them in an array. 
+ % Appends ' EM' to embedded foints, ' NE' to not embedded fonts
+/getPDFfonts {  %(filename) getPDFfonts array_of_font_names
+  /FontsUsed 1000 dict def
+  mark
+  1 1 PDFPageCount {
+    pdfgetpage
+    /Resources pget {
+      /Font knownoget {
+        { exch pop oforce
+          dup /DescendantFonts knownoget {
+            exch pop 0 get oforce
+          } if
+          dup /FontDescriptor knownoget {
+            dup /FontFile known 1 index /FontFile2 known or exch /FontFile3 known
+            where { pop pop false} if {
+            	/BaseFont knownoget pop % Embedded font
+            	dup 100 string cvs ( EM) append
+            } {
+              /BaseFont knownoget pop   %  Embedded font subset
+              dup 100 string cvs ( SU) append
+            } ifelse
+          } {
+            /BaseFont knownoget pop     % no FontDescriptor, not embedded
+            dup 100 string cvs ( NE) append
+          } ifelse
+          counttomark 0 gt { FontsUsed exch null put } if       % stick it in the dict
+        } forall                % traverse the dictionary
+      } if
+    } if
+  } for
+  % Now dump the FontsUsed dict into an array so we can sort it.
+  [ FontsUsed { pop } forall ]
+  { 100 string cvs exch 100 string cvs exch lt } .sort
+} bind def
+
+% Display separator
+(---) =
+
+% Display result
+getPDFfonts { = } forall
+
+% Exit
+quit

@@ -1,0 +1,15 @@
+..
+.
+jar-dependencies-0.3.12.gemspec
+scanf-1.0.0.gemspec
+json-2.1.0-java.gemspec
+jruby-openssl-0.10.0-java.gemspec
+rdoc-6.0.1.gemspec
+csv-1.0.0.gemspec
+rake-ant-1.0.4.gemspec
+jruby-readline-1.2.2-java.gemspec
+webrick-1.4.2.gemspec
+cmath-1.0.0.gemspec
+fileutils-1.1.0.gemspec
+ipaddr-1.2.0.gemspec
+psych-3.0.2-java.gemspec

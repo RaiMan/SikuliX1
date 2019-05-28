@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Implementation-Title: Apache PDFBox Debugger
+Implementation-Version: 2.0.11
+Built-By: lehmi
+Specification-Vendor: The Apache Software Foundation
+Specification-Title: Apache PDFBox Debugger
+Implementation-Vendor-Id: org.apache.pdfbox
+Created-By: Apache Maven 3.5.0
+Build-Jdk: 1.8.0_111
+Specification-Version: 2.0
+Implementation-URL: https://www.apache.org/pdfbox-parent/pdfbox-debugg
+ er/
+Implementation-Vendor: The Apache Software Foundation
+
