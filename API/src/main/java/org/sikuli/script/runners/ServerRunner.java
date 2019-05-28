@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.RunTime;
@@ -350,11 +351,16 @@ public class ServerRunner extends AbstractScriptRunner {
   }
 
   private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
+    private static List<String> SERVER_SUPPORTED_EXTENSIONS = new ArrayList<>();
+    {
+      SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JavaScriptRunner.EXTENSIONS));
+      SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JythonRunner.EXTENSIONS));
+    }
+
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       String script = exchange.getQueryParameters().get("*").getFirst();
       File fScript = null;
-      File fScriptScript = null;
       boolean success = true;
       int statusCode = StatusCodes.OK;
       String message = null;
@@ -374,19 +380,14 @@ public class ServerRunner extends AbstractScriptRunner {
           }
           fScript = new File(getScriptFolder(), script);
         }
-        String scriptScript = script.replace(".sikuli", "");
-        fScriptScript = new File(fScript, scriptScript + ".js");
-        success = fScriptScript.exists();
+        File innerScriptFile = Runner.getScriptFile(fScript);
+        success = SERVER_SUPPORTED_EXTENSIONS.stream().anyMatch(s -> 
+                    innerScriptFile != null && s.equals(FilenameUtils.getExtension(innerScriptFile.getName()).toLowerCase()));
         if (!success) {
-          fScriptScript = new File(fScript, scriptScript + ".py");
-          success = fScript.exists() && fScriptScript.exists();
-          if (!success) {
-            ServerRunner.dolog("Script folder path: " + fScript.getAbsolutePath());
-            ServerRunner.dolog("Script file path: " + fScriptScript.getAbsolutePath());
-            message = "runScript: script not found, not valid or not supported "
-                    + fScriptScript.toString();
-            statusCode = StatusCodes.NOT_FOUND;
-          }
+          ServerRunner.dolog("Script folder path: " + fScript.getAbsolutePath());
+          message = "runScript: script not found, not valid or not supported "
+                  + fScript.getAbsolutePath();
+          statusCode = StatusCodes.NOT_FOUND;
         }
       }
       if (success) {
@@ -409,7 +410,7 @@ public class ServerRunner extends AbstractScriptRunner {
         }
 
         //TODO int retval = Runner.run(fScript.toString(), args);
-        int retval = Runner.run(fScript.toString(), args.toArray(new String[0]), null);
+        int retval = Runner.run(fScript.toString(), args.toArray(new String[args.size()]), null);
         message = "runScript: returned: " + retval;
         if (retval < 0) {
           statusCode = StatusCodes.SERVICE_UNAVAILABLE;
