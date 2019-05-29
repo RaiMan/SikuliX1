@@ -194,7 +194,7 @@ public class ADBDevice {
     int currentH;
     int channels = 4;
     Mat matImage = new Mat();
-    try (InputStream deviceOut = device.executeShell("screencap")) {
+    try (InputStream deviceOut = device.execute("screencap")) {
       Debug timer = Debug.startTimer();
       while (deviceOut.available() < 12) ;
       deviceOut.read(imagePrefix);
