@@ -569,10 +569,6 @@ public class ImagePath {
     return null;
   }
 
-  private static PathEntry getBundle() {
-    return imagePaths.get(0);
-  }
-
   private static void setBundle(PathEntry pathEntry) {
     imagePaths.set(0, pathEntry);
   }
