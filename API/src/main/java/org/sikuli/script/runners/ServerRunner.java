@@ -351,6 +351,7 @@ public class ServerRunner extends AbstractScriptRunner {
   }
 
   private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
+    private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
     private static List<String> SERVER_SUPPORTED_EXTENSIONS = new ArrayList<>();
     {
       SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JavaScriptRunner.EXTENSIONS));
@@ -392,23 +393,7 @@ public class ServerRunner extends AbstractScriptRunner {
       }
       if (success) {
         ImagePath.setBundlePath(fScript.getAbsolutePath());
-        List<String> args = new ArrayList<String>();
-
-        if (exchange.getQueryString() != null && !exchange.getQueryString().isEmpty()) {
-          String[] params = exchange.getQueryString().split("[;&]");
-
-          for (String param : params) {
-            String[] pair = param.split("[=]");
-
-            if (pair != null && pair.length == 2) {
-              // Needs both a variable name and value, and supports repeated parameters
-              String arg = String.format("%1$s=%2$s", pair[0], pair[1]);
-              ServerRunner.dolog("Parameter: %s", arg);
-              args.add(arg);
-            }
-          }
-        }
-
+        List<String> args = getQueryAndToArgs(exchange);
         //TODO int retval = Runner.run(fScript.toString(), args);
         int retval = Runner.run(fScript.toString(), args.toArray(new String[args.size()]), null);
         message = "runScript: returned: " + retval;
@@ -417,6 +402,22 @@ public class ServerRunner extends AbstractScriptRunner {
         } 
       }
       sendResponse(exchange, success, statusCode, message);
+    }
+
+    private List<String> getQueryAndToArgs(final HttpServerExchange exchange) {
+      List<String> args = new LinkedList<String>();
+      String queryString = exchange.getQueryString();
+      if (queryString != null) {
+        Matcher matcher = PATTERN_QUERY_ARGS.matcher(queryString);
+        if (matcher.find()) {
+          StringBuilder buf = new StringBuilder();
+          String[] tokens = matcher.group("args").split(";");
+          for (String token : tokens) {
+            args.add(URLUtils.decode(token, "UTF-8", true, buf));
+          }
+        }
+      }
+      return args;
     }
   }
 
@@ -533,9 +534,6 @@ public class ServerRunner extends AbstractScriptRunner {
             path = command+resource;
         }
         exchange.setRelativePath(path);
-
-        String query = exchange.getQueryString();
-        exchange.setQueryString(URLUtils.decode(query, "UTF-8", false, new StringBuilder()));
 
         next.handleRequest(exchange);
     }

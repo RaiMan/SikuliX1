@@ -33,11 +33,23 @@ function runCmd(e) {
     alert("Input the script name.");
     return false;
   }
-  var scriptArgs = document.querySelector("textarea#script-args").value;
+  var scriptArgs = "";
+  try {
+    scriptArgs = parseArgs(document.querySelector("textarea#script-args").value);
+  } catch(ex) {
+    alert("The script arguments input is incorrect : " + ex);
+    return false;
+  }
 
   var command = e.target.id;
-  var url = (scriptArgs !== null && scriptArgs.trim() != "") ? (scriptName + "?" + scriptArgs) : scriptName;
-  url = encodeURI(serverAddress + "/" + command + "/" + url);
+  var url = encodeURI(serverAddress + "/" + command + "/" + scriptName);
+  if (scriptArgs.length > 0) {
+    var queryValue = "";
+    scriptArgs.forEach(function(arg) {
+      queryValue += encodeURIComponent(arg) + ";";
+    });
+    url += "?args=" + queryValue;
+  }
   outputToMonitor(true, command + ": GET " + url);
   ajax("GET", url);
 }
@@ -115,4 +127,88 @@ function outputToMonitor(isRequest, message) {
   if (((monitor.scrollHeight-monitor.clientHeight) > 0) && (beforeScrollTop == beforeScrollTopMax)) {
     monitor.scrollTop = monitor.scrollHeight-monitor.clientHeight;
   }
+}
+
+function parseArgs(input) {
+  const STATE_NONE              = 0;
+  const STATE_CHAR_FOUND        = 1;
+  const STATE_QUOTED_APOSTROPHE = 2;
+  const STATE_QUOTED_QUOTATION  = 4;
+
+  const inputTrimed = input.replace(/\r?\n/g, ' ').trim();
+
+  let args = [];
+  let buf = [];
+  let state = STATE_NONE;
+  for (let i=0; i<inputTrimed.length; i++) {
+    const code = inputTrimed.charCodeAt(i);
+    switch(code) {
+      case 32: // SPACE
+        if (state == STATE_NONE) {
+          continue;
+        }
+        if (state == STATE_CHAR_FOUND) {
+          args.push(String.fromCharCode.apply(this, buf));
+          buf.splice(0);
+          state = STATE_NONE;
+          continue;
+        }
+        if (state & (STATE_QUOTED_APOSTROPHE | STATE_QUOTED_QUOTATION)) {
+          buf.push(code);
+          state |= STATE_CHAR_FOUND;
+          continue;
+        }
+      case 34: // QUOTATION MARK
+        if (state == STATE_NONE) {
+          state |= STATE_QUOTED_QUOTATION;
+          continue;
+        }
+        if (state == STATE_CHAR_FOUND) {
+          throw "invalid quote symbol";
+        }
+        if (state & STATE_QUOTED_APOSTROPHE) {
+          buf.push(code);
+          state |= STATE_CHAR_FOUND;
+          continue;
+        }
+        if (state & STATE_QUOTED_QUOTATION) {
+          state ^= STATE_QUOTED_QUOTATION;
+          continue;
+        }
+      case 39: // APOSTROPHE
+        if (state == STATE_NONE) {
+          state |= STATE_QUOTED_APOSTROPHE;
+          continue;
+        }
+        if (state == STATE_CHAR_FOUND) {
+          throw "invalid quote symbol";
+        }
+        if (state & STATE_QUOTED_APOSTROPHE) {
+          state ^= STATE_QUOTED_APOSTROPHE;
+          continue;
+        }
+        if (state & STATE_QUOTED_QUOTATION) {
+          buf.push(code);
+          state |= STATE_CHAR_FOUND;
+          continue;
+        }
+      default:
+        buf.push(code);
+        state |= STATE_CHAR_FOUND;
+        continue;
+    }
+  }
+  if (state == STATE_NONE) {
+    // NOOP
+  }
+  if (state == STATE_CHAR_FOUND) {
+    args.push(String.fromCharCode.apply(this, buf));
+    buf.splice(0);
+    state = STATE_NONE;
+  }
+  if (state & (STATE_QUOTED_APOSTROPHE | STATE_QUOTED_QUOTATION)) {
+    throw "missing quote end symbol";
+  }
+
+  return args;
 }
