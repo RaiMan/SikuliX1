@@ -1,4 +1,4 @@
-var serverAddress = location.protocol + "//" + location.host;
+const serverAddress = location.protocol + "//" + location.host;
 
 document.querySelector("button#start").addEventListener("click", initCmd);
 document.querySelector("button#startp").addEventListener("click", initCmd);
@@ -8,32 +8,32 @@ document.querySelector("button#run").addEventListener("click", runCmd);
 document.querySelector("button#stop").addEventListener("click", stopCmd);
 
 function initCmd(e) {
-  var command = e.target.id;
-  var url = encodeURI(serverAddress + "/" + command);
+  const command = e.target.id;
+  const url = encodeURI(serverAddress + "/" + command);
   outputToMonitor(true, command + ": GET " + url);
   ajax("GET", url);
 }
 
 function setCmd(e) {
-  var folderPath = document.querySelector("input#folder-path").value;
+  const folderPath = document.querySelector("input#folder-path").value;
   if (folderPath === null || folderPath.trim() == "") {
     alert("Input the folder path.");
     return false;
   }
 
-  var command = e.target.id;
-  var url = encodeURI(serverAddress + "/" + command + "/" + folderPath.replace(/\\|:\\/gi, "/"));
+  const command = e.target.id;
+  const url = encodeURI(serverAddress + "/" + command + "/" + folderPath.replace(/\\|:\\/gi, "/"));
   outputToMonitor(true, command + ": GET " + url);
   ajax("GET", url);
 }
 
 function runCmd(e) {
-  var scriptName = document.querySelector("input#script-name").value;
+  const scriptName = document.querySelector("input#script-name").value;
   if (scriptName === null || scriptName.trim() == "") {
     alert("Input the script name.");
     return false;
   }
-  var scriptArgs = "";
+  let scriptArgs = "";
   try {
     scriptArgs = parseArgs(document.querySelector("textarea#script-args").value);
   } catch(ex) {
@@ -41,10 +41,10 @@ function runCmd(e) {
     return false;
   }
 
-  var command = e.target.id;
-  var url = encodeURI(serverAddress + "/" + command + "/" + scriptName);
+  const command = e.target.id;
+  let url = encodeURI(serverAddress + "/" + command + "/" + scriptName);
   if (scriptArgs.length > 0) {
-    var queryValue = "";
+    let queryValue = "";
     scriptArgs.forEach(function(arg) {
       queryValue += encodeURIComponent(arg) + ";";
     });
@@ -55,8 +55,8 @@ function runCmd(e) {
 }
 
 function stopCmd(e) {
-  var command = e.target.id;
-  var url = encodeURI(serverAddress + "/" + command);
+  const command = e.target.id;
+  const url = encodeURI(serverAddress + "/" + command);
   outputToMonitor(true, command + ": GET " + url);
   ajax("GET", url);
 }
@@ -64,7 +64,7 @@ function stopCmd(e) {
 function ajax(method, url, body) {
   switchButtonsDisabled(true);
 
-  var xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   xhr.addEventListener("load", xhrEventListener);
   xhr.addEventListener("timeout", xhrEventListener);
   xhr.addEventListener("error", xhrEventListener);
@@ -76,7 +76,7 @@ function ajax(method, url, body) {
 
 function xhrEventListener(e) {
   if (e.type == "load") {
-    var message = String(this.responseText);
+    let message = String(this.responseText);
     if (message.indexOf("PASS") == 0) {
       message = '<span class="font-pass">PASS</span>' + message.substring(4);
     } else if (message.indexOf("FAIL") == 0) {
@@ -93,8 +93,8 @@ function xhrEventListener(e) {
 }
 
 function switchButtonsDisabled(toDisable) {
-  var buttons = document.querySelectorAll("button");
-  for (var i=0, len=buttons.length; i<len; i++) {
+  const buttons = document.querySelectorAll("button");
+  for (let i=0, len=buttons.length; i<len; i++) {
     if (!buttons[i].hasAttribute("disabled")) {
       if (toDisable)
         buttons[i].setAttribute("disabled", "disabled");
@@ -106,16 +106,16 @@ function switchButtonsDisabled(toDisable) {
 }
 
 function outputToMonitor(isRequest, message) {
-  var monitor = document.querySelector("#monitor pre");
+  const monitor = document.querySelector("#monitor pre");
 
-  var beforeScrollTop = monitor.scrollTop;
-  var beforeScrollTopMax = monitor.scrollHeight-monitor.clientHeight;
+  const beforeScrollTop = monitor.scrollTop;
+  const beforeScrollTopMax = monitor.scrollHeight-monitor.clientHeight;
 
-  var padding = monitor.querySelector("p#padding");
+  let padding = monitor.querySelector("p#padding");
   if (padding !== null) {
     monitor.removeChild(padding);
   }
-  var element = document.createElement(isRequest?"kbd":"samp");
+  const element = document.createElement(isRequest?"kbd":"samp");
   element.innerHTML = message + "<br>";
   monitor.appendChild(element);
   padding = document.createElement("p");
