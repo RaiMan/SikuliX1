@@ -194,8 +194,6 @@ public class ServerRunner extends AbstractScriptRunner {
              new ImagesCommandHttpHandler())
         .add(Methods.GET, "/run*",     Predicates.prefix("run"),
              new RunCommandHttpHandler())
-        .add(Methods.GET, "/eval*",    Predicates.prefix("eval"),
-             new EvalCommandHttpHandler())
         .setFallbackHandler(new AbstractCommandHttpHandler(){
           @Override
           public void handleRequest(HttpServerExchange exchange) throws Exception {
@@ -421,38 +419,11 @@ public class ServerRunner extends AbstractScriptRunner {
     }
   }
 
-  private static class EvalCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      boolean success = true;
-      int statusCode = StatusCodes.OK;
-      String message = null;
-      if (getJsRunner() != null) {
-        String line = exchange.getQueryString();
-        try {
-          Object evalReturnObject = getJsRunner().eval(line);
-          message = "runStatement: returned: "
-                  + (evalReturnObject == null ? "null" : evalReturnObject.toString());
-          success = true;
-        } catch (Exception ex) {
-          message = "runStatement: raised exception on eval: " + ex.toString();
-          success = false;
-        }
-      } else {
-        message = "runStatement: not possible --- no runner";
-        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        success = false;
-      }
-      sendResponse(exchange, success, statusCode, message);
-    }
-  }
-
   private static abstract class AbstractCommandHttpHandler implements HttpHandler {
     private static File scriptFolder = null;
     private static String scriptFolderNet = null;
     private static File imageFolder = null;
     private static String imageFolderNet = null;
-    private static ScriptEngine jsRunner = null;
 
     protected void setScriptFolder(File scriptFolder) {
       AbstractCommandHttpHandler.scriptFolder = scriptFolder;
@@ -477,13 +448,6 @@ public class ServerRunner extends AbstractScriptRunner {
     }
     protected String getImageFolderNet() {
       return AbstractCommandHttpHandler.imageFolderNet;
-    }
-    @SuppressWarnings("unused")
-    protected void setJsRunner(ScriptEngine jsRunner) {
-      AbstractCommandHttpHandler.jsRunner = jsRunner;
-    }
-    protected ScriptEngine getJsRunner() {
-      return AbstractCommandHttpHandler.jsRunner;
     }
 
     protected void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
