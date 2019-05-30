@@ -1221,7 +1221,7 @@ public class FileManager {
   public static boolean writeStringToFile(String text, File fPath) {
     PrintStream out = null;
     try {
-      out = new PrintStream(new FileOutputStream(fPath));
+      out = new PrintStream(new FileOutputStream(fPath), false, "UTF-8");
       out.print(text);
     } catch (Exception e) {
       log(-1, "writeStringToFile: did not work: " + fPath + "\n" + e.getMessage());
