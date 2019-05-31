@@ -372,10 +372,11 @@ public class SikulixServer {
         }
       }
       if (success) {
+        IScriptRunner.Options runOptions = new IScriptRunner.Options();
+        runOptions.setScriptName(fScript.toString());
         ImagePath.setBundlePath(fScript.getAbsolutePath());
         List<String> args = getQueryAndToArgs(exchange);
-        //TODO int retval = Runner.run(fScript.toString(), args);
-        int retval = Runner.run(fScript.toString(), args.toArray(new String[args.size()]), null);
+        int retval = Runner.run(fScript.toString(), args.toArray(new String[args.size()]), runOptions);
         message = "runScript: returned: " + retval;
         if (retval < 0) {
           statusCode = StatusCodes.SERVICE_UNAVAILABLE;
