@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.script.runners;
+package org.sikuli.script.support;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,11 +11,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.script.ScriptEngine;
-
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
@@ -41,29 +42,10 @@ import io.undertow.util.URLUtils;
  * EXPERIMENTAL --- NOT official API<br>
  *   not as is in version 2
  */
-public class ServerRunner extends AbstractScriptRunner {
+public class SikulixServer {
   static {
     // change Undertow-Logging(org.jboss.logging) from log4j to slf4j
     System.setProperty("org.jboss.logging.provider", "slf4j");
-  }
-
-  public static final String NAME = "Server";
-  public static final String TYPE = "text/server";
-  public static final String[] EXTENSIONS = new String[0];
-
-  @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public String[] getExtensions() {
-    return EXTENSIONS;
-  }
-
-  @Override
-  public String getType() {
-    return TYPE;
   }
 
   private static Undertow server = null;
@@ -79,7 +61,7 @@ public class ServerRunner extends AbstractScriptRunner {
     }
     if (lvl < 0 || lvl >= logLevel) {
       System.out.println((lvl < 0 ? "[error] " : "[info] ") +
-              String.format("RunServer: " + message, args));
+              String.format("SikulixServer: " + message, args));
     }
   }
 
@@ -105,7 +87,7 @@ public class ServerRunner extends AbstractScriptRunner {
     try {
       String theIP = InetAddress.getLocalHost().getHostAddress();
       String theServer = String.format("%s %d", theIP, port);
-      isRunning = new File(RunTime.get().fSikulixStore, "RunServer.txt");
+      isRunning = new File(RunTime.get().fSikulixStore, "SikulixServer.txt");
       try {
         isRunning.createNewFile();
         isRunningFile = new FileOutputStream(isRunning);
@@ -213,7 +195,7 @@ public class ServerRunner extends AbstractScriptRunner {
       @Override
       public void handleRequest(HttpServerExchange exchange) throws Exception {
         Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
-        ServerRunner.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+        SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
         sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
                      "server error: " + ex.getMessage());
       }
@@ -272,7 +254,7 @@ public class ServerRunner extends AbstractScriptRunner {
         message = "ready to run: " + runType;
         statusCode = StatusCodes.OK;
       } catch (Exception ex) {
-        ServerRunner.dolog("ScriptRunner init not possible: " + ex.getMessage());
+        SikulixServer.dolog("ScriptRunner init not possible: " + ex.getMessage());
         message = "not ready to run: " + runType;
         statusCode = StatusCodes.SERVICE_UNAVAILABLE;
         success = false;
@@ -383,7 +365,7 @@ public class ServerRunner extends AbstractScriptRunner {
         success = SERVER_SUPPORTED_EXTENSIONS.stream().anyMatch(s -> 
                     innerScriptFile != null && s.equals(FilenameUtils.getExtension(innerScriptFile.getName()).toLowerCase()));
         if (!success) {
-          ServerRunner.dolog("Script folder path: " + fScript.getAbsolutePath());
+          SikulixServer.dolog("Script folder path: " + fScript.getAbsolutePath());
           message = "runScript: script not found, not valid or not supported "
                   + fScript.getAbsolutePath();
           statusCode = StatusCodes.NOT_FOUND;
@@ -457,7 +439,7 @@ public class ServerRunner extends AbstractScriptRunner {
       String body = (success ? "PASS " : "FAIL ") + exchange.getStatusCode() + " " + message;
       exchange.getResponseSender().send(body);
 
-      ServerRunner.dolog("returned:\n" + (head + "\n\n" + body));
+      SikulixServer.dolog("returned:\n" + (head + "\n\n" + body));
     }
 
     protected File getFolder(String path) {
@@ -511,7 +493,7 @@ public class ServerRunner extends AbstractScriptRunner {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       isHandling = true;
-      ServerRunner.dolog("received request: <%s %s %s> from %s", 
+      SikulixServer.dolog("received request: <%s %s %s> from %s", 
                          exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
                          exchange.getSourceAddress());
       super.handleRequest(exchange);
