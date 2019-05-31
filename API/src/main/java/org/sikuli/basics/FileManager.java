@@ -890,7 +890,7 @@ public class FileManager {
   }
 
   public static String normalize(String path) {
-    String pathNormalized = "";
+    String pathNormalized = path;
     if (path != null) {
       if (path.contains("%")) {
         try {
@@ -898,7 +898,7 @@ public class FileManager {
         } catch (Exception ex) {
         }
       }
-      if (pathNormalized.startsWith("\\")) {
+      if (!new File(pathNormalized).isAbsolute() && pathNormalized.startsWith("\\")) {
         pathNormalized = new File(pathNormalized).getAbsoluteFile().getPath();
       }
     }

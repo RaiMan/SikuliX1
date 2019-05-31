@@ -569,7 +569,7 @@ public class ImagePath {
     return null;
   }
 
-  private static PathEntry getBundle() {
+  static PathEntry getBundle() {
     return imagePaths.get(0);
   }
 
@@ -591,9 +591,6 @@ public class ImagePath {
     return getBundle().getPath();
   }
 
-  public static PathEntry getBundle() {
-    return imagePaths.get(0);
-  }
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
