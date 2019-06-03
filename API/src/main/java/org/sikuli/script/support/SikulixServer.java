@@ -183,15 +183,9 @@ public class SikulixServer {
                          "invalid command: " + exchange.getRelativePath());
           }
         });
-
-    ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
-    ResourceHandler resource = new ResourceHandler(resourceManager,
-                                   new RequestLimitingHandler(1,
-                                       new PreRoutingHttpHandler(commands)));
-    resource.addWelcomeFiles("ControlBox.html");
-
-    RootHttpHandler root = new RootHttpHandler(resource);
-    root.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
+    CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(new PreRoutingHttpHandler(
+                                                                    new RequestLimitingHandler(1, commands)));
+    cmdRoot.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
       @Override
       public void handleRequest(HttpServerExchange exchange) throws Exception {
         Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
@@ -201,10 +195,14 @@ public class SikulixServer {
       }
     });
 
+    ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
+    ResourceHandler resource = new ResourceHandler(resourceManager, cmdRoot);
+    resource.addWelcomeFiles("ControlBox.html");
+
     Undertow server = Undertow.builder()
                               .addHttpListener(port, "localhost")
                               .addHttpListener(port, ipAddr)
-                              .setHandler(root)
+                              .setHandler(resource)
                               .build();
     return server;
   }
@@ -486,8 +484,8 @@ public class SikulixServer {
     }
   }
 
-  private static class RootHttpHandler extends ExceptionHandler {
-    public RootHttpHandler(HttpHandler handler) {
+  private static class CommandRootHttpHandler extends ExceptionHandler {
+    public CommandRootHttpHandler(HttpHandler handler) {
       super(handler);
     }
 
