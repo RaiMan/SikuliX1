@@ -86,14 +86,18 @@ public class ADBDevice {
   }
 
   public static ADBDevice init(int id) {
-    ADBDevice device = new ADBDevice();
-    device.device = ADBClient.getDevice(id);
-    if (device.device == null) {
-      return null;
+    if (adbDevice == null) {
+      adbDevice = new ADBDevice();
+      adbDevice.device = ADBClient.getDevice(id);
+      if (adbDevice.device == null) {
+        adbDevice = null;
+      } else {
+        adbDevice.initDevice(adbDevice);
+        adbDevice.adbExec = ADBClient.getADB();
+        RunTime.loadLibrary(RunTime.libOpenCV);
+      }
     }
-    device.initDevice(device);
-    device.adbExec = ADBClient.getADB();
-    return device;
+    return adbDevice;
   }
 
   private void initDevice(ADBDevice device) {
@@ -124,21 +128,6 @@ public class ADBDevice {
       }
     }
     log(lvl, "init: %s", device.toString());
-  }
-
-  public static ADBDevice init(int id) {
-    if (adbDevice == null) {
-      adbDevice = new ADBDevice();
-      adbDevice.device = ADBClient.getDevice(id);
-      if (adbDevice.device == null) {
-        adbDevice = null;
-      } else {
-        adbDevice.initDevice(adbDevice);
-        adbDevice.adbExec = ADBClient.getADB();
-        RunTime.loadLibrary(RunTime.libOpenCV);
-      }
-    }
-    return adbDevice;
   }
 
   public static void reset() {
@@ -209,7 +198,7 @@ public class ADBDevice {
     int currentH;
     int channels = 4;
     Mat matImage = new Mat();
-    try (InputStream deviceOut = execADB("exec-out", "screencap")) {
+    try (InputStream deviceOut = device.executeShell("screencap")) {
       Debug timer = Debug.startTimer();
       while (deviceOut.available() < 12) ;
       deviceOut.read(imagePrefix);
@@ -289,7 +278,7 @@ public class ADBDevice {
       Core.merge(matsImage, matImage);
       log(lvl, "captureDeviceScreenMat: exit: [%d,%d %dx%d] %d (%d)",
               x, y, actW, actH, duration, timer.end());
-    } catch (IOException e) {
+    } catch (IOException | JadbException e) {
       log(-1, "captureDeviceScreenMat: [%d,%d %dx%d] %s", x, y, actW, actH, e);
     }
     return matImage;
