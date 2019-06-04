@@ -116,13 +116,18 @@ public class ADBDevice {
   }
 
   public static ADBDevice init(int id) {
-    ADBDevice device = new ADBDevice();
-    device.device = ADBClient.getDevice(id);
-    if (device.device == null) {
-      return null;
+    if (adbDevice == null) {
+      adbDevice = new ADBDevice();
+      adbDevice.device = ADBClient.getDevice(id);
+      if (adbDevice.device == null) {
+        adbDevice = null;
+      } else {
+        adbDevice.initDevice(adbDevice);
+        adbDevice.adbExec = ADBClient.getADB();
+        RunTime.loadLibrary(RunTime.libOpenCV);
+      }
     }
-    device.initDevice(device);
-    return device;
+    return adbDevice;
   }
 
   public static void reset() {
