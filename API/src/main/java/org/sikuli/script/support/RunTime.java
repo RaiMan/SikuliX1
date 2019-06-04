@@ -2026,12 +2026,8 @@ public class RunTime {
     try {
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
-      String sFolder = FileManager.normalizeAbsolute(fFolder.getPath());
-      if (":".equals(sFolder.substring(2, 3))) {
-        sFolder = sFolder.substring(1);
-      }
-      files.add(sFolder);
-      files = doResourceListFolder(new File(sFolder), files, filter);
+      files.add(fFolder.getPath());
+      files = doResourceListFolder(fFolder, files, filter);
       files.remove(0);
       return files;
     } catch (Exception ex) {
