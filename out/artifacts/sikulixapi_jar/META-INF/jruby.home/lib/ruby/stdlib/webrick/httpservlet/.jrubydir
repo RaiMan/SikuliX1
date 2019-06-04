@@ -1,8 +1,0 @@
-..
-.
-erbhandler.rb
-cgihandler.rb
-abstract.rb
-cgi_runner.rb
-prochandler.rb
-filehandler.rb

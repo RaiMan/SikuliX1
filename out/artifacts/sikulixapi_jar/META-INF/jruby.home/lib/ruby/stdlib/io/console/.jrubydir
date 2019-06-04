@@ -1,9 +1,0 @@
-..
-.
-native_console.rb
-linux_console.rb
-size.rb
-bsd_console.rb
-stub_console.rb
-common.rb
-stty_console.rb

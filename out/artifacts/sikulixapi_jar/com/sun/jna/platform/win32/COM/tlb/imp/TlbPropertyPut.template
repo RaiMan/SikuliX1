@@ -1,8 +1,0 @@
-	/**
-	 * ${helpstring}
-	 * Virtual table id: ${vtableid}
-	 * Member id: ${memberid}
-	 */
-	public void ${methodname}(${methodparams}) {
-		this._invokeNativeInt(${functionCount}, new Object[] { this.getPointer()${methodvariables}});
-	}

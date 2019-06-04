@@ -1,9 +1,0 @@
-..
-.
-digest.rb
-buffering.rb
-config.rb
-cipher.rb
-x509.rb
-ssl.rb
-bn.rb

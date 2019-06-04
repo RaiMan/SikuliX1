@@ -1,7 +1,0 @@
-org.apache.xmlgraphics.image.loader.impl.PreloaderTIFF
-org.apache.xmlgraphics.image.loader.impl.PreloaderGIF
-org.apache.xmlgraphics.image.loader.impl.PreloaderJPEG
-org.apache.xmlgraphics.image.loader.impl.PreloaderBMP
-org.apache.xmlgraphics.image.loader.impl.PreloaderEMF
-org.apache.xmlgraphics.image.loader.impl.PreloaderEPS
-org.apache.xmlgraphics.image.loader.impl.imageio.PreloaderImageIO

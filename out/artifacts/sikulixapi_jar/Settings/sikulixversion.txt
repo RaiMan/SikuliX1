@@ -1,9 +1,0 @@
-sikulixvmaj=1
-sikulixvmin=1
-sikulixvsub=4
-sikulixbuild=2019-05-24_04:12
-sikulixbuildnumber=${env.TRAVIS_BUILD_NUMBER}
-sikulixvused=1.1.4-SNAPSHOT
-sikulixvproject=1.1.4-SNAPSHOT
-sikulixvjython=2.7.1
-sikulixvjruby=9.2.0.0
