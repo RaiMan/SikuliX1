@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -20,6 +21,7 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.SikulixRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -57,7 +59,7 @@ public class Runner {
           try {
             current = cl.getConstructor().newInstance();
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-              | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                  | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
             log(lvl, "warning: %s", e.getMessage());
             continue;
@@ -83,16 +85,22 @@ public class Runner {
     }
     synchronized (runners) {
       initRunners();
-      for (IScriptRunner r : supportedRunners) {
-        if (r.canHandle(identifier)) {
-          if (!ExtensionManager.shouldCheckContent(r.getType(), identifier)) {
+      for (IScriptRunner runner : supportedRunners) {
+        if (runner.canHandle(identifier)) {
+          if (!ExtensionManager.shouldCheckContent(runner.getType(), identifier)) {
             continue;
           }
-          return r;
+          return runner;
         }
       }
-      log(-1, "getRunner: no runner found for:\n%s", identifier);
-      return new InvalidRunner(identifier);
+//    File possibleScriptFileOrFolder = new File(identifier);
+//    if (possibleScriptFileOrFolder.isDirectory()) {
+//      return true;
+//    }
+//    String extension = FilenameUtils.getExtension(identifier);
+//    return extension.isEmpty() || "sikuli".equals(extension);
+//      log(-1, "getRunner: none found for: %s", identifier);
+      return new SikulixRunner();
     }
   }
 
@@ -182,58 +190,46 @@ public class Runner {
 
   private static int lastReturnCode = 0;
   private static String lastWorkFolder = null;
+  public static final int FILE_NOT_FOUND = 256;
+  public static final int FILE_NOT_FOUND_SILENT = 257;
 
   public static int runScripts(String[] runScripts) {
-    String someJS = "";
     int exitCode = 0;
+    File scriptFile;
     if (runScripts != null && runScripts.length > 0) {
+      IScriptRunner.Options runOptions = new IScriptRunner.Options();
       for (String scriptGiven : runScripts) {
-        String actualFolder = lastWorkFolder;
-        if (!scriptGiven.endsWith(".sikuli")) {
-          scriptGiven += ".sikuli";
+        scriptFile = new File(scriptGiven);
+        if (scriptFile.getPath().startsWith("\\")) {
+          scriptFile = scriptFile.getAbsoluteFile();
         }
-        if (null == actualFolder && !new File(scriptGiven).isAbsolute()) {
-          if (new File(runTime.fWorkDir, scriptGiven).exists()) {
-            actualFolder = runTime.fWorkDir.getAbsolutePath();
-          }
+        if (scriptFile.isAbsolute()) {
+          log(lvl, "runScript: %s", scriptGiven);
+        } else {
+          log(lvl, "runScript: %s / %s",
+                  null == lastWorkFolder ? "unknown" : lastWorkFolder, scriptGiven);
         }
-        String  scriptFileName = FileManager.normalize(scriptGiven, actualFolder);
-        if (!new File(scriptFileName).exists()) {
-          log(-1, "Script file not found: %s", scriptFileName);
-          exitCode = 1;
+        runOptions.setWorkFolder(lastWorkFolder);
+        runOptions.setScriptName(scriptGiven);
+        exitCode = run(scriptFile.getPath(), RunTime.getUserArgs(), runOptions);
+        String workFolder = runOptions.getWorkFolder();
+        if (lastWorkFolder != workFolder) {
+          lastWorkFolder = runOptions.getWorkFolder();
+          log(lvl, "runScript: new workfolder: %s", workFolder);
+        }
+        if (exitCode == FILE_NOT_FOUND_SILENT) {
+          continue;
+        } else if (exitCode == FILE_NOT_FOUND) {
+          log(-1, "runScript: not found: %s / %s", lastWorkFolder, scriptGiven);
+          exitCode = -1;
+        } else if (exitCode < 0) {
+          log(lvl, "runscript: Exit code < 0: Terminating multi-script-run");
           break;
-        }
-        lastWorkFolder = new File(scriptFileName).getParent();
-        if (lastReturnCode < 0) {
-          log(lvl, "Exit code -1: Terminating multi-script-run");
-          break;
-        }
-//        someJS = runTime.getOption("runsetup");
-//        if (!someJS.isEmpty()) {
-//          log(lvl, "Options.runsetup: %s", someJS);
-//          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
-//        }
-        exitCode = run(scriptFileName, RunTime.getUserArgs());
-//        someJS = runTime.getOption("runteardown");
-//        if (!someJS.isEmpty()) {
-//          log(lvl, "Options.runteardown: %s", someJS);
-//          getRunner(JavaScriptRunner.class).evalScript(someJS, null);
-//        }
-        if (exitCode == -999) {
-          exitCode = lastReturnCode;
         }
         lastReturnCode = exitCode;
       }
     }
     return exitCode;
-  }
-
-  public static synchronized int run(String givenName) {
-    return run(givenName, new String[0]);
-  }
-
-  public static synchronized int run(String script, String[] args) {
-    return run(script, args, null);
   }
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
@@ -243,47 +239,69 @@ public class Runner {
     return retVal;
   }
 
-  public static File getScriptFile(File fScriptFolder) {
-    if (fScriptFolder == null) {
+  public static File checkScriptFolderOrFile(String baseFolder, File folderOrFile) {
+    if (null == folderOrFile) {
+      return null;
+    }
+    RunTime runTime = RunTime.get();
+    File fBaseFolder = null;
+    if (!folderOrFile.isAbsolute()) {
+      if (null == baseFolder) {
+        if (!folderOrFile.isAbsolute() && new File(runTime.fWorkDir, folderOrFile.getPath()).exists()) {
+          fBaseFolder = runTime.fWorkDir;
+        } else if (!folderOrFile.isAbsolute() && new File(runTime.fUserDir, folderOrFile.getPath()).exists()) {
+          fBaseFolder = runTime.fUserDir;
+        }
+      }
+      else {
+        fBaseFolder = new File(baseFolder);
+      }
+      folderOrFile = new File(fBaseFolder, folderOrFile.getPath());
+    }
+    try {
+      folderOrFile = folderOrFile.getCanonicalFile();
+    } catch (IOException e) {
+    }
+    return folderOrFile;
+  }
+
+  public static File getScriptFile(File fScriptFileOrFolder) {
+    if (fScriptFileOrFolder == null) {
       return null;
     }
 
-    // check if fScriptFolder is a supported script file
-    if (fScriptFolder.isFile()) {
+    // check if fScriptFileOrFolder is a supported script file
+    if (fScriptFileOrFolder.isFile()) {
       for (IScriptRunner runner : getRunners()) {
         for (String extension : runner.getExtensions()) {
-          if (FilenameUtils.getExtension(fScriptFolder.getName()).equals(extension)) {
-            return fScriptFolder;
+          if (FilenameUtils.getExtension(fScriptFileOrFolder.getName()).equals(extension)) {
+            return fScriptFileOrFolder;
           }
         }
       }
     }
 
-    File[] content = FileManager.getScriptFile(fScriptFolder);
-    if (null == content) {
-      return null;
-    }
     File fScript = null;
-    for (File aFile : content) {
-      for (IScriptRunner runner : getRunners()) {
-        for (String extension : runner.getExtensions()) {
-          if (!FilenameUtils.getExtension(aFile.getName()).equals(extension)) {
-            continue;
+    if (fScriptFileOrFolder.isDirectory()) {
+      for (File aFile : fScriptFileOrFolder.listFiles()) {
+        if (FilenameUtils.removeExtension(aFile.getName()).equals(FilenameUtils.removeExtension(fScriptFileOrFolder.getName()))) {
+          for (IScriptRunner runner : getRunners()) {
+            for (String extension : runner.getExtensions()) {
+              if (!FilenameUtils.getExtension(aFile.getName()).equals(extension)) {
+                continue;
+              }
+              fScript = aFile;
+              break;
+            }
+            if (fScript != null) {
+              break;
+            }
           }
-          fScript = aFile;
-          break;
-        }
-        if (fScript != null) {
-          break;
+          if (fScript != null) {
+            break;
+          }
         }
       }
-      if (fScript != null) {
-        break;
-      }
-    }
-    // try with compiled script
-    if (content.length == 1 && content[0].getName().endsWith("$py.class")) {
-      fScript = content[0];
     }
     return fScript;
   }

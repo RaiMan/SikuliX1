@@ -150,18 +150,18 @@ public class EditorPane extends JTextPane {
     initForScriptType();
   }
 
-  public String selectFile(boolean accessingAsFile) {
-    File file = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
-    if (file == null) {
+  public File selectFile(boolean accessingAsFile) {
+    File fileSelected = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
+    if (fileSelected == null) {
       return null;
     }
-    String fileSelected = FileManager.slashify(file.getAbsolutePath(), false);
-    if (fileSelected.endsWith("###isText")) {
-      fileSelected = fileSelected.replace("###isText", "");
+//    String fileSelected = FileManager.slashify(file.getAbsolutePath(), false);
+    if (fileSelected.getPath().endsWith("###isText")) {
+      fileSelected = new File(fileSelected.getPath().replace("###isText", ""));
       isText = true;
     }
     //int i = SikulixIDE.get().isAlreadyOpen(fname);
-    if (alreadyOpen(fileSelected)) {
+    if (alreadyOpen(fileSelected.getPath())) {
       log(lvl, "loadFile: Already open in IDE: " + fileSelected);
       return null;
     }
@@ -195,16 +195,15 @@ public class EditorPane extends JTextPane {
     return SikulixIDE.get().getTabs();
   }
 
-  public void loadFile(String filename) {
-    log(lvl, "loadfile: %s", filename);
+  public void loadFile(File file) {
+    log(lvl, "loadfile: %s", file);
     File fileLoaded = null;
-    filename = FileManager.slashify(filename, false);
-    if (filename.endsWith("###isText")) {
-      filename = filename.replace("###isText", "");
+    if (file.getPath().endsWith("###isText")) {
+      file = new File(file.getPath().replace("###isText", ""));
       isText = true;
     }
-    File fileToLoad = new File(filename);
-    if (filename.endsWith(".py")) {
+    File fileToLoad = file;
+    if (file.getPath().endsWith(".py")) {
       fileLoaded = fileToLoad;
       isPython = true;
     } else if (isText) {
@@ -222,12 +221,10 @@ public class EditorPane extends JTextPane {
       }
       runner = Runner.getRunner(scriptType);
       initForScriptType();
-      if (!readContent(fileLoaded)) {
-        setFiles(null, fileToLoad.getAbsolutePath());
-      } else {
+      if (readContent(fileLoaded)) {
         setFiles(fileLoaded, fileToLoad.getAbsolutePath());
         updateDocumentListeners("loadFile");
-        checkSource();
+        checkSource(); // loadFile
         doParse();
         restoreCaretPosition();
         setDirty(false);
@@ -366,9 +363,24 @@ public class EditorPane extends JTextPane {
     if (matcher.find()) {
       String path = matcher.group(1);
       log(3, "checkSource: found setBundlePath: %s", path);
-      setImagePath(path);
-    } else {
-      setImagePath();
+      File newBundleFolder = new File(path.replace("\\\\", "\\"));
+      if (RunTime.get().runningWindows && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
+        try {
+          newBundleFolder = new File(new File("\\").getCanonicalPath(), newBundleFolder.getPath().substring(1));
+        } catch (IOException e) {
+          return;
+        }
+      }
+      try {
+        if (newBundleFolder.isAbsolute()) {
+          newBundleFolder = newBundleFolder.getCanonicalFile();
+        } else {
+          newBundleFolder = new File(editorPaneFolder, newBundleFolder.getPath()).getCanonicalFile();
+        }
+      } catch (Exception ex) {
+        return;
+      }
+      setImageFolder(newBundleFolder);
     }
   }
 
@@ -527,53 +539,20 @@ public class EditorPane extends JTextPane {
     return editorPaneImageFolder.getAbsolutePath();
   }
 
-  public void setImageFolder() {
-    if (null != editorPaneImageFolder) {
-      ImagePath.setBundlePath(editorPaneImageFolder.getAbsolutePath());
-    }
+  public void setBundleFolder() {
+    ImagePath.setBundleFolder(editorPaneImageFolder);
   }
 
   public void setImageFolder(File imageFolder) {
-    editorPaneImageFolder = imageFolder;
-    ImagePath.setBundlePath(editorPaneImageFolder.getAbsolutePath());
+    if (imageFolder.exists()) {
+      editorPaneImageFolder = imageFolder;
+      ImagePath.setBundleFolder(editorPaneImageFolder);
+    } else {
+      log(-1, "setImageFolder: not exists: %s", imageFolder);
+    }
   }
 
   File editorPaneImageFolder = null;
-
-  public boolean setImagePath() {
-    setImageFolder();
-    return true;
-  }
-
-  private String pathFromText(String givenPath) {
-    String path = new File(givenPath.replace("\\\\", "\\")).getPath();
-    return path;
-  }
-
-  public boolean setImagePath(String givenBundlePath) {
-    String newBundlePath = pathFromText(givenBundlePath);
-    try {
-      if (new File(newBundlePath).isAbsolute()) {
-        newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
-      } else {
-        newBundlePath = new File(editorPaneFolder, newBundlePath).getCanonicalPath();
-      }
-    } catch (Exception ex) {
-      return false;
-    }
-    setImageFolder(new File(newBundlePath));
-    return true;
-  }
-
-  private boolean setSrcBundle(String newBundlePath) {
-    try {
-      newBundlePath = FileManager.normalizeAbsolute(newBundlePath, false);
-    } catch (Exception ex) {
-      return false;
-    }
-    setImageFolder(new File(newBundlePath));
-    return true;
-  }
 
   public String getSrcBundle() {
     return editorPaneFolder.getAbsolutePath();
@@ -765,7 +744,7 @@ public class EditorPane extends JTextPane {
   //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
   public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
     if (fileOverWritten) {
-      Image.unCacheBundledImage(newName);
+      Image.unCache(newName);
     }
     Map<String, List<Integer>> images = parseforImages();
     oldName = new File(oldName).getName();
@@ -1244,7 +1223,7 @@ public class EditorPane extends JTextPane {
       File scriptFile = new File(targetFolder, name + "." + extension);
       setFiles(scriptFile, targetFolder);
       if (writeSriptFile()) {
-        checkSource();
+        checkSource(); // saveAsBundle
         doReparse();
         return editorPaneFolder;
       }
@@ -1256,7 +1235,7 @@ public class EditorPane extends JTextPane {
     log(lvl, "saveAsFile: " + filename);
     setFiles(new File(filename));
     if (writeSriptFile()) {
-      checkSource();
+      checkSource(); // saveAsFile
       doReparse();
       return editorPaneFolder;
     }

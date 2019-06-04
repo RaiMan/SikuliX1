@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo ------- uploading API and IDE jars
+
+apijar=API/target/sikulixapi-1.1.4-SNAPSHOT-complete.jar
+cp $apijar pages/sikulixapi.jar
+
+idejar=IDE/target/sikulixide-1.1.4-SNAPSHOT-complete.jar
+cp $idejar pages/sikulix.jar

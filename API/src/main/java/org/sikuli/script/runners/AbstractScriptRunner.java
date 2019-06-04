@@ -12,8 +12,10 @@ import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.Runner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -43,7 +45,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   PrintStream redirectedStderr;
 
   protected void log(int level, String message, Object... args) {
-    Debug.logx(level, getName() + ": " + message, args);
+    Debug.logx(level, getName() + "Runner: " + message, args);
   }
 
   private void logNotSupported(String method) {
@@ -73,12 +75,20 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     // noop if not implemented
   }
 
-  ;
-
   public final boolean isReady() {
     synchronized (this) {
       return ready;
     }
+  }
+
+  @Override
+  public boolean isSupported() {
+    return false;
+  }
+
+  @Override
+  public boolean isWrapper() {
+    return false;
   }
 
   @Override
@@ -92,15 +102,25 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public boolean canHandle(String identifier) {
-    return identifier != null && (
-            identifier.toLowerCase().equals(getName().toLowerCase()) ||
-                    identifier.toLowerCase().startsWith(getName().toLowerCase() + "*") ||
-                    getType().equals(identifier) ||
-                    hasExtension(identifier) ||
-                    (new File(identifier).exists() && hasExtension(FilenameUtils.getExtension(identifier))));
+    if (identifier != null) {
+      if (getType().equals(identifier)) {
+        return true;
+      }
+      if (hasExtension(identifier)) {
+        return true;
+      }
+      if (hasExtension(FilenameUtils.getExtension(identifier))) {
+        return true;
+      }
+      if (identifier.toLowerCase().equals(getName().toLowerCase())) {
+        return true;
+      }
+      if (identifier.toLowerCase().startsWith(getName().toLowerCase() + "*")) {
+        return true;
+      }
+    }
+    return false;
   }
-
-  ;
 
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
@@ -133,14 +153,31 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
+  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options options) {
     synchronized (this) {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
-      int exitValue = doRunScript(scriptfile, scriptArgs, options);
+      File scriptFile = new File(script);
+      if (!scriptFile.isAbsolute()) {
+        if (null != options) {
+          scriptFile = Runner.checkScriptFolderOrFile(options.getWorkFolder(), scriptFile);
+        } else {
+          scriptFile = Runner.checkScriptFolderOrFile(null, scriptFile);
+        }
+      }
+      if (!scriptFile.exists()) {
+        return Runner.FILE_NOT_FOUND;
+      }
+      if (null == options || (!options.isRunningInIDE() && !isWrapper())) {
+        ImagePath.setBundleFolder(scriptFile.getParentFile());
+      }
+      if (null != options) {
+        options.setWorkFolder(scriptFile.getParent());
+      }
+      int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     }
@@ -212,11 +249,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public String getInteractiveHelp() {
     logNotSupported("getInteractiveHelp");
     return null;
-  }
-
-  @Override
-  public boolean isSupported() {
-    return false;
   }
 
   @Override

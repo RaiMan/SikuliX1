@@ -1,0 +1,146 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Format: Semicolon-delimited fields:
+#            (1) glyph name
+#            (2) Unicode scalar value
+#
+# These mappings are missing in glyphlist.txt
+# 
+angbracketleft;3008
+angbracketright;3009
+circlecopyrt;00A9
+controlNULL;0000
+#
+# TeX-related mappings using named values
+#
+angbracketleftbig;2329
+angbracketleftBig;2329
+angbracketleftbigg;2329
+angbracketleftBigg;2329
+angbracketrightBig;232A
+angbracketrightbig;232A
+angbracketrightBigg;232A
+angbracketrightbigg;232A
+arrowhookleft;21AA
+arrowhookright;21A9
+arrowlefttophalf;21BC
+arrowleftbothalf;21BD
+arrownortheast;2197
+arrownorthwest;2196
+arrowrighttophalf;21C0
+arrowrightbothalf;21C1
+arrowsoutheast;2198
+arrowsouthwest;2199
+backslashbig;2216
+backslashBig;2216
+backslashBigg;2216
+backslashbigg;2216
+bardbl;2016
+bracehtipdownleft;FE37
+bracehtipdownright;FE37
+bracehtipupleft;FE38
+bracehtipupright;FE38
+braceleftBig;007B
+braceleftbig;007B
+braceleftbigg;007B
+braceleftBigg;007B
+bracerightBig;007D
+bracerightbig;007D
+bracerightbigg;007D
+bracerightBigg;007D
+bracketleftbig;005B
+bracketleftBig;005B
+bracketleftbigg;005B
+bracketleftBigg;005B
+bracketrightBig;005D
+bracketrightbig;005D
+bracketrightbigg;005D
+bracketrightBigg;005D
+ceilingleftbig;2308
+ceilingleftBig;2308
+ceilingleftBigg;2308
+ceilingleftbigg;2308
+ceilingrightbig;2309
+ceilingrightBig;2309
+ceilingrightbigg;2309
+ceilingrightBigg;2309
+circledotdisplay;2299
+circledottext;2299
+circlemultiplydisplay;2297
+circlemultiplytext;2297
+circleplusdisplay;2295
+circleplustext;2295
+contintegraldisplay;222E
+contintegraltext;222E
+coproductdisplay;2210
+coproducttext;2210
+floorleftBig;230A
+floorleftbig;230A
+floorleftbigg;230A
+floorleftBigg;230A
+floorrightbig;230B
+floorrightBig;230B
+floorrightBigg;230B
+floorrightbigg;230B
+hatwide;0302
+hatwider;0302
+hatwidest;0302
+intercal;1D40
+integraldisplay;222B
+integraltext;222B
+intersectiondisplay;22C2
+intersectiontext;22C2
+logicalanddisplay;2227
+logicalandtext;2227
+logicalordisplay;2228
+logicalortext;2228
+parenleftBig;0028
+parenleftbig;0028
+parenleftBigg;0028
+parenleftbigg;0028
+parenrightBig;0029
+parenrightbig;0029
+parenrightBigg;0029
+parenrightbigg;0029
+prime;2032
+productdisplay;220F
+producttext;220F
+radicalbig;221A
+radicalBig;221A
+radicalBigg;221A
+radicalbigg;221A
+radicalbt;221A
+radicaltp;221A
+radicalvertex;221A
+slashbig;002F
+slashBig;002F
+slashBigg;002F
+slashbigg;002F
+summationdisplay;2211
+summationtext;2211
+tildewide;02DC
+tildewider;02DC
+tildewidest;02DC
+uniondisplay;22C3
+unionmultidisplay;228E
+unionmultitext;228E
+unionsqdisplay;2294
+unionsqtext;2294
+uniontext;22C3
+vextenddouble;2225
+vextendsingle;2223
+#END

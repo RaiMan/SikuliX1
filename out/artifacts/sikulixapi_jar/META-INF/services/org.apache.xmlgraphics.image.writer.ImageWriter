@@ -1,0 +1,6 @@
+org.apache.xmlgraphics.image.writer.internal.PNGImageWriter
+org.apache.xmlgraphics.image.writer.internal.TIFFImageWriter
+org.apache.xmlgraphics.image.writer.internal.JPEGImageWriter
+org.apache.xmlgraphics.image.writer.imageio.ImageIOPNGImageWriter
+org.apache.xmlgraphics.image.writer.imageio.ImageIOTIFFImageWriter
+org.apache.xmlgraphics.image.writer.imageio.ImageIOJPEGImageWriter

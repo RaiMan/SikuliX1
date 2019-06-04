@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ -e API/target/classes/setup/content/SHOULDDEPLOY ]; then
+
+  echo ---------- deploy API to OSSRH
+  cd API;
+  mvn deploy -B -P sign,build-extras -f deploy.xml --settings ../codesigning/mvnsettings.xml;
+  cd ..;
+
+fi

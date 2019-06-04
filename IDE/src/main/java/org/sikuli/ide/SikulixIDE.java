@@ -167,11 +167,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     return new ImageIcon(url);
   }
 
-  static void showIDE() {
+  public static void showIDE() {
     showAgain();
   }
 
-  static void hideIDE() {
+  public static void hideIDE() {
     get().setVisible(false);
     RunTime.pause(0.5f);
   }
@@ -335,7 +335,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     tabs.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(javax.swing.event.ChangeEvent e) {
-        log(3, "Tab switched");
+        log(4, "********** Tab switched");
         EditorPane editorPane;
         JTabbedPane tab = (JTabbedPane) e.getSource();
         int i = tab.getSelectedIndex();
@@ -353,8 +353,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
               setTitle(editorPane.getFilePath());
             }
           }
+          editorPane.setBundleFolder();
+          if (editorPane.isDirty()) {
+            editorPane.checkSource(); // tab switch
+          }
           int dot = editorPane.getCaret().getDot();
-          editorPane.checkSource();
           editorPane.setCaretPosition(dot);
           if (editorPane.isText) {
             collapseMessageArea();
@@ -641,15 +644,13 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private boolean restoreScriptFromSession(File file) {
     EditorPane editorPane = makeTab(-1);
-    String filePath = file.getAbsolutePath();
-    if (filePath.endsWith("###isText")) {
-      filePath = filePath.replace("###isText", "");
+    if (file.getPath().endsWith("###isText")) {
+      file = new File(file.getPath().replace("###isText", ""));
       editorPane.isText = true;
     }
-    editorPane.loadFile(filePath);
+    editorPane.loadFile(file);
     if (editorPane.hasEditingFile()) {
-      //editorPane.checkSource();
-      setCurrentFileTabTitle(filePath);
+      setCurrentFileTabTitle(file.getAbsolutePath());
       editorPane.setCaretPosition(0);
       return true;
     }
@@ -675,7 +676,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   }
 
   EditorPane makeTab(int tabIndex) {
-    log(lvl, "doNew: create new tab at: %d", tabIndex);
+    log(lvl + 1, "makeTab: %d", tabIndex);
     EditorPane editorPane = makeTab();
     JScrollPane scrPane = editorPane.getScrollPane();
     if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
@@ -709,11 +710,21 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
     int selectedTab = tabs.getSelectedIndex();
     EditorPane editorPane = makeTab(tabIndex);
+    File tabFile;
     if (null == fname) {
-      fname = editorPane.selectFile(accessingAsFile);
+      tabFile = editorPane.selectFile(accessingAsFile);
+    } else {
+      tabFile = new File(fname);
     }
-    if (fname != null) {
-      fname = loadTabContent(editorPane, fname);
+    if (tabFile != null) {
+      editorPane.loadFile(tabFile);
+      if (editorPane.hasEditingFile()) {
+        setCurrentFileTabTitle(tabFile.getAbsolutePath());
+        recentAdd(tabFile.getAbsolutePath());
+        if (editorPane.isText) {
+          collapseMessageArea();
+        }
+      }
     } else {
       log(3, "selectFile: cancelled");
       removeCurrentTab();
@@ -724,20 +735,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         tabs.setSelectedIndex(alreadyOpen);
       }
     }
-    return fname;
-  }
-
-  String loadTabContent(EditorPane editorPane, String fname) {
-    editorPane.loadFile(fname);
-    if (editorPane.hasEditingFile()) {
-      setCurrentFileTabTitle(fname);
-      recentAdd(fname);
-      if (editorPane.isText) {
-        collapseMessageArea();
-      }
-      return fname;
+    if (null == tabFile) {
+      return null;
+    } else {
+      return tabFile.getAbsolutePath();
     }
-    return null;
   }
 
   boolean checkDirtyPanes() {
@@ -2474,9 +2476,9 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-      if (getCurrentCodePane().isText) {
-        return;
-      }
+//      if (getCurrentCodePane().isText) {
+//        return;
+//      }
       runCurrentScript();
     }
 
@@ -2500,7 +2502,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       EditorPane editorPane = getCurrentCodePane();
       File scriptFile;
       if (editorPane.isDirty()) {
-        editorPane.checkSource();
+        editorPane.checkSource(); // runCurrentScript
         if (editorPane.isTemp()) {
           scriptFile = editorPane.getCurrentFile(false);
         } else {
@@ -2552,7 +2554,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
       Settings.DebugLogs = prefs.getPrefMoreLogDebug();
       Settings.InfoLogs = prefs.getPrefMoreLogInfo();
       Settings.Highlight = prefs.getPrefMoreHighlight();
-      Settings.setShowActions(false);
     }
 
     boolean isRunning() {

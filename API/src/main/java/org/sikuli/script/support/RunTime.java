@@ -11,7 +11,6 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -19,10 +18,7 @@ import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
-import py4Java.GatewayServerListener;
-import py4Java.Py4JServerConnection;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -32,8 +28,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -534,19 +528,6 @@ public class RunTime {
       logp(message, args);
     }
   }
-
-  public void terminate(int retval, String message, Object... args) {
-    String outMsg = String.format(message, args);
-    if (retval < 999) {
-      if (!outMsg.isEmpty()) {
-        System.out.println(outMsg);
-      }
-      isTerminating = true;
-      cleanUp();
-      System.exit(retval);
-    }
-    throw new SikuliXception(String.format("fatal: " + outMsg));
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
@@ -626,7 +607,7 @@ public class RunTime {
   public int javaArch = 32;
   public String osArch = "??";
   public int javaVersion = 0;
-  public String javahome = FileManager.slashify(System.getProperty("java.home"), false);
+  public File javahome = new File(System.getProperty("java.home"));
   public String osName = "NotKnown";
   public String sysName = "NotKnown";
   public String osVersion = "";
@@ -969,14 +950,14 @@ public class RunTime {
 
     clsRef = RunTime.class;
     CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
-    String base = null;
+    fSxBaseJar = null;
     URL urlCodeSrc = null;
     String urlCodeSrcProto = "not-set";
     if (codeSrc != null) {
       urlCodeSrc = codeSrc.getLocation();
       urlCodeSrcProto = urlCodeSrc.getProtocol();
       if (null != codeSrc) {
-        base = FileManager.slashify(codeSrc.getLocation().getPath(), false);
+        fSxBaseJar = new File(codeSrc.getLocation().getPath());
         if (urlCodeSrcProto == "file") {
           runningAs = RunType.CLASSES;
           if (urlCodeSrc.getPath().endsWith(".jar")) {
@@ -988,8 +969,7 @@ public class RunTime {
       }
     }
     appType = "from a jar";
-    if (base != null) {
-      fSxBaseJar = new File(base);
+    if (fSxBaseJar != null) {
       String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
       log(4, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
@@ -1065,6 +1045,19 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold desc="99 cleanUp">
+  public void terminate(int retval, String message, Object... args) {
+    String outMsg = String.format(message, args);
+    if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        System.out.println(outMsg);
+      }
+      isTerminating = true;
+      cleanUp();
+      System.exit(retval);
+    }
+    throw new SikuliXception(String.format("fatal: " + outMsg));
+  }
+
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
@@ -1072,6 +1065,8 @@ public class RunTime {
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
+      Settings.setShowActions(false);
+      FindFailed.reset();
     }
     VNCScreen.stopAll();
     ADBScreen.stop();
@@ -1183,7 +1178,7 @@ public class RunTime {
     SXVersionLong = SXVersion + String.format("-#%s-%s", SXBuildNumber, SXBuild);
     SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
 
-    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
+//    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
     SikuliJythonMaven = "org/python/jython-standalone/"
         + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
     SikuliJythonMaven25 = "org/python/jython-standalone/"
@@ -1403,7 +1398,7 @@ public class RunTime {
       String lib = "jawt.dll";
       File fJawtDll = new File(fLibsFolder, lib);
       FileManager.deleteFileOrFolder(fJawtDll);
-      FileManager.xcopy(new File(javahome + "/bin/" + lib), fJawtDll);
+      FileManager.xcopy(new File(javahome, "bin/" + lib), fJawtDll);
       if (!fJawtDll.exists()) {
         terminate(999, "problem copying %s", fJawtDll);
       }
@@ -2031,7 +2026,7 @@ public class RunTime {
     try {
       fFolder = new File(uFolder.toURI());
       log(lvl, "resourceList: having folder: %s", fFolder);
-      String sFolder = FileManager.normalizeAbsolute(fFolder.getPath(), false);
+      String sFolder = FileManager.normalizeAbsolute(fFolder.getPath());
       if (":".equals(sFolder.substring(2, 3))) {
         sFolder = sFolder.substring(1);
       }
@@ -2648,7 +2643,7 @@ public class RunTime {
   }
 
   public File asExtension(String fpJar) {
-    File fJarFound = new File(FileManager.normalizeAbsolute(fpJar, false));
+    File fJarFound = new File(FileManager.normalizeAbsolute(fpJar));
     if (!fJarFound.exists()) {
       String fpCPEntry = runTime.isOnClasspath(fJarFound.getName());
       if (fpCPEntry == null) {

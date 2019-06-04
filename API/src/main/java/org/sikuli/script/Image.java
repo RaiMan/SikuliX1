@@ -17,6 +17,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -27,18 +28,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.ImageGroup;
 
 /**
  * This class hides the complexity behind image names given as string.
  * <br>Image does not have public nor public constructors: use create()
  * <br>It's companion is {@link ImagePath} that maintains a list of places, where image files are
  * loaded from.<br>
- * Another companion {@link ImageGroup} will allow to look at images in a folder as a
- * group.<br>
  * An Image object:<br>
  * - has a name, either given or taken from the basename<br>
  * - keeps it's in memory buffered image in a configurable cache avoiding reload
@@ -49,7 +49,7 @@ import org.sikuli.script.support.ImageGroup;
  * - will have features for basic image manipulation and presentation<br>
  * - contains the stuff to communicate with the underlying OpenCV based search
  * engine <br>
- *
+ * <p>
  * This class maintains<br>
  * - a list of all images ever loaded in this session with their source
  * reference and a ref to the image object<br>
@@ -69,6 +69,604 @@ public class Image {
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
+
+  //<editor-fold desc="00 0  instance">
+  public static Image getDefaultInstance4py() {
+    return new Image(new Screen().capture());
+  }
+
+  private Image() {
+  }
+
+  private Image(String fname, URL fURL) {
+    init(fname, fURL);
+  }
+
+  private Image(URL fURL) {
+    if ("file".equals(fURL.getProtocol())) {
+      init(fURL.getPath(), fURL);
+    } else {
+      init(getNameFromURL(fURL), fURL);
+    }
+  }
+
+  private void init(String fileName, URL fURL) {
+    imageName = fileName;
+    if (imageName.isEmpty() || fURL == null) {
+      return;
+    }
+    fileURL = fURL;
+    if (ImagePath.isImageBundled(fURL)) {
+      imageIsBundled = true;
+      imageName = new File(imageName).getName();
+    }
+    load();
+  }
+
+  public static void reinit(Image img) {
+    URL fURL = null;
+    File imgFile = new File(img.getName());
+    if (imgFile.isAbsolute()) {
+      if (imgFile.exists()) {
+        fURL = FileManager.makeURL(img.getName());
+      }
+    } else {
+      fURL = imageNames.get(img.getName());
+      if (fURL == null) {
+        fURL = ImagePath.find(img.getName());
+      }
+    }
+    if (fURL != null) {
+      img.init(img.getName(), fURL);
+    }
+  }
+
+  private Image copy() {
+    Image imgTarget = new Image();
+    imgTarget.setName(imageName);
+    imgTarget.setFileURL(fileURL);
+    imgTarget.setBimg(bimg);
+    imgTarget.setIsAbsolute(imageIsAbsolute);
+    imgTarget.setIsText(imageIsText);
+    imgTarget.setIsBundled(imageIsBundled);
+    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
+    imgTarget.setHasIOException(hasIOException());
+    if (isPattern()) {
+      imgTarget.setSimilarity(similarity);
+      imgTarget.setOffset(offset);
+      imgTarget.setWaitAfter(waitAfter);
+      imgTarget.setIsPattern(true);
+    }
+    return imgTarget;
+  }
+
+  /**
+   * create a new image from a buffered image<br>
+   * can only be reused with the object reference
+   *
+   * @param img BufferedImage
+   */
+  public Image(BufferedImage img) {
+    this(img, null);
+  }
+
+  /**
+   * create a new image from a buffered image<br>
+   * giving it a descriptive name for printout and logging <br>
+   * can only be reused with the object reference
+   *
+   * @param img  BufferedImage
+   * @param name descriptive name
+   */
+  public Image(BufferedImage img, String name) {
+    imageName = isBImg;
+    if (name != null) {
+      imageName += name;
+    }
+    bimg = img;
+    bwidth = bimg.getWidth();
+    bheight = bimg.getHeight();
+    log(lvl, "BufferedImage: (%d, %d)%s", bwidth, bheight,
+            (name == null ? "" : " with name: " + name));
+  }
+
+  /**
+   * create a new image from a Sikuli ScreenImage (captured)<br>
+   * can only be reused with the object reference
+   *
+   * @param img ScreenImage
+   */
+  public Image(ScreenImage img) {
+    this(img.getImage(), null);
+  }
+
+  /**
+   * create a new image from a Sikuli ScreenImage (captured)<br>
+   * giving it a descriptive name for printout and logging <br>
+   * can only be reused with the object reference
+   *
+   * @param img  ScreenImage
+   * @param name descriptive name
+   */
+  public Image(ScreenImage img, String name) {
+    this(img.getImage(), name);
+  }
+
+  /**
+   * check whether image is available for Finder.find()<br>
+   * This is for backward compatibility<br>
+   * The new ImageFinder uses isUsable()
+   *
+   * @return true if lodable from file or is an in memory image
+   */
+  public boolean isValid() {
+    return fileURL != null || getName().contains(isBImg);
+  }
+
+  /**
+   * checks, wether the Image can be used with the new ImageFinder
+   *
+   * @return true/false
+   */
+  public boolean isUseable() {
+    return isValid() || imageIsPattern;
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+            (imageName != null ? imageName : "__UNKNOWN__") + ": (%dx%d)", bwidth, bheight)
+            + (lastSeen == null ? ""
+            : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 0 imageName">
+  /**
+   * @return the image's absolute filename or null if jar, http or in memory
+   * image
+   */
+  public String getFilename() {
+    if (fileURL != null && "file".equals(fileURL.getProtocol())) {
+      return new File(fileURL.getPath()).getAbsolutePath();
+    } else {
+      return imageName;
+    }
+  }
+
+  private boolean bHasIOException = false;
+
+  public boolean hasIOException() {
+    return bHasIOException;
+  }
+
+  public void setHasIOException(boolean state) {
+    bHasIOException = state;
+  }
+
+  /**
+   * Get the image's descriptive name
+   *
+   * @return the name
+   */
+  public String getName() {
+    if (isText()) {
+      return imageNameGiven;
+    }
+    return imageName;
+  }
+
+  public Image setName(String imageName) {
+    this.imageName = imageName;
+    return this;
+  }
+
+  private String imageName = null;
+  private String imageNameGiven = null;
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 1 URL">
+
+  /**
+   * @return the evaluated url for this image (might be null)
+   */
+  public URL getURL() {
+    return fileURL;
+  }
+
+  public Image setFileURL(URL fileURL) {
+    this.fileURL = fileURL;
+    return this;
+  }
+
+  private URL fileURL = null;
+
+  private static Image get(URL imgURL) {
+    return imageFiles.get(imgURL);
+  }
+
+  private static String getNameFromURL(URL fURL) {
+    //TODO add handling for http
+    if ("jar".equals(fURL.getProtocol())) {
+      int n = fURL.getPath().lastIndexOf(".jar!/");
+      int k = fURL.getPath().substring(0, n).lastIndexOf("/");
+      if (n > -1) {
+        return "JAR:" + fURL.getPath().substring(k + 1, n) + fURL.getPath().substring(n + 5);
+      }
+    }
+    return "???:" + fURL.getPath();
+  }
+
+  public boolean isFile() {
+    if (isValid()) {
+      URL furl = getURL();
+      if ("file".equals(furl.getProtocol())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean imageIsAbsolute = false;
+
+  /**
+   * @return true if image was given with absolute filepath
+   */
+  public boolean isAbsolute() {
+    return imageIsAbsolute;
+  }
+
+  public Image setIsAbsolute(boolean val) {
+    imageIsAbsolute = val;
+    return this;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 2 bufferedImage">
+  public Image setBimg(BufferedImage bimg) {
+    this.bimg = bimg;
+    if (bimg != null) {
+      bwidth = bimg.getWidth();
+      bheight = bimg.getHeight();
+      bsize = bimg.getData().getDataBuffer().getSize();
+    } else {
+      bsize = 0;
+      bwidth = -1;
+      bheight = -1;
+    }
+    return this;
+  }
+
+  private BufferedImage bimg = null;
+  private int bsize = 0;
+  private int bwidth = -1;
+  private int bheight = -1;
+
+  public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
+    return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
+  }
+
+  /**
+   * return the image's BufferedImage (load it if not in cache)
+   *
+   * @return BufferedImage (might be null)
+   */
+  public BufferedImage get() {
+    if (bimg != null) {
+      if (fileURL == null) {
+        log(lvl + 1, "getImage inMemory: %s", imageName);
+      } else {
+        log(lvl + 1, "getImage from cache: %s", imageName);
+      }
+      return bimg;
+    } else {
+      return load();
+    }
+  }
+
+  /**
+   * @return size of image
+   */
+  public Dimension getSize() {
+    return new Dimension(bwidth, bheight);
+  }
+
+  private int getKB() {
+    if (bimg == null) {
+      return 0;
+    }
+    return (int) bsize / KB;
+  }
+
+  /**
+   * resize the loaded image with factor using Graphics2D.drawImage
+   *
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public BufferedImage resize(float factor) {
+    int type;
+    return resize(get(), factor);
+  }
+
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
+    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
+    int width = (int) (bimg.getWidth() * factor);
+    int height = (int) (bimg.getHeight() * factor);
+    BufferedImage resizedImage = new BufferedImage(width, height, type);
+    Graphics2D g = resizedImage.createGraphics();
+    g.drawImage(bimg, 0, 0, width, height, null);
+    g.dispose();
+    return resizedImage;
+  }
+
+  /**
+   * create a sub image from this image
+   *
+   * @param x pixel column
+   * @param y pixel row
+   * @param w width
+   * @param h height
+   * @return the new image
+   */
+  public Image getSub(int x, int y, int w, int h) {
+    BufferedImage bi = createBufferedImage(w, h);
+    Graphics2D g = bi.createGraphics();
+    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+    g.dispose();
+    return new Image(bi);
+  }
+
+  private static BufferedImage createBufferedImage(int w, int h) {
+    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+    int[] nBits = {8, 8, 8, 8};
+    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+    SampleModel sm = cm.createCompatibleSampleModel(w, h);
+    DataBufferByte db = new DataBufferByte(w * h * 4);
+    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+    BufferedImage bm = new BufferedImage(cm, r, false, null);
+    return bm;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 3 isText">
+  private boolean imageIsText = false;
+
+  /**
+   * @return true if the given image name did not give a valid image so it might
+   * be text to search
+   */
+  public boolean isText() {
+    return imageIsText;
+  }
+
+  public Image setIsText(boolean val) {
+    imageIsText = val;
+    return this;
+  }
+
+  public String getNameAsText() {
+    return imageNameGiven;
+  }
+//</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 5 isBundled">
+  private boolean imageIsBundled = false;
+
+  private Image setIsBundled(boolean imageIsBundled) {
+    this.imageIsBundled = imageIsBundled;
+    return this;
+  }
+
+  /**
+   * INTERNAL USE: image is contained in a bundle (.sikuli)
+   *
+   * @return true/false
+   */
+  public boolean isBundled() {
+    return imageIsBundled;
+  }
+
+//</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="00 6 isPattern">
+  private boolean imageIsPattern = false;
+
+  /**
+   * true if this image contains pattern aspects<br>
+   * only useable with the new ImageFinder
+   *
+   * @return true if yes, false otherwise
+   */
+  public boolean isPattern() {
+    return imageIsPattern;
+  }
+
+  public Image setIsPattern(boolean imageIsPattern) {
+    this.imageIsPattern = imageIsPattern;
+    return this;
+  }
+
+  private Location offset = new Location(0, 0);
+
+  /**
+   * Get the value of offset
+   *
+   * @return the value of offset
+   */
+  public Location getOffset() {
+    return offset;
+  }
+
+  /**
+   * Set the value of offset
+   *
+   * @param offset new value of offset
+   * @return the image
+   */
+  public Image setOffset(Location offset) {
+    this.offset = offset;
+    return this;
+  }
+
+  private double similarity = Settings.MinSimilarity;
+
+  /**
+   * Get the value of similarity
+   *
+   * @return the value of similarity
+   */
+  public double getSimilarity() {
+    return similarity;
+  }
+
+  /**
+   * Set the value of similarity
+   *
+   * @param similarity new value of similarity
+   * @return the image
+   */
+  public Image setSimilarity(double similarity) {
+    this.similarity = similarity;
+    return this;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="01 create">
+
+  /**
+   * create a sub image from this image
+   *
+   * @param part (the constants Region.XXX as used with {@link Region#get(int)})
+   * @return the sub image
+   */
+  public Image getSub(int part) {
+    Rectangle r = Region.getRectangle(new Rectangle(0, 0, getSize().width, getSize().height), part);
+    return getSub(r.x, r.y, r.width, r.height);
+  }
+
+  /**
+   * create a new Image as copy of the given Image
+   *
+   * @param imgSrc given Image
+   * @return new Image
+   */
+  public static Image create(Image imgSrc) {
+    return imgSrc.copy();
+  }
+
+  /**
+   * create a new image from a filename <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param fName image filename
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  public static Image create(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img);
+  }
+
+  /**
+   * create a new Image with Pattern aspects from an existing Pattern
+   *
+   * @param p a Pattern
+   * @return the new Image
+   */
+  public static Image create(Pattern p) {
+    Image img = p.getImage().copy();
+    img.setIsPattern(true);
+    img.setSimilarity(p.getSimilar());
+    img.setOffset(p.getTargetOffset());
+    img.setWaitAfter(p.getTimeAfter());
+    return img;
+  }
+
+  /**
+   * create a new image from the given url <br>
+   * file ending .png is added if missing <br>
+   * filename: ...url-path.../name[.png] is loaded from the url and and cached
+   * <br>
+   * already loaded image with same url is reused (reference) and taken from
+   * cache
+   *
+   * @param url image file URL
+   * @return the image
+   */
+  public static Image create(URL url) {
+    Image img = get(url);
+    if (img == null) {
+      img = new Image(url);
+    }
+    return createImageValidate(img);
+  }
+
+  public static <PSI> Image getImageFromTarget(PSI target) {
+    if (target instanceof Pattern) {
+      return ((Pattern) target).getImage();
+    } else if (target instanceof String) {
+      Image img = get((String) target);
+      img = createImageValidate(img);
+      return img;
+    } else if (target instanceof Image) {
+      return (Image) target;
+    } else if (target instanceof ScreenImage) {
+      return new Image(((ScreenImage) target).getImage());
+    } else {
+      throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
+    }
+  }
+
+  /**
+   * FOR INTERNAL USE: from IDE - suppresses load error message
+   *
+   * @param fName image filename
+   * @return this
+   */
+  public static Image createThumbNail(String fName) {
+    Image img = get(fName);
+    return createImageValidate(img);
+  }
+
+  private static Image createImageValidate(Image img) {
+    if (img == null) {
+      return new Image("", null);
+    }
+    if (!img.isValid()) {
+      if (Settings.OcrTextSearch || Settings.SwitchToText) {
+        if (isValidImageFilename(img.getName())) {
+          img.setIsText(false);
+        } else {
+          img.setIsText(true);
+        }
+      } else {
+        log(-1, "Image not valid, but TextSearch is switched off!");
+      }
+    }
+    return img;
+  }
+
+  public static boolean isValidImageFilename(String fname) {
+    String validEndings = ".png.jpg.jpeg";
+    String ending = FilenameUtils.getExtension(fname);
+    return validEndings.contains(ending.toLowerCase());
+  }
+
+  public static String getValidImageFilename(String fname) {
+    if (isValidImageFilename(fname)) {
+      return fname;
+    }
+    return fname + ".png";
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="02 caching">
   private static final int KB = 1024;
   private static final int MB = KB * KB;
   private final static String isBImg = "__BufferedImage__";
@@ -110,7 +708,7 @@ public class Image {
     return currentMemoryChange(-size, -1);
   }
 
-	private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
+  private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
     currentMemoryDown(sizeOld);
     return currentMemoryUp(sizeNew);
   }
@@ -123,339 +721,220 @@ public class Image {
     currentMemoryChange(0, maxSize);
   }
 
-  public static void reload(String fpImage) {
-//    URL uImage = FileManager.makeURL(fpImage);
-    URL uImage = imageNames.get(fpImage);
-    if (imageFiles.containsKey(uImage)) {
-      Image image = imageFiles.get(uImage);
-      int sizeOld = image.bsize;
-      if (null != image.loadAgain()) {
-        currentMemoryDownUp(sizeOld, image.bsize);
-        image.setLastSeen(null, 0);
-      }
-    }
+  public static void purge() {
+    purge(ImagePath.getBundle());
   }
 
-  private static boolean ideShouldReload = false;
-  public boolean wasRecaptured = false;
-  public static void setIDEshouldReload(Image img) {
-    ideShouldReload = true;
-    img.wasRecaptured = true;
-    img.lastSeen = null;
-  }
-
-  public static boolean getIDEshouldReload() {
-    boolean state = ideShouldReload;
-    ideShouldReload = false;
-    return state;
-  }
-
-  public boolean isRecaptured() {
-    boolean state = wasRecaptured;
-    wasRecaptured = false;
-    return state;
-  }
-
-//<editor-fold defaultstate="collapsed" desc="imageName">
-  private String imageName = null;
-  private String imageNameGiven = null;
-  private boolean bHasIOException = false;
-
-  public boolean hasIOException() {
-    return bHasIOException;
-  }
-
-  public void setHasIOException(boolean state) {
-    bHasIOException = state;
-  }
-
-  public String getImageName() {
-    return imageName;
-  }
-
-  public Image setImageName(String imageName) {
-    this.imageName = imageName;
-    return this;
-  }
-
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="fileURL">
-  private URL fileURL = null;
-
-  public URL getFileURL() {
-    return fileURL;
-  }
-
-  public Image setFileURL(URL fileURL) {
-    this.fileURL = fileURL;
-    return this;
-  }
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="bimg">
-  private BufferedImage bimg = null;
-
-  public Image setBimg(BufferedImage bimg) {
-    this.bimg = bimg;
-    if (bimg != null) {
-      bwidth = bimg.getWidth();
-      bheight = bimg.getHeight();
-      bsize = bimg.getData().getDataBuffer().getSize();
-    } else {
-      bsize = 0;
-      bwidth = -1;
-      bheight = -1;
-    }
-    return this;
-  }
-
-  private int bsize = 0;
-  private int bwidth = -1;
-  private int bheight = -1;
-
-  public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
-    return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
-  }
-//</editor-fold>
-
-  private ImageGroup group = null;
-
-//<editor-fold defaultstate="collapsed" desc="isText">
-  private boolean imageIsText = false;
-
-  /**
-   *
-   * @return true if the given image name did not give a valid image so it might
-   * be text to search
-   */
-  public boolean isText() {
-    return imageIsText;
-  }
-
-  public Image setIsText(boolean val) {
-    imageIsText = val;
-    return this;
-  }
-
-  public String getText() {
-    return imageNameGiven;
-  }
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="isAbsolute">
-  private boolean imageIsAbsolute = false;
-  /**
-   *
-   * @return true if image was given with absolute filepath
-   */
-  public boolean isAbsolute() {
-    return imageIsAbsolute;
-  }
-
-  public Image setIsAbsolute(boolean val) {
-    imageIsAbsolute = val;
-    return this;
-  }
-
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="isBundled">
-  private boolean imageIsBundled = false;
-
-  private Image setIsBundled(boolean imageIsBundled) {
-    this.imageIsBundled = imageIsBundled;
-    return this;
-  }
-
-  /**
-   * INTERNAL USE: image is contained in a bundle (.sikuli)
-   * @return true/false
-   */
-  public boolean isBundled() {
-    return imageIsBundled;
-  }
-
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="isPattern">
-  private boolean imageIsPattern = false;
-
-  /**
-   * true if this image contains pattern aspects<br>
-   * only useable with the new ImageFinder
-   * @return true if yes, false otherwise
-   */
-  public boolean isPattern() {
-    return imageIsPattern;
-  }
-
-  public Image setIsPattern(boolean imageIsPattern) {
-    this.imageIsPattern = imageIsPattern;
-    return this;
-  }
-
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="waitAfter">
-  private int waitAfter;
-
-  /**
-   * Get the value of waitAfter
-   *
-   * @return the value of waitAfter
-   */
-  public int getWaitAfter() {
-    return waitAfter;
-  }
-
-  /**
-   * Set the value of waitAfter
-   *
-   * @param waitAfter new value of waitAfter
-   * @return the image
-   */
-  public Image setWaitAfter(int waitAfter) {
-    this.waitAfter = waitAfter;
-    return this;
-  }
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="offset">
-  private Location offset = new Location(0, 0);
-
-  /**
-   * Get the value of offset
-   *
-   * @return the value of offset
-   */
-  public Location getOffset() {
-    return offset;
-  }
-
-  /**
-   * Set the value of offset
-   *
-   * @param offset new value of offset
-   * @return the image
-   */
-  public Image setOffset(Location offset) {
-    this.offset = offset;
-    return this;
-  }
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="similarity">
-  private double similarity = Settings.MinSimilarity;
-
-  /**
-   * Get the value of similarity
-   *
-   * @return the value of similarity
-   */
-  public double getSimilarity() {
-    return similarity;
-  }
-
-  /**
-   * Set the value of similarity
-   *
-   * @param similarity new value of similarity
-   * @return the image
-   */
-  public Image setSimilarity(double similarity) {
-    this.similarity = similarity;
-    return this;
-  }
-
-//</editor-fold>
-
-//<editor-fold defaultstate="collapsed" desc="lastSeen">
-  private Rectangle lastSeen = null;
-  private double lastScore = 0.0;
-
-  /**
-   * if the image was already found before
-   *
-   * @return the rectangle where it was found
-   */
-  public Rectangle getLastSeen() {
-    return lastSeen;
-  }
-
-  /**
-   * if the image was already found before
-   *
-   * @return the similarity score
-   */
-  public double getLastSeenScore() {
-    return lastScore;
-  }
-
-  /**
-   * Internal Use: set the last seen info after a find
-   *
-   * @param lastSeen Match
-   * @param sim SimilarityScore
-   * @return the image
-   */
-  public Image setLastSeen(Rectangle lastSeen, double sim) {
-    this.lastSeen = lastSeen;
-    this.lastScore = sim;
-    if (group != null) {
-      group.addImageFacts(this, lastSeen, sim);
-    }
-    return this;
-  }
-//</editor-fold>
-
-  private boolean beSilent = false;
-
-  /**
-   * to support a raster over the image
-   */
-  private int rows = 0;
-  private int cols = 0;
-  private int rowH = 0;
-  private int colW = 0;
-  private int rowHd = 0;
-  private int colWd = 0;
-
-  @Override
-  public String toString() {
-    return String.format(
-            (imageName != null ? imageName : "__UNKNOWN__") + ": (%dx%d)", bwidth, bheight)
-            + (lastSeen == null ? ""
-            : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
-  }
-
-  public static Image getDefaultInstance4py() {
-    return new Image(new Screen().capture());
-  }
-
-  private Image() {
-  }
-
-	private Image(String fname, URL fURL) {
-    init(fname, fURL, true);
-  }
-
-  private Image(String fname, URL fURL, boolean silent) {
-    init(fname, fURL, silent);
-  }
-
-	private void init(String fileName, URL fURL, boolean silent) {
-    imageName = fileName;
-    if (imageName.isEmpty() || fURL == null) {
+  public static void purge(ImagePath.PathEntry path) {
+    if (path == null) {
       return;
     }
-    fileURL = fURL;
-		if (ImagePath.isImageBundled(fURL)) {
-			imageIsBundled = true;
-			imageName = new File(imageName).getName();
-		}
-		beSilent = silent;
-    load();
+    purge(path.pathURL);
+  }
+
+  private static synchronized void purge(URL pathURL) {
+    List<Image> imagePurgeList = new ArrayList<>();
+    List<String> imageNamePurgeList = new ArrayList<>();
+    URL imgURL;
+    Image img;
+    log(lvl + 1, "purge: ImagePath: %s", pathURL.getPath());
+    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
+    Map.Entry<URL, Image> entry;
+    while (it.hasNext()) {
+      entry = it.next();
+      imgURL = entry.getKey();
+      if (imgURL.toString().startsWith(pathURL.toString())) {
+        log(lvl + 1, "purge: URL: %s", imgURL.toString());
+        img = entry.getValue();
+        imagePurgeList.add(img);
+        imageNamePurgeList.add(img.imageName);
+        it.remove();
+      }
+    }
+    if (!imagePurgeList.isEmpty()) {
+      Iterator<Image> bit = images.iterator();
+      while (bit.hasNext()) {
+        img = bit.next();
+        if (imagePurgeList.contains(img)) {
+          bit.remove();
+          log(lvl + 1, "purge: bimg: %s", img);
+          currentMemoryDown(img.bsize);
+        }
+      }
+    }
+    for (String name : imageNamePurgeList) {
+      imageNames.remove(name);
+    }
+  }
+
+  private static void unCache(URL imgURL) {
+    Image img = imageFiles.get(imgURL);
+    if (img == null) {
+      return;
+    }
+    currentMemoryDown(img.bsize);
+    img.setBimg(null);
+    images.remove(img);
+  }
+
+  //TODO make obsolete
+  public static void unCache(String fileName) {
+    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
+  }
+
+  /**
+   * Print the current state of the cache
+   */
+  public static void dump() {
+    dump(0);
+  }
+
+  /**
+   * Print the current state of the cache, verbosity depends on debug level
+   *
+   * @param lvl debug level used here
+   */
+  public static void dump(int lvl) {
+    log(lvl, "--- start of Image dump ---");
+    ImagePath.dump(lvl);
+    log(lvl, "ImageFiles entries: %d", imageFiles.size());
+    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
+    Map.Entry<URL, Image> entry;
+    while (it.hasNext()) {
+      entry = it.next();
+      log(lvl, entry.getKey().toString());
+    }
+    log(lvl, "ImageNames entries: %d", imageNames.size());
+    Iterator<Map.Entry<String, URL>> nit = imageNames.entrySet().iterator();
+    Map.Entry<String, URL> name;
+    while (nit.hasNext()) {
+      name = nit.next();
+      log(lvl, "%s %d KB (%s)", new File(name.getKey()).getName(),
+              imageFiles.get(name.getValue()).getKB(), name.getValue());
+    }
+    if (Settings.getImageCache() == 0) {
+      log(lvl, "Cache state: switched off!");
+    } else {
+      log(lvl, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
+              Settings.getImageCache(), images.size(),
+              (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
+    }
+    log(lvl, "--- end of Image dump ---");
+  }
+
+  /**
+   * clears all caches (should only be needed for debugging)
+   */
+  public static void reset() {
+    clearCache(0);
+    imageNames.clear();
+    imageFiles.clear();
+  }
+
+  public File remove() {
+    URL furl = null;
+    if (isFile()) {
+      furl = getURL();
+      unCache(furl);
+      return new File(furl.getPath());
+    }
+    return null;
+  }
+
+  public void delete() {
+    File fImg = remove();
+    if (null != fImg) FileManager.deleteFileOrFolder(fImg);
+  }
+
+  private String hasBackup = "";
+
+  public boolean backup() {
+    if (isValid()) {
+      File fOrg = new File(fileURL.getPath());
+      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
+      if (FileManager.xcopy(fOrg, fBack)) {
+        hasBackup = fBack.getPath();
+        log(lvl, "backup: %s created", fBack.getName());
+        return true;
+      }
+      log(-1, "backup: %s did not work", fBack.getName());
+    }
+    return false;
+  }
+
+  public boolean restore() {
+    if (!hasBackup.isEmpty()) {
+      File fBack = new File(hasBackup);
+      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
+      if (FileManager.xcopy(fBack, fOrg)) {
+        log(lvl, "restore: %s restored", fOrg.getName());
+        FileManager.deleteFileOrFolder(fBack);
+        hasBackup = "";
+        return true;
+      }
+      log(-1, "restore: %s did not work", fBack.getName());
+    }
+    return false;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="03 load">
+  /**
+   * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
+   * create and load a new image
+   *
+   * @param fName image filename
+   * @return this
+   */
+  private static Image get(String fName) {
+    if (fName == null || fName.isEmpty()) {
+      return null;
+    }
+    Image image = null;
+    if (fName.startsWith("\t") && fName.endsWith("\t")) {
+      fName = fName.substring(1, fName.length() - 1);
+      image = new Image();
+      image.setIsText(true);
+    } else {
+      URL imageURL = null;
+      String imageFileName = getValidImageFilename(fName);
+      if (imageFileName.isEmpty()) {
+        log(-1, "not a valid image type: " + fName);
+        imageFileName = fName;
+      }
+      File imageFile = new File(imageFileName);
+      if (imageFile.isAbsolute() && imageFile.exists()) {
+        try {
+          imageURL = new URL("file", null, imageFile.getPath());
+        } catch (MalformedURLException e) {
+        }
+      } else {
+        imageURL = imageNames.get(imageFileName);
+        if (imageURL == null) {
+          imageURL = ImagePath.find(imageFileName);
+        }
+      }
+      if (imageURL != null) {
+        image = imageFiles.get(imageURL);
+        if (image != null && null == imageNames.get(image.imageName)) {
+          imageNames.put(image.imageName, imageURL);
+        }
+      }
+      if (image == null) {
+        image = new Image(imageFileName, imageURL);
+        image.setIsAbsolute(imageFile.isAbsolute());
+      } else {
+        if (image.bimg != null) {
+          log(3, "reused: %s (%s)", image.imageName, image.fileURL);
+        } else {
+          if (Settings.getImageCache() > 0) {
+            image.load();
+          }
+        }
+      }
+    }
+    image.imageNameGiven = fName;
+    return image;
   }
 
   private BufferedImage load() {
@@ -465,11 +944,9 @@ public class Image {
       try {
         bImage = ImageIO.read(fileURL);
       } catch (Exception e) {
-        if (!beSilent) {
-          log(-1, "could not be loaded: %s", fileURL);
-        }
+        log(-1, "load: failed: %s", fileURL);
         bHasIOException = true;
-				fileURL = null;
+        fileURL = null;
         return null;
       }
       if (imageName != null) {
@@ -503,11 +980,9 @@ public class Image {
       try {
         bImage = ImageIO.read(fileURL);
       } catch (Exception e) {
-        if (!beSilent) {
-          log(-1, "could not be loaded again: %s", fileURL);
-        }
+        log(-1, "loadAgain: failed: %s", fileURL);
         bHasIOException = true;
-				imageFiles.remove(fileURL);
+        imageFiles.remove(fileURL);
         return null;
       }
       imageFiles.put(fileURL, this);
@@ -520,669 +995,112 @@ public class Image {
     return bImage;
   }
 
-  private Image copy() {
-    Image imgTarget = new Image();
-    imgTarget.setImageName(imageName);
-    imgTarget.setFileURL(fileURL);
-    imgTarget.setBimg(bimg);
-    imgTarget.setGroup(group);
-    imgTarget.setIsAbsolute(imageIsAbsolute);
-    imgTarget.setIsText(imageIsText);
-    imgTarget.setIsBundled(imageIsBundled);
-    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
-    imgTarget.setHasIOException(hasIOException());
-    if (isPattern()) {
-      imgTarget.setSimilarity(similarity);
-      imgTarget.setOffset(offset);
-      imgTarget.setWaitAfter(waitAfter);
-      imgTarget.setIsPattern(true);
+  public static void reload(String fpImage) {
+//    URL uImage = FileManager.makeURL(fpImage);
+    URL uImage = imageNames.get(fpImage);
+    if (imageFiles.containsKey(uImage)) {
+      Image image = imageFiles.get(uImage);
+      int sizeOld = image.bsize;
+      if (null != image.loadAgain()) {
+        currentMemoryDownUp(sizeOld, image.bsize);
+        image.setLastSeen(null, 0);
+      }
     }
-    return imgTarget;
   }
 
-  /**
-   * create a new Image as copy of the given Image
-   * @param imgSrc given Image
-   * @return new Image
-   */
-  public static Image create(Image imgSrc) {
-    return imgSrc.copy();
+  public static void setIDEshouldReload(Image img) {
+    ideShouldReload = true;
+    img.wasRecaptured = true;
+    img.lastSeen = null;
   }
 
+  public static boolean getIDEshouldReload() {
+    boolean state = ideShouldReload;
+    ideShouldReload = false;
+    return state;
+  }
+
+  private static boolean ideShouldReload = false;
+
+  public boolean isRecaptured() {
+    boolean state = wasRecaptured;
+    wasRecaptured = false;
+    return state;
+  }
+
+  public boolean wasRecaptured = false;
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="waitAfter">
+  private int waitAfter;
+
   /**
-   * create a new image from a filename <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * Get the value of waitAfter
    *
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param fName image filename
-   * @return an Image object (might not be valid - check with isValid())
+   * @return the value of waitAfter
    */
-  public static Image create(String fName) {
-    Image img = get(fName, false);
-    return createImageValidate(img, true);
+  public int getWaitAfter() {
+    return waitAfter;
   }
 
   /**
-   * create a new Image with Pattern aspects from an existing Pattern
-   * @param p a Pattern
-   * @return the new Image
-   */
-  public static Image create(Pattern p) {
-    Image img = p.getImage().copy();
-    img.setIsPattern(true);
-    img.setSimilarity(p.getSimilar());
-    img.setOffset(p.getTargetOffset());
-    img.setWaitAfter(p.getTimeAfter());
-		return img;
-  }
-
-  /**
-   * create a new image from the given url <br>
-   * file ending .png is added if missing <br>
-   * filename: ...url-path.../name[.png] is loaded from the url and and cached
-   * <br>
-   * already loaded image with same url is reused (reference) and taken from
-   * cache
+   * Set the value of waitAfter
    *
-   * @param url image file URL
+   * @param waitAfter new value of waitAfter
    * @return the image
    */
-  public static Image create(URL url) {
-    Image img = get(url);
-    if (img == null) {
-      img = new Image(url);
-    }
-    return createImageValidate(img, true);
+  public Image setWaitAfter(int waitAfter) {
+    this.waitAfter = waitAfter;
+    return this;
   }
+  //</editor-fold>
 
-  public static <PSI> Image getImageFromTarget(PSI target) {
-    if (target instanceof Pattern) {
-      return ((Pattern) target).getImage();
-    } else if (target instanceof String) {
-      Image img = get((String) target, true);
-      img = createImageValidate(img, true);
-      return img;
-    } else if (target instanceof Image) {
-      return (Image) target;
-    } else if (target instanceof ScreenImage) {
-      return new Image (((ScreenImage) target).getImage());
-    } else {
-      throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
-    }
-  }
+  //<editor-fold defaultstate="collapsed" desc="lastSeen">
+  private Rectangle lastSeen = null;
+  private double lastScore = 0.0;
 
   /**
-   * FOR INTERNAL USE: from IDE - suppresses load error message
+   * if the image was already found before
    *
-   * @param fName image filename
-   * @return this
+   * @return the rectangle where it was found
    */
-  public static Image createThumbNail(String fName) {
-    Image img = get(fName, true);
-    return createImageValidate(img, false);
+  public Rectangle getLastSeen() {
+    return lastSeen;
   }
-
-  private static Image createImageValidate(Image img, boolean verbose) {
-    if (img == null) {
-      log(-1, "Image not valid, creating empty Image");
-      return new Image("", null);
-    }
-    if (!img.isValid()) {
-      if (Settings.OcrTextSearch || Settings.SwitchToText) {
-        if (FileManager.isValidImageFilename(img.getName())) {
-          img.setIsText(false);
-        } else {
-          img.setIsText(true);
-        }
-      } else {
-        if (verbose) {
-					log(-1, "Image not valid, but TextSearch is switched off!");
-				}
-      }
-    }
-    return img;
-  }
-
-	/**
-	 * stores the image as PNG file in the standard temp folder
-	 * with a created filename (sikuli-image-#unique-random#.png)
-	 * if not yet stored before
-	 *
-	 * @return absolute path to stored file
-	 */
-	public String asFile() {
-    if (imageAsFile == null) {
-      if (bimg != null) {
-       imageAsFile = FileManager.saveTmpImage(bimg);
-      }
-    }
-    return imageAsFile;
-  }
-
-  private String imageAsFile = null;
 
   /**
-   * FOR INTERNAL USE: see get(String, boolean)
+   * if the image was already found before
    *
-   * @param fName image filename
-   * @return this
+   * @return the similarity score
    */
-  public static Image get(String fName) {
-    return get(fName, false);
+  public double getLastSeenScore() {
+    return lastScore;
   }
 
   /**
-   * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
-   * create and load a new image
+   * Internal Use: set the last seen info after a find
    *
-   * @param fName image filename
-   * @param silent true: suppress some error messages
-   * @return this
+   * @param lastSeen Match
+   * @param sim      SimilarityScore
+   * @return the image
    */
-	private static Image get(String fName, boolean silent) {
-    if (fName == null || fName.isEmpty()) {
-      return null;
-    }
-    Image img = null;
-    if (fName.startsWith("\t") && fName.endsWith("\t")) {
-      fName = fName.substring(1, fName.length() - 1);
-      img = new Image();
-      img.setIsText(true);
-    } else {
-      fName = FileManager.slashify(fName, false);
-      URL fURL = null;
-      String fileName = FileManager.getValidImageFilename(fName);
-      if (fileName.isEmpty()) {
-        log(-1, "not a valid image type: " + fName);
-        fileName = fName;
-      }
-      File imgFile = new File(fileName);
-      if (imgFile.isAbsolute()) {
-        if (imgFile.exists()) {
-          fURL = FileManager.makeURL(fileName);
-        }
-      } else {
-        fURL = imageNames.get(fileName);
-        if (fURL == null) {
-          fURL = ImagePath.find(fileName);
-        }
-      }
-      if (fURL != null) {
-        img = imageFiles.get(fURL);
-        if (img != null && null == imageNames.get(img.imageName)) {
-          imageNames.put(img.imageName, fURL);
-        }
-      }
-      if (img == null) {
-        img = new Image(fileName, fURL, silent);
-        img.setIsAbsolute(imgFile.isAbsolute());
-      } else {
-        if (img.bimg != null) {
-          log(3, "reused: %s (%s)", img.imageName, img.fileURL);
-        } else {
-          if (Settings.getImageCache() > 0) {
-            img.load();
-          }
-        }
-      }
-    }
-		img.imageNameGiven = fName;
-    return img;
+  public Image setLastSeen(Rectangle lastSeen, double sim) {
+    this.lastSeen = lastSeen;
+    this.lastScore = sim;
+    return this;
   }
+  //</editor-fold>
 
-	public static void set(Image img) {
-    URL fURL = null;
-    File imgFile = new File(img.getName());
-    if (imgFile.isAbsolute()) {
-      if (imgFile.exists()) {
-        fURL = FileManager.makeURL(img.getName());
-      }
-    } else {
-      fURL = imageNames.get(img.getName());
-      if (fURL == null) {
-        fURL = ImagePath.find(img.getName());
-      }
-    }
-    if (fURL != null) {
-      img.init(img.getName(), fURL, true);
-    }
-  }
-
-  public static Image get(URL imgURL) {
-    return imageFiles.get(imgURL);
-  }
-
-  private Image(URL fURL) {
-    if ("file".equals(fURL.getProtocol())) {
-      init(fURL.getPath(), fURL, true);
-    } else {
-      init(getNameFromURL(fURL), fURL, true);
-    }
-  }
-
-  private static String getNameFromURL(URL fURL) {
-    //TODO add handling for http
-    if ("jar".equals(fURL.getProtocol())) {
-      int n = fURL.getPath().lastIndexOf(".jar!/");
-      int k = fURL.getPath().substring(0, n).lastIndexOf("/");
-      if (n > -1) {
-        return "JAR:" + fURL.getPath().substring(k + 1, n) + fURL.getPath().substring(n + 5);
-      }
-    }
-    return "???:" + fURL.getPath();
-  }
-
+  //<editor-fold desc="10 raster">
   /**
-   * create a new image from a buffered image<br>
-   * can only be reused with the object reference
-   *
-   * @param img BufferedImage
+   * to support a raster over the image
    */
-  public Image(BufferedImage img) {
-    this(img, null);
-  }
-
-  /**
-   * create a new image from a buffered image<br>
-   * giving it a descriptive name for printout and logging <br>
-   * can only be reused with the object reference
-   *
-   * @param img BufferedImage
-   * @param name descriptive name
-   */
-  public Image(BufferedImage img, String name) {
-    imageName = isBImg;
-    if (name != null) {
-      imageName += name;
-    }
-    bimg = img;
-    bwidth = bimg.getWidth();
-    bheight = bimg.getHeight();
-		log(lvl, "BufferedImage: (%d, %d)%s", bwidth, bheight,
-						(name == null ? "" : " with name: " + name));
-  }
-
-  /**
-   * create a new image from a Sikuli ScreenImage (captured)<br>
-   * can only be reused with the object reference
-   *
-   * @param img ScreenImage
-   */
-  public Image(ScreenImage img) {
-    this(img.getImage(), null);
-  }
-
-  /**
-   * create a new image from a Sikuli ScreenImage (captured)<br>
-   * giving it a descriptive name for printout and logging <br>
-   * can only be reused with the object reference
-   *
-   * @param img ScreenImage
-   * @param name descriptive name
-   */
-  public Image(ScreenImage img, String name) {
-    this(img.getImage(), name);
-  }
-
-  /**
-   * INTERNAL USE: IDE: to get rid of cache entries at script save, close or
-   * save as
-   *
-   * @param bundlePath absolute path for an image set in this folder
-   */
-  public static void purge(String bundlePath) {
-    if (imageFiles.isEmpty() || ImagePath.getPaths().get(0) == null) {
-      return;
-    }
-    URL pathURL = FileManager.makeURL(bundlePath);
-    if (!ImagePath.getPaths().get(0).pathURL.equals(pathURL)) {
-      log(-1, "purge: not current bundlepath: " + pathURL);
-      return;
-    }
-    purge(pathURL);
-  }
-
-  public static void purge(ImagePath.PathEntry path) {
-    if (path == null) {
-      return;
-    }
-    purge(path.pathURL);
-  }
-
-  public static synchronized void purge(URL pathURL) {
-    List<Image> imagePurgeList = new ArrayList<>();
-    List<String> imageNamePurgeList = new ArrayList<>();
-    URL imgURL;
-    Image img;
-    log(lvl, "purge: ImagePath: %s", pathURL.getPath());
-    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
-    Map.Entry<URL, Image> entry;
-    while (it.hasNext()) {
-      entry = it.next();
-      imgURL = entry.getKey();
-      if (imgURL.toString().startsWith(pathURL.toString())) {
-        log(lvl + 1, "purge: URL: %s", imgURL.toString());
-        img = entry.getValue();
-        imagePurgeList.add(img);
-        imageNamePurgeList.add(img.imageName);
-        it.remove();
-      }
-    }
-    if (!imagePurgeList.isEmpty()) {
-      Iterator<Image> bit = images.iterator();
-      while (bit.hasNext()) {
-        img = bit.next();
-        if (imagePurgeList.contains(img)) {
-          bit.remove();
-          log(lvl + 1, "purge: bimg: %s", img);
-          currentMemoryDown(img.bsize);
-        }
-      }
-    }
-    for (String name : imageNamePurgeList) {
-      imageNames.remove(name);
-    }
-  }
-
-  public boolean isFile() {
-    if (isValid()) {
-      URL furl = getURL();
-      if ("file".equals(furl.getProtocol())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public File remove() {
-    URL furl = null;
-    if (isFile()) {
-      furl = getURL();
-      unCacheImage(furl);
-      return new File(furl.getPath());
-    }
-    return null;
-  }
-
-  public void delete() {
-    File fImg = remove();
-    if (null != fImg) FileManager.deleteFileOrFolder(fImg);
-  }
-
-  public static void delete(String pImg) {
-    Image img = get(pImg, true);
-    File fImg = img.remove();
-    if (null != fImg) {
-      FileManager.deleteFileOrFolder(fImg);
-      log(lvl, "deleted: %s", img.getImageName());
-    }
-  }
-
-  private String hasBackup = "";
-
-  public boolean backup() {
-    if (isValid()) {
-      File fOrg = new File(fileURL.getPath());
-      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
-      if (FileManager.xcopy(fOrg, fBack)) {
-        hasBackup = fBack.getPath();
-        log(lvl, "backup: %s created", fBack.getName());
-        return true;
-      }
-      log(-1, "backup: %s did not work", fBack.getName());
-    }
-    return false;
-  }
-
-  public boolean restore() {
-    if (!hasBackup.isEmpty()) {
-      File fBack = new File(hasBackup);
-      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
-      if (FileManager.xcopy(fBack, fOrg)) {
-        log(lvl, "restore: %s restored", fOrg.getName());
-        FileManager.deleteFileOrFolder(fBack);
-        hasBackup = "";
-        return true;
-      }
-      log(-1, "restore: %s did not work", fBack.getName());
-    }
-    return false;
-  }
-
-  /**
-   * purge the given image file's in memory image data and remove it from cache.
-   * @param imgFileName an absolute filename
-   */
-  public static void unCacheBundledImage(String imgFileName) {
-    URL imgURL = FileManager.makeURL(new File(imgFileName).getAbsolutePath());
-    unCacheImage(imgURL);
-  }
-
-  /**
-   * purge the given image's in memory image data and remove it from cache.
-   * @param imgURL URL of an image file
-   */
-  public static void unCacheImage(URL imgURL) {
-    Image img = imageFiles.get(imgURL);
-    if (img == null) {
-      return;
-    }
-    currentMemoryDown(img.bsize);
-    img.setBimg(null);
-    images.remove(img);
-  }
-
-
-  /**
-   * Print the current state of the cache
-   */
-  public static void dump() {
-    dump(0);
-  }
-
-  /**
-   * Print the current state of the cache, verbosity depends on debug level
-   * @param lvl debug level used here
-   */
-  public static void dump(int lvl) {
-    log(lvl, "--- start of Image dump ---");
-    ImagePath.dump(lvl);
-    log(lvl, "ImageFiles entries: %d", imageFiles.size());
-    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
-    Map.Entry<URL, Image> entry;
-    while (it.hasNext()) {
-      entry = it.next();
-      log(lvl, entry.getKey().toString());
-    }
-    log(lvl, "ImageNames entries: %d", imageNames.size());
-    Iterator<Map.Entry<String, URL>> nit = imageNames.entrySet().iterator();
-    Map.Entry<String, URL> name;
-    while (nit.hasNext()) {
-      name = nit.next();
-      log(lvl, "%s %d KB (%s)", new File(name.getKey()).getName(),
-							imageFiles.get(name.getValue()).getKB(), name.getValue());
-    }
-    if (Settings.getImageCache() == 0) {
-      log(lvl, "Cache state: switched off!");
-    } else {
-      log(lvl, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
-              Settings.getImageCache(), images.size(),
-              (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
-    }
-    log(lvl, "--- end of Image dump ---");
-  }
-
-  /**
-   * clears all caches (should only be needed for debugging)
-   */
-  public static void reset() {
-    clearCache(0);
-    imageNames.clear();
-    imageFiles.clear();
-  }
-
-  /**
-   * Get the image's descriptive name
-   *
-   * @return the name
-   */
-  public String getName() {
-    if (isText()) {
-      return imageNameGiven;
-    }
-    return imageName;
-  }
-
-  /**
-   *
-   * @return the current ImageGroup
-   */
-  public ImageGroup getGroup() {
-    return group;
-  }
-
-  /**
-   * set the ImageGroup this image should belong to
-   *
-   * @param group ImageGroup
-   */
-  public void setGroup(ImageGroup group) {
-    this.group = group;
-  }
-
-  /**
-   * check whether image is available for Finder.find()<br>
-	 * This is for backward compatibility<br>
-	 * The new ImageFinder uses isUsable()
-   *
-   * @return true if lodable from file or is an in memory image
-   */
-  public boolean isValid() {
-    return fileURL != null || getName().contains(isBImg);
-  }
-
-	/**
-	 * checks, wether the Image can be used with the new ImageFinder
-	 * @return true/false
-	 */
-	public boolean isUseable() {
-    return isValid() || imageIsPattern;
-  }
-
-  /**
-   *
-   * @return the evaluated url for this image (might be null)
-   */
-  public URL getURL() {
-    return fileURL;
-  }
-
-  /**
-   * @return the image's absolute filename or null if jar, http or in memory
-   * image
-   */
-  public String getFilename() {
-    if (fileURL != null && "file".equals(fileURL.getProtocol())) {
-      return new File(fileURL.getPath()).getAbsolutePath();
-    } else {
-			return imageName;
-		}
-  }
-
-  /**
-   * return the image's BufferedImage (load it if not in cache)
-   *
-	 * @return BufferedImage (might be null)
-   */
-  public BufferedImage get() {
-    return get(true);
-  }
-
-  public BufferedImage get(boolean shouldLoad) {
-    if (bimg != null) {
-      if (fileURL == null) {
-        log(lvl + 1, "getImage inMemory: %s", imageName);
-      } else {
-        log(lvl + 1, "getImage from cache: %s", imageName);
-      }
-      return bimg;
-    } else {
-      if (shouldLoad) {
-        return load();
-      } else {
-        return null;
-      }
-    }
-  }
-
-  /**
-   *
-   * @return size of image
-   */
-  public Dimension getSize() {
-    return new Dimension(bwidth, bheight);
-  }
-
-	private int getKB() {
-    if (bimg == null) {
-      return 0;
-    }
-		return (int) bsize / KB;
-	}
-
-  /**
-   * resize the loaded image with factor using Graphics2D.drawImage
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public BufferedImage resize(float factor) {
-    int type;
-    return resize(get(), factor);
-  }
-
-  public static BufferedImage resize(BufferedImage bimg, float factor) {
-    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
-    int width = (int) (bimg.getWidth() * factor);
-    int height = (int) (bimg.getHeight() * factor);
-    BufferedImage resizedImage = new BufferedImage(width, height, type);
-    Graphics2D g = resizedImage.createGraphics();
-    g.drawImage(bimg, 0, 0, width, height, null);
-    g.dispose();
-    return resizedImage;
-  }
-
-  /**
-   * create a sub image from this image
-   *
-   * @param x pixel column
-   * @param y pixel row
-   * @param w width
-   * @param h height
-   * @return the new image
-   */
-  public Image getSub(int x, int y, int w, int h) {
-    BufferedImage bi = createBufferedImage(w, h);
-    Graphics2D g = bi.createGraphics();
-    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-    g.dispose();
-    return new Image(bi);
-  }
-
-  /**
-   * create a sub image from this image
-   *
-   * @param part (the constants Region.XXX as used with {@link Region#get(int)})
-   * @return the sub image
-   */
-  public Image getSub(int part) {
-    Rectangle r = Region.getRectangle(new Rectangle(0, 0, getSize().width, getSize().height), part);
-    return getSub(r.x, r.y, r.width, r.height);
-  }
+  private int rows = 0;
+  private int cols = 0;
+  private int rowH = 0;
+  private int colW = 0;
+  private int rowHd = 0;
+  private int colWd = 0;
 
   /**
    * store info: this image is divided vertically into n even rows <br>
@@ -1207,7 +1125,6 @@ public class Image {
   }
 
   /**
-   *
    * @return number of eventually defined rows in this image or 0
    */
   public int getRows() {
@@ -1215,7 +1132,6 @@ public class Image {
   }
 
   /**
-   *
    * @return height of eventually defined rows in this image or 0
    */
   public int getRowH() {
@@ -1223,7 +1139,6 @@ public class Image {
   }
 
   /**
-   *
    * @return number of eventually defined columns in this image or 0
    */
   public int getCols() {
@@ -1231,7 +1146,6 @@ public class Image {
   }
 
   /**
-   *
    * @return width of eventually defined columns in this image or 0
    */
   public int getColW() {
@@ -1306,7 +1220,7 @@ public class Image {
    * negative counts reverse from the end (last = -1) <br>values outside range are 0
    * or last respectively
    *
-	 * @param r row number
+   * @param r row number
    * @param c column number
    * @return the cell as new image or the image itself, if no raster is setup
    */
@@ -1332,157 +1246,24 @@ public class Image {
     c = Math.min(c, cols - 1);
     return getSub(c * colW, r * rowH, colW, rowH);
   }
+  //</editor-fold>
 
   /**
-   * get the OpenCV Mat version of the image's BufferedImage
+   * OCR-read the text from the image
    *
-   * @return OpenCV Mat
+   * @return the text or empty string
    */
-//  public Mat getMat() {
-//    return createMat(get());
-//  }
-//
-//  public static Mat createMat(BufferedImage img) {
-//    if (img != null) {
-//      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
-//      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
-//      timer.lap("init");
-//      byte[] data;
-//      BufferedImage cvImg;
-//      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-//      int[] nBits = {8, 8, 8, 8};
-//      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-//      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
-//      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
-//      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-//      cvImg = new BufferedImage(cm, r, false, null);
-//      timer.lap("empty");
-//      Graphics2D g = cvImg.createGraphics();
-//      g.drawImage(img, 0, 0, null);
-//      g.dispose();
-//      timer.lap("created");
-//      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-//      mat_ref.put(0, 0, data);
-//      Mat mat = new Mat();
-//      timer.lap("filled");
-//      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
-//      timer.end();
-//      return mat;
-//    } else {
-//      return null;
-//    }
-//  }
-
-//TODO  public static MatNative convertBufferedImageToMat(BufferedImage img) {
-//    if (img != null) {
-//      long theMatTime = new Date().getTime();
-//      byte[] data = convertBufferedImageToByteArray(img);
-//      MatNative theMat = VisionNative.createMat(img.getHeight(), img.getWidth(), data);
-//      if (Settings.FindProfiling) {
-//        Debug.logp("[FindProfiling] createCVMat [%d x %d]: %d msec",
-//                img.getWidth(), img.getHeight(), new Date().getTime() - theMatTime);
-//      }
-//      return theMat;
-//    } else {
-//      return null;
-//    }
-//  }
-
-  public static byte[] convertBufferedImageToByteArray(BufferedImage img) {
-    if (img != null) {
-      BufferedImage cvImg = createBufferedImage(img.getWidth(), img.getHeight());
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      return ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-    } else {
-      return null;
-    }
+  public String text() {
+    return TextRecognizer.doOCR(get());
   }
 
-  public static BufferedImage createBufferedImage(int w, int h) {
-    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    int[] nBits = {8, 8, 8, 8};
-    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-    DataBufferByte db = new DataBufferByte(w * h * 4);
-    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-    BufferedImage bm = new BufferedImage(cm, r, false, null);
-    return bm;
+  /**
+   * convenience method: get text from given image file
+   *
+   * @param imgFile image filename
+   * @return the text or null
+   */
+  public static String text(String imgFile) {
+    return create(imgFile).text();
   }
-
-	// **************** for Tesseract4Java ********************
-    /**
-     * Converts <code>BufferedImage</code> to <code>ByteBuffer</code>.
-     *
-     * @param bi Input image
-     * @return pixel data
-     */
-    public static ByteBuffer convertImageData(BufferedImage bi) {
-        DataBuffer buff = bi.getRaster().getDataBuffer();
-        // ClassCastException thrown if buff not instanceof DataBufferByte because raster data is not necessarily bytes.
-        // Convert the original buffered image to grayscale.
-        if (!(buff instanceof DataBufferByte)) {
-            bi = convertImageToGrayscale(bi);
-            buff = bi.getRaster().getDataBuffer();
-        }
-        byte[] pixelData = ((DataBufferByte) buff).getData();
-        //        return ByteBuffer.wrap(pixelData);
-        ByteBuffer buf = ByteBuffer.allocateDirect(pixelData.length);
-        buf.order(ByteOrder.nativeOrder());
-        buf.put(pixelData);
-        buf.flip();
-        return buf;
-    }
-
-		/**
-     * A simple method to convert an image to gray scale.
-     *
-     * @param image input image
-     * @return a monochrome image
-     */
-    public static BufferedImage convertImageToGrayscale(BufferedImage image) {
-        BufferedImage tmp = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g2 = tmp.createGraphics();
-        g2.drawImage(image, 0, 0, null);
-        g2.dispose();
-        return tmp;
-    }
-
-	/**
-	 * find an image in another image
-	 * @param img image
-	 * @return a Match or null
-	 */
-	public Match find(Image img) {
-		log(-1, "find: not implemented yet");
-		return null;
-	}
-
-	/**
-	 * find all images in another image
-	 * @param img image
-	 * @return Match or null
-	 */
-	public Iterator<Match> findAll(Image img) {
-		log(-1, "findAll: not implemented yet");
-		return null;
-	}
-
-	/**
-	 * OCR-read the text from the image
-	 * @return the text or empty string
-	 */
-	public String text() {
-      return TextRecognizer.doOCR(this.get());
-	}
-
-	/**
-	 * convenience method: get text from given image file
-	 * @param imgFile image filename
-	 * @return the text or null
-	 */
-	public static String text(String imgFile) {
-		return create(imgFile).text();
-	}
 }

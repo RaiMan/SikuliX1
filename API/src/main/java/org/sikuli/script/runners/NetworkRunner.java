@@ -94,6 +94,11 @@ public class NetworkRunner extends AbstractScriptRunner {
   }
 
   @Override
+  public boolean isWrapper() {
+    return true;
+  }
+
+  @Override
   public String getName() {
     return "NetworkRunner";
   }

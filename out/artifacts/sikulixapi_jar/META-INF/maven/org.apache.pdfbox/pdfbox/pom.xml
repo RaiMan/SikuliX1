@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+! Licensed to the Apache Software Foundation (ASF) under one or more
+! contributor license agreements.  See the NOTICE file distributed with
+! this work for additional information regarding copyright ownership.
+! The ASF licenses this file to You under the Apache License, Version 2.0
+! (the "License"); you may not use this file except in compliance with
+! the License.  You may obtain a copy of the License at
+!
+!      http://www.apache.org/licenses/LICENSE-2.0
+!
+! Unless required by applicable law or agreed to in writing, software
+! distributed under the License is distributed on an "AS IS" BASIS,
+! WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+! See the License for the specific language governing permissions and
+! limitations under the License.
+!-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox-parent</artifactId>
+        <version>2.0.11</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>pdfbox</artifactId>
+    <packaging>bundle</packaging>
+
+    <name>Apache PDFBox</name>
+    <description>
+        The Apache PDFBox library is an open source Java tool for working with PDF documents.
+    </description>
+    <inceptionYear>2002</inceptionYear>
+    
+    <properties>
+    	<git.scmJavadocUrl>git:https://git-wip-us.apache.org/repos/asf/pdfbox-docs//content/docs/${project.version}/javadocs</git.scmJavadocUrl>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>fontbox</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcmail-jdk15on</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.java-diff-utils</groupId>
+            <artifactId>diffutils</artifactId>
+            <version>1.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>jbig2-imageio</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- For legal reasons (incompatible license), these two dependencies below
+        are to be used only in the tests and may not be distributed. 
+        See also LEGAL-195 -->
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-core</artifactId>
+            <scope>test</scope>
+        </dependency>    
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-jpeg2000</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Xmx768m -Dsun.java2d.cmm=sun.java2d.cmm.kcms.KcmsServiceProvider</argLine>
+                    <excludes>
+                        <exclude>org/apache/pdfbox/rendering/TestPDFToImage.java</exclude>
+                    </excludes>
+                    <systemPropertyVariables>
+                        <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Include-Resource>
+                            {maven-resources},
+                            META-INF=target/maven-shared-archive-resources/META-INF,
+                            org/apache/pdfbox/resources=target/classes/org/apache/pdfbox/resources
+                        </Include-Resource>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>src/main/resources/org/apache/pdfbox/resources/afm/*</exclude>
+                        <exclude>src/main/resources/org/apache/pdfbox/resources/icc/*</exclude>
+                        <exclude>src/main/resources/org/apache/pdfbox/resources/glyphlist/glyphlist.txt</exclude>
+                        <exclude>src/main/resources/org/apache/pdfbox/resources/glyphlist/zapfdingbats.txt</exclude>
+                        <exclude>src/main/resources/org/apache/pdfbox/resources/text/BidiMirroring.txt</exclude>
+                        <exclude>src/main/resources/META-INF/services/*</exclude>
+                        <exclude>src/test/resources/input/rendering/*.ai</exclude>
+                        <exclude>src/test/resources/input/*.txt</exclude>
+                        <exclude>src/test/resources/output/*</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/pdmodel/sRGB.*</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/pdfparser/*.fdf</exclude>
+                        <exclude>release.properties</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/encryption/*.der</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/encryption/*.pfx</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/filter/*.bin</exclude>
+                        <exclude>src/test/resources/org/apache/pdfbox/text/*.txt</exclude>
+                        <exclude>src/main/java/org/apache/pdfbox/filter/CCITTFaxDecoderStream.java</exclude>
+                        <exclude>src/main/java/org/apache/pdfbox/filter/CCITTFaxEncoderStream.java</exclude>
+                        <exclude>src/main/java/org/apache/pdfbox/filter/TIFFExtension.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <!-- 
+            	Publish Javadoc to Apache CMS
+            	After completion log in to https://cms.apache.org/pdfbox/publish 
+            	and click on the Submit button to commit to production.
+             -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-publish-plugin</artifactId>
+                <configuration>
+                    <content>${project.reporting.outputDirectory}/apidocs</content>
+                    <pubScmUrl>scm:${git.scmJavadocUrl}</pubScmUrl>
+                    <tryUpdate>true</tryUpdate>
+                    <checkoutDirectory>${svn.scmJavadocCheckoutDirectory}</checkoutDirectory>
+                    <serverId>pdfbox-site</serverId>
+                </configuration>
+            </plugin>
+
+            <!-- PDFBOX-3974: download test files from JIRA and keep them in repository cache -->
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.3.0</version>
+                <executions>
+                    <execution>
+                        <id>PDFBOX-3208</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12784025/PDFBOX-3208-L33MUTT2SVCWGCS6UIYL5TH3PNPXHIS6.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <sha512>5aa19dff76b980ad43c873b7a47f089b3914468e0eaca320d67e18cbfa121c99b9e65bfb86d1b106b034bc6e6833f79c54b3d0c064695f5eac5a2797da687ef2</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3940</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12888957/079977.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3940-079977.pdf</outputFileName>
+                            <sha512>f4a8875b03422af85a03ece2d46edffbb72e98b58c87584a936c2e80b0ef4c87e069b6f8e9237a61187e640f6a1059c4516beedcea50cd323f6788dc1e9f6482</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3783</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12867102/PDFBOX-3783-72GLBIGUC6LB46ELZFBARRJTLN4RBSQM.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <sha512>158ce94951c6166193065120023badf90e9d0f84a436583acabd59d9290a58eb1459c29dab2fd65f59368a9b39ee62b786771f92cc823df9b4f41d14448fcc81</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3785</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12867113/202097.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3785-202097.pdf</outputFileName>
+                            <sha512>5031db8cee73aa5199afb0c45dfec284fa6903a5ff31f27788893cfdf80474156f0d5d6feb7947323f874f37d15acfbccfecd4ca5a5cc9edc46d63c9e606a3eb</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3947</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12890031/670064.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3947-670064.pdf</outputFileName>
+                            <sha512>7005a6314ae625b7514f429d8ebe146c4d47f715cb8816403134ab047a1f78664c1e95c92413d52b87c4cfcfcb660265d6fe086e4bd3c44ee767151e3fee115e</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3948</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12890034/EUWO6SQS5TM4VGOMRD3FLXZHU35V2CP2.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3948-EUWO6SQS5TM4VGOMRD3FLXZHU35V2CP2.pdf</outputFileName>
+                            <sha512>f8a9b0b9ea6132f24e54136a40ad99d67df2402f3849a5cb0b7d80cd72298737fe4701e0e77ddd602a06e3ea0a7e107ca40d8d29389eea5834ff37245829c2d2</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3949</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12890037/MKFYUGZWS3OPXLLVU2Z4LWCTVA5WNOGF.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3949-MKFYUGZWS3OPXLLVU2Z4LWCTVA5WNOGF.pdf</outputFileName>
+                            <sha512>f450fb40ed5589ce0f390eb110d78bc721b766c34b753770b0cb00b2e40ffe15878f54df2423ab99d7df80dd91512858bf56a7cdc392d5c179b4440176fdd2fb</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3950</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12890042/23EGDHXSBBYQLKYOKGZUOVYVNE675PRD.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3950-23EGDHXSBBYQLKYOKGZUOVYVNE675PRD.pdf</outputFileName>
+                            <sha512>ee1d464c3ed2ad91a4cafbc474b38e5c961282f53ef599d6d10e02058da5a67064550ddc54774dfa843a8b45f34b7e6e8ab4f9a445ba459fdcd858e8dce65b25</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3951</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12890047/FIHUZWDDL2VGPOE34N6YHWSIGSH5LVGZ.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3951-FIHUZWDDL2VGPOE34N6YHWSIGSH5LVGZ.pdf</outputFileName>
+                            <sha512>2c0b91beb4a2b098738512fefdd40135bf66286cd350ac4e155a5a0150d649acb1da819c817ee9822e8686f526af6b7862fc63a0dae6dc7f1407c7f8b271c65e</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3964</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12892097/c687766d68ac766be3f02aaec5e0d713_2.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3964-c687766d68ac766be3f02aaec5e0d713_2.pdf</outputFileName>
+                            <sha512>0457fd291a7f83f531fef205128929c8fa8147dd781ea7b7cd49d4d1287941989e72739329a7b172c6f53df0b54d991b514b9baa6145effa8ec7705ef273877b</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3977</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12893582/63NGFQRI44HQNPIPEJH5W2TBM6DJZWMI.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3977-63NGFQRI44HQNPIPEJH5W2TBM6DJZWMI.pdf</outputFileName>
+                            <sha512>42a47b7b800ec035895af73f6793b7155652ce7b06db28ff97939e52b4fbce321fc45064480359c3371e90a7a47f5e20843a9ba71d4597b9bc3516fa17cfbb32</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Genko</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12867433/genko_oc_shiryo1.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <sha512>71888e06a0323ac6196c5942c5961f76f8a4d8c6913114aaa9e215f43112cfa5f1b741b7c801e794dc44e62c2d34bfaafe89267a4c7de753e4da1481b35820f3</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-3999</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12896905/GeneralForbearance.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-3999-GeneralForbearance.pdf</outputFileName>
+                            <sha512>6ed5287342ec8a5459a86462d80917bb625d5973df96fdebd5e3c8bc2e9093e6c389f5c8151eb17472a24e1349386a3e7c1a0021e9a967761a554ac1ade557eb</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-4106</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://ipafont.ipa.go.jp/old/ipafont/ipag00303.php</url>
+                            <outputDirectory>${project.build.directory}/fonts</outputDirectory>
+                            <outputFileName>ipag00303.zip</outputFileName>
+                            <unpack>true</unpack>
+                            <sha512>59535137c649a2f8bdbb463cd716426811a6003a65883ca6e45bb0af1d526b3889af0fba3a353e90bc8d373cd32b90a27ff9ff6916ecbccb42e922c09e9b046a</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-4106b</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://ipafont.ipa.go.jp/old/ipafont/ipagp00303.php</url>
+                            <outputDirectory>${project.build.directory}/fonts</outputDirectory>
+                            <outputFileName>ipagp00303.zip</outputFileName>
+                            <unpack>true</unpack>
+                            <sha512>26d0a9bfba7f5457a98b0bf45a4a6b081bca4140047a0886625691231459f8c81a6cdbe523e9abcbd45fd7caed21d78f1baf3a2cf9167320f6b79be3d697cb5b</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-4115</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12911053/n019003l.pfb</url>
+                            <outputDirectory>${project.build.directory}/fonts</outputDirectory>
+                            <outputFileName>n019003l.pfb</outputFileName>
+                            <sha512>8eafe21ffa6f3d7d0a50e9f4e5bcdeb727e804b552d74e65b709e778c9ed4605e5aa63743be285f0bc17ad162768583fec4196e1d1146d98f8703359247f22d0</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-4197</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://issues.apache.org/jira/secure/attachment/12919726/sample.pdf</url>
+                            <outputDirectory>${project.build.directory}/pdfs</outputDirectory>
+                            <outputFileName>PDFBOX-4197.pdf</outputFileName>
+                            <sha512>6fefc869dff9db8cd539db177d35beeacc62304173245742eaee8882dab330860a31cbbd4c4ec6cc724603cc453afc07ec61361fbc1e80a47f44b04ccfbaf40d</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PDFBOX-4184</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>http://www.crh.noaa.gov/Image/gjt/images/ImageGallery/Uncompahgre_small.jpg</url>
+                            <!-- file is also 032163.jpg
+                            from http://downloads.digitalcorpora.org/corpora/files/govdocs1/zipfiles/032.zip -->
+                            <outputDirectory>${project.build.directory}/imgs</outputDirectory>
+                            <outputFileName>PDFBOX-4184-032163.jpg</outputFileName>
+                            <sha512>35241c979d3808ca9d2641b5ec5e40637132b313f75070faca8b8f6d00ddce394070414236db3993f1092fe3bc16995750d528b6d803a7851423c14c308ccdde</sha512>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+

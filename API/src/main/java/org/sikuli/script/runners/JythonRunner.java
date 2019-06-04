@@ -28,7 +28,7 @@ public class JythonRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
-  public static final String[] EXTENSIONS = new String[]{"py"};
+  public static final String[] EXTENSIONS = new String[]{"py", "$py.class"};
 
   private static RunTime runTime = RunTime.get();
 
@@ -136,7 +136,6 @@ public class JythonRunner extends AbstractScriptRunner {
       File pyFile = new File(scriptFile);
       sysargv = new ArrayList<String>();
       sysargv.add(pyFile.getAbsolutePath());
-      ImagePath.setBundlePath(pyFile.getParent());
       if (argv != null) {
         sysargv.addAll(Arrays.asList(argv));
       }
@@ -194,8 +193,7 @@ public class JythonRunner extends AbstractScriptRunner {
       "# -*- coding: utf-8 -*- ",
       "import org.sikuli.script.SikulixForJython",
       "from sikuli import *",
-      "use() #resetROI()",
-      "setShowActions(False)"};
+      "use() #resetROI()"};
 
   /**
    * {@inheritDoc}

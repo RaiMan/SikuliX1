@@ -447,7 +447,8 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       checkAndResetMoveTab();
       ImagePath.reset();
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      cp.checkSource();
+      cp.setBundleFolder();
+      cp.checkSource(); // reset
       cp.doReparse();
       cp.getRunner().reset();
     }
