@@ -235,7 +235,6 @@ public class EditorPane extends JTextPane {
   private void initForScriptType() {
     String scrType = null;
 
-    log(lvl, "doInit: %s", runner);
     // initialize runner to speed up first script run
     (new Thread() {
       @Override
@@ -1458,7 +1457,8 @@ public class EditorPane extends JTextPane {
       try {
         _copiedImgs.clear();
         kit.write(writer, doc, sel_start, sel_end - sel_start, _copiedImgs);
-        return new StringSelection(writer.toString());
+        StringSelection copiedString = new StringSelection(writer.toString());
+        return copiedString;
       } catch (Exception e) {
         log(-1, "MyTransferHandler: createTransferable: Problem creating text to copy\n%s", e.getMessage());
       }

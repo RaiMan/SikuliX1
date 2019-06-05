@@ -1290,6 +1290,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
         fname = codePane.saveAsSelect(accessingAsFile);
         if (fname != null) {
           setCurrentFileTabTitle(fname);
+          codePane.setDirty(false);
         } else {
           log(-1, "doSaveAs: %s not completed", orgName);
         }
