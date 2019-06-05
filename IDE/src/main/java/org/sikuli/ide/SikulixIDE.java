@@ -136,6 +136,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
   //</editor-fold>
 
   //<editor-fold desc="01 IDE instance">
+  public Map<String, String> getCopiedImgs() {
+    return copiedImgs;
+  }
+
+  Map<String, String> copiedImgs = new HashMap<String, String>();
+
   private SikulixIDE() {
     super("SikulixIDE");
   }

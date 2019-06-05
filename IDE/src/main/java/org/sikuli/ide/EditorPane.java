@@ -1415,8 +1415,6 @@ public class EditorPane extends JTextPane {
   private class MyTransferHandler extends TransferHandler {
 
     private static final String me = "EditorPaneTransferHandler: ";
-    Map<String, String> _copiedImgs = new HashMap<String, String>();
-
     @Override
     public void exportToClipboard(JComponent comp, Clipboard clip, int action) {
       super.exportToClipboard(comp, clip, action);
@@ -1446,6 +1444,7 @@ public class EditorPane extends JTextPane {
 
     @Override
     protected Transferable createTransferable(JComponent c) {
+      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
       JTextPane aTextPane = (JTextPane) c;
 
       SikuliEditorKit kit = ((SikuliEditorKit) aTextPane.getEditorKit());
@@ -1478,6 +1477,7 @@ public class EditorPane extends JTextPane {
 
     @Override
     public boolean importData(JComponent comp, Transferable t) {
+      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
       DataFlavor htmlFlavor = DataFlavor.stringFlavor;
       if (canImport(comp, t.getTransferDataFlavors())) {
         try {
