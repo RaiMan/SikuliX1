@@ -86,17 +86,15 @@ public class ADBDevice {
   }
 
   public static ADBDevice init(int id) {
-    if (adbDevice == null) {
-      adbDevice = new ADBDevice();
+      ADBDevice adbDevice = new ADBDevice();
       adbDevice.device = ADBClient.getDevice(id);
       if (adbDevice.device == null) {
-        adbDevice = null;
+        return null;
       } else {
         adbDevice.initDevice(adbDevice);
         adbDevice.adbExec = ADBClient.getADB();
         RunTime.loadLibrary(RunTime.libOpenCV);
       }
-    }
     return adbDevice;
   }
 
