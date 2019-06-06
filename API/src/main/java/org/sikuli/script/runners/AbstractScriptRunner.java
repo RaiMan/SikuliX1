@@ -169,6 +169,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         }
       }
       if (!scriptFile.exists()) {
+        if (isWrapper()) {
+          if (FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
+            for (String extension : getExtensions()) {
+
+            }
+          }
+        }
         return Runner.FILE_NOT_FOUND;
       }
       if (null == options || (!options.isRunningInIDE() && !isWrapper())) {

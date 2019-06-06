@@ -233,6 +233,7 @@ public class Runner {
   }
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
+    String extension = FilenameUtils.getExtension(script);
     IScriptRunner runner = getRunner(script);
     int retVal;
     retVal = runner.runScript(script, args, options);

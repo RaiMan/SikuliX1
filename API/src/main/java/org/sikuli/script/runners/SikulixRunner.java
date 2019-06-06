@@ -25,7 +25,7 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
-  public static final String[] EXTENSIONS = new String[]{"sikuli"};
+  public static final String[] EXTENSIONS = new String[]{"sikuli", "skl", "jar"};
 
   @Override
   public boolean isSupported() {
