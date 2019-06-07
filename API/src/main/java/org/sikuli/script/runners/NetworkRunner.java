@@ -90,6 +90,11 @@ public class NetworkRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isSupported() {
+    return false;
+  }
+
+  @Override
+  public boolean isWrapper() {
     return true;
   }
 
