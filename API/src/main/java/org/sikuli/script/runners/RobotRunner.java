@@ -120,7 +120,7 @@ public class RobotRunner extends JythonRunner {
         helper.insertSysPath(RUN_TIME.fSikulixLib);
       }
     }
-    if (!helper.hasSysPath(new File(Settings.BundlePath).getParent())) {
+    if (null != Settings.BundlePath && !helper.hasSysPath(new File(Settings.BundlePath).getParent())) {
       helper.appendSysPath(new File(Settings.BundlePath).getParent());
     }
     this.getInterpreter().exec("import robot");

@@ -194,6 +194,23 @@ public class Runner {
   public static final int FILE_NOT_FOUND_SILENT = 257;
   public static final int NOT_SUPPORTED = 258;
 
+  public static int runScript(String script) {
+    if (script.contains("\n")) {
+      String[] header = script.substring(0, Math.min(100, script.length())).trim().split("\n");
+      IScriptRunner runner = null;
+      if (header.length > 0) {
+        String selector = header[0];
+        runner = getRunner(selector);
+        if (runner.isSupported()) {
+          script = script.replaceFirst(selector, "").trim();
+          return runner.evalScript(script, null);
+        }
+      }
+      return 0;
+    } else
+      return runScripts(new String[]{script});
+  }
+
   public static int runScripts(String[] runScripts) {
     int exitCode = 0;
     File scriptFile;

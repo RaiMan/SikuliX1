@@ -569,7 +569,7 @@ def run(cmd):
 # @args the parameters for the called script (sys.argv)
 # @return returns the scripts return code given with exit(n)
 def runScript(script, *args):
-  return Runner.run(unicd(script), args, None)
+  return Runner.runScript(unicd(script))
 
 def getLastReturnCode():
   return Runner.getLastReturnCode()
