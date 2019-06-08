@@ -18,6 +18,7 @@
 package com.tulskiy.keymaster.x11;
 
 import com.sun.jna.Memory;
+import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.tulskiy.keymaster.common.HotKey;
@@ -63,7 +64,7 @@ public class X11Provider extends Provider {
                 listening = true;
                 XEvent event = new XEvent();
 
-                Memory supported_rtrn = new Memory(Pointer.SIZE);
+                Memory supported_rtrn = new Memory(Native.POINTER_SIZE);
                 Lib.XkbSetDetectableAutoRepeat(display, true, supported_rtrn);
                 if (supported_rtrn.getInt(0) != 1) {
                     //LOGGER.warn("auto repeat detection not supported");
