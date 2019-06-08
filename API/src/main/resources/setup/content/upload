@@ -1,9 +1,12 @@
 #!/bin/sh
+if [ -e API/target/classes/setup/content/SHOULDDEPLOY ]; then
 
-echo ------- uploading API and IDE jars
+    echo ------- uploading API and IDE jars
 
-apijar=API/target/sikulixapi-1.1.4-SNAPSHOT-complete.jar
-cp $apijar pages/sikulixapi.jar
+    apijar=API/target/sikulixapi-1.1.4-SNAPSHOT-complete.jar
+    cp $apijar pages/sikulixapi.jar
 
-idejar=IDE/target/sikulixide-1.1.4-SNAPSHOT-complete.jar
-cp $idejar pages/sikulix.jar
+    idejar=IDE/target/sikulixide-1.1.4-SNAPSHOT-complete.jar
+    cp $idejar pages/sikulix.jar
+
+fi
