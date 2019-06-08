@@ -278,9 +278,9 @@ public class MacUtil implements OSUtil {
     List<App> appList = new ArrayList<>();
     int pid = 0;
     for (String process : processes) {
-      if (process.startsWith(", ")) {
-        process = process.substring(2);
-      }
+//      if (process.startsWith(", ")) {
+//        process = process.substring(2);
+//      }
       App theApp = new App();
       String[] parts = process.split(", \\|\\|\\|,");
       String pWin = parts[0].trim();
