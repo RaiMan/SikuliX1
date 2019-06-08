@@ -85,6 +85,19 @@ public class ADBDevice {
     return adbDevice;
   }
 
+  public static ADBDevice init(int id) {
+      ADBDevice adbDevice = new ADBDevice();
+      adbDevice.device = ADBClient.getDevice(id);
+      if (adbDevice.device == null) {
+        return null;
+      } else {
+        adbDevice.initDevice(adbDevice);
+        adbDevice.adbExec = ADBClient.getADB();
+        RunTime.loadLibrary(RunTime.libOpenCV);
+      }
+    return adbDevice;
+  }
+
   private void initDevice(ADBDevice device) {
     device.deviceProps = Arrays.asList(device.exec("getprop").split("\n"));
     //[ro.build.version.release]: [6.0.1]
@@ -113,16 +126,6 @@ public class ADBDevice {
       }
     }
     log(lvl, "init: %s", device.toString());
-  }
-
-  public static ADBDevice init(int id) {
-    ADBDevice device = new ADBDevice();
-    device.device = ADBClient.getDevice(id);
-    if (device.device == null) {
-      return null;
-    }
-    device.initDevice(device);
-    return device;
   }
 
   public static void reset() {
@@ -193,7 +196,7 @@ public class ADBDevice {
     int currentH;
     int channels = 4;
     Mat matImage = new Mat();
-    try (InputStream deviceOut = execADB("exec-out", "screencap")) {
+    try (InputStream deviceOut = device.execute("screencap")) {
       Debug timer = Debug.startTimer();
       while (deviceOut.available() < 12) ;
       deviceOut.read(imagePrefix);
@@ -273,7 +276,7 @@ public class ADBDevice {
       Core.merge(matsImage, matImage);
       log(lvl, "captureDeviceScreenMat: exit: [%d,%d %dx%d] %d (%d)",
               x, y, actW, actH, duration, timer.end());
-    } catch (IOException e) {
+    } catch (Exception e) {
       log(-1, "captureDeviceScreenMat: [%d,%d %dx%d] %s", x, y, actW, actH, e);
     }
     return matImage;
