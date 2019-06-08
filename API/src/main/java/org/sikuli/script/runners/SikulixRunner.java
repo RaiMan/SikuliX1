@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.python.apache.commons.compress.compressors.FileNameUtil;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.RunTime;
@@ -68,48 +69,24 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
+    String extension = FilenameUtils.getExtension(scriptFileOrFolder);
     File scriptFile = new File(scriptFileOrFolder);
-    File scriptFolder = null;
-    String workFolder = options.getWorkFolder();
-    String scriptGiven = options.getScriptName();
-    if (FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
-      scriptFolder = new File(scriptFile.getPath());
-      if (!scriptGiven.endsWith("/")) {
-        scriptFile = new File(scriptFile.getPath() + ".sikuli");
-      }
-    }
-    scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFile);
-    if (null == scriptFile || !scriptFile.exists()) {
-      if (null != scriptFolder) {
-        log(3, "runScripts: %s as .sikuli not found - trying as folder", scriptGiven);
-        scriptFile = Runner.checkScriptFolderOrFile(workFolder, scriptFolder);
-      }
-      if (null == scriptFile || !scriptFile.exists()) {
+    if (extension.equals("sikuli")) {
+      File innerScriptFile = Runner.getScriptFile(scriptFile);
+      if (null != innerScriptFile) {
+        return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+      } else {
+        log(-1, "runScript: not runnable: %s", scriptFile);
         return Runner.FILE_NOT_FOUND;
       }
-    }
-
-//TODO BundlePath
-
-//    if (!ImagePath.hasBundlePath())
-//      ImagePath.setBundlePath(new File(scriptFile).getAbsolutePath());
-//    else {
-//      ImagePath.add(new File(scriptFile).getAbsolutePath());
-//    }
-
-    File innerScriptFile = Runner.getScriptFile(scriptFile);
-    if (null != innerScriptFile) {
-      options.setWorkFolder(scriptFile.getParent());
-      return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+    } else if (extension.equals("skl")) {
+      //TODO SKLRunner
+      return new SKLRunner().runScript(scriptFileOrFolder, scriptArgs, options);
+    } else if (extension.equals("jar")) {
+      //TODO JarRunner
+      return new JarRunner().runScript(scriptFileOrFolder, scriptArgs, options);
     } else {
-      if (scriptFile.isFile()) {
-        log(3, "not supported: (.%s) %s",
-                FilenameUtils.getExtension(scriptFile.getPath()), scriptFile);
-        options.setWorkFolder(scriptFile.getParent());
-      } else {
-        options.setWorkFolder(scriptFile.getPath());
-      }
-      return Runner.FILE_NOT_FOUND_SILENT;
+      return new InvalidRunner().runScript(scriptFileOrFolder, scriptArgs, options);
     }
   }
 }
