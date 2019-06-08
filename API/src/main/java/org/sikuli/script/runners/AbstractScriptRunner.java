@@ -194,7 +194,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runScript");
-    return -1;
+    return Runner.NOT_SUPPORTED;
   }
 
   @Override
