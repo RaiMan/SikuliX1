@@ -144,6 +144,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private SikulixIDE() {
     super("SikulixIDE");
+
+    java.net.URL url = SikulixIDE.class.getResource("/icons/sikulix.png");
+    Toolkit kit = Toolkit.getDefaultToolkit();
+    java.awt.Image img = kit.createImage(url);
+    this.setIconImage(img);
   }
 
   static synchronized SikulixIDE get() {
