@@ -169,14 +169,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         }
       }
       if (!scriptFile.exists()) {
-        if (isWrapper()) {
-          if (FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
-            for (String extension : getExtensions()) {
-
-            }
-          }
+        if (isWrapper() && FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
+          scriptFile = checkWithExtensions(scriptFile);
         }
-        return Runner.FILE_NOT_FOUND;
+        if (!scriptFile.exists()) {
+          return Runner.FILE_NOT_FOUND;
+        }
       }
       if (null == options || (!options.isRunningInIDE() && !isWrapper())) {
         ImagePath.setBundleFolder(scriptFile.getParentFile());
@@ -188,6 +186,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     }
+  }
+
+  protected File checkWithExtensions(File scriptFile) {
+    return scriptFile;
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {

@@ -28,6 +28,19 @@ public class SikulixRunner extends AbstractScriptRunner {
   public static final String[] EXTENSIONS = new String[]{"sikuli", "skl", "jar"};
 
   @Override
+  protected File checkWithExtensions(File scriptFile) {
+    String scriptFilePath = scriptFile.getPath();
+    for (String extension : getExtensions()) {
+      File alternateFile = new File(scriptFilePath + "." + extension);
+      if (alternateFile.exists()) {
+        scriptFile = alternateFile;
+        break;
+      }
+    }
+    return scriptFile;
+  }
+
+  @Override
   public boolean isSupported() {
     return true;
   }
