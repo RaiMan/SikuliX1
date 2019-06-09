@@ -11,7 +11,6 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
@@ -195,11 +194,8 @@ public class RunTime {
     }
 
     if (shouldRunServer()) {
-//      if (!isVerbose()) {
-//        Sikulix.terminate(1, "SikulixServer: currently not supported");
-//      }
-      if (!ServerRunner.run(null)) {
-        Sikulix.terminate(1, "SikulixServer: terminated with errors");
+      if (SikulixServer.run(null)) {
+        Sikulix.terminate(1, "");
       }
       Sikulix.terminate();
     }

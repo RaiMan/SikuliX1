@@ -1,0 +1,46 @@
+<!DOCTYPE html> 
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>SikuliX-Server Control Box</title>
+    <link rel="stylesheet" href="ControlBox.css">
+  </head>
+  <body>
+    <header><!-- now nothing --></header>
+    <main id="container">
+      <section id="commands">
+        <div id="initialize-part">
+          <h1 class="caption"><span>runner initializations</span></h1>
+          <button type="button" id="start" title="initiates a JavaScript runner, so the next run request will start the script without delay">start</button>
+          <button type="button" id="startp" title="initiates a Jython runner, so the next run request will start the script without delay">startp</button>
+        </div>
+        <div id="set-part">
+          <h1 class="caption"><span>folder settings</span></h1>
+          <input type="text" id="folder-path" placeholder="input the folder path"/>
+          <button type="button" id="scripts" title="sets the folder where the runner finds the scripts">scripts</button>
+          <button type="button" id="images" title="adds the folder where the runner finds the used images (image path)">images</button>
+        </div>
+        <div id="run-part">
+          <h1 class="caption"><span>run script</span></h1>
+          <input type="text" id="script-name" placeholder="input the script name"/>
+          <textarea id="script-args" title="if give the script arguments (the space delimited and optionally quoted arguments), input in this area" placeholder="arg1 arg2 arg3..."></textarea>
+          <button type="button" id="run" title="looks for the script in the given folder and runs it">run</button>
+        </div>
+        <div id="stop-part">
+          <h1 class="caption"><span>stop server</span></h1>
+          <button type="button" id="stop" title="stops the server">stop</button>
+        </div>
+      </section>
+      <section id="monitor">
+        <pre><samp>Welcome to SikuliX-Server Control Box.<br>Use the buttons on the left to send the command to the server.<br></samp></pre>
+      </section>
+    </main>
+    <footer>
+      <a href="https://sikulix-2014.readthedocs.io/en/latest/scenarios.html#experimental-runserver-run-scripts-from-anywhere-with-zero-delay" target="_blank">SikulixServer Guide</a>
+      <div>
+        <p>&copy; 2019 sikuli.org, sikulix.com - MIT license</p>
+      </div>
+    </footer>
+    <script src="ControlBox.js"></script>
+  </body>
+</html>
