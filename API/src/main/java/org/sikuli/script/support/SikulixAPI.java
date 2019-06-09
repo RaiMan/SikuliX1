@@ -4,6 +4,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.util.SikulixTest;
 import py4Java.GatewayServer;
 
