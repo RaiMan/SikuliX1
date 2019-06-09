@@ -246,36 +246,6 @@ public class RunTime {
 
   private static GatewayServer pythonServer = null;
 
-  public static File asFolder(String option) {
-    if (null == option) {
-      return null;
-    }
-    File folder = new File(option);
-    if (!folder.isAbsolute()) {
-      folder = new File(get().fWorkDir, option);
-    }
-    if (folder.isDirectory() && folder.exists()) {
-      return folder;
-    }
-    return null;
-  }
-
-  public static File asFile(String option) {
-    if (null == option) {
-      return null;
-    }
-    if (null == asFolder(option)) {
-      File file = new File(option);
-      if (!file.isAbsolute()) {
-        file = new File(get().fWorkDir, option);
-      }
-      if (file.exists()) {
-        return file;
-      }
-    }
-    return null;
-  }
-
   public static void evalArgs(String[] args) {
 
     CommandLine cmdLine;
@@ -305,34 +275,8 @@ public class RunTime {
       setQuiet(true);
     }
 
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue != null) {
-        debugLevelStart = cmdValue;
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("g")) {
-      if (cmdLine.hasOption("s")) {
-        serverGroups = cmdLine.getOptionValue("g");
-        startLog(3, "groups (-g): %s", serverGroups);
-      } else {
-        startLog(-1, "groups (-g): currently only accepted with -s");
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("x")) {
-      if (cmdLine.hasOption("s")) {
-        serverExtra = cmdLine.getOptionValue("x");
-        startLog(3, "extra (-x): %s", serverExtra);
-      } else {
-        startLog(-1, "extra (-x): currently only accepted with -s");
-      }
-    }
-
     if (cmdLineValid && cmdLine.hasOption("s")) {
       asServer = true;
-      serverOptions = cmdLine.getOptionValues("s");
     }
 
     if (cmdLineValid && cmdLine.hasOption("p")) {
@@ -341,6 +285,13 @@ public class RunTime {
 
     if (cmdLineValid && cmdLine.hasOption("m")) {
       setAllowMultiple();
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
+      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
+      if (cmdValue != null) {
+        debugLevelStart = cmdValue;
+      }
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
@@ -384,15 +335,6 @@ public class RunTime {
 
   public static String[] getSXArgs() {
     return sxArgs;
-  }
-
-  public static void setUserArgs(String[] args) {
-    userArgs = new String[args.length];
-    int n = 0;
-    for (String arg : args) {
-      userArgs[n] = arg;
-      n++;
-    }
   }
 
   public static String[] getUserArgs() {
@@ -477,24 +419,6 @@ public class RunTime {
 
   private static boolean asServer = false;
 
-  public static String[] getServerOptions() {
-    return serverOptions;
-  }
-
-  private static String[] serverOptions = null;
-
-  public static String getServerGroups() {
-    return serverGroups;
-  }
-
-  private static String serverGroups = null;
-
-  public static String getServerExtra() {
-    return serverExtra;
-  }
-
-  private static String serverExtra = null;
-
   public static boolean shouldRunPythonServer() {
     return asPyServer;
   }
@@ -573,20 +497,13 @@ public class RunTime {
 
   public static void startLog(int level, String msg, Object... args) {
     String typ = startAsIDE ? "IDE" : "API";
-    String msgShow = String.format("startUp: %s: ", typ);
+    String msgShow = String.format("[DEBUG] %s: ", typ) + msg;
     if (level < 0) {
-      msgShow = "[ERROR]" + msgShow + msg;
-    } else if (getDebugLevelStart() == 0 && !isVerbose()) {
+      msgShow = String.format("[ERROR] %s: ", typ) + msg;
+    } else if (!isVerbose()) {
       return;
     }
     if (!isQuiet()) {
-      if (level > -1 && level <= getDebugLevelStart()) {
-        if (level > 0) {
-          msgShow = "[DEBUG]" + msgShow + msg;
-        } else {
-          msgShow = "[INFO]" + msgShow + msg;
-        }
-      }
       System.out.println(String.format(msgShow, args));
     }
   }
@@ -1634,7 +1551,6 @@ public class RunTime {
       }
     }
   }
-
   public void showIDE() {
     if (null != cIDE) {
       try {
