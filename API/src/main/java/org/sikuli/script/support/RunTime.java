@@ -195,9 +195,10 @@ public class RunTime {
     }
 
     if (shouldRunServer()) {
-      if (ServerRunner.run(null)) {
-        Sikulix.terminate(1, "");
-      }
+      Debug.error("SikulixServer: currently not supported");
+//      if (ServerRunner.run(null)) {
+//        Sikulix.terminate(1, "");
+//      }
       Sikulix.terminate();
     }
 
