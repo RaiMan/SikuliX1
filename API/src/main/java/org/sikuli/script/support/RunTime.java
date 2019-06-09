@@ -183,8 +183,8 @@ public class RunTime {
       Debug.globalTraceOn();
       Debug.setStartWithTrace();
     }
-
-    if (!getLogFile().isEmpty()) {
+    
+    if(!getLogFile().isEmpty()) {
       Debug.setLogFile(getLogFile());
     }
 
@@ -210,7 +210,7 @@ public class RunTime {
   }
 
   public void installStopHotkey() {
-    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+    HotkeyManager.getInstance(). addHotkey("Abort", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
         onStopHotkey();
@@ -275,72 +275,8 @@ public class RunTime {
       setQuiet(true);
     }
 
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue != null) {
-        debugLevelStart = cmdValue;
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("g")) {
-      if (cmdLine.hasOption("s")) {
-        serverGroups = cmdLine.getOptionValue("g");
-        startLog(3, "groups (-g): %s", serverGroups);
-      } else {
-        startLog(-1, "groups (-g): currently only accepted with -s");
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("x")) {
-      if (cmdLine.hasOption("s")) {
-        serverExtra = cmdLine.getOptionValue("x");
-        startLog(3, "extra (-x): %s", serverExtra);
-      } else {
-        startLog(-1, "extra (-x): currently only accepted with -s");
-      }
-    }
-
     if (cmdLineValid && cmdLine.hasOption("s")) {
       asServer = true;
-      String[] listenAt = cmdLine.getOptionValues("s");
-      if (null != listenAt && listenAt.length > 0) {
-        String option1 = listenAt[0];
-        String option2 = "";
-        if (listenAt.length == 1) {
-          if (option1.startsWith("[") && option1.contains("]:")) {
-            listenAt = option1.split("]:");
-            listenAt[0] = listenAt[0].substring(1);
-          } else if (option1.contains(":")) {
-            listenAt = option1.split(":");
-            if (listenAt.length > 2) {
-              listenAt = new String[]{option1, "" + serverPort};
-            }
-          } else {
-            try {
-              serverPort = Integer.parseInt(option1);
-            } catch (NumberFormatException e) {
-              serverIP = option1;
-            }
-          }
-        }
-        if (listenAt.length > 1) {
-          option1 = listenAt[0].trim();
-          option2 = listenAt[1].trim();
-          if (!option1.isEmpty()) {
-            serverIP = option1;
-          }
-          try {
-            serverPort = Integer.parseInt(listenAt[1].trim());
-          } catch (NumberFormatException e) {
-            option2 = "?" + option2;
-          }
-        }
-        if (option1.isEmpty()) {
-          option1 = "?";
-        }
-        String message = String.format("server (-s): %s:%s -> %s:%d", option1, option2, serverIP, serverPort);
-        startLog(3, "%s", message);
-      }
     }
 
     if (cmdLineValid && cmdLine.hasOption("p")) {
@@ -349,6 +285,13 @@ public class RunTime {
 
     if (cmdLineValid && cmdLine.hasOption("m")) {
       setAllowMultiple();
+    }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
+      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
+      if (cmdValue != null) {
+        debugLevelStart = cmdValue;
+      }
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
@@ -392,15 +335,6 @@ public class RunTime {
 
   public static String[] getSXArgs() {
     return sxArgs;
-  }
-
-  public static void setUserArgs(String[] args) {
-    userArgs = new String[args.length];
-    int n = 0;
-    for (String arg : args) {
-      userArgs[n] = arg;
-      n++;
-    }
   }
 
   public static String[] getUserArgs() {
@@ -485,30 +419,6 @@ public class RunTime {
 
   private static boolean asServer = false;
 
-  public static String getServerIP() {
-    return serverIP;
-  }
-
-  private static String serverIP = "0.0.0.0";
-
-  public static int getServerPort() {
-    return serverPort;
-  }
-
-  private static int serverPort = 50001;
-
-  public static String getServerGroups() {
-    return serverGroups;
-  }
-
-  private static String serverGroups = null;
-
-  public static String getServerExtra() {
-    return serverExtra;
-  }
-
-  private static String serverExtra = null;
-
   public static boolean shouldRunPythonServer() {
     return asPyServer;
   }
@@ -587,20 +497,13 @@ public class RunTime {
 
   public static void startLog(int level, String msg, Object... args) {
     String typ = startAsIDE ? "IDE" : "API";
-    String msgShow = String.format("startUp: %s: ", typ);
+    String msgShow = String.format("[DEBUG] %s: ", typ) + msg;
     if (level < 0) {
-      msgShow = "[ERROR]" + msgShow + msg;
-    } else if (getDebugLevelStart() == 0 && !isVerbose()) {
+      msgShow = String.format("[ERROR] %s: ", typ) + msg;
+    } else if (!isVerbose()) {
       return;
     }
     if (!isQuiet()) {
-      if (level > -1 && level <= getDebugLevelStart()) {
-        if (level > 0) {
-          msgShow = "[DEBUG]" + msgShow + msg;
-        } else {
-          msgShow = "[INFO]" + msgShow + msg;
-        }
-      }
       System.out.println(String.format(msgShow, args));
     }
   }
@@ -1648,7 +1551,6 @@ public class RunTime {
       }
     }
   }
-
   public void showIDE() {
     if (null != cIDE) {
       try {

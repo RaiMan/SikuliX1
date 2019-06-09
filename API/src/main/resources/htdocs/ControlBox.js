@@ -42,7 +42,7 @@ function runCmd(e) {
   }
 
   const command = e.target.id;
-  let url = encodeURI(serverAddress + "/scripts/" + scriptName + "/run");
+  let url = encodeURI(serverAddress + "/" + command + "/" + scriptName);
   if (scriptArgs.length > 0) {
     let queryValue = "";
     scriptArgs.forEach(function(arg) {
