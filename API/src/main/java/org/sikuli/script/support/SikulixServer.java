@@ -72,10 +72,7 @@ public class SikulixServer {
   static File isRunning = null;
   static FileOutputStream isRunningFile = null;
 
-  public static boolean run(String[] args) {
-		if (args == null) {
-			args = new String[0];
-		}
+  public static boolean run() {
     String userArgs = "";
     for (String userArg : RunTime.getUserArgs()) {
       userArgs += userArg + " ";
@@ -83,9 +80,9 @@ public class SikulixServer {
     if (!userArgs.isEmpty()) {
       userArgs = "\nWith User parameters: " + userArgs;
     }
-    int port = getPort(args.length > 0 ? args[0] : null);
+    int port = RunTime.getServerPort();
     try {
-      String theIP = InetAddress.getLocalHost().getHostAddress();
+      String theIP = RunTime.getServerIP();
       String theServer = String.format("%s %d", theIP, port);
       isRunning = new File(RunTime.get().fSikulixStore, "SikulixServer.txt");
       try {
@@ -144,22 +141,7 @@ public class SikulixServer {
   }
 
   private static int getPort(String p) {
-    int port;
-    int pDefault = 50001;
-    if (p != null) {
-      try {
-        port = Integer.parseInt(p);
-      } catch (NumberFormatException ex) {
-        dolog(-1, "given port not useable: %s --- using default", p);
-        return pDefault;
-      }
-    } else {
-      return pDefault;
-    }
-    if (port < 1024) {
-      port += pDefault;
-    }
-    return port;
+    return RunTime.getServerPort();
   }
 
   private static Undertow createServer(int port, String ipAddr) {
