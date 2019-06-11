@@ -9,6 +9,7 @@ import org.sikuli.android.ADBTest;
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDESplash;
 import org.sikuli.idesupport.IDESupport;
+import org.sikuli.idesupport.IDETaskbarSupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
@@ -49,7 +50,12 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   static RunTime runTime;
 
+  static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
+      SikulixIDE.class.getResource("/icons/sikulix.png"));
+
   public static void main(String[] args) {
+
+    IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
 
     RunTime.afterStart(RunTime.Type.IDE, args);
 
@@ -145,46 +151,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
   private SikulixIDE() {
     super("SikulixIDE");
-
-    java.net.URL url = SikulixIDE.class.getResource("/icons/sikulix.png");
-    Toolkit kit = Toolkit.getDefaultToolkit();
-    java.awt.Image img = kit.createImage(url);
-    this.setIconImage(img);
-  }
-
-  @Override
-  public void setIconImage(java.awt.Image img) {
-    super.setIconImage(img);
-
-    /*
-     * We also want to set the dock image here.
-     *
-     * Java 9 provides java.awt.Taskbar which is a nice abstraction to do this on multiple platforms.
-     * But because we have to be Java 8 backwards compatible we have to use some reflection here to
-     * get the job done properly.
-     */
-    try {
-      if (RunTime.get().isJava9()) {
-        Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
-        Method isTaskbarSupported = taskbarClass.getMethod("isTaskbarSupported");
-        Method getTaskbar = taskbarClass.getMethod("getTaskbar");
-
-        if(Boolean.TRUE.equals(isTaskbarSupported.invoke(taskbarClass))) {
-          Object taskbar = getTaskbar.invoke(taskbarClass);
-          Method setIconImage = taskbarClass.getMethod("setIconImage", new Class[]{java.awt.Image.class});
-          setIconImage.invoke(taskbar, img);
-        }
-
-      } else if (Settings.isMac()) { // special handling for MacOS if we are on Java 8
-        Class<?> appClass = Class.forName("com.apple.eawt.Application");
-        Method getApplication = appClass.getMethod("getApplication");
-        Object application = getApplication.invoke(appClass);
-        Method setDockIconImage = appClass.getMethod("setDockIconImage", new Class[]{java.awt.Image.class});
-        setDockIconImage.invoke(application, img);
-      }
-    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException | SecurityException e) {
-      // Just ignore this if not supported
-    }
+    this.setIconImage(ICON_IMAGE);
   }
 
   static synchronized SikulixIDE get() {
