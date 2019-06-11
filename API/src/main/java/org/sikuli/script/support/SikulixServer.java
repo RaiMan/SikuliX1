@@ -72,6 +72,55 @@ public class SikulixServer {
   static File isRunning = null;
   static FileOutputStream isRunningFile = null;
 
+  private static File isFolder(String option) {
+    File folder = null;
+    return folder;
+  }
+
+  private static File isFile(String option) {
+    File file = null;
+    return file;
+  }
+
+  private static Map<String, File> groups = new HashMap<>();
+  private static final String DEFAULT_GROUP = "DEFAULT_GROUP";
+
+  private static void makeGroups(String option) {
+    File folder;
+    if (null != (folder = isFolder(option))) {
+     groups.put(DEFAULT_GROUP, folder);
+     return;
+    }
+    File folders;
+    groups.put(DEFAULT_GROUP, RunTime.get().fWorkDir);
+    if (null != (folders = isFile(option))) {
+      if (FilenameUtils.getExtension(folders.getPath()).isEmpty() ||
+              FilenameUtils.getExtension(folders.getPath()).equals("txt")) {
+        //TODO evaluate folders.txt
+        dolog("option -g: %s", folders);
+      } else if (FilenameUtils.getExtension(folders.getPath()).equals("json")) {
+        //TODO evaluate folders.txt
+        dolog("option -g: %s", folders);
+      }
+      return;
+    }
+  }
+
+  private static  List<String> allowedIPs = new ArrayList<>();
+  private static final String DEFAULT_ALLOWED_IP = "localhost";
+
+  private static void makeAllowedIPs(String option) {
+    allowedIPs.add(DEFAULT_ALLOWED_IP);
+    File allowedIPsFile;
+    if (null != (allowedIPsFile = isFile(option))) {
+      if (FilenameUtils.getExtension(allowedIPsFile.getPath()).isEmpty() ||
+              FilenameUtils.getExtension(allowedIPsFile.getPath()).equals("txt")) {
+        //TODO evaluate allowedIPs.txt
+        dolog("option -x: %s", allowedIPsFile);
+      }
+    }
+  }
+
   public static boolean run() {
     String userArgs = "";
     for (String userArg : RunTime.getUserArgs()) {
@@ -81,8 +130,12 @@ public class SikulixServer {
       userArgs = "\nWith User parameters: " + userArgs;
     }
     int port = RunTime.getServerPort();
+    String theIP = RunTime.getServerIP();
+    String groupsOption = RunTime.getServerGroups();
+    makeGroups(groupsOption);
+    String extraOption = RunTime.getServerExtra();
+    makeAllowedIPs(extraOption);
     try {
-      String theIP = RunTime.getServerIP();
       String theServer = String.format("%s %d", theIP, port);
       isRunning = new File(RunTime.get().fSikulixStore, "SikulixServer.txt");
       try {
@@ -138,10 +191,6 @@ public class SikulixServer {
     }
     dolog("now stopped on port: " + port);
     return true;
-  }
-
-  private static int getPort(String p) {
-    return RunTime.getServerPort();
   }
 
   private static Undertow createServer(int port, String ipAddr) {
