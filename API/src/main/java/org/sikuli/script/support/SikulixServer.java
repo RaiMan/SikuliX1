@@ -59,7 +59,7 @@ public class SikulixServer {
     }
     if (lvl <= logLevel) {
       System.out.println((lvl < 0 ? "[error] " : (lvl > 0 ? "[debug] " : "[info] ")) +
-              String.format("SikulixServer: " + message, args));
+          String.format("SikulixServer: " + message, args));
     }
   }
 
@@ -113,8 +113,8 @@ public class SikulixServer {
     File folders;
     if (null != (folders = asFile(option))) {
       if (FilenameUtils.getExtension(folders.getPath()).isEmpty() ||
-              FilenameUtils.getExtension(folders.getPath()).equals("txt")) {
-        dolog(3,"option -g txt-file: %s", folders);
+          FilenameUtils.getExtension(folders.getPath()).equals("txt")) {
+        dolog(3, "option -g txt-file: %s", folders);
         String[] items = FileManager.readFileToStringArray(folders);
         Pattern pattern = Pattern.compile("(.*?)[ :=](.*)");
         boolean isFirst = true;
@@ -162,15 +162,15 @@ public class SikulixServer {
     File allowedIPsFile;
     if (null != (allowedIPsFile = asFile(option))) {
       if (FilenameUtils.getExtension(allowedIPsFile.getPath()).isEmpty() ||
-              FilenameUtils.getExtension(allowedIPsFile.getPath()).equals("txt")) {
-        dolog(3,"option -x txt-file: %s", allowedIPsFile);
+          FilenameUtils.getExtension(allowedIPsFile.getPath()).equals("txt")) {
+        dolog(3, "option -x txt-file: %s", allowedIPsFile);
         String[] items = FileManager.readFileToStringArray(allowedIPsFile);
         for (String item : items) {
           allowedIPs.add(item);
           dolog(3, "allowed: %s", item);
         }
       }
-    } else if (null != option){
+    } else if (null != option) {
       allowedIPs.add(option);
       dolog(3, "allowed: %s", option);
     }
@@ -188,7 +188,7 @@ public class SikulixServer {
     String theIP = RunTime.getServerIP();
     String groupsOption = RunTime.getServerGroups();
     makeGroups(groupsOption);
-    dolog(3,"DEFAULT_GROUP: %s", groups.get(DEFAULT_GROUP));
+    dolog(3, "DEFAULT_GROUP: %s", groups.get(DEFAULT_GROUP));
     String extraOption = RunTime.getServerExtra();
     makeAllowedIPs(extraOption);
     try {
@@ -251,34 +251,34 @@ public class SikulixServer {
 
   private static Undertow createServer(int port, String ipAddr) {
     RoutingHandler commands = Handlers.routing()
-            .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
-                    new StopCommandHttpHandler())
-            .add(Methods.GET, "/exit*", Predicates.prefix("exit"),
-                    new ExitCommandHttpHandler())
-            .add(Methods.GET, "/start*", Predicates.prefixes("startp", "startr", "start"),
-                    new StartCommandHttpHandler())
-            .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
-                    new ScriptsCommandHttpHandler())
-            .add(Methods.GET, "/images*", Predicates.prefix("images"),
-                    new ImagesCommandHttpHandler())
-            .add(Methods.GET, "/run*", Predicates.prefix("run"),
-                    new RunCommandHttpHandler())
-            .setFallbackHandler(new AbstractCommandHttpHandler() {
-              @Override
-              public void handleRequest(HttpServerExchange exchange) throws Exception {
-                sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
-                        "invalid command: " + exchange.getRelativePath());
-              }
-            });
+        .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
+            new StopCommandHttpHandler())
+        .add(Methods.GET, "/exit*", Predicates.prefix("exit"),
+            new ExitCommandHttpHandler())
+        .add(Methods.GET, "/start*", Predicates.prefixes("startp", "startr", "start"),
+            new StartCommandHttpHandler())
+        .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
+            new ScriptsCommandHttpHandler())
+        .add(Methods.GET, "/images*", Predicates.prefix("images"),
+            new ImagesCommandHttpHandler())
+        .add(Methods.GET, "/run*", Predicates.prefix("run"),
+            new RunCommandHttpHandler())
+        .setFallbackHandler(new AbstractCommandHttpHandler() {
+          @Override
+          public void handleRequest(HttpServerExchange exchange) throws Exception {
+            sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
+                "invalid command: " + exchange.getRelativePath());
+          }
+        });
     CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(new PreRoutingHttpHandler(
-            new RequestLimitingHandler(1, commands)));
+        new RequestLimitingHandler(1, commands)));
     cmdRoot.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
       @Override
       public void handleRequest(HttpServerExchange exchange) throws Exception {
         Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
         SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
         sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
-                "server error: " + ex.getMessage());
+            "server error: " + ex.getMessage());
       }
     });
 
@@ -287,9 +287,9 @@ public class SikulixServer {
     resource.addWelcomeFiles("ControlBox.html");
 
     Undertow server = Undertow.builder()
-            .addHttpListener(port, ipAddr)
-            .setHandler(resource)
-            .build();
+        .addHttpListener(port, ipAddr)
+        .setHandler(resource)
+        .build();
     return server;
   }
 
@@ -416,58 +416,30 @@ public class SikulixServer {
 
   private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
-    private static List<String> SERVER_SUPPORTED_EXTENSIONS = new ArrayList<>();
-
-    {
-      SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JavaScriptRunner.EXTENSIONS));
-      SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JythonRunner.EXTENSIONS));
-    }
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       String script = exchange.getQueryParameters().get("*").getFirst();
-      File fScript = null;
-      boolean success = true;
+      File fScript = new File(getCurrentGroup(), script);
       int statusCode = StatusCodes.OK;
-      String message = null;
-      if (getScriptFolderNet() != null) {
-        message = "runScript from net not yet supported";
+      List<String> args = getQueryAndToArgs(exchange);
+      int retval = Runner.executeScript(fScript.getPath(), args.toArray(new String[args.size()]));
+      if (retval == Runner.FILE_NOT_FOUND) {
+        //TODO handle: the given script file does not exist
+      } else if (retval == Runner.NOT_SUPPORTED) {
+        //TODO handle: there is no runner available for the given script file
+      }
+      //TODO all other retvals are returned by the user script and should be reported.
+      if (retval < 0) {
         statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        success = false;
       }
-      if (success) {
-        Debug.log("Using script folder: " + getScriptFolder());
-        fScript = new File(getScriptFolder(), script);
-        if (!fScript.exists()) {
-          if (script.endsWith(".sikuli")) {
-            script = script.replace(".sikuli", "");
-          } else {
-            script = script + ".sikuli";
-          }
-          fScript = new File(getScriptFolder(), script);
-        }
-        File innerScriptFile = Runner.getScriptFile(fScript);
-        success = SERVER_SUPPORTED_EXTENSIONS.stream().anyMatch(s ->
-                innerScriptFile != null && s.equals(FilenameUtils.getExtension(innerScriptFile.getName()).toLowerCase()));
-        if (!success) {
-          SikulixServer.dolog("Script folder path: " + fScript.getAbsolutePath());
-          message = "runScript: script not found, not valid or not supported "
-                  + fScript.getAbsolutePath();
-          statusCode = StatusCodes.NOT_FOUND;
-        }
-      }
-      if (success) {
-        IScriptRunner.Options runOptions = new IScriptRunner.Options();
-        runOptions.setScriptName(fScript.toString());
-        ImagePath.setBundlePath(fScript.getAbsolutePath());
-        List<String> args = getQueryAndToArgs(exchange);
-        int retval = Runner.run(fScript.toString(), args.toArray(new String[args.size()]), runOptions);
-        message = "runScript: returned: " + retval;
-        if (retval < 0) {
-          statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        }
-      }
-      sendResponse(exchange, success, statusCode, message);
+      String message = "runScript: returned: " + retval;
+      sendResponse(exchange, true, statusCode, message);
+    }
+
+    private String getCurrentGroup() {
+      //TODO evaluate and return the current group's folder
+      return "";
     }
 
     private List<String> getQueryAndToArgs(final HttpServerExchange exchange) {
@@ -587,8 +559,8 @@ public class SikulixServer {
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       isHandling = true;
       SikulixServer.dolog("received request: <%s %s %s> from %s",
-              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
-              exchange.getSourceAddress());
+          exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
+          exchange.getSourceAddress());
       super.handleRequest(exchange);
     }
   }
