@@ -287,7 +287,6 @@ public class SikulixServer {
     resource.addWelcomeFiles("ControlBox.html");
 
     Undertow server = Undertow.builder()
-            .addHttpListener(port, "localhost")
             .addHttpListener(port, ipAddr)
             .setHandler(resource)
             .build();
