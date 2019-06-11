@@ -16,8 +16,6 @@ public class IDETaskbarSupport {
    */
   public static void setTaksIcon(Image img) {
     /*
-     * We also want to set the dock image here.
-     *
      * Java 9 provides java.awt.Taskbar which is a nice abstraction to do this on multiple platforms.
      * But because we have to be Java 8 backwards compatible we have to use some reflection here to
      * get the job done properly.
