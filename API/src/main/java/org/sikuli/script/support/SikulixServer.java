@@ -6,6 +6,9 @@ package org.sikuli.script.support;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -249,7 +252,7 @@ public class SikulixServer {
     return true;
   }
 
-  private static Undertow createServer(int port, String ipAddr) {
+  private static Undertow createServer(int port, String ipAddr) throws UnknownHostException {
     RoutingHandler commands = Handlers.routing()
             .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
                     new StopCommandHttpHandler())
@@ -286,11 +289,15 @@ public class SikulixServer {
     ResourceHandler resource = new ResourceHandler(resourceManager, cmdRoot);
     resource.addWelcomeFiles("ControlBox.html");
 
-    Undertow server = Undertow.builder()
-            .addHttpListener(port, ipAddr)
-            .setHandler(resource)
-            .build();
-    return server;
+    InetAddress address = Inet4Address.getByName(ipAddr);
+    Undertow.Builder builder= Undertow.builder().setHandler(resource);
+    if (address.isAnyLocalAddress() || address.isLoopbackAddress()) {
+      builder.addHttpListener(port, ipAddr);
+    } else {
+      builder.addHttpListener(port, ipAddr)
+          .addHttpListener(port, "localhost");
+    }
+    return builder.build();
   }
 
   private static class StopCommandHttpHandler extends AbstractCommandHttpHandler {
