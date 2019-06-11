@@ -71,6 +71,9 @@ public class SikulixServer {
   static FileOutputStream isRunningFile = null;
 
   private static File asFolder(String option) {
+    if (null == option) {
+      return null;
+    }
     File folder = new File(option);
     if (!folder.isAbsolute()) {
       folder = new File(RunTime.get().fWorkDir, option);
@@ -82,6 +85,9 @@ public class SikulixServer {
   }
 
   private static File asFile(String option) {
+    if (null == option) {
+      return null;
+    }
     if (null == asFolder(option)) {
       File file = new File(option);
       if (!file.isAbsolute()) {
@@ -164,6 +170,9 @@ public class SikulixServer {
           dolog(3, "allowed: %s", item);
         }
       }
+    } else if (null != option){
+      allowedIPs.add(option);
+      dolog(3, "allowed: %s", option);
     }
   }
 
