@@ -274,20 +274,42 @@ public class RunTime {
       setQuiet(true);
     }
 
+    if (cmdLineValid && cmdLine.hasOption("g")) {
+      if (cmdLine.hasOption("s")) {
+        serverGroups = cmdLine.getOptionValue("g");
+        startLog(3, "groups (-g): %s", serverGroups);
+      } else {
+        startLog(-1, "groups (-g): currently only accepted with -s");
+      }
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("x")) {
+      if (cmdLine.hasOption("s")) {
+        serverExtra = cmdLine.getOptionValue("x");
+        startLog(3, "extra (-x): %s", serverExtra);
+      } else {
+        startLog(-1, "extra (-x): currently only accepted with -s");
+      }
+    }
+
     if (cmdLineValid && cmdLine.hasOption("s")) {
       asServer = true;
       String[] listenAt = cmdLine.getOptionValues("s");
       if (null != listenAt && listenAt.length > 0) {
+        String option1 = listenAt[0];
+        String option2 = "";
         if (listenAt[0].contains(":")) {
           listenAt = listenAt[0].split(":");
         }
         serverIP = listenAt[0].trim();
         if (listenAt.length > 1) {
+          option2 = ":" + listenAt[1];
           try {
             serverPort = Integer.parseInt(listenAt[1].trim());
           } catch (NumberFormatException e) {
           }
         }
+        startLog(3, "server (-s): %s%s", option1, option2);
       }
     }
 
@@ -443,6 +465,18 @@ public class RunTime {
 
   private static int serverPort = 50001;
 
+  public static String getServerGroups() {
+    return serverGroups;
+  }
+
+  private static String serverGroups = null;
+
+  public static String getServerExtra() {
+    return serverExtra;
+  }
+
+  private static String serverExtra = null;
+
   public static boolean shouldRunPythonServer() {
     return asPyServer;
   }
@@ -521,9 +555,9 @@ public class RunTime {
 
   public static void startLog(int level, String msg, Object... args) {
     String typ = startAsIDE ? "IDE" : "API";
-    String msgShow = String.format("[DEBUG] %s: ", typ) + msg;
+    String msgShow = String.format("[DEBUG] startUp: %s: ", typ) + msg;
     if (level < 0) {
-      msgShow = String.format("[ERROR] %s: ", typ) + msg;
+      msgShow = String.format("[ERROR] startUp: %s: ", typ) + msg;
     } else if (!isVerbose()) {
       return;
     }

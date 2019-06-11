@@ -49,9 +49,13 @@ public enum CommandArgsEnum {
 	 */
 	SERVER("server", "s", "ip:port | ip port", "run as server, listen on ip, port"),
 	/**
-	 * run as server
+	 * define group shortcuts
 	 */
 	GROUPS("groups", "g", "groups", "define group -> folder"),
+	/**
+	 * run as server
+	 */
+	XTRA("xtra", "x", "extra", "some extra options"),
 	/**
 	 * run the server for Python
 	 */
