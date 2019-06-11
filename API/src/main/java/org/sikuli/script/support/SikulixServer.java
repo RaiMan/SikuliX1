@@ -6,19 +6,17 @@ package org.sikuli.script.support;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.JRubyRunner;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -40,7 +38,7 @@ import io.undertow.util.URLUtils;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>
- *   not as is in version 2
+ * not as is in version 2
  */
 public class SikulixServer {
   static {
@@ -53,14 +51,14 @@ public class SikulixServer {
   private static boolean shouldStop = false;
   private static Object lock = new Object();
 
-//TODO set loglevel at runtime
-  private static int logLevel = 0;
+  private static int logLevel = RunTime.getDebugLevelStart();
+
   private static void dolog(int lvl, String message, Object... args) {
     if (Debug.isBeQuiet()) {
       return;
     }
-    if (lvl < 0 || lvl >= logLevel) {
-      System.out.println((lvl < 0 ? "[error] " : "[info] ") +
+    if (lvl <= logLevel) {
+      System.out.println((lvl < 0 ? "[error] " : (lvl > 0 ? "[debug] " : "[info] ")) +
               String.format("SikulixServer: " + message, args));
     }
   }
@@ -72,14 +70,28 @@ public class SikulixServer {
   static File isRunning = null;
   static FileOutputStream isRunningFile = null;
 
-  private static File isFolder(String option) {
-    File folder = null;
-    return folder;
+  private static File asFolder(String option) {
+    File folder = new File(option);
+    if (!folder.isAbsolute()) {
+      folder = new File(RunTime.get().fWorkDir, option);
+    }
+    if (folder.isDirectory() && folder.exists()) {
+      return folder;
+    }
+    return null;
   }
 
-  private static File isFile(String option) {
-    File file = null;
-    return file;
+  private static File asFile(String option) {
+    if (null == asFolder(option)) {
+      File file = new File(option);
+      if (!file.isAbsolute()) {
+        file = new File(RunTime.get().fWorkDir, option);
+      }
+      if (file.exists()) {
+        return file;
+      }
+    }
+    return null;
   }
 
   private static Map<String, File> groups = new HashMap<>();
@@ -87,36 +99,70 @@ public class SikulixServer {
 
   private static void makeGroups(String option) {
     File folder;
-    if (null != (folder = isFolder(option))) {
-     groups.put(DEFAULT_GROUP, folder);
-     return;
+    groups.put(DEFAULT_GROUP, RunTime.get().fWorkDir);
+    if (null != (folder = asFolder(option))) {
+      groups.put(DEFAULT_GROUP, folder);
+      return;
     }
     File folders;
-    groups.put(DEFAULT_GROUP, RunTime.get().fWorkDir);
-    if (null != (folders = isFile(option))) {
+    if (null != (folders = asFile(option))) {
       if (FilenameUtils.getExtension(folders.getPath()).isEmpty() ||
               FilenameUtils.getExtension(folders.getPath()).equals("txt")) {
-        //TODO evaluate folders.txt
-        dolog("option -g: %s", folders);
+        dolog(3,"option -g txt-file: %s", folders);
+        String[] items = FileManager.readFileToStringArray(folders);
+        Pattern pattern = Pattern.compile("(.*?)[ :=](.*)");
+        boolean isFirst = true;
+        for (String item : items) {
+          item = item.trim();
+          if (item.startsWith("#") || item.startsWith("//")) {
+            continue;
+          }
+          String grp = "";
+          String fldr = "";
+          Matcher matcher = pattern.matcher(item);
+          if (matcher.matches()) {
+            grp = matcher.group(1).trim();
+            fldr = matcher.group(2).trim();
+            if (fldr.startsWith(":") | fldr.startsWith("=")) {
+              fldr = fldr.substring(1).trim();
+            }
+          } else if (isFirst) {
+            fldr = item;
+            grp = DEFAULT_GROUP;
+          }
+          if (null != asFolder(fldr)) {
+            if (isFirst) {
+              groups.put(DEFAULT_GROUP, asFolder(fldr));
+              isFirst = false;
+            }
+            if (!groups.containsKey(grp)) {
+              groups.put(grp, asFolder(fldr));
+              dolog(3, "group: %s folder: %s", grp, asFolder(fldr));
+            }
+          }
+        }
       } else if (FilenameUtils.getExtension(folders.getPath()).equals("json")) {
-        //TODO evaluate folders.txt
-        dolog("option -g: %s", folders);
+        //TODO evaluate folders.json
+        dolog(-1, "(to be implemented) option -g json-file: %s", folders);
       }
-      return;
     }
   }
 
-  private static  List<String> allowedIPs = new ArrayList<>();
+  private static List<String> allowedIPs = new ArrayList<>();
   private static final String DEFAULT_ALLOWED_IP = "localhost";
 
   private static void makeAllowedIPs(String option) {
     allowedIPs.add(DEFAULT_ALLOWED_IP);
     File allowedIPsFile;
-    if (null != (allowedIPsFile = isFile(option))) {
+    if (null != (allowedIPsFile = asFile(option))) {
       if (FilenameUtils.getExtension(allowedIPsFile.getPath()).isEmpty() ||
               FilenameUtils.getExtension(allowedIPsFile.getPath()).equals("txt")) {
-        //TODO evaluate allowedIPs.txt
-        dolog("option -x: %s", allowedIPsFile);
+        dolog(3,"option -x txt-file: %s", allowedIPsFile);
+        String[] items = FileManager.readFileToStringArray(allowedIPsFile);
+        for (String item : items) {
+          allowedIPs.add(item);
+          dolog(3, "allowed: %s", item);
+        }
       }
     }
   }
@@ -133,6 +179,7 @@ public class SikulixServer {
     String theIP = RunTime.getServerIP();
     String groupsOption = RunTime.getServerGroups();
     makeGroups(groupsOption);
+    dolog(3,"DEFAULT_GROUP: %s", groups.get(DEFAULT_GROUP));
     String extraOption = RunTime.getServerExtra();
     makeAllowedIPs(extraOption);
     try {
@@ -152,11 +199,11 @@ public class SikulixServer {
       }
       try {
         if (port > 0) {
-					dolog(3, "Starting: trying port: %d %s", port, userArgs);
+          dolog(3, "Starting: trying port: %d %s", port, userArgs);
           server = createServer(port, theIP);
           server.start();
           Debug.on(3);
-          dolog("now waiting on port: %d at %s", port, theIP);
+          dolog("at %s:%d in %s", theIP, port, groups.get(DEFAULT_GROUP));
         }
       } catch (Exception ex) {
         dolog(-1, "Starting: " + ex.getMessage());
@@ -195,34 +242,34 @@ public class SikulixServer {
 
   private static Undertow createServer(int port, String ipAddr) {
     RoutingHandler commands = Handlers.routing()
-        .add(Methods.GET, "/stop*",    Predicates.prefix("stop"),
-             new StopCommandHttpHandler())
-        .add(Methods.GET, "/exit*",    Predicates.prefix("exit"),
-             new ExitCommandHttpHandler())
-        .add(Methods.GET, "/start*",   Predicates.prefixes("startp", "startr", "start"),
-             new StartCommandHttpHandler())
-        .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
-             new ScriptsCommandHttpHandler())
-        .add(Methods.GET, "/images*",  Predicates.prefix("images"),
-             new ImagesCommandHttpHandler())
-        .add(Methods.GET, "/run*",     Predicates.prefix("run"),
-             new RunCommandHttpHandler())
-        .setFallbackHandler(new AbstractCommandHttpHandler(){
-          @Override
-          public void handleRequest(HttpServerExchange exchange) throws Exception {
-            sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
-                         "invalid command: " + exchange.getRelativePath());
-          }
-        });
+            .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
+                    new StopCommandHttpHandler())
+            .add(Methods.GET, "/exit*", Predicates.prefix("exit"),
+                    new ExitCommandHttpHandler())
+            .add(Methods.GET, "/start*", Predicates.prefixes("startp", "startr", "start"),
+                    new StartCommandHttpHandler())
+            .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
+                    new ScriptsCommandHttpHandler())
+            .add(Methods.GET, "/images*", Predicates.prefix("images"),
+                    new ImagesCommandHttpHandler())
+            .add(Methods.GET, "/run*", Predicates.prefix("run"),
+                    new RunCommandHttpHandler())
+            .setFallbackHandler(new AbstractCommandHttpHandler() {
+              @Override
+              public void handleRequest(HttpServerExchange exchange) throws Exception {
+                sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
+                        "invalid command: " + exchange.getRelativePath());
+              }
+            });
     CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(new PreRoutingHttpHandler(
-                                                                    new RequestLimitingHandler(1, commands)));
+            new RequestLimitingHandler(1, commands)));
     cmdRoot.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
       @Override
       public void handleRequest(HttpServerExchange exchange) throws Exception {
         Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
         SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
         sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
-                     "server error: " + ex.getMessage());
+                "server error: " + ex.getMessage());
       }
     });
 
@@ -231,10 +278,10 @@ public class SikulixServer {
     resource.addWelcomeFiles("ControlBox.html");
 
     Undertow server = Undertow.builder()
-                              .addHttpListener(port, "localhost")
-                              .addHttpListener(port, ipAddr)
-                              .setHandler(resource)
-                              .build();
+            .addHttpListener(port, "localhost")
+            .addHttpListener(port, ipAddr)
+            .setHandler(resource)
+            .build();
     return server;
   }
 
@@ -362,6 +409,7 @@ public class SikulixServer {
   private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
     private static List<String> SERVER_SUPPORTED_EXTENSIONS = new ArrayList<>();
+
     {
       SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JavaScriptRunner.EXTENSIONS));
       SERVER_SUPPORTED_EXTENSIONS.addAll(Arrays.asList(JythonRunner.EXTENSIONS));
@@ -391,8 +439,8 @@ public class SikulixServer {
           fScript = new File(getScriptFolder(), script);
         }
         File innerScriptFile = Runner.getScriptFile(fScript);
-        success = SERVER_SUPPORTED_EXTENSIONS.stream().anyMatch(s -> 
-                    innerScriptFile != null && s.equals(FilenameUtils.getExtension(innerScriptFile.getName()).toLowerCase()));
+        success = SERVER_SUPPORTED_EXTENSIONS.stream().anyMatch(s ->
+                innerScriptFile != null && s.equals(FilenameUtils.getExtension(innerScriptFile.getName()).toLowerCase()));
         if (!success) {
           SikulixServer.dolog("Script folder path: " + fScript.getAbsolutePath());
           message = "runScript: script not found, not valid or not supported "
@@ -409,7 +457,7 @@ public class SikulixServer {
         message = "runScript: returned: " + retval;
         if (retval < 0) {
           statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        } 
+        }
       }
       sendResponse(exchange, success, statusCode, message);
     }
@@ -440,24 +488,31 @@ public class SikulixServer {
     protected void setScriptFolder(File scriptFolder) {
       AbstractCommandHttpHandler.scriptFolder = scriptFolder;
     }
+
     protected File getScriptFolder() {
       return AbstractCommandHttpHandler.scriptFolder;
     }
+
     protected void setScriptFolderNet(String scriptFolderNet) {
       AbstractCommandHttpHandler.scriptFolderNet = scriptFolderNet;
     }
+
     protected String getScriptFolderNet() {
       return AbstractCommandHttpHandler.scriptFolderNet;
     }
+
     protected void setImageFolder(File imageFolder) {
       AbstractCommandHttpHandler.imageFolder = imageFolder;
     }
+
     protected File getImageFolder() {
       return AbstractCommandHttpHandler.imageFolder;
     }
+
     protected void setImageFolderNet(String imageFolderNet) {
       AbstractCommandHttpHandler.imageFolderNet = imageFolderNet;
     }
+
     protected String getImageFolderNet() {
       return AbstractCommandHttpHandler.imageFolderNet;
     }
@@ -482,10 +537,10 @@ public class SikulixServer {
         path = "__NET/" + path.substring(5);
         aFolder = new File(path);
       } else if (RunTime.get().runningWindows) {
-          Matcher matcher = java.util.regex.Pattern.compile("(?ix: ^ (?: / ([a-z]) [:]? /) (.*) $)").matcher(path);
-          // Assume specified drive exists or fallback on the default/required drive
-          String newPath = matcher.matches() ? matcher.replaceAll("$1:/$2") : ("c:" + path);
-          aFolder = new File(newPath);
+        Matcher matcher = java.util.regex.Pattern.compile("(?ix: ^ (?: / ([a-z]) [:]? /) (.*) $)").matcher(path);
+        // Assume specified drive exists or fallback on the default/required drive
+        String newPath = matcher.matches() ? matcher.replaceAll("$1:/$2") : ("c:" + path);
+        aFolder = new File(newPath);
       }
       Debug.log("Transformed path: " + aFolder);
       return aFolder;
@@ -497,21 +552,21 @@ public class SikulixServer {
     private HttpHandler next;
 
     public PreRoutingHttpHandler(HttpHandler next) {
-        this.next = next;
+      this.next = next;
     }
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-        String path = exchange.getRelativePath();
-        Matcher matcher = PATTERN.matcher(path);
-        if (matcher.find()) {
-            String command = matcher.group("command").toLowerCase();
-            String resource = Optional.ofNullable(matcher.group("resource")).orElse("");
-            path = command+resource;
-        }
-        exchange.setRelativePath(path);
+      String path = exchange.getRelativePath();
+      Matcher matcher = PATTERN.matcher(path);
+      if (matcher.find()) {
+        String command = matcher.group("command").toLowerCase();
+        String resource = Optional.ofNullable(matcher.group("resource")).orElse("");
+        path = command + resource;
+      }
+      exchange.setRelativePath(path);
 
-        next.handleRequest(exchange);
+      next.handleRequest(exchange);
     }
   }
 
@@ -523,9 +578,9 @@ public class SikulixServer {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       isHandling = true;
-      SikulixServer.dolog("received request: <%s %s %s> from %s", 
-                         exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
-                         exchange.getSourceAddress());
+      SikulixServer.dolog("received request: <%s %s %s> from %s",
+              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
+              exchange.getSourceAddress());
       super.handleRequest(exchange);
     }
   }
