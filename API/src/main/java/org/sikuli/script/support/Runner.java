@@ -219,6 +219,12 @@ public class Runner {
       return runScripts(new String[]{script});
   }
 
+  public static int executeScript(String script, String[] args) {
+    RunTime.setUserArgs(args);
+    int retVal = runScripts(new String[]{script});
+    return retVal;
+  }
+
   public static int runScripts(String[] runScripts) {
     int exitCode = 0;
     File scriptFile;

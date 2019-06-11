@@ -371,6 +371,15 @@ public class RunTime {
     return sxArgs;
   }
 
+  public static void setUserArgs(String[] args) {
+    userArgs = new String[args.length];
+    int n = 0;
+    for (String arg : args) {
+      userArgs[n] = arg;
+      n++;
+    }
+  }
+
   public static String[] getUserArgs() {
     return userArgs;
   }
