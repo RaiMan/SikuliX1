@@ -12,26 +12,48 @@ public class IDETaskbarSupport {
   /**
    * Sets the task icon in the OS task bar.
    *
+   * This class contains some reflective code that can be removed
+   * as soon as we ditch Java 8 support.
+   *
    * @param img the task image to set.
    */
+
   public static void setTaksIcon(Image img) {
     /*
      * Java 9 provides java.awt.Taskbar which is a nice abstraction to do this on multiple platforms.
      * But because we have to be Java 8 backwards compatible we have to use some reflection here to
      * get the job done properly.
+     *
+     * TODO Replace reflective code with code snippet below as soon as we ditch Java 8 support.
      */
+
+//    if(Taskbar.isTaskbarSupported()) {
+//      Taskbar taskbar = Taskbar.getTaskbar();
+//
+//      if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+//        taskbar.setIconImage(img);
+//      }
+//    }
+
     try {
       if (RunTime.get().isJava9()) {
-        Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
-        Method isTaskbarSupported = taskbarClass.getMethod("isTaskbarSupported");
-        Method getTaskbar = taskbarClass.getMethod("getTaskbar");
+        Class<?> clTaskbar = Class.forName("java.awt.Taskbar");
+        Method isTaskbarSupported = clTaskbar.getMethod("isTaskbarSupported");
+        Method getTaskbar = clTaskbar.getMethod("getTaskbar");
 
-        if(Boolean.TRUE.equals(isTaskbarSupported.invoke(taskbarClass))) {
-          Object taskbar = getTaskbar.invoke(taskbarClass);
-          Method setIconImage = taskbarClass.getMethod("setIconImage", new Class[]{java.awt.Image.class});
-          setIconImage.invoke(taskbar, img);
+        if(Boolean.TRUE.equals(isTaskbarSupported.invoke(clTaskbar))) {
+          Object taskbar = getTaskbar.invoke(clTaskbar);
+
+          @SuppressWarnings({ "rawtypes", "unchecked" })
+          Class<Enum> clDesktopFeature = (Class<Enum>) Class.forName("java.awt.Taskbar$Feature");
+
+          @SuppressWarnings("unchecked")
+          Object iconImageEnum = Enum.valueOf(clDesktopFeature, "ICON_IMAGE");
+          if(Boolean.TRUE.equals(clTaskbar.getMethod("isSupported", clDesktopFeature).invoke(taskbar, iconImageEnum))) {
+            Method setIconImage = clTaskbar.getMethod("setIconImage", new Class[]{java.awt.Image.class});
+            setIconImage.invoke(taskbar, img);
+          }
         }
-
       } else if (Settings.isMac()) { // special handling for MacOS if we are on Java 8
         Class<?> appClass = Class.forName("com.apple.eawt.Application");
         Method getApplication = appClass.getMethod("getApplication");

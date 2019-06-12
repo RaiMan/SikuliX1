@@ -7,6 +7,7 @@ import org.sikuli.android.ADBClient;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.android.ADBTest;
 import org.sikuli.basics.*;
+import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.idesupport.IDESplash;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IDETaskbarSupport;
@@ -37,7 +38,7 @@ import java.net.URLClassLoader;
 import java.util.List;
 import java.util.*;
 
-public class SikulixIDE extends JFrame implements InvocationHandler {
+public class SikulixIDE extends JFrame {
 
   //<editor-fold desc="00 startup / quit">
   private static String me = "IDE: ";
@@ -71,7 +72,11 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
 
     log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
 
-    sikulixIDE.prepareMacMenus();
+    if (Settings.isMac() && System.getProperty("sikulix.asapp") != null) {
+      Settings.isMacApp = true;
+    }
+
+    IDEDesktopSupport.init(sikulixIDE);
 
     if (Debug.getDebugLevel() > 2) {
       RunTime.printArgs();
@@ -417,103 +422,6 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     }
   }
 
-  private void prepareMacMenus() {
-    if (!Settings.isMac()) {
-      return;
-    }
-    log(lvl, "initNativeSupport: starting");
-    if (System.getProperty("sikulix.asapp") != null) {
-      Settings.isMacApp = true;
-    }
-    try {
-      if (runTime.isJava9()) {
-        log(lvl, "initNativeSupport: Java 9: trying with java.awt.Desktop");
-        Class sysclass = URLClassLoader.class;
-        Class clazzMacSupport = sysclass.forName("org.sikuli.idesupport.IDEMacSupport");
-        Method macSupport = clazzMacSupport.getDeclaredMethod("support", SikulixIDE.class);
-        macSupport.invoke(null, sikulixIDE);
-        showAbout = showPrefs = showQuit = false;
-      } else {
-        Class sysclass = URLClassLoader.class;
-        Class comAppleEawtApplication = sysclass.forName("com.apple.eawt.Application");
-        Method mGetApplication = comAppleEawtApplication.getDeclaredMethod("getApplication", null);
-        Object instApplication = mGetApplication.invoke(null, null);
-
-        Class clAboutHandler = sysclass.forName("com.apple.eawt.AboutHandler");
-        Class clPreferencesHandler = sysclass.forName("com.apple.eawt.PreferencesHandler");
-        Class clQuitHandler = sysclass.forName("com.apple.eawt.QuitHandler");
-        Class clOpenHandler = sysclass.forName("com.apple.eawt.OpenFilesHandler");
-
-        Object appHandler = Proxy.newProxyInstance(
-                comAppleEawtApplication.getClassLoader(),
-                new Class[]{clAboutHandler, clPreferencesHandler, clQuitHandler, clOpenHandler},
-                this);
-        Method m = comAppleEawtApplication.getMethod("setAboutHandler", new Class[]{clAboutHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showAbout = false;
-        m = comAppleEawtApplication.getMethod("setPreferencesHandler", new Class[]{clPreferencesHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showPrefs = false;
-        m = comAppleEawtApplication.getMethod("setQuitHandler", new Class[]{clQuitHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-        showQuit = false;
-        m = comAppleEawtApplication.getMethod("setOpenFileHandler", new Class[]{clOpenHandler});
-        m.invoke(instApplication, new Object[]{appHandler});
-      }
-    } catch (Exception ex) {
-      String em = String.format("initNativeSupport: Mac: error:\n%s", ex.getMessage());
-      log(-1, em);
-      Sikulix.popError(em, "IDE has problems ...");
-      System.exit(1);
-    }
-    log(lvl, "initNativeSupport: success");
-  }
-
-  private static List<File> macOpenFiles = null;
-  private boolean showAbout = true;
-  private boolean showPrefs = true;
-  private boolean showQuit = true;
-
-  @Override
-  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    String mName = method.getName();
-    if ("handleAbout".equals(mName)) {
-      sikulixIDE.showAbout();
-    } else if ("handlePreferences".equals(mName)) {
-      sikulixIDE.showPreferencesWindow();
-    } else if ("openFiles".equals(mName)) {
-      log(lvl, "nativeSupport: should open files");
-      try {
-        Method mOpenFiles = args[0].getClass().getMethod("getFiles", new Class[]{});
-        macOpenFiles = (List<File>) mOpenFiles.invoke(args[0], new Class[]{});
-        for (File f : macOpenFiles) {
-          log(lvl, "nativeSupport: openFiles: %s", macOpenFiles);
-        }
-      } catch (Exception ex) {
-        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
-        System.exit(1);
-      }
-    } else if ("handleQuitRequestWith".equals(mName)) {
-      try {
-        Class sysclass = URLClassLoader.class;
-        Class comAppleEawtQuitResponse = sysclass.forName("com.apple.eawt.QuitResponse");
-        Method mCancelQuit = comAppleEawtQuitResponse.getMethod("cancelQuit", null);
-        Method mPerformQuit = comAppleEawtQuitResponse.getMethod("performQuit", null);
-        Object resp = args[1];
-        if (!sikulixIDE.quit()) {
-          mCancelQuit.invoke(resp, null);
-        } else {
-          mPerformQuit.invoke(resp, null);
-        }
-      } catch (Exception ex) {
-        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
-        System.exit(1);
-      }
-    }
-    return new Object();
-  }
-  //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="04 save / restore session">
   final static int WARNING_CANCEL = 2;
   final static int WARNING_ACCEPTED = 1;
@@ -602,8 +510,8 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     String session_str = prefs.getIdeSession();
     int filesLoaded = 0;
     List<File> filesToLoad = new ArrayList<File>();
-    if (macOpenFiles != null && macOpenFiles.size() > 0) {
-      for (File f : macOpenFiles) {
+    if (IDEDesktopSupport.macOpenFiles != null && IDEDesktopSupport.macOpenFiles.size() > 0) {
+      for (File f : IDEDesktopSupport.macOpenFiles) {
         filesToLoad.add(f);
         if (restoreScriptFromSession(f)) filesLoaded++;
       }
@@ -1088,7 +996,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     _fileMenu.setMnemonic(java.awt.event.KeyEvent.VK_F);
 
-    if (showAbout) {
+    if (IDEDesktopSupport.showAbout) {
       _fileMenu.add(createMenuItem("About SikuliX",
               KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
               new FileAction(FileAction.ABOUT)));
@@ -1162,7 +1070,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
             new FileAction(FileAction.CLOSE_TAB)));
     jmi.setName("CLOSE_TAB");
 
-    if (showPrefs) {
+    if (IDEDesktopSupport.showPrefs) {
       _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFilePreferences"),
               KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, scMask),
@@ -1179,7 +1087,7 @@ public class SikulixIDE extends JFrame implements InvocationHandler {
                     InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
             new FileAction(FileAction.RESTART)));
 
-    if (showQuit) {
+    if (IDEDesktopSupport.showQuit) {
       _fileMenu.add(createMenuItem(_I("menuFileQuit"),
               null, new FileAction(FileAction.QUIT)));
     }
