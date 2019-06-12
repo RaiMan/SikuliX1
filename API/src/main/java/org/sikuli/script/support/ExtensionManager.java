@@ -141,13 +141,13 @@ public class ExtensionManager {
         extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
-      RunTime.startLog(1, "extensions.txt\n%s", extlines);
     }
     if (sxExtensionsFileContent.size() == 0) {
       RunTime.startLog(1, "no extensions.txt nor valid content");
       return;
     }
     for (String line : sxExtensionsFileContent) {
+      RunTime.startLog(1, "extensions.txt: %s", line);
       String token = "";
       String extPath = line;
       String[] lineParts = line.split("=");
