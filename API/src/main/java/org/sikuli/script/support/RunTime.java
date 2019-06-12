@@ -275,24 +275,71 @@ public class RunTime {
       setQuiet(true);
     }
 
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
+      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
+      if (cmdValue != null) {
+        debugLevelStart = cmdValue;
+      }
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("g")) {
+      if (cmdLine.hasOption("s")) {
+        serverGroups = cmdLine.getOptionValue("g");
+        startLog(3, "groups (-g): %s", serverGroups);
+      } else {
+        startLog(-1, "groups (-g): currently only accepted with -s");
+      }
+    }
+
+    if (cmdLineValid && cmdLine.hasOption("x")) {
+      if (cmdLine.hasOption("s")) {
+        serverExtra = cmdLine.getOptionValue("x");
+        startLog(3, "extra (-x): %s", serverExtra);
+      } else {
+        startLog(-1, "extra (-x): currently only accepted with -s");
+      }
+    }
+
     if (cmdLineValid && cmdLine.hasOption("s")) {
       asServer = true;
       String[] listenAt = cmdLine.getOptionValues("s");
       if (null != listenAt && listenAt.length > 0) {
         String option1 = listenAt[0];
         String option2 = "";
-        if (listenAt[0].contains(":")) {
-          listenAt = listenAt[0].split(":");
+        if (listenAt.length == 1) {
+          if (option1.startsWith("[") && option1.contains("]:")) {
+            listenAt = option1.split("]:");
+            listenAt[0] = listenAt[0].substring(1);
+          } else if (option1.contains(":")) {
+            listenAt = option1.split(":");
+            if (listenAt.length > 2) {
+              listenAt = new String[]{option1, "" + serverPort};
+            }
+          } else {
+            try {
+              serverPort = Integer.parseInt(option1);
+            } catch (NumberFormatException e) {
+              serverIP = option1;
+            }
+          }
         }
-        serverIP = listenAt[0].trim();
         if (listenAt.length > 1) {
-          option2 = ":" + listenAt[1];
+          option1 = listenAt[0].trim();
+          option2 = listenAt[1].trim();
+          if (!option1.isEmpty()) {
+            serverIP = option1;
+          }
           try {
             serverPort = Integer.parseInt(listenAt[1].trim());
           } catch (NumberFormatException e) {
+            option2 = "?" + option2;
           }
         }
-        startLog(3, "server (-s): %s%s", option1, option2);
+        if (option1.isEmpty()) {
+          option1 = "?";
+        }
+        String message = String.format("server (-s): %s:%s -> %s:%d", option1, option2, serverIP, serverPort);
+        startLog(3, "%s", message);
       }
     }
 
@@ -302,13 +349,6 @@ public class RunTime {
 
     if (cmdLineValid && cmdLine.hasOption("m")) {
       setAllowMultiple();
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue != null) {
-        debugLevelStart = cmdValue;
-      }
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
