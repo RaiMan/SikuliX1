@@ -246,6 +246,36 @@ public class RunTime {
 
   private static GatewayServer pythonServer = null;
 
+  public static File asFolder(String option) {
+    if (null == option) {
+      return null;
+    }
+    File folder = new File(option);
+    if (!folder.isAbsolute()) {
+      folder = new File(get().fWorkDir, option);
+    }
+    if (folder.isDirectory() && folder.exists()) {
+      return folder;
+    }
+    return null;
+  }
+
+  public static File asFile(String option) {
+    if (null == option) {
+      return null;
+    }
+    if (null == asFolder(option)) {
+      File file = new File(option);
+      if (!file.isAbsolute()) {
+        file = new File(get().fWorkDir, option);
+      }
+      if (file.exists()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
   public static void evalArgs(String[] args) {
 
     CommandLine cmdLine;
@@ -302,45 +332,7 @@ public class RunTime {
 
     if (cmdLineValid && cmdLine.hasOption("s")) {
       asServer = true;
-      String[] listenAt = cmdLine.getOptionValues("s");
-      if (null != listenAt && listenAt.length > 0) {
-        String option1 = listenAt[0];
-        String option2 = "";
-        if (listenAt.length == 1) {
-          if (option1.startsWith("[") && option1.contains("]:")) {
-            listenAt = option1.split("]:");
-            listenAt[0] = listenAt[0].substring(1);
-          } else if (option1.contains(":")) {
-            listenAt = option1.split(":");
-            if (listenAt.length > 2) {
-              listenAt = new String[]{option1, "" + serverPort};
-            }
-          } else {
-            try {
-              serverPort = Integer.parseInt(option1);
-            } catch (NumberFormatException e) {
-              serverIP = option1;
-            }
-          }
-        }
-        if (listenAt.length > 1) {
-          option1 = listenAt[0].trim();
-          option2 = listenAt[1].trim();
-          if (!option1.isEmpty()) {
-            serverIP = option1;
-          }
-          try {
-            serverPort = Integer.parseInt(option2);
-          } catch (NumberFormatException e) {
-            option2 = "?" + option2;
-          }
-        }
-        if (option1.isEmpty()) {
-          option1 = "?";
-        }
-        String message = String.format("server (-s): %s:%s -> %s:%d", option1, option2, serverIP, serverPort);
-        startLog(3, "%s", message);
-      }
+      serverOptions = cmdLine.getOptionValues("s");
     }
 
     if (cmdLineValid && cmdLine.hasOption("p")) {
@@ -485,17 +477,11 @@ public class RunTime {
 
   private static boolean asServer = false;
 
-  public static String getServerIP() {
-    return serverIP;
+  public static String[] getServerOptions() {
+    return serverOptions;
   }
 
-  private static String serverIP = "0.0.0.0";
-
-  public static int getServerPort() {
-    return serverPort;
-  }
-
-  private static int serverPort = 50001;
+  private static String[] serverOptions = null;
 
   public static String getServerGroups() {
     return serverGroups;
@@ -815,7 +801,7 @@ public class RunTime {
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
       runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
-          runTime.javaVersion, vJava, vVM, vClass, vSysArch);
+              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
@@ -1021,7 +1007,7 @@ public class RunTime {
 
     for (String aFile : fTempPath.list()) {
       if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
-          || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
         FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
       }
     }
@@ -1281,13 +1267,13 @@ public class RunTime {
 
 //    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
     SikuliJythonMaven = "org/python/jython-standalone/"
-        + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
+            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
     SikuliJythonMaven25 = "org/python/jython-standalone/"
-        + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
+            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
     SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
     SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
     SikuliJRubyMaven = "org/jruby/jruby-complete/"
-        + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
+            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
     SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
 
     String osn = "UnKnown";
@@ -1370,7 +1356,7 @@ public class RunTime {
     if (loadError != null) {
       log(-1, "Problematic lib: %s (...TEMP...)", fLib);
       log(-1, "%s loaded, but it might be a problem with needed dependent libraries\nERROR: %s",
-          libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
+              libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
@@ -1443,7 +1429,7 @@ public class RunTime {
         }
       }
       if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-          libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
+              libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
       }
@@ -1455,7 +1441,7 @@ public class RunTime {
         terminate(999, "libsExport: folder not available: " + fLibsFolder.toString());
       }
       String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-          getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
+              getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
       FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
@@ -1681,8 +1667,8 @@ public class RunTime {
       return;
     }
     if (!fSikulixLib.exists()
-        || !new File(fSikulixLib, "robot").exists()
-        || !new File(fSikulixLib, "sikuli").exists()) {
+            || !new File(fSikulixLib, "robot").exists()
+            || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
       extractResourcesToFolder("Lib", fSikulixLib, null);
     } else {
@@ -1770,7 +1756,7 @@ public class RunTime {
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
     logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
-        (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
+            (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
     //logp("libs folder: %s", fLibsFolder);
@@ -1959,7 +1945,7 @@ public class RunTime {
    * @return the filtered list of files (compact sikulixcontent format)
    */
   public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
-      filter) {
+          filter) {
     List<String> content = new ArrayList<String>();
     File faJar = new File(aJar);
     URL uaJar = null;
@@ -2234,7 +2220,7 @@ public class RunTime {
    * @return success
    */
   public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
-      filter) {
+          filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
     if (contentList == null || contentList.size() == 0) {
       log(-1, "resourceListAsSikulixContentFromJar: did not work: %s", folder);
