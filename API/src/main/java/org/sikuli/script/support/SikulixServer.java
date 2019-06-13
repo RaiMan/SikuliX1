@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
@@ -76,7 +77,7 @@ public class SikulixServer {
   private static int serverPortdefault = 50001;
   private static int serverPort = serverPortdefault;
 
-  private static Map<String, Integer> serverListenAt = new HashMap<>();
+  private static List<Pair<String, Integer>> serverListenAt = new ArrayList<>();
 
   private static String serverOption1 = "";
   private static String serverOption2 = "";
@@ -208,7 +209,7 @@ public class SikulixServer {
         serverPort = serverPortdefault;
         line = line.trim();
         evalServerOptions(new String[]{line});
-        serverListenAt.put(serverIP, serverPort);
+        serverListenAt.add(Pair.of(serverIP, serverPort));
         RunTime.startLog(3, "server (-s): from file: %s:%d", serverIP, serverPort);
       }
     } else {
