@@ -73,7 +73,8 @@ public class SikulixServer {
   private static String serverIPdefault = "0.0.0.0";
   private static String serverIP = serverIPdefault;
 
-  private static int serverPort = 50001;
+  private static int serverPortdefault = 50001;
+  private static int serverPort = serverPortdefault;
 
   private static Map<String, Integer> serverListenAt = new HashMap<>();
 
@@ -203,6 +204,8 @@ public class SikulixServer {
       String[] serverOptions = FileManager.readFileToString(RunTime.asFile(serverIP)).split("\n");
       serverIP = serverIPdefault;
       for (String line : serverOptions) {
+        serverIP = serverIPdefault;
+        serverPort = serverPortdefault;
         line = line.trim();
         evalServerOptions(new String[]{line});
         serverListenAt.put(serverIP, serverPort);
