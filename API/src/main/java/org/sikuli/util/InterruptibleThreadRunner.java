@@ -3,7 +3,8 @@
  */
 package org.sikuli.util;
 
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
+
 import com.sun.jna.ptr.IntByReference;
 
 /**
@@ -29,7 +30,7 @@ public class InterruptibleThreadRunner {
    * @param block Supplier is expected to return the execution error code.
    * @return
    */
-  public int run(long timeout, Supplier<Integer> block) {
+  public int run(long timeout, IntSupplier block) {
     synchronized (this) {
       final IntByReference exitCode = new IntByReference(0);
 
@@ -37,7 +38,7 @@ public class InterruptibleThreadRunner {
         @Override
         public void run() {
           try {
-            exitCode.setValue(block.get());
+            exitCode.setValue(block.getAsInt());
           } finally {
             synchronized(InterruptibleThreadRunner.this) {
               InterruptibleThreadRunner.this.notifyAll();
