@@ -3,10 +3,10 @@
  */
 package org.sikuli.script.support;
 
-import org.sikuli.script.SikuliXception;
-
 import java.io.PrintStream;
 import java.net.URI;
+
+import org.sikuli.script.SikuliXception;
 
 /**
  * Interface for ScriptRunners like Jython.
@@ -59,8 +59,9 @@ public interface IScriptRunner {
      *
      * @param errorLine
      */
-    public void setErrorLine(int errorLine) {
+    public Options setErrorLine(int errorLine) {
       this.errorLine = errorLine;
+      return this;
     }
 
     private int errorLine = -1;
@@ -69,8 +70,9 @@ public interface IScriptRunner {
       return runningInIDE;
     }
 
-    public void setRunningInIDE() {
+    public Options setRunningInIDE() {
       this.runningInIDE = true;
+      return this;
     }
 
     private boolean runningInIDE = false;
@@ -79,8 +81,9 @@ public interface IScriptRunner {
       return workFolder;
     }
 
-    public void setWorkFolder(String workFolder) {
+    public Options setWorkFolder(String workFolder) {
       this.workFolder = workFolder;
+      return this;
     }
 
     private String workFolder = null;
@@ -89,11 +92,28 @@ public interface IScriptRunner {
       return scriptName;
     }
 
-    public void setScriptName(String scriptName) {
+    public Options setScriptName(String scriptName) {
       this.scriptName = scriptName;
+      return this;
     }
 
     private String scriptName = null;
+
+    public void setRunningInIDE(boolean runningInIDE) {
+      this.runningInIDE = runningInIDE;
+    }
+
+
+    private long timeout = 0;
+
+    public long getTimeout() {
+      return timeout;
+    }
+
+    public Options setTimeout(long timeout) {
+      this.timeout = timeout;
+      return this;
+    }
   }
 
   /**
@@ -260,4 +280,24 @@ public interface IScriptRunner {
    * The runner gets closed and initialized again using init.
    */
   public void reset();
+
+  /**
+   * @return true if the runner is currently executing a script, false otherwise
+   */
+  public boolean isRunning();
+
+  /**
+   * Aborts the current running script.
+   *
+   * Not all runners can be aborted, please check abort support using isAbortSupported().
+   *
+   */
+  public void abort();
+
+  /**
+   * Checks if abort is supported by this script runner implementation.
+   *
+   * @return true is aboort is supported, false otherwise
+   */
+  public boolean isAbortSupported();
 }

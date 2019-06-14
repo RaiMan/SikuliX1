@@ -9,12 +9,13 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.IntSupplier;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
@@ -39,7 +40,9 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 //    return TYPE;
 //  }
 
-  boolean ready = false;
+  private boolean ready = false;
+
+  private boolean running = false;
 
   PrintStream redirectedStdout;
   PrintStream redirectedStderr;
@@ -72,7 +75,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void doInit(String[] args) throws Exception {
-    // noop if not implemented
+    // NOOP if not implemented
   }
 
   public final boolean isReady() {
@@ -154,7 +157,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized (this) {
+    return synchronizedRunning(() -> {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
@@ -185,7 +188,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
-    }
+    });
   }
 
   protected File checkWithExtensions(File scriptFile) {
@@ -199,10 +202,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int evalScript(String script, IScriptRunner.Options options) {
-    synchronized (this) {
+    return synchronizedRunning(() -> {
       init(null);
       return doEvalScript(script, options);
-    }
+    });
   }
 
   protected int doEvalScript(String script, IScriptRunner.Options options) {
@@ -212,10 +215,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void runLines(String lines, IScriptRunner.Options options) {
-    synchronized (this) {
+    synchronizedRunning(() -> {
       init(null);
       doRunLines(lines, options);
-    }
+      return 0;
+    });
   }
 
   protected void doRunLines(String lines, IScriptRunner.Options options) {
@@ -224,10 +228,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized (this) {
+    return synchronizedRunning(() -> {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
-    }
+    });
   }
 
   protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
@@ -237,10 +241,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runInteractive(String[] scriptArgs) {
-    synchronized (this) {
+    return synchronizedRunning(() -> {
       init(null);
       return doRunInteractive(scriptArgs);
-    }
+    });
   }
 
   protected int doRunInteractive(String[] scriptArgs) {
@@ -269,7 +273,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void doClose() {
-    // noop if not implemented
+    // NOOP if not implemented
   }
 
   @Override
@@ -312,4 +316,33 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   static ArrayList<String> codeBefore = null;
   static ArrayList<String> codeAfter = null;
+
+  public final boolean isRunning() {
+    return running;
+  }
+
+  public boolean isAbortSupported() {
+    return false;
+  }
+
+  public final void abort() {
+    if(running && isAbortSupported()) {
+      doAbort();
+    }
+  }
+
+  protected void doAbort() {
+    // NOOP if not implemented
+  }
+
+  private int synchronizedRunning(IntSupplier block) {
+    synchronized (this) {
+      try {
+        running = true;
+        return block.getAsInt();
+      } finally {
+        running = false;
+      }
+    }
+  }
 }
