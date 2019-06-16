@@ -14,7 +14,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.RobotRunner;
 
 import io.undertow.Handlers;
@@ -296,12 +295,8 @@ public class SikulixServer {
     RoutingHandler commands = Handlers.routing()
             .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
                     new StopCommandHttpHandler())
-            .add(Methods.GET, "/exit*", Predicates.prefix("exit"),
-                    new ExitCommandHttpHandler())
             .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
                     new ScriptsCommandHttpHandler())
-            .add(Methods.GET, "/images*", Predicates.prefix("images"),
-                    new ImagesCommandHttpHandler())
             .add(Methods.GET, "/run*", Predicates.prefix("run"),
                     new RunCommandHttpHandler())
             .setFallbackHandler(new AbstractCommandHttpHandler() {
@@ -351,14 +346,6 @@ public class SikulixServer {
     }
   }
 
-  private static class ExitCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      sendResponse(exchange, true, StatusCodes.OK, "stopping client");
-      exchange.getConnection().close();
-    }
-  }
-
   private static class ScriptsCommandHttpHandler extends AbstractCommandHttpHandler {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
@@ -384,43 +371,6 @@ public class SikulixServer {
             success = false;
           }
         }
-      }
-      sendResponse(exchange, success, statusCode, message);
-    }
-  }
-
-  private static class ImagesCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String resource = exchange.getQueryParameters().get("*").getFirst();
-      String asImagePath;
-      boolean success = true;
-      int statusCode = StatusCodes.OK;
-      String message = null;
-      if (resource.isEmpty()) {
-        message = "no imageFolder given ";
-        statusCode = StatusCodes.BAD_REQUEST;
-        success = false;
-      } else {
-        setImageFolder(getFolder(resource));
-        if (getImageFolder().getPath().startsWith("__NET/")) {
-          setImageFolderNet("http://" + getImageFolder().getPath().substring(6));
-          message = "imageFolder now: " + getImageFolderNet();
-          asImagePath = getImageFolderNet();
-        } else {
-          String fpGiven = getImageFolder().getAbsolutePath();
-          if (!getImageFolder().exists()) {
-            setImageFolder(new File(getImageFolder().getAbsolutePath() + ".sikuli"));
-            if (!getImageFolder().exists()) {
-              message = "imageFolder not found: " + fpGiven;
-              statusCode = StatusCodes.NOT_FOUND;
-              success = false;
-            }
-          }
-          asImagePath = getImageFolder().getAbsolutePath();
-        }
-        message = "imageFolder now: " + asImagePath;
-        ImagePath.add(asImagePath);
       }
       sendResponse(exchange, success, statusCode, message);
     }
@@ -474,8 +424,6 @@ public class SikulixServer {
   private static abstract class AbstractCommandHttpHandler implements HttpHandler {
     private static File scriptFolder = null;
     private static String scriptFolderNet = null;
-    private static File imageFolder = null;
-    private static String imageFolderNet = null;
 
     protected void setScriptFolder(File scriptFolder) {
       AbstractCommandHttpHandler.scriptFolder = scriptFolder;
@@ -491,22 +439,6 @@ public class SikulixServer {
 
     protected String getScriptFolderNet() {
       return AbstractCommandHttpHandler.scriptFolderNet;
-    }
-
-    protected void setImageFolder(File imageFolder) {
-      AbstractCommandHttpHandler.imageFolder = imageFolder;
-    }
-
-    protected File getImageFolder() {
-      return AbstractCommandHttpHandler.imageFolder;
-    }
-
-    protected void setImageFolderNet(String imageFolderNet) {
-      AbstractCommandHttpHandler.imageFolderNet = imageFolderNet;
-    }
-
-    protected String getImageFolderNet() {
-      return AbstractCommandHttpHandler.imageFolderNet;
     }
 
     protected void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
