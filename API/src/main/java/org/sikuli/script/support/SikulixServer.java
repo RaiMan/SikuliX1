@@ -15,9 +15,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.JRubyRunner;
+import org.sikuli.script.runners.RobotRunner;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -244,6 +242,14 @@ public class SikulixServer {
         return false;
       }
       try {
+        Runner.getRunners().stream()
+            .filter(runner -> !runner.getName().equals(RobotRunner.NAME))  //TODO Delete this line when RobotRunner.init() call failure is resolved
+            .forEach(runner -> runner.init(null));
+      } catch (Exception ex) {
+        dolog(-1, "ScriptRunner init not possible: " + ex.getMessage());
+        return false;
+      }
+      try {
         if (port > 0) {
           dolog(3, "Starting: trying with: %s:%d", theIP, port);
           server = createServer(port, theIP);
@@ -292,8 +298,6 @@ public class SikulixServer {
                     new StopCommandHttpHandler())
             .add(Methods.GET, "/exit*", Predicates.prefix("exit"),
                     new ExitCommandHttpHandler())
-            .add(Methods.GET, "/start*", Predicates.prefixes("startp", "startr", "start"),
-                    new StartCommandHttpHandler())
             .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
                     new ScriptsCommandHttpHandler())
             .add(Methods.GET, "/images*", Predicates.prefix("images"),
@@ -352,35 +356,6 @@ public class SikulixServer {
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       sendResponse(exchange, true, StatusCodes.OK, "stopping client");
       exchange.getConnection().close();
-    }
-  }
-
-  private static class StartCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String runType = JavaScriptRunner.NAME;
-      String path = exchange.getRelativePath();
-      if (path.length() > 6) {
-        if ("p".equals(path.substring(6, 7))) {
-          runType = JythonRunner.NAME;
-        } else if ("r".equals(path.substring(6, 7))) {
-          runType = JRubyRunner.NAME;
-        }
-      }
-      boolean success = true;
-      int statusCode;
-      String message;
-      try {
-        Runner.getRunner(runType).init(null);
-        message = "ready to run: " + runType;
-        statusCode = StatusCodes.OK;
-      } catch (Exception ex) {
-        SikulixServer.dolog("ScriptRunner init not possible: " + ex.getMessage());
-        message = "not ready to run: " + runType;
-        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        success = false;
-      }
-      sendResponse(exchange, success, statusCode, message);
     }
   }
 
@@ -476,7 +451,7 @@ public class SikulixServer {
 
     private String getCurrentGroup() {
       //TODO evaluate and return the current group's folder
-      return "";
+      return groups.get(DEFAULT_GROUP).getAbsolutePath();
     }
 
     private List<String> getQueryAndToArgs(final HttpServerExchange exchange) {
