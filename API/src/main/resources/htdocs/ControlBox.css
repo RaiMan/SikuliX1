@@ -112,3 +112,7 @@ footer {
 .font-fail {
   color: red;
 }
+#initialize-part,
+#set-part {
+  display: none;
+}
