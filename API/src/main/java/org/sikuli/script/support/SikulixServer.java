@@ -18,6 +18,7 @@ import org.sikuli.script.runners.RobotRunner;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.attribute.RelativePathAttribute;
 import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -295,10 +296,8 @@ public class SikulixServer {
     RoutingHandler commands = Handlers.routing()
             .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
                     new StopCommandHttpHandler())
-            .add(Methods.GET, "/scripts*", Predicates.prefix("scripts"),
+            .add(Methods.GET, "/scripts/*", Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/]+/run$"),
                     new ScriptsCommandHttpHandler())
-            .add(Methods.GET, "/run*", Predicates.prefix("run"),
-                    new RunCommandHttpHandler())
             .setFallbackHandler(new AbstractCommandHttpHandler() {
               @Override
               public void handleRequest(HttpServerExchange exchange) throws Exception {
@@ -347,41 +346,10 @@ public class SikulixServer {
   }
 
   private static class ScriptsCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String resource = exchange.getQueryParameters().get("*").getFirst();
-      boolean success = true;
-      int statusCode = StatusCodes.OK;
-      String message = null;
-      if (resource.isEmpty()) {
-        message = "no scriptFolder given ";
-        statusCode = StatusCodes.BAD_REQUEST;
-        success = false;
-      } else {
-        setScriptFolder(getFolder(resource));
-        if (getScriptFolder().getPath().startsWith("__NET/")) {
-          setScriptFolderNet("http://" + getScriptFolder().getPath().substring(6));
-          message = "scriptFolder now: " + getScriptFolderNet();
-        } else {
-          setScriptFolderNet(null);
-          message = "scriptFolder now: " + getScriptFolder().getAbsolutePath();
-          if (!getScriptFolder().exists()) {
-            message = "scriptFolder not found: " + getScriptFolder().getAbsolutePath();
-            statusCode = StatusCodes.NOT_FOUND;
-            success = false;
-          }
-        }
-      }
-      sendResponse(exchange, success, statusCode, message);
-    }
-  }
-
-  private static class RunCommandHttpHandler extends AbstractCommandHttpHandler {
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
 
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String script = exchange.getQueryParameters().get("*").getFirst();
+    private HttpHandler run = exchange -> {
+      String script = exchange.getQueryParameters().get("*").getFirst().replaceFirst("/run$", "");
       File fScript = new File(getCurrentGroup(), script);
       int statusCode = StatusCodes.OK;
       List<String> args = getQueryAndToArgs(exchange);
@@ -397,6 +365,11 @@ public class SikulixServer {
       }
       String message = "runScript: returned: " + retval;
       sendResponse(exchange, true, statusCode, message);
+    };
+
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+      run.handleRequest(exchange);
     }
 
     private String getCurrentGroup() {
@@ -422,25 +395,6 @@ public class SikulixServer {
   }
 
   private static abstract class AbstractCommandHttpHandler implements HttpHandler {
-    private static File scriptFolder = null;
-    private static String scriptFolderNet = null;
-
-    protected void setScriptFolder(File scriptFolder) {
-      AbstractCommandHttpHandler.scriptFolder = scriptFolder;
-    }
-
-    protected File getScriptFolder() {
-      return AbstractCommandHttpHandler.scriptFolder;
-    }
-
-    protected void setScriptFolderNet(String scriptFolderNet) {
-      AbstractCommandHttpHandler.scriptFolderNet = scriptFolderNet;
-    }
-
-    protected String getScriptFolderNet() {
-      return AbstractCommandHttpHandler.scriptFolderNet;
-    }
-
     protected void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
       exchange.setStatusCode(stateCode);
       exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
@@ -449,25 +403,6 @@ public class SikulixServer {
       exchange.getResponseSender().send(body);
 
       SikulixServer.dolog("returned:\n" + (head + "\n\n" + body));
-    }
-
-    protected File getFolder(String path) {
-      File aFolder = new File(path);
-      Debug.log("Original path: " + aFolder);
-      if (path.toLowerCase().startsWith("/home/")) {
-        path = path.substring(6);
-        aFolder = new File(RunTime.get().fUserDir, path);
-      } else if (path.toLowerCase().startsWith("/net/")) {
-        path = "__NET/" + path.substring(5);
-        aFolder = new File(path);
-      } else if (RunTime.get().runningWindows) {
-        Matcher matcher = java.util.regex.Pattern.compile("(?ix: ^ (?: / ([a-z]) [:]? /) (.*) $)").matcher(path);
-        // Assume specified drive exists or fallback on the default/required drive
-        String newPath = matcher.matches() ? matcher.replaceAll("$1:/$2") : ("c:" + path);
-        aFolder = new File(newPath);
-      }
-      Debug.log("Transformed path: " + aFolder);
-      return aFolder;
     }
   }
 
