@@ -108,6 +108,11 @@ public class RobotRunner extends JythonRunner {
   public String getType() {
     return TYPE;
   }
+  
+  @Override
+  public boolean canHandle(String identifier) {
+    return !identifier.endsWith("$py.class") && super.canHandle(identifier);
+  }
 
   @Override
   protected void doInit(String[] args) {

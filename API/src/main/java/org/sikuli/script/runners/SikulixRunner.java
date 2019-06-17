@@ -43,11 +43,6 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public boolean isWrapper() {
-    return true;
-  }
-
-  @Override
   public String getName() {
     return NAME;
   }
@@ -62,6 +57,18 @@ public class SikulixRunner extends AbstractScriptRunner {
   public String getType() {
     return TYPE;
   }
+  
+  @Override
+  public boolean canHandle(String identifier) {
+    File file = new File(identifier);
+    
+    if (file.isDirectory()) {
+      File innerScriptFile = Runner.getScriptFile(file);
+      return null != innerScriptFile;
+    }
+    
+    return false;    
+  }
 
   @Override
   protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
@@ -71,7 +78,7 @@ public class SikulixRunner extends AbstractScriptRunner {
     if (null != innerScriptFile) {
       try {
         currentRunner = Runner.getRunner(innerScriptFile.getAbsolutePath());
-        return currentRunner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, null);
+        return currentRunner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, options);
       } finally {
         currentRunner = null;
       }
@@ -83,12 +90,12 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isAbortSupported() {
-    return true;
+    return null != currentRunner && currentRunner.isAbortSupported();
   }
 
   @Override
   protected void doAbort() {
-    if (null != currentRunner && currentRunner.isAbortSupported()) {
+    if (isAbortSupported()) {
       currentRunner.abort();
     }
   }

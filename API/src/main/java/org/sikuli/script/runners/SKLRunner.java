@@ -25,12 +25,7 @@ public class SKLRunner extends AbstractScriptRunner {
   public boolean isSupported() {    
     return false;
   }
-
-  @Override
-  public boolean isWrapper() {
-    return true;
-  }
-
+ 
   @Override
   public String getName() {   
     return NAME;

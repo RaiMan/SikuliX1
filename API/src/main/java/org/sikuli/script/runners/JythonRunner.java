@@ -13,6 +13,7 @@ import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.support.IScriptRunner;
@@ -23,15 +24,15 @@ import org.sikuli.util.InterruptibleThreadRunner;
  * Executes Sikuliscripts written in Python/Jython.
  */
 
-public class JythonRunner extends AbstractScriptRunner {
+public class JythonRunner extends AbstractFileScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
-  public static final String[] EXTENSIONS = new String[] { "py", "$py.class" };
+  public static final String[] EXTENSIONS = new String[] { "py" };
 
   private static RunTime runTime = RunTime.get();
 
-  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner();
+  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JythonRunner.class);
 
   private int lvl = 3;
 
@@ -45,7 +46,7 @@ public class JythonRunner extends AbstractScriptRunner {
    */
   protected PythonInterpreter getInterpreter() {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       if (interpreter == null) {
         sysargv.add("");
         PythonInterpreter.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
@@ -59,7 +60,7 @@ public class JythonRunner extends AbstractScriptRunner {
 
   protected JythonHelper getHelper() {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       if (helper == null) {
         helper = JythonHelper.set(getInterpreter());
       }
@@ -77,7 +78,7 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       log(lvl, "starting initialization");
       getInterpreter();
       getHelper();
@@ -98,7 +99,7 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       threadRunner.run(options.getTimeout(), () -> {
         final String execLines;
 
@@ -126,7 +127,7 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       return threadRunner.run(options.getTimeout(), () -> {
         interpreter.exec(script);
         return 0;
@@ -144,20 +145,21 @@ public class JythonRunner extends AbstractScriptRunner {
    */
   @Override
   protected int doRunScript(String scriptFile, String[] argv, IScriptRunner.Options options) {
+    
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       return threadRunner.run(options.getTimeout(), () -> {
+        
         File pyFile = new File(scriptFile);
         sysargv = new ArrayList<String>();
         sysargv.add(pyFile.getAbsolutePath());
         if (argv != null) {
           sysargv.addAll(Arrays.asList(argv));
         }
+        
         executeScriptHeader();
-
-        if (null != options && options.isRunningInIDE()) {
-          helper.reloadImported();
-        }
+ 
+        prepareFileLocation(pyFile, options);      
 
         int exitCode = 0;
 
@@ -312,7 +314,7 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
     // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (PythonInterpreter.class) {
+    synchronized (JythonRunner.class) {
       if (!redirected) {
         redirected = true;
         PythonInterpreter py = getInterpreter();
@@ -343,6 +345,11 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected void doAbort() {
     threadRunner.interrupt();
+  }
+  
+  @Override
+  public boolean canHandle(String identifier) {
+    return super.canHandle(identifier) || (identifier.endsWith("$py.class") && new File(identifier).exists());        
   }
 
 // TODO SikuliToHtmlConverter implement in Java
