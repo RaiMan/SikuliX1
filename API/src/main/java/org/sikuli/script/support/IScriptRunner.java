@@ -76,33 +76,10 @@ public interface IScriptRunner {
     }
 
     private boolean runningInIDE = false;
-
-    public String getWorkFolder() {
-      return workFolder;
-    }
-
-    public Options setWorkFolder(String workFolder) {
-      this.workFolder = workFolder;
-      return this;
-    }
-
-    private String workFolder = null;
-
-    public String getScriptName() {
-      return scriptName;
-    }
-
-    public Options setScriptName(String scriptName) {
-      this.scriptName = scriptName;
-      return this;
-    }
-
-    private String scriptName = null;
-
+   
     public void setRunningInIDE(boolean runningInIDE) {
       this.runningInIDE = runningInIDE;
     }
-
 
     private long timeout = 0;
 
