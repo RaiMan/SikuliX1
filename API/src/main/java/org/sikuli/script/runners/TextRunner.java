@@ -12,7 +12,7 @@ package org.sikuli.script.runners;
  *
  */
 
-public class TextRunner extends AbstractScriptRunner {
+public class TextRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "Text";
   public static final String TYPE = "text/text";

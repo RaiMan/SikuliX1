@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class PythonRunner extends AbstractScriptRunner {
+public class PythonRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "Python";
   public static final String TYPE = "text/python";
