@@ -4,7 +4,6 @@
 
 package org.sikuli.script.runners;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import java.util.function.IntSupplier;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
@@ -88,7 +86,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public boolean isSupported() {
     return false;
   }
-  
+
   @Override
   public final boolean hasExtension(String ending) {
     for (String suf : getExtensions()) {
@@ -152,23 +150,19 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
-    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
-    
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
+
     return synchronizedRunning(() -> {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
-      
+
       int exitValue = doRunScript(script, scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     });
-  }
-
-  protected File checkWithExtensions(File scriptFile) {
-    return scriptFile;
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -178,7 +172,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
-    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
     return synchronizedRunning(() -> {
       init(null);
       return doEvalScript(script, options);
@@ -192,7 +186,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
-    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
     synchronizedRunning(() -> {
       init(null);
       doRunLines(lines, options);
@@ -206,7 +200,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
-    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
     return synchronizedRunning(() -> {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);

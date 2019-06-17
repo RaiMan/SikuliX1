@@ -83,7 +83,7 @@ public class Runner {
     synchronized (runners) {
       initRunners();
       for (IScriptRunner runner : supportedRunners) {
-        if (runner.canHandle(identifier)) {          
+        if (runner.canHandle(identifier)) {
           return runner;
         }
       }
@@ -210,15 +210,15 @@ public class Runner {
     File scriptFile;
     if (runScripts != null && runScripts.length > 0) {
       IScriptRunner.Options runOptions = new IScriptRunner.Options();
-      for (String scriptGiven : runScripts) {                          
-        IScriptRunner runner = getRunner(scriptGiven);        
+      for (String scriptGiven : runScripts) {
+        IScriptRunner runner = getRunner(scriptGiven);
         exitCode = runner.runScript(scriptGiven, null, runOptions);
-        
+
         if (exitCode != 0) {
           return exitCode;
         }
-        
-        
+
+
 //        if (!scriptFile.isAbsolute()) {
 //          log(lvl, "runScript: requested: %s / %s",
 //              null == lastWorkFolder ? "unknown" : lastWorkFolder, scriptGiven);
@@ -272,7 +272,7 @@ public class Runner {
 //        lastReturnCode = exitCode;
 //      }
 //    }
-        
+
       }}
     return exitCode;
   }
@@ -320,19 +320,19 @@ public class Runner {
       for (IScriptRunner runner : getRunners()) {
         if (runner.canHandle(fScriptFileOrFolder.getName())) {
           return fScriptFileOrFolder;
-        }       
+        }
       }
     }
 
     // check if fScriptFileOrFolder contains a supported script file with same name
     if (fScriptFileOrFolder.isDirectory()) {
       for (File aFile : fScriptFileOrFolder.listFiles()) {
-        if (FilenameUtils.removeExtension(aFile.getName()).equals(FilenameUtils.removeExtension(fScriptFileOrFolder.getName()))) {
-          for (IScriptRunner runner : getRunners()) {            
+        if (FilenameUtils.getBaseName(aFile.getName()).equals(FilenameUtils.getBaseName(fScriptFileOrFolder.getName()))) {
+          for (IScriptRunner runner : getRunners()) {
             if (runner.canHandle(aFile.getName())) {
               return aFile;
-            }                                
-          }         
+            }
+          }
         }
       }
     }

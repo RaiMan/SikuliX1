@@ -5,36 +5,36 @@ package org.sikuli.script.runners;
 
 /**
  * Runs a sikulix script packed in a jar file
- * 
+ *
  * NOT SUPPORTED YET!
- * 
+ *
  * @author mbalmer
  *
  */
 
 public class JarRunner extends AbstractScriptRunner {
-  
+
   public static final String NAME = "RunnableJar";
   public static final String TYPE = "text/jar";
   public static final String[] EXTENSIONS = new String[] {"jar"};
 
   @Override
-  public boolean isSupported() {    
+  public boolean isSupported() {
     return false;
   }
- 
+
   @Override
-  public String getName() {   
+  public String getName() {
     return NAME;
   }
 
   @Override
-  public String[] getExtensions() {   
+  public String[] getExtensions() {
     return EXTENSIONS.clone();
   }
 
   @Override
-  public String getType() {    
+  public String getType() {
     return TYPE;
   }
 }

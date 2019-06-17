@@ -20,22 +20,8 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
-  public static final String[] EXTENSIONS = new String[]{"sikuli"};
 
   private IScriptRunner currentRunner;
-
-  @Override
-  protected File checkWithExtensions(File scriptFile) {
-    String scriptFilePath = scriptFile.getPath();
-    for (String extension : getExtensions()) {
-      File alternateFile = new File(scriptFilePath + "." + extension);
-      if (alternateFile.exists()) {
-        scriptFile = alternateFile;
-        break;
-      }
-    }
-    return scriptFile;
-  }
 
   @Override
   public boolean isSupported() {
@@ -49,25 +35,24 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public String[] getExtensions() {
-    // TODO Auto-generated method stub
-    return EXTENSIONS.clone();
+    return new String[0];
   }
 
   @Override
   public String getType() {
     return TYPE;
   }
-  
+
   @Override
   public boolean canHandle(String identifier) {
     File file = new File(identifier);
-    
+
     if (file.isDirectory()) {
       File innerScriptFile = Runner.getScriptFile(file);
       return null != innerScriptFile;
     }
-    
-    return false;    
+
+    return false;
   }
 
   @Override
@@ -75,6 +60,7 @@ public class SikulixRunner extends AbstractScriptRunner {
     File scriptFile = new File(scriptFileOrFolder);
 
     File innerScriptFile = Runner.getScriptFile(scriptFile);
+
     if (null != innerScriptFile) {
       try {
         currentRunner = Runner.getRunner(innerScriptFile.getAbsolutePath());
