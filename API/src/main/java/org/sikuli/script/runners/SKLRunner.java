@@ -23,19 +23,12 @@ import org.sikuli.script.support.Runner;
  * @author mbalmer
  */
 
-public class SKLRunner extends AbstractScriptRunner {
+public class SKLRunner extends ZipRunner {
 
   public static final String NAME = "PackedSikulix";
   public static final String TYPE = "text/skl";
   public static final String[] EXTENSIONS = new String[] { "skl" };
-
-  private IScriptRunner currentRunner;
-
-  @Override
-  public boolean isSupported() {
-    return true;
-  }
-
+  
   @Override
   public String getName() {
     return NAME;
@@ -49,103 +42,5 @@ public class SKLRunner extends AbstractScriptRunner {
   @Override
   public String getType() {
     return TYPE;
-  }
-
-  @Override
-  public boolean canHandle(String identifier) {
-    if (super.canHandle(identifier)) {
-      try (ZipFile file = new ZipFile(identifier)) {
-          ZipEntry innerScriptFile = getScriptEntry(file);
-          return null != innerScriptFile;
-      } catch (IOException e) {
-        log(-1, "Error opening SKL file %s: %s", identifier, e.getMessage());
-        return false;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
-    File dir = null;
-
-    try (ZipFile file = new ZipFile(scriptFileOrFolder)) {
-      ZipEntry innerScriptFile = getScriptEntry(file);
-      if(null != innerScriptFile) {
-        dir = extract(file);
-        String innerScriptFilePath = dir.getAbsolutePath() + File.separator + innerScriptFile.getName();
-        currentRunner = Runner.getRunner(innerScriptFilePath);
-        return currentRunner.runScript(innerScriptFilePath, scriptArgs, options);
-      }
-      return Runner.FILE_NOT_FOUND;
-    } catch (IOException e) {
-      log(-1, "Error opening SKL file %s: %s", scriptFileOrFolder, e.getMessage());
-      return -1;
-    } finally {
-      currentRunner = null;
-      if (null != dir) {
-        try {
-          FileUtils.deleteDirectory(dir);
-        } catch (IOException e) {
-          log(-1, "Error deleting tmp dir %s: %s", dir, e.getMessage());
-        }
-      }
-    }
-  }
-
-  private ZipEntry getScriptEntry(ZipFile file) {
-    Enumeration<? extends ZipEntry> entries = file.entries();
-
-    while (entries.hasMoreElements()) {
-      ZipEntry entry = entries.nextElement();
-
-      if (FilenameUtils.getBaseName(entry.getName()).equals(FilenameUtils.getBaseName(file.getName()))) {
-        for (IScriptRunner runner : Runner.getRunners()) {
-          if (runner.canHandle(entry.getName())) {
-            return entry;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  private File extract(ZipFile jar) throws IOException {
-
-    File dir = Files.createTempDirectory("sikulix").toFile();
-
-    Enumeration<? extends ZipEntry> entries = jar.entries();
-
-    while (entries.hasMoreElements()) {
-      ZipEntry entry = entries.nextElement();
-
-      File f = new File(dir.getAbsolutePath() + File.separator + entry.getName());
-
-      if (entry.isDirectory()) {
-        f.mkdirs();
-      } else {
-        try (InputStream is = jar.getInputStream(entry)) {
-          try (FileOutputStream fo = new java.io.FileOutputStream(f)) {
-            while (is.available() > 0) {
-              fo.write(is.read());
-            }
-          }
-        }
-      }
-    }
-
-    return dir;
-  }
-
-  @Override
-  public boolean isAbortSupported() {
-    return null != currentRunner && currentRunner.isAbortSupported();
-  }
-
-  @Override
-  protected void doAbort() {
-    if (isAbortSupported()) {
-      currentRunner.abort();
-    }
   }
 }

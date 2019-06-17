@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.python.core.BytecodeLoader;
+import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
@@ -17,13 +21,14 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 import org.sikuli.util.InterruptibleThreadRunner;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
  */
 
-public class JythonRunner extends AbstractFileScriptRunner {
+public class JythonRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
@@ -163,7 +168,16 @@ public class JythonRunner extends AbstractFileScriptRunner {
         int exitCode = 0;
 
         try {
-          interpreter.execfile(pyFile.getAbsolutePath());
+          if (scriptFile.endsWith("$py.class")) {
+            byte[] data = FileUtils.readFileToByteArray(new File(scriptFile));
+
+            PyCode code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
+
+            interpreter.exec(code);
+          } else {
+            interpreter.execfile(pyFile.getAbsolutePath());
+          }
+
         } catch (Exception scriptException) {
           exitCode = 1;
           java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
@@ -272,6 +286,11 @@ public class JythonRunner extends AbstractFileScriptRunner {
     } catch (ClassNotFoundException ex) {
       return false;
     }
+  }
+
+  @Override
+  public boolean canHandle(String identifier) {
+    return null != identifier && (identifier.endsWith("$py.class") || super.canHandle(identifier));
   }
 
   /**

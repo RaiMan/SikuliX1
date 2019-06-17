@@ -26,7 +26,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.InterruptibleThreadRunner;
 
-public class JRubyRunner extends AbstractFileScriptRunner {
+public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";

@@ -85,5 +85,4 @@ public class SikulixRunner extends AbstractScriptRunner {
       currentRunner.abort();
     }
   }
-
 }

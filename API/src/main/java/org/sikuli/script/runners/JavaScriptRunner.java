@@ -19,7 +19,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.InterruptibleThreadRunner;
 
-public class JavaScriptRunner extends AbstractFileScriptRunner {
+public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "JavaScript";
   public static final String TYPE = "text/javascript";

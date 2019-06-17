@@ -6,6 +6,7 @@ package org.sikuli.script.runners;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 
@@ -69,10 +70,14 @@ public class NetworkRunner extends AbstractScriptRunner {
 
   @Override
   public boolean canHandle(String identifier) {
-    if (identifier != null && identifier.indexOf("://") <= 5) {
-      String[] parts = identifier.split("://");
-      if (parts.length > 1 && !parts[1].isEmpty()) {
-        return null != getScriptURL(identifier);
+    if (identifier != null) {
+      int protoSepIndex = identifier.indexOf("://");
+
+      if (protoSepIndex > 0 && protoSepIndex <= 5) {
+        String[] parts = identifier.split("://");
+        if (parts.length > 1 && !parts[1].isEmpty()) {
+          return null != getScriptURL(identifier);
+        }
       }
     }
 
