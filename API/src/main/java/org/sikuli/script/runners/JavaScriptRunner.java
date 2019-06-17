@@ -66,9 +66,9 @@ public class JavaScriptRunner extends AbstractFileScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     return threadRunner.run(options.getTimeout(), () -> {
       log(lvl, "runJavaScript: running statements");
-      
-      prepareFileLocation(new File(scriptFile), options);   
-      
+
+      prepareFileLocation(new File(scriptFile), options);
+
       try {
         engine.eval(new FileReader(new File(scriptFile)));
       } catch (FileNotFoundException | ScriptException e) {

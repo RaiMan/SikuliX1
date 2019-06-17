@@ -8,10 +8,10 @@ import java.io.File;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
-import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class RobotRunner extends JythonRunner {
 
@@ -107,11 +107,6 @@ public class RobotRunner extends JythonRunner {
   @Override
   public String getType() {
     return TYPE;
-  }
-  
-  @Override
-  public boolean canHandle(String identifier) {
-    return !identifier.endsWith("$py.class") && super.canHandle(identifier);
   }
 
   @Override

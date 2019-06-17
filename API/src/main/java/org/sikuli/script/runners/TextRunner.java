@@ -3,9 +3,6 @@
  */
 package org.sikuli.script.runners;
 
-import java.net.URI;
-import java.util.Map;
-
 /**
  * Runs a text file.
  *

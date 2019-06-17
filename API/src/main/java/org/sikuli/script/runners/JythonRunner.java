@@ -13,7 +13,6 @@ import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.support.IScriptRunner;
@@ -145,21 +144,21 @@ public class JythonRunner extends AbstractFileScriptRunner {
    */
   @Override
   protected int doRunScript(String scriptFile, String[] argv, IScriptRunner.Options options) {
-    
+
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
       return threadRunner.run(options.getTimeout(), () -> {
-        
+
         File pyFile = new File(scriptFile);
         sysargv = new ArrayList<String>();
         sysargv.add(pyFile.getAbsolutePath());
         if (argv != null) {
           sysargv.addAll(Arrays.asList(argv));
         }
-        
+
         executeScriptHeader();
- 
-        prepareFileLocation(pyFile, options);      
+
+        prepareFileLocation(pyFile, options);
 
         int exitCode = 0;
 
@@ -345,11 +344,6 @@ public class JythonRunner extends AbstractFileScriptRunner {
   @Override
   protected void doAbort() {
     threadRunner.interrupt();
-  }
-  
-  @Override
-  public boolean canHandle(String identifier) {
-    return super.canHandle(identifier) || (identifier.endsWith("$py.class") && new File(identifier).exists());        
   }
 
 // TODO SikuliToHtmlConverter implement in Java

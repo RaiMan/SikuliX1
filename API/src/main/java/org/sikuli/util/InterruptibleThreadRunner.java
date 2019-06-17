@@ -22,12 +22,12 @@ import com.sun.jna.ptr.IntByReference;
 public class InterruptibleThreadRunner {
   private Thread execThread;
   private Object monitor;
-  
+
   public InterruptibleThreadRunner() {
     super();
     this.monitor = this;
   }
-  
+
   public InterruptibleThreadRunner(Object monitor) {
     super();
     this.monitor = monitor;

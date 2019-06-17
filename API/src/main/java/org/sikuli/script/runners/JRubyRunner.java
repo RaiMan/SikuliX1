@@ -22,7 +22,6 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.InterruptibleThreadRunner;
@@ -97,12 +96,12 @@ public class JRubyRunner extends AbstractFileScriptRunner {
         }
         File rbFile = new File(new File(scriptFile).getAbsolutePath());
         fillSysArgv(rbFile, scriptArgs);
-        
+
         executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
             rbFile.getParentFile().getParentFile().getAbsolutePath() });
-        
-        prepareFileLocation(rbFile, options); 
-        
+
+        prepareFileLocation(rbFile, options);
+
         int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
 
         log(lvl + 1, "runScript: at exit: path:");
