@@ -19,7 +19,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.InterruptibleThreadRunner;
 
-public class JavaScriptRunner extends AbstractScriptRunner {
+public class JavaScriptRunner extends AbstractFileScriptRunner {
 
   public static final String NAME = "JavaScript";
   public static final String TYPE = "text/javascript";
@@ -66,6 +66,9 @@ public class JavaScriptRunner extends AbstractScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     return threadRunner.run(options.getTimeout(), () -> {
       log(lvl, "runJavaScript: running statements");
+      
+      prepareFileLocation(new File(scriptFile), options);   
+      
       try {
         engine.eval(new FileReader(new File(scriptFile)));
       } catch (FileNotFoundException | ScriptException e) {

@@ -88,12 +88,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public boolean isSupported() {
     return false;
   }
-
-  @Override
-  public boolean isWrapper() {
-    return false;
-  }
-
+  
   @Override
   public final boolean hasExtension(String ending) {
     for (String suf : getExtensions()) {
@@ -156,36 +151,17 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options options) {
+  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
+    
     return synchronizedRunning(() -> {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
-      File scriptFile = new File(script);
-      if (!scriptFile.isAbsolute()) {
-        if (null != options) {
-          scriptFile = Runner.checkScriptFolderOrFile(options.getWorkFolder(), scriptFile);
-        } else {
-          scriptFile = Runner.checkScriptFolderOrFile(null, scriptFile);
-        }
-      }
-      if (!scriptFile.exists()) {
-        if (isWrapper() && FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
-          scriptFile = checkWithExtensions(scriptFile);
-        }
-        if (!scriptFile.exists()) {
-          return Runner.FILE_NOT_FOUND;
-        }
-      }
-      if (null == options || (!options.isRunningInIDE() && !isWrapper())) {
-        ImagePath.setBundleFolder(scriptFile.getParentFile());
-      }
-      if (null != options) {
-        options.setWorkFolder(scriptFile.getParent());
-      }
-      int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
+      
+      int exitValue = doRunScript(script, scriptArgs, options);
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     });
@@ -201,7 +177,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int evalScript(String script, IScriptRunner.Options options) {
+  public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
     return synchronizedRunning(() -> {
       init(null);
       return doEvalScript(script, options);
@@ -214,7 +191,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final void runLines(String lines, IScriptRunner.Options options) {
+  public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
     synchronizedRunning(() -> {
       init(null);
       doRunLines(lines, options);
@@ -227,7 +205,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
+  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();    
     return synchronizedRunning(() -> {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);

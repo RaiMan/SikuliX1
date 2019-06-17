@@ -21,6 +21,17 @@ import com.sun.jna.ptr.IntByReference;
 
 public class InterruptibleThreadRunner {
   private Thread execThread;
+  private Object monitor;
+  
+  public InterruptibleThreadRunner() {
+    super();
+    this.monitor = this;
+  }
+  
+  public InterruptibleThreadRunner(Object monitor) {
+    super();
+    this.monitor = monitor;
+  }
 
   /**
    * Runs the given block in a new thread. The block is interrupted automatically
@@ -31,7 +42,7 @@ public class InterruptibleThreadRunner {
    * @return
    */
   public int run(long timeout, IntSupplier block) {
-    synchronized (this) {
+    synchronized (monitor) {
       final IntByReference exitCode = new IntByReference(0);
 
       execThread = new Thread() {
@@ -40,8 +51,8 @@ public class InterruptibleThreadRunner {
           try {
             exitCode.setValue(block.getAsInt());
           } finally {
-            synchronized(InterruptibleThreadRunner.this) {
-              InterruptibleThreadRunner.this.notifyAll();
+            synchronized(monitor) {
+              monitor.notifyAll();
             }
           }
         }
@@ -71,7 +82,7 @@ public class InterruptibleThreadRunner {
       }
 
       try {
-        this.wait();
+        monitor.wait();
       } catch (InterruptedException e) {
         interrupt();
       } finally {
@@ -83,7 +94,7 @@ public class InterruptibleThreadRunner {
   }
 
   public void interrupt() {
-    synchronized (this) {
+    synchronized (monitor) {
       if (null != execThread && execThread.isAlive()) {
         execThread.interrupt();
         execThread.stop();

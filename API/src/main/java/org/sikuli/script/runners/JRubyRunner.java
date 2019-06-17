@@ -27,7 +27,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.InterruptibleThreadRunner;
 
-public class JRubyRunner extends AbstractScriptRunner {
+public class JRubyRunner extends AbstractFileScriptRunner {
 
   public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";
@@ -72,7 +72,7 @@ public class JRubyRunner extends AbstractScriptRunner {
   private static ThreadContext context;
   private static boolean redirected = false;
 
-  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner();
+  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JRubyRunner.class);
 
   @Override
   protected void doInit(String[] args) {
@@ -97,11 +97,12 @@ public class JRubyRunner extends AbstractScriptRunner {
         }
         File rbFile = new File(new File(scriptFile).getAbsolutePath());
         fillSysArgv(rbFile, scriptArgs);
-
-        ImagePath.setBundlePath(rbFile.getParent());
+        
         executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
             rbFile.getParentFile().getParentFile().getAbsolutePath() });
-
+        
+        prepareFileLocation(rbFile, options); 
+        
         int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
 
         log(lvl + 1, "runScript: at exit: path:");
