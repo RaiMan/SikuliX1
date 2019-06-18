@@ -105,7 +105,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       if (hasExtension(identifier)) {
         return true;
       }
-      if (hasExtension(FilenameUtils.getExtension(identifier))) {
+      if (canHandleFileEnding(identifier)) {
         return true;
       }
       if (identifier.toLowerCase().equals(getName().toLowerCase())) {
@@ -317,5 +317,24 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         running = false;
       }
     }
+  }
+
+  public final boolean canHandleFileEnding(String identifier) {
+    for (String suf : getFileEndings()) {
+      if (identifier.toLowerCase().endsWith(suf)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public String[] getFileEndings() {
+    String[] extensions = getExtensions();
+    String[] endings = new String[extensions.length];
+
+    for (int i=0;i<extensions.length;i++) {
+      endings[i] = "." + extensions[i];
+    }
+    return endings;
   }
 }
