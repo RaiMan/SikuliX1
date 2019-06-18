@@ -76,7 +76,7 @@ public interface IScriptRunner {
     }
 
     private boolean runningInIDE = false;
-   
+
     public void setRunningInIDE(boolean runningInIDE) {
       this.runningInIDE = runningInIDE;
     }
@@ -170,7 +170,7 @@ public interface IScriptRunner {
    * @return true if platform supports this runner, false otherwise
    */
   public boolean isSupported();
-  
+
   /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
    * between different ScriptRunners.
@@ -270,4 +270,14 @@ public interface IScriptRunner {
    * @return true is aboort is supported, false otherwise
    */
   public boolean isAbortSupported();
+
+  /**
+   * Usually the same as getExtensions() but with the leading dot.
+   *
+   * Some files (e.g. $py.class) might have a somewhat unusual but
+   * very specific file ending.
+   *
+   * @return An Array containing the supported line endings
+   */
+  public String[] getFileEndings();
 }

@@ -288,11 +288,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     }
   }
 
-  @Override
-  public boolean canHandle(String identifier) {
-    return null != identifier && (identifier.endsWith("$py.class") || super.canHandle(identifier));
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -363,6 +358,14 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   @Override
   protected void doAbort() {
     threadRunner.interrupt();
+  }
+
+  @Override
+  public String[] getFileEndings() {
+    String[] endings = super.getFileEndings();
+    endings = Arrays.copyOf(endings, endings.length + 1);
+    endings[endings.length - 1] = "$py.class";
+    return endings;
   }
 
 // TODO SikuliToHtmlConverter implement in Java

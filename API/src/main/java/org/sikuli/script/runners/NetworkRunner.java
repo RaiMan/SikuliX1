@@ -109,14 +109,14 @@ public class NetworkRunner extends AbstractScriptRunner {
       String identifier = host + path;
 
       for (IScriptRunner runner : Runner.getRunners()) {
-        for (String extension : runner.getExtensions()) {
+        for (String ending : runner.getFileEndings()) {
 
           String url;
 
-          if (identifier.endsWith("." + extension)) {
+          if (identifier.endsWith(ending)) {
             url = identifier;
           } else {
-            url = identifier + "/" + basename + "." + extension;
+            url = identifier + "/" + basename + ending;
           }
 
           if (FileManager.isUrlUseabel(url) > 0) {

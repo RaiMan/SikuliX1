@@ -110,11 +110,6 @@ public class RobotRunner extends JythonRunner {
   }
 
   @Override
-  public boolean canHandle(String identifier) {
-    return null != identifier && !identifier.endsWith("$py.class") && super.canHandle(identifier);
-  }
-
-  @Override
   protected void doInit(String[] args) {
     super.doInit(args);
 
@@ -129,6 +124,21 @@ public class RobotRunner extends JythonRunner {
       helper.appendSysPath(new File(Settings.BundlePath).getParent());
     }
     this.getInterpreter().exec("import robot");
+  }
+
+  /*
+   * Implement again to get rid of the $py.class endin
+   * of JythonRunner
+   */
+  @Override
+  public String[] getFileEndings() {
+    String[] extensions = getExtensions();
+    String[] endings = new String[extensions.length];
+
+    for (int i=0;i<extensions.length;i++) {
+      endings[i] = "." + extensions[i];
+    }
+    return endings;
   }
 
 //<editor-fold defaultstate="collapsed" desc="robot run options">
