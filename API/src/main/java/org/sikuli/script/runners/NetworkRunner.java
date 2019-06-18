@@ -16,8 +16,11 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
+import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 public class NetworkRunner extends AbstractScriptRunner {
+
+  private AbortableScriptRunnerWrapper wrapper = new AbortableScriptRunnerWrapper();
 
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -35,7 +38,10 @@ public class NetworkRunner extends AbstractScriptRunner {
           String identifierParent = scriptUrl.substring(0, scriptUrl.lastIndexOf("/"));
 
           ImagePath.addHTTP(identifierParent);
-          int retval = Runner.getRunner(localFile).runScript(localFile, scriptArgs, options);
+
+          IScriptRunner runner = Runner.getRunner(localFile);
+          wrapper.setRunner(runner);
+          int retval = runner.runScript(localFile, scriptArgs, options);
           ImagePath.removeHTTP(identifierParent);
 
           return retval;
@@ -43,6 +49,7 @@ public class NetworkRunner extends AbstractScriptRunner {
       } catch (IOException e) {
         log(-1, "Error creating tmpfile: %s", e.getMessage());
       } finally {
+        wrapper.clearRunner();
         if (null != dir) {
           try {
             FileUtils.deleteDirectory(dir);
@@ -140,5 +147,15 @@ public class NetworkRunner extends AbstractScriptRunner {
   @Override
   public String getType() {
     return "NET";
+  }
+
+  @Override
+  public boolean isAbortSupported() {
+    return wrapper.isAbortSupported();
+  }
+
+  @Override
+  protected void doAbort() {
+    wrapper.doAbort();
   }
 }

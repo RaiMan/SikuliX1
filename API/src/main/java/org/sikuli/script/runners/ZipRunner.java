@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
+import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 /**
  * Runs a packed sikulix script
@@ -29,7 +30,7 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
   public static final String TYPE = "application/zip";
   public static final String[] EXTENSIONS = new String[] { "zip" };
 
-  private IScriptRunner currentRunner;
+  private AbortableScriptRunnerWrapper wrapper = new AbortableScriptRunnerWrapper();
 
   @Override
   public boolean isSupported() {
@@ -82,15 +83,17 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
       if(null != innerScriptFile) {
         dir = extract(file);
         String innerScriptFilePath = dir.getAbsolutePath() + File.separator + innerScriptFile.getName();
-        currentRunner = Runner.getRunner(innerScriptFilePath);
-        return currentRunner.runScript(innerScriptFilePath, scriptArgs, options);
+
+        IScriptRunner runner = Runner.getRunner(innerScriptFilePath);
+        wrapper.setRunner(runner);
+        return runner.runScript(innerScriptFilePath, scriptArgs, options);
       }
       return Runner.FILE_NOT_FOUND;
     } catch (IOException e) {
       log(-1, "Error opening file %s: %s", scriptFileOrFolder, e.getMessage());
       return -1;
     } finally {
-      currentRunner = null;
+      wrapper.clearRunner();
       if (null != dir) {
         try {
           FileUtils.deleteDirectory(dir);
@@ -147,13 +150,11 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   public boolean isAbortSupported() {
-    return null != currentRunner && currentRunner.isAbortSupported();
+    return wrapper.isAbortSupported();
   }
 
   @Override
   protected void doAbort() {
-    if (isAbortSupported()) {
-      currentRunner.abort();
-    }
+    wrapper.doAbort();
   }
 }
