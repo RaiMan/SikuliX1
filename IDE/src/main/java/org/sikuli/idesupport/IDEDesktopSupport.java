@@ -17,6 +17,7 @@ package org.sikuli.idesupport;
 //import java.awt.desktop.QuitEvent;
 //import java.awt.desktop.QuitHandler;
 //import java.awt.desktop.QuitResponse;
+
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -32,7 +33,7 @@ import org.sikuli.script.support.RunTime;
 
 /**
  * Native desktop support.
- *
+ * <p>
  * Currently this class has a lot of reflective code to make it compiling
  * and working on Java 8.
  * The sections that can be removed after we ditch Java 8 support
@@ -90,10 +91,10 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
 //    }
 
     try {
-      if(RunTime.get().isJava9()) {
+      if (RunTime.get().isJava9()) {
         Class<?> clDesktop = Class.forName("java.awt.Desktop");
 
-        if(Boolean.TRUE.equals(clDesktop.getMethod("isDesktopSupported").invoke(clDesktop))) {
+        if (Boolean.TRUE.equals(clDesktop.getMethod("isDesktopSupported").invoke(clDesktop))) {
           Method getDesktop = clDesktop.getMethod("getDesktop");
           Object desktop = getDesktop.invoke(clDesktop);
 
@@ -103,45 +104,45 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
           Class<?> clOpenHandler = Class.forName("java.awt.desktop.OpenFilesHandler");
 
           Object appHandler = Proxy.newProxyInstance(
-              clDesktop.getClassLoader(),
-              new Class[]{clAboutHandler, clPreferencesHandler, clQuitHandler, clOpenHandler},
-              support);
+                  clDesktop.getClassLoader(),
+                  new Class[]{clAboutHandler, clPreferencesHandler, clQuitHandler, clOpenHandler},
+                  support);
 
-          @SuppressWarnings({ "rawtypes", "unchecked" })
+          @SuppressWarnings({"rawtypes", "unchecked"})
           Class<Enum> clDesktopAction = (Class<Enum>) Class.forName("java.awt.Desktop$Action");
 
-          @SuppressWarnings("unchecked" )
+          @SuppressWarnings("unchecked")
           Object appAboutEnum = Enum.valueOf(clDesktopAction, "APP_ABOUT");
-          if(Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appAboutEnum))) {
+          if (Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appAboutEnum))) {
             Method m = clDesktop.getMethod("setAboutHandler", clAboutHandler);
             m.invoke(desktop, appHandler);
             showAbout = false;
           }
 
-          @SuppressWarnings("unchecked" )
+          @SuppressWarnings("unchecked")
           Object appPreferencesEnum = Enum.valueOf(clDesktopAction, "APP_PREFERENCES");
-          if(Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appPreferencesEnum))) {
+          if (Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appPreferencesEnum))) {
             Method m = clDesktop.getMethod("setPreferencesHandler", clPreferencesHandler);
             m.invoke(desktop, appHandler);
             showPrefs = false;
           }
 
-          @SuppressWarnings("unchecked" )
+          @SuppressWarnings("unchecked")
           Object appQuitHandlerEnum = Enum.valueOf(clDesktopAction, "APP_QUIT_HANDLER");
-          if(Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appQuitHandlerEnum))) {
+          if (Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appQuitHandlerEnum))) {
             Method m = clDesktop.getMethod("setQuitHandler", clQuitHandler);
             m.invoke(desktop, new Object[]{appHandler});
             showQuit = false;
           }
 
-          @SuppressWarnings("unchecked" )
+          @SuppressWarnings("unchecked")
           Object appOpenFileHandlerEnum = Enum.valueOf(clDesktopAction, "APP_OPEN_FILE");
-          if(Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appOpenFileHandlerEnum))) {
+          if (Boolean.TRUE.equals(clDesktop.getMethod("isSupported", clDesktopAction).invoke(desktop, appOpenFileHandlerEnum))) {
             Method m = clDesktop.getMethod("setOpenFileHandler", clOpenHandler);
             m.invoke(desktop, appHandler);
           }
         }
-      } else if(Settings.isMac()) {
+      } else if (Settings.isMac()) {
         /*
          * Special Java 8 handling for MacOS.
          * TODO Remove this as soon we ditch Java 8 support.
@@ -169,7 +170,7 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
         m.invoke(instApplication, appHandler);
         showQuit = false;
         m = comAppleEawtApplication.getMethod("setOpenFileHandler", clOpenHandler);
-        m.invoke(instApplication,appHandler);
+        m.invoke(instApplication, appHandler);
       }
 
     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException | SecurityException ex) {
@@ -180,11 +181,11 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
     }
   }
 
-/*
- * Keep this for reference.
- * TODO As soon as we ditch Java 8 support we can use this
- * Java 9 implementation.
- */
+  /*
+   * Keep this for reference.
+   * TODO As soon as we ditch Java 8 support we can use this
+   * Java 9 implementation.
+   */
 //  @Override
 //  public void openFiles(OpenFilesEvent e) {
 //    log(lvl, "nativeSupport: should open files");
@@ -227,20 +228,25 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
     } else if ("handlePreferences".equals(mName)) {
       ide.showPreferencesWindow();
     } else if ("openFiles".equals(mName)) {
-      log(lvl, "nativeSupport: should open files");
-      try {
-        Method mOpenFiles = args[0].getClass().getMethod("getFiles", new Class[]{});
-        macOpenFiles = (List<File>) mOpenFiles.invoke(args[0]);
-        log(lvl, "nativeSupport: openFiles: %s", macOpenFiles);
-      } catch (Exception ex) {
-        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
-        System.exit(1);
-      }
+      log(lvl, "nativeSupport: openfiles: not implemented");
+//      try {
+//        Method mOpenFiles = args[0].getClass().getMethod("getFiles", new Class[]{});
+//        macOpenFiles = (List<File>) mOpenFiles.invoke(args[0]);
+//        log(lvl, "nativeSupport: openFiles: %s", macOpenFiles);
+//      } catch (Exception ex) {
+//        log(lvl, "NativeSupport: Quit: error: %s", ex.getMessage());
+//        System.exit(1);
+//      }
     } else if ("handleQuitRequestWith".equals(mName)) {
       try {
-        Class<?> comAppleEawtQuitResponse = Class.forName("com.apple.eawt.QuitResponse");
-        Method mCancelQuit = comAppleEawtQuitResponse.getMethod("cancelQuit");
-        Method mPerformQuit = comAppleEawtQuitResponse.getMethod("performQuit");
+        Class<?> comMacQuitResponse;
+        if (RunTime.get().isJava9()) {
+          comMacQuitResponse = Class.forName("com.apple.eawt.MacQuitResponse");
+        } else {
+          comMacQuitResponse = Class.forName("com.apple.eawt.QuitResponse");
+        }
+        Method mCancelQuit = comMacQuitResponse.getMethod("cancelQuit");
+        Method mPerformQuit = comMacQuitResponse.getMethod("performQuit");
         Object resp = args[1];
         if (!ide.quit()) {
           mCancelQuit.invoke(resp);
