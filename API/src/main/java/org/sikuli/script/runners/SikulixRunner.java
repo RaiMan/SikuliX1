@@ -7,6 +7,7 @@ import java.io.File;
 
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
+import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 /**
  * Runs Sikulix scripts.
@@ -21,7 +22,7 @@ public class SikulixRunner extends AbstractScriptRunner {
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
 
-  private IScriptRunner currentRunner;
+  private AbortableScriptRunnerWrapper wrapper = new AbortableScriptRunnerWrapper();
 
   @Override
   public boolean isSupported() {
@@ -63,10 +64,11 @@ public class SikulixRunner extends AbstractScriptRunner {
 
     if (null != innerScriptFile) {
       try {
-        currentRunner = Runner.getRunner(innerScriptFile.getAbsolutePath());
-        return currentRunner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, options);
+        IScriptRunner runner = Runner.getRunner(innerScriptFile.getAbsolutePath());
+        wrapper.setRunner(runner);
+        return runner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, options);
       } finally {
-        currentRunner = null;
+        wrapper.clearRunner();
       }
     } else {
       log(-1, "runScript: not runnable: %s", scriptFile);
@@ -76,13 +78,11 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public boolean isAbortSupported() {
-    return null != currentRunner && currentRunner.isAbortSupported();
+    return wrapper.isAbortSupported();
   }
 
   @Override
   protected void doAbort() {
-    if (isAbortSupported()) {
-      currentRunner.abort();
-    }
+    wrapper.doAbort();
   }
 }
