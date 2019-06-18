@@ -655,7 +655,7 @@ public class Image {
   public static boolean isValidImageFilename(String fname) {
     String validEndings = ".png.jpg.jpeg";
     String ending = FilenameUtils.getExtension(fname);
-    return validEndings.contains(ending.toLowerCase());
+    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
   }
 
   public static String getValidImageFilename(String fname) {
