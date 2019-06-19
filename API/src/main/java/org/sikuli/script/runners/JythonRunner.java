@@ -9,32 +9,38 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.python.core.BytecodeLoader;
+import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 import org.python.util.jython;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
+import org.sikuli.util.InterruptibleThreadRunner;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
  */
 
-public class JythonRunner extends AbstractScriptRunner {
+public class JythonRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "Jython";
   public static final String TYPE = "text/jython";
-  public static final String[] EXTENSIONS = new String[]{"py", "$py.class"};
+  public static final String[] EXTENSIONS = new String[] { "py" };
 
   private static RunTime runTime = RunTime.get();
 
+  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JythonRunner.class);
+
   private int lvl = 3;
 
-  //TODO Refactoring to make JythonHelper non global or get rid of it entirely.
+  // TODO Refactoring to make JythonHelper non global or get rid of it entirely.
   /*
    * The PythonInterpreter instance
    *
@@ -55,7 +61,6 @@ public class JythonRunner extends AbstractScriptRunner {
   }
 
   private static PythonInterpreter interpreter = null;
-
 
   protected JythonHelper getHelper() {
     // Since we have a static interpreter, we have to synchronize class wide
@@ -99,16 +104,27 @@ public class JythonRunner extends AbstractScriptRunner {
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      if (lines.contains("\n")) {
-        if (lines.startsWith(" ") || lines.startsWith("\t")) {
-          lines = "if True:\n" + lines;
+      threadRunner.run(options.getTimeout(), () -> {
+        final String execLines;
+
+        if (lines.contains("\n")) {
+          if (lines.startsWith(" ") || lines.startsWith("\t")) {
+            execLines = "if True:\n" + lines;
+          } else {
+            execLines = lines;
+          }
+        } else {
+          execLines = lines;
         }
-      }
-      try {
-        interpreter.exec(lines);
-      } catch (Exception ex) {
-        log(-1, "runPython: (%s) raised: %s", lines, ex);
-      }
+
+        try {
+          interpreter.exec(execLines);
+          return 0;
+        } catch (Exception ex) {
+          log(-1, "runPython: (%s) raised: %s", lines, ex);
+          return 1;
+        }
+      });
     }
   }
 
@@ -116,8 +132,10 @@ public class JythonRunner extends AbstractScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      interpreter.exec(script);
-      return 0;
+      return threadRunner.run(options.getTimeout(), () -> {
+        interpreter.exec(script);
+        return 0;
+      });
     }
   }
 
@@ -131,40 +149,59 @@ public class JythonRunner extends AbstractScriptRunner {
    */
   @Override
   protected int doRunScript(String scriptFile, String[] argv, IScriptRunner.Options options) {
+
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      File pyFile = new File(scriptFile);
-      sysargv = new ArrayList<String>();
-      sysargv.add(pyFile.getAbsolutePath());
-      if (argv != null) {
-        sysargv.addAll(Arrays.asList(argv));
-      }
-      executeScriptHeader();
-      int exitCode = 0;
-      try {
-        if (null != options && options.isRunningInIDE()) {
-          helper.reloadImported();
+      return threadRunner.run(options.getTimeout(), () -> {
+
+        File pyFile = new File(scriptFile);
+        sysargv = new ArrayList<String>();
+        sysargv.add(pyFile.getAbsolutePath());
+        if (argv != null) {
+          sysargv.addAll(Arrays.asList(argv));
         }
-        interpreter.execfile(pyFile.getAbsolutePath());
-      } catch (Exception scriptException) {
-        exitCode = 1;
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
-        Matcher matcher = p.matcher(scriptException.toString());
-        if (matcher.find()) {
-          exitCode = Integer.parseInt(matcher.group(1));
-          Debug.info("Exit code: " + exitCode);
-        } else {
-          int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
-          if (null != options) {
-            options.setErrorLine(errorExit);
+
+        executeScriptHeader();
+
+        prepareFileLocation(pyFile, options);
+
+        int exitCode = 0;
+
+        try {
+          if (scriptFile.endsWith("$py.class")) {
+            byte[] data = FileUtils.readFileToByteArray(new File(scriptFile));
+
+            PyCode code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
+
+            interpreter.exec(code);
+          } else {
+            interpreter.execfile(pyFile.getAbsolutePath());
           }
+
+        } catch (Exception scriptException) {
+          exitCode = 1;
+          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
+          Matcher matcher = p.matcher(scriptException.toString());
+          if (matcher.find()) {
+            exitCode = Integer.parseInt(matcher.group(1));
+            Debug.info("Exit code: " + exitCode);
+          } else {
+            int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
+            if (null != options) {
+              options.setErrorLine(errorExit);
+            }
+          }
+        } finally {
+          interpreter.cleanup();
         }
-      }
-      if (System.out.checkError()) {
-        Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
-            + "\nSave your work and restart the IDE!", "Fatal Error");
-      }
-      return exitCode;
+
+        if (System.out.checkError()) {
+          Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
+              + "\nSave your work and restart the IDE!", "Fatal Error");
+        }
+
+        return exitCode;
+      });
     }
   }
 
@@ -189,11 +226,12 @@ public class JythonRunner extends AbstractScriptRunner {
   /**
    * The header commands, that are executed before every script
    */
-  private static String[] SCRIPT_HEADER = new String[]{
+  private static String[] SCRIPT_HEADER = new String[] {
       "# -*- coding: utf-8 -*- ",
       "import org.sikuli.script.SikulixForJython",
       "from sikuli import *",
-      "use() #resetROI()"};
+      "use() #resetROI()"
+  };
 
   /**
    * {@inheritDoc}
@@ -201,11 +239,11 @@ public class JythonRunner extends AbstractScriptRunner {
   @Override
   protected int doRunInteractive(String[] argv) {
     String[] jy_args = null;
-    String[] iargs = {"-i", "-c",
+    String[] iargs = { "-i", "-c",
         "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "
             + "print \"Hello, this is your interactive Sikuli (rules for interactive Python apply)\\n"
             + "use the UP/DOWN arrow keys to walk through the input history\\n"
-            + "help()<enter> will output some basic Python information\\n" + "... use ctrl-d to end the session\""};
+            + "help()<enter> will output some basic Python information\\n" + "... use ctrl-d to end the session\"" };
     if (argv != null && argv.length > 0) {
       jy_args = new String[argv.length + iargs.length];
       System.arraycopy(iargs, 0, jy_args, 0, iargs.length);
@@ -312,19 +350,34 @@ public class JythonRunner extends AbstractScriptRunner {
 
   private static boolean redirected = false;
 
-// TODO SikuliToHtmlConverter implement in Java
-/*
-  final static InputStream SikuliToHtmlConverter
-          = JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
-  static String pyConverter
-          = FileManager.convertStreamToString(SikuliToHtmlConverter);
-  private void convertSrcToHtml(String bundle) {
-    PythonInterpreter py = new PythonInterpreter();
-    log(lvl, "Convert Sikuli source code " + bundle + " to HTML");
-    py.set("local_convert", true);
-    py.set("sikuli_src", bundle);
-    py.exec(pyConverter);
+  @Override
+  public boolean isAbortSupported() {
+    return true;
   }
-*/
+
+  @Override
+  protected void doAbort() {
+    threadRunner.interrupt();
+  }
+
+  @Override
+  public String[] getFileEndings() {
+    String[] endings = super.getFileEndings();
+    endings = Arrays.copyOf(endings, endings.length + 1);
+    endings[endings.length - 1] = "$py.class";
+    return endings;
+  }
+
+// TODO SikuliToHtmlConverter implement in Java
+  /*
+   * final static InputStream SikuliToHtmlConverter =
+   * JythonScriptRunner.class.getResourceAsStream("/scripts/sikuli2html.py");
+   * static String pyConverter =
+   * FileManager.convertStreamToString(SikuliToHtmlConverter); private void
+   * convertSrcToHtml(String bundle) { PythonInterpreter py = new
+   * PythonInterpreter(); log(lvl, "Convert Sikuli source code " + bundle +
+   * " to HTML"); py.set("local_convert", true); py.set("sikuli_src", bundle);
+   * py.exec(pyConverter); }
+   */
 
 }

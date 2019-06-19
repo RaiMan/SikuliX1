@@ -3,10 +3,10 @@
  */
 package org.sikuli.script.support;
 
-import org.sikuli.script.SikuliXception;
-
 import java.io.PrintStream;
 import java.net.URI;
+
+import org.sikuli.script.SikuliXception;
 
 /**
  * Interface for ScriptRunners like Jython.
@@ -59,8 +59,9 @@ public interface IScriptRunner {
      *
      * @param errorLine
      */
-    public void setErrorLine(int errorLine) {
+    public Options setErrorLine(int errorLine) {
       this.errorLine = errorLine;
+      return this;
     }
 
     private int errorLine = -1;
@@ -69,31 +70,27 @@ public interface IScriptRunner {
       return runningInIDE;
     }
 
-    public void setRunningInIDE() {
+    public Options setRunningInIDE() {
       this.runningInIDE = true;
+      return this;
     }
 
     private boolean runningInIDE = false;
 
-    public String getWorkFolder() {
-      return workFolder;
+    public void setRunningInIDE(boolean runningInIDE) {
+      this.runningInIDE = runningInIDE;
     }
 
-    public void setWorkFolder(String workFolder) {
-      this.workFolder = workFolder;
+    private long timeout = 0;
+
+    public long getTimeout() {
+      return timeout;
     }
 
-    private String workFolder = null;
-
-    public String getScriptName() {
-      return scriptName;
+    public Options setTimeout(long timeout) {
+      this.timeout = timeout;
+      return this;
     }
-
-    public void setScriptName(String scriptName) {
-      this.scriptName = scriptName;
-    }
-
-    private String scriptName = null;
   }
 
   /**
@@ -175,13 +172,6 @@ public interface IScriptRunner {
   public boolean isSupported();
 
   /**
-   * A wrapping runner does not run directly, but evaluates a scriptfile to be run
-   *
-   * @return true if this is a wrapping runner
-   */
-  public boolean isWrapper();
-
-  /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
    * between different ScriptRunners.
    *
@@ -260,4 +250,34 @@ public interface IScriptRunner {
    * The runner gets closed and initialized again using init.
    */
   public void reset();
+
+  /**
+   * @return true if the runner is currently executing a script, false otherwise
+   */
+  public boolean isRunning();
+
+  /**
+   * Aborts the current running script.
+   *
+   * Not all runners can be aborted, please check abort support using isAbortSupported().
+   *
+   */
+  public void abort();
+
+  /**
+   * Checks if abort is supported by this script runner implementation.
+   *
+   * @return true is aboort is supported, false otherwise
+   */
+  public boolean isAbortSupported();
+
+  /**
+   * Usually the same as getExtensions() but with the leading dot.
+   *
+   * Some files (e.g. $py.class) might have a somewhat unusual but
+   * very specific file ending.
+   *
+   * @return An Array containing the supported line endings
+   */
+  public String[] getFileEndings();
 }

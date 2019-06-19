@@ -4,15 +4,10 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.python.apache.commons.compress.compressors.FileNameUtil;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
+import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 /**
  * Runs Sikulix scripts.
@@ -26,28 +21,11 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   public static final String NAME = "Sikulix";
   public static final String TYPE = "directory/sikulix";
-  public static final String[] EXTENSIONS = new String[]{"sikuli", "skl", "jar"};
 
-  @Override
-  protected File checkWithExtensions(File scriptFile) {
-    String scriptFilePath = scriptFile.getPath();
-    for (String extension : getExtensions()) {
-      File alternateFile = new File(scriptFilePath + "." + extension);
-      if (alternateFile.exists()) {
-        scriptFile = alternateFile;
-        break;
-      }
-    }
-    return scriptFile;
-  }
+  private AbortableScriptRunnerWrapper wrapper = new AbortableScriptRunnerWrapper();
 
   @Override
   public boolean isSupported() {
-    return true;
-  }
-
-  @Override
-  public boolean isWrapper() {
     return true;
   }
 
@@ -58,8 +36,7 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public String[] getExtensions() {
-    // TODO Auto-generated method stub
-    return EXTENSIONS.clone();
+    return new String[0];
   }
 
   @Override
@@ -68,25 +45,44 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
-    String extension = FilenameUtils.getExtension(scriptFileOrFolder);
-    File scriptFile = new File(scriptFileOrFolder);
-    if (extension.equals("sikuli")) {
-      File innerScriptFile = Runner.getScriptFile(scriptFile);
-      if (null != innerScriptFile) {
-        return Runner.run(innerScriptFile.getAbsolutePath(), scriptArgs, null);
-      } else {
-        log(-1, "runScript: not runnable: %s", scriptFile);
-        return Runner.FILE_NOT_FOUND;
-      }
-    } else if (extension.equals("skl")) {
-      //TODO SKLRunner
-      return new SKLRunner().runScript(scriptFileOrFolder, scriptArgs, options);
-    } else if (extension.equals("jar")) {
-      //TODO JarRunner
-      return new JarRunner().runScript(scriptFileOrFolder, scriptArgs, options);
-    } else {
-      return new InvalidRunner().runScript(scriptFileOrFolder, scriptArgs, options);
+  public boolean canHandle(String identifier) {
+    File file = new File(identifier);
+
+    if (file.isDirectory()) {
+      File innerScriptFile = Runner.getScriptFile(file);
+      return null != innerScriptFile;
     }
+
+    return false;
+  }
+
+  @Override
+  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
+    File scriptFile = new File(scriptFileOrFolder);
+
+    File innerScriptFile = Runner.getScriptFile(scriptFile);
+
+    if (null != innerScriptFile) {
+      try {
+        IScriptRunner runner = Runner.getRunner(innerScriptFile.getAbsolutePath());
+        wrapper.setRunner(runner);
+        return runner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, options);
+      } finally {
+        wrapper.clearRunner();
+      }
+    } else {
+      log(-1, "runScript: not runnable: %s", scriptFile);
+      return Runner.FILE_NOT_FOUND;
+    }
+  }
+
+  @Override
+  public boolean isAbortSupported() {
+    return wrapper.isAbortSupported();
+  }
+
+  @Override
+  protected void doAbort() {
+    wrapper.doAbort();
   }
 }
