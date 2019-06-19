@@ -179,9 +179,8 @@ public class Runner {
     }
   }
   // </editor-fold>
-  
+
   public static final int FILE_NOT_FOUND = 256;
-  public static final int FILE_NOT_FOUND_SILENT = 257;
   public static final int NOT_SUPPORTED = 258;
 
   public static int runScript(String script) {
@@ -198,7 +197,7 @@ public class Runner {
       }
       return 0;
     } else
-      return runScripts(new String[] { script });
+      return runScripts(new String[]{script});
   }
 
   public static int runScripts(String[] runScripts) {
@@ -206,11 +205,12 @@ public class Runner {
     if (runScripts != null && runScripts.length > 0) {
       IScriptRunner.Options runOptions = new IScriptRunner.Options();
       for (String scriptGiven : runScripts) {
+        if (RunTime.get().runningWindows && (scriptGiven.startsWith("\\") || scriptGiven.startsWith("/"))) {
+          scriptGiven = new File(scriptGiven).getAbsolutePath();
+        }
         IScriptRunner runner = getRunner(scriptGiven);
-        exitCode = runner.runScript(scriptGiven, null, runOptions);
-
-        if (exitCode != 0) {
-          return exitCode;
+        if (runner.isSupported()) {
+          exitCode = runner.runScript(scriptGiven, null, runOptions);
         }
       }
     }
