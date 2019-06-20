@@ -59,7 +59,7 @@ public class Runner {
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
               | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 
-            log(lvl, "warning: %s", e.getMessage());
+            log(lvl, "init: %s: warning: not possible", cl);
             continue;
           }
 
@@ -211,6 +211,9 @@ public class Runner {
         IScriptRunner runner = getRunner(scriptGiven);
         if (runner.isSupported()) {
           exitCode = runner.runScript(scriptGiven, null, runOptions);
+          if (exitCode == FILE_NOT_FOUND) {
+            log(-1,"runscript: not found: %s", scriptGiven);
+          }
         }
       }
     }
@@ -224,25 +227,14 @@ public class Runner {
     return retVal;
   }
 
-  public static File getScriptFile(File fScriptFileOrFolder) {
-    if (fScriptFileOrFolder == null) {
+  public static File getScriptFile(File fScriptFolder) {
+    if (fScriptFolder == null) {
       return null;
     }
-
-    // check if fScriptFileOrFolder is a supported script file
-    if (fScriptFileOrFolder.isFile()) {
-      for (IScriptRunner runner : getRunners()) {
-        if (runner.canHandle(fScriptFileOrFolder.getName())) {
-          return fScriptFileOrFolder;
-        }
-      }
-    }
-
-    // check if fScriptFileOrFolder contains a supported script file with same name
-    if (fScriptFileOrFolder.isDirectory()) {
-      for (File aFile : fScriptFileOrFolder.listFiles()) {
+    if (fScriptFolder.isDirectory()) {
+      for (File aFile : fScriptFolder.listFiles()) {
         if (FilenameUtils.getBaseName(aFile.getName())
-            .equals(FilenameUtils.getBaseName(fScriptFileOrFolder.getName()))) {
+            .equals(FilenameUtils.getBaseName(fScriptFolder.getName()))) {
           for (IScriptRunner runner : getRunners()) {
             if (runner.canHandle(aFile.getName())) {
               return aFile;
