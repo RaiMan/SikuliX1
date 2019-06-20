@@ -238,7 +238,7 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
       }
     } else if ("handleQuitRequestWith".equals(mName)) {
       try {
-        Class<?> comAppleEawtQuitResponse = Class.forName("com.apple.eawt.QuitResponse");
+        Class<?> comAppleEawtQuitResponse = Class.forName("java.awt.desktop.QuitResponse");
         Method mCancelQuit = comAppleEawtQuitResponse.getMethod("cancelQuit");
         Method mPerformQuit = comAppleEawtQuitResponse.getMethod("performQuit");
         Object resp = args[1];
