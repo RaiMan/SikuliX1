@@ -177,7 +177,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           actMethod.invoke(this, params);
         } catch (Exception ex) {
           log(-1, "Problem when trying to invoke menu action %s\nError: %s",
-                  action, ex.getMessage());
+              action, ex.getMessage());
         }
       }
     }
@@ -244,23 +244,34 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           }
         }).start();
       } else {
-        if (cp.isPython) {
+        if (cp.isBundle()) {
           (new Thread() {
             @Override
             public void run() {
-              String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
-                      cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
+              String msg = String.format("Bundle: %s\nScript: %s\nImages: %s",
+                  cp.getCurrentShortFilename(), cp.getCurrentFile(false), cp.getImagePath());
               Region at = Mouse.at().offset(200, 78).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
               SX.popup(msg, "IDE: About: script info", "", false, 10, at);
             }
           }).start();
-        } else if (!cp.isText) {
+        } else if (cp.isPython()) {
+          (new Thread() {
+            @Override
+            public void run() {
+              String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
+                  cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
+              Region at = Mouse.at().offset(200, 78).grow(10);
+              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
+              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
+            }
+          }).start();
+        } else if (!cp.isText()) {
           (new Thread() {
             @Override
             public void run() {
               String msg = String.format("SikuliX script: %s\nin Folder: %s",
-                      cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
+                  cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
               Region at = Mouse.at().offset(100, 65).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
               SX.popup(msg, "IDE: About: script info", "", false, 10, at);
@@ -292,7 +303,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
-              selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
+          selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
         targetType = currentType;
       } else {
@@ -305,10 +316,10 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       //String targetEnding = Runner.getExtension(targetType);
       if (editorPane.getText().length() > 0) {
         if (!Sikulix.popAsk(String.format(
-                "Switch to %s requested, but tab is not empty!\n"
-                        + "Click YES, to discard content and switch\n"
-                        + "Click NO to cancel this action and keep content.",
-                targetType))) {
+            "Switch to %s requested, but tab is not empty!\n"
+                + "Click YES, to discard content and switch\n"
+                + "Click NO to cancel this action and keep content.",
+            targetType))) {
           error = ": with errors";
         }
       }
