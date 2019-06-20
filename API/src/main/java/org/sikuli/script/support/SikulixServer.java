@@ -26,6 +26,7 @@ import io.undertow.server.RoutingHandler;
 import io.undertow.server.ServerConnection;
 import io.undertow.server.ServerConnection.CloseListener;
 import io.undertow.server.handlers.ExceptionHandler;
+import io.undertow.server.handlers.RequestLimit;
 import io.undertow.server.handlers.RequestLimitingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
@@ -293,29 +294,15 @@ public class SikulixServer {
   }
 
   private static Undertow createServer(int port, String ipAddr) {
+    StopCommand stop = new StopCommand();
+    ScriptsCommand scripts = new ScriptsCommand();
+
     RoutingHandler commands = Handlers.routing()
-            .add(Methods.GET, "/stop*", Predicates.prefix("stop"),
-                    new StopCommandHttpHandler())
-            .add(Methods.GET, "/scripts/*", Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/]+/run$"),
-                    new ScriptsCommandHttpHandler())
-            .setFallbackHandler(new AbstractCommandHttpHandler() {
-              @Override
-              public void handleRequest(HttpServerExchange exchange) throws Exception {
-                sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
-                        "invalid command: " + exchange.getRelativePath());
-              }
-            });
-    CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(new PreRoutingHttpHandler(
-            new RequestLimitingHandler(1, commands)));
-    cmdRoot.addExceptionHandler(Throwable.class, new AbstractCommandHttpHandler() {
-      @Override
-      public void handleRequest(HttpServerExchange exchange) throws Exception {
-        Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
-        SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
-        sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
-                "server error: " + ex.getMessage());
-      }
-    });
+            .addAll(stop.getRouting())
+            .addAll(scripts.getRouting())
+            .setFallbackHandler(AbstractCommand.getFallbackHandler());
+    CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(commands);
+    cmdRoot.addExceptionHandler(Throwable.class, AbstractCommand.getExceptionHttpHandler());
 
     ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
     ResourceHandler resource = new ResourceHandler(resourceManager, cmdRoot);
@@ -328,9 +315,16 @@ public class SikulixServer {
     return server;
   }
 
-  private static class StopCommandHttpHandler extends AbstractCommandHttpHandler {
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
+  private static class StopCommand extends AbstractCommand {
+    public StopCommand() {
+      getRouting()
+          .add(Methods.GET, "/stop",
+               toRequestLimitingHandler(stop))
+          .add(Methods.POST, "/stop",
+               toRequestLimitingHandler(stop));
+    }
+
+    private HttpHandler stop = exchange -> {
       sendResponse(exchange, true, StatusCodes.OK, "stopping server");
       exchange.getConnection().addCloseListener(new CloseListener() {
         @Override
@@ -342,35 +336,50 @@ public class SikulixServer {
         }
       });
       server.stop();
-    }
+    };
   }
 
-  private static class ScriptsCommandHttpHandler extends AbstractCommandHttpHandler {
+  private static class ScriptsCommand extends AbstractCommand {
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
+
+    public ScriptsCommand() {
+      getRouting()
+          .add(Methods.GET, "/scripts/*/run",
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/run$"),
+              toRequestLimitingHandler(run))
+          .add(Methods.POST, "/scripts/*/run",
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/run$"),
+              toRequestLimitingHandler(run));
+    }
 
     private HttpHandler run = exchange -> {
       String script = exchange.getQueryParameters().get("*").getFirst().replaceFirst("/run$", "");
       File fScript = new File(getCurrentGroup(), script);
       int statusCode = StatusCodes.OK;
+      String message = null;
       List<String> args = getQueryAndToArgs(exchange);
       int retval = Runner.executeScript(fScript.getPath(), args.toArray(new String[args.size()]));
-      if (retval == Runner.FILE_NOT_FOUND) {
-        //TODO handle: the given script file does not exist
-      } else if (retval == Runner.NOT_SUPPORTED) {
-        //TODO handle: there is no runner available for the given script file
+      switch(retval) {
+        case Runner.FILE_NOT_FOUND:
+          //TODO handle: the given script file does not exist
+          message = "runScript: script not found " + fScript.getAbsolutePath();
+          statusCode = StatusCodes.NOT_FOUND;
+          break;
+        case Runner.NOT_SUPPORTED:
+          //TODO handle: there is no runner available for the given script file
+          message = "runScript: script not supported " + fScript.getAbsolutePath();
+          statusCode = StatusCodes.NOT_FOUND;
+          break;
+        default:
+          //TODO all other retvals are returned by the user script and should be reported.
+          if (retval < 0) {
+            statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+          }
+          message = "runScript: returned: " + retval;
+          break;
       }
-      //TODO all other retvals are returned by the user script and should be reported.
-      if (retval < 0) {
-        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-      }
-      String message = "runScript: returned: " + retval;
-      sendResponse(exchange, true, statusCode, message);
+      sendResponse(exchange, statusCode==StatusCodes.OK, statusCode, message);
     };
-
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      run.handleRequest(exchange);
-    }
 
     private String getCurrentGroup() {
       //TODO evaluate and return the current group's folder
@@ -394,8 +403,41 @@ public class SikulixServer {
     }
   }
 
-  private static abstract class AbstractCommandHttpHandler implements HttpHandler {
-    protected void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
+  private static abstract class AbstractCommand {
+    private static RequestLimit sharedRequestLimit = new RequestLimit(1);
+    private static HttpHandler fallbackHandler = exchange -> {
+      AbstractCommand.sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
+      "invalid command: " + exchange.getRelativePath());
+    };
+    private static HttpHandler exceptionHandler = exchange -> {
+      Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
+        SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+        AbstractCommand.sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
+            "server error: " + ex.getMessage());
+    };
+    private RoutingHandler routing;
+
+    protected AbstractCommand() {
+      routing = Handlers.routing();
+    }
+
+    protected RoutingHandler getRouting() {
+      return routing;
+    }
+
+    protected RequestLimitingHandler toRequestLimitingHandler(HttpHandler handler) {
+      return new RequestLimitingHandler(sharedRequestLimit, handler);
+    }
+
+    protected static HttpHandler getFallbackHandler() {
+      return fallbackHandler;
+    }
+
+    protected static HttpHandler getExceptionHttpHandler() {
+      return exceptionHandler;
+    }
+
+    protected static void sendResponse(HttpServerExchange exchange, boolean success, int stateCode, String message) {
       exchange.setStatusCode(stateCode);
       exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
       String head = exchange.getProtocol() + " " + StatusCodes.getReason(exchange.getStatusCode());
@@ -403,29 +445,6 @@ public class SikulixServer {
       exchange.getResponseSender().send(body);
 
       SikulixServer.dolog("returned:\n" + (head + "\n\n" + body));
-    }
-  }
-
-  private static class PreRoutingHttpHandler implements HttpHandler {
-    private static final Pattern PATTERN = Pattern.compile("^(?<command>/[^/]+)(?<resource>/.*)*");
-    private HttpHandler next;
-
-    public PreRoutingHttpHandler(HttpHandler next) {
-      this.next = next;
-    }
-
-    @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
-      String path = exchange.getRelativePath();
-      Matcher matcher = PATTERN.matcher(path);
-      if (matcher.find()) {
-        String command = matcher.group("command").toLowerCase();
-        String resource = Optional.ofNullable(matcher.group("resource")).orElse("");
-        path = command + resource;
-      }
-      exchange.setRelativePath(path);
-
-      next.handleRequest(exchange);
     }
   }
 
