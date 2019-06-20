@@ -162,10 +162,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       }
 
       int exitValue = 0;
-      String scriptFile = script; 
-      if (RunTime.get().runningWindows && (scriptFile.startsWith("\\") || scriptFile.startsWith("/"))) {
-        scriptFile = new File(scriptFile).getAbsolutePath();
-      }
+      String scriptFile = script;
       scriptFile = resolveRelativeFile(scriptFile);
       if (null != scriptFile) {
         exitValue = doRunScript(scriptFile, scriptArgs, options);
@@ -177,10 +174,20 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     });
   }
 
+  /**
+   * a relative path is checked for existence in the current base folder,
+   * working folder and user home folder in this sequence.
+   *
+   * @param scriptName
+   * @return absolute file or null if not found
+   */
   public String resolveRelativeFile(String scriptName) {
+    if (RunTime.get().runningWindows && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
+      scriptName = new File(scriptName).getAbsolutePath();
+    }
     File file = new File(scriptName);
     if (!file.isAbsolute()) {
-      File inBaseDir = new File(RunTime.get().fBaseDir, scriptName);
+      File inBaseDir = new File(RunTime.get().getBaseFolder(), scriptName);
       if (inBaseDir.exists()) {
         file = inBaseDir;
       } else {
