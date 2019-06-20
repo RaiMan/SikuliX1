@@ -3,6 +3,7 @@
  */
 package org.sikuli.script.support;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.net.URI;
 
@@ -91,6 +92,16 @@ public interface IScriptRunner {
       this.timeout = timeout;
       return this;
     }
+
+    public File getBaseFolder() {
+      return baseFolder;
+    }
+
+    public void setBaseFolder(File baseFolder) {
+      this.baseFolder = baseFolder;
+    }
+
+    private File baseFolder = null;
   }
 
   /**
@@ -228,15 +239,6 @@ public interface IScriptRunner {
    * @return true if the runner can handle the identifier, false otherwise
    */
   public boolean canHandle(String identifier);
-
-  /**
-   * a relative path is checked for existence in the current base folder,
-   * working folder and user home folder in this sequence.
-   *
-   * @param script
-   * @return absolute file or null if not found
-   */
-  public String resolveRelativeFile(String script);
 
   /**
    * Redirects the runner's STDIO to the given PrintStream.
