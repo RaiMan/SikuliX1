@@ -181,6 +181,7 @@ public class Runner {
   // </editor-fold>
 
   public static final int FILE_NOT_FOUND = 256;
+  public static final int FILE_NOT_FOUND_TAKE_AS_FOLDER = 257;
   public static final int NOT_SUPPORTED = 258;
 
   public static int runScript(String script) {
@@ -209,14 +210,22 @@ public class Runner {
         exitCode = runner.runScript(scriptGiven, null, runOptions);
         if (exitCode == FILE_NOT_FOUND) {
           log(-1, "runscript: not found: %s", scriptGiven);
+        } else if (exitCode == FILE_NOT_FOUND_TAKE_AS_FOLDER) {
+          log(3, "runscript: setting basefolder: %s", scriptGiven);
+          RunTime.get().setBaseFolder(runOptions.getBaseFolder());
+          continue;
         }
-        if (exitCode != 0) {
-          return exitCode;
-        }
+        lastReturnCode = exitCode;
       }
     }
     return exitCode;
   }
+
+  public static int getLastReturnCode() {
+    return lastReturnCode;
+  }
+
+  private static int lastReturnCode = 0;
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
     IScriptRunner runner = getRunner(script);
