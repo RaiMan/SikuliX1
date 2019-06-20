@@ -241,18 +241,26 @@ public interface IScriptRunner {
   public boolean canHandle(String identifier);
 
   /**
-   * Redirects the runner's STDIO to the given PrintStream.
+   * Needed in the IDE to detect the runner when file or folder is opened
    *
-   * Subsequent calls to this function override the previously set streams.
-   *
-   * If one of the parameters is set to null, STDIO redirection is reset to
-   * System.out and System.err.
-   *
-   * @param stdout PrintStream for STDOUT
-   * @param stderr PrintStream for STDERR
-   *
-   * @return
+   * @param script
+   * @return array: 0: runner, 1: script file to load
    */
+  public Object[] getEffectiveRunner(String script);
+
+    /**
+     * Redirects the runner's STDIO to the given PrintStream.
+     *
+     * Subsequent calls to this function override the previously set streams.
+     *
+     * If one of the parameters is set to null, STDIO redirection is reset to
+     * System.out and System.err.
+     *
+     * @param stdout PrintStream for STDOUT
+     * @param stderr PrintStream for STDERR
+     *
+     * @return
+     */
   public void redirect(PrintStream stdout, PrintStream stderr);
 
   /**

@@ -67,28 +67,38 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
-    File scriptFile = new File(scriptFileOrFolder);
-
-    File innerScriptFile = Runner.getScriptFile(scriptFile);
-
-    if (null != innerScriptFile) {
+  protected int doRunScript(String scriptFolder, String[] scriptArgs, IScriptRunner.Options options) {
+    Object[] runnerAndFile = getEffectiveRunner(scriptFolder);
+    IScriptRunner runner = (IScriptRunner) runnerAndFile[0];
+    String innerScriptFile = (String) runnerAndFile[1];
+    if (null != runner) {
       try {
-        IScriptRunner runner = Runner.getRunner(innerScriptFile.getAbsolutePath());
         wrapper.setRunner(runner);
-        return runner.runScript(innerScriptFile.getAbsolutePath(), scriptArgs, options);
+        return runner.runScript(innerScriptFile, scriptArgs, options);
       } finally {
         wrapper.clearRunner();
       }
     } else {
-      if (FilenameUtils.getExtension(scriptFileOrFolder).equals("sikuli")) {
-        log(-1, "runScript: not runnable: %s", scriptFile);
+      if (FilenameUtils.getExtension(scriptFolder).equals("sikuli")) {
+        log(-1, "runScript: not runnable: %s", scriptFolder);
         return Runner.FILE_NOT_FOUND;
       } else {
-        options.setBaseFolder(scriptFile);
+        options.setBaseFolder(new File(scriptFolder));
         return Runner.FILE_NOT_FOUND_TAKE_AS_FOLDER;
       }
     }
+  }
+
+  public Object[] getEffectiveRunner(String scriptFileOrFolder) {
+    Object[] returnValue = new Object[] {null, null, null};
+    File scriptFile = new File(scriptFileOrFolder);
+    File innerScriptFile = Runner.getScriptFile(scriptFile);
+    if (null != innerScriptFile) {
+        returnValue[0] = Runner.getRunner(innerScriptFile.getAbsolutePath());
+        returnValue[1] = innerScriptFile.getAbsolutePath();
+        returnValue[2] = true;
+    }
+    return returnValue;
   }
 
   @Override

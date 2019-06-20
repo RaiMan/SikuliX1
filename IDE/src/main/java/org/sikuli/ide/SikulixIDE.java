@@ -312,7 +312,7 @@ public class SikulixIDE extends JFrame {
     _inited = true;
     try {
       EditorPane editorPane = getCurrentCodePane();
-      if (editorPane.isText) {
+      if (editorPane.isText()) {
         collapseMessageArea();
       }
       editorPane.requestFocusInWindow();
@@ -377,7 +377,7 @@ public class SikulixIDE extends JFrame {
           }
           int dot = editorPane.getCaret().getDot();
           editorPane.setCaretPosition(dot);
-          if (editorPane.isText) {
+          if (editorPane.isText()) {
             collapseMessageArea();
           } else {
             uncollapseMessageArea();
@@ -458,9 +458,6 @@ public class SikulixIDE extends JFrame {
         }
         if (action == DO_SAVE_ALL) {
           continue;
-        }
-        if (editorPane.isText) {
-          fileName += "###isText";
         }
         if (sbuf.length() > 0) {
           sbuf.append(";");
@@ -565,10 +562,6 @@ public class SikulixIDE extends JFrame {
 
   private boolean restoreScriptFromSession(File file) {
     EditorPane editorPane = makeTab(-1);
-    if (file.getPath().endsWith("###isText")) {
-      file = new File(file.getPath().replace("###isText", ""));
-      editorPane.isText = true;
-    }
     editorPane.loadFile(file);
     if (editorPane.hasEditingFile()) {
       setCurrentFileTabTitle(file.getAbsolutePath());
@@ -642,7 +635,7 @@ public class SikulixIDE extends JFrame {
       if (editorPane.hasEditingFile()) {
         setCurrentFileTabTitle(tabFile.getAbsolutePath());
         recentAdd(tabFile.getAbsolutePath());
-        if (editorPane.isText) {
+        if (editorPane.isText()) {
           collapseMessageArea();
         }
       }
@@ -739,23 +732,19 @@ public class SikulixIDE extends JFrame {
     this.setTitle(ideTitle);
   }
 
-  ArrayList<String> getOpenedFilenames() {
+  ArrayList<File> getOpenedFilenames() {
     int nTab = tabs.getTabCount();
     File file = null;
     String filePath;
-    ArrayList<String> filenames = new ArrayList<String>(0);
+    ArrayList<File> filenames = new ArrayList();
     if (nTab > 0) {
       for (int i = 0; i < nTab; i++) {
         EditorPane codePane = getPaneAtIndex(i);
         file = codePane.getCurrentFile(false);
         if (file != null) {
-          filePath = FileManager.slashify(file.getAbsolutePath(), false);
-          if (!codePane.isPython && !codePane.isText) {
-            filePath = filePath.substring(0, filePath.lastIndexOf("/"));
-          }
-          filenames.add(filePath);
+          filenames.add(file);
         } else {
-          filenames.add("");
+          filenames.add(null);
         }
       }
     }
@@ -763,7 +752,7 @@ public class SikulixIDE extends JFrame {
   }
 
   int isAlreadyOpen(String filename) {
-    int aot = getOpenedFilenames().indexOf(filename);
+    int aot = getOpenedFilenames().indexOf(new File(filename));
     if (aot > -1 && aot < (tabs.getTabCount() - 1)) {
       alreadyOpenedTab = aot;
       return aot;
@@ -1177,11 +1166,10 @@ public class SikulixIDE extends JFrame {
         EditorPane codePane = getCurrentCodePane();
         fname = codePane.saveTabContent();
         if (fname != null) {
-          if (codePane.isPython || codePane.isText) {
-            fname = codePane.getFilePath();
-            codePane.showType();
-          } else {
+          if (codePane.isBundle()) {
             fname = codePane.getSrcBundle();
+          } else {
+            fname = codePane.getFilePath();
           }
           setCurrentFileTabTitle(fname);
           tabs.setLastClosed(fname);
@@ -2446,14 +2434,14 @@ public class SikulixIDE extends JFrame {
       }
       messages.clear();
       resetErrorMark();
-      IScriptRunner scriptRunner = Runner.getRunner(editorPane.getType());
-      if (scriptRunner == null) {
-        log(-1, "runCurrentScript: Could not load a script runner for: %s", editorPane.getType());
-        return;
-      }
+//      IScriptRunner scriptRunner = Runner.getRunner(editorPane.getType());
+//      if (scriptRunner == null) {
+//        log(-1, "runCurrentScript: Could not load a script runner for: %s", editorPane.getType());
+//        return;
+//      }
       beforeRun();
       //      ImagePath.reset();
-      final SubRun doRun = new SubRun(scriptRunner, scriptFile, this);
+      final SubRun doRun = new SubRun(editorPane.editorPaneRunner, scriptFile, this);
       thread = new Thread(doRun);
       thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
         @Override

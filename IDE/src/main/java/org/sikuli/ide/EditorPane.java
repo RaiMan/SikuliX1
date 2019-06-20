@@ -142,9 +142,9 @@ public class EditorPane extends JTextPane {
   //<editor-fold desc="10 load content">
   void init(String scriptType) {
     if (null == scriptType) {
-      runner = RunTime.getDefaultRunner();
+      editorPaneRunner = RunTime.getDefaultRunner();
     } else {
-      runner = Runner.getRunner(scriptType);
+      editorPaneRunner = Runner.getRunner(scriptType);
     }
     setText("");
     initForScriptType();
@@ -155,12 +155,6 @@ public class EditorPane extends JTextPane {
     if (fileSelected == null) {
       return null;
     }
-//    String fileSelected = FileManager.slashify(file.getAbsolutePath(), false);
-    if (fileSelected.getPath().endsWith("###isText")) {
-      fileSelected = new File(fileSelected.getPath().replace("###isText", ""));
-      isText = true;
-    }
-    //int i = SikulixIDE.get().isAlreadyOpen(fname);
     if (alreadyOpen(fileSelected.getPath())) {
       log(lvl, "loadFile: Already open in IDE: " + fileSelected);
       return null;
@@ -195,121 +189,102 @@ public class EditorPane extends JTextPane {
     return SikulixIDE.get().getTabs();
   }
 
+  IScriptRunner editorPaneRunner = null;
+  File editorPaneFileToRun = null;
+
+  private void evalRunnerAndFile(File file) {
+    Object[] runnerAndFile = Runner.getRunner(file.getAbsolutePath()).getEffectiveRunner(file.getAbsolutePath());
+    editorPaneRunner = (IScriptRunner) runnerAndFile[0];
+    editorPaneFileToRun = new File((String) runnerAndFile[1]);
+    editorPaneIsBundle = (Boolean) runnerAndFile[2];
+  }
+
   public void loadFile(File file) {
     log(lvl, "loadfile: %s", file);
-    File fileLoaded = null;
-    if (file.getPath().endsWith("###isText")) {
-      file = new File(file.getPath().replace("###isText", ""));
-      isText = true;
+    evalRunnerAndFile(file);
+    if (null == editorPaneRunner) {
+      return;
     }
-    File fileToLoad = file;
-    if (file.getPath().endsWith(".py")) {
-      fileLoaded = fileToLoad;
-      isPython = true;
-    } else if (isText) {
-      fileLoaded = fileToLoad;
-    } else {
-      fileLoaded = Runner.getScriptFile(fileToLoad);
-    }
-    if (fileLoaded != null) {
-      if (isText) {
-        scriptType = "txt";
-        //setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
-      } else {
-        //setSrcBundle(FileManager.slashify(fileLoaded.getParent(), true));
-        scriptType = fileLoaded.getAbsolutePath().substring(fileLoaded.getAbsolutePath().lastIndexOf(".") + 1);
-      }
-      runner = Runner.getRunner(scriptType);
-      initForScriptType();
-      if (readContent(fileLoaded)) {
-        setFiles(fileLoaded, fileToLoad.getAbsolutePath());
-        updateDocumentListeners("loadFile");
-        checkSource(); // loadFile
-        doParse();
-        restoreCaretPosition();
-        setDirty(false);
-      }
+    initForScriptType();
+    if (readContent(editorPaneFileToRun)) {
+      setFiles(editorPaneFileToRun, file.getAbsolutePath());
+      updateDocumentListeners("loadFile");
+      checkSource(); // loadFile
+      doParse();
+      restoreCaretPosition();
+      setDirty(false);
     }
   }
 
   private void initForScriptType() {
-    String scrType = null;
-
     // initialize runner to speed up first script run
     (new Thread() {
       @Override
       public void run() {
-        runner.init(null);
+        editorPaneRunner.init(null);
       }
     }).start();
 
-    scrType = runner.getType();
-    if (!scrType.equals(editorPaneType)) {
-      editorPaneType = scrType;
-      indentationLogic = null;
+    editorPaneType = editorPaneRunner.getType();
+    indentationLogic = null;
 
-      if (JythonRunner.TYPE.equals(editorPaneType) || PythonRunner.TYPE.equals(editorPaneType)) {
-        IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
-        indentationLogic = ideSupport.getIndentationLogic();
-        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-      } else if (TextRunner.TYPE.equals(editorPaneType)) {
-        isText = true;
-      }
+    if (JythonRunner.TYPE.equals(editorPaneType) || PythonRunner.TYPE.equals(editorPaneType)) {
+      IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
+      indentationLogic = ideSupport.getIndentationLogic();
+      indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+    }
 
-      if (editorPaneType != null) {
-        editorKit = new SikuliEditorKit();
-        setEditorKit(editorKit);
-        setContentType(editorPaneType);
+    if (editorPaneType != null) {
+      editorKit = new SikuliEditorKit();
+      setEditorKit(editorKit);
+      setContentType(editorPaneType);
 
-        if (indentationLogic != null) {
-          PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
-            @Override
-            public void preferenceChange(PreferenceChangeEvent event) {
-              if (event.getKey().equals("TAB_WIDTH")) {
-                indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
-              }
+      if (indentationLogic != null) {
+        PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
+          @Override
+          public void preferenceChange(PreferenceChangeEvent event) {
+            if (event.getKey().equals("TAB_WIDTH")) {
+              indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
             }
-          });
-        }
+          }
+        });
       }
+    }
 
-      if (transferHandler == null) {
-        transferHandler = new MyTransferHandler();
-      }
-      setTransferHandler(transferHandler);
+    if (transferHandler == null) {
+      transferHandler = new MyTransferHandler();
+    }
+    setTransferHandler(transferHandler);
 
-      if (lineHighlighter == null) {
-        lineHighlighter = new EditorCurrentLineHighlighter(this);
-        addCaretListener(lineHighlighter);
-        initKeyMap();
-        //addKeyListener(this);
-        //addCaretListener(this);
-      }
+    if (lineHighlighter == null) {
+      lineHighlighter = new EditorCurrentLineHighlighter(this);
+      addCaretListener(lineHighlighter);
+      initKeyMap();
+      //addKeyListener(this);
+      //addCaretListener(this);
+    }
 
-      if (!isText) {
-        popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-        if (!popMenuImage.isValidMenu()) {
-          popMenuImage = null;
-        }
+    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+    if (!popMenuImage.isValidMenu()) {
+      popMenuImage = null;
+    }
 
-        popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-        if (!popMenuCompletion.isValidMenu()) {
-          popMenuCompletion = null;
-        }
-      }
+    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+    if (!popMenuCompletion.isValidMenu()) {
+      popMenuCompletion = null;
+    }
 
-      setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
-      setMargin(new Insets(3, 3, 3, 3));
-      setBackground(Color.WHITE);
-      if (!Settings.isMac()) {
-        setSelectionColor(new Color(170, 200, 255));
-      }
+    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
+    setMargin(new Insets(3, 3, 3, 3));
+    setBackground(Color.WHITE);
+    if (!Settings.isMac()) {
+      setSelectionColor(new Color(170, 200, 255));
+    }
 
 //      updateDocumentListeners("initBeforeLoad");
 
-      SikulixIDE.getStatusbar().setType(editorPaneType);
-      log(lvl, "InitTab: (%s)", editorPaneType);
-    }
+    SikulixIDE.getStatusbar().setType(editorPaneType);
+    log(lvl, "InitTab: (%s)", editorPaneType);
   }
 
   private boolean readContent(File scriptFile) {
@@ -336,24 +311,27 @@ public class EditorPane extends JTextPane {
     return true;
   }
 
-  private IScriptRunner runner = null;
-  private String scriptType = null;
-  public boolean isPython = false;
-  public boolean isText = false;
+//  public boolean isPython = false;
+//  public boolean isText = false;
+
+  public boolean isText() {
+    return editorPaneType == TextRunner.TYPE;
+  }
+
+  public boolean isPython() {
+    return editorPaneType == JythonRunner.TYPE || editorPaneType == PythonRunner.TYPE;
+  }
   //</editor-fold>
 
   //<editor-fold desc="11 check content">
   public void checkSource() {
     log(3, "checkSource: started (%s)", editorPaneFile);
     String scriptText = getText();
-    if (!isBundle()) {
-      if (isPython) {
-        editorPaneType = JythonRunner.TYPE;
-        if (ExtensionManager.hasPython()) {
-          String intro = scriptText.substring(0, Math.min(20, scriptText.length())).trim().toUpperCase();
-          if (intro.contains(ExtensionManager.shebangPython)) {
-            editorPaneType = PythonRunner.TYPE;
-          }
+    if (editorPaneType == JythonRunner.TYPE) {
+      if (ExtensionManager.hasPython()) {
+        String intro = scriptText.substring(0, Math.min(20, scriptText.length())).trim().toUpperCase();
+        if (intro.contains(ExtensionManager.shebangPython)) {
+          editorPaneType = PythonRunner.TYPE;
         }
       }
     }
@@ -398,23 +376,7 @@ public class EditorPane extends JTextPane {
   private boolean notYetSaved = false;
 
   boolean isBundle() {
-    if (editorPaneIsBundle) {
-      return true;
-    }
-    if (isPython || isText) {
-      setIsNotBundle();
-    } else {
-      setIsBundle();
-    }
     return editorPaneIsBundle;
-  }
-
-  public void setIsBundle() {
-    editorPaneIsBundle = true;
-  }
-
-  public void setIsNotBundle() {
-    editorPaneIsBundle = false;
   }
 
   private boolean editorPaneIsBundle = false;
@@ -491,7 +453,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void showType() {
-    if (isPython) {
+    if (isPython()) {
       if (ExtensionManager.hasPython() && ExtensionManager.hasShebang(ExtensionManager.shebangPython, getText())) {
         setType(PythonRunner.TYPE);
         SikulixIDE.getStatusbar().setType(PythonRunner.TYPE);
@@ -503,16 +465,12 @@ public class EditorPane extends JTextPane {
   }
 
   public String getCurrentShortFilename() {
-    if (isText) {
-      return editorPaneFile.getName();
+    if (isBundle()) {
+      File f = new File(getSrcBundle());
+      return f.getName();
     }
-    if (getSrcBundle() != null) {
-      if (isPython) {
-        return editorPaneFile.getName();
-      } else {
-        File f = new File(getSrcBundle());
-        return f.getName();
-      }
+    if (isText() || isPython()) {
+      return editorPaneFile.getName();
     }
     return "Untitled";
   }
@@ -1136,28 +1094,12 @@ public class EditorPane extends JTextPane {
     SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile);
     if (notYetSaved) {
       fileChooser.setUntitled();
-      if (isText) {
-        fileChooser.setText();
-      }
-    } else if (isPython) {
-      fileChooser.setPython();
-    } else if (isText) {
-      fileChooser.setText();
     }
     File file = fileChooser.save();
     if (file == null) {
       return null;
     }
     String filename = file.getAbsolutePath();
-    if (filename.endsWith(".py")) {
-      isPython = true;
-    }
-    if (isText) {
-      filename = filename.replace("###isText", "");
-      if (!filename.endsWith(".txt")) {
-        filename += ".txt";
-      }
-    }
     if (isBundle()) {
       if (!filename.endsWith(".sikuli")) {
         filename += ".sikuli";
@@ -1284,23 +1226,18 @@ public class EditorPane extends JTextPane {
 
   public String exportAsZip() {
     SikulixFileChooser chooser = new SikulixFileChooser(SikulixIDE.get());
-    if (isPython) {
-      chooser.setPython();
-    } else if (isText) {
-      chooser.setText();
-    }
     File file = chooser.export();
     if (file == null) {
       return null;
     }
     String zipPath = file.getAbsolutePath();
-    if (isPython || isText) {
-      if (!file.getAbsolutePath().endsWith(".zip")) {
-        zipPath += ".zip";
-      }
-    } else {
+    if (isBundle()) {
       if (!file.getAbsolutePath().endsWith(".skl")) {
         zipPath += ".skl";
+      }
+    } else {
+      if (!file.getAbsolutePath().endsWith(".zip")) {
+        zipPath += ".zip";
       }
     }
     if (new File(zipPath).exists()) {
@@ -1415,6 +1352,7 @@ public class EditorPane extends JTextPane {
   private class MyTransferHandler extends TransferHandler {
 
     private static final String me = "EditorPaneTransferHandler: ";
+
     @Override
     public void exportToClipboard(JComponent comp, Clipboard clip, int action) {
       super.exportToClipboard(comp, clip, action);

@@ -207,6 +207,14 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return file.getAbsolutePath();
   }
 
+  public Object[] getEffectiveRunner(String script) {
+    Object[] returnValue = new Object[] {null, null, null};
+    returnValue[0] = this;
+    returnValue[1] = script;
+    returnValue[2] = false;
+    return returnValue;
+  }
+
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runScript");
     return Runner.NOT_SUPPORTED;
