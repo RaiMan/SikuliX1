@@ -81,8 +81,13 @@ public class SikulixRunner extends AbstractScriptRunner {
         wrapper.clearRunner();
       }
     } else {
-      log(-1, "runScript: not runnable: %s", scriptFile);
-      return Runner.FILE_NOT_FOUND;
+      if (FilenameUtils.getExtension(scriptFileOrFolder).equals("sikuli")) {
+        log(-1, "runScript: not runnable: %s", scriptFile);
+        return Runner.FILE_NOT_FOUND;
+      } else {
+        options.setBaseFolder(scriptFile);
+        return Runner.FILE_NOT_FOUND_TAKE_AS_FOLDER;
+      }
     }
   }
 
