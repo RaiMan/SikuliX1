@@ -162,7 +162,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       }
 
       int exitValue = 0;
-      String scriptFile = resolveRelativeFile(script);
+      String scriptFile = script; 
+      if (RunTime.get().runningWindows && (scriptFile.startsWith("\\") || scriptFile.startsWith("/"))) {
+        scriptFile = new File(scriptFile).getAbsolutePath();
+      }
+      scriptFile = resolveRelativeFile(scriptFile);
       if (null != scriptFile) {
         exitValue = doRunScript(scriptFile, scriptArgs, options);
       } else {

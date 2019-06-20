@@ -205,15 +205,13 @@ public class Runner {
     if (runScripts != null && runScripts.length > 0) {
       IScriptRunner.Options runOptions = new IScriptRunner.Options();
       for (String scriptGiven : runScripts) {
-        if (RunTime.get().runningWindows && (scriptGiven.startsWith("\\") || scriptGiven.startsWith("/"))) {
-          scriptGiven = new File(scriptGiven).getAbsolutePath();
-        }
         IScriptRunner runner = getRunner(scriptGiven);
-        if (runner.isSupported()) {
-          exitCode = runner.runScript(scriptGiven, null, runOptions);
-          if (exitCode == FILE_NOT_FOUND) {
-            log(-1,"runscript: not found: %s", scriptGiven);
-          }
+        exitCode = runner.runScript(scriptGiven, null, runOptions);
+        if (exitCode == FILE_NOT_FOUND) {
+          log(-1, "runscript: not found: %s", scriptGiven);
+        }
+        if (exitCode != 0) {
+          return exitCode;
         }
       }
     }
