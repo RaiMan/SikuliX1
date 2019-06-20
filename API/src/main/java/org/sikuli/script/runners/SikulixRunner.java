@@ -5,6 +5,7 @@ package org.sikuli.script.runners;
 
 import java.io.File;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
 import org.sikuli.util.AbortableScriptRunnerWrapper;
@@ -46,14 +47,23 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public boolean canHandle(String identifier) {
-    File file = new File(identifier);
-
-    if (file.isDirectory()) {
-      File innerScriptFile = Runner.getScriptFile(file);
-      return null != innerScriptFile;
+    for (String ending : new String[]{"", "sikuli"}) {
+      if (FilenameUtils.getExtension(identifier).equals(ending)) {
+        return true;
+      }
     }
-
     return false;
+  }
+
+  @Override
+  public String resolveRelativeFile(String script) {
+    for (String ending : new String[]{"", ".sikuli"}) {
+      String scriptFile = super.resolveRelativeFile(script + ending);
+      if (null != scriptFile) {
+        return scriptFile;
+      }
+    }
+    return null;
   }
 
   @Override

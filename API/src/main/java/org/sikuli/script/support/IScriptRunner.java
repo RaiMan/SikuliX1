@@ -230,6 +230,15 @@ public interface IScriptRunner {
   public boolean canHandle(String identifier);
 
   /**
+   * a relative path is checked for existence in the current base folder,
+   * working folder and user home folder in this sequence.
+   *
+   * @param script
+   * @return absolute file or null if not found
+   */
+  public String resolveRelativeFile(String script);
+
+  /**
    * Redirects the runner's STDIO to the given PrintStream.
    *
    * Subsequent calls to this function override the previously set streams.

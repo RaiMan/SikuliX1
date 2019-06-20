@@ -665,6 +665,7 @@ public class RunTime {
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
   public File fUserDir = null;
   public File fWorkDir = null;
+  public File fBaseDir = null;
   public File fAppPath = null;
   public File fSikulixAppPath = null;
   public File fSikulixExtensions = null;
@@ -847,6 +848,8 @@ public class RunTime {
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.dir not valid");
     }
+
+    runTime.fBaseDir = runTime.fWorkDir;
 
     runTime.fSikulixAppPath = new File("SikulixAppDataNotAvailable");
     if (runTime.runningWindows) {

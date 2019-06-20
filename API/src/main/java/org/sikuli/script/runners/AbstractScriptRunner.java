@@ -4,6 +4,7 @@
 
 package org.sikuli.script.runners;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
@@ -102,16 +104,16 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       if (getType().equals(identifier)) {
         return true;
       }
-      if (hasExtension(identifier)) {
-        return true;
-      }
-      if (canHandleFileEnding(identifier)) {
-        return true;
-      }
       if (identifier.toLowerCase().equals(getName().toLowerCase())) {
         return true;
       }
       if (identifier.toLowerCase().startsWith(getName().toLowerCase() + "*")) {
+        return true;
+      }
+      if (hasExtension(identifier)) {
+        return true;
+      }
+      if (canHandleFileEnding(identifier)) {
         return true;
       }
     }
@@ -159,10 +161,39 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         Debug.off();
       }
 
-      int exitValue = doRunScript(script, scriptArgs, options);
+      int exitValue = 0;
+      String scriptFile = resolveRelativeFile(script);
+      if (null != scriptFile) {
+        exitValue = doRunScript(scriptFile, scriptArgs, options);
+      } else {
+        exitValue = Runner.FILE_NOT_FOUND;
+      }
       Debug.setDebugLevel(savedLevel);
       return exitValue;
     });
+  }
+
+  public String resolveRelativeFile(String scriptName) {
+    File file = new File(scriptName);
+    if (!file.isAbsolute()) {
+      File inBaseDir = new File(RunTime.get().fBaseDir, scriptName);
+      if (inBaseDir.exists()) {
+        file = inBaseDir;
+      } else {
+        File inWorkDir = new File(RunTime.get().fWorkDir, scriptName);
+        if (inWorkDir.exists()) {
+          file = inWorkDir;
+        } else {
+          File inUserDir = new File(RunTime.get().fUserDir, scriptName);
+          if (inUserDir.exists()) {
+            file = inUserDir;
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    return file.getAbsolutePath();
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -299,7 +330,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public final void abort() {
-    if(running && isAbortSupported()) {
+    if (running && isAbortSupported()) {
       doAbort();
     }
   }
@@ -320,8 +351,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public final boolean canHandleFileEnding(String identifier) {
-    for (String suf : getFileEndings()) {
-      if (identifier.toLowerCase().endsWith(suf)) {
+    String fileEnding = FilenameUtils.getExtension(identifier).toLowerCase();
+    if (fileEnding.isEmpty()) {
+      return false;
+    }
+    for (String suf : getExtensions()) {
+      if (fileEnding.equals(suf.toLowerCase())) {
         return true;
       }
     }
@@ -332,7 +367,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     String[] extensions = getExtensions();
     String[] endings = new String[extensions.length];
 
-    for (int i=0;i<extensions.length;i++) {
+    for (int i = 0; i < extensions.length; i++) {
       endings[i] = "." + extensions[i];
     }
     return endings;

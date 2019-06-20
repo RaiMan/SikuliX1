@@ -91,6 +91,10 @@ public class NetworkRunner extends AbstractScriptRunner {
     return false;
   }
 
+  public String resolveRelativeFile(String script) {
+    return script;
+  }
+
   private String getScriptURL(String scriptFile) {
     URL scriptURL;
     try {
