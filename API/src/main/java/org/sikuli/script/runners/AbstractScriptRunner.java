@@ -208,7 +208,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public Object[] getEffectiveRunner(String script) {
-    Object[] returnValue = new Object[] {null, null, null};
+    Object[] returnValue = new Object[]{null, null, null};
     returnValue[0] = this;
     returnValue[1] = script;
     returnValue[2] = false;
@@ -370,12 +370,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public final boolean canHandleFileEnding(String identifier) {
-    String fileEnding = FilenameUtils.getExtension(identifier).toLowerCase();
-    if (fileEnding.isEmpty()) {
-      return false;
-    }
-    for (String suf : getExtensions()) {
-      if (fileEnding.equals(suf.toLowerCase())) {
+    for (String suf : getFileEndings()) {
+      if (identifier.toLowerCase().endsWith(suf.toLowerCase())) {
         return true;
       }
     }
