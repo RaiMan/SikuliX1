@@ -572,7 +572,7 @@ def runScript(script, *args):
   return Runner.runScript(unicd(script))
 
 def getLastReturnCode():
-  return Runner.getLastReturnCode()
+  return RUNTIME.getLastScriptRunReturnCode()
 
 ##
 # helper functions, that can be used when sorting lists of regions
