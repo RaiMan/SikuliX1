@@ -30,11 +30,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 import java.util.*;
 
@@ -51,7 +48,7 @@ public class SikulixIDE extends JFrame {
   static RunTime runTime;
 
   static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
-      SikulixIDE.class.getResource("/icons/sikulix.png"));
+          SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
 
@@ -421,6 +418,7 @@ public class SikulixIDE extends JFrame {
       // put your debug code here ...
     }
   }
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="04 save / restore session">
   final static int WARNING_CANCEL = 2;
@@ -2317,7 +2315,7 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="21 Init Run Buttons">
-  boolean doBeforeRun() {
+  boolean trySaveScriptsBeforeRun() {
     int action;
     if (checkDirtyPanes()) {
       if (prefs.getPrefMoreRunSave()) {
@@ -2341,7 +2339,27 @@ public class SikulixIDE extends JFrame {
     ideIsRunningScript = state;
   }
 
-  private boolean ideIsRunningScript = false;
+  public Boolean ideIsRunningScript = false;
+
+  public IScriptRunner getCurrentRunner() {
+    return currentRunner;
+  }
+
+  public void setCurrentRunner(IScriptRunner currentRunner) {
+    this.currentRunner = currentRunner;
+  }
+
+  private IScriptRunner currentRunner = null;
+
+  public File getCurrentScript() {
+    return currentScript;
+  }
+
+  public void setCurrentScript(File currentScript) {
+    this.currentScript = currentScript;
+  }
+
+  private File currentScript = null;
 
   void addErrorMark(int line) {
     if (line < 1) {
@@ -2386,102 +2404,114 @@ public class SikulixIDE extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-//      if (getCurrentCodePane().isText) {
-//        return;
-//      }
       runCurrentScript();
     }
 
     void runCurrentScript() {
-      if (System.out.checkError()) {
-        Sikulix.popError("System.out is broken (console output)!"
-                + "\nYou will not see any messages anymore!"
-                + "\nSave your work and restart the IDE!"
-                + "\nYou may ignore this on your own risk!", "Fatal Error");
-      }
-      SikulixIDE.getStatusbar().setMessage("... PLEASE WAIT ... checking IDE state before running script");
-      if (isRunningScript()
-              || getCurrentCodePane().getDocument().getLength() == 0
-              || !doBeforeRun()) {
-        return;
-      }
-      SikulixIDE.getStatusbar().resetMessage();
-      SikulixIDE.hideIDE();
-      RunTime.pause(0.1f);
-      sikulixIDE.setIsRunningScript(true);
-      EditorPane editorPane = getCurrentCodePane();
-      File scriptFile;
-      if (editorPane.isDirty()) {
-        editorPane.checkSource(); // runCurrentScript
-        if (editorPane.isTemp()) {
-          scriptFile = editorPane.getCurrentFile(false);
-        } else {
-          scriptFile = FileManager.createTempFile(Runner.getExtension(editorPane.getType()));
-        }
-        if (scriptFile != null) {
-          try {
-            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
-          } catch (Exception ex) {
-            scriptFile = null;
-          }
-        }
-        if (scriptFile == null) {
-          log(-1, "runCurrentScript: temp file for running not available");
-          return;
-        }
-      } else {
-        scriptFile = editorPane.getCurrentFile();
-      }
-      messages.clear();
-      resetErrorMark();
-//      IScriptRunner scriptRunner = Runner.getRunner(editorPane.getType());
-//      if (scriptRunner == null) {
-//        log(-1, "runCurrentScript: Could not load a script runner for: %s", editorPane.getType());
-//        return;
-//      }
-      beforeRun();
-      //      ImagePath.reset();
-      final SubRun doRun = new SubRun(editorPane.editorPaneRunner, scriptFile, this);
-      thread = new Thread(doRun);
-      thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      new Thread(new Runnable() {
         @Override
-        public void uncaughtException(Thread t, Throwable e) {
-          if (System.out.checkError()) {
-            Sikulix.popError("System.out is broken (console output)!"
-                    + "\nYou will not see any messages anymore!"
-                    + "\nSave your work and restart the IDE!", "Fatal Error");
+        public void run() {
+          synchronized (ideIsRunningScript) {
+            if (isRunningScript()) {
+              log(-1, "Run Script: not possible: already running script: %s", getCurrentScript());
+              return;
+            }
+            if (System.out.checkError()) {
+              boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
+                      + "\nYou will not see any messages anymore!"
+                      + "\nSave your work and restart the IDE!"
+                      + "\nYou may ignore this on your own risk!" +
+                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+              if (!shouldContinue) {
+                log(3, "Run script aborted: System.out is broken (console output)");
+                return;
+              }
+              log(3, "Run script continued, though System.out is broken (console output)");
+            }
+            sikulixIDE.setIsRunningScript(true);
           }
-          log(lvl, "Scriptrun: cleanup in handler for uncaughtException: %s", e.toString());
-          doRun.hasFinished(true);
-          doRun.afterRun();
+          log(3, "************** before RunScript");
+
+          EditorPane editorPane = getCurrentCodePane();
+          if (editorPane.getDocument().getLength() == 0) {
+            log(3, "Run script not possible: Script is empty");
+            return;
+          }
+          if (!trySaveScriptsBeforeRun()) {
+            log(3, "Run script cancelled or problems saving scripts");
+            return;
+          }
+          SikulixIDE.getStatusbar().resetMessage();
+          SikulixIDE.hideIDE();
+          RunTime.pause(0.1f);
+          File scriptFile;
+          if (editorPane.isDirty()) {
+            editorPane.checkSource(); // runCurrentScript
+            if (editorPane.isTemp()) {
+              scriptFile = editorPane.getCurrentFile(false);
+            } else {
+              scriptFile = FileManager.createTempFile(Runner.getExtension(editorPane.getType()));
+            }
+            if (scriptFile != null) {
+              try {
+                editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
+              } catch (Exception ex) {
+                scriptFile = null;
+              }
+            }
+            if (scriptFile == null) {
+              log(-1, "runCurrentScript: temp file for running not available");
+              setIsRunningScript(false);
+
+            }
+          } else {
+            scriptFile = editorPane.getCurrentFile();
+          }
+          messages.clear();
+          resetErrorMark();
+          doBeforeRun();
+
+          IScriptRunner.Options runOptions = new IScriptRunner.Options();
+          runOptions.setRunningInIDE();
+
+          int exitValue = -1;
+          try {
+            setCurrentRunner(editorPane.editorPaneRunner);
+            setCurrentScript(scriptFile);
+            exitValue = editorPane.editorPaneRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
+          } catch (Exception e) {
+            log(-1, "RunScript: internal error:");
+            e.printStackTrace();
+            RunTime.get().setLastScriptRunReturnCode(exitValue);
+          } finally {
+            setCurrentRunner(null);
+            setCurrentScript(null);
+          }
+
+          addErrorMark(runOptions.getErrorLine());
+          if (Image.getIDEshouldReload()) {
+            EditorPane pane = getCurrentCodePane();
+            int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
+            getCurrentCodePane().doReparse();
+            getCurrentCodePane().jumpTo(line);
+          }
+          RunTime.cleanUp();
+          SikulixIDE.showAgain();
+
+          log(3, "************** after RunScript");
+          synchronized (ideIsRunningScript) {
+            setIsRunningScript(false);
+          }
+
         }
-      });
-      thread.start();
+      }).start();
     }
 
-    void beforeRun() {
+    void doBeforeRun() {
       Settings.ActionLogs = prefs.getPrefMoreLogActions();
       Settings.DebugLogs = prefs.getPrefMoreLogDebug();
       Settings.InfoLogs = prefs.getPrefMoreLogInfo();
       Settings.Highlight = prefs.getPrefMoreHighlight();
-    }
-
-    boolean isRunning() {
-      return thread != null;
-    }
-
-    void notRunning() {
-      thread = null;
-    }
-
-    boolean stopRunScript() {
-      if (thread != null) {
-        thread.interrupt();
-        thread.stop();
-        thread = null;
-        return true;
-      }
-      return false;
     }
   }
 
@@ -2496,65 +2526,9 @@ public class SikulixIDE extends JFrame {
     }
 
     @Override
-    protected void beforeRun() {
-      super.beforeRun();
+    protected void doBeforeRun() {
+      super.doBeforeRun();
       Settings.setShowActions(true);
-    }
-  }
-
-  private class SubRun implements Runnable {
-    private boolean finished = false;
-    private int ret = 0;
-    private File scriptFile = null;
-    private IScriptRunner scriptRunner = null;
-    private IScriptRunner.Options options = new IScriptRunner.Options();
-    ButtonRun buttonRun;
-
-    SubRun(IScriptRunner scriptRunner, File scriptFile, ButtonRun buttonRun) {
-      this.scriptFile = scriptFile;
-      this.scriptRunner = scriptRunner;
-      this.buttonRun = buttonRun;
-    }
-
-    @Override
-    public void run() {
-      try {
-        options.setRunningInIDE();
-        ret = scriptRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), options);
-      } catch (Exception ex) {
-        log(-1, "(%s) runScript: Exception: %s", scriptRunner.getName(), ex);
-      }
-      hasFinished(true);
-      afterRun();
-    }
-
-    int getRet() {
-      return ret;
-    }
-
-    boolean hasFinished() {
-      return hasFinished(false);
-    }
-
-    synchronized boolean hasFinished(boolean state) {
-      if (state) {
-        finished = true;
-      }
-      return finished;
-    }
-
-    void afterRun() {
-      addErrorMark(options.getErrorLine());
-      if (Image.getIDEshouldReload()) {
-        EditorPane pane = getCurrentCodePane();
-        int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-        getCurrentCodePane().doReparse();
-        getCurrentCodePane().jumpTo(line);
-      }
-      setIsRunningScript(false);
-      RunTime.cleanUp();
-      buttonRun.notRunning();
-      SikulixIDE.showAgain();
     }
   }
   //</editor-fold>
@@ -2766,20 +2740,11 @@ public class SikulixIDE extends JFrame {
   }
 
   void onStopRunning() {
-    boolean shouldCleanUp = false;
-    if (_btnRun != null && _btnRun.isRunning()) {
-      shouldCleanUp = _btnRun.stopRunScript();
-    }
-    if (_btnRunViz != null && _btnRunViz.isRunning()) {
-      shouldCleanUp = _btnRunViz.stopRunScript();
-    }
-    if (shouldCleanUp) {
-      log(3, "AbortKey was pressed");
-      //RunTime.cleanUp();
-      //setVisible(true);
-      showAgain();
+    if (isRunningScript()) {
+      log(3, "AbortKey was pressed: aborting script run: %s", getCurrentScript().getName());
+      getCurrentRunner().abort();
     } else {
-      log(3, "AbortKey was pressed, but nothing to stop here ;-)");
+      log(3, "AbortKey was pressed: NOOP: no script is running currently");
     }
   }
 

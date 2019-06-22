@@ -311,9 +311,6 @@ public class EditorPane extends JTextPane {
     return true;
   }
 
-//  public boolean isPython = false;
-//  public boolean isText = false;
-
   public boolean isText() {
     return editorPaneType == TextRunner.TYPE;
   }
