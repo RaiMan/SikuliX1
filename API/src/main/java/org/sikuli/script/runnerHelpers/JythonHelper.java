@@ -953,8 +953,6 @@ public class JythonHelper implements IScriptLanguageHelper {
       if (errorClass != SX_ABORT) {
         Debug.error(msg);
         Debug.error(errorType + " ( " + errorText + " )");
-      } else {
-        Debug.error("IDE: terminating script run - abort key was pressed");
       }
       if (errorClass == PY_RUNTIME) {
         errorTrace = findErrorSourceWalkTrace(mFile, filename);
