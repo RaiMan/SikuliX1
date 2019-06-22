@@ -55,8 +55,7 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
   @Override
   public boolean canHandle(String identifier) {
     if (super.canHandle(identifier)) {
-      String resolvedFile = resolveRelativeFile(identifier);
-      try (ZipFile file = openZipFile(resolvedFile)) {
+      try (ZipFile file = openZipFile(identifier)) {
           ZipEntry innerScriptFile = getScriptEntry(file);
           return null != innerScriptFile;
       } catch (IOException e) {

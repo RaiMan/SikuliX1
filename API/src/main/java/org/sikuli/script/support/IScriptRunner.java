@@ -244,7 +244,7 @@ public interface IScriptRunner {
    * Needed in the IDE to detect the runner when file or folder is opened
    *
    * @param script
-   * @return array: 0: runner, 1: script file to load
+   * @return array: [0]: runner, [1]: script file to load, [2]: true if folder with script file (bundle)
    */
   public Object[] getEffectiveRunner(String script);
 

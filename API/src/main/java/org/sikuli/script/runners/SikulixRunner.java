@@ -56,17 +56,6 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public String resolveRelativeFile(String script) {
-    for (String ending : new String[]{"", ".sikuli"}) {
-      String scriptFile = super.resolveRelativeFile(script + ending);
-      if (null != scriptFile) {
-        return scriptFile;
-      }
-    }
-    return null;
-  }
-
-  @Override
   protected int doRunScript(String scriptFolder, String[] scriptArgs, IScriptRunner.Options options) {
     Object[] runnerAndFile = getEffectiveRunner(scriptFolder);
     IScriptRunner runner = (IScriptRunner) runnerAndFile[0];
@@ -78,25 +67,18 @@ public class SikulixRunner extends AbstractScriptRunner {
       } finally {
         wrapper.clearRunner();
       }
-    } else {
-      if (FilenameUtils.getExtension(scriptFolder).equals("sikuli")) {
-        log(-1, "runScript: not runnable: %s", scriptFolder);
-        return Runner.FILE_NOT_FOUND;
-      } else {
-        options.setBaseFolder(new File(scriptFolder));
-        return Runner.FILE_NOT_FOUND_TAKE_AS_FOLDER;
-      }
     }
+    return Runner.FILE_NOT_FOUND;
   }
 
   public Object[] getEffectiveRunner(String scriptFileOrFolder) {
-    Object[] returnValue = new Object[] {null, null, null};
+    Object[] returnValue = new Object[]{null, null, null};
     File scriptFile = new File(scriptFileOrFolder);
     File innerScriptFile = Runner.getScriptFile(scriptFile);
     if (null != innerScriptFile) {
-        returnValue[0] = Runner.getRunner(innerScriptFile.getAbsolutePath());
-        returnValue[1] = innerScriptFile.getAbsolutePath();
-        returnValue[2] = true;
+      returnValue[0] = Runner.getRunner(innerScriptFile.getAbsolutePath());
+      returnValue[1] = innerScriptFile.getAbsolutePath();
+      returnValue[2] = true;
     }
     return returnValue;
   }
