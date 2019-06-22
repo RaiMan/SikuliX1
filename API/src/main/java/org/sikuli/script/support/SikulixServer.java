@@ -31,6 +31,7 @@ import io.undertow.server.handlers.RequestLimitingHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.server.handlers.resource.ResourceManager;
+import io.undertow.util.AttachmentKey;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 import io.undertow.util.StatusCodes;
@@ -296,10 +297,12 @@ public class SikulixServer {
   private static Undertow createServer(int port, String ipAddr) {
     StopCommand stop = new StopCommand();
     ScriptsCommand scripts = new ScriptsCommand();
+    GroupsCommand groups = new GroupsCommand(scripts);
 
     RoutingHandler commands = Handlers.routing()
             .addAll(stop.getRouting())
             .addAll(scripts.getRouting())
+            .addAll(groups.getRouting())
             .setFallbackHandler(AbstractCommand.getFallbackHandler());
     CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(commands);
     cmdRoot.addExceptionHandler(Throwable.class, AbstractCommand.getExceptionHttpHandler());
@@ -318,10 +321,8 @@ public class SikulixServer {
   private static class StopCommand extends AbstractCommand {
     public StopCommand() {
       getRouting()
-          .add(Methods.GET, "/stop",
-               toRequestLimitingHandler(stop))
-          .add(Methods.POST, "/stop",
-               toRequestLimitingHandler(stop));
+          .add(Methods.GET, "/stop", toRequestLimitingHandler(stop))
+          .add(Methods.POST, "/stop", toRequestLimitingHandler(stop));
     }
 
     private HttpHandler stop = exchange -> {
@@ -353,8 +354,8 @@ public class SikulixServer {
     }
 
     private HttpHandler run = exchange -> {
-      String script = exchange.getQueryParameters().get("*").getFirst().replaceFirst("/run$", "");
-      File fScript = new File(getCurrentGroup(), script);
+      String script = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+      File fScript = new File(getCurrentGroup(exchange), script);
       int statusCode = StatusCodes.OK;
       String message = null;
       List<String> args = getQueryAndToArgs(exchange);
@@ -381,9 +382,10 @@ public class SikulixServer {
       sendResponse(exchange, statusCode==StatusCodes.OK, statusCode, message);
     };
 
-    private String getCurrentGroup() {
-      //TODO evaluate and return the current group's folder
-      return groups.get(DEFAULT_GROUP).getAbsolutePath();
+    private String getCurrentGroup(final HttpServerExchange exchange) {
+      CommandsAttachment attachment = Optional.ofNullable(exchange.getAttachment(KEY)).orElse(new CommandsAttachment());
+      String groupName = Optional.ofNullable(attachment.get(GroupsCommand.ATTACHMENTKEY_GROUPNAME)).orElse(DEFAULT_GROUP);
+      return groups.get(groupName).getAbsolutePath();
     }
 
     private List<String> getQueryAndToArgs(final HttpServerExchange exchange) {
@@ -403,22 +405,62 @@ public class SikulixServer {
     }
   }
 
+  private static class GroupsCommand extends AbstractCommand {
+    public static final String ATTACHMENTKEY_GROUPNAME = "groupName";
+    private ScriptsCommand scripts;
+
+    public GroupsCommand(ScriptsCommand scripts) {
+      this.scripts = scripts;
+      getRouting()
+          .add(Methods.GET, "/groups", getGroups)
+          .add(Methods.GET, "/groups/{name}", getSubTree)
+          .add(Methods.GET, "/groups/{name}/*", delegate)
+          .add(Methods.POST, "/groups/{name}/*", delegate);
+    }
+
+    private HttpHandler getGroups = exchange -> {
+      //TODO implement : Returns a list of available groups.
+      sendResponse(exchange, true, StatusCodes.OK, "a list of available groups");
+    };
+
+    private HttpHandler getSubTree = exchange -> {
+      //TODO implement : Returns the subtree (folders and contained scripts) in the group.
+      sendResponse(exchange, true, StatusCodes.OK, "the subtree in the group");
+    };
+
+    private HttpHandler delegate = exchange -> {
+      String newRelativePath = "/" + exchange.getQueryParameters().get("*").getLast();
+      exchange.setRelativePath(newRelativePath);
+      String groupName = exchange.getQueryParameters().get("name").getLast();
+      if (groups.containsKey(groupName)) {
+        CommandsAttachment attachment = Optional.ofNullable(exchange.getAttachment(KEY)).orElse(new CommandsAttachment());
+        attachment.put(ATTACHMENTKEY_GROUPNAME, groupName);
+        exchange.putAttachment(KEY, attachment);
+        scripts.getRouting().handleRequest(exchange); 
+      } else {
+        sendResponse(exchange, false, StatusCodes.NOT_FOUND, "group not found : " + groupName);
+      }
+    };
+  }
+
   private static abstract class AbstractCommand {
+    public static final AttachmentKey<CommandsAttachment> KEY = AttachmentKey.create(CommandsAttachment.class);
+
     private static RequestLimit sharedRequestLimit = new RequestLimit(1);
     private static HttpHandler fallbackHandler = exchange -> {
       AbstractCommand.sendResponse(exchange, false, StatusCodes.BAD_REQUEST,
-      "invalid command: " + exchange.getRelativePath());
+          "invalid command: " + exchange.getRequestPath());
     };
     private static HttpHandler exceptionHandler = exchange -> {
       Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
-        SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
-        AbstractCommand.sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
-            "server error: " + ex.getMessage());
+      SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+      AbstractCommand.sendResponse(exchange, false, StatusCodes.INTERNAL_SERVER_ERROR,
+          "server error: " + ex.getMessage());
     };
     private RoutingHandler routing;
 
     protected AbstractCommand() {
-      routing = Handlers.routing();
+      routing = Handlers.routing().setFallbackHandler(fallbackHandler);
     }
 
     protected RoutingHandler getRouting() {
@@ -445,6 +487,10 @@ public class SikulixServer {
       exchange.getResponseSender().send(body);
 
       SikulixServer.dolog("returned:\n" + (head + "\n\n" + body));
+    }
+
+    protected static class CommandsAttachment extends HashMap<String, String> {
+      private static final long serialVersionUID = 2103091341469112744L;
     }
   }
 
