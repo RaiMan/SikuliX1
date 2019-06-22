@@ -4,23 +4,20 @@
 
 package org.sikuli.script.support;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.io.FilenameUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.HotkeyEvent;
+import org.sikuli.basics.HotkeyListener;
+import org.sikuli.basics.HotkeyManager;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
-//import org.sikuli.script.runners.SikulixRunner;
+
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 public class Runner {
 
@@ -89,15 +86,13 @@ public class Runner {
           return runner;
         }
       }
-//    File possibleScriptFileOrFolder = new File(identifier);
-//    if (possibleScriptFileOrFolder.isDirectory()) {
-//      return true;
-//    }
-//    String extension = FilenameUtils.getExtension(identifier);
-//    return extension.isEmpty() || "sikuli".equals(extension);
-      log(-1, "getRunner: none found for: %s", identifier);
       return new InvalidRunner();
     }
+  }
+
+  public static Object[] getEffectiveRunner(String identifier) {
+    IScriptRunner runner = getRunner(identifier);
+    return runner.getEffectiveRunner(identifier);
   }
 
   public static List<IScriptRunner> getRunners() {
@@ -181,8 +176,7 @@ public class Runner {
   // </editor-fold>
 
   public static final int FILE_NOT_FOUND = 256;
-  public static final int FILE_NOT_FOUND_TAKE_AS_FOLDER = 257;
-  public static final int NOT_SUPPORTED = 258;
+  public static final int NOT_SUPPORTED = 257;
 
   public static int runScript(String script) {
     if (script.contains("\n")) {
@@ -201,31 +195,53 @@ public class Runner {
       return runScripts(new String[]{script});
   }
 
+  private static void installStopHotkey() {
+  }
+
+  private static IScriptRunner currentRunner = new InvalidRunner();
+
   public static int runScripts(String[] runScripts) {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
+
+      // making stop hotkey available
+      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+        @Override
+        public void hotkeyPressed(HotkeyEvent e) {
+          Debug.log(3, "Stop HotKey was pressed");
+          currentRunner.abort();
+        }
+      });
+
       IScriptRunner.Options runOptions = new IScriptRunner.Options();
       for (String scriptGiven : runScripts) {
-        IScriptRunner runner = getRunner(scriptGiven);
-        exitCode = runner.runScript(scriptGiven, null, runOptions);
-        if (exitCode == FILE_NOT_FOUND) {
-          log(-1, "runscript: not found: %s", scriptGiven);
-        } else if (exitCode == FILE_NOT_FOUND_TAKE_AS_FOLDER) {
-          log(3, "runscript: setting basefolder: %s", scriptGiven);
-          RunTime.get().setBaseFolder(runOptions.getBaseFolder());
+        if (scriptGiven.startsWith("!")) {
+          // special meaning from -r option evaluation to get a synchronous log and noop action
+          log(3, "runscript: new base directory: %s", scriptGiven.substring(1));
           continue;
+        } else if (scriptGiven.startsWith("?")) {
+          // special meaning from -r option evaluation to get a synchronous log and action
+          scriptGiven = scriptGiven.substring(1);
+          exitCode = FILE_NOT_FOUND;
+        } else {
+          log(3, "runscript: running script: %s", scriptGiven);
+          IScriptRunner runner = getRunner(scriptGiven);
+          RunTime.get().setLastScriptRunReturnCode(0);
+          currentRunner = runner;
+          exitCode = runner.runScript(scriptGiven, null, runOptions);
+          RunTime.get().setLastScriptRunReturnCode(exitCode);
+          currentRunner = new InvalidRunner();
         }
-        lastReturnCode = exitCode;
+        if (exitCode != 0) {
+          if (exitCode == FILE_NOT_FOUND) {
+            log(-1, "runscript: not found: %s", scriptGiven);
+          }
+          break;
+        }
       }
     }
     return exitCode;
   }
-
-  public static int getLastReturnCode() {
-    return lastReturnCode;
-  }
-
-  private static int lastReturnCode = 0;
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
     IScriptRunner runner = getRunner(script);

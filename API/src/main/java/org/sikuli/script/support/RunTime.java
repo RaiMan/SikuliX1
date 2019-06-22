@@ -191,13 +191,13 @@ public class RunTime {
 
     if (runningScripts()) {
       int exitCode = Runner.runScripts(RunTime.getRunScripts());
+      if (exitCode > 255) {
+        exitCode = -1;
+      }
       Sikulix.terminate(exitCode, "");
     }
 
     if (shouldRunServer()) {
-//      if (!isVerbose()) {
-//        Sikulix.terminate(1, "SikulixServer: currently not supported");
-//      }
       if (!ServerRunner.run(null)) {
         Sikulix.terminate(1, "SikulixServer: terminated with errors");
       }
@@ -314,8 +314,78 @@ public class RunTime {
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
+      runScripts = resolveRelativeFiles(cmdLine.getOptionValues(CommandArgsEnum.RUN.longname()));
     }
+  }
+
+  public static String[] resolveRelativeFiles(String[] givenScripts) {
+    String[] runScripts = new String[givenScripts.length];
+    String baseDir = get().fWorkDir.getPath();
+    for (int i = 0; i < runScripts.length; i++) {
+      String givenScript = givenScripts[i];
+      String file = resolveRelativeFile(givenScript, baseDir);
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".sikuli", baseDir);
+        if (file == null) {
+          runScripts[i] = "?" + givenScript;
+          continue;
+        }
+      }
+      Object[] runnerAndFile = Runner.getEffectiveRunner(file);
+      String fileToRun = (String) runnerAndFile[1];
+      File possibleDir = null;
+      if (null == fileToRun) {
+        for (String ending : new String[]{"", ".sikuli"}) {
+          possibleDir = new File(file + ending);
+          if (possibleDir.exists()) {
+            break;
+          } else {
+            possibleDir = null;
+          }
+        }
+        if (null == possibleDir) {
+          runScripts[i] = "?" + givenScript;
+          continue;
+        }
+        baseDir = possibleDir.getAbsolutePath();
+        fileToRun = "!" + baseDir;
+      }
+      runScripts[i] = fileToRun;
+    }
+    return runScripts;
+  }
+
+  /**
+   * a relative path is checked for existence in the current base folder,
+   * working folder and user home folder in this sequence.
+   *
+   * @param scriptName
+   * @return absolute file or null if not found
+   */
+  public static String resolveRelativeFile(String scriptName, String baseDir) {
+    if (get().runningWindows && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
+      scriptName = new File(scriptName).getAbsolutePath();
+    }
+    File file = new File(scriptName);
+    if (!file.isAbsolute()) {
+      File inBaseDir = new File(baseDir, scriptName);
+      if (inBaseDir.exists()) {
+        file = inBaseDir;
+      } else {
+        File inWorkDir = new File(get().fWorkDir, scriptName);
+        if (inWorkDir.exists()) {
+          file = inWorkDir;
+        } else {
+          File inUserDir = new File(get().fUserDir, scriptName);
+          if (inUserDir.exists()) {
+            file = inUserDir;
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    return file.getAbsolutePath();
   }
 
   private static void evalArgsStart(String[] args) {
@@ -586,15 +656,16 @@ public class RunTime {
   public File fUserDir = null;
   public File fWorkDir = null;
 
-  public File getBaseFolder() {
-    return fBaseFolder;
+  public int getLastScriptRunReturnCode() {
+    return lastScriptRunReturnCode;
   }
 
-  public void setBaseFolder(File fBaseDir) {
-    this.fBaseFolder = fBaseDir;
+  public void setLastScriptRunReturnCode(int lastScriptRunReturnCode) {
+    this.lastScriptRunReturnCode = lastScriptRunReturnCode;
   }
 
-  private File fBaseFolder = null;
+  private int lastScriptRunReturnCode = 0;
+
   public File fAppPath = null;
   public File fSikulixAppPath = null;
   public File fSikulixExtensions = null;
@@ -777,8 +848,6 @@ public class RunTime {
     if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
       runTime.terminate(999, "JavaSystemProperty::user.dir not valid");
     }
-
-    runTime.fBaseFolder = runTime.fWorkDir;
 
     runTime.fSikulixAppPath = new File("SikulixAppDataNotAvailable");
     if (runTime.runningWindows) {
@@ -1610,6 +1679,10 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
+  public void crash() {
+    int x = 1/0;
+  }
+
   public static void pause(int time) {
     try {
       Thread.sleep(time * 1000);
