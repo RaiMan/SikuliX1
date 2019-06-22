@@ -101,6 +101,7 @@ public class LinuxUtil implements OSUtil {
     try {
       //check if PID exists, if not throw exception
       executor.execute(command);
+      app.setPID(pid);
       return app;
     } catch (IOException e) {
       System.out.println("[error] App.isRunning: '" + command + "'" + e.getMessage());
