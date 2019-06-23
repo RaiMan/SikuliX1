@@ -14,6 +14,7 @@ import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
+import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -90,7 +91,7 @@ public class Runner {
     }
   }
 
-  public static Object[] getEffectiveRunner(String identifier) {
+  public static EffectiveRunner getEffectiveRunner(String identifier) {
     IScriptRunner runner = getRunner(identifier);
     return runner.getEffectiveRunner(identifier);
   }
