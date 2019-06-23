@@ -169,12 +169,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     });
   }
 
-  public Object[] getEffectiveRunner(String script) {
-    Object[] returnValue = new Object[]{null, null, null};
-    returnValue[0] = this;
-    returnValue[1] = script;
-    returnValue[2] = false;
-    return returnValue;
+  public EffectiveRunner getEffectiveRunner(String script) {
+    return new EffectiveRunner(this, script, false);    
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {

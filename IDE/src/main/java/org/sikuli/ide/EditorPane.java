@@ -23,6 +23,7 @@ import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.util.SikulixFileChooser;
@@ -198,10 +199,10 @@ public class EditorPane extends JTextPane {
   File editorPaneFileToRun = null;
 
   private void evalRunnerAndFile(File file) {
-    Object[] runnerAndFile = Runner.getEffectiveRunner(file.getAbsolutePath());
-    editorPaneRunner = (IScriptRunner) runnerAndFile[0];
-    editorPaneFileToRun = new File((String) runnerAndFile[1]);
-    editorPaneIsBundle = (Boolean) runnerAndFile[2];
+    EffectiveRunner runnerAndFile = Runner.getRunner(file.getAbsolutePath()).getEffectiveRunner(file.getAbsolutePath());
+    editorPaneRunner = runnerAndFile.getRunner();
+    editorPaneFileToRun = new File(runnerAndFile.getScript());
+    editorPaneIsBundle =  runnerAndFile.isBundle();
   }
 
   public void loadFile(File file) {

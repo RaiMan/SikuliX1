@@ -12,6 +12,7 @@ import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.ServerRunner;
+import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
@@ -331,8 +332,8 @@ public class RunTime {
           continue;
         }
       }
-      Object[] runnerAndFile = Runner.getEffectiveRunner(file);
-      String fileToRun = (String) runnerAndFile[1];
+      EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
+      String fileToRun = runnerAndFile.getScript();
       File possibleDir = null;
       if (null == fileToRun) {
         for (String ending : new String[]{"", ".sikuli"}) {
