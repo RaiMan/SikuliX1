@@ -249,7 +249,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
             @Override
             public void run() {
               String msg = String.format("Bundle: %s\nScript: %s\nImages: %s",
-                  cp.getCurrentShortFilename(), cp.getCurrentFile(false), cp.getImagePath());
+                  cp.getCurrentShortFilename(), cp.getCurrentFile(), cp.getImagePath());
               Region at = Mouse.at().offset(200, 78).grow(10);
               ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
               SX.popup(msg, "IDE: About: script info", "", false, 10, at);
@@ -358,7 +358,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       log(lvl, "doMoveTab: entered at move");
       refTab.resetLastClosed();
-      if (SikulixIDE.get().getCurrentCodePane().isSourceBundleTemp()) {
+      if (SikulixIDE.get().getCurrentCodePane().isTemp()) {
         log(-1, "Untitled tab cannot be moved");
         return;
       }
@@ -395,7 +395,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane ep = SikulixIDE.get().getCurrentCodePane();
       checkAndResetMoveTab();
       fireIDEFileMenu("SAVE");
-      if (ep.isSourceBundleTemp()) {
+      if (ep.isTemp()) {
         log(-1, "Untitled tab cannot be duplicated");
         return;
       }

@@ -462,11 +462,10 @@ public class SikulixIDE extends JFrame {
         }
         sbuf.append(fileName);
       } catch (Exception e) {
-        log(-1, "Save all: %s: %s", editorPane.getCurrentFile(), e.getMessage());
+        log(-1, "Save all: %s: %s", editorPane.saveAndGetCurrentFile(), e.getMessage());
         success = false;
         break;
       }
-
     }
     if (success) {
       PreferencesUser.get().setIdeSession(sbuf.toString());
@@ -604,6 +603,7 @@ public class SikulixIDE extends JFrame {
   void newTabEmpty() {
     EditorPane editorPane = makeTab();
     editorPane.setTemp(true);
+    editorPane.setIsBundle();
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
     editorPane.init(null);
@@ -615,16 +615,11 @@ public class SikulixIDE extends JFrame {
   }
 
   String newTabWithContent(String fname, int tabIndex) {
-    boolean accessingAsFile = false;
-    if (Settings.isMac()) {
-      accessingAsFile = !ACCESSING_AS_FOLDER;
-      ACCESSING_AS_FOLDER = false;
-    }
     int selectedTab = tabs.getSelectedIndex();
     EditorPane editorPane = makeTab(tabIndex);
     File tabFile;
     if (null == fname) {
-      tabFile = editorPane.selectFile(accessingAsFile);
+      tabFile = editorPane.selectFile();
     } else {
       tabFile = new File(fname);
     }
@@ -659,14 +654,12 @@ public class SikulixIDE extends JFrame {
       try {
         EditorPane codePane = getPaneAtIndex(i);
         if (codePane.isDirty()) {
-          //RaiMan not used: getRootPane().putClientProperty("Window.documentModified", true);
           return true;
         }
       } catch (Exception e) {
         Debug.error("checkDirtyPanes: " + e.getMessage());
       }
     }
-    //RaiMan not used: getRootPane().putClientProperty("Window.documentModified", false);
     return false;
   }
 
@@ -688,15 +681,6 @@ public class SikulixIDE extends JFrame {
   void setCurrentFileTabTitle(String fname) {
     int tabIndex = tabs.getSelectedIndex();
     setFileTabTitle(fname, tabIndex);
-  }
-
-  String getCurrentFileTabTitle() {
-    String fname = tabs.getTitleAt(tabs.getSelectedIndex());
-    if (fname.startsWith("*")) {
-      return fname.substring(1);
-    } else {
-      return fname;
-    }
   }
 
   void setCurrentFileTabTitleDirty(boolean isDirty) {
@@ -724,7 +708,7 @@ public class SikulixIDE extends JFrame {
         tabs.setTitleAt(tabIndex, shortName);
       }
     } else {
-      tabs.setTitleAt(tabIndex, codePane.getCurrentFile().getName());
+      tabs.setTitleAt(tabIndex, codePane.saveAndGetCurrentFile().getName());
       ideTitle = codePane.getFilePath();
     }
     this.setTitle(ideTitle);
@@ -733,12 +717,11 @@ public class SikulixIDE extends JFrame {
   ArrayList<File> getOpenedFilenames() {
     int nTab = tabs.getTabCount();
     File file = null;
-    String filePath;
     ArrayList<File> filenames = new ArrayList();
     if (nTab > 0) {
       for (int i = 0; i < nTab; i++) {
         EditorPane codePane = getPaneAtIndex(i);
-        file = codePane.getCurrentFile(false);
+        file = codePane.getCurrentFile();
         if (file != null) {
           filenames.add(file);
         } else {
@@ -752,13 +735,11 @@ public class SikulixIDE extends JFrame {
   int isAlreadyOpen(String filename) {
     int aot = getOpenedFilenames().indexOf(new File(filename));
     if (aot > -1 && aot < (tabs.getTabCount() - 1)) {
-      alreadyOpenedTab = aot;
       return aot;
     }
     return -1;
   }
 
-  private int alreadyOpenedTab = -1;
 
   boolean removeCurrentTab() {
     EditorPane pane = getCurrentCodePane();
@@ -973,7 +954,6 @@ public class SikulixIDE extends JFrame {
     return _fileMenu;
   }
 
-  private boolean ACCESSING_AS_FOLDER = false;
   private EditorLineNumberView lineNumberColumn;
 
   //<editor-fold desc="menu">
@@ -1005,13 +985,6 @@ public class SikulixIDE extends JFrame {
       _fileMenu.add(recentMenu);
     }
 
-    if (Settings.isMac() && !Settings.handlesMacBundles) {
-      _fileMenu.add(createMenuItem("Open folder.sikuli ...",
-              null,
-              //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
-              new FileAction(FileAction.OPEN_FOLDER)));
-    }
-
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSave"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, scMask),
             new FileAction(FileAction.SAVE)));
@@ -1022,14 +995,6 @@ public class SikulixIDE extends JFrame {
                     InputEvent.SHIFT_DOWN_MASK | scMask),
             new FileAction(FileAction.SAVE_AS)));
     jmi.setName("SAVE_AS");
-
-    if (Settings.isMac() && !Settings.handlesMacBundles) {
-      _fileMenu.add(createMenuItem(_I("Save as folder.sikuli ..."),
-              //            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-              //            InputEvent.SHIFT_MASK | scMask),
-              null,
-              new FileAction(FileAction.SAVE_AS_FOLDER)));
-    }
 
 //TODO    _fileMenu.add(createMenuItem(_I("menuFileSaveAll"),
     _fileMenu.add(createMenuItem("Save all",
@@ -1090,12 +1055,10 @@ public class SikulixIDE extends JFrame {
     static final String ABOUT = "doAbout";
     static final String NEW = "doNew";
     static final String INSERT = "doInsert";
-    static final String OPEN = "doLoad";
+    static final String OPEN = "doOpen";
     static final String RECENT = "doRecent";
-    static final String OPEN_FOLDER = "doLoadFolder";
     static final String SAVE = "doSave";
     static final String SAVE_AS = "doSaveAs";
-    static final String SAVE_AS_FOLDER = "doSaveAsFolder";
     static final String SAVE_ALL = "doSaveAll";
     static final String EXPORT = "doExport";
     static final String ASJAR = "doAsJar";
@@ -1131,15 +1094,8 @@ public class SikulixIDE extends JFrame {
       newTabWithContent(tabs.getLastClosed(), targetTab);
     }
 
-    public void doLoad(ActionEvent ae) {
+    public void doOpen(ActionEvent ae) {
       newTabWithContent(null);
-    }
-
-    //TODO not used
-    public void doLoadFolder(ActionEvent ae) {
-      Debug.log(3, "IDE: doLoadFolder requested");
-      ACCESSING_AS_FOLDER = true;
-      doLoad(ae);
     }
 
     //TODO not used
@@ -1184,17 +1140,11 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doSaveAs(ActionEvent ae) {
-      boolean accessingAsFile = false;
-      if (Settings.isMac()) {
-        accessingAsFile = !ACCESSING_AS_FOLDER;
-        ACCESSING_AS_FOLDER = false;
-      }
-      String fname = null;
       EditorPane codePane = getCurrentCodePane();
       String orgName = codePane.getCurrentShortFilename();
       log(lvl, "doSaveAs requested: %s", orgName);
       try {
-        fname = codePane.saveAsSelect(accessingAsFile);
+        String fname = codePane.saveAsSelect();
         if (fname != null) {
           setCurrentFileTabTitle(fname);
           codePane.setDirty(false);
@@ -1204,13 +1154,6 @@ public class SikulixIDE extends JFrame {
       } catch (Exception ex) {
         log(-1, "doSaveAs: %s Error: %s", orgName, ex.getMessage());
       }
-    }
-
-    //TODO not used
-    public void doSaveAsFolder(ActionEvent ae) {
-      log(lvl, "doSaveAsFolder requested");
-      ACCESSING_AS_FOLDER = true;
-      doSaveAs(ae);
     }
 
     public void doSaveAll(ActionEvent ae) {
@@ -1241,7 +1184,7 @@ public class SikulixIDE extends JFrame {
       if (codePane.isDirty()) {
         Sikulix.popError("Please save script before!", "Export as jar");
       } else {
-        File fScript = codePane.getCurrentFile();
+        File fScript = codePane.saveAndGetCurrentFile();
         List<String> options = new ArrayList<>();
         options.add("plain");
         options.add(fScript.getParentFile().getAbsolutePath());
@@ -1262,7 +1205,7 @@ public class SikulixIDE extends JFrame {
       if (codePane.isDirty()) {
         Sikulix.popError("Please save script before!", "Export as runnable jar");
       } else {
-        File fScript = codePane.getCurrentFile();
+        File fScript = codePane.saveAndGetCurrentFile();
         List<String> options = new ArrayList<>();
         options.add(fScript.getParentFile().getAbsolutePath());
         Sikulix.popup("... this may take some 10 seconds\nclick ok and wait for result popup" +
@@ -2445,10 +2388,12 @@ public class SikulixIDE extends JFrame {
           SikulixIDE.hideIDE();
           RunTime.pause(0.1f);
           File scriptFile;
-          if (editorPane.isDirty()) {
+          if (!editorPane.isDirty()) {
+            scriptFile = editorPane.saveAndGetCurrentFile();
+          } else {
             editorPane.checkSource(); // runCurrentScript
             if (editorPane.isTemp()) {
-              scriptFile = editorPane.getCurrentFile(false);
+              scriptFile = editorPane.getCurrentFile();
             } else {
               scriptFile = FileManager.createTempFile(Runner.getExtension(editorPane.getType()));
             }
@@ -2460,12 +2405,10 @@ public class SikulixIDE extends JFrame {
               }
             }
             if (scriptFile == null) {
-              log(-1, "runCurrentScript: temp file for running not available");
+              log(-1, "Run Script: temp file for running not available");
               setIsRunningScript(false);
 
             }
-          } else {
-            scriptFile = editorPane.getCurrentFile();
           }
           messages.clear();
           resetErrorMark();
@@ -2480,12 +2423,12 @@ public class SikulixIDE extends JFrame {
             setCurrentScript(scriptFile);
             exitValue = editorPane.editorPaneRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
           } catch (Exception e) {
-            log(-1, "RunScript: internal error:");
+            log(-1, "Run Script: internal error:");
             e.printStackTrace();
-            RunTime.get().setLastScriptRunReturnCode(exitValue);
           } finally {
             setCurrentRunner(null);
             setCurrentScript(null);
+            RunTime.get().setLastScriptRunReturnCode(exitValue);
           }
 
           addErrorMark(runOptions.getErrorLine());

@@ -181,16 +181,14 @@ public class Sikulix {
   public static String popFile(String title) {
     popat(new Screen(0).getCenter());
     JFrame anchor = popLocation();
-    SikulixFileChooser fc = new SikulixFileChooser(anchor);
-    File ret = fc.show(title);
-    fc = null;
+    File fileChoosen = new SikulixFileChooser(anchor).open(title);
     if (anchor != null) {
       anchor.dispose();
     }
-    if (ret == null) {
+    if (fileChoosen == null) {
       return "";
     }
-    return ret.getAbsolutePath();
+    return fileChoosen.getAbsolutePath();
   }
   //</editor-fold>
 

@@ -150,8 +150,8 @@ public class EditorPane extends JTextPane {
     initForScriptType();
   }
 
-  public File selectFile(boolean accessingAsFile) {
-    File fileSelected = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile).load();
+  public File selectFile() {
+    File fileSelected = new SikulixFileChooser(SikulixIDE.get()).open();
     if (fileSelected == null) {
       return null;
     }
@@ -189,11 +189,16 @@ public class EditorPane extends JTextPane {
     return SikulixIDE.get().getTabs();
   }
 
+  public IScriptRunner getRunner() {
+    return editorPaneRunner;
+  }
+
   IScriptRunner editorPaneRunner = null;
+
   File editorPaneFileToRun = null;
 
   private void evalRunnerAndFile(File file) {
-    Object[] runnerAndFile = Runner.getRunner(file.getAbsolutePath()).getEffectiveRunner(file.getAbsolutePath());
+    Object[] runnerAndFile = Runner.getEffectiveRunner(file.getAbsolutePath());
     editorPaneRunner = (IScriptRunner) runnerAndFile[0];
     editorPaneFileToRun = new File((String) runnerAndFile[1]);
     editorPaneIsBundle = (Boolean) runnerAndFile[2];
@@ -376,6 +381,10 @@ public class EditorPane extends JTextPane {
     return editorPaneIsBundle;
   }
 
+  void setIsBundle() {
+    editorPaneIsBundle = true;
+  }
+
   private boolean editorPaneIsBundle = false;
 
   public String getFilePath() {
@@ -466,20 +475,20 @@ public class EditorPane extends JTextPane {
       File f = new File(getSrcBundle());
       return f.getName();
     }
-    if (isText() || isPython()) {
-      return editorPaneFile.getName();
+    if (isTemp()) {
+      return "Untitled";
     }
-    return "Untitled";
+    return editorPaneFile.getName();
+  }
+
+  public File saveAndGetCurrentFile() {
+    if (hasEditingFile() && isDirty()) {
+      saveAsSelect();
+    }
+    return editorPaneFile;
   }
 
   public File getCurrentFile() {
-    return getCurrentFile(true);
-  }
-
-  public File getCurrentFile(boolean shouldSave) {
-    if (shouldSave && hasEditingFile() && isDirty()) {
-      saveAsSelect(Settings.isMac());
-    }
     return editorPaneFile;
   }
   //</editor-fold>
@@ -515,11 +524,7 @@ public class EditorPane extends JTextPane {
   public String getBundlePath() {
     return editorPaneImageFolder.getAbsolutePath();
   }
-
-  public boolean isSourceBundleTemp() {
-    return notYetSaved;
-  }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="17 caret handling">
   public void saveCaretPosition() {
@@ -927,9 +932,9 @@ public class EditorPane extends JTextPane {
         line++;
         if (inString) {
           boolean answer = Sikulix.popAsk(String.format("Possible incomplete string in line %d\n" +
-              "\"%s\"\n" +
-              "Yes: No images will be deleted!\n" +
-              "No: Ignore and continue", line, text), "Delete images on save");
+                  "\"%s\"\n" +
+                  "Yes: No images will be deleted!\n" +
+                  "No: Ignore and continue", line, text), "Delete images on save");
           if (answer) {
             log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
             images.clear();
@@ -1023,11 +1028,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1078,7 +1083,7 @@ public class EditorPane extends JTextPane {
   //<editor-fold desc="22 save, close">
   public String saveTabContent() {
     if (editorPaneFile == null || isTemp()) {
-      return saveAsSelect(Settings.isMac());
+      return saveAsSelect();
     } else {
       if (writeSriptFile()) {
         return editorPaneFile.getAbsolutePath();
@@ -1087,11 +1092,8 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  public String saveAsSelect(boolean accessingAsFile) {
-    SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get(), accessingAsFile);
-    if (notYetSaved) {
-      fileChooser.setUntitled();
-    }
+  public String saveAsSelect() {
+    SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get());
     File file = fileChooser.save();
     if (file == null) {
       return null;
@@ -1103,74 +1105,51 @@ public class EditorPane extends JTextPane {
       }
     }
     if (FileManager.exists(filename)) {
-      int res = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", filename),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
-      if (res != JOptionPane.YES_OPTION) {
+      int answer = JOptionPane.showConfirmDialog(
+              null, SikuliIDEI18N._I("msgFileExists", filename),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+      if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
       FileManager.deleteFileOrFolder(filename);
     }
-    File savedFile = null;
+    File savedFile;
     if (isBundle()) {
       FileManager.mkdir(filename);
       savedFile = saveAsBundle(filename);
-      if (Settings.isMac()) {
-        if (!Settings.handlesMacBundles) {
-          makeBundle(filename, accessingAsFile);
-        }
-      }
     } else {
       savedFile = saveAsFile(filename);
     }
     return savedFile.getAbsolutePath();
   }
 
-  private void makeBundle(String path, boolean asFile) {
-    String isBundle = asFile ? "B" : "b";
-    String result = Sikulix.run(new String[]{"#SetFile", "-a", isBundle, path});
-    if (!result.isEmpty()) {
-      log(-1, "makeBundle: return: " + result);
-    }
-    if (asFile) {
-      if (!FileManager.writeStringToFile("/Applications/SikuliX-IDE.app",
-          (new File(path, ".LSOverride")).getAbsolutePath())) {
-        log(-1, "makeBundle: not possible: .LSOverride");
-      }
-    } else {
-      new File(path, ".LSOverride").delete();
-    }
-  }
-
   private File saveAsBundle(String targetFolder) {
-    String extension = Runner.getExtension(editorPaneType);
-    if (extension != null) {
-      String sourceFolder = editorPaneFolder.getAbsolutePath();
-      log(lvl, "saveAsBundle: " + sourceFolder);
-      targetFolder = FileManager.slashify(targetFolder, true);
-      if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
-        log(-1, "saveAsBundle: did not work");
-      }
-      ImagePath.remove(getImagePath());
-      if (notYetSaved) {
-        FileManager.deleteTempDir(sourceFolder);
-        notYetSaved = false;
-      }
-      String name = new File(targetFolder).getName();
-      name = name.substring(0, name.lastIndexOf("."));
-      File scriptFile = new File(targetFolder, name + "." + extension);
-      setFiles(scriptFile, targetFolder);
-      if (writeSriptFile()) {
-        checkSource(); // saveAsBundle
-        doReparse();
-        return editorPaneFolder;
-      }
+    String sourceFolder = editorPaneFolder.getAbsolutePath();
+    targetFolder = new File(targetFolder).getAbsolutePath();
+    log(lvl, "saveAsBundle: to: %s", targetFolder);
+    log(lvl, "saveAsBundle: from: %s", sourceFolder);
+    if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
+      log(-1, "saveAsBundle: did not work");
+      return null;
+    }
+    ImagePath.remove(new File(getImagePath()));
+    if (isTemp()) {
+      FileManager.deleteTempDir(sourceFolder);
+      setTemp(false);
+    }
+    File scriptFile = new File(targetFolder, editorPaneFileToRun.getName());
+    setFiles(scriptFile, targetFolder);
+    if (writeSriptFile()) {
+      checkSource(); // saveAsBundle
+      doReparse();
+      return editorPaneFolder;
     }
     return null;
   }
 
   private File saveAsFile(String filename) {
     log(lvl, "saveAsFile: " + filename);
+    String extension = editorPaneRunner.getExtensions()[0];
     setFiles(new File(filename));
     if (writeSriptFile()) {
       checkSource(); // saveAsFile
@@ -1184,8 +1163,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-          new FileOutputStream(editorPaneFile.getAbsolutePath()),
-          "UTF8")));
+              new FileOutputStream(editorPaneFile.getAbsolutePath()),
+              "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1239,7 +1218,7 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       if (!Sikulix.popAsk(String.format("Overwrite existing file?\n%s", zipPath),
-          "Exporting packed SikuliX Script")) {
+              "Exporting packed SikuliX Script")) {
         return null;
       }
     }
@@ -1320,12 +1299,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-          SikuliIDEI18N._I("dlgAskCloseTab"),
-          JOptionPane.YES_NO_CANCEL_OPTION,
-          JOptionPane.WARNING_MESSAGE,
-          null,
-          options, options[0]);
+              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+              SikuliIDEI18N._I("dlgAskCloseTab"),
+              JOptionPane.YES_NO_CANCEL_OPTION,
+              JOptionPane.WARNING_MESSAGE,
+              null,
+              options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1449,7 +1428,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-            filename, e.getMessage());
+                filename, e.getMessage());
         return f;
       }
     }
@@ -1596,11 +1575,6 @@ public class EditorPane extends JTextPane {
         SikulixIDE.showAgain();
       }
     }).start();
-  }
-
-  public IScriptRunner getRunner() {
-    IScriptRunner runner = Runner.getRunner(getType());
-    return runner;
   }
   //</editor-fold>
 
