@@ -32,11 +32,8 @@ public class InvalidRunner extends AbstractScriptRunner {
     return new String[]{};
   }
 
-  public Object[] getEffectiveRunner(String script) {
-    Object[] returnValue = new Object[]{null, null, null};
-    returnValue[0] = this;
-    returnValue[2] = false;
-    return returnValue;
+  public EffectiveRunner getEffectiveRunner(String script) {
+    return new EffectiveRunner(this, null, false);
   }
 
   @Override

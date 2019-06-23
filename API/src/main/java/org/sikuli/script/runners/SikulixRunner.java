@@ -47,19 +47,21 @@ public class SikulixRunner extends AbstractScriptRunner {
 
   @Override
   public boolean canHandle(String identifier) {
-    for (String ending : new String[]{"", "sikuli"}) {
-      if (FilenameUtils.getExtension(identifier).equals(ending)) {
-        return true;
-      }
+    File file = new File(identifier);
+
+    if (file.isDirectory()) {
+      File innerScriptFile = Runner.getScriptFile(file);
+      return null != innerScriptFile;
     }
+
     return false;
   }
 
   @Override
   protected int doRunScript(String scriptFolder, String[] scriptArgs, IScriptRunner.Options options) {
-    Object[] runnerAndFile = getEffectiveRunner(scriptFolder);
-    IScriptRunner runner = (IScriptRunner) runnerAndFile[0];
-    String innerScriptFile = (String) runnerAndFile[1];
+    EffectiveRunner runnerAndFile = getEffectiveRunner(scriptFolder);
+    IScriptRunner runner = (IScriptRunner) runnerAndFile.getRunner();
+    String innerScriptFile = (String) runnerAndFile.getScript();
     if (null != runner) {
       try {
         wrapper.setRunner(runner);
@@ -71,16 +73,14 @@ public class SikulixRunner extends AbstractScriptRunner {
     return Runner.FILE_NOT_FOUND;
   }
 
-  public Object[] getEffectiveRunner(String scriptFileOrFolder) {
-    Object[] returnValue = new Object[]{null, null, null};
+  public EffectiveRunner getEffectiveRunner(String scriptFileOrFolder) {
     File scriptFile = new File(scriptFileOrFolder);
     File innerScriptFile = Runner.getScriptFile(scriptFile);
     if (null != innerScriptFile) {
-      returnValue[0] = Runner.getRunner(innerScriptFile.getAbsolutePath());
-      returnValue[1] = innerScriptFile.getAbsolutePath();
-      returnValue[2] = true;
+      String innerScriptFilePath = innerScriptFile.getAbsolutePath();
+      return new EffectiveRunner(Runner.getRunner(innerScriptFilePath), innerScriptFilePath, true);
     }
-    return returnValue;
+    return new EffectiveRunner(null, null, false);
   }
 
   @Override

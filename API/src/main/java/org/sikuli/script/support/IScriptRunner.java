@@ -103,6 +103,28 @@ public interface IScriptRunner {
 
     private File baseFolder = null;
   }
+  
+  public class EffectiveRunner {
+    private IScriptRunner runner;
+    private String script;
+    private boolean bundle;
+    
+    public EffectiveRunner(IScriptRunner runner, String script, boolean bundle) {
+      super();
+      this.runner = runner;
+      this.script = script;
+      this.bundle = bundle;
+    }
+    public IScriptRunner getRunner() {
+      return runner;
+    }
+    public String getScript() {
+      return script;
+    }
+    public boolean isBundle() {
+      return bundle;
+    }    
+  }
 
   /**
    * Can be used to initialize the ScriptRunner. This method is called at the beginning of program
@@ -244,9 +266,9 @@ public interface IScriptRunner {
    * Needed in the IDE to detect the runner when file or folder is opened
    *
    * @param script
-   * @return array: [0]: runner, [1]: script file to load, [2]: true if folder with script file (bundle)
+   * @return array: EffectiveRunner object
    */
-  public Object[] getEffectiveRunner(String script);
+  public EffectiveRunner getEffectiveRunner(String script);
 
     /**
      * Redirects the runner's STDIO to the given PrintStream.
