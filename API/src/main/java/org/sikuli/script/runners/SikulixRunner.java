@@ -60,8 +60,8 @@ public class SikulixRunner extends AbstractScriptRunner {
   @Override
   protected int doRunScript(String scriptFolder, String[] scriptArgs, IScriptRunner.Options options) {
     EffectiveRunner runnerAndFile = getEffectiveRunner(scriptFolder);
-    IScriptRunner runner = (IScriptRunner) runnerAndFile.getRunner();
-    String innerScriptFile = (String) runnerAndFile.getScript();
+    IScriptRunner runner = runnerAndFile.getRunner();
+    String innerScriptFile = runnerAndFile.getScript();
     if (null != runner) {
       try {
         wrapper.setRunner(runner);
