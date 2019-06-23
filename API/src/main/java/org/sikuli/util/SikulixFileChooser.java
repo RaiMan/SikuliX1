@@ -16,7 +16,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
 
 public class SikulixFileChooser {
   static final int FILES = JFileChooser.FILES_ONLY;
@@ -24,144 +23,72 @@ public class SikulixFileChooser {
   static final int DIRSANDFILES = JFileChooser.FILES_AND_DIRECTORIES;
   static final int SAVE = FileDialog.SAVE;
   static final int LOAD = FileDialog.LOAD;
-  Frame _parent;
-  boolean accessingAsFile = false;
-  boolean loadingImage = false;
-  String theLastDir = PreferencesUser.get().get("LAST_OPEN_DIR", "");
 
-  public SikulixFileChooser(Frame parent) {
-    _parent = parent;
+  private Frame parentFrame;
+
+  public SikulixFileChooser(Frame parentFrame) {
+    this.parentFrame = parentFrame;
   }
 
-  public SikulixFileChooser(Frame parent, boolean accessingAsFile) {
-    _parent = parent;
-    this.accessingAsFile = accessingAsFile;
+  private String getLastDir() {
+    return PreferencesUser.get().get("LAST_OPEN_DIR", "");
   }
 
-//  private boolean isPython = false;
-//
-//  public void setPython() {
-//    isPython = true;
-//  }
-//
-//  private boolean isText = false;
-//
-//  public void setText() {
-//    isText = true;
-//  }
+  private boolean fromPopFile = false;
 
-  private boolean isUntitled = false;
-
-  public void setUntitled() {
-    isUntitled = true;
+  public File open() {
+    File selectedFile = show("Open a file or folder", LOAD, DIRSANDFILES);
+    return selectedFile;
   }
 
-  private boolean isGeneric() {
-    if (_parent == null) {
-      return false;
-    }
-    return (_parent.getWidth() < 3 && _parent.getHeight() < 3);
-  }
-
-  public File show(String title) {
-    File ret = show(title, LOAD, DIRSANDFILES);
-    return ret;
-  }
-
-  public File load() {
-    String title = "Open a file or folder";
-    File ret;
-    ret = show(title, LOAD, DIRSANDFILES);
-    return ret;
+  public File open(String title) {
+    fromPopFile = true;
+    File selectedFile = show(title, LOAD, DIRSANDFILES);
+    return selectedFile;
   }
 
   public File save() {
-    File ret;
-    File selectedFile;
-//    if (isUntitled) {
-//      if (isText) {
-//        selectedFile = show("Save a Text File", SAVE, DIRSANDFILES, anyFilterS);
-//      } else {
-//        String lastUsedFilter = PreferencesUser.get().get("LAST_USED_FILTER", "");
-//        boolean pythonOnly = RunTime.get().options().isOption("ide.pythononly", false);
-//        String title = "Save as Sikuli or Python Script";
-//        if (pythonOnly) {
-//          title = "Save as Python Script";
-//          selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS);
-//        } else {
-//          if ("op".equals(lastUsedFilter) || "sp".equals(lastUsedFilter)) {
-//            selectedFile = show(title, SAVE, DIRSANDFILES, pythonFilterS, sikuliFilterS);
-//          } else {
-//            selectedFile = show(title, SAVE, DIRSANDFILES, sikuliFilterS, pythonFilterS);
-//          }
-//        }
-//      }
-//      ret = selectedFile;
-//    } else if (isPython) {
-//      selectedFile = show("Save a Python script", SAVE, FILES, pythonFilterS);
-//      ret = selectedFile;
-//    } else if (isText) {
-//      selectedFile = show("Save a Text File", SAVE, FILES, anyFilterS);
-//      ret = selectedFile;
-//    } else {
-//      selectedFile = show("Save a Sikuli Script", SAVE, DIRSANDFILES, sikuliFilterS);
-//      ret = selectedFile;
-//    }
-    selectedFile = show("Save a File or Folder", SAVE, DIRSANDFILES);
+    File selectedFile = show("Save a File or Folder", SAVE, DIRSANDFILES);
     return selectedFile;
   }
 
   public File export() {
-    String type = "Save packed as .skl or .zip";
     String title = "Export packed as .skl or .zip";
     File ret = show(title, SAVE, FILES);
     return ret;
   }
 
   public File loadImage() {
-    loadingImage = true;
     File ret = show("Load Image File", LOAD, FILES,
-        new FileNameExtensionFilter("Image files (jpg, png)", "jpg", "jpeg", "png"));
+            new FileNameExtensionFilter("Image files (jpg, png)", "jpg", "jpeg", "png"));
     return ret;
   }
 
   private File show(final String title, final int mode, final int theSelectionMode, Object... filters) {
-    Debug.log(3, "SikulixFileChooser: %s at %s", title.split(" ")[0], theLastDir);
+    Debug.log(3, "SikulixFileChooser: %s at %s", title.split(" ")[0], getLastDir());
     File fileChosen;
     final Object[] genericFilters = filters;
     final Object[] result = new Object[]{null, null};
-    while (true) {
-      boolean tryAgain = false;
-      if (isGeneric()) {
-        try {
-          EventQueue.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-              processDialog(theSelectionMode, theLastDir, title, mode, genericFilters, result);
-            }
-          });
-        } catch (Exception e) {
-        }
-      } else {
-        processDialog(theSelectionMode, theLastDir, title, mode, filters, result);
+    if (fromPopFile) {
+      try {
+        EventQueue.invokeAndWait(new Runnable() {
+          @Override
+          public void run() {
+            processDialog(theSelectionMode, getLastDir(), title, mode, genericFilters, result);
+          }
+        });
+      } catch (Exception e) {
       }
-      if (null != result[0]) {
-        fileChosen = (File) result[0];
-        String fileChosenPath = fileChosen.getAbsolutePath();
-        if (fileChosenPath.contains("###Error")) {
-          tryAgain = true;
-          fileChosen = new File(fileChosenPath.split("###")[0]);
-        }
-        theLastDir = fileChosen.getParent();
-        if (tryAgain) {
-          continue;
-        }
-        PreferencesUser.get().put("LAST_OPEN_DIR", theLastDir);
-        return fileChosen;
-      } else {
-        Debug.log(-1, "SikulixFileChooser: action cancelled or did not work");
-        return null;
-      }
+    } else {
+      processDialog(theSelectionMode, getLastDir(), title, mode, filters, result);
+    }
+    if (null != result[0]) {
+      fileChosen = (File) result[0];
+      PreferencesUser.get().put("LAST_OPEN_DIR", fileChosen.getParent());
+      return fileChosen;
+    } else {
+      Debug.log(-1, "SikulixFileChooser: action cancelled or did not work");
+      return null;
     }
   }
 
@@ -175,16 +102,11 @@ public class SikulixFileChooser {
     }
     fchooser.setSelectedFile(null);
     fchooser.setDialogTitle(title);
-    boolean shouldTraverse = false;
     String btnApprove = "Select";
-    if (isGeneric()) {
+    if (fromPopFile) {
       fchooser.setFileSelectionMode(DIRSANDFILES);
       fchooser.setAcceptAllFileFilterUsed(true);
-      shouldTraverse = true;
     } else {
-      if (Settings.isMac() && Settings.isJava7() && selectionMode == DIRS) {
-        selectionMode = DIRSANDFILES;
-      }
       fchooser.setFileSelectionMode(selectionMode);
       if (mode == FileDialog.SAVE) {
         fchooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -192,29 +114,24 @@ public class SikulixFileChooser {
       }
       if (filters.length == 0) {
         fchooser.setAcceptAllFileFilterUsed(true);
-        shouldTraverse = true;
       } else {
         fchooser.setAcceptAllFileFilterUsed(false);
         for (Object filter : filters) {
           fchooser.setFileFilter((FileNameExtensionFilter) filter);
-          shouldTraverse = true;
         }
       }
     }
-    if (shouldTraverse && Settings.isMac()) {
+    if (Settings.isMac()) {
       fchooser.putClientProperty("JFileChooser.packageIsTraversable", "always");
     }
-    int dialogResponse = fchooser.showDialog(_parent, btnApprove);
+    int dialogResponse = fchooser.showDialog(parentFrame, btnApprove);
     if (dialogResponse != JFileChooser.APPROVE_OPTION) {
       fileChoosen = null;
     } else {
       fileChoosen = fchooser.getSelectedFile();
     }
-    if (null != fileChoosen) {
-//      filterChoosen = fchooser.getFileFilter();
-//      if (filterChoosen instanceof SikulixFileFilter) {
-//        fileChoosen = new File(((SikulixFileFilter) filterChoosen).validateFile(fileChoosen));
-//      }
+    if (filters.length == 0) {
+      filterChoosen = fchooser.getFileFilter();
     }
     result[0] = fileChoosen;
     result[1] = filterChoosen;
