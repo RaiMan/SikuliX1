@@ -472,6 +472,16 @@ public class ImagePath {
   }
 
   /**
+   * remove entry with given path (same as given with add)
+   *
+   * @param directory
+   * @return true on success, false otherwise
+   */
+  public static boolean remove(File directory) {
+    return remove(makePathURL(directory.getAbsolutePath(), null).pathURL);
+  }
+
+  /**
    * remove entry with given URL<br>
    * bundlepath (entry 0) cannot be removed
    * loaded images are removed from cache
