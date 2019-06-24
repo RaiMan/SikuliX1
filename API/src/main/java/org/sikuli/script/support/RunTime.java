@@ -192,6 +192,7 @@ public class RunTime {
 
     if (runningScripts()) {
       int exitCode = Runner.runScripts(RunTime.getRunScripts(), userArgs, new IScriptRunner.Options());
+
       if (exitCode > 255) {
         exitCode = -1;
       }
