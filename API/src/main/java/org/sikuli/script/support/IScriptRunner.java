@@ -104,7 +104,7 @@ public interface IScriptRunner {
     private File baseFolder = null;
   }
   
-  public class EffectiveRunner {
+  class EffectiveRunner {
     private IScriptRunner runner;
     private String script;
     private boolean bundle;
@@ -218,6 +218,13 @@ public interface IScriptRunner {
    * @return array of strings
    */
   public String[] getExtensions();
+
+  /**
+   * convenience: return the first defined extension (default)
+   *
+   * @return default extension
+   */
+  public String getDefaultExtension();
 
   /**
    * return the type of script this handler can execute.

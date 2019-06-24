@@ -158,22 +158,6 @@ public class Runner {
       return types;
     }
   }
-
-  public static String getExtension(String identifier) {
-    synchronized (runners) {
-      initRunners();
-
-      for (IScriptRunner r : runners) {
-        if (r.canHandle(identifier)) {
-          String[] extensions = r.getExtensions();
-          if (extensions.length > 0) {
-            return extensions[0];
-          }
-        }
-      }
-      return null;
-    }
-  }
   // </editor-fold>
 
   public static final int FILE_NOT_FOUND = 256;
@@ -194,9 +178,6 @@ public class Runner {
       return 0;
     } else
       return runScripts(new String[]{script});
-  }
-
-  private static void installStopHotkey() {
   }
 
   private static IScriptRunner currentRunner = new InvalidRunner();
@@ -251,12 +232,24 @@ public class Runner {
     return retVal;
   }
 
+  /**
+   * Checks, whether the given directory contains a file with extension, that<br>
+   *  - has the same name (excluding extension)<br>
+   *  - can be run by one of the supported runners
+   *
+   * @param fScriptFolder directory that might have a script file
+   * @return the script file's absolute path
+   */
   public static File getScriptFile(File fScriptFolder) {
     if (fScriptFolder == null) {
       return null;
     }
     if (fScriptFolder.isDirectory()) {
       for (File aFile : fScriptFolder.listFiles()) {
+        if (aFile.isDirectory()) {
+          // contained directories need not be checked
+          continue;
+        }
         if (FilenameUtils.getBaseName(aFile.getName())
             .equals(FilenameUtils.getBaseName(fScriptFolder.getName()))) {
           for (IScriptRunner runner : getRunners()) {

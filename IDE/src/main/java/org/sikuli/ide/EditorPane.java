@@ -3,6 +3,7 @@
  */
 package org.sikuli.ide;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
@@ -109,7 +110,7 @@ public class EditorPane extends JTextPane {
     log(3, "text popup");
   }
 
-  private void updateDocumentListeners(String source) {
+  void updateDocumentListeners(String source) {
     log(lvl + 1, "updateDocumentListeners from: %s", source);
     getDocument().addDocumentListener(getDirtyHandler());
     getDocument().addUndoableEditListener(getUndoRedo(this));
@@ -378,6 +379,14 @@ public class EditorPane extends JTextPane {
 
   private boolean notYetSaved = false;
 
+  boolean isBundle(String fileName) {
+    if (FilenameUtils.getExtension(fileName).isEmpty() ||
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
+      return true;
+    }
+    return false;
+  }
+
   boolean isBundle() {
     return editorPaneIsBundle;
   }
@@ -413,15 +422,6 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  public void setTempFile() {
-    String editorPaneType = getType();
-    String extension = Runner.getExtension(editorPaneType);
-    File tempPath = new File(RunTime.get().fpBaseTempPath, "temp" + editorPaneID);
-    File tempFile = FileManager.createTempFile(extension, tempPath.getAbsolutePath());
-    setFiles(tempFile);
-    updateDocumentListeners("empty tab");
-  }
-
   public void setFiles(File editorPaneFile) {
     setFiles(editorPaneFile, null);
   }
@@ -439,7 +439,12 @@ public class EditorPane extends JTextPane {
     }
   }
 
+  public long getID() {
+    return editorPaneID;
+  }
+
   long editorPaneID = 0;
+
   File editorPaneFile = null;
   File editorPaneFolder = null;
 
@@ -1095,16 +1100,11 @@ public class EditorPane extends JTextPane {
 
   public String saveAsSelect() {
     SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get());
-    File file = fileChooser.save();
+    File file = fileChooser.saveAs(getRunner().getDefaultExtension());
     if (file == null) {
       return null;
     }
     String filename = file.getAbsolutePath();
-    if (isBundle()) {
-      if (!filename.endsWith(".sikuli")) {
-        filename += ".sikuli";
-      }
-    }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
               null, SikuliIDEI18N._I("msgFileExists", filename),
@@ -1115,7 +1115,7 @@ public class EditorPane extends JTextPane {
       FileManager.deleteFileOrFolder(filename);
     }
     File savedFile;
-    if (isBundle()) {
+    if (isBundle(filename)) {
       FileManager.mkdir(filename);
       savedFile = saveAsBundle(filename);
     } else {
@@ -1138,7 +1138,8 @@ public class EditorPane extends JTextPane {
       FileManager.deleteTempDir(sourceFolder);
       setTemp(false);
     }
-    File scriptFile = new File(targetFolder, editorPaneFileToRun.getName());
+    String scriptName = FilenameUtils.getBaseName(targetFolder) + "." + getRunner().getDefaultExtension();
+    File scriptFile = new File(targetFolder, scriptName);
     setFiles(scriptFile, targetFolder);
     if (writeSriptFile()) {
       checkSource(); // saveAsBundle
