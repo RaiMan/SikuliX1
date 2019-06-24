@@ -16,12 +16,11 @@ public interface IScriptRunner {
 
   /**
    * Special options to pass to the runner.
-   *
+   * <p>
    * Options are more to be interpreted as hints instead of strict directives.
    * A specific runner implementation can decide to ignore an option entirely.
    *
    * @author mbalmer
-   *
    */
   public class Options {
 
@@ -55,7 +54,7 @@ public interface IScriptRunner {
     /**
      * If a script run fails, the runner can set the source
      * line where the error happened.
-     *
+     * <p>
      * There is no effect setting this from the outside.
      *
      * @param errorLine
@@ -103,27 +102,36 @@ public interface IScriptRunner {
 
     private File baseFolder = null;
   }
-  
+
   class EffectiveRunner {
-    private IScriptRunner runner;
-    private String script;
-    private boolean bundle;
-    
-    public EffectiveRunner(IScriptRunner runner, String script, boolean bundle) {
-      super();
+    private IScriptRunner runner = null;
+    String script = null;
+    private Boolean bundle = false;
+
+    public EffectiveRunner() {
+    }
+
+    public EffectiveRunner(IScriptRunner runner, String script, Boolean bundle) {
       this.runner = runner;
       this.script = script;
       this.bundle = bundle;
     }
+
     public IScriptRunner getRunner() {
       return runner;
     }
+
     public String getScript() {
       return script;
     }
+
     public boolean isBundle() {
-      return bundle;
-    }    
+      return bundle == null || bundle;
+    }
+
+    public boolean isTempBundle() {
+      return bundle == null;
+    }
   }
 
   /**
@@ -140,7 +148,7 @@ public interface IScriptRunner {
    * @param scriptFile Identifier pointing to the script. This can either by a file path
    *                   or an URI, depending on the runner implementation
    * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @param options Implementation specific options.
+   * @param options    Implementation specific options.
    * @return exitcode for the script execution
    */
   public int runScript(String scriptFile, String[] scriptArgs, Options options);
@@ -148,7 +156,7 @@ public interface IScriptRunner {
   /**
    * Evaluates the Script.
    *
-   * @param script Script content
+   * @param script  Script content
    * @param options Implementation specific options.
    * @return exitcode for the script execution
    */
@@ -159,7 +167,7 @@ public interface IScriptRunner {
    * The implementation might perform some optimizations on
    * the code (e.g. fix indentation) before executing it.
    *
-   * @param lines Code do execute
+   * @param lines   Code do execute
    * @param options Implementation specific options.
    */
   public void runLines(String lines, Options options);
@@ -167,10 +175,10 @@ public interface IScriptRunner {
   /**
    * Executes the Script as Test.
    *
-   * @param scriptfile File containing the script
+   * @param scriptfile     File containing the script
    * @param imagedirectory Directory containing the images (might be null: parent of script)
-   * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @param options when called from Sikuli IDE additional info
+   * @param scriptArgs     Arguments to be passed directly to the script with --args
+   * @param options        when called from Sikuli IDE additional info
    * @return exitcode for the script execution
    */
   public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Options options);
@@ -277,24 +285,23 @@ public interface IScriptRunner {
    */
   public EffectiveRunner getEffectiveRunner(String script);
 
-    /**
-     * Redirects the runner's STDIO to the given PrintStream.
-     *
-     * Subsequent calls to this function override the previously set streams.
-     *
-     * If one of the parameters is set to null, STDIO redirection is reset to
-     * System.out and System.err.
-     *
-     * @param stdout PrintStream for STDOUT
-     * @param stderr PrintStream for STDERR
-     *
-     * @return
-     */
+  /**
+   * Redirects the runner's STDIO to the given PrintStream.
+   * <p>
+   * Subsequent calls to this function override the previously set streams.
+   * <p>
+   * If one of the parameters is set to null, STDIO redirection is reset to
+   * System.out and System.err.
+   *
+   * @param stdout PrintStream for STDOUT
+   * @param stderr PrintStream for STDERR
+   * @return
+   */
   public void redirect(PrintStream stdout, PrintStream stderr);
 
   /**
    * Resets this runner.
-   *
+   * <p>
    * The runner gets closed and initialized again using init.
    */
   public void reset();
@@ -306,9 +313,8 @@ public interface IScriptRunner {
 
   /**
    * Aborts the current running script.
-   *
+   * <p>
    * Not all runners can be aborted, please check abort support using isAbortSupported().
-   *
    */
   public void abort();
 
@@ -321,7 +327,7 @@ public interface IScriptRunner {
 
   /**
    * Usually the same as getExtensions() but with the leading dot.
-   *
+   * <p>
    * Some files (e.g. $py.class) might have a somewhat unusual but
    * very specific file ending.
    *
