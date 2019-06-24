@@ -112,8 +112,7 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
     } catch (IOException e) {
       log(-1, "Error opening file %s: %s", zipFile, e.getMessage());
     }
-    //File innerScriptFile = Runner.getScriptFile(new File(innerScriptFilePath));
-    if (null != innerScriptFilePath) {
+    if (null != innerScriptFilePath && !innerScriptFilePath.endsWith(".class")) {
       return new EffectiveRunner(Runner.getRunner(innerScriptFilePath), innerScriptFilePath, null);
     }
     return new EffectiveRunner();
