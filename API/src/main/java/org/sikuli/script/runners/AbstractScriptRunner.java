@@ -99,6 +99,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return false;
   }
 
+  public String getDefaultExtension() {
+    return getExtensions()[0];
+  }
+
   public boolean canHandle(String identifier) {
     if (identifier != null) {
       if (getType().equals(identifier)) {

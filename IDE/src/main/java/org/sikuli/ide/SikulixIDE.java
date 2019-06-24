@@ -602,12 +602,15 @@ public class SikulixIDE extends JFrame {
 
   void newTabEmpty() {
     EditorPane editorPane = makeTab();
+    editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
+    File tempFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
+            new File(RunTime.get().fpBaseTempPath, "temp" + editorPane.getID()).getAbsolutePath());
+    editorPane.setFiles(tempFile);
+    editorPane.updateDocumentListeners("empty tab");
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
-    editorPane.init(null);
-    editorPane.setTempFile();
   }
 
   String newTabWithContent(String fname) {
@@ -2395,7 +2398,7 @@ public class SikulixIDE extends JFrame {
             if (editorPane.isTemp()) {
               scriptFile = editorPane.getCurrentFile();
             } else {
-              scriptFile = FileManager.createTempFile(Runner.getExtension(editorPane.getType()));
+              scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension());
             }
             if (scriptFile != null) {
               try {

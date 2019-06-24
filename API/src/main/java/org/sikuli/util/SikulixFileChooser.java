@@ -13,6 +13,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
@@ -52,6 +53,15 @@ public class SikulixFileChooser {
     return selectedFile;
   }
 
+  public File saveAs(String extension) {
+    File selectedFile = show("Save as .sikuli, folder or file", SAVE, DIRSANDFILES
+            , new SXFilter("as file", extension)
+            , new SXFilter("as plain folder", SXFilter.FOLDER)
+            , new SXFilter("as folder.sikuli", SXFilter.SIKULI)
+             );
+    return selectedFile;
+  }
+
   public File export() {
     String title = "Export packed as .skl or .zip";
     File ret = show(title, SAVE, FILES);
@@ -85,6 +95,26 @@ public class SikulixFileChooser {
     if (null != result[0]) {
       fileChosen = (File) result[0];
       PreferencesUser.get().put("LAST_OPEN_DIR", fileChosen.getParent());
+      if (result[1] != null) {
+        if (result[1].getClass().equals(SXFilter.class)) {
+          SXFilter filter = (SXFilter) result[1];
+          if (filter.isType(SXFilter.SIKULI)) {
+            if (FilenameUtils.getExtension(fileChosen.getName()).equals("")) {
+              fileChosen = new File(fileChosen.getAbsolutePath() + ".sikuli");
+            } else if (!FilenameUtils.getExtension(fileChosen.getName()).equals("sikuli")) {
+              fileChosen = new File(FilenameUtils.removeExtension(
+                      fileChosen.getAbsolutePath()) + ".sikuli");
+            }
+          } else if (filter.isType(SXFilter.FOLDER)) {
+            fileChosen = new File(FilenameUtils.removeExtension(fileChosen.getAbsolutePath()));
+          } else if (filter.isType(SXFilter.FILE)) {
+            fileChosen = new File(FilenameUtils.removeExtension(
+                    fileChosen.getAbsolutePath()) + filter.getExtension());
+          } else {
+            return null;
+          }
+        }
+      }
       return fileChosen;
     } else {
       Debug.log(-1, "SikulixFileChooser: action cancelled or did not work");
@@ -117,7 +147,7 @@ public class SikulixFileChooser {
       } else {
         fchooser.setAcceptAllFileFilterUsed(false);
         for (Object filter : filters) {
-          fchooser.setFileFilter((FileNameExtensionFilter) filter);
+          fchooser.setFileFilter((FileFilter) filter);
         }
       }
     }
@@ -130,21 +160,47 @@ public class SikulixFileChooser {
     } else {
       fileChoosen = fchooser.getSelectedFile();
     }
-    if (filters.length == 0) {
-      filterChoosen = fchooser.getFileFilter();
-    }
     result[0] = fileChoosen;
-    result[1] = filterChoosen;
+    if (filters.length > 0) {
+      result[1] = fchooser.getFileFilter();
+    }
   }
 
-//  class SikulixFileFilter extends FileFilter {
-//
-//    private String _type, _desc;
-//
-//    public SikulixFileFilter(String desc, String type) {
-//      _type = type;
-//      _desc = desc;
-//    }
+  class SXFilter extends FileFilter {
+
+    public static final String SIKULI = "s";
+    public static final String FOLDER = "d";
+    public static final String FILE = "f";
+
+    private String type, description, extension;
+
+    public SXFilter(String description, String type) {
+      this.type = type;
+      if (type != SIKULI && type != FOLDER) {
+        extension = type;
+        this.type = FILE;
+      }
+      this.description = description;
+    }
+
+    @Override
+    public boolean accept(File f) {
+      return true;
+    }
+
+    @Override
+    public String getDescription() {
+      return description;
+    }
+
+    public boolean isType(String type) {
+      return this.type.equals(type);
+    }
+
+    public String getExtension() {
+      return "." + extension;
+    }
+  }
 //
 //    public String validateFile(File selectedFile) {
 //      String validatedFile = selectedFile.getAbsolutePath();
