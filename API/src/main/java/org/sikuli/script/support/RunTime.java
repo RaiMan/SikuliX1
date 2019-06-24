@@ -185,13 +185,13 @@ public class RunTime {
       Debug.globalTraceOn();
       Debug.setStartWithTrace();
     }
-    
+
     if(!getLogFile().isEmpty()) {
       Debug.setLogFile(getLogFile());
     }
 
     if (runningScripts()) {
-      int exitCode = Runner.runScripts(RunTime.getRunScripts());
+      int exitCode = Runner.runScripts(RunTime.getRunScripts(), null, new IScriptRunner.Options());
       if (exitCode > 255) {
         exitCode = -1;
       }
