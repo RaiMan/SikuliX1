@@ -199,18 +199,21 @@ public class EditorPane extends JTextPane {
 
   File editorPaneFileToRun = null;
 
-  private void evalRunnerAndFile(File file) {
+  private boolean evalRunnerAndFile(File file) {
     EffectiveRunner runnerAndFile = Runner.getRunner(file.getAbsolutePath()).getEffectiveRunner(file.getAbsolutePath());
-    editorPaneRunner = runnerAndFile.getRunner();
-    editorPaneFileToRun = new File(runnerAndFile.getScript());
-    editorPaneIsBundle = runnerAndFile.isBundle();
-    setTemp(runnerAndFile.isTempBundle());
+    if (runnerAndFile.getRunner() != null) {
+      editorPaneRunner = runnerAndFile.getRunner();
+      editorPaneFileToRun = new File(runnerAndFile.getScript());
+      editorPaneIsBundle = runnerAndFile.isBundle();
+      setTemp(runnerAndFile.isTempBundle());
+      return true;
+    }
+    return false;
   }
 
   public void loadFile(File file) {
     log(lvl, "loadfile: %s", file);
-    evalRunnerAndFile(file);
-    if (null == editorPaneRunner) {
+    if (!evalRunnerAndFile(file)) {
       return;
     }
     initForScriptType();
