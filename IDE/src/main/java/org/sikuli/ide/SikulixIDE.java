@@ -601,7 +601,7 @@ public class SikulixIDE extends JFrame {
   }
 
   void newTabEmpty() {
-    EditorPane editorPane = makeTab();
+    EditorPane editorPane = makeTab(-1);
     editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
@@ -667,7 +667,8 @@ public class SikulixIDE extends JFrame {
   }
 
   EditorPane getCurrentCodePane() {
-    if (tabs.getTabCount() == 0) {
+    int tabCount = tabs.getTabCount();
+    if (tabCount == 0) {
       return null;
     }
     JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
