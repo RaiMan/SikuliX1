@@ -204,6 +204,7 @@ public class EditorPane extends JTextPane {
     editorPaneRunner = runnerAndFile.getRunner();
     editorPaneFileToRun = new File(runnerAndFile.getScript());
     editorPaneIsBundle = runnerAndFile.isBundle();
+    setTemp(runnerAndFile.isTempBundle());
   }
 
   public void loadFile(File file) {

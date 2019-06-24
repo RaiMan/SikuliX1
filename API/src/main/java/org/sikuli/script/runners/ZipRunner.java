@@ -14,6 +14,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
 import org.sikuli.util.AbortableScriptRunnerWrapper;
@@ -66,6 +67,10 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
     return false;
   }
 
+  public boolean hasTempBundle() {
+    return true;
+  }
+
   protected ZipFile openZipFile(String identifier) throws IOException {
     return new ZipFile(identifier);
   }
@@ -75,33 +80,43 @@ public class ZipRunner extends AbstractLocalFileScriptRunner {
   }
 
   @Override
-  protected int doRunScript(String scriptFileOrFolder, String[] scriptArgs, IScriptRunner.Options options) {
-    File dir = null;
-
-    try (ZipFile file = new ZipFile(scriptFileOrFolder)) {
-      ZipEntry innerScriptFile = getScriptEntry(file);
+  protected int doRunScript(String zipFile, String[] scriptArgs, IScriptRunner.Options options) {
+    EffectiveRunner runnerAndFile = getEffectiveRunner(zipFile);
+    IScriptRunner runner = runnerAndFile.getRunner();
+    String innerScriptFile = runnerAndFile.getScript();
+    try {
       if(null != innerScriptFile) {
-        dir = extract(file);
-        String innerScriptFilePath = dir.getAbsolutePath() + File.separator + innerScriptFile.getName();
-
-        IScriptRunner runner = Runner.getRunner(innerScriptFilePath);
         wrapper.setRunner(runner);
-        return runner.runScript(innerScriptFilePath, scriptArgs, options);
+        return runner.runScript(innerScriptFile, scriptArgs, options);
       }
       return Runner.FILE_NOT_FOUND;
-    } catch (IOException e) {
-      log(-1, "Error opening file %s: %s", scriptFileOrFolder, e.getMessage());
-      return -1;
     } finally {
       wrapper.clearRunner();
-      if (null != dir) {
-        try {
-          FileUtils.deleteDirectory(dir);
-        } catch (IOException e) {
-          log(-1, "Error deleting tmp dir %s: %s", dir, e.getMessage());
+      if (null != innerScriptFile) {
+        boolean success = FileManager.deleteFileOrFolder(new File(innerScriptFile).getParentFile());
+        if (!success) {
+          log(-1, "Error deleting tmp dir %s", new File(innerScriptFile).getParentFile());
         }
       }
     }
+  }
+
+  public EffectiveRunner getEffectiveRunner(String zipFile) {
+    String innerScriptFilePath = null;
+    try (ZipFile file = new ZipFile(zipFile)) {
+      ZipEntry innerScriptFile = getScriptEntry(file);
+      if(null != innerScriptFile) {
+        File dir = extract(file);
+        innerScriptFilePath = dir.getAbsolutePath() + File.separator + innerScriptFile.getName();
+      }
+    } catch (IOException e) {
+      log(-1, "Error opening file %s: %s", zipFile, e.getMessage());
+    }
+    //File innerScriptFile = Runner.getScriptFile(new File(innerScriptFilePath));
+    if (null != innerScriptFilePath) {
+      return new EffectiveRunner(Runner.getRunner(innerScriptFilePath), innerScriptFilePath, null);
+    }
+    return new EffectiveRunner();
   }
 
   private ZipEntry getScriptEntry(ZipFile file) {
