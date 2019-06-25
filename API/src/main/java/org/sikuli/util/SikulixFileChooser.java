@@ -53,12 +53,21 @@ public class SikulixFileChooser {
     return selectedFile;
   }
 
-  public File saveAs(String extension) {
-    File selectedFile = show("Save as .sikuli, folder or file", SAVE, DIRSANDFILES
+  public File saveAs(String extension, boolean isBundle) {
+    File selectedFile;
+    if (isBundle)
+      selectedFile = show("Save as .sikuli, folder or file", SAVE, DIRSANDFILES
             , new SXFilter("as file", extension)
             , new SXFilter("as plain folder", SXFilter.FOLDER)
             , new SXFilter("as folder.sikuli", SXFilter.SIKULI)
              );
+    else {
+      selectedFile = show("Save as .sikuli, folder or file", SAVE, DIRSANDFILES
+          , new SXFilter("as plain folder", SXFilter.FOLDER)
+          , new SXFilter("as folder.sikuli", SXFilter.SIKULI)
+          , new SXFilter("as file", extension)
+      );
+    }
     return selectedFile;
   }
 
