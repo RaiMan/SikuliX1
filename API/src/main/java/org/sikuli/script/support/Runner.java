@@ -163,7 +163,7 @@ public class Runner {
   public static final int FILE_NOT_FOUND = 256;
   public static final int NOT_SUPPORTED = 257;
 
-  public static int runScript(String script) {
+  public static int runScript(String script, String[] args, IScriptRunner.Options options) {
     if (script.contains("\n")) {
       String[] header = script.substring(0, Math.min(100, script.length())).trim().split("\n");
       IScriptRunner runner = null;
@@ -172,17 +172,17 @@ public class Runner {
         runner = getRunner(selector);
         if (runner.isSupported()) {
           script = script.replaceFirst(selector, "").trim();
-          return runner.evalScript(script, null);
+          return runner.evalScript(script, options);
         }
       }
       return 0;
     } else
-      return runScripts(new String[]{script});
+      return runScripts(new String[]{script}, args, options);
   }
 
   private static IScriptRunner currentRunner = new InvalidRunner();
 
-  public static int runScripts(String[] runScripts) {
+  public static int runScripts(String[] runScripts, String[] args, IScriptRunner.Options options) {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
 
@@ -194,8 +194,7 @@ public class Runner {
           currentRunner.abort();
         }
       });
-
-      IScriptRunner.Options runOptions = new IScriptRunner.Options();
+      
       for (String scriptGiven : runScripts) {
         if (scriptGiven.startsWith("!")) {
           // special meaning from -r option evaluation to get a synchronous log and noop action
@@ -210,7 +209,7 @@ public class Runner {
           IScriptRunner runner = getRunner(scriptGiven);
           RunTime.get().setLastScriptRunReturnCode(0);
           currentRunner = runner;
-          exitCode = runner.runScript(scriptGiven, null, runOptions);
+          exitCode = runner.runScript(scriptGiven, args, options);
           RunTime.get().setLastScriptRunReturnCode(exitCode);
           currentRunner = new InvalidRunner();
         }
