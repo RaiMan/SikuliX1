@@ -311,16 +311,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (currentType.equals(targetType)) {
         return;
       }
-      //String targetEnding = Runner.getExtension(targetType);
-//      if (editorPane.getText().length() > 0) {
-//        if (!Sikulix.popAsk(String.format(
-//            "Switch to %s requested, but tab is not empty!\n"
-//                + "Click YES, to discard content and switch\n"
-//                + "Click NO to cancel this action and keep content.",
-//            targetType))) {
-//          error = ": with errors";
-//        }
-//      }
       if (editorPane.init(targetType, editorPane.getText())) {
         SikulixIDE.getStatusbar().setType(targetType);
         String msg = "doSetType: completed" + ": (" + targetType + ")";
