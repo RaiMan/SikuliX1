@@ -194,8 +194,7 @@ public class Runner {
           currentRunner.abort();
         }
       });
-
-      IScriptRunner.Options runOptions = new IScriptRunner.Options();
+      
       for (String scriptGiven : runScripts) {
         if (scriptGiven.startsWith("!")) {
           // special meaning from -r option evaluation to get a synchronous log and noop action
@@ -210,7 +209,7 @@ public class Runner {
           IScriptRunner runner = getRunner(scriptGiven);
           RunTime.get().setLastScriptRunReturnCode(0);
           currentRunner = runner;
-          exitCode = runner.runScript(scriptGiven, null, runOptions);
+          exitCode = runner.runScript(scriptGiven, args, options);
           RunTime.get().setLastScriptRunReturnCode(exitCode);
           currentRunner = new InvalidRunner();
         }
