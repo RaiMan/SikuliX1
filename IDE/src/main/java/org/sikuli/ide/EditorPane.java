@@ -63,6 +63,9 @@ public class EditorPane extends JTextPane {
     Debug.logx(level, me + message, args);
   }
 
+  //for debugging watches
+  EditorPane editorPane = null;
+
   EditorPane() {
     showThumbs = !PreferencesUser.get().getPrefMorePlainText();
     addMouseListener(new MouseInputAdapter() {
@@ -81,6 +84,7 @@ public class EditorPane extends JTextPane {
     });
     scrollPane = new JScrollPane(this);
     editorPaneID = new Date().getTime();
+    editorPane = this;
     log(lvl, "created %d", editorPaneID);
   }
 
@@ -143,13 +147,61 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold desc="10 load content">
   void init(String scriptType) {
+    init(scriptType, "");
+  }
+
+  boolean init(String scriptType, String tabContent) {
+    Boolean shouldOverwrite = null;
+    boolean useAlreadyOpen = false;
+    if (!tabContent.isEmpty()) {
+      if (isDirty()) {
+        if (!Sikulix.popAsk(String.format("Save changes before?" +
+            "\n\nNot yet handled -> NOOP"))) {
+          return false;
+        }
+      }
+      IScriptRunner newRunner = Runner.getRunner(scriptType);
+      File newFile = changeExtension(editorPaneFileToRun, newRunner.getDefaultExtension());
+      if (isBundle()) {
+        if (!Sikulix.popAsk(String.format("Is bundle (.sikuli or bundle folder)\n%s" +
+            "\n\nNot yet handled -> NOOP", newFile.getParentFile()))) {
+          return false;
+        }
+        return false;
+      }
+      if (alreadyOpen(newFile.getPath())) {
+        if (!Sikulix.popAsk(String.format("overwrite already open?\n%s" +
+            "\n\nNot yet handled -> NOOP", newFile))) {
+          return false;
+        }
+        useAlreadyOpen = true;
+        return false;
+      }
+      if (newFile.exists()) {
+        shouldOverwrite = Sikulix.popAsk(String.format("overwrite existing file?\n%s" +
+            "\n\nYes: overwrite - No: select new file",newFile));
+      }
+    }
     if (null == scriptType) {
       editorPaneRunner = RunTime.getDefaultRunner();
     } else {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
-    setText("");
     initForScriptType();
+    if (!tabContent.isEmpty()) {
+      setText(tabContent);
+      changeFiles();
+      if (null != shouldOverwrite) {
+        if (shouldOverwrite) {
+          saveAsFile(editorPaneFileToRun.getPath());
+        } else {
+          saveAsSelect();
+        }
+      }
+      SikulixIDE.get().setCurrentFileTabTitle(editorPaneFileToRun.getPath());
+      setDirty(shouldOverwrite == null);
+    }
+    return true;
   }
 
   public File selectFile() {
@@ -374,18 +426,18 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold desc="15 content file">
   public void setTemp(boolean temp) {
-    notYetSaved = temp;
+    editorPaneIsTemp = temp;
   }
 
   public boolean isTemp() {
-    return notYetSaved;
+    return editorPaneIsTemp;
   }
 
-  private boolean notYetSaved = false;
+  private boolean editorPaneIsTemp = false;
 
   boolean isBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -452,6 +504,16 @@ public class EditorPane extends JTextPane {
         log(3, "setFiles: for: %s", editorPaneFile);
       }
     }
+  }
+
+  private void changeFiles() {
+    String extension = editorPaneRunner.getDefaultExtension();
+    setFiles(changeExtension(editorPaneFileToRun, extension));
+  }
+
+  private File changeExtension(File file, String extension) {
+    String filePath = FilenameUtils.removeExtension(file.getPath()) + "." + extension;
+    return new File(filePath);
   }
 
   public long getID() {
@@ -953,9 +1015,9 @@ public class EditorPane extends JTextPane {
         line++;
         if (inString) {
           boolean answer = Sikulix.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "\"%s\"\n" +
-                  "Yes: No images will be deleted!\n" +
-                  "No: Ignore and continue", line, text), "Delete images on save");
+              "\"%s\"\n" +
+              "Yes: No images will be deleted!\n" +
+              "No: Ignore and continue", line, text), "Delete images on save");
           if (answer) {
             log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
             images.clear();
@@ -1049,11 +1111,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1115,15 +1177,15 @@ public class EditorPane extends JTextPane {
 
   public String saveAsSelect() {
     SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get());
-    File file = fileChooser.saveAs(getRunner().getDefaultExtension());
+    File file = fileChooser.saveAs(getRunner().getDefaultExtension(), isBundle());
     if (file == null) {
       return null;
     }
     String filename = file.getAbsolutePath();
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1183,8 +1245,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1238,7 +1300,7 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       if (!Sikulix.popAsk(String.format("Overwrite existing file?\n%s", zipPath),
-              "Exporting packed SikuliX Script")) {
+          "Exporting packed SikuliX Script")) {
         return null;
       }
     }
@@ -1319,12 +1381,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1448,7 +1510,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }

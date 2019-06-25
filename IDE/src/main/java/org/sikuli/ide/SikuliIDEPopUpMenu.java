@@ -282,7 +282,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     }
 
     public void doSetType(ActionEvent ae) {
-      //TODO use a popUpSelect for more language options
       Debug.log(3, "doSetType: selected");
       String error = "";
       EditorPane editorPane = SikulixIDE.get().getCurrentCodePane();
@@ -305,32 +304,29 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       String targetType = Sikulix.popSelect("Select the Content Type ...",
           selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
-        targetType = currentType;
+        return;
       } else {
         targetType = "text/" + targetType;
       }
       if (currentType.equals(targetType)) {
-        SikulixIDE.getStatusbar().setType(currentType);
         return;
       }
       //String targetEnding = Runner.getExtension(targetType);
-      if (editorPane.getText().length() > 0) {
-        if (!Sikulix.popAsk(String.format(
-            "Switch to %s requested, but tab is not empty!\n"
-                + "Click YES, to discard content and switch\n"
-                + "Click NO to cancel this action and keep content.",
-            targetType))) {
-          error = ": with errors";
-        }
-      }
-      if (error.isEmpty()) {
-        editorPane.init(targetType);
-        error = ": (" + targetType + ")";
+//      if (editorPane.getText().length() > 0) {
+//        if (!Sikulix.popAsk(String.format(
+//            "Switch to %s requested, but tab is not empty!\n"
+//                + "Click YES, to discard content and switch\n"
+//                + "Click NO to cancel this action and keep content.",
+//            targetType))) {
+//          error = ": with errors";
+//        }
+//      }
+      if (editorPane.init(targetType, editorPane.getText())) {
         SikulixIDE.getStatusbar().setType(targetType);
+        String msg = "doSetType: completed" + ": (" + targetType + ")";
+        SikulixIDE.getStatusbar().setMessage(msg);
+        Debug.log(3, msg);
       }
-      String msg = "doSetType: completed" + error;
-      SikulixIDE.getStatusbar().setMessage(msg);
-      Debug.log(3, msg);
     }
 
     public void doInsertPath(ActionEvent ae) {
