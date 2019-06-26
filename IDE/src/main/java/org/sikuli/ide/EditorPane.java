@@ -435,6 +435,12 @@ public class EditorPane extends JTextPane {
 
   private boolean editorPaneIsTemp = false;
 
+  boolean isInBundle(File file) {
+    String possibleBundleName = FilenameUtils.removeExtension(file.getName()).toLowerCase();
+    String folderOrBundleName = file.getParentFile().getName().toLowerCase();
+    return possibleBundleName.equals(folderOrBundleName);
+  }
+
   boolean isBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
         FilenameUtils.getExtension(fileName).equals("sikuli")) {
