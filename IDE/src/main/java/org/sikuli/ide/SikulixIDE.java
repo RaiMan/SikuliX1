@@ -2392,9 +2392,8 @@ public class SikulixIDE extends JFrame {
           SikulixIDE.hideIDE();
           RunTime.pause(0.1f);
           File scriptFile;
-          if (!editorPane.isDirty()) {
-            scriptFile = editorPane.saveAndGetCurrentFile();
-          } else {
+          scriptFile = editorPane.getCurrentFile();
+          if (editorPane.isDirty()) {
             editorPane.checkSource(); // runCurrentScript
             if (editorPane.isTemp()) {
               scriptFile = editorPane.getCurrentFile();
@@ -2411,7 +2410,6 @@ public class SikulixIDE extends JFrame {
             if (scriptFile == null) {
               log(-1, "Run Script: temp file for running not available");
               setIsRunningScript(false);
-
             }
           }
           messages.clear();
