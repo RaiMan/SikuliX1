@@ -39,12 +39,16 @@ public class IDESupport {
 		}
 	}
 
-	private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{JythonRunner.class, PythonRunner.class,
-					JRubyRunner.class, JavaScriptRunner.class, TextRunner.class};
+	private static final Class<?>[] IDE_RUNNER_CLASSES = new Class<?>[]{
+			JythonRunner.class,
+			PythonRunner.class,
+			JRubyRunner.class,
+			JavaScriptRunner.class,
+			TextRunner.class};
+
 	private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();
 
 	public static boolean transferScript(String src, String dest, IScriptRunner runner) {
-		log(lvl, "transferScript: %s to: %s", src, dest);
 		FileManager.FileFilter filter = new FileManager.FileFilter() {
 			@Override
 			public boolean accept(File entry) {

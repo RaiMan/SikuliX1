@@ -9,7 +9,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
-public class PowershellRunner extends AbstractScriptRunner {
+public class PowershellRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "PowerShell";
   public static final String TYPE = "text/powershell";

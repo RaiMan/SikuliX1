@@ -3,9 +3,6 @@
  */
 package org.sikuli.script.runners;
 
-import java.net.URI;
-import java.util.Map;
-
 /**
  * Runs a text file.
  *
@@ -15,7 +12,7 @@ import java.util.Map;
  *
  */
 
-public class TextRunner extends AbstractScriptRunner {
+public class TextRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "Text";
   public static final String TYPE = "text/text";

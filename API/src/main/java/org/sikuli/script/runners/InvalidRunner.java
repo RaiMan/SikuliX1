@@ -7,11 +7,11 @@ package org.sikuli.script.runners;
 import org.sikuli.script.support.IScriptRunner;
 
 public class InvalidRunner extends AbstractScriptRunner {
-  
+
   String identifier;
 
   public InvalidRunner() {}
-    
+
   public InvalidRunner(String identifier) {
     super();
     this.identifier = identifier;
@@ -22,7 +22,7 @@ public class InvalidRunner extends AbstractScriptRunner {
   }
 
   @Override
-  public String getName() {    
+  public String getName() {
     return "InvalidRunner: " + identifier;
   }
 
@@ -32,8 +32,12 @@ public class InvalidRunner extends AbstractScriptRunner {
     return new String[]{};
   }
 
+  public EffectiveRunner getEffectiveRunner(String script) {
+    return new EffectiveRunner(this, null, false);
+  }
+
   @Override
-  public String getType() {    
+  public String getType() {
     return "invalid/" + identifier;
-  } 
+  }
 }
