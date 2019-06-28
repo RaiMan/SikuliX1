@@ -104,7 +104,7 @@ public class CommandArgs {
 
     cmdArgs.addOption(
         OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
-            .hasOptionalArg()
+            .hasOptionalArgs(2)
             .withArgName(CommandArgsEnum.SERVER.argname())
             .withDescription(CommandArgsEnum.SERVER.description())
             .create(CommandArgsEnum.SERVER.shortname().charAt(0)));
