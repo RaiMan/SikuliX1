@@ -4,7 +4,9 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -246,6 +248,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         if (lineIndentations.isEmpty() || !lineIndentation.equals(lineIndentations.get(0))) {
           lineNumbers.push(lineNumber);
           lineIndentations.push(lineIndentation);
+        }else {
+          lineNumbers.set(0,lineNumber);
+          lineIndentations.set(0,lineIndentation);
         }
       } else if (lineMatches(line, startPatterns)) {
         if (!lineNumbers.isEmpty()) {
