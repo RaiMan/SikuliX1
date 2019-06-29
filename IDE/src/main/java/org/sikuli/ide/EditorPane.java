@@ -627,7 +627,7 @@ public class EditorPane extends JTextPane {
     if (caretPosition < getDocument().getLength()) {
       setCaretPosition(caretPosition);
     } else {
-      setCaretPosition(getDocument().getLength() - 1);
+      setCaretPosition(Math.max(0, getDocument().getLength() - 1));
     }
     caretPosition = -1;
   }
