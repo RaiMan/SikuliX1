@@ -75,7 +75,7 @@ public class Debug {
 	private static PrintStream redirectedOut = null, redirectedErr = null;
 
 
-	static {
+	public static void init() {
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null) {
 			if ("".equals(debug)) {

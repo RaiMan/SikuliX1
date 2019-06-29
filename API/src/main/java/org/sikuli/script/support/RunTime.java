@@ -51,6 +51,8 @@ public class RunTime {
   //<editor-fold desc="01 startup">
   public static boolean start(RunTime.Type type, String[] args) {
 
+    Debug.init();
+
     if (Type.API.equals(type)) {
       startAsIDE = false;
       if (args.length == 1 && "buildDate".equals(args[0])) {
@@ -186,6 +188,10 @@ public class RunTime {
 
     if (!getLogFile().isEmpty()) {
       Debug.setLogFile(getLogFile());
+    }
+
+    if (!getUserLogFile().isEmpty()) {
+      Debug.setUserLogFile(getUserLogFile());
     }
 
     if (runningScripts()) {
