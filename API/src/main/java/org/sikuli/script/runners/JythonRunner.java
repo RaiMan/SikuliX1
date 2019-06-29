@@ -308,12 +308,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    * Checks if the given line matches at least one of the given patterns.
    */
   private boolean lineMatches(String line, Pattern[] patterns) {
-    for (Pattern pattern : patterns) {
-      if (pattern.matcher(line).matches()) {
-        return true;
-      }
-    }
-    return false;
+    return Arrays.asList(patterns).stream().anyMatch((pattern) -> pattern.matcher(line).matches());
   }
 
   private static final Pattern INDENTATION_PATTERN = Pattern.compile("(\\s+).+?");
