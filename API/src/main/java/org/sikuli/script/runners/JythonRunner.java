@@ -4,15 +4,12 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -155,7 +152,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     return String.join("\n", lines) + "\n";
   }
 
-  private static final Pattern COMMENT_PATTERN = Pattern.compile("^\\s*#.*");
+  private static final Pattern COMMENT_PATTERN = Pattern.compile("\\s*#.*");
 
   private List<String> stripComments(List<String> lines) {
     return lines.stream().filter((line) -> !COMMENT_PATTERN.matcher(line).matches()).collect(Collectors.toList());
@@ -238,24 +235,24 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       String startExpression, String indentation) {
     lines = new ArrayList<>(lines);
 
-    Stack<Integer> lineNumbers = new Stack<>();
-    Stack<String> lineIndentations = new Stack<>();
+    List<Integer> lineNumbers = new ArrayList<>();
+    List<String> lineIndentations = new ArrayList<>();
 
     for (int lineNumber = lines.size() - 1; lineNumber >= 0; lineNumber--) {
       String line = lines.get(lineNumber);
       if (lineMatches(line, endPatterns)) {
         String lineIndentation = detectIndentation(line);
         if (lineIndentations.isEmpty() || !lineIndentation.equals(lineIndentations.get(0))) {
-          lineNumbers.push(lineNumber);
-          lineIndentations.push(lineIndentation);
+          lineNumbers.add(0, lineNumber);
+          lineIndentations.add(0, lineIndentation);
         } else {
           lineNumbers.set(0, lineNumber);
           lineIndentations.set(0, lineIndentation);
         }
       } else if (lineMatches(line, startPatterns)) {
         if (!lineNumbers.isEmpty()) {
-          lineNumbers.pop();
-          lineIndentations.pop();
+          lineNumbers.remove(0);
+          lineIndentations.remove(0);
         }
       }
     }
