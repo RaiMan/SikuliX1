@@ -1659,8 +1659,16 @@ public class EditorPane extends JTextPane {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        getRunner().runLines(lines, null);
-        SikulixIDE.showAgain();
+        try {          
+          IScriptRunner runner = getRunner();          
+          SikulixIDE.get().setCurrentRunner(runner);
+          SikulixIDE.get().setIsRunningScript(true);
+          runner.runLines(lines, null);          
+          SikulixIDE.showAgain();
+        } finally {
+          SikulixIDE.get().setCurrentRunner(null);
+          SikulixIDE.get().setIsRunningScript(false);
+        }
       }
     }).start();
   }
