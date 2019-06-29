@@ -9,12 +9,13 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.IntSupplier;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
@@ -39,7 +40,9 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 //    return TYPE;
 //  }
 
-  boolean ready = false;
+  private boolean ready = false;
+
+  private boolean running = false;
 
   PrintStream redirectedStdout;
   PrintStream redirectedStderr;
@@ -72,7 +75,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void doInit(String[] args) throws Exception {
-    // noop if not implemented
+    // NOOP if not implemented
   }
 
   public final boolean isReady() {
@@ -87,11 +90,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public boolean isWrapper() {
-    return false;
-  }
-
-  @Override
   public final boolean hasExtension(String ending) {
     for (String suf : getExtensions()) {
       if (suf.equals(ending.toLowerCase())) {
@@ -101,21 +99,25 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return false;
   }
 
+  public String getDefaultExtension() {
+    return getExtensions()[0];
+  }
+
   public boolean canHandle(String identifier) {
     if (identifier != null) {
       if (getType().equals(identifier)) {
-        return true;
-      }
-      if (hasExtension(identifier)) {
-        return true;
-      }
-      if (hasExtension(FilenameUtils.getExtension(identifier))) {
         return true;
       }
       if (identifier.toLowerCase().equals(getName().toLowerCase())) {
         return true;
       }
       if (identifier.toLowerCase().startsWith(getName().toLowerCase() + "*")) {
+        return true;
+      }
+      if (hasExtension(identifier)) {
+        return true;
+      }
+      if (canHandleFileEnding(identifier)) {
         return true;
       }
     }
@@ -153,43 +155,26 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized (this) {
+  public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
+
+    return synchronizedRunning(() -> {
       init(null);
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
-      File scriptFile = new File(script);
-      if (!scriptFile.isAbsolute()) {
-        if (null != options) {
-          scriptFile = Runner.checkScriptFolderOrFile(options.getWorkFolder(), scriptFile);
-        } else {
-          scriptFile = Runner.checkScriptFolderOrFile(null, scriptFile);
-        }
-      }
-      if (!scriptFile.exists()) {
-        if (isWrapper() && FilenameUtils.getExtension(scriptFile.getName()).isEmpty()) {
-          scriptFile = checkWithExtensions(scriptFile);
-        }
-        if (!scriptFile.exists()) {
-          return Runner.FILE_NOT_FOUND;
-        }
-      }
-      if (null == options || (!options.isRunningInIDE() && !isWrapper())) {
-        ImagePath.setBundleFolder(scriptFile.getParentFile());
-      }
-      if (null != options) {
-        options.setWorkFolder(scriptFile.getParent());
-      }
-      int exitValue = doRunScript(scriptFile.getPath(), scriptArgs, options);
+
+      int exitValue = 0;
+      exitValue = doRunScript(script, scriptArgs, options);
+
       Debug.setDebugLevel(savedLevel);
       return exitValue;
-    }
+    });
   }
 
-  protected File checkWithExtensions(File scriptFile) {
-    return scriptFile;
+  public EffectiveRunner getEffectiveRunner(String script) {
+    return new EffectiveRunner(this, script, false);    
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -198,11 +183,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int evalScript(String script, IScriptRunner.Options options) {
-    synchronized (this) {
+  public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
+    return synchronizedRunning(() -> {
       init(null);
       return doEvalScript(script, options);
-    }
+    });
   }
 
   protected int doEvalScript(String script, IScriptRunner.Options options) {
@@ -211,11 +197,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final void runLines(String lines, IScriptRunner.Options options) {
-    synchronized (this) {
+  public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
+    synchronizedRunning(() -> {
       init(null);
       doRunLines(lines, options);
-    }
+      return 0;
+    });
   }
 
   protected void doRunLines(String lines, IScriptRunner.Options options) {
@@ -223,11 +211,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
-    synchronized (this) {
+  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
+    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
+    return synchronizedRunning(() -> {
       init(null);
       return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
-    }
+    });
   }
 
   protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
@@ -237,10 +226,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final int runInteractive(String[] scriptArgs) {
-    synchronized (this) {
+    return synchronizedRunning(() -> {
       init(null);
       return doRunInteractive(scriptArgs);
-    }
+    });
   }
 
   protected int doRunInteractive(String[] scriptArgs) {
@@ -269,7 +258,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void doClose() {
-    // noop if not implemented
+    // NOOP if not implemented
   }
 
   @Override
@@ -312,4 +301,52 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   static ArrayList<String> codeBefore = null;
   static ArrayList<String> codeAfter = null;
+
+  public final boolean isRunning() {
+    return running;
+  }
+
+  public boolean isAbortSupported() {
+    return false;
+  }
+
+  public final void abort() {
+    if (running && isAbortSupported()) {
+      doAbort();
+    }
+  }
+
+  protected void doAbort() {
+    // NOOP if not implemented
+  }
+
+  private int synchronizedRunning(IntSupplier block) {
+    synchronized (this) {
+      try {
+        running = true;
+        return block.getAsInt();
+      } finally {
+        running = false;
+      }
+    }
+  }
+
+  public final boolean canHandleFileEnding(String identifier) {
+    for (String suf : getFileEndings()) {
+      if (identifier.toLowerCase().endsWith(suf.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public String[] getFileEndings() {
+    String[] extensions = getExtensions();
+    String[] endings = new String[extensions.length];
+
+    for (int i = 0; i < extensions.length; i++) {
+      endings[i] = "." + extensions[i];
+    }
+    return endings;
+  }
 }

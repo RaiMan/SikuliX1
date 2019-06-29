@@ -29,7 +29,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarOutputStream;
