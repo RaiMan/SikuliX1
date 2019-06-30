@@ -204,6 +204,11 @@ public class RunTime {
       Sikulix.terminate(exitCode, "");
     }
 
+//TODO deactivate after SikulixServer is integrated
+    if (shouldRunServer()) {
+      ServerRunner.run(getSXArgs());
+      Sikulix.terminate();
+    }
 //TODO activate after SikulixServer is integrated
 //    if (shouldRunServer()) {
 //      if (!SikulixServer.run()) {
