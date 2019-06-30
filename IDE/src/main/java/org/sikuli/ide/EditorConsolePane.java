@@ -202,14 +202,16 @@ public class EditorConsolePane extends JPanel implements Runnable {
     StringBuilder sb = new StringBuilder();
     Pattern patMsgCat = Pattern.compile("\\[(.+?)\\].*");
     msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">","&gt;");
+    
+    String cls = "normal";
+    
     for (String line : msg.split(lineSep)) {
-      Matcher m = patMsgCat.matcher(line);
-      String cls = "normal";
+      Matcher m = patMsgCat.matcher(line);      
       if (m.matches()) {
         cls = m.group(1);
       }
-      line = "<span class='" + cls + "'>" + line + "</span>";
-      sb.append(line).append("<br>");
+      line = "<pre class=\"" + cls + "\" style=\"margin: 0;\">" + line + "</pre>";
+      sb.append(line);
     }
     return sb.toString();
   }
