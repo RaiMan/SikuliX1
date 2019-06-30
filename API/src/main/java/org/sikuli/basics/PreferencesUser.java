@@ -33,7 +33,7 @@ public class PreferencesUser {
   public final static int SIKULI_USER = 2;
   public final static int THUMB_HEIGHT = 50;
   public final static String DEFAULT_CONSOLE_CSS =
-          "body   { font-family:serif; font-size: 12px; }"
+          "body   { font-family:monospace; font-size: 10px}"
                   + ".normal{ color: black; }"
                   + ".debug { color:#505000; }"
                   + ".info  { color: blue; }"

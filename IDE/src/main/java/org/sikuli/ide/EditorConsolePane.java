@@ -208,8 +208,8 @@ public class EditorConsolePane extends JPanel implements Runnable {
       if (m.matches()) {
         cls = m.group(1);
       }
-      line = "<span class='" + cls + "'>" + line + "</span>";
-      sb.append(line).append("<br>");
+      line = "<pre class=\"" + cls + "\" style=\"margin: 0;\">" + line + "</pre>";
+      sb.append(line);
     }
     return sb.toString();
   }
