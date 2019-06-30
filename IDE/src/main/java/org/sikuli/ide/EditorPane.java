@@ -1665,8 +1665,10 @@ public class EditorPane extends JTextPane {
           ide.setCurrentRunner(editorPane.editorPaneRunner);
           ide.setCurrentScript(editorPane.getCurrentFile());
           ide.setIsRunningScript(true);
+          ide.clearMessageArea();
+          ide.resetErrorMark();
 
-          editorPane.editorPaneRunner.runLines(lines, null);          
+          editorPane.editorPaneRunner.runLines(lines, null);
         } finally {
           SikulixIDE.showAgain();
           ide.setCurrentRunner(null);
