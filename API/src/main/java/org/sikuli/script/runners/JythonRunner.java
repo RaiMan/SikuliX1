@@ -117,7 +117,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
           interpreter.exec(normalizedLines);
           return 0;
         } catch (Exception ex) {
-          log(-1, "runPython: (%s) raised: %s", lines, ex);
+          log(-1, "runPython: (%s) raised: %s", "\n" + normalizedLines, ex);
           return 1;
         }
       });
@@ -134,6 +134,8 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   private static final Pattern[] TRY_END_PATTERNS = new Pattern[] { Pattern.compile("\\s*except.*:\\s*"),
       Pattern.compile("\\s*finally\\s*:\\s*") };
 
+  private static final String GENERATED_MARKER = " # line generated";
+
   /*
    * Normalizes a partial script passed to runLines.
    */
@@ -148,6 +150,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     lines = fixUnclosedTryBlock(lines, indentation);
     lines = fixUnopenedBlock(lines, TRY_START_PATTERNS, TRY_END_PATTERNS, "try:", indentation);
     lines = fixUnopenedBlock(lines, IF_START_PATTERNS, IF_END_PATTERNS, "if True:", indentation);
+    lines = fixFirstLine(lines);
 
     return String.join("\n", lines) + "\n";
   }
@@ -212,8 +215,8 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     Collections.reverse(lineIndentations);
 
     for (String lineIndentation : lineIndentations) {
-      lines.add(lineIndentation + "except:");
-      lines.add(lineIndentation + indentation + "raise");
+      lines.add(lineIndentation + "except:" + GENERATED_MARKER);
+      lines.add(lineIndentation + indentation + "raise" + GENERATED_MARKER);
     }
 
     return lines;
@@ -273,10 +276,10 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
           break;
         }
       }
-      String newLine = lineIndentation + startExpression;
+      String newLine = lineIndentation + startExpression + GENERATED_MARKER;
 
       if (index == lineNumber) {
-        newLine += "\n" + lineIndentation + indentation + "pass";
+        newLine += "\n" + lineIndentation + indentation + "pass" + GENERATED_MARKER;
       }
 
       lines.add(index, newLine);
@@ -295,10 +298,20 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     String lastLine = lines.get(lines.size() - 1);
 
     if (lineMatches(lastLine, TRY_END_PATTERNS)) {
-      lines.add(detectIndentation(lastLine) + indentation + "raise");
+      lines.add(detectIndentation(lastLine) + indentation + "raise" + GENERATED_MARKER);
     } else if (lineMatches(lastLine, IF_START_PATTERNS) || lineMatches(lastLine, IF_END_PATTERNS)
         || lineMatches(lastLine, TRY_START_PATTERNS)) {
-      lines.add(detectIndentation(lastLine) + indentation + "pass");
+      lines.add(detectIndentation(lastLine) + indentation + "pass" + GENERATED_MARKER);
+    }
+
+    return lines;
+  }
+
+  private List<String> fixFirstLine(List<String> lines) {
+    lines = new ArrayList<>(lines);
+
+    if (!detectIndentation(lines.get(0)).isEmpty()) {
+      lines.add(0, "if True:" + GENERATED_MARKER);
     }
 
     return lines;
