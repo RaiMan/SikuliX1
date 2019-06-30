@@ -202,9 +202,11 @@ public class EditorConsolePane extends JPanel implements Runnable {
     StringBuilder sb = new StringBuilder();
     Pattern patMsgCat = Pattern.compile("\\[(.+?)\\].*");
     msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">","&gt;");
+    
+    String cls = "normal";
+    
     for (String line : msg.split(lineSep)) {
-      Matcher m = patMsgCat.matcher(line);
-      String cls = "normal";
+      Matcher m = patMsgCat.matcher(line);      
       if (m.matches()) {
         cls = m.group(1);
       }
