@@ -856,9 +856,8 @@ public class SikulixIDE extends JFrame {
           if (!new File(file).exists()) {
             FileManager.writeStringToFile(defaults[num - 1], file);
           }
-          String selectedFile = file + "###isText";
           log(lvl, "Open Special: should load: %s", file);
-          newTabWithContent(selectedFile);
+          newTabWithContent(file);
         }
       } catch (NumberFormatException e) {
       }
