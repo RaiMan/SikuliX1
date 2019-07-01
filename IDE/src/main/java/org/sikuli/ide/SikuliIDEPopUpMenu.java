@@ -177,7 +177,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           actMethod.invoke(this, params);
         } catch (Exception ex) {
           log(-1, "Problem when trying to invoke menu action %s\nError: %s",
-              action, ex.getMessage());
+                  action, ex.getMessage());
         }
       }
     }
@@ -234,51 +234,41 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      if (!cp.hasEditingFile()) {
+      if (cp.isTemp()) {
         (new Thread() {
           @Override
           public void run() {
             Region at = Mouse.at().offset(100, 52).grow(10);
             ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-            SX.popup("Script not yet saved", "IDE: About: script info", "", false, 2, at);
+            SX.popup(String.format("%s file --- not yet saved", cp.getRunner().getName()),
+                    "IDE: About: script info", "", false, 4, at);
           }
         }).start();
       } else {
+        String msg;
         if (cp.isBundle()) {
-          (new Thread() {
-            @Override
-            public void run() {
-              String msg = String.format("Bundle: %s\nScript: %s\nImages: %s",
-                  cp.getCurrentShortFilename(), cp.getCurrentFile(), cp.getImagePath());
-              Region at = Mouse.at().offset(200, 78).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
-            }
-          }).start();
-        } else if (cp.isPython()) {
-          (new Thread() {
-            @Override
-            public void run() {
-              String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
-                  cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
-              Region at = Mouse.at().offset(200, 78).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
-            }
-          }).start();
+          msg = String.format("Bundle: %s\n%s Script: %s\nImages: %s",
+                  cp.getCurrentShortFilename(), cp.getRunner().getName(), cp.getCurrentFile(), cp.getImagePath());
         } else if (!cp.isText()) {
-          (new Thread() {
-            @Override
-            public void run() {
-              String msg = String.format("SikuliX script: %s\nin Folder: %s",
+          msg = String.format("%s script: %s\nin Folder: %s\nImages: %s", cp.getRunner().getName(),
+                  cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent(), cp.getImagePath());
+        } else {
+          msg = String.format("%s file: %s\nin Folder: %s", cp.getRunner().getName(),
                   cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
-              Region at = Mouse.at().offset(100, 65).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
-            }
-          }).start();
         }
+        showAbout(cp, msg);
       }
+    }
+
+    private void showAbout(EditorPane cp, String msg) {
+      (new Thread() {
+        @Override
+        public void run() {
+          Region at = Mouse.at().offset(200, 78).grow(10);
+          ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
+          SX.popup(msg, "IDE: About: script info", "", false, 10, at);
+        }
+      }).start();
     }
 
     public void doSetType(ActionEvent ae) {
@@ -302,7 +292,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       Location mouseAt = new Location(mouseTrigger.getXOnScreen(), mouseTrigger.getYOnScreen());
       Sikulix.popat(mouseAt.offset(100, 85));
       String targetType = Sikulix.popSelect("Select the Content Type ...",
-          selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
+              selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
         return;
       } else {
