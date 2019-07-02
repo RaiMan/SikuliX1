@@ -414,8 +414,12 @@ public class EditorPane extends JTextPane {
       }
     }
     SikulixIDE.getStatusbar().setType(getType());
-    Matcher matcher = patSetBundlePath.matcher(scriptText);
+    Matcher matcher = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)").matcher(scriptText);
     if (matcher.find()) {
+      String line = getTextLineAt(matcher.start());
+      if (lineIsComment(line)) {
+        return;
+      }
       String path = matcher.group(1);
       log(3, "checkSource: found setBundlePath: %s", path);
       File newBundleFolder = new File(path.replace("\\\\", "\\"));
@@ -439,7 +443,11 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  static Pattern patSetBundlePath = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)");
+  private boolean lineIsComment(String line) {
+    //TODO eval other comment types
+    if (line.startsWith("#")) return true;
+    return false;
+  }
   //</editor-fold>
 
   //<editor-fold desc="15 content file">
@@ -514,22 +522,22 @@ public class EditorPane extends JTextPane {
     setFiles(editorPaneFile, null);
   }
 
-  public void setFiles(File editorPaneFile, String editorPaneFileSelected) {
-    if (editorPaneFile == null) {
+  public void setFiles(File paneFile, String paneFileSelected) {
+    if (paneFile == null) {
       return;
     }
-    this.editorPaneFileSelected = editorPaneFileSelected;
-    this.editorPaneFile = editorPaneFile;
-    editorPaneFolder = editorPaneFile.getParentFile();
+    editorPaneFileSelected = paneFileSelected;
+    editorPaneFile = paneFile;
+    editorPaneFolder = paneFile.getParentFile();
     setImageFolder(editorPaneFolder);
-    if (null != editorPaneFileSelected) {
-      log(3, "setFiles: for: %s", editorPaneFileSelected);
+    if (null != paneFileSelected) {
+      log(3, "setFiles: for: %s", paneFileSelected);
     } else {
       if (!isTemp()) {
         setIsFile();
-        this.editorPaneFileSelected = editorPaneFile.getAbsolutePath();
-        editorPaneFileToRun = editorPaneFile;
-        log(3, "setFiles: for: %s", editorPaneFile);
+        editorPaneFileSelected = paneFile.getAbsolutePath();
+        editorPaneFileToRun = paneFile;
+        log(3, "setFiles: for: %s", paneFile);
       }
     }
   }
@@ -661,6 +669,11 @@ public class EditorPane extends JTextPane {
     return root.getElementIndex(caretPosition) + 1;
   }
 
+  private String getTextLineAt(int start) {
+    Element root = getDocument().getDefaultRootElement();
+    return getLineTextFrom(root.getElement(root.getElementIndex(start)));
+  }
+
   public Element getLineAtCaret(int caretPosition) {
     Element root = getDocument().getDefaultRootElement();
     Element result;
@@ -673,18 +686,19 @@ public class EditorPane extends JTextPane {
   }
 
   public String getLineTextAtCaret() {
-    Element elem = getLineAtCaret(-1);
+    return getLineTextFrom(getLineAtCaret(-1));
+  }
+
+  private String getLineTextFrom(Element elem) {
     Document doc = elem.getDocument();
     Element subElem;
     String text;
     String line = "";
-    int start = elem.getStartOffset();
-    int end = elem.getEndOffset();
     for (int i = 0; i < elem.getElementCount(); i++) {
       text = "";
       subElem = elem.getElement(i);
-      start = subElem.getStartOffset();
-      end = subElem.getEndOffset();
+      int start = subElem.getStartOffset();
+      int end = subElem.getEndOffset();
       if (subElem.getName().contains("component")) {
         text = StyleConstants.getComponent(subElem.getAttributes()).toString();
       } else {
