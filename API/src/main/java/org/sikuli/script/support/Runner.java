@@ -215,7 +215,7 @@ public class Runner {
         }
         if (exitCode != 0) {
           if (exitCode == FILE_NOT_FOUND) {
-            log(-1, "runscript: not found: %s", scriptGiven);
+            log(-1, "runscript: (%d) not found: %s", exitCode, scriptGiven);
           }
           break;
         }

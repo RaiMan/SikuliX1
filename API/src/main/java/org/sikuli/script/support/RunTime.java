@@ -131,10 +131,10 @@ public class RunTime {
             System.out.println(String.format("%s terminated: returned: %d", type, exitValue));
           }
         } else {
-          if (startAsIDE) {
+          if (startAsIDE && exitValue == 255) {
             System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
             classPath = ExtensionManager.makeClassPath(runningJar);
-            continue;
+//            continue;
           }
         }
         System.exit(exitValue);
@@ -199,7 +199,7 @@ public class RunTime {
     if (runningScripts()) {
       int exitCode = Runner.runScripts(RunTime.getRunScripts(), userArgs, new IScriptRunner.Options());
       if (exitCode > 255) {
-        exitCode = -1;
+        exitCode = 254;
       }
       Sikulix.terminate(exitCode, "");
     }
@@ -402,7 +402,13 @@ public class RunTime {
           continue;
         }
         baseDir = possibleDir.getAbsolutePath();
-        fileToRun = "!" + baseDir;
+        runnerAndFile = Runner.getEffectiveRunner(baseDir);
+        fileToRun = runnerAndFile.getScript();
+        if (fileToRun == null) {
+          fileToRun = "!" + baseDir;
+        } else {
+          fileToRun = baseDir;
+        }
       }
       runScripts[i] = fileToRun;
     }
@@ -419,6 +425,7 @@ public class RunTime {
   public static String resolveRelativeFile(String scriptName, String baseDir) {
     if (get().runningWindows && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
       scriptName = new File(scriptName).getAbsolutePath();
+      return scriptName;
     }
     File file = new File(scriptName);
     if (!file.isAbsolute()) {
