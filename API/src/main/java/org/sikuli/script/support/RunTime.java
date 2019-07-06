@@ -51,7 +51,7 @@ public class RunTime {
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
-  public static void start(RunTime.Type type, String[] args) {
+  public static boolean start(RunTime.Type type, String[] args) {
 
     Debug.init();
 
@@ -94,59 +94,59 @@ public class RunTime {
 
     evalArgsStart(args);
 
-    File runningJar = getRunningJar(type);
+    File runningJar = getRunningJar();
     String jarName = runningJar.getName();
-    RunTime.startLog(1, "Running: %s", runningJar);
-
     File fAppData = getAppPath();
+    String classPath = ExtensionManager.makeClassPath(runningJar);
+    RunTime.startLog(1, "Running: %s", runningJar);
     RunTime.startLog(1, "AppData: %s", fAppData);
+    RunTime.startLog(1, "Classpath: %s", classPath);
 
-    String classPath = "";
     if (!jarName.endsWith(".jar")) {
-      classPath = System.getProperty("java.class.path");
-      return;
+      return false;
     } else {
-      classPath = ExtensionManager.makeClassPath(runningJar);
-      RunTime.startLog(1, "Classpath: %s", classPath);
+      int exitValue = 0;
+      while (true) {
+        List<String> cmd = new ArrayList<>();
+        cmd.add("java");
+        cmd.add("-Dfile.encoding=UTF-8");
+        if (startAsIDE) {
+          cmd.add("-Dsikuli.IDE_should_run");
+        } else {
+          cmd.add("-Dsikuli.API_should_run");
+        }
+        if (!classPath.isEmpty()) {
+          cmd.add("-cp");
+          cmd.add(classPath);
+        }
+        if (startAsIDE) {
+          cmd.add("org.sikuli.ide.SikulixIDE");
+        } else {
+          cmd.add("org.sikuli.script.support.SikulixAPI");
+        }
+        cmd.addAll(Arrays.asList(args));
+        exitValue = ProcessRunner.detach(cmd);
+        if (exitValue < 255) {
+          if (startAsIDE) {
+            System.out.println(String.format("%s terminated: returned: %d", type, exitValue));
+          }
+        } else {
+          if (startAsIDE && exitValue == 255) {
+            System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
+            classPath = ExtensionManager.makeClassPath(runningJar);
+//            continue;
+          }
+        }
+        System.exit(exitValue);
+      }
     }
-
-    List<String> cmd = new ArrayList<>();
-    cmd.add("java");
-    cmd.add("-Dfile.encoding=UTF-8");
-    if (startAsIDE) {
-      cmd.add("-Dsikuli.IDE_should_run");
-    } else {
-      cmd.add("-Dsikuli.API_should_run");
-    }
-    if (!classPath.isEmpty()) {
-      cmd.add("-cp");
-      cmd.add(classPath);
-    }
-    if (startAsIDE) {
-      cmd.add("org.sikuli.ide.SikulixIDE");
-    } else {
-      cmd.add("org.sikuli.script.support.SikulixAPI");
-    }
-    cmd.addAll(Arrays.asList(args));
-    ProcessRunner.detach(cmd);
-    RunTime.startLog(3, "*********************** leaving start");
-    System.exit(0);
 
   }
 
-  private static File getRunningJar(Type type) {
+  private static File getRunningJar() {
     File jarFile = null;
     String jarName = "notKnown";
     CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
-    if (Type.IDE.equals(type)) {
-      try {
-        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-        codeSrc = cIDE.getProtectionDomain().getCodeSource();
-      } catch (ClassNotFoundException e) {
-        startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
-        System.exit(1);
-      }
-    }
     if (codeSrc != null && codeSrc.getLocation() != null) {
       try {
         jarName = codeSrc.getLocation().getPath();
@@ -176,7 +176,6 @@ public class RunTime {
       Debug.log(3, "Sikulix: starting API");
     }
 
-    evalArgsStart(args);
     evalArgs(args);
     ExtensionManager.readExtensions(true);
 
@@ -1774,7 +1773,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
   public void crash() {
-    int x = 1 / 0;
+    int x = 1/0;
   }
 
   public static void pause(int time) {
