@@ -18,9 +18,8 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
     System.setProperty("sikuli.API_should_run", "develop");
-    if (!RunTime.start(RunTime.Type.API, args)) {
-      SikulixAPI.main(args);
-    }
+    RunTime.start(RunTime.Type.API, args);
+    SikulixAPI.main(args);
   }
 
   //<editor-fold desc="00 log">
@@ -169,7 +168,7 @@ public class Sikulix {
     }
     JFrame anchor = popLocation();
     String ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-        JOptionPane.PLAIN_MESSAGE, null, options, preset);
+            JOptionPane.PLAIN_MESSAGE, null, options, preset);
     if (anchor != null) {
       anchor.dispose();
     }
@@ -193,6 +192,7 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="07 input">
+
   /**
    * request user's input as one line of text <br>
    * with hidden = true: <br>
@@ -355,6 +355,7 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="11 vnc">
+
   /**
    * convenience for a password protected VNCScreen connection
    * (use theVNCScreen.stop() to stop the connection)
@@ -409,6 +410,7 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="99 buildjar, compile">
+
   /**
    * build a jar on the fly at runtime from a folder.<br>
    * special for Jython: if the folder contains a __init__.py on first level,
@@ -439,7 +441,7 @@ public class Sikulix {
       }
     }
     return FileManager.buildJar(targetJar, new String[]{null},
-        new String[]{sourceFolder}, new String[]{prefix}, null);
+            new String[]{sourceFolder}, new String[]{prefix}, null);
   }
 
   /**
@@ -505,7 +507,7 @@ public class Sikulix {
   private static JythonHelper doCompileJythonFolder(JythonHelper jython, File fSource) {
     String fpSource = FileManager.slashify(fSource.getAbsolutePath(), false);
     if (!jython.exec(String.format("compileall.compile_dir(\"%s\","
-        + "maxlevels = 0, quiet = 1)", fpSource))) {
+            + "maxlevels = 0, quiet = 1)", fpSource))) {
       return null;
     }
     for (File aFile : fSource.listFiles()) {
