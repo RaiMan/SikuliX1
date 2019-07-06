@@ -3,7 +3,7 @@
  */
 package org.sikuli.ide;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -19,17 +19,8 @@ import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JComponent;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.TransferHandler;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
+import javax.swing.*;
+import javax.swing.text.*;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
@@ -45,6 +36,7 @@ import org.sikuli.basics.Debug;
 //
 // RJHM van den Bergh , rvdb@comweb.nl
 import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.SX;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
 
@@ -59,6 +51,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
       ENABLE_IO_REDIRECT = false;
     }
   }
+
   private int NUM_PIPES;
   private JTextPane textArea;
   private Thread[] reader;
@@ -102,7 +95,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
     add(new JScrollPane(textArea), BorderLayout.CENTER);
 
     if (ENABLE_IO_REDIRECT) {
-			Debug.log(3, "EditorConsolePane: starting redirection to message area");
+      Debug.log(3, "EditorConsolePane: starting redirection to message area");
       int npipes = 2;
       NUM_PIPES = npipes * Runner.getRunners().size() + npipes;
       pin = new PipedInputStream[NUM_PIPES];
@@ -133,10 +126,10 @@ public class EditorConsolePane extends JPanel implements Runnable {
         for (IScriptRunner srunner : Runner.getRunners()) {
           Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
 
-          PipedOutputStream pout = new PipedOutputStream(pin[irunner*npipes]);
+          PipedOutputStream pout = new PipedOutputStream(pin[irunner * npipes]);
           PrintStream psout = new PrintStream(pout, true);
 
-          PipedOutputStream perr = new PipedOutputStream(pin[irunner*npipes+1]);
+          PipedOutputStream perr = new PipedOutputStream(pin[irunner * npipes + 1]);
           PrintStream pserr = new PrintStream(perr, true);
 
           srunner.redirect(psout, pserr);
@@ -180,6 +173,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
       Debug.error(me + "Problem appending text to message area!\n%s", e.getMessage());
     }
   }
+
   /*
    public synchronized void windowClosed(WindowEvent evt)
    {
@@ -201,12 +195,12 @@ public class EditorConsolePane extends JPanel implements Runnable {
   private String htmlize(String msg) {
     StringBuilder sb = new StringBuilder();
     Pattern patMsgCat = Pattern.compile("\\[(.+?)\\].*");
-    msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">","&gt;");
-    
+    msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+
     String cls = "normal";
-    
+
     for (String line : msg.split(lineSep)) {
-      Matcher m = patMsgCat.matcher(line);      
+      Matcher m = patMsgCat.matcher(line);
       if (m.matches()) {
         cls = m.group(1);
       }
@@ -218,30 +212,51 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
   @Override
   public synchronized void run() {
-    try {
-      for (int i = 0; i < NUM_PIPES; i++) {
-        while (Thread.currentThread() == reader[i]) {
+    for (int i = 0; i < NUM_PIPES; i++) {
+      while (Thread.currentThread() == reader[i]) {
+        try {
+          this.wait(100);
+        } catch (InterruptedException ie) {
+        }
+        int textLen = -1;
+        int textPosEnd = -1;
+        int rowStart = -1;
+        int availableToRead = 0;
+        try {
+          availableToRead = pin[i].available();
+        } catch (IOException e) {
+        }
+        if (availableToRead != 0) {
+          String input = null;
           try {
-            this.wait(100);
-          } catch (InterruptedException ie) {
+            input = this.readLine(pin[i]);
+          } catch (IOException e) {
           }
-          if (pin[i].available() != 0) {
-            String input = this.readLine(pin[i]);
-            synchronized(textArea) {
+          if (null != input) {
+            synchronized (textArea) {
               appendMsg(htmlize(input));
-              if (textArea.getDocument().getLength() > 0) {
-                textArea.setCaretPosition(textArea.getDocument().getLength() - 1);
+              //appendMsg("</br>"); //trial to avoid problems with Utilities.getRowStart
+              textLen = textArea.getDocument().getLength();
+              if (textLen > 0) {
+                textPosEnd = textLen - 1;
+                try {
+                  //TODO horizontal slider should be left adjusted with messages exceeding window width
+                  rowStart = textPosEnd; // currently right adjusted in these cases
+                  if (false) { // currently noop
+                    rowStart = Math.max(0, Utilities.getRowStart(textArea, textPosEnd));
+                  }
+                } catch (Exception e) {
+                  rowStart = textPosEnd; // fallback when using Utilities.getRowStart
+                }
+                textArea.setCaretPosition(rowStart);
               }
             }
           }
-          if (quit) {
-            return;
-          }
+        }
+        if (quit) {
+          return;
         }
       }
-
-    } catch (Exception e) {
-      Debug.error(me + "Console reports an internal error:\n%s", e.getMessage());
     }
   }
 

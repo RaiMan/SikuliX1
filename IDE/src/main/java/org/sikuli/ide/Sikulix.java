@@ -9,10 +9,8 @@ import org.sikuli.script.support.RunTime;
 public class Sikulix {
 
   public static void main(String[] args) {
-
-    if (!RunTime.start(RunTime.Type.IDE, args)) {
-      System.setProperty("sikuli.IDE_should_run", "develop");
-      SikulixIDE.main(args);
-    }
+    System.setProperty("sikuli.IDE_should_run", "develop");
+    RunTime.start(RunTime.Type.IDE, args);
+    SikulixIDE.main(args);
   }
 }
