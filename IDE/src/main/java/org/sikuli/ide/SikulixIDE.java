@@ -155,7 +155,7 @@ public class SikulixIDE extends JFrame {
     this.setIconImage(ICON_IMAGE);
   }
 
-  static synchronized SikulixIDE get() {
+  public static synchronized SikulixIDE get() {
     if (sikulixIDE == null) {
       sikulixIDE = new SikulixIDE();
     }

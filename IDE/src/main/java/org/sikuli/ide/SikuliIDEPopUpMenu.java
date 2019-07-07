@@ -4,6 +4,17 @@
 
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IDESupport;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.*;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RobotDesktop;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -11,19 +22,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.idesupport.IDESupport;
-import org.sikuli.script.*;
-import org.sikuli.script.Sikulix;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RobotDesktop;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 
@@ -275,6 +273,14 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       Debug.log(3, "doSetType: selected");
       String error = "";
       EditorPane editorPane = SikulixIDE.get().getCurrentCodePane();
+      String editorPaneText = editorPane.getText();
+      if (!editorPaneText.trim().isEmpty()) {
+        //TODO Changing Tab Type for non-empty tab
+        JOptionPane.showMessageDialog(null,
+                "... not yet implemented for not empty tab",
+                "Changing Tab Type", JOptionPane.PLAIN_MESSAGE);
+        return;
+      }
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : IDESupport.getRunners()) {
@@ -301,7 +307,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (currentType.equals(targetType)) {
         return;
       }
-      if (editorPane.init(targetType, editorPane.getText())) {
+      if (editorPane.init(targetType, editorPaneText)) {
         SikulixIDE.getStatusbar().setType(targetType);
         String msg = "doSetType: completed" + ": (" + targetType + ")";
         SikulixIDE.getStatusbar().setMessage(msg);

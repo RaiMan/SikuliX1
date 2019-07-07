@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.sikuli.script.SX.popAsk;
+import org.sikuli.script.SX;
 
 public class EditorPane extends JTextPane {
 
@@ -143,6 +143,15 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="10 load content">
+  boolean confirmDialog(String message, String title) {
+    int ret = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+    boolean returnValue = true;
+    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
+      returnValue = false;
+    }
+    return returnValue;
+  }
+
   void init(String scriptType) {
     init(scriptType, "");
   }
@@ -150,34 +159,46 @@ public class EditorPane extends JTextPane {
   boolean init(String scriptType, String tabContent) {
     Boolean shouldOverwrite = null;
     boolean useAlreadyOpen = false;
-    if (!tabContent.isEmpty()) {
+    boolean shouldChangeType = false;
+    String dialogTitle = "Changing Tab Type";
+    String msgSuffix = "\nNot yet handled -> NOOP";
+    if (!tabContent.trim().isEmpty()) {
+      //TODO Changing Tab Type for non-empty tab
       if (isDirty()) {
-        if (!popAsk(String.format("Save changes before?" +
-                "\n\nNot yet handled -> NOOP"))) {
-          return false;
-        }
-      }
-      IScriptRunner newRunner = Runner.getRunner(scriptType);
-      File newFile = changeExtension(editorPaneFileToRun, newRunner.getDefaultExtension());
-      if (isBundle()) {
-        if (!popAsk(String.format("Is bundle (.sikuli or bundle folder)\n%s" +
-                "\n\nNot yet handled -> NOOP", newFile.getParentFile()))) {
+        String message = String.format("Save changes before?");
+        if (confirmDialog(message + msgSuffix, dialogTitle)) {
           return false;
         }
         return false;
       }
+      IScriptRunner newRunner = Runner.getRunner(scriptType);
+      File newFile = changeExtension(editorPaneFileToRun, newRunner.getDefaultExtension());
+      if (isBundle()) {
+        if (isDirty()) {
+          String message = String.format("Is bundle (.sikuli or bundle folder)");
+          if (confirmDialog(message + msgSuffix, dialogTitle)) {
+            return false;
+          }
+          return false;
+        }
+      }
       if (alreadyOpen(newFile.getPath(), -1)) {
-        if (!popAsk(String.format("overwrite already open?\n%s" +
-                "\n\nNot yet handled -> NOOP", newFile))) {
+        String message = String.format("Overwrite already open?");
+        if (confirmDialog(message + msgSuffix, dialogTitle)) {
           return false;
         }
         useAlreadyOpen = true;
         return false;
       }
       if (newFile.exists()) {
-        shouldOverwrite = popAsk(String.format("overwrite existing file?\n%s" +
-                "\n\nYes: overwrite - No: select new file", newFile));
+        String message = String.format("overwrite existing file?\n%s" +
+                "\n\nYes: overwrite - No: select new file", newFile);
+        if (confirmDialog(message + msgSuffix, dialogTitle)) {
+          shouldOverwrite = Boolean.TRUE;
+          return false;
+        }
       }
+      shouldChangeType = true;
     }
     if (null == scriptType) {
       editorPaneRunner = RunTime.getDefaultRunner();
@@ -185,7 +206,7 @@ public class EditorPane extends JTextPane {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
     initForScriptType();
-    if (!tabContent.isEmpty()) {
+    if (shouldChangeType) {
       setText(tabContent);
       changeFiles();
       if (null != shouldOverwrite) {
@@ -197,6 +218,8 @@ public class EditorPane extends JTextPane {
       }
       SikulixIDE.get().setCurrentFileTabTitle(editorPaneFileToRun.getPath());
       setDirty(shouldOverwrite == null);
+    } else {
+      setDirty(false);
     }
     return true;
   }
@@ -1056,7 +1079,7 @@ public class EditorPane extends JTextPane {
       if (current.endsWith("\n")) {
         line++;
         if (inString) {
-          boolean answer = popAsk(String.format("Possible incomplete string in line %d\n" +
+          boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
                   "\"%s\"\n" +
                   "Yes: No images will be deleted!\n" +
                   "No: Ignore and continue", line, text), "Delete images on save");
@@ -1349,10 +1372,13 @@ public class EditorPane extends JTextPane {
       }
     }
     if (new File(zipPath).exists()) {
-      if (!popAsk(String.format("Overwrite existing file?\n%s", zipPath),
-              "Exporting packed SikuliX Script")) {
+      int answer = JOptionPane.showConfirmDialog(
+              null, SikuliIDEI18N._I("msgFileExists", zipPath),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+      if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
+      FileManager.deleteFileOrFolder(zipPath);
     }
     String pSource = editorPaneFile.getParent();
     if (writeSriptFile()) {
