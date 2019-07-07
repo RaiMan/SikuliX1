@@ -11,9 +11,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 
@@ -285,6 +283,14 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       Debug.log(3, "doSetType: selected");
       String error = "";
       EditorPane editorPane = SikulixIDE.get().getCurrentCodePane();
+      String editorPaneText = editorPane.getText();
+      if (!editorPaneText.trim().isEmpty()) {
+        //TODO Changing Tab Type for non-empty tab
+        JOptionPane.showMessageDialog(null,
+                "... not yet implemented for not empty tab",
+                "Changing Tab Type", JOptionPane.PLAIN_MESSAGE);
+        return;
+      }
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : IDESupport.getRunners()) {

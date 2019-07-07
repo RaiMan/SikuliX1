@@ -153,7 +153,7 @@ public class EditorPane extends JTextPane {
   boolean init(String scriptType, String tabContent) {
     Boolean shouldOverwrite = null;
     boolean useAlreadyOpen = false;
-    if (!tabContent.isEmpty()) {
+    if (!tabContent.trim().isEmpty()) {
       if (isDirty()) {
         if (!Sikulix.popAsk(String.format("Save changes before?" +
             "\n\nNot yet handled -> NOOP"))) {
@@ -188,7 +188,7 @@ public class EditorPane extends JTextPane {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
     initForScriptType();
-    if (!tabContent.isEmpty()) {
+    if (!tabContent.trim().isEmpty()) {
       setText(tabContent);
       changeFiles();
       if (null != shouldOverwrite) {
@@ -200,6 +200,8 @@ public class EditorPane extends JTextPane {
       }
       SikulixIDE.get().setCurrentFileTabTitle(editorPaneFileToRun.getPath());
       setDirty(shouldOverwrite == null);
+    } else {
+      setDirty(false);
     }
     return true;
   }
