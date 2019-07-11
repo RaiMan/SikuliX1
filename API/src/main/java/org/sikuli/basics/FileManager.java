@@ -539,20 +539,20 @@ public class FileManager {
   }
 
   public static File createTempFile(String suffix, String path) {
-    String temp1 = "sikuli-";
-    String temp2 = "." + suffix;
+    String fPrefix = "sikulitemp-";
+    String fSuffix = "." + suffix;
     File fpath = new File(RunTime.get().fpBaseTempPath);
     if (path != null) {
       fpath = new File(path);
     }
     try {
       fpath.mkdirs();
-      File temp = File.createTempFile(temp1, temp2, fpath);
+      File temp = File.createTempFile(fPrefix, fSuffix, fpath);
       temp.deleteOnExit();
       return temp;
     } catch (IOException ex) {
       log(-1, "createTempFile: IOException: %s\n%s", ex.getMessage(),
-          fpath + File.separator + temp1 + "12....56" + temp2);
+          fpath + File.separator + fPrefix + "12....56" + fSuffix);
       return null;
     }
   }

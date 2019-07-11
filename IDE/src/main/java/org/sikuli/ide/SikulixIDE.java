@@ -443,7 +443,7 @@ public class SikulixIDE extends JFrame {
           if (quitting) {
             editorPane.setDirty(false);
           }
-          if (fileName == null) {
+          if (editorPane.isTemp()) {
             continue;
           }
         } else if (editorPane.isDirty()) {
@@ -600,17 +600,22 @@ public class SikulixIDE extends JFrame {
     return editorPane;
   }
 
-  void newTabEmpty() {
+  boolean newTabEmpty() {
     EditorPane editorPane = makeTab(-1);
     editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
     File tempFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
-            new File(RunTime.get().fpBaseTempPath, "temp" + editorPane.getID()).getAbsolutePath());
+            new File(RunTime.get().fpBaseTempPath, "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
+    if (null == tempFile) {
+      //TODO newTabEmpty: temp problem: how should caller react?
+      return false;
+    }
     editorPane.setFiles(tempFile);
     editorPane.updateDocumentListeners("empty tab");
     tabs.addTab(_I("tabUntitled"), editorPane.getScrollPane(), 0);
     tabs.setSelectedIndex(0);
+    return true;
   }
 
   String newTabWithContent(String fname) {
@@ -2355,12 +2360,42 @@ public class SikulixIDE extends JFrame {
     }
 
     void runCurrentScript() {
+      log(4, "************** before RunScript");
+      if (!trySaveScriptsBeforeRun()) {
+        log(3, "Run script cancelled or problems saving scripts");
+        return;
+      }
+      EditorPane editorPane = getCurrentCodePane();
+      if (editorPane.getDocument().getLength() == 0) {
+        log(3, "Run script not possible: Script is empty");
+        return;
+      }
+      File scriptFile = editorPane.getCurrentFile();
+      if (editorPane.isDirty()) {
+        if (editorPane.isTemp()) {
+          scriptFile = editorPane.getCurrentFile();
+        } else {
+          scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension());
+        }
+        if (scriptFile != null) {
+          try {
+            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
+          } catch (Exception ex) {
+            scriptFile = null;
+          }
+        }
+        if (scriptFile == null) {
+          log(-1, "Run Script: not yet saved: temp file for running not available");
+          return;
+        }
+      }
+      final File scriptFileToRun = scriptFile;
       new Thread(new Runnable() {
         @Override
         public void run() {
           synchronized (ideIsRunningScript) {
             if (isRunningScript()) {
-              log(-1, "Run Script: not possible: already running script: %s", getCurrentScript());
+              log(-1, "Run Script: not possible: already running another script");
               return;
             }
             if (System.out.checkError()) {
@@ -2377,41 +2412,10 @@ public class SikulixIDE extends JFrame {
             }
             sikulixIDE.setIsRunningScript(true);
           }
-          log(3, "************** before RunScript");
 
-          EditorPane editorPane = getCurrentCodePane();
-          if (editorPane.getDocument().getLength() == 0) {
-            log(3, "Run script not possible: Script is empty");
-            return;
-          }
-          if (!trySaveScriptsBeforeRun()) {
-            log(3, "Run script cancelled or problems saving scripts");
-            return;
-          }
           SikulixIDE.getStatusbar().resetMessage();
           SikulixIDE.hideIDE();
           RunTime.pause(0.1f);
-          File scriptFile;
-          scriptFile = editorPane.getCurrentFile();
-          if (editorPane.isDirty()) {
-            editorPane.checkSource(); // runCurrentScript
-            if (editorPane.isTemp()) {
-              scriptFile = editorPane.getCurrentFile();
-            } else {
-              scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension());
-            }
-            if (scriptFile != null) {
-              try {
-                editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
-              } catch (Exception ex) {
-                scriptFile = null;
-              }
-            }
-            if (scriptFile == null) {
-              log(-1, "Run Script: temp file for running not available");
-              setIsRunningScript(false);
-            }
-          }
           messages.clear();
           resetErrorMark();
           doBeforeRun();
@@ -2422,8 +2426,8 @@ public class SikulixIDE extends JFrame {
           int exitValue = -1;
           try {
             setCurrentRunner(editorPane.editorPaneRunner);
-            setCurrentScript(scriptFile);
-            exitValue = editorPane.editorPaneRunner.runScript(scriptFile.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
+            setCurrentScript(scriptFileToRun);
+            exitValue = editorPane.editorPaneRunner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
           } catch (Exception e) {
             log(-1, "Run Script: internal error:");
             e.printStackTrace();
@@ -2433,6 +2437,7 @@ public class SikulixIDE extends JFrame {
             RunTime.get().setLastScriptRunReturnCode(exitValue);
           }
 
+          log(4, "************** after RunScript");
           addErrorMark(runOptions.getErrorLine());
           if (Image.getIDEshouldReload()) {
             EditorPane pane = getCurrentCodePane();
@@ -2440,10 +2445,10 @@ public class SikulixIDE extends JFrame {
             getCurrentCodePane().doReparse();
             getCurrentCodePane().jumpTo(line);
           }
+
           RunTime.cleanUp();
           SikulixIDE.showAgain();
 
-          log(3, "************** after RunScript");
           synchronized (ideIsRunningScript) {
             setIsRunningScript(false);
           }

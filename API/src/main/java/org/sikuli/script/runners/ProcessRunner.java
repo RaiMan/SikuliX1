@@ -144,16 +144,15 @@ public class ProcessRunner extends AbstractScriptRunner{
     return "" + exitValue + "\n" + stdout;
   }
 
-  public static int detach(String... args) {
+  public static void detach(String... args) {
     List<String> cmd = new ArrayList<String>();
     for (String arg : args) {
       cmd.add(arg);
     }
-    return detach(cmd);
+    detach(cmd);
   }
 
-  public static int detach(List<String> cmd) {
-    int exitValue = 0;
+  public static void detach(List<String> cmd) {
     if (cmd.size() > 0) {
       ProcessBuilder app = new ProcessBuilder();
       Map<String, String> processEnv = app.environment();
@@ -161,22 +160,12 @@ public class ProcessRunner extends AbstractScriptRunner{
       app.redirectErrorStream(true);
       app.redirectInput(ProcessBuilder.Redirect.INHERIT);
       app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-      Process process = null;
       try {
-        process = app.start();
+        app.start();
       } catch (Exception e) {
         p("[Error] ProcessRunner: start: %s", e.getMessage());
       }
-      try {
-        if (process != null) {
-          process.waitFor();
-          exitValue = process.exitValue();
-        }
-      } catch (InterruptedException e) {
-        p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
-      }
     }
-    return exitValue;
   }
 
   public static int startApp(String... givenCmd) {
