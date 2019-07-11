@@ -5,6 +5,8 @@ package org.sikuli.idesupport;
 
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 
 /**
  * all methods from/for IDE, that are Python specific
@@ -20,4 +22,9 @@ public class JythonIDESupport implements IIDESupport {
 	public IIndentationLogic getIndentationLogic() {
 		return new PythonIndentation();
 	}
+
+	@Override
+  public ICodeGenerator getCodeGenerator() {
+    return new JythonCodeGenerator();
+  }
 }

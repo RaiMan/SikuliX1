@@ -27,6 +27,7 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
+import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -135,6 +136,12 @@ public class EditorPane extends JTextPane {
   }
 
   private IIndentationLogic indentationLogic = null;
+
+  ICodeGenerator getCodeGenerator() {
+    return codeGenerator;
+  }
+
+  private ICodeGenerator codeGenerator = null;
 
   private void initKeyMap() {
     InputMap map = this.getInputMap();
@@ -297,6 +304,7 @@ public class EditorPane extends JTextPane {
       IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
       indentationLogic = ideSupport.getIndentationLogic();
       indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      codeGenerator = ideSupport.getCodeGenerator();
     }
 
     if (editorPaneType != null) {
@@ -966,34 +974,14 @@ public class EditorPane extends JTextPane {
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
     }
-    String imgName = new File(ifn).getName();
-    if (img != null) {
-      imgName = new File(img.getName()).getName();
-    }
-    String pat = "Pattern(\"" + imgName + "\")";
-    String patternString = "";
-    if (resizeFactor > 0 && resizeFactor != 1) {
-      patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
-    }
-    if (sim > 0) {
-      if (sim >= 0.99F) {
-        patternString += ".exact()";
-      } else if (sim != 0.7F) {
-        patternString += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
-      }
-    }
-    if (off != null && (off.x != 0 || off.y != 0)) {
-      patternString += ".targetOffset(" + off.x + "," + off.y + ")";
-    }
-    if (null != mask && !mask.isEmpty()) {
-      patternString += "." + mask + ")";
-    }
-    if (!patternString.equals("")) {
-      patternString = pat + patternString;
-    } else {
-      patternString = "\"" + imgName + "\"";
-    }
-    return patternString;
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern();
+    pattern.setFilename(ifn);
+    pattern.setImage(img);
+    pattern.similar(sim);
+    pattern.targetOffset(off);
+    pattern.resize(resizeFactor);
+
+    return codeGenerator.pattern(pattern, mask);
   }
 
   private Map<String, List<Integer>> parseforImages() {
