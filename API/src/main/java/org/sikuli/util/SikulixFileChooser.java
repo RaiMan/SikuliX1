@@ -63,8 +63,6 @@ public class SikulixFileChooser {
              );
     else {
       selectedFile = show("Save as .sikuli, folder or file", SAVE, DIRSANDFILES
-          , new SXFilter("as plain folder", SXFilter.FOLDER)
-          , new SXFilter("as folder.sikuli", SXFilter.SIKULI)
           , new SXFilter("as file", extension)
       );
     }

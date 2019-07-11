@@ -107,6 +107,7 @@ public class EditorPane extends JTextPane {
 
   private SikuliIDEPopUpMenu popMenuCompletion;
 
+  //TODO right mouse click in tab text
   private void handlePopup() {
     log(3, "text popup");
   }
@@ -157,6 +158,8 @@ public class EditorPane extends JTextPane {
   }
 
   boolean init(String scriptType, String tabContent) {
+//TODO setType for non-empty tab
+/*
     Boolean shouldOverwrite = null;
     boolean useAlreadyOpen = false;
     boolean shouldChangeType = false;
@@ -200,12 +203,15 @@ public class EditorPane extends JTextPane {
       }
       shouldChangeType = true;
     }
+*/
     if (null == scriptType) {
       editorPaneRunner = RunTime.getDefaultRunner();
     } else {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
     initForScriptType();
+//TODO setType for non-empty tab
+/*
     if (!tabContent.trim().isEmpty()) {
       setText(tabContent);
       changeFiles();
@@ -221,6 +227,8 @@ public class EditorPane extends JTextPane {
     } else {
       setDirty(false);
     }
+*/
+    setDirty(false);
     return true;
   }
 
@@ -313,7 +321,9 @@ public class EditorPane extends JTextPane {
     if (readContent(editorPaneFileToRun)) {
       setFiles(editorPaneFileToRun, file.getAbsolutePath());
       updateDocumentListeners("loadFile");
-      checkSource(); // loadFile
+      if (!isBundle()) {
+        checkSource();
+      }
       doParse();
       restoreCaretPosition();
       setDirty(false);
@@ -425,7 +435,11 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="11 check content">
+  //TODO checkSource::setBundlePath for non-bundle-tabs
   public void checkSource() {
+    if (isBundle()) {
+      return;
+    }
     log(3, "checkSource: started (%s)", editorPaneFile);
     String scriptText = getText();
     if (editorPaneType == JythonRunner.TYPE) {
@@ -1295,8 +1309,6 @@ public class EditorPane extends JTextPane {
     setIsBundle();
     setFiles(scriptFile, targetFolder);
     if (writeSriptFile()) {
-      checkSource(); // saveAsBundle
-      doReparse();
       return editorPaneFolder;
     }
     return null;
@@ -1304,12 +1316,13 @@ public class EditorPane extends JTextPane {
 
   private File saveAsFile(String filename) {
     log(lvl, "saveAsFile: " + filename);
-    String extension = editorPaneRunner.getExtensions()[0];
+    if (isTemp()) {
+      FileManager.deleteTempDir(editorPaneFolder.getAbsolutePath());
+      setTemp(false);
+    }
     setFiles(new File(filename));
     if (writeSriptFile()) {
-      checkSource(); // saveAsFile
-      doReparse();
-      return editorPaneFileToRun;
+      return editorPaneFile;
     }
     return null;
   }

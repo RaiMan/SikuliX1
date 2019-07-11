@@ -48,7 +48,7 @@ public class SikuliEditorKit extends StyledEditorKit {
     pane = SikulixIDE.get().getCurrentCodePane();
     _viewFactory = new EditorViewFactory();
     ((EditorViewFactory) _viewFactory).setContentType(pane.getType());
-    SikuliIDEPopUpMenu popCompletion = pane.getPopMenuCompletion();
+    popCompletion = pane.getPopMenuCompletion();
     if (null == popCompletion || !popCompletion.isValidMenu()) {
       popCompletion = null;
     }

@@ -249,7 +249,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
                   cp.getCurrentShortFilename(), cp.getRunner().getName(), cp.getCurrentFile(), cp.getImagePath());
         } else if (!cp.isText()) {
           msg = String.format("%s script: %s\nin Folder: %s\nImages: %s", cp.getRunner().getName(),
-                  cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent(), cp.getImagePath());
+                  cp.getCurrentShortFilename(), cp.getCurrentFile().getParent(), cp.getImagePath());
         } else {
           msg = String.format("%s file: %s\nin Folder: %s", cp.getRunner().getName(),
                   cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
@@ -308,6 +308,10 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         return;
       }
       if (editorPane.init(targetType, editorPaneText)) {
+        if (editorPane.isText()) {
+          editorPane.setIsFile();
+        }
+        editorPane.updateDocumentListeners("setType");
         SikulixIDE.getStatusbar().setType(targetType);
         String msg = "doSetType: completed" + ": (" + targetType + ")";
         SikulixIDE.getStatusbar().setMessage(msg);

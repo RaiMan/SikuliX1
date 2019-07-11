@@ -369,9 +369,6 @@ public class SikulixIDE extends JFrame {
             }
           }
           editorPane.setBundleFolder();
-          if (editorPane.isDirty()) {
-            editorPane.checkSource(); // tab switch
-          }
           int dot = editorPane.getCaret().getDot();
           editorPane.setCaretPosition(dot);
           if (editorPane.isText()) {
@@ -1042,12 +1039,15 @@ public class SikulixIDE extends JFrame {
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
             new FileAction(FileAction.OPEN_SPECIAL)));
 
+//TODO restart IDE
+/*
     _fileMenu.add(createMenuItem("Restart IDE",
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
                     InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK),
             new FileAction(FileAction.RESTART)));
-
+*/
     if (IDEDesktopSupport.showQuit) {
+      _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFileQuit"),
               null, new FileAction(FileAction.QUIT)));
     }
@@ -1155,6 +1155,7 @@ public class SikulixIDE extends JFrame {
         String fname = codePane.saveAsSelect();
         if (fname != null) {
           setCurrentFileTabTitle(fname);
+          codePane.doReparse();
           codePane.setDirty(false);
         } else {
           log(-1, "doSaveAs: %s not completed", orgName);
@@ -1205,7 +1206,7 @@ public class SikulixIDE extends JFrame {
       }
     }
 
-    //TODO not used
+    //TODO doAsRunJar: not used
     public void doAsRunJar(ActionEvent ae) {
       EditorPane codePane = getCurrentCodePane();
       String orgName = codePane.getCurrentShortFilename();
@@ -1269,8 +1270,6 @@ public class SikulixIDE extends JFrame {
 
   private void initEditMenu() throws NoSuchMethodException {
     int scMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    int scMaskMETA = InputEvent.META_DOWN_MASK;
-    int scMaskCTRL = InputEvent.CTRL_DOWN_MASK;
 
     _editMenu = new JMenu(_I("menuEdit"));
     _editMenu.setMnemonic(java.awt.event.KeyEvent.VK_E);
@@ -1289,13 +1288,13 @@ public class SikulixIDE extends JFrame {
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
             new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem("Copy line",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMaskCTRL),
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask | InputEvent.SHIFT_DOWN_MASK),
             new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem(_I("menuEditCut"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
             new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem("Cut line",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMaskCTRL),
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask | InputEvent.SHIFT_DOWN_MASK),
             new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem(_I("menuEditPaste"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
