@@ -22,6 +22,17 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
+
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IDESupport;
+import org.sikuli.script.*;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RobotDesktop;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 

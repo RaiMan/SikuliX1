@@ -206,7 +206,7 @@ public class EditorPane extends JTextPane {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
     initForScriptType();
-    if (shouldChangeType) {
+    if (!tabContent.trim().isEmpty()) {
       setText(tabContent);
       changeFiles();
       if (null != shouldOverwrite) {
