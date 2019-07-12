@@ -457,48 +457,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    * {@inheritDoc}
    */
   @Override
-  protected int doRunInteractive(String[] argv) {
-    String[] jy_args = null;
-    String[] iargs = { "-i", "-c",
-        "from sikuli import *; ScriptingSupport.runningInteractive(); use(); "
-            + "print \"Hello, this is your interactive Sikuli (rules for interactive Python apply)\\n"
-            + "use the UP/DOWN arrow keys to walk through the input history\\n"
-            + "help()<enter> will output some basic Python information\\n" + "... use ctrl-d to end the session\"" };
-    if (argv != null && argv.length > 0) {
-      jy_args = new String[argv.length + iargs.length];
-      System.arraycopy(iargs, 0, jy_args, 0, iargs.length);
-      System.arraycopy(argv, 0, jy_args, iargs.length, argv.length);
-    } else {
-      jy_args = iargs;
-    }
-    jython.main(jy_args);
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getInteractiveHelp() {
-    return "**** this might be helpful ****\n" + "-- execute a line of code by pressing <enter>\n"
-        + "-- separate more than one statement on a line using ;\n"
-        + "-- Unlike the iDE, this command window will not vanish, when using a Sikuli feature\n"
-        + "   so take care, that all you need is visible on the screen\n" + "-- to create an image interactively:\n"
-        + "img = capture()\n" + "-- use a captured image later:\n" + "click(img)";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getCommandLineHelp() {
-    return "You are using the Jython ScriptRunner";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isSupported() {
     try {
       Class.forName("org.python.util.PythonInterpreter");
