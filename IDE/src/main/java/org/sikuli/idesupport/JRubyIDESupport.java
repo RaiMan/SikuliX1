@@ -5,6 +5,7 @@ package org.sikuli.idesupport;
 
 import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 
 /**
  * all methods from/for IDE, that are JRuby specific
@@ -18,12 +19,12 @@ public class JRubyIDESupport implements IIDESupport {
 
 	@Override
 	public IIndentationLogic getIndentationLogic() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return null;
 	}
 
 	@Override
   public ICodeGenerator getCodeGenerator() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	  return new JythonCodeGenerator();
   }
 
 }

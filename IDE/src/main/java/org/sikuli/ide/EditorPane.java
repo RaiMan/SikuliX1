@@ -19,6 +19,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Location;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
@@ -28,6 +29,7 @@ import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -300,11 +302,19 @@ public class EditorPane extends JTextPane {
     editorPaneType = editorPaneRunner.getType();
     indentationLogic = null;
 
-    if (JythonRunner.TYPE.equals(editorPaneType) || PythonRunner.TYPE.equals(editorPaneType)) {
-      IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
+
+    IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
+
+    if (ideSupport != null) {
       indentationLogic = ideSupport.getIndentationLogic();
-      indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      if (indentationLogic != null) {
+        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      }
       codeGenerator = ideSupport.getCodeGenerator();
+    } else {
+      // Take Jython generator if no IDESupport is available
+      // TODO Needs better implementation
+      codeGenerator = new JythonCodeGenerator();
     }
 
     if (editorPaneType != null) {
