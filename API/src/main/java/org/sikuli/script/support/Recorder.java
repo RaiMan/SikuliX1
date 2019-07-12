@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.NativeInputEvent;
@@ -21,6 +22,7 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 import org.jnativehook.mouse.NativeMouseMotionListener;
+import org.sikuli.script.Finder;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.recorder.RecordedEventsFlow;
@@ -28,12 +30,14 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
-  private static final int SCREENSHOT_DEBOUNCE_MILLIS = 100;
+  private static final int SCREENSHOT_THROTTLE_MILLIS = 100;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
 
   private boolean running = false;
+
+  ScreenImage currentImage = null;
 
   static {
     try {
@@ -62,55 +66,43 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   }
 
-  private class Debouncer {
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private Future<?> previous = null;
+  private class Throttler {
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private long lastExecution = 0;
 
-    public void debounce(Runnable runnable, long delay, TimeUnit unit) {
+    public void execute(Runnable runnable, long threshold, TimeUnit unit) {
       synchronized (this) {
-        if (previous != null) {
-          previous.cancel(false);
-        }
+        long now = System.currentTimeMillis();
 
-        previous = scheduler.schedule(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              runnable.run();
-            } finally {
-              synchronized (Debouncer.this) {
-                previous = null;
-              }
-            }
-          }
-        }, delay, unit);
+        if(now - lastExecution > threshold) {
+          lastExecution = now;
+          executor.execute(runnable);
+        }
       }
     }
   }
 
-  private Debouncer debouncer = new Debouncer();
-  private final ExecutorService executor = Executors.newSingleThreadExecutor();
+  private Throttler throttler = new Throttler();
 
-  private void screenshot(boolean debounce) {
+  private void screenshot() {
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
         ScreenImage img = Screen.getPrimaryScreen().capture();
-        String file = img.save(screenshotDir.getAbsolutePath());
-        eventsFlow.addScreenshot(file);
+
+        if (new Finder(img).findDiffPercentage(currentImage) > 0.001) {
+          String file = img.save(screenshotDir.getAbsolutePath());
+          eventsFlow.addScreenshot(file);
+        }
+        currentImage = img;
       }
-    };    
-    
-    if (debounce) {
-      debouncer.debounce(runnable, SCREENSHOT_DEBOUNCE_MILLIS, TimeUnit.MILLISECONDS);
-    }else {
-      executor.execute(runnable);
-    }
+    };
+    throttler.execute(runnable, SCREENSHOT_THROTTLE_MILLIS, TimeUnit.MILLISECONDS);
   }
 
   public void add(NativeInputEvent e) {
     eventsFlow.addEvent(e);
-    screenshot(true);
+    screenshot();
   }
 
   public void nativeKeyPressed(NativeKeyEvent e) {
@@ -138,7 +130,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
         e.printStackTrace();
       }
 
-      screenshot(false);
+      screenshot();
 
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
@@ -154,7 +146,15 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeMouseListener(this);
       GlobalScreen.removeNativeKeyListener(this);
 
-      return eventsFlow.compile();
+      List<IRecordedAction> actions =  eventsFlow.compile();
+
+      try {
+        FileUtils.deleteDirectory(screenshotDir);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      return actions;
     }
     return new ArrayList<>();
   }

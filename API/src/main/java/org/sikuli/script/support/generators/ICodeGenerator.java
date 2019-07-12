@@ -15,6 +15,6 @@ public interface ICodeGenerator {
 
   public String typeKey(String key, String[] modifiers);
 
-  public String waitClick(Pattern pattern);
+  public String waitClick(Pattern pattern, int seconds);
 
 }

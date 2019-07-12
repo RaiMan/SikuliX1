@@ -74,9 +74,8 @@ public class JythonCodeGenerator implements ICodeGenerator {
   }
 
   @Override
-  public String waitClick(Pattern pattern) {
-    // TODO Auto-generated method stub
-    return null;
+  public String waitClick(Pattern pattern, int seconds) {
+    return "wait(" + pattern(pattern, null) + ", " + seconds + ").click()";
   }
 
 

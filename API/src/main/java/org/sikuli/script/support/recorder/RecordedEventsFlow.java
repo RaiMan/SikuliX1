@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.FileUtils;
 import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.mouse.NativeMouseEvent;
@@ -23,11 +22,13 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.sikuli.script.Finder;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Key;
 import org.sikuli.script.Location;
+import org.sikuli.script.Match;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.RunTime;
@@ -35,6 +36,7 @@ import org.sikuli.script.support.recorder.actions.ClickAction;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
 import org.sikuli.script.support.recorder.actions.TypeKeyAction;
 import org.sikuli.script.support.recorder.actions.TypeTextAction;
+import org.sikuli.script.support.recorder.actions.WaitClickAction;
 
 public class RecordedEventsFlow {
 
@@ -221,7 +223,40 @@ public class RecordedEventsFlow {
         Pattern pattern = new Pattern(file.getAbsolutePath());
         pattern.targetOffset(image.getOffset());
 
-        return new ClickAction(pattern);
+
+        Long lastNonMouseMoveEventTime = events.firstKey();
+
+        List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(events.headMap(time).entrySet());
+        Collections.reverse(previousEvents);
+
+        for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
+          if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
+              && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
+            lastNonMouseMoveEventTime = entry.getKey();
+            break;
+          }
+        }
+
+        Mat lastNonMouseMoveScreenshot = readCeilingScreenshot(lastNonMouseMoveEventTime);
+        Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
+
+        finder.find(image);
+
+        List<Match> matches = finder.getList();
+
+        boolean wasHereBeforeMouseMove = false;
+        for (Match match : matches) {
+          if (match.getScore() > 0.9) {
+            wasHereBeforeMouseMove = true;
+            break;
+          }
+        }
+
+        if (wasHereBeforeMouseMove) {
+          return new ClickAction(pattern);
+        } else {
+          return new WaitClickAction(pattern, (int) Math.ceil((time - lastNonMouseMoveEventTime) / 1000d * 2));
+        }
       }
 
     } else if (NativeMouseEvent.NATIVE_MOUSE_RELEASED == event.getID()) {
@@ -244,28 +279,9 @@ public class RecordedEventsFlow {
 
   private Image findRelevantImage(long time, NativeMouseEvent event) {
     if (screenshots.floorKey(time) != null) {
-
-      Long lastNonMouseMoveEventTime = events.firstKey();
-
-      List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(events.headMap(time).entrySet());
-      Collections.reverse(previousEvents);
-
-      for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
-        if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
-            && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
-          lastNonMouseMoveEventTime = entry.getKey();
-          break;
-        }
-      }
-
-      if (lastNonMouseMoveEventTime < screenshots.firstKey()) {
-        lastNonMouseMoveEventTime = screenshots.firstKey();
-      }
-
       int eventX = event.getX();
       int eventY = event.getY();
 
-      //Mat screenshot = readFloorScreenshot(lastNonMouseMoveEventTime);
       Mat screenshot = readFloorScreenshot(time);
 
       Mat edges = new Mat();
@@ -348,22 +364,6 @@ public class RecordedEventsFlow {
 
       Mat part = new Mat(screenshot,
           new Rect(currentLeft, currentTop, currentRight - currentLeft, currentBottom - currentTop));
-
-//      Finder finder = new Finder(Finder2.getBufferedImage(screenshot));
-//
-//      finder.find(Finder2.getBufferedImage(part));
-//
-//      List<Match> matches = finder.getList();
-//
-//      int goodMatches = 0;
-//      for (Match match : matches) {
-//        if (match.getScore() > 0.7) {
-//          goodMatches++;
-//        }
-//      }
-//
-//      System.out.println("Good matches: " + goodMatches);
-//
 
       Image image = new Image(Finder2.getBufferedImage(part));
       image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2), eventY - (currentTop + (currentBottom - currentTop) / 2)));
