@@ -979,11 +979,9 @@ public class Finder implements Iterator<Match> {
     }
 
     public static double findDiffPercentage(FindInput2 findInput) {
-      int PIXEL_DIFF_THRESHOLD = 3;
       Mat previousGray = getNewMat();
       Mat nextGray = getNewMat();
       Mat mDiffAbs = getNewMat();
-      Mat mDiffTresh = getNewMat();
 
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
