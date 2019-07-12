@@ -177,7 +177,10 @@ public class Runner {
       }
       return 0;
     } else
-      return runScripts(new String[]{script}, args, options);
+      //TODO allow to use runScript() from inside a script
+      log(-1, "runScript(): currently not supported");
+      return -1;
+      //return runScripts(new String[]{script}, args, options);
   }
 
   private static IScriptRunner currentRunner = new InvalidRunner();
