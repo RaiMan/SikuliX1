@@ -2340,9 +2340,6 @@ public class SikulixIDE extends JFrame {
   }
 
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
-
-    private Thread thread = null;
-
     ButtonRun() {
       super();
 
