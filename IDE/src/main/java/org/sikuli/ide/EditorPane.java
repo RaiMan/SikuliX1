@@ -237,9 +237,15 @@ public class EditorPane extends JTextPane {
     if (fileSelected == null) {
       return null;
     }
-    boolean isOpen = alreadyOpen(fileSelected.getPath(), -1);
-    if (isOpen) {
-      log(lvl, "loadFile: Already open in IDE: " + fileSelected);
+    int isOpen = alreadyOpen(fileSelected.getPath(), -1);
+    if (isOpen != -1) {
+      String toOpen = fileSelected.getName();
+      String alreadyOpen = new File(getPaneAtIndex(isOpen).editorPaneFileSelected).getName();
+      if (toOpen.equals(alreadyOpen)) {
+        log(-1, "%s already open", toOpen);
+      } else {
+        log(-1, "%s already open as: %s", toOpen, alreadyOpen);
+      }
       return null;
     }
     loadFile(fileSelected);
@@ -249,7 +255,7 @@ public class EditorPane extends JTextPane {
     return fileSelected;
   }
 
-  private boolean alreadyOpen(String fileSelected, int currentTab) {
+  private int alreadyOpen(String fileSelected, int currentTab) {
     CloseableTabbedPane tabs = getTabs();
     int nTab = tabs.getTabCount();
     if (nTab > 0) {
@@ -269,18 +275,18 @@ public class EditorPane extends JTextPane {
         if (null == paneFile) continue;
         if (new File(paneFile).equals(new File(fileSelected))) {
           tabs.setAlreadyOpen(iTab);
-          return true;
+          return iTab;
         }
         if (possibleBundlePath != null && (checkedPane.isBundle() || checkedPane.isInBundle())) {
           String paneBundle = FilenameUtils.removeExtension(checkedPane.editorPaneFolder.getPath());
           if (possibleBundlePath.equals(paneBundle)) {
-              tabs.setAlreadyOpen(iTab);
-              return true;
+            tabs.setAlreadyOpen(iTab);
+            return iTab;
           }
         }
       }
     }
-    return false;
+    return -1;
   }
 
   EditorPane getPaneAtIndex(int index) {
@@ -510,7 +516,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -1094,9 +1100,9 @@ public class EditorPane extends JTextPane {
         line++;
         if (inString) {
           boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "\"%s\"\n" +
-                  "Yes: No images will be deleted!\n" +
-                  "No: Ignore and continue", line, text), "Delete images on save");
+              "\"%s\"\n" +
+              "Yes: No images will be deleted!\n" +
+              "No: Ignore and continue", line, text), "Delete images on save");
           if (answer) {
             log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
             images.clear();
@@ -1190,11 +1196,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1263,16 +1269,15 @@ public class EditorPane extends JTextPane {
     String filename = file.getAbsolutePath();
     if (!isBundle()) {
       int currentTab = getTabs().getSelectedIndex();
-      boolean isOpen = alreadyOpen(filename, currentTab);
-      if (isOpen) {
+      if (alreadyOpen(filename, currentTab) != -1) {
         log(-1, "saveAs: target bundle is open in IDE - close bundle before doing saveAs");
         return null;
       }
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1331,8 +1336,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1386,8 +1391,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", zipPath),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", zipPath),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1470,12 +1475,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1599,7 +1604,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }

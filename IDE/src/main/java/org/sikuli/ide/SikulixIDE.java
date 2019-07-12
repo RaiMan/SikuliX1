@@ -623,13 +623,17 @@ public class SikulixIDE extends JFrame {
     int selectedTab = tabs.getSelectedIndex();
     EditorPane editorPane = makeTab(tabIndex);
     File tabFile;
+    boolean tabFileLoaded = false;
     if (null == fname) {
       tabFile = editorPane.selectFile();
+      tabFileLoaded = tabFile != null;
     } else {
       tabFile = new File(fname);
     }
     if (tabFile != null) {
-      editorPane.loadFile(tabFile);
+      if (!tabFileLoaded) {
+        editorPane.loadFile(tabFile);
+      }
       if (editorPane.hasEditingFile()) {
         setCurrentFileTabTitle(tabFile.getAbsolutePath());
         recentAdd(tabFile.getAbsolutePath());
