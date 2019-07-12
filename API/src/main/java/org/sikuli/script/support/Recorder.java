@@ -122,6 +122,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       running = true;
 
       eventsFlow.clear();
+      currentImage = null;
 
       try {
         screenshotDir = Files.createTempDirectory("sikulix").toFile();
