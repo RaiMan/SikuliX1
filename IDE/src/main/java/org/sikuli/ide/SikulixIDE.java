@@ -2398,39 +2398,40 @@ public class SikulixIDE extends JFrame {
         }
       }
       final File scriptFileToRun = scriptFile;
+
+      synchronized (ideIsRunningScript) {
+        if (isRunningScript()) {
+          log(-1, "Run Script: not possible: already running another script");
+          return;
+        }
+        if (System.out.checkError()) {
+          boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
+                  + "\nYou will not see any messages anymore!"
+                  + "\nSave your work and restart the IDE!"
+                  + "\nYou may ignore this on your own risk!" +
+                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+          if (!shouldContinue) {
+            log(3, "Run script aborted: System.out is broken (console output)");
+            return;
+          }
+          log(3, "Run script continued, though System.out is broken (console output)");
+        }
+        sikulixIDE.setIsRunningScript(true);
+      }
+
+      SikulixIDE.getStatusbar().resetMessage();
+      SikulixIDE.hideIDE();
+      RunTime.pause(0.1f);
+      messages.clear();
+      resetErrorMark();
+      doBeforeRun();
+
+      IScriptRunner.Options runOptions = new IScriptRunner.Options();
+      runOptions.setRunningInIDE();
+
       new Thread(new Runnable() {
         @Override
         public void run() {
-          synchronized (ideIsRunningScript) {
-            if (isRunningScript()) {
-              log(-1, "Run Script: not possible: already running another script");
-              return;
-            }
-            if (System.out.checkError()) {
-              boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                      + "\nYou will not see any messages anymore!"
-                      + "\nSave your work and restart the IDE!"
-                      + "\nYou may ignore this on your own risk!" +
-                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
-              if (!shouldContinue) {
-                log(3, "Run script aborted: System.out is broken (console output)");
-                return;
-              }
-              log(3, "Run script continued, though System.out is broken (console output)");
-            }
-            sikulixIDE.setIsRunningScript(true);
-          }
-
-          SikulixIDE.getStatusbar().resetMessage();
-          SikulixIDE.hideIDE();
-          RunTime.pause(0.1f);
-          messages.clear();
-          resetErrorMark();
-          doBeforeRun();
-
-          IScriptRunner.Options runOptions = new IScriptRunner.Options();
-          runOptions.setRunningInIDE();
-
           int exitValue = -1;
           try {
             setCurrentRunner(editorPane.editorPaneRunner);
@@ -2446,21 +2447,23 @@ public class SikulixIDE extends JFrame {
           }
 
           log(4, "************** after RunScript");
-          addErrorMark(runOptions.getErrorLine());
-          if (Image.getIDEshouldReload()) {
-            EditorPane pane = getCurrentCodePane();
-            int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-            getCurrentCodePane().doReparse();
-            getCurrentCodePane().jumpTo(line);
-          }
 
-          RunTime.cleanUp();
-          SikulixIDE.showAgain();
+          EventQueue.invokeLater(() -> {
+            addErrorMark(runOptions.getErrorLine());
+            if (Image.getIDEshouldReload()) {
+              EditorPane pane = getCurrentCodePane();
+              int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
+              getCurrentCodePane().doReparse();
+              getCurrentCodePane().jumpTo(line);
+            }
 
-          synchronized (ideIsRunningScript) {
-            setIsRunningScript(false);
-          }
+            RunTime.cleanUp();
+            SikulixIDE.showAgain();
 
+            synchronized (ideIsRunningScript) {
+              setIsRunningScript(false);
+            }
+          });
         }
       }).start();
     }
