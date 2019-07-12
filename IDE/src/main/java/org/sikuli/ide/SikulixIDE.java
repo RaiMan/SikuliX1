@@ -17,6 +17,8 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.*;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.recorder.actions.IRecordedAction;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -33,6 +35,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.*;
 
 public class SikulixIDE extends JFrame {
@@ -1954,6 +1957,7 @@ public class SikulixIDE extends JFrame {
   //<editor-fold defaultstate="collapsed" desc="20 Init ToolBar Buttons">
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
+  private ButtonRecord _btnRecord;
 
   private JToolBar initToolbar() {
 //    if (ENABLE_UNIFIED_TOOLBAR) {
@@ -1988,6 +1992,10 @@ public class SikulixIDE extends JFrame {
     toolbar.add(Box.createRigidArea(new Dimension(7, 0)));
     toolbar.setFloatable(false);
     //toolbar.setMargin(new Insets(0, 0, 0, 5));
+
+    _btnRecord = new ButtonRecord();
+    toolbar.add(_btnRecord);
+
     return toolbar;
   }
 
@@ -2332,9 +2340,6 @@ public class SikulixIDE extends JFrame {
   }
 
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
-
-    private Thread thread = null;
-
     ButtonRun() {
       super();
 
@@ -2390,39 +2395,40 @@ public class SikulixIDE extends JFrame {
         }
       }
       final File scriptFileToRun = scriptFile;
+
+      synchronized (ideIsRunningScript) {
+        if (isRunningScript()) {
+          log(-1, "Run Script: not possible: already running another script");
+          return;
+        }
+        if (System.out.checkError()) {
+          boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
+                  + "\nYou will not see any messages anymore!"
+                  + "\nSave your work and restart the IDE!"
+                  + "\nYou may ignore this on your own risk!" +
+                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+          if (!shouldContinue) {
+            log(3, "Run script aborted: System.out is broken (console output)");
+            return;
+          }
+          log(3, "Run script continued, though System.out is broken (console output)");
+        }
+        sikulixIDE.setIsRunningScript(true);
+      }
+
+      SikulixIDE.getStatusbar().resetMessage();
+      SikulixIDE.hideIDE();
+      RunTime.pause(0.1f);
+      messages.clear();
+      resetErrorMark();
+      doBeforeRun();
+
+      IScriptRunner.Options runOptions = new IScriptRunner.Options();
+      runOptions.setRunningInIDE();
+
       new Thread(new Runnable() {
         @Override
         public void run() {
-          synchronized (ideIsRunningScript) {
-            if (isRunningScript()) {
-              log(-1, "Run Script: not possible: already running another script");
-              return;
-            }
-            if (System.out.checkError()) {
-              boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                      + "\nYou will not see any messages anymore!"
-                      + "\nSave your work and restart the IDE!"
-                      + "\nYou may ignore this on your own risk!" +
-                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
-              if (!shouldContinue) {
-                log(3, "Run script aborted: System.out is broken (console output)");
-                return;
-              }
-              log(3, "Run script continued, though System.out is broken (console output)");
-            }
-            sikulixIDE.setIsRunningScript(true);
-          }
-
-          SikulixIDE.getStatusbar().resetMessage();
-          SikulixIDE.hideIDE();
-          RunTime.pause(0.1f);
-          messages.clear();
-          resetErrorMark();
-          doBeforeRun();
-
-          IScriptRunner.Options runOptions = new IScriptRunner.Options();
-          runOptions.setRunningInIDE();
-
           int exitValue = -1;
           try {
             setCurrentRunner(editorPane.editorPaneRunner);
@@ -2438,21 +2444,23 @@ public class SikulixIDE extends JFrame {
           }
 
           log(4, "************** after RunScript");
-          addErrorMark(runOptions.getErrorLine());
-          if (Image.getIDEshouldReload()) {
-            EditorPane pane = getCurrentCodePane();
-            int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-            getCurrentCodePane().doReparse();
-            getCurrentCodePane().jumpTo(line);
-          }
 
-          RunTime.cleanUp();
-          SikulixIDE.showAgain();
+          EventQueue.invokeLater(() -> {
+            addErrorMark(runOptions.getErrorLine());
+            if (Image.getIDEshouldReload()) {
+              EditorPane pane = getCurrentCodePane();
+              int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
+              getCurrentCodePane().doReparse();
+              getCurrentCodePane().jumpTo(line);
+            }
 
-          synchronized (ideIsRunningScript) {
-            setIsRunningScript(false);
-          }
+            RunTime.cleanUp();
+            SikulixIDE.showAgain();
 
+            synchronized (ideIsRunningScript) {
+              setIsRunningScript(false);
+            }
+          });
         }
       }).start();
     }
@@ -2482,6 +2490,60 @@ public class SikulixIDE extends JFrame {
     }
   }
   //</editor-fold>
+
+  class ButtonRecord extends ButtonOnToolbar implements ActionListener {
+
+    private Recorder recorder = new Recorder();
+
+    ButtonRecord() {
+      super();
+
+      URL imageURL = SikulixIDE.class.getResource("/icons/record.png");
+      setIcon(new ImageIcon(imageURL));
+      initTooltip();
+      addActionListener(this);
+      setText(_I("btnRecordLabel"));
+      // setMaximumSize(new Dimension(45,45));
+    }
+
+    private void initTooltip() {
+      PreferencesUser pref = PreferencesUser.get();
+      String strHotkey = Key.convertKeyToText(pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+      String stopHint = _I("btnRecordStopHint", strHotkey);
+      setToolTipText(_I("btnRecord", stopHint));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+      SikulixIDE.hideIDE();
+      recorder.start();
+    }
+
+    public boolean stopRecord() {
+      SikulixIDE.showAgain();
+
+      if (isRunning()) {
+        EditorPane pane = getCurrentCodePane();
+        ICodeGenerator generator = pane.getCodeGenerator();
+
+        List<IRecordedAction> actions = recorder.stop();
+
+        List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+
+        EventQueue.invokeLater(() -> {
+          pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
+          pane.doReparse();
+        });
+
+        return true;
+      }
+      return false;
+    }
+
+    public boolean isRunning() {
+      return recorder.isRunning();
+    }
+  }
 
   //<editor-fold desc="30 MsgArea, Statusbar">
   private void initMessageArea() {
@@ -2696,6 +2758,7 @@ public class SikulixIDE extends JFrame {
     } else {
       log(3, "AbortKey was pressed: NOOP: no script is running currently");
     }
+    _btnRecord.stopRecord();
   }
 
   private void initHotkeys() {

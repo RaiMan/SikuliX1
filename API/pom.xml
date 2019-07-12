@@ -79,6 +79,11 @@
       <artifactId>reflections</artifactId>
       <version>0.9.10</version>
     </dependency>
+     <dependency>
+	  <groupId>com.1stleg</groupId>
+	  <artifactId>jnativehook</artifactId>
+	  <version>2.1.0</version>
+	</dependency>
   </dependencies>
 
   <build>

@@ -267,7 +267,7 @@ public class Key {
 
   //<editor-fold defaultstate="collapsed" desc="KeyNames to UniCode (used in type() with Key.XXX)">
   public static final String SPACE = " ";
-  public static final String ENTER = "\r";
+  public static final String ENTER = "\n";
   public static final String BACKSPACE = "\b";
   public static final String TAB = "\t";
   public static final String ESC = "\u001b";
@@ -388,6 +388,11 @@ public class Key {
   public static int keyMaxLength;
 //</editor-fold>
 
+  public static final char[] MODIFIER_KEYS = new char[] {
+      C_CTRL, C_ALT, C_SHIFT, C_ALTGR, C_WIN, C_META, C_CMD
+  };
+
+
   private static Map<String, Integer> keyTexts = new HashMap<String, Integer>();
   private static Map<Integer, String> keys = new HashMap<Integer, String>();
 
@@ -464,6 +469,15 @@ public class Key {
         toJavaKeyCodeFromText(token) == toJavaKeyCodeFromText("#A.") ||
         toJavaKeyCodeFromText(token) == toJavaKeyCodeFromText("#M.")) {
       return true;
+    }
+    return false;
+  }
+
+  public static boolean isModifier(char ch) {
+    for (char m : MODIFIER_KEYS) {
+      if (ch == m) {
+        return true;
+      }
     }
     return false;
   }
