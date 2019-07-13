@@ -211,45 +211,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   @Override
-  public final int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
-    IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    return synchronizedRunning(() -> {
-      init(null);
-      return doRunTest(scriptfile, imagedirectory, scriptArgs, options);
-    });
-  }
-
-  protected int doRunTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, IScriptRunner.Options options) {
-    logNotSupported("runTest");
-    return -1;
-  }
-
-  @Override
-  public final int runInteractive(String[] scriptArgs) {
-    return synchronizedRunning(() -> {
-      init(null);
-      return doRunInteractive(scriptArgs);
-    });
-  }
-
-  protected int doRunInteractive(String[] scriptArgs) {
-    logNotSupported("runInteractive");
-    return -1;
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    logNotSupported("getCommandLineHelp");
-    return null;
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    logNotSupported("getInteractiveHelp");
-    return null;
-  }
-
-  @Override
   public final void close() {
     synchronized (this) {
       ready = false;

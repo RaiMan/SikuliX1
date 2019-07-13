@@ -125,16 +125,16 @@ public class SX {
         returnValue = null;
         if (PopType.POPUP.equals(popType)) {
           JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
-          returnValue = new Boolean(true);
+          returnValue = Boolean.TRUE;
         } else if (PopType.POPASK.equals(popType)) {
           int ret = JOptionPane.showConfirmDialog(frame, message, title, JOptionPane.YES_NO_OPTION);
-          returnValue = new Boolean(true);
+          returnValue = Boolean.TRUE;
           if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
-            returnValue = new Boolean(false);
+            returnValue = Boolean.FALSE;
           }
         } else if (PopType.POPERROR.equals(popType)) {
           JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE);
-          returnValue = new Boolean(true);
+          returnValue = Boolean.TRUE;
         } else if (PopType.POPINPUT.equals(popType)) {
           if (!hidden) {
             if ("".equals(title)) {

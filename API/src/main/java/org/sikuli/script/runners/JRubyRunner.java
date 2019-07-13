@@ -142,51 +142,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   }
 
   @Override
-  protected int doRunInteractive(String[] scriptArgs) {
-    // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (JRubyRunner.class) {
-      fillSysArgv(null, scriptArgs);
-
-      String[] args = null;
-      String[] iargs = { /* "-i", "-c", */
-          "require 'irb'\n" + "ScriptRunner.runningInteractive();\n"
-              + "print \"Hello, this is your interactive Sikuli (rules for interactive Ruby apply)\\n"
-              + "use the UP/DOWN arrow keys to walk through the input history\\n"
-              + "help()<enter> will output some basic Ruby information\\n" + "... use ctrl-d to end the session\"\n"
-              + "IRB.start(__FILE__)\n" };
-      if (scriptArgs != null && scriptArgs.length > 0) {
-        args = new String[scriptArgs.length + iargs.length];
-        System.arraycopy(iargs, 0, args, 0, iargs.length);
-        System.arraycopy(scriptArgs, 0, args, iargs.length, scriptArgs.length);
-      } else {
-        args = iargs;
-      }
-      StringBuilder buffer = new StringBuilder();
-      for (String e : args) {
-        buffer.append(e);
-      }
-      createScriptingContainer();
-      executeScriptHeader(new String[0]);
-      interpreter.runScriptlet(buffer.toString());
-      return 0;
-    }
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    return "You are using the JRuby ScriptRunner";
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    return "**** this might be helpful ****\n" + "-- execute a line of code by pressing <enter>\n"
-        + "-- separate more than one statement on a line using ;\n"
-        + "-- Unlike the iDE, this command window will not vanish, when using a Sikuli feature\n"
-        + "   so take care, that all you need is visible on the screen\n" + "-- to create an image interactively:\n"
-        + "img = capture()\n" + "-- use a captured image later:\n" + "click(img)";
-  }
-
-  @Override
   public boolean isSupported() {
     try {
       Class.forName("org.jruby.embed.ScriptingContainer");

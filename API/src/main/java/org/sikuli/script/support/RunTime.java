@@ -1862,8 +1862,7 @@ public class RunTime {
       logp("executing jar: %s", fSxBaseJar);
     }
     if (Debug.getDebugLevel() > minLvl - 1 || isJythonReady) {
-//      dumpClassPath("sikulix");
-      dumpClassPath();
+      dumpClassPath("sikulix");
       if (isJythonReady) {
         int saveLvl = Debug.getDebugLevel();
         Debug.setDebugLevel(lvl);
