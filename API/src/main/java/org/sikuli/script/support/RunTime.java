@@ -11,7 +11,7 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.ServerRunner;
+//import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -206,17 +206,17 @@ public class RunTime {
     }
 
 //TODO deactivate after SikulixServer is integrated
-    if (shouldRunServer()) {
-      ServerRunner.run(getSXArgs());
-      Sikulix.terminate();
-    }
-//TODO activate after SikulixServer is integrated
 //    if (shouldRunServer()) {
-//      if (!SikulixServer.run()) {
-//        Sikulix.terminate(1, "SikulixServer: terminated with errors");
-//      }
+//      ServerRunner.run(getSXArgs());
 //      Sikulix.terminate();
 //    }
+//TODO activate after SikulixServer is integrated
+    if (shouldRunServer()) {
+      if (!SikulixServer.run()) {
+        Sikulix.terminate(1, "SikulixServer: terminated with errors");
+      }
+      Sikulix.terminate();
+    }
 
     if (shouldRunPythonServer()) {
       get().installStopHotkey();
