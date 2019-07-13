@@ -648,7 +648,7 @@ public class ImagePath {
         }
       }
       if (fURL == null) {
-        log(-1, "find: not on image path: %s",imageFileName);
+        log(-1, "find: not there: %s", imageFileName);
         dump(lvl);
       }
       return fURL;

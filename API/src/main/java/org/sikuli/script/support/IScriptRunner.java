@@ -77,6 +77,17 @@ public interface IScriptRunner {
 
     private boolean runningInIDE = false;
 
+    public boolean isRunningFromScript() {
+      return runningFromScript;
+    }
+
+    public Options setRunningFromScript() {
+      this.runningFromScript = true;
+      return this;
+    }
+
+    private boolean runningFromScript = false;
+
     public void setRunningInIDE(boolean runningInIDE) {
       this.runningInIDE = runningInIDE;
     }
@@ -171,39 +182,6 @@ public interface IScriptRunner {
    * @param options Implementation specific options.
    */
   public void runLines(String lines, Options options);
-
-  /**
-   * Executes the Script as Test.
-   *
-   * @param scriptfile     File containing the script
-   * @param imagedirectory Directory containing the images (might be null: parent of script)
-   * @param scriptArgs     Arguments to be passed directly to the script with --args
-   * @param options        when called from Sikuli IDE additional info
-   * @return exitcode for the script execution
-   */
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Options options);
-
-  /**
-   * Starts an interactive session with the scriptrunner.
-   *
-   * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @return exitcode of the interactive session
-   */
-  public int runInteractive(String[] scriptArgs);
-
-  /**
-   * Gets the scriptrunner specific help text to print on stdout.
-   *
-   * @return A helping description about how to use the scriptrunner
-   */
-  public String getCommandLineHelp();
-
-  /**
-   * Gets the help text that is shown if the user runs "shelp()" in interactive mode
-   *
-   * @return The helptext
-   */
-  public String getInteractiveHelp();
 
   /**
    * Checks if the current platform supports this runner.
