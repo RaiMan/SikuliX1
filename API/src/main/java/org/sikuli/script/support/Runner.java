@@ -193,14 +193,13 @@ public class Runner {
 
   private static IScriptRunner currentRunner = new InvalidRunner();
 
-  public static int runScripts(String[] runScripts, String[] args, IScriptRunner.Options options) {
   public static int executeScript(String script, String[] args) {
     RunTime.setUserArgs(args);
-    int retVal = runScripts(new String[]{script});
+    int retVal = runScripts(new String[]{script}, args, null);
     return retVal;
   }
 
-  public static int runScripts(String[] runScripts) {
+  public static int runScripts(String[] runScripts, String[] args, IScriptRunner.Options options) {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
 
