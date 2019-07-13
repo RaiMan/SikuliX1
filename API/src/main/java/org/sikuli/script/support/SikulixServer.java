@@ -52,7 +52,8 @@ public class SikulixServer {
   private static boolean shouldStop = false;
   private static Object lock = new Object();
 
-  private static int logLevel = RunTime.getDebugLevelStart();
+  //TODO should be RunTime.getDebugLevelStart()
+  private static int logLevel = 3;
 
   private static void dolog(int lvl, String message, Object... args) {
     if (Debug.isBeQuiet()) {
