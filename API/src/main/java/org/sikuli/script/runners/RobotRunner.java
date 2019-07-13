@@ -8,10 +8,10 @@ import java.io.File;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
-import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
 
 public class RobotRunner extends JythonRunner {
 
@@ -124,6 +124,21 @@ public class RobotRunner extends JythonRunner {
       helper.appendSysPath(new File(Settings.BundlePath).getParent());
     }
     this.getInterpreter().exec("import robot");
+  }
+
+  /*
+   * Implement again to get rid of the $py.class endin
+   * of JythonRunner
+   */
+  @Override
+  public String[] getFileEndings() {
+    String[] extensions = getExtensions();
+    String[] endings = new String[extensions.length];
+
+    for (int i=0;i<extensions.length;i++) {
+      endings[i] = "." + extensions[i];
+    }
+    return endings;
   }
 
 //<editor-fold defaultstate="collapsed" desc="robot run options">

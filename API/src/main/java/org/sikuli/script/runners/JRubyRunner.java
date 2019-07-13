@@ -22,11 +22,11 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.util.InterruptibleThreadRunner;
 
-public class JRubyRunner extends AbstractScriptRunner {
+public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";
@@ -71,6 +71,8 @@ public class JRubyRunner extends AbstractScriptRunner {
   private static ThreadContext context;
   private static boolean redirected = false;
 
+  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JRubyRunner.class);
+
   @Override
   protected void doInit(String[] args) {
     // Since we have a static interpreter, we have to synchronize class wide
@@ -85,27 +87,30 @@ public class JRubyRunner extends AbstractScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      if (null == scriptFile) {
-        // run the Ruby statements from argv (special for setup functional test)
-        fillSysArgv(null, null);
-        executeScriptHeader(new String[0]);
-        return runRuby(null, scriptArgs, null, options);
-      }
-      File rbFile = new File(new File(scriptFile).getAbsolutePath());
-      fillSysArgv(rbFile, scriptArgs);
+      return threadRunner.run(options.getTimeout(), () -> {
+        if (null == scriptFile) {
+          // run the Ruby statements from argv (special for setup functional test)
+          fillSysArgv(null, null);
+          executeScriptHeader(new String[0]);
+          return runRuby(null, scriptArgs, null, options);
+        }
+        File rbFile = new File(new File(scriptFile).getAbsolutePath());
+        fillSysArgv(rbFile, scriptArgs);
 
-      ImagePath.setBundlePath(rbFile.getParent());
-      executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
-          rbFile.getParentFile().getParentFile().getAbsolutePath() });
+        executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
+            rbFile.getParentFile().getParentFile().getAbsolutePath() });
 
-      int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
+        prepareFileLocation(rbFile, options);
 
-      log(lvl + 1, "runScript: at exit: path:");
-      for (Object p : interpreter.getLoadPaths()) {
-        log(lvl + 1, "runScript: " + p.toString());
-      }
-      log(lvl + 1, "runScript: at exit: --- end ---");
-      return exitCode;
+        int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
+
+        log(lvl + 1, "runScript: at exit: path:");
+        for (Object p : interpreter.getLoadPaths()) {
+          log(lvl + 1, "runScript: " + p.toString());
+        }
+        log(lvl + 1, "runScript: at exit: --- end ---");
+        return exitCode;
+      });
     }
   }
 
@@ -113,11 +118,14 @@ public class JRubyRunner extends AbstractScriptRunner {
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      try {
-        interpreter.runScriptlet(lines);
-      } catch (Exception ex) {
-        log(-1, "runLines: (%s) raised: %s", lines, ex);
-      }
+      threadRunner.run(options.getTimeout(), () -> {
+        try {
+          interpreter.runScriptlet(lines);
+        } catch (Exception ex) {
+          log(-1, "runLines: (%s) raised: %s", lines, ex);
+        }
+        return 0;
+      });
     }
   }
 
@@ -125,55 +133,12 @@ public class JRubyRunner extends AbstractScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      executeScriptHeader(new String[0]);
-      interpreter.runScriptlet(script);
-      return 0;
+      return threadRunner.run(options.getTimeout(), () -> {
+        executeScriptHeader(new String[0]);
+        interpreter.runScriptlet(script);
+        return 0;
+      });
     }
-  }
-
-  @Override
-  protected int doRunInteractive(String[] scriptArgs) {
-    // Since we have a static interpreter, we have to synchronize class wide
-    synchronized (JRubyRunner.class) {
-      fillSysArgv(null, scriptArgs);
-
-      String[] args = null;
-      String[] iargs = { /* "-i", "-c", */
-          "require 'irb'\n" + "ScriptRunner.runningInteractive();\n"
-              + "print \"Hello, this is your interactive Sikuli (rules for interactive Ruby apply)\\n"
-              + "use the UP/DOWN arrow keys to walk through the input history\\n"
-              + "help()<enter> will output some basic Ruby information\\n" + "... use ctrl-d to end the session\"\n"
-              + "IRB.start(__FILE__)\n" };
-      if (scriptArgs != null && scriptArgs.length > 0) {
-        args = new String[scriptArgs.length + iargs.length];
-        System.arraycopy(iargs, 0, args, 0, iargs.length);
-        System.arraycopy(scriptArgs, 0, args, iargs.length, scriptArgs.length);
-      } else {
-        args = iargs;
-      }
-      StringBuilder buffer = new StringBuilder();
-      for (String e : args) {
-        buffer.append(e);
-      }
-      createScriptingContainer();
-      executeScriptHeader(new String[0]);
-      interpreter.runScriptlet(buffer.toString());
-      return 0;
-    }
-  }
-
-  @Override
-  public String getCommandLineHelp() {
-    return "You are using the JRuby ScriptRunner";
-  }
-
-  @Override
-  public String getInteractiveHelp() {
-    return "**** this might be helpful ****\n" + "-- execute a line of code by pressing <enter>\n"
-        + "-- separate more than one statement on a line using ;\n"
-        + "-- Unlike the iDE, this command window will not vanish, when using a Sikuli feature\n"
-        + "   so take care, that all you need is visible on the screen\n" + "-- to create an image interactively:\n"
-        + "img = capture()\n" + "-- use a captured image later:\n" + "click(img)";
   }
 
   @Override
@@ -485,6 +450,16 @@ public class JRubyRunner extends AbstractScriptRunner {
       }
       return true;
     }
+  }
+
+  @Override
+  public boolean isAbortSupported() {
+    return true;
+  }
+
+  @Override
+  protected void doAbort() {
+    threadRunner.interrupt();
   }
 
   /**

@@ -32,9 +32,6 @@ public class Settings {
   public static boolean InputFontMono = false;
   public static int InputFontSize = 14;
 
-  //TODO handlesMacBundles still needed?
-  public static boolean handlesMacBundles = true;
-
   public static final float FOREVER = Float.POSITIVE_INFINITY;
 
   //TODO Proxy as command line options

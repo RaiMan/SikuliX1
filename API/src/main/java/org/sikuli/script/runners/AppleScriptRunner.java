@@ -10,7 +10,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
-public class AppleScriptRunner extends AbstractScriptRunner {
+public class AppleScriptRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "AppleScript";
   public static final String TYPE = "text/applescript";

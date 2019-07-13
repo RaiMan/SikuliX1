@@ -11,6 +11,8 @@ import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.ServerRunner;
+import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
@@ -49,7 +51,9 @@ public class RunTime {
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
-  public static boolean start(RunTime.Type type, String[] args) {
+  public static void start(RunTime.Type type, String[] args) {
+
+    Debug.init();
 
     if (Type.API.equals(type)) {
       startAsIDE = false;
@@ -90,59 +94,59 @@ public class RunTime {
 
     evalArgsStart(args);
 
-    File runningJar = getRunningJar();
+    File runningJar = getRunningJar(type);
     String jarName = runningJar.getName();
-    File fAppData = getAppPath();
-    String classPath = ExtensionManager.makeClassPath(runningJar);
     RunTime.startLog(1, "Running: %s", runningJar);
-    RunTime.startLog(1, "AppData: %s", fAppData);
-    RunTime.startLog(1, "Classpath: %s", classPath);
 
+    File fAppData = getAppPath();
+    RunTime.startLog(1, "AppData: %s", fAppData);
+
+    String classPath = "";
     if (!jarName.endsWith(".jar")) {
-      return false;
+      classPath = System.getProperty("java.class.path");
+      return;
     } else {
-      int exitValue = 0;
-      while (true) {
-        List<String> cmd = new ArrayList<>();
-        cmd.add("java");
-        cmd.add("-Dfile.encoding=UTF-8");
-        if (startAsIDE) {
-          cmd.add("-Dsikuli.IDE_should_run");
-        } else {
-          cmd.add("-Dsikuli.API_should_run");
-        }
-        if (!classPath.isEmpty()) {
-          cmd.add("-cp");
-          cmd.add(classPath);
-        }
-        if (startAsIDE) {
-          cmd.add("org.sikuli.ide.SikulixIDE");
-        } else {
-          cmd.add("org.sikuli.script.support.SikulixAPI");
-        }
-        cmd.addAll(Arrays.asList(args));
-        exitValue = ProcessRunner.detach(cmd);
-        if (exitValue < 255) {
-          if (startAsIDE) {
-            System.out.println(String.format("%s terminated: returned: %d", type, exitValue));
-          }
-        } else {
-          if (startAsIDE) {
-            System.out.println(String.format("IDE terminated: returned: %d --- trying to restart", exitValue));
-            classPath = ExtensionManager.makeClassPath(runningJar);
-            continue;
-          }
-        }
-        System.exit(exitValue);
-      }
+      classPath = ExtensionManager.makeClassPath(runningJar);
+      RunTime.startLog(1, "Classpath: %s", classPath);
     }
+
+    List<String> cmd = new ArrayList<>();
+    cmd.add("java");
+    cmd.add("-Dfile.encoding=UTF-8");
+    if (startAsIDE) {
+      cmd.add("-Dsikuli.IDE_should_run");
+    } else {
+      cmd.add("-Dsikuli.API_should_run");
+    }
+    if (!classPath.isEmpty()) {
+      cmd.add("-cp");
+      cmd.add(classPath);
+    }
+    if (startAsIDE) {
+      cmd.add("org.sikuli.ide.SikulixIDE");
+    } else {
+      cmd.add("org.sikuli.script.support.SikulixAPI");
+    }
+    cmd.addAll(Arrays.asList(args));
+    ProcessRunner.detach(cmd);
+    RunTime.startLog(3, "*********************** leaving start");
+    System.exit(0);
 
   }
 
-  private static File getRunningJar() {
+  private static File getRunningJar(Type type) {
     File jarFile = null;
     String jarName = "notKnown";
     CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
+    if (Type.IDE.equals(type)) {
+      try {
+        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+        codeSrc = cIDE.getProtectionDomain().getCodeSource();
+      } catch (ClassNotFoundException e) {
+        startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
+        System.exit(1);
+      }
+    }
     if (codeSrc != null && codeSrc.getLocation() != null) {
       try {
         jarName = codeSrc.getLocation().getPath();
@@ -172,6 +176,7 @@ public class RunTime {
       Debug.log(3, "Sikulix: starting API");
     }
 
+    evalArgsStart(args);
     evalArgs(args);
     ExtensionManager.readExtensions(true);
 
@@ -188,11 +193,23 @@ public class RunTime {
       Debug.setLogFile(getLogFile());
     }
 
+    if (!getUserLogFile().isEmpty()) {
+      Debug.setUserLogFile(getUserLogFile());
+    }
+
     if (runningScripts()) {
-      int exitCode = Runner.runScripts(RunTime.getRunScripts());
+      int exitCode = Runner.runScripts(RunTime.getRunScripts(), userArgs, new IScriptRunner.Options());
+      if (exitCode > 255) {
+        exitCode = 254;
+      }
       Sikulix.terminate(exitCode, "");
     }
 
+//TODO deactivate after SikulixServer is integrated
+    if (shouldRunServer()) {
+      ServerRunner.run(getSXArgs());
+      Sikulix.terminate();
+    }
 //TODO activate after SikulixServer is integrated
 //    if (shouldRunServer()) {
 //      if (!SikulixServer.run()) {
@@ -297,18 +314,10 @@ public class RunTime {
       System.exit(0);
     }
 
-    if (cmdLineValid && cmdLine.hasOption("v")) {
-      setVerbose(true);
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("q")) {
-      setQuiet(true);
-    }
-
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
       cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
       if (cmdValue != null) {
-        debugLevelStart = cmdValue;
+        Debug.setDebugLevel(cmdValue);
       }
     }
 
@@ -360,16 +369,93 @@ public class RunTime {
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      runScripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
+      runScripts = resolveRelativeFiles(cmdLine.getOptionValues(CommandArgsEnum.RUN.longname()));
     }
+  }
+
+  public static String[] resolveRelativeFiles(String[] givenScripts) {
+    String[] runScripts = new String[givenScripts.length];
+    String baseDir = get().fWorkDir.getPath();
+    for (int i = 0; i < runScripts.length; i++) {
+      String givenScript = givenScripts[i];
+      String file = resolveRelativeFile(givenScript, baseDir);
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".sikuli", baseDir);
+        if (file == null) {
+          runScripts[i] = "?" + givenScript;
+          continue;
+        }
+      }
+      EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
+      String fileToRun = runnerAndFile.getScript();
+      File possibleDir = null;
+      if (null == fileToRun) {
+        for (String ending : new String[]{"", ".sikuli"}) {
+          possibleDir = new File(file + ending);
+          if (possibleDir.exists()) {
+            break;
+          } else {
+            possibleDir = null;
+          }
+        }
+        if (null == possibleDir) {
+          runScripts[i] = "?" + givenScript;
+          continue;
+        }
+        baseDir = possibleDir.getAbsolutePath();
+        runnerAndFile = Runner.getEffectiveRunner(baseDir);
+        fileToRun = runnerAndFile.getScript();
+        if (fileToRun == null) {
+          fileToRun = "!" + baseDir;
+        } else {
+          fileToRun = baseDir;
+        }
+      }
+      runScripts[i] = fileToRun;
+    }
+    return runScripts;
+  }
+
+  /**
+   * a relative path is checked for existence in the current base folder,
+   * working folder and user home folder in this sequence.
+   *
+   * @param scriptName
+   * @return absolute file or null if not found
+   */
+  public static String resolveRelativeFile(String scriptName, String baseDir) {
+    if (get().runningWindows && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
+      scriptName = new File(scriptName).getAbsolutePath();
+      return scriptName;
+    }
+    File file = new File(scriptName);
+    if (!file.isAbsolute()) {
+      File inBaseDir = new File(baseDir, scriptName);
+      if (inBaseDir.exists()) {
+        file = inBaseDir;
+      } else {
+        File inWorkDir = new File(get().fWorkDir, scriptName);
+        if (inWorkDir.exists()) {
+          file = inWorkDir;
+        } else {
+          File inUserDir = new File(get().fUserDir, scriptName);
+          if (inUserDir.exists()) {
+            file = inUserDir;
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    return file.getAbsolutePath();
   }
 
   private static void evalArgsStart(String[] args) {
     for (String arg : args) {
       if ("-v".equals(arg)) {
-        setVerbose(true);
+        setVerbose();
       } else if ("-q".equals(arg)) {
-        setQuiet(true);
+        setQuiet();
       }
     }
   }
@@ -431,17 +517,6 @@ public class RunTime {
   public static IScriptRunner getDefaultRunner() {
     return Runner.getRunner(getDefaultRunnerType());
   }
-
-  public static int getDebugLevelStart() {
-    int level = 0;
-    try {
-      level = Integer.parseInt(debugLevelStart);
-    } catch (NumberFormatException ex) {
-    }
-    return level;
-  }
-
-  private static String debugLevelStart = "0";
 
   public static String getLogFile() {
     return logFile;
@@ -546,7 +621,6 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
-  private final String me = "RunTime%s: ";
   private int lvl = 3;
   private int minLvl = lvl;
   private static String preLogMessages = "";
@@ -555,8 +629,13 @@ public class RunTime {
     return verbose;
   }
 
-  public static void setVerbose(boolean verbose) {
-    RunTime.verbose = verbose;
+  public static void setVerbose() {
+    RunTime.verbose = true;
+    Debug.setDebugLevel(3);
+    Debug.setWithTimeElapsed(RunTime.getElapsedStart());
+    Debug.setGlobalDebug(3);
+    Debug.globalTraceOn();
+    Debug.setStartWithTrace();
   }
 
   private static boolean verbose = false;
@@ -565,33 +644,37 @@ public class RunTime {
     return quiet;
   }
 
-  public static void setQuiet(boolean quiet) {
-    RunTime.quiet = quiet;
+  public static void setQuiet() {
+    RunTime.quiet = true;
   }
 
   private static boolean quiet = false;
 
   public static void startLog(int level, String msg, Object... args) {
     String typ = startAsIDE ? "IDE" : "API";
-    String msgShow = String.format("[DEBUG] startUp: %s: ", typ) + msg;
-    if (level < 0) {
-      msgShow = String.format("[ERROR] startUp: %s: ", typ) + msg;
-    } else if (!isVerbose()) {
+    String msgShow = String.format("startUp: %s: ", typ);
+    if (!isVerbose()) {
       return;
     }
-    if (!isQuiet()) {
-      if (level > -1 && level <= getDebugLevelStart()) {
-        if (level > 0) {
-          msgShow = "[DEBUG]" + msgShow + msg;
-        } else {
-          msgShow = "[INFO]" + msgShow + msg;
-        }
+    if (level < 0) {
+      msgShow = "[ERROR]" + msgShow + msg;
+      System.out.println(String.format(msgShow, args));
+      return;
+    }
+    if (isQuiet()) {
+      return;
+    }
+    if (isVerbose()) {
+      if (level > 0) {
+        msgShow = "[DEBUG]" + msgShow + msg;
+      } else {
+        msgShow = "[INFO]" + msgShow + msg;
       }
       System.out.println(String.format(msgShow, args));
     }
   }
 
-  public static String arrayToString(String[] args) {
+  public static String arrayToQuotedString(String[] args) {
     String ret = "";
     for (String s : args) {
       if (s.contains(" ")) {
@@ -603,7 +686,7 @@ public class RunTime {
   }
 
   private void log(int level, String message, Object... args) {
-    Debug.logx(level, String.format(me, runType) + message, args);
+    Debug.logx(level, "RunTime:" + message, args);
   }
 
   private void logp(String message, Object... args) {
@@ -665,6 +748,17 @@ public class RunTime {
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
   public File fUserDir = null;
   public File fWorkDir = null;
+
+  public int getLastScriptRunReturnCode() {
+    return lastScriptRunReturnCode;
+  }
+
+  public void setLastScriptRunReturnCode(int lastScriptRunReturnCode) {
+    this.lastScriptRunReturnCode = lastScriptRunReturnCode;
+  }
+
+  private int lastScriptRunReturnCode = 0;
+
   public File fAppPath = null;
   public File fSikulixAppPath = null;
   public File fSikulixExtensions = null;
@@ -1679,6 +1773,10 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
+  public void crash() {
+    int x = 1 / 0;
+  }
+
   public static void pause(int time) {
     try {
       Thread.sleep(time * 1000);
@@ -2861,9 +2959,9 @@ public class RunTime {
     try {
       if (!silent) {
         if (lvl <= Debug.getDebugLevel()) {
-          log(lvl, arrayToString(args));
+          log(lvl, arrayToQuotedString(args));
         } else {
-          Debug.info("runcmd: " + arrayToString(args));
+          Debug.info("runcmd: " + arrayToQuotedString(args));
         }
       }
       //TODO use ProcessRunner

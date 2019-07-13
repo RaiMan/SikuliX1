@@ -32,8 +32,18 @@ public class PreferencesUser {
   public final static int SCRIPTER = 1;
   public final static int SIKULI_USER = 2;
   public final static int THUMB_HEIGHT = 50;
+
+  // Needed to detect if the user prefs contain the old default value
+  public final static String OLD_DEFAULT_CONSOLE_CSS =
+      "body   { font-family:serif; font-size: 12px; }"
+              + ".normal{ color: black; }"
+              + ".debug { color:#505000; }"
+              + ".info  { color: blue; }"
+              + ".log   { color: #09806A; }"
+              + ".error { color: red; }";
+
   public final static String DEFAULT_CONSOLE_CSS =
-          "body   { font-family:serif; font-size: 12px; }"
+          "body   { font-family:monospace; font-size: 11px; }"
                   + ".normal{ color: black; }"
                   + ".debug { color:#505000; }"
                   + ".info  { color: blue; }"
@@ -430,7 +440,22 @@ public class PreferencesUser {
   }
 
   public String getConsoleCSS() {
-    return pref.get("CONSOLE_CSS", DEFAULT_CONSOLE_CSS);
+    String css = pref.get("CONSOLE_CSS", DEFAULT_CONSOLE_CSS);
+
+    /*
+     *  Hack to detect if the user prefs contain the old default
+     *  value.
+     *  In such a case, the new style is forced.
+     *
+     *  TODO: Ensure that the user prefs do not contain default
+     *  values. Having them in prefs makes it really cumbersome
+     *  to change them afterwards.
+     */
+    if (OLD_DEFAULT_CONSOLE_CSS.equals(css)) {
+      css = DEFAULT_CONSOLE_CSS;
+    }
+
+    return css;
   }
 
   // ***** general setter getter

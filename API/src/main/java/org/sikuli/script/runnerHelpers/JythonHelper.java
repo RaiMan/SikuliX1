@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.python.core.PySyntaxError;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -23,9 +24,7 @@ import org.sikuli.script.SikulixForJython;
 
 public class JythonHelper implements IScriptLanguageHelper {
 
-  private static RunTime runTime;
-
-  //<editor-fold defaultstate="collapsed" desc="new logging concept">
+  //<editor-fold defaultstate="collapsed" desc="00 logging">
   private static final String me = "Jython: ";
   private static int lvl = 3;
 
@@ -48,26 +47,11 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
   //</editor-fold>
 
+  //<editor-fold desc="01 instance">
   static JythonHelper instance = null;
   static Object interpreter = null;
-  List<String> sysPath = new ArrayList<String>();
-  List<String> sysArgv = new ArrayList<String>();
-  int nPathAdded = 0;
-  int nPathSaved = -1;
-  static Class[] nc = new Class[0];
-  static Class[] nc1 = new Class[1];
-  static Class cInterpreter = null;
-  static Class cPyException = null;
-  static Class cList = null;
-  static Class cPy = null;
-  static Class cPyFunction = null;
-  static Class cPyMethod = null;
-  static Class cPyInstance = null;
-  static Class cPyObject = null;
-  static Class cPyString = null;
-  static Method mLen, mGet, mSet, mAdd, mRemove, mClear;
-  static Method mGetSystemState, mExec, mExecfile;
-  static Field PI_path;
+
+  private static RunTime runTime;
 
   private JythonHelper() {
   }
@@ -111,17 +95,40 @@ public class JythonHelper implements IScriptLanguageHelper {
     return instance;
   }
 
+  public static JythonHelper set(Object ip) {
+    JythonHelper.get();
+    interpreter = ip;
+    return instance;
+  }
+
   private void noOp() {
   } // for debugging as breakpoint
+  //</editor-fold>
 
-  class PyException {
+  //<editor-fold desc="05 Jython class reflection">
+  static Class[] nc = new Class[0];
+  static Class[] nc1 = new Class[1];
+  static Class cInterpreter = null;
+  static Class cPyException = null;
+  static Class cList = null;
+  static Class cPy = null;
+  static Class cPyFunction = null;
+  static Class cPyMethod = null;
+  static Class cPyInstance = null;
+  static Class cPyObject = null;
+  static Class cPyString = null;
+  static Method mLen, mGet, mSet, mAdd, mRemove, mClear;
+  static Method mGetSystemState, mExec, mExecfile;
+  static Field PI_path;
+
+  class SXPyException {
 
     Object inst = null;
     Field fType = null;
     Field fValue = null;
     Field fTrBack = null;
 
-    public PyException(Object i) {
+    public SXPyException(Object i) {
       inst = i;
       cPyException.cast(inst);
       try {
@@ -145,13 +152,13 @@ public class JythonHelper implements IScriptLanguageHelper {
     }
   }
 
-  class PyInstance {
+  class SXPyInstance {
 
     Object inst = null;
     Method mGetAttr = null;
     Method mInvoke = null;
 
-    public PyInstance(Object i) {
+    public SXPyInstance(Object i) {
       inst = i;
       cPyInstance.cast(inst);
       try {
@@ -189,14 +196,14 @@ public class JythonHelper implements IScriptLanguageHelper {
     }
   }
 
-  class PyFunction {
+  class SXPyFunction {
 
     public String __name__;
     Object func = null;
     Method mCall = null;
     Method mCall1 = null;
 
-    public PyFunction(Object f) {
+    public SXPyFunction(Object f) {
       func = f;
       try {
         cPyFunction.cast(func);
@@ -236,11 +243,11 @@ public class JythonHelper implements IScriptLanguageHelper {
     }
   }
 
-  class Py {
+  class SXPy {
 
     Method mJava2py = null;
 
-    public Py() {
+    public SXPy() {
       try {
         mJava2py = cPy.getMethod("java2py", Object.class);
       } catch (Exception ex) {
@@ -279,36 +286,12 @@ public class JythonHelper implements IScriptLanguageHelper {
       return pyString;
     }
   }
+  //</editor-fold>
 
-  public boolean exec(String code) {
-    try {
-      mExec.invoke(interpreter, code);
-    } catch (Exception ex) {
-      PyException pex = new PyException(ex.getCause());
-      if (pex.isTypeExit() < 0) {
-        log(-1, "exec: returns:\n%s", ex.getCause());
-      }
-      return false;
-    }
-    return true;
-  }
-
-  public int execfile(String fpScript) {
-    int retval = -999;
-    try {
-      mExecfile.invoke(interpreter, fpScript);
-    } catch (Exception ex) {
-      PyException pex = new PyException(ex.getCause());
-      if ((retval = pex.isTypeExit()) < 0) {
-        log(-1, "execFile: returns:\n%s", ex.getCause());
-      }
-    }
-    return retval;
-  }
-
+  //<editor-fold desc="15 callback">
   //TODO check signature (instance method)
   public boolean checkCallback(Object[] args) {
-    PyInstance inst = new PyInstance(args[0]);
+    SXPyInstance inst = new SXPyInstance(args[0]);
     String mName = (String) args[1];
     Object method = inst.__getattr__(mName);
     if (method == null || !method.getClass().getName().contains("PyMethod")) {
@@ -319,7 +302,7 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   public boolean runLoggerCallback(Object[] args) {
-    PyInstance inst = new PyInstance(args[0]);
+    SXPyInstance inst = new SXPyInstance(args[0]);
     String mName = (String) args[1];
     String msg = (String) args[2];
     Object method = inst.__getattr__(mName);
@@ -339,10 +322,10 @@ public class JythonHelper implements IScriptLanguageHelper {
 
   @Override
   public boolean runObserveCallback(Object[] args) {
-    PyFunction func = new PyFunction(args[0]);
+    SXPyFunction func = new SXPyFunction(args[0]);
     boolean success = true;
     try {
-      func.__call__(new Py().java2py(args[1]));
+      func.__call__(new SXPy().java2py(args[1]));
     } catch (Exception ex) {
 //      if (!"<lambda>".equals(func.__name__)) {
       if (!func.toString().contains("<lambda>")) {
@@ -365,7 +348,7 @@ public class JythonHelper implements IScriptLanguageHelper {
 
   //TODO implement generalized callback
   public boolean runCallback(Object[] args) {
-    PyInstance inst = (PyInstance) args[0];
+    SXPyInstance inst = (SXPyInstance) args[0];
     String mName = (String) args[1];
     Object method = inst.__getattr__(mName);
     if (method == null || !method.getClass().getName().contains("PyMethod")) {
@@ -381,11 +364,33 @@ public class JythonHelper implements IScriptLanguageHelper {
     }
     return true;
   }
+  //</editor-fold>
 
-  public static JythonHelper set(Object ip) {
-    JythonHelper.get();
-    interpreter = ip;
-    return instance;
+  //<editor-fold desc="17 load/run support">
+  public boolean exec(String code) {
+    try {
+      mExec.invoke(interpreter, code);
+    } catch (Exception ex) {
+      SXPyException pex = new SXPyException(ex.getCause());
+      if (pex.isTypeExit() < 0) {
+        log(-1, "exec: returns:\n%s", ex.getCause());
+      }
+      return false;
+    }
+    return true;
+  }
+
+  public int execfile(String fpScript) {
+    int retval = -999;
+    try {
+      mExecfile.invoke(interpreter, fpScript);
+    } catch (Exception ex) {
+      SXPyException pex = new SXPyException(ex.getCause());
+      if ((retval = pex.isTypeExit()) < 0) {
+        log(-1, "execFile: returns:\n%s", ex.getCause());
+      }
+    }
+    return retval;
   }
 
   public boolean prepareRobot() {
@@ -466,7 +471,13 @@ public class JythonHelper implements IScriptLanguageHelper {
   }
 
   private long lastRun = 0;
+  //</editor-fold>
 
+  //<editor-fold desc="10 sys.path handling">
+  List<String> sysPath = new ArrayList<String>();
+  List<String> sysArgv = new ArrayList<String>();
+  int nPathAdded = 0;
+  int nPathSaved = -1;
   private List<File> importedScripts = new ArrayList<File>();
   String name = "";
 
@@ -813,7 +824,9 @@ public class JythonHelper implements IScriptLanguageHelper {
       }
     }
   }
+  //</editor-fold>
 
+  //<editor-fold desc="20 error/exception handling">
   public String getCurrentLine() {
     String trace = "";
     Object frame = null;
@@ -832,7 +845,7 @@ public class JythonHelper implements IScriptLanguageHelper {
         trace = "Jython: at " + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
       } else {
         trace = "Jython traceback - current first:\n"
-                + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
+            + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
         while (null != back) {
           String line = getCurrentLineTraceElement(fLineno, fCode, fFilename, back);
           if (!line.startsWith("Region (")) {
@@ -861,57 +874,84 @@ public class JythonHelper implements IScriptLanguageHelper {
     return trace;
   }
 
-  public int findErrorSource(Throwable thr, String filename) {
-    errorClass = PY_UNKNOWN;
-    String err = "ERROR_UNKNOWN";
-    try {
-      err = thr.toString();
-    } catch (Exception ex) {
-      errorClass = PY_JAVA;
-      err = thr.getCause().toString();
+  private int errorLine;
+  private int errorColumn;
+  private String errorCause;
+  private String errorText;
+  private int errorType;
+  private String errorTrace;
+
+  private static final int PY_SYNTAX = 0;
+  private static final int PY_RUNTIME = 1;
+  private static final int PY_JAVA = 2;
+  private static final int SX_RUNTIME = 3;
+  private static final int SX_ABORT = 4;
+  private static final int PY_UNKNOWN = -1;
+
+  private static String NL = "\n";
+
+  public int findErrorSource(Throwable throwable, String filename) {
+    log(lvl + 1, "Run Script Error: %s", throwable);
+    String err = throwable.toString().replaceAll("\\r", "");
+//    try {
+//      err = thr.toString();
+//    } catch (Exception ex) {
+//      errorType = PY_JAVA;
+//      err = thr.getCause().toString();
+//    }
+    Class errorClass = throwable.getClass();
+
+    if (errorClass.equals(org.python.core.PyException.class)) {
+      errorType = PY_RUNTIME;
+    } else if (errorClass.equals(PySyntaxError.class)) {
+      errorType = PY_SYNTAX;
+    } else {
+      errorType = PY_JAVA;
     }
+
 //    log(-1,"------------- Traceback -------------\n" + err +
 //            "------------- Traceback -------------\n");
     errorLine = -1;
     errorColumn = -1;
-    errorType = "--UnKnown--";
+    errorCause = "--UnKnown--";
     errorText = "--UnKnown--";
 
-//  File ".../mainpy.sikuli/mainpy.py", line 25, in <module> NL func() NL
-//  File ".../subpy.py", line 4, in func NL 1/0 NL
+
+
+    //  File ".../mainpy.sikuli/mainpy.py", line 25, in <module> NL func() NL
+    //  File ".../subpy.py", line 4, in func NL 1/0 NL
     Pattern pFile = Pattern.compile("File..(.*?\\.py).*?" + ",.*?line.*?(\\d+),.*?in(.*?)" + NL + "(.*?)" + NL);
 
     String msg;
     Matcher mFile = null;
 
-    if (PY_JAVA != errorClass) {
-      if (err.startsWith("Traceback")) {
+    if (PY_JAVA != errorType) {
+      if (PY_RUNTIME == errorType) {
         Pattern pError = Pattern.compile(NL + "(.*?):.(.*)$");
         mFile = pFile.matcher(err);
         if (mFile.find()) {
           log(lvl + 2, "Runtime error line: " + mFile.group(2) + "\n in function: " + mFile.group(3) + "\n statement: "
-                  + mFile.group(4));
+              + mFile.group(4));
           errorLine = Integer.parseInt(mFile.group(2));
-          errorClass = PY_RUNTIME;
           Matcher mError = pError.matcher(err);
           if (mError.find()) {
             log(lvl + 2, "Error:" + mError.group(1));
             log(lvl + 2, "Error:" + mError.group(2));
-            errorType = mError.group(1);
+            errorCause = mError.group(1);
             errorText = mError.group(2);
           } else {
 //org.sikuli.core.FindFailed: FindFailed: can not find 1352647716171.png on the screen
             Pattern pFF = Pattern.compile(": FindFailed: (.*?)" + NL);
             Matcher mFF = pFF.matcher(err);
             if (mFF.find()) {
-              errorType = "FindFailed";
+              errorCause = "FindFailed";
               errorText = mFF.group(1);
             } else {
-              errorClass = PY_UNKNOWN;
+              errorType = PY_UNKNOWN;
             }
           }
         }
-      } else if (err.startsWith("SyntaxError")) {
+      } else if (errorType == PY_SYNTAX) {
         Pattern pLineS = Pattern.compile(", (\\d+), (\\d+),");
         java.util.regex.Matcher mLine = pLineS.matcher(err);
         if (mLine.find()) {
@@ -923,8 +963,7 @@ public class JythonHelper implements IScriptLanguageHelper {
           log(lvl + 2, "SyntaxError: " + errorText);
           errorLine = Integer.parseInt(mLine.group(1));
           errorColumn = Integer.parseInt(mLine.group(2));
-          errorClass = PY_SYNTAX;
-          errorType = "SyntaxError";
+          errorCause = "SyntaxError";
         }
       }
     }
@@ -941,26 +980,25 @@ public class JythonHelper implements IScriptLanguageHelper {
       msg += " stopped with error at line --unknown--";
     }
 
-    if (errorClass == PY_RUNTIME || errorClass == PY_SYNTAX) {
-      if (errorText.startsWith(errorType)) {
+    if (errorType == PY_RUNTIME || errorType == PY_SYNTAX) {
+      if (errorText.startsWith(errorCause)) {
         if (errorText.startsWith("java.lang.RuntimeException: SikuliX: ")) {
           errorText = errorText.replace("java.lang.RuntimeException: SikuliX: ", "sikulix.RuntimeException: ");
-          errorClass = SX_RUNTIME;
+          errorType = SX_RUNTIME;
         } else if (errorText.startsWith("java.lang.ThreadDeath")) {
-          errorClass = SX_ABORT;
+          errorType = SX_ABORT;
         }
       }
-      if (errorClass != SX_ABORT) {
+      if (errorType != SX_ABORT) {
         Debug.error(msg);
-        Debug.error(errorType + " ( " + errorText + " )");
-      } else {
-        Debug.error("IDE: terminating script run - abort key was pressed");
+        Debug.error(errorCause + " ( " + errorText + " )");
       }
-      if (errorClass == PY_RUNTIME) {
+      if (errorType == PY_RUNTIME) {
+        mFile = pFile.matcher(err);
         errorTrace = findErrorSourceWalkTrace(mFile, filename);
         if (errorTrace.length() > 0) {
           Debug.error("--- Traceback --- error source first\n" + "line: module ( function ) statement \n" + errorTrace
-                  + "[error] --- Traceback --- end --------------");
+              + "[error] --- Traceback --- end --------------");
         }
       }
     } else {
@@ -1016,20 +1054,5 @@ public class JythonHelper implements IScriptLanguageHelper {
       log(lvl + 2, "cause: " + t);
     }
   }
-
-  private int errorLine;
-  private int errorColumn;
-  private String errorType;
-  private String errorText;
-  private int errorClass;
-  private String errorTrace;
-
-  private static final int PY_SYNTAX = 0;
-  private static final int PY_RUNTIME = 1;
-  private static final int PY_JAVA = 2;
-  private static final int SX_RUNTIME = 3;
-  private static final int SX_ABORT = 4;
-  private static final int PY_UNKNOWN = -1;
-
-  private static final String NL = String.format("%n");
+  //</editor-fold>
 }

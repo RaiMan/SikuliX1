@@ -4,6 +4,17 @@
 
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.idesupport.IDESupport;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.*;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RobotDesktop;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -11,19 +22,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.idesupport.IDESupport;
-import org.sikuli.script.*;
-import org.sikuli.script.Sikulix;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RobotDesktop;
 
 public class SikuliIDEPopUpMenu extends JPopupMenu {
 
@@ -234,47 +232,55 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      if (!cp.hasEditingFile()) {
+      if (cp.isTemp()) {
         (new Thread() {
           @Override
           public void run() {
             Region at = Mouse.at().offset(100, 52).grow(10);
             ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-            SX.popup("Script not yet saved", "IDE: About: script info", "", false, 2, at);
+            SX.popup(String.format("%s file --- not yet saved", cp.getRunner().getName()),
+                    "IDE: About: script info", "", false, 4, at);
           }
         }).start();
       } else {
-        if (cp.isPython) {
-          (new Thread() {
-            @Override
-            public void run() {
-              String msg = String.format("Python script: %s\nFolder: %s\nImages: %s",
-                      cp.getCurrentShortFilename(), cp.getSrcBundle(), cp.getImagePath());
-              Region at = Mouse.at().offset(200, 78).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
-            }
-          }).start();
-        } else if (!cp.isText) {
-          (new Thread() {
-            @Override
-            public void run() {
-              String msg = String.format("SikuliX script: %s\nin Folder: %s",
-                      cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
-              Region at = Mouse.at().offset(100, 65).grow(10);
-              ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-              SX.popup(msg, "IDE: About: script info", "", false, 10, at);
-            }
-          }).start();
+        String msg;
+        if (cp.isBundle()) {
+          msg = String.format("Bundle: %s\n%s Script: %s\nImages: %s",
+                  cp.getCurrentShortFilename(), cp.getRunner().getName(), cp.getCurrentFile(), cp.getImagePath());
+        } else if (!cp.isText()) {
+          msg = String.format("%s script: %s\nin Folder: %s\nImages: %s", cp.getRunner().getName(),
+                  cp.getCurrentShortFilename(), cp.getCurrentFile().getParent(), cp.getImagePath());
+        } else {
+          msg = String.format("%s file: %s\nin Folder: %s", cp.getRunner().getName(),
+                  cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
         }
+        showAbout(cp, msg);
       }
     }
 
+    private void showAbout(EditorPane cp, String msg) {
+      (new Thread() {
+        @Override
+        public void run() {
+          Region at = Mouse.at().offset(200, 78).grow(10);
+          ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
+          SX.popup(msg, "IDE: About: script info", "", false, 10, at);
+        }
+      }).start();
+    }
+
     public void doSetType(ActionEvent ae) {
-      //TODO use a popUpSelect for more language options
       Debug.log(3, "doSetType: selected");
       String error = "";
       EditorPane editorPane = SikulixIDE.get().getCurrentCodePane();
+      String editorPaneText = editorPane.getText();
+      if (!editorPaneText.trim().isEmpty()) {
+        //TODO Changing Tab Type for non-empty tab
+        JOptionPane.showMessageDialog(null,
+                "... not yet implemented for not empty tab",
+                "Changing Tab Type", JOptionPane.PLAIN_MESSAGE);
+        return;
+      }
       if (selOptionsTypes == null) {
         String types = "";
         for (IScriptRunner runner : IDESupport.getRunners()) {
@@ -294,32 +300,23 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       String targetType = Sikulix.popSelect("Select the Content Type ...",
               selOptionsTypes, currentType.replaceFirst(".*?\\/", ""));
       if (targetType == null) {
-        targetType = currentType;
+        return;
       } else {
         targetType = "text/" + targetType;
       }
       if (currentType.equals(targetType)) {
-        SikulixIDE.getStatusbar().setType(currentType);
         return;
       }
-      //String targetEnding = Runner.getExtension(targetType);
-      if (editorPane.getText().length() > 0) {
-        if (!Sikulix.popAsk(String.format(
-                "Switch to %s requested, but tab is not empty!\n"
-                        + "Click YES, to discard content and switch\n"
-                        + "Click NO to cancel this action and keep content.",
-                targetType))) {
-          error = ": with errors";
+      if (editorPane.init(targetType, editorPaneText)) {
+        if (editorPane.isText()) {
+          editorPane.setIsFile();
         }
-      }
-      if (error.isEmpty()) {
-        editorPane.init(targetType);
-        error = ": (" + targetType + ")";
+        editorPane.updateDocumentListeners("setType");
         SikulixIDE.getStatusbar().setType(targetType);
+        String msg = "doSetType: completed" + ": (" + targetType + ")";
+        SikulixIDE.getStatusbar().setMessage(msg);
+        Debug.log(3, msg);
       }
-      String msg = "doSetType: completed" + error;
-      SikulixIDE.getStatusbar().setMessage(msg);
-      Debug.log(3, msg);
     }
 
     public void doInsertPath(ActionEvent ae) {
@@ -347,7 +344,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       log(lvl, "doMoveTab: entered at move");
       refTab.resetLastClosed();
-      if (SikulixIDE.get().getCurrentCodePane().isSourceBundleTemp()) {
+      if (SikulixIDE.get().getCurrentCodePane().isTemp()) {
         log(-1, "Untitled tab cannot be moved");
         return;
       }
@@ -384,7 +381,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane ep = SikulixIDE.get().getCurrentCodePane();
       checkAndResetMoveTab();
       fireIDEFileMenu("SAVE");
-      if (ep.isSourceBundleTemp()) {
+      if (ep.isTemp()) {
         log(-1, "Untitled tab cannot be duplicated");
         return;
       }

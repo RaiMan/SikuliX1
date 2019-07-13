@@ -569,10 +569,10 @@ def run(cmd):
 # @args the parameters for the called script (sys.argv)
 # @return returns the scripts return code given with exit(n)
 def runScript(script, *args):
-  return Runner.runScript(unicd(script))
+  return Runner.runScript(unicd(script), args, None)
 
 def getLastReturnCode():
-  return Runner.getLastReturnCode()
+  return RUNTIME.getLastScriptRunReturnCode()
 
 ##
 # helper functions, that can be used when sorting lists of regions

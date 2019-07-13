@@ -3,10 +3,11 @@
  */
 package org.sikuli.script.support;
 
-import org.sikuli.script.SikuliXception;
-
+import java.io.File;
 import java.io.PrintStream;
 import java.net.URI;
+
+import org.sikuli.script.SikuliXception;
 
 /**
  * Interface for ScriptRunners like Jython.
@@ -15,12 +16,11 @@ public interface IScriptRunner {
 
   /**
    * Special options to pass to the runner.
-   *
+   * <p>
    * Options are more to be interpreted as hints instead of strict directives.
    * A specific runner implementation can decide to ignore an option entirely.
    *
    * @author mbalmer
-   *
    */
   public class Options {
 
@@ -54,13 +54,14 @@ public interface IScriptRunner {
     /**
      * If a script run fails, the runner can set the source
      * line where the error happened.
-     *
+     * <p>
      * There is no effect setting this from the outside.
      *
      * @param errorLine
      */
-    public void setErrorLine(int errorLine) {
+    public Options setErrorLine(int errorLine) {
       this.errorLine = errorLine;
+      return this;
     }
 
     private int errorLine = -1;
@@ -69,31 +70,79 @@ public interface IScriptRunner {
       return runningInIDE;
     }
 
-    public void setRunningInIDE() {
+    public Options setRunningInIDE() {
       this.runningInIDE = true;
+      return this;
     }
 
     private boolean runningInIDE = false;
 
-    public String getWorkFolder() {
-      return workFolder;
+    public boolean isRunningFromScript() {
+      return runningFromScript;
     }
 
-    public void setWorkFolder(String workFolder) {
-      this.workFolder = workFolder;
+    public Options setRunningFromScript() {
+      this.runningFromScript = true;
+      return this;
     }
 
-    private String workFolder = null;
+    private boolean runningFromScript = false;
 
-    public String getScriptName() {
-      return scriptName;
+    public void setRunningInIDE(boolean runningInIDE) {
+      this.runningInIDE = runningInIDE;
     }
 
-    public void setScriptName(String scriptName) {
-      this.scriptName = scriptName;
+    private long timeout = 0;
+
+    public long getTimeout() {
+      return timeout;
     }
 
-    private String scriptName = null;
+    public Options setTimeout(long timeout) {
+      this.timeout = timeout;
+      return this;
+    }
+
+    public File getBaseFolder() {
+      return baseFolder;
+    }
+
+    public void setBaseFolder(File baseFolder) {
+      this.baseFolder = baseFolder;
+    }
+
+    private File baseFolder = null;
+  }
+
+  class EffectiveRunner {
+    private IScriptRunner runner = null;
+    String script = null;
+    private Boolean bundle = false;
+
+    public EffectiveRunner() {
+    }
+
+    public EffectiveRunner(IScriptRunner runner, String script, Boolean bundle) {
+      this.runner = runner;
+      this.script = script;
+      this.bundle = bundle;
+    }
+
+    public IScriptRunner getRunner() {
+      return runner;
+    }
+
+    public String getScript() {
+      return script;
+    }
+
+    public boolean isBundle() {
+      return bundle == null || bundle;
+    }
+
+    public boolean isTempBundle() {
+      return bundle == null;
+    }
   }
 
   /**
@@ -110,7 +159,7 @@ public interface IScriptRunner {
    * @param scriptFile Identifier pointing to the script. This can either by a file path
    *                   or an URI, depending on the runner implementation
    * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @param options Implementation specific options.
+   * @param options    Implementation specific options.
    * @return exitcode for the script execution
    */
   public int runScript(String scriptFile, String[] scriptArgs, Options options);
@@ -118,7 +167,7 @@ public interface IScriptRunner {
   /**
    * Evaluates the Script.
    *
-   * @param script Script content
+   * @param script  Script content
    * @param options Implementation specific options.
    * @return exitcode for the script execution
    */
@@ -129,43 +178,10 @@ public interface IScriptRunner {
    * The implementation might perform some optimizations on
    * the code (e.g. fix indentation) before executing it.
    *
-   * @param lines Code do execute
+   * @param lines   Code do execute
    * @param options Implementation specific options.
    */
   public void runLines(String lines, Options options);
-
-  /**
-   * Executes the Script as Test.
-   *
-   * @param scriptfile File containing the script
-   * @param imagedirectory Directory containing the images (might be null: parent of script)
-   * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @param options when called from Sikuli IDE additional info
-   * @return exitcode for the script execution
-   */
-  public int runTest(URI scriptfile, URI imagedirectory, String[] scriptArgs, Options options);
-
-  /**
-   * Starts an interactive session with the scriptrunner.
-   *
-   * @param scriptArgs Arguments to be passed directly to the script with --args
-   * @return exitcode of the interactive session
-   */
-  public int runInteractive(String[] scriptArgs);
-
-  /**
-   * Gets the scriptrunner specific help text to print on stdout.
-   *
-   * @return A helping description about how to use the scriptrunner
-   */
-  public String getCommandLineHelp();
-
-  /**
-   * Gets the help text that is shown if the user runs "shelp()" in interactive mode
-   *
-   * @return The helptext
-   */
-  public String getInteractiveHelp();
 
   /**
    * Checks if the current platform supports this runner.
@@ -173,13 +189,6 @@ public interface IScriptRunner {
    * @return true if platform supports this runner, false otherwise
    */
   public boolean isSupported();
-
-  /**
-   * A wrapping runner does not run directly, but evaluates a scriptfile to be run
-   *
-   * @return true if this is a wrapping runner
-   */
-  public boolean isWrapper();
 
   /**
    * Gets the name of the ScriptRunner. Should be unique. This value is needed to distinguish
@@ -195,6 +204,13 @@ public interface IScriptRunner {
    * @return array of strings
    */
   public String[] getExtensions();
+
+  /**
+   * convenience: return the first defined extension (default)
+   *
+   * @return default extension
+   */
+  public String getDefaultExtension();
 
   /**
    * return the type of script this handler can execute.
@@ -240,24 +256,60 @@ public interface IScriptRunner {
   public boolean canHandle(String identifier);
 
   /**
+   * Needed in the IDE to detect the runner when file or folder is opened
+   *
+   * @param script
+   * @return array: EffectiveRunner object
+   */
+  public EffectiveRunner getEffectiveRunner(String script);
+
+  /**
    * Redirects the runner's STDIO to the given PrintStream.
-   *
+   * <p>
    * Subsequent calls to this function override the previously set streams.
-   *
+   * <p>
    * If one of the parameters is set to null, STDIO redirection is reset to
    * System.out and System.err.
    *
    * @param stdout PrintStream for STDOUT
    * @param stderr PrintStream for STDERR
-   *
    * @return
    */
   public void redirect(PrintStream stdout, PrintStream stderr);
 
   /**
    * Resets this runner.
-   *
+   * <p>
    * The runner gets closed and initialized again using init.
    */
   public void reset();
+
+  /**
+   * @return true if the runner is currently executing a script, false otherwise
+   */
+  public boolean isRunning();
+
+  /**
+   * Aborts the current running script.
+   * <p>
+   * Not all runners can be aborted, please check abort support using isAbortSupported().
+   */
+  public void abort();
+
+  /**
+   * Checks if abort is supported by this script runner implementation.
+   *
+   * @return true is aboort is supported, false otherwise
+   */
+  public boolean isAbortSupported();
+
+  /**
+   * Usually the same as getExtensions() but with the leading dot.
+   * <p>
+   * Some files (e.g. $py.class) might have a somewhat unusual but
+   * very specific file ending.
+   *
+   * @return An Array containing the supported line endings
+   */
+  public String[] getFileEndings();
 }
