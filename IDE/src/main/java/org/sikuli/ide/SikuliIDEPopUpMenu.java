@@ -66,9 +66,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     if (popType.equals(POP_TAB)) {
       refTab = (CloseableTabbedPane) ref;
       popTabMenu();
-    } else if (popType.equals(POP_IMAGE)) {
-      refEditorPane = (EditorPane) ref;
-      popImageMenu();
+//    } else if (popType.equals(POP_IMAGE)) {
+//      refEditorPane = (EditorPane) ref;
+//      popImageMenu();
     } else if (popType.equals(POP_LINE)) {
       refLineNumberView = (EditorLineNumberView) ref;
       refEditorPane = ((EditorLineNumberView) ref).getEditorPane();
