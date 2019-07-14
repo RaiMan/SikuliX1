@@ -97,7 +97,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       helper.setSysPath();
       helper.addSitePackages();
       helper.showSysPath();
-      interpreter.exec("import sys");
+      interpreter.exec("import sys; import io");
       Debug.setWithTimeElapsed();
       log(lvl, "ready: version %s", interpreter.eval("sys.version.split(\"(\")[0]\n").toString());
       Debug.unsetWithTimeElapsed();

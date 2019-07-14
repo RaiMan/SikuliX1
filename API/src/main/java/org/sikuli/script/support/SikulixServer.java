@@ -14,7 +14,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.runners.RobotRunner;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -245,9 +244,7 @@ public class SikulixServer {
         return false;
       }
       try {
-        Runner.getRunners().stream()
-            .filter(runner -> !runner.getName().equals(RobotRunner.NAME))  //TODO Delete this line when RobotRunner.init() call failure is resolved
-            .forEach(runner -> runner.init(null));
+        Runner.getRunners().stream().forEach(runner -> runner.init(null));
       } catch (Exception ex) {
         dolog(-1, "ScriptRunner init not possible: " + ex.getMessage());
         return false;
