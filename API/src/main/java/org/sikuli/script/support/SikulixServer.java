@@ -352,50 +352,51 @@ public class SikulixServer {
     }
 
     private HttpHandler run = exchange -> {
-      String script = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-      File fScript = new File(getCurrentGroup(exchange), script);
       int statusCode = StatusCodes.OK;
       String message = null;
-      List<String> args = getQueryAndToArgs(exchange);
-      int retval = Runner.executeScript(fScript.getPath(), args.toArray(new String[args.size()]));
+
+      RunTime.get().fWorkDir = getCurrentGroup(exchange);
+      String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+      String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
+      String[] args = getQueryAndToArgs(exchange);
+      RunTime.setUserArgs(args);
+      int retval = Runner.runScripts(scripts, args, new IScriptRunner.Options());
       switch(retval) {
         case Runner.FILE_NOT_FOUND:
-          //TODO handle: the given script file does not exist
-          message = "runScript: script not found " + fScript.getAbsolutePath();
+          message = String.format("runScript: script not found '%s'", scriptName);
           statusCode = StatusCodes.NOT_FOUND;
           break;
         case Runner.NOT_SUPPORTED:
-          //TODO handle: there is no runner available for the given script file
-          message = "runScript: script not supported " + fScript.getAbsolutePath();
+          message = String.format("runScript: script not supported '%s'", scriptName);
           statusCode = StatusCodes.NOT_FOUND;
           break;
         default:
-          //TODO all other retvals are returned by the user script and should be reported.
           if (retval < 0) {
             statusCode = StatusCodes.SERVICE_UNAVAILABLE;
           }
-          message = "runScript: returned: " + retval;
+          message = String.format("runScript: returned: %d", retval);
           break;
       }
       sendResponse(exchange, statusCode==StatusCodes.OK, statusCode, message);
     };
 
-    private String getCurrentGroup(final HttpServerExchange exchange) {
+    private File getCurrentGroup(final HttpServerExchange exchange) {
       CommandsAttachment attachment = Optional.ofNullable(exchange.getAttachment(KEY)).orElse(new CommandsAttachment());
       String groupName = Optional.ofNullable(attachment.get(GroupsCommand.ATTACHMENTKEY_GROUPNAME)).orElse(DEFAULT_GROUP);
-      return groups.get(groupName).getAbsolutePath();
+      return groups.get(groupName);
     }
 
-    private List<String> getQueryAndToArgs(final HttpServerExchange exchange) {
-      List<String> args = new LinkedList<String>();
+    private String[] getQueryAndToArgs(final HttpServerExchange exchange) {
+      String[] args = {};
       String queryString = exchange.getQueryString();
       if (queryString != null) {
         Matcher matcher = PATTERN_QUERY_ARGS.matcher(queryString);
         if (matcher.find()) {
           StringBuilder buf = new StringBuilder();
           String[] tokens = matcher.group("args").split(";");
-          for (String token : tokens) {
-            args.add(URLUtils.decode(token, "UTF-8", true, buf));
+          args = new String[tokens.length];
+          for (int i=0; i<tokens.length; i++) {
+            args[i] = URLUtils.decode(tokens[i], "UTF-8", true, buf);
           }
         }
       }
