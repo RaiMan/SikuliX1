@@ -283,7 +283,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     if (running && isAbortSupported()) {
       synchronized(AbstractScriptRunner.executor) {
         if (AbstractScriptRunner.task != null) {
-          doAbort(task);
+          doAbort(AbstractScriptRunner.task);
         }
       }
     }

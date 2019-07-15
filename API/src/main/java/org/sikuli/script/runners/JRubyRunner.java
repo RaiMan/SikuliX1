@@ -466,7 +466,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       field.setAccessible(false);
       if(runner != null) {
         ((Thread) runner).interrupt();
-       ((Thread) runner).stop();
+        ((Thread) runner).stop();
       }
     } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
       Debug.error("Exception aborting JRuby runner: %s", e.getMessage());
