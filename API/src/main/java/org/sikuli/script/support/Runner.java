@@ -218,6 +218,10 @@ public class Runner {
     return retVal;
   }
 
+  /**
+   * Aborts all runners by calling
+   * their abort() method.
+   */
   public static void abortAll() {
     for(IScriptRunner runner : supportedRunners) {
       runner.abort();

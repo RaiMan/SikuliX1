@@ -4,6 +4,7 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.util.concurrent.FutureTask;
 
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
@@ -88,7 +89,7 @@ public class SikulixRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected void doAbort() {
+  protected void doAbort(FutureTask<Integer> task) {
     wrapper.doAbort();
   }
 }
