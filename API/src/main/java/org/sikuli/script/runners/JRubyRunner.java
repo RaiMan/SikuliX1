@@ -24,7 +24,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.util.InterruptibleThreadRunner;
 
 public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
@@ -71,8 +70,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   private static ThreadContext context;
   private static boolean redirected = false;
 
-  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JRubyRunner.class);
-
   @Override
   protected void doInit(String[] args) {
     // Since we have a static interpreter, we have to synchronize class wide
@@ -87,30 +84,28 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      return threadRunner.run(options.getTimeout(), () -> {
-        if (null == scriptFile) {
-          // run the Ruby statements from argv (special for setup functional test)
-          fillSysArgv(null, null);
-          executeScriptHeader(new String[0]);
-          return runRuby(null, scriptArgs, null, options);
-        }
-        File rbFile = new File(new File(scriptFile).getAbsolutePath());
-        fillSysArgv(rbFile, scriptArgs);
+      if (null == scriptFile) {
+        // run the Ruby statements from argv (special for setup functional test)
+        fillSysArgv(null, null);
+        executeScriptHeader(new String[0]);
+        return runRuby(null, scriptArgs, null, options);
+      }
+      File rbFile = new File(new File(scriptFile).getAbsolutePath());
+      fillSysArgv(rbFile, scriptArgs);
 
-        executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
-            rbFile.getParentFile().getParentFile().getAbsolutePath() });
+      executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
+          rbFile.getParentFile().getParentFile().getAbsolutePath() });
 
-        prepareFileLocation(rbFile, options);
+      prepareFileLocation(rbFile, options);
 
-        int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
+      int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
 
-        log(lvl + 1, "runScript: at exit: path:");
-        for (Object p : interpreter.getLoadPaths()) {
-          log(lvl + 1, "runScript: " + p.toString());
-        }
-        log(lvl + 1, "runScript: at exit: --- end ---");
-        return exitCode;
-      });
+      log(lvl + 1, "runScript: at exit: path:");
+      for (Object p : interpreter.getLoadPaths()) {
+        log(lvl + 1, "runScript: " + p.toString());
+      }
+      log(lvl + 1, "runScript: at exit: --- end ---");
+      return exitCode;
     }
   }
 
@@ -118,14 +113,11 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      threadRunner.run(options.getTimeout(), () -> {
-        try {
-          interpreter.runScriptlet(lines);
-        } catch (Exception ex) {
-          log(-1, "runLines: (%s) raised: %s", lines, ex);
-        }
-        return 0;
-      });
+      try {
+        interpreter.runScriptlet(lines);
+      } catch (Exception ex) {
+        log(-1, "runLines: (%s) raised: %s", lines, ex);
+      }
     }
   }
 
@@ -133,11 +125,9 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      return threadRunner.run(options.getTimeout(), () -> {
-        executeScriptHeader(new String[0]);
-        interpreter.runScriptlet(script);
-        return 0;
-      });
+      executeScriptHeader(new String[0]);
+      interpreter.runScriptlet(script);
+      return 0;
     }
   }
 
@@ -455,11 +445,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   @Override
   public boolean isAbortSupported() {
     return true;
-  }
-
-  @Override
-  protected void doAbort() {
-    threadRunner.interrupt();
   }
 
   /**

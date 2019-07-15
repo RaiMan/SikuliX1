@@ -21,16 +21,9 @@ import com.sun.jna.ptr.IntByReference;
 
 public class InterruptibleThreadRunner {
   private Thread execThread;
-  private Object monitor;
 
   public InterruptibleThreadRunner() {
     super();
-    this.monitor = this;
-  }
-
-  public InterruptibleThreadRunner(Object monitor) {
-    super();
-    this.monitor = monitor;
   }
 
   /**
@@ -41,52 +34,58 @@ public class InterruptibleThreadRunner {
    * @param block Supplier is expected to return the execution error code.
    * @return
    */
-  public int run(long timeout, IntSupplier block) {
+  public int run(long timeout, Object monitor, IntSupplier block) {
     synchronized (monitor) {
       final IntByReference exitCode = new IntByReference(0);
 
-      execThread = new Thread() {
-        @Override
-        public void run() {
-          try {
-            exitCode.setValue(block.getAsInt());
-          } finally {
-            synchronized(monitor) {
-              monitor.notifyAll();
-            }
-          }
-        }
-      };
-      execThread.start();
+      boolean isExecThread = Thread.currentThread() == execThread;
 
-      if (timeout > 0) {
-        Thread timeoutThread = new Thread() {
+      if (!isExecThread) {
+        execThread = new Thread() {
           @Override
           public void run() {
-            long start = System.currentTimeMillis();
-
-            while (null != execThread) {
-              try {
-                Thread.sleep(100);
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-              if (System.currentTimeMillis() - start > timeout) {
-                InterruptibleThreadRunner.this.interrupt();
-                break;
+            try {
+              exitCode.setValue(block.getAsInt());
+            } finally {
+              synchronized(monitor) {
+                monitor.notifyAll();
               }
             }
           }
         };
-        timeoutThread.start();
-      }
+        execThread.start();
 
-      try {
-        monitor.wait();
-      } catch (InterruptedException e) {
-        interrupt();
-      } finally {
-        execThread = null;
+        if (timeout > 0) {
+          Thread timeoutThread = new Thread() {
+            @Override
+            public void run() {
+              long start = System.currentTimeMillis();
+
+              while (null != execThread) {
+                try {
+                  Thread.sleep(100);
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+                if (System.currentTimeMillis() - start > timeout) {
+                  InterruptibleThreadRunner.this.interrupt();
+                  break;
+                }
+              }
+            }
+          };
+          timeoutThread.start();
+        }
+
+        try {
+          monitor.wait();
+        } catch (InterruptedException e) {
+          interrupt();
+        } finally {
+          execThread = null;
+        }
+      } else {
+        exitCode.setValue(block.getAsInt());
       }
 
       return exitCode.getValue();
@@ -94,11 +93,9 @@ public class InterruptibleThreadRunner {
   }
 
   public void interrupt() {
-    synchronized (monitor) {
-      if (null != execThread && execThread.isAlive()) {
-        execThread.interrupt();
-        execThread.stop();
-      }
+    if (null != execThread && execThread.isAlive()) {
+      execThread.interrupt();
+      execThread.stop();
     }
   }
 }

@@ -4,19 +4,16 @@
 
 package org.sikuli.script.runners;
 
-import java.io.File;
 import java.io.PrintStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.IntSupplier;
 
-import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
+import org.sikuli.util.InterruptibleThreadRunner;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -46,6 +43,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   PrintStream redirectedStdout;
   PrintStream redirectedStderr;
+
+  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner();
 
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + "Runner: " + message, args);
@@ -158,23 +157,24 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
-    return synchronizedRunning(() -> {
-      init(null);
-      int savedLevel = Debug.getDebugLevel();
-      if (!Debug.isGlobalDebug()) {
-        Debug.off();
-      }
+    return threadRunner.run(options.getTimeout(), this, () -> {
+      return synchronizedRunning(() -> {
+        init(null);
+        int savedLevel = Debug.getDebugLevel();
+        if (!Debug.isGlobalDebug()) {
+          Debug.off();
+        }
 
-      int exitValue = 0;
-      exitValue = doRunScript(script, scriptArgs, options);
+        int exitValue = doRunScript(script, scriptArgs, options);
 
-      Debug.setDebugLevel(savedLevel);
-      return exitValue;
+        Debug.setDebugLevel(savedLevel);
+        return exitValue;
+      });
     });
   }
 
   public EffectiveRunner getEffectiveRunner(String script) {
-    return new EffectiveRunner(this, script, false);    
+    return new EffectiveRunner(this, script, false);
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -185,9 +185,12 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    return synchronizedRunning(() -> {
-      init(null);
-      return doEvalScript(script, options);
+
+    return threadRunner.run(options.getTimeout(), this, () -> {
+      return synchronizedRunning(() -> {
+        init(null);
+        return doEvalScript(script, options);
+      });
     });
   }
 
@@ -199,10 +202,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    synchronizedRunning(() -> {
-      init(null);
-      doRunLines(lines, options);
-      return 0;
+
+    threadRunner.run(options.getTimeout(), this, () -> {
+      return synchronizedRunning(() -> {
+        init(null);
+        doRunLines(lines, options);
+        return 0;
+      });
     });
   }
 
@@ -278,7 +284,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected void doAbort() {
-    // NOOP if not implemented
+    threadRunner.interrupt();
   }
 
   private int synchronizedRunning(IntSupplier block) {
