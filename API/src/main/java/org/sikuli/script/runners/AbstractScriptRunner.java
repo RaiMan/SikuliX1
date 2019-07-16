@@ -167,9 +167,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-
-    options.setTimeout(2000);
-
+    
     return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
