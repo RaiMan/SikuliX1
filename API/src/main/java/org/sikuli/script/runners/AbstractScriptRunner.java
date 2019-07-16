@@ -7,20 +7,18 @@ package org.sikuli.script.runners;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.IntSupplier;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
+
+import com.sun.jna.ptr.IntByReference;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -51,8 +49,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   PrintStream redirectedStdout;
   PrintStream redirectedStderr;
 
-  private static ExecutorService executor = Executors.newSingleThreadExecutor();
-  private static FutureTask<Integer> task;
+  private static volatile Thread worker = null;
+  private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+  private static final Object WORKER_LOCK = new Object();
+
+  private static final long ABORT_RETRIES = 4;
+  private static final long ABORT_RETRY_INTERVAL = 5000;
+  private static final long ABORT_CHECK_INTERVAL = 100;
 
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + "Runner: " + message, args);
@@ -165,8 +168,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
-    return synchronizedRunning(options, () -> {
-      init(null);
+    return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
@@ -192,8 +194,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
-    return synchronizedRunning(options, () -> {
-      init(null);
+    return runSynchronized(options, () -> {
       return doEvalScript(script, options);
     });
   }
@@ -207,8 +208,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
-    synchronizedRunning(options, () -> {
-      init(null);
+    runSynchronized(options, () -> {
       doRunLines(lines, options);
       return 0;
     });
@@ -238,8 +238,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         init(null);
         log(3, "reset requested (experimental: please report oddities)");
       } catch (Exception e) {
-        log(-1, "reset requested but did not work. Please report this case." +
-                "Do not run scripts anymore and restart the IDE after having saved your work");
+        log(-1, "reset requested but did not work. Please report this case."
+            + "Do not run scripts anymore and restart the IDE after having saved your work");
       }
     }
   }
@@ -281,69 +281,110 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   public final void abort() {
     if (running && isAbortSupported()) {
-      synchronized(AbstractScriptRunner.executor) {
-        if (AbstractScriptRunner.task != null) {
-          doAbort(AbstractScriptRunner.task);
+      doAbort();
+    }
+  }
+
+  @SuppressWarnings("deprecation")
+  protected void doAbort() {
+    /*
+     * Some runners do not return from an interrupted / stopped
+     * thread immediately. Retry to stop it after ABORT_RETRY_INTERVAL.
+     */
+    for (int i = 0; i < ABORT_RETRIES * ABORT_RETRY_INTERVAL; i+=ABORT_CHECK_INTERVAL) {
+      synchronized (WORKER_LOCK) {
+        if (worker == null) {
+          break;
+        }
+
+        if (i % ABORT_RETRY_INTERVAL == 0) {
+          worker.interrupt();
+          worker.stop();
         }
       }
-    }
-  }
 
-  protected void doAbort(FutureTask<Integer> task) {
-    task.cancel(true);
-  }
-
-  private FutureTask<Integer> initTask(IntSupplier block) {
-    synchronized(AbstractScriptRunner.executor) {
-      if (AbstractScriptRunner.task == null) {
-        AbstractScriptRunner.task = new FutureTask<>(new Callable<Integer>() {
-          @Override
-          public Integer call() {
-            synchronized(AbstractScriptRunner.class) {
-              return block.getAsInt();
-            }
-          }
-        });
-        return AbstractScriptRunner.task;
-      }
-      return null;
-    }
-  }
-
-  private int synchronizedRunning(IScriptRunner.Options options, IntSupplier block) {
       try {
-        running = true;
+        Thread.sleep(ABORT_CHECK_INTERVAL);
+      } catch (InterruptedException e) {
+        Debug.error("Interrupted while waiting for abort retry: %s", e.getMessage());
+      }
+    }
+  }
 
-        FutureTask<Integer> task = initTask(block);
+  private int runAbortable(IScriptRunner.Options options, IntSupplier block) {
+    synchronized (WORKER_LOCK) {
+      if (Thread.currentThread().isInterrupted()) {
+        Debug.log(-1, "%s thread interrupted.", getName());
+        return 1;
+      }
+    }
 
-        if (task != null) {
-          try {
-            executor.execute(task);
+    boolean newWorker;
+    IntByReference exitCode = new IntByReference(1);
 
-            if (options.getTimeout() > 0) {
-              return task.get(options.getTimeout(), TimeUnit.MILLISECONDS);
-            }
+    synchronized (WORKER_LOCK) {
+      newWorker = worker == null;
 
-            return task.get();
-          } catch (CancellationException | InterruptedException |
-              ExecutionException e) {
-            Debug.log(-1, "%s script cancelled or interrupted.", getName());
-            return 1;
-          } catch (TimeoutException e) {
-            Debug.info("%s script execution timed out after %d ms.", getName(), options.getTimeout());
-            task.cancel(true);
-            return 1;
-          } finally {
-            synchronized(AbstractScriptRunner.executor) {
-              AbstractScriptRunner.task = null;
+      if (newWorker) {
+        worker = new Thread() {
+          @Override
+          public void run() {
+            synchronized (AbstractScriptRunner.class) {
+              try {
+                exitCode.setValue(block.getAsInt());
+              } finally {
+                AbstractScriptRunner.class.notify();
+              }
             }
           }
+        };
+        worker.start();
+      }
+    }
+
+    if (newWorker) {
+      ScheduledFuture<?> timeoutFuture = null;
+      try {
+        if (options.getTimeout() > 0) {
+          final long timeout = options.getTimeout();
+
+          timeoutFuture = TIMEOUT_EXECUTOR.schedule(() -> {
+            Debug.info("%s script timed out after %d ms", getName(), timeout);
+            abort();
+          }, timeout, TimeUnit.MILLISECONDS);
         }
 
-        return block.getAsInt();
+        AbstractScriptRunner.class.wait();
+
+      } catch (InterruptedException e) {
+        Debug.log(-1, "Script interrupted unexpectedly: %s", e.getMessage());
+      } finally {
+        if (timeoutFuture != null) {
+          timeoutFuture.cancel(false);
+          timeoutFuture = null;
+        }
+        synchronized (WORKER_LOCK) {
+          worker = null;
+        }
+      }
+    } else {
+      exitCode.setValue(block.getAsInt());
+    }
+    return exitCode.getValue();
+  }
+
+  private int runSynchronized(IScriptRunner.Options options, IntSupplier block) {
+    synchronized (AbstractScriptRunner.class) {
+      running = true;
+
+      init(null);
+
+      try {
+        return runAbortable(options, block);
       } finally {
         running = false;
       }
+    }
   }
 
   public final boolean canHandleFileEnding(String identifier) {

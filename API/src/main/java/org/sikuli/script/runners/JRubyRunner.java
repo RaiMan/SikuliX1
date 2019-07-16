@@ -8,11 +8,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.FutureTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -447,30 +445,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   @Override
   public boolean isAbortSupported() {
     return true;
-  }
-
-  @Override
-  public void doAbort(FutureTask<Integer> task) {
-    /*
-     * Interrupting a JRuby thread (done by task.cancel()) does not
-     * end script execution but only interrupt sleeps, waits and
-     * other blocking operations. The scripts gets executed normally
-     * after this. That's why we have to implement a hack to get the
-     * Tasks runner thread and stops it after the interrupt.
-     */
-    try {
-      Field field = FutureTask.class.getDeclaredField("runner");
-      field.setAccessible(true);
-      Object runner = field.get(task);
-
-      field.setAccessible(false);
-      if(runner != null) {
-        ((Thread) runner).interrupt();
-        ((Thread) runner).stop();
-      }
-    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-      Debug.error("Exception aborting JRuby runner: %s", e.getMessage());
-    }
   }
 
   /**

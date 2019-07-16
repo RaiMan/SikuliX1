@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.concurrent.FutureTask;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -159,7 +158,7 @@ public class NetworkRunner extends AbstractScriptRunner {
   }
 
   @Override
-  protected void doAbort(FutureTask<Integer> task) {
+  protected void doAbort() {
     wrapper.doAbort();
   }
 }
