@@ -53,10 +53,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
   private static final Object WORKER_LOCK = new Object();
 
-  private static final long ABORT_RETRIES = 4;
-  private static final long ABORT_RETRY_INTERVAL = 5000;
-  private static final long ABORT_CHECK_INTERVAL = 100;
-
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + "Runner: " + message, args);
   }
