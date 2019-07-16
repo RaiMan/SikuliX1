@@ -77,6 +77,9 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       // TODO classpath and other path handlings
       sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
       createScriptingContainer();
+
+      // execute script headers to already do the warmup during init
+      executeScriptHeader(new String[] { });
     }
   }
 

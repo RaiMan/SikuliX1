@@ -168,6 +168,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
+    options.setTimeout(2000);
+
     return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
@@ -287,26 +289,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @SuppressWarnings("deprecation")
   protected void doAbort() {
-    /*
-     * Some runners do not return from an interrupted / stopped
-     * thread immediately. Retry to stop it after ABORT_RETRY_INTERVAL.
-     */
-    for (int i = 0; i < ABORT_RETRIES * ABORT_RETRY_INTERVAL; i+=ABORT_CHECK_INTERVAL) {
-      synchronized (WORKER_LOCK) {
-        if (worker == null) {
-          break;
-        }
 
-        if (i % ABORT_RETRY_INTERVAL == 0) {
+    synchronized (WORKER_LOCK) {
+      if (worker != null) {
           worker.interrupt();
           worker.stop();
-        }
-      }
-
-      try {
-        Thread.sleep(ABORT_CHECK_INTERVAL);
-      } catch (InterruptedException e) {
-        Debug.error("Interrupted while waiting for abort retry: %s", e.getMessage());
       }
     }
   }
