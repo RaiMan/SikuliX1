@@ -139,7 +139,7 @@ public class RunTime {
         try {
           ExtensionManager.addClassPathURL(new File(file).toURI().toURL());
         } catch (MalformedURLException e) {
-          e.printStackTrace();
+          Debug.error("Getting URL for class path file %s failed: %s", file, e.getMessage());
         }
       }
     }
