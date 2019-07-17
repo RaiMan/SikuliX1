@@ -135,7 +135,7 @@ public class ExtensionManager {
       method.invoke(ClassLoader.getSystemClassLoader(), new Object[]{url});
       method.setAccessible(false);
     } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-      e.printStackTrace();
+      Debug.error("Adding URL %s to class path failed: %s", url.toString(), e.getMessage());
     }
   }
 
