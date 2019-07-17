@@ -9,7 +9,10 @@ import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -122,6 +125,18 @@ public class ExtensionManager {
       }
     }
     return classPath;
+  }
+
+  public static void addClassPathURL(URL url) {
+    Method method;
+    try {
+      method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
+      method.setAccessible(true);
+      method.invoke(ClassLoader.getSystemClassLoader(), new Object[]{url});
+      method.setAccessible(false);
+    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+      e.printStackTrace();
+    }
   }
 
   private static String classPath = "";

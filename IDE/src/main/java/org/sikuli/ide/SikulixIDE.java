@@ -51,10 +51,9 @@ public class SikulixIDE extends JFrame {
           SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
+    RunTime.afterStart(RunTime.Type.IDE, args);
 
     IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
-
-    RunTime.afterStart(RunTime.Type.IDE, args);
 
     if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
       prepareMacUI();
