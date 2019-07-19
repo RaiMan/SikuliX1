@@ -68,8 +68,16 @@ public class PatternWindow extends JFrame {
       pDim = getGraphicsConfiguration().getBounds().getSize();
       pDim.width = (int) ((pDim.width - 2 * pOff) * 0.95);
       pDim.height = (int) ((pDim.height - 2 * pOff) * 0.95);
+
+      // optimize window size to aspect ratio of screenshot
+      double ratio = (double) _simg.w / _simg.h;
+      pDim.width = Math.min((int) ((pDim.height - PatternPaneScreenshot.BOTTOM_MARGIN) * ratio), pDim.width);
+
+      // center window
       pLoc = getGraphicsConfiguration().getBounds().getLocation();
-      pLoc.translate(pOff, pOff);
+      int offsetX = (getGraphicsConfiguration().getBounds().getSize().width - pDim.width) / 2;
+      int offsetY = (getGraphicsConfiguration().getBounds().getSize().height - pDim.height) / 2;
+      pLoc.translate(offsetX, offsetY);
     }
     setPreferredSize(pDim);
 
