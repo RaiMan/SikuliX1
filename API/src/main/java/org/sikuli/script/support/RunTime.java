@@ -110,28 +110,39 @@ public class RunTime {
       RunTime.startLog(1, "Classpath: %s", classPath);
     }
 
-    List<String> cmd = new ArrayList<>();
-    cmd.add("java");
-    cmd.add("-Dfile.encoding=UTF-8");
-    if (startAsIDE) {
-      cmd.add("-Dsikuli.IDE_should_run");
-    } else {
-      cmd.add("-Dsikuli.API_should_run");
-    }
-    if (!classPath.isEmpty()) {
-      cmd.add("-cp");
-      cmd.add(classPath);
-    }
-    if (startAsIDE) {
-      cmd.add("org.sikuli.ide.SikulixIDE");
-    } else {
-      cmd.add("org.sikuli.script.support.SikulixAPI");
-    }
-    cmd.addAll(Arrays.asList(args));
-    ProcessRunner.detach(cmd);
-    RunTime.startLog(3, "*********************** leaving start");
-    System.exit(0);
+    if (shouldDetach()) {
+      List<String> cmd = new ArrayList<>();
+      cmd.add("java");
+      cmd.add("-Dfile.encoding=UTF-8");
+      if (startAsIDE) {
+        cmd.add("-Dsikuli.IDE_should_run");
+      } else {
+        cmd.add("-Dsikuli.API_should_run");
+      }
+      if (!classPath.isEmpty()) {
+        cmd.add("-cp");
+        cmd.add(classPath);
+      }
+      if (startAsIDE) {
+        cmd.add("org.sikuli.ide.SikulixIDE");
+      } else {
+        cmd.add("org.sikuli.script.support.SikulixAPI");
+      }
+      cmd.addAll(Arrays.asList(args));
 
+      ProcessRunner.detach(cmd);
+      RunTime.startLog(3, "*********************** leaving start");
+      System.exit(0);
+    } else {
+      String[] classPathFiles = classPath.split(";");
+      for (String file : classPathFiles) {
+        try {
+          ExtensionManager.addClassPathURL(new File(file).toURI().toURL());
+        } catch (MalformedURLException e) {
+          Debug.error("Getting URL for class path file %s failed: %s", file, e.getMessage());
+        }
+      }
+    }
   }
 
   private static File getRunningJar(Type type) {
@@ -340,12 +351,7 @@ public class RunTime {
     }
 
     if (cmdLineValid && cmdLine.hasOption("s")) {
-      asServer = true;
       serverOptions = cmdLine.getOptionValues("s");
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("p")) {
-      asPyServer = true;
     }
 
     if (cmdLineValid && cmdLine.hasOption("m")) {
@@ -456,6 +462,12 @@ public class RunTime {
         setVerbose();
       } else if ("-q".equals(arg)) {
         setQuiet();
+      } else if ("-r".equals(arg)) {
+        shouldRunScript = true;
+      } else if ("-s".equals(arg)) {
+        asServer = true;
+      }  else if ("-p".equals(arg)) {
+        asPyServer = true;
       }
     }
   }
@@ -540,10 +552,11 @@ public class RunTime {
     return runScripts;
   }
 
+  private static boolean shouldRunScript = false;
   private static String[] runScripts = new String[0];
 
   public static boolean runningScripts() {
-    return runScripts.length > 0;
+    return shouldRunScript;
   }
 
   public static boolean shouldRunServer() {
@@ -585,6 +598,10 @@ public class RunTime {
   }
 
   private static boolean allowMultiple = false;
+
+  public static boolean shouldDetach() {
+    return !runningScripts() && !shouldRunServer() && !shouldRunPythonServer();
+  }
 
   public static File getAppPath() {
     if (null != sxAppPath) {
