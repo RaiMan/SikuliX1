@@ -20,13 +20,11 @@ import org.python.core.BytecodeLoader;
 import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
-import org.python.util.jython;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.util.InterruptibleThreadRunner;
 
 /**
  * Executes Sikuliscripts written in Python/Jython.
@@ -39,8 +37,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   public static final String[] EXTENSIONS = new String[] { "py" };
 
   private static RunTime runTime = RunTime.get();
-
-  private static InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner(JythonRunner.class);
 
   private int lvl = 3;
 
@@ -108,19 +104,15 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      threadRunner.run(options.getTimeout(), () -> {
-        final String normalizedLines = normalizePartialScript(lines);
+      final String normalizedLines = normalizePartialScript(lines);
 
-        executeScriptHeader();
+      executeScriptHeader();
 
-        try {
-          interpreter.exec(normalizedLines);
-          return 0;
-        } catch (Exception ex) {
-          log(-1, "runPython: (%s) raised: %s", "\n" + normalizedLines, ex);
-          return 1;
-        }
-      });
+      try {
+        interpreter.exec(normalizedLines);
+      } catch (Exception ex) {
+        log(-1, "runPython: (%s) raised: %s", "\n" + normalizedLines, ex);
+      }
     }
   }
 
@@ -352,10 +344,8 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      return threadRunner.run(options.getTimeout(), () -> {
-        interpreter.exec(script);
-        return 0;
-      });
+      interpreter.exec(script);
+      return 0;
     }
   }
 
@@ -372,56 +362,53 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      return threadRunner.run(options.getTimeout(), () -> {
+      File pyFile = new File(scriptFile);
+      sysargv = new ArrayList<String>();
+      sysargv.add(pyFile.getAbsolutePath());
+      if (argv != null) {
+        sysargv.addAll(Arrays.asList(argv));
+      }
 
-        File pyFile = new File(scriptFile);
-        sysargv = new ArrayList<String>();
-        sysargv.add(pyFile.getAbsolutePath());
-        if (argv != null) {
-          sysargv.addAll(Arrays.asList(argv));
+      executeScriptHeader();
+
+      prepareFileLocation(pyFile, options);
+
+      int exitCode = 0;
+
+      try {
+        if (scriptFile.endsWith("$py.class")) {
+          byte[] data = FileUtils.readFileToByteArray(new File(scriptFile));
+
+          PyCode code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
+
+          interpreter.exec(code);
+        } else {
+          interpreter.execfile(pyFile.getAbsolutePath());
         }
 
-        executeScriptHeader();
-
-        prepareFileLocation(pyFile, options);
-
-        int exitCode = 0;
-
-        try {
-          if (scriptFile.endsWith("$py.class")) {
-            byte[] data = FileUtils.readFileToByteArray(new File(scriptFile));
-
-            PyCode code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
-
-            interpreter.exec(code);
-          } else {
-            interpreter.execfile(pyFile.getAbsolutePath());
+      } catch (Exception scriptException) {
+        exitCode = 1;
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
+        Matcher matcher = p.matcher(scriptException.toString());
+        if (matcher.find()) {
+          exitCode = Integer.parseInt(matcher.group(1));
+          Debug.info("Exit code: " + exitCode);
+        } else {
+          int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
+          if (null != options) {
+            options.setErrorLine(errorExit);
           }
-
-        } catch (Exception scriptException) {
-          exitCode = 1;
-          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
-          Matcher matcher = p.matcher(scriptException.toString());
-          if (matcher.find()) {
-            exitCode = Integer.parseInt(matcher.group(1));
-            Debug.info("Exit code: " + exitCode);
-          } else {
-            int errorExit = helper.findErrorSource(scriptException, pyFile.getAbsolutePath());
-            if (null != options) {
-              options.setErrorLine(errorExit);
-            }
-          }
-        } finally {
-          interpreter.cleanup();
         }
+      } finally {
+        interpreter.cleanup();
+      }
 
-        if (System.out.checkError()) {
-          Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
-              + "\nSave your work and restart the IDE!", "Fatal Error");
-        }
+      if (System.out.checkError()) {
+        Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
+            + "\nSave your work and restart the IDE!", "Fatal Error");
+      }
 
-        return exitCode;
-      });
+      return exitCode;
     }
   }
 
@@ -531,11 +518,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   @Override
   public boolean isAbortSupported() {
     return true;
-  }
-
-  @Override
-  protected void doAbort() {
-    threadRunner.interrupt();
   }
 
   @Override

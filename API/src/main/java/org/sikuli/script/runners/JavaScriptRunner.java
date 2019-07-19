@@ -17,7 +17,6 @@ import javax.script.ScriptException;
 
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.util.InterruptibleThreadRunner;
 
 public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
@@ -42,8 +41,6 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
   private PrintStream stderr;
 
-  private InterruptibleThreadRunner threadRunner = new InterruptibleThreadRunner();
-
   @Override
   protected void doInit(String[] args) throws Exception {
     ScriptEngineManager jsFactory = new ScriptEngineManager();
@@ -64,28 +61,26 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
-    return threadRunner.run(options.getTimeout(), () -> {
-      log(lvl, "runJavaScript: running statements");
+    log(lvl, "runJavaScript: running statements");
 
-      prepareFileLocation(new File(scriptFile), options);
+    prepareFileLocation(new File(scriptFile), options);
 
-      try {
-        engine.eval(new FileReader(new File(scriptFile)));
-      } catch (FileNotFoundException | ScriptException e) {
-        log(lvl, "runScript failed", e);
+    try {
+      engine.eval(new FileReader(new File(scriptFile)));
+    } catch (FileNotFoundException | ScriptException e) {
+      log(lvl, "runScript failed", e);
 
-        if (null != stderr) {
-          stderr.print(e);
-        }
-
-        if (null != options) {
-          options.setErrorLine(findErrorSource(e, scriptFile));
-        }
-
-        return -1;
+      if (null != stderr) {
+        stderr.print(e);
       }
-      return 0;
-    });
+
+      if (null != options) {
+        options.setErrorLine(findErrorSource(e, scriptFile));
+      }
+
+      return -1;
+    }
+    return 0;
   }
 
   @Override
@@ -143,11 +138,6 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   @Override
   public boolean isAbortSupported() {
     return true;
-  }
-
-  @Override
-  protected void doAbort() {
-    threadRunner.interrupt();
   }
 
   private int findErrorSource(Throwable thr, String filename) {
