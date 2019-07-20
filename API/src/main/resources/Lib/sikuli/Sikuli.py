@@ -619,7 +619,7 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
     exclude_list = ['class', 'classDictInit', 'clone', 'equals', 'finalize',
                     'getClass', 'hashCode', 'notify', 'notifyAll',
                     'toGlobalCoord', 'getLocationFromPSRML', 'getRegionFromPSRM',
-                    'create', 'observeInBackground', 'waitAll',
+                    'create', 'waitAll',
                     'updateSelf', 'findNow', 'findAllNow', 'getEventManager',
                     'lastMatch', 'lastMatches', 'lastScreenImage', 'lastScreenImageFile',
                     'capture', 'wait', 'lineList', 'wordList', 'all'
