@@ -3,37 +3,100 @@
  */
 package org.sikuli.ide;
 
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.AWTEventListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Element;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+
 import org.sikuli.android.ADBClient;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.android.ADBTest;
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyEvent;
+import org.sikuli.basics.HotkeyListener;
+import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.PreferencesUser;
+import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.idesupport.IDESplash;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IDETaskbarSupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.script.Image;
+import org.sikuli.script.Key;
+import org.sikuli.script.Location;
+import org.sikuli.script.Options;
+import org.sikuli.script.Region;
+import org.sikuli.script.SX;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.script.*;
-import org.sikuli.script.support.*;
-import org.sikuli.util.*;
-
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.Element;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
-import java.io.*;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.List;
-import java.util.*;
+import org.sikuli.script.support.ExtensionManager;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
+import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
+import org.sikuli.util.OverlayCapturePrompt;
+import org.sikuli.util.SikulixFileChooser;
 
 public class SikulixIDE extends JFrame {
 
@@ -51,10 +114,9 @@ public class SikulixIDE extends JFrame {
           SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
+    RunTime.afterStart(RunTime.Type.IDE, args);
 
     IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
-
-    RunTime.afterStart(RunTime.Type.IDE, args);
 
     if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
       prepareMacUI();
@@ -2692,12 +2754,8 @@ public class SikulixIDE extends JFrame {
   }
 
   void onStopRunning() {
-    if (isRunningScript()) {
-      log(3, "AbortKey was pressed: aborting script run: %s", getCurrentScript().getName());
-      getCurrentRunner().abort();
-    } else {
-      log(3, "AbortKey was pressed: NOOP: no script is running currently");
-    }
+    log(3, "AbortKey was pressed: aborting all running scripts");
+    Runner.abortAll();
   }
 
   private void initHotkeys() {

@@ -4,19 +4,21 @@
 
 package org.sikuli.script.runners;
 
-import java.io.File;
 import java.io.PrintStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 
-import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
+
+import com.sun.jna.ptr.IntByReference;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -47,6 +49,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   PrintStream redirectedStdout;
   PrintStream redirectedStderr;
 
+  private static volatile Thread worker = null;
+  private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+  private static final Object WORKER_LOCK = new Object();
+
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + "Runner: " + message, args);
   }
@@ -57,7 +63,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void init(String[] args) throws SikuliXception {
-    synchronized (this) {
+    synchronized (AbstractScriptRunner.class) {
       if (!ready) {
         try {
           doInit(args);
@@ -79,7 +85,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public final boolean isReady() {
-    synchronized (this) {
+    synchronized (AbstractScriptRunner.class) {
       return ready;
     }
   }
@@ -126,7 +132,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
-    synchronized (this) {
+    synchronized (AbstractScriptRunner.class) {
       Debug.log(3, "%s: Initiate IO redirect", getName());
 
       this.redirectedStdout = stdout;
@@ -157,16 +163,14 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-
-    return synchronizedRunning(() -> {
-      init(null);
+    
+    return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
         Debug.off();
       }
 
-      int exitValue = 0;
-      exitValue = doRunScript(script, scriptArgs, options);
+      int exitValue = doRunScript(script, scriptArgs, options);
 
       Debug.setDebugLevel(savedLevel);
       return exitValue;
@@ -174,7 +178,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   public EffectiveRunner getEffectiveRunner(String script) {
-    return new EffectiveRunner(this, script, false);    
+    return new EffectiveRunner(this, script, false);
   }
 
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -185,8 +189,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    return synchronizedRunning(() -> {
-      init(null);
+
+    return runSynchronized(options, () -> {
       return doEvalScript(script, options);
     });
   }
@@ -199,8 +203,8 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final void runLines(String lines, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    synchronizedRunning(() -> {
-      init(null);
+
+    runSynchronized(options, () -> {
       doRunLines(lines, options);
       return 0;
     });
@@ -212,7 +216,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void close() {
-    synchronized (this) {
+    synchronized (AbstractScriptRunner.class) {
       ready = false;
       doClose();
     }
@@ -224,14 +228,14 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   @Override
   public final void reset() {
-    synchronized (this) {
+    synchronized (AbstractScriptRunner.class) {
       try {
         close();
         init(null);
         log(3, "reset requested (experimental: please report oddities)");
       } catch (Exception e) {
-        log(-1, "reset requested but did not work. Please report this case." +
-                "Do not run scripts anymore and restart the IDE after having saved your work");
+        log(-1, "reset requested but did not work. Please report this case."
+            + "Do not run scripts anymore and restart the IDE after having saved your work");
       }
     }
   }
@@ -277,15 +281,87 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
   }
 
+  @SuppressWarnings("deprecation")
   protected void doAbort() {
-    // NOOP if not implemented
+
+    synchronized (WORKER_LOCK) {
+      if (worker != null) {
+          worker.interrupt();
+          worker.stop();
+      }
+    }
   }
 
-  private int synchronizedRunning(IntSupplier block) {
-    synchronized (this) {
+  private int runAbortable(IScriptRunner.Options options, IntSupplier block) {
+    synchronized (WORKER_LOCK) {
+      if (Thread.currentThread().isInterrupted()) {
+        Debug.log(-1, "%s thread interrupted.", getName());
+        return 1;
+      }
+    }
+
+    boolean newWorker;
+    IntByReference exitCode = new IntByReference(1);
+
+    synchronized (WORKER_LOCK) {
+      newWorker = worker == null;
+
+      if (newWorker) {
+        worker = new Thread() {
+          @Override
+          public void run() {
+            synchronized (AbstractScriptRunner.class) {
+              try {
+                exitCode.setValue(block.getAsInt());
+              } finally {
+                AbstractScriptRunner.class.notify();
+              }
+            }
+          }
+        };
+        worker.start();
+      }
+    }
+
+    if (newWorker) {
+      ScheduledFuture<?> timeoutFuture = null;
       try {
-        running = true;
-        return block.getAsInt();
+        if (options.getTimeout() > 0) {
+          final long timeout = options.getTimeout();
+
+          timeoutFuture = TIMEOUT_EXECUTOR.schedule(() -> {
+            Debug.info("%s script timed out after %d ms", getName(), timeout);
+            abort();
+          }, timeout, TimeUnit.MILLISECONDS);
+        }
+
+        AbstractScriptRunner.class.wait();
+
+      } catch (InterruptedException e) {
+        Debug.log(-1, "Script interrupted unexpectedly: %s", e.getMessage());
+      } finally {
+        if (timeoutFuture != null) {
+          timeoutFuture.cancel(false);
+          timeoutFuture = null;
+        }
+        synchronized (WORKER_LOCK) {
+          worker = null;
+        }
+      }
+    } else {
+      exitCode.setValue(block.getAsInt());
+    }
+    return exitCode.getValue();
+  }
+
+  private int runSynchronized(IScriptRunner.Options options, IntSupplier block) {
+    synchronized (AbstractScriptRunner.class) {
+      running = true;
+
+      init(null);
+
+      try {
+        return runAbortable(options, block);
       } finally {
         running = false;
       }
