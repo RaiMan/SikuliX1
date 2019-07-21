@@ -4,21 +4,22 @@
 
 package org.sikuli.script.support;
 
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.io.FilenameUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.HotkeyEvent;
-import org.sikuli.basics.HotkeyListener;
-import org.sikuli.basics.HotkeyManager;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
-
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 
 public class Runner {
 
@@ -176,28 +177,13 @@ public class Runner {
         }
       }
       return 0;
-    } else
-      //TODO allow to use runScript() from inside a script
-      log(-1, "runScript(): currently not supported");
-      return -1;
-      //return runScripts(new String[]{script}, args, options);
+    }
+    return runScripts(new String[]{script}, args, options);
   }
-
-  private static IScriptRunner currentRunner = new InvalidRunner();
 
   public static int runScripts(String[] runScripts, String[] args, IScriptRunner.Options options) {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
-
-      // making stop hotkey available
-      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
-        @Override
-        public void hotkeyPressed(HotkeyEvent e) {
-          Debug.log(3, "Stop HotKey was pressed");
-          currentRunner.abort();
-        }
-      });
-      
       for (String scriptGiven : runScripts) {
         if (scriptGiven.startsWith("!")) {
           // special meaning from -r option evaluation to get a synchronous log and noop action
@@ -211,10 +197,8 @@ public class Runner {
           log(3, "runscript: running script: %s", scriptGiven);
           IScriptRunner runner = getRunner(scriptGiven);
           RunTime.get().setLastScriptRunReturnCode(0);
-          currentRunner = runner;
           exitCode = runner.runScript(scriptGiven, args, options);
           RunTime.get().setLastScriptRunReturnCode(exitCode);
-          currentRunner = new InvalidRunner();
         }
         if (exitCode != 0) {
           if (exitCode == FILE_NOT_FOUND) {
@@ -232,6 +216,16 @@ public class Runner {
     int retVal;
     retVal = runner.runScript(script, args, options);
     return retVal;
+  }
+
+  /**
+   * Aborts all runners by calling
+   * their abort() method.
+   */
+  public static void abortAll() {
+    for(IScriptRunner runner : supportedRunners) {
+      runner.abort();
+    }
   }
 
   /**
