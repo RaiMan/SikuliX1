@@ -127,18 +127,6 @@ public class ExtensionManager {
     return classPath;
   }
 
-  public static void addClassPathURL(URL url) {
-    Method method;
-    try {
-      method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
-      method.setAccessible(true);
-      method.invoke(ClassLoader.getSystemClassLoader(), new Object[]{url});
-      method.setAccessible(false);
-    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-      Debug.error("Adding URL %s to class path failed: %s", url.toString(), e.getMessage());
-    }
-  }
-
   private static String classPath = "";
 
   public static void readExtensions(boolean afterStart) {

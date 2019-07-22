@@ -110,38 +110,32 @@ public class RunTime {
       RunTime.startLog(1, "Classpath: %s", classPath);
     }
 
-    if (shouldDetach()) {
-      List<String> cmd = new ArrayList<>();
-      cmd.add("java");
-      cmd.add("-Dfile.encoding=UTF-8");
-      if (startAsIDE) {
-        cmd.add("-Dsikuli.IDE_should_run");
-      } else {
-        cmd.add("-Dsikuli.API_should_run");
-      }
-      if (!classPath.isEmpty()) {
-        cmd.add("-cp");
-        cmd.add(classPath);
-      }
-      if (startAsIDE) {
-        cmd.add("org.sikuli.ide.SikulixIDE");
-      } else {
-        cmd.add("org.sikuli.script.support.SikulixAPI");
-      }
-      cmd.addAll(Arrays.asList(args));
+    List<String> cmd = new ArrayList<>();
+    cmd.add("java");
+    cmd.add("-Dfile.encoding=UTF-8");
+    if (startAsIDE) {
+      cmd.add("-Dsikuli.IDE_should_run");
+    } else {
+      cmd.add("-Dsikuli.API_should_run");
+    }
+    if (!classPath.isEmpty()) {
+      cmd.add("-cp");
+      cmd.add(classPath);
+    }
+    if (startAsIDE) {
+      cmd.add("org.sikuli.ide.SikulixIDE");
+    } else {
+      cmd.add("org.sikuli.script.support.SikulixAPI");
+    }
+    cmd.addAll(Arrays.asList(args));
 
+    if (shouldDetach()) {
       ProcessRunner.detach(cmd);
       RunTime.startLog(3, "*********************** leaving start");
       System.exit(0);
     } else {
-      String[] classPathFiles = classPath.split(";");
-      for (String file : classPathFiles) {
-        try {
-          ExtensionManager.addClassPathURL(new File(file).toURI().toURL());
-        } catch (MalformedURLException e) {
-          Debug.error("Getting URL for class path file %s failed: %s", file, e.getMessage());
-        }
-      }
+      int exitCode = ProcessRunner.runBlocking(cmd);
+      System.exit(exitCode);
     }
   }
 
