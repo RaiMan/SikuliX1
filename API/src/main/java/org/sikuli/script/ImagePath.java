@@ -114,8 +114,6 @@ public class ImagePath {
    * empty path list and keep bundlePath (entry 0)<br>
    * Image cache is cleared completely
    * convenience for the scripting level
-   *
-   * @return true
    */
   public static void reset() {
     log(lvl, "reset");
