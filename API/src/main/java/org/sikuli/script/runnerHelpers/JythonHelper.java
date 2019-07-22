@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.python.core.PySyntaxError;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -900,10 +899,15 @@ public class JythonHelper implements IScriptLanguageHelper {
 //      err = thr.getCause().toString();
 //    }
     Class errorClass = throwable.getClass();
+    Class pySyntaxError = null;
+    try {
+      pySyntaxError = Class.forName("PySyntaxError");
+    } catch (ClassNotFoundException e) {
+    }
 
     if (errorClass.equals(org.python.core.PyException.class)) {
       errorType = PY_RUNTIME;
-    } else if (errorClass.equals(PySyntaxError.class)) {
+    } else if (errorClass.equals(pySyntaxError)) {
       errorType = PY_SYNTAX;
     } else {
       errorType = PY_JAVA;
