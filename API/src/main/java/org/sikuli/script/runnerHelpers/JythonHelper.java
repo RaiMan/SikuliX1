@@ -468,8 +468,6 @@ public class JythonHelper implements IScriptLanguageHelper {
       return fJar.getAbsolutePath();
     }
   }
-
-  private long lastRun = 0;
   //</editor-fold>
 
   //<editor-fold desc="10 sys.path handling">
@@ -479,6 +477,8 @@ public class JythonHelper implements IScriptLanguageHelper {
   int nPathSaved = -1;
   private List<File> importedScripts = new ArrayList<File>();
   String name = "";
+
+  private long lastRun = 0;
 
   public void reloadImported() {
     if (lastRun > 0) {

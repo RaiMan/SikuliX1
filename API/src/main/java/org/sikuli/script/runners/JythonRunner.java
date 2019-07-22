@@ -373,6 +373,10 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
       prepareFileLocation(pyFile, options);
 
+      if (options.isRunningInIDE()) {
+        JythonHelper.get().reloadImported();
+      }
+
       int exitCode = 0;
 
       try {
