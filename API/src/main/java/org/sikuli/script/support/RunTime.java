@@ -10,7 +10,7 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerHelpers.JythonHelper;
-import org.sikuli.script.runners.JythonRunner;
+//import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
@@ -519,7 +519,8 @@ public class RunTime {
 
   private static long elapsedStart = new Date().getTime();
 
-  private static String defaultRunnerType = JythonRunner.TYPE;
+  //TODO get better solution to avoid JythonRunner class ref
+  private static String defaultRunnerType = "text/jython"; //JythonRunner.TYPE;
 
   public static String getDefaultRunnerType() {
     return defaultRunnerType;
