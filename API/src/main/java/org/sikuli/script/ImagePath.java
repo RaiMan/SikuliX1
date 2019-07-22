@@ -563,6 +563,12 @@ public class ImagePath {
   }
 
   public static File setBundleFolder(File folder) {
+    try {
+      folder = folder.getCanonicalFile();
+    } catch (IOException e) {
+      log(-1, "canonical file problem: %s", folder);
+      return null;
+    }
     if (null == folder || bundleEquals(folder)) {
       return folder;
     }

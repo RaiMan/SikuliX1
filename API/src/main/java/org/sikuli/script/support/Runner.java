@@ -4,22 +4,20 @@
 
 package org.sikuli.script.support;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.io.FilenameUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 public class Runner {
 
@@ -185,6 +183,36 @@ public class Runner {
         }
       }
       return 0;
+    }
+    File scriptFile = new File(script);
+    if (!scriptFile.isAbsolute()) {
+      File currentScript = null;
+      File currentFolder = new File(ImagePath.getBundlePath()).getParentFile();
+      try {
+        currentScript = new File(currentFolder, script).getCanonicalFile();
+      } catch (IOException e) {
+        log(-1, "canonical file problem: %s / %s", currentFolder, script);
+      }
+      if (null == currentScript || !currentScript.exists()) {
+        if (null != currentScript) {
+          if (FilenameUtils.getExtension(script).isEmpty()) {
+            try {
+              currentScript = new File(currentFolder, script + ".sikuli").getCanonicalFile();
+            } catch (IOException e) {
+              log(-1, "canonical file problem: %s / %s", currentFolder, script + ".sikuli");
+              currentScript = null;
+            }
+          }
+          if (null == currentScript || !currentScript.exists()) {
+            currentScript = null;
+          }
+        }
+        if (null == currentScript) {
+          log(-1, "script not found: %s", script);
+          return FILE_NOT_FOUND;
+        }
+      }
+      script = currentScript.getPath();
     }
     return runScripts(new String[]{script}, args, options);
   }
