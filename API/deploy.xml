@@ -119,7 +119,7 @@
             <version>3.0.1</version>
             <configuration>
               <excludePackageNames>
-                org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb:py4Java:org.sikuli.script.runners
+                org.sikuli.script.runners:org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb:py4Java
               </excludePackageNames>
             </configuration>
             <executions>
