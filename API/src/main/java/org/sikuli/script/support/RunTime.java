@@ -203,6 +203,15 @@ public class RunTime {
     }
 
     if (runningScripts()) {
+      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+        @Override
+        public void hotkeyPressed(HotkeyEvent e) {
+          if (RunTime.get().runningScripts()) {
+            Runner.abortAll();
+            Sikulix.terminate(254, "AbortKey was pressed: aborting all running scripts");
+          }
+        }
+      });
       int exitCode = Runner.runScripts(RunTime.getRunScripts(), userArgs, new IScriptRunner.Options());
       if (exitCode > 255) {
         exitCode = 254;
@@ -224,28 +233,24 @@ public class RunTime {
 //    }
 
     if (shouldRunPythonServer()) {
-      get().installStopHotkey();
+      get().installStopHotkeyPythonServer();
       if (Debug.getDebugLevel() == 3) {
       }
       startPythonServer();
     }
   }
 
-  public void installStopHotkey() {
+  public void installStopHotkeyPythonServer() {
     HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
-        onStopHotkey();
+        Debug.log(3, "Stop HotKey was pressed");
+        if (RunTime.get().shouldRunPythonServer()) {
+          stopPythonServer();
+          Sikulix.terminate();
+        }
       }
     });
-  }
-
-  private void onStopHotkey() {
-    Debug.log(3, "Stop HotKey was pressed");
-    if (RunTime.get().shouldRunPythonServer()) {
-      stopPythonServer();
-      Sikulix.terminate();
-    }
   }
 
   public static void startPythonServer() {
