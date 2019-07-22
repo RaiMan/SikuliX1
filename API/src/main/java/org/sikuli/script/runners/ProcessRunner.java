@@ -168,6 +168,32 @@ public class ProcessRunner extends AbstractScriptRunner{
     }
   }
 
+  public static int runBlocking(List<String> cmd) {
+    int exitValue = 0;
+    if (cmd.size() > 0) {
+      ProcessBuilder app = new ProcessBuilder();
+      app.command(cmd);
+      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+      Process process = null;
+      try {
+        process = app.start();
+      } catch (Exception e) {
+        p("[Error] ProcessRunner: start: %s", e.getMessage());
+      }
+
+      try {
+        if (process != null) {
+          process.waitFor();
+          exitValue = process.exitValue();
+        }
+      } catch (InterruptedException e) {
+        p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+      }
+    }
+    return exitValue;
+  }
+
   public static int startApp(String... givenCmd) {
     List<String> cmd = new ArrayList<>();
     cmd.addAll(Arrays.asList(givenCmd));
