@@ -273,7 +273,6 @@ public interface IScriptRunner {
    *
    * @param stdout PrintStream for STDOUT
    * @param stderr PrintStream for STDERR
-   * @return
    */
   public void redirect(PrintStream stdout, PrintStream stderr);
 
