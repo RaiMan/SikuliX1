@@ -53,6 +53,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
     Runtime.getRuntime().addShutdownHook(new Thread()
     {
+      @Override
       public void run()
       {
         try {
@@ -166,7 +167,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   @Override
   public void nativeMouseClicked(NativeMouseEvent e) {
-    // add(e);
+    // do not handle
   }
 
   @Override

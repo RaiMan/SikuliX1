@@ -3,17 +3,19 @@ package org.sikuli.script.support.recorder.actions;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.generators.ICodeGenerator;
 
-public class WaitClickAction implements IRecordedAction {
+public class WaitAction implements IRecordedAction {
   private Pattern pattern;
   private int seconds;
+  IRecordedAction matchAction;  
 
-  public WaitClickAction(Pattern pattern, int seconds) {
+  public WaitAction(Pattern pattern, int seconds, IRecordedAction matchAction) {
     this.pattern = pattern;
     this.seconds = seconds;
+    this.matchAction = matchAction;
   }
 
   @Override
   public String generate(ICodeGenerator generator) {
-    return generator.waitClick(pattern, seconds);
+    return generator.wait(pattern, seconds, matchAction);
   }
 }

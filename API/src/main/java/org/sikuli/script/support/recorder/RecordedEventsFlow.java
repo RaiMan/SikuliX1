@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,10 +34,12 @@ import org.sikuli.script.Pattern;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.recorder.actions.ClickAction;
+import org.sikuli.script.support.recorder.actions.DoubleClickAction;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
+import org.sikuli.script.support.recorder.actions.RightClickAction;
 import org.sikuli.script.support.recorder.actions.TypeKeyAction;
 import org.sikuli.script.support.recorder.actions.TypeTextAction;
-import org.sikuli.script.support.recorder.actions.WaitClickAction;
+import org.sikuli.script.support.recorder.actions.WaitAction;
 
 public class RecordedEventsFlow {
 
@@ -45,6 +48,7 @@ public class RecordedEventsFlow {
   private static final int MAX_FEATURES = 200;
   private static final double FEATURE_INCREASE_RATIO = 0.8;
   private static final int FEATURE_IMAGE_MARGIN = 5;
+  private static final int DOUBLE_CLICK_TIME = 300;
 
   private TreeMap<Long, NativeInputEvent> events = new TreeMap<>();
   private TreeMap<Long, String> screenshots = new TreeMap<>();
@@ -113,27 +117,15 @@ public class RecordedEventsFlow {
   private IRecordedAction handleKeyEvent(Long time, NativeKeyEvent event) {
     Character character = KeyboardLayout.toChar(event, new Character[0]);
     Character characterWithModifiers = KeyboardLayout.toChar(event, modifiers.toArray(new Character[modifiers.size()]));
-
-    Long nextEventTime = findNextPressedKeyEventTime(time);
-    NativeKeyEvent nextKeyEvent = null;
-    Character nextEventCharacter = null;
-    String nextEventText = null;
-    boolean nextEventIsModifier = false;
-
-    if (nextEventTime != null) {
-      nextKeyEvent = (NativeKeyEvent) events.get(nextEventTime);
-      nextEventCharacter = KeyboardLayout.toChar(nextKeyEvent, new Character[0]);
-      nextEventText = getKeyText(nextEventCharacter);
-      nextEventIsModifier = Key.isModifier(nextEventCharacter);
-    }
-
     if (character != null) {
       boolean isModifier = Key.isModifier(character);
 
       String keyText = getKeyText(character);
 
-      if (NativeKeyEvent.NATIVE_KEY_PRESSED == event.getID()) {
-        if (isModifier && nextEventTime != null) {
+      if (NativeKeyEvent.NATIVE_KEY_PRESSED == event.getID()) {        
+        Map.Entry<Long, NativeInputEvent> nextEventEntry = events.ceilingEntry(time + 1);        
+                
+        if (isModifier && nextEventEntry.getValue().getID() != NativeKeyEvent.NATIVE_KEY_RELEASED) {
           modifiers.add(character);
         } else {
           keyText = getKeyText(characterWithModifiers);
@@ -148,6 +140,19 @@ public class RecordedEventsFlow {
           }
 
           typedText.append(keyText);
+          
+          Long nextEventTime = findNextPressedKeyEventTime(time);
+          NativeKeyEvent nextKeyEvent = null;
+          Character nextEventCharacter = null;
+          String nextEventText = null;
+          boolean nextEventIsModifier = false;
+
+          if (nextEventTime != null) {
+            nextKeyEvent = (NativeKeyEvent) events.get(nextEventTime);
+            nextEventCharacter = KeyboardLayout.toChar(nextKeyEvent, new Character[0]);
+            nextEventText = getKeyText(nextEventCharacter);
+            nextEventIsModifier = Key.isModifier(nextEventCharacter);
+          }
 
           if (nextEventText == null || (nextEventText.length() > 1 && !nextEventIsModifier)) {
             String text = typedText.toString();
@@ -207,62 +212,95 @@ public class RecordedEventsFlow {
     return "" + ch;
   }
 
-  private IRecordedAction handleMouseEvent(Long time, NativeMouseEvent event) {
+  private Long mousePressTime = null;
+  private int mousePressCount = 0;
+
+  private IRecordedAction handleMouseEvent(Long time, NativeMouseEvent event) {    
     if (NativeMouseEvent.NATIVE_MOUSE_PRESSED == event.getID()) {
-      Image image = this.findRelevantImage(time, event);
-
-      if (image != null) {
-        File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
-
-        try {
-          ImageIO.write(image.get(), "PNG", file);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-
-        Pattern pattern = new Pattern(file.getAbsolutePath());
-        pattern.targetOffset(image.getOffset());
-
-
-        Long lastNonMouseMoveEventTime = events.firstKey();
-
-        List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(events.headMap(time).entrySet());
-        Collections.reverse(previousEvents);
-
-        for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
-          if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
-              && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
-            lastNonMouseMoveEventTime = entry.getKey();
-            break;
-          }
-        }
-
-        Mat lastNonMouseMoveScreenshot = readCeilingScreenshot(lastNonMouseMoveEventTime);
-        Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
-
-        finder.find(image);
-
-        List<Match> matches = finder.getList();
-
-        boolean wasHereBeforeMouseMove = false;
-        for (Match match : matches) {
-          if (match.getScore() > 0.9) {
-            wasHereBeforeMouseMove = true;
-            break;
-          }
-        }
-
-        if (wasHereBeforeMouseMove) {
-          return new ClickAction(pattern);
-        } else {
-          return new WaitClickAction(pattern, (int) Math.ceil((time - lastNonMouseMoveEventTime) / 1000d * 2));
-        }
+      if (mousePressTime == null) {
+        mousePressTime = time;
       }
-
+      mousePressCount++;
     } else if (NativeMouseEvent.NATIVE_MOUSE_RELEASED == event.getID()) {
+      Map.Entry<Long, NativeInputEvent> nextEventEntry = events.ceilingEntry(time + 1);
+      Long nextEventTime = nextEventEntry.getKey();
+      NativeInputEvent nextEvent = nextEventEntry.getValue();
+            
+      if (nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED
+          || time - DOUBLE_CLICK_TIME > nextEventTime || mousePressCount >= 2) {
+        try {           
+          Image image = this.findRelevantImage(mousePressTime, event);
 
-    } else if (NativeMouseEvent.NATIVE_MOUSE_CLICKED == event.getID()) {
+          if (image != null) {
+            File file = new File(ImagePath.getBundlePath() + File.separator + mousePressTime + ".png");
 
+            try {
+              ImageIO.write(image.get(), "PNG", file);
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+
+            Pattern pattern = new Pattern(file.getAbsolutePath());
+            pattern.targetOffset(image.getOffset());
+
+            Long lastNonMouseMoveEventTime = events.firstKey();
+
+            List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(events.headMap(mousePressTime).entrySet());
+            Collections.reverse(previousEvents);
+
+            for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
+              if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
+                  && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
+                lastNonMouseMoveEventTime = entry.getKey();
+                break;
+              }
+            }
+
+            Mat lastNonMouseMoveScreenshot = readCeilingScreenshot(lastNonMouseMoveEventTime);
+            Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
+
+            finder.find(image);
+
+            List<Match> matches = finder.getList();
+
+            boolean wasHereBeforeMouseMove = false;
+            for (Match match : matches) {
+              if (match.getScore() > 0.9) {
+                wasHereBeforeMouseMove = true;
+                break;
+              }
+            }
+            
+            Pattern clickPattern = pattern;
+            
+            if (!wasHereBeforeMouseMove) {
+              clickPattern = null;         
+            }
+            
+            IRecordedAction clickAction = null;            
+            if(event.getButton() == NativeMouseEvent.BUTTON3) {
+              clickAction = new RightClickAction(clickPattern, getModifierTexts());
+            }              
+            if (mousePressCount >= 2) {
+              clickAction = new DoubleClickAction(clickPattern, getModifierTexts());
+            } else {
+              clickAction = new ClickAction(clickPattern, getModifierTexts());
+            }
+            
+            if (!wasHereBeforeMouseMove) {
+              int waitTime = (int) Math.ceil((mousePressTime - lastNonMouseMoveEventTime) / 1000d * 2);
+              return new WaitAction(pattern, waitTime, clickAction);
+            }
+            
+            return clickAction;
+            
+          }
+        } finally {
+          mousePressTime = null;
+          mousePressCount = 0;
+        }
+
+      }
     } else if (NativeMouseEvent.NATIVE_MOUSE_MOVED == event.getID()) {
 
     }
@@ -366,7 +404,8 @@ public class RecordedEventsFlow {
           new Rect(currentLeft, currentTop, currentRight - currentLeft, currentBottom - currentTop));
 
       Image image = new Image(Finder2.getBufferedImage(part));
-      image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2), eventY - (currentTop + (currentBottom - currentTop) / 2)));
+      image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2),
+          eventY - (currentTop + (currentBottom - currentTop) / 2)));
 
       return image;
     }
