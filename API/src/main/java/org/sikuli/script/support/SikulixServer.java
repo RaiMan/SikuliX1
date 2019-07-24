@@ -419,14 +419,14 @@ public class SikulixServer {
     }
 
     private HttpHandler run = exchange -> {
-      String id = generateTaskId(exchange);
-      String groupName = getCurrentGroup(exchange);
-      String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-      String[] scriptArgs = getQueryAndToArgs(exchange);
-
       exchange.dispatch(() -> {
         int statusCode = StatusCodes.OK;
         String message = null;
+
+        String id = generateTaskId(exchange);
+        String groupName = getCurrentGroup(exchange);
+        String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+        String[] scriptArgs = getQueryAndToArgs(exchange);
 
         Task task = null;
         try {
@@ -447,7 +447,7 @@ public class SikulixServer {
               statusCode = StatusCodes.NOT_FOUND;
               break;
             default:
-              if (retval < 0) {
+              if (retval < 0 || 255 < retval) {
                 statusCode = StatusCodes.SERVICE_UNAVAILABLE;
               }
               message = String.format("runScript: returned: %d", retval);
@@ -459,27 +459,25 @@ public class SikulixServer {
     };
 
     private HttpHandler task = exchange -> {
+      int statusCode = StatusCodes.OK;
+      String message = null;
+
       String id = generateTaskId(exchange);
       String groupName = getCurrentGroup(exchange);
       String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/task$", "");
       String[] scriptArgs = getQueryAndToArgs(exchange);
 
-      exchange.dispatch(() -> {
-        int statusCode = StatusCodes.OK;
-        String message = null;
-
-        Task task = null;
-        try {
-          task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
-        } catch(Exception ex) {
-          message = String.format("runScript: exception occurred '%s'", ex.getMessage());
-          statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        }
-        if (task != null) {
-          message = String.format("id:%s, group:%s, script:%s, status:%s", task.id, task.groupName, task.scriptName, task.status);
-        }
-        sendResponse(exchange, statusCode==StatusCodes.OK, statusCode, message);
-      });
+      Task task = null;
+      try {
+        task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
+      } catch(Exception ex) {
+        message = String.format("runScript: exception occurred '%s'", ex.getMessage());
+        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+      }
+      if (task != null) {
+        message = String.format("id:%s, group:%s, script:%s, status:%s", task.id, task.groupName, task.scriptName, task.status);
+      }
+      sendResponse(exchange, statusCode==StatusCodes.OK, statusCode, message);
     };
 
     private String generateTaskId(final HttpServerExchange exchange) {
@@ -625,7 +623,11 @@ public class SikulixServer {
           } catch (InterruptedException e) {
             // NOOP
           } catch (Exception e) {
+            dolog(-1, "ScriptExecutor: Exception: %s", e.getMessage());
             e.printStackTrace();
+            if (task != null) {
+              task.updateStatus(Task.Status.FAILED);
+            }
           } finally {
             if (task != null) {
               synchronized(task) {
@@ -677,10 +679,10 @@ public class SikulixServer {
         synchronized (task) {
           if (task.isWaiting()) {
             task.updateStatus(Task.Status.CANCELED);
+            task.notify();
             return true;
           } else {
             dolog(-1, "could not cancel the task : %s", id);
-            System.out.println("could not cancel the task : " + id);
             return false;
           }
         }
@@ -732,7 +734,11 @@ public class SikulixServer {
       startTime = new Date();
       exitCode = Runner.runScripts(scripts, scriptArgs, new IScriptRunner.Options());
       endTime = new Date();
-      status = Status.FINISHED;
+      if (exitCode < 0 || 255 < exitCode) {
+        status = Status.FAILED;
+      } else {
+        status = Status.FINISHED;
+      }
     }
 
     @Override
@@ -757,7 +763,8 @@ public class SikulixServer {
       WAITING,
       RUNNING,
       FINISHED,
-      CANCELED
+      CANCELED,
+      FAILED
     }
   }
 
