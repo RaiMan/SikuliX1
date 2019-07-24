@@ -6,9 +6,9 @@ package org.sikuli.script;
 import java.util.EventListener;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.runnerHelpers.IScriptLanguageHelper;
-import org.sikuli.script.runnerHelpers.JRubyHelper;
-import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runnerSupport.IRunnerSupport;
+import org.sikuli.script.runnerSupport.JRubySupport;
+import org.sikuli.script.runnerSupport.JythonSupport;
 
 /**
  * Use this class to implement callbacks for<br>
@@ -32,7 +32,7 @@ import org.sikuli.script.runnerHelpers.JythonHelper;
 public class ObserverCallBack implements EventListener {
 
   private Object callback = null;
-  private IScriptLanguageHelper scriptHelper = null;
+  private IRunnerSupport scriptHelper = null;
   private String scriptRunnerType = null;
 
   /**
@@ -62,10 +62,10 @@ public class ObserverCallBack implements EventListener {
     this.obsType = obsType;
     if (callback.getClass().getName().contains("org.python")) {
       scriptRunnerType = "jython";
-      scriptHelper = JythonHelper.get();
+      scriptHelper = JythonSupport.get();
     } else if (callback.getClass().getName().contains("org.jruby")) {
       scriptRunnerType = "jruby";
-      scriptHelper = JRubyHelper.get();
+      scriptHelper = JRubySupport.get();
     } else {
       Debug.error("ObserverCallBack: %s init: ScriptRunner not available for class %s", obsType,
               callback.getClass().getName());

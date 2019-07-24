@@ -17,7 +17,14 @@ public class JRubyIDESupport implements IIDESupport {
 
 	@Override
 	public IIndentationLogic getIndentationLogic() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
+		//To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public String normalizePartialScript(String script) {
+		//TODO run partial script: normalize lines for Ruby
+		return script;
 	}
 
 }

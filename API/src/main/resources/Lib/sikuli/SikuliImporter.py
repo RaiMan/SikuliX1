@@ -4,7 +4,7 @@
 import imp
 import sys
 import os
-import org.sikuli.script.runnerHelpers.JythonHelper as JH
+import org.sikuli.script.runnerSupport.JythonSupport as JH
 
 def _stripPackagePrefix(module_name):
     pdot = module_name.rfind('.')

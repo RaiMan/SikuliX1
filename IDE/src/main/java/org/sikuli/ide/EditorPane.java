@@ -347,11 +347,12 @@ public class EditorPane extends JTextPane {
 
     editorPaneType = editorPaneRunner.getType();
     indentationLogic = null;
-
-    if (JythonRunner.TYPE.equals(editorPaneType) || PythonRunner.TYPE.equals(editorPaneType)) {
-      IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
-      indentationLogic = ideSupport.getIndentationLogic();
-      indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+    setEditorPaneIDESupport(editorPaneType);
+    if (null != editorPaneIDESupport) {
+      try {
+        indentationLogic = editorPaneIDESupport.getIndentationLogic();
+        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      } catch (Exception ex) { }
     }
 
     if (editorPaneType != null) {
@@ -516,7 +517,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-        FilenameUtils.getExtension(fileName).equals("sikuli")) {
+            FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -615,6 +616,20 @@ public class EditorPane extends JTextPane {
   }
 
   private String editorPaneType;
+
+  public boolean hasIDESupport() {
+    return null != editorPaneIDESupport;
+  }
+
+  public IIDESupport getEditorPaneIDESupport() {
+    return editorPaneIDESupport;
+  }
+
+  public void setEditorPaneIDESupport(String type) {
+    editorPaneIDESupport = SikulixIDE.getIDESupport(type);
+  }
+
+  private IIDESupport editorPaneIDESupport = null;
 
   public boolean hasEditingFile() {
     return editorPaneFile != null;
@@ -1100,9 +1115,9 @@ public class EditorPane extends JTextPane {
         line++;
         if (inString) {
           boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
-              "\"%s\"\n" +
-              "Yes: No images will be deleted!\n" +
-              "No: Ignore and continue", line, text), "Delete images on save");
+                  "\"%s\"\n" +
+                  "Yes: No images will be deleted!\n" +
+                  "No: Ignore and continue", line, text), "Delete images on save");
           if (answer) {
             log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
             images.clear();
@@ -1196,11 +1211,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1276,8 +1291,8 @@ public class EditorPane extends JTextPane {
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", filename),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+              null, SikuliIDEI18N._I("msgFileExists", filename),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1336,8 +1351,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-          new FileOutputStream(editorPaneFile.getAbsolutePath()),
-          "UTF8")));
+              new FileOutputStream(editorPaneFile.getAbsolutePath()),
+              "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1391,8 +1406,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", zipPath),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+              null, SikuliIDEI18N._I("msgFileExists", zipPath),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1475,12 +1490,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-          SikuliIDEI18N._I("dlgAskCloseTab"),
-          JOptionPane.YES_NO_CANCEL_OPTION,
-          JOptionPane.WARNING_MESSAGE,
-          null,
-          options, options[0]);
+              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+              SikuliIDEI18N._I("dlgAskCloseTab"),
+              JOptionPane.YES_NO_CANCEL_OPTION,
+              JOptionPane.WARNING_MESSAGE,
+              null,
+              options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1604,7 +1619,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-            filename, e.getMessage());
+                filename, e.getMessage());
         return f;
       }
     }
@@ -1756,7 +1771,11 @@ public class EditorPane extends JTextPane {
           ide.clearMessageArea();
           ide.resetErrorMark();
 
-          editorPane.editorPaneRunner.runLines(lines, null);
+          if (hasIDESupport()) {
+            editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
+          } else {
+            editorPane.editorPaneRunner.runLines(lines, null);
+          }
         } finally {
           SikulixIDE.showAgain();
           ide.setCurrentRunner(null);

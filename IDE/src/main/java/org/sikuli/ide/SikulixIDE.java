@@ -87,7 +87,9 @@ import org.sikuli.script.SX;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.IScriptRunner;
@@ -2489,9 +2491,14 @@ public class SikulixIDE extends JFrame {
 
           int exitValue = -1;
           try {
-            setCurrentRunner(editorPane.editorPaneRunner);
+            IScriptRunner runner = editorPane.editorPaneRunner;
+            setCurrentRunner(runner);
             setCurrentScript(scriptFileToRun);
-            exitValue = editorPane.editorPaneRunner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
+            //TODO make reloadImported specific for each editor tab
+            if (runner.getType().equals(JythonRunner.TYPE)) {
+              JythonSupport.get().reloadImported();
+            }
+            exitValue = runner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
           } catch (Exception e) {
             log(-1, "Run Script: internal error:");
             e.printStackTrace();

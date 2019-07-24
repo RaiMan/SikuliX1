@@ -9,7 +9,6 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.runnerHelpers.JythonHelper;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
@@ -68,7 +67,7 @@ public class RobotRunner extends JythonRunner {
     File fRobot = new File(fRobotWork, sName + ".robot");
     FileManager.writeStringToFile(code, fRobot);
 
-    getInterpreter().exec("from sikuli import *; from threading import currentThread; currentThread().name = \"MainThread\"");
+    jythonSupport.interpreterExecString("from sikuli import *; from threading import currentThread; currentThread().name = \"MainThread\"");
     //pyRunner.exec("import robot.run;");
     String robotCmd = String.format(
             "ret = robot.run(\"%s\", "
@@ -79,7 +78,7 @@ public class RobotRunner extends JythonRunner {
       robotCmd = robotCmd.replaceAll("\\\\", "\\\\\\\\");
       urlReport = "/" + urlReport.replaceAll("\\\\", "/");
     }
-    getInterpreter().exec(robotCmd + "; print \"robot.run returned:\", ret; " +
+    jythonSupport.interpreterExecString(robotCmd + "; print \"robot.run returned:\", ret; " +
             String.format("print \"robot.run output is here:\\n%s\";",
             fRobotWork.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\")));
     if (showReport && new File(fRobotWork, "report.html").exists()) {
@@ -113,17 +112,10 @@ public class RobotRunner extends JythonRunner {
   protected void doInit(String[] args) {
     super.doInit(args);
 
-    JythonHelper helper = getHelper();
-
-    if (RUN_TIME.isRunningFromJar()) {
-      if (!helper.hasSysPath(RUN_TIME.fSikulixLib.getAbsolutePath())) {
-        helper.insertSysPath(RUN_TIME.fSikulixLib);
-      }
+    if (null != Settings.BundlePath) {
+      jythonSupport.appendSysPath(new File(Settings.BundlePath).getParent());
     }
-    if (null != Settings.BundlePath && !helper.hasSysPath(new File(Settings.BundlePath).getParent())) {
-      helper.appendSysPath(new File(Settings.BundlePath).getParent());
-    }
-    this.getInterpreter().exec("import robot");
+    jythonSupport.interpreterExecString("import robot");
   }
 
   /*

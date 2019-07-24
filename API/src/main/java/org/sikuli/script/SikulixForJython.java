@@ -5,10 +5,8 @@ package org.sikuli.script;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 
-import org.sikuli.basics.Settings;
-import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.RunTime;
 
 /**
@@ -27,7 +25,7 @@ public class SikulixForJython {
   }
 
   static void staticInit() {
-    JythonHelper helper = JythonHelper.get();
+    JythonSupport helper = JythonSupport.get();
     helper.log(lvl, "SikulixForJython: init: starting");
     RunTime runTime = RunTime.get();
     String sikuliStuff = "sikuli/Sikuli";

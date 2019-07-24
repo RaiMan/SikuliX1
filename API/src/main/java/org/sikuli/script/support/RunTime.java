@@ -9,7 +9,7 @@ import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
-import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runnerSupport.JythonSupport;
 //import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
@@ -1883,7 +1883,7 @@ public class RunTime {
       if (isJythonReady) {
         int saveLvl = Debug.getDebugLevel();
         Debug.setDebugLevel(lvl);
-        JythonHelper.get().showSysPath();
+        JythonSupport.get().showSysPath();
         Screen.showMonitors();
         Debug.setDebugLevel(saveLvl);
       }

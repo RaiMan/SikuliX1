@@ -8,8 +8,10 @@ import org.sikuli.idesupport.IIndentationLogic;
 
 public interface IIDESupport {
 
-	public String[] getTypes();
+	String[] getTypes();
 
-	public IIndentationLogic getIndentationLogic();
+	IIndentationLogic getIndentationLogic();
 
-}
+	String normalizePartialScript(String script);
+
+	}
