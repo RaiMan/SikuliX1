@@ -45,7 +45,8 @@ import org.sikuli.script.support.recorder.actions.WaitAction;
 public class RecordedEventsFlow {
 
   private static final int START_SIZE = 20;
-  private static final int INCREASE_SIZE = 10;
+  private static final int X_INCREASE_SIZE = 15;
+  private static final int Y_INCREASE_SIZE = 5;
   private static final int MAX_FEATURES = 200;
   private static final double FEATURE_INCREASE_RATIO = 0.8;
   private static final int FEATURE_IMAGE_MARGIN = 5;
@@ -405,22 +406,22 @@ public class RecordedEventsFlow {
       int currentHeight = currentBottom - currentTop;
       int currentArea = currentWidth * currentHeight;
 
-      int top = currentTop - INCREASE_SIZE;
+      int top = currentTop - Y_INCREASE_SIZE;
       int increasedTopHeight = currentBottom - top;
       int increasedTopCount = findGoodFeatures(edges, top, currentRight, currentBottom, currentLeft);
       double increasedTopFactor = (double) (currentWidth * increasedTopHeight) / currentArea;
 
-      int right = currentRight + INCREASE_SIZE;
+      int right = currentRight + X_INCREASE_SIZE;
       int increasedRightWidth = right - currentLeft;
       int increasedRightCount = findGoodFeatures(edges, currentTop, right, currentBottom, currentLeft);
       double increasedRightFactor = (double) (increasedRightWidth * currentHeight) / currentArea;
 
-      int bottom = currentBottom + INCREASE_SIZE;
+      int bottom = currentBottom + Y_INCREASE_SIZE;
       int increasedBottomHeight = bottom - currentTop;
       int increasedBottomCount = findGoodFeatures(edges, currentTop, currentRight, bottom, currentLeft);
       double increasedBottomFactor = (double) (currentWidth * increasedBottomHeight) / currentArea;
 
-      int left = currentLeft - INCREASE_SIZE;
+      int left = currentLeft - X_INCREASE_SIZE;
       int increasedLeftWidth = currentRight - left;
       int increasedLeftCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, left);
       double increasedLeftFactor = (double) (increasedLeftWidth * currentHeight) / currentArea;
@@ -444,10 +445,10 @@ public class RecordedEventsFlow {
       currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
 
       if (currentCount < 10) {
-        currentTop -= INCREASE_SIZE;
-        currentRight += INCREASE_SIZE;
-        currentBottom += INCREASE_SIZE;
-        currentLeft -= INCREASE_SIZE;
+        currentTop -= Y_INCREASE_SIZE;
+        currentRight += X_INCREASE_SIZE;
+        currentBottom += Y_INCREASE_SIZE;
+        currentLeft -= X_INCREASE_SIZE;
       }
     }
 
