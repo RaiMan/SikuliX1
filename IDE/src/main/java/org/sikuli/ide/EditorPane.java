@@ -205,7 +205,7 @@ public class EditorPane extends JTextPane {
     }
 */
     if (null == scriptType) {
-      editorPaneRunner = RunTime.getDefaultRunner();
+      editorPaneRunner = IDESupport.getDefaultRunner();
     } else {
       editorPaneRunner = Runner.getRunner(scriptType);
     }
@@ -309,8 +309,16 @@ public class EditorPane extends JTextPane {
     IScriptRunner runner = Runner.getRunner(file.getAbsolutePath());
     EffectiveRunner runnerAndFile = runner.getEffectiveRunner(file.getAbsolutePath());
     if (runnerAndFile.getRunner() != null) {
+      String script = runnerAndFile.getScript();
+      if (null == script) {
+        if (!file.isFile()) {
+          return false;
+        } else {
+          script = file.getAbsolutePath();
+        }
+      }
+      editorPaneFileToRun = new File(script);
       editorPaneRunner = runnerAndFile.getRunner();
-      editorPaneFileToRun = new File(runnerAndFile.getScript());
       editorPaneIsBundle = runnerAndFile.isBundle();
       setTemp(runnerAndFile.isTempBundle());
       return true;

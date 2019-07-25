@@ -666,8 +666,10 @@ public class SikulixIDE extends JFrame {
     editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
-    File tempFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
-            new File(RunTime.get().fpBaseTempPath, "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
+    IScriptRunner runner = editorPane.getRunner();
+    String defaultExtension = runner.getDefaultExtension();
+    File tempFile = FileManager.createTempFile(defaultExtension, new File(RunTime.get().fpBaseTempPath,
+            "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
     if (null == tempFile) {
       //TODO newTabEmpty: temp problem: how should caller react?
       return false;

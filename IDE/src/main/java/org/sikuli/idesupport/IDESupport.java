@@ -99,11 +99,17 @@ public class IDESupport {
 					System.exit(1);
 				}
 
-				IScriptRunner defaultRunner = IDE_RUNNERS.get(0);
+				defaultRunner = IDE_RUNNERS.get(0);
 				log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
 			}
 		}
 	}
+
+	public static IScriptRunner getDefaultRunner() {
+		return defaultRunner;
+	}
+
+	private static IScriptRunner defaultRunner = null;
 
 	public static synchronized List<IScriptRunner> getRunners(){
 		synchronized(IDE_RUNNERS) {

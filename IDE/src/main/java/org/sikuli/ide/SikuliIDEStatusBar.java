@@ -44,6 +44,9 @@ class SikuliIDEStatusBar extends JPanel {
       return;
     }
     currentContentType = contentType.replaceFirst(".*?\\/", "");
+    if (currentContentType.equals("null")) {
+      currentContentType = "text";
+    }
     setCaretPosition(-1, 0);
   }
 

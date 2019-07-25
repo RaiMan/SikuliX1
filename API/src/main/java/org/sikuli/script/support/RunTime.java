@@ -48,6 +48,11 @@ import java.util.zip.ZipInputStream;
 public class RunTime {
 
   private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
+
+  public static boolean isIDE() {
+    return startAsIDE;
+  }
+
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
@@ -392,6 +397,7 @@ public class RunTime {
         }
       }
       EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
+      IScriptRunner runner = runnerAndFile.getRunner();
       String fileToRun = runnerAndFile.getScript();
       File possibleDir = null;
       if (null == fileToRun) {
@@ -518,17 +524,6 @@ public class RunTime {
   }
 
   private static long elapsedStart = new Date().getTime();
-
-  //TODO get better solution to avoid JythonRunner class ref
-  private static String defaultRunnerType = "text/jython"; //JythonRunner.TYPE;
-
-  public static String getDefaultRunnerType() {
-    return defaultRunnerType;
-  }
-
-  public static IScriptRunner getDefaultRunner() {
-    return Runner.getRunner(getDefaultRunnerType());
-  }
 
   public static String getLogFile() {
     return logFile;

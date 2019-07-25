@@ -156,7 +156,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   }
 
   protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
-    logNotSupported("IO redirection");
     return false;
   }
 

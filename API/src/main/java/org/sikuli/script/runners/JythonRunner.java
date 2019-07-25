@@ -40,7 +40,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       Class.forName("org.python.util.PythonInterpreter");
       return true;
     } catch (ClassNotFoundException ex) {
-      log(-1, "no Jython found on classpath");
+      log(-1, "no Jython on classpath --- consult the docs for a solution, if needed");
       return false;
     }
   }
