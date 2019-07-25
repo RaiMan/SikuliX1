@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -161,10 +162,14 @@ public class JythonSupport implements IRunnerSupport {
     try {
       mExecS.invoke(interpreter, new Object[]{script});
     } catch (Exception e) {
+      if (e instanceof InvocationTargetException) {
+        e = (Exception) ((InvocationTargetException) e).getTargetException();
+      }
+      log(-1, "%s for\n%s", e.toString(), script);
     }
   }
 
-  public void interpreterExecCode(File compiledScript) throws IOException {
+  public void interpreterExecCode(File compiledScript) throws IOException, InvocationTargetException, IllegalAccessException {
     String scriptFile = compiledScript.getAbsolutePath();
     byte[] data = FileUtils.readFileToByteArray(compiledScript);
     Method mMakeCode = null;
@@ -176,21 +181,14 @@ public class JythonSupport implements IRunnerSupport {
     }
     //Object code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
     if (null != mMakeCode) {
-      try {
         mExecC.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
                 FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
-      } catch (Exception e) {
-        log(-1, "exec(BytecodeLoader.makeCode): %s", e.getMessage());
-      }
     }
   }
 
-  public void interpreterExecFile(String script) {
+  public void interpreterExecFile(String script) throws InvocationTargetException, IllegalAccessException {
     //interpreter.execfile(script);
-    try {
-      mExecfile.invoke(interpreter, new Object[]{script});
-    } catch (Exception e) {
-    }
+    mExecfile.invoke(interpreter, new Object[]{script});
   }
 
 

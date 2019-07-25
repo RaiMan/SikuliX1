@@ -3,6 +3,7 @@
  */
 package org.sikuli.script.runners;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.JythonSupport;
@@ -11,6 +12,7 @@ import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
@@ -38,6 +40,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       Class.forName("org.python.util.PythonInterpreter");
       return true;
     } catch (ClassNotFoundException ex) {
+      log(-1, "no Jython found on classpath");
       return false;
     }
   }
@@ -150,16 +153,21 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         }
       } catch (Exception scriptException) {
         exitCode = 1;
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
-        Matcher matcher = p.matcher(scriptException.toString());
-        if (matcher.find()) {
-          exitCode = Integer.parseInt(matcher.group(1));
-          Debug.info("Exit code: " + exitCode);
-        } else {
-          int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
-          if (null != options) {
-            options.setErrorLine(errorExit);
+        if (scriptException instanceof InvocationTargetException) {
+          scriptException = (Exception) ((InvocationTargetException) scriptException).getTargetException();
+          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
+          Matcher matcher = p.matcher(scriptException.toString());
+          if (matcher.find()) {
+            exitCode = Integer.parseInt(matcher.group(1));
+            Debug.info("Exit code: " + exitCode);
+          } else {
+            int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
+            if (null != options) {
+              options.setErrorLine(errorExit);
+            }
           }
+        } else {
+          log(-1, "exec script: %s", scriptException.getMessage());
         }
       } finally {
         jythonSupport.interpreterCleanup();

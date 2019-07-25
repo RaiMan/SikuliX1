@@ -3,83 +3,35 @@
  */
 package org.sikuli.script.runners;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.jruby.CompatVersion;
-import org.jruby.Ruby;
-import org.jruby.RubyInstanceConfig.CompileMode;
-import org.jruby.embed.LocalContextScope;
-import org.jruby.embed.ScriptingContainer;
-import org.jruby.runtime.ThreadContext;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.runnerSupport.JRubySupport;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+
+import java.io.*;
+import java.util.List;
+import java.util.regex.Matcher;
 
 public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";
-  public static final String[] EXTENSIONS = new String[] { "rb" };
+  public static final String[] EXTENSIONS = new String[]{"rb"};
 
-  static RunTime sxRunTime = RunTime.get();
+  static JRubySupport jrubySupport = null;
 
   private int lvl = 3;
-
-  /**
-   * The ScriptingContainer instance
-   */
-  private static ScriptingContainer interpreter = null;
-  private static int savedpathlen = 0;
-  /**
-   * sys.argv for the jruby script
-   */
-  private static ArrayList<String> sysargv = null;
-  /**
-   * The header commands, that are executed before every script
-   */
-  private final static String SCRIPT_HEADER = "# coding: utf-8\n" + "require 'Lib/sikulix'\n" + "include Sikulix\n";
-
-  /**
-   * CommandLine args
-   */
-  private int errorLine;
-  private int errorColumn;
-  private String errorType;
-  private String errorText;
-  private int errorClass;
-  private String errorTrace;
-
-  private static final int PY_SYNTAX = 0;
-  private static final int PY_RUNTIME = 1;
-  private static final int PY_JAVA = 2;
-  private static final int PY_UNKNOWN = -1;
-
-  private static String sikuliLibPath;
-
-  private static Ruby runtime;
-  private static ThreadContext context;
-  private static boolean redirected = false;
 
   @Override
   protected void doInit(String[] args) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      // TODO classpath and other path handlings
-      sikuliLibPath = sxRunTime.fSikulixLib.getAbsolutePath();
-      createScriptingContainer();
-
-      // execute script headers to already do the warmup during init
-      executeScriptHeader(new String[] { });
+      if (null == jrubySupport) {
+        jrubySupport = JRubySupport.get();
+        // execute script headers to already do the warmup during init
+        executeScriptHeader(new String[]{});
+      }
     }
   }
 
@@ -89,22 +41,22 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     synchronized (JRubyRunner.class) {
       if (null == scriptFile) {
         // run the Ruby statements from argv (special for setup functional test)
-        fillSysArgv(null, null);
+        jrubySupport.fillSysArgv(null, null);
         executeScriptHeader(new String[0]);
         return runRuby(null, scriptArgs, null, options);
       }
       File rbFile = new File(new File(scriptFile).getAbsolutePath());
-      fillSysArgv(rbFile, scriptArgs);
+      jrubySupport.fillSysArgv(rbFile, scriptArgs);
 
-      executeScriptHeader(new String[] { rbFile.getParentFile().getAbsolutePath(),
-          rbFile.getParentFile().getParentFile().getAbsolutePath() });
+      executeScriptHeader(new String[]{rbFile.getParentFile().getAbsolutePath(),
+              rbFile.getParentFile().getParentFile().getAbsolutePath()});
 
       prepareFileLocation(rbFile, options);
 
-      int exitCode = runRuby(rbFile, null, new String[] { rbFile.getParentFile().getAbsolutePath() }, options);
+      int exitCode = runRuby(rbFile, null, new String[]{rbFile.getParentFile().getAbsolutePath()}, options);
 
       log(lvl + 1, "runScript: at exit: path:");
-      for (Object p : interpreter.getLoadPaths()) {
+      for (Object p : jrubySupport.interpreterGetLoadPaths()) {
         log(lvl + 1, "runScript: " + p.toString());
       }
       log(lvl + 1, "runScript: at exit: --- end ---");
@@ -117,7 +69,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       try {
-        interpreter.runScriptlet(lines);
+        jrubySupport.interpreterRunScriptletString(lines);
       } catch (Exception ex) {
         log(-1, "runLines: (%s) raised: %s", lines, ex);
       }
@@ -129,7 +81,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       executeScriptHeader(new String[0]);
-      interpreter.runScriptlet(script);
+      jrubySupport.interpreterRunScriptletString(script);
       return 0;
     }
   }
@@ -162,14 +114,12 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   public void doClose() {
-    // TODO this is currently a bad idea because it terminates the static
-    // interpreter instance.
-    if (interpreter != null) {
-      interpreter.terminate();
-      interpreter = null;
-      redirected = false;
-    }
+    jrubySupport.interpreterTerminate();
+    redirected = false;
   }
+
+  private static int savedpathlen = 0;
+  private static boolean redirected = false;
 
   private int runRuby(File ruFile, String[] stmts, String[] scriptPaths, IScriptRunner.Options options) {
     int exitCode = 0;
@@ -183,13 +133,13 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
         for (String e : stmts) {
           buffer.append(e);
         }
-        interpreter.setScriptFilename(filename);
-        interpreter.runScriptlet(buffer.toString());
+        jrubySupport.interpreterSetScriptFilename(filename);
+        jrubySupport.interpreterRunScriptletString(buffer.toString());
       } else {
         filename = ruFile.getAbsolutePath();
         if (scriptPaths != null) {
-          BufferedReader script = new BufferedReader(
-              new InputStreamReader(new FileInputStream(ruFile.getAbsolutePath()), "UTF-8"));
+          BufferedReader scriptReader = new BufferedReader(
+                  new InputStreamReader(new FileInputStream(ruFile.getAbsolutePath()), "UTF-8"));
 
           if (scriptPaths.length > 1) {
             filename = FileManager.slashify(scriptPaths[0], true) + scriptPaths[1] + ".sikuli";
@@ -202,7 +152,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
             filename = scriptPaths[0];
             log(lvl, "runRuby: running script: \n" + filename);
           }
-          interpreter.runScriptlet(script, filename);
+          jrubySupport.interpreterRunScriptletFile(scriptReader, filename);
 
         } else {
           log(-1, "runRuby: invalid arguments");
@@ -221,7 +171,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       } else {
         if (null != ruFile) {
           if (null != options) {
-            int errorExit = findErrorSource(e, filename);
+            int errorExit = jrubySupport.findErrorSource(e, filename);
             options.setErrorLine(errorExit);
           }
         } else {
@@ -232,149 +182,14 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     return exitCode;
   }
 
-  private int findErrorSource(Throwable thr, String filename) {
-    String err = thr.getMessage();
-
-    errorLine = -1;
-    errorColumn = -1;
-    errorClass = PY_UNKNOWN;
-    errorType = "--UnKnown--";
-    errorText = "--UnKnown--";
-
-    String msg;
-
-    if (err.startsWith("(SyntaxError)")) {
-      // org.jruby.parser.ParserSyntaxException
-      // (SyntaxError) /tmp/sikuli-3213678404470696048.rb:2: syntax error, unexpected
-      // tRCURLY
-
-      Pattern pLineS = Pattern.compile("(?<=:)(\\d+):(.*)");
-      Matcher mLine = pLineS.matcher(err);
-      if (mLine.find()) {
-        log(lvl + 2, "SyntaxError error line: " + mLine.group(1));
-        errorText = mLine.group(2) == null ? errorText : mLine.group(2);
-        log(lvl + 2, "SyntaxError: " + errorText);
-        errorLine = Integer.parseInt(mLine.group(1));
-        errorColumn = -1;
-        errorClass = PY_SYNTAX;
-        errorType = "SyntaxError";
-      }
-    } else {
-      // if (err.startsWith("(NameError)")) {
-      // org.jruby.embed.EvalFailedException
-      // (NameError) undefined local variable or method `asdf' for main:Object
-
-      Pattern type = Pattern.compile("(?<=\\()(\\w*)");
-      Matcher mLine = type.matcher(err);
-      if (mLine.find()) {
-        errorType = mLine.group(1);
-      }
-      Throwable cause = thr.getCause();
-      // cause.printStackTrace();
-      for (StackTraceElement line : cause.getStackTrace()) {
-        if (line.getFileName().equals(filename)) {
-          errorText = cause.getMessage();
-          errorColumn = -1;
-          errorLine = line.getLineNumber();
-          errorClass = PY_RUNTIME;
-          this.errorText = thr.getMessage();
-
-          Pattern sikType = Pattern.compile("(?<=org.sikuli.script.)(.*)(?=:)");
-          Matcher mSikType = sikType.matcher(this.errorText);
-
-          if (mSikType.find()) {
-            errorType = mSikType.group(1);
-          } else if (errorType.equals("RuntimeError")) {
-            errorClass = PY_JAVA;
-          }
-          break;
-        }
-      }
-    }
-
-    msg = "script";
-    if (errorLine != -1) {
-      // log(-1,_I("msgErrorLine", srcLine));
-      msg += " stopped with error in line " + errorLine;
-      if (errorColumn != -1) {
-        msg += " at column " + errorColumn;
-      }
-    } else {
-      msg += "] stopped with error at line --unknown--";
-    }
-
-    if (errorClass == PY_RUNTIME || errorClass == PY_SYNTAX) {
-      Debug.error(msg);
-      Debug.error(errorType + " ( " + errorText + " )");
-      if (errorClass == PY_RUNTIME) {
-        Throwable cause = thr.getCause();
-        // cause.printStackTrace();
-        StackTraceElement[] stack = cause.getStackTrace();
-        /*
-         * StringWriter writer = new StringWriter(); PrintWriter out = new
-         * PrintWriter(writer); cause.printStackTrace(out); errorTrace =
-         * writer.toString();
-         */
-        StringBuilder builder = new StringBuilder();
-        for (StackTraceElement line : stack) {
-          builder.append(line.getLineNumber());
-          builder.append(":\t");
-          builder.append(line.getClassName());
-          builder.append(" ( ");
-          builder.append(line.getMethodName());
-          builder.append(" )\t");
-          builder.append(line.getFileName());
-          builder.append('\n');
-        }
-        errorTrace = builder.toString();
-        if (errorTrace.length() > 0) {
-          Debug.error("--- Traceback --- error source first\n" + "line: class ( method ) file \n" + errorTrace
-              + "[error] --- Traceback --- end --------------");
-          log(lvl + 2, "--- Traceback --- error source first\n" + "line: class ( method ) file \n" + errorTrace
-              + "[error] --- Traceback --- end --------------");
-        }
-      }
-    } else if (errorClass == PY_JAVA) {
-    } else {
-      Debug.error(msg);
-      Debug.error("Could not evaluate error source nor reason. Analyze StackTrace!");
-      Debug.error(err);
-    }
-    return errorLine;
-  }
-
-  /**
-   * Initializes the ScriptingContainer and creates an instance.
-   */
-  private void createScriptingContainer() {
-//TODO create a specific RubyPath (sys.path)
-    if (interpreter == null) {
-      // ScriptingContainer.initialize(System.getProperties(), null,
-      // sysargv.toArray(new String[0]));
-
-      interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
-      interpreter.setCompatVersion(CompatVersion.RUBY2_0);
-      interpreter.setCompileMode(CompileMode.JIT);
-    }
-  }
-
-  public ScriptingContainer getScriptingContainer() {
-    if (interpreter == null) {
-      sysargv = new ArrayList<String>();
-      sysargv.add("--???--");
-      sysargv.addAll(Arrays.asList(RunTime.getUserArgs()));
-      createScriptingContainer();
-    }
-    return interpreter;
-  }
-
   /**
    * Executes the defined header for the jruby script.
    *
    * @param syspaths List of all syspath entries
    */
   private void executeScriptHeader(String[] syspaths) {
-    List<String> path = interpreter.getLoadPaths();
+    List<String> path = jrubySupport.interpreterGetLoadPaths();
+    String sikuliLibPath = RunTime.get().fSikulixLib.getAbsolutePath();
     if (path.size() == 0 || !FileManager.pathEquals((String) path.get(0), sikuliLibPath)) {
       log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
       int pathLength = path.size();
@@ -393,14 +208,14 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       }
     }
     if (savedpathlen == 0) {
-      savedpathlen = interpreter.getLoadPaths().size();
+      savedpathlen = jrubySupport.interpreterGetLoadPaths().size();
       log(lvl + 1, "executeScriptHeader: saved sys.path: %d", savedpathlen);
     }
-    while (interpreter.getLoadPaths().size() > savedpathlen) {
-      interpreter.getLoadPaths().remove(savedpathlen);
+    while (jrubySupport.interpreterGetLoadPaths().size() > savedpathlen) {
+      jrubySupport.interpreterGetLoadPaths().remove(savedpathlen);
     }
     log(lvl + 1, "executeScriptHeader: at entry: path:");
-    for (String p : interpreter.getLoadPaths()) {
+    for (String p : jrubySupport.interpreterGetLoadPaths()) {
       log(lvl + 1, p);
     }
     log(lvl + 1, "executeScriptHeader: at entry: --- end ---");
@@ -408,16 +223,21 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       path.add(FileManager.slashify(syspath, false));
     }
 
-    interpreter.runScriptlet(SCRIPT_HEADER);
+    jrubySupport.interpreterRunScriptletString(SCRIPT_HEADER);
 
     if (codeBefore != null) {
       StringBuilder buffer = new StringBuilder();
       for (String line : codeBefore) {
         buffer.append(line);
       }
-      interpreter.runScriptlet(buffer.toString());
+      jrubySupport.interpreterRunScriptletString(buffer.toString());
     }
   }
+
+  private final static String SCRIPT_HEADER =
+          "# coding: utf-8\n"
+                  + "require 'Lib/sikulix'\n"
+                  + "include Sikulix\n";
 
   @Override
   protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
@@ -425,21 +245,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     synchronized (JRubyRunner.class) {
       if (!redirected) {
         redirected = true;
-
-        ScriptingContainer interpreter = getScriptingContainer();
-        try {
-          interpreter.setOutput(stdout);
-        } catch (Exception e) {
-          e.printStackTrace();
-          log(-1, "%s: redirect STDOUT: %s", getName(), e.getMessage());
-          return false;
-        }
-        try {
-          interpreter.setError(stderr);
-        } catch (Exception e) {
-          log(-1, "%s: redirect STDERR: %s", getName(), e.getMessage());
-          return false;
-        }
+        return jrubySupport.doRedirect(stdout, stderr);
       }
       return true;
     }
@@ -450,20 +256,4 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     return true;
   }
 
-  /**
-   * Fills the sysargv list for the Ruby script
-   *
-   * @param filename The file containing the script: Has to be passed as first
-   *                 parameter in Ruby
-   * @param argv     The parameters passed to Sikuli with --args
-   */
-  private void fillSysArgv(File filename, String[] argv) {
-    sysargv = new ArrayList<String>();
-    if (filename != null) {
-      sysargv.add(filename.getAbsolutePath());
-    }
-    if (argv != null) {
-      sysargv.addAll(Arrays.asList(argv));
-    }
-  }
 }
