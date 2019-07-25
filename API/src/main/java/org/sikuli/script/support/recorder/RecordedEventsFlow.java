@@ -35,6 +35,7 @@ import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.recorder.actions.ClickAction;
 import org.sikuli.script.support.recorder.actions.DoubleClickAction;
+import org.sikuli.script.support.recorder.actions.DragDropAction;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
 import org.sikuli.script.support.recorder.actions.RightClickAction;
 import org.sikuli.script.support.recorder.actions.TypeKeyAction;
@@ -93,17 +94,11 @@ public class RecordedEventsFlow {
         Long time = entry.getKey();
         NativeInputEvent event = entry.getValue();
 
-        IRecordedAction action = null;
-
         if (event instanceof NativeKeyEvent) {
-          action = handleKeyEvent(time, (NativeKeyEvent) event);
+          actions.addAll(handleKeyEvent(time, (NativeKeyEvent) event));
         } else if (event instanceof NativeMouseEvent) {
-          action = handleMouseEvent(time, (NativeMouseEvent) event);
-        }
-
-        if (action != null) {
-          actions.add(action);
-        }
+          actions.addAll(handleMouseEvent(time, (NativeMouseEvent) event));
+        }   
       }
 
       if (!actions.isEmpty()) {
@@ -114,7 +109,9 @@ public class RecordedEventsFlow {
     }
   }
 
-  private IRecordedAction handleKeyEvent(Long time, NativeKeyEvent event) {
+  private List<IRecordedAction> handleKeyEvent(Long time, NativeKeyEvent event) {
+    List<IRecordedAction> actions = new ArrayList<>();
+    
     Character character = KeyboardLayout.toChar(event, new Character[0]);
     Character characterWithModifiers = KeyboardLayout.toChar(event, modifiers.toArray(new Character[modifiers.size()]));
     if (character != null) {
@@ -122,9 +119,9 @@ public class RecordedEventsFlow {
 
       String keyText = getKeyText(character);
 
-      if (NativeKeyEvent.NATIVE_KEY_PRESSED == event.getID()) {        
-        Map.Entry<Long, NativeInputEvent> nextEventEntry = events.ceilingEntry(time + 1);        
-                
+      if (NativeKeyEvent.NATIVE_KEY_PRESSED == event.getID()) {
+        Map.Entry<Long, NativeInputEvent> nextEventEntry = events.ceilingEntry(time + 1);
+
         if (isModifier && nextEventEntry.getValue().getID() != NativeKeyEvent.NATIVE_KEY_RELEASED) {
           modifiers.add(character);
         } else {
@@ -132,32 +129,30 @@ public class RecordedEventsFlow {
           String[] modifiersTexts = getModifierTexts();
 
           if (keyText.length() > 1) {
-            return new TypeKeyAction(keyText, modifiersTexts);
-          }
-
-          if (!modifiers.isEmpty() && characterWithModifiers == character) {
-            return new TypeTextAction(keyText, modifiersTexts);
-          }
-
-          typedText.append(keyText);
-          
-          Long nextEventTime = findNextPressedKeyEventTime(time);
-          NativeKeyEvent nextKeyEvent = null;
-          Character nextEventCharacter = null;
-          String nextEventText = null;
-          boolean nextEventIsModifier = false;
-
-          if (nextEventTime != null) {
-            nextKeyEvent = (NativeKeyEvent) events.get(nextEventTime);
-            nextEventCharacter = KeyboardLayout.toChar(nextKeyEvent, new Character[0]);
-            nextEventText = getKeyText(nextEventCharacter);
-            nextEventIsModifier = Key.isModifier(nextEventCharacter);
-          }
-
-          if (nextEventText == null || (nextEventText.length() > 1 && !nextEventIsModifier)) {
-            String text = typedText.toString();
-            typedText = new StringBuilder();
-            return new TypeTextAction(text, new String[0]);
+            actions.add(new TypeKeyAction(keyText, modifiersTexts));
+          }else if (!modifiers.isEmpty() && characterWithModifiers == character) {
+            actions.add(new TypeTextAction(keyText, modifiersTexts));
+          } else {
+            typedText.append(keyText);
+  
+            Long nextEventTime = findNextPressedKeyEventTime(time);
+            NativeKeyEvent nextKeyEvent = null;
+            Character nextEventCharacter = null;
+            String nextEventText = null;
+            boolean nextEventIsModifier = false;
+  
+            if (nextEventTime != null) {
+              nextKeyEvent = (NativeKeyEvent) events.get(nextEventTime);
+              nextEventCharacter = KeyboardLayout.toChar(nextKeyEvent, new Character[0]);
+              nextEventText = getKeyText(nextEventCharacter);
+              nextEventIsModifier = Key.isModifier(nextEventCharacter);
+            }
+  
+            if (nextEventText == null || (nextEventText.length() > 1 && !nextEventIsModifier)) {
+              String text = typedText.toString();
+              typedText = new StringBuilder();
+              actions.add(new TypeTextAction(text, new String[0]));
+            }
           }
         }
       } else if (NativeKeyEvent.NATIVE_KEY_RELEASED == event.getID()) {
@@ -167,7 +162,7 @@ public class RecordedEventsFlow {
       }
     }
 
-    return null;
+    return actions;
   }
 
   private String[] getModifierTexts() {
@@ -212,101 +207,170 @@ public class RecordedEventsFlow {
     return "" + ch;
   }
 
-  private Long mousePressTime = null;
-  private int mousePressCount = 0;
+  private Map.Entry<Long, NativeInputEvent> getPreviousEvent(Long time) {
+    return events.floorEntry(time - 1);
+  }
 
-  private IRecordedAction handleMouseEvent(Long time, NativeMouseEvent event) {    
+  private Map.Entry<Long, NativeInputEvent> getNextEvent(Long time) {    
+    return events.ceilingEntry(time + 1);
+  }
+  
+  private Long dragStartTime = null;
+  private NativeMouseEvent dragStartEvent = null;
+  private int clickCount = 0;
+
+  private List<IRecordedAction> handleMouseEvent(Long time, NativeMouseEvent event) {
+    List<IRecordedAction> actions = new ArrayList<>();
+    
+    Long previousTime = null;
+    NativeInputEvent previousEvent = null;
+    
+    Map.Entry<Long, NativeInputEvent> previousEventEntry = getPreviousEvent(time);
+    if(previousEventEntry != null) {
+      previousTime = previousEventEntry.getKey();
+      previousEvent = previousEventEntry.getValue();
+    }
+
+    Map.Entry<Long, NativeInputEvent> nextEventEntry = getNextEvent(time);
+    Long nextTime = nextEventEntry.getKey();
+    NativeInputEvent nextEvent = nextEventEntry.getValue();
+
     if (NativeMouseEvent.NATIVE_MOUSE_PRESSED == event.getID()) {
-      if (mousePressTime == null) {
-        mousePressTime = time;
+      if ( NativeMouseEvent.NATIVE_MOUSE_DRAGGED == nextEvent.getID()) {
+        dragStartTime = time;
+        dragStartEvent = event;
+      } else {
+        dragStartTime = null;
+        dragStartEvent = null;
       }
-      mousePressCount++;
     } else if (NativeMouseEvent.NATIVE_MOUSE_RELEASED == event.getID()) {
-      Map.Entry<Long, NativeInputEvent> nextEventEntry = events.ceilingEntry(time + 1);
-      Long nextEventTime = nextEventEntry.getKey();
-      NativeInputEvent nextEvent = nextEventEntry.getValue();
-            
-      if (nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED
-          || time - DOUBLE_CLICK_TIME > nextEventTime || mousePressCount >= 2) {
-        try {           
-          Image image = this.findRelevantImage(mousePressTime, event);
-
-          if (image != null) {
-            File file = new File(ImagePath.getBundlePath() + File.separator + mousePressTime + ".png");
+      if (dragStartTime != null && (Math.abs(event.getX() - dragStartEvent.getX()) > 10 ||  Math.abs(event.getY() - dragStartEvent.getY()) > 10)) {
+        try {
+          Image dragImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), dragStartEvent);
+          Image dropImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), event);
+          
+          if (dragImage != null && dropImage != null) {
+            File dragFile = new File(ImagePath.getBundlePath() + File.separator + dragStartTime + ".png");
+            File dropFile = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
 
             try {
-              ImageIO.write(image.get(), "PNG", file);
+              ImageIO.write(dragImage.get(), "PNG", dragFile);
+              ImageIO.write(dropImage.get(), "PNG", dropFile);
+            
+              Pattern dragPattern = new Pattern(dragFile.getAbsolutePath());
+              dragPattern.targetOffset(dragImage.getOffset());
+              Pattern dropPattern = new Pattern(dropFile.getAbsolutePath());
+              dropPattern.targetOffset(dropImage.getOffset());
+              
+              actions.add(new DragDropAction(dragPattern, dropPattern));
+            
             } catch (IOException e) {
               e.printStackTrace();
             }
-
-            Pattern pattern = new Pattern(file.getAbsolutePath());
-            pattern.targetOffset(image.getOffset());
-
-            Long lastNonMouseMoveEventTime = events.firstKey();
-
-            List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(events.headMap(mousePressTime).entrySet());
-            Collections.reverse(previousEvents);
-
-            for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
-              if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
-                  && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
-                lastNonMouseMoveEventTime = entry.getKey();
-                break;
-              }
-            }
-
-            Mat lastNonMouseMoveScreenshot = readCeilingScreenshot(lastNonMouseMoveEventTime);
-            Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
-
-            finder.find(image);
-
-            List<Match> matches = finder.getList();
-
-            boolean wasHereBeforeMouseMove = false;
-            for (Match match : matches) {
-              if (match.getScore() > 0.9) {
-                wasHereBeforeMouseMove = true;
-                break;
-              }
-            }
-            
-            Pattern clickPattern = pattern;
-            
-            if (!wasHereBeforeMouseMove) {
-              clickPattern = null;         
-            }
-            
-            IRecordedAction clickAction = null;            
-            if(event.getButton() == NativeMouseEvent.BUTTON3) {
-              clickAction = new RightClickAction(clickPattern, getModifierTexts());
-            }              
-            if (mousePressCount >= 2) {
-              clickAction = new DoubleClickAction(clickPattern, getModifierTexts());
-            } else {
-              clickAction = new ClickAction(clickPattern, getModifierTexts());
-            }
-            
-            if (!wasHereBeforeMouseMove) {
-              int waitTime = (int) Math.ceil((mousePressTime - lastNonMouseMoveEventTime) / 1000d * 2);
-              return new WaitAction(pattern, waitTime, clickAction);
-            }
-            
-            return clickAction;
-            
-          }
+          }         
+                  
         } finally {
-          mousePressTime = null;
-          mousePressCount = 0;
-        }
+          dragStartTime = null;
+          dragStartEvent = null;
+        }        
+      } else if (previousEvent.getID() == NativeMouseEvent.NATIVE_MOUSE_PRESSED) {
+        clickCount++;
 
+        if ((nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED || time - DOUBLE_CLICK_TIME > nextTime
+            || clickCount >= 2))
+          try {            
+            Long firstMouseMoveTime = findFirstMouseMoveTime(previousTime);            
+            Mat screenshot = readCeilingScreenshot(firstMouseMoveTime);           
+            
+            Image image = this.findRelevantImage(screenshot, event);
+
+            if (image != null) {
+              File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
+
+              try {
+                ImageIO.write(image.get(), "PNG", file);
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+
+              Pattern pattern = new Pattern(file.getAbsolutePath());
+              pattern.targetOffset(image.getOffset());
+
+              Long lastNonMouseMoveEventTime = events.floorKey(firstMouseMoveTime - 1);
+              
+              if (lastNonMouseMoveEventTime == null) {
+                lastNonMouseMoveEventTime = events.firstKey();
+              }
+
+              Mat lastNonMouseMoveScreenshot = readCeilingScreenshot(lastNonMouseMoveEventTime);
+              Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
+
+              finder.find(image);
+
+              List<Match> matches = finder.getList();
+
+              boolean wasHereBeforeMouseMove = false;
+              for (Match match : matches) {
+                if (match.getScore() > 0.9) {
+                  wasHereBeforeMouseMove = true;
+                  break;
+                }
+              }
+              
+              Pattern clickPattern = pattern;
+
+              if (!wasHereBeforeMouseMove) {
+                clickPattern = null;
+              }
+
+              IRecordedAction clickAction = null;
+              if (event.getButton() == NativeMouseEvent.BUTTON3) {
+                clickAction = new RightClickAction(clickPattern, getModifierTexts());
+              }
+              if (clickCount >= 2) {
+                clickAction = new DoubleClickAction(clickPattern, getModifierTexts());
+              } else {
+                clickAction = new ClickAction(clickPattern, getModifierTexts());
+              }
+
+              if (!wasHereBeforeMouseMove) {
+                int waitTime = (int) Math.min(3, Math.ceil((firstMouseMoveTime - lastNonMouseMoveEventTime) / 1000d * 2));
+                actions.add(new WaitAction(pattern, waitTime, clickAction));
+              } else {
+                actions.add(clickAction);
+              }
+
+            }
+          } finally {
+            clickCount = 0;
+            dragStartTime = null;
+            dragStartEvent = null;
+          }
       }
     } else if (NativeMouseEvent.NATIVE_MOUSE_MOVED == event.getID()) {
 
     }
-    return null;
+    return actions;
   }
-
+  
+  private Long findFirstMouseMoveTime(Long time) {
+    Long firstMouseMoveEventTime = events.firstKey();
+    List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(
+        events.headMap(time).entrySet());
+    Collections.reverse(previousEvents);
+        
+    for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
+      if (entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_MOVED
+          || entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
+        firstMouseMoveEventTime = entry.getKey();
+      } else {  
+        break;
+      }
+    }    
+    
+    return firstMouseMoveEventTime;
+  }
+  
   private Mat readFloorScreenshot(Long time) {
     return Imgcodecs.imread(screenshots.floorEntry(time).getValue());
   }
@@ -315,102 +379,96 @@ public class RecordedEventsFlow {
     return Imgcodecs.imread(screenshots.ceilingEntry(time).getValue());
   }
 
-  private Image findRelevantImage(long time, NativeMouseEvent event) {
-    if (screenshots.floorKey(time) != null) {
-      int eventX = event.getX();
-      int eventY = event.getY();
+  private Image findRelevantImage(Mat screenshot, NativeMouseEvent event) {   
+    int eventX = event.getX();
+    int eventY = event.getY();
 
-      Mat screenshot = readFloorScreenshot(time);
+    Mat edges = new Mat();
 
-      Mat edges = new Mat();
+    Imgproc.Canny(screenshot, edges, 100, 200);
+    Core.bitwise_not(edges, edges);
 
-      Imgproc.Canny(screenshot, edges, 100, 200);
-      Core.bitwise_not(edges, edges);
+    int offset = START_SIZE / 2;
+    int currentTop = eventY - offset;
+    int currentRight = eventX + offset;
+    int currentBottom = eventY + offset;
+    int currentLeft = eventX - offset;
 
-      int offset = START_SIZE / 2;
-      int currentTop = eventY - offset;
-      int currentRight = eventX + offset;
-      int currentBottom = eventY + offset;
-      int currentLeft = eventX - offset;
+    for (int i = 1; i <= 40; i++) {
+      int currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
 
-      for (int i = 1; i <= 40; i++) {
-        int currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
-
-        if (currentCount > MAX_FEATURES) {
-          break;
-        }
-
-        int currentWidth = currentRight - currentLeft;
-        int currentHeight = currentBottom - currentTop;
-        int currentArea = currentWidth * currentHeight;
-
-        int top = currentTop - INCREASE_SIZE;
-        int increasedTopHeight = currentBottom - top;
-        int increasedTopCount = findGoodFeatures(edges, top, currentRight, currentBottom, currentLeft);
-        double increasedTopFactor = (double) (currentWidth * increasedTopHeight) / currentArea;
-
-        int right = currentRight + INCREASE_SIZE;
-        int increasedRightWidth = right - currentLeft;
-        int increasedRightCount = findGoodFeatures(edges, currentTop, right, currentBottom, currentLeft);
-        double increasedRightFactor = (double) (increasedRightWidth * currentHeight) / currentArea;
-
-        int bottom = currentBottom + INCREASE_SIZE;
-        int increasedBottomHeight = bottom - currentTop;
-        int increasedBottomCount = findGoodFeatures(edges, currentTop, currentRight, bottom, currentLeft);
-        double increasedBottomFactor = (double) (currentWidth * increasedBottomHeight) / currentArea;
-
-        int left = currentLeft - INCREASE_SIZE;
-        int increasedLeftWidth = currentRight - left;
-        int increasedLeftCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, left);
-        double increasedLeftFactor = (double) (increasedLeftWidth * currentHeight) / currentArea;
-
-        if (increasedTopCount > currentCount * Math.max(1, increasedTopFactor * FEATURE_INCREASE_RATIO)) {
-          currentTop = top;
-        }
-
-        if (increasedRightCount > currentCount * Math.max(1, increasedRightFactor * FEATURE_INCREASE_RATIO)) {
-          currentRight = right;
-        }
-
-        if (increasedBottomCount > currentCount * Math.max(1, increasedBottomFactor * FEATURE_INCREASE_RATIO)) {
-          currentBottom = bottom;
-        }
-
-        if (increasedLeftCount > currentCount * Math.max(1, increasedLeftFactor * FEATURE_INCREASE_RATIO)) {
-          currentLeft = left;
-        }
-
-        currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
-
-        if (currentCount < 10) {
-          currentTop -= INCREASE_SIZE;
-          currentRight += INCREASE_SIZE;
-          currentBottom += INCREASE_SIZE;
-          currentLeft -= INCREASE_SIZE;
-        }
+      if (currentCount > MAX_FEATURES) {
+        break;
       }
 
-      currentTop -= FEATURE_IMAGE_MARGIN;
-      currentRight += FEATURE_IMAGE_MARGIN;
-      currentBottom += FEATURE_IMAGE_MARGIN;
-      currentLeft -= FEATURE_IMAGE_MARGIN;
+      int currentWidth = currentRight - currentLeft;
+      int currentHeight = currentBottom - currentTop;
+      int currentArea = currentWidth * currentHeight;
 
-      currentTop = Math.max(0, currentTop);
-      currentRight = Math.min(screenshot.cols() - 1, currentRight);
-      currentBottom = Math.min(screenshot.rows() - 1, currentBottom);
-      currentLeft = Math.max(0, currentLeft);
+      int top = currentTop - INCREASE_SIZE;
+      int increasedTopHeight = currentBottom - top;
+      int increasedTopCount = findGoodFeatures(edges, top, currentRight, currentBottom, currentLeft);
+      double increasedTopFactor = (double) (currentWidth * increasedTopHeight) / currentArea;
 
-      Mat part = new Mat(screenshot,
-          new Rect(currentLeft, currentTop, currentRight - currentLeft, currentBottom - currentTop));
+      int right = currentRight + INCREASE_SIZE;
+      int increasedRightWidth = right - currentLeft;
+      int increasedRightCount = findGoodFeatures(edges, currentTop, right, currentBottom, currentLeft);
+      double increasedRightFactor = (double) (increasedRightWidth * currentHeight) / currentArea;
 
-      Image image = new Image(Finder2.getBufferedImage(part));
-      image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2),
-          eventY - (currentTop + (currentBottom - currentTop) / 2)));
+      int bottom = currentBottom + INCREASE_SIZE;
+      int increasedBottomHeight = bottom - currentTop;
+      int increasedBottomCount = findGoodFeatures(edges, currentTop, currentRight, bottom, currentLeft);
+      double increasedBottomFactor = (double) (currentWidth * increasedBottomHeight) / currentArea;
 
-      return image;
+      int left = currentLeft - INCREASE_SIZE;
+      int increasedLeftWidth = currentRight - left;
+      int increasedLeftCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, left);
+      double increasedLeftFactor = (double) (increasedLeftWidth * currentHeight) / currentArea;
+
+      if (increasedTopCount > currentCount * Math.max(1, increasedTopFactor * FEATURE_INCREASE_RATIO)) {
+        currentTop = top;
+      }
+
+      if (increasedRightCount > currentCount * Math.max(1, increasedRightFactor * FEATURE_INCREASE_RATIO)) {
+        currentRight = right;
+      }
+
+      if (increasedBottomCount > currentCount * Math.max(1, increasedBottomFactor * FEATURE_INCREASE_RATIO)) {
+        currentBottom = bottom;
+      }
+
+      if (increasedLeftCount > currentCount * Math.max(1, increasedLeftFactor * FEATURE_INCREASE_RATIO)) {
+        currentLeft = left;
+      }
+
+      currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
+
+      if (currentCount < 10) {
+        currentTop -= INCREASE_SIZE;
+        currentRight += INCREASE_SIZE;
+        currentBottom += INCREASE_SIZE;
+        currentLeft -= INCREASE_SIZE;
+      }
     }
 
-    return null;
+    currentTop -= FEATURE_IMAGE_MARGIN;
+    currentRight += FEATURE_IMAGE_MARGIN;
+    currentBottom += FEATURE_IMAGE_MARGIN;
+    currentLeft -= FEATURE_IMAGE_MARGIN;
+
+    currentTop = Math.max(0, currentTop);
+    currentRight = Math.min(screenshot.cols() - 1, currentRight);
+    currentBottom = Math.min(screenshot.rows() - 1, currentBottom);
+    currentLeft = Math.max(0, currentLeft);
+
+    Mat part = new Mat(screenshot,
+        new Rect(currentLeft, currentTop, currentRight - currentLeft, currentBottom - currentTop));
+
+    Image image = new Image(Finder2.getBufferedImage(part));
+    image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2),
+        eventY - (currentTop + (currentBottom - currentTop) / 2)));
+
+    return image;    
   }
 
   private int findGoodFeatures(Mat img, int top, int right, int bottom, int left) {

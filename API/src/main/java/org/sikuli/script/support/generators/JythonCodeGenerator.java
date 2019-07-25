@@ -48,45 +48,24 @@ public class JythonCodeGenerator implements ICodeGenerator {
     return patternString;
   }
   
-  private String click(String type, Pattern pattern, String[] modifiers) {
-    String code = type + "(";
-    
-    if (pattern != null) {
-      code += pattern(pattern, null);
-    }
-    
-    if(modifiers.length > 0) {
-      if (pattern != null) {
-        code += ", ";
-      }      
-      
-      code += String.join(" + ", modifiers);        
-    }
-    code += ")";
-    return code;    
-  }
-
   @Override
   public String click(Pattern pattern, String[] modifiers) {
-    return click("click", pattern, modifiers);
+    return mouse("click", pattern, modifiers);
   }
 
   @Override
   public String doubleClick(Pattern pattern, String[] modifiers) {
-    return click("doubleClick", pattern, modifiers);
+    return mouse("doubleClick", pattern, modifiers);
   }
   
   @Override
   public String rightClick(Pattern pattern, String[] modifiers) {
-    return click("rightClick", pattern, modifiers);
+    return mouse("rightClick", pattern, modifiers);
   }
-
+  
   @Override
-  public String typeText(String text, String[] modifiers) {
-    if(modifiers.length > 0) {
-      return "type(u\"" + text + "\", " + String.join(" + ", modifiers) + ")";
-    }
-    return "type(u\"" + text + "\")";
+  public String typeText(String text, String[] modifiers) {    
+    return typeKey("u\"" + text + "\"", modifiers);    
   }
 
   @Override
@@ -106,5 +85,52 @@ public class JythonCodeGenerator implements ICodeGenerator {
     }
     
     return code;
-  }   
+  }
+
+  @Override
+  public String mouseDown(Pattern pattern, String[] buttons) {
+    return mouse("mouseDown", pattern, buttons);   
+  }
+
+  @Override
+  public String mouseUp(Pattern pattern, String[] buttons) {
+    return mouse("mouseUp", pattern, buttons);
+  }
+
+  @Override
+  public String mouseMove(Pattern pattern) {
+    return mouse("mouseMove", pattern, new String[0]);
+  }
+  
+  private String mouse(String type, Pattern pattern, String[] modifiersOrButtons) {
+    String code = type + "(";
+    
+    if (pattern != null) {
+      code += pattern(pattern, null);
+    }
+    
+    if(modifiersOrButtons.length > 0) {
+      if (pattern != null) {
+        code += ", ";
+      }      
+      
+      code += String.join(" + ", modifiersOrButtons);        
+    }
+    code += ")";
+    return code;    
+  }
+
+  @Override
+  public String dragDrop(Pattern sourcePattern, Pattern targetPattern) {
+    String code = "dragDrop(";
+    
+    if (sourcePattern != null) {
+      code += pattern(sourcePattern, null) + ", ";  
+    }    
+    
+    code += pattern(targetPattern, null);
+    code += ")";
+    
+    return code;
+  }
 }

@@ -89,13 +89,14 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-        ScreenImage img = Screen.getPrimaryScreen().capture();
-
-        if (new Finder(img).findDiffPercentage(currentImage) > 0.001) {
-          String file = img.save(screenshotDir.getAbsolutePath());
-          eventsFlow.addScreenshot(file);
+        synchronized(screenshotDir){
+          if (screenshotDir.exists()) {
+            ScreenImage img = Screen.getPrimaryScreen().capture();            
+            String file = img.save(screenshotDir.getAbsolutePath());
+            eventsFlow.addScreenshot(file);           
+            currentImage = img;
+          }
         }
-        currentImage = img;
       }
     };
     throttler.execute(runnable, SCREENSHOT_THROTTLE_MILLIS, TimeUnit.MILLISECONDS);
@@ -136,7 +137,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
-      GlobalScreen.addNativeMouseMotionListener(this);
+      GlobalScreen.addNativeMouseMotionListener(this);        
     }
 
   }
@@ -149,12 +150,14 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeKeyListener(this);
 
       List<IRecordedAction> actions =  eventsFlow.compile();
-
-      try {
-        FileUtils.deleteDirectory(screenshotDir);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      
+//      synchronized(screenshotDir){
+//        try {
+//          FileUtils.deleteDirectory(screenshotDir);
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//      }
 
       return actions;
     }
