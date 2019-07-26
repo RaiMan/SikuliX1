@@ -327,8 +327,7 @@ public class RecordedEventsFlow {
               IRecordedAction clickAction = null;
               if (event.getButton() == NativeMouseEvent.BUTTON3) {
                 clickAction = new RightClickAction(clickPattern, getModifierTexts());
-              }
-              if (clickCount >= 2) {
+              } else if (clickCount >= 2) {
                 clickAction = new DoubleClickAction(clickPattern, getModifierTexts());
               } else {
                 clickAction = new ClickAction(clickPattern, getModifierTexts());
