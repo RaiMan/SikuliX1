@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 //import org.jruby.Ruby;
 //import org.jruby.runtime.ThreadContext;
+//import org.jruby.embed.ScriptingContainer;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.support.RunTime;
 
@@ -111,7 +112,7 @@ public class JRubySupport implements IRunnerSupport {
     //return interpreter.getLoadPaths();
     try {
       return (List<String>) cInterpreter.getMethod("getLoadPaths", new Class[0])
-              .invoke(cInterpreter, new Object[0]);
+              .invoke(interpreter, new Object[0]);
     } catch (Exception e) {
       log(-1, "interpreter.getLoadPaths(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -123,7 +124,7 @@ public class JRubySupport implements IRunnerSupport {
     //return interpreter.runScriptlet(script);
     try {
       return cInterpreter.getMethod("runScriptlet", new Class[]{String.class})
-              .invoke(cInterpreter, new Object[]{script});
+              .invoke(interpreter, new Object[]{script});
     } catch (Exception e) {
       log(-1, "interpreter.runScriptletString(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -135,7 +136,7 @@ public class JRubySupport implements IRunnerSupport {
     //return interpreter.runScriptlet(reader, filename);
     try {
       return cInterpreter.getMethod("runScriptlet", new Class[]{Reader.class, String.class})
-              .invoke(cInterpreter, new Object[]{reader, filename});
+              .invoke(interpreter, new Object[]{reader, filename});
     } catch (Exception e) {
       log(-1, "interpreter.runScriptletFile(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -147,7 +148,7 @@ public class JRubySupport implements IRunnerSupport {
     //interpreter.setScriptFilename(filename);
     try {
       cInterpreter.getMethod("setScriptFilename", new Class[]{String.class})
-              .invoke(cInterpreter, new Object[]{filename});
+              .invoke(interpreter, new Object[]{filename});
     } catch (Exception e) {
       log(-1, "interpreter.setScriptFilename(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -171,15 +172,16 @@ public class JRubySupport implements IRunnerSupport {
       try {
         //interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
         Class cLocalContextScope = Class.forName("org.jruby.embed.LocalContextScope");
-        Constructor RI_new = cInterpreter.getConstructor(new Class[]{cLocalContextScope});
-        interpreter = RI_new.newInstance(new Object[]{cLocalContextScope.getField("THREADSAFE")});
+        interpreter = cInterpreter.getConstructor(new Class[]{cLocalContextScope})
+                .newInstance(new Object[]{cLocalContextScope.getEnumConstants()[2]});
+
         //interpreter.setCompileMode(CompileMode.JIT);
-        Class cCompileMode = Class.forName("org.jruby.RubyInstanceConfig.CompileMode");
-        Field jit = cCompileMode.getField("JIT");
-        Method mSetCompileMode = cInterpreter.getMethod("setCompileMode", new Class[]{cCompileMode});
-        mSetCompileMode.invoke(cInterpreter, new Object[]{jit});
+        Class cCompileMode = Class.forName("org.jruby.RubyInstanceConfig$CompileMode");
+        cInterpreter.getMethod("setCompileMode", new Class[]{cCompileMode})
+                .invoke(interpreter, new Object[]{cCompileMode.getEnumConstants()[0]});
       } catch (Exception e) {
         log(-1, "init problem: %s", e.getMessage());
+        RunTime.get().terminate(-1, "JRuby: reflection problem");
       }
     }
   }
@@ -189,7 +191,7 @@ public class JRubySupport implements IRunnerSupport {
     if (interpreter != null) {
       //interpreter.terminate();
       try {
-        cInterpreter.getMethod("terminate", new Class[0]).invoke(cInterpreter, new Object[0]);
+        cInterpreter.getMethod("terminate", new Class[0]).invoke(interpreter, new Object[0]);
       } catch (Exception e) {
         log(-1, "interpreter.terminate(): %s", e.getMessage());
         RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -219,7 +221,7 @@ public class JRubySupport implements IRunnerSupport {
     //interpreter.setOutput(stdout);
     try {
       cInterpreter.getMethod("setOutput", new Class[]{PrintStream.class})
-              .invoke(cInterpreter, new Object[]{stdout});
+              .invoke(interpreter, new Object[]{stdout});
     } catch (Exception e) {
       log(-1, "interpreter.setOutput(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");
@@ -230,7 +232,7 @@ public class JRubySupport implements IRunnerSupport {
     //interpreter.setOutput(stderr);
     try {
       cInterpreter.getMethod("setError", new Class[]{PrintStream.class})
-              .invoke(cInterpreter, new Object[]{stderr});
+              .invoke(interpreter, new Object[]{stderr});
     } catch (Exception e) {
       log(-1, "interpreter.setError(): %s", e.getMessage());
       RunTime.get().terminate(-1, "JRuby: reflection problem");

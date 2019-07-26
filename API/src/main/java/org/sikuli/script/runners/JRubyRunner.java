@@ -39,12 +39,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      if (null == scriptFile) {
-        // run the Ruby statements from argv (special for setup functional test)
-        jrubySupport.fillSysArgv(null, null);
-        executeScriptHeader(new String[0]);
-        return runRuby(null, scriptArgs, null, options);
-      }
       File rbFile = new File(new File(scriptFile).getAbsolutePath());
       jrubySupport.fillSysArgv(rbFile, scriptArgs);
 
@@ -196,29 +190,19 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       String[] pathNew = new String[pathLength + 1];
       pathNew[0] = sikuliLibPath;
       for (int i = 0; i < pathLength; i++) {
-        log(lvl + 1, "executeScriptHeader: before: %d: %s", i, path.get(i));
         pathNew[i + 1] = (String) path.get(i);
       }
       for (int i = 0; i < pathLength; i++) {
         path.set(i, pathNew[i]);
       }
       path.add(pathNew[pathNew.length - 1]);
-      for (int i = 0; i < pathNew.length; i++) {
-        log(lvl + 1, "executeScriptHeader: after: %d: %s", i, path.get(i));
-      }
     }
     if (savedpathlen == 0) {
       savedpathlen = jrubySupport.interpreterGetLoadPaths().size();
-      log(lvl + 1, "executeScriptHeader: saved sys.path: %d", savedpathlen);
     }
     while (jrubySupport.interpreterGetLoadPaths().size() > savedpathlen) {
       jrubySupport.interpreterGetLoadPaths().remove(savedpathlen);
     }
-    log(lvl + 1, "executeScriptHeader: at entry: path:");
-    for (String p : jrubySupport.interpreterGetLoadPaths()) {
-      log(lvl + 1, p);
-    }
-    log(lvl + 1, "executeScriptHeader: at entry: --- end ---");
     for (String syspath : syspaths) {
       path.add(FileManager.slashify(syspath, false));
     }
