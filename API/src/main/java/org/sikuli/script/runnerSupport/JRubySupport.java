@@ -71,6 +71,15 @@ public class JRubySupport implements IRunnerSupport {
 
   private JRubySupport() {}
 
+  public boolean isSupported() {
+    try {
+      Class.forName("org.jruby.embed.ScriptingContainer");
+      return true;
+    } catch (ClassNotFoundException ex) {
+      return false;
+    }
+  }
+
   @Override
   public boolean runObserveCallback(Object[] args) {
     boolean result = false;

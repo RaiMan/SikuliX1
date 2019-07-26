@@ -71,6 +71,16 @@ public class JythonSupport implements IRunnerSupport {
     return instance;
   }
 
+  public boolean isSupported() {
+    try {
+      Class.forName("org.python.util.PythonInterpreter");
+      return true;
+    } catch (ClassNotFoundException ex) {
+      log(-1, "no Jython on classpath --- consult the docs for a solution, if needed");
+      return false;
+    }
+  }
+
   static Class[] nc = new Class[0];
   static Class[] nc1 = new Class[1];
   static Class cInterpreter = null;
@@ -181,8 +191,8 @@ public class JythonSupport implements IRunnerSupport {
     }
     //Object code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
     if (null != mMakeCode) {
-        mExecC.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
-                FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
+      mExecC.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
+              FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
     }
   }
 

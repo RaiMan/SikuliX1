@@ -82,13 +82,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   public boolean isSupported() {
-    try {
-      Class.forName("org.jruby.embed.ScriptingContainer");
-      return true;
-    } catch (ClassNotFoundException ex) {
-      return false;
-    }
-
+    return jrubySupport.isSupported();
   }
 
   @Override
