@@ -13,5 +13,5 @@ public class MouseMoveAction implements IRecordedAction {
   @Override
   public String generate(ICodeGenerator generator) {
     return generator.mouseMove(pattern);
-  }  
+  }
 }

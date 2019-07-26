@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,7 +98,7 @@ public class RecordedEventsFlow {
           actions.addAll(handleKeyEvent(time, (NativeKeyEvent) event));
         } else if (event instanceof NativeMouseEvent) {
           actions.addAll(handleMouseEvent(time, (NativeMouseEvent) event));
-        }   
+        }
       }
 
       if (!actions.isEmpty()) {
@@ -112,7 +111,7 @@ public class RecordedEventsFlow {
 
   private List<IRecordedAction> handleKeyEvent(Long time, NativeKeyEvent event) {
     List<IRecordedAction> actions = new ArrayList<>();
-    
+
     Character character = KeyboardLayout.toChar(event, new Character[0]);
     Character characterWithModifiers = KeyboardLayout.toChar(event, modifiers.toArray(new Character[modifiers.size()]));
     if (character != null) {
@@ -135,20 +134,20 @@ public class RecordedEventsFlow {
             actions.add(new TypeTextAction(keyText, modifiersTexts));
           } else {
             typedText.append(keyText);
-  
+
             Long nextEventTime = findNextPressedKeyEventTime(time);
             NativeKeyEvent nextKeyEvent = null;
             Character nextEventCharacter = null;
             String nextEventText = null;
             boolean nextEventIsModifier = false;
-  
+
             if (nextEventTime != null) {
               nextKeyEvent = (NativeKeyEvent) events.get(nextEventTime);
               nextEventCharacter = KeyboardLayout.toChar(nextKeyEvent, new Character[0]);
               nextEventText = getKeyText(nextEventCharacter);
               nextEventIsModifier = Key.isModifier(nextEventCharacter);
             }
-  
+
             if (nextEventText == null || (nextEventText.length() > 1 && !nextEventIsModifier)) {
               String text = typedText.toString();
               typedText = new StringBuilder();
@@ -212,20 +211,20 @@ public class RecordedEventsFlow {
     return events.floorEntry(time - 1);
   }
 
-  private Map.Entry<Long, NativeInputEvent> getNextEvent(Long time) {    
+  private Map.Entry<Long, NativeInputEvent> getNextEvent(Long time) {
     return events.ceilingEntry(time + 1);
   }
-  
+
   private Long dragStartTime = null;
   private NativeMouseEvent dragStartEvent = null;
   private int clickCount = 0;
 
   private List<IRecordedAction> handleMouseEvent(Long time, NativeMouseEvent event) {
     List<IRecordedAction> actions = new ArrayList<>();
-    
+
     Long previousTime = null;
     NativeInputEvent previousEvent = null;
-    
+
     Map.Entry<Long, NativeInputEvent> previousEventEntry = getPreviousEvent(time);
     if(previousEventEntry != null) {
       previousTime = previousEventEntry.getKey();
@@ -249,7 +248,7 @@ public class RecordedEventsFlow {
         try {
           Image dragImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), dragStartEvent);
           Image dropImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), event);
-          
+
           if (dragImage != null && dropImage != null) {
             File dragFile = new File(ImagePath.getBundlePath() + File.separator + dragStartTime + ".png");
             File dropFile = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
@@ -257,32 +256,33 @@ public class RecordedEventsFlow {
             try {
               ImageIO.write(dragImage.get(), "PNG", dragFile);
               ImageIO.write(dropImage.get(), "PNG", dropFile);
-            
+
               Pattern dragPattern = new Pattern(dragFile.getAbsolutePath());
               dragPattern.targetOffset(dragImage.getOffset());
               Pattern dropPattern = new Pattern(dropFile.getAbsolutePath());
               dropPattern.targetOffset(dropImage.getOffset());
-              
+
               actions.add(new DragDropAction(dragPattern, dropPattern));
-            
+
             } catch (IOException e) {
               e.printStackTrace();
             }
-          }         
-                  
+          }
+
         } finally {
+          clickCount = 0;
           dragStartTime = null;
           dragStartEvent = null;
-        }        
+        }
       } else if (previousEvent.getID() == NativeMouseEvent.NATIVE_MOUSE_PRESSED) {
         clickCount++;
 
         if ((nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED || time - DOUBLE_CLICK_TIME > nextTime
             || clickCount >= 2))
-          try {            
-            Long firstMouseMoveTime = findFirstMouseMoveTime(previousTime);            
-            Mat screenshot = readCeilingScreenshot(firstMouseMoveTime);           
-            
+          try {
+            Long firstMouseMoveTime = findFirstMouseMoveTime(previousTime);
+            Mat screenshot = readCeilingScreenshot(firstMouseMoveTime);
+
             Image image = this.findRelevantImage(screenshot, event);
 
             if (image != null) {
@@ -298,7 +298,7 @@ public class RecordedEventsFlow {
               pattern.targetOffset(image.getOffset());
 
               Long lastNonMouseMoveEventTime = events.floorKey(firstMouseMoveTime - 1);
-              
+
               if (lastNonMouseMoveEventTime == null) {
                 lastNonMouseMoveEventTime = events.firstKey();
               }
@@ -317,7 +317,7 @@ public class RecordedEventsFlow {
                   break;
                 }
               }
-              
+
               Pattern clickPattern = pattern;
 
               if (!wasHereBeforeMouseMove) {
@@ -353,25 +353,25 @@ public class RecordedEventsFlow {
     }
     return actions;
   }
-  
+
   private Long findFirstMouseMoveTime(Long time) {
     Long firstMouseMoveEventTime = events.firstKey();
     List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(
         events.headMap(time).entrySet());
     Collections.reverse(previousEvents);
-        
+
     for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
       if (entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_MOVED
           || entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
         firstMouseMoveEventTime = entry.getKey();
-      } else {  
+      } else {
         break;
       }
-    }    
-    
+    }
+
     return firstMouseMoveEventTime;
   }
-  
+
   private Mat readFloorScreenshot(Long time) {
     return Imgcodecs.imread(screenshots.floorEntry(time).getValue());
   }
@@ -380,7 +380,7 @@ public class RecordedEventsFlow {
     return Imgcodecs.imread(screenshots.ceilingEntry(time).getValue());
   }
 
-  private Image findRelevantImage(Mat screenshot, NativeMouseEvent event) {   
+  private Image findRelevantImage(Mat screenshot, NativeMouseEvent event) {
     int eventX = event.getX();
     int eventY = event.getY();
 
@@ -469,7 +469,7 @@ public class RecordedEventsFlow {
     image.setOffset(new Location(eventX - (currentLeft + (currentRight - currentLeft) / 2),
         eventY - (currentTop + (currentBottom - currentTop) / 2)));
 
-    return image;    
+    return image;
   }
 
   private int findGoodFeatures(Mat img, int top, int right, int bottom, int left) {

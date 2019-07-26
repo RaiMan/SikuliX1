@@ -23,5 +23,5 @@ public class ClickAction implements IRecordedAction {
 
   protected String[] getModifiers() {
     return modifiers;
-  }  
+  }
 }

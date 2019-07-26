@@ -7,17 +7,17 @@ public interface ICodeGenerator {
   public String pattern(Pattern pattern, String mask);
 
   public String click(Pattern pattern, String[] modifiers);
-  
+
   public String mouseDown(Pattern pattern, String[] buttons);
-  
+
   public String mouseUp(Pattern pattern, String[] buttons);
-  
+
   public String mouseMove(Pattern pattern);
-  
+
   public String dragDrop(Pattern sourcePattern, Pattern targetPattern);
 
   public String doubleClick(Pattern pattern, String[] modifiers);
-  
+
   public String rightClick(Pattern pattern, String[] modifiers);
 
   public String typeText(String text, String[] modifiers);

@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +20,6 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 import org.jnativehook.mouse.NativeMouseMotionListener;
-import org.sikuli.script.Finder;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.recorder.RecordedEventsFlow;
@@ -30,7 +27,7 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
-  private static final int SCREENSHOT_THROTTLE_MILLIS = 100;
+  private static final int SCREENSHOT_THROTTLE_MILLIS = 50;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
@@ -51,11 +48,9 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       e.printStackTrace();
     }
 
-    Runtime.getRuntime().addShutdownHook(new Thread()
-    {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
-      public void run()
-      {
+      public void run() {
         try {
           GlobalScreen.unregisterNativeHook();
         } catch (NativeHookException e) {
@@ -75,7 +70,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       synchronized (this) {
         long now = System.currentTimeMillis();
 
-        if(now - lastExecution > threshold) {
+        if (now - lastExecution > threshold) {
           lastExecution = now;
           executor.execute(runnable);
         }
@@ -89,11 +84,11 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-        synchronized(screenshotDir){
+        synchronized (screenshotDir) {
           if (screenshotDir.exists()) {
-            ScreenImage img = Screen.getPrimaryScreen().capture();            
+            ScreenImage img = Screen.getPrimaryScreen().capture();
             String file = img.save(screenshotDir.getAbsolutePath());
-            eventsFlow.addScreenshot(file);           
+            eventsFlow.addScreenshot(file);
             currentImage = img;
           }
         }
@@ -137,7 +132,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
-      GlobalScreen.addNativeMouseMotionListener(this);        
+      GlobalScreen.addNativeMouseMotionListener(this);
     }
 
   }
@@ -149,17 +144,17 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeMouseListener(this);
       GlobalScreen.removeNativeKeyListener(this);
 
-      List<IRecordedAction> actions =  eventsFlow.compile();
-      
-//      synchronized(screenshotDir){
-//        try {
-//          FileUtils.deleteDirectory(screenshotDir);
-//        } catch (IOException e) {
-//          e.printStackTrace();
-//        }
-//      }
+      synchronized (screenshotDir) {
 
-      return actions;
+        List<IRecordedAction> actions = eventsFlow.compile();
+
+        try {
+          FileUtils.deleteDirectory(screenshotDir);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        return actions;
+      }
     }
     return new ArrayList<>();
   }

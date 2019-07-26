@@ -6,7 +6,7 @@ import org.sikuli.script.support.generators.ICodeGenerator;
 public class WaitAction implements IRecordedAction {
   private Pattern pattern;
   private int seconds;
-  IRecordedAction matchAction;  
+  IRecordedAction matchAction;
 
   public WaitAction(Pattern pattern, int seconds, IRecordedAction matchAction) {
     this.pattern = pattern;

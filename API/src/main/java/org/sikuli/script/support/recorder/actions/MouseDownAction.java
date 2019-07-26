@@ -15,5 +15,5 @@ public class MouseDownAction implements IRecordedAction {
   @Override
   public String generate(ICodeGenerator generator) {
     return generator.mouseDown(pattern, buttons);
-  }  
+  }
 }
