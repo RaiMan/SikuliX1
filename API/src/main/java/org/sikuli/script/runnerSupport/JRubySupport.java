@@ -71,7 +71,7 @@ public class JRubySupport implements IRunnerSupport {
 
   private JRubySupport() {}
 
-  public boolean isSupported() {
+  public static boolean isSupported() {
     try {
       Class.forName("org.jruby.embed.ScriptingContainer");
       return true;

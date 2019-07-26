@@ -71,12 +71,12 @@ public class JythonSupport implements IRunnerSupport {
     return instance;
   }
 
-  public boolean isSupported() {
+  public static boolean isSupported() {
     try {
       Class.forName("org.python.util.PythonInterpreter");
       return true;
     } catch (ClassNotFoundException ex) {
-      log(-1, "no Jython on classpath --- consult the docs for a solution, if needed");
+      Debug.log(-1, "no Jython on classpath --- consult the docs for a solution, if needed");
       return false;
     }
   }
