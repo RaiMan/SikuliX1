@@ -87,7 +87,18 @@ import org.sikuli.script.SX;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.support.ExtensionManager;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
+import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
+import org.sikuli.util.OverlayCapturePrompt;
+import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.script.*;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.generators.ICodeGenerator;
@@ -677,8 +688,10 @@ public class SikulixIDE extends JFrame {
     editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
-    File tempFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
-            new File(RunTime.get().fpBaseTempPath, "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
+    IScriptRunner runner = editorPane.getRunner();
+    String defaultExtension = runner.getDefaultExtension();
+    File tempFile = FileManager.createTempFile(defaultExtension, new File(RunTime.get().fpBaseTempPath,
+            "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
     if (null == tempFile) {
       //TODO newTabEmpty: temp problem: how should caller react?
       return false;
@@ -2505,9 +2518,14 @@ public class SikulixIDE extends JFrame {
         public void run() {
           int exitValue = -1;
           try {
-            setCurrentRunner(editorPane.editorPaneRunner);
+            IScriptRunner runner = editorPane.editorPaneRunner;
+            setCurrentRunner(runner);
             setCurrentScript(scriptFileToRun);
-            exitValue = editorPane.editorPaneRunner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
+            //TODO make reloadImported specific for each editor tab
+            if (runner.getType().equals(JythonRunner.TYPE)) {
+              JythonSupport.get().reloadImported();
+            }
+            exitValue = runner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
           } catch (Exception e) {
             log(-1, "Run Script: internal error:");
             e.printStackTrace();

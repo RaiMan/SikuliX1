@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.script.runnerHelpers;
+package org.sikuli.script.runnerSupport;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -17,7 +17,7 @@ import org.sikuli.script.support.Runner;
  * EXPERIMENTAL --- INTERNAL USE ONLY<br>
  *   is not official API --- will not be in version 2
  */
-public class Commands {
+public class JavaScriptSupport implements IRunnerSupport{
 
     private static int lvl = 2;
 
@@ -74,7 +74,7 @@ public class Commands {
             newArgs[n] = args[n];
         }
         try {
-            m = Commands.class.getMethod(function, Object[].class);
+            m = JavaScriptSupport.class.getMethod(function, Object[].class);
             retVal = m.invoke(null, (Object) newArgs);
         } catch (Exception ex) {
             m = null;
@@ -596,6 +596,11 @@ public class Commands {
         } catch (Exception ex) {
             return 0;
         }
+    }
+
+    @Override
+    public boolean runObserveCallback(Object[] args) {
+        return false;
     }
 //</editor-fold>
 }

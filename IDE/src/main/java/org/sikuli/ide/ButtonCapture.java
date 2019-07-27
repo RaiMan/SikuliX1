@@ -73,7 +73,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    Debug.log(3, "ButtonCapture: capture!");
+    Debug.log(3, "ButtonCapture: capture started");
     captureWithAutoDelay();
   }
 
@@ -93,7 +93,9 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
     givenName = codePane.parseLineText("#" + line.trim());
-    Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
+    if (!givenName.isEmpty()) {
+      Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
+    }
     RunTime.pause(((float) delay)/1000);
     defaultScreen = SikulixIDE.getDefaultScreen();
     if (defaultScreen == null) {
@@ -117,14 +119,14 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   }
 
   @Override
-  public void update(EventSubject es) {
-    Debug.log(3, "ButtonCapture: update");
+  public void update(EventSubject event) {
+    Debug.log(3, "ButtonCapture: finished");
     ScreenImage simg = null;
     OverlayCapturePrompt ocp = null;
-    if (null == es) {
+    if (null == event) {
       simg = sImgNonLocal;
     } else {
-      ocp = (OverlayCapturePrompt) es;
+      ocp = (OverlayCapturePrompt) event;
       simg = ocp.getSelection();
       Screen.closePrompt();
     }
@@ -292,7 +294,8 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
           pane.insertComponent(comp);
         }
       } else {
-        pane.insertComponent(new EditorPatternLabel(pane, imgFilename, true));
+        EditorPatternLabel label = new EditorPatternLabel(pane, imgFilename, true);
+        pane.insertComponent(label);
       }
     }
 //TODO set Caret

@@ -4,7 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -257,7 +257,7 @@ public class Debug {
 		}
 		if (isJython) {
 			Object[] args = new Object[]{privateLogger, mName, type.toString()};
-			if (!JythonHelper.get().checkCallback(args)) {
+			if (!JythonSupport.get().checkCallback(args)) {
 				logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
 				return false;
 			}
@@ -590,7 +590,7 @@ public class Debug {
 					msg = String.format(prefix + message, args);
 				}
 				if (isJython) {
-					success = JythonHelper.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
+					success = JythonSupport.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
 				} else if (isJRuby) {
 					success = false;
 				} else {

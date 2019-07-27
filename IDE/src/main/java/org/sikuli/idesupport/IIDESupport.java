@@ -9,9 +9,11 @@ import org.sikuli.script.support.generators.ICodeGenerator;
 
 public interface IIDESupport {
 
-	public String[] getTypes();
+	String[] getTypes();
 
-	public IIndentationLogic getIndentationLogic();
+	IIndentationLogic getIndentationLogic();
+
+	String normalizePartialScript(String script);
 
 	public ICodeGenerator getCodeGenerator();
 

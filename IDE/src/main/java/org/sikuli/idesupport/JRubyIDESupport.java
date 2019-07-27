@@ -19,7 +19,13 @@ public class JRubyIDESupport implements IIDESupport {
 
 	@Override
 	public IIndentationLogic getIndentationLogic() {
-		return null;
+    return null;
+	}
+
+	@Override
+	public String normalizePartialScript(String script) {
+		//TODO run partial script: normalize lines for Ruby
+		return script;
 	}
 
 	@Override

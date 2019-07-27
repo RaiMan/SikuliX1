@@ -14,10 +14,6 @@
     <dependencySet>
       <outputDirectory>/</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
-      <excludes>
-        <exclude>org.python:jython-standalone</exclude>
-        <exclude>org.jruby:jruby-complete</exclude>
-      </excludes>
       <unpack>true</unpack>
       <unpackOptions>
         <excludes>

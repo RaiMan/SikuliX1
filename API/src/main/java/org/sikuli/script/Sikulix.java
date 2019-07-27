@@ -4,7 +4,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.*;
-import org.sikuli.script.runnerHelpers.JythonHelper;
+import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.util.SikulixFileChooser;
@@ -459,7 +459,7 @@ public class Sikulix {
    * @return false if anything goes wrong, true means should have worked
    */
   public static boolean compileJythonFolder(String fpSource, String fpTarget) {
-    JythonHelper jython = JythonHelper.get();
+    JythonSupport jython = JythonSupport.get();
     if (jython != null) {
       File fTarget = new File(fpTarget);
       FileManager.deleteFileOrFolder(fTarget);
@@ -489,9 +489,9 @@ public class Sikulix {
 
   private static class CompileJythonFilter implements FileManager.FileFilter {
 
-    JythonHelper jython = null;
+    JythonSupport jython = null;
 
-    public CompileJythonFilter(JythonHelper jython) {
+    public CompileJythonFilter(JythonSupport jython) {
       this.jython = jython;
     }
 
@@ -504,7 +504,7 @@ public class Sikulix {
     }
   }
 
-  private static JythonHelper doCompileJythonFolder(JythonHelper jython, File fSource) {
+  private static JythonSupport doCompileJythonFolder(JythonSupport jython, File fSource) {
     String fpSource = FileManager.slashify(fSource.getAbsolutePath(), false);
     if (!jython.exec(String.format("compileall.compile_dir(\"%s\","
             + "maxlevels = 0, quiet = 1)", fpSource))) {

@@ -26,6 +26,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>${sikulixjythonversion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby</groupId>
+      <artifactId>jruby-complete</artifactId>
+      <version>${sikulixjrubyversion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
       <version>0.9.5</version>

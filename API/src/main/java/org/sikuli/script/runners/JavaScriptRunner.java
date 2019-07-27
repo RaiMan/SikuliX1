@@ -30,7 +30,7 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   private static String BEFORE_JS
       = "importPackage(Packages.org.sikuli.script); "
       + "importClass(Packages.org.sikuli.script.support.RunTime); "
-      + "importClass(Packages.org.sikuli.script.runnerHelpers.Commands); "
+      + "importClass(Packages.org.sikuli.script.runnerSupport.JavaScriptSupport); "
       + "importClass(Packages.org.sikuli.basics.Debug); "
       + "importClass(Packages.org.sikuli.basics.Settings);";
 
