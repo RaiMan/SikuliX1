@@ -7,19 +7,13 @@ package org.sikuli.script.runnerSupport;
 import java.io.File;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//import org.jruby.Ruby;
-//import org.jruby.runtime.ThreadContext;
-//import org.jruby.embed.ScriptingContainer;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.support.RunTime;
 
@@ -80,6 +74,38 @@ public class JRubySupport implements IRunnerSupport {
     }
   }
 
+  /**
+   * Initializes the ScriptingContainer and creates an instance.
+   */
+  public void createScriptingContainer() {
+    //TODO create a specific RubyPath (sys.path)
+    if (interpreter == null) {
+      RunTime.get().fSikulixLib.getAbsolutePath();
+      // ScriptingContainer.initialize(System.getProperties(), null,
+      // sysargv.toArray(new String[0]));
+      try {
+        cInterpreter = Class.forName("org.jruby.embed.ScriptingContainer");
+      } catch (ClassNotFoundException e) {
+        log(-1, "not found on classpath");
+        return;
+      }
+      try {
+        //interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
+        Class cLocalContextScope = Class.forName("org.jruby.embed.LocalContextScope");
+        interpreter = cInterpreter.getConstructor(new Class[]{cLocalContextScope})
+                .newInstance(new Object[]{cLocalContextScope.getEnumConstants()[2]});
+
+        //interpreter.setCompileMode(CompileMode.JIT);
+        Class cCompileMode = Class.forName("org.jruby.RubyInstanceConfig$CompileMode");
+        cInterpreter.getMethod("setCompileMode", new Class[]{cCompileMode})
+                .invoke(interpreter, new Object[]{cCompileMode.getEnumConstants()[0]});
+      } catch (Exception e) {
+        log(-1, "init problem: %s", e.getMessage());
+        interpreter = null;
+      }
+    }
+  }
+
   @Override
   public boolean runObserveCallback(Object[] args) {
     boolean result = false;
@@ -118,81 +144,70 @@ public class JRubySupport implements IRunnerSupport {
   private static Class cInterpreter = null;
 
   public List<String> interpreterGetLoadPaths() {
+    if (null == interpreter) {
+      return null;
+    }
     //return interpreter.getLoadPaths();
+    Exception reflectionError = null;
     try {
       return (List<String>) cInterpreter.getMethod("getLoadPaths", new Class[0])
               .invoke(interpreter, new Object[0]);
-    } catch (Exception e) {
-      log(-1, "interpreter.getLoadPaths(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
+    } catch (IllegalAccessException e) {
+      reflectionError = e;
+    } catch (NoSuchMethodException e) {
+      reflectionError = e;
+    } catch (InvocationTargetException e) {
+      reflectionError = e;
+    }
+    if (null != reflectionError) {
+      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
     }
     return null;
   }
 
   public Object interpreterRunScriptletString(String script) {
+    if (null == interpreter) {
+      return null;
+    }
     //return interpreter.runScriptlet(script);
+    Exception reflectionError = null;
     try {
       return cInterpreter.getMethod("runScriptlet", new Class[]{String.class})
               .invoke(interpreter, new Object[]{script});
-    } catch (Exception e) {
-      log(-1, "interpreter.runScriptletString(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
+    } catch (IllegalAccessException e) {
+      reflectionError = e;
+    } catch (NoSuchMethodException e) {
+      reflectionError = e;
+    } catch (InvocationTargetException e) {
+      reflectionError = (Exception) e.getTargetException();
+    }
+    if (null != reflectionError) {
+      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
     }
     return null;
   }
 
-  public Object interpreterRunScriptletFile(Reader reader, String filename) {
+  public Object interpreterRunScriptletFile(Reader reader, String filename) throws Throwable {
+    if (null == interpreter) {
+      return null;
+    }
     //return interpreter.runScriptlet(reader, filename);
+    Exception reflectionError = null;
+    Object retVal = null;
     try {
-      return cInterpreter.getMethod("runScriptlet", new Class[]{Reader.class, String.class})
+      retVal = cInterpreter.getMethod("runScriptlet", new Class[]{Reader.class, String.class})
               .invoke(interpreter, new Object[]{reader, filename});
-    } catch (Exception e) {
-      log(-1, "interpreter.runScriptletFile(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
+    } catch (IllegalAccessException e) {
+      reflectionError = e;
+    } catch (NoSuchMethodException e) {
+      reflectionError = e;
+    } catch (InvocationTargetException e) {
+      throw e.getTargetException();
     }
-    return null;
-  }
-
-  public void interpreterSetScriptFilename(String filename) {
-    //interpreter.setScriptFilename(filename);
-    try {
-      cInterpreter.getMethod("setScriptFilename", new Class[]{String.class})
-              .invoke(interpreter, new Object[]{filename});
-    } catch (Exception e) {
-      log(-1, "interpreter.setScriptFilename(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
+    if (null != reflectionError) {
+      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
     }
-  }
-
-  /**
-   * Initializes the ScriptingContainer and creates an instance.
-   */
-  public void createScriptingContainer() {
-    //TODO create a specific RubyPath (sys.path)
-    if (interpreter == null) {
-      RunTime.get().fSikulixLib.getAbsolutePath();
-      // ScriptingContainer.initialize(System.getProperties(), null,
-      // sysargv.toArray(new String[0]));
-      try {
-        cInterpreter = Class.forName("org.jruby.embed.ScriptingContainer");
-      } catch (ClassNotFoundException e) {
-        log(-1, "not found on classpath");
-      }
-      try {
-        //interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
-        Class cLocalContextScope = Class.forName("org.jruby.embed.LocalContextScope");
-        interpreter = cInterpreter.getConstructor(new Class[]{cLocalContextScope})
-                .newInstance(new Object[]{cLocalContextScope.getEnumConstants()[2]});
-
-        //interpreter.setCompileMode(CompileMode.JIT);
-        Class cCompileMode = Class.forName("org.jruby.RubyInstanceConfig$CompileMode");
-        cInterpreter.getMethod("setCompileMode", new Class[]{cCompileMode})
-                .invoke(interpreter, new Object[]{cCompileMode.getEnumConstants()[0]});
-      } catch (Exception e) {
-        log(-1, "init problem: %s", e.getMessage());
-        RunTime.get().terminate(-1, "JRuby: reflection problem");
-      }
-    }
+    return retVal;
   }
 
   public void interpreterTerminate() {
@@ -210,6 +225,9 @@ public class JRubySupport implements IRunnerSupport {
   }
 
   public boolean doRedirect(PrintStream stdout, PrintStream stderr) {
+    if (interpreter == null) {
+      return false;
+    }
     try {
       interpreterSetOutput(stdout);
     } catch (Exception e) {
@@ -271,8 +289,7 @@ public class JRubySupport implements IRunnerSupport {
 
     if (err.startsWith("(SyntaxError)")) {
       // org.jruby.parser.ParserSyntaxException
-      // (SyntaxError) /tmp/sikuli-3213678404470696048.rb:2: syntax error, unexpected
-      // tRCURLY
+      // (SyntaxError) /tmp/sikuli-3213678404470696048.rb:2: syntax error, unexpected tRCURLY
 
       Pattern pLineS = Pattern.compile("(?<=:)(\\d+):(.*)");
       Matcher mLine = pLineS.matcher(err);

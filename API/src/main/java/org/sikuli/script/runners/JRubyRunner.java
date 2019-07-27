@@ -38,24 +38,41 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
+    Integer exitCode = 0;
+    Object exitValue = null;
     synchronized (JRubyRunner.class) {
-      File rbFile = new File(new File(scriptFile).getAbsolutePath());
-      jrubySupport.fillSysArgv(rbFile, scriptArgs);
+      File rubyFile = new File(new File(scriptFile).getAbsolutePath());
+      jrubySupport.fillSysArgv(rubyFile, scriptArgs);
 
-      executeScriptHeader(new String[]{rbFile.getParentFile().getAbsolutePath(),
-              rbFile.getParentFile().getParentFile().getAbsolutePath()});
+      executeScriptHeader(new String[]{rubyFile.getParentFile().getAbsolutePath(),
+              rubyFile.getParentFile().getParentFile().getAbsolutePath()});
 
-      prepareFileLocation(rbFile, options);
+      prepareFileLocation(rubyFile, options);
 
-      int exitCode = runRuby(rbFile, null, new String[]{rbFile.getParentFile().getAbsolutePath()}, options);
-
-      log(lvl + 1, "runScript: at exit: path:");
-      for (Object p : jrubySupport.interpreterGetLoadPaths()) {
-        log(lvl + 1, "runScript: " + p.toString());
+      BufferedReader scriptReader = null;
+      try {
+        scriptReader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(rubyFile.getAbsolutePath()), "UTF-8"));
+      } catch (IOException ex) {
       }
-      log(lvl + 1, "runScript: at exit: --- end ---");
+      try {
+        //TODO what is exitValue?
+        exitValue = jrubySupport.interpreterRunScriptletFile(scriptReader, rubyFile.getAbsolutePath());
+      } catch (Throwable scriptException) {
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
+        Matcher matcher = p.matcher(scriptException.toString());
+        if (matcher.find()) {
+          exitCode = Integer.parseInt(matcher.group(1));
+          Debug.info("Exit code: " + exitCode);
+        } else {
+          //TODO to be optimized (avoid double message)
+          int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath());
+          options.setErrorLine(errorExit);
+        }
+      }
       return exitCode;
     }
+
   }
 
   @Override
@@ -65,7 +82,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       try {
         jrubySupport.interpreterRunScriptletString(lines);
       } catch (Exception ex) {
-        log(-1, "runLines: (%s) raised: %s", lines, ex);
       }
     }
   }
@@ -106,70 +122,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     redirected = false;
   }
 
-  private static int savedpathlen = 0;
-  private static boolean redirected = false;
-
-  private int runRuby(File ruFile, String[] stmts, String[] scriptPaths, IScriptRunner.Options options) {
-    int exitCode = 0;
-    String stmt = "";
-    boolean fromIDE = false;
-    String filename = "<script>";
-    try {
-      if (null == ruFile) {
-        log(lvl, "runRuby: running statements");
-        StringBuilder buffer = new StringBuilder();
-        for (String e : stmts) {
-          buffer.append(e);
-        }
-        jrubySupport.interpreterSetScriptFilename(filename);
-        jrubySupport.interpreterRunScriptletString(buffer.toString());
-      } else {
-        filename = ruFile.getAbsolutePath();
-        if (scriptPaths != null) {
-          BufferedReader scriptReader = new BufferedReader(
-                  new InputStreamReader(new FileInputStream(ruFile.getAbsolutePath()), "UTF-8"));
-
-          if (scriptPaths.length > 1) {
-            filename = FileManager.slashify(scriptPaths[0], true) + scriptPaths[1] + ".sikuli";
-            log(lvl, "runRuby: running script from IDE: \n" + filename);
-            if (scriptPaths[0] == null) {
-              filename = "";
-            }
-            fromIDE = true;
-          } else {
-            filename = scriptPaths[0];
-            log(lvl, "runRuby: running script: \n" + filename);
-          }
-          jrubySupport.interpreterRunScriptletFile(scriptReader, filename);
-
-        } else {
-          log(-1, "runRuby: invalid arguments");
-          exitCode = -1;
-        }
-      }
-    } catch (Exception e) {
-      exitCode = 1;
-
-      java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
-      Matcher matcher = p.matcher(e.toString());
-//TODO error stop I18N
-      if (matcher.find()) {
-        exitCode = Integer.parseInt(matcher.group(1));
-        Debug.info("Exit code: " + exitCode);
-      } else {
-        if (null != ruFile) {
-          if (null != options) {
-            int errorExit = jrubySupport.findErrorSource(e, filename);
-            options.setErrorLine(errorExit);
-          }
-        } else {
-          Debug.error("runRuby: Ruby exception: %s with %s", e.getMessage(), stmt);
-        }
-      }
-    }
-    return exitCode;
-  }
-
   /**
    * Executes the defined header for the jruby script.
    *
@@ -177,14 +129,17 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
    */
   private void executeScriptHeader(String[] syspaths) {
     List<String> path = jrubySupport.interpreterGetLoadPaths();
+    if (null == path) {
+      return;
+    }
     String sikuliLibPath = RunTime.get().fSikulixLib.getAbsolutePath();
-    if (path.size() == 0 || !FileManager.pathEquals((String) path.get(0), sikuliLibPath)) {
+    if (path.size() == 0 || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
       log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
       int pathLength = path.size();
       String[] pathNew = new String[pathLength + 1];
       pathNew[0] = sikuliLibPath;
       for (int i = 0; i < pathLength; i++) {
-        pathNew[i + 1] = (String) path.get(i);
+        pathNew[i + 1] = path.get(i);
       }
       for (int i = 0; i < pathLength; i++) {
         path.set(i, pathNew[i]);
@@ -212,6 +167,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     }
   }
 
+  private static int savedpathlen = 0;
   private final static String SCRIPT_HEADER =
           "# coding: utf-8\n"
                   + "require 'Lib/sikulix'\n"
@@ -228,6 +184,8 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       return true;
     }
   }
+
+  private static boolean redirected = false;
 
   @Override
   public boolean isAbortSupported() {
