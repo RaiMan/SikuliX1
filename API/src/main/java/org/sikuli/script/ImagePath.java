@@ -228,12 +228,20 @@ public class ImagePath {
           }
         } else if (other instanceof String) {
           if (isFile()) {
-            return new File(pathURL.getFile()).equals(new File((String) other));
+            try {
+              return new File(pathURL.getFile()).equals(new File((String) other).getCanonicalFile());
+            } catch (IOException e) {
+              return false;
+            }
           }
           return false;
         } else if (other instanceof File) {
           if (isFile()) {
-            return new File(pathURL.getFile()).equals(other);
+            try {
+              return new File(pathURL.getFile()).equals(((File) other).getCanonicalFile());
+            } catch (IOException e) {
+              return false;
+            }
           }
           return false;
         }
