@@ -3,13 +3,7 @@
  */
 package org.sikuli.ide;
 
-import java.awt.AWTEvent;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.AWTEventListener;
@@ -37,26 +31,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
@@ -2041,9 +2016,8 @@ public class SikulixIDE extends JFrame {
     toolbar.add(btnSubregion);
     toolbar.add(btnLocation);
     toolbar.add(btnOffset);
-    //TODO usage freezes IDE
-//    toolbar.add(btnShow);
-//    toolbar.add(btnShowIn);
+    toolbar.add(btnShow);
+    toolbar.add(btnShowIn);
     toolbar.add(Box.createHorizontalGlue());
     _btnRun = new ButtonRun();
     toolbar.add(_btnRun);
@@ -2269,8 +2243,16 @@ public class SikulixIDE extends JFrame {
                   + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
+          final String evalText = eval;
           IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
-          runner.evalScript("#" + eval, null);
+          SikulixIDE.hideIDE();
+          new Thread(new Runnable() {
+            @Override
+            public void run() {
+              runner.evalScript("#" + evalText, null);
+              SikulixIDE.showIDE();
+            }
+          }).start();
           return;
         }
       }
@@ -2325,7 +2307,15 @@ public class SikulixIDE extends JFrame {
         Region reg = new Region(simg.getROI());
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
-        Runner.getRunner(JavaScriptRunner.class).evalScript(item, null);
+        final String evalText = item;
+        IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            runner.evalScript("#" + evalText, null);
+          }
+        }).start();
+        RunTime.pause(2);
       } else {
         SikulixIDE.showAgain();
         nothingTodo();
