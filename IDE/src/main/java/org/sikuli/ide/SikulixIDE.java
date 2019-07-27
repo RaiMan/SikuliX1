@@ -2041,8 +2041,9 @@ public class SikulixIDE extends JFrame {
     toolbar.add(btnSubregion);
     toolbar.add(btnLocation);
     toolbar.add(btnOffset);
-    toolbar.add(btnShow);
-    toolbar.add(btnShowIn);
+    //TODO usage freezes IDE
+//    toolbar.add(btnShow);
+//    toolbar.add(btnShowIn);
     toolbar.add(Box.createHorizontalGlue());
     _btnRun = new ButtonRun();
     toolbar.add(_btnRun);
