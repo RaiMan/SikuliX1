@@ -94,7 +94,7 @@ public class JythonSupport implements IRunnerSupport {
   static Class cPyString = null;
   static Class cPyCode = null;
   static Method mLen, mGet, mSet, mAdd, mRemove, mClear;
-  static Method mGetSystemState, mExecS, mExecC, mExecfile, mEval;
+  static Method mGetSystemState, mExecString, mExecCode, mExecfile, mEval;
   static Method mCleanup, mClose, mSetOut, mSetErr;
 
   private static void init() {
@@ -127,8 +127,8 @@ public class JythonSupport implements IRunnerSupport {
       mAdd = cList.getMethod("add", new Class[]{Object.class});
       mRemove = cList.getMethod("remove", new Class[]{int.class});
       mGetSystemState = cInterpreter.getMethod("getSystemState", nc);
-      mExecS = cInterpreter.getMethod("exec", new Class[]{String.class});
-      mExecC = cInterpreter.getMethod("exec", new Class[]{cPyObject});
+      mExecString = cInterpreter.getMethod("exec", new Class[]{String.class});
+      mExecCode = cInterpreter.getMethod("exec", new Class[]{cPyObject});
       mExecfile = cInterpreter.getMethod("execfile", new Class[]{String.class});
       mEval = cInterpreter.getMethod("eval", new Class[]{String.class});
       mCleanup = cInterpreter.getMethod("cleanup", new Class[0]);
@@ -137,7 +137,7 @@ public class JythonSupport implements IRunnerSupport {
       mSetErr = cInterpreter.getMethod("setErr", new Class[]{OutputStream.class});
     } catch (Exception ex) {
       instance.log(-1, "reflection problem: %s", ex.getMessage());
-      instance.terminate(999, "JythonSupport: initialization problem");
+      interpreter = null;
     }
     //instance.log(lvl, "init: success");
     runTime.isJythonReady = true;
@@ -157,50 +157,6 @@ public class JythonSupport implements IRunnerSupport {
     } catch (Exception e) {
     }
   }
-
-  public Object interpreterEval(String expression) {
-    //return interpreter.eval(expression);
-    try {
-      return mEval.invoke(interpreter, new Object[]{expression});
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  public void interpreterExecString(String script) {
-    //interpreter.exec(script);
-    try {
-      mExecS.invoke(interpreter, new Object[]{script});
-    } catch (Exception e) {
-      if (e instanceof InvocationTargetException) {
-        e = (Exception) ((InvocationTargetException) e).getTargetException();
-      }
-      log(-1, "%s for\n%s", e.toString(), script);
-    }
-  }
-
-  public void interpreterExecCode(File compiledScript) throws IOException, InvocationTargetException, IllegalAccessException {
-    String scriptFile = compiledScript.getAbsolutePath();
-    byte[] data = FileUtils.readFileToByteArray(compiledScript);
-    Method mMakeCode = null;
-    try {
-      Class cBytecodeLoader = Class.forName("org.python.core.BytecodeLoader");
-      mMakeCode = cBytecodeLoader.getMethod("makeCode", String.class, byte[].class, String.class);
-    } catch (Exception e) {
-      log(-1, "BytecodeLoader.makeCode: %s", e.getMessage());
-    }
-    //Object code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
-    if (null != mMakeCode) {
-      mExecC.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
-              FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
-    }
-  }
-
-  public void interpreterExecFile(String script) throws InvocationTargetException, IllegalAccessException {
-    //interpreter.execfile(script);
-    mExecfile.invoke(interpreter, new Object[]{script});
-  }
-
 
   public void interpreterFillSysArgv(File pyFile, String[] argv) {
     List<String> jyargv = new ArrayList<>();
@@ -471,10 +427,93 @@ public class JythonSupport implements IRunnerSupport {
   }
   //</editor-fold>
 
-  //<editor-fold desc="17 load/run support">
+  //<editor-fold desc="17 exec/eval">
+  public Object interpreterEval(String expression) {
+    //return interpreter.eval(expression);
+    try {
+      return mEval.invoke(interpreter, new Object[]{expression});
+    } catch (Exception e) {
+      return "";
+    }
+  }
+
+  public boolean interpreterExecString(String script) {
+    //interpreter.exec(script);
+    try {
+      mExecString.invoke(interpreter, new Object[]{script});
+    } catch (IllegalAccessException e) {
+      log(-1, "exec string: %s", e.getMessage());
+    } catch (InvocationTargetException e) {
+      log(-1, "exec string: %s", e.getTargetException().getMessage());
+      return false;
+    }
+    return true;
+  }
+
+  public void interpreterExecCode(File compiledScript) throws Throwable {
+    String scriptFile = compiledScript.getAbsolutePath();
+    byte[] data = new byte[0];
+    try {
+      data = FileUtils.readFileToByteArray(compiledScript);
+    } catch (IOException e) {
+      log(-1, "exec compiled script: %s", e.getMessage());
+    }
+    Method mMakeCode = null;
+    try {
+      Class cBytecodeLoader = Class.forName("org.python.core.BytecodeLoader");
+      mMakeCode = cBytecodeLoader.getMethod("makeCode", String.class, byte[].class, String.class);
+    } catch (Exception e) {
+      log(-1, "exec compiled script: BytecodeLoader.makeCode: %s", e.getMessage());
+    }
+    //Object code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
+    if (null != mMakeCode) {
+      try {
+        mExecCode.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
+                FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
+      } catch (IllegalAccessException e) {
+        log(-1, "exec compiled script: exec: %s", e.getMessage());
+      } catch (InvocationTargetException e) {
+        throw e.getTargetException();
+      }
+    }
+  }
+
+  public void interpreterExecFile(String script) throws Throwable {
+    //interpreter.execfile(script);
+    try {
+      mExecfile.invoke(interpreter, new Object[]{script});
+    } catch (IllegalAccessException e) {
+      log(-1, "exec file: %s", e.getMessage());
+    } catch (InvocationTargetException e) {
+      throw e.getTargetException();
+    }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="18 RobotFramework support">
+  public boolean prepareRobot() {
+    if (runTime.isRunningFromJar()) {
+      File fLibRobot = new File(runTime.fSikulixLib, "robot");
+      if (!fLibRobot.exists()) {
+        log(-1, "prepareRobot: not available: %s", fLibRobot);
+        return false;
+      }
+      if (!hasSysPath(runTime.fSikulixLib.getAbsolutePath())) {
+        insertSysPath(runTime.fSikulixLib);
+      }
+    }
+    if (!hasSysPath(new File(Settings.BundlePath).getParent())) {
+      appendSysPath(new File(Settings.BundlePath).getParent());
+    }
+    exec("import robot");
+    return true;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="30 TODO: check/revise: exec/load/runJar">
   public boolean exec(String code) {
     try {
-      mExecS.invoke(interpreter, code);
+      mExecString.invoke(interpreter, code);
     } catch (Exception ex) {
       SXPyException pex = new SXPyException(ex.getCause());
       if (pex.isTypeExit() < 0) {
@@ -496,23 +535,6 @@ public class JythonSupport implements IRunnerSupport {
       }
     }
     return retval;
-  }
-
-  public boolean prepareRobot() {
-    if (runTime.isRunningFromJar()) {
-      File fLibRobot = new File(runTime.fSikulixLib, "robot");
-      if (!fLibRobot.exists()) {
-        Sikulix.terminate(999, "prepareRobot: not available: %s", fLibRobot);
-      }
-      if (!hasSysPath(runTime.fSikulixLib.getAbsolutePath())) {
-        insertSysPath(runTime.fSikulixLib);
-      }
-    }
-    if (!hasSysPath(new File(Settings.BundlePath).getParent())) {
-      appendSysPath(new File(Settings.BundlePath).getParent());
-    }
-    exec("import robot");
-    return true;
   }
 
   public int runJar(String fpJarOrFolder) {
@@ -672,7 +694,7 @@ public class JythonSupport implements IRunnerSupport {
 
   public List<String> getSysArgv() {
     sysArgv = new ArrayList<String>();
-    if (null == cInterpreter) {
+    if (null == interpreter) {
       sysArgv = null;
       return null;
     }
@@ -693,7 +715,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public void setSysArgv(List<String> args) {
-    if (null == cInterpreter) {
+    if (null == interpreter) {
       return;
     }
     try {
@@ -711,6 +733,9 @@ public class JythonSupport implements IRunnerSupport {
 
   public void getSysPath() {
     synchronized (sysPath) {
+      if (null == interpreter) {
+        return;
+      }
       sysPath.clear();
       if (null == cInterpreter) {
         sysPath.clear();
@@ -734,7 +759,7 @@ public class JythonSupport implements IRunnerSupport {
 
   public void setSysPath() {
     synchronized (sysPath) {
-      if (null == cInterpreter || null == sysPath) {
+      if (null == interpreter || null == sysPath) {
         return;
       }
       try {
@@ -803,6 +828,10 @@ public class JythonSupport implements IRunnerSupport {
     }
   }
 
+  public void addSysPath(File fFolder) {
+    addSysPath(fFolder.getAbsolutePath());
+  }
+
   public void addSysPath(String fpFolder) {
     synchronized (sysPath) {
       if (!hasSysPath(fpFolder)) {
@@ -833,10 +862,6 @@ public class JythonSupport implements IRunnerSupport {
         nPathAdded++;
       }
     }
-  }
-
-  public void addSysPath(File fFolder) {
-    addSysPath(fFolder.getAbsolutePath());
   }
 
   public void insertSysPath(File fFolder) {
@@ -1007,7 +1032,7 @@ public class JythonSupport implements IRunnerSupport {
     Class errorClass = throwable.getClass();
     Class pySyntaxError = null;
     try {
-      pySyntaxError = Class.forName("PySyntaxError");
+      pySyntaxError = Class.forName("org.python.core.PySyntaxError");
     } catch (ClassNotFoundException e) {
     }
 

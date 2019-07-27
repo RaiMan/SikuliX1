@@ -88,7 +88,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       jythonSupport.showSysPath();
       jythonSupport.interpreterExecString("import sys");
       String interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
-
+      if (interpreterVersion.isEmpty()) {
+        interpreterVersion = "could not be evaluated";
+      }
       Debug.setWithTimeElapsed();
       log(lvl, "ready: version %s", interpreterVersion);
       Debug.unsetWithTimeElapsed();
@@ -145,23 +147,19 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         } else {
           jythonSupport.interpreterExecFile(pyFile.getAbsolutePath());
         }
-      } catch (Exception scriptException) {
+      } catch (Throwable scriptException) {
         exitCode = 1;
-        if (scriptException instanceof InvocationTargetException) {
-          scriptException = (Exception) ((InvocationTargetException) scriptException).getTargetException();
-          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
-          Matcher matcher = p.matcher(scriptException.toString());
-          if (matcher.find()) {
-            exitCode = Integer.parseInt(matcher.group(1));
-            Debug.info("Exit code: " + exitCode);
-          } else {
-            int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
-            if (null != options) {
-              options.setErrorLine(errorExit);
-            }
-          }
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
+        String exception = scriptException.toString();
+        Matcher matcher = p.matcher(exception);
+        if (matcher.find()) {
+          exitCode = Integer.parseInt(matcher.group(1));
+          Debug.info("Exit code: " + exitCode);
         } else {
-          log(-1, "exec script: %s", scriptException.getMessage());
+          int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
+          if (null != options) {
+            options.setErrorLine(errorExit);
+          }
         }
       } finally {
         jythonSupport.interpreterCleanup();
