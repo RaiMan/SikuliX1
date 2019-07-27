@@ -375,74 +375,76 @@ public class EditorPane extends JTextPane {
       try {
         indentationLogic = editorPaneIDESupport.getIndentationLogic();
         indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-      } catch (Exception ex) { }
-
-    IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
-
-    if (ideSupport != null) {
-      indentationLogic = ideSupport.getIndentationLogic();
-      if (indentationLogic != null) {
-        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      } catch (Exception ex) {
       }
-      codeGenerator = ideSupport.getCodeGenerator();
-    } else {
-      // Take Jython generator if no IDESupport is available
-      // TODO Needs better implementation
-      codeGenerator = new JythonCodeGenerator();
-    }
+
+      IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
+
+      if (ideSupport != null) {
+        indentationLogic = ideSupport.getIndentationLogic();
+        if (indentationLogic != null) {
+          indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+        }
+        codeGenerator = ideSupport.getCodeGenerator();
+      } else {
+        // Take Jython generator if no IDESupport is available
+        // TODO Needs better implementation
+        codeGenerator = new JythonCodeGenerator();
+      }
 //TODO revise merge
 
-    if (editorPaneType != null) {
-      editorKit = new SikuliEditorKit();
-      setEditorKit(editorKit);
-      setContentType(editorPaneType);
+      if (editorPaneType != null) {
+        editorKit = new SikuliEditorKit();
+        setEditorKit(editorKit);
+        setContentType(editorPaneType);
 
-      if (indentationLogic != null) {
-        PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
-          @Override
-          public void preferenceChange(PreferenceChangeEvent event) {
-            if (event.getKey().equals("TAB_WIDTH")) {
-              indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+        if (indentationLogic != null) {
+          PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
+            @Override
+            public void preferenceChange(PreferenceChangeEvent event) {
+              if (event.getKey().equals("TAB_WIDTH")) {
+                indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+              }
             }
-          }
-        });
+          });
+        }
       }
-    }
 
-    if (transferHandler == null) {
-      transferHandler = new MyTransferHandler();
-    }
-    setTransferHandler(transferHandler);
+      if (transferHandler == null) {
+        transferHandler = new MyTransferHandler();
+      }
+      setTransferHandler(transferHandler);
 
-    if (lineHighlighter == null) {
-      lineHighlighter = new EditorCurrentLineHighlighter(this);
-      addCaretListener(lineHighlighter);
-      initKeyMap();
-      //addKeyListener(this);
-      //addCaretListener(this);
-    }
+      if (lineHighlighter == null) {
+        lineHighlighter = new EditorCurrentLineHighlighter(this);
+        addCaretListener(lineHighlighter);
+        initKeyMap();
+        //addKeyListener(this);
+        //addCaretListener(this);
+      }
 
-    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-    if (!popMenuImage.isValidMenu()) {
-      popMenuImage = null;
-    }
+      popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+      if (!popMenuImage.isValidMenu()) {
+        popMenuImage = null;
+      }
 
-    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-    if (!popMenuCompletion.isValidMenu()) {
-      popMenuCompletion = null;
-    }
+      popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+      if (!popMenuCompletion.isValidMenu()) {
+        popMenuCompletion = null;
+      }
 
-    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
-    setMargin(new Insets(3, 3, 3, 3));
-    setBackground(Color.WHITE);
-    if (!Settings.isMac()) {
-      setSelectionColor(new Color(170, 200, 255));
-    }
+      setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
+      setMargin(new Insets(3, 3, 3, 3));
+      setBackground(Color.WHITE);
+      if (!Settings.isMac()) {
+        setSelectionColor(new Color(170, 200, 255));
+      }
 
 //      updateDocumentListeners("initBeforeLoad");
 
-    SikulixIDE.getStatusbar().setType(editorPaneType);
-    log(lvl, "InitTab: (%s)", editorPaneType);
+      SikulixIDE.getStatusbar().setType(editorPaneType);
+      log(lvl, "InitTab: (%s)", editorPaneType);
+    }
   }
 
   private boolean readContent(File scriptFile) {
