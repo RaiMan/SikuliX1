@@ -6,6 +6,7 @@ import java.util.Locale;
 import org.sikuli.script.Image;
 import org.sikuli.script.Location;
 import org.sikuli.script.Pattern;
+import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 public class JythonCodeGenerator implements ICodeGenerator {
 
@@ -48,21 +49,23 @@ public class JythonCodeGenerator implements ICodeGenerator {
   }
 
   @Override
-  public String click(Pattern pattern) {
-    return "click(" + pattern(pattern, null) + ")";
+  public String click(Pattern pattern, String[] modifiers) {
+    return mouse("click", pattern, modifiers);
   }
 
   @Override
-  public String doubleClick(Pattern pattern) {
-    return "doubleClick(" + pattern(pattern, null) + ")";
+  public String doubleClick(Pattern pattern, String[] modifiers) {
+    return mouse("doubleClick", pattern, modifiers);
+  }
+
+  @Override
+  public String rightClick(Pattern pattern, String[] modifiers) {
+    return mouse("rightClick", pattern, modifiers);
   }
 
   @Override
   public String typeText(String text, String[] modifiers) {
-    if(modifiers.length > 0) {
-      return "type(u\"" + text + "\", " + String.join(" + ", modifiers) + ")";
-    }
-    return "type(u\"" + text + "\")";
+    return typeKey("u\"" + text + "\"", modifiers);
   }
 
   @Override
@@ -74,12 +77,60 @@ public class JythonCodeGenerator implements ICodeGenerator {
   }
 
   @Override
-  public String waitClick(Pattern pattern, int seconds) {
-    return "wait(" + pattern(pattern, null) + ", " + seconds + ").click()";
+  public String wait(Pattern pattern, int seconds, IRecordedAction matchAction) {
+    String code = "wait(" + pattern(pattern, null) + ", " + seconds + ")";
+
+    if (matchAction != null) {
+      code += "." + matchAction.generate(this);
+    }
+
+    return code;
   }
 
+  @Override
+  public String mouseDown(Pattern pattern, String[] buttons) {
+    return mouse("mouseDown", pattern, buttons);
+  }
 
+  @Override
+  public String mouseUp(Pattern pattern, String[] buttons) {
+    return mouse("mouseUp", pattern, buttons);
+  }
 
+  @Override
+  public String mouseMove(Pattern pattern) {
+    return mouse("mouseMove", pattern, new String[0]);
+  }
 
+  private String mouse(String type, Pattern pattern, String[] modifiersOrButtons) {
+    String code = type + "(";
 
+    if (pattern != null) {
+      code += pattern(pattern, null);
+    }
+
+    if(modifiersOrButtons.length > 0) {
+      if (pattern != null) {
+        code += ", ";
+      }
+
+      code += String.join(" + ", modifiersOrButtons);
+    }
+    code += ")";
+    return code;
+  }
+
+  @Override
+  public String dragDrop(Pattern sourcePattern, Pattern targetPattern) {
+    String code = "dragDrop(";
+
+    if (sourcePattern != null) {
+      code += pattern(sourcePattern, null) + ", ";
+    }
+
+    code += pattern(targetPattern, null);
+    code += ")";
+
+    return code;
+  }
 }

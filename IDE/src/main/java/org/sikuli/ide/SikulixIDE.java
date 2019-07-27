@@ -2828,6 +2828,7 @@ public class SikulixIDE extends JFrame {
   void onStopRunning() {
     log(3, "AbortKey was pressed: aborting all running scripts");
     Runner.abortAll();
+    _btnRecord.stopRecord();
   }
 
   private void initHotkeys() {
