@@ -369,7 +369,6 @@ public class EditorPane extends JTextPane {
 
     editorPaneType = editorPaneRunner.getType();
     indentationLogic = null;
-//TODO revise merge
     setEditorPaneIDESupport(editorPaneType);
     if (null != editorPaneIDESupport) {
       try {
@@ -377,37 +376,26 @@ public class EditorPane extends JTextPane {
         indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
       } catch (Exception ex) {
       }
+      codeGenerator = editorPaneIDESupport.getCodeGenerator();
+    } else {
+      // Take Jython generator if no IDESupport is available
+      // TODO Needs better implementation
+      codeGenerator = new JythonCodeGenerator();
+    }
+    if (editorPaneType != null) {
+      editorKit = new SikuliEditorKit();
+      setEditorKit(editorKit);
+      setContentType(editorPaneType);
 
-      IIDESupport ideSupport = SikulixIDE.getIDESupport(editorPaneType);
-
-      if (ideSupport != null) {
-        indentationLogic = ideSupport.getIndentationLogic();
-        if (indentationLogic != null) {
-          indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-        }
-        codeGenerator = ideSupport.getCodeGenerator();
-      } else {
-        // Take Jython generator if no IDESupport is available
-        // TODO Needs better implementation
-        codeGenerator = new JythonCodeGenerator();
-      }
-//TODO revise merge
-
-      if (editorPaneType != null) {
-        editorKit = new SikuliEditorKit();
-        setEditorKit(editorKit);
-        setContentType(editorPaneType);
-
-        if (indentationLogic != null) {
-          PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
-            @Override
-            public void preferenceChange(PreferenceChangeEvent event) {
-              if (event.getKey().equals("TAB_WIDTH")) {
-                indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
-              }
+      if (indentationLogic != null) {
+        PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
+          @Override
+          public void preferenceChange(PreferenceChangeEvent event) {
+            if (event.getKey().equals("TAB_WIDTH")) {
+              indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
             }
-          });
-        }
+          }
+        });
       }
 
       if (transferHandler == null) {
