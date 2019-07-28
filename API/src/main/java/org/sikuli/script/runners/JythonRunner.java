@@ -135,7 +135,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       File pyFile = new File(scriptFile);
 
       jythonSupport.interpreterFillSysArgv(pyFile, argv);
-      executeScriptHeader();
+      jythonSupport.executeScriptHeader(codeBefore);
 
       prepareFileLocation(pyFile, options);
 
@@ -179,7 +179,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
 
-      executeScriptHeader();
+      jythonSupport.executeScriptHeader(codeBefore);
 
       try {
         jythonSupport.interpreterExecString(lines);
@@ -188,28 +188,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       }
     }
   }
-
-  private void executeScriptHeader() {
-    for (String line : SCRIPT_HEADER) {
-      log(lvl + 1, "executeScriptHeader: %s", line);
-      jythonSupport.interpreterExecString(line);
-    }
-    if (codeBefore != null) {
-      for (String line : codeBefore) {
-        jythonSupport.interpreterExecString(line);
-      }
-    }
-  }
-
-  /**
-   * The header commands, that are executed before every script
-   */
-  private static String[] SCRIPT_HEADER = new String[]{
-          "# -*- coding: utf-8 -*- ",
-          "import org.sikuli.script.SikulixForJython",
-          "from sikuli import *",
-          "use() #resetROI()"
-  };
   //</editor-fold>
 
   //<editor-fold desc="20 redirect">
