@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jruby.RubyInstanceConfig;
+import org.jruby.embed.LocalContextScope;
+import org.jruby.embed.ScriptingContainer;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.RunTime;
@@ -50,31 +53,23 @@ public class JRubySupport implements IRunnerSupport {
     }
   }
 
-  private static Object interpreter = null;
-  private static Class cInterpreter = null;
+  private static ScriptingContainer interpreter = null;
 
   public void interpreterInitialization() {
     //TODO create a specific RubyPath (sys.path)
     if (interpreter == null) {
       RunTime.get().fSikulixLib.getAbsolutePath();
-      // ScriptingContainer.initialize(System.getProperties(), null,
-      // sysargv.toArray(new String[0]));
+      //TODO needed?
+      //ScriptingContainer.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
       try {
-        cInterpreter = Class.forName("org.jruby.embed.ScriptingContainer");
+        Class.forName("org.jruby.embed.ScriptingContainer");
       } catch (ClassNotFoundException e) {
         log(-1, "not found on classpath");
         return;
       }
       try {
-        //interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
-        Class cLocalContextScope = Class.forName("org.jruby.embed.LocalContextScope");
-        interpreter = cInterpreter.getConstructor(new Class[]{cLocalContextScope})
-                .newInstance(new Object[]{cLocalContextScope.getEnumConstants()[2]});
-
-        //interpreter.setCompileMode(CompileMode.JIT);
-        Class cCompileMode = Class.forName("org.jruby.RubyInstanceConfig$CompileMode");
-        cInterpreter.getMethod("setCompileMode", new Class[]{cCompileMode})
-                .invoke(interpreter, new Object[]{cCompileMode.getEnumConstants()[0]});
+        interpreter = new ScriptingContainer(LocalContextScope.THREADSAFE);
+        interpreter.setCompileMode(RubyInstanceConfig.CompileMode.JIT);
       } catch (Exception e) {
         log(-1, "init problem: %s", e.getMessage());
         interpreter = null;
@@ -87,16 +82,14 @@ public class JRubySupport implements IRunnerSupport {
       return false;
     }
     try {
-      cInterpreter.getMethod("setOutput", new Class[]{PrintStream.class})
-              .invoke(interpreter, new Object[]{stdout});
+      interpreter.setOutput(stdout);
     } catch (Exception e) {
       e.printStackTrace();
       log(-1, "JRuby: redirect STDOUT: %s", e.getMessage());
       return false;
     }
     try {
-      cInterpreter.getMethod("setError", new Class[]{PrintStream.class})
-              .invoke(interpreter, new Object[]{stderr});
+      interpreter.setError(stderr);
     } catch (Exception e) {
       log(-1, "JRuby: redirect STDERR: %s", e.getMessage());
       return false;
@@ -110,22 +103,7 @@ public class JRubySupport implements IRunnerSupport {
     if (null == interpreter) {
       return null;
     }
-    //return interpreter.getLoadPaths();
-    Exception reflectionError = null;
-    try {
-      return (List<String>) cInterpreter.getMethod("getLoadPaths", new Class[0])
-              .invoke(interpreter, new Object[0]);
-    } catch (IllegalAccessException e) {
-      reflectionError = e;
-    } catch (NoSuchMethodException e) {
-      reflectionError = e;
-    } catch (InvocationTargetException e) {
-      reflectionError = e;
-    }
-    if (null != reflectionError) {
-      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
-    }
-    return null;
+    return interpreter.getLoadPaths();
   }
 
   public void executeScriptHeader(List<String> codeBefore, String ... paths) {
@@ -177,12 +155,15 @@ public class JRubySupport implements IRunnerSupport {
   private static ArrayList<String> sysargv = null;
 
   public void fillSysArgv(File filename, String[] argv) {
-    JRubySupport.sysargv = new ArrayList<String>();
+    sysargv = new ArrayList<>();
     if (filename != null) {
-      JRubySupport.sysargv.add(filename.getAbsolutePath());
+      sysargv.add(filename.getAbsolutePath());
     }
     if (argv != null) {
-      JRubySupport.sysargv.addAll(Arrays.asList(argv));
+      sysargv.addAll(Arrays.asList(argv));
+    }
+    if (interpreter != null) {
+      interpreter.setArgv(sysargv.toArray(new String[0]));
     }
   }
   //</editor-fold>
@@ -192,45 +173,14 @@ public class JRubySupport implements IRunnerSupport {
     if (null == interpreter) {
       return null;
     }
-    //return interpreter.runScriptlet(script);
-    Exception reflectionError = null;
-    try {
-      return cInterpreter.getMethod("runScriptlet", new Class[]{String.class})
-              .invoke(interpreter, new Object[]{script});
-    } catch (IllegalAccessException e) {
-      reflectionError = e;
-    } catch (NoSuchMethodException e) {
-      reflectionError = e;
-    } catch (InvocationTargetException e) {
-      reflectionError = (Exception) e.getTargetException();
-    }
-    if (null != reflectionError) {
-      log(-1, "interpreter.runScriptletString(): %s", reflectionError.getMessage());
-    }
-    return null;
+    return interpreter.runScriptlet(script);
   }
 
   public Object interpreterRunScriptletFile(Reader reader, String filename) throws Throwable {
     if (null == interpreter) {
       return null;
     }
-    //return interpreter.runScriptlet(reader, filename);
-    Exception reflectionError = null;
-    Object retVal = null;
-    try {
-      retVal = cInterpreter.getMethod("runScriptlet", new Class[]{Reader.class, String.class})
-              .invoke(interpreter, new Object[]{reader, filename});
-    } catch (IllegalAccessException e) {
-      reflectionError = e;
-    } catch (NoSuchMethodException e) {
-      reflectionError = e;
-    } catch (InvocationTargetException e) {
-      throw e.getTargetException();
-    }
-    if (null != reflectionError) {
-      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
-    }
-    return retVal;
+    return interpreter.runScriptlet(reader, filename);
   }
   //</editor-fold>
 
@@ -238,12 +188,12 @@ public class JRubySupport implements IRunnerSupport {
   public void interpreterTerminate() {
     // TODO this is currently a bad idea because it terminates the static interpreter instance.
     if (interpreter != null) {
-      //interpreter.terminate();
-      try {
-        cInterpreter.getMethod("terminate", new Class[0]).invoke(interpreter, new Object[0]);
-      } catch (Exception e) {
-        log(-1, "interpreter.terminate(): %s", e.getMessage());
-      }
+      interpreter.terminate();
+//      try {
+//        cInterpreter.getMethod("terminate", new Class[0]).invoke(interpreter, new Object[0]);
+//      } catch (Exception e) {
+//        log(-1, "interpreter.terminate(): %s", e.getMessage());
+//      }
       interpreter = null;
     }
   }
