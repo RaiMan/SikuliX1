@@ -306,23 +306,23 @@ public class SikulixServer {
     ScriptsCommand scripts = new ScriptsCommand(tasks);
     GroupsCommand groups = new GroupsCommand(scripts);
 
+    ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
+    ResourceHandler resource = new ResourceHandler(resourceManager, AbstractCommand.getFallbackHandler());
+    resource.addWelcomeFiles("ControlBox.html");
+
     RoutingHandler commands = Handlers.routing()
             .addAll(stop.getRouting())
             .addAll(tasks.getRouting())
             .addAll(scripts.getRouting())
             .addAll(groups.getRouting())
-            .setFallbackHandler(AbstractCommand.getFallbackHandler());
+            .setFallbackHandler(resource);
     CommandRootHttpHandler cmdRoot = new CommandRootHttpHandler(commands);
     cmdRoot.addExceptionHandler(Throwable.class, AbstractCommand.getExceptionHttpHandler());
-
-    ResourceManager resourceManager = new ClassPathResourceManager(RunTime.class.getClassLoader(), "htdocs");
-    ResourceHandler resource = new ResourceHandler(resourceManager, cmdRoot);
-    resource.addWelcomeFiles("ControlBox.html");
 
     Undertow server = Undertow.builder()
             .addHttpListener(port, ipAddr)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, true)
-            .setHandler(resource)
+            .setHandler(cmdRoot)
             .build();
     return server;
   }
