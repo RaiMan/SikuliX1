@@ -15,14 +15,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.RunTime;
 
-/**
- * This class implements JRuby specific parts
- */
 public class JRubySupport implements IRunnerSupport {
 
-  //<editor-fold defaultstate="collapsed" desc="00 logging">
+  //<editor-fold defaultstate="collapsed" desc="00 initialization">
   private static final String me = "JRuby: ";
   private static int lvl = 3;
 
@@ -30,40 +28,18 @@ public class JRubySupport implements IRunnerSupport {
     Debug.logx(level, me + message, args);
   }
 
-  private void logp(String message, Object... args) {
-    Debug.logx(-3, message, args);
-  }
+  private JRubySupport() {}
 
-  private void logp(int level, String message, Object... args) {
-    if (level <= Debug.getDebugLevel()) {
-      logp(message, args);
-    }
-  }
-
-  public void terminate(int retVal, String msg, Object... args) {
-    RunTime.get().terminate(retVal, me + msg, args);
-  }
-  //</editor-fold>
-
-  private static ArrayList<String> sysargv = null;
-
-  /**
-   * Mandatory method which returns an instance of the helper
-   *
-   * @return
-   */
   public static JRubySupport get() {
     if (null == instance) {
       instance = new JRubySupport();
       RunTime.get().exportLib();
-      instance.createScriptingContainer();
+      instance.interpreterInitialization();
     }
     return instance;
   }
 
   private static JRubySupport instance = null;
-
-  private JRubySupport() {}
 
   public static boolean isSupported() {
     try {
@@ -74,10 +50,10 @@ public class JRubySupport implements IRunnerSupport {
     }
   }
 
-  /**
-   * Initializes the ScriptingContainer and creates an instance.
-   */
-  public void createScriptingContainer() {
+  private static Object interpreter = null;
+  private static Class cInterpreter = null;
+
+  public void interpreterInitialization() {
     //TODO create a specific RubyPath (sys.path)
     if (interpreter == null) {
       RunTime.get().fSikulixLib.getAbsolutePath();
@@ -106,43 +82,30 @@ public class JRubySupport implements IRunnerSupport {
     }
   }
 
-  @Override
-  public boolean runObserveCallback(Object[] args) {
-    boolean result = false;
-    Object callback = args[0];
-    Object e = args[1];
-    try {
-      Class<?> rubyProcClass = callback.getClass();
-      Method getRuntime = rubyProcClass.getMethod("getRuntime", new Class<?>[0]);
-      Object runtime = getRuntime.invoke(callback, new Object[0]);
-      Class<?> runtimeClass = getRuntime.getReturnType();
-
-      Method getCurrentContext = runtimeClass.getMethod("getCurrentContext", new Class<?>[0]);
-      Object context = getCurrentContext.invoke(runtime, new Object[0]);
-
-      Class<?> jrubyUtil = Class.forName("org.jruby.javasupport.JavaUtil");
-      Method convertJavaToRuby = jrubyUtil.getMethod("convertJavaToRuby",
-              new Class<?>[]{runtimeClass, Object.class});
-
-      Object paramForRuby = convertJavaToRuby.invoke(null, new Object[]{runtime, e});
-
-      Object iRubyObject = Array.newInstance(Class.forName("org.jruby.runtime.builtin.IRubyObject"), 1);
-      Array.set(iRubyObject, 0, paramForRuby);
-
-      Method call = rubyProcClass.getMethod("call",
-              new Class<?>[]{context.getClass(), iRubyObject.getClass()});
-      call.invoke(callback, new Object[]{context, iRubyObject});
-      result = true;
-    } catch (Exception ex) {
-      String msg = ex.getMessage();
-      Debug.error("ObserverCallBack: problem with scripting handler: %s\n%s\n%s", me, callback, msg);
+  public boolean interpreterRedirect(PrintStream stdout, PrintStream stderr) {
+    if (interpreter == null) {
+      return false;
     }
-    return result;
+    try {
+      cInterpreter.getMethod("setOutput", new Class[]{PrintStream.class})
+              .invoke(interpreter, new Object[]{stdout});
+    } catch (Exception e) {
+      e.printStackTrace();
+      log(-1, "JRuby: redirect STDOUT: %s", e.getMessage());
+      return false;
+    }
+    try {
+      cInterpreter.getMethod("setError", new Class[]{PrintStream.class})
+              .invoke(interpreter, new Object[]{stderr});
+    } catch (Exception e) {
+      log(-1, "JRuby: redirect STDERR: %s", e.getMessage());
+      return false;
+    }
+    return true;
   }
+  //</editor-fold>
 
-  private static Object interpreter = null;
-  private static Class cInterpreter = null;
-
+  //<editor-fold desc="10 before script run">
   public List<String> interpreterGetLoadPaths() {
     if (null == interpreter) {
       return null;
@@ -165,6 +128,66 @@ public class JRubySupport implements IRunnerSupport {
     return null;
   }
 
+  public void executeScriptHeader(List<String> codeBefore, String ... paths) {
+    List<String> path = interpreterGetLoadPaths();
+    if (null == path) {
+      return;
+    }
+    String sikuliLibPath = RunTime.get().fSikulixLib.getAbsolutePath();
+    if (path.size() == 0 || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
+      log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
+      int pathLength = path.size();
+      String[] pathNew = new String[pathLength + 1];
+      pathNew[0] = sikuliLibPath;
+      for (int i = 0; i < pathLength; i++) {
+        pathNew[i + 1] = path.get(i);
+      }
+      for (int i = 0; i < pathLength; i++) {
+        path.set(i, pathNew[i]);
+      }
+      path.add(pathNew[pathNew.length - 1]);
+    }
+    if (savedpathlen == 0) {
+      savedpathlen = interpreterGetLoadPaths().size();
+    }
+    while (interpreterGetLoadPaths().size() > savedpathlen) {
+      interpreterGetLoadPaths().remove(savedpathlen);
+    }
+    for (String syspath : paths) {
+      path.add(new File(syspath).getAbsolutePath());
+    }
+
+    interpreterRunScriptletString(SCRIPT_HEADER);
+
+    if (codeBefore != null) {
+      StringBuilder buffer = new StringBuilder();
+      for (String line : codeBefore) {
+        buffer.append(line);
+      }
+      interpreterRunScriptletString(buffer.toString());
+    }
+  }
+
+  private static int savedpathlen = 0;
+  private final static String SCRIPT_HEADER =
+          "# coding: utf-8\n"
+                  + "require 'Lib/sikulix'\n"
+                  + "include Sikulix\n";
+
+  private static ArrayList<String> sysargv = null;
+
+  public void fillSysArgv(File filename, String[] argv) {
+    JRubySupport.sysargv = new ArrayList<String>();
+    if (filename != null) {
+      JRubySupport.sysargv.add(filename.getAbsolutePath());
+    }
+    if (argv != null) {
+      JRubySupport.sysargv.addAll(Arrays.asList(argv));
+    }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="20 script run">
   public Object interpreterRunScriptletString(String script) {
     if (null == interpreter) {
       return null;
@@ -182,7 +205,7 @@ public class JRubySupport implements IRunnerSupport {
       reflectionError = (Exception) e.getTargetException();
     }
     if (null != reflectionError) {
-      log(-1, "interpreter.runScriptletFile(): %s", reflectionError.getMessage());
+      log(-1, "interpreter.runScriptletString(): %s", reflectionError.getMessage());
     }
     return null;
   }
@@ -209,7 +232,9 @@ public class JRubySupport implements IRunnerSupport {
     }
     return retVal;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="30 after script run">
   public void interpreterTerminate() {
     // TODO this is currently a bad idea because it terminates the static interpreter instance.
     if (interpreter != null) {
@@ -218,61 +243,8 @@ public class JRubySupport implements IRunnerSupport {
         cInterpreter.getMethod("terminate", new Class[0]).invoke(interpreter, new Object[0]);
       } catch (Exception e) {
         log(-1, "interpreter.terminate(): %s", e.getMessage());
-        RunTime.get().terminate(-1, "JRuby: reflection problem");
       }
       interpreter = null;
-    }
-  }
-
-  public boolean doRedirect(PrintStream stdout, PrintStream stderr) {
-    if (interpreter == null) {
-      return false;
-    }
-    try {
-      interpreterSetOutput(stdout);
-    } catch (Exception e) {
-      e.printStackTrace();
-      log(-1, "JRuby: redirect STDOUT: %s", e.getMessage());
-      return false;
-    }
-    try {
-      interpreterSetError(stderr);
-    } catch (Exception e) {
-      log(-1, "JRuby: redirect STDERR: %s", e.getMessage());
-      return false;
-    }
-    return true;
-  }
-
-  void interpreterSetOutput(PrintStream stdout) {
-    //interpreter.setOutput(stdout);
-    try {
-      cInterpreter.getMethod("setOutput", new Class[]{PrintStream.class})
-              .invoke(interpreter, new Object[]{stdout});
-    } catch (Exception e) {
-      log(-1, "interpreter.setOutput(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
-    }
-  }
-
-  void interpreterSetError(PrintStream stderr) {
-    //interpreter.setOutput(stderr);
-    try {
-      cInterpreter.getMethod("setError", new Class[]{PrintStream.class})
-              .invoke(interpreter, new Object[]{stderr});
-    } catch (Exception e) {
-      log(-1, "interpreter.setError(): %s", e.getMessage());
-      RunTime.get().terminate(-1, "JRuby: reflection problem");
-    }
-  }
-
-  public void fillSysArgv(File filename, String[] argv) {
-    JRubySupport.sysargv = new ArrayList<String>();
-    if (filename != null) {
-      JRubySupport.sysargv.add(filename.getAbsolutePath());
-    }
-    if (argv != null) {
-      JRubySupport.sysargv.addAll(Arrays.asList(argv));
     }
   }
 
@@ -294,9 +266,7 @@ public class JRubySupport implements IRunnerSupport {
       Pattern pLineS = Pattern.compile("(?<=:)(\\d+):(.*)");
       Matcher mLine = pLineS.matcher(err);
       if (mLine.find()) {
-        log(lvl + 2, "SyntaxError error line: " + mLine.group(1));
         errorText = mLine.group(2) == null ? errorText : mLine.group(2);
-        log(lvl + 2, "SyntaxError: " + errorText);
         errorLine = Integer.parseInt(mLine.group(1));
         errorColumn = -1;
         errorClass = RB_SYNTAX;
@@ -397,6 +367,39 @@ public class JRubySupport implements IRunnerSupport {
   private static final int RB_RUNTIME = 1;
   private static final int RB_JAVA = 2;
   private static final int RB_UNKNOWN = -1;
+  //</editor-fold>
 
+  @Override
+  public boolean runObserveCallback(Object[] args) {
+    boolean result = false;
+    Object callback = args[0];
+    Object e = args[1];
+    try {
+      Class<?> rubyProcClass = callback.getClass();
+      Method getRuntime = rubyProcClass.getMethod("getRuntime", new Class<?>[0]);
+      Object runtime = getRuntime.invoke(callback, new Object[0]);
+      Class<?> runtimeClass = getRuntime.getReturnType();
 
+      Method getCurrentContext = runtimeClass.getMethod("getCurrentContext", new Class<?>[0]);
+      Object context = getCurrentContext.invoke(runtime, new Object[0]);
+
+      Class<?> jrubyUtil = Class.forName("org.jruby.javasupport.JavaUtil");
+      Method convertJavaToRuby = jrubyUtil.getMethod("convertJavaToRuby",
+              new Class<?>[]{runtimeClass, Object.class});
+
+      Object paramForRuby = convertJavaToRuby.invoke(null, new Object[]{runtime, e});
+
+      Object iRubyObject = Array.newInstance(Class.forName("org.jruby.runtime.builtin.IRubyObject"), 1);
+      Array.set(iRubyObject, 0, paramForRuby);
+
+      Method call = rubyProcClass.getMethod("call",
+              new Class<?>[]{context.getClass(), iRubyObject.getClass()});
+      call.invoke(callback, new Object[]{context, iRubyObject});
+      result = true;
+    } catch (Exception ex) {
+      String msg = ex.getMessage();
+      Debug.error("ObserverCallBack: problem with scripting handler: %s\n%s\n%s", me, callback, msg);
+    }
+    return result;
+  }
 }
