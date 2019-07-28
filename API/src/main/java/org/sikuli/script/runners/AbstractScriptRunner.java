@@ -169,10 +169,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         Debug.off();
       }
 
-      int exitValue = doRunScript(script, scriptArgs, options);
+      int exitCode = doRunScript(script, scriptArgs, options);
 
       Debug.setDebugLevel(savedLevel);
-      return exitValue;
+      return exitCode;
     });
   }
 
@@ -189,9 +189,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   public final int evalScript(String script, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
 
-    return runSynchronized(options, () -> {
-      return doEvalScript(script, options);
-    });
+    return runSynchronized(options, () -> doEvalScript(script, options));
   }
 
   protected int doEvalScript(String script, IScriptRunner.Options options) {
