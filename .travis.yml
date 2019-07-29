@@ -18,10 +18,9 @@ install: mvn install -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
-- ". API/target/classes/setup/content/deployOSSRH"
-- ". API/target/classes/setup/content/upload"
-- ". API/target/classes/setup/content/createJavadocs"
-- ". API/target/classes/setup/content/createDownloadPage"
+- ". setup/deployOSSRH"
+- ". setup/createJavadocs"
+- ". setup/createDownloadPage"
 deploy:
   provider: pages
   skip_cleanup: true
