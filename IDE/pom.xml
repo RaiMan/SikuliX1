@@ -1,17 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+  ~ Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-  <parent>
-    <groupId>com.sikulix</groupId>
-    <artifactId>sikulix</artifactId>
-    <version>1.1.4-SNAPSHOT</version>
-    <relativePath>../</relativePath>
-  </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -19,12 +12,50 @@
   <artifactId>sikulixide</artifactId>
   <version>1.1.4-SNAPSHOT</version>
 
+  <name>SikuliX IDE</name>
+  <description>... edit and run SikuliX scripts</description>
+
+  <url>http://www.sikulix.com</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.sikulix.com/disclaimer/#license</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>RaiMan</id>
+      <name>Raimund Hocke</name>
+      <email>rmhdevelop@me.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:RaiMan/SikuliX1.git</connection>
+    <developerConnection>scm:git:git@github.com:RaiMan/SikuliX1.git</developerConnection>
+    <url>git@github.com:RaiMan/SikuliX1.git</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulixapi</artifactId>
       <version>${project.version}</version>
     </dependency>
+<!-- only here to avoid error in IntelliJ IDEA 2019.2-->
+    <dependency>
+      <groupId>com.sikulix</groupId>
+      <artifactId>sikulix2tigervnc</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+      <!--License GPLv2-->
+    </dependency>
+<!-- only here to avoid error in IntelliJ IDEA 2019.2-->
     <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
@@ -49,6 +80,14 @@
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>

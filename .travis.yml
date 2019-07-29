@@ -14,18 +14,18 @@ env:
 before_install:
 - openssl aes-256-cbc -K $encrypted_20efacf1f04e_key -iv $encrypted_20efacf1f04e_iv
   -in codesigning/codesigning.asc.enc -out codesigning/codesigning.asc -d
-install: mvn install -DskipTests=true -B
+install: mvn install -P complete-jar -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
-- ". API/target/classes/setup/content/deployOSSRH"
-- ". API/target/classes/setup/content/upload"
-- ". API/target/classes/setup/content/createJavadocs"
-- ". API/target/classes/setup/content/createDownloadPage"
+- ". setup/createDownloadPage"
+- ". setup/createJavadocs"
+- ". setup/deployOSSRH"
 deploy:
   provider: pages
   skip_cleanup: true
   github_token: "$GITHUB_TOKEN"
   local_dir: pages
+  verbose: true
   on:
     branch: master

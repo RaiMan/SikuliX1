@@ -3,13 +3,7 @@
  */
 package org.sikuli.ide;
 
-import java.awt.AWTEvent;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.AWTEventListener;
@@ -37,26 +31,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
@@ -87,7 +62,9 @@ import org.sikuli.script.SX;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.IScriptRunner;
@@ -664,8 +641,10 @@ public class SikulixIDE extends JFrame {
     editorPane.init(null);
     editorPane.setTemp(true);
     editorPane.setIsBundle();
-    File tempFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
-            new File(RunTime.get().fpBaseTempPath, "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
+    IScriptRunner runner = editorPane.getRunner();
+    String defaultExtension = runner.getDefaultExtension();
+    File tempFile = FileManager.createTempFile(defaultExtension, new File(RunTime.get().fpBaseTempPath,
+            "SikulixIDETempTab" + editorPane.getID()).getAbsolutePath());
     if (null == tempFile) {
       //TODO newTabEmpty: temp problem: how should caller react?
       return false;
@@ -2264,8 +2243,16 @@ public class SikulixIDE extends JFrame {
                   + ", 0); if (m != null) m.highlight(2);";
         }
         if (!eval.isEmpty()) {
+          final String evalText = eval;
           IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
-          runner.evalScript("#" + eval, null);
+          SikulixIDE.hideIDE();
+          new Thread(new Runnable() {
+            @Override
+            public void run() {
+              runner.evalScript("#" + evalText, null);
+              SikulixIDE.showIDE();
+            }
+          }).start();
           return;
         }
       }
@@ -2320,7 +2307,15 @@ public class SikulixIDE extends JFrame {
         Region reg = new Region(simg.getROI());
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
-        Runner.getRunner(JavaScriptRunner.class).evalScript(item, null);
+        final String evalText = item;
+        IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            runner.evalScript("#" + evalText, null);
+          }
+        }).start();
+        RunTime.pause(2);
       } else {
         SikulixIDE.showAgain();
         nothingTodo();
@@ -2489,9 +2484,14 @@ public class SikulixIDE extends JFrame {
 
           int exitValue = -1;
           try {
-            setCurrentRunner(editorPane.editorPaneRunner);
+            IScriptRunner runner = editorPane.editorPaneRunner;
+            setCurrentRunner(runner);
             setCurrentScript(scriptFileToRun);
-            exitValue = editorPane.editorPaneRunner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
+            //TODO make reloadImported specific for each editor tab
+            if (runner.getType().equals(JythonRunner.TYPE)) {
+              JythonSupport.get().reloadImported();
+            }
+            exitValue = runner.runScript(scriptFileToRun.getAbsolutePath(), RunTime.getUserArgs(), runOptions);
           } catch (Exception e) {
             log(-1, "Run Script: internal error:");
             e.printStackTrace();

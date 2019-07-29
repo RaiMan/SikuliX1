@@ -15,6 +15,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
@@ -30,7 +31,7 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   private static String BEFORE_JS
       = "importPackage(Packages.org.sikuli.script); "
       + "importClass(Packages.org.sikuli.script.support.RunTime); "
-      + "importClass(Packages.org.sikuli.script.runnerHelpers.Commands); "
+      + "importClass(Packages.org.sikuli.script.runnerSupport.JavaScriptSupport); "
       + "importClass(Packages.org.sikuli.basics.Debug); "
       + "importClass(Packages.org.sikuli.basics.Settings);";
 
@@ -86,9 +87,11 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     boolean silent = false;
+    int exitValue = 0;
     if (script.startsWith("#")) {
       script = script.substring(1);
       silent = true;
+      Debug.quietOn();
     }
     try {
       engine.eval(script);
@@ -103,9 +106,12 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
         options.setErrorLine(findErrorSource(e, null));
       }
 
-      return -1;
+      exitValue = -1;
     }
-    return 0;
+    if (silent) {
+      Debug.quietOff();
+    }
+    return exitValue;
   }
 
   @Override

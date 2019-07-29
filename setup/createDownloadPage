@@ -1,6 +1,16 @@
+#!/bin/sh
+echo ------- uploading API and IDE jars
+
+apijar=`ls API/target/sikulixapi*complete.jar`
+cp $apijar pages/sikulixapi.jar
+
+idejar=`ls IDE/target/sikulixide*complete.jar`
+cp $idejar pages/sikulix.jar
+
 echo ------ updating downloads page
+
 jar=`ls API/target/sikulixapi*complete.jar`
-build=`java -jar $jar buildDate`
+build=`java -jar $apijar buildDate`
 
 echo "s/##sikulixapiide##/$build/" >sedcommand
 echo "s/##TRAVIS_BUILD_NUMBER##/$TRAVIS_BUILD_NUMBER/" >>sedcommand
