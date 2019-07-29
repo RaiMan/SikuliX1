@@ -18,9 +18,9 @@ install: mvn install -P complete-jar -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
-- ". setup/deployOSSRH"
-- ". setup/createJavadocs"
 - ". setup/createDownloadPage"
+- ". setup/createJavadocs"
+- ". setup/deployOSSRH"
 deploy:
   provider: pages
   skip_cleanup: true
