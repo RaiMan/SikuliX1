@@ -215,6 +215,7 @@ public class RecordedEventsFlow {
     return events.ceilingEntry(time + 1);
   }
 
+  private Long pressedTime = null;
   private Long dragStartTime = null;
   private NativeMouseEvent dragStartEvent = null;
   private int clickCount = 0;
@@ -236,6 +237,7 @@ public class RecordedEventsFlow {
     NativeInputEvent nextEvent = nextEventEntry.getValue();
 
     if (NativeMouseEvent.NATIVE_MOUSE_PRESSED == event.getID()) {
+      pressedTime = time;
       if ( NativeMouseEvent.NATIVE_MOUSE_DRAGGED == nextEvent.getID()) {
         dragStartTime = time;
         dragStartEvent = event;
@@ -244,7 +246,7 @@ public class RecordedEventsFlow {
         dragStartEvent = null;
       }
     } else if (NativeMouseEvent.NATIVE_MOUSE_RELEASED == event.getID()) {
-      if (dragStartTime != null && (Math.abs(event.getX() - dragStartEvent.getX()) > 10 ||  Math.abs(event.getY() - dragStartEvent.getY()) > 10)) {
+      if (dragStartTime != null && (Math.abs(event.getX() - dragStartEvent.getX()) > 5 ||  Math.abs(event.getY() - dragStartEvent.getY()) > 5)) {
         try {
           Image dragImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), dragStartEvent);
           Image dropImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), event);
@@ -270,20 +272,21 @@ public class RecordedEventsFlow {
           }
 
         } finally {
+          pressedTime = null;
           clickCount = 0;
           dragStartTime = null;
           dragStartEvent = null;
         }
-      } else if (previousEvent.getID() == NativeMouseEvent.NATIVE_MOUSE_PRESSED) {
+      } else {
         clickCount++;
 
         if ((nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED || time - DOUBLE_CLICK_TIME > nextTime
             || clickCount >= 2))
           try {
-            Long firstMouseMoveTime = findFirstMouseMoveTime(previousTime);
-            Mat screenshot = readCeilingScreenshot(firstMouseMoveTime);
+            Long firstMouseMoveEventTime = Math.max(findFirstMouseMoveTime(pressedTime),screenshots.firstKey());
+            Mat screenshot = readCeilingScreenshot(firstMouseMoveEventTime);
 
-            Image image = this.findRelevantImage(screenshot, event);
+            Image image = findRelevantImage(screenshot, event);
 
             if (image != null) {
               File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
@@ -297,7 +300,8 @@ public class RecordedEventsFlow {
               Pattern pattern = new Pattern(file.getAbsolutePath());
               pattern.targetOffset(image.getOffset());
 
-              Long lastNonMouseMoveEventTime = events.floorKey(firstMouseMoveTime - 1);
+
+              Long lastNonMouseMoveEventTime = events.floorKey(firstMouseMoveEventTime - 1);
 
               if (lastNonMouseMoveEventTime == null) {
                 lastNonMouseMoveEventTime = events.firstKey();
@@ -335,7 +339,7 @@ public class RecordedEventsFlow {
               }
 
               if (!wasHereBeforeMouseMove) {
-                int waitTime = (int) Math.min(3, Math.ceil((firstMouseMoveTime - lastNonMouseMoveEventTime) / 1000d * 2));
+                int waitTime = (int) Math.max(3, Math.ceil((firstMouseMoveEventTime - lastNonMouseMoveEventTime) / 1000d * 2));
                 actions.add(new WaitAction(pattern, waitTime, clickAction));
               } else {
                 actions.add(clickAction);
@@ -343,6 +347,7 @@ public class RecordedEventsFlow {
 
             }
           } finally {
+            pressedTime = null;
             clickCount = 0;
             dragStartTime = null;
             dragStartEvent = null;
@@ -355,21 +360,18 @@ public class RecordedEventsFlow {
   }
 
   private Long findFirstMouseMoveTime(Long time) {
-    Long firstMouseMoveEventTime = events.firstKey();
     List<Map.Entry<Long, NativeInputEvent>> previousEvents = new ArrayList<>(
         events.headMap(time).entrySet());
     Collections.reverse(previousEvents);
 
     for (Map.Entry<Long, NativeInputEvent> entry : previousEvents) {
-      if (entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_MOVED
-          || entry.getValue().getID() == NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
-        firstMouseMoveEventTime = entry.getKey();
-      } else {
-        break;
+      if (entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_MOVED
+          && entry.getValue().getID() != NativeMouseEvent.NATIVE_MOUSE_DRAGGED) {
+        return events.ceilingKey(entry.getKey() + 1);
       }
     }
 
-    return firstMouseMoveEventTime;
+    return events.firstKey();
   }
 
   private Mat readFloorScreenshot(Long time) {
