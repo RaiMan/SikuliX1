@@ -48,6 +48,14 @@
       <artifactId>sikulixapi</artifactId>
       <version>${project.version}</version>
     </dependency>
+<!-- only here to avoid error in IntelliJ IDEA 2019.2-->
+    <dependency>
+      <groupId>com.sikulix</groupId>
+      <artifactId>sikulix2tigervnc</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+      <!--License GPLv2-->
+    </dependency>
+<!-- only here to avoid error in IntelliJ IDEA 2019.2-->
     <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
