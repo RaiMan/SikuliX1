@@ -4,7 +4,7 @@ echo ------- uploading API and IDE jars
 apijar=`ls API/target/sikulixapi*complete.jar`
 cp $apijar pages/sikulixapi.jar
 
-idejar=`ls API/target/sikulixide*complete.jar`
+idejar=`ls IDE/target/sikulixide*complete.jar`
 cp $idejar pages/sikulix.jar
 
 echo ------ updating downloads page

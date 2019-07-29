@@ -4,6 +4,9 @@ branches:
 language: java
 jdk:
 - openjdk11
+cache:
+  directories:
+    - $HOME/.m2
 env:
   global:
   - secure: Uu4SNhpLWqcVdEZiq1pRWSLjS6RwGuM3uHGb+UseBHwCK3khSWzx/FdkQPzHjJkflOuS1TR5PxnEJbb5biWLyxDldU+HpXUo/ZLnPa6psR4FdRoqZDDujWQjH3JijeJFgty+CwTI2AMaQtwtwHlthUAdxnvs+Q14p9etMPnDwyQP80gOR1zA64k5Rc+/tNTKUPRBLiHjnh48XwbcB1Q5z+X/fmMy3dvzXolch4YSAHv1DzfBqyu8pHBjxmSql2Y+r5OXekHt6qgc/8jnLNEjUTw02MnckCi3zFLjyAt5KN4uBwwojoSO2CcvUEhAJU7z0wAZ+S/tJun2KugE6FInjWhubvsc+GcV/ge5zr7/Hhv7Qws6g2ctSgut5mPW+PP2HNIlIihgEmOsz/cxKpVpvo4P8aZdzGTjEHljjiNEGDx98sClkImBQe2pg63FAmHk4Ll+18B7zvrYVlffDvgDMQ8ULNWl1P0wLMNQ2vXl0uV+RG00uI/FG6SNxtdWXYgZVX+Ssq1bZoBGxpk75gC8QHIxhTDu1rH82Di7bAxWTrdout4liyPPEnR8toAWuw5bG/pL3XU8B/NluBKIwHsn9qkNnMch2GuKD55sL7roxqH2ZQx+2bP+XBF9h17AiRCDsB2BPiIEQ6CwztQmJvo3iTclVXfb7R/8fd+/FeCpcaA=
