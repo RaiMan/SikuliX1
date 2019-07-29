@@ -4,13 +4,11 @@
 package org.sikuli.script.runners;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 import org.sikuli.script.runnerSupport.JRubySupport;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 
 import java.io.*;
-import java.util.List;
 import java.util.regex.Matcher;
 
 public class JRubyRunner extends AbstractLocalFileScriptRunner {
@@ -18,6 +16,38 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   public static final String NAME = "JRuby";
   public static final String TYPE = "text/ruby";
   public static final String[] EXTENSIONS = new String[]{"rb"};
+
+  //<editor-fold desc="00 initialization">
+  @Override
+  public boolean isAbortSupported() {
+    return true;
+  }
+
+  @Override
+  public boolean isSupported() {
+    return jrubySupport.isSupported();
+  }
+
+  @Override
+  public String getName() {
+    return NAME;
+  }
+
+  @Override
+  public String[] getExtensions() {
+    return EXTENSIONS.clone();
+  }
+
+  @Override
+  public String getType() {
+    return TYPE;
+  }
+
+  @Override
+  public void doClose() {
+    jrubySupport.interpreterTerminate();
+    redirected = false;
+  }
 
   static JRubySupport jrubySupport = null;
 
@@ -30,11 +60,13 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       if (null == jrubySupport) {
         jrubySupport = JRubySupport.get();
         // execute script headers to already do the warmup during init
-        executeScriptHeader(new String[]{});
+        jrubySupport.executeScriptHeader(codeBefore);
       }
     }
   }
+  //</editor-fold>
 
+  //<editor-fold desc="10 run scripts">
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
@@ -44,8 +76,9 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       File rubyFile = new File(new File(scriptFile).getAbsolutePath());
       jrubySupport.fillSysArgv(rubyFile, scriptArgs);
 
-      executeScriptHeader(new String[]{rubyFile.getParentFile().getAbsolutePath(),
-              rubyFile.getParentFile().getParentFile().getAbsolutePath()});
+      jrubySupport.executeScriptHeader(codeBefore,
+              rubyFile.getParentFile().getAbsolutePath(),
+              rubyFile.getParentFile().getParentFile().getAbsolutePath());
 
       prepareFileLocation(rubyFile, options);
 
@@ -54,9 +87,11 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
         scriptReader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(rubyFile.getAbsolutePath()), "UTF-8"));
       } catch (IOException ex) {
+        log(-1, "reading script: %s", ex.getMessage());
+        return Runner.FILE_NOT_FOUND;
       }
       try {
-        //TODO what is exitValue?
+        //TODO handle exitValue (the result of the last line in the script or the value returned by statement return something)
         exitValue = jrubySupport.interpreterRunScriptletFile(scriptReader, rubyFile.getAbsolutePath());
       } catch (Throwable scriptException) {
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
@@ -90,106 +125,26 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
-      executeScriptHeader(new String[0]);
+      jrubySupport.executeScriptHeader(codeBefore);
       jrubySupport.interpreterRunScriptletString(script);
       return 0;
     }
   }
+  //</editor-fold>
 
-  @Override
-  public boolean isSupported() {
-    return jrubySupport.isSupported();
-  }
-
-  @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public String[] getExtensions() {
-    return EXTENSIONS.clone();
-  }
-
-  @Override
-  public String getType() {
-    return TYPE;
-  }
-
-  @Override
-  public void doClose() {
-    jrubySupport.interpreterTerminate();
-    redirected = false;
-  }
-
-  /**
-   * Executes the defined header for the jruby script.
-   *
-   * @param syspaths List of all syspath entries
-   */
-  private void executeScriptHeader(String[] syspaths) {
-    List<String> path = jrubySupport.interpreterGetLoadPaths();
-    if (null == path) {
-      return;
-    }
-    String sikuliLibPath = RunTime.get().fSikulixLib.getAbsolutePath();
-    if (path.size() == 0 || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
-      log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
-      int pathLength = path.size();
-      String[] pathNew = new String[pathLength + 1];
-      pathNew[0] = sikuliLibPath;
-      for (int i = 0; i < pathLength; i++) {
-        pathNew[i + 1] = path.get(i);
-      }
-      for (int i = 0; i < pathLength; i++) {
-        path.set(i, pathNew[i]);
-      }
-      path.add(pathNew[pathNew.length - 1]);
-    }
-    if (savedpathlen == 0) {
-      savedpathlen = jrubySupport.interpreterGetLoadPaths().size();
-    }
-    while (jrubySupport.interpreterGetLoadPaths().size() > savedpathlen) {
-      jrubySupport.interpreterGetLoadPaths().remove(savedpathlen);
-    }
-    for (String syspath : syspaths) {
-      path.add(FileManager.slashify(syspath, false));
-    }
-
-    jrubySupport.interpreterRunScriptletString(SCRIPT_HEADER);
-
-    if (codeBefore != null) {
-      StringBuilder buffer = new StringBuilder();
-      for (String line : codeBefore) {
-        buffer.append(line);
-      }
-      jrubySupport.interpreterRunScriptletString(buffer.toString());
-    }
-  }
-
-  private static int savedpathlen = 0;
-  private final static String SCRIPT_HEADER =
-          "# coding: utf-8\n"
-                  + "require 'Lib/sikulix'\n"
-                  + "include Sikulix\n";
-
+  //<editor-fold desc="20 redirect">
   @Override
   protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       if (!redirected) {
         redirected = true;
-        return jrubySupport.doRedirect(stdout, stderr);
+        return jrubySupport.interpreterRedirect(stdout, stderr);
       }
       return true;
     }
   }
 
   private static boolean redirected = false;
-
-  @Override
-  public boolean isAbortSupported() {
-    return true;
-  }
-
+  //</editor-fold>
 }

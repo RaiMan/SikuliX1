@@ -5,6 +5,9 @@ package org.sikuli.script.runnerSupport;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.python.core.BytecodeLoader;
+import org.python.core.PyCode;
+import org.python.util.PythonInterpreter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -17,9 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,9 +55,9 @@ public class JythonSupport implements IRunnerSupport {
   //</editor-fold>
 
   //<editor-fold desc="01 instance">
-  static JythonSupport instance = null;
+  private static JythonSupport instance = null;
 
-  private static Object interpreter = null;
+  private static PythonInterpreter interpreter = null;
 
   private static RunTime runTime;
 
@@ -82,7 +83,6 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   static Class[] nc = new Class[0];
-  static Class[] nc1 = new Class[1];
   static Class cInterpreter = null;
   static Class cPyException = null;
   static Class cList = null;
@@ -98,19 +98,18 @@ public class JythonSupport implements IRunnerSupport {
   static Method mCleanup, mClose, mSetOut, mSetErr;
 
   private static void init() {
-    runTime = RunTime.get();
-    runTime.exportLib();
-    //instance.log(lvl, "init: starting");
     try {
       //TODO is this initialize needed?
       //PythonInterpreter.initialize(System.getProperties(), null, new String[0]);
       cInterpreter = Class.forName("org.python.util.PythonInterpreter");
     } catch (Exception ex) {
-      instance.terminate(999, "JythonSupport: no Jython available");
+      Debug.log("Jython: not found on classpath");
+      return;
     }
+    runTime = RunTime.get();
+    runTime.exportLib();
     try {
-      Constructor PI_new = cInterpreter.getConstructor(nc);
-      interpreter = PI_new.newInstance();
+      interpreter = new PythonInterpreter();
       cPyException = Class.forName("org.python.core.PyException");
       cList = Class.forName("org.python.core.PyList");
       cPy = Class.forName("org.python.core.Py");
@@ -144,17 +143,14 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public void interpreterCleanup() {
-    //interpreter.cleanup();
-    try {
-      mCleanup.invoke(interpreter, new Object[0]);
-    } catch (Exception e) {
+    if (null != interpreter) {
+      interpreter.cleanup();
     }
   }
 
   public void interpreterClose() {
-    try {
-      mClose.invoke(interpreter, new Object[0]);
-    } catch (Exception e) {
+    if (null != interpreter) {
+      interpreter.close();
     }
   }
 
@@ -168,16 +164,17 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public boolean interpreterRedirect(PrintStream stdout, PrintStream stderr) {
+    if (interpreter == null) {
+      return false;
+    }
     try {
-      //interpreter.setOut(stdout);
-      mSetOut.invoke(interpreter, new Object[]{stdout});
+      interpreter.setOut(stdout);
     } catch (Exception e) {
       log(-1, "Jython: redirect STDOUT: %s", e.getMessage());
       return false;
     }
     try {
-      //interpreter.setErr(stderr);
-      mSetErr.invoke(interpreter, new Object[]{stderr});
+      interpreter.setErr(stderr);
     } catch (Exception e) {
       log(-1, "Jython: redirect STDERR: %s", e.getMessage());
       return false;
@@ -429,28 +426,18 @@ public class JythonSupport implements IRunnerSupport {
 
   //<editor-fold desc="17 exec/eval">
   public Object interpreterEval(String expression) {
-    //return interpreter.eval(expression);
-    try {
-      return mEval.invoke(interpreter, new Object[]{expression});
-    } catch (Exception e) {
+    if (interpreter == null) {
       return "";
     }
+    return interpreter.eval(expression);
   }
 
   public boolean interpreterExecString(String script) {
-    //interpreter.exec(script);
-    try {
-      mExecString.invoke(interpreter, new Object[]{script});
-    } catch (IllegalAccessException e) {
-      log(-1, "exec string: %s", e.getMessage());
-    } catch (InvocationTargetException e) {
-      log(-1, "exec string: %s", e.getTargetException().getMessage());
-      return false;
-    }
+    interpreter.exec(script);
     return true;
   }
 
-  public void interpreterExecCode(File compiledScript) throws Throwable {
+  public void interpreterExecCode(File compiledScript) {
     String scriptFile = compiledScript.getAbsolutePath();
     byte[] data = new byte[0];
     try {
@@ -458,36 +445,36 @@ public class JythonSupport implements IRunnerSupport {
     } catch (IOException e) {
       log(-1, "exec compiled script: %s", e.getMessage());
     }
-    Method mMakeCode = null;
-    try {
-      Class cBytecodeLoader = Class.forName("org.python.core.BytecodeLoader");
-      mMakeCode = cBytecodeLoader.getMethod("makeCode", String.class, byte[].class, String.class);
-    } catch (Exception e) {
-      log(-1, "exec compiled script: BytecodeLoader.makeCode: %s", e.getMessage());
+    PyCode pyCode = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
+    interpreter.exec(pyCode);
+  }
+
+  public void interpreterExecFile(String script) {
+    interpreter.execfile(script);
+  }
+
+  public void executeScriptHeader(List<String> codeBefore) {
+    for (String line : SCRIPT_HEADER) {
+      log(lvl + 1, "executeScriptHeader: %s", line);
+      interpreterExecString(line);
     }
-    //Object code = BytecodeLoader.makeCode(FilenameUtils.getBaseName(scriptFile), data, scriptFile);
-    if (null != mMakeCode) {
-      try {
-        mExecCode.invoke(interpreter, new Object[]{mMakeCode.invoke(null, new Object[]{
-                FilenameUtils.getBaseName(scriptFile), data, scriptFile})});
-      } catch (IllegalAccessException e) {
-        log(-1, "exec compiled script: exec: %s", e.getMessage());
-      } catch (InvocationTargetException e) {
-        throw e.getTargetException();
+    if (codeBefore != null) {
+      for (String line : codeBefore) {
+        interpreterExecString(line);
       }
     }
   }
 
-  public void interpreterExecFile(String script) throws Throwable {
-    //interpreter.execfile(script);
-    try {
-      mExecfile.invoke(interpreter, new Object[]{script});
-    } catch (IllegalAccessException e) {
-      log(-1, "exec file: %s", e.getMessage());
-    } catch (InvocationTargetException e) {
-      throw e.getTargetException();
-    }
-  }
+  /**
+   * The header commands, that are executed before every script
+   */
+  private static String[] SCRIPT_HEADER = new String[]{
+          "# -*- coding: utf-8 -*- ",
+          "import org.sikuli.script.SikulixForJython",
+          "from sikuli import *",
+          "use() #resetROI()"
+  };
+
   //</editor-fold>
 
   //<editor-fold desc="18 RobotFramework support">
@@ -522,19 +509,6 @@ public class JythonSupport implements IRunnerSupport {
       return false;
     }
     return true;
-  }
-
-  public int execfile(String fpScript) {
-    int retval = -999;
-    try {
-      mExecfile.invoke(interpreter, fpScript);
-    } catch (Exception ex) {
-      SXPyException pex = new SXPyException(ex.getCause());
-      if ((retval = pex.isTypeExit()) < 0) {
-        log(-1, "execFile: returns:\n%s", ex.getCause());
-      }
-    }
-    return retval;
   }
 
   public int runJar(String fpJarOrFolder) {

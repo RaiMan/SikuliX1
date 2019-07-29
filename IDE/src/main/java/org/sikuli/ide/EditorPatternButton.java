@@ -6,6 +6,7 @@ package org.sikuli.ide;
 import org.sikuli.basics.PreferencesUser;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.imageio.*;
@@ -396,29 +397,31 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   }
 
   private void drawCross(Graphics2D g2d) {
-    int x, y;
+    int drawX, drawY;
     final String cross = "+";
-    final int w = g2d.getFontMetrics().stringWidth(cross);
-    final int h = g2d.getFontMetrics().getMaxAscent();
+    g2d.setFont(new Font("arial", Font.PLAIN, 24));
+    Rectangle2D crossBounds = g2d.getFontMetrics().getStringBounds("+", g2d);
+    final int crossW = (int) crossBounds.getWidth();
+    final int crossH = (int) crossBounds.getHeight();
     if (_offset.x > _imgW / 2) {
-      x = getWidth() - w;
+      drawX = getWidth() - crossW;
     } else if (_offset.x < -_imgW / 2) {
-      x = 0;
+      drawX = 0;
     } else {
-      x = (int) (getWidth() / 2 + _offset.x * _scale - w / 2);
+      drawX = (int) (getWidth() / 2 + _offset.x * _scale - crossW / 2);
     }
     if (_offset.y > _imgH / 2) {
-      y = getHeight() + h / 2 - 3;
+      drawY = getHeight() + crossH / 2 - 3;
     } else if (_offset.y < -_imgH / 2) {
-      y = h / 2 + 2;
+      drawY = crossH / 2 + 2;
     } else {
-      y = (int) (getHeight() / 2 + _offset.y * _scale + h / 2);
+      drawY = (int) (getHeight() / 2 + _offset.y * _scale + crossH / 2);
+      drawY -= 4;
     }
-    g2d.setFont(new Font("arial", Font.PLAIN, 24));
     g2d.setColor(new Color(0, 0, 0, 180));
-    g2d.drawString(cross, x + 1, y + 1);
+    g2d.drawString(cross, drawX + 1, drawY + 1);
     g2d.setColor(new Color(255, 0, 0, 180));
-    g2d.drawString(cross, x, y);
+    g2d.drawString(cross, drawX, drawY);
   }
 
 	private boolean useThumbnail() {
