@@ -2593,12 +2593,14 @@ public class SikulixIDE extends JFrame {
         try {
           List<IRecordedAction> actions = recorder.stop(progress);
 
-          List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+          if(!actions.isEmpty()) {
+            List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
 
-          EventQueue.invokeLater(() -> {
-            pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
-            pane.doReparse();
-          });
+            EventQueue.invokeLater(() -> {
+              pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
+              pane.doReparse();
+            });
+          }
         } finally {
           progress.close();
         }
