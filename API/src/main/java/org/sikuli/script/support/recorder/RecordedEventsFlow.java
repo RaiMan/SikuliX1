@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
+import javax.swing.ProgressMonitor;
 
 import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -84,11 +85,18 @@ public class RecordedEventsFlow {
     }
   }
 
-  public List<IRecordedAction> compile() {
+  public List<IRecordedAction> compile(ProgressMonitor progress) {
     synchronized (this) {
+      if(progress != null) {
+        progress.setMinimum(0);
+        progress.setMaximum(events.size());
+      }
+
       List<org.sikuli.script.support.recorder.actions.IRecordedAction> actions = new LinkedList<>();
       modifiers.clear();
       typedText = new StringBuilder();
+
+      int i=0;
 
       for (Map.Entry<Long, NativeInputEvent> entry : events.entrySet()) {
         Long time = entry.getKey();
@@ -98,6 +106,9 @@ public class RecordedEventsFlow {
           actions.addAll(handleKeyEvent(time, (NativeKeyEvent) event));
         } else if (event instanceof NativeMouseEvent) {
           actions.addAll(handleMouseEvent(time, (NativeMouseEvent) event));
+        }
+        if (progress != null) {
+          progress.setProgress(++i);
         }
       }
 
@@ -237,7 +248,9 @@ public class RecordedEventsFlow {
     NativeInputEvent nextEvent = nextEventEntry.getValue();
 
     if (NativeMouseEvent.NATIVE_MOUSE_PRESSED == event.getID()) {
-      pressedTime = time;
+      if (pressedTime == null) {
+        pressedTime = time;
+      }
       if ( NativeMouseEvent.NATIVE_MOUSE_DRAGGED == nextEvent.getID()) {
         dragStartTime = time;
         dragStartEvent = event;

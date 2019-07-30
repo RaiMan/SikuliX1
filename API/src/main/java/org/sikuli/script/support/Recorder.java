@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.ProgressMonitor;
+
 import org.apache.commons.io.FileUtils;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -141,7 +143,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   }
 
-  public List<IRecordedAction> stop() {
+  public List<IRecordedAction> stop(ProgressMonitor progress) {
     if (running) {
       running = false;
       GlobalScreen.removeNativeMouseMotionListener(this);
@@ -149,8 +151,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeKeyListener(this);
 
       synchronized (screenshotDir) {
-
-        List<IRecordedAction> actions = eventsFlow.compile();
+        List<IRecordedAction> actions = eventsFlow.compile(progress);
 
         try {
           FileUtils.deleteDirectory(screenshotDir);
