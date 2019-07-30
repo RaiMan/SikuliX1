@@ -31,6 +31,7 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
   private static final int SCREENSHOT_THROTTLE_MILLIS = 200;
+  private static final int MOUSE_MOVE_THRESHOLD = 10;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
@@ -39,6 +40,9 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   ScreenImage currentImage = null;
   String currentImageFilePath = null;
+
+  private long currentMouseX = 0;
+  private long currentMouseY = 0;
 
   static {
     try {
@@ -179,21 +183,36 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   @Override
   public void nativeMousePressed(NativeMouseEvent e) {
+    saveMousePosition(e);
     add(e);
   }
 
   @Override
   public void nativeMouseReleased(NativeMouseEvent e) {
+    saveMousePosition(e);
     add(e);
   }
 
   @Override
   public void nativeMouseMoved(NativeMouseEvent e) {
-    add(e);
+    addMouseIfRelevantMove(e);
   }
 
   @Override
   public void nativeMouseDragged(NativeMouseEvent e) {
-    add(e);
+    addMouseIfRelevantMove(e);
+  }
+
+  private void saveMousePosition(NativeMouseEvent e) {
+    currentMouseX = e.getX();
+    currentMouseY = e.getY();
+  }
+
+  private void addMouseIfRelevantMove(NativeMouseEvent e) {
+    // only add relevant mouse moves > MOUSE_MOVE_THRESHOLD px
+    if(Math.abs(e.getX() - currentMouseX) > MOUSE_MOVE_THRESHOLD || Math.abs(e.getY() - currentMouseY) > MOUSE_MOVE_THRESHOLD ) {
+      saveMousePosition(e);
+      add(e);
+    }
   }
 }
