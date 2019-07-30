@@ -296,7 +296,7 @@ public class RecordedEventsFlow {
         if ((nextEvent.getID() != NativeMouseEvent.NATIVE_MOUSE_PRESSED || time - DOUBLE_CLICK_TIME > nextTime
             || clickCount >= 2))
           try {
-            Long firstMouseMoveEventTime = Math.max(findFirstMouseMoveTime(pressedTime),screenshots.firstKey());
+            Long firstMouseMoveEventTime = findFirstMouseMoveTime(pressedTime);
             Mat screenshot = readCeilingScreenshot(firstMouseMoveEventTime);
 
             Image image = findRelevantImage(screenshot, event);
@@ -388,10 +388,12 @@ public class RecordedEventsFlow {
   }
 
   private Mat readFloorScreenshot(Long time) {
+    time = Math.min(Math.max(time, screenshots.firstKey()), screenshots.lastKey());
     return Imgcodecs.imread(screenshots.floorEntry(time).getValue());
   }
 
   private Mat readCeilingScreenshot(Long time) {
+    time = Math.min(Math.max(time, screenshots.firstKey()), screenshots.lastKey());
     return Imgcodecs.imread(screenshots.ceilingEntry(time).getValue());
   }
 
