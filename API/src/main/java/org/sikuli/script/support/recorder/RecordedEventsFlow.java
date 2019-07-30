@@ -99,6 +99,10 @@ public class RecordedEventsFlow {
       int i=0;
 
       for (Map.Entry<Long, NativeInputEvent> entry : events.entrySet()) {
+        if (progress != null && progress.isCanceled()) {
+          return new LinkedList<>();
+        }
+
         Long time = entry.getKey();
         NativeInputEvent event = entry.getValue();
 
@@ -107,6 +111,7 @@ public class RecordedEventsFlow {
         } else if (event instanceof NativeMouseEvent) {
           actions.addAll(handleMouseEvent(time, (NativeMouseEvent) event));
         }
+
         if (progress != null) {
           progress.setProgress(++i);
         }

@@ -38,6 +38,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private boolean running = false;
 
   ScreenImage currentImage = null;
+  String currentImageFilePath = null;
 
   static {
     try {
@@ -91,8 +92,10 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
           ScreenImage img = Screen.getPrimaryScreen().capture();
           if(new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
             currentImage = img;
-            String imageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
-            eventsFlow.addScreenshot(imageFilePath);
+            currentImageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
+            eventsFlow.addScreenshot(currentImageFilePath);
+          } else {
+            eventsFlow.addScreenshot(currentImageFilePath);
           }
         }
       }
@@ -126,6 +129,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
       eventsFlow.clear();
       currentImage = null;
+      currentImageFilePath = null;
 
       try {
         screenshotDir = Files.createTempDirectory("sikulix").toFile();
