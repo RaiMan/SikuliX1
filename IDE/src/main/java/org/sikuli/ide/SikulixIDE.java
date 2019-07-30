@@ -2586,14 +2586,24 @@ public class SikulixIDE extends JFrame {
         EditorPane pane = getCurrentCodePane();
         ICodeGenerator generator = pane.getCodeGenerator();
 
-        List<IRecordedAction> actions = recorder.stop();
+        ProgressMonitor progress = new ProgressMonitor(pane, _I("processingWorkflow"), "", 0, 0);
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
 
-        List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+        try {
+          List<IRecordedAction> actions = recorder.stop(progress);
 
-        EventQueue.invokeLater(() -> {
-          pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
-          pane.doReparse();
-        });
+          if(!actions.isEmpty()) {
+            List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+
+            EventQueue.invokeLater(() -> {
+              pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
+              pane.doReparse();
+            });
+          }
+        } finally {
+          progress.close();
+        }
 
         return true;
       }

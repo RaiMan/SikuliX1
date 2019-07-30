@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.ProgressMonitor;
+
 import org.apache.commons.io.FileUtils;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -20,6 +22,7 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 import org.jnativehook.mouse.NativeMouseMotionListener;
+import org.sikuli.script.Finder;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.recorder.RecordedEventsFlow;
@@ -27,7 +30,7 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
-  private static final int SCREENSHOT_THROTTLE_MILLIS = 50;
+  private static final int SCREENSHOT_THROTTLE_MILLIS = 200;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
@@ -62,7 +65,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   }
 
-  private class Throttler {
+  private static final class Throttler {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private long lastExecution = 0;
 
@@ -78,23 +81,26 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
     }
   }
 
-  private Throttler throttler = new Throttler();
+  private final Throttler THROTTLER = new Throttler();
 
-  private void screenshot() {
-    Runnable runnable = new Runnable() {
-      @Override
-      public void run() {
-        synchronized (screenshotDir) {
-          if (screenshotDir.exists()) {
-            ScreenImage img = Screen.getPrimaryScreen().capture();
-            String file = img.save(screenshotDir.getAbsolutePath());
-            eventsFlow.addScreenshot(file);
+  private final Runnable SCREENSHOT_RUNNABLE = new Runnable() {
+    @Override
+    public void run() {
+      synchronized (screenshotDir) {
+        if (screenshotDir.exists()) {
+          ScreenImage img = Screen.getPrimaryScreen().capture();
+          if(new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
             currentImage = img;
+            String imageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
+            eventsFlow.addScreenshot(imageFilePath);
           }
         }
       }
-    };
-    throttler.execute(runnable, SCREENSHOT_THROTTLE_MILLIS, TimeUnit.MILLISECONDS);
+    }
+  };
+
+  private void screenshot() {
+    THROTTLER.execute(SCREENSHOT_RUNNABLE, SCREENSHOT_THROTTLE_MILLIS, TimeUnit.MILLISECONDS);
   }
 
   public void add(NativeInputEvent e) {
@@ -137,7 +143,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   }
 
-  public List<IRecordedAction> stop() {
+  public List<IRecordedAction> stop(ProgressMonitor progress) {
     if (running) {
       running = false;
       GlobalScreen.removeNativeMouseMotionListener(this);
@@ -145,8 +151,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeKeyListener(this);
 
       synchronized (screenshotDir) {
-
-        List<IRecordedAction> actions = eventsFlow.compile();
+        List<IRecordedAction> actions = eventsFlow.compile(progress);
 
         try {
           FileUtils.deleteDirectory(screenshotDir);
