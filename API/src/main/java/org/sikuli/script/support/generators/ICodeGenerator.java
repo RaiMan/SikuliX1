@@ -1,9 +1,26 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.script.support.generators;
 
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
+/**
+ * Generates executable code snippets.
+ *
+ * @author balmma
+ */
 public interface ICodeGenerator {
+  /**
+   *
+   *
+   * @param pattern
+   * @param mask mask code TODO needs to be abstracted away
+   *
+   * @return
+   */
   public String pattern(Pattern pattern, String mask);
 
   public String click(Pattern pattern, String[] modifiers);
@@ -24,5 +41,5 @@ public interface ICodeGenerator {
 
   public String typeKey(String key, String[] modifiers);
 
-  public String wait(Pattern pattern, int seconds, IRecordedAction matchAction);
+  public String wait(Pattern pattern, Integer seconds, IRecordedAction matchAction);
 }
