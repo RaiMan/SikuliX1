@@ -1096,7 +1096,7 @@ public class RunTime {
         isRunning.createNewFile();
         isRunningFile = new FileOutputStream(isRunning);
         if (null == isRunningFile.getChannel().tryLock()) {
-          Class<?> classIDE = Class.forName("org.sikuli.ide.SikuliIDE");
+          Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
           Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
           stopSplash.invoke(null, new Object[0]);
           Sikulix.popError("Terminating: IDE already running");

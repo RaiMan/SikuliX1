@@ -93,12 +93,12 @@ public class SikulixIDE extends JFrame {
   public static void main(String[] args) {
     RunTime.afterStart(RunTime.Type.IDE, args);
 
-    IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
-
     if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
       prepareMacUI();
     }
     runTime = RunTime.get(RunTime.Type.IDE);
+
+    IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
 
     get();
 
@@ -360,7 +360,7 @@ public class SikulixIDE extends JFrame {
   static IDESplash ideSplash = null;
   private boolean _inited = false;
 
-  static void stopSplash() {
+  public static void stopSplash() {
     if (ideSplash != null) {
       ideSplash.setVisible(false);
       ideSplash.dispose();
