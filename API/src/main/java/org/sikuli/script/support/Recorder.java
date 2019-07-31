@@ -32,7 +32,7 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
   private static final long MOUSE_SCREENSHOT_DELAY = 500;
-  private static final long MOUSE_MOVE_SCREENSHOT_DELAY = 500;
+  private static final long MOUSE_MOVE_SCREENSHOT_DELAY = 100;
   private static final long KEY_SCREENSHOT_DELAY = 500;
 
   private static final int MOUSE_MOVE_THRESHOLD = 10;
