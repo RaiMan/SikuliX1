@@ -40,6 +40,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <sikulixjythonversion>2.7.1</sikulixjythonversion>
+    <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
   </properties>
 
   <dependencies>
@@ -56,6 +58,18 @@
       <!--License GPLv2-->
     </dependency>
 <!-- only here to avoid error in IntelliJ IDEA 2019.2-->
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>${sikulixjythonversion}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby</groupId>
+      <artifactId>jruby-complete</artifactId>
+      <version>${sikulixjrubyversion}</version>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>

@@ -128,11 +128,13 @@
             <groupId>org.python</groupId>
             <artifactId>jython-standalone</artifactId>
             <version>${sikulixjythonversion}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.jruby</groupId>
             <artifactId>jruby-complete</artifactId>
             <version>${sikulixjrubyversion}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

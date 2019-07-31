@@ -478,7 +478,7 @@ public class Sikulix {
         return false;
       }
       FileManager.xcopy(fSource, fTarget);
-      if (!jython.exec("import compileall")) {
+      if (!jython.interpreterExecString("import compileall")) {
         return false;
       }
       jython = doCompileJythonFolder(jython, fTarget);
@@ -506,7 +506,7 @@ public class Sikulix {
 
   private static JythonSupport doCompileJythonFolder(JythonSupport jython, File fSource) {
     String fpSource = FileManager.slashify(fSource.getAbsolutePath(), false);
-    if (!jython.exec(String.format("compileall.compile_dir(\"%s\","
+    if (!jython.interpreterExecString(String.format("compileall.compile_dir(\"%s\","
             + "maxlevels = 0, quiet = 1)", fpSource))) {
       return null;
     }
