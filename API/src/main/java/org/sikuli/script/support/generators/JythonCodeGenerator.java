@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.script.support.generators;
 
 import java.io.File;
@@ -8,6 +12,12 @@ import org.sikuli.script.Location;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
+/**
+ * Generates executable Jython code snippets.
+ *
+ * @author mbalmer
+ *
+ */
 public class JythonCodeGenerator implements ICodeGenerator {
 
   @Override
@@ -77,8 +87,21 @@ public class JythonCodeGenerator implements ICodeGenerator {
   }
 
   @Override
-  public String wait(Pattern pattern, int seconds, IRecordedAction matchAction) {
-    String code = "wait(" + pattern(pattern, null) + ", " + seconds + ")";
+  public String wait(Pattern pattern, Integer seconds, IRecordedAction matchAction) {
+    String code = "wait(";
+
+    if (pattern != null) {
+      code += pattern(pattern, null);
+    }
+
+    if (seconds != null) {
+      if (pattern != null) {
+        code += ", ";
+      }
+      code += seconds;
+    }
+
+    code += ")";
 
     if (matchAction != null) {
       code += "." + matchAction.generate(this);
