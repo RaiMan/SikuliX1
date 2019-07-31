@@ -75,38 +75,32 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   }
 
   private boolean capturing = false;
-
   private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
-
-  private final Runnable SCREENSHOT_RUNNABLE = new Runnable() {
-    @Override
-    public void run() {
-      try {
-        synchronized (screenshotDir) {
-          if (screenshotDir.exists()) {
-            ScreenImage img = Screen.getPrimaryScreen().capture();
-            if (new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
-              currentImage = img;
-              currentImageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
-              eventsFlow.addScreenshot(currentImageFilePath);
-            } else {
-              eventsFlow.addScreenshot(currentImageFilePath);
-            }
-          }
-        }
-      } finally {
-        synchronized (SCHEDULER) {
-          capturing = false;
-        }
-      }
-    }
-  };
 
   private void screenshot(long delayMillis) {
     synchronized (SCHEDULER) {
       if (!capturing) {
         capturing = true;
-        SCHEDULER.schedule(SCREENSHOT_RUNNABLE, delayMillis, TimeUnit.MILLISECONDS);
+        SCHEDULER.schedule((() -> {
+          try {
+            synchronized (screenshotDir) {
+              if (screenshotDir.exists()) {
+                ScreenImage img = Screen.getPrimaryScreen().capture();
+                if (new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
+                  currentImage = img;
+                  currentImageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
+                  eventsFlow.addScreenshot(currentImageFilePath);
+                } else {
+                  eventsFlow.addScreenshot(currentImageFilePath);
+                }
+              }
+            }
+          } finally {
+            synchronized (SCHEDULER) {
+              capturing = false;
+            }
+          }
+        }), delayMillis, TimeUnit.MILLISECONDS);
       }
     }
   }
