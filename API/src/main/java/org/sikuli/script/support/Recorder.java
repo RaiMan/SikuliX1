@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +31,11 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
-  private static final int SCREENSHOT_THROTTLE_MILLIS = 200;
+  private static final long MOUSE_SCREENSHOT_DELAY = 500;
+  private static final long MOUSE_MOVE_SCREENSHOT_DELAY = 100;
+  private static final long KEY_SCREENSHOT_DELAY = 500;
+
+  private static final int MOUSE_MOVE_THRESHOLD = 10;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
@@ -38,6 +43,10 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private boolean running = false;
 
   ScreenImage currentImage = null;
+  String currentImageFilePath = null;
+
+  private long currentMouseX = 0;
+  private long currentMouseY = 0;
 
   static {
     try {
@@ -65,59 +74,58 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   }
 
-  private static final class Throttler {
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private long lastExecution = 0;
+  private boolean capturing = false;
 
-    public void execute(Runnable runnable, long threshold, TimeUnit unit) {
-      synchronized (this) {
-        long now = System.currentTimeMillis();
-
-        if (now - lastExecution > threshold) {
-          lastExecution = now;
-          executor.execute(runnable);
-        }
-      }
-    }
-  }
-
-  private final Throttler THROTTLER = new Throttler();
+  private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
   private final Runnable SCREENSHOT_RUNNABLE = new Runnable() {
     @Override
     public void run() {
-      synchronized (screenshotDir) {
-        if (screenshotDir.exists()) {
-          ScreenImage img = Screen.getPrimaryScreen().capture();
-          if(new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
-            currentImage = img;
-            String imageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
-            eventsFlow.addScreenshot(imageFilePath);
+      try {
+        synchronized (screenshotDir) {
+          if (screenshotDir.exists()) {
+            ScreenImage img = Screen.getPrimaryScreen().capture();
+            if (new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
+              currentImage = img;
+              currentImageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
+              eventsFlow.addScreenshot(currentImageFilePath);
+            } else {
+              eventsFlow.addScreenshot(currentImageFilePath);
+            }
           }
+        }
+      } finally {
+        synchronized (SCHEDULER) {
+          capturing = false;
         }
       }
     }
   };
 
-  private void screenshot() {
-    THROTTLER.execute(SCREENSHOT_RUNNABLE, SCREENSHOT_THROTTLE_MILLIS, TimeUnit.MILLISECONDS);
+  private void screenshot(long delayMillis) {
+    synchronized (SCHEDULER) {
+      if (!capturing) {
+        capturing = true;
+        SCHEDULER.schedule(SCREENSHOT_RUNNABLE, delayMillis, TimeUnit.MILLISECONDS);
+      }
+    }
   }
 
-  public void add(NativeInputEvent e) {
+  public void add(NativeInputEvent e, long screenshotDelayMillis) {
     eventsFlow.addEvent(e);
-    screenshot();
+    screenshot(screenshotDelayMillis);
   }
 
   public void nativeKeyPressed(NativeKeyEvent e) {
-    add(e);
+    add(e, KEY_SCREENSHOT_DELAY);
   }
 
   public void nativeKeyReleased(NativeKeyEvent e) {
-    add(e);
+    add(e, KEY_SCREENSHOT_DELAY);
   }
 
   public void nativeKeyTyped(NativeKeyEvent e) {
-
+    // do not handle
   }
 
   public void start() {
@@ -126,6 +134,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
       eventsFlow.clear();
       currentImage = null;
+      currentImageFilePath = null;
 
       try {
         screenshotDir = Files.createTempDirectory("sikulix").toFile();
@@ -134,7 +143,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
         e.printStackTrace();
       }
 
-      screenshot();
+      screenshot(0);
 
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
@@ -175,21 +184,37 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   @Override
   public void nativeMousePressed(NativeMouseEvent e) {
-    add(e);
+    saveMousePosition(e);
+    add(e, MOUSE_SCREENSHOT_DELAY);
   }
 
   @Override
   public void nativeMouseReleased(NativeMouseEvent e) {
-    add(e);
+    saveMousePosition(e);
+    add(e, MOUSE_SCREENSHOT_DELAY);
   }
 
   @Override
   public void nativeMouseMoved(NativeMouseEvent e) {
-    add(e);
+    addMouseIfRelevantMove(e);
   }
 
   @Override
   public void nativeMouseDragged(NativeMouseEvent e) {
-    add(e);
+    addMouseIfRelevantMove(e);
+  }
+
+  private void saveMousePosition(NativeMouseEvent e) {
+    currentMouseX = e.getX();
+    currentMouseY = e.getY();
+  }
+
+  private void addMouseIfRelevantMove(NativeMouseEvent e) {
+    // only add relevant mouse moves > MOUSE_MOVE_THRESHOLD px
+    if (Math.abs(e.getX() - currentMouseX) > MOUSE_MOVE_THRESHOLD
+        || Math.abs(e.getY() - currentMouseY) > MOUSE_MOVE_THRESHOLD) {
+      saveMousePosition(e);
+      add(e, MOUSE_MOVE_SCREENSHOT_DELAY);
+    }
   }
 }

@@ -99,6 +99,10 @@ public class RecordedEventsFlow {
       int i=0;
 
       for (Map.Entry<Long, NativeInputEvent> entry : events.entrySet()) {
+        if (progress != null && progress.isCanceled()) {
+          return new LinkedList<>();
+        }
+
         Long time = entry.getKey();
         NativeInputEvent event = entry.getValue();
 
@@ -107,6 +111,7 @@ public class RecordedEventsFlow {
         } else if (event instanceof NativeMouseEvent) {
           actions.addAll(handleMouseEvent(time, (NativeMouseEvent) event));
         }
+
         if (progress != null) {
           progress.setProgress(++i);
         }
@@ -259,7 +264,7 @@ public class RecordedEventsFlow {
         dragStartEvent = null;
       }
     } else if (NativeMouseEvent.NATIVE_MOUSE_RELEASED == event.getID()) {
-      if (dragStartTime != null && (Math.abs(event.getX() - dragStartEvent.getX()) > 5 ||  Math.abs(event.getY() - dragStartEvent.getY()) > 5)) {
+      if (dragStartTime != null) {
         try {
           Image dragImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), dragStartEvent);
           Image dropImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), event);
