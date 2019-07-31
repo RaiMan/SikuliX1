@@ -16,7 +16,6 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
  * Generates executable Jython code snippets.
  *
  * @author mbalmer
- *
  */
 public class JythonCodeGenerator implements ICodeGenerator {
 

@@ -11,14 +11,14 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
  * Generates executable code snippets.
  *
  * @author balmma
- *
  */
 public interface ICodeGenerator {
   /**
    *
    *
    * @param pattern
-   * @param mask mask code TODO needs to be abstractd away
+   * @param mask mask code TODO needs to be abstracted away
+   *
    * @return
    */
   public String pattern(Pattern pattern, String mask);

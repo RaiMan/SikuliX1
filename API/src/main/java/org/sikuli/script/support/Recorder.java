@@ -38,7 +38,6 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
  * Records native input events and transforms them into executable actions.
  *
  * @author balmma
- *
  */
 public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
 
@@ -91,7 +90,6 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   /*
    * Captures the screen after a given delay.
    * During the delay, other calls to this method are ignored.
-   *
    */
   private void screenshot(long delayMillis) {
     synchronized (SCHEDULER) {
