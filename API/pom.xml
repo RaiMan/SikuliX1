@@ -139,6 +139,7 @@
     </dependencies>
 
     <profiles>
+        <!-- complete-jar -->
         <profile>
             <id>complete-jar</id>
             <activation>
@@ -172,6 +173,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- sign -->
         <profile>
             <id>sign</id>
             <activation>
@@ -196,6 +198,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- build-source -->
         <profile>
             <id>build-source</id>
             <activation>
@@ -219,6 +222,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- build-docs -->
         <profile>
             <id>build-docs</id>
             <activation>
@@ -245,6 +249,28 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- maven-release -->
+        <profile>
+            <id>maven-release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -290,5 +316,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
