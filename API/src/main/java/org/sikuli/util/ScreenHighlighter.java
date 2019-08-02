@@ -170,11 +170,12 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
         Debug.action("highlightAllOff: closing open highlights");
       }
       for (ScreenHighlighter s : highlights) {
-        if (s.isVisible()) {
-          Debug.action("highlight off: " + s.target.toStringShort());
-          s.setVisible(false);
-          s.clean();
-        }
+//        if (s.isVisible()) {
+//          Debug.action("highlight off: " + s.target.toStringShort());
+//          s.setVisible(false);
+//        }
+        s.setVisible(false);
+        s.clean();
       }
       highlights.clear();
     }
