@@ -1608,10 +1608,13 @@ public class SikulixIDE extends JFrame {
     _runMenu.add(createMenuItem(_I("menuRunRun"),
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
             new RunAction(RunAction.RUN)));
-    _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-                    InputEvent.ALT_DOWN_MASK | scMask),
-            new RunAction(RunAction.RUN_SHOW_ACTIONS)));
+    //TODO run in slow motion to be fixed on Mac
+    if (!RunTime.get().runningMac) {
+      _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
+              KeyStroke.getKeyStroke(KeyEvent.VK_R,
+                      InputEvent.ALT_DOWN_MASK | scMask),
+              new RunAction(RunAction.RUN_SHOW_ACTIONS)));
+    }
     _runMenu.add(createMenuItem("Run selection",
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
                     InputEvent.SHIFT_DOWN_MASK | scMask),
@@ -2021,8 +2024,11 @@ public class SikulixIDE extends JFrame {
     toolbar.add(Box.createHorizontalGlue());
     _btnRun = new ButtonRun();
     toolbar.add(_btnRun);
-    _btnRunViz = new ButtonRunViz();
-    toolbar.add(_btnRunViz);
+    //TODO run in slow motion to be fixed on Mac
+    if (!RunTime.get().runningMac) {
+      _btnRunViz = new ButtonRunViz();
+      toolbar.add(_btnRunViz);
+    }
     toolbar.add(Box.createHorizontalGlue());
 
 //    JComponent jcSearchField = createSearchField();
