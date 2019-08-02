@@ -1609,7 +1609,7 @@ public class SikulixIDE extends JFrame {
             KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
             new RunAction(RunAction.RUN)));
     //TODO run in slow motion to be fixed on Mac
-    if (!RunTime.get().runningMac) {
+    if (!RunTime.get().runningMac || RunTime.get().isTesting()) {
       _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
               KeyStroke.getKeyStroke(KeyEvent.VK_R,
                       InputEvent.ALT_DOWN_MASK | scMask),
@@ -2025,8 +2025,8 @@ public class SikulixIDE extends JFrame {
     _btnRun = new ButtonRun();
     toolbar.add(_btnRun);
     //TODO run in slow motion to be fixed on Mac
+    _btnRunViz = new ButtonRunViz();
     if (!RunTime.get().runningMac) {
-      _btnRunViz = new ButtonRunViz();
       toolbar.add(_btnRunViz);
     }
     toolbar.add(Box.createHorizontalGlue());
