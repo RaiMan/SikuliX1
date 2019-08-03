@@ -349,11 +349,6 @@ public class Region {
   private IScreen scr;
   protected boolean otherScreen = false;
 
-  /**
-   * The ScreenHighlighter for this Region
-   */
-  private ScreenHighlighter overlay = null;
-
   protected static Region getFakeRegion() {
     if (fakeRegion == null) {
       fakeRegion = new Region(0, 0, 5, 5);
@@ -2091,6 +2086,11 @@ public class Region {
     }
     return this;
   }
+
+  /**
+   * The ScreenHighlighter for this Region
+   */
+  private ScreenHighlighter overlay = null;
 
   public Region silentHighlight(boolean onOff) {
     if (onOff && overlay == null) {
