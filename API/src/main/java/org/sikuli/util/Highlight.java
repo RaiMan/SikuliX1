@@ -1,5 +1,6 @@
 package org.sikuli.util;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
 
@@ -35,16 +36,21 @@ public class Highlight extends JFrame {
 
   int side = 70;
   float halfSide = side * 0.5f;
+  float halfSidex = halfSide;
+  float halfSidey = halfSide;
   int locx = -1;
   int locy = -1;
   int sidex = -1;
   int sidey = -1;
+  int frameX = -1;
+  int frameY = -1;
 
   public Highlight(Location loc) {
     this();
     locx = loc.x;
     locy = loc.y;
-    initAsCross();
+    JPanel panel = initAsCross();
+    setContentPane(panel);
   }
 
   public Highlight(Region reg) {
@@ -53,26 +59,26 @@ public class Highlight extends JFrame {
     locy = reg.y;
     sidex = reg.h;
     sidey = reg.w;
-    initAsFrame();
+    JPanel panel = initAsFrame();
+    setContentPane(panel);
   }
 
   private Highlight() {
+    if (!hasPPTL) {
+      Debug.error("Highlight: is not supported in your environment:\n%s");
+      Debug.error("Highlight: TansparencySupport: TL: %s PPTL: %s PPTP: %s", Highlight.hasTL, Highlight.hasPPTL, Highlight.hasPPTP);
+    }
     setUndecorated(true);
     setBackground(new Color(0, 0, 0, 0));
     setAlwaysOnTop(true);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        setVisible(false);
-        dispose();
-      }
-    });
     activeHighlight = this;
   }
 
-  private void initAsCross() {
+  private JPanel initAsCross() {
     setSize(side, side);
+    frameX = locx - (int) halfSide;
+    frameY = locy - (int) halfSide;
     JPanel panel = new JPanel() {
       @Override
       protected void paintComponent(Graphics g) {
@@ -94,31 +100,60 @@ public class Highlight extends JFrame {
         }
       }
     };
-    setContentPane(panel);
+    return panel;
   }
 
-  private void initAsFrame() {
-
+  private JPanel initAsFrame() {
+    int lineWidth = 3;
+    frameX = locx - lineWidth;
+    frameY = locy - lineWidth;
+    int frameW = sidey + 2 * lineWidth;
+    int frameH = sidex + 2 * lineWidth;
+    setSize(frameW, frameH);
+    JPanel panel = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g) {
+        if (g instanceof Graphics2D) {
+          Point2D.Float center = new Point2D.Float(frameW/2.0f, frameH/2.0f);
+          Color redFull = new Color(255, 0, 0, 20);
+          Color redTrans = new Color(255, 0, 0, 0);
+          float radius = Math.max(center.x, center.y);
+          float[] dist = {0.0f, 1.0f};
+          Color[] colorsRed = {redTrans, redFull};
+          Graphics2D g2d = (Graphics2D) g;
+          g2d.setPaint(new RadialGradientPaint(center, radius, dist, colorsRed));
+          g2d.fillRect(0, 0, frameW, frameH);
+        }
+      }
+    };
+    panel.setBorder(BorderFactory.createLineBorder(Color.RED, 3));
+    return panel;
   }
 
   public void doShow(double secs) {
     if (locx < 0 || locy < 0) {
-      locx = (int) (gdW/2);
-      locy = (int) (gdH/2);
+      frameX = (int) (gdW/2);
+      frameY = (int) (gdH/2);
     }
-    setLocation(locx - (int) halfSide, locy - (int) halfSide);
-    showAndWait(secs);
-  }
-
-  private void showAndWait(double secs) {
-    setVisible(true);
+    setLocation(frameX, frameY);
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        setVisible(false);
+        dispose();
+      }
+    });
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        setVisible(true);
+      }
+    });
     try {
       Thread.sleep((int) (secs * 1000));
     } catch (InterruptedException ex) {
     }
-    setVisible(false);
-    dispose();
-    activeHighlight = null;
+    Highlight.close();
   }
 
   public static void close() {
@@ -130,13 +165,8 @@ public class Highlight extends JFrame {
   }
 
   public static void main(String[] args) {
-    //p("TL: %s PPTL: %s PPTP: %s", Highlight.hasTL, Highlight.hasPPTL, Highlight.hasPPTP);
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
         Highlight highlight = new Highlight(new Location(gdW/2, gdH/2));
-        highlight.doShow(2);
-      }
-    });
+        //Highlight highlight = new Highlight(new Region((int) (gdW/2 - 50), (int) (gdH/2 - 50), 100, 100));
+        highlight.doShow(5);
   }
 }
