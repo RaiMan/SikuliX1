@@ -2,8 +2,6 @@ package org.sikuli.util;
 
 import org.sikuli.script.Location;
 import org.sikuli.script.Region;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 import javax.swing.*;
 import java.awt.*;
@@ -114,7 +112,10 @@ public class Highlight extends JFrame {
 
   private void showAndWait(double secs) {
     setVisible(true);
-    RunTime.pause((float) secs);
+    try {
+      Thread.sleep((int) (secs * 1000));
+    } catch (InterruptedException ex) {
+    }
     setVisible(false);
     dispose();
     activeHighlight = null;
