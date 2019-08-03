@@ -11,6 +11,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
+import org.sikuli.util.Highlight;
 import org.sikuli.util.OverlayCapturePrompt;
 import org.sikuli.util.ScreenHighlighter;
 
@@ -832,8 +833,9 @@ public class Screen extends Region implements IScreen {
 
   protected void showTarget(Location loc, double secs) {
     if (Settings.isShowActions()) {
-      ScreenHighlighter overlay = new ScreenHighlighter(this, null);
-      overlay.showTarget(loc, (float) secs);
+//      ScreenHighlighter overlay = new ScreenHighlighter(this, null);
+//      overlay.showTarget(loc, (float) secs);
+      new Highlight(loc).doShow(secs);
     }
   }
   //</editor-fold>

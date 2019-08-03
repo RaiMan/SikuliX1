@@ -163,6 +163,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
   }
 
   public static void closeAll() {
+    Highlight.close();
     if (highlights.size() > 0) {
       if (!Settings.ActionLogs) {
         Debug.log(3, "ScreenHighlighter: closing highlights");
