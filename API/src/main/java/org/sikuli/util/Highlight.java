@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Highlight extends JFrame {
 
@@ -19,6 +21,8 @@ public class Highlight extends JFrame {
   static double gdH = -1;
 
   static Highlight activeHighlight = null;
+
+  static List<Highlight> highlights = new ArrayList<>();
 
   static {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -72,10 +76,10 @@ public class Highlight extends JFrame {
     setBackground(new Color(0, 0, 0, 0));
     setAlwaysOnTop(true);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    activeHighlight = this;
   }
 
   private JPanel initAsCross() {
+    activeHighlight = this;
     setSize(side, side);
     frameX = locx - (int) halfSide;
     frameY = locy - (int) halfSide;
@@ -153,14 +157,21 @@ public class Highlight extends JFrame {
       Thread.sleep((int) (secs * 1000));
     } catch (InterruptedException ex) {
     }
-    Highlight.close();
+    Highlight.closeActive();
   }
 
-  public static void close() {
+  public static void closeActive() {
     if (null != activeHighlight) {
       activeHighlight.setVisible(false);
       activeHighlight.dispose();
       activeHighlight = null;
+    }
+  }
+
+  public static void closeAll() {
+    closeActive();
+    if (highlights.size() > 0) {
+      highlights.clear();
     }
   }
 }
