@@ -15,7 +15,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.Observer;
-import org.sikuli.util.ScreenHighlighter;
+import org.sikuli.util.Highlight;
 
 /**
  * A Region is a rectengular area and lies always completely inside its parent screen
@@ -376,7 +376,7 @@ public class Region {
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }
@@ -2088,25 +2088,24 @@ public class Region {
   }
 
   /**
-   * The ScreenHighlighter for this Region
+   * The Highlight for this Region
    */
-  private ScreenHighlighter overlay = null;
+  private Highlight regionHighlight = null;
 
-  public Region silentHighlight(boolean onOff) {
-    if (onOff && overlay == null) {
-      return doHighlight(true, null, true);
-    }
-    if (!onOff && overlay != null) {
-      return doHighlight(false, null, true);
-    }
-    return this;
+  private void highlightClose() {
+    regionHighlight.close();
+    highlightReset();
+  }
+
+  public void highlightReset() {
+    regionHighlight = null;
   }
 
   /**
    * switches off all actual highlights
    */
   public static void highlightAllOff() {
-    ScreenHighlighter.closeAll();
+    Highlight.closeAll();
   }
 
   /**
@@ -2122,14 +2121,17 @@ public class Region {
    * @param color Color of frame (see method highlight(color))
    */
   public Region highlightOn(String color) {
-    return doHighlight(true, color, false);
+    return highlight(0, color);
   }
 
   /**
    * Switch on the regions highlight border (red frame)
    */
   public Region highlightOff() {
-    return doHighlight(false, null, false);
+    if (regionHighlight != null) {
+      highlightClose();
+    }
+    return this;
   }
 
   /**
@@ -2142,8 +2144,7 @@ public class Region {
    * @return this region
    **/
   public Region highlight() {
-    doHighlight(overlay == null, null, false);
-    return this;
+    return highlight(null);
   }
 
   /**
@@ -2160,42 +2161,11 @@ public class Region {
    * @return the region itself
    */
   public Region highlight(String color) {
-    doHighlight(overlay == null, color, false);
-    return this;
-  }
-
-  private Region doHighlight(boolean toEnable, String color, boolean silent) {
-    if (isOtherScreen()) {
+    if (regionHighlight != null) {
+      highlightClose();
       return this;
     }
-    if (!silent) {
-      Debug.action("highlight " + (color != null ? " color: " + color : "") +
-          (toEnable ? "on: " : "off: ") + toStringShort());
-    }
-    if (toEnable) {
-      if (null == overlay) {
-        setHighlight(color, silent);
-      } else {
-        if (!overlay.isSameColor(color)) {
-          overlay.close();
-          overlay = null;
-          setHighlight(color, silent);
-        }
-      }
-    } else {
-      if (null == overlay) {
-        return this;
-      }
-      overlay.close();
-      overlay = null;
-    }
-    return this;
-  }
-
-  private void setHighlight(String color, boolean silent) {
-    overlay = new ScreenHighlighter(getScreen(), color);
-    overlay.setNotWaitAfter(silent);
-    overlay.highlight(this);
+    return highlightOn(color);
   }
 
   /**
@@ -2204,7 +2174,7 @@ public class Region {
    * @param secs time in seconds
    * @return the region itself
    */
-  public Region highlight(float secs) {
+  public Region highlight(double secs) {
     return highlight(secs, null);
   }
 
@@ -2216,52 +2186,23 @@ public class Region {
    * @param color Color of frame (see method highlight(color))
    * @return the region itself
    */
-  public Region highlight(float secs, String color) {
+  public Region highlight(double secs, String color) {
     if (getScreen() == null || isOtherScreen() || isScreenUnion) {
       Debug.error("highlight: not possible for %s", getScreen());
       return this;
     }
-    if (secs < 0.1) {
-      return highlight((int) secs, color);
+    if (secs < 0) {
+      secs = -secs;
+      if (lastMatch != null) {
+        return lastMatch.highlight(secs, color);
+      }
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-        + (color != null ? " color: " + color : ""));
-    new ScreenHighlighter(getScreen(), color).highlight(this, secs);
-    return this;
-  }
-
-  /**
-   * hack to implement the getLastMatch() convenience 0 means same as highlight() &lt; 0 same as highlight(secs) if
-   * available the last match is highlighted
-   *
-   * @param secs seconds
-   * @return this region
-   */
-  public Region highlight(int secs) {
-    return highlight(secs, null);
-  }
-
-  /**
-   * Show highlight in selected color
-   *
-   * @param secs  time in seconds
-   * @param color Color of frame (see method highlight(color))
-   * @return this region
-   */
-  public Region highlight(int secs, String color) {
-    if (getScreen() == null || isOtherScreen() || isScreenUnion) {
-      Debug.error("highlight: not possible for %s", getScreen());
-      return this;
+            + (color != null ? " color: " + color : ""));
+    if (regionHighlight != null) {
+      highlightClose();
     }
-    if (secs > 0) {
-      return highlight((float) secs, color);
-    }
-    if (lastMatch != null) {
-      if (secs < 0) {
-        return lastMatch.highlight((float) -secs, color);
-      }
-      return lastMatch.highlight(Settings.DefaultHighlightTime, color);
-    }
+    regionHighlight = new Highlight(this, color).doShow(secs);
     return this;
   }
   //</editor-fold>
@@ -2559,7 +2500,7 @@ public class Region {
     }
     while (null != response && response) {
       log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-          autoWaitTimeout, targetStr, this.toStringShort());
+              autoWaitTimeout, targetStr, this.toStringShort());
       if (autoWaitTimeout > 0) {
         rf.repeat(autoWaitTimeout);
         lastMatches = rf.getMatches();
@@ -2878,7 +2819,7 @@ public class Region {
       finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
-            new Date().getTime() - lastSearchTimeRepeat);
+                new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
       finder.findRepeat();
@@ -3471,7 +3412,7 @@ public class Region {
       log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForRegion().delay(500);
       ScreenImage simg = getScreen().userCapture(
-          (recap ? "recapture " : "capture missing ") + img.getName());
+              (recap ? "recapture " : "capture missing ") + img.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
@@ -3662,7 +3603,7 @@ public class Region {
 
   private <PSIC> String onEvent(PSIC targetThreshhold, Object observer, ObserveEvent.Type obsType) {
     if (observer != null && (observer.getClass().getName().contains("org.python")
-        || observer.getClass().getName().contains("org.jruby"))) {
+            || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
@@ -3672,13 +3613,13 @@ public class Region {
         response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(
-              String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
+                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
     log(lvl, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
-        (observer == null ? "" : " with callback"), name, targetThreshhold);
+            (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
 
@@ -3721,7 +3662,7 @@ public class Region {
    */
   public String onChange(Integer threshold, Object observer) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-        observer, ObserveEvent.Type.CHANGE);
+            observer, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3734,7 +3675,7 @@ public class Region {
    */
   public String onChange(Integer threshold) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-        null, ObserveEvent.Type.CHANGE);
+            null, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3801,7 +3742,7 @@ public class Region {
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
     log(lvl, "%s: onChange%s: %s minSize: %d", toStringShort(),
-        (observer == null ? "" : " with callback"), name, threshold);
+            (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
 
@@ -3881,7 +3822,7 @@ public class Region {
     if (observing) {
       observing = false;
       log(lvl, "observe: stopped due to timeout in "
-          + this.toStringShort() + " for " + secs + " seconds");
+              + this.toStringShort() + " for " + secs + " seconds");
     } else {
       log(lvl, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);

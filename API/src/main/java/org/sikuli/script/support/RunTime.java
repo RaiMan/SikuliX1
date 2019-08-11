@@ -16,7 +16,7 @@ import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
-import org.sikuli.util.ScreenHighlighter;
+import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
 
@@ -1254,7 +1254,7 @@ public class RunTime {
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
-      ScreenHighlighter.closeAll();
+      Highlight.closeAll();
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
@@ -1845,12 +1845,8 @@ public class RunTime {
     return javaVersion > 7;
   }
 
-  public boolean isOSX10() {
-    return osVersion.startsWith("10.1");
-  }
-
   public boolean needsRobotFake() {
-    return runningMac && isOSX10();
+    return runningMac && Settings.ClickTypeHack;
   }
 
   /**

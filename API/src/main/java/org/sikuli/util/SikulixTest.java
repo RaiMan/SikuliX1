@@ -41,7 +41,7 @@ public class SikulixTest {
     p("[ERROR]" + msg, args);
   }
 
-  private static String showBase = "API/src/main/resources/ImagesAPI";
+  private static String showBase = "API/src/main/resources/Images";
   private static String showLink;
   private static int showWait;
   private static int showBefore;
@@ -170,7 +170,7 @@ public class SikulixTest {
 
   private static void after() {
     p("***** ending %s", currentTest);
-    ScreenHighlighter.closeAll();
+    Highlight.closeAll();
     showStop();
     browserStop();
   }
@@ -180,7 +180,7 @@ public class SikulixTest {
       reg.highlight();
     }
     scr.wait(time * 1.0);
-    ScreenHighlighter.closeAll();
+    Highlight.closeAll();
     return regs;
   }
 
@@ -217,7 +217,7 @@ public class SikulixTest {
     String testImage = "findBase";
 
 //    runTest.add(0);
-//    runTest.add(1); // exists
+    runTest.add(1); // exists
 //    runTest.add(2); // findChange
 //    runTest.add(3); // text OCR
 //    runTest.add(4); // text find word
@@ -248,7 +248,13 @@ public class SikulixTest {
       show(testImage, 0);
       scr.wait(2.0);
       match = scr.exists(testImage, 10);
-      match.highlight(2);
+      match.highlight();
+      RunTime.pause(2);
+      match.highlight(1, "green");
+      match.highlight(1, "blue");
+      match.highlight(1, "black");
+      RunTime.pause(2);
+      Mouse.move(scr.getCenter());
       after();
     }
     //</editor-fold>
@@ -407,7 +413,7 @@ public class SikulixTest {
             out += String.format("findAll failed: %s\n", image);
           }
           scr.wait(1.0);
-          ScreenHighlighter.closeAll();
+          Highlight.closeAll();
         }
         p("%s", out);
       }
