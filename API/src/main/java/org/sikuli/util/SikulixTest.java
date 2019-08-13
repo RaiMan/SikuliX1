@@ -217,7 +217,7 @@ public class SikulixTest {
     String testImage = "findBase";
 
 //    runTest.add(0);
-    runTest.add(1); // exists
+//    runTest.add(1); // exists
 //    runTest.add(2); // findChange
 //    runTest.add(3); // text OCR
 //    runTest.add(4); // text find word
@@ -394,28 +394,30 @@ public class SikulixTest {
       Pattern maskTrans = new Pattern("buttonTextTransMask");
       Pattern maskedBlack = new Pattern(maskBlack).mask(maskBlack);
       Pattern maskedTrans = new Pattern(maskBlack).mask(maskTrans);
-      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
-//      Pattern[] patterns = new Pattern[]{maskedBlack};
+//      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
+      Pattern[] patterns = new Pattern[]{imgTrans};
       if (openTestPage("Test-page-1")) {
         //reg.highlight(1);
         reg.setAutoWaitTimeout(0);
         String out = "";
-        for (Pattern image : patterns) {
-          highlight(reg.exists(image, 0));
+        for (Pattern pattern : patterns) {
+          pattern.similar(0.9);
+          highlight(reg.exists(pattern, 0));
           try {
-            Finder fmatches = (Finder) reg.findAll(image);
-            List<Match> matches = reg.findAllList(image);
-            out += String.format("*** findAll: %d of %s\n", matches.size(), image);
+            Finder fmatches = (Finder) reg.findAll(pattern);
+            List<Match> matches = reg.findAllList(pattern);
+            out += String.format("*** findAll: %d of %s\n", matches.size(), pattern);
             for (Match next : matches) {
               next.highlight();
             }
           } catch (FindFailed findFailed) {
-            out += String.format("findAll failed: %s\n", image);
+            out += String.format("findAll failed: %s\n", pattern);
           }
           scr.wait(1.0);
           Highlight.closeAll();
         }
         p("%s", out);
+        out = "";
       }
       scr.wait(1.0);
       after();
