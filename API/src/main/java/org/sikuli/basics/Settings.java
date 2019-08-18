@@ -138,7 +138,7 @@ public class Settings {
   public static boolean Highlight = false;
   public static float DefaultHighlightTime = 2f;
   public static String DefaultHighlightColor = "RED";
-  public static float WaitAfterHighlight = 0.3f;
+  public static double WaitAfterHighlight = 0.3;
 
   public static boolean ActionLogs = true;
   public static boolean InfoLogs = true;

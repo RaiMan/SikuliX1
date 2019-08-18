@@ -2094,29 +2094,32 @@ public class Region {
 
   private void highlightClose() {
     regionHighlight.close();
-    highlightReset();
+    internalUseOnlyHighlightReset();
   }
 
-  public void highlightReset() {
+  /**
+   * INTERNAL USE ONLY
+   */
+  public void internalUseOnlyHighlightReset() {
     regionHighlight = null;
   }
 
   /**
-   * switches off all actual highlights
+   * Switch off all actual highlights
    */
   public static void highlightAllOff() {
     Highlight.closeAll();
   }
 
   /**
-   * Switch on the regions highlight border (red frame)
+   * Switch on the regions highlight with default color
    */
   public Region highlightOn() {
     return highlightOn(null);
   }
 
   /**
-   * Switch on the regions highlight border (given color)
+   * Switch on the regions highlight with given color
    *
    * @param color Color of frame (see method highlight(color))
    */
@@ -2125,7 +2128,7 @@ public class Region {
   }
 
   /**
-   * Switch on the regions highlight border (red frame)
+   * Switch off the regions highlight
    */
   public Region highlightOff() {
     if (regionHighlight != null) {

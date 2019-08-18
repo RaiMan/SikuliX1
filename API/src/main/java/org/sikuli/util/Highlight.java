@@ -233,7 +233,7 @@ public class Highlight extends JFrame {
       });
       if (secs > 0) {
         try {
-          Thread.sleep((int) (secs * 1000));
+          Thread.sleep((int) (1000 * (secs + Settings.WaitAfterHighlight)));
         } catch (InterruptedException ex) {
         }
         close();
@@ -255,7 +255,7 @@ public class Highlight extends JFrame {
     dispose();
     showable = false;
     if (null != region) {
-      region.highlightReset();
+      region.internalUseOnlyHighlightReset();
     }
     if (inCloseAll) {
       return;
@@ -268,15 +268,15 @@ public class Highlight extends JFrame {
   private static boolean inCloseAll = false;
 
   public static void closeAll() {
-    if (highlights.size() > 0) {
-      inCloseAll = true;
-      for (Highlight highlight : highlights) {
-        highlight.close();
-      }
-      synchronized (Highlight.class) {
+    synchronized (Highlight.class) {
+      if (highlights.size() > 0) {
+        inCloseAll = true;
+        for (Highlight highlight : highlights) {
+          highlight.close();
+        }
         highlights.clear();
+        inCloseAll = false;
       }
-      inCloseAll = false;
     }
   }
 }
