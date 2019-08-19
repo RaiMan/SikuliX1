@@ -400,9 +400,6 @@ public class SikulixServer {
           .add(Methods.POST, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/run$"),
               run)
-          .add(Methods.GET, "/scripts/*",
-              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/task$"),
-              task)
           .add(Methods.POST, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/task$"),
               task);
