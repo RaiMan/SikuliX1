@@ -775,6 +775,7 @@ public class SikulixServer {
   }
 
   private static class SimpleResponse {
+    @SuppressWarnings("unused")
     public String message;
     
     public SimpleResponse(String message) {
@@ -783,6 +784,7 @@ public class SikulixServer {
   }
 
   private static class ErrorResponse {
+    @SuppressWarnings("unused")
     public String error;
     
     public ErrorResponse(String error) {
