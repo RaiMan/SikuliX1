@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,8 +33,6 @@ import io.undertow.predicate.Predicates;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
-import io.undertow.server.ServerConnection;
-import io.undertow.server.ServerConnection.CloseListener;
 import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
@@ -290,6 +289,7 @@ public class SikulixServer {
           lock.wait();
         }
       }
+      server.stop();
     } catch (Exception e) {
     }
     if (!isHandling) {
@@ -336,17 +336,12 @@ public class SikulixServer {
 
     private HttpHandler stop = exchange -> {
       sendResponse(exchange, StatusCodes.OK, new SimpleResponse("stopping server"));
+
+      synchronized (lock) {
+        shouldStop = true;
+        lock.notify();
+      }
       getTaskManager().stop();
-      exchange.getConnection().addCloseListener(new CloseListener() {
-        @Override
-        public void closed(ServerConnection connection) {
-          synchronized (lock) {
-            shouldStop = true;
-            lock.notify();
-          }
-        }
-      });
-      server.stop();
     };
   }
 
@@ -613,13 +608,17 @@ public class SikulixServer {
           Task task = null;
           try {
             task = queue.take();
-            synchronized(task) {
-              if (task.isWaiting()) {
-                task.updateStatus(Task.Status.RUNNING);
+            if ("shouldStop".equals(task.id)) {
+              // NOOP
+            } else {
+              synchronized(task) {
+                if (task.isWaiting()) {
+                  task.updateStatus(Task.Status.RUNNING);
+                }
               }
-            }
-            if (task.isRunning()) {
-              task.runScript();
+              if (task.isRunning()) {
+                  task.runScript();
+              }
             }
           } catch (InterruptedException e) {
             // NOOP
@@ -695,6 +694,15 @@ public class SikulixServer {
 
     public void stop() {
       shouldStop = true;
+      queue.add(new Task("shouldStop", null, null, null));
+      executor.shutdown();
+      while(!executor.isTerminated()) {
+        try {
+          executor.awaitTermination(60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 
