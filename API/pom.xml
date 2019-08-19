@@ -76,6 +76,24 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.python</groupId>
+            <artifactId>jython-standalone</artifactId>
+            <version>${sikulixjythonversion}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>${sikulixjrubyversion}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.sikulix</groupId>
+            <artifactId>sikulix2tigervnc</artifactId>
+            <version>1.1.4</version>
+            <!--License GPLv2-->
+        </dependency>
+        <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
@@ -88,15 +106,14 @@
             <!--License Apache 2-->
         </dependency>
         <dependency>
-            <groupId>com.sikulix</groupId>
-            <artifactId>sikulix2tigervnc</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <!--License GPLv2-->
-        </dependency>
-        <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
             <version>5.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.tess4j</groupId>
@@ -120,23 +137,6 @@
             <version>1.7.25</version>
         </dependency>
         <dependency>
-            <groupId>org.python</groupId>
-            <artifactId>jython-standalone</artifactId>
-            <version>${sikulixjythonversion}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby-complete</artifactId>
-            <version>${sikulixjrubyversion}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.10</version>
-        </dependency>
-        <dependency>
             <groupId>com.1stleg</groupId>
             <artifactId>jnativehook</artifactId>
             <version>2.1.0</version>
@@ -144,6 +144,7 @@
     </dependencies>
 
     <profiles>
+        <!-- complete-jar -->
         <profile>
             <id>complete-jar</id>
             <activation>
@@ -177,6 +178,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- sign -->
         <profile>
             <id>sign</id>
             <activation>
@@ -201,6 +203,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- build-source -->
         <profile>
             <id>build-source</id>
             <activation>
@@ -224,6 +227,7 @@
                 </plugins>
             </build>
         </profile>
+        <!-- build-docs -->
         <profile>
             <id>build-docs</id>
             <activation>
@@ -250,6 +254,28 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- maven-release -->
+        <profile>
+            <id>maven-release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -295,5 +321,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

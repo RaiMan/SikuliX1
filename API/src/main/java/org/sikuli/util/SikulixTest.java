@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 
 package org.sikuli.util;
@@ -41,7 +41,7 @@ public class SikulixTest {
     p("[ERROR]" + msg, args);
   }
 
-  private static String showBase = "API/src/main/resources/ImagesAPI";
+  private static String showBase = "API/src/main/resources/Images";
   private static String showLink;
   private static int showWait;
   private static int showBefore;
@@ -170,7 +170,7 @@ public class SikulixTest {
 
   private static void after() {
     p("***** ending %s", currentTest);
-    ScreenHighlighter.closeAll();
+    Highlight.closeAll();
     showStop();
     browserStop();
   }
@@ -180,7 +180,7 @@ public class SikulixTest {
       reg.highlight();
     }
     scr.wait(time * 1.0);
-    ScreenHighlighter.closeAll();
+    Highlight.closeAll();
     return regs;
   }
 
@@ -248,7 +248,13 @@ public class SikulixTest {
       show(testImage, 0);
       scr.wait(2.0);
       match = scr.exists(testImage, 10);
-      match.highlight(2);
+      match.highlight();
+      RunTime.pause(2);
+      match.highlight(1, "green");
+      match.highlight(1, "blue");
+      match.highlight(1, "black");
+      RunTime.pause(2);
+      Mouse.move(scr.getCenter());
       after();
     }
     //</editor-fold>
@@ -388,28 +394,30 @@ public class SikulixTest {
       Pattern maskTrans = new Pattern("buttonTextTransMask");
       Pattern maskedBlack = new Pattern(maskBlack).mask(maskBlack);
       Pattern maskedTrans = new Pattern(maskBlack).mask(maskTrans);
-      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
-//      Pattern[] patterns = new Pattern[]{maskedBlack};
+//      Pattern[] patterns = new Pattern[]{imgBG, img, imgTrans, imgBlack, maskBlack, maskTrans, maskedBlack, maskedTrans};
+      Pattern[] patterns = new Pattern[]{imgTrans};
       if (openTestPage("Test-page-1")) {
         //reg.highlight(1);
         reg.setAutoWaitTimeout(0);
         String out = "";
-        for (Pattern image : patterns) {
-          highlight(reg.exists(image, 0));
+        for (Pattern pattern : patterns) {
+          pattern.similar(0.9);
+          highlight(reg.exists(pattern, 0));
           try {
-            Finder fmatches = (Finder) reg.findAll(image);
-            List<Match> matches = reg.findAllList(image);
-            out += String.format("*** findAll: %d of %s\n", matches.size(), image);
+            Finder fmatches = (Finder) reg.findAll(pattern);
+            List<Match> matches = reg.findAllList(pattern);
+            out += String.format("*** findAll: %d of %s\n", matches.size(), pattern);
             for (Match next : matches) {
               next.highlight();
             }
           } catch (FindFailed findFailed) {
-            out += String.format("findAll failed: %s\n", image);
+            out += String.format("findAll failed: %s\n", pattern);
           }
           scr.wait(1.0);
-          ScreenHighlighter.closeAll();
+          Highlight.closeAll();
         }
         p("%s", out);
+        out = "";
       }
       scr.wait(1.0);
       after();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -14,6 +14,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.io.*;
 import java.net.URI;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
@@ -243,7 +244,7 @@ public class App {
       return false;
     }
     try {
-      Desktop.getDesktop().browse(new URI(url));
+      Desktop.getDesktop().browse(new URL(url).toURI());
     } catch (Exception ex) {
       return false;
     }
