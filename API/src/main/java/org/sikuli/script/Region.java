@@ -3912,11 +3912,7 @@ public class Region {
    * @return 1 if possible, 0 otherwise
    */
   public int hover() {
-    try { // needed to cut throw chain for FindFailed
-      return hover(checkMatch());
-    } catch (FindFailed ex) {
-    }
-    return 0;
+    return mouseMove();
   }
 
   /**
@@ -4257,12 +4253,9 @@ public class Region {
    * @return 1 if possible, 0 otherwise
    */
   public int mouseMove() {
-    if (lastMatch != null) {
-      try {
-        return mouseMove(lastMatch);
-      } catch (FindFailed ex) {
-        return 0;
-      }
+    try { // needed to cut throw chain for FindFailed
+      return mouseMove(checkMatch());
+    } catch (FindFailed ex) {
     }
     return 0;
   }
