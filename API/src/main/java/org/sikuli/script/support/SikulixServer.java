@@ -375,7 +375,7 @@ public class SikulixServer {
 
     private HttpHandler cancelTask = exchange -> {
       int statusCode = StatusCodes.OK;
-      Object responseObject = new SimpleResponse("the task canceled");
+      Object responseObject = new SimpleResponse("the task has been canceled");
 
       String id = exchange.getQueryParameters().get("id").getLast();
       boolean success = getTaskManager().cancel(id);
