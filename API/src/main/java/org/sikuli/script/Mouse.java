@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -10,10 +10,8 @@ import java.util.Random;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Device;
-import org.sikuli.script.support.IRobot;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RobotDesktop;
+import org.sikuli.script.support.*;
+import org.sikuli.util.Highlight;
 
 /**
  * Main pupose is to coordinate the mouse usage among threads <br>
@@ -267,16 +265,8 @@ public class Mouse {
       return 0;
     }
     get().device.use(region);
-    profiler.lap("after use");
-    if (shouldMove) {
-      if (Settings.isShowActions() && !screen.isOtherScreen()) {
-        ((Screen) screen).showTarget(loc);
-        ((RobotDesktop) robot).smoothMoveSlow(loc);
-      } else {
-        robot.smoothMove(loc);
-      }
-      profiler.lap("after move");
-    }
+    profiler.lap("before move");
+    doMove(shouldMove, screen, loc, robot);
     robot.clickStarts();
     if (modifiers > 0) {
       robot.pressModifiers(modifiers);
@@ -310,6 +300,21 @@ public class Mouse {
     long duration = profiler.end();
     Debug.action(getClickMsg(loc, buttons, modifiers, dblClick, duration));
     return 1;
+  }
+
+  private static void doMove(boolean shouldMove, IScreen screen, Location loc, IRobot robot) {
+    if (shouldMove) {
+      if (Settings.isShowActions() && !screen.isOtherScreen()) {
+        Highlight highlight = new Highlight(loc).doShow();
+        RunTime.pause(0.3f);
+        ((RobotDesktop) robot).smoothMoveSlow(loc);
+        highlight.close();
+        RunTime.pause(0.2f);
+      } else {
+        robot.smoothMove(loc);
+      }
+      robot.waitForIdle();
+    }
   }
 
   private static String getClickMsg(Location loc, int buttons, int modifiers, boolean dblClick, long duration) {
@@ -397,25 +402,24 @@ public class Mouse {
       return 0;
     }
     if (loc != null) {
-      IRobot r = null;
-      IScreen s = loc.getScreen();
-      if (s == null) {
+      IRobot robot = null;
+      IScreen screen = loc.getScreen();
+      if (screen == null) {
         return 0;
       }
-      r = s.getRobot();
-      if (r == null) {
+      robot = screen.getRobot();
+      if (robot == null) {
         return 0;
       }
-      if (!r.isRemote()) {
+      if (!robot.isRemote()) {
         get().device.use(region);
       }
       if (Mouse.hasRandom()) {
         Location offset = Mouse.get().makeRandom(loc);
         log(lvl, "Mouse: random move offset: (%d, %d)", offset.x, offset.y);
       }
-      r.smoothMove(loc);
-      r.waitForIdle();
-      if (!r.isRemote()) {
+      doMove(true, screen, loc, robot);
+      if (!robot.isRemote()) {
         get().device.let(region);
       }
       return 1;

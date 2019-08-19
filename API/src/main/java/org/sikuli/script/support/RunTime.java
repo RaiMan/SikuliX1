@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.support;
 
@@ -14,7 +14,8 @@ import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.util.ScreenHighlighter;
+import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
 
@@ -1096,7 +1097,7 @@ public class RunTime {
         isRunning.createNewFile();
         isRunningFile = new FileOutputStream(isRunning);
         if (null == isRunningFile.getChannel().tryLock()) {
-          Class<?> classIDE = Class.forName("org.sikuli.ide.SikuliIDE");
+          Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
           Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
           stopSplash.invoke(null, new Object[0]);
           Sikulix.popError("Terminating: IDE already running");
@@ -1254,7 +1255,7 @@ public class RunTime {
   public static void cleanUp() {
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
-      ScreenHighlighter.closeAll();
+      Highlight.closeAll();
       Settings.DefaultHighlightColor = "RED";
       Settings.DefaultHighlightTime = 2.0f;
       Settings.Highlight = false;
@@ -1627,7 +1628,7 @@ public class RunTime {
   }
 
   private void addToWindowsSystemPath(File fLibsFolder) {
-    for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+    for (File bridjFile : runTime.fTempPath.listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.contains("BridJExtractedLibraries")) {
@@ -1636,15 +1637,15 @@ public class RunTime {
         return false;
       }
     })) {
-      runTime.log(4, "cleanTemp: " + f.getName());
-      FileManager.deleteFileOrFolder(f.getAbsolutePath());
+      runTime.log(4, "cleanTemp: " + bridjFile.getName());
+      FileManager.deleteFileOrFolder(bridjFile);
     }
     //TODO String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
     String syspath = WinUtil.getEnv("PATH");
     if (syspath == null) {
       terminate(999, "addToWindowsSystemPath: cannot access system path");
     } else {
-      String libsPath = (fLibsFolder.getAbsolutePath()).replaceAll("/", "\\");
+      String libsPath = fLibsFolder.getAbsolutePath();
       if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
         // TODO if (SysJNA.WinKernel32.setEnvironmentVariable("PATH", libsPath + ";" + syspath)) {
         if (null != (syspath = WinUtil.setEnv("PATH", libsPath + ";" + syspath))) {
@@ -1845,12 +1846,8 @@ public class RunTime {
     return javaVersion > 7;
   }
 
-  public boolean isOSX10() {
-    return osVersion.startsWith("10.1");
-  }
-
   public boolean needsRobotFake() {
-    return runningMac && isOSX10();
+    return runningMac && Settings.ClickTypeHack;
   }
 
   /**

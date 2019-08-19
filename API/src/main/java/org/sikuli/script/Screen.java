@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -12,7 +12,6 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.OverlayCapturePrompt;
-import org.sikuli.util.ScreenHighlighter;
 
 /**
  * A screen represents a physical monitor with its coordinates and size according to the global
@@ -620,10 +619,6 @@ public class Screen extends Region implements IScreen {
     return capture(rect);
   }
 
-  public ScreenImage captureforHighlight(int x, int y, int w, int h) {
-    return globalRobot.captureScreen(new Rectangle(x, y, w, h));
-  }
-
   /**
    * create a ScreenImage with given rectangle on this screen.
    *
@@ -822,19 +817,6 @@ public class Screen extends Region implements IScreen {
     Rectangle r = sim.getROI();
     return Region.create((int) r.getX(), (int) r.getY(),
             (int) r.getWidth(), (int) r.getHeight());
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="Visual effects">
-  public void showTarget(Location loc) {
-    showTarget(loc, Settings.SlowMotionDelay);
-  }
-
-  protected void showTarget(Location loc, double secs) {
-    if (Settings.isShowActions()) {
-      ScreenHighlighter overlay = new ScreenHighlighter(this, null);
-      overlay.showTarget(loc, (float) secs);
-    }
   }
   //</editor-fold>
 
