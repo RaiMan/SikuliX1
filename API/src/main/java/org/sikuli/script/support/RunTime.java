@@ -423,6 +423,9 @@ public class RunTime {
           fileToRun = baseDir;
         }
       }
+      if (i == 0 && fileToRun.endsWith(".sikuli")) {
+        baseDir = new File(fileToRun).getParent();
+      }
       runScripts[i] = fileToRun;
     }
     return runScripts;
