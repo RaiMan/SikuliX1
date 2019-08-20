@@ -2395,6 +2395,9 @@ public class SikulixIDE extends JFrame {
   }
 
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
+
+    private Thread thread = null;
+
     ButtonRun() {
       super();
 
@@ -2473,19 +2476,16 @@ public class SikulixIDE extends JFrame {
             sikulixIDE.setIsRunningScript(true);
           }
 
-      SikulixIDE.getStatusbar().resetMessage();
-      SikulixIDE.hideIDE();
-      RunTime.pause(0.1f);
-      messages.clear();
-      resetErrorMark();
-      doBeforeRun();
+          SikulixIDE.getStatusbar().resetMessage();
+          SikulixIDE.hideIDE();
+          RunTime.pause(0.1f);
+          messages.clear();
+          resetErrorMark();
+          doBeforeRun();
 
-      IScriptRunner.Options runOptions = new IScriptRunner.Options();
-      runOptions.setRunningInIDE();
+          IScriptRunner.Options runOptions = new IScriptRunner.Options();
+          runOptions.setRunningInIDE();
 
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
           int exitValue = -1;
           try {
             IScriptRunner runner = editorPane.editorPaneRunner;
@@ -2518,11 +2518,12 @@ public class SikulixIDE extends JFrame {
 
             RunTime.cleanUp();
             SikulixIDE.showAgain();
-
-            synchronized (ideIsRunningScript) {
-              setIsRunningScript(false);
-            }
           });
+
+          synchronized (ideIsRunningScript) {
+            setIsRunningScript(false);
+          }
+
         }
       }).start();
     }
