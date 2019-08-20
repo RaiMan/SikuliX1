@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -354,14 +356,14 @@ public class SikulixServer {
     }
 
     private HttpHandler getTasks = exchange -> {
-      sendResponse(exchange, StatusCodes.OK, getTaskManager().getAllTasks());
+      sendResponse(exchange, StatusCodes.OK, getFilteredTasks(exchange).values());
     };
 
     private HttpHandler getTask = exchange -> {
       String id = exchange.getQueryParameters().get("id").getLast();
-      Optional<Task> result = getTaskManager().getTask(id);
-      if(result.isPresent()) {
-        result.ifPresent(task -> sendResponse(exchange, StatusCodes.OK, task));
+      Task task = getFilteredTasks(exchange).get(id);
+      if (task != null) {
+        sendResponse(exchange, StatusCodes.OK, task);
       } else {
         sendResponse(exchange, StatusCodes.NOT_FOUND,
             new ErrorResponse(String.format("not found the task: id='%s'", id)));
@@ -372,17 +374,28 @@ public class SikulixServer {
       int statusCode = StatusCodes.OK;
       Object responseObject = new SimpleResponse("the task has been canceled");
 
+      boolean success = false;
       String id = exchange.getQueryParameters().get("id").getLast();
-      boolean success = getTaskManager().cancel(id);
+      Task task = getFilteredTasks(exchange).get(id);
+      if (task != null) {
+        success = getTaskManager().cancel(id);
+      }
       if (!success) {
         responseObject = new ErrorResponse(String.format("no cancelable task found: id='%s'", id));
         statusCode = StatusCodes.NOT_FOUND;
       }
       sendResponse(exchange, statusCode, responseObject);
     };
+
+    private Map<String, Task> getFilteredTasks(final HttpServerExchange exchange) {
+      CommandsAttachment attachment = Optional.ofNullable(exchange.getAttachment(KEY)).orElse(new CommandsAttachment());
+      return getTaskManager().getTasks(Optional.ofNullable(attachment.get(GroupsCommand.ATTACHMENTKEY_GROUPNAME)), 
+                                       Optional.ofNullable(attachment.get(ScriptsCommand.ATTACHMENTKEY_SCRIPTNAME)));
+    }
   }
 
   private static class ScriptsCommand extends AbstractCommand {
+    public static final String ATTACHMENTKEY_SCRIPTNAME = "scriptName";
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
     private TasksCommand tasks;
 
@@ -397,7 +410,13 @@ public class SikulixServer {
               run)
           .add(Methods.POST, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/task$"),
-              task);
+              task)
+          .add(Methods.GET, "/scripts/*",
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/tasks(/.*)*$"),
+              delegate)
+          .add(Methods.PUT, "/scripts/*",
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/tasks(/.*)*$"),
+              delegate);
     }
 
     private HttpHandler run = exchange -> {
@@ -464,6 +483,17 @@ public class SikulixServer {
       sendResponse(exchange, statusCode, responseObject);
     };
 
+    private HttpHandler delegate = exchange -> {
+      String param = exchange.getQueryParameters().get("*").getLast();
+      String newRelativePath = param.substring(param.lastIndexOf("/tasks"));
+      exchange.setRelativePath(newRelativePath);
+      String scriptName = param.substring(0, param.lastIndexOf("/tasks"));
+      CommandsAttachment attachment = Optional.ofNullable(exchange.getAttachment(KEY)).orElse(new CommandsAttachment());
+      attachment.put(ATTACHMENTKEY_SCRIPTNAME, scriptName);
+      exchange.putAttachment(KEY, attachment);
+      tasks.getRouting().handleRequest(exchange); 
+    };
+
     private String generateTaskId(final HttpServerExchange exchange) {
       return String.format("%03d-%x", exchange.getIoThread().getNumber(), exchange.getRequestStartTime());
     }
@@ -501,7 +531,8 @@ public class SikulixServer {
           .add(Methods.GET, "/groups", getGroups)
           .add(Methods.GET, "/groups/{name}", getSubTree)
           .add(Methods.GET, "/groups/{name}/*", delegate)
-          .add(Methods.POST, "/groups/{name}/*", delegate);
+          .add(Methods.POST, "/groups/{name}/*", delegate)
+          .add(Methods.PUT, "/groups/{name}/*", delegate);
     }
 
     private HttpHandler getGroups = exchange -> {
@@ -639,13 +670,25 @@ public class SikulixServer {
       });
     }
 
-    public Collection<Task> getAllTasks() {
-      return Collections.unmodifiableCollection(allTasks.values());
-    }
-
-    public Optional<Task> getTask(final String id) {
-      Task task = allTasks.get(id);
-      return Optional.ofNullable(task != null ? task.clone() : null);
+    public Map<String, Task> getTasks(Optional<String> groupName, Optional<String> scriptName) {
+      LinkedHashMap<String, Task> result = allTasks.entrySet().stream()
+          .filter(e -> {
+            if (groupName.isPresent()) {
+              if (scriptName.isPresent()) {
+                return groupName.get().equals(e.getValue().groupName) && scriptName.get().equals(e.getValue().scriptName);
+              } else {
+                return groupName.get().equals(e.getValue().groupName);
+              }
+            } else {
+              if (scriptName.isPresent()) {
+                return DEFAULT_GROUP.equals(e.getValue().groupName) && scriptName.get().equals(e.getValue().scriptName);
+              } else {
+                return true;
+              }
+            }
+          })
+          .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (oldValue, newValue) -> newValue, LinkedHashMap::new));
+      return Collections.unmodifiableMap(result);
     }
 
     public Task requestSync(final String id, final String groupName, final String scriptName, final String[] scriptArgs) throws Exception {
