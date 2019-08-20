@@ -19,12 +19,6 @@
         <exclude>org.python:jython-standalone</exclude>
         <exclude>org.jruby:jruby-complete</exclude>
       </excludes>
-      <unpackOptions>
-        <excludes>
-          <exclude>tessdata/</exclude>
-          <exclude>junit/</exclude>          
-        </excludes>
-      </unpackOptions>
       <scope>runtime</scope>
     </dependencySet>
   </dependencySets>
