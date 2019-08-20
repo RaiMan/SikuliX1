@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.ide;
 
@@ -331,6 +331,11 @@ public class EditorPane extends JTextPane {
           script = file.getAbsolutePath();
         }
       }
+
+      if (script.endsWith(".class")) {
+        return false;
+      }
+
       editorPaneFileToRun = new File(script);
       editorPaneRunner = runnerAndFile.getRunner();
       editorPaneIsBundle = runnerAndFile.isBundle();

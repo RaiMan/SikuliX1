@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.support;
 
@@ -14,6 +14,7 @@ import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.script.*;
+import org.sikuli.util.Highlight;
 
 import java.awt.AWTException;
 import java.awt.Color;
@@ -115,7 +116,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
-    Debug.log(4, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), ms / 1000f);
+    Debug.log(4, "RobotDesktop: smoothMove (%.1f): %s ---> %s", ms / 1000f, src, dest);
     if (ms == 0) {
       doMouseMove(dest.x, dest.y);
       waitForIdle();
@@ -178,14 +179,15 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void doMouseDown(int buttons) {
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      new Region(0, 0, 5, 5).silentHighlight(true);
+    Highlight fakeHighlight = null;
+    if (RunTime.get().needsRobotFake()) {
+      fakeHighlight = Highlight.fakeHighlight();
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+    if (null != fakeHighlight) {
       delay(20);
-      new Region(0, 0, 5, 5).silentHighlight(false);
+      fakeHighlight.close();
       delay(20);
     }
     mousePress(buttons);
@@ -299,14 +301,15 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void doKeyPress(int keyCode) {
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
-      new Region(0, 0, 5, 5).silentHighlight(true);
+    Highlight fakeHighlight = null;
+    if (RunTime.get().needsRobotFake()) {
+      fakeHighlight = Highlight.fakeHighlight();
     }
     logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
     setAutoDelay(stdAutoDelay);
-    if (Settings.ClickTypeHack && RunTime.get().needsRobotFake()) {
+    if (null != fakeHighlight) {
       delay(20);
-      new Region(0, 0, 5, 5).silentHighlight(false);
+      fakeHighlight.close();
       delay(20);
     }
 

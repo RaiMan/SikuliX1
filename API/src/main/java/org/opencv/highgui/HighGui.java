@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.opencv.highgui;
 
 import org.opencv.core.Mat;

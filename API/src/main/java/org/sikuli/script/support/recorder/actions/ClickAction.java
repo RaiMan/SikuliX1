@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.script.support.recorder.actions;
 
 import org.sikuli.script.Pattern;
@@ -17,11 +21,19 @@ public class ClickAction implements IRecordedAction {
     return generator.click(pattern, modifiers);
   }
 
-  protected Pattern getPattern() {
+  public Pattern getPattern() {
     return pattern;
   }
 
-  protected String[] getModifiers() {
+  public void setPattern(Pattern pattern) {
+    this.pattern = pattern;
+  }
+
+  public String[] getModifiers() {
     return modifiers;
+  }
+
+  public void setModifiers(String[] modifiers) {
+    this.modifiers = modifiers;
   }
 }
