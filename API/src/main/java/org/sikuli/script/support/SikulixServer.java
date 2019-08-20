@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -536,13 +537,20 @@ public class SikulixServer {
     }
 
     private HttpHandler getGroups = exchange -> {
-      //TODO implement : Returns a list of available groups.
-      sendResponse(exchange, StatusCodes.OK, "a list of available groups");
+      List<ObjectNode> result = groups.entrySet().stream()
+          .map(e -> getObjectMapper().createObjectNode().put("group", e.getKey()).put("folder", e.getValue().getAbsolutePath()))
+          .collect(Collectors.toList());
+      sendResponse(exchange, StatusCodes.OK, result);
     };
 
     private HttpHandler getSubTree = exchange -> {
-      //TODO implement : Returns the subtree (folders and contained scripts) in the group.
-      sendResponse(exchange, StatusCodes.OK, "the subtree in the group");
+      String groupName = exchange.getQueryParameters().get("name").getLast();
+      if (groups.containsKey(groupName)) {
+        List<ObjectNode> result = getFoldersAndScripts(groups.get(groupName));
+        sendResponse(exchange, StatusCodes.OK, result);
+      } else {
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
+      }
     };
 
     private HttpHandler delegate = exchange -> {
@@ -558,6 +566,25 @@ public class SikulixServer {
         sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
       }
     };
+
+    private List<ObjectNode> getFoldersAndScripts(File base) {
+      ObjectMapper mapper = getObjectMapper();
+      List<ObjectNode> result = new ArrayList<>();
+      for (File entry : base.listFiles()) {
+        if (entry.isDirectory()) {
+          File script = Runner.getScriptFile(entry);
+          if (script != null) {
+            result.add(mapper.createObjectNode().put("folder", entry.getName()).put("innerScript", script.getName()));
+          } else {
+            List<ObjectNode> sub = getFoldersAndScripts(entry);
+            if (!sub.isEmpty()) {
+              result.add((ObjectNode)mapper.createObjectNode().put("folder", entry.getName()).set("children", mapper.valueToTree(sub)));
+            }
+          }
+        }
+      }
+      return result;
+    }
   }
 
   private static abstract class AbstractCommand {
@@ -594,6 +621,10 @@ public class SikulixServer {
 
     protected static TaskManager getTaskManager() {
       return taskManager;
+    }
+
+    protected static ObjectMapper getObjectMapper() {
+      return mapper;
     }
 
     protected static HttpHandler getFallbackHandler() {
