@@ -5,7 +5,8 @@
 package org.sikuli.android;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
+import org.sikuli.script.Location;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
@@ -149,9 +150,8 @@ public class ADBRobot implements IRobot {
   }
 
   @Override
-  public int mouseUp(int buttons) {
+  public void mouseUp(int buttons) {
     clickEnds();
-    return 0;
   }
 
   @Override

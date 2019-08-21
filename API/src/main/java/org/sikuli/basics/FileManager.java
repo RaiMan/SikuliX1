@@ -3,43 +3,24 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.Image;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Desktop;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
+import java.io.*;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
+import java.util.List;
 import java.util.*;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Sikulix;
 
 /**
  * INTERNAL USE: Support for accessing files and other ressources
@@ -359,7 +340,7 @@ public class FileManager {
   }
 
   public static String downloadURLtoString(URL uSrc, boolean silent) {
-    String content = "";
+    StringBuilder content = new StringBuilder();
     InputStream reader = null;
     if (!silent) {
       log(lvl, "download to string from:\n%s,", uSrc);
@@ -373,7 +354,7 @@ public class FileManager {
       byte[] buffer = new byte[DOWNLOAD_BUFFER_SIZE];
       int bytesRead = 0;
       while ((bytesRead = reader.read(buffer)) > 0) {
-        content += (new String(Arrays.copyOfRange(buffer, 0, bytesRead), Charset.forName("utf-8")));
+        content.append(new String(Arrays.copyOfRange(buffer, 0, bytesRead), StandardCharsets.UTF_8));
       }
     } catch (Exception ex) {
       if (!silent) {
@@ -387,7 +368,7 @@ public class FileManager {
         }
       }
     }
-    return content;
+    return content.toString();
   }
 
   /**
@@ -482,8 +463,8 @@ public class FileManager {
     boolean somethingLeft = false;
     if (fPath.exists() && fPath.isDirectory()) {
       entries = fPath.list();
-      for (int i = 0; i < entries.length; i++) {
-        aFile = new File(fPath, entries[i]);
+      for (String entry : Objects.requireNonNull(entries)) {
+        aFile = new File(fPath, entry);
         if (filter != null && !filter.accept(aFile)) {
           somethingLeft = true;
           continue;
@@ -522,8 +503,8 @@ public class FileManager {
     String[] entries;
     if (fPath.isDirectory()) {
       entries = fPath.list();
-      for (int i = 0; i < entries.length; i++) {
-        aFile = new File(fPath, entries[i]);
+      for (String entry : Objects.requireNonNull(entries)) {
+        aFile = new File(fPath, entry);
         if (filter != null) {
           filter.accept(aFile);
         }
@@ -640,7 +621,7 @@ public class FileManager {
           continue;
         }
         int count;
-        byte data[] = new byte[BUF_SIZE];
+        byte[] data = new byte[BUF_SIZE];
         File outFile = new File(fpTarget, entry.getName());
         File outFileParent = outFile.getParentFile();
         if (!outFileParent.exists()) {
@@ -711,7 +692,7 @@ public class FileManager {
           fDest.mkdirs();
         }
         String[] children = fSrc.list();
-        for (String child : children) {
+        for (String child : Objects.requireNonNull(children)) {
           if (child.equals(fDest.getName())) {
             continue;
           }
@@ -760,7 +741,7 @@ public class FileManager {
     }
     if (path.isDirectory()) {
       String[] fcl = path.list();
-      for (String fc : fcl) {
+      for (String fc : Objects.requireNonNull(fcl)) {
         makeFileListDo(new File(path, fc), false);
       }
     } else {
@@ -923,10 +904,7 @@ public class FileManager {
 
   public static boolean isFilenameDotted(String name) {
     String nameParent = new File(name).getParent();
-    if (nameParent != null && nameParent.contains(".")) {
-      return true;
-    }
-    return false;
+    return nameParent != null && nameParent.contains(".");
   }
 
   /**
@@ -1135,17 +1113,12 @@ public class FileManager {
       return;
     }
     String path;
-    for (File image : scriptFolder.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
-          if (!name.startsWith("_")) {
-            return true;
-          }
-        }
-        return false;
+    for (File image : Objects.requireNonNull(scriptFolder.listFiles((dir, name) -> {
+      if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
+        return !name.startsWith("_");
       }
-    })) {
+      return false;
+    }))) {
       if (!usedImages.contains(image.getName())) {
         Debug.log(3, "FileManager: delete not used: %s", image.getName());
         image.delete();
@@ -1321,10 +1294,7 @@ public class FileManager {
     FileFilter skipCompiled = new FileFilter() {
       @Override
       public boolean accept(File entry) {
-        if (entry.getName().contains("$py.class")) {
-          return false;
-        }
-        return true;
+        return !entry.getName().contains("$py.class");
       }
     };
     if (null != scriptFolderSikuli) {
@@ -1387,10 +1357,7 @@ public class FileManager {
     if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
       @Override
       public boolean accept(ZipEntry entry, String jarname) {
-        if (entry.getName().startsWith("META-INF")) {
-          return false;
-        }
-        return true;
+        return !entry.getName().startsWith("META-INF");
       }
     })) {
       log(-1, "makingScriptJar: problems building jar - for details see logfile");
@@ -1448,19 +1415,19 @@ public class FileManager {
     try {
       JarOutputStream jout = new JarOutputStream(new FileOutputStream(targetJar));
       ArrayList done = new ArrayList();
-      for (int i = 0; i < jars.length; i++) {
-        if (jars[i] == null) {
+      for (String jar : jars) {
+        if (jar == null) {
           continue;
         }
         if (logShort) {
-          log(lvl, "buildJar: adding: %s", new File(jars[i]).getName());
+          log(lvl, "buildJar: adding: %s", new File(jar).getName());
         } else {
-          log(lvl, "buildJar: adding:\n%s", jars[i]);
+          log(lvl, "buildJar: adding:\n%s", jar);
         }
-        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(jars[i]));
+        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(jar));
         ZipInputStream zin = new ZipInputStream(bin);
         for (ZipEntry zipentry = zin.getNextEntry(); zipentry != null; zipentry = zin.getNextEntry()) {
-          if (filter == null || filter.accept(zipentry, jars[i])) {
+          if (filter == null || filter.accept(zipentry, jar)) {
             if (!done.contains(zipentry.getName())) {
               jout.putNextEntry(zipentry);
               if (!zipentry.isDirectory()) {
@@ -1575,12 +1542,12 @@ public class FileManager {
     prefix = prefix == null ? "" : prefix;
     if (dir.isDirectory()) {
       content = dir.listFiles();
-      for (int i = 0, l = content.length; i < l; ++i) {
-        if (content[i].isDirectory()) {
-          jar.putNextEntry(new ZipEntry(prefix + (prefix.equals("") ? "" : "/") + content[i].getName() + "/"));
-          addToJar(jar, content[i], prefix + (prefix.equals("") ? "" : "/") + content[i].getName());
+      for (File file : Objects.requireNonNull(content)) {
+        if (file.isDirectory()) {
+          jar.putNextEntry(new ZipEntry(prefix + (prefix.equals("") ? "" : "/") + file.getName() + "/"));
+          addToJar(jar, file, prefix + (prefix.equals("") ? "" : "/") + file.getName());
         } else {
-          addToJarWriteFile(jar, content[i], prefix);
+          addToJarWriteFile(jar, file, prefix);
         }
       }
     } else {

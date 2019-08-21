@@ -3,14 +3,11 @@
  */
 package org.sikuli.util;
 
-import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+
+import javax.swing.*;
+import java.awt.*;
 import java.lang.reflect.Method;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 /**
  * INTERNAL USE
@@ -47,8 +44,7 @@ public class OverlayTransparentWindow extends JFrame implements EventSubject {
         @Override
         protected void paintComponent(Graphics g) {
           if (g instanceof Graphics2D) {
-            Graphics2D g2d = (Graphics2D) g;
-            _currG2D = g2d;
+              _currG2D = (Graphics2D) g;
             if (_obs != null) {
               _obs.update(_win);
             }

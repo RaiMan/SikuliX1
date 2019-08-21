@@ -6,8 +6,7 @@ package org.sikuli.script.support;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
 
-import java.awt.Color;
-import java.awt.Rectangle;
+import java.awt.*;
 
 /**
  * INTERNAL USE <br>
@@ -30,7 +29,8 @@ public interface IRobot {
    void typeEnds();
    void mouseMove(int x, int y);
    void mouseDown(int buttons);
-   int mouseUp(int buttons);
+
+    void mouseUp(int buttons);
    void mouseReset();
    void clickStarts();
    void clickEnds();

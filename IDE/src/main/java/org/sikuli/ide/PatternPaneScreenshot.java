@@ -3,19 +3,18 @@
  */
 package org.sikuli.ide;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import org.sikuli.script.Finder;
-import org.sikuli.script.Match;
-import org.sikuli.script.Pattern;
-import org.sikuli.script.Region;
-import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.ScreenUnion;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.*;
+import org.sikuli.script.support.ScreenUnion;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
+import java.util.*;
 
 class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentListener {
   public static final int BOTTOM_MARGIN = 200;
@@ -113,10 +112,10 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     sldSimilar.setMajorTickSpacing(10);
     sldSimilar.setPaintTicks(true);
 
-    Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-    labelTable.put(new Integer(0), new JLabel("00"));
-    labelTable.put(new Integer(50), new JLabel("50"));
-    labelTable.put(new Integer(100), new JLabel("99"));
+      Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
+      labelTable.put(0, new JLabel("00"));
+      labelTable.put(50, new JLabel("50"));
+      labelTable.put(100, new JLabel("99"));
     sldSimilar.setLabelTable(labelTable);
     sldSimilar.setPaintLabels(true);
 
@@ -229,7 +228,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   }
 
   public void setSimilarity(float similarity) {
-    _similarity = similarity > 0.99f ? 0.99f : similarity;
+      _similarity = Math.min(similarity, 0.99f);
     filterMatches(_similarity, _numMatches);
     repaint();
   }
@@ -305,7 +304,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   }
 
   @Override
-  public void stateChanged(javax.swing.event.ChangeEvent e) {
+  public void stateChanged(ChangeEvent e) {
     Object src = e.getSource();
     if (src instanceof JSlider) {
       JSlider source = (JSlider) e.getSource();

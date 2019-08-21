@@ -3,7 +3,11 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.Protocol;
+import py4Java.Py4JException;
+import py4Java.ReturnObject;
+import py4Java.reflection.MethodInvoker;
+import py4Java.reflection.TypeConverter;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,11 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.ReturnObject;
-import py4Java.reflection.MethodInvoker;
-import py4Java.reflection.TypeConverter;
+import static py4Java.NetworkUtil.safeReadLine;
 
 /**
  * <p>
@@ -123,7 +123,7 @@ public class ArrayCommand extends AbstractCommand {
 
 	private Object convertArgument(Class<?> arrayClass, Object objectToSet) {
 		Object newObject = null;
-		List<TypeConverter> converters = new ArrayList<TypeConverter>();
+        List<TypeConverter> converters = new ArrayList<>();
 		Class<?>[] parameterClasses = { arrayClass };
 		Class<?>[] argumentClasses = { objectToSet.getClass() };
 		int cost = MethodInvoker.buildConverters(converters, parameterClasses, argumentClasses);

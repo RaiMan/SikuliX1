@@ -3,8 +3,15 @@
  */
 package org.sikuli.util;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.Location;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
+
+import javax.swing.*;
 import java.awt.*;
-import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -12,11 +19,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.awt.image.RescaleOp;
-import javax.swing.JFrame;
-import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 /**
  * INTERNAL USE implements the screen overlay used with the capture feature
@@ -338,10 +340,10 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
       } else if (desty > destMaxY) {
         desty = destMaxY;
       }
-      rSel.x = (srcx < destx) ? srcx : destx;
-      rSel.y = (srcy < desty) ? srcy : desty;
-      int xEnd = (srcx > destx) ? srcx : destx;
-      int yEnd = (srcy > desty) ? srcy : desty;
+      rSel.x = Math.min(srcx, destx);
+      rSel.y = Math.min(srcy, desty);
+      int xEnd = Math.max(srcx, destx);
+      int yEnd = Math.max(srcy, desty);
 
       rSel.width = (xEnd - rSel.x) + 1;
       rSel.height = (yEnd - rSel.y) + 1;

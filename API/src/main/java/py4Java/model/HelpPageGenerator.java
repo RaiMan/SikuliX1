@@ -3,9 +3,9 @@
  */
 package py4Java.model;
 
-import java.util.regex.Pattern;
-
 import py4Java.reflection.TypeUtil;
+
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -88,17 +88,16 @@ public class HelpPageGenerator {
 	}
 
 	public final static String getHelpPage(Py4JMethod method, boolean shortName) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Method \"");
-		builder.append(method.getName());
-		builder.append("\" of class ");
-		builder.append(method.getContainer());
-		builder.append("\n{\n");
-		builder.append(PREFIX_INDENT);
-		builder.append(method.getSignature(shortName));
-		builder.append("\n}");
-		builder.append("\n");
-		return builder.toString();
+        String builder = "Method \"" +
+                method.getName() +
+                "\" of class " +
+                method.getContainer() +
+                "\n{\n" +
+                PREFIX_INDENT +
+                method.getSignature(shortName) +
+                "\n}" +
+                "\n";
+        return builder;
 	}
 
 	public final static Pattern getRegex(String pattern) {

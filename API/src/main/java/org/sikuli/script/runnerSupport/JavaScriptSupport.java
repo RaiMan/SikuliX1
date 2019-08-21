@@ -4,14 +4,13 @@
 
 package org.sikuli.script.runnerSupport;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.lang.reflect.Method;
-
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
+
+import java.awt.*;
+import java.lang.reflect.Method;
 
 /**
  * EXPERIMENTAL --- INTERNAL USE ONLY<br>
@@ -26,14 +25,14 @@ public class JavaScriptSupport implements IRunnerSupport{
     }
 
     private static void logCmd(String cmd, Object... args) {
-        String msg = cmd + ": ";
+        StringBuilder msg = new StringBuilder(cmd + ": ");
         if (args.length == 0) {
             log(lvl, msg + "no-args");
         } else {
             for (int i = 0; i < args.length; i++) {
-                msg += "%s ";
+                msg.append("%s ");
             }
-            log(lvl, msg, args);
+            log(lvl, msg.toString(), args);
         }
     }
 
@@ -70,9 +69,7 @@ public class JavaScriptSupport implements IRunnerSupport{
             count++;
         }
         Object[] newArgs = new Object[count];
-        for (int n = 0; n < count; n++) {
-            newArgs[n] = args[n];
-        }
+        System.arraycopy(args, 0, newArgs, 0, count);
         try {
             m = JavaScriptSupport.class.getMethod(function, Object[].class);
             retVal = m.invoke(null, (Object) newArgs);
@@ -84,7 +81,7 @@ public class JavaScriptSupport implements IRunnerSupport{
 
     public static Object run(Object... args) {
         String script = args[0].toString();
-        String scriptArgs[] = new String[args.length - 1];
+        String[] scriptArgs = new String[args.length - 1];
         if (scriptArgs.length > 0) {
             for (int i = 1; i < args.length; i++) {
                 scriptArgs[i - 1] = args[i].toString();

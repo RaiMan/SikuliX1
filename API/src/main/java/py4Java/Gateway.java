@@ -3,23 +3,19 @@
  */
 package py4Java;
 
+import py4Java.reflection.MethodInvoker;
+import py4Java.reflection.PythonProxyHandler;
+import py4Java.reflection.ReflectionEngine;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-
-import py4Java.reflection.MethodInvoker;
-import py4Java.reflection.PythonProxyHandler;
-import py4Java.reflection.ReflectionEngine;
 
 /**
  *
@@ -201,9 +197,9 @@ public class Gateway {
 	 */
 	public ReturnObject invoke(String fqn, List<Object> args) {
 		if (args == null) {
-			args = new ArrayList<Object>();
-		}
-		ReturnObject returnObject = null;
+            args = new ArrayList<>();
+        }
+        ReturnObject returnObject;
 		try {
 			logger.finer("Calling constructor: " + fqn);
 			Object[] parameters = args.toArray();
@@ -235,9 +231,9 @@ public class Gateway {
 	 */
 	public ReturnObject invoke(String methodName, String targetObjectId, List<Object> args) {
 		if (args == null) {
-			args = new ArrayList<Object>();
-		}
-		ReturnObject returnObject = null;
+            args = new ArrayList<>();
+        }
+        ReturnObject returnObject;
 		try {
 			Object targetObject = getObjectFromId(targetObjectId);
 			logger.finer("Calling: " + methodName);

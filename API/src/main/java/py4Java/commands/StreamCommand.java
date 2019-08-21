@@ -3,6 +3,10 @@
  */
 package py4Java.commands;
 
+import py4Java.Protocol;
+import py4Java.Py4JException;
+import py4Java.ReturnObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -11,10 +15,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
-
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.ReturnObject;
 
 /**
  * <p>
@@ -75,8 +75,7 @@ public class StreamCommand extends AbstractCommand {
 		writer.flush();
 
 		// just dump the contents into the Socket
-		ReadableByteChannel in = (ReadableByteChannel) obj;
-		try {
+        try (ReadableByteChannel in = (ReadableByteChannel) obj) {
 			WritableByteChannel out = Channels.newChannel(connection.getSocket().getOutputStream());
 			streamBuffer.rewind();
 
@@ -91,8 +90,6 @@ public class StreamCommand extends AbstractCommand {
 			while (streamBuffer.hasRemaining()) {
 				out.write(streamBuffer);
 			}
-		} finally {
-			in.close();
 		}
 	}
 }

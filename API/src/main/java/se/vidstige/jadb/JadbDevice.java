@@ -96,12 +96,9 @@ public class JadbDevice {
         StringBuilder shellLine = buildCmdLine(command, args);
         send(transport, "shell:" + shellLine.toString());
         if (output != null) {
-        	AdbFilterOutputStream out = new AdbFilterOutputStream(output);
-        	try {
-        		transport.readResponseTo(out);
-        	} finally {
-        		out.close();
-        	}
+            try (AdbFilterOutputStream out = new AdbFilterOutputStream(output)) {
+                transport.readResponseTo(out);
+            }
         }
     }
 

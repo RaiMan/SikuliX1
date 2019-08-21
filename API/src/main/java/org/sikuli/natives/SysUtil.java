@@ -37,7 +37,7 @@ public class SysUtil {
         Constructor constr = c.getConstructor();
         osUtil = (OSUtil) constr.newInstance();
       } catch (Exception e) {
-        throw new RuntimeException(String.format("SikuliX: fatal: getOSUtil:" + e.getMessage()));
+          throw new RuntimeException("SikuliX: fatal: getOSUtil:" + e.getMessage());
       }
     }
     return osUtil;

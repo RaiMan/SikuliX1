@@ -3,6 +3,12 @@
  */
 package org.sikuli.script.runners;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
+
+import javax.script.ScriptEngine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,14 +16,10 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
-import javax.script.ScriptEngine;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>
@@ -73,18 +75,18 @@ public class ServerRunner extends AbstractScriptRunner {
 		if (args == null) {
 			args = new String[0];
 		}
-    String userArgs = "";
+    StringBuilder userArgs = new StringBuilder();
     for (String userArg : RunTime.getUserArgs()) {
-      userArgs += userArg + " ";
+      userArgs.append(userArg).append(" ");
     }
-    if (!userArgs.isEmpty()) {
-      userArgs = "\nWith User parameters: " + userArgs;
+    if (userArgs.length() > 0) {
+      userArgs.insert(0, "\nWith User parameters: ");
     }
     int port = getPort(args.length > 0 ? args[0] : null);
     try {
       try {
         if (port > 0) {
-					dolog(3, "Starting: trying port: %d %s", port, userArgs);
+          dolog(3, "Starting: trying port: %d %s", port, userArgs.toString());
           server = new ServerSocket(port);
         }
       } catch (Exception ex) {
@@ -122,7 +124,7 @@ public class ServerRunner extends AbstractScriptRunner {
           }
         }
       });
-      while (true) {
+      do {
         dolog("now waiting on port: %d at %s", port, theIP);
         Socket socket = server.accept();
         out = new PrintWriter(socket.getOutputStream());
@@ -139,10 +141,7 @@ public class ServerRunner extends AbstractScriptRunner {
           } catch (InterruptedException ex) {
           }
         }
-        if (shouldStop) {
-          break;
-        }
-      }
+      } while (!shouldStop);
     } catch (Exception e) {
     }
     if (!isHandling) {

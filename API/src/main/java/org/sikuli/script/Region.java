@@ -3,19 +3,20 @@
  */
 package org.sikuli.script;
 
-import java.awt.Rectangle;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.util.*;
-
 import org.sikuli.android.ADBDevice;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.*;
 import org.sikuli.script.support.Observer;
+import org.sikuli.script.support.*;
 import org.sikuli.util.Highlight;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.List;
+import java.util.*;
 
 /**
  * A Region is a rectengular area and lies always completely inside its parent screen
@@ -3235,7 +3236,7 @@ public class Region {
         }
       }
       if (findingText) {
-        if (TextRecognizer.getInstance() != null) {
+        if (TextRecognizer.start() != null) {
           log(lvl, "findInImage: Switching to TextSearch");
           finder = new Finder(getScreen().capture(x, y, w, h), this);
           finder.findText((String) target);

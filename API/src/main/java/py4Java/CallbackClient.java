@@ -3,6 +3,9 @@
  */
 package py4Java;
 
+import py4Java.reflection.ReflectionUtil;
+
+import javax.net.SocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -10,6 +13,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,10 +21,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.net.SocketFactory;
-
-import py4Java.reflection.ReflectionUtil;
 
 /**
  * <p>
@@ -300,7 +300,7 @@ public class CallbackClient implements Py4JPythonClient {
 				int size = connections.size();
 				for (int i = 0; i < size; i++) {
 					Py4JClientConnection cc = connections.pollLast();
-					if (cc.wasUsed()) {
+                    if (Objects.requireNonNull(cc).wasUsed()) {
 						cc.setUsed(false);
 						connections.addFirst(cc);
 					} else {
@@ -389,9 +389,8 @@ public class CallbackClient implements Py4JPythonClient {
 	@Override
 	public Object getPythonServerEntryPoint(Gateway gateway,
 			@SuppressWarnings("rawtypes") Class[] interfacesToImplement) {
-		Object proxy = gateway.createProxy(ReflectionUtil.getClassLoader(), interfacesToImplement,
+        return gateway.createProxy(ReflectionUtil.getClassLoader(), interfacesToImplement,
 				Protocol.ENTRY_POINT_OBJECT_ID);
-		return proxy;
 	}
 
 	protected boolean shouldRetrySendCommand(Py4JClientConnection cc, Py4JNetworkException pne) {

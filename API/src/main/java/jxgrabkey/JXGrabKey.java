@@ -188,7 +188,7 @@ public class JXGrabKey {
                 }
             }
 
-            if(found == false){
+            if (!found) {
                 System.out.print(debugmessage);
             }
         }

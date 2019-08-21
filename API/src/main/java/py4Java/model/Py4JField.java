@@ -3,9 +3,9 @@
  */
 package py4Java.model;
 
-import java.lang.reflect.Field;
-
 import py4Java.reflection.TypeUtil;
+
+import java.lang.reflect.Field;
 
 /**
  * <p>
@@ -38,13 +38,10 @@ public class Py4JField extends Py4JMember {
 
 	@Override
 	public String getSignature(boolean shortName) {
-		StringBuilder builder = new StringBuilder();
 
-		builder.append(getName());
-		builder.append(" : ");
-		builder.append(TypeUtil.getName(type, shortName));
-
-		return builder.toString();
+        return getName() +
+                " : " +
+                TypeUtil.getName(type, shortName);
 	}
 
 	public String getType() {

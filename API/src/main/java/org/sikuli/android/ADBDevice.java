@@ -9,8 +9,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.RunTime;
 import se.vidstige.jadb.JadbDevice;
 import se.vidstige.jadb.JadbException;
 
@@ -21,10 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -301,9 +299,7 @@ public class ADBDevice {
     List<String> cmd = new ArrayList<String>();
     Map<String, String> processEnv = app.environment();
     cmd.add(adbExec);
-    for (String arg : args) {
-      cmd.add(arg);
-    }
+    Collections.addAll(cmd, args);
     app.directory(null);
     app.redirectErrorStream(false);
     app.command(cmd);
@@ -433,10 +429,7 @@ public class ADBDevice {
     }
     Matcher match = displayOn.matcher(dump);
     if (match.find()) {
-      if (match.group(1).contains(isOn)) {
-        return true;
-      }
-      return false;
+      return match.group(1).contains(isOn);
     } else {
       log(-1, "isDisplayOn: (Android version %d) dumpsys power: pattern not found: %s", deviceVersion, displayOn);
     }

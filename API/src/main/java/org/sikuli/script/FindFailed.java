@@ -3,6 +3,8 @@
  */
 package org.sikuli.script;
 
+import java.util.Objects;
+
 /**
  * SikuliX FindFailed exception<br>
  * constants and settings for the features<br>
@@ -156,7 +158,7 @@ public class FindFailed extends SikuliException {
             || handler.getClass().getName().contains("org.jruby"))) {
       handler = new ObserverCallBack(handler, type);
     } else {
-      ((ObserverCallBack) handler).setType(type);
+        ((ObserverCallBack) Objects.requireNonNull(handler)).setType(type);
     }
     return handler;
   }

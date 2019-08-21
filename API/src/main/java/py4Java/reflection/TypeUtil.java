@@ -3,17 +3,10 @@
  */
 package py4Java.reflection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import py4Java.JVMView;
 import py4Java.Py4JException;
+
+import java.util.*;
 
 /**
  * <p>
@@ -31,7 +24,7 @@ public class TypeUtil {
 	public final static int DISTANCE_FACTOR = 100;
 
 	static {
-		primitiveTypes = new HashSet<String>();
+        primitiveTypes = new HashSet<>();
 		primitiveTypes.add(long.class.getName());
 		primitiveTypes.add(int.class.getName());
 		primitiveTypes.add(short.class.getName());
@@ -45,7 +38,7 @@ public class TypeUtil {
 		primitiveTypes.add(Double.class.getName());
 		primitiveTypes.add(Float.class.getName());
 
-		primitiveClasses = new HashMap<String, Class<?>>();
+        primitiveClasses = new HashMap<>();
 		primitiveClasses.put("long", long.class);
 		primitiveClasses.put("int", int.class);
 		primitiveClasses.put("short", short.class);
@@ -272,8 +265,8 @@ public class TypeUtil {
 	public static List<String> getNames(Class<?>[] classes) {
 		List<String> names = new ArrayList<String>();
 
-		for (int i = 0; i < classes.length; i++) {
-			names.add(classes[i].getCanonicalName());
+        for (Class<?> aClass : classes) {
+            names.add(aClass.getCanonicalName());
 		}
 
 		return Collections.unmodifiableList(names);

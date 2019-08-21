@@ -4,19 +4,16 @@
 
 package org.sikuli.guide;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
+import org.sikuli.basics.Debug;
 import org.sikuli.guide.SxAnchor.AnchorListener;
 import org.sikuli.guide.Visual.Layout;
-import org.sikuli.basics.Debug;
-import org.sikuli.script.Env;
 import org.sikuli.script.Location;
+import org.sikuli.script.Mouse;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.Region;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 public class SxMagnet
         implements Transition, GlobalMouseMotionListener {
@@ -147,7 +144,7 @@ public class SxMagnet
     double theta = 0;
     double dtheta = 2.0f * Math.PI / (double) targets.size();
 
-    Location mouseLocation = Env.getMouseLocation();
+      Location mouseLocation = Mouse.at();
     int x = mouseLocation.x;
     int y = mouseLocation.y;
     int radius = 50;
@@ -160,12 +157,7 @@ public class SxMagnet
     guide.addToFront(selection);
 
     // sort targets along x-axis
-    Collections.sort(targets, new Comparator<SxAnchor>() {
-      @Override
-      public int compare(SxAnchor a, SxAnchor b) {
-        return b.getX() - a.getX();
-      }
-    });
+      targets.sort((a, b) -> b.getX() - a.getX());
 
     for (SxAnchor target : targets) {
 

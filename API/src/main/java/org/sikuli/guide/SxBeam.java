@@ -5,27 +5,15 @@
 package org.sikuli.guide;
 
 import org.sikuli.script.Region;
+import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayTransparentWindow;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import org.sikuli.util.EventObserver;
-import org.sikuli.util.EventSubject;
-import org.sikuli.basics.Settings;
-import org.sikuli.natives.SysUtil;
 
 public class SxBeam extends OverlayTransparentWindow
         implements Transition, GlobalMouseMotionListener, EventObserver {
@@ -134,23 +122,17 @@ public class SxBeam extends OverlayTransparentWindow
 
     Graphics2D g2d = (Graphics2D) g;
 
-    Rectangle r = rect;
     // corners of the target rectangle
-    int cxs[] = {r.x, r.x, r.x + r.width, r.x + r.width};
-    int cys[] = {r.y, r.y + r.height, r.y + r.height, r.height};
+      int[] cxs = {rect.x, rect.x, rect.x + rect.width, rect.x + rect.width};
+      int[] cys = {rect.y, rect.y + rect.height, rect.y + rect.height, rect.height};
 
     ArrayList<Point> corners = new ArrayList<Point>();
-    corners.add(new Point(r.x, r.y));
-    corners.add(new Point(r.x + r.width, r.y + r.height));
-    corners.add(new Point(r.x + r.width, r.y));
-    corners.add(new Point(r.x, r.y + r.height));
+      corners.add(new Point(rect.x, rect.y));
+      corners.add(new Point(rect.x + rect.width, rect.y + rect.height));
+      corners.add(new Point(rect.x + rect.width, rect.y));
+      corners.add(new Point(rect.x, rect.y + rect.height));
 
-    Collections.sort(corners, new Comparator() {
-      @Override
-      public int compare(Object arg0, Object arg1) {
-        return (int) (current.distance((Point) arg0) - current.distance((Point) arg1));
-      }
-    });
+      corners.sort((Comparator) (arg0, arg1) -> (int) (current.distance((Point) arg0) - current.distance((Point) arg1)));
 
     int[] xs;
     int[] ys;

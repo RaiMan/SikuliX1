@@ -13,14 +13,14 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 
 public class TextRecognizer {
 
@@ -31,11 +31,13 @@ public class TextRecognizer {
     Finder.Finder2.init();
   }
 
-  public boolean isValid() {
-    if (tess == null) {
-      return false;
+    public static String doOCR(BufferedImage bimg) {
+        String text = "";
+        TextRecognizer tr = start();
+        if (Objects.requireNonNull(tr).isValid()) {
+            text = tr.read(bimg);
     }
-    return true;
+        return text;
   }
 
   public int getActualDPI() {
@@ -238,13 +240,8 @@ public class TextRecognizer {
     return doOCR(simg.getImage());
   }
 
-  public static String doOCR(BufferedImage bimg) {
-    String text = "";
-    TextRecognizer tr = start();
-    if (tr.isValid()) {
-      text = tr.read(bimg);
-    }
-    return text;
+    public boolean isValid() {
+        return tess != null;
   }
 
   private String read(BufferedImage bimg) {

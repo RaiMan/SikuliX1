@@ -4,15 +4,16 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
+import org.sikuli.script.App;
+import org.sikuli.script.Region;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MacUtil implements OSUtil {
@@ -75,6 +76,60 @@ public class MacUtil implements OSUtil {
           "end repeat\n" +
           "theWindows\n";
 
+    private static int shRun(String sCmd) {
+        String[] cmd = {"sh", "-c", sCmd};
+        try {
+            Process p = Runtime.getRuntime().exec(cmd);
+            p.waitFor();
+            return p.exitValue();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public boolean open(App app) {
+        String appName = app.getExec().isEmpty() ? app.getName() : app.getExec();
+        String cmd = "open -a \"" + appName + "\"";
+        if (!app.getOptions().isEmpty()) {
+            cmd += " --args " + app.getOptions();
+        }
+        int ret = shRun(cmd);
+        return ret == 0;
+    }
+
+    @Override
+    public boolean switchto(App app) {
+        if (app.isValid()) {
+            //osascript -e "tell app \"safari\" to activate"
+            String cmd = "tell application \""
+                    + app.getName()
+                    + "\" to activate";
+            return 0 == Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
+        }
+        return false;
+    }
+
+    @Override
+    public App switchto(String title, int index) {
+        //TODO switchTo window title
+        return new App();
+    }
+
+    @Override
+    public boolean close(App app) {
+        int ret;
+        if (app.getPID() > -1) {
+            ret = close(app.getPID());
+        } else {
+            ret = close(app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec());
+        }
+        if (ret == 0) {
+            app.reset();
+        }
+        return ret == 0;
+    }
+
   @Override
   public App get(App app) {
     String name = app.getName();
@@ -110,17 +165,17 @@ public class MacUtil implements OSUtil {
           }
           if (parts.length > 3) {
             for (int i = 3; i < parts.length; i++) {
-              String part = parts[i].trim();
-              if (part.startsWith("alias ")) {
-                String[] folders = part.split(":");
-                part = "";
+                StringBuilder part = new StringBuilder(parts[i].trim());
+                if (part.toString().startsWith("alias ")) {
+                    String[] folders = part.toString().split(":");
+                    part = new StringBuilder();
                 for (int nf = 1; nf < folders.length; nf++) {
-                  part += "/" + folders[nf];
+                    part.append("/").append(folders[nf]);
                 }
-                app.setExec(part);
+                    app.setExec(part.toString());
                 continue;
               }
-              app.setWindow(app.getWindow() + "," + parts);
+                app.setWindow(app.getWindow() + "," + Arrays.toString(parts));
             }
           }
         }
@@ -129,60 +184,6 @@ public class MacUtil implements OSUtil {
       }
     }
     return app;
-  }
-
-  @Override
-  public boolean open(App app) {
-    String appName = app.getExec().isEmpty() ? app.getName() : app.getExec();
-    String cmd = "open -a \"" + appName + "\"";
-    if (!app.getOptions().isEmpty()) {
-      cmd += " --args " + app.getOptions();
-    }
-    int ret = shRun(cmd);
-    return ret == 0;
-  }
-
-  @Override
-  public boolean switchto(App app) {
-    if (app.isValid()) {
-      //osascript -e "tell app \"safari\" to activate"
-      String cmd = "tell application \""
-              + app.getName()
-              + "\" to activate";
-      return 0 == Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
-    }
-    return false;
-  }
-
-  @Override
-  public App switchto(String title, int index) {
-    //TODO switchTo window title
-    return new App();
-  }
-
-  @Override
-  public boolean close(App app) {
-    int ret;
-    if (app.getPID() > -1) {
-      ret = close(app.getPID());
-    } else {
-      ret = close(app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec());
-    }
-    if (ret == 0) {
-      app.reset();
-    }
-    return ret == 0;
-  }
-
-  private static int shRun(String sCmd) {
-    String cmd[] = {"sh", "-c", sCmd};
-    try {
-      Process p = Runtime.getRuntime().exec(cmd);
-      p.waitFor();
-      return p.exitValue();
-    } catch (Exception e) {
-      return -1;
-    }
   }
 
   private int close(String appName) {
@@ -216,14 +217,12 @@ public class MacUtil implements OSUtil {
   }
 
   private Rectangle getWindow(int pid, int winNum) {
-    Rectangle rect = getRegion(pid, winNum);
-    return rect;
+      return getRegion(pid, winNum);
   }
 
   @Override
   public Rectangle getFocusedWindow() {
-    Rectangle rect = getFocusedRegion();
-    return rect;
+      return getFocusedRegion();
   }
 
   @Override

@@ -3,21 +3,16 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.*;
+import py4Java.reflection.ReflectionEngine;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Logger;
 
-import py4Java.Gateway;
-import py4Java.JVMView;
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.Py4JServerConnection;
-import py4Java.ReturnObject;
-import py4Java.StringUtil;
-import py4Java.reflection.ReflectionEngine;
+import static py4Java.NetworkUtil.safeReadLine;
 
 /**
  * <p>
@@ -93,7 +88,7 @@ public class JVMViewCommand extends AbstractCommand {
 			returnCommand = Protocol.getOutputErrorCommand("Unknown JVM View SubCommand Name: " + subCommand);
 		}
 		logger.finest("Returning command: " + returnCommand);
-		writer.write(returnCommand);
+        writer.write(Objects.requireNonNull(returnCommand));
 		writer.flush();
 	}
 
@@ -110,7 +105,7 @@ public class JVMViewCommand extends AbstractCommand {
 		reader.readLine();
 
 		JVMView view = (JVMView) Protocol.getObject(jvmId, gateway);
-		boolean removed = false;
+        boolean removed;
 		if (importString.endsWith("*")) {
 			removed = view.removeStarImport(importString);
 		} else {

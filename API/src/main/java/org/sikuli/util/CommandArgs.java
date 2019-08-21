@@ -3,19 +3,13 @@
  */
 package org.sikuli.util;
 
+import org.apache.commons.cli.*;
+import org.sikuli.basics.Debug;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.sikuli.basics.Debug;
 
 public class CommandArgs {
 
@@ -28,28 +22,51 @@ public class CommandArgs {
     init();
   }
 
-  public CommandLine getCommandLine(String[] args) {
-    CommandLineParser parser = new PosixParser();
-    CommandLine cmd = null;
-
-    boolean isUserArg = false;
-    for (int i = 0; i < args.length; i++) {
-      if (!isUserArg && args[i].startsWith("--")) {
-        isUserArg = true;
+  public static String[] scanArgs(String[] args) {
+//TODO detect leading and/or trailing blanks
+    argsOrg = System.getenv("SIKULI_COMMAND");
+    if (argsOrg == null) {
+      argsOrg = System.getProperty("sikuli.SIKULI_COMMAND");
+    }
+    if (argsOrg == null) {
+      argsOrg = "";
+    }
+    String sep = "\"";
+    StringBuilder temp = null;
+    Pattern pat;
+    Matcher m;
+    List<String> nargs = new ArrayList<String>();
+    for (String arg : args) {
+      if (arg.startsWith("asApp")) {
         continue;
       }
-      if (isUserArg) {
-        userArgs.add(args[i]);
-      } else {
-        sikuliArgs.add(args[i]);
+      if (arg.startsWith(sep)) {
+        if (!arg.endsWith(sep)) {
+          temp = new StringBuilder(arg.substring(1));
+          continue;
+        }
+      } else if (arg.endsWith(sep)) {
+        if (temp != null) {
+          arg = temp + " " + arg.substring(0, arg.length() - 1);
+          if (argsOrg != null && !argsOrg.contains(arg)) {
+            arg = arg.replace(" ", " *?");
+            pat = Pattern.compile("(" + arg + ")");
+            m = pat.matcher(argsOrg);
+            if (m.find()) {
+              arg = m.group();
+            } else {
+              arg = "?" + arg + "?";
+            }
+          }
+          temp = null;
+        }
+      } else if (temp != null) {
+        temp.append(" ").append(arg);
+        continue;
       }
+      nargs.add(arg);
     }
-    try {
-      cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
-    } catch (ParseException exp) {
-      Debug.error(exp.getMessage());
-    }
-    return cmd;
+    return nargs.toArray(new String[0]);
   }
 
   public String[] getUserArgs() {
@@ -150,51 +167,28 @@ public class CommandArgs {
         true);
   }
 
-  public static String[] scanArgs(String[] args) {
-//TODO detect leading and/or trailing blanks
-    argsOrg = System.getenv("SIKULI_COMMAND");
-    if (argsOrg == null) {
-      argsOrg = System.getProperty("sikuli.SIKULI_COMMAND");
-    }
-    if (argsOrg == null) {
-      argsOrg = "";
-    }
-    String sep = "\"";
-    String temp = null;
-    Pattern pat;
-    Matcher m;
-    List<String> nargs = new ArrayList<String>();
+  public CommandLine getCommandLine(String[] args) {
+    CommandLineParser parser = new PosixParser();
+    CommandLine cmd = null;
+
+    boolean isUserArg = false;
     for (String arg : args) {
-      if (arg.startsWith("asApp")) {
+      if (!isUserArg && arg.startsWith("--")) {
+        isUserArg = true;
         continue;
       }
-      if (arg.startsWith(sep)) {
-        if (!arg.endsWith(sep)) {
-          temp = arg.substring(1);
-          continue;
-        }
-      } else if (arg.endsWith(sep)) {
-        if (temp != null) {
-          arg = temp + " " + arg.substring(0, arg.length() - 1);
-          if (argsOrg != null && !argsOrg.contains(arg)) {
-            arg = arg.replace(" ", " *?");
-            pat = Pattern.compile("(" + arg + ")");
-            m = pat.matcher(argsOrg);
-            if (m.find()) {
-              arg = m.group();
-            } else {
-              arg = "?" + arg + "?";
-            }
-          }
-          temp = null;
-        }
-      } else if (temp != null) {
-        temp += " " + arg;
-        continue;
+      if (isUserArg) {
+        userArgs.add(arg);
+      } else {
+        sikuliArgs.add(arg);
       }
-      nargs.add(arg);
     }
-    return nargs.toArray(new String[0]);
+    try {
+      cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
+    } catch (ParseException exp) {
+      Debug.error(exp.getMessage());
+    }
+    return cmd;
   }
 
   public String getArgsOrg() {

@@ -3,6 +3,11 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.support.RunTime;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -14,11 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
 
 /**
  * maintain the path list of locations, where images will be searched.
@@ -223,9 +223,7 @@ public class ImagePath {
       }
       if (!(other instanceof PathEntry)) {
         if (other instanceof URL) {
-          if (pathURL.equals(other)) {
-            return true;
-          }
+            return pathURL.equals(other);
         } else if (other instanceof String) {
           if (isFile()) {
             try {
@@ -247,10 +245,7 @@ public class ImagePath {
         }
         return false;
       }
-      if (pathURL.equals(((PathEntry) other).pathURL)) {
-        return true;
-      }
-      return false;
+        return pathURL.equals(((PathEntry) other).pathURL);
     }
 
     @Override

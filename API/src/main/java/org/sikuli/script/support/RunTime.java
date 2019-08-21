@@ -10,12 +10,11 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-//import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 import py4Java.GatewayServer;
@@ -37,6 +36,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+//import org.sikuli.script.runners.JythonRunner;
 
 /**
  * INTERNAL USE --- NOT official API<br>
@@ -1240,18 +1241,36 @@ public class RunTime {
   }
   //</editor-fold>
 
-  //<editor-fold desc="99 cleanUp">
-  public void terminate(int retval, String message, Object... args) {
-    String outMsg = String.format(message, args);
-    if (retval < 999) {
-      if (!outMsg.isEmpty()) {
-        System.out.println(outMsg);
-      }
-      isTerminating = true;
-      cleanUp();
-      System.exit(retval);
+  private static void runShutdownHook() {
+    isTerminating = true;
+    if (Debug.isStartWithTrace()) {
+      Debug.on(3);
+      Debug.globalTraceOn();
     }
-    throw new SikuliXception(String.format("fatal: " + outMsg));
+    runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
+    cleanUp();
+
+    if (runTime.isRunning != null) {
+      try {
+        runTime.isRunningFile.close();
+      } catch (IOException ex) {
+      }
+      runTime.isRunning.delete();
+    }
+
+    for (File f : Objects.requireNonNull(runTime.fTempPath.listFiles((dir, name) -> {
+      if (name.toLowerCase().contains("sikuli")) {
+        if (name.contains("Sikulix_")) {
+          return isObsolete(new File(dir, name).lastModified()) || name.equals(runTime.fBaseTempPath.getName());
+        } else {
+          return true;
+        }
+      }
+      return false;
+    }))) {
+      runTime.log(4, "cleanTemp: " + f.getName());
+      FileManager.deleteFileOrFolder(f.getAbsolutePath());
+    }
   }
 
   public static void cleanUp() {
@@ -1277,41 +1296,18 @@ public class RunTime {
     }
   }
 
-  private static void runShutdownHook() {
-    isTerminating = true;
-    if (Debug.isStartWithTrace()) {
-      Debug.on(3);
-      Debug.globalTraceOn();
-    }
-    runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
-    cleanUp();
-
-    if (runTime.isRunning != null) {
-      try {
-        runTime.isRunningFile.close();
-      } catch (IOException ex) {
+  //<editor-fold desc="99 cleanUp">
+  public void terminate(int retval, String message, Object... args) {
+    String outMsg = String.format(message, args);
+    if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        System.out.println(outMsg);
       }
-      runTime.isRunning.delete();
+      isTerminating = true;
+      cleanUp();
+      System.exit(retval);
     }
-
-    for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.toLowerCase().contains("sikuli")) {
-          if (name.contains("Sikulix_")) {
-            if (isObsolete(new File(dir, name).lastModified()) || name.equals(runTime.fBaseTempPath.getName())) {
-              return true;
-            }
-          } else {
-            return true;
-          }
-        }
-        return false;
-      }
-    })) {
-      runTime.log(4, "cleanTemp: " + f.getName());
-      FileManager.deleteFileOrFolder(f.getAbsolutePath());
-    }
+    throw new SikuliXception("fatal: " + outMsg);
   }
   //</editor-fold>
 

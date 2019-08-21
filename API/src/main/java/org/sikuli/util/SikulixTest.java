@@ -196,10 +196,7 @@ public class SikulixTest {
   private static List<Integer> runTest = new ArrayList<>();
 
   private static boolean shouldRunTest(int nTest) {
-    if (runTest.contains(0) || runTest.contains(nTest)) {
-      return true;
-    }
-    return false;
+      return runTest.contains(0) || runTest.contains(nTest);
   }
   //</editor-fold>
 
@@ -399,24 +396,24 @@ public class SikulixTest {
       if (openTestPage("Test-page-1")) {
         //reg.highlight(1);
         reg.setAutoWaitTimeout(0);
-        String out = "";
+          StringBuilder out = new StringBuilder();
         for (Pattern pattern : patterns) {
           pattern.similar(0.9);
           highlight(reg.exists(pattern, 0));
           try {
             Finder fmatches = (Finder) reg.findAll(pattern);
             List<Match> matches = reg.findAllList(pattern);
-            out += String.format("*** findAll: %d of %s\n", matches.size(), pattern);
+              out.append(String.format("*** findAll: %d of %s\n", matches.size(), pattern));
             for (Match next : matches) {
               next.highlight();
             }
           } catch (FindFailed findFailed) {
-            out += String.format("findAll failed: %s\n", pattern);
+              out.append(String.format("findAll failed: %s\n", pattern));
           }
           scr.wait(1.0);
           Highlight.closeAll();
         }
-        p("%s", out);
+          p("%s", out.toString());
         out = "";
       }
       scr.wait(1.0);

@@ -225,12 +225,7 @@ public class Highlight extends JFrame {
           highlights.add(this);
         }
       }
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          setVisible(true);
-        }
-      });
+      SwingUtilities.invokeLater(() -> setVisible(true));
       if (secs > 0) {
         try {
           Thread.sleep((int) (1000 * (secs + Settings.WaitAfterHighlight)));

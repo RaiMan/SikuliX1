@@ -25,7 +25,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   public boolean isSupported() {
-    return jrubySupport.isSupported();
+      return JRubySupport.isSupported();
   }
 
   @Override
@@ -70,7 +70,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
-    Integer exitCode = 0;
+      int exitCode = 0;
     Object exitValue = null;
     synchronized (JRubyRunner.class) {
       File rubyFile = new File(new File(scriptFile).getAbsolutePath());

@@ -5,8 +5,8 @@ package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.Word;
-import org.opencv.core.*;
 import org.opencv.core.Point;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 public class Finder implements Iterator<Match> {
@@ -610,13 +610,8 @@ public class Finder implements Iterator<Match> {
 
     private FindInput2 fInput = null;
 
-    protected static FindResult2 find(FindInput2 findInput) {
-      findInput.setAttributes();
-      Finder2 finder2 = new Finder2();
-      finder2.fInput = findInput;
-      FindResult2 results = finder2.doFind();
-      return results;
-    }
+    //<editor-fold desc="detect changes">
+    private static int toGray = Imgproc.COLOR_BGR2GRAY;
 
     private final float resizeMinFactor = 1.5f;
     private final float[] resizeLevels = new float[]{1f, 0.4f};
@@ -650,6 +645,131 @@ public class Finder implements Iterator<Match> {
       return matcher.find();
     }
 
+    private static int toColor = Imgproc.COLOR_GRAY2BGR;
+    private static int gray = CvType.CV_8UC1;
+    //</editor-fold>
+    private static int colored = CvType.CV_8UC3;
+    private static int transparent = CvType.CV_8UC4;
+
+    protected static FindResult2 find(FindInput2 findInput) {
+      findInput.setAttributes();
+      Finder2 finder2 = new Finder2();
+      finder2.fInput = findInput;
+      return finder2.doFind();
+    }
+
+    //<editor-fold desc="OpenCV Mat">
+    public static boolean isOpaque(BufferedImage bImg) {
+      if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+        List<Mat> mats = getMatList(bImg);
+        Mat transMat = mats.get(0);
+        int allPixel = (int) transMat.size().area();
+        int nonZeroPixel = Core.countNonZero(transMat);
+        return nonZeroPixel == allPixel;
+      }
+      return true;
+    }
+
+    private static boolean isGray(Mat mat) {
+      return mat.type() == gray;
+    }
+
+    private static boolean isColored(Mat mat) {
+      return mat.type() == colored || mat.type() == transparent;
+    }
+
+    public static List<Region> findChanges(FindInput2 findInput) {
+      findInput.setAttributes();
+      int PIXEL_DIFF_THRESHOLD = 3;
+      int IMAGE_DIFF_THRESHOLD = 5;
+      Mat previousGray = getNewMat();
+      Mat nextGray = getNewMat();
+      Mat mDiffAbs = getNewMat();
+      Mat mDiffTresh = getNewMat();
+
+      Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
+      Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
+      Core.absdiff(previousGray, nextGray, mDiffAbs);
+      Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
+
+      List<Region> rectangles = new ArrayList<>();
+      if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
+        Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
+        Imgproc.dilate(mDiffAbs, mDiffAbs, getNewMat());
+        Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
+        Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
+
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Mat mHierarchy = getNewMat();
+        Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        rectangles = contoursToRectangle(contours);
+
+        //Core.subtract(mDiffAbs, mDiffAbs, mChanges);
+        //Imgproc.drawContours(mChanges, contours, -1, new Scalar(255));
+        //logShow(mDiffAbs);
+      }
+      return rectangles;
+    }
+
+    public static List<Region> contoursToRectangle(List<MatOfPoint> contours) {
+      List<Region> rects = new ArrayList<>();
+      for (MatOfPoint contour : contours) {
+        //log.trace("*** new contour");
+        int x1 = 99999;
+        int y1 = 99999;
+        int x2 = 0;
+        int y2 = 0;
+        List<org.opencv.core.Point> points = contour.toList();
+        for (Point point : points) {
+          int x = (int) point.x;
+          int y = (int) point.y;
+          //log.trace("x: %d y: %d", x, y);
+          if (x < x1) x1 = x;
+          if (x > x2) x2 = x;
+          if (y < y1) y1 = y;
+          if (y > y2) y2 = y;
+        }
+        Region rect = new Region(x1, y1, x2 - x1, y2 - y1);
+        rects.add(rect);
+      }
+      return rects;
+    }
+
+    private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
+      Mat mResult = getNewMat();
+      if (what.empty()) {
+        log.error("doFindMatch: image conversion to cvMat did not work");
+      } else {
+        Mat mWhere = where;
+        if (findInput.isGray()) {
+          Imgproc.cvtColor(where, mWhere, Imgproc.COLOR_BGR2GRAY);
+        }
+        if (!findInput.isPlainColor()) {
+          if (findInput.hasMask()) {
+            Mat mask = findInput.getMask();
+            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
+          } else {
+            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCOEFF_NORMED);
+          }
+        } else {
+          Mat wherePlain = mWhere;
+          Mat whatPlain = what;
+          if (findInput.isBlack()) {
+            Core.bitwise_not(mWhere, wherePlain);
+            Core.bitwise_not(what, whatPlain);
+          }
+          if (findInput.hasMask()) {
+            Imgproc.matchTemplate(wherePlain, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+          } else {
+            Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+          }
+          Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
+        }
+      }
+      return mResult;
+    }
+    //</editor-fold>
+
     private FindResult2 doFind() {
       FindResult2 findResult = null;
       if (!fInput.isValid()) {
@@ -665,7 +785,7 @@ public class Finder implements Iterator<Match> {
           text = "";
         }
         TextRecognizer tr = TextRecognizer.start();
-        if (tr.isValid()) {
+        if (Objects.requireNonNull(tr).isValid()) {
           Tesseract1 tapi = tr.getAPI();
           long timer = new Date().getTime();
           int textLevel = fInput.getTextLevel();
@@ -879,128 +999,6 @@ public class Finder implements Iterator<Match> {
         log.trace("doFind: end %d msec", new Date().getTime() - begin_find);
       }
       return findResult;
-    }
-
-    private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-      Mat mResult = getNewMat();
-      if (what.empty()) {
-        log.error("doFindMatch: image conversion to cvMat did not work");
-      } else {
-        Mat mWhere = where;
-        if (findInput.isGray()) {
-          Imgproc.cvtColor(where, mWhere, Imgproc.COLOR_BGR2GRAY);
-        }
-        if (!findInput.isPlainColor()) {
-          if (findInput.hasMask()) {
-            Mat mask = findInput.getMask();
-            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
-          } else {
-            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCOEFF_NORMED);
-          }
-        } else {
-          Mat wherePlain = mWhere;
-          Mat whatPlain = what;
-          if (findInput.isBlack()) {
-            Core.bitwise_not(mWhere, wherePlain);
-            Core.bitwise_not(what, whatPlain);
-          }
-          if (findInput.hasMask()) {
-            Imgproc.matchTemplate(wherePlain, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
-          } else {
-            Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
-          }
-          Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
-        }
-      }
-      return mResult;
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="detect changes">
-    private static int toGray = Imgproc.COLOR_BGR2GRAY;
-    private static int toColor = Imgproc.COLOR_GRAY2BGR;
-    private static int gray = CvType.CV_8UC1;
-    private static int colored = CvType.CV_8UC3;
-    private static int transparent = CvType.CV_8UC4;
-
-    private static boolean isGray(Mat mat) {
-      return mat.type() == gray;
-    }
-
-    private static boolean isColored(Mat mat) {
-      return mat.type() == colored || mat.type() == transparent;
-    }
-
-    public static List<Region> findChanges(FindInput2 findInput) {
-      findInput.setAttributes();
-      int PIXEL_DIFF_THRESHOLD = 3;
-      int IMAGE_DIFF_THRESHOLD = 5;
-      Mat previousGray = getNewMat();
-      Mat nextGray = getNewMat();
-      Mat mDiffAbs = getNewMat();
-      Mat mDiffTresh = getNewMat();
-
-      Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
-      Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
-      Core.absdiff(previousGray, nextGray, mDiffAbs);
-      Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
-
-      List<Region> rectangles = new ArrayList<>();
-      if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
-        Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
-        Imgproc.dilate(mDiffAbs, mDiffAbs, getNewMat());
-        Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
-        Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
-
-        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat mHierarchy = getNewMat();
-        Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        rectangles = contoursToRectangle(contours);
-
-        //Core.subtract(mDiffAbs, mDiffAbs, mChanges);
-        //Imgproc.drawContours(mChanges, contours, -1, new Scalar(255));
-        //logShow(mDiffAbs);
-      }
-      return rectangles;
-    }
-
-    public static List<Region> contoursToRectangle(List<MatOfPoint> contours) {
-      List<Region> rects = new ArrayList<>();
-      for (MatOfPoint contour : contours) {
-        //log.trace("*** new contour");
-        int x1 = 99999;
-        int y1 = 99999;
-        int x2 = 0;
-        int y2 = 0;
-        List<org.opencv.core.Point> points = contour.toList();
-        for (Point point : points) {
-          int x = (int) point.x;
-          int y = (int) point.y;
-          //log.trace("x: %d y: %d", x, y);
-          if (x < x1) x1 = x;
-          if (x > x2) x2 = x;
-          if (y < y1) y1 = y;
-          if (y > y2) y2 = y;
-        }
-        Region rect = new Region(x1, y1, x2 - x1, y2 - y1);
-        rects.add(rect);
-      }
-      return rects;
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="OpenCV Mat">
-    public static boolean isOpaque(BufferedImage bImg) {
-      if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-        List<Mat> mats = getMatList(bImg);
-        Mat transMat = mats.get(0);
-        int allPixel = (int) transMat.size().area();
-        int nonZeroPixel = Core.countNonZero(transMat);
-        if (nonZeroPixel != allPixel) {
-          return false;
-        }
-      }
-      return true;
     }
 
     private static List<Mat> getMatList(BufferedImage bImg) {
@@ -1271,10 +1269,7 @@ public class Finder implements Iterator<Match> {
       if (SX.isNotNull(target) && !target.empty()) {
         return true;
       }
-      if (targetTypeText && !targetText.isEmpty()) {
-        return true;
-      }
-      return false;
+      return targetTypeText && !targetText.isEmpty();
     }
 
     public int getTextLevel() {
@@ -1421,8 +1416,8 @@ public class Finder implements Iterator<Match> {
       Core.meanStdDev(check, pMean, pStdDev);
       double sum = 0.0;
       double[] arr = pStdDev.toArray();
-      for (int i = 0; i < arr.length; i++) {
-        sum += arr[i];
+      for (double v : arr) {
+        sum += v;
       }
       targetStdDev = sum;
       if (sum < minThreshhold) {
@@ -1501,10 +1496,7 @@ public class Finder implements Iterator<Match> {
 
     public boolean hasNext() {
       if (findInput.isText()) {
-        if (words.size() > 0) {
-          return true;
-        }
-        return false;
+        return words.size() > 0;
       }
       resultMinMax = Core.minMaxLoc(result);
       currentScore = resultMinMax.maxVal;

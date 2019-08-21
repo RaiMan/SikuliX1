@@ -4,17 +4,16 @@
 
 package org.sikuli.script.support;
 
+import com.sun.jna.platform.win32.WinDef.HKL;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import org.sikuli.basics.Settings;
+import org.sikuli.natives.SXUser32;
+import org.sikuli.script.Key;
+
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.sikuli.basics.Settings;
-import org.sikuli.natives.SXUser32;
-
-import com.sun.jna.platform.win32.WinDef.HKL;
-import com.sun.jna.platform.win32.WinDef.HWND;
-import org.sikuli.script.Key;
 
 public class KeyboardLayout {
   private static final int DEFAULT_KEYBOARD_LAYOUT_ID = 0x0409; // en-US;
@@ -572,13 +571,6 @@ public class KeyboardLayout {
     layout.put(Key.C_WIN, new int[] { KeyEvent.VK_WINDOWS });
     // hack: alternative tab in GUI
     layout.put(Key.C_NEXT, new int[] { -KeyEvent.VK_TAB });
-    // RETURN, BACKSPACE, TAB
-    layout.put('\r', new int[] { KeyEvent.VK_ENTER });
-    layout.put('\n', new int[] { KeyEvent.VK_ENTER });
-    layout.put('\b', new int[] { KeyEvent.VK_BACK_SPACE });
-    layout.put('\t', new int[] { KeyEvent.VK_TAB });
-    // SPACE
-    layout.put(' ', new int[] { KeyEvent.VK_SPACE });
 
     return layout;
   }

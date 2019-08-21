@@ -3,7 +3,6 @@
  */
 package org.sikuli.script.runners;
 
-import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.JythonSupport;
@@ -12,7 +11,6 @@ import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
@@ -36,7 +34,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    */
   @Override
   public boolean isSupported() {
-    return jythonSupport.isSupported();
+      return JythonSupport.isSupported();
   }
 
   /**

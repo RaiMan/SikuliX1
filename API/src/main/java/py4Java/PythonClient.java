@@ -3,6 +3,9 @@
  */
 package py4Java;
 
+import py4Java.commands.Command;
+
+import javax.net.SocketFactory;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
@@ -10,10 +13,6 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
-import javax.net.SocketFactory;
-
-import py4Java.commands.Command;
 
 /**
  * <p>
@@ -107,7 +106,7 @@ public class PythonClient extends CallbackClient implements Py4JPythonClientPerT
 		this.gateway = gateway;
 		this.javaServer = javaServer;
 		this.customCommands = customCommands;
-		this.threadConnection = new ThreadLocal<WeakReference<ClientServerConnection>>();
+        this.threadConnection = new ThreadLocal<>();
 		this.readTimeout = readTimeout;
 		setSelfListener();
 	}
@@ -131,7 +130,7 @@ public class PythonClient extends CallbackClient implements Py4JPythonClientPerT
 
 	@Override
 	public void setPerThreadConnection(ClientServerConnection clientServerConnection) {
-		threadConnection.set(new WeakReference<ClientServerConnection>(clientServerConnection));
+        threadConnection.set(new WeakReference<>(clientServerConnection));
 	}
 
 	public Gateway getGateway() {
@@ -170,7 +169,7 @@ public class PythonClient extends CallbackClient implements Py4JPythonClientPerT
 
 	@Override
 	protected Py4JClientConnection getConnection() throws IOException {
-		ClientServerConnection connection = null;
+        ClientServerConnection connection;
 
 		connection = getPerThreadConnection();
 

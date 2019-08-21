@@ -4,31 +4,23 @@
 package org.sikuli.natives;
 
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Psapi;
-import com.sun.jna.platform.win32.Tlhelp32;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.*;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.RunTime;
 
-import java.awt.Rectangle;
-import java.awt.Window;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.sun.jna.platform.win32.Kernel32;
 
 public class WinUtil implements OSUtil {
 
@@ -168,8 +160,7 @@ public class WinUtil implements OSUtil {
         IntByReference imageNameLen
                 = new IntByReference(imageNameChars.length);
         if (Kernel32.INSTANCE.QueryFullProcessImageName(hProcess, 0, imageNameChars, imageNameLen)) {
-          String name = FilenameUtils.getName(new String(imageNameChars, 0, imageNameLen.getValue()));
-          return name;
+            return FilenameUtils.getName(new String(imageNameChars, 0, imageNameLen.getValue()));
         }
         return null;
       } finally {
@@ -193,11 +184,7 @@ public class WinUtil implements OSUtil {
 
       String windowTitle = w.getTitle();
 
-      if (windowTitle != null && windowTitle.contains(name)) {
-        return true;
-      }
-
-      return false;
+        return windowTitle != null && windowTitle.contains(name);
     }).collect(Collectors.toList());
   }
 
@@ -236,18 +223,15 @@ public class WinUtil implements OSUtil {
   private static int WinCapsLock = 0x14;
 
   public static int isNumLockOn() {
-    int state = sxuser32.GetKeyState(WinNumLock);
-    return state;
+      return sxuser32.GetKeyState(WinNumLock);
   }
 
   public static int isScrollLockOn() {
-    int state = sxuser32.GetKeyState(WinScrollLock);
-    return state;
+      return sxuser32.GetKeyState(WinScrollLock);
   }
 
   public static int isCapsLockOn() {
-    int state = sxuser32.GetKeyState(WinCapsLock);
-    return state;
+      return sxuser32.GetKeyState(WinCapsLock);
   }
 
   @Override
@@ -354,8 +338,8 @@ public class WinUtil implements OSUtil {
     return true;
   }
 
-  private int start(String... cmd) {
-    return ProcessRunner.startApp(cmd);
+    private void start(String... cmd) {
+        ProcessRunner.startApp(cmd);
   }
 
   @Override
@@ -432,8 +416,7 @@ public class WinUtil implements OSUtil {
   }
 
   private Rectangle _getWindow(HWND hwnd, int winNum) {
-    Rectangle rect = getRegion(hwnd, winNum);
-    return rect;
+      return getRegion(hwnd, winNum);
   }
 
   @Override

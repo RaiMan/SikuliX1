@@ -7,10 +7,7 @@ package org.sikuli.script.runners;
 import org.sikuli.script.support.RunTime;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ProcessRunner extends AbstractScriptRunner{
 
@@ -38,7 +35,7 @@ public class ProcessRunner extends AbstractScriptRunner{
   }
 
   public static String runCommand(String... args) throws IOException, InterruptedException {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     String work = null;
     if (args.length > 0) {
       ProcessBuilder app = new ProcessBuilder();
@@ -64,11 +61,10 @@ public class ProcessRunner extends AbstractScriptRunner{
           String[] fList = new File(folder).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-              if (name.startsWith(fName)) return true;
-              return false;
+              return name.startsWith(fName);
             }
           });
-          if (fList.length > 0) {
+          if (Objects.requireNonNull(fList).length > 0) {
             arg = fList[0];
           }
         }
@@ -82,31 +78,29 @@ public class ProcessRunner extends AbstractScriptRunner{
       BufferedReader processOut = new BufferedReader(reader);
       String line = processOut.readLine();
       while (null != line) {
-        result += line + "\n";
+        result.append(line).append("\n");
         line = processOut.readLine();
       }
       process.waitFor();
       int exitValue = process.exitValue();
       if (exitValue > 0) {
-        result += "error";
+        result.append("error");
       } else {
-        result = "success\n" + result;
+        result.insert(0, "success\n");
       }
     }
-    return result;
+    return result.toString();
   }
 
   public static String run(String... args) {
     List<String> cmd = new ArrayList<String>();
-    for (String arg : args) {
-      cmd.add(arg);
-    }
+    Collections.addAll(cmd, args);
     return run(cmd);
   }
 
   public static String run(List<String> cmd) {
     int exitValue = 0;
-    String stdout = "";
+    StringBuilder stdout = new StringBuilder();
     if (cmd.size() > 0) {
       ProcessBuilder app = new ProcessBuilder();
       Map<String, String> processEnv = app.environment();
@@ -125,7 +119,7 @@ public class ProcessRunner extends AbstractScriptRunner{
           String line = processOut.readLine();
           while (null != line) {
             //System.out.println(line);
-            stdout += line;
+            stdout.append(line);
             line = processOut.readLine();
           }
         }
@@ -146,9 +140,7 @@ public class ProcessRunner extends AbstractScriptRunner{
 
   public static void detach(String... args) {
     List<String> cmd = new ArrayList<String>();
-    for (String arg : args) {
-      cmd.add(arg);
-    }
+    Collections.addAll(cmd, args);
     detach(cmd);
   }
 
@@ -195,8 +187,7 @@ public class ProcessRunner extends AbstractScriptRunner{
   }
 
   public static int startApp(String... givenCmd) {
-    List<String> cmd = new ArrayList<>();
-    cmd.addAll(Arrays.asList(givenCmd));
+    List<String> cmd = new ArrayList<>(Arrays.asList(givenCmd));
     return startApp(cmd);
   }
 

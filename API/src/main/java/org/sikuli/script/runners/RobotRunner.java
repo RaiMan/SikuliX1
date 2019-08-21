@@ -3,14 +3,14 @@
  */
 package org.sikuli.script.runners;
 
-import java.io.File;
-
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+
+import java.io.File;
 
 public class RobotRunner extends JythonRunner {
 
@@ -28,7 +28,7 @@ public class RobotRunner extends JythonRunner {
       showReport = false;
     }
     File scriptFolder = new File(ImagePath.getBundlePath());
-    if (null == scriptFolder) {
+      if (scriptFolder == null) {
       log(-1, "runRobot: no scriptfolder (bundle path)");
       return -1;
     }

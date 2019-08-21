@@ -3,7 +3,9 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.*;
+import py4Java.reflection.ReflectionEngine;
+import py4Java.reflection.TypeUtil;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,14 +13,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import py4Java.Gateway;
-import py4Java.JVMView;
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.Py4JServerConnection;
-import py4Java.ReturnObject;
-import py4Java.reflection.ReflectionEngine;
-import py4Java.reflection.TypeUtil;
+import static py4Java.NetworkUtil.safeReadLine;
 
 public class DirCommand extends AbstractCommand {
 
@@ -43,7 +38,7 @@ public class DirCommand extends AbstractCommand {
 
 		boolean unknownSubCommand = false;
 		String param = reader.readLine();
-		String returnCommand = null;
+        String returnCommand;
 		try {
 			final String[] names;
 			if (subCommand.equals(DIR_FIELDS_SUBCOMMAND_NAME)) {
