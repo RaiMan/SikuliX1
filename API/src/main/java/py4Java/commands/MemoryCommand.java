@@ -3,15 +3,15 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.Protocol;
+import py4Java.Py4JException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import py4Java.Protocol;
-import py4Java.Py4JException;
+import static py4Java.NetworkUtil.safeReadLine;
 
 /**
  * <p>
@@ -52,7 +52,7 @@ public class MemoryCommand extends AbstractCommand {
 	@Override
 	public void execute(String commandName, BufferedReader reader, BufferedWriter writer)
 			throws Py4JException, IOException {
-		String returnCommand = null;
+        String returnCommand;
 		String subCommand = safeReadLine(reader);
 
 		if (subCommand.equals(MEMORY_DEL_SUB_COMMAND_NAME)) {

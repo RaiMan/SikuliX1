@@ -9,7 +9,7 @@ import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 
-import java.awt.Rectangle;
+import java.awt.*;
 
 /**
  * CANDIDATE FOR DEPRECATION
@@ -73,7 +73,6 @@ public class ScreenUnion extends Screen {
 //        break;
 //      }
 //    }
-    ScreenImage si = s.capture(rect);
-    return si;
+      return s.capture(rect);
   }
 }

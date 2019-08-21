@@ -17,7 +17,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class LinuxUtil implements OSUtil {
   
@@ -112,10 +111,10 @@ public class LinuxUtil implements OSUtil {
 
   private int open(String appName) {
     try {
-      String cmd[] = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
+        String[] cmd = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
       Process p = Runtime.getRuntime().exec(cmd);
       InputStream in = p.getInputStream();
-      byte pidBytes[] = new byte[64];
+        byte[] pidBytes = new byte[64];
       int len = in.read(pidBytes);
       String pidStr = new String(pidBytes, 0, len);
       int pid = Integer.parseInt(pidStr);
@@ -166,8 +165,7 @@ public class LinuxUtil implements OSUtil {
   @Override
   public App switchto(String title, int index) {
     //TODO switchto window title
-    App app = new App();
-    return app;
+      return new App();
   }
 
   private int close(String appName) {
@@ -182,10 +180,10 @@ public class LinuxUtil implements OSUtil {
       return CommandExecutorHelper.execute("kill " + pid, 0).getExitValue();
     } catch (Exception e) {
       //try to search for the appName
-      Integer windowPID = findWindowPID(appName, 1);
+        int windowPID = findWindowPID(appName, 1);
       if (windowPID > 1) {
         try {
-          return CommandExecutorHelper.execute("kill " + windowPID.toString(), 0).getExitValue();
+            return CommandExecutorHelper.execute("kill " + Integer.toString(windowPID), 0).getExitValue();
         } catch (Exception e1) {
           e.addSuppressed(e1);
         }
@@ -216,7 +214,7 @@ public class LinuxUtil implements OSUtil {
     if (!isAvailable(xdoToolAvail, "getFocusedWindow", "xdoTool")) {
       return null;
     }
-    String cmd[] = {"xdotool", "getactivewindow"};
+      String[] cmd = {"xdotool", "getactivewindow"};
     try {
       Process p = Runtime.getRuntime().exec(cmd);
       InputStream in = p.getInputStream();
@@ -269,7 +267,7 @@ public class LinuxUtil implements OSUtil {
       String[] lines = result.getStandardOutput().split("\\n");
       for (String str : lines) {
         //Debug.log("read: " + str);
-        String winLine[] = str.split("\\s+", 10);
+          String[] winLine = str.split("\\s+", 10);
         boolean ok = false;
         
         if (type == SearchType.WINDOW_ID) {
@@ -350,11 +348,11 @@ public class LinuxUtil implements OSUtil {
     if (!isAvailable(wmctrlAvail, "closeApp", "wmctrl")) {
       return -1;
     }
-    String winLine[] = findWindow("" + pid, 0, SearchType.PID);
+      String[] winLine = findWindow("" + pid, 0, SearchType.PID);
     if (winLine == null) {
       return -1;
     }
-    String cmd[] = {"wmctrl", "-ic", winLine[0]};
+      String[] cmd = {"wmctrl", "-ic", winLine[0]};
     try {
       Process p = Runtime.getRuntime().exec(cmd);
       p.waitFor();
@@ -369,7 +367,7 @@ public class LinuxUtil implements OSUtil {
     if (!isAvailable(wmctrlAvail, "switchApp", "wmctrl")) {
       return -1;
     }
-    String winLine[] = findWindow("" + pid, num, SearchType.PID);
+      String[] winLine = findWindow("" + pid, num, SearchType.PID);
     if (winLine == null || winLine.length < 1) {
       System.err.println("[error] switchApp: window of PID '" + pid + "' couldn't be found!");
       return -1;

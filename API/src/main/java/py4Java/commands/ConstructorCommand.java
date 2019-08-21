@@ -3,16 +3,16 @@
  */
 package py4Java.commands;
 
+import py4Java.Protocol;
+import py4Java.Py4JException;
+import py4Java.ReturnObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.ReturnObject;
 
 /**
  * <p>
@@ -49,7 +49,7 @@ public class ConstructorCommand extends AbstractCommand {
 	}
 
 	protected ReturnObject invokeConstructor(String fqn, List<Object> arguments) {
-		ReturnObject returnObject = null;
+        ReturnObject returnObject;
 		try {
 			returnObject = gateway.invoke(fqn, arguments);
 		} catch (Exception e) {

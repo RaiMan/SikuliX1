@@ -3,14 +3,16 @@
  */
 package org.sikuli.util;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
+import org.sikuli.basics.Animator;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.Location;
+import org.sikuli.script.Region;
+import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
+
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -18,15 +20,6 @@ import java.awt.image.RescaleOp;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.sikuli.basics.Animator;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.Location;
-import org.sikuli.script.Region;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.ScreenImage;
 
 /**
  * INTERNAL USE produces and manages the red framed rectangles from Region.highlight()
@@ -265,8 +258,7 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
           bi = new BufferedImage(
                   getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
         }
-        Graphics2D bfG2 = bi.createGraphics();
-        g2d = bfG2;
+        g2d = bi.createGraphics();
       } else {
         g2d = (Graphics2D) g;
       }

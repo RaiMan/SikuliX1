@@ -3,15 +3,15 @@
  */
 package py4Java.reflection;
 
+import py4Java.Gateway;
+import py4Java.Protocol;
+import py4Java.Py4JException;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import py4Java.Gateway;
-import py4Java.Protocol;
-import py4Java.Py4JException;
 
 /**
  * <p>
@@ -80,8 +80,7 @@ public class PythonProxyHandler implements InvocationHandler {
 		String returnCommand = gateway.getCallbackClient().sendCommand(sBuilder.toString());
 
 		Object output = Protocol.getReturnValue(returnCommand, gateway);
-		Object convertedOutput = convertOutput(method, output);
-		return convertedOutput;
+        return convertOutput(method, output);
 	}
 
 	private Object convertOutput(Method method, Object output) {

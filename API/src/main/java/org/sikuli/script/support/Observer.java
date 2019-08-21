@@ -3,16 +3,11 @@
  */
 package org.sikuli.script.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+
+import java.util.*;
 
 /**
  * INTERNAL USE implements the observe action for a region and calls the ObserverCallBacks
@@ -143,7 +138,7 @@ public class Observer {
     ObserveEvent observeEvent = new ObserveEvent(name, obsType, ptn, match, observedRegion, time);
     Object callBack = eventCallBacks.get(name);
     Observing.addEvent(observeEvent);
-    if (callBack != null && callBack instanceof ObserverCallBack) {
+      if (callBack instanceof ObserverCallBack) {
       log(lvl, "running call back: %s", obsType);
       if (obsType == ObserveEvent.Type.APPEAR) {
         ((ObserverCallBack) callBack).appeared(observeEvent);
@@ -230,7 +225,7 @@ public class Observer {
                 match.toStringShort(), observedRegion.toStringShort());
       } else if (eventStates.get(ptn) == State.FIRST) {
         log(lvl + 1, "(%s): %s match: %s in:%s", eventTypes.get(name), ptn.toString(),
-                match.toStringShort(), observedRegion.toStringShort());
+                Objects.requireNonNull(match).toStringShort(), observedRegion.toStringShort());
         eventStates.put(name, State.UNKNOWN);
       }
       if (eventStates.get(name) != State.HAPPENED) {
@@ -373,6 +368,6 @@ public class Observer {
     if (!observedRegion.isObserving()) {
       return false;
     }
-    return false || fromPatterns || fromChanges;
+      return fromPatterns || fromChanges;
   }
 }

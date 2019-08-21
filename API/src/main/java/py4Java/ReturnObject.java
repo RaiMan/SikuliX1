@@ -55,11 +55,9 @@ public class ReturnObject {
 		ReturnObject rObject = new ReturnObject();
 		rObject.name = name;
 		rObject.isError = true;
-		StringBuilder builder = new StringBuilder();
-		builder.append(Protocol.ERROR);
-		builder.append(Protocol.REFERENCE_TYPE);
-		builder.append(name);
-		rObject.commandPart = builder.toString();
+        rObject.commandPart = String.valueOf(Protocol.ERROR) +
+                Protocol.REFERENCE_TYPE +
+                name;
 		return rObject;
 	}
 
@@ -73,11 +71,9 @@ public class ReturnObject {
 	public static ReturnObject getErrorReturnObject(Throwable throwable) {
 		ReturnObject rObject = new ReturnObject();
 		rObject.isError = true;
-		StringBuilder builder = new StringBuilder();
-		builder.append(Protocol.ERROR);
-		builder.append(Protocol.STRING_TYPE);
-		builder.append(StringUtil.escape(Protocol.getThrowableAsString(throwable)));
-		rObject.commandPart = builder.toString();
+        rObject.commandPart = String.valueOf(Protocol.ERROR) +
+                Protocol.STRING_TYPE +
+                StringUtil.escape(Protocol.getThrowableAsString(throwable));
 		return rObject;
 	}
 

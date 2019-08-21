@@ -3,8 +3,8 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.support.RunTime;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -84,11 +84,7 @@ public class Debug {
 			} else {
 				try {
 					DEBUG_LEVEL = Integer.parseInt(debug);
-					if (DEBUG_LEVEL > 0) {
-						Settings.DebugLogs = true;
-					} else {
-						Settings.DebugLogs = false;
-					}
+					Settings.DebugLogs = DEBUG_LEVEL > 0;
 				} catch (NumberFormatException numberFormatException) {
 				}
 			}
@@ -265,31 +261,31 @@ public class Debug {
 		try {
 			if (type == CallbackType.INFO) {
 				if ( !isJython && !isJRuby ) {
-					privateLoggerInfo = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+					privateLoggerInfo = privateLogger.getClass().getMethod(mName, String.class);
 				}
 				privateLoggerInfoName = mName;
 				return true;
 			} else if (type == CallbackType.ACTION) {
 				if ( !isJython && !isJRuby ) {
-					privateLoggerAction = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+					privateLoggerAction = privateLogger.getClass().getMethod(mName, String.class);
 				}
 				privateLoggerActionName = mName;
 				return true;
 			} else if (type == CallbackType.ERROR) {
 				if ( !isJython && !isJRuby ) {
-					privateLoggerError = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+					privateLoggerError = privateLogger.getClass().getMethod(mName, String.class);
 				}
 				privateLoggerErrorName = mName;
 				return true;
 			} else if (type == CallbackType.DEBUG) {
 				if ( !isJython && !isJRuby ) {
-					privateLoggerDebug = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+					privateLoggerDebug = privateLogger.getClass().getMethod(mName, String.class);
 				}
 				privateLoggerDebugName = mName;
 				return true;
 			} else if (type == CallbackType.USER) {
 				if ( !isJython && !isJRuby ) {
-					privateLoggerUser = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+					privateLoggerUser = privateLogger.getClass().getMethod(mName, String.class);
 				}
 				privateLoggerUserName = mName;
 				return true;
@@ -509,11 +505,7 @@ public class Debug {
    */
   public static void setDebugLevel(int level) {
     DEBUG_LEVEL = level;
-    if (DEBUG_LEVEL > 0) {
-      Settings.DebugLogs = true;
-    } else {
-      Settings.DebugLogs = false;
-    }
+	  Settings.DebugLogs = DEBUG_LEVEL > 0;
   }
 
   public static void on(int level) {
@@ -544,11 +536,7 @@ public class Debug {
   public static void setDebugLevel(String level) {
     try {
       DEBUG_LEVEL = Integer.parseInt(level);
-      if (DEBUG_LEVEL > 0) {
-        Settings.DebugLogs = true;
-      } else {
-        Settings.DebugLogs = false;
-      }
+		Settings.DebugLogs = DEBUG_LEVEL > 0;
     } catch (NumberFormatException e) {
     }
   }
@@ -596,7 +584,7 @@ public class Debug {
 				} else {
 					try {
 						plf.invoke(privateLogger,
-										new Object[]{msg});
+								msg);
 						return true;
 					} catch (Exception e) {
 						error = ": " + e.getMessage();
@@ -933,9 +921,9 @@ public class Debug {
    */
   public long end() {
     if (_title == null) {
-      return endTiming(_message, false, new Object[0]);
+		return endTiming(_message, false);
     } else {
-      return endTiming(_title, false, new Object[0]);
+		return endTiming(_title, false);
     }
   }
 
@@ -948,9 +936,9 @@ public class Debug {
    */
   public long lap(String message) {
     if (_title == null) {
-      return endTiming("(" + message + ") " + _message, true, new Object[0]);
+		return endTiming("(" + message + ") " + _message, true);
     } else {
-      return endTiming("(" + message + ") " + _title, true, new Object[0]);
+		return endTiming("(" + message + ") " + _title, true);
     }
   }
 

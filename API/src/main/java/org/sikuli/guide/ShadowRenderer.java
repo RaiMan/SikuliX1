@@ -7,11 +7,7 @@
  */
 package org.sikuli.guide;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
@@ -52,7 +48,8 @@ public class ShadowRenderer {
 
    BufferedImage shadowImage = null;
    Dimension sourceActualSize = null;
-   public BufferedImage createShadowImage(){
+
+    public void createShadowImage() {
 
       BufferedImage image = new BufferedImage(source.getActualWidth() + shadowSize * 2,
             source.getActualHeight() + shadowSize * 2, BufferedImage.TYPE_INT_ARGB);
@@ -66,7 +63,6 @@ public class ShadowRenderer {
 
       //Debug.info("[Shadow] shadowImage: " + shadowImage);
 
-      return shadowImage;
    }
 
    public void paintComponent(Graphics g){

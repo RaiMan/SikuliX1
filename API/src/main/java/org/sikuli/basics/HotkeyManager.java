@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Singleton class to bind hotkeys to hotkey listeners
@@ -68,9 +69,7 @@ public abstract class HotkeyManager {
     if (result > 0) {
       Debug.log(3, "HotkeyManager: reset: removed all SikuliX hotkeys.");
     }
-    if (isTerminating) {
       _instance.cleanUp();
-    }
   }
 
   private static int reset(Map<String, Integer[]> hotkeys, boolean isTerminating) {
@@ -120,11 +119,11 @@ public abstract class HotkeyManager {
    */
   public boolean addHotkey(String hotkeyType, HotkeyListener callback) {
     PreferencesUser pref = PreferencesUser.get();
-    if (hotkeyType == HotkeyTypeCapture) {
+      if (hotkeyType.equals(HotkeyTypeCapture)) {
       HotkeyTypeCaptureKey = pref.getCaptureHotkey();
       HotkeyTypeCaptureMod = pref.getCaptureHotkeyModifiers();
       return installHotkey(HotkeyTypeCaptureKey, HotkeyTypeCaptureMod, callback, hotkeyType);
-    } else if (hotkeyType == HotkeyTypeAbort) {
+      } else if (hotkeyType.equals(HotkeyTypeAbort)) {
       HotkeyTypeAbortKey = pref.getStopHotkey();
       HotkeyTypeAbortMod = pref.getStopHotkeyModifiers();
       return installHotkey(HotkeyTypeAbortKey, HotkeyTypeAbortMod, callback, hotkeyType);
@@ -138,10 +137,10 @@ public abstract class HotkeyManager {
     PreferencesUser pref = PreferencesUser.get();
     String key = "";
     String mod = "";
-    if (hotkeyType == HotkeyTypeCapture) {
+      if (hotkeyType.equals(HotkeyTypeCapture)) {
       key = getKeyCodeText(pref.getCaptureHotkey());
       mod = getKeyModifierText(pref.getCaptureHotkeyModifiers());
-    } else if (hotkeyType == HotkeyTypeAbort) {
+      } else if (hotkeyType.equals(HotkeyTypeAbort)) {
       key = getKeyCodeText(pref.getStopHotkey());
       mod = getKeyModifierText(pref.getStopHotkeyModifiers());
     } else {
@@ -172,7 +171,7 @@ public abstract class HotkeyManager {
    */
   public boolean addHotkey(String key, int modifiers, HotkeyListener callback) {
     int[] keyCodes = Key.toJavaKeyCode(key.toLowerCase());
-    int keyCode = keyCodes[0];
+      int keyCode = Objects.requireNonNull(keyCodes)[0];
     return installHotkey(keyCode, modifiers, callback, "");
   }
 
@@ -250,7 +249,7 @@ public abstract class HotkeyManager {
    */
   public boolean removeHotkey(String key, int modifiers) {
     int[] keyCodes = Key.toJavaKeyCode(key.toLowerCase());
-    int keyCode = keyCodes[0];
+      int keyCode = Objects.requireNonNull(keyCodes)[0];
     return uninstallHotkey(keyCode, modifiers);
   }
 

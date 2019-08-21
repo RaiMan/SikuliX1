@@ -3,36 +3,18 @@
  */
 package py4Java;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import py4Java.commands.*;
+
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import py4Java.commands.ArrayCommand;
-import py4Java.commands.AuthCommand;
-import py4Java.commands.CallCommand;
-import py4Java.commands.Command;
-import py4Java.commands.ConstructorCommand;
-import py4Java.commands.DirCommand;
-import py4Java.commands.ExceptionCommand;
-import py4Java.commands.FieldCommand;
-import py4Java.commands.HelpPageCommand;
-import py4Java.commands.JVMViewCommand;
-import py4Java.commands.ListCommand;
-import py4Java.commands.MemoryCommand;
-import py4Java.commands.ReflectionCommand;
-import py4Java.commands.ShutdownGatewayServerCommand;
-import py4Java.commands.StreamCommand;
 
 /**
  * <p>
@@ -67,7 +49,7 @@ public class GatewayConnection implements Runnable, Py4JServerConnection {
 	protected final List<GatewayServerListener> listeners;
 
 	static {
-		baseCommands = new ArrayList<Class<? extends Command>>();
+		baseCommands = new ArrayList<>();
 		baseCommands.add(ArrayCommand.class);
 		baseCommands.add(CallCommand.class);
 		baseCommands.add(ConstructorCommand.class);
@@ -95,7 +77,7 @@ public class GatewayConnection implements Runnable, Py4JServerConnection {
 	}
 
 	public GatewayConnection(Gateway gateway, Socket socket) throws IOException {
-		this(gateway, socket, null, new ArrayList<GatewayServerListener>());
+		this(gateway, socket, null, new ArrayList<>());
 	}
 
 	public GatewayConnection(Gateway gateway, Socket socket, List<Class<? extends Command>> customCommands,
@@ -113,9 +95,9 @@ public class GatewayConnection implements Runnable, Py4JServerConnection {
 		} else {
 			this.authCommand = null;
 		}
-		this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), Charset.forName("UTF-8")));
-		this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charset.forName("UTF-8")));
-		this.commands = new HashMap<String, Command>();
+		this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+		this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+		this.commands = new HashMap<>();
 		initCommands(gateway, baseCommands);
 		if (customCommands != null) {
 			initCommands(gateway, customCommands);

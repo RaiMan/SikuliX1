@@ -146,13 +146,7 @@ public class Crawler {
   static Map<String, List<String>> sortMap(Map<String, List<String>> map) {
     List<Map.Entry<String, List<String>>> entries
             = new ArrayList<>(map.entrySet());
-    Collections.sort(entries, new Comparator<Map.Entry<String, List<String>>>() {
-      @Override
-      public int compare(
-              Map.Entry<String, List<String>> o1, Map.Entry<String, List<String>> o2) {
-        return o1.getKey().toLowerCase().compareTo(o2.getKey().toLowerCase());
-      }
-    });
+    entries.sort(Comparator.comparing(o -> o.getKey().toLowerCase()));
     Map<String, List<String>> sortedMap = new LinkedHashMap<>();
     for (Map.Entry<String, List<String>> entry : entries) {
       sortedMap.put(entry.getKey(), entry.getValue());

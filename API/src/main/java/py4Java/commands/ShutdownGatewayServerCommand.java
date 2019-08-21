@@ -3,15 +3,10 @@
  */
 package py4Java.commands;
 
+import py4Java.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.IOException;
-
-import py4Java.Gateway;
-import py4Java.GatewayServer;
-import py4Java.Py4JException;
-import py4Java.Py4JJavaServer;
-import py4Java.Py4JServerConnection;
 
 /**
  * <p>
@@ -36,7 +31,7 @@ public class ShutdownGatewayServerCommand extends AbstractCommand {
 
 	@Override
 	public void execute(String commandName, BufferedReader reader, BufferedWriter writer)
-			throws Py4JException, IOException {
+            throws Py4JException {
 		this.gatewayServer.shutdown();
 	}
 

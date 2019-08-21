@@ -3,20 +3,12 @@
  */
 package py4Java.reflection;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import py4Java.Py4JException;
+
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import py4Java.Py4JException;
 
 /**
  * <p>
@@ -45,8 +37,8 @@ public class ReflectionEngine {
 	};
 
 	public Object createArray(String fqn, int[] dimensions) {
-		Class<?> clazz = null;
-		Object returnObject = null;
+		Class<?> clazz;
+		Object returnObject;
 		try {
 			clazz = TypeUtil.forName(fqn);
 			returnObject = Array.newInstance(clazz, dimensions);
@@ -158,7 +150,7 @@ public class ReflectionEngine {
 	}
 
 	public MethodInvoker getConstructor(String classFQN, Object[] parameters) {
-		Class<?> clazz = null;
+		Class<?> clazz;
 
 		try {
 			clazz = ReflectionUtil.classForName(classFQN);
@@ -190,15 +182,13 @@ public class ReflectionEngine {
 	 *         this class or in its hierarchy.
 	 */
 	public Field getField(Class<?> clazz, String name) {
-		Field field = null;
+		Field field;
 
 		try {
 			field = clazz.getField(name);
 			if (!Modifier.isPublic(field.getModifiers()) && !field.isAccessible()) {
 				field = null;
 			}
-		} catch (NoSuchFieldException e) {
-			field = null;
 		} catch (Exception e) {
 			field = null;
 		}
@@ -361,13 +351,13 @@ public class ReflectionEngine {
 	 */
 	public String[] getPublicMethodNames(Object obj) {
 		Method[] methods = obj.getClass().getMethods();
-		Set<String> methodNames = new HashSet<String>();
+		Set<String> methodNames = new HashSet<>();
 		for (Method method : methods) {
 			if (Modifier.isPublic(method.getModifiers())) {
 				methodNames.add(method.getName());
 			}
 		}
-		return (String[]) methodNames.toArray(new String[methodNames.size()]);
+		return methodNames.toArray(new String[methodNames.size()]);
 	}
 
 	/**
@@ -377,13 +367,13 @@ public class ReflectionEngine {
 	 */
 	public String[] getPublicFieldNames(Object obj) {
 		Field[] fields = obj.getClass().getFields();
-		Set<String> fieldNames = new HashSet<String>();
+		Set<String> fieldNames = new HashSet<>();
 		for (Field field : fields) {
 			if (Modifier.isPublic(field.getModifiers())) {
 				fieldNames.add(field.getName());
 			}
 		}
-		return (String[]) fieldNames.toArray(new String[fieldNames.size()]);
+		return fieldNames.toArray(new String[fieldNames.size()]);
 	}
 
 	/**
@@ -395,13 +385,13 @@ public class ReflectionEngine {
 	 */
 	public String[] getPublicStaticFieldNames(Class<?> clazz) {
 		Field[] fields = clazz.getFields();
-		Set<String> fieldNames = new HashSet<String>();
+		Set<String> fieldNames = new HashSet<>();
 		for (Field field : fields) {
 			if (Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
 				fieldNames.add(field.getName());
 			}
 		}
-		return (String[]) fieldNames.toArray(new String[fieldNames.size()]);
+		return fieldNames.toArray(new String[fieldNames.size()]);
 	}
 
 	/**
@@ -411,13 +401,13 @@ public class ReflectionEngine {
 	 */
 	public String[] getPublicStaticMethodNames(Class<?> clazz) {
 		Method[] methods = clazz.getMethods();
-		Set<String> methodNames = new HashSet<String>();
+		Set<String> methodNames = new HashSet<>();
 		for (Method method : methods) {
 			if (Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
 				methodNames.add(method.getName());
 			}
 		}
-		return (String[]) methodNames.toArray(new String[methodNames.size()]);
+		return methodNames.toArray(new String[methodNames.size()]);
 	}
 
 	/**
@@ -427,13 +417,13 @@ public class ReflectionEngine {
 	 */
 	public String[] getPublicStaticClassNames(Class<?> clazz) {
 		Class<?>[] classes = clazz.getClasses();
-		Set<String> classNames = new HashSet<String>();
+		Set<String> classNames = new HashSet<>();
 		for (Class<?> clazz2 : classes) {
 			if (Modifier.isPublic(clazz2.getModifiers()) && Modifier.isStatic(clazz2.getModifiers())) {
 				classNames.add(clazz2.getSimpleName());
 			}
 		}
-		return (String[]) classNames.toArray(new String[classNames.size()]);
+		return classNames.toArray(new String[classNames.size()]);
 	}
 
 	/**
@@ -443,10 +433,10 @@ public class ReflectionEngine {
 	 * @return list of all the names of public statics
 	 */
 	public String[] getPublicStaticNames(Class<?> clazz) {
-		Set<String> names = new HashSet<String>();
+		Set<String> names = new HashSet<>();
 		names.addAll(Arrays.asList(getPublicStaticClassNames(clazz)));
 		names.addAll(Arrays.asList(getPublicStaticFieldNames(clazz)));
 		names.addAll(Arrays.asList(getPublicStaticMethodNames(clazz)));
-		return (String[]) names.toArray(new String[names.size()]);
+		return names.toArray(new String[names.size()]);
 	}
 }

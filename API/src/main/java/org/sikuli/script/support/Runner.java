@@ -99,7 +99,7 @@ public class Runner {
     synchronized (runners) {
       initRunners();
 
-      return new LinkedList<IScriptRunner>(supportedRunners);
+      return new LinkedList<>(supportedRunners);
     }
   }
 
@@ -165,7 +165,7 @@ public class Runner {
   public static int runScript(String script, String[] args, IScriptRunner.Options options) {
     if (script.contains("\n")) {
       String[] header = script.substring(0, Math.min(100, script.length())).trim().split("\n");
-      IScriptRunner runner = null;
+      IScriptRunner runner;
       if (header.length > 0) {
         String selector = header[0];
         runner = getRunner(selector);
@@ -179,7 +179,7 @@ public class Runner {
     File scriptFile = new File(script);
     if (!scriptFile.isAbsolute()) {
       File currentScript = null;
-      File currentFolder = new File(ImagePath.getBundlePath()).getParentFile();
+      File currentFolder = new File(Objects.requireNonNull(ImagePath.getBundlePath())).getParentFile();
       try {
         currentScript = new File(currentFolder, script).getCanonicalFile();
       } catch (IOException e) {
@@ -269,7 +269,7 @@ public class Runner {
       return null;
     }
     if (fScriptFolder.isDirectory()) {
-      for (File aFile : fScriptFolder.listFiles()) {
+      for (File aFile : Objects.requireNonNull(fScriptFolder.listFiles())) {
         if (aFile.isDirectory()) {
           // contained directories need not be checked
           continue;

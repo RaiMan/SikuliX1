@@ -3,13 +3,12 @@
  */
 package org.sikuli.util;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.PrintStream;
-
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.RunTime;
+
+import java.io.File;
+import java.io.PrintStream;
 
 /**
  * INTERNAL USE: all things needed with Linux at setup or runtime
@@ -58,15 +57,7 @@ public class LinuxSupport {
   }
 
   public static boolean copyProvidedLibs(File fLibsFolder) {
-    String[] toCopy = runTime.fLibsProvided.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File folder, String name) {
-        if (name.endsWith(".so")) {
-          return true;
-        }
-        return false;
-      }
-    });
+    String[] toCopy = runTime.fLibsProvided.list((folder, name) -> name.endsWith(".so"));
     boolean success = false;
     if (toCopy != null) {
       for (String aLib : toCopy) {
@@ -81,14 +72,8 @@ public class LinuxSupport {
     boolean success = false;
     if (!isCopiedProvided && !runTime.useLibsProvided) {
       success = true;
-      String[] allLibs = runTime.fLibsProvided.list(new FilenameFilter() {
-        @Override
-        public boolean accept(File folder, String name) {
-          if (name.toLowerCase().endsWith(".so")) {
-            return true;
-          }
-          return false;
-        }
+      String[] allLibs = runTime.fLibsProvided.list((folder, name) -> {
+        return name.toLowerCase().endsWith(".so");
       });
       if (allLibs != null) {
         for (String sLib : allLibs) {
@@ -181,18 +166,18 @@ public class LinuxSupport {
     boolean success = true;
     retLines = cmdRet.split("continued: build on the fly on Linux at runtime: if bundled do not work, looking for provided - if these do not work, try to build. setup not ready yet. \n");
     String libName = lib.getName();
-    String libsMissing = "";
+    StringBuilder libsMissing = new StringBuilder();
     for (String line : retLines) {
       if (line.contains("undefined symbol:") && line.contains(libName)) {
         line = line.split("symbol:")[1].trim().split("\\s")[0];
-        libsMissing += line + ":";
+        libsMissing.append(line).append(":");
       }
     }
-    if (libsMissing.isEmpty()) {
+    if (libsMissing.length() == 0) {
       log(lvl, "checking: should work: %s", libName);
     } else {
       log(-1, "checking: might not work, has undefined symbols: %s", libName);
-      log(lvl, "%s", libsMissing);
+      log(lvl, "%s", libsMissing.toString());
       success = false;
     }
     return success;

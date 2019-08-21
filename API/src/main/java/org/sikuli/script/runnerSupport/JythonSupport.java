@@ -675,7 +675,7 @@ public class JythonSupport implements IRunnerSupport {
     }
     try {
       PyList pyArgv = interpreter.getSystemState().argv;
-      Integer argvLen = pyArgv.__len__();
+      int argvLen = pyArgv.__len__();
       for (int i = 0; i < argvLen; i++) {
         String entry = (String) pyArgv.get(i);
         log(lvl + 1, "sys.path[%2d] = %s", i, entry);
@@ -694,9 +694,7 @@ public class JythonSupport implements IRunnerSupport {
     try {
       PyList pyArgv = interpreter.getSystemState().argv;
       pyArgv.clear();
-      for (String arg : args) {
-        pyArgv.add(arg);
-      }
+      pyArgv.addAll(args);
     } catch (Exception ex) {
       sysArgv = null;
     }

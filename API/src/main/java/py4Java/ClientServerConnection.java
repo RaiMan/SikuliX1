@@ -3,11 +3,10 @@
  */
 package py4Java;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import py4Java.commands.AuthCommand;
+import py4Java.commands.Command;
+
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
@@ -16,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import py4Java.commands.AuthCommand;
-import py4Java.commands.Command;
 
 public class ClientServerConnection implements Py4JServerConnection, Py4JClientConnection, Runnable {
 
@@ -48,7 +44,7 @@ public class ClientServerConnection implements Py4JServerConnection, Py4JClientC
 		this.socket = socket;
 		this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), Charset.forName("UTF-8")));
 		this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charset.forName("UTF-8")));
-		this.commands = new HashMap<String, Command>();
+		this.commands = new HashMap<>();
 		initCommands(gateway, GatewayConnection.getBaseCommands());
 		if (customCommands != null) {
 			initCommands(gateway, customCommands);
@@ -70,7 +66,7 @@ public class ClientServerConnection implements Py4JServerConnection, Py4JClientC
 		}
 	}
 
-	public void startServerConnection() throws IOException {
+	public void startServerConnection() {
 		Thread t = new Thread(this);
 		t.start();
 	}
@@ -288,7 +284,7 @@ public class ClientServerConnection implements Py4JServerConnection, Py4JClientC
 	}
 
 	protected String readNonBlockingResponse(Socket socket, BufferedReader reader) throws IOException {
-		String returnCommand = null;
+		String returnCommand;
 
 		socket.setSoTimeout(nonBlockingReadTimeout);
 

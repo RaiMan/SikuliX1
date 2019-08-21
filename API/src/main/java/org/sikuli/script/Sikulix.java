@@ -3,7 +3,9 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
@@ -13,6 +15,7 @@ import org.sikuli.vnc.VNCScreen;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Objects;
 
 public class Sikulix {
 
@@ -510,7 +513,7 @@ public class Sikulix {
             + "maxlevels = 0, quiet = 1)", fpSource))) {
       return null;
     }
-    for (File aFile : fSource.listFiles()) {
+      for (File aFile : Objects.requireNonNull(fSource.listFiles())) {
       if (aFile.getName().endsWith(".py")) {
         aFile.delete();
       }

@@ -16,7 +16,6 @@ public class CurrentThreadClassLoadingStrategy implements ClassLoadingStrategy {
 
 	@Override
 	public ClassLoader getClassLoader() {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		return classLoader;
+        return Thread.currentThread().getContextClassLoader();
 	}
 }

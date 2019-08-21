@@ -101,7 +101,6 @@ public class KeyMap {
         put(VK_MULTIPLY, 67);
         put(VK_SUBTRACT, 78);
         put(VK_ADD, 69);
-        put(VK_SUBTRACT, 78);
         put(VK_NUMPAD0, 82);
         put(VK_NUMPAD1, 83);
         put(VK_NUMPAD2, 84);

@@ -3,14 +3,14 @@
  */
 package py4Java.model;
 
+import py4Java.reflection.TypeUtil;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import py4Java.reflection.TypeUtil;
 
 /**
  * <p>
@@ -27,9 +27,9 @@ public class Py4JClass extends Py4JMember {
 	}
 
 	public final static Py4JClass buildClass(Class<?> clazz, boolean sort) {
-		List<Py4JClass> classes = new ArrayList<Py4JClass>();
-		List<Py4JMethod> methods = new ArrayList<Py4JMethod>();
-		List<Py4JField> fields = new ArrayList<Py4JField>();
+        List<Py4JClass> classes = new ArrayList<>();
+        List<Py4JMethod> methods = new ArrayList<>();
+        List<Py4JField> fields = new ArrayList<>();
 
 		for (Class<?> memberClass : clazz.getDeclaredClasses()) {
 			if (Modifier.isPublic(memberClass.getModifiers())) {

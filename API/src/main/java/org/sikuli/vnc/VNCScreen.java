@@ -3,19 +3,22 @@
  */
 package org.sikuli.vnc;
 
+import com.sikulix.vnc.VNCClient;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
+import org.sikuli.script.FindFailed;
+import org.sikuli.script.Location;
+import org.sikuli.script.Region;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.util.OverlayCapturePrompt;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.*;
-
-import com.sikulix.vnc.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VNCScreen extends Region implements IScreen {
   private VNCClient client;
@@ -44,9 +47,7 @@ public class VNCScreen extends Region implements IScreen {
   }
 
   public static VNCScreen start(String theIP) {
-    VNCScreen vscr = null;
-    vscr = start(theIP, stdPort, null, 3, 0);
-    return vscr;
+    return start(theIP, stdPort, null, 3, 0);
   }
 
   public static VNCScreen start(String theIP, int thePort) {
@@ -81,15 +82,12 @@ public class VNCScreen extends Region implements IScreen {
     setRect(getBounds());
     initScreen(this);
 
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          client.processMessages();
-        } catch (RuntimeException e) {
-          if (isRunning()) {
-            throw e;
-          }
+    new Thread(() -> {
+      try {
+        client.processMessages();
+      } catch (RuntimeException e) {
+        if (isRunning()) {
+          throw e;
         }
       }
     }).start();

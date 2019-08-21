@@ -7,19 +7,10 @@
  */
 package org.sikuli.guide;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.lang.reflect.Array;
-
-import org.sikuli.basics.Debug;
 
 public class SxArrow extends Visual implements ComponentListener {
 
@@ -86,16 +77,12 @@ public class SxArrow extends Visual implements ComponentListener {
     double theta1;
     Object tempX1 = ((Array.get(xPoints, ((xPoints.length) - 2))));
     Object tempX2 = ((Array.get(xPoints, ((xPoints.length) - 1))));
-    Integer fooX1 = (Integer) tempX1;
-    int x1 = fooX1.intValue();
-    Integer fooX2 = (Integer) tempX2;
-    int x2 = fooX2.intValue();
+      int x1 = (Integer) tempX1;
+      int x2 = (Integer) tempX2;
     Object tempY1 = ((Array.get(yPoints, ((yPoints.length) - 2))));
     Object tempY2 = ((Array.get(yPoints, ((yPoints.length) - 1))));
-    Integer fooY1 = (Integer) tempY1;
-    int y1 = fooY1.intValue();
-    Integer fooY2 = (Integer) tempY2;
-    int y2 = fooY2.intValue();
+      int y1 = (Integer) tempY1;
+      int y2 = (Integer) tempY2;
     int deltaX = (x2 - x1);
     int deltaY = (y2 - y1);
     double theta = Math.atan((double) (deltaY) / (double) (deltaX));

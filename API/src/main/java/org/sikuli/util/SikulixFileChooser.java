@@ -4,19 +4,18 @@
 
 package org.sikuli.util;
 
-import java.awt.EventQueue;
-import java.awt.FileDialog;
-import java.awt.Frame;
-import java.io.File;
-//import java.io.FilenameFilter;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.io.File;
+
+//import java.io.FilenameFilter;
 
 public class SikulixFileChooser {
   static final int FILES = JFileChooser.FILES_ONLY;
@@ -38,19 +37,16 @@ public class SikulixFileChooser {
   private boolean fromPopFile = false;
 
   public File open() {
-    File selectedFile = show("Open a file or folder", LOAD, DIRSANDFILES);
-    return selectedFile;
+    return show("Open a file or folder", LOAD, DIRSANDFILES);
   }
 
   public File open(String title) {
     fromPopFile = true;
-    File selectedFile = show(title, LOAD, DIRSANDFILES);
-    return selectedFile;
+    return show(title, LOAD, DIRSANDFILES);
   }
 
   public File save() {
-    File selectedFile = show("Save a File or Folder", SAVE, DIRSANDFILES);
-    return selectedFile;
+    return show("Save a File or Folder", SAVE, DIRSANDFILES);
   }
 
   public File saveAs(String extension, boolean isBundle) {
@@ -71,14 +67,12 @@ public class SikulixFileChooser {
 
   public File export() {
     String title = "Export packed as .skl or .zip";
-    File ret = show(title, SAVE, FILES);
-    return ret;
+    return show(title, SAVE, FILES);
   }
 
   public File loadImage() {
-    File ret = show("Load Image File", LOAD, FILES,
+    return show("Load Image File", LOAD, FILES,
             new FileNameExtensionFilter("Image files (jpg, png)", "jpg", "jpeg", "png"));
-    return ret;
   }
 
   private File show(final String title, final int mode, final int theSelectionMode, Object... filters) {
@@ -139,8 +133,7 @@ public class SikulixFileChooser {
   private void processDialog(int selectionMode, String last_dir, String title, int mode, Object[] filters,
                              Object[] result) {
     JFileChooser fchooser = new JFileChooser();
-    File fileChoosen = null;
-    FileFilter filterChoosen = null;
+    File fileChoosen;
     if (!last_dir.isEmpty()) {
       fchooser.setCurrentDirectory(new File(last_dir));
     }
@@ -191,7 +184,7 @@ public class SikulixFileChooser {
 
     public SXFilter(String description, String type) {
       this.type = type;
-      if (type != SIKULI && type != FOLDER && type != GENERIC) {
+      if (!type.equals(SIKULI) && !type.equals(FOLDER) && !type.equals(GENERIC)) {
         extension = type;
         this.type = FILE;
       }

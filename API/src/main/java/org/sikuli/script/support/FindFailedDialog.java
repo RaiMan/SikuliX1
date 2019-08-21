@@ -5,18 +5,13 @@ package org.sikuli.script.support;
 
 import org.sikuli.script.FindFailedResponse;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Image;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.util.Objects;
 
 /**
  * INTERNAL USE
@@ -128,7 +123,7 @@ public class FindFailedDialog extends JDialog implements ActionListener {
     if (isCapture) {
       cause = new JLabel("Request to capture: " + img.getName());
     }
-    dialog.add(cause, BorderLayout.PAGE_START);
+      dialog.add(Objects.requireNonNull(cause), BorderLayout.PAGE_START);
     return dialog;
   }
 

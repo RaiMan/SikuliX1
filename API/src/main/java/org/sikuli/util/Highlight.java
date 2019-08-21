@@ -143,12 +143,7 @@ public class Highlight extends JFrame {
         dispose();
       }
     });
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        setVisible(true);
-      }
-    });
+      SwingUtilities.invokeLater(() -> setVisible(true));
     try {
       Thread.sleep((int) (secs * 1000));
     } catch (InterruptedException ex) {

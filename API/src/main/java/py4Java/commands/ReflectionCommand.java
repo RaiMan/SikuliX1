@@ -3,7 +3,9 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.*;
+import py4Java.reflection.ReflectionEngine;
+import py4Java.reflection.TypeUtil;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,14 +15,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
-import py4Java.Gateway;
-import py4Java.JVMView;
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.Py4JServerConnection;
-import py4Java.ReturnObject;
-import py4Java.reflection.ReflectionEngine;
-import py4Java.reflection.TypeUtil;
+import static py4Java.NetworkUtil.safeReadLine;
 
 /**
  * <p>
@@ -142,7 +137,7 @@ public class ReflectionCommand extends AbstractCommand {
 		String jvmId = reader.readLine();
 		JVMView view = (JVMView) Protocol.getObject(jvmId, this.gateway);
 		reader.readLine();
-		String returnCommand = null;
+        String returnCommand;
 		try {
 			// TODO APPEND CLASS NAME, because it might not be the fqn, but a
 			// new one because of imports!

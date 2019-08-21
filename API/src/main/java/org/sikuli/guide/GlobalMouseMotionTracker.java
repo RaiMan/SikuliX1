@@ -7,14 +7,13 @@
  */
 package org.sikuli.guide;
 
+import org.sikuli.script.Location;
+import org.sikuli.script.Mouse;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
-import javax.swing.Timer;
-
-import org.sikuli.script.Env;
-import org.sikuli.script.Location;
 
 public class GlobalMouseMotionTracker implements ActionListener {
 
@@ -34,7 +33,7 @@ public class GlobalMouseMotionTracker implements ActionListener {
    }
 
    ArrayList<GlobalMouseMotionListener> listeners
-   = new ArrayList<GlobalMouseMotionListener>();
+           = new ArrayList<>();
 
    public void addListener(GlobalMouseMotionListener listener){
       listeners.add(listener);
@@ -58,7 +57,7 @@ public class GlobalMouseMotionTracker implements ActionListener {
    @Override
    public void actionPerformed(ActionEvent arg) {
 
-      Location newLocation = Env.getMouseLocation();
+       Location newLocation = Mouse.at();
       //Debug.info("Mouse loction: " + newLocation);
 
       if (lastLocation != null){

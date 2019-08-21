@@ -7,11 +7,11 @@
  */
 package org.sikuli.guide;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import org.sikuli.script.Region;
 import org.sikuli.script.Image;
+import org.sikuli.script.Region;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class SxImage extends Visual {
 
@@ -59,8 +59,8 @@ public class SxImage extends Visual {
       return;
     }
     Graphics2D g2d = (Graphics2D) g;
-    int aw = w > getActualWidth() ? getActualWidth() : w;
-    int ah = h> getActualHeight() ? getActualHeight() : h;
+      int aw = Math.min(w, getActualWidth());
+      int ah = Math.min(h, getActualHeight());
     int ay = (int) ((getActualHeight() - ah)/2);
     g2d.drawImage(image, 0, ay, aw, ah, null);
     g2d.drawRect(0, 0, getActualWidth() - 1, getActualHeight() - 1);

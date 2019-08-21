@@ -4,16 +4,12 @@
 package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,9 +18,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class ExtensionManagerFrame extends JFrame {
 
@@ -125,6 +121,25 @@ public class ExtensionManagerFrame extends JFrame {
 
   }
 
+    private static String html2txt(String urlstring) throws IOException {
+        URL url = new URL(urlstring);
+        URLConnection yc = url.openConnection();
+        yc.setConnectTimeout(5000);
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                        yc.getInputStream()));
+        StringBuilder txt = new StringBuilder();
+        String inputLine;
+
+        while ((inputLine = in.readLine()) != null) {
+            txt.append(inputLine);
+        }
+        in.close();
+
+        return txt.toString();
+
+    }
+
   private ArrayList<ExtensionItem> retrieveExtensions() throws IOException {
 
     ArrayList<ExtensionItem> extensions = new ArrayList<ExtensionItem>();
@@ -137,7 +152,7 @@ public class ExtensionManagerFrame extends JFrame {
     Object obj = null; //JSONValue.parse(json);
     Map map = (Map) obj;
 
-    Map extension_list = (Map) map.get("extension-list");
+      Map extension_list = (Map) Objects.requireNonNull(map).get("extension-list");
     List exts = (List) extension_list.get("extensions");
 
     for (Object o : exts) {
@@ -154,25 +169,6 @@ public class ExtensionManagerFrame extends JFrame {
     }
 
     return extensions;
-  }
-
-  private static String html2txt(String urlstring) throws IOException {
-    URL url = new URL(urlstring);
-    URLConnection yc = url.openConnection();
-    yc.setConnectTimeout(5000);
-    BufferedReader in = new BufferedReader(
-            new InputStreamReader(
-            yc.getInputStream()));
-    String txt = "";
-    String inputLine;
-
-    while ((inputLine = in.readLine()) != null) {
-      txt = txt + inputLine;
-    }
-    in.close();
-
-    return txt;
-
   }
 
   protected void select(ExtensionItem ext) {
@@ -282,7 +278,7 @@ public class ExtensionManagerFrame extends JFrame {
       }
 
       JLabel iconLabel = new JLabel();
-      iconLabel.setIcon(new ImageIcon(image));
+        iconLabel.setIcon(new ImageIcon(Objects.requireNonNull(image)));
       iconLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
       _content.setLayout(new BorderLayout(5, 5));

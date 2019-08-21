@@ -3,14 +3,14 @@
  */
 package py4Java.commands;
 
+import py4Java.Protocol;
+import py4Java.Py4JException;
+import py4Java.ReturnObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.logging.Logger;
-
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.ReturnObject;
 
 public class ExceptionCommand extends AbstractCommand {
 
@@ -26,7 +26,7 @@ public class ExceptionCommand extends AbstractCommand {
 	@Override
 	public void execute(String commandName, BufferedReader reader, BufferedWriter writer)
 			throws Py4JException, IOException {
-		String returnCommand = null;
+        String returnCommand;
 		Throwable exception = (Throwable) Protocol.getObject(reader.readLine(), this.gateway);
 		// EOQ
 		reader.readLine();

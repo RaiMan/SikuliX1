@@ -600,7 +600,7 @@ class VNCRobot implements IRobot {
   }
 
   @Override
-  public int mouseUp(int buttons) {
+  public void mouseUp(int buttons) {
     if ((buttons & Mouse.LEFT) != 0) mouseButtons &= ~VNC_POINTER_EVENT_BUTTON_1;
     if ((buttons & Mouse.MIDDLE) != 0) mouseButtons &= ~VNC_POINTER_EVENT_BUTTON_2;
     if ((buttons & Mouse.RIGHT) != 0) mouseButtons &= ~VNC_POINTER_EVENT_BUTTON_3;
@@ -610,7 +610,6 @@ class VNCRobot implements IRobot {
     if ((mouseButtons & VNC_POINTER_EVENT_BUTTON_1) != 0) remainingButtons |= Mouse.LEFT;
     if ((mouseButtons & VNC_POINTER_EVENT_BUTTON_2) != 0) remainingButtons |= Mouse.MIDDLE;
     if ((mouseButtons & VNC_POINTER_EVENT_BUTTON_3) != 0) remainingButtons |= Mouse.RIGHT;
-    return remainingButtons;
   }
 
   @Override

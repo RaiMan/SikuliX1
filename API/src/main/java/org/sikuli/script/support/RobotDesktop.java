@@ -3,25 +3,14 @@
  */
 package org.sikuli.script.support;
 
-import org.sikuli.basics.Animator;
-import org.sikuli.basics.AnimatorOutQuarticEase;
-import org.sikuli.basics.AnimatorTimeBased;
-import org.sikuli.basics.Settings;
-import org.sikuli.basics.Debug;
-
 import com.sun.jna.platform.win32.BaseTSD;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import org.sikuli.basics.*;
 import org.sikuli.script.*;
 
-import java.awt.AWTException;
-import java.awt.Color;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
-import java.awt.Rectangle;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -196,7 +185,7 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public int mouseUp(int buttons) {
+  public void mouseUp(int buttons) {
     if (buttons == 0) {
       doMouseUp(heldButtons);
       heldButtons = 0;
@@ -204,7 +193,6 @@ public class RobotDesktop extends Robot implements IRobot {
       doMouseUp(buttons);
       heldButtons &= ~buttons;
     }
-    return heldButtons;
   }
 
   private void doMouseUp(int buttons) {
@@ -434,19 +422,19 @@ public class RobotDesktop extends Robot implements IRobot {
   private void doType(KeyMode mode, int... keyCodes) {
     waitForIdle();
     if (mode == KeyMode.PRESS_ONLY) {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyPress(keyCodes[i]);
+      for (int keyCode : keyCodes) {
+        doKeyPress(keyCode);
       }
     } else if (mode == KeyMode.RELEASE_ONLY) {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyRelease(keyCodes[i]);
+      for (int keyCode : keyCodes) {
+        doKeyRelease(keyCode);
       }
     } else {
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyPress(keyCodes[i]);
+      for (int keyCode : keyCodes) {
+        doKeyPress(keyCode);
       }
-      for (int i = 0; i < keyCodes.length; i++) {
-        doKeyRelease(keyCodes[i]);
+      for (int keyCode : keyCodes) {
+        doKeyRelease(keyCode);
       }
     }
     waitForIdle();

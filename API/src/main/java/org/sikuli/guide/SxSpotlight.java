@@ -7,15 +7,10 @@
  */
 package org.sikuli.guide;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-
 import org.sikuli.script.Region;
+
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public class SxSpotlight extends Visual{
 
@@ -79,8 +74,8 @@ public class SxSpotlight extends Visual{
          // adding visual ringing effect
          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
 
-         int ds[] =  {0,2,4,6};
-         float bs[] = {0.25f,0.15f,0.1f};
+          int[] ds = {0, 2, 4, 6};
+          float[] bs = {0.25f, 0.15f, 0.1f};
 
          for (int i = 0; i < 3; ++i){
             int d = ds[i];

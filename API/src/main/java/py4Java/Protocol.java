@@ -3,12 +3,12 @@
  */
 package py4Java;
 
+import py4Java.reflection.ReflectionUtil;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-
-import py4Java.reflection.ReflectionUtil;
 
 /**
  * <p>
@@ -137,7 +137,7 @@ public class Protocol {
 	 * @return The boolean value corresponding to this command part.
 	 */
 	public final static boolean getBoolean(String commandPart) {
-		return Boolean.parseBoolean(commandPart.substring(1, commandPart.length()));
+		return Boolean.parseBoolean(commandPart.substring(1));
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class Protocol {
 	 * @return The decimal value corresponding to this command part.
 	 */
 	public final static BigDecimal getDecimal(String commandPart) {
-		return new BigDecimal(commandPart.substring(1, commandPart.length()));
+		return new BigDecimal(commandPart.substring(1));
 	}
 
 	/**
@@ -173,18 +173,19 @@ public class Protocol {
 	 * @return The double value corresponding to this command part.
 	 */
 	public final static double getDouble(String commandPart) {
-		String doubleValue = commandPart.substring(1, commandPart.length());
+		String doubleValue = commandPart.substring(1);
 		try {
 			return Double.parseDouble(doubleValue);
 		} catch (NumberFormatException e) {
-			if (doubleValue.equals(PYTHON_INFINITY)) {
-				return Double.POSITIVE_INFINITY;
-			} else if (doubleValue.equals(PYTHON_NEGATIVE_INFINITY)) {
-				return Double.NEGATIVE_INFINITY;
-			} else if (doubleValue.equals(PYTHON_NAN)) {
-				return Double.NaN;
-			} else {
-				throw e;
+			switch (doubleValue) {
+				case PYTHON_INFINITY:
+					return Double.POSITIVE_INFINITY;
+				case PYTHON_NEGATIVE_INFINITY:
+					return Double.NEGATIVE_INFINITY;
+				case PYTHON_NAN:
+					return Double.NaN;
+				default:
+					throw e;
 			}
 		}
 	}
@@ -198,7 +199,7 @@ public class Protocol {
 	 * @return The integer value corresponding to this command part.
 	 */
 	public final static int getInteger(String commandPart) {
-		return Integer.parseInt(commandPart.substring(1, commandPart.length()));
+		return Integer.parseInt(commandPart.substring(1));
 	}
 
 	/**
@@ -210,30 +211,23 @@ public class Protocol {
 	 * @return The long value corresponding to this command part.
 	 */
 	public final static long getLong(String commandPart) {
-		return Long.parseLong(commandPart.substring(1, commandPart.length()));
+		return Long.parseLong(commandPart.substring(1));
 	}
 
 	public final static String getMemberOutputCommand(char memberType) {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append(RETURN_MESSAGE);
-		builder.append(SUCCESS);
-		builder.append(memberType);
-		builder.append(END_OUTPUT);
-
-		return builder.toString();
+		return String.valueOf(RETURN_MESSAGE) +
+				SUCCESS +
+				memberType +
+				END_OUTPUT;
 	}
 
 	public final static String getMemberOutputCommand(char memberType, String fqn) {
-		StringBuilder builder = new StringBuilder();
 
-		builder.append(RETURN_MESSAGE);
-		builder.append(SUCCESS);
-		builder.append(memberType);
-		builder.append(fqn);
-		builder.append(END_OUTPUT);
-
-		return builder.toString();
+		return String.valueOf(RETURN_MESSAGE) +
+				SUCCESS +
+				memberType +
+				fqn +
+				END_OUTPUT;
 	}
 
 	public static String getNoSuchFieldOutputCommand() {
@@ -312,33 +306,27 @@ public class Protocol {
 	}
 
 	public final static String getOutputErrorCommand(String errorMessage) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(RETURN_MESSAGE);
-		builder.append(ERROR);
-		builder.append(Protocol.STRING_TYPE);
-		builder.append(StringUtil.escape(errorMessage));
-		builder.append(END_OUTPUT);
-		return builder.toString();
+		return String.valueOf(RETURN_MESSAGE) +
+				ERROR +
+				Protocol.STRING_TYPE +
+				StringUtil.escape(errorMessage) +
+				END_OUTPUT;
 	}
 
 	public final static String getOutputErrorCommand(Throwable throwable) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(RETURN_MESSAGE);
-		builder.append(ERROR);
-		builder.append(Protocol.STRING_TYPE);
-		builder.append(StringUtil.escape(getThrowableAsString(throwable)));
-		builder.append(END_OUTPUT);
-		return builder.toString();
+		return String.valueOf(RETURN_MESSAGE) +
+				ERROR +
+				Protocol.STRING_TYPE +
+				StringUtil.escape(getThrowableAsString(throwable)) +
+				END_OUTPUT;
 	}
 
 	public final static String getOutputFatalErrorCommand(Throwable throwable) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(RETURN_MESSAGE);
-		builder.append(FATAL_ERROR);
-		builder.append(Protocol.STRING_TYPE);
-		builder.append(StringUtil.escape(getThrowableAsString(throwable)));
-		builder.append(END_OUTPUT);
-		return builder.toString();
+		return String.valueOf(RETURN_MESSAGE) +
+				FATAL_ERROR +
+				Protocol.STRING_TYPE +
+				StringUtil.escape(getThrowableAsString(throwable)) +
+				END_OUTPUT;
 	}
 
 	public final static String getOutputVoidCommand() {
@@ -346,15 +334,12 @@ public class Protocol {
 	}
 
 	public final static String getAuthCommand(String authToken) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(AUTH_COMMAND_NAME);
-		builder.append("\n");
-		builder.append(StringUtil.escape(authToken));
-		builder.append("\n");
-		builder.append(END);
-		builder.append("\n");
-
-		return builder.toString();
+		return AUTH_COMMAND_NAME +
+				"\n" +
+				StringUtil.escape(authToken) +
+				"\n" +
+				END +
+				"\n";
 	}
 
 	public static char getPrimitiveType(Object primitiveObject) {

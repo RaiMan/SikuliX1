@@ -3,9 +3,9 @@
  */
 package org.sikuli.basics;
 
-import java.awt.Dimension;
-import java.awt.Event;
-import java.awt.Point;
+import org.sikuli.script.Sikulix;
+
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,8 +15,6 @@ import java.util.Locale;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
-
-import org.sikuli.script.Sikulix;
 
 public class PreferencesUser {
 
@@ -135,8 +133,6 @@ public class PreferencesUser {
   }
 
   public void setCaptureHotkeyModifiers(int mod) {
-    if (mod < 0) {
-    }
     pref.putInt("CAPTURE_HOTKEY_MODIFIERS", mod);
   }
 

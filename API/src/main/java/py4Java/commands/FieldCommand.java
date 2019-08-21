@@ -3,7 +3,8 @@
  */
 package py4Java.commands;
 
-import static py4Java.NetworkUtil.safeReadLine;
+import py4Java.*;
+import py4Java.reflection.ReflectionEngine;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,12 +12,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.logging.Logger;
 
-import py4Java.Gateway;
-import py4Java.Protocol;
-import py4Java.Py4JException;
-import py4Java.Py4JServerConnection;
-import py4Java.ReturnObject;
-import py4Java.reflection.ReflectionEngine;
+import static py4Java.NetworkUtil.safeReadLine;
 
 /**
  * <p>
@@ -46,7 +42,7 @@ public class FieldCommand extends AbstractCommand {
 	@Override
 	public void execute(String commandName, BufferedReader reader, BufferedWriter writer)
 			throws Py4JException, IOException {
-		String returnCommand = null;
+        String returnCommand;
 		String subCommand = safeReadLine(reader, false);
 
 		if (subCommand.equals(FIELD_GET_SUB_COMMAND_NAME)) {
@@ -69,7 +65,7 @@ public class FieldCommand extends AbstractCommand {
 		Object object = gateway.getObject(targetObjectId);
 		Field field = reflectionEngine.getField(object, fieldName);
 		logger.finer("Getting field " + fieldName);
-		String returnCommand = null;
+        String returnCommand;
 		if (field == null) {
 			returnCommand = Protocol.getNoSuchFieldOutputCommand();
 		} else {
@@ -97,7 +93,7 @@ public class FieldCommand extends AbstractCommand {
 		Object object = gateway.getObject(targetObjectId);
 		Field field = reflectionEngine.getField(object, fieldName);
 		logger.finer("Setting field " + fieldName);
-		String returnCommand = null;
+        String returnCommand;
 		if (field == null) {
 			returnCommand = Protocol.getNoSuchFieldOutputCommand();
 		} else {

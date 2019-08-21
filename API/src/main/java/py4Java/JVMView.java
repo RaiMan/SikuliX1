@@ -3,14 +3,14 @@
  */
 package py4Java;
 
+import py4Java.reflection.TypeUtil;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import py4Java.reflection.TypeUtil;
 
 /**
  * <p>
@@ -111,7 +111,7 @@ public class JVMView {
 	}
 
 	public boolean removeSingleImport(String importString) {
-		boolean removed = false;
+        boolean removed;
 		String simpleName = TypeUtil.getName(importString, true);
 		removed = singleImportsMap.remove(simpleName, importString);
 		sequenceId.incrementAndGet();
@@ -138,7 +138,7 @@ public class JVMView {
 	 */
 	public String[] getImportedNames() {
 		Set<String> namesSet = singleImportsMap.keySet();
-		return (String[]) namesSet.toArray(new String[namesSet.size()]);
+        return namesSet.toArray(new String[namesSet.size()]);
 	}
 
 	/**

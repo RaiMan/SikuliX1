@@ -9,15 +9,12 @@ import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class ExtensionManager {
@@ -225,29 +222,7 @@ public class ExtensionManager {
             "# python = python\n";
   }
 
-  public static List<String> getExtensionNames() {
-    List<String> extensions = new ArrayList<>();
-    for (File extension : sxExtensions.listFiles()) {
-      String name = extension.getName();
-      if (name.startsWith(".") || !name.endsWith(".jar")) {
-        if (name.startsWith("extension_classpath.txt")) {
-          extensions.add(0, name);
-          List<String> classpath = new ArrayList<>();
-          List<String> content = Arrays.asList(FileManager.readFileToString(extension).split("\\n"));
-          for (String line : content) {
-            line = line.trim();
-            if (line.startsWith("#") || line.startsWith("//")) {
-              continue;
-            }
-            classpath.add(line);
-          }
-        }
-        continue;
-      }
-      extensions.add(name);
-    }
-    return extensions;
-  }
+  final static int WARNING_CANCEL = 2;
 
   static String jythonVersion = "2.7.1";
   private static boolean moveJython = false;
@@ -340,49 +315,18 @@ public class ExtensionManager {
             "\n" +
             "# lines beginning with # and blank lines are ignored and can be used as comments\n";
   }
-
-  public static void show() {
-    String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + sxExtensions +
-            "\n\nCurrent content:";
-    List<String> extensionNames = getExtensionNames();
-    for (String extension : extensionNames) {
-      warn += "\n" + extension;
-    }
-    if (hasExtensionsFile()) {
-      warn += "\n\nextensions.txt content:";
-      for (String extension : sxExtensionsFileContent) {
-        warn += "\n" + extension;
-      }
-    }
-    warn += "\n\n" + "see menu File -> Open Special Files";
-    String title = "SikuliX1 Extensions";
-    String[] options = new String[3];
-    options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "More ...";
-    options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-      return;
-    }
-  }
-
-  final static int WARNING_CANCEL = 2;
   final static int WARNING_ACCEPTED = 1;
   final static int WARNING_DO_NOTHING = 0;
-
   //<editor-fold desc="10 old handling">
   private static ExtensionManager _instance = null;
   private ArrayList<Extension> extensions;
   private File fExtensions = null;
-
   private ExtensionManager() {
     extensions = new ArrayList<Extension>();
     fExtensions = RunTime.get().fSikulixExtensions;
     Extension e;
     String path, name, version;
-    for (File d : fExtensions.listFiles()) {
+    for (File d : Objects.requireNonNull(fExtensions.listFiles())) {
       if (d.getAbsolutePath().endsWith(".jar")) {
         path = d.getAbsolutePath();
         name = d.getName();
@@ -396,6 +340,57 @@ public class ExtensionManager {
         e = new Extension(name, path, version);
         extensions.add(e);
       }
+    }
+  }
+
+  public static List<String> getExtensionNames() {
+    List<String> extensions = new ArrayList<>();
+    for (File extension : Objects.requireNonNull(sxExtensions.listFiles())) {
+      String name = extension.getName();
+      if (name.startsWith(".") || !name.endsWith(".jar")) {
+        if (name.startsWith("extension_classpath.txt")) {
+          extensions.add(0, name);
+          List<String> classpath = new ArrayList<>();
+          String[] content = FileManager.readFileToString(extension).split("\\n");
+          for (String line : content) {
+            line = line.trim();
+            if (line.startsWith("#") || line.startsWith("//")) {
+              continue;
+            }
+            classpath.add(line);
+          }
+        }
+        continue;
+      }
+      extensions.add(name);
+    }
+    return extensions;
+  }
+
+  public static void show() {
+    StringBuilder warn = new StringBuilder("Nothing to do here currently - click what you like ;-)\n" +
+            "\nExtensions folder: \n" + sxExtensions +
+            "\n\nCurrent content:");
+    List<String> extensionNames = getExtensionNames();
+    for (String extension : extensionNames) {
+      warn.append("\n").append(extension);
+    }
+    if (hasExtensionsFile()) {
+      warn.append("\n\nextensions.txt content:");
+      for (String extension : sxExtensionsFileContent) {
+        warn.append("\n").append(extension);
+      }
+    }
+    warn.append("\n\n" + "see menu File -> Open Special Files");
+    String title = "SikuliX1 Extensions";
+    String[] options = new String[3];
+    options[WARNING_DO_NOTHING] = "OK";
+    options[WARNING_ACCEPTED] = "More ...";
+    options[WARNING_CANCEL] = "Cancel";
+    int ret = JOptionPane.showOptionDialog(null, warn.toString(), title,
+            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+      return;
     }
   }
 

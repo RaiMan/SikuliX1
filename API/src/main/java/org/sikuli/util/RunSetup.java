@@ -6,9 +6,9 @@ package org.sikuli.util;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Screen;
 import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -355,11 +355,11 @@ public class RunSetup {
       log(lvl, "Seems to be run using mvn exec:exec");
     } else {
       log(lvl, "command line options:");
-      String strArgs = "";
+      StringBuilder strArgs = new StringBuilder();
       for (String arg : args) {
-        strArgs += arg + " ";
+        strArgs.append(arg).append(" ");
       }
-      log(lvl, "%s", strArgs);
+      log(lvl, "%s", strArgs.toString());
     }
 
     //<editor-fold defaultstate="collapsed" desc="general preps">
@@ -1222,14 +1222,14 @@ public class RunSetup {
   }
 
   private static String arrayToString(String[] args) {
-    String ret = "";
+    StringBuilder ret = new StringBuilder();
     for (String s : args) {
       if (s.contains(" ")) {
         s = "\"" + s + "\"";
       }
-      ret += s + " ";
+      ret.append(s).append(" ");
     }
-    return ret;
+    return ret.toString();
   }
 
   private static void finalCleanup() {
@@ -1305,7 +1305,7 @@ public class RunSetup {
     downloadsLookfor.put("tess", "tesseract");
     downloadsFound.put("tess", null);
 
-    String doubleFiles = "";
+    StringBuilder doubleFiles = new StringBuilder();
     for (File aFolder : new File[]{
             fWorkDir, fDownloadsObsolete, fDownloadsGenericApp, fDownloadsGeneric}) {
       File[] filesContained = aFolder.listFiles(new FilenameFilter() {
@@ -1333,7 +1333,7 @@ public class RunSetup {
                 downloadsFound.put(prefix, aFile);
               } else {
                 if (aFile.getParentFile().equals(downloadsFound.get(prefix).getParentFile())) {
-                  doubleFiles += aFile + "\n";
+                  doubleFiles.append(aFile).append("\n");
                 }
               }
             }
@@ -1349,7 +1349,7 @@ public class RunSetup {
         log(lvl, "checkDownloads: not found: %s", prefix);
       }
     }
-    if (!doubleFiles.isEmpty()) {
+    if (doubleFiles.length() > 0) {
       popError("The following files are double or even more often found in the\n"
               + "respective folders setup checks before downloading new artefacts:\n" + doubleFiles +
               "Please check and take care, that only one version of these files is found.\n"
@@ -1397,7 +1397,7 @@ public class RunSetup {
       FileManager.resetFolder(fDownloadsGenericApp);
       success &= FileManager.xcopy(fSetup, new File(fTargetDir, localSetup));
       if (success) {
-        for (String sFile : fTargetDir.list()) {
+        for (String sFile : Objects.requireNonNull(fTargetDir.list())) {
           if (sFile.contains("sikulixsetup") &&
                   sFile.contains("-project") &&
                   !sFile.contains(localSetup)) {
@@ -1617,7 +1617,6 @@ public class RunSetup {
     if (hasOptions) {
       logPlus(lvl, "SilentSetup: Downloading: %s", itemName);
       fname = FileManager.downloadURL(dlSource, tDir, null);
-    } else {
     }
     if (null == fname) {
       return null;
