@@ -9,10 +9,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -304,7 +303,7 @@ public class SikulixServer {
   }
 
   private static Undertow createServer(int port, String ipAddr) {
-    StopCommand stop = new StopCommand();
+    ControllerCommand controller = new ControllerCommand();
     TasksCommand tasks = new TasksCommand();
     ScriptsCommand scripts = new ScriptsCommand(tasks);
     GroupsCommand groups = new GroupsCommand(scripts);
@@ -314,7 +313,7 @@ public class SikulixServer {
     resource.addWelcomeFiles("ControlBox.html");
 
     RoutingHandler commands = Handlers.routing()
-            .addAll(stop.getRouting())
+            .addAll(controller.getRouting())
             .addAll(tasks.getRouting())
             .addAll(scripts.getRouting())
             .addAll(groups.getRouting())
@@ -330,11 +329,15 @@ public class SikulixServer {
     return server;
   }
 
-  private static class StopCommand extends AbstractCommand {
-    public StopCommand() {
+  private static class ControllerCommand extends AbstractCommand {
+    public ControllerCommand() {
       getRouting()
           .add(Methods.GET, "/stop", stop)
-          .add(Methods.POST, "/stop", stop);
+          .add(Methods.POST, "/stop", stop)
+          .add(Methods.GET, "/pause", pause)
+          .add(Methods.POST, "/pause", pause)
+          .add(Methods.GET, "/resume", resume)
+          .add(Methods.POST, "/resume", resume);
     }
 
     private HttpHandler stop = exchange -> {
@@ -345,6 +348,22 @@ public class SikulixServer {
         lock.notify();
       }
       getTaskManager().stop();
+    };
+
+    private HttpHandler pause = exchange -> {
+      if (getTaskManager().pause()) {
+        sendResponse(exchange, StatusCodes.OK, new SimpleResponse("pause the script execution after the currently running script ends"));
+      } else {
+        sendResponse(exchange, StatusCodes.ACCEPTED, new SimpleResponse("the script execution is already paused"));
+      }
+    };
+
+    private HttpHandler resume = exchange -> {
+      if (getTaskManager().resume()) {
+        sendResponse(exchange, StatusCodes.OK, new SimpleResponse("resumed the script execution"));
+      } else {
+        sendResponse(exchange, StatusCodes.ACCEPTED, new SimpleResponse("the script execution is already resumed"));
+      }
     };
   }
 
@@ -425,37 +444,42 @@ public class SikulixServer {
         int statusCode = StatusCodes.OK;
         Object responseObject = null;
 
-        String id = generateTaskId(exchange);
-        String groupName = getCurrentGroup(exchange);
-        String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-        String[] scriptArgs = getQueryAndToArgs(exchange);
+        if (getTaskManager().isPaused()) {
+          responseObject = new ErrorResponse(String.format("the script execution is paused"));
+          statusCode = StatusCodes.NOT_ACCEPTABLE;
+        } else {
+          String id = generateTaskId(exchange);
+          String groupName = getCurrentGroup(exchange);
+          String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+          String[] scriptArgs = getQueryAndToArgs(exchange);
 
-        Task task = null;
-        try {
-          task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
-        } catch(Exception ex) {
-          responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex.getMessage()));
-          statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-        }
-        if (task != null) {
-          int retval = task.exitCode;
-          switch(retval) {
-            case Runner.FILE_NOT_FOUND:
-              responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
-              statusCode = StatusCodes.NOT_FOUND;
-              break;
-            case Runner.NOT_SUPPORTED:
-              responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
-              statusCode = StatusCodes.NOT_FOUND;
-              break;
-            default:
-              if (retval < 0 || 255 < retval) {
-                responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
-                statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-              } else {
-                responseObject = task;
-              }
-              break;
+          Task task = null;
+          try {
+            task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
+          } catch(Exception ex) {
+            responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex.getMessage()));
+            statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+          }
+          if (task != null) {
+            int retval = task.exitCode;
+            switch(retval) {
+              case Runner.FILE_NOT_FOUND:
+                responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
+                statusCode = StatusCodes.NOT_FOUND;
+                break;
+              case Runner.NOT_SUPPORTED:
+                responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
+                statusCode = StatusCodes.NOT_FOUND;
+                break;
+              default:
+                if (retval < 0 || 255 < retval) {
+                  responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
+                  statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+                } else {
+                  responseObject = task;
+                }
+                break;
+            }
           }
         }
         sendResponse(exchange, statusCode, responseObject);
@@ -656,21 +680,30 @@ public class SikulixServer {
 
   private static class TaskManager {
     private LinkedHashMap<String, Task> allTasks;
-    private BlockingQueue<Task> queue;
+    private LinkedBlockingDeque<Task> queue;
     private boolean shouldStop;
+    private boolean shouldPause;
+    private Object lock;
     private ExecutorService executor;
 
     public TaskManager() {
       allTasks = new LinkedHashMap<>();
-      queue = new LinkedBlockingQueue<Task>();
+      queue = new LinkedBlockingDeque<>();
       shouldStop = false;
+      shouldPause = false;
       executor = Executors.newSingleThreadExecutor();
+      lock = new Object();
       executor.execute(() -> {
         while (!shouldStop) {
           Task task = null;
           try {
+            synchronized(lock) {
+              while (shouldPause) {
+                lock.wait();
+              }
+            }
             task = queue.take();
-            if ("shouldStop".equals(task.id)) {
+            if ("shouldStop".equals(task.id) || "shouldPause".equals(task.id)) {
               // NOOP
             } else {
               synchronized(task) {
@@ -768,7 +801,7 @@ public class SikulixServer {
 
     public void stop() {
       shouldStop = true;
-      queue.add(new Task("shouldStop", null, null, null));
+      queue.addFirst(new Task("shouldStop", null, null, null));
       executor.shutdown();
       while(!executor.isTerminated()) {
         try {
@@ -777,6 +810,34 @@ public class SikulixServer {
           e.printStackTrace();
         }
       }
+    }
+
+    public boolean pause() {
+      synchronized(lock) {
+        if (shouldPause) {
+          return false;
+        } else {
+          shouldPause = true;
+          queue.addFirst(new Task("shouldPause", null, null, null));
+          return true;
+        }
+      }
+    }
+
+    public boolean resume() {
+      synchronized(lock) {
+        if (shouldPause) {
+          shouldPause = false;
+          lock.notify();
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+
+    public boolean isPaused() {
+      return shouldPause;
     }
   }
 
