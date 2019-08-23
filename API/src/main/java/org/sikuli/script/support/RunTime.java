@@ -10,15 +10,14 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-//import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.ScreenHighlighter;
 import org.sikuli.vnc.VNCScreen;
-import py4Java.GatewayServer;
+import py4j.GatewayServer;
 
 import java.awt.*;
 import java.io.*;
@@ -37,6 +36,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+//import org.sikuli.script.runners.JythonRunner;
 
 /**
  * INTERNAL USE --- NOT official API<br>
