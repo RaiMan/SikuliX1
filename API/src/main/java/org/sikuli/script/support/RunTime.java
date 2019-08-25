@@ -231,31 +231,11 @@ public class RunTime {
       startPythonServer();
     }
 
-//TODO deactivate after SikulixServer is integrated
-//    if (shouldRunServer()) {
-//      ServerRunner.run(getSXArgs());
-//      Sikulix.terminate();
-//    }
-//TODO activate after SikulixServer is integrated
     if (shouldRunServer()) {
       if (!SikulixServer.run()) {
         Sikulix.terminate(1, "SikulixServer: terminated with errors");
       }
       Sikulix.terminate();
-    }
-//TODO activate after SikulixServer is integrated
-//    if (shouldRunServer()) {
-//      if (!SikulixServer.run()) {
-//        Sikulix.terminate(1, "SikulixServer: terminated with errors");
-//      }
-//      Sikulix.terminate();
-//    }
-
-    if (shouldRunPythonServer()) {
-      get().installStopHotkeyPythonServer();
-      if (Debug.getDebugLevel() == 3) {
-      }
-      startPythonServer();
     }
   }
 
