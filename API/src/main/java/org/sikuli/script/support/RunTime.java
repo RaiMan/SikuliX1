@@ -10,7 +10,6 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -35,6 +34,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static jdk.internal.joptsimple.internal.Reflection.invoke;
 
 /**
  * INTERNAL USE --- NOT official API<br>
@@ -229,9 +230,30 @@ public class RunTime {
       startPythonServer();
     }
 
-//TODO revise after SikulixServer is integrated
+//TODO simplify, when SikulixServer is implemented
     if (shouldRunServer()) {
-      ServerRunner.run(getSXArgs());
+      Class cServer = null;
+      try {
+        cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
+        Method mRun = cServer.getMethod("run");
+        String[] sxArgs = getSXArgs();
+        mRun.invoke(null);
+        Sikulix.terminate();
+      } catch (ClassNotFoundException e) {
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      }
+      try {
+        cServer = Class.forName("org.sikuli.script.support.SikulixServer");
+        if (!(Boolean) cServer.getMethod("run").invoke(null)) {
+          Sikulix.terminate(1, "SikulixServer: terminated with errors");
+        }
+      } catch (ClassNotFoundException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (NoSuchMethodException e) {
+      }
       Sikulix.terminate();
     }
   }
