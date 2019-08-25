@@ -18,7 +18,7 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
-import py4Java.GatewayServer;
+//import py4Java.GatewayServer;
 
 import java.awt.*;
 import java.io.*;
@@ -259,16 +259,53 @@ public class RunTime {
   }
 
   public static void startPythonServer() {
-    if (null == pythonServer) {
-      pythonServer = new GatewayServer();
-      pythonServer.start(false);
+    if (!isRunningPyServer()) {
+      Method mPythonServerStart = null;
+      try {
+        cPythonServer = Class.forName("py4j.GatewayServer");
+        pythonServer = cPythonServer.getConstructor().newInstance();//new GatewayServer();
+      } catch (ClassNotFoundException | NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InstantiationException e) {
+      } catch (InvocationTargetException e) {
+      }
+      if (pythonServer != null) {
+        try {
+          //pythonServer.start(false);
+          mPythonServerStart = cPythonServer.getMethod("start", boolean.class);
+        } catch (NoSuchMethodException e) {
+          Debug.error("Python server could not be started");
+          Sikulix.terminate();
+        }
+      } else {
+        Debug.error("Python server: py4j not on classpath");
+        Sikulix.terminate();
+      }
+      try {
+        Debug.logp("Python server: trying to start on localhost");
+        //pythonServer.start(false);
+        mPythonServerStart.invoke(pythonServer, false);
+      } catch (IllegalAccessException e) {
+        Debug.error("Python server could not be started");
+        Sikulix.terminate();
+      } catch (InvocationTargetException e) {
+        Debug.error("Python server could not be started");
+        Sikulix.terminate();
+      }
     }
   }
 
   public static void stopPythonServer() {
-    if (null != pythonServer) {
-      pythonServer.shutdown();
-      pythonServer = null;
+    if (isRunningPyServer()) {
+      try {
+        Debug.logp("Python server: trying to stop");
+        //pythonServer.shutdown();
+        cPythonServer.getMethod("shutdown").invoke(pythonServer);
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      }
+      pythonServer =  null;
     }
   }
 
@@ -276,7 +313,8 @@ public class RunTime {
     return null != pythonServer;
   }
 
-  private static GatewayServer pythonServer = null;
+  private static Class cPythonServer = null;
+  private static Object pythonServer = null;
 
   public static File asFolder(String option) {
     if (null == option) {
@@ -474,7 +512,7 @@ public class RunTime {
         shouldRunScript = true;
       } else if ("-s".equals(arg)) {
         asServer = true;
-      }  else if ("-p".equals(arg)) {
+      } else if ("-p".equals(arg)) {
         asPyServer = true;
       }
     }
