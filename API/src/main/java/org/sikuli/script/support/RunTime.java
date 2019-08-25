@@ -14,7 +14,6 @@ import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
@@ -229,13 +228,6 @@ public class RunTime {
       if (Debug.getDebugLevel() == 3) {
       }
       startPythonServer();
-    }
-
-    if (shouldRunServer()) {
-      if (!SikulixServer.run()) {
-        Sikulix.terminate(1, "SikulixServer: terminated with errors");
-      }
-      Sikulix.terminate();
     }
   }
 
