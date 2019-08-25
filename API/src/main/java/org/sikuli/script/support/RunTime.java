@@ -10,7 +10,6 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-//import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
@@ -18,7 +17,6 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
-import py4Java.GatewayServer;
 
 import java.awt.*;
 import java.io.*;
@@ -224,24 +222,17 @@ public class RunTime {
       Sikulix.terminate(exitCode, "");
     }
 
-//TODO deactivate after SikulixServer is integrated
-    if (shouldRunServer()) {
-      ServerRunner.run(getSXArgs());
-      Sikulix.terminate();
-    }
-//TODO activate after SikulixServer is integrated
-//    if (shouldRunServer()) {
-//      if (!SikulixServer.run()) {
-//        Sikulix.terminate(1, "SikulixServer: terminated with errors");
-//      }
-//      Sikulix.terminate();
-//    }
-
     if (shouldRunPythonServer()) {
       get().installStopHotkeyPythonServer();
       if (Debug.getDebugLevel() == 3) {
       }
       startPythonServer();
+    }
+
+//TODO revise after SikulixServer is integrated
+    if (shouldRunServer()) {
+      ServerRunner.run(getSXArgs());
+      Sikulix.terminate();
     }
   }
 
@@ -259,14 +250,21 @@ public class RunTime {
   }
 
   public static void startPythonServer() {
-    if (null == pythonServer) {
-      pythonServer = new GatewayServer();
+    if (!isRunningPyServer()) {
+      try {
+        Class.forName("py4j.GatewayServer");
+        pythonServer = new py4j.GatewayServer();
+      } catch (ClassNotFoundException e) {
+        Debug.error("Python server: py4j not on classpath");
+        Sikulix.terminate();
+      }
       pythonServer.start(false);
     }
   }
 
   public static void stopPythonServer() {
-    if (null != pythonServer) {
+    if (isRunningPyServer()) {
+      Debug.logp("Python server: trying to stop");
       pythonServer.shutdown();
       pythonServer = null;
     }
@@ -276,7 +274,7 @@ public class RunTime {
     return null != pythonServer;
   }
 
-  private static GatewayServer pythonServer = null;
+  private static py4j.GatewayServer pythonServer = null;
 
   public static File asFolder(String option) {
     if (null == option) {
@@ -474,7 +472,7 @@ public class RunTime {
         shouldRunScript = true;
       } else if ("-s".equals(arg)) {
         asServer = true;
-      }  else if ("-p".equals(arg)) {
+      } else if ("-p".equals(arg)) {
         asPyServer = true;
       }
     }

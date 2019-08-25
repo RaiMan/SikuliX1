@@ -103,6 +103,9 @@ public class ExtensionManager {
             if (pExtension.contains(jrubyVersion)) {
               jrubyReady = true;
             }
+          } else if (pExtension.contains("py4j")) {
+          } else {
+            continue;
           }
           classPath += pExtension;
           RunTime.startLog(1, "adding extension: %s", fExtension);
