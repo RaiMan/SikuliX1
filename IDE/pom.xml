@@ -63,6 +63,12 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <groupId>net.sf.py4j</groupId>
+      <artifactId>py4j</artifactId>
+      <version>0.10.8.1</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
       <version>0.9.5</version>
@@ -88,7 +94,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.8.1</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -96,7 +102,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.1.1</version>
         <configuration>
           <archive>
             <manifest>
