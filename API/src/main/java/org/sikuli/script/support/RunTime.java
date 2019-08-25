@@ -10,7 +10,6 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -229,10 +228,13 @@ public class RunTime {
       startPythonServer();
     }
 
-//TODO revise after SikulixServer is integrated
     if (shouldRunServer()) {
-      ServerRunner.run(getSXArgs());
-      Sikulix.terminate();
+      try {
+        Class.forName("org.sikuli.script.runners.ServerRunner");
+        org.sikuli.script.runners.ServerRunner.run(getSXArgs());
+        Sikulix.terminate();
+      } catch (ClassNotFoundException e) {
+      }
     }
   }
 
