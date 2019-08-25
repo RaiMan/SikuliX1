@@ -10,7 +10,6 @@ import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-//import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.ServerRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
@@ -18,7 +17,6 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
-//import py4Java.GatewayServer;
 
 import java.awt.*;
 import java.io.*;
@@ -224,6 +222,13 @@ public class RunTime {
       Sikulix.terminate(exitCode, "");
     }
 
+    if (shouldRunPythonServer()) {
+      get().installStopHotkeyPythonServer();
+      if (Debug.getDebugLevel() == 3) {
+      }
+      startPythonServer();
+    }
+
 //TODO deactivate after SikulixServer is integrated
     if (shouldRunServer()) {
       ServerRunner.run(getSXArgs());
@@ -236,13 +241,6 @@ public class RunTime {
 //      }
 //      Sikulix.terminate();
 //    }
-
-    if (shouldRunPythonServer()) {
-      get().installStopHotkeyPythonServer();
-      if (Debug.getDebugLevel() == 3) {
-      }
-      startPythonServer();
-    }
   }
 
   public void installStopHotkeyPythonServer() {
@@ -260,52 +258,22 @@ public class RunTime {
 
   public static void startPythonServer() {
     if (!isRunningPyServer()) {
-      Method mPythonServerStart = null;
       try {
-        cPythonServer = Class.forName("py4j.GatewayServer");
-        pythonServer = cPythonServer.getConstructor().newInstance();//new GatewayServer();
-      } catch (ClassNotFoundException | NoSuchMethodException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InstantiationException e) {
-      } catch (InvocationTargetException e) {
-      }
-      if (pythonServer != null) {
-        try {
-          //pythonServer.start(false);
-          mPythonServerStart = cPythonServer.getMethod("start", boolean.class);
-        } catch (NoSuchMethodException e) {
-          Debug.error("Python server could not be started");
-          Sikulix.terminate();
-        }
-      } else {
+        Class.forName("py4j.GatewayServer");
+        pythonServer = new py4j.GatewayServer();
+      } catch (ClassNotFoundException e) {
         Debug.error("Python server: py4j not on classpath");
         Sikulix.terminate();
       }
-      try {
-        Debug.logp("Python server: trying to start on localhost");
-        //pythonServer.start(false);
-        mPythonServerStart.invoke(pythonServer, false);
-      } catch (IllegalAccessException e) {
-        Debug.error("Python server could not be started");
-        Sikulix.terminate();
-      } catch (InvocationTargetException e) {
-        Debug.error("Python server could not be started");
-        Sikulix.terminate();
-      }
+      pythonServer.start(false);
     }
   }
 
   public static void stopPythonServer() {
     if (isRunningPyServer()) {
-      try {
-        Debug.logp("Python server: trying to stop");
-        //pythonServer.shutdown();
-        cPythonServer.getMethod("shutdown").invoke(pythonServer);
-      } catch (NoSuchMethodException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      }
-      pythonServer =  null;
+      Debug.logp("Python server: trying to stop");
+      pythonServer.shutdown();
+      pythonServer = null;
     }
   }
 
@@ -313,8 +281,7 @@ public class RunTime {
     return null != pythonServer;
   }
 
-  private static Class cPythonServer = null;
-  private static Object pythonServer = null;
+  private static py4j.GatewayServer pythonServer = null;
 
   public static File asFolder(String option) {
     if (null == option) {
