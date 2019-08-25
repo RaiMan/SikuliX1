@@ -69,10 +69,7 @@ public class ServerRunner extends AbstractScriptRunner {
   static File isRunning = null;
   static FileOutputStream isRunningFile = null;
 
-  public static boolean run(String[] args) {
-		if (args == null) {
-			args = new String[0];
-		}
+  public static boolean run() {
     String userArgs = "";
     for (String userArg : RunTime.getUserArgs()) {
       userArgs += userArg + " ";
@@ -80,7 +77,7 @@ public class ServerRunner extends AbstractScriptRunner {
     if (!userArgs.isEmpty()) {
       userArgs = "\nWith User parameters: " + userArgs;
     }
-    int port = getPort(args.length > 0 ? args[0] : null);
+    int port = getPort(null);
     try {
       try {
         if (port > 0) {

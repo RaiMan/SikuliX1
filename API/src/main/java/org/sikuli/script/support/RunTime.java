@@ -35,6 +35,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static jdk.internal.joptsimple.internal.Reflection.invoke;
+
 /**
  * INTERNAL USE --- NOT official API<br>
  * not as is in version 2
@@ -228,13 +230,31 @@ public class RunTime {
       startPythonServer();
     }
 
+//TODO simplify, when SikulixServer is implemented
     if (shouldRunServer()) {
+      Class cServer = null;
       try {
-        Class.forName("org.sikuli.script.runners.ServerRunner");
-        org.sikuli.script.runners.ServerRunner.run(getSXArgs());
+        cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
+        Method mRun = cServer.getMethod("run");
+        String[] sxArgs = getSXArgs();
+        mRun.invoke(null);
         Sikulix.terminate();
       } catch (ClassNotFoundException e) {
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
       }
+      try {
+        cServer = Class.forName("org.sikuli.script.support.SikulixServer");
+        if (!(Boolean) cServer.getMethod("run").invoke(null)) {
+          Sikulix.terminate(1, "SikulixServer: terminated with errors");
+        }
+      } catch (ClassNotFoundException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (NoSuchMethodException e) {
+      }
+      Sikulix.terminate();
     }
   }
 
