@@ -112,11 +112,6 @@
             <!--License Apache 2-->
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
-        </dependency>
-        <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
             <version>5.3.1</version>
@@ -146,6 +141,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-nop</artifactId>
             <version>1.7.28</version>
+        </dependency>
+        <!-- special deps for branch -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
         </dependency>
         <dependency>
             <groupId>io.undertow</groupId>
@@ -242,6 +243,9 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
                         <version>3.1.0</version>
+                        <configuration>
+                            <excludeResources>true</excludeResources>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -270,8 +274,11 @@
                             <use>false</use>
                             <source>1.8</source>
                             <excludePackageNames>
-                                org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb:py4Java
+                                org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb
                             </excludePackageNames>
+                            <!--          needed when run inside Intellij IDEA
+                                          <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                            -->
                         </configuration>
                         <executions>
                             <execution>

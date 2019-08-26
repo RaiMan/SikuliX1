@@ -233,9 +233,7 @@ public class RunTime {
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
-        Method mRun = cServer.getMethod("run");
-        String[] sxArgs = getSXArgs();
-        mRun.invoke(null);
+        cServer.getMethod("run").invoke(null);
         Sikulix.terminate();
       } catch (ClassNotFoundException e) {
       } catch (NoSuchMethodException e) {
