@@ -247,7 +247,7 @@
               <use>false</use>
               <source>1.8</source>
               <excludePackageNames>
-                org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb:sikulixlibs:sikulixtessdata
+                org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb
               </excludePackageNames>
 <!--          needed when run inside Intellij IDEA
               <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
