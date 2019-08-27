@@ -438,12 +438,26 @@ public class SikulixServer {
               delegate)
           .add(Methods.PUT, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/tasks(/.*)*$"),
-              delegate);
+              delegate)
+          .add(Methods.GET, "/scripts/*", 
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/([^/].*)?[^/]$"),
+              getScript);
     }
 
     private HttpHandler getScripts = exchange -> {
       String groupName = getCurrentGroup(exchange);
       sendResponse(exchange, StatusCodes.OK, getScriptsList(groups.get(groupName)));
+    };
+
+    private HttpHandler getScript = exchange -> {
+      String groupName = getCurrentGroup(exchange);
+      String scriptName = exchange.getQueryParameters().get("*").getLast();
+      Optional<ObjectNode> result = getScriptInfo(groupName, scriptName);
+      if (result.isPresent()) {
+        sendResponse(exchange, StatusCodes.OK, result.get());
+      } else {
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse(String.format("script not found '%s'", scriptName)));
+      }
     };
 
     private HttpHandler run = exchange -> {
@@ -545,6 +559,21 @@ public class SikulixServer {
         }
       }
       return result;
+    }
+
+    private Optional<ObjectNode> getScriptInfo(String groupName, String scriptName) {
+      RunTime.get().fWorkDir = groups.get(groupName);
+      String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
+      if (!scripts[0].startsWith("?")) {
+        ObjectNode result = getObjectMapper().createObjectNode();
+        result.put("name", scriptName)
+              .put("group", groupName)
+              .put("type", Runner.getRunner(scripts[0]).getType())
+              .put("file", scripts[0]);
+        return Optional.of(result);
+      } else {
+        return Optional.empty();
+      }
     }
 
     private String generateTaskId(final HttpServerExchange exchange) {
