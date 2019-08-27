@@ -422,6 +422,8 @@ public class SikulixServer {
     public ScriptsCommand(TasksCommand tasks) {
       this.tasks = tasks;
       getRouting()
+          .add(Methods.GET, "/scripts", 
+              getScripts)
           .add(Methods.GET, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/run$"),
               run)
@@ -438,6 +440,11 @@ public class SikulixServer {
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/tasks(/.*)*$"),
               delegate);
     }
+
+    private HttpHandler getScripts = exchange -> {
+      String groupName = getCurrentGroup(exchange);
+      sendResponse(exchange, StatusCodes.OK, getScriptsList(groups.get(groupName)));
+    };
 
     private HttpHandler run = exchange -> {
       exchange.dispatch(() -> {
@@ -518,6 +525,27 @@ public class SikulixServer {
       exchange.putAttachment(KEY, attachment);
       tasks.getRouting().handleRequest(exchange); 
     };
+
+    private List<ObjectNode> getScriptsList(File base) {
+      ObjectMapper mapper = getObjectMapper();
+      List<ObjectNode> result = new ArrayList<>();
+      for (File entry : base.listFiles()) {
+        if (entry.isDirectory()) {
+          File script = Runner.getScriptFile(entry);
+          if (script != null) {
+            result.add(mapper.createObjectNode().put("name", entry.getName().replaceFirst("\\.sikuli$", ""))
+                                                .put("type", Runner.getRunner(script.getAbsolutePath()).getType()));
+          } else {
+            List<ObjectNode> sub = getScriptsList(entry);
+            sub.forEach(s -> {
+              result.add(mapper.createObjectNode().put("name", entry.getName() + "/" + s.get("name").asText())
+                                                  .put("type", s.get("type").asText()));
+            });
+          }
+        }
+      }
+      return result;
+    }
 
     private String generateTaskId(final HttpServerExchange exchange) {
       return String.format("%03d-%x", exchange.getIoThread().getNumber(), exchange.getRequestStartTime());
