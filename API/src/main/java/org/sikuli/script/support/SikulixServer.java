@@ -830,7 +830,7 @@ public class SikulixServer {
 
     private Task request(final String id, final String groupName, final String scriptName, 
         final String[] scriptArgs, boolean isAsync) throws Exception {
-      Task request = new Task(id, groupName, scriptName, scriptArgs);
+      Task request = new Task(id, groupName, scriptName, scriptArgs, isAsync);
       synchronized(allTasks) {
         allTasks.put(request.id, request);
         queue.put(request);
@@ -866,7 +866,7 @@ public class SikulixServer {
 
     public void stop() {
       shouldStop = true;
-      queue.addFirst(new Task("shouldStop", null, null, null));
+      queue.addFirst(new Task("shouldStop", null, null, null, true));
       executor.shutdown();
       while(!executor.isTerminated()) {
         try {
@@ -883,7 +883,7 @@ public class SikulixServer {
           return false;
         } else {
           shouldPause = true;
-          queue.addFirst(new Task("shouldPause", null, null, null));
+          queue.addFirst(new Task("shouldPause", null, null, null, true));
           return true;
         }
       }
@@ -911,16 +911,20 @@ public class SikulixServer {
     public final String groupName;
     public final String scriptName;
     public final String[] scriptArgs;
+    @SuppressWarnings("unused")
+    public final boolean isAsync;
     public Status status;
     public Date startDate;
     public Date endDate;
     public int exitCode;
 
-    private Task(final String id, final String groupName, final String scriptName, final String[] scriptArgs) {
+    private Task(final String id, final String groupName, 
+                 final String scriptName, final String[] scriptArgs, final boolean isAsync) {
       this.id = id;
       this.groupName = groupName;
       this.scriptName = scriptName;
       this.scriptArgs = scriptArgs;
+      this.isAsync = isAsync;
       this.status = Status.WAITING;
     }
 
