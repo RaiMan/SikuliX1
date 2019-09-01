@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -253,17 +254,10 @@ public class SikulixServer {
         return false;
       }
       try {
-        Runner.getRunners().stream().forEach(runner -> runner.init(null));
-      } catch (Exception ex) {
-        dolog(-1, "ScriptRunner init not possible: " + ex.getMessage());
-        return false;
-      }
-      try {
         if (port > 0) {
           dolog(3, "Starting: trying with: %s:%d", theIP, port);
           server = createServer(port, theIP);
           server.start();
-          Debug.on(3);
           dolog("at %s:%d in %s", theIP, port, groups.get(DEFAULT_GROUP));
         }
       } catch (Exception ex) {
@@ -273,6 +267,7 @@ public class SikulixServer {
         dolog(-1, "could not be started");
         return false;
       }
+      initScriptRunners();
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override
         public void run() {
@@ -300,6 +295,19 @@ public class SikulixServer {
     }
     dolog("now stopped on port: " + port);
     return true;
+  }
+
+  private static void initScriptRunners() {
+    dolog(String.format("Start ScriptRunners initialization... (can accept requests)"));
+    ExecutorService executor = Executors.newFixedThreadPool(1, r -> new Thread(r, "ScriptRunner-Initializer %d"));
+    final int allCount = Runner.getRunners().size();
+    AtomicInteger index = new AtomicInteger();
+    Runner.getRunners().forEach(runner -> executor.submit(() -> {
+      runner.init(null);
+      dolog(String.format("ScriptRunner initialization done: %s [%02d/%02d]", 
+                          runner.getName(), index.incrementAndGet(), allCount));
+    }));
+    executor.shutdown();
   }
 
   private static Undertow createServer(int port, String ipAddr) {
@@ -748,7 +756,7 @@ public class SikulixServer {
       queue = new LinkedBlockingDeque<>();
       shouldStop = false;
       shouldPause = false;
-      executor = Executors.newSingleThreadExecutor();
+      executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Task Executor"));
       lock = new Object();
       executor.execute(() -> {
         while (!shouldStop) {
