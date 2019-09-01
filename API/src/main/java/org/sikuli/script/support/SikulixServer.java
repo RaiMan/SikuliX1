@@ -425,9 +425,11 @@ public class SikulixServer {
   private static class ScriptsCommand extends AbstractCommand {
     public static final String ATTACHMENTKEY_SCRIPTNAME = "scriptName";
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
+    private AtomicInteger taskId;
     private TasksCommand tasks;
 
     public ScriptsCommand(TasksCommand tasks) {
+      this.taskId = new AtomicInteger();
       this.tasks = tasks;
       getRouting()
           .add(Methods.GET, "/scripts", 
@@ -585,7 +587,7 @@ public class SikulixServer {
     }
 
     private String generateTaskId(final HttpServerExchange exchange) {
-      return String.format("%03d-%x", exchange.getIoThread().getNumber(), exchange.getRequestStartTime());
+      return String.valueOf(taskId.incrementAndGet());
     }
 
     private String getCurrentGroup(final HttpServerExchange exchange) {
