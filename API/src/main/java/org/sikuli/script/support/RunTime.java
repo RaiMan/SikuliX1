@@ -35,8 +35,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static jdk.internal.joptsimple.internal.Reflection.invoke;
-
 /**
  * INTERNAL USE --- NOT official API<br>
  * not as is in version 2
