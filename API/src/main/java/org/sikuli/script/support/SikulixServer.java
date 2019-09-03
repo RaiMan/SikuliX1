@@ -61,14 +61,11 @@ public class SikulixServer {
   private static boolean shouldStop = false;
   private static Object lock = new Object();
 
-  //TODO should be RunTime.getDebugLevelStart()
-  private static int logLevel = 3;
-
   private static void dolog(int lvl, String message, Object... args) {
     if (Debug.isBeQuiet()) {
       return;
     }
-    if (lvl <= logLevel) {
+    if (lvl <= Debug.getDebugLevel()) {
       System.out.println((lvl < 0 ? "[error] " : (lvl > 0 ? "[debug] " : "[info] ")) +
               String.format("SikulixServer: " + message, args));
     }
@@ -108,7 +105,7 @@ public class SikulixServer {
         } else {
           try {
             serverPort = Integer.parseInt(serverOption1);
-          } catch (NumberFormatException e) {
+          } catch (NumberFormatException ex) {
             serverIP = serverOption1;
           }
         }
@@ -121,7 +118,7 @@ public class SikulixServer {
         }
         try {
           serverPort = Integer.parseInt(serverOption2);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ex) {
           serverOption2 = "?" + serverOption2;
         }
       }
@@ -258,10 +255,10 @@ public class SikulixServer {
           dolog(3, "Starting: trying with: %s:%d", theIP, port);
           server = createServer(port, theIP);
           server.start();
-          dolog("at %s:%d in %s", theIP, port, groups.get(DEFAULT_GROUP));
+          dolog("Server is ready at %s:%d in %s\n", theIP, port, groups.get(DEFAULT_GROUP));
         }
       } catch (Exception ex) {
-        dolog(-1, "Starting: " + ex.getMessage());
+        dolog(-1, "Starting: " + ex);
       }
       if (server == null) {
         dolog(-1, "could not be started");
@@ -287,7 +284,7 @@ public class SikulixServer {
         }
       }
       server.stop();
-    } catch (Exception e) {
+    } catch (Exception ex) {
     }
     if (!isHandling) {
       dolog(-1, "start handling not possible: " + port);
@@ -298,14 +295,14 @@ public class SikulixServer {
   }
 
   private static void initScriptRunners() {
-    dolog(String.format("Start ScriptRunners initialization... (can accept requests)"));
-    ExecutorService executor = Executors.newFixedThreadPool(1, r -> new Thread(r, "ScriptRunner-Initializer %d"));
+    dolog("Start all ScriptRunner initialization, but requests can be accepted");
+    ExecutorService executor = Executors.newFixedThreadPool(1, r -> new Thread(r, "ScriptRunner-Initializer"));
     final int allCount = Runner.getRunners().size();
     AtomicInteger index = new AtomicInteger();
     Runner.getRunners().forEach(runner -> executor.submit(() -> {
       runner.init(null);
-      dolog(String.format("ScriptRunner initialization done: %s [%02d/%02d]", 
-                          runner.getName(), index.incrementAndGet(), allCount));
+      dolog("ScriptRunner-%s initialization done [%02d/%02d]", 
+            runner.getName(), index.incrementAndGet(), allCount);
     }));
     executor.shutdown();
   }
@@ -350,7 +347,6 @@ public class SikulixServer {
 
     private HttpHandler stop = exchange -> {
       sendResponse(exchange, StatusCodes.OK, new SimpleResponse("stopping server"));
-
       synchronized (lock) {
         shouldStop = true;
         lock.notify();
@@ -488,7 +484,7 @@ public class SikulixServer {
           try {
             task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
           } catch(Exception ex) {
-            responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex.getMessage()));
+            responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex));
             statusCode = StatusCodes.SERVICE_UNAVAILABLE;
           }
           if (task != null) {
@@ -530,7 +526,7 @@ public class SikulixServer {
       try {
         task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
       } catch(Exception ex) {
-        responseObject = new ErrorResponse(String.format("runScript: exception occurred '%s'", ex.getMessage()));
+        responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex));
         statusCode = StatusCodes.SERVICE_UNAVAILABLE;
       }
       if (task != null) {
@@ -629,7 +625,7 @@ public class SikulixServer {
 
     private HttpHandler getGroups = exchange -> {
       List<ObjectNode> result = groups.entrySet().stream()
-          .map(e -> getObjectMapper().createObjectNode().put("group", e.getKey()).put("folder", e.getValue().getAbsolutePath()))
+          .map(e -> getObjectMapper().createObjectNode().put("name", e.getKey()).put("folder", e.getValue().getAbsolutePath()))
           .collect(Collectors.toList());
       sendResponse(exchange, StatusCodes.OK, result);
     };
@@ -640,7 +636,7 @@ public class SikulixServer {
         List<ObjectNode> result = getFoldersAndScripts(groups.get(groupName));
         sendResponse(exchange, StatusCodes.OK, result);
       } else {
-        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found: " + groupName));
       }
     };
 
@@ -654,7 +650,7 @@ public class SikulixServer {
         exchange.putAttachment(KEY, attachment);
         scripts.getRouting().handleRequest(exchange); 
       } else {
-        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found: " + groupName));
       }
     };
 
@@ -695,9 +691,10 @@ public class SikulixServer {
     };
     private static HttpHandler exceptionHandler = exchange -> {
       Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
-      SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+      dolog(-1, "while processing: Exception:\n" + ex);
+      ex.printStackTrace();
       AbstractCommand.sendResponse(exchange, StatusCodes.INTERNAL_SERVER_ERROR,
-          new ErrorResponse(String.format("server error '%s'", ex.getMessage())));
+          new ErrorResponse(String.format("server error '%s'", ex)));
     };
 
     private RoutingHandler routing;
@@ -729,14 +726,16 @@ public class SikulixServer {
     protected static void sendResponse(HttpServerExchange exchange, int stateCode, Object responseObject) {
       exchange.setStatusCode(stateCode);
       exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
-      String head = exchange.getProtocol() + " " + StatusCodes.getReason(exchange.getStatusCode());
+      String head = exchange.getProtocol() + " " + exchange.getStatusCode() + " " + StatusCodes.getReason(exchange.getStatusCode());
       try {
         String body = mapper.writeValueAsString(responseObject);
         exchange.getResponseSender().send(body);
-        SikulixServer.dolog("returned:\n" + head + "\n" + body);
-      } catch (JsonProcessingException e) {
-        dolog(-1, "serialize to json: Exception:\n" + e.getMessage());
-        e.printStackTrace();
+        dolog("returned for <%s %s %s> from %s:\n%s\n%s",
+              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(), exchange.getSourceAddress(),
+              head, body);
+      } catch (JsonProcessingException ex) {
+        dolog(-1, "serialize to json: Exception:\n" + ex);
+        ex.printStackTrace();
       }
     }
 
@@ -782,11 +781,11 @@ public class SikulixServer {
                   task.runScript();
               }
             }
-          } catch (InterruptedException e) {
+          } catch (InterruptedException ex) {
             // NOOP
-          } catch (Exception e) {
-            dolog(-1, "ScriptExecutor: Exception: %s", e.getMessage());
-            e.printStackTrace();
+          } catch (Exception ex) {
+            SikulixServer.dolog(-1, "ScriptExecutor: Exception: %s", ex);
+            ex.printStackTrace();
             if (task != null) {
               task.updateStatus(Task.Status.FAILED);
             }
@@ -856,12 +855,12 @@ public class SikulixServer {
             task.notify();
             return true;
           } else {
-            dolog(-1, "could not cancel the task : %s", id);
+            SikulixServer.dolog(-1, "could not cancel the task: %s", id);
             return false;
           }
         }
       } else {
-        dolog(-1, "the task is not found : %s", id);
+        SikulixServer.dolog(-1, "the task is not found: %s", id);
         return false;
       }
     }
@@ -873,8 +872,8 @@ public class SikulixServer {
       while(!executor.isTerminated()) {
         try {
           executor.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+        } catch (InterruptedException ex) {
+          ex.printStackTrace();
         }
       }
     }
@@ -969,9 +968,9 @@ public class SikulixServer {
         if (endDate != null) {
           clone.endDate = (Date) endDate.clone();
         }
-      } catch (CloneNotSupportedException e) {
-        dolog(-1, "Task#clone() error: %s", e.getMessage());
-        e.printStackTrace();
+      } catch (CloneNotSupportedException ex) {
+        SikulixServer.dolog(-1, "Task#clone() error: %s", ex);
+        ex.printStackTrace();
       }
       return clone;
     }
@@ -1011,9 +1010,9 @@ public class SikulixServer {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       isHandling = true;
-      SikulixServer.dolog("received request: <%s %s %s> from %s",
-              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
-              exchange.getSourceAddress());
+      dolog("received request: <%s %s %s> from %s",
+            exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
+            exchange.getSourceAddress());
       super.handleRequest(exchange);
     }
   }
