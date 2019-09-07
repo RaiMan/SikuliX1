@@ -37,6 +37,9 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.ExceptionHandler;
+import io.undertow.server.handlers.form.EagerFormParsingHandler;
+import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.server.handlers.resource.ResourceManager;
@@ -478,7 +481,7 @@ public class SikulixServer {
           String id = generateTaskId(exchange);
           String groupName = getCurrentGroup(exchange);
           String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-          String[] scriptArgs = getQueryAndToArgs(exchange);
+          String[] scriptArgs = getScriptArgs(exchange);
 
           Task task = null;
           try {
@@ -520,7 +523,7 @@ public class SikulixServer {
       String id = generateTaskId(exchange);
       String groupName = getCurrentGroup(exchange);
       String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/task$", "");
-      String[] scriptArgs = getQueryAndToArgs(exchange);
+      String[] scriptArgs = getScriptArgs(exchange);
 
       Task task = null;
       try {
@@ -591,18 +594,28 @@ public class SikulixServer {
       return Optional.ofNullable(attachment.get(GroupsCommand.ATTACHMENTKEY_GROUPNAME)).orElse(DEFAULT_GROUP);
     }
 
-    private String[] getQueryAndToArgs(final HttpServerExchange exchange) {
+    private String[] getScriptArgs(final HttpServerExchange exchange) {
       String[] args = {};
+      Optional<String> argsString = Optional.empty();
       String queryString = exchange.getQueryString();
       if (queryString != null) {
         Matcher matcher = PATTERN_QUERY_ARGS.matcher(queryString);
         if (matcher.find()) {
-          StringBuilder buf = new StringBuilder();
-          String[] tokens = matcher.group("args").split(";");
-          args = new String[tokens.length];
-          for (int i=0; i<tokens.length; i++) {
-            args[i] = URLUtils.decode(tokens[i], "UTF-8", true, buf);
-          }
+          argsString = Optional.of(matcher.group("args"));
+        }
+      }
+      if (exchange.getRequestMethod().equals(Methods.POST)) {
+        FormData form = exchange.getAttachment(FormDataParser.FORM_DATA);
+        if (form != null) {
+          argsString = Optional.ofNullable(form.getLast("args")).map(fVal -> fVal.getValue());
+        }
+      }
+      if (argsString.isPresent()) {
+        StringBuilder buf = new StringBuilder();
+        String[] tokens = argsString.get().split(";");
+        args = new String[tokens.length];
+        for (int i=0; i<tokens.length; i++) {
+          args[i] = URLUtils.decode(tokens[i], "UTF-8", true, buf);
         }
       }
       return args;
@@ -1004,7 +1017,7 @@ public class SikulixServer {
 
   private static class CommandRootHttpHandler extends ExceptionHandler {
     public CommandRootHttpHandler(HttpHandler handler) {
-      super(handler);
+      super(new EagerFormParsingHandler(handler));
     }
 
     @Override
