@@ -430,6 +430,7 @@ public class SikulixServer {
     public ScriptsCommand(TasksCommand tasks) {
       this.taskId = new AtomicInteger();
       this.tasks = tasks;
+      this.run.addExceptionHandler(Throwable.class, getExceptionHttpHandler());
       getRouting()
           .add(Methods.GET, "/scripts", 
               getScripts)
@@ -469,73 +470,57 @@ public class SikulixServer {
       }
     };
 
-    private HttpHandler run = exchange -> {
-      exchange.dispatch(() -> {
-        int statusCode = StatusCodes.OK;
-        Object responseObject = null;
+    private ExceptionHandler run = Handlers.exceptionHandler(exchange -> {
+      if (exchange.isInIoThread()) {
+        // switching to a worker thread
+        exchange.dispatch(this.run);
+        return;
+      }
 
-        if (getTaskManager().isPaused()) {
-          responseObject = new ErrorResponse(String.format("the script execution is paused"));
-          statusCode = StatusCodes.NOT_ACCEPTABLE;
-        } else {
-          String id = generateTaskId(exchange);
-          String groupName = getCurrentGroup(exchange);
-          String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-          String[] scriptArgs = getScriptArgs(exchange);
-
-          Task task = null;
-          try {
-            task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
-          } catch(Exception ex) {
-            responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex));
-            statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-          }
-          if (task != null) {
-            int retval = task.exitCode;
-            switch(retval) {
-              case Runner.FILE_NOT_FOUND:
-                responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
-                statusCode = StatusCodes.NOT_FOUND;
-                break;
-              case Runner.NOT_SUPPORTED:
-                responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
-                statusCode = StatusCodes.NOT_FOUND;
-                break;
-              default:
-                if (retval < 0 || 255 < retval) {
-                  responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
-                  statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-                } else {
-                  responseObject = task;
-                }
-                break;
-            }
-          }
-        }
-        sendResponse(exchange, statusCode, responseObject);
-      });
-    };
-
-    private HttpHandler task = exchange -> {
       int statusCode = StatusCodes.OK;
       Object responseObject = null;
 
+      if (getTaskManager().isPaused()) {
+        responseObject = new ErrorResponse(String.format("the script execution is paused"));
+        statusCode = StatusCodes.NOT_ACCEPTABLE;
+      } else {
+        String id = generateTaskId(exchange);
+        String groupName = getCurrentGroup(exchange);
+        String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+        String[] scriptArgs = getScriptArgs(exchange);
+  
+        Task task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
+        int retval = task.exitCode;
+        switch(retval) {
+          case Runner.FILE_NOT_FOUND:
+            responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
+            statusCode = StatusCodes.NOT_FOUND;
+            break;
+          case Runner.NOT_SUPPORTED:
+            responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
+            statusCode = StatusCodes.NOT_FOUND;
+            break;
+          default:
+            if (retval < 0 || 255 < retval) {
+              responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
+              statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+            } else {
+              responseObject = task;
+            }
+            break;
+        }  
+      }
+      sendResponse(exchange, statusCode, responseObject);
+    });
+
+    private HttpHandler task = exchange -> {
       String id = generateTaskId(exchange);
       String groupName = getCurrentGroup(exchange);
       String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/task$", "");
       String[] scriptArgs = getScriptArgs(exchange);
 
-      Task task = null;
-      try {
-        task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
-      } catch(Exception ex) {
-        responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex));
-        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-      }
-      if (task != null) {
-        responseObject = task;
-      }
-      sendResponse(exchange, statusCode, responseObject);
+      Task task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
+      sendResponse(exchange, StatusCodes.OK, task);
     };
 
     private HttpHandler delegate = exchange -> {
