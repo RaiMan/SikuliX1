@@ -35,8 +35,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static jdk.internal.joptsimple.internal.Reflection.invoke;
-
 /**
  * INTERNAL USE --- NOT official API<br>
  * not as is in version 2
@@ -413,6 +411,10 @@ public class RunTime {
           runScripts[i] = "?" + givenScript;
           continue;
         }
+      } else {
+        if (i == 0 && file.endsWith(".sikuli")) {
+          baseDir = new File(file).getParent();
+        }
       }
       EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
       IScriptRunner runner = runnerAndFile.getRunner();
@@ -439,9 +441,6 @@ public class RunTime {
         } else {
           fileToRun = baseDir;
         }
-      }
-      if (i == 0 && fileToRun.endsWith(".sikuli")) {
-        baseDir = new File(fileToRun).getParent();
       }
       runScripts[i] = fileToRun;
     }
