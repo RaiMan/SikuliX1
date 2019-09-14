@@ -826,17 +826,21 @@ public class FileManager {
   public static String getAltFilename(String filename) {
     int pDot = filename.lastIndexOf('.');
     int pDash = filename.lastIndexOf('-');
-    int ver = 1;
     String postfix = filename.substring(pDot);
     String name;
+    String versionText = "1";
     if (pDash >= 0) {
       name = filename.substring(0, pDash);
-      ver = Integer.parseInt(filename.substring(pDash + 1, pDot));
-      ver++;
+      versionText = filename.substring(pDash + 1, pDot);
+      try {
+        versionText = "" + (Integer.parseInt(versionText) + 1);
+      } catch (NumberFormatException e) {
+        versionText = versionText + "-1";
+      }
     } else {
       name = filename.substring(0, pDot);
     }
-    return name + "-" + ver + postfix;
+    return name + "-" + versionText + postfix;
   }
 
   public static boolean exists(String path) {
