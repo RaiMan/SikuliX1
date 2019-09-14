@@ -411,6 +411,10 @@ public class RunTime {
           runScripts[i] = "?" + givenScript;
           continue;
         }
+      } else {
+        if (i == 0 && file.endsWith(".sikuli")) {
+          baseDir = new File(file).getParent();
+        }
       }
       EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
       IScriptRunner runner = runnerAndFile.getRunner();
@@ -437,9 +441,6 @@ public class RunTime {
         } else {
           fileToRun = baseDir;
         }
-      }
-      if (i == 0 && fileToRun.endsWith(".sikuli")) {
-        baseDir = new File(fileToRun).getParent();
       }
       runScripts[i] = fileToRun;
     }
