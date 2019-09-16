@@ -481,20 +481,26 @@ public class RecordedEventsFlow {
       int increasedLeftCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, left);
       double increasedLeftFactor = (double) (increasedLeftWidth * currentHeight) / currentArea;
 
+      boolean increased = false;
+
       if (increasedTopCount > currentCount * Math.max(1, increasedTopFactor * FEATURE_INCREASE_RATIO)) {
         currentTop = top;
+        increased = true;
       }
 
       if (increasedRightCount > currentCount * Math.max(1, increasedRightFactor * FEATURE_INCREASE_RATIO)) {
         currentRight = right;
+        increased = true;
       }
 
       if (increasedBottomCount > currentCount * Math.max(1, increasedBottomFactor * FEATURE_INCREASE_RATIO)) {
         currentBottom = bottom;
+        increased = true;
       }
 
       if (increasedLeftCount > currentCount * Math.max(1, increasedLeftFactor * FEATURE_INCREASE_RATIO)) {
         currentLeft = left;
+        increased = true;
       }
 
       currentCount = findGoodFeatures(edges, currentTop, currentRight, currentBottom, currentLeft);
@@ -504,6 +510,10 @@ public class RecordedEventsFlow {
         currentRight += X_INCREASE_SIZE;
         currentBottom += Y_INCREASE_SIZE;
         currentLeft -= X_INCREASE_SIZE;
+      } else if (!increased) {
+        // break if no further features
+        // can be found in any direction
+        break;
       }
     }
 
