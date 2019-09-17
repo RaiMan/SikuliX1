@@ -65,11 +65,6 @@ public class RunTime {
         System.exit(0);
       }
 
-      if (args.length == 0) {
-        TextRecognizer.extractTessdata();
-        System.exit(0);
-      }
-
       if (args.length == 1 && "createlibs".equals(args[0])) {
         Debug.off();
         CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
@@ -1992,21 +1987,6 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="15 handling resources from classpath">
-  public List<String> extractTessData(File folder) {
-    List<String> files = new ArrayList<String>();
-    String tessdata = "/sikulixtessdata";
-    URL uContentList = clsRef.getResource(tessdata + "/" + fpContent);
-    if (uContentList != null) {
-      files = doResourceListWithList(tessdata, files, null);
-      if (files.size() > 0) {
-        files = doExtractToFolderWithList(tessdata, folder, files);
-      }
-    } else {
-      files = extractResourcesToFolder("/sikulixtessdata", folder, null);
-    }
-    return (files.size() == 0 ? null : files);
-  }
-
   /**
    * export all resource files from the given subtree on classpath to the given folder retaining the subtree<br>
    * to export a specific file from classpath use extractResourceToFile or extractResourceToString
@@ -2018,7 +1998,7 @@ public class RunTime {
    */
 
   public List<String> extractResourcesToFolder(String fpRessources, File fFolder, FilenameFilter filter) {
-    List<String> content = null;
+    List<String> content;
     content = resourceList(fpRessources, filter);
     if (content == null) {
       return null;
@@ -2029,7 +2009,7 @@ public class RunTime {
     return doExtractToFolderWithList(fpRessources, fFolder, content);
   }
 
-  private List<String> doExtractToFolderWithList(String fpRessources, File fFolder, List<String> content) {
+  public List<String> doExtractToFolderWithList(String fpRessources, File fFolder, List<String> content) {
     int count = 0;
     int ecount = 0;
     String subFolder = "";
@@ -2460,7 +2440,7 @@ public class RunTime {
     return files;
   }
 
-  private List<String> doResourceListWithList(String folder, List<String> files, FilenameFilter filter) {
+  public List<String> doResourceListWithList(String folder, List<String> files, FilenameFilter filter) {
     String content = extractResourceToString(folder, fpContent, "");
     String[] contentList = content.split(content.indexOf("\r") != -1 ? "\r\n" : "\n");
     if (filter == null) {

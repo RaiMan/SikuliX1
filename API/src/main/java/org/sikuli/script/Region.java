@@ -4910,7 +4910,8 @@ public class Region {
    */
   public String text() {
     ScreenImage simg = getScreen().capture(x, y, w, h);
-    return TextRecognizer.doOCR(simg);
+    String ocrText = TextRecognizer.doOCR(simg).trim();
+    return ocrText.replace("\n\n", "\n");
   }
 
   public List<Match> collectWords() {

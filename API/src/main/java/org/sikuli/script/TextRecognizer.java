@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TextRecognizer {
@@ -43,7 +45,7 @@ public class TextRecognizer {
   }
 
   private int actualDPI = 72;
-  private float optimumDPI = 300;
+  public float optimumDPI = 300;
   private float factor() {
     return optimumDPI / actualDPI;
   }
@@ -52,6 +54,7 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
+/*
       if (RunTime.get().runningWindows && RunTime.get().runningAs.equals(RunTime.RunType.OTHER)) {
         File fLibs = RunTime.get().fLibsFolder;
         String pLibs = fLibs.getAbsolutePath();
@@ -88,9 +91,11 @@ public class TextRecognizer {
       } else {
         System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
       }
+*/
       try {
         textRecognizer.tess = new Tesseract1();
-        if (extractTessdata()) {
+        boolean tessdataOK = extractTessdata();
+        if (tessdataOK) {
           Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
           textRecognizer.tess.setDatapath(textRecognizer.dataPath);
           if (!new File(textRecognizer.dataPath, textRecognizer.language + ".traineddata").exists()) {
@@ -121,7 +126,8 @@ public class TextRecognizer {
     } else {
       fTessdataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
       if (!fTessdataPath.exists()) {
-        if (null == RunTime.get().extractTessData(fTessdataPath)) {
+        List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessdataPath, null);
+        if (files.size() == 0) {
           Debug.error("TextRecognizer: start: export tessdata not possible");
         }
       }
@@ -250,6 +256,7 @@ public class TextRecognizer {
   private String read(BufferedImage bimg) {
     if (isValid()) {
       try {
+        setVariable("user_defined_dpi", "" + optimumDPI);
         return tess.doOCR(resize(bimg));
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
