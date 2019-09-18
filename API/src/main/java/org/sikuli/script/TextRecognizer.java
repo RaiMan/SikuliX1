@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class TextRecognizer {
@@ -54,44 +55,6 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-/*
-      if (RunTime.get().runningWindows && RunTime.get().runningAs.equals(RunTime.RunType.OTHER)) {
-        File fLibs = RunTime.get().fLibsFolder;
-        String pLibs = fLibs.getAbsolutePath();
-        System.setProperty("jna.library.path", pLibs);
-        String libFolder = "/" + Platform.RESOURCE_PREFIX + "/";
-        Class tessClass = net.sourceforge.tess4j.Tesseract.class;
-        String tessLib = LoadLibs.LIB_NAME;
-        String nTessLib = tessLib + ".dll";
-        String pTessLib = libFolder + nTessLib;
-        File fTessLib = new File(fLibs, nTessLib);
-        if (!fTessLib.exists()) {
-          try (FileOutputStream outFile = new FileOutputStream(fTessLib);
-               InputStream inpTessLib = tessClass.getResourceAsStream(pTessLib)) {
-            RunTime.copy(inpTessLib, outFile);
-          } catch (IOException ex) {
-            Debug.error("TextRecognizer: export native lib: %s (%s)", pTessLib, ex.getMessage());
-            return null;
-          }
-        }
-        Class leptClass = net.sourceforge.lept4j.Box.class;
-        String leptLib = net.sourceforge.lept4j.util.LoadLibs.LIB_NAME;
-        String nLeptLib = leptLib + ".dll";
-        String pLeptLib = libFolder + nLeptLib;
-        File fLeptLib = new File(fLibs, nLeptLib);
-        if (!fLeptLib.exists()) {
-          try (FileOutputStream outFile = new FileOutputStream(fLeptLib);
-               InputStream inpLeptLib = leptClass.getResourceAsStream(pLeptLib)) {
-            RunTime.copy(inpLeptLib, outFile);
-          } catch (IOException ex) {
-            Debug.error("TextRecognizer: export native lib: %s (%s)", pLeptLib, ex.getMessage());
-            return null;
-          }
-        }
-      } else {
-        System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
-      }
-*/
       try {
         textRecognizer.tess = new Tesseract1();
         boolean tessdataOK = extractTessdata();
@@ -121,19 +84,30 @@ public class TextRecognizer {
 
   public static boolean extractTessdata() {
     File fTessdataPath;
-    if (dataPath != null) {
-      fTessdataPath = new File(FileManager.slashify(dataPath, false), "tessdata");
+    boolean shouldExtract = false;
+    if (textRecognizer.dataPath != null) {
+      fTessdataPath = new File(textRecognizer.dataPath, "tessdata");
     } else {
       fTessdataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-      if (!fTessdataPath.exists()) {
-        List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessdataPath, null);
-        if (files.size() == 0) {
-          Debug.error("TextRecognizer: start: export tessdata not possible");
+      if (fTessdataPath.exists()) {
+        if (!new File(fTessdataPath, "pdf.ttf").exists()) {
+          shouldExtract = true;
+          FileManager.deleteFileOrFolder(fTessdataPath);
         }
+      } else {
+        shouldExtract = true;
+      }
+    }
+    if (shouldExtract) {
+      long tessdataStart = new Date().getTime();
+      List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessdataPath, null);
+      Debug.log("takes %d", new Date().getTime() - tessdataStart);
+      if (files.size() == 0) {
+        Debug.error("TextRecognizer: start: export tessdata not possible");
       }
     }
     if (fTessdataPath.exists()) {
-      dataPath = fTessdataPath.getAbsolutePath();
+      textRecognizer.dataPath = fTessdataPath.getAbsolutePath();
       return true;
     }
     return false;
@@ -145,7 +119,7 @@ public class TextRecognizer {
 
   private int oem = -1;
   private int psm = -1;
-  private static String dataPath = Settings.OcrDataPath;
+  private String dataPath = Settings.OcrDataPath;
   private String language = Settings.OcrLanguage;
 
   /**
@@ -200,14 +174,14 @@ public class TextRecognizer {
     return this;
   }
 
-  public TextRecognizer setDataPath(String dataPath) {
+  public TextRecognizer setDataPath(String newDataPath) {
     if (isValid()) {
-      if (new File(dataPath).exists()) {
-        if (new File(dataPath, language + ".traineddata").exists()) {
-          this.dataPath = dataPath;
-          tess.setDatapath(this.dataPath);
+      if (new File(newDataPath).exists()) {
+        if (new File(newDataPath, language + ".traineddata").exists()) {
+          dataPath = newDataPath;
+          tess.setDatapath(dataPath);
         } else {
-          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)",language, dataPath);
+          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)",language, newDataPath);
         }
       }
     }

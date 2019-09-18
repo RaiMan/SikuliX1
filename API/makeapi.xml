@@ -16,6 +16,7 @@
       <useProjectArtifact>true</useProjectArtifact>
       <unpack>true</unpack>
       <excludes>
+        <exclude>win32-x86</exclude>
         <exclude>org.python:jython-standalone</exclude>
         <exclude>org.jruby:jruby-complete</exclude>
         <exclude>net.sf.py4j:py4j</exclude>
