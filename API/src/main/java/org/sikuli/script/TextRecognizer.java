@@ -3,12 +3,19 @@
  */
 package org.sikuli.script;
 
-import com.sun.jna.Platform;
-import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
-import net.sourceforge.tess4j.util.ImageHelper;
-import net.sourceforge.tess4j.util.LoadLibs;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -18,25 +25,9 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import javax.imageio.ImageIO;
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
+import net.sourceforge.tess4j.util.ImageHelper;
 
 public class TextRecognizer {
 
@@ -59,9 +50,8 @@ public class TextRecognizer {
   }
 
   private int actualDPI = 72;
-  public float optimumDPI = 300;
+  public float optimumDPI = 192;
   private float factor() {
-    System.out.println(actualDPI);
     return optimumDPI / actualDPI;
   }
 
@@ -240,12 +230,10 @@ public class TextRecognizer {
     }
     return text;
   }
-  
+
   private String read(BufferedImage bimg) {
     if (isValid()) {
       try {
-        setVariable("user_defined_dpi", "" + optimumDPI);
-                                       
         return tess.doOCR(optimize(bimg));
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
@@ -255,73 +243,45 @@ public class TextRecognizer {
     }
     return "";
   }
-  
-  private BufferedImage blur(BufferedImage bimg) {
-    Mat mat = Finder2.makeMat(bimg);
-    Imgproc.GaussianBlur(mat, mat, new Size(3,3), 0);
-    return Finder2.getBufferedImage(mat);
+
+  /*
+   * sharpens the image using an unsharp mask
+   */
+  private Mat unsharpMask(Mat img, double sigma) {
+    Mat blurred = new Mat();
+    Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
+    Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
+    return img;
   }
-  
-  private BufferedImage normalizeSubPixels(BufferedImage bimg) {
-    int width = bimg.getWidth();
-    int height = bimg.getHeight();
-    
-    BufferedImage normalized = new BufferedImage(width * 3, height * 3, BufferedImage.TYPE_BYTE_GRAY);
-        
-    for (int y = 0; y < height; y++) {
-      for(int x = 0; x < width; x++) {
-        Color rgb = new Color(bimg.getRGB(x, y));
-        int red = rgb.getRed();                
-        int green = rgb.getGreen();
-        int blue = rgb.getBlue();
-        
-        int redSubPixel = new Color(red,red,red).getRGB();
-        int greenSubPixel = new Color(green,green,green).getRGB();
-        int blueSubPixel = new Color(blue,blue,blue).getRGB();
-                       
-        for(int yi = 0; yi < 3; yi++) {
-          normalized.setRGB(x * 3, y * 3 + yi, redSubPixel);
-          normalized.setRGB(x * 3 + 1, y * 3 + yi, greenSubPixel); 
-          normalized.setRGB(x * 3 + 2, y * 3 + yi, blueSubPixel);
-        }
-      }
-    } 
-    
-    return normalized;
-  }   
 
   public BufferedImage optimize(BufferedImage bimg) {
-    bimg = normalizeSubPixels(bimg);    
-    
+    Mat img = Finder2.makeMat(bimg);
+
+    Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+
+    // sharpen original image to primarily get rid of sub pixel rendering artifacts
+    img = unsharpMask(img, 3);
+
+    // Resize to optimumDPI
     actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
-    float rFactor = factor() / 3; // normalizeSubPixels already scales by a factor of 3
-        
+    float rFactor = factor();
+
     if (rFactor > 1) {
       int newW = (int) (rFactor * bimg.getWidth());
       int newH = (int) (rFactor * bimg.getHeight());
-      bimg = ImageHelper.getScaledInstance(bimg, newW, newH);
-      
-      BufferedImage target = new BufferedImage(newW, newH, bimg.getType());
-      Graphics2D g2 = target.createGraphics();
-      g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-      g2.drawImage(bimg, 0, 0, newW, newH, null);
-      g2.dispose();
-      bimg = target;
-      
+      Imgproc.resize(img, img, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
     }
-//    
-//      bimg = blur(bimg);
-    
-    try {
-      ImageIO.write(bimg, "PNG", new File("/tmp/normalized.png"));
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    
-    return bimg;
+
+    // sharpen the enlarged image again
+    img = unsharpMask(img, 5);
+
+    // configure tesseract to handle the resized image correctly
+    setVariable("user_defined_dpi", "" + optimumDPI);
+
+    return Finder2.getBufferedImage(img);
+
   }
-   
+
   public Region rescale(Rectangle rect) {
     Region reg = new Region();
     reg.x = (int) (rect.getX() / factor());

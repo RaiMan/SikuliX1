@@ -667,7 +667,6 @@ public class Finder implements Iterator<Match> {
         TextRecognizer tr = TextRecognizer.start();
         if (tr.isValid()) {
           Tesseract1 tapi = tr.getAPI();
-          tr.setVariable("user_defined_dpi", "" + tr.optimumDPI);
           long timer = new Date().getTime();
           int textLevel = fInput.getTextLevel();
           List<Word> wordsFound = null;
