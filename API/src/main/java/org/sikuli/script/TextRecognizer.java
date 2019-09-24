@@ -3,27 +3,31 @@
  */
 package org.sikuli.script;
 
-import com.sun.jna.Platform;
-import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
-import net.sourceforge.tess4j.util.ImageHelper;
-import net.sourceforge.tess4j.util.LoadLibs;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
-
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.imageio.ImageIO;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.Finder.Finder2;
+import org.sikuli.script.support.RunTime;
+
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
+import net.sourceforge.tess4j.util.ImageHelper;
 
 public class TextRecognizer {
 
@@ -46,7 +50,7 @@ public class TextRecognizer {
   }
 
   private int actualDPI = 72;
-  public float optimumDPI = 300;
+  public float optimumDPI = 192;
   private float factor() {
     return optimumDPI / actualDPI;
   }
@@ -230,8 +234,7 @@ public class TextRecognizer {
   private String read(BufferedImage bimg) {
     if (isValid()) {
       try {
-        setVariable("user_defined_dpi", "" + optimumDPI);
-        return tess.doOCR(resize(bimg));
+        return tess.doOCR(optimize(bimg));
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
       }
@@ -241,16 +244,42 @@ public class TextRecognizer {
     return "";
   }
 
-  public BufferedImage resize(BufferedImage bimg) {
+  /*
+   * sharpens the image using an unsharp mask
+   */
+  private Mat unsharpMask(Mat img, double sigma) {
+    Mat blurred = new Mat();
+    Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
+    Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
+    return img;
+  }
+
+  public BufferedImage optimize(BufferedImage bimg) {
+    Mat img = Finder2.makeMat(bimg);
+
+    Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+
+    // sharpen original image to primarily get rid of sub pixel rendering artifacts
+    img = unsharpMask(img, 3);
+
+    // Resize to optimumDPI
     actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
-    BufferedImage resizedBimg = bimg;
     float rFactor = factor();
+
     if (rFactor > 1) {
       int newW = (int) (rFactor * bimg.getWidth());
       int newH = (int) (rFactor * bimg.getHeight());
-      resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
+      Imgproc.resize(img, img, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
     }
-    return  resizedBimg;
+
+    // sharpen the enlarged image again
+    img = unsharpMask(img, 5);
+
+    // configure tesseract to handle the resized image correctly
+    setVariable("user_defined_dpi", "" + optimumDPI);
+
+    return Finder2.getBufferedImage(img);
+
   }
 
   public Region rescale(Rectangle rect) {
