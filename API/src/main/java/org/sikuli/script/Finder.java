@@ -684,7 +684,7 @@ public class Finder implements Iterator<Match> {
           long timer = new Date().getTime();
           int textLevel = fInput.getTextLevel();
           List<Word> wordsFound = null;
-          bimgWork = tr.resize(bimg);
+          bimgWork = tr.optimize(bimg);
           boolean singleWord = true;
           String[] textSplit = new String[0];
           java.util.regex.Pattern pattern = null;
