@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2019, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.support;
 
@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,6 +37,9 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.ExceptionHandler;
+import io.undertow.server.handlers.form.EagerFormParsingHandler;
+import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.server.handlers.resource.ResourceManager;
@@ -60,14 +64,11 @@ public class SikulixServer {
   private static boolean shouldStop = false;
   private static Object lock = new Object();
 
-  //TODO should be RunTime.getDebugLevelStart()
-  private static int logLevel = 3;
-
   private static void dolog(int lvl, String message, Object... args) {
     if (Debug.isBeQuiet()) {
       return;
     }
-    if (lvl <= logLevel) {
+    if (lvl <= Debug.getDebugLevel()) {
       System.out.println((lvl < 0 ? "[error] " : (lvl > 0 ? "[debug] " : "[info] ")) +
               String.format("SikulixServer: " + message, args));
     }
@@ -107,7 +108,7 @@ public class SikulixServer {
         } else {
           try {
             serverPort = Integer.parseInt(serverOption1);
-          } catch (NumberFormatException e) {
+          } catch (NumberFormatException ex) {
             serverIP = serverOption1;
           }
         }
@@ -120,7 +121,7 @@ public class SikulixServer {
         }
         try {
           serverPort = Integer.parseInt(serverOption2);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ex) {
           serverOption2 = "?" + serverOption2;
         }
       }
@@ -253,26 +254,20 @@ public class SikulixServer {
         return false;
       }
       try {
-        Runner.getRunners().stream().forEach(runner -> runner.init(null));
-      } catch (Exception ex) {
-        dolog(-1, "ScriptRunner init not possible: " + ex.getMessage());
-        return false;
-      }
-      try {
         if (port > 0) {
           dolog(3, "Starting: trying with: %s:%d", theIP, port);
           server = createServer(port, theIP);
           server.start();
-          Debug.on(3);
-          dolog("at %s:%d in %s", theIP, port, groups.get(DEFAULT_GROUP));
+          dolog("Server is ready at %s:%d in %s\n", theIP, port, groups.get(DEFAULT_GROUP));
         }
       } catch (Exception ex) {
-        dolog(-1, "Starting: " + ex.getMessage());
+        dolog(-1, "Starting: " + ex);
       }
       if (server == null) {
         dolog(-1, "could not be started");
         return false;
       }
+      initScriptRunners();
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override
         public void run() {
@@ -292,7 +287,7 @@ public class SikulixServer {
         }
       }
       server.stop();
-    } catch (Exception e) {
+    } catch (Exception ex) {
     }
     if (!isHandling) {
       dolog(-1, "start handling not possible: " + port);
@@ -300,6 +295,19 @@ public class SikulixServer {
     }
     dolog("now stopped on port: " + port);
     return true;
+  }
+
+  private static void initScriptRunners() {
+    dolog("Start all ScriptRunner initialization, but requests can be accepted");
+    ExecutorService executor = Executors.newFixedThreadPool(1, r -> new Thread(r, "ScriptRunner-Initializer"));
+    final int allCount = Runner.getRunners().size();
+    AtomicInteger index = new AtomicInteger();
+    Runner.getRunners().forEach(runner -> executor.submit(() -> {
+      runner.init(null);
+      dolog("ScriptRunner-%s initialization done [%02d/%02d]", 
+            runner.getName(), index.incrementAndGet(), allCount);
+    }));
+    executor.shutdown();
   }
 
   private static Undertow createServer(int port, String ipAddr) {
@@ -342,7 +350,6 @@ public class SikulixServer {
 
     private HttpHandler stop = exchange -> {
       sendResponse(exchange, StatusCodes.OK, new SimpleResponse("stopping server"));
-
       synchronized (lock) {
         shouldStop = true;
         lock.notify();
@@ -417,11 +424,16 @@ public class SikulixServer {
   private static class ScriptsCommand extends AbstractCommand {
     public static final String ATTACHMENTKEY_SCRIPTNAME = "scriptName";
     private static final Pattern PATTERN_QUERY_ARGS = Pattern.compile("args=(?<args>[^&]+)");
+    private AtomicInteger taskId;
     private TasksCommand tasks;
 
     public ScriptsCommand(TasksCommand tasks) {
+      this.taskId = new AtomicInteger();
       this.tasks = tasks;
+      this.run.addExceptionHandler(Throwable.class, getExceptionHttpHandler());
       getRouting()
+          .add(Methods.GET, "/scripts", 
+              getScripts)
           .add(Methods.GET, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/run$"),
               run)
@@ -436,76 +448,79 @@ public class SikulixServer {
               delegate)
           .add(Methods.PUT, "/scripts/*",
               Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/[^/].*/tasks(/.*)*$"),
-              delegate);
+              delegate)
+          .add(Methods.GET, "/scripts/*", 
+              Predicates.regex(RelativePathAttribute.INSTANCE, "^/scripts/([^/].*)?[^/]$"),
+              getScript);
     }
 
-    private HttpHandler run = exchange -> {
-      exchange.dispatch(() -> {
-        int statusCode = StatusCodes.OK;
-        Object responseObject = null;
-
-        if (getTaskManager().isPaused()) {
-          responseObject = new ErrorResponse(String.format("the script execution is paused"));
-          statusCode = StatusCodes.NOT_ACCEPTABLE;
-        } else {
-          String id = generateTaskId(exchange);
-          String groupName = getCurrentGroup(exchange);
-          String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
-          String[] scriptArgs = getQueryAndToArgs(exchange);
-
-          Task task = null;
-          try {
-            task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
-          } catch(Exception ex) {
-            responseObject = new ErrorResponse(String.format("exception occurred '%s'", ex.getMessage()));
-            statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-          }
-          if (task != null) {
-            int retval = task.exitCode;
-            switch(retval) {
-              case Runner.FILE_NOT_FOUND:
-                responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
-                statusCode = StatusCodes.NOT_FOUND;
-                break;
-              case Runner.NOT_SUPPORTED:
-                responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
-                statusCode = StatusCodes.NOT_FOUND;
-                break;
-              default:
-                if (retval < 0 || 255 < retval) {
-                  responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
-                  statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-                } else {
-                  responseObject = task;
-                }
-                break;
-            }
-          }
-        }
-        sendResponse(exchange, statusCode, responseObject);
-      });
+    private HttpHandler getScripts = exchange -> {
+      String groupName = getCurrentGroup(exchange);
+      sendResponse(exchange, StatusCodes.OK, getScriptsList(groups.get(groupName)));
     };
 
-    private HttpHandler task = exchange -> {
+    private HttpHandler getScript = exchange -> {
+      String groupName = getCurrentGroup(exchange);
+      String scriptName = exchange.getQueryParameters().get("*").getLast();
+      Optional<ObjectNode> result = getScriptInfo(groupName, scriptName);
+      if (result.isPresent()) {
+        sendResponse(exchange, StatusCodes.OK, result.get());
+      } else {
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse(String.format("script not found '%s'", scriptName)));
+      }
+    };
+
+    private ExceptionHandler run = Handlers.exceptionHandler(exchange -> {
+      if (exchange.isInIoThread()) {
+        // switching to a worker thread
+        exchange.dispatch(this.run);
+        return;
+      }
+
       int statusCode = StatusCodes.OK;
       Object responseObject = null;
 
+      if (getTaskManager().isPaused()) {
+        responseObject = new ErrorResponse(String.format("the script execution is paused"));
+        statusCode = StatusCodes.NOT_ACCEPTABLE;
+      } else {
+        String id = generateTaskId(exchange);
+        String groupName = getCurrentGroup(exchange);
+        String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/run$", "");
+        String[] scriptArgs = getScriptArgs(exchange);
+  
+        Task task = getTaskManager().requestSync(id, groupName, scriptName, scriptArgs);
+        int retval = task.exitCode;
+        switch(retval) {
+          case Runner.FILE_NOT_FOUND:
+            responseObject = new ErrorResponse(String.format("script not found '%s'", scriptName));
+            statusCode = StatusCodes.NOT_FOUND;
+            break;
+          case Runner.NOT_SUPPORTED:
+            responseObject = new ErrorResponse(String.format("script not supported '%s'", scriptName));
+            statusCode = StatusCodes.NOT_FOUND;
+            break;
+          default:
+            if (retval < 0 || 255 < retval) {
+              responseObject = new ErrorResponse(String.format("script failed exitCode='%d'", retval));
+              statusCode = StatusCodes.SERVICE_UNAVAILABLE;
+            } else {
+              responseObject = task;
+            }
+            break;
+        }  
+      }
+      sendResponse(exchange, statusCode, responseObject);
+    });
+
+    private HttpHandler task = exchange -> {
       String id = generateTaskId(exchange);
       String groupName = getCurrentGroup(exchange);
       String scriptName = exchange.getQueryParameters().get("*").getLast().replaceFirst("/task$", "");
-      String[] scriptArgs = getQueryAndToArgs(exchange);
+      String[] scriptArgs = getScriptArgs(exchange);
 
-      Task task = null;
-      try {
-        task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
-      } catch(Exception ex) {
-        responseObject = new ErrorResponse(String.format("runScript: exception occurred '%s'", ex.getMessage()));
-        statusCode = StatusCodes.SERVICE_UNAVAILABLE;
-      }
-      if (task != null) {
-        responseObject = task;
-      }
-      sendResponse(exchange, statusCode, responseObject);
+      Task task = getTaskManager().requestAsync(id, groupName, scriptName, scriptArgs);
+      sendResponse(exchange, StatusCodes.OK, task);
     };
 
     private HttpHandler delegate = exchange -> {
@@ -519,8 +534,44 @@ public class SikulixServer {
       tasks.getRouting().handleRequest(exchange); 
     };
 
+    private List<ObjectNode> getScriptsList(File base) {
+      ObjectMapper mapper = getObjectMapper();
+      List<ObjectNode> result = new ArrayList<>();
+      for (File entry : base.listFiles()) {
+        if (entry.isDirectory()) {
+          File script = Runner.getScriptFile(entry);
+          if (script != null) {
+            result.add(mapper.createObjectNode().put("name", entry.getName().replaceFirst("\\.sikuli$", ""))
+                                                .put("type", Runner.getRunner(script.getAbsolutePath()).getType()));
+          } else {
+            List<ObjectNode> sub = getScriptsList(entry);
+            sub.forEach(s -> {
+              result.add(mapper.createObjectNode().put("name", entry.getName() + "/" + s.get("name").asText())
+                                                  .put("type", s.get("type").asText()));
+            });
+          }
+        }
+      }
+      return result;
+    }
+
+    private Optional<ObjectNode> getScriptInfo(String groupName, String scriptName) {
+      RunTime.get().fWorkDir = groups.get(groupName);
+      String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
+      if (!scripts[0].startsWith("?")) {
+        ObjectNode result = getObjectMapper().createObjectNode();
+        result.put("name", scriptName)
+              .put("group", groupName)
+              .put("type", Runner.getRunner(scripts[0]).getType())
+              .put("file", scripts[0]);
+        return Optional.of(result);
+      } else {
+        return Optional.empty();
+      }
+    }
+
     private String generateTaskId(final HttpServerExchange exchange) {
-      return String.format("%03d-%x", exchange.getIoThread().getNumber(), exchange.getRequestStartTime());
+      return String.valueOf(taskId.incrementAndGet());
     }
 
     private String getCurrentGroup(final HttpServerExchange exchange) {
@@ -528,18 +579,28 @@ public class SikulixServer {
       return Optional.ofNullable(attachment.get(GroupsCommand.ATTACHMENTKEY_GROUPNAME)).orElse(DEFAULT_GROUP);
     }
 
-    private String[] getQueryAndToArgs(final HttpServerExchange exchange) {
+    private String[] getScriptArgs(final HttpServerExchange exchange) {
       String[] args = {};
+      Optional<String> argsString = Optional.empty();
       String queryString = exchange.getQueryString();
       if (queryString != null) {
         Matcher matcher = PATTERN_QUERY_ARGS.matcher(queryString);
         if (matcher.find()) {
-          StringBuilder buf = new StringBuilder();
-          String[] tokens = matcher.group("args").split(";");
-          args = new String[tokens.length];
-          for (int i=0; i<tokens.length; i++) {
-            args[i] = URLUtils.decode(tokens[i], "UTF-8", true, buf);
-          }
+          argsString = Optional.of(matcher.group("args"));
+        }
+      }
+      if (exchange.getRequestMethod().equals(Methods.POST)) {
+        FormData form = exchange.getAttachment(FormDataParser.FORM_DATA);
+        if (form != null) {
+          argsString = Optional.ofNullable(form.getLast("args")).map(fVal -> fVal.getValue());
+        }
+      }
+      if (argsString.isPresent()) {
+        StringBuilder buf = new StringBuilder();
+        String[] tokens = argsString.get().split(";");
+        args = new String[tokens.length];
+        for (int i=0; i<tokens.length; i++) {
+          args[i] = URLUtils.decode(tokens[i], "UTF-8", true, buf);
         }
       }
       return args;
@@ -562,7 +623,7 @@ public class SikulixServer {
 
     private HttpHandler getGroups = exchange -> {
       List<ObjectNode> result = groups.entrySet().stream()
-          .map(e -> getObjectMapper().createObjectNode().put("group", e.getKey()).put("folder", e.getValue().getAbsolutePath()))
+          .map(e -> getObjectMapper().createObjectNode().put("name", e.getKey()).put("folder", e.getValue().getAbsolutePath()))
           .collect(Collectors.toList());
       sendResponse(exchange, StatusCodes.OK, result);
     };
@@ -573,7 +634,7 @@ public class SikulixServer {
         List<ObjectNode> result = getFoldersAndScripts(groups.get(groupName));
         sendResponse(exchange, StatusCodes.OK, result);
       } else {
-        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found: " + groupName));
       }
     };
 
@@ -587,7 +648,7 @@ public class SikulixServer {
         exchange.putAttachment(KEY, attachment);
         scripts.getRouting().handleRequest(exchange); 
       } else {
-        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found : " + groupName));
+        sendResponse(exchange, StatusCodes.NOT_FOUND, new ErrorResponse("group not found: " + groupName));
       }
     };
 
@@ -628,9 +689,10 @@ public class SikulixServer {
     };
     private static HttpHandler exceptionHandler = exchange -> {
       Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
-      SikulixServer.dolog(-1, "while processing: Exception:\n" + ex.getMessage());
+      dolog(-1, "while processing: Exception:\n" + ex);
+      ex.printStackTrace();
       AbstractCommand.sendResponse(exchange, StatusCodes.INTERNAL_SERVER_ERROR,
-          new ErrorResponse(String.format("server error '%s'", ex.getMessage())));
+          new ErrorResponse(String.format("server error '%s'", ex)));
     };
 
     private RoutingHandler routing;
@@ -662,14 +724,16 @@ public class SikulixServer {
     protected static void sendResponse(HttpServerExchange exchange, int stateCode, Object responseObject) {
       exchange.setStatusCode(stateCode);
       exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
-      String head = exchange.getProtocol() + " " + StatusCodes.getReason(exchange.getStatusCode());
+      String head = exchange.getProtocol() + " " + exchange.getStatusCode() + " " + StatusCodes.getReason(exchange.getStatusCode());
       try {
         String body = mapper.writeValueAsString(responseObject);
         exchange.getResponseSender().send(body);
-        SikulixServer.dolog("returned:\n" + head + "\n" + body);
-      } catch (JsonProcessingException e) {
-        dolog(-1, "serialize to json: Exception:\n" + e.getMessage());
-        e.printStackTrace();
+        dolog("returned for <%s %s %s> from %s:\n%s\n%s",
+              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(), exchange.getSourceAddress(),
+              head, body);
+      } catch (JsonProcessingException ex) {
+        dolog(-1, "serialize to json: Exception:\n" + ex);
+        ex.printStackTrace();
       }
     }
 
@@ -691,7 +755,7 @@ public class SikulixServer {
       queue = new LinkedBlockingDeque<>();
       shouldStop = false;
       shouldPause = false;
-      executor = Executors.newSingleThreadExecutor();
+      executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Task Executor"));
       lock = new Object();
       executor.execute(() -> {
         while (!shouldStop) {
@@ -715,11 +779,11 @@ public class SikulixServer {
                   task.runScript();
               }
             }
-          } catch (InterruptedException e) {
+          } catch (InterruptedException ex) {
             // NOOP
-          } catch (Exception e) {
-            dolog(-1, "ScriptExecutor: Exception: %s", e.getMessage());
-            e.printStackTrace();
+          } catch (Exception ex) {
+            SikulixServer.dolog(-1, "ScriptExecutor: Exception: %s", ex);
+            ex.printStackTrace();
             if (task != null) {
               task.updateStatus(Task.Status.FAILED);
             }
@@ -765,7 +829,7 @@ public class SikulixServer {
 
     private Task request(final String id, final String groupName, final String scriptName, 
         final String[] scriptArgs, boolean isAsync) throws Exception {
-      Task request = new Task(id, groupName, scriptName, scriptArgs);
+      Task request = new Task(id, groupName, scriptName, scriptArgs, isAsync);
       synchronized(allTasks) {
         allTasks.put(request.id, request);
         queue.put(request);
@@ -789,25 +853,25 @@ public class SikulixServer {
             task.notify();
             return true;
           } else {
-            dolog(-1, "could not cancel the task : %s", id);
+            SikulixServer.dolog(-1, "could not cancel the task: %s", id);
             return false;
           }
         }
       } else {
-        dolog(-1, "the task is not found : %s", id);
+        SikulixServer.dolog(-1, "the task is not found: %s", id);
         return false;
       }
     }
 
     public void stop() {
       shouldStop = true;
-      queue.addFirst(new Task("shouldStop", null, null, null));
+      queue.addFirst(new Task("shouldStop", null, null, null, true));
       executor.shutdown();
       while(!executor.isTerminated()) {
         try {
           executor.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+        } catch (InterruptedException ex) {
+          ex.printStackTrace();
         }
       }
     }
@@ -818,7 +882,7 @@ public class SikulixServer {
           return false;
         } else {
           shouldPause = true;
-          queue.addFirst(new Task("shouldPause", null, null, null));
+          queue.addFirst(new Task("shouldPause", null, null, null, true));
           return true;
         }
       }
@@ -846,16 +910,20 @@ public class SikulixServer {
     public final String groupName;
     public final String scriptName;
     public final String[] scriptArgs;
+    @SuppressWarnings("unused")
+    public final boolean isAsync;
     public Status status;
     public Date startDate;
     public Date endDate;
     public int exitCode;
 
-    private Task(final String id, final String groupName, final String scriptName, final String[] scriptArgs) {
+    private Task(final String id, final String groupName, 
+                 final String scriptName, final String[] scriptArgs, final boolean isAsync) {
       this.id = id;
       this.groupName = groupName;
       this.scriptName = scriptName;
       this.scriptArgs = scriptArgs;
+      this.isAsync = isAsync;
       this.status = Status.WAITING;
     }
 
@@ -898,9 +966,9 @@ public class SikulixServer {
         if (endDate != null) {
           clone.endDate = (Date) endDate.clone();
         }
-      } catch (CloneNotSupportedException e) {
-        dolog(-1, "Task#clone() error: %s", e.getMessage());
-        e.printStackTrace();
+      } catch (CloneNotSupportedException ex) {
+        SikulixServer.dolog(-1, "Task#clone() error: %s", ex);
+        ex.printStackTrace();
       }
       return clone;
     }
@@ -934,15 +1002,15 @@ public class SikulixServer {
 
   private static class CommandRootHttpHandler extends ExceptionHandler {
     public CommandRootHttpHandler(HttpHandler handler) {
-      super(handler);
+      super(new EagerFormParsingHandler(handler));
     }
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
       isHandling = true;
-      SikulixServer.dolog("received request: <%s %s %s> from %s",
-              exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
-              exchange.getSourceAddress());
+      dolog("received request: <%s %s %s> from %s",
+            exchange.getRequestMethod(), exchange.getRequestURI(), exchange.getProtocol(),
+            exchange.getSourceAddress());
       super.handleRequest(exchange);
     }
   }
