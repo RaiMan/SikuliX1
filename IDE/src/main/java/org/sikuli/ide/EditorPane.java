@@ -1610,7 +1610,7 @@ public class EditorPane extends JTextPane {
               String ptnImgName = "\"" + imgName + "\"";
               newName = "\"" + newName + "\"";
               transferString = transferString.replaceAll(ptnImgName, newName);
-              Debug.info("MyTransferHandler: importData:" + ptnImgName + " exists. Rename it to " + newName);
+              Debug.info("MyTransferHandler: importData:" + ptnImgName + " exists. Renamed to " + newName);
             }
           }
           targetTextPane.insertString(transferString);

@@ -282,8 +282,8 @@ public class Runner {
           // contained directories need not be checked
           continue;
         }
-        if (FilenameUtils.getBaseName(aFile.getName())
-            .equals(FilenameUtils.getBaseName(fScriptFolder.getName()))) {
+        if (FilenameUtils.getBaseName(aFile.getName()).toLowerCase()
+            .equals(FilenameUtils.getBaseName(fScriptFolder.getName()).toLowerCase())) {
           for (IScriptRunner runner : getRunners()) {
             if (runner.canHandle(aFile.getName())) {
               return aFile;

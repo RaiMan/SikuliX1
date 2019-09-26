@@ -3,24 +3,31 @@
  */
 package org.sikuli.script;
 
-import com.sun.jna.Platform;
-import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
-import net.sourceforge.tess4j.util.ImageHelper;
-import net.sourceforge.tess4j.util.LoadLibs;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
-
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
+
+import javax.imageio.ImageIO;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.Finder.Finder2;
+import org.sikuli.script.support.RunTime;
+
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
+import net.sourceforge.tess4j.util.ImageHelper;
 
 public class TextRecognizer {
 
@@ -43,7 +50,7 @@ public class TextRecognizer {
   }
 
   private int actualDPI = 72;
-  private float optimumDPI = 300;
+  public float optimumDPI = 192;
   private float factor() {
     return optimumDPI / actualDPI;
   }
@@ -52,45 +59,10 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      if (RunTime.get().runningWindows && RunTime.get().runningAs.equals(RunTime.RunType.OTHER)) {
-        File fLibs = RunTime.get().fLibsFolder;
-        String pLibs = fLibs.getAbsolutePath();
-        System.setProperty("jna.library.path", pLibs);
-        String libFolder = "/" + Platform.RESOURCE_PREFIX + "/";
-        Class tessClass = net.sourceforge.tess4j.Tesseract.class;
-        String tessLib = LoadLibs.LIB_NAME;
-        String nTessLib = tessLib + ".dll";
-        String pTessLib = libFolder + nTessLib;
-        File fTessLib = new File(fLibs, nTessLib);
-        if (!fTessLib.exists()) {
-          try (FileOutputStream outFile = new FileOutputStream(fTessLib);
-               InputStream inpTessLib = tessClass.getResourceAsStream(pTessLib)) {
-            RunTime.copy(inpTessLib, outFile);
-          } catch (IOException ex) {
-            Debug.error("TextRecognizer: export native lib: %s (%s)", pTessLib, ex.getMessage());
-            return null;
-          }
-        }
-        Class leptClass = net.sourceforge.lept4j.Box.class;
-        String leptLib = net.sourceforge.lept4j.util.LoadLibs.LIB_NAME;
-        String nLeptLib = leptLib + ".dll";
-        String pLeptLib = libFolder + nLeptLib;
-        File fLeptLib = new File(fLibs, nLeptLib);
-        if (!fLeptLib.exists()) {
-          try (FileOutputStream outFile = new FileOutputStream(fLeptLib);
-               InputStream inpLeptLib = leptClass.getResourceAsStream(pLeptLib)) {
-            RunTime.copy(inpLeptLib, outFile);
-          } catch (IOException ex) {
-            Debug.error("TextRecognizer: export native lib: %s (%s)", pLeptLib, ex.getMessage());
-            return null;
-          }
-        }
-      } else {
-        System.setProperty("jna.library.path", RunTime.get().fLibsFolder.getAbsolutePath());
-      }
       try {
         textRecognizer.tess = new Tesseract1();
-        if (extractTessdata()) {
+        boolean tessdataOK = extractTessdata();
+        if (tessdataOK) {
           Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
           textRecognizer.tess.setDatapath(textRecognizer.dataPath);
           if (!new File(textRecognizer.dataPath, textRecognizer.language + ".traineddata").exists()) {
@@ -116,18 +88,30 @@ public class TextRecognizer {
 
   public static boolean extractTessdata() {
     File fTessdataPath;
-    if (dataPath != null) {
-      fTessdataPath = new File(FileManager.slashify(dataPath, false), "tessdata");
+    boolean shouldExtract = false;
+    if (textRecognizer.dataPath != null) {
+      fTessdataPath = new File(textRecognizer.dataPath, "tessdata");
     } else {
       fTessdataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-      if (!fTessdataPath.exists()) {
-        if (null == RunTime.get().extractTessData(fTessdataPath)) {
-          Debug.error("TextRecognizer: start: export tessdata not possible");
+      if (fTessdataPath.exists()) {
+        if (!new File(fTessdataPath, "pdf.ttf").exists()) {
+          shouldExtract = true;
+          FileManager.deleteFileOrFolder(fTessdataPath);
         }
+      } else {
+        shouldExtract = true;
+      }
+    }
+    if (shouldExtract) {
+      long tessdataStart = new Date().getTime();
+      List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessdataPath, null);
+      Debug.log("takes %d", new Date().getTime() - tessdataStart);
+      if (files.size() == 0) {
+        Debug.error("TextRecognizer: start: export tessdata not possible");
       }
     }
     if (fTessdataPath.exists()) {
-      dataPath = fTessdataPath.getAbsolutePath();
+      textRecognizer.dataPath = fTessdataPath.getAbsolutePath();
       return true;
     }
     return false;
@@ -139,7 +123,7 @@ public class TextRecognizer {
 
   private int oem = -1;
   private int psm = -1;
-  private static String dataPath = Settings.OcrDataPath;
+  private String dataPath = Settings.OcrDataPath;
   private String language = Settings.OcrLanguage;
 
   /**
@@ -194,14 +178,14 @@ public class TextRecognizer {
     return this;
   }
 
-  public TextRecognizer setDataPath(String dataPath) {
+  public TextRecognizer setDataPath(String newDataPath) {
     if (isValid()) {
-      if (new File(dataPath).exists()) {
-        if (new File(dataPath, language + ".traineddata").exists()) {
-          this.dataPath = dataPath;
-          tess.setDatapath(this.dataPath);
+      if (new File(newDataPath).exists()) {
+        if (new File(newDataPath, language + ".traineddata").exists()) {
+          dataPath = newDataPath;
+          tess.setDatapath(dataPath);
         } else {
-          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)",language, dataPath);
+          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)",language, newDataPath);
         }
       }
     }
@@ -250,7 +234,7 @@ public class TextRecognizer {
   private String read(BufferedImage bimg) {
     if (isValid()) {
       try {
-        return tess.doOCR(resize(bimg));
+        return tess.doOCR(optimize(bimg));
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
       }
@@ -260,16 +244,42 @@ public class TextRecognizer {
     return "";
   }
 
-  public BufferedImage resize(BufferedImage bimg) {
+  /*
+   * sharpens the image using an unsharp mask
+   */
+  private Mat unsharpMask(Mat img, double sigma) {
+    Mat blurred = new Mat();
+    Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
+    Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
+    return img;
+  }
+
+  public BufferedImage optimize(BufferedImage bimg) {
+    Mat img = Finder2.makeMat(bimg);
+
+    Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+
+    // sharpen original image to primarily get rid of sub pixel rendering artifacts
+    img = unsharpMask(img, 3);
+
+    // Resize to optimumDPI
     actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
-    BufferedImage resizedBimg = bimg;
     float rFactor = factor();
+
     if (rFactor > 1) {
       int newW = (int) (rFactor * bimg.getWidth());
       int newH = (int) (rFactor * bimg.getHeight());
-      resizedBimg = ImageHelper.getScaledInstance(bimg, newW, newH);
+      Imgproc.resize(img, img, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
     }
-    return  resizedBimg;
+
+    // sharpen the enlarged image again
+    img = unsharpMask(img, 5);
+
+    // configure tesseract to handle the resized image correctly
+    setVariable("user_defined_dpi", "" + optimumDPI);
+
+    return Finder2.getBufferedImage(img);
+
   }
 
   public Region rescale(Rectangle rect) {

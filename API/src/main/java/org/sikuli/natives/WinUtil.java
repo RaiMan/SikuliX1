@@ -208,12 +208,6 @@ public class WinUtil implements OSUtil {
     if (retInt > 0) {
       envVal = new String(Arrays.copyOfRange(retChar, 0, retInt));
     }
-    sxuser32.EnumWindows(new WinUser.WNDENUMPROC() {
-      @Override
-      public boolean callback(WinDef.HWND hwnd, Pointer pointer) {
-        return false;
-      }
-    }, null);
     return envVal;
   }
 

@@ -15,10 +15,17 @@
       <outputDirectory>/</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
       <unpack>true</unpack>
+      <unpackOptions>
+        <excludes>
+          <exclude>**/win32-x86/liblept*</exclude>
+          <exclude>**/win32-x86/libtesseract*</exclude>
+        </excludes>
+      </unpackOptions>
       <excludes>
         <exclude>org.python:jython-standalone</exclude>
         <exclude>org.jruby:jruby-complete</exclude>
         <exclude>net.sf.py4j:py4j</exclude>
+        <exclude>org.apache.pdfbox:*</exclude>
       </excludes>
       <scope>runtime</scope>
     </dependencySet>
