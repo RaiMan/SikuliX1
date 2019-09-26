@@ -1421,6 +1421,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="11 libs export">
   private boolean libsLoad(String libName) {
+    log(lvl, "loadlib: trying %s", libName);
     String msg = "loadLib: %s";
     if (!areLibsExported) {
       libsExport();
