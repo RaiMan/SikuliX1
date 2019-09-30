@@ -162,7 +162,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final int runScript(String script, String[] scriptArgs, IScriptRunner.Options maybeOptions) {
     IScriptRunner.Options options = null != maybeOptions ? maybeOptions : new IScriptRunner.Options();
-    
+
     return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
       if (!Debug.isGlobalDebug()) {
@@ -278,13 +278,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     }
   }
 
-  @SuppressWarnings("deprecation")
   protected void doAbort() {
-
     synchronized (WORKER_LOCK) {
       if (worker != null) {
           worker.interrupt();
-          worker.stop();
       }
     }
   }
