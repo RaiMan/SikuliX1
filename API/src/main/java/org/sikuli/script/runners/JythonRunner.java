@@ -3,9 +3,7 @@
  */
 package org.sikuli.script.runners;
 
-import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.SikuliException;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.IScriptRunner;
@@ -13,7 +11,6 @@ import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
@@ -28,6 +25,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   public static final String TYPE = "text/jython";
   public static final String[] EXTENSIONS = new String[]{"py"};
 
+  @SuppressWarnings("serial")
   public class AbortedException extends RuntimeException{
 
   }
@@ -43,7 +41,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    */
   @Override
   public boolean isSupported() {
-    return jythonSupport.isSupported();
+    return JythonSupport.isSupported();
   }
 
   /**
