@@ -32,8 +32,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
   private static RunTime runTime = RunTime.get();
 
-  public static boolean aborted = false;
-
   private int lvl = 3;
 
   /**
@@ -104,14 +102,11 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   }
 
   private void initAbort() {
-    aborted = false;
-    jythonSupport.interpreterExecString("def trace_calls(frame, evt, arg):\n  if JythonRunner.aborted: \n    raise JythonRunner.AbortedException(None)\n  return trace_calls");
-    jythonSupport.interpreterExecString("sys.settrace(trace_calls)");
-  }
-
-  protected void doAbort() {
-    aborted = true;
-    super.doAbort();
+    jythonSupport.interpreterExecString("def trace_calls_for_abort(frame, evt, arg):\n"
+                                      + "  if JythonRunner.isAborted():\n"
+                                      + "    raise JythonRunner.AbortedException(None)\n"
+                                      + "  return trace_calls_for_abort\n"
+                                      + "sys.settrace(trace_calls_for_abort)");
   }
 
   static JythonSupport jythonSupport = null;
