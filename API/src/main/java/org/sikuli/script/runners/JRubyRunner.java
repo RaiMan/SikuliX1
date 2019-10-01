@@ -79,6 +79,10 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
          + "}\n" + script;
   }
 
+  private int injectAbortWatcherLineCount() {
+    return injectAbortWatcher("").split("\n").length;
+  }
+
   //<editor-fold desc="10 run scripts">
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -118,7 +122,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
           } else {
             //TODO to be optimized (avoid double message)
             int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath());
-            options.setErrorLine(errorExit);
+            options.setErrorLine(errorExit - injectAbortWatcherLineCount());
           }
         }
       }
