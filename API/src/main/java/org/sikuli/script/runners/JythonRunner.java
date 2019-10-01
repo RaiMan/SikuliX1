@@ -90,6 +90,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       jythonSupport.addSitePackages();
       jythonSupport.showSysPath();
       jythonSupport.interpreterExecString("import sys");
+      jythonSupport.interpreterExecString("import org.sikuli.script.support.Runner as Runner");
       jythonSupport.interpreterExecString("import org.sikuli.script.runners.JythonRunner as JythonRunner");
       String interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
       if (interpreterVersion.isEmpty()) {
@@ -102,8 +103,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   }
 
   private void initAbort() {
-    jythonSupport.interpreterExecString("def trace_calls_for_abort(frame, evt, arg):\n"
-                                      + "  if JythonRunner.isAborted():\n"
+    jythonSupport.interpreterExecString("runner = Runner.getRunner(\"" + NAME + "\")\n"
+                                      + "def trace_calls_for_abort(frame, evt, arg):\n"
+                                      + "  if runner.isAborted():\n"
                                       + "    raise JythonRunner.AbortedException(None)\n"
                                       + "  return trace_calls_for_abort\n"
                                       + "sys.settrace(trace_calls_for_abort)");
@@ -162,21 +164,21 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         } else {
           jythonSupport.interpreterExecFile(pyFile.getAbsolutePath());
         }
-      } catch (AbortedException abortedException) {
-        Debug.info("Aborted");
       } catch (Throwable scriptException) {
-        exitCode = 1;
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
-        String exception = scriptException.toString();
+        if(!isAborted()) {
+          exitCode = 1;
+          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
+          String exception = scriptException.toString();
 
-        Matcher matcher = p.matcher(exception);
-        if (matcher.find()) {
-          exitCode = Integer.parseInt(matcher.group(1));
-          Debug.info("Exit code: " + exitCode);
-        } else {
-          int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
-          if (null != options) {
-            options.setErrorLine(errorExit);
+          Matcher matcher = p.matcher(exception);
+          if (matcher.find()) {
+            exitCode = Integer.parseInt(matcher.group(1));
+            Debug.info("Exit code: " + exitCode);
+          } else {
+            int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
+            if (null != options) {
+              options.setErrorLine(errorExit);
+            }
           }
         }
       } finally {
@@ -202,7 +204,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       try {
         jythonSupport.interpreterExecString(lines);
       } catch (Exception ex) {
-        log(-1, "runPython: (%s) raised: %s", "\n" + lines, ex);
+        if(!isAborted()) {
+          log(-1, "runPython: (%s) raised: %s", "\n" + lines, ex);
+        }
       }
     }
   }

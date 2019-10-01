@@ -52,7 +52,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   private static volatile Thread worker = null;
   private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
   private static final Object WORKER_LOCK = new Object();
-  private static boolean aborted = false;
+  private boolean aborted = false;
 
   protected void log(int level, String message, Object... args) {
     Debug.logx(level, getName() + "Runner: " + message, args);
@@ -275,20 +275,25 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
   public final void abort() {
     synchronized (WORKER_LOCK) {
-      if (running && isAbortSupported()) {
+      if (worker != null && running && isAbortSupported()) {
         aborted = true;
         doAbort();
       }
     }
   }
 
+  /**
+   * Interrupts the worker thread.
+   *
+   * Can be overridden by Runner implementations if an interrupt
+   * is not needed.
+   */
   protected void doAbort() {
-    if (worker != null) {
-        worker.interrupt();
-    }
+    worker.interrupt();
   }
 
-  public static boolean isAborted() {
+  @Override
+  public final boolean isAborted() {
     synchronized (WORKER_LOCK) {
       return aborted;
     }
@@ -299,11 +304,6 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     IntByReference exitCode = new IntByReference(1);
 
     synchronized (WORKER_LOCK) {
-      if (Thread.currentThread().isInterrupted()) {
-        Debug.log(-1, "%s thread interrupted.", getName());
-        return 1;
-      }
-
       aborted = false;
       newWorker = worker == null;
 

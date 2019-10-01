@@ -3,6 +3,7 @@
  */
 package org.sikuli.script.runners;
 
+import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.runnerSupport.JRubySupport;
 import org.sikuli.script.support.IScriptRunner;
@@ -66,6 +67,18 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   }
   //</editor-fold>
 
+  private String injectAbortWatcher(String script) {
+    return "Thread.new(){\n"
+         + "  runner = org.sikuli.script.support.Runner.getRunner(\"" + NAME + "\")\n"
+         + "  while runner.isRunning()\n"
+         + "    sleep(0.1)\n"
+         + "    if runner.isAborted()\n"
+         + "      exit!\n"
+         + "    end\n"
+         + "  end\n"
+         + "}\n" + script;
+  }
+
   //<editor-fold desc="10 run scripts">
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
@@ -82,27 +95,31 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
 
       prepareFileLocation(rubyFile, options);
 
-      BufferedReader scriptReader = null;
+      String script;
       try {
-        scriptReader = new BufferedReader(
-                new InputStreamReader(new FileInputStream(rubyFile.getAbsolutePath()), "UTF-8"));
+        script = FileUtils.readFileToString(rubyFile, "UTF-8");
       } catch (IOException ex) {
         log(-1, "reading script: %s", ex.getMessage());
         return Runner.FILE_NOT_FOUND;
       }
+
+      script = injectAbortWatcher(script);
+
       try {
         //TODO handle exitValue (the result of the last line in the script or the value returned by statement return something)
-        exitValue = jrubySupport.interpreterRunScriptletFile(scriptReader, rubyFile.getAbsolutePath());
+        exitValue = jrubySupport.interpreterRunScriptletString(script);
       } catch (Throwable scriptException) {
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
-        Matcher matcher = p.matcher(scriptException.toString());
-        if (matcher.find()) {
-          exitCode = Integer.parseInt(matcher.group(1));
-          Debug.info("Exit code: " + exitCode);
-        } else {
-          //TODO to be optimized (avoid double message)
-          int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath());
-          options.setErrorLine(errorExit);
+        if(!isAborted()) {
+          java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: ([0-9]+)");
+          Matcher matcher = p.matcher(scriptException.toString());
+          if (matcher.find()) {
+            exitCode = Integer.parseInt(matcher.group(1));
+            Debug.info("Exit code: " + exitCode);
+          } else {
+            //TODO to be optimized (avoid double message)
+            int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath());
+            options.setErrorLine(errorExit);
+          }
         }
       }
       return exitCode;
@@ -115,6 +132,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
       try {
+        lines = injectAbortWatcher(lines);
         jrubySupport.interpreterRunScriptletString(lines);
       } catch (Exception ex) {
       }
@@ -125,6 +143,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JRubyRunner.class) {
+      script = injectAbortWatcher(script);
       jrubySupport.executeScriptHeader(codeBefore);
       jrubySupport.interpreterRunScriptletString(script);
       return 0;
@@ -143,6 +162,11 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
       }
       return true;
     }
+  }
+
+  @Override
+  protected void doAbort() {
+    // Do nothing
   }
 
   private static boolean redirected = false;
