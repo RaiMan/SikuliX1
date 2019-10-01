@@ -121,8 +121,8 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
             Debug.info("Exit code: " + exitCode);
           } else {
             //TODO to be optimized (avoid double message)
-            int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath());
-            options.setErrorLine(errorExit - injectAbortWatcherLineCount());
+            int errorExit = jrubySupport.findErrorSource(scriptException, rubyFile.getAbsolutePath(), injectAbortWatcherLineCount());
+            options.setErrorLine(errorExit);
           }
         }
       }

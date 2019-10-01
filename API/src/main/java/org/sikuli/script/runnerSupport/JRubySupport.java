@@ -198,7 +198,7 @@ public class JRubySupport implements IRunnerSupport {
     }
   }
 
-  public int findErrorSource(Throwable thr, String filename) {
+  public int findErrorSource(Throwable thr, String filename, int headerOffset) {
     String err = thr.getMessage();
 
     errorLine = -1;
@@ -258,7 +258,7 @@ public class JRubySupport implements IRunnerSupport {
     msg = "script";
     if (errorLine != -1) {
       // log(-1,_I("msgErrorLine", srcLine));
-      msg += " stopped with error in line " + errorLine;
+      msg += " stopped with error in line " + (errorLine - headerOffset);
       if (errorColumn != -1) {
         msg += " at column " + errorColumn;
       }
@@ -303,7 +303,7 @@ public class JRubySupport implements IRunnerSupport {
       Debug.error("Could not evaluate error source nor reason. Analyze StackTrace!");
       Debug.error(err);
     }
-    return errorLine;
+    return errorLine - headerOffset;
   }
 
   private int errorLine;
