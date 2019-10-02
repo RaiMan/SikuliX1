@@ -25,11 +25,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   public static final String TYPE = "text/jython";
   public static final String[] EXTENSIONS = new String[]{"py"};
 
-  @SuppressWarnings("serial")
-  public class AbortedException extends RuntimeException{
-
-  }
-
   private static RunTime runTime = RunTime.get();
 
   private int lvl = 3;
@@ -91,7 +86,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       jythonSupport.showSysPath();
       jythonSupport.interpreterExecString("import sys");
       jythonSupport.interpreterExecString("import org.sikuli.script.support.Runner as Runner");
-      jythonSupport.interpreterExecString("import org.sikuli.script.runners.JythonRunner as JythonRunner");
       String interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
       if (interpreterVersion.isEmpty()) {
         interpreterVersion = "could not be evaluated";
@@ -106,7 +100,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
     jythonSupport.interpreterExecString("runner = Runner.getRunner(\"" + NAME + "\")\n"
                                       + "def trace_calls_for_abort(frame, evt, arg):\n"
                                       + "  if runner.isAborted():\n"
-                                      + "    raise JythonRunner.AbortedException(None)\n"
+                                      + "    raise RuntimeError(\"Aborted\")\n"
                                       + "  return trace_calls_for_abort\n"
                                       + "sys.settrace(trace_calls_for_abort)");
   }
