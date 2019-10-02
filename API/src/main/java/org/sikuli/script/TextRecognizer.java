@@ -275,6 +275,11 @@ public class TextRecognizer {
     // sharpen the enlarged image again
     img = unsharpMask(img, 5);
 
+    // invert in case of mainly dark background
+    if(Core.mean(img).val[0] < 127) {
+      Core.bitwise_not(img, img);
+    }
+
     // configure tesseract to handle the resized image correctly
     setVariable("user_defined_dpi", "" + optimumDPI);
 
