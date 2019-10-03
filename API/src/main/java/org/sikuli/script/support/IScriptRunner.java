@@ -296,9 +296,16 @@ public interface IScriptRunner {
   public void abort();
 
   /**
+   * Checks if the currently running script has been aborted.
+   *
+   * @return true if the currently running script has been aborted, false otherwise.
+   */
+  public boolean isAborted();
+
+  /**
    * Checks if abort is supported by this script runner implementation.
    *
-   * @return true is aboort is supported, false otherwise
+   * @return true is abort is supported, false otherwise
    */
   public boolean isAbortSupported();
 
