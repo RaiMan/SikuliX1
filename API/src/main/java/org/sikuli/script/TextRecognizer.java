@@ -35,6 +35,7 @@ public class TextRecognizer {
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
+
   private TextRecognizer() {
     Finder.Finder2.init();
   }
@@ -52,11 +53,13 @@ public class TextRecognizer {
 
   private int actualDPI = 72;
   public float optimumDPI = 192;
+
   private float factor() {
     return optimumDPI / actualDPI;
   }
 
   private Tesseract1 tess = null;
+
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
@@ -73,7 +76,11 @@ public class TextRecognizer {
           }
         } else {
           textRecognizer = null;
-          Debug.error("TextRecognizer: start: no valid tesseract data folder");
+          if (textRecognizer.dataPathProvided) {
+            Debug.error("TextRecognizer: start: provided tessdata folder not found: %s", Settings.OcrDataPath);
+          } else {
+            Debug.error("TextRecognizer: start: no valid tesseract data folder");
+          }
         }
       } catch (Exception e) {
         textRecognizer = null;
@@ -88,31 +95,35 @@ public class TextRecognizer {
   }
 
   public static boolean extractTessdata() {
-    File fTessdataPath;
+    File fTessDataPath;
+    File fTessConfigPath;
     boolean shouldExtract = false;
-    if (textRecognizer.dataPath != null) {
-      fTessdataPath = new File(textRecognizer.dataPath, "tessdata");
-    } else {
-      fTessdataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-      if (fTessdataPath.exists()) {
-        if (!new File(fTessdataPath, "pdf.ttf").exists()) {
-          shouldExtract = true;
-          FileManager.deleteFileOrFolder(fTessdataPath);
-        }
-      } else {
+    fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
+    fTessConfigPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/configs");
+    //export to the standard SikuliX tessdata folder in any case
+    if (fTessDataPath.exists()) {
+      if (!new File(fTessConfigPath, "nodict").exists()) {
         shouldExtract = true;
+        FileManager.deleteFileOrFolder(fTessDataPath);
       }
+    } else {
+      shouldExtract = true;
     }
     if (shouldExtract) {
       long tessdataStart = new Date().getTime();
-      List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessdataPath, null);
-      Debug.log("takes %d", new Date().getTime() - tessdataStart);
+      List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessDataPath, null);
+      Debug.log("TextRecognizer: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
       if (files.size() == 0) {
         Debug.error("TextRecognizer: start: export tessdata not possible");
       }
     }
-    if (fTessdataPath.exists()) {
-      textRecognizer.dataPath = fTessdataPath.getAbsolutePath();
+    // if set, try with provided tessdata folder
+    if (Settings.OcrDataPath != null) {
+      fTessDataPath = new File(Settings.OcrDataPath, "tessdata");
+      textRecognizer.dataPathProvided = true;
+    }
+    if (fTessDataPath.exists()) {
+      textRecognizer.dataPath = fTessDataPath.getAbsolutePath();
       return true;
     }
     return false;
@@ -124,15 +135,17 @@ public class TextRecognizer {
 
   private int oem = -1;
   private int psm = -1;
-  private String dataPath = Settings.OcrDataPath;
+  private boolean dataPathProvided = false;
+  private String dataPath = null;
   private String language = Settings.OcrLanguage;
 
   /**
    * OCR Engine modes:
-   *   0    Original Tesseract only.
-   *   1    Cube only.
-   *   2    Tesseract + cube.
-   *   3    Default, based on what is available.
+   * 0    Original Tesseract only.
+   * 1    Cube only.
+   * 2    Tesseract + cube.
+   * 3    Default, based on what is available.
+   *
    * @param oem
    * @return
    */
@@ -150,20 +163,21 @@ public class TextRecognizer {
 
   /**
    * Page segmentation modes:
-   *   0    Orientation and script detection (OSD) only.
-   *   1    Automatic page segmentation with OSD.
-   *   2    Automatic page segmentation, but no OSD, or OCR.
-   *   3    Fully automatic page segmentation, but no OSD. (Default)
-   *   4    Assume a single column of text of variable sizes.
-   *   5    Assume a single uniform block of vertically aligned text.
-   *   6    Assume a single uniform block of text.
-   *   7    Treat the image as a single text line.
-   *   8    Treat the image as a single word.
-   *   9    Treat the image as a single word in a circle.
-   *  10    Treat the image as a single character.
-   *  11    Sparse text. Find as much text as possible in no particular order.
-   *  12    Sparse text with OSD.
-   *  13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
+   * 0    Orientation and script detection (OSD) only.
+   * 1    Automatic page segmentation with OSD.
+   * 2    Automatic page segmentation, but no OSD, or OCR.
+   * 3    Fully automatic page segmentation, but no OSD. (Default)
+   * 4    Assume a single column of text of variable sizes.
+   * 5    Assume a single uniform block of vertically aligned text.
+   * 6    Assume a single uniform block of text.
+   * 7    Treat the image as a single text line.
+   * 8    Treat the image as a single word.
+   * 9    Treat the image as a single word in a circle.
+   * 10    Treat the image as a single character.
+   * 11    Sparse text. Find as much text as possible in no particular order.
+   * 12    Sparse text with OSD.
+   * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
+   *
    * @param psm
    * @return the textRecognizer instance
    */
@@ -186,7 +200,7 @@ public class TextRecognizer {
           dataPath = newDataPath;
           tess.setDatapath(dataPath);
         } else {
-          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)",language, newDataPath);
+          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)", language, newDataPath);
         }
       }
     }
@@ -284,7 +298,7 @@ public class TextRecognizer {
     img = unsharpMask(img, 5);
 
     // invert in case of mainly dark background
-    if(Core.mean(img).val[0] < 127) {
+    if (Core.mean(img).val[0] < 127) {
       Core.bitwise_not(img, img);
     }
 
@@ -319,6 +333,7 @@ public class TextRecognizer {
 
   /**
    * use start() instead
+   *
    * @return
    */
   @Deprecated
@@ -335,9 +350,9 @@ public class TextRecognizer {
    */
   @Deprecated
   public static void reset() {
-		textRecognizer = null;
-		start();
-	}
+    textRecognizer = null;
+    start();
+  }
 
   /**
    * no longer needed - use start() and setXXX()
@@ -350,6 +365,7 @@ public class TextRecognizer {
 
   /**
    * deprecated use doOCR() instead
+   *
    * @param simg
    * @return text
    */
@@ -361,6 +377,7 @@ public class TextRecognizer {
 
   /**
    * deprecated use doOCR() instead
+   *
    * @param bimg
    * @return text
    */
