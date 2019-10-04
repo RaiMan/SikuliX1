@@ -10,6 +10,7 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -207,6 +208,13 @@ public class TextRecognizer {
   public TextRecognizer setVariable(String key, String value) {
     if (isValid()) {
       tess.setTessVariable(key, value);
+    }
+    return this;
+  }
+
+  public TextRecognizer setConfigs(String... configs) {
+    if (isValid()) {
+      tess.setConfigs(Arrays.asList(configs));
     }
     return this;
   }
