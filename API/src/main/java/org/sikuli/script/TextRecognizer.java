@@ -43,20 +43,20 @@ public class TextRecognizer {
    * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    */
   public enum PageSegMode {
-    PSM_OSD_ONLY, // 0
-    PSM_AUTO_OSD, // 1
-    PSM_AUTO_ONLY, // 2
-    PSM_AUTO, // 3
-    PSM_SINGLE_COLUMN, // 4
-    PSM_SINGLE_BLOCK_VERT_TEXT, // 5
-    PSM_SINGLE_BLOCK, // 6
-    PSM_SINGLE_LINE, // 7
-    PSM_SINGLE_WORD, // 8
-    PSM_CIRCLE_WORD, // 9
-    PSM_SINGLE_CHAR, // 10
-    PSM_SPARSE_TEXT, // 11
-    PSM_SPARSE_TEXT_OSD, // 12
-    PSM_COUNT // 13
+    OSD_ONLY, // 0
+    AUTO_OSD, // 1
+    AUTO_ONLY, // 2
+    AUTO, // 3
+    SINGLE_COLUMN, // 4
+    SINGLE_BLOCK_VERT_TEXT, // 5
+    SINGLE_BLOCK, // 6
+    SINGLE_LINE, // 7
+    SINGLE_WORD, // 8
+    CIRCLE_WORD, // 9
+    SINGLE_CHAR, // 10
+    SPARSE_TEXT, // 11
+    SPARSE_TEXT_OSD, // 12
+    COUNT // 13
   }
 
   /**
@@ -67,10 +67,10 @@ public class TextRecognizer {
    * 3    Default, based on what is available.
    */
   public enum OcrEngineMode {
-    OEM_TESSERACT_ONLY, // 0
-    OEM_LSTM_ONLY, // 1
-    OEM_TESSERACT_LSTM_COMBINED, // 2
-    OEM_DEFAULT // 3
+    TESSERACT_ONLY, // 0
+    LSTM_ONLY, // 1
+    TESSERACT_LSTM_COMBINED, // 2
+    DEFAULT // 3
   }
   
   private static int lvl = 3;
@@ -155,7 +155,7 @@ public class TextRecognizer {
     }
     if (shouldExtract) {
       long tessdataStart = new Date().getTime();
-      List<String> files = RunTime.get().extractResourcesToFolder("/tessdata", fTessDataPath, null);
+      List<String> files = RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null);
       Debug.log("TextRecognizer: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
       if (files.size() == 0) {
         Debug.error("TextRecognizer: start: export tessdata not possible");
