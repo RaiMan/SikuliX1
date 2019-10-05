@@ -87,6 +87,7 @@ public class TextRecognizer {
           Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
           textRecognizer.tess.setDatapath(textRecognizer.dataPath);
           if (!new File(textRecognizer.dataPath, textRecognizer.language + ".traineddata").exists()) {
+            textRecognizer = null;
             Debug.error("TextRecognizer: start: no %s.traineddata - provide another language", textRecognizer.language);
           } else {
             Debug.log(lvl, "TextRecognizer: start: language: %s", textRecognizer.language);
