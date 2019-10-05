@@ -3,19 +3,8 @@
  */
 package org.sikuli.script;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-
+import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -26,12 +15,40 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
-import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
-import net.sourceforge.tess4j.util.ImageHelper;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 public class TextRecognizer {
+  
+  public enum PageSegMode {
+    PSM_OSD_ONLY, 
+    PSM_AUTO_OSD,
+    PSM_AUTO_ONLY,
+    PSM_AUTO,
+    PSM_SINGLE_COLUMN,
+    PSM_SINGLE_BLOCK_VERT_TEXT,
+    PSM_SINGLE_BLOCK,
+    PSM_SINGLE_LINE,
+    PSM_SINGLE_WORD,
+    PSM_CIRCLE_WORD,
+    PSM_SINGLE_CHAR,
+    PSM_SPARSE_TEXT,
+    PSM_SPARSE_TEXT_OSD,
+    PSM_COUNT    
+  }
 
+  public enum OcrEngineMode {
+    OEM_TESSERACT_ONLY,
+    OEM_LSTM_ONLY,
+    OEM_TESSERACT_LSTM_COMBINED,
+    OEM_DEFAULT
+  }
+  
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
@@ -96,13 +113,15 @@ public class TextRecognizer {
 
   public static boolean extractTessdata() {
     File fTessDataPath;
-    File fTessConfigPath;
+    File fTessConfNodict;
+    File fTessEngTData;
     boolean shouldExtract = false;
     fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-    fTessConfigPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/configs");
-    //export to the standard SikuliX tessdata folder in any case
+    fTessConfNodict = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/configs/nodict");
+    fTessEngTData = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/eng.traineddata");
+    //export latest tessdata to the standard SikuliX tessdata folder in any case
     if (fTessDataPath.exists()) {
-      if (!new File(fTessConfigPath, "nodict").exists()) {
+      if (!fTessEngTData.exists() || !fTessConfNodict.exists()) {
         shouldExtract = true;
         FileManager.deleteFileOrFolder(fTessDataPath);
       }
@@ -139,6 +158,10 @@ public class TextRecognizer {
   private String dataPath = null;
   private String language = Settings.OcrLanguage;
 
+  public TextRecognizer setOEM(OcrEngineMode oem) {
+    return setOEM(oem.ordinal());
+  }
+
   /**
    * OCR Engine modes:
    * 0    Original Tesseract only.
@@ -159,6 +182,10 @@ public class TextRecognizer {
       tess.setOcrEngineMode(this.oem);
     }
     return this;
+  }
+
+  public TextRecognizer setPSM(PageSegMode psm) {
+    return setPSM(psm.ordinal());
   }
 
   /**
