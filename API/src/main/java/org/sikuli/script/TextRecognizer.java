@@ -15,10 +15,14 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
+import java.awt.Desktop;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -130,6 +134,20 @@ public class TextRecognizer {
       } catch (Exception e) {
         textRecognizer = null;
         Debug.error("TextRecognizer: start: %s", e.getMessage());
+      } catch (UnsatisfiedLinkError e) {
+        textRecognizer = null;
+        String libName = RunTime.get().runningMac ? "libtesseract.dylib" : "libtesseract.so";
+        Debug.error("TextRecognizer: start: Tesseract library not found (%s)", libName);
+        String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
+        if (RunTime.isIDE()) {
+          Debug.error("Save your work, correct the problem and restart the IDE!");
+          try {
+            Desktop.getDesktop().browse(new URI(helpURL));
+          } catch (IOException ex) {
+          } catch (URISyntaxException ex) {
+          }
+        }
+        Debug.error("see: " + helpURL);
       }
     }
     if (null == textRecognizer) {
