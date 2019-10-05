@@ -76,6 +76,8 @@ public class TextRecognizer {
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
+  public static String versionTess4J = "4.4.0";
+  public static String versionTesseract = "4.1.0";
 
   private TextRecognizer() {
     Finder.Finder2.init();
@@ -106,6 +108,7 @@ public class TextRecognizer {
       textRecognizer = new TextRecognizer();
       try {
         textRecognizer.tess = new Tesseract1();
+        Debug.log(lvl, "TextRecognizer: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
         boolean tessdataOK = extractTessdata();
         if (tessdataOK) {
           Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
