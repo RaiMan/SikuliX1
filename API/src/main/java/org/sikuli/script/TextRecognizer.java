@@ -106,9 +106,9 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
+      Debug.log(lvl, "TextRecognizer: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
       try {
         textRecognizer.tess = new Tesseract1();
-        Debug.log(lvl, "TextRecognizer: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
         boolean tessdataOK = extractTessdata();
         if (tessdataOK) {
           Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
