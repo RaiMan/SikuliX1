@@ -397,22 +397,8 @@ public class TextRecognizer {
     return tr;
   }
 
-  /**
-   * no longer needed - use start() and setXXX()
-   */
-  @Deprecated
   public static void reset() {
     textRecognizer = null;
-    start();
-  }
-
-  /**
-   * no longer needed - use start() and setXXX()
-   */
-  @Deprecated
-  public static void reset(String language) {
-    textRecognizer = null;
-    start().setLanguage(language);
   }
 
   /**
