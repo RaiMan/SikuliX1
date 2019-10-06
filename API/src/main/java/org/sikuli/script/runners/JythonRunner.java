@@ -34,7 +34,14 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
    */
   @Override
   public boolean isSupported() {
-    return JythonSupport.isSupported();
+    //TODO JythonSupport to be revised (no side effects, if Jython not available): return JythonSupport.isSupported();
+    try {
+      Class.forName("org.python.util.PythonInterpreter");
+      return true;
+    } catch (ClassNotFoundException ex) {
+      Debug.log(-1, "no Jython on classpath --- consult the docs for a solution, if needed");
+      return false;
+    }
   }
 
   /**
