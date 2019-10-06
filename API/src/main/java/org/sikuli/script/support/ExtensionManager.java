@@ -133,7 +133,7 @@ public class ExtensionManager {
   public static void readExtensions(boolean afterStart) {
     sxExtensionsFileContent = new ArrayList<>();
     sxExtensionsFile = new File(sxExtensions, "extensions.txt");
-    String txtExtensions = FileManager.readFileToString(sxExtensionsFile);
+    String txtExtensions = FileManager.readFileToString(sxExtensionsFile).trim();
     if (!txtExtensions.isEmpty()) {
       String[] lines = txtExtensions.split("\\n");
       String extlines = "";
@@ -145,10 +145,14 @@ public class ExtensionManager {
         extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
-      RunTime.startLog(1, "extensions.txt\n%s", extlines);
+      if (sxExtensionsFileContent.size() > 0) {
+        RunTime.startLog(1, "extensions.txt\n%s", extlines);
+      }
     }
     if (sxExtensionsFileContent.size() == 0) {
-      RunTime.startLog(1, "no extensions.txt nor valid content");
+      if (!afterStart) {
+        RunTime.startLog(1, "no extensions.txt nor valid content");
+      }
       return;
     }
     for (String line : sxExtensionsFileContent) {
