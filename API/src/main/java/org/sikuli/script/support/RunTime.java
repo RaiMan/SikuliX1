@@ -126,9 +126,9 @@ public class RunTime {
     }
     cmd.addAll(Arrays.asList(args));
 
+    RunTime.startLog(3, "*********************** leaving start");
     if (shouldDetach()) {
       ProcessRunner.detach(cmd);
-      RunTime.startLog(3, "*********************** leaving start");
       System.exit(0);
     } else {
       int exitCode = ProcessRunner.runBlocking(cmd);
@@ -163,22 +163,22 @@ public class RunTime {
   }
 
   public static void afterStart(RunTime.Type type, String[] args) {
-
+    String startType = "IDE";
     if (Type.IDE.equals(type)) {
       if (null == System.getProperty("sikuli.IDE_should_run")) {
         System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
         System.exit(1);
       }
-      Debug.log(3, "Sikulix: starting IDE");
     } else {
       if (null == System.getProperty("sikuli.API_should_run")) {
         System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
         System.exit(1);
       }
-      Debug.log(3, "Sikulix: starting API");
+      startType = "API";
     }
 
     evalArgsStart(args);
+    Debug.log(3, "Sikulix: starting " + startType);
     evalArgs(args);
     ExtensionManager.readExtensions(true);
 
@@ -742,6 +742,10 @@ public class RunTime {
 
   public RunType runningAs = RunType.OTHER;
 
+  public boolean runningIDE() {
+    return Type.IDE.equals(runType);
+  }
+
   private static Options sxOptions = null;
 
   private static boolean isTerminating = false;
@@ -1041,6 +1045,9 @@ public class RunTime {
   //</editor-fold>
 
   public Rectangle getMonitor(int n) {
+    if (Screen.isHeadless()) {
+      return new Rectangle();
+    }
     return Screen.getMonitor(n);
   }
 
@@ -1255,10 +1262,10 @@ public class RunTime {
   //<editor-fold desc="99 cleanUp">
   public void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
+    if (!outMsg.isEmpty()) {
+      System.out.println("TERMINATING: " + outMsg);
+    }
     if (retval < 999) {
-      if (!outMsg.isEmpty()) {
-        System.out.println(outMsg);
-      }
       isTerminating = true;
       cleanUp();
       System.exit(retval);
