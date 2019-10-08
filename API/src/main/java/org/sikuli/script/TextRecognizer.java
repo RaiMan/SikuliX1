@@ -163,11 +163,9 @@ public class TextRecognizer {
     File fTessEngTData;
     boolean shouldExtract = false;
     fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-    fTessConfNodict = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/configs/nodict");
-    fTessEngTData = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata/eng.traineddata");
     //export latest tessdata to the standard SikuliX tessdata folder in any case
     if (fTessDataPath.exists()) {
-      if (RunTime.get().shouldExport()) { //(!fTessEngTData.exists() || !fTessConfNodict.exists()) {
+      if (RunTime.get().shouldExport()) {
         shouldExtract = true;
         FileManager.deleteFileOrFolder(fTessDataPath);
       }
@@ -189,6 +187,7 @@ public class TextRecognizer {
     }
     if (fTessDataPath.exists()) {
       textRecognizer.dataPath = fTessDataPath.getAbsolutePath();
+      textRecognizer.hasOsdTrData = new File(textRecognizer.dataPath, "osd.traineddata").exists();
       return true;
     }
     return false;
@@ -230,6 +229,8 @@ public class TextRecognizer {
     return this;
   }
 
+  private boolean hasOsdTrData = false;
+
   public TextRecognizer setPSM(PageSegMode psm) {
     return setPSM(psm.ordinal());
   }
@@ -260,6 +261,14 @@ public class TextRecognizer {
       psm = 3;
     }
     if (isValid()) {
+      if (psm == PageSegMode.OSD_ONLY.ordinal() || psm == PageSegMode.AUTO_OSD.ordinal()
+              || psm == PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+        if(!hasOsdTrData) {
+          String msg = String.format("TextRecognizer: setPSM(%d): needs OSD, " +
+                  "but no osd.traineddata found in tessdata folder", psm);
+          RunTime.get().terminate(999, msg);
+        }
+      }
       this.psm = psm;
       tess.setPageSegMode(this.psm);
     }
@@ -273,7 +282,9 @@ public class TextRecognizer {
           dataPath = newDataPath;
           tess.setDatapath(dataPath);
         } else {
-          Debug.error("TextRecognizer: setDataPath: not valid - no %s.traineddata (%s)", language, newDataPath);
+          String msg = String.format("TextRecognizer: setDataPath: not valid " +
+                  "- no %s.traineddata (%s)", language, newDataPath);
+          RunTime.get().terminate(999, msg);
         }
       }
     }
@@ -286,7 +297,8 @@ public class TextRecognizer {
         this.language = language;
         tess.setLanguage(this.language);
       } else {
-        Debug.error("TextRecognizer: setLanguage: no %s.traineddata - still using %s", language, this.language);
+        String msg = String.format("TextRecognizer: setLanguage: no %s.traineddata in %s", language, this.dataPath);
+        RunTime.get().terminate(999, msg);
       }
     }
     return this;
