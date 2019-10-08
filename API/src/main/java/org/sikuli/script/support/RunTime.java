@@ -1493,6 +1493,12 @@ public class RunTime {
     return true;
   }
 
+  private boolean didExport = false;
+
+  public boolean shouldExport() {
+    return didExport;
+  }
+
   private void libsExport() {
 /*
     remove obsolete libs folders in Temp
@@ -1591,8 +1597,10 @@ public class RunTime {
         if (copyMsg.contains("failed")) {
           FileManager.deleteFileOrFolder(fLibsFolder);
           log(-1, copyMsg);
+          break;
         } else {
           log(lvl + 1, copyMsg);
+          didExport = true;
         }
       }
     }
