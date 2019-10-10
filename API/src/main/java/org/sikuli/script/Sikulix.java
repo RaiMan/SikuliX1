@@ -388,18 +388,6 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="15 terminate">
-  public static void endNormal(int n) {
-    terminate(n, "Sikulix: endNormal");
-  }
-
-  public static void endWarning(int n) {
-    terminate(n, "Sikulix: endWarning");
-  }
-
-  public static void endError(int n) {
-    terminate(n, "Sikulix: endError");
-  }
-
   public static void terminate(int retVal, String msg, Object... args) {
     RunTime.get().terminate(retVal, msg, args);
   }

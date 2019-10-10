@@ -151,7 +151,8 @@ public class TextRecognizer {
       }
     }
     if (null == textRecognizer) {
-      RunTime.get().terminate(999, "TextRecognizer could not be initialized");
+      //RunTime.get().terminate(999, "TextRecognizer could not be initialized");
+      throw new SikuliXception(String.format("fatal: " + "TextRecognizer could not be initialized"));
     }
     textRecognizer.setLanguage(textRecognizer.language);
     return textRecognizer;
@@ -266,7 +267,8 @@ public class TextRecognizer {
         if(!hasOsdTrData) {
           String msg = String.format("TextRecognizer: setPSM(%d): needs OSD, " +
                   "but no osd.traineddata found in tessdata folder", psm);
-          RunTime.get().terminate(999, msg);
+          //RunTime.get().terminate(999, msg);
+          throw new SikuliXception(String.format("fatal: " + msg));
         }
       }
       this.psm = psm;
@@ -284,7 +286,8 @@ public class TextRecognizer {
         } else {
           String msg = String.format("TextRecognizer: setDataPath: not valid " +
                   "- no %s.traineddata (%s)", language, newDataPath);
-          RunTime.get().terminate(999, msg);
+          //RunTime.get().terminate(999, msg);
+          throw new SikuliXception(String.format("fatal: " + msg));
         }
       }
     }
@@ -298,7 +301,8 @@ public class TextRecognizer {
         tess.setLanguage(this.language);
       } else {
         String msg = String.format("TextRecognizer: setLanguage: no %s.traineddata in %s", language, this.dataPath);
-        RunTime.get().terminate(999, msg);
+        //RunTime.get().terminate(999, msg);
+        throw new SikuliXception(String.format("fatal: " + msg));
       }
     }
     return this;
