@@ -80,7 +80,7 @@ public class TextRecognizer {
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
-  public static String versionTess4J = "4.4.0";
+  public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
 
   private TextRecognizer() {
