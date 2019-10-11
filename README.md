@@ -37,9 +37,9 @@ the source code of the application or web page you want to act on. [More details
 **API SNAPSHOT on OSSRH**<br>
 
 The repository URL:<br>
-```
+
 <https://oss.sonatype.org/content/repositories/snapshots>
-```
+
 
 The coordinates are:
 ```
