@@ -12,7 +12,7 @@ the source code of the application or web page you want to act on. [More details
 **Major changes and enhancements**
  - latest OpenCV 3.x and everything at the Java level
  - support for transparency
- - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 3.x)
+ - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 4.x)
  - packaging reduced to downloadable, ready-to-use API and IDE jars 
  - revision of the IDE and its feature implementations
  - complete re-implementation of the script running support
@@ -26,7 +26,9 @@ the source code of the application or web page you want to act on. [More details
 
 **You need at least Java 8, but it works on Java 9 up to 12 also**
 
-**Mac and Windows:** Works out of the box.
+**Windows:** Works out of the box.
+
+**Mac:** you have to make the prerequisites for Tesseract ready ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
 
 **Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).<br>There might be oddities, since testing is mainly done on Windows 10 and Mac 10.14. Feel free to report.
 
@@ -53,7 +55,7 @@ The coordinates are:
  - Java 12 (OpenJDK release)
  - Windows 10 latest
  - Mac 10.14 latest
- - Ubuntu 18.04 in VirtualBox on Windows 10
+ - Ubuntu 18.04 in WSL on Windows 10
 
 <hr>
 
