@@ -7,35 +7,14 @@ GUI components and can act on them with mouse and keyboard actions.
 This is handy in cases when there is no easy access to a GUI's internals or 
 the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
-Current snapshot 1.1.4: [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
-
-**Major changes and enhancements**
- - latest OpenCV 3.x and everything at the Java level
- - support for transparency
- - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 4.x)
- - packaging reduced to downloadable, ready-to-use API and IDE jars 
- - revision of the IDE and its feature implementations
- - complete re-implementation of the script running support
- 
- **Be aware**
- This version is a developement version and currently only available as nightly build or Maven snapshot.
- 
-[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) 
+**Current developement version 1.1.4** (nightly builds / sikulixapi snapshots):<br>
+[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
-**You need at least Java 8, but it works on Java 9 up to 12 also**
+[**Get the nightly builds ready to use**](https://raiman.github.io/SikuliX1/downloads.html) 
 
-**Windows:** Works out of the box.
-
-**Mac:** you have to make the prerequisites for Tesseract ready ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
-
-**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).<br>There might be oddities, since testing is mainly done on Windows 10 and Mac 10.14. Feel free to report.
-
-<hr>
-
-**API SNAPSHOT on OSSRH**<br>
-
+**Get the sikulixapi SNAPSHOT on OSSRH**<br>
 The repository URL:<br>
 ```
 <repositories>
@@ -45,7 +24,6 @@ The repository URL:<br>
   </repository>
 </repositories>
 ```
-
 The dependency coordinates are:
 ```
 <dependency>
@@ -54,6 +32,15 @@ The dependency coordinates are:
   <version>1.1.4-SNAPSHOT</version>
 </dependency>
 ```
+<hr>
+
+**You need at least Java 8, but it works on Java 9 up to 12 also**
+
+**Windows:** Works out of the box.
+
+**Mac:** you have to make the prerequisites for Tesseract ready ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
+
+**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).<br>There might be oddities, since testing is mainly done on Windows 10 and Mac 10.14. Feel free to report.
 
 <hr>
 
