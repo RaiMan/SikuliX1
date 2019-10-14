@@ -136,9 +136,14 @@ public class TextRecognizer {
         Debug.error("TextRecognizer: start: %s", e.getMessage());
       } catch (UnsatisfiedLinkError e) {
         textRecognizer = null;
-        String libName = RunTime.get().runningMac ? "libtesseract.dylib" : "libtesseract.so";
-        Debug.error("TextRecognizer: start: Tesseract library not found (%s)", libName);
-        String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
+        String helpURL;
+        Debug.error("TextRecognizer: start: Tesseract library problems: %s", e.getMessage());
+        if (RunTime.get().runningWindows) {
+          helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
+        } else {
+          helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
+        }
+        Debug.error("see: " + helpURL);
         if (RunTime.isIDE()) {
           Debug.error("Save your work, correct the problem and restart the IDE!");
           try {
@@ -147,7 +152,6 @@ public class TextRecognizer {
           } catch (URISyntaxException ex) {
           }
         }
-        Debug.error("see: " + helpURL);
       }
     }
     if (null == textRecognizer) {
