@@ -38,14 +38,21 @@ the source code of the application or web page you want to act on. [More details
 
 The repository URL:<br>
 ```
-<url>http://oss.sonatype.org/content/groups/public</url>
+<repositories>
+  <repository>
+    <id>sonatype-ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+  </repository>
+</repositories>
 ```
 
-The coordinates are:
+The dependency coordinates are:
 ```
-<groupId>com.sikulix</groupId>
-<artifactId>sikulixapi</artifactId>
-<version>1.1.4-SNAPSHOT</version>
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>1.1.4-SNAPSHOT</version>
+</dependency>
 ```
 
 <hr>
