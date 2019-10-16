@@ -251,7 +251,7 @@ public class ScreenImage {
     Imgproc.cvtColor(Finder2.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
     Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
-    return Core.countNonZero(mDiffAbs) > 0;
+    return Core.countNonZero(mDiffAbs) == 0;
   }
 
 }
