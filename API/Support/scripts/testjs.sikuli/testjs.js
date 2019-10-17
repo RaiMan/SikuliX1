@@ -1,1 +1,0 @@
-Sikulix.popup("hello");

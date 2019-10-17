@@ -840,21 +840,7 @@ public class RunTime {
   public String SXSystemVersion;
   public String SXJavaVersion;
 
-  public String SikuliJythonVersion;
-  public String SikuliJRubyVersion;
-
-  public String dlMavenRelease = "https://repo1.maven.org/maven2/";
-  public String dlMavenSnapshot = "https://oss.sonatype.org/content/groups/public/";
-  public String SikuliRepo;
-  public String SikuliLocalRepo = "";
   public String[] ServerList = {};
-  public String SikuliJythonVersion25 = "2.5.4-rc1";
-  public String SikuliJythonMaven;
-  public String SikuliJythonMaven25;
-  public String SikuliJython;
-  public String SikuliJython25;
-  public String SikuliJRuby;
-  public String SikuliJRubyMaven;
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
@@ -1336,15 +1322,15 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="13 Sikulix options handling">
   void initSikulixOptions() {
-    SikuliRepo = null;
     Properties prop = new Properties();
     String svf = "sikulixversion.txt";
-//    sikulixvmaj=1
-//    sikulixvmin=1
-//    sikulixvsub=4
-//    sikulixbuild=2018-12-12_15:13
-//    sikulixvused=1.1.4-SNAPSHOT
-//    sikulixvproject=1.1.4-SNAPSHOT
+//    sikulixvmaj=2
+//    sikulixvmin=0
+//    sikulixvsub=0
+//    sikulixbuild=2019-10-17_09:58
+//    sikulixbuildnumber=${env.TRAVIS_BUILD_NUMBER}
+//    sikulixvused=2.0.0
+//    sikulixvproject=2.0.0
 //    sikulixvjython=2.7.1
 //    sikulixvjruby=9.2.0.0
     try {
@@ -1358,55 +1344,38 @@ public class RunTime {
       }
       prop.load(is);
       is.close();
-//    sikulixvmaj=1
-//    sikulixvmin=1
-//    sikulixvsub=4
-      SikuliVersionMajor = Integer.decode(prop.getProperty("sikulixvmaj"));
-      SikuliVersionMinor = Integer.decode(prop.getProperty("sikulixvmin"));
-      SikuliVersionSub = Integer.decode(prop.getProperty("sikulixvsub"));
-//    sikulixbuild=2018-12-12_15:13
+//    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
+      SXVersion = prop.getProperty("sikulixvproject");
+      String[] version = SXVersion.replace("-SNAPSHOT", "").split("\\.");
+      if (version.length != 3) {
+        throw new SikuliXception(String.format("Settings: wrong version format: %s", SXVersion));
+      }
+      SikuliVersionMajor = Integer.decode(version[0]);
+      SikuliVersionMinor = Integer.decode(version[1]);
+      SikuliVersionSub = Integer.decode(version[2]);
+//    sikulixbuild=2019-10-17_09:58
       SXBuild = prop.getProperty("sikulixbuild");
-//    sikulixbuildnumber=999 BE-AWARE: only real in deployed artefacts (TravisCI)
-//    in dev contect:
+//    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
+//    in development context undefined:
       SXBuildNumber = prop.getProperty("sikulixbuildnumber");
       if (SXBuildNumber.contains("TRAVIS_BUILD_NUMBER")) {
-        SXBuildNumber = "-DEV-";
+        SXBuildNumber = "";
       }
-//    sikulixvproject=1.1.4-SNAPSHOT
-      SXVersion = prop.getProperty("sikulixvproject");
-//    sikulixvused=1.1.4-SNAPSHOT
-      String sikulixvused = prop.getProperty("sikulixvused");
-      if (!sikulixvused.equals(SXVersion)) {
-        Debug.error("Settings: Project (%s) != Version (%s)", SXVersion, sikulixvused);
-      }
-//    sikulixvjython=2.7.1
-      SikuliJythonVersion = prop.getProperty("sikulixvjython");
-//    sikulixvjruby=9.2.0.0
-      SikuliJRubyVersion = prop.getProperty("sikulixvjruby");
     } catch (Exception e) {
-      String msg = String.format("Settings: load version file %s did not work", svf);
+      String msg = String.format("Settings: load version file %s did not work: %s", svf, e.getMessage());
       Debug.error(msg);
       //Sikulix.endError(999);
       throw new SikuliXception(msg);
     }
 
-    log(4, "version: %s build#: %s (%s)", SXVersion, SXBuildNumber, SXBuild);
-
     SXVersionIDE = "SikulixIDE-" + SXVersion;
     SXVersionAPI = "SikulixAPI " + SXVersion;
-    SXVersionLong = SXVersion + String.format("-#%s-%s", SXBuildNumber, SXBuild);
+    if (SXBuildNumber.isEmpty()) {
+      SXVersionLong = SXVersion + String.format("-%s", SXBuild);
+    } else {
+      SXVersionLong = SXVersion + String.format("-#%s-%s", SXBuildNumber, SXBuild);
+    }
     SXVersionShort = SXVersion.replace("-SNAPSHOT", "");
-
-//    SikuliLocalRepo = FileManager.slashify(prop.getProperty("sikulixlocalrepo"), true);
-    SikuliJythonMaven = "org/python/jython-standalone/"
-            + SikuliJythonVersion + "/jython-standalone-" + SikuliJythonVersion + ".jar";
-    SikuliJythonMaven25 = "org/python/jython-standalone/"
-            + SikuliJythonVersion25 + "/jython-standalone-" + SikuliJythonVersion25 + ".jar";
-    SikuliJython = SikuliLocalRepo + SikuliJythonMaven;
-    SikuliJython25 = SikuliLocalRepo + SikuliJythonMaven25;
-    SikuliJRubyMaven = "org/jruby/jruby-complete/"
-            + SikuliJRubyVersion + "/jruby-complete-" + SikuliJRubyVersion + ".jar";
-    SikuliJRuby = SikuliLocalRepo + SikuliJRubyMaven;
 
     String osn = "UnKnown";
     String os = System.getProperty("os.name").toLowerCase();
