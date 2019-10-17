@@ -5,7 +5,11 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.FileManager;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
@@ -229,18 +233,25 @@ public class ScreenImage {
   		ImageIO.write(_img, "png", new File(fPath, "LastScreenImage.png"));
     } catch (Exception ex) {}
   }
-  
+
   @Override
-  public boolean equals(Object other) {    
+  public boolean equals(Object other) {
     if(this == other) {
       return true;
     }
-    
+
     if(other == null || !(other instanceof ScreenImage)) {
       return false;
-    }    
-      
-    return new Finder(this).findChanges(other).isEmpty();
+    }
+
+    Mat thisGray = new Mat();
+    Mat otherGray = new Mat();
+    Mat mDiffAbs = new Mat();
+
+    Imgproc.cvtColor(Finder2.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Core.absdiff(thisGray, otherGray, mDiffAbs);
+    return Core.countNonZero(mDiffAbs) == 0;
   }
 
 }
