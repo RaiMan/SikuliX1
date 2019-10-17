@@ -10,7 +10,7 @@
 
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>1.1.4-SNAPSHOT</version>
+  <version>2.0.0</version>
 
   <packaging>jar</packaging>
 
@@ -62,10 +62,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikuli.jartype>plain.xml</sikuli.jartype>
     <sikuli.jarname>${project.version}</sikuli.jarname>
-    <sikulixvmaj>1</sikulixvmaj>
-    <sikulixvmin>1</sikulixvmin>
-    <sikulixvsub>4</sikulixvsub>
-    <sikuli.usedversion>${sikulixvmaj}.${sikulixvmin}.${sikulixvsub}-SNAPSHOT</sikuli.usedversion>
+    <sikulixvmaj>2</sikulixvmaj>
+    <sikulixvmin>0</sikulixvmin>
+    <sikulixvsub>0</sikulixvsub>
+    <sikuli.usedversion>${sikulixvmaj}.${sikulixvmin}.${sikulixvsub}</sikuli.usedversion>
     <sikulixjythonversion>2.7.1</sikulixjythonversion>
     <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>
