@@ -1,53 +1,65 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX 1.1.4
+[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX
 ============
 
-**What is SikuliX** SikuliX automates anything you see on the screen of your desktop computer 
+**What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
 GUI components and can act on them with mouse and keyboard actions.
 This is handy in cases when there is no easy access to a GUI's internals or 
 the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
-[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
+<hr>
 
-**Major changes and enhancements**
- - latest OpenCV 3.x and everything at the Java level
- - support for transparency
- - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 4.x)
- - packaging reduced to downloadable, ready-to-use API and IDE jars 
- - revision of the IDE and its feature implementations
- - complete re-implementation of the script running support
- 
- **Be aware**
- This version is a developement version and currently only available as nightly build or Maven snapshot.
- 
-[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) 
+**Latest stable version is 1.2.0**
 
-[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
-**You need at least Java 8, but it works on Java 9 up to 12 also**
+[**Get SikuliX ready to use**](https://raiman.github.io/SikuliX1) 
 
-**Windows:** Works out of the box.
+For use in Java Maven projects the dependency coordinates are:
+```
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>1.2.0</version>
+</dependency>
+```
+<hr>
+
+**You need at least Java 8, but it works on Java 9 up to latest (currently 12)**
+
+**Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
 **Mac:** you have to make the prerequisites for Tesseract ready ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
 
-**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).<br>There might be oddities, since testing is mainly done on Windows 10 and Mac 10.14. Feel free to report.
+**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
 <hr>
 
-**API SNAPSHOT on OSSRH**<br>
+**Current developement version is 1.3.0** (nightly builds / sikulixapi snapshots):<br>
+[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
+[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+
+[**Get the nightly builds ready to use**](https://raiman.github.io/SikuliX1/downloads.html) 
+
+**Get the sikulixapi SNAPSHOT on OSSRH**<br>
 The repository URL:<br>
 ```
-<url>http://oss.sonatype.org/content/groups/public</url>
+<repositories>
+  <repository>
+    <id>sonatype-ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+  </repository>
+</repositories>
 ```
-
-The coordinates are:
+The dependency coordinates are:
 ```
-<groupId>com.sikulix</groupId>
-<artifactId>sikulixapi</artifactId>
-<version>1.1.4-SNAPSHOT</version>
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>1.3.0-SNAPSHOT</version>
+</dependency>
 ```
-
 <hr>
 
 **Developement environment**
