@@ -415,7 +415,7 @@ public class ExtensionManager {
 
   public boolean install(String name, String url, String version) {
     if (url.startsWith("---extensions---")) {
-      url = RunTime.get().SikuliRepo + name + "-" + version + ".jar";
+      //url = RunTime.get().SikuliRepo + name + "-" + version + ".jar";
     }
     String extPath = fExtensions.getAbsolutePath();
     String tmpdir = RunTime.get().fpBaseTempPath;

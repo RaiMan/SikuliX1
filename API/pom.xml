@@ -61,11 +61,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikuli.jartype>plain.xml</sikuli.jartype>
-    <sikuli.jarname>${project.version}</sikuli.jarname>
-    <sikulixvmaj>2</sikulixvmaj>
-    <sikulixvmin>0</sikulixvmin>
-    <sikulixvsub>0</sikulixvsub>
-    <sikuli.usedversion>${sikulixvmaj}.${sikulixvmin}.${sikulixvsub}</sikuli.usedversion>
     <sikulixjythonversion>2.7.1</sikulixjythonversion>
     <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>

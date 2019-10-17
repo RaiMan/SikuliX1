@@ -857,8 +857,10 @@ public class SikulixIDE extends JFrame {
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
         + "Tom Yeh\n"
-        + "Raimund Hocke aka RaiMan\n\n"
-        + "\n\n" + String.format("Build#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
+        + "Raimund Hocke aka RaiMan";
+    if (!runTime.SXBuildNumber.isEmpty()) {
+      info += String.format("\n\nBuild#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
+    }
     JOptionPane.showMessageDialog(this, info,
         "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }
