@@ -9,41 +9,55 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.0**
-
-[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
-
-[**Get SikuliX ready to use**](https://raiman.github.io/SikuliX1) 
-
-For use in Java Maven projects the dependency coordinates are:
-```
-<dependency>
-  <groupId>com.sikulix</groupId>
-  <artifactId>sikulixapi</artifactId>
-  <version>1.2.0</version>
-</dependency>
-```
-<hr>
-
 **You need at least Java 8, but it works on Java 9 up to latest (currently 12)**
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
-**Mac:** you have to make the prerequisites for Tesseract ready ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
+**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
 
-**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
+**Linux:** you have to make OpenCV and Tesseract OCR available ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
 <hr>
 
-**Current developement version is 2.1.0** (nightly builds / sikulixapi snapshots):<br>
+**Latest stable version is 2.0.0** (branch `release_2.0.x`)
+
+[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+
+**Get SikuliX ready to use**
+- [SikuliX IDE for editing and running scripts]()
+  - [Jython support for the IDE]()
+  - [JRuby support for the IDE]()
+  - download all needed to one folder and run sikulix-2.0.0.jar
+  <br><br>
+- [SikuliX Java API for programming in Java or Java aware languages]()
+  - for use in non-Maven projects
+ 
+For use in **Java Maven projects** the dependency coordinates are:
+```
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>2.0.0</version>
+</dependency>
+```
+<hr>
+
+**Current developement version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
-[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/newsdev.html)
 
-[**Get the nightly builds ready to use**](https://raiman.github.io/SikuliX1/downloads.html) 
+**Get the nightly builds ready to use** 
+- [SikuliX IDE for editing and running scripts]()
+  - [Jython support for the IDE]()
+  - [JRuby support for the IDE]()
+  - download all needed to one folder and run sikulix-2.1.0.jar
+  <br><br>
+- [SikuliX Java API for programming in Java or Java aware languages]()
+  - for use in non-Maven projects
 
-**Get the sikulixapi SNAPSHOT on OSSRH**<br>
-The repository URL:<br>
+For use in **Java Maven projects** use the SNAPSHOT dependency information:<br><br>
+The repository URL:
 ```
 <repositories>
   <repository>
@@ -57,7 +71,7 @@ The dependency coordinates are:
 <dependency>
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
 </dependency>
 ```
 <hr>
