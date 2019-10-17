@@ -1,3 +1,0 @@
-#!/bin/bash
-echo ---------- deploy API to OSSRH
-mvn deploy -B -pl API -P sign,build-source,build-docs --settings codesigning/mvnsettings.xml;
