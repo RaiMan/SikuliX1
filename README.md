@@ -9,7 +9,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.0**
+**Latest stable version is 1.2.0**
 
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
@@ -20,7 +20,7 @@ For use in Java Maven projects the dependency coordinates are:
 <dependency>
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>2.0.0</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 <hr>
@@ -35,7 +35,7 @@ For use in Java Maven projects the dependency coordinates are:
 
 <hr>
 
-**Current developement version is 2.1.0** (nightly builds / sikulixapi snapshots):<br>
+**Current developement version is 1.3.0** (nightly builds / sikulixapi snapshots):<br>
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
 [Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
@@ -57,7 +57,7 @@ The dependency coordinates are:
 <dependency>
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
+  <version>1.3.0-SNAPSHOT</version>
 </dependency>
 ```
 <hr>
