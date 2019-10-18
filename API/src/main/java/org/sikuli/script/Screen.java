@@ -153,8 +153,10 @@ public class Screen extends Region implements IScreen {
         screens[i] = new Screen(i, nMonitor);
         screens[i].initScreen();
         nMonitor++;
-        Mouse.init();
       }
+
+      Mouse.init();
+
       if (nMonitors > 1) {
         log(lvl, "initScreens: multi monitor mouse check");
         Location lnow = Mouse.at();
