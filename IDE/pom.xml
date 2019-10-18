@@ -10,7 +10,7 @@
 
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixide</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
 
   <name>SikuliX IDE</name>
   <description>... edit and run SikuliX scripts</description>

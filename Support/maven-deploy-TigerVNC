@@ -1,0 +1,6 @@
+export LC_ALL=en_US.UTF-8
+export GPG_TTY=$(tty)
+rm -f -R ~/.m2/repository/com/sikulix/sikulix2tigervnc
+cd ~/IdeaProjects/Sikulix2tigervnc
+mvn clean deploy -P build-source,build-docs,sign,maven-release
+cd ~
