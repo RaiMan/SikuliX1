@@ -73,7 +73,7 @@ public class Screen extends Region implements IScreen {
       nMonitors = gdevs.length;
       mainMonitor = -1;
       if (nMonitors == 0) {
-        throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
+        throw new SikuliXception(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
       }
       monitorBounds = new Rectangle[nMonitors];
       Rectangle currentBounds;
@@ -96,11 +96,8 @@ public class Screen extends Region implements IScreen {
         mainMonitor = 0;
       }
       return true;
-    } else {
-      if (RunTime.get().runningIDE()) {
-        throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
-      }
-      return false;
+    } else {      
+      throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
     }
   }
 
