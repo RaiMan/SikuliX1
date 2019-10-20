@@ -842,7 +842,7 @@ public class RunTime {
 
   public String[] ServerList = {};
 
-  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+  public static final String libOpenCV = "opencv_java"; //Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
   public static String NL = "\n";
   public File fLibsProvided;

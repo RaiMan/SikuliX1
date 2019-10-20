@@ -3,3 +3,4 @@ libgcc_s_seh-1.dll
 libstdc++-6.dll
 libwinpthread-1.dll
 WinUtil.dll
+libopencv_java.dll
