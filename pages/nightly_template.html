@@ -7,11 +7,11 @@
 <html>
 <head>
     <title>
-        SikuliX1 Nightly Builds
+        SikuliX Nightly Builds
     </title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" ></head>
 <body>
-<h1>SikuliX1 Nightly Builds</h1>
+<h1>SikuliX Nightly Builds</h1>
 <hr>
 <a href="https://raiman.github.io/SikuliX1">[home]</a>&nbsp;&nbsp;&nbsp;
 <a href="http://sikulix.com", target="_blank">[sikulix.com]</a>&nbsp;&nbsp;&nbsp;
@@ -23,9 +23,9 @@
 <h3>Version 2.1.0-SNAPSHOT (nightly builds - snapshot versions)</h3>
 
 This version was built at ##sikulixapiide## (Build ##TRAVIS_BUILD_NUMBER##)
-<br><br><a href="https://sikulix-2014.readthedocs.io/en/latest/news.html", target="_blank">Mandatory for Linux users - recommended for all: Be sure you had a look at the more detailed information here</a>
-<br><br><a href="https://bugs.launchpad.net/sikuli/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=FIXCOMMITTED&field.importance%3Alist=CRITICAL&assignee_option=any&field.assignee=&field.bug_reporter=&field.bug_commenter=&field.subscriber=&field.structural_subscriber=&field.milestone%3Alist=86164&field.tag=&field.tags_combinator=ANY&field.has_cve.used=&field.omit_dupes.used=&field.omit_dupes=on&field.affects_me.used=&field.has_patch.used=&field.has_branches.used=&field.has_branches=on&field.has_no_branches.used=&field.has_no_branches=on&field.has_blueprints.used=&field.has_blueprints=on&field.has_no_blueprints.used=&field.has_no_blueprints=on&search=Search", target="_blank">Things that have been fixed</a>
-
+<br><br>
+<strong>For information about fixes, changes and other news see below.</strong>
+<br><br>
 <hr>
 <h3>Edit and run scripts with the SikuliX IDE</h3>
 <hr>
@@ -52,4 +52,16 @@ This artefact is for use on a Java classpath or for Java programming in mature I
 <h4><a href="https://raiman.github.io/SikuliX1/sikulixapi-sources.jar">Download sikulixapi-sources.jar</a></h4>
 This artefact might be useful for Java programming in mature IDEs as reference.
 <hr>
+<h3>Fixes, changes and notes (##sikulixapiide##)</h3>
+<hr>
+<!--
+<a href="", target="_blank>"</a>
+-->
+<br>CHANGE: now using latest OpenCV version 4.1.x
+<br>CHANGE: macOS: OpenCV libs have to be provided (no longer bundled)
+<a href="https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4", target="_blank">more information</a>
+<br>CHANGE: moved OpenCV stuff to extra package: com::sikulix::sikulix2opencv::4.1.1
+<br>FIXED: possible NPE in multimonitor environments
+<br>CHANGE: running in headless mode should always terminate
+
 </body>
