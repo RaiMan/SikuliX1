@@ -19,5 +19,5 @@ echo "s/##sikulixapiide##/$build/" >sedcommand
 echo "s/##TRAVIS_BUILD_NUMBER##/$TRAVIS_BUILD_NUMBER/" >>sedcommand
 cat sedcommand
 
-sed -f sedcommand pages/downloads.txt >pages/downloads.html
+sed -f sedcommand pages/nightly_template.html >pages/nightly.html
 

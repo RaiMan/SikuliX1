@@ -69,17 +69,19 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
     try {
       engine.eval(new FileReader(new File(scriptFile)));
     } catch (FileNotFoundException | ScriptException e) {
-      log(lvl, "runScript failed", e);
+      if(!isAborted()) {
+        log(lvl, "runScript failed", e);
 
-      if (null != stderr) {
-        stderr.print(e);
+        if (null != stderr) {
+          stderr.print(e);
+        }
+
+        if (null != options) {
+          options.setErrorLine(findErrorSource(e, scriptFile));
+        }
+
+        return -1;
       }
-
-      if (null != options) {
-        options.setErrorLine(findErrorSource(e, scriptFile));
-      }
-
-      return -1;
     }
     return 0;
   }
@@ -96,17 +98,19 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
     try {
       engine.eval(script);
     } catch (ScriptException e) {
-      log(lvl, "evalScript failed", e);
+      if(!isAborted()) {
+        log(lvl, "evalScript failed", e);
 
-      if (null != stderr) {
-        stderr.print(e);
+        if (null != stderr) {
+          stderr.print(e);
+        }
+
+        if (null != options) {
+          options.setErrorLine(findErrorSource(e, null));
+        }
+
+        exitValue = -1;
       }
-
-      if (null != options) {
-        options.setErrorLine(findErrorSource(e, null));
-      }
-
-      exitValue = -1;
     }
     if (silent) {
       Debug.quietOff();

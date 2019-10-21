@@ -1,59 +1,87 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX 1.1.4
+[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX
 ============
 
-**What is SikuliX** SikuliX automates anything you see on the screen of your desktop computer 
+**What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
 GUI components and can act on them with mouse and keyboard actions.
 This is handy in cases when there is no easy access to a GUI's internals or 
 the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
-[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
+<hr>
 
-**Major changes and enhancements**
- - latest OpenCV 3.x and everything at the Java level
- - support for transparency
- - revision of the text/OCR feature now based on Tess4J (wrapper around latest Tesseract 3.x)
- - packaging reduced to downloadable, ready-to-use API and IDE jars 
- - revision of the IDE and its feature implementations
- - complete re-implementation of the script running support
- 
- **Be aware**
- This version is a developement version and currently only available as nightly build or Maven snapshot.
- 
-[Here you can get the stuff](https://raiman.github.io/SikuliX1/downloads.html) 
+**You need at least Java 8, but it works on Java 9 up to latest (currently 12)**
 
-[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+**Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
-**You need at least Java 8, but it works on Java 9 up to 12 also**
+**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
 
-**Mac and Windows:** Works out of the box.
-
-**Linux:** you have to make the prerequisites OpenCV and Tesseract ready ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).<br>There might be oddities, since testing is mainly done on Windows 10 and Mac 10.14. Feel free to report.
+**Linux:** you have to make OpenCV and Tesseract OCR available ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
 <hr>
 
-**API SNAPSHOT on OSSRH**<br>
+**Latest stable version is 2.0.0** (branch `release_2.0.x`)
 
-The repository URL:<br>
-```
-<url>http://oss.sonatype.org/content/groups/public</url>
-```
+[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
-The coordinates are:
+**Get SikuliX ready to use**
+- [SikuliX IDE for editing and running scripts](https://github.com/RaiMan/SikuliX1/releases/download/v2.0.0/sikulix-2.0.0.jar)
+  - [Jython support for the IDE](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar)
+  - [JRuby support for the IDE](https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar)
+  - download all needed to one folder and run sikulix-2.0.0.jar
+  <br><br>
+- [SikuliX Java API for programming in Java or Java aware languages](https://github.com/RaiMan/SikuliX1/releases/download/v2.0.0/sikulixapi-2.0.0.jar)
+  - for use in non-Maven projects
+ 
+For use in **Java Maven projects** the dependency coordinates are:
 ```
-<groupId>com.sikulix</groupId>
-<artifactId>sikulixapi</artifactId>
-<version>1.1.4-SNAPSHOT</version>
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>2.0.0</version>
+</dependency>
 ```
+<hr>
 
+**Current developement version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
+[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
+
+[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/newsdev.html)
+
+**Get the nightly builds ready to use** 
+- [SikuliX IDE for editing and running scripts]()
+  - [Jython support for the IDE]()
+  - [JRuby support for the IDE]()
+  - download all needed to one folder and run sikulix-2.1.0.jar
+  <br><br>
+- [SikuliX Java API for programming in Java or Java aware languages]()
+  - for use in non-Maven projects
+
+For use in **Java Maven projects** use the SNAPSHOT dependency information:<br><br>
+The repository URL:
+```
+<repositories>
+  <repository>
+    <id>sonatype-ossrh</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+  </repository>
+</repositories>
+```
+The dependency coordinates are:
+```
+<dependency>
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixapi</artifactId>
+  <version>2.1.0-SNAPSHOT</version>
+</dependency>
+```
 <hr>
 
 **Developement environment**
 
- - Java 12 (OpenJDK release)
+ - Java 13 (OpenJDK release)
  - Windows 10 latest
- - Mac 10.14 latest
- - Ubuntu 18.04 in VirtualBox on Windows 10
+ - Mac 10.15 latest
+ - Ubuntu 18.04 in WSL on Windows 10 (basic tests only)
 
 <hr>
 
