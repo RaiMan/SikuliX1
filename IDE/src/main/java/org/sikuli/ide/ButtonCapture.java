@@ -171,7 +171,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     SikulixIDE.showAgain();
   }
 
-  public void captureCompleted(String imgFullPath) {
+  private void captureCompleted(String imgFullPath) {
     Element src = getSrcElement();
     if (imgFullPath != null) {
       Debug.log(3, "captureCompleted: " + imgFullPath);

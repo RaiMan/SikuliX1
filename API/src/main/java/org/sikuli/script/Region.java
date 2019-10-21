@@ -562,17 +562,12 @@ public class Region {
     return rect;
   }
 
-  /**
-   * Check wether thie Region is contained by any of the available screens
-   *
-   * @return true if yes, false otherwise
-   */
-  public boolean isValid() {
-    if (this instanceof Screen) {
-      return true;
-    }
-    return scr != null && w != 0 && h != 0;
-  }
+//  public boolean isValid() {
+//    if (this instanceof Screen) {
+//      return true;
+//    }
+//    return scr != null && w != 0 && h != 0;
+//  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="002 Constructors">
@@ -668,9 +663,6 @@ public class Region {
   }
 
   private void init(Region r) {
-    if (!r.isValid()) {
-      return;
-    }
     x = r.x;
     y = r.y;
     w = r.w;

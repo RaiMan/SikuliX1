@@ -9,6 +9,7 @@ import org.sikuli.script.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.support.RunTime;
 
+import javax.swing.*;
 import java.io.File;
 
 /**
@@ -66,7 +67,6 @@ public class ADBTest {
     return adbs;
   }
 
-
   private static void basicTest(ADBScreen adbs) throws FindFailed {
     log(lvl, "**************** running basic test");
     adbs.aSwipeLeft();
@@ -94,13 +94,7 @@ public class ADBTest {
     }
   }
 
-
-  /**
-   * used in SikuliIDE menu tool to run a test against an attached device
-   *
-   * @param aScr
-   */
-  public static void ideTest(ADBScreen aScr) {
+  private static void ideTest(ADBScreen aScr) {
     String title = "Android Support - Testing device";
     Sikulix.popup("Take care\n\nthat device is on and unlocked\n\nbefore clicking ok", title);
     aScr.wakeUp(2);
@@ -153,4 +147,47 @@ public class ADBTest {
     }
   }
 
+  private Object androidSupport(Object ide) {
+    int WARNING_CANCEL = 2;
+    int WARNING_ACCEPTED = 1;
+    int WARNING_DO_NOTHING = 0;
+    ADBScreen aScr = new ADBScreen();
+    String title = "Android Support - !!EXPERIMENTAL!!";
+    if (aScr.isValid()) {
+      String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
+              "click Check: a short test is run with the device\n" +
+              "click Default...: set device as default screen for capture\n" +
+              "click Cancel: capture is reset to local screen\n" +
+              "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
+      String[] options = new String[3];
+      options[WARNING_DO_NOTHING] = "Check";
+      options[WARNING_ACCEPTED] = "Default Android";
+      options[WARNING_CANCEL] = "Cancel";
+      int ret = JOptionPane.showOptionDialog((JFrame) ide, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+      if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+        return null;
+      }
+      if (ret == WARNING_DO_NOTHING) {
+        Thread test = new Thread() {
+          @Override
+          public void run() {
+            androidSupportTest(aScr);
+          }
+        };
+        test.start();
+      } else if (ret == WARNING_ACCEPTED) {
+        return aScr;
+      }
+    } else if (!ADBClient.isAdbAvailable) {
+      Sikulix.popError("Package adb seems not to be available.\nIt must be installed for Android support.", title);
+    } else {
+      Sikulix.popError("No android device attached", title);
+    }
+    return null;
+  }
+
+  private void androidSupportTest(ADBScreen aScr) {
+    ADBTest.ideTest(aScr);
+    ADBScreen.stop();
+  }
 }
