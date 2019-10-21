@@ -24,6 +24,55 @@ public class ExtensionManager {
 
   private static File sxExtensions = new File(RunTime.getAppPath(), "Extensions");
 
+  public static boolean hasShebang(String type, String scriptFile) {
+    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
+      char[] chars = new char[type.length()];
+      int read = reader.read(chars);
+      if (read == type.length()) {
+        if (type.equals(new String(chars).toUpperCase())) {
+          return true;
+        }
+      }
+    } catch (Exception ex) {
+      if (scriptFile.length() >= type.length()
+              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static void show() {
+    int WARNING_CANCEL = 2;
+    int WARNING_ACCEPTED = 1;
+    int WARNING_DO_NOTHING = 0;
+    String warn = "Nothing to do here currently - click what you like ;-)\n" +
+            "\nExtensions folder: \n" + sxExtensions +
+            "\n\nCurrent content:";
+    List<String> extensionNames = getExtensionNames();
+    for (String extension : extensionNames) {
+      warn += "\n" + extension;
+    }
+    if (hasExtensionsFile()) {
+      warn += "\n\nextensions.txt content:";
+      for (String extension : sxExtensionsFileContent) {
+        warn += "\n" + extension;
+      }
+    }
+    warn += "\n\n" + "see menu File -> Open Special Files";
+    String title = "SikuliX1 Extensions";
+    String[] options = new String[3];
+    options[WARNING_DO_NOTHING] = "OK";
+    options[WARNING_ACCEPTED] = "More ...";
+    options[WARNING_CANCEL] = "Cancel";
+    int ret = JOptionPane.showOptionDialog(null, warn, title,
+            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+      return;
+    }
+  }
+
+  //<editor-fold desc="basic handling">
   public static String makeClassPath(File jarFile) {
     RunTime.startLog(1, "starting");
     String jarPath = jarFile.getAbsolutePath();
@@ -255,7 +304,9 @@ public class ExtensionManager {
     }
     return extensions;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="Jython/Python support">
   static String jythonVersion = "2.7.1";
   private static boolean moveJython = false;
   private static boolean jythonReady = false;
@@ -280,19 +331,22 @@ public class ExtensionManager {
 
   private static String python = "";
 
-  private static String jrubyVersion = "9.2.0.0";
-  private static boolean moveJRuby = false;
-  private static boolean jrubyReady = false;
+  public static final String shebangPython = "#!PYTHON";
+  public static final String shebangJython = "#!JYTHON";
 
-  public static boolean isJrubyExtern() {
-    return jrubyExtern;
+  public static File getSitesTxt() {
+    return sxSitesTxt;
   }
 
-  public static void setJrubyExtern(boolean jrubyExtern) {
-    ExtensionManager.jrubyExtern = jrubyExtern;
-  }
+  private static File sxSitesTxt = new File(RunTime.getAppPath(), "Lib/site-packages/sites.txt");
 
-  private static boolean jrubyExtern = false;
+  public static String getSitesTxtDefault() {
+    return "# add absolute paths one per line, that point to other directories/jars,\n" +
+            "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+            "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+            "\n" +
+            "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+  }
 
   public static boolean shouldCheckContent(String type, String identifier) {
     boolean usePython = false;
@@ -312,72 +366,31 @@ public class ExtensionManager {
     }
     return true;
   }
+  //</editor-fold>
 
-  public static boolean hasShebang(String type, String scriptFile) {
-    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
-      char[] chars = new char[type.length()];
-      int read = reader.read(chars);
-      if (read == type.length()) {
-        if (type.equals(new String(chars).toUpperCase())) {
-          return true;
-        }
-      }
-    } catch (Exception ex) {
-      if (scriptFile.length() >= type.length()
-              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
-        return true;
-      }
-    }
+  //<editor-fold desc="JRuby support">
+  private static String jrubyVersion = "9.2.0.0";
+  private static boolean moveJRuby = false;
+  private static boolean jrubyReady = false;
+
+  public static boolean isJrubyExtern() {
+    return jrubyExtern;
+  }
+
+  public static void setJrubyExtern(boolean jrubyExtern) {
+    ExtensionManager.jrubyExtern = jrubyExtern;
+  }
+
+  private static boolean jrubyExtern = false;
+  //</editor-fold>
+
+  public static boolean hasAndroidSupport() {
     return false;
   }
 
-  public static final String shebangPython = "#!PYTHON";
-  public static final String shebangJython = "#!JYTHON";
-
-  public static File getSitesTxt() {
-    return sxSitesTxt;
+  public static Object run(String method, Object... parms) {
+    return null;
   }
-
-  private static File sxSitesTxt = new File(RunTime.getAppPath(), "Lib/site-packages/sites.txt");
-
-  public static String getSitesTxtDefault() {
-    return "# add absolute paths one per line, that point to other directories/jars,\n" +
-            "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-            "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-            "\n" +
-            "# lines beginning with # and blank lines are ignored and can be used as comments\n";
-  }
-
-  public static void show() {
-    String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + sxExtensions +
-            "\n\nCurrent content:";
-    List<String> extensionNames = getExtensionNames();
-    for (String extension : extensionNames) {
-      warn += "\n" + extension;
-    }
-    if (hasExtensionsFile()) {
-      warn += "\n\nextensions.txt content:";
-      for (String extension : sxExtensionsFileContent) {
-        warn += "\n" + extension;
-      }
-    }
-    warn += "\n\n" + "see menu File -> Open Special Files";
-    String title = "SikuliX1 Extensions";
-    String[] options = new String[3];
-    options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "More ...";
-    options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-      return;
-    }
-  }
-
-  final static int WARNING_CANCEL = 2;
-  final static int WARNING_ACCEPTED = 1;
-  final static int WARNING_DO_NOTHING = 0;
 
   //<editor-fold desc="10 old handling">
   private static ExtensionManager _instance = null;

@@ -33,6 +33,16 @@ public class VNCScreen extends Region implements IScreen {
 
   private static int startUpWait = 3;
 
+  @Override
+  public boolean isValid() {
+    return true;
+  }
+
+  @Override
+  public String getDeviceDescription() {
+    return toStringShort();
+  }
+
   public static void startUp(int waittime) {
     startUpWait = waittime;
   }
