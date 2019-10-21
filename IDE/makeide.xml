@@ -23,8 +23,8 @@
       <unpack>true</unpack>
       <unpackOptions>
         <excludes>
-          <exclude>**/win32-x86/liblept*</exclude>
-          <exclude>**/win32-x86/libtesseract*</exclude>
+          <exclude>**/win32-x86/**</exclude>
+          <exclude>**/tessdata/**</exclude>
         </excludes>
       </unpackOptions>
       <scope>runtime</scope>

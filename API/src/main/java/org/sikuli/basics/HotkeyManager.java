@@ -4,6 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.Key;
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.event.KeyEvent;
@@ -59,7 +60,8 @@ public abstract class HotkeyManager {
       Debug.log(3, "HotkeyManager: reset: removed all user hotkeys.");
     }
     if (result < 0 && !isTerminating) {
-      RunTime.get().terminate(999, "HotkeyManager: reset: did not work");
+      //RunTime.get().terminate(999, "HotkeyManager: reset: did not work");
+      throw new SikuliXception(String.format("fatal: " + "HotkeyManager: reset: did not work"));
     }
     if (!isTerminating) {
       return;

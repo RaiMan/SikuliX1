@@ -57,7 +57,7 @@ public class FileManager {
   private static SplashFrame _progress = null;
   private static final String EXECUTABLE = "#executable";
 
-  public static int tryGetFileSize(URL aUrl) {
+  private static int tryGetFileSize(URL aUrl) {
     HttpURLConnection conn = null;
     try {
       if (getProxy() != null) {
@@ -1161,46 +1161,6 @@ public class FileManager {
     return dir.endsWith(".sikuli");
   }
 
-//  public static IResourceLoader getNativeLoader(String name, String[] args) {
-//    if (nativeLoader != null) {
-//      return nativeLoader;
-//    }
-//    IResourceLoader nl = null;
-//    ServiceLoader<IResourceLoader> loader = ServiceLoader.load(IResourceLoader.class);
-//    Iterator<IResourceLoader> resourceLoaderIterator = loader.iterator();
-//    while (resourceLoaderIterator.hasNext()) {
-//      IResourceLoader currentLoader = resourceLoaderIterator.next();
-//      if ((name != null && currentLoader.getName().toLowerCase().equals(name.toLowerCase()))) {
-//        nl = currentLoader;
-//        nl.init(args);
-//        break;
-//      }
-//    }
-//    if (nl == null) {
-//      log0(-1, "Fatal error 121: Could not load any NativeLoader!");
-//      (121);
-//    } else {
-//      nativeLoader = nl;
-//    }
-//    return nativeLoader;
-//  }
-
-/*
-  public static String getJarParentFolder() {
-    CodeSource src = FileManager.class.getProtectionDomain().getCodeSource();
-    String jarParentPath = "--- not known ---";
-    String RunningFromJar = "Y";
-    if (src.getLocation() != null) {
-      String jarPath = src.getLocation().getPath();
-      if (!jarPath.endsWith(".jar")) RunningFromJar = "N";
-      jarParentPath = FileManager.slashify((new File(jarPath)).getParent(), true);
-    } else {
-      Sikulix.terminate(999, "Fatal Error 101: Not possible to access the jar files!");
-    }
-    return RunningFromJar + jarParentPath;
-  }
-*/
-
   public static String getJarPath(Class cname) {
     CodeSource src = cname.getProtectionDomain().getCodeSource();
     if (src.getLocation() != null) {
@@ -1640,48 +1600,6 @@ public class FileManager {
 
   public interface FileFilter {
     boolean accept(File entry);
-  }
-
-  public static String extractResourceAsLines(String src) {
-    String res = null;
-    ClassLoader cl = FileManager.class.getClassLoader();
-    InputStream isContent = cl.getResourceAsStream(src);
-    if (isContent != null) {
-      res = "";
-      String line;
-      try {
-        BufferedReader cnt = new BufferedReader(new InputStreamReader(isContent));
-        line = cnt.readLine();
-        while (line != null) {
-          res += line + "\n";
-          line = cnt.readLine();
-        }
-        cnt.close();
-      } catch (Exception ex) {
-        log(-1, "extractResourceAsLines: %s\n%s", src, ex);
-      }
-    }
-    return res;
-  }
-
-  public static boolean extractResource(String src, File tgt) {
-    ClassLoader cl = FileManager.class.getClassLoader();
-    InputStream isContent = cl.getResourceAsStream(src);
-    if (isContent != null) {
-      try {
-        log(lvl + 1, "extractResource: %s to %s", src, tgt);
-        tgt.getParentFile().mkdirs();
-        OutputStream osTgt = new FileOutputStream(tgt);
-        bufferedWrite(isContent, osTgt);
-        osTgt.close();
-      } catch (Exception ex) {
-        log(-1, "extractResource:\n%s", src, ex);
-        return false;
-      }
-    } else {
-      return false;
-    }
-    return true;
   }
 
   private static synchronized void bufferedWrite(InputStream in, OutputStream out) throws IOException {

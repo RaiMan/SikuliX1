@@ -1,9 +1,5 @@
-sikulixvmaj=${sikulixvmaj}
-sikulixvmin=${sikulixvmin}
-sikulixvsub=${sikulixvsub}
+sikulixvproject=${project.version}
 sikulixbuild=${timestamp}
 sikulixbuildnumber=${buildnumber}
-sikulixvused=${sikuli.usedversion}
-sikulixvproject=${project.version}
 sikulixvjython=${sikulixjythonversion}
 sikulixvjruby=${sikulixjrubyversion}

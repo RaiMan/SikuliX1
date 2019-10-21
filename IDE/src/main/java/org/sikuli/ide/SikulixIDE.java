@@ -857,8 +857,10 @@ public class SikulixIDE extends JFrame {
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
         + "Tom Yeh\n"
-        + "Raimund Hocke aka RaiMan\n\n"
-        + "\n\n" + String.format("Build#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
+        + "Raimund Hocke aka RaiMan";
+    if (!runTime.SXBuildNumber.isEmpty()) {
+      info += String.format("\n\nBuild#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
+    }
     JOptionPane.showMessageDialog(this, info,
         "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }
@@ -1824,11 +1826,11 @@ public class SikulixIDE extends JFrame {
     _helpMenu.add(createMenuItem(_I("menuHelpHomepage"),
         null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
 
-    _helpMenu.addSeparator();
-    _helpMenu.add(createMenuItem("SikuliX1 Downloads",
-        null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
-    _helpMenu.add(createMenuItem(_I("menuHelpCheckUpdate"),
-        null, new HelpAction(HelpAction.CHECK_UPDATE)));
+//    _helpMenu.addSeparator();
+//    _helpMenu.add(createMenuItem("SikuliX1 Downloads",
+//        null, new HelpAction(HelpAction.OPEN_DOWNLOADS)));
+//    _helpMenu.add(createMenuItem(_I("menuHelpCheckUpdate"),
+//        null, new HelpAction(HelpAction.CHECK_UPDATE)));
   }
 
   private void lookUpdate() {

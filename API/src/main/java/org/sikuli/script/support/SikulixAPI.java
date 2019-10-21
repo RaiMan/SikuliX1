@@ -4,15 +4,13 @@
 
 package org.sikuli.script.support;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.*;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.TextRecognizer;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.util.SikulixTest;
 
 import java.io.File;
-import java.security.CodeSource;
-import java.util.List;
 
 public class SikulixAPI {
 
@@ -20,7 +18,7 @@ public class SikulixAPI {
 
     RunTime.afterStart(RunTime.Type.API, args);
 
-    if (args.length == 1 && "test".equals(args[0])) {
+    if (args.length == 2 && "test".equals(args[1])) {
       String version = RunTime.get().getVersion();
       File lastSession = new File(RunTime.get().fSikulixStore, "LastAPIJavaScript.js");
       String runSomeJS = "";
@@ -42,7 +40,14 @@ public class SikulixAPI {
               "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
         }
       }
+      Sikulix.terminate();
     }
+
+    RunTime runtime = RunTime.get();
+
+    TextRecognizer.start();
+
+    System.out.println("SikuliX API: nothing to do");
     Sikulix.terminate();
   }
 }

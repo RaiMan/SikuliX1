@@ -64,7 +64,7 @@ public class Screen extends Region implements IScreen {
     return GraphicsEnvironment.isHeadless();
   }
 
-  private static void initMonitors() {
+  private static boolean initMonitors() {
     if (!isHeadless()) {
       log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
       genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -73,7 +73,7 @@ public class Screen extends Region implements IScreen {
       nMonitors = gdevs.length;
       mainMonitor = -1;
       if (nMonitors == 0) {
-        throw new RuntimeException(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
+        throw new SikuliXception(String.format("SikuliX: Init: GraphicsEnvironment has no ScreenDevices"));
       }
       monitorBounds = new Rectangle[nMonitors];
       Rectangle currentBounds;
@@ -95,8 +95,9 @@ public class Screen extends Region implements IScreen {
         log(lvl, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
         mainMonitor = 0;
       }
-    } else {
-      throw new RuntimeException(String.format("SikuliX: Init: running in headless environment"));
+      return true;
+    } else {      
+      throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
     }
   }
 
@@ -135,41 +136,44 @@ public class Screen extends Region implements IScreen {
       }
     }
     log(lvl, "initScreens: starting");
-    initMonitors();
-    primaryScreen = 0;
-    getGlobalRobot();
-    screens = new Screen[nMonitors];
-    screens[0] = new Screen(0, mainMonitor);
-    screens[0].initScreen();
-    int nMonitor = 0;
-    for (int i = 1; i < screens.length; i++) {
-      if (nMonitor == mainMonitor) {
+    if (initMonitors()) {
+      primaryScreen = 0;
+      getGlobalRobot();
+      screens = new Screen[nMonitors];
+      screens[0] = new Screen(0, mainMonitor);
+      screens[0].initScreen();
+      int nMonitor = 0;
+      for (int i = 1; i < screens.length; i++) {
+        if (nMonitor == mainMonitor) {
+          nMonitor++;
+        }
+        screens[i] = new Screen(i, nMonitor);
+        screens[i].initScreen();
         nMonitor++;
       }
-      screens[i] = new Screen(i, nMonitor);
-      screens[i].initScreen();
-      nMonitor++;
+
       Mouse.init();
-    }
-    if (nMonitors > 1) {
-      log(lvl, "initScreens: multi monitor mouse check");
-      Location lnow = Mouse.at();
-      float mmd = Settings.MoveMouseDelay;
-      Settings.MoveMouseDelay = 0f;
-      Location lc = null, lcn = null;
-      for (Screen s : screens) {
-        lc = s.getCenter();
-        Mouse.move(lc);
-        lcn = Mouse.at();
-        if (!lc.equals(lcn)) {
-          log(lvl, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
-                  s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
-        } else {
-          log(lvl, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
+
+      if (nMonitors > 1) {
+        log(lvl, "initScreens: multi monitor mouse check");
+        Location lnow = Mouse.at();
+        float mmd = Settings.MoveMouseDelay;
+        Settings.MoveMouseDelay = 0f;
+        Location lc = null, lcn = null;
+        for (Screen s : screens) {
+          lc = s.getCenter();
+          Mouse.move(lc);
+          lcn = Mouse.at();
+          if (!lc.equals(lcn)) {
+            log(lvl, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
+                    s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
+          } else {
+            log(lvl, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
+          }
         }
+        Mouse.move(lnow);
+        Settings.MoveMouseDelay = mmd;
       }
-      Mouse.move(lnow);
-      Settings.MoveMouseDelay = mmd;
     }
     log(lvl, "initScreens: ending");
   }
@@ -409,6 +413,9 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public Rectangle getBounds() {
+    if (isHeadless()) {
+      return new Rectangle();
+    }
     return new Rectangle(getMonitor(getValidMonitor(curID)));
   }
 
@@ -417,6 +424,9 @@ public class Screen extends Region implements IScreen {
    * @return the physical coordinate/size <br>as AWT.Rectangle to avoid mix up with getROI
    */
   public static Rectangle getBounds(int id) {
+    if (isHeadless()) {
+      return new Rectangle();
+    }
     return new Rectangle(getMonitor(getValidMonitor(id)));
   }
 
