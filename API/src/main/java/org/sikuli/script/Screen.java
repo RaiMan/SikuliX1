@@ -56,6 +56,14 @@ public class Screen extends Region implements IScreen {
     return new Screen();
   }
 
+  public boolean isValid() {
+    return w != 0 && h != 0;
+  }
+
+  public String getDeviceDescription() {
+    return toStringShort();
+  }
+
   //<editor-fold defaultstate="collapsed" desc="monitors">
   static GraphicsEnvironment genv = null;
   static GraphicsDevice[] gdevs;
