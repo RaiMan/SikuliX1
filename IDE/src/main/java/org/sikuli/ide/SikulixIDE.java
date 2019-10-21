@@ -1736,7 +1736,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void android(ActionEvent ae) {
-      androidSupport();
+      //TODO androidSupport();
     }
   }
 
@@ -1748,51 +1748,6 @@ public class SikulixIDE extends JFrame {
 
   static IScreen getDefaultScreen() {
     return defaultScreen;
-  }
-
-
-  private void androidSupport() {
-    final ADBScreen aScr = new ADBScreen();
-    String title = "Android Support - !!EXPERIMENTAL!!";
-    if (aScr.isValid()) {
-      String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
-          "click Check: a short test is run with the device\n" +
-          "click Default...: set device as default screen for capture\n" +
-          "click Cancel: capture is reset to local screen\n" +
-          "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
-      String[] options = new String[3];
-      options[WARNING_DO_NOTHING] = "Check";
-      options[WARNING_ACCEPTED] = "Default Android";
-      options[WARNING_CANCEL] = "Cancel";
-      int ret = JOptionPane.showOptionDialog(this, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-      if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-        defaultScreen = null;
-        return;
-      }
-      if (ret == WARNING_DO_NOTHING) {
-        SikulixIDE.hideIDE();
-        Thread test = new Thread() {
-          @Override
-          public void run() {
-            androidSupportTest(aScr);
-          }
-        };
-        test.start();
-      } else if (ret == WARNING_ACCEPTED) {
-        defaultScreen = aScr;
-        return;
-      }
-    } else if (!ADBClient.isAdbAvailable) {
-      Sikulix.popError("Package adb seems not to be available.\nIt must be installed for Android support.", title);
-    } else {
-      Sikulix.popError("No android device attached", title);
-    }
-  }
-
-  private void androidSupportTest(ADBScreen aScr) {
-    ADBTest.ideTest(aScr);
-    ADBScreen.stop();
-    SikulixIDE.showIDE();
   }
   //</editor-fold>
 
