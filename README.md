@@ -78,10 +78,10 @@ The dependency coordinates are:
 
 **Developement environment**
 
- - Java 12 (OpenJDK release)
+ - Java 13 (OpenJDK release)
  - Windows 10 latest
- - Mac 10.14 latest
- - Ubuntu 18.04 in WSL on Windows 10
+ - Mac 10.15 latest
+ - Ubuntu 18.04 in WSL on Windows 10 (basic tests only)
 
 <hr>
 
