@@ -440,7 +440,7 @@ public class ExtensionManager {
     return null;
   }
 
-  public static Object invoke(String method, Object... params) {
+  public static Object invokeStatic(String method, Object... params) {
     String[] parts = method.split("\\.");
     if (parts.length != 2) {
       return null;
@@ -461,6 +461,10 @@ public class ExtensionManager {
         }
       }
     }
+    return null;
+  }
+
+  public static Object invoke(String method, Object... params) {
     return null;
   }
 

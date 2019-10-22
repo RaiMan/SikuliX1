@@ -1265,7 +1265,7 @@ public class RunTime {
       FindFailed.reset();
     }
     VNCScreen.stopAll();
-    ExtensionManager.invoke("ADBScreen.stop");
+    ExtensionManager.invokeStatic("ADBScreen.stop");
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);
     if (null != cleanupRobot) {

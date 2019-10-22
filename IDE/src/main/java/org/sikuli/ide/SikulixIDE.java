@@ -1699,7 +1699,7 @@ public class SikulixIDE extends JFrame {
       int WARNING_CANCEL = 2;
       int WARNING_ACCEPTED = 1;
       int WARNING_DO_NOTHING = 0;
-      IScreen aScr = (IScreen) ExtensionManager.invoke("ADBScreen.start");
+      IScreen aScr = (IScreen) ExtensionManager.invokeStatic("ADBScreen.start");
       String message = aScr.isValidWithMessage();
       String title = "Android Support - !!EXPERIMENTAL!!";
 
@@ -1723,7 +1723,7 @@ public class SikulixIDE extends JFrame {
           Thread test = new Thread() {
             @Override
             public void run() {
-              ExtensionManager.invoke("ADBTest.androidSupportTest", aScr);
+              ExtensionManager.invokeStatic("ADBTest.ideTest", aScr);
             }
           };
           test.start();
