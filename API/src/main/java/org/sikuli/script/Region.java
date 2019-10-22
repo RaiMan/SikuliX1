@@ -4744,18 +4744,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="048 Mobile actions (Android)">
-//  private boolean isAndroid() {
-//    if (isOtherScreen()) {
-//      IScreen scr = getScreen();
-//      if (scr instanceof ADBScreen) {
-//        adbScreen = (ADBScreen) scr;
-//        adbDevice = adbScreen.getDevice();
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-
   /*
    *
    * EXPERIMENTAL: for Android over ADB
@@ -4764,12 +4752,10 @@ public class Region {
    * @param target  PFRML
    * @throws FindFailed image not found
    */
-
-
   public <PFRML> void aTap(PFRML target) throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      ExtensionManager.invokeAndWait("ADBDevice.tap", loc.x, loc.y);
+      ExtensionManager.invokeAndWait("ADBDevice.tap", this, loc.x, loc.y);
     }
   }
 
@@ -4779,10 +4765,8 @@ public class Region {
    *
    * @param text text
    */
-
-
   public void aInput(String text) {
-    ExtensionManager.invokeAndWait("ADBDevice.input", text);
+    ExtensionManager.invokeAndWait("ADBDevice.input", this, text);
   }
 
   /*
@@ -4791,10 +4775,8 @@ public class Region {
    *
    * @param key key
    */
-
-
   public void aKey(int key) {
-    ExtensionManager.invoke("ADBDevice.inputKeyEvent", key);
+    ExtensionManager.invoke("ADBDevice.inputKeyEvent", this, key);
   }
 
   /*
@@ -4806,13 +4788,11 @@ public class Region {
    * @param to      PFRML
    * @throws FindFailed image not found
    */
-
-
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
     Location locFrom = getLocationFromTarget(from);
     Location locTo = getLocationFromTarget(to);
     if (locFrom != null && locTo != null) {
-      ExtensionManager.invokeAndWait("ADBDevice.swipe", locFrom.x, locFrom.y, locTo.x, locTo.y);
+      ExtensionManager.invokeAndWait("ADBDevice.swipe", this, locFrom.x, locFrom.y, locTo.x, locTo.y);
     }
   }
 
@@ -4820,8 +4800,6 @@ public class Region {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeUp() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4835,8 +4813,6 @@ public class Region {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeDown() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4850,8 +4826,6 @@ public class Region {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeLeft() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);
@@ -4865,8 +4839,6 @@ public class Region {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeRight() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);

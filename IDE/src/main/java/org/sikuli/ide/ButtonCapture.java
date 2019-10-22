@@ -106,7 +106,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
         new Thread() {
           @Override
           public void run() {
-            sImgNonLocal = (ScreenImage) ExtensionManager.invoke("ADBScreen.userCapture");
+            sImgNonLocal = (ScreenImage) ExtensionManager.invokeStatic("ADBScreen.userCapture");
             ButtonCapture.this.update((EventSubject) null);
           }
         }.start();

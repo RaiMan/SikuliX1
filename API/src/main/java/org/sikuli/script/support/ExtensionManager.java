@@ -406,7 +406,6 @@ public class ExtensionManager {
     IScreen aScr = (IScreen) ExtensionManager.invokeStatic("ADBScreen.start");
     String message = aScr.isValidWithMessage();
     String title = "Android Support - !!EXPERIMENTAL!!";
-
     if (message.isEmpty()) {
       String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
               "click Check: a short test is run with the device\n" +
@@ -418,9 +417,6 @@ public class ExtensionManager {
       options[WARNING_ACCEPTED] = "Default Android";
       options[WARNING_CANCEL] = "Cancel";
       int ret = JOptionPane.showOptionDialog(null, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-      if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-        return null;
-      }
       if (ret == WARNING_DO_NOTHING) {
         Thread test = new Thread() {
           @Override
@@ -429,11 +425,15 @@ public class ExtensionManager {
           }
         };
         test.start();
-      } else if (ret == WARNING_ACCEPTED) {
-        return aScr;
+      }
+      if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+        ExtensionManager.invokeStatic("ADBScreen.stop");
+        return null;
       }
     } else {
+      ExtensionManager.invokeStatic("ADBScreen.stop");
       Sikulix.popError(message, title);
+      return null;
     }
     return aScr;
   }
@@ -459,6 +459,10 @@ public class ExtensionManager {
   private static Method evalMethod(Class theClass, String methodname, Object... params) {
     Method theMethod = null;
     Class[] paramClasses = new Class[params.length];
+    int nParm = 0;
+    for (Object param : params) {
+      paramClasses[nParm] = param.getClass();
+    }
     try {
       theMethod = theClass.getMethod(methodname, paramClasses);
     } catch (NoSuchMethodException e) {
@@ -504,12 +508,15 @@ public class ExtensionManager {
     return null;
   }
 
-  public static Object invoke(String method, Object... params) {
+  public static Object invoke(String method, Object instance, Object... params) {
+    if (null == instance) {
+      return invokeStatic(method, params);
+    }
     return null;
   }
 
-  public static Object invokeAndWait(String method, Object... params) {
-    Object returnObject = invoke(method, params);
+  public static Object invokeAndWait(String method, Object instance, Object... params) {
+    Object returnObject = invoke(method, instance, params);
     if (null != returnObject) {
       //TODO wait
       return returnObject;

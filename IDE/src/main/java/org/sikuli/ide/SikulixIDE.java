@@ -1672,11 +1672,9 @@ public class SikulixIDE extends JFrame {
         new ToolAction(ToolAction.EXTENSIONS)));
 
     if (ExtensionManager.hasAndroidSupport()) {
-//TODO switch on IDE Android
-
-//      _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-//          null,
-//          new ToolAction(ToolAction.ANDROID)));
+      _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
+          null,
+          new ToolAction(ToolAction.ANDROID)));
     }
   }
 
