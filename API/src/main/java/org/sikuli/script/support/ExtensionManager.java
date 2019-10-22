@@ -388,7 +388,11 @@ public class ExtensionManager {
     return false;
   }
 
-  public static Object run(String method, Object... parms) {
+  public static Object invoke(String method, Object... parms) {
+    return null;
+  }
+
+  public static Object invokeAndWait(String method, Object... parms) {
     return null;
   }
 

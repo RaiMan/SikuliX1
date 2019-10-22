@@ -56,10 +56,18 @@ public class Screen extends Region implements IScreen {
     return new Screen();
   }
 
+  @Override
   public boolean isValid() {
     return w != 0 && h != 0;
   }
 
+  @Override
+  public String isValidWithMessage() {
+    if (isValid()) return "";
+    else return "Not valid: " + toStringShort();
+  }
+
+  @Override
   public String getDeviceDescription() {
     return toStringShort();
   }
@@ -458,6 +466,7 @@ public class Screen extends Region implements IScreen {
     return curID;
   }
 
+  @Override
   public String getIDString() {
     return "" + getID();
   }
@@ -503,6 +512,7 @@ public class Screen extends Region implements IScreen {
    * @param height value
    * @return the new region
    */
+  @Override
   public Region newRegion(Location loc, int width, int height) {
     return Region.create(loc.copyTo(this), width, height);
   }
@@ -525,6 +535,7 @@ public class Screen extends Region implements IScreen {
    * @param loc Location
    * @return the new location
    */
+  @Override
   public Location newLocation(Location loc) {
     return (new Location(loc)).copyTo(this);
   }

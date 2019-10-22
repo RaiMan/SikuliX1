@@ -4,16 +4,14 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
-import org.opencv.core.Core;
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
@@ -1267,7 +1265,7 @@ public class RunTime {
       FindFailed.reset();
     }
     VNCScreen.stopAll();
-    ADBScreen.stop();
+    ExtensionManager.invoke("ADBScreen.stop");
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);
     if (null != cleanupRobot) {
