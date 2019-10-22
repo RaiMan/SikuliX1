@@ -440,23 +440,28 @@ public class ExtensionManager {
   //</editor-fold>
 
   //<editor-fold desc="runtime access (invoke)">
-  private static Class evalClass(String className) {
+  private static Class evalClass(String method) {
+    String[] parts = method.split("\\.");
+    if (parts.length != 2) {
+      return null;
+    }
     String pkg = "";
     Class theClass = null;
-    if (className.startsWith("ADB") && hasAndroidSupport()) {
+    if (method.startsWith("ADB") && hasAndroidSupport()) {
       pkg = pkgAndroid;
     } else {
       return null;
     }
     try {
-      theClass = Class.forName(pkg + className);
+      theClass = Class.forName(pkg + parts[0]);
     } catch (ClassNotFoundException e) {
       return null;
     }
     return theClass;
   }
 
-  private static Method evalMethod(Class theClass, String methodname, Object... params) {
+  private static Method evalMethod(Class theClass, String method, Object... params) {
+    String methodname = method.split("\\.")[1];
     Method theMethod = null;
     Class[] paramClasses = new Class[params.length];
     int nParm = 0;
@@ -485,17 +490,12 @@ public class ExtensionManager {
   }
 
   public static Object invokeStatic(String method, Object... params) {
-    String[] parts = method.split("\\.");
-    if (parts.length != 2) {
-      return null;
-    }
-    Class theClass = evalClass(parts[0]);
+    Class theClass = evalClass(method);
     if (null != theClass) {
-      String methodname = parts[1];
-      if ("new".equals(methodname)) {
+      if (method.endsWith(".new")) {
         return invokeNew(theClass, params);
       }
-      Method theMethod = evalMethod(theClass, methodname, params);
+      Method theMethod = evalMethod(theClass, method, params);
       if (null != theMethod) {
         try {
           Object returnObject = theMethod.invoke(null, params);
