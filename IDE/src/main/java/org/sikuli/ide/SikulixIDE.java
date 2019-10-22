@@ -1699,11 +1699,11 @@ public class SikulixIDE extends JFrame {
       int WARNING_CANCEL = 2;
       int WARNING_ACCEPTED = 1;
       int WARNING_DO_NOTHING = 0;
-      IScreen aScr = (IScreen) ExtensionManager.invoke("ADBScreen.new");
+      IScreen aScr = (IScreen) ExtensionManager.invoke("ADBScreen.start");
       String message = aScr.isValidWithMessage();
       String title = "Android Support - !!EXPERIMENTAL!!";
 
-      if (!message.isEmpty()) {
+      if (message.isEmpty()) {
         String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
             "click Check: a short test is run with the device\n" +
             "click Default...: set device as default screen for capture\n" +

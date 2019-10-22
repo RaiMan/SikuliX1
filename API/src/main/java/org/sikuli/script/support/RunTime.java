@@ -99,7 +99,7 @@ public class RunTime {
       return;
     } else {
       classPath = ExtensionManager.makeClassPath(runningJar);
-      RunTime.startLog(1, "Classpath: %s", classPath);
+      //RunTime.startLog(1, "Classpath: %s", classPath);
     }
 
     List<String> cmd = new ArrayList<>();
