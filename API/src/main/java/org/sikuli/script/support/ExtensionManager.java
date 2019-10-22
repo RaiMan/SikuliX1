@@ -5,6 +5,7 @@ package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
@@ -396,6 +397,45 @@ public class ExtensionManager {
       }
     }
     return androidReady;
+  }
+
+  public static IScreen androidFromIDE() {
+    int WARNING_CANCEL = 2;
+    int WARNING_ACCEPTED = 1;
+    int WARNING_DO_NOTHING = 0;
+    IScreen aScr = (IScreen) ExtensionManager.invokeStatic("ADBScreen.start");
+    String message = aScr.isValidWithMessage();
+    String title = "Android Support - !!EXPERIMENTAL!!";
+
+    if (message.isEmpty()) {
+      String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
+              "click Check: a short test is run with the device\n" +
+              "click Default...: set device as default screen for capture\n" +
+              "click Cancel: capture is reset to local screen\n" +
+              "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
+      String[] options = new String[3];
+      options[WARNING_DO_NOTHING] = "Check";
+      options[WARNING_ACCEPTED] = "Default Android";
+      options[WARNING_CANCEL] = "Cancel";
+      int ret = JOptionPane.showOptionDialog(null, warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+      if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+        return null;
+      }
+      if (ret == WARNING_DO_NOTHING) {
+        Thread test = new Thread() {
+          @Override
+          public void run() {
+            ExtensionManager.invokeStatic("ADBTest.ideTest", aScr);
+          }
+        };
+        test.start();
+      } else if (ret == WARNING_ACCEPTED) {
+        return aScr;
+      }
+    } else {
+      Sikulix.popError(message, title);
+    }
+    return aScr;
   }
   //</editor-fold>
 
