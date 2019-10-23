@@ -9,7 +9,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**You need at least Java 8, but it works on Java 9 up to latest (currently 12)**
+**You need at least Java 8, but it works on Java 9 up to latest (currently 13)**
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
@@ -20,6 +20,10 @@ the source code of the application or web page you want to act on. [More details
 <hr>
 
 **Latest stable version is 2.0.0** (branch `release_2.0.x`)
+
+The feature set and the API is frozen. Only bugfixes will be applied as needed and available with follow-up release versions. Hence the next bug-fix version will be 2.0.1 most probably in January 2020 or even earlier if it makes sense.
+
+New features will only be available in a new major version (currently 2.1.0) and developed in branch master and/or dev_ branches. Until release of a stable 2.1.0, there will be nightly builds and snapshots available (see below).
 
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
