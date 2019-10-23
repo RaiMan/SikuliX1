@@ -87,7 +87,8 @@ The dependency coordinates are:
 
 #### Contributions are welcome and appreciated
  - for `bugreports and requests for features or enhancements` use the issue tracker here
- - for `smaller bugfixes and/or feature enhancements` you should create a pull request against the target branch (master in most cases)
+ - for `bugfixes` related to the latest release version (currently 2.0.0) you should create a pull request against the release branch (currently `release_2.0.x`), so your fix will be in the next bug-fix release (currently 2.0.1)
+- for `smaller bugfixes and/or feature enhancements` related to the running delopement (currently branch master as version 2.1.0-SNAPSHOT and dev_... branches) you should create a pull request against the target branch
  - for `more complex revisions and/or enhancements` you should ask for a developement branch together with a short description of your ideas
  
  **Please respect the following rules and guidelines when contributing**
