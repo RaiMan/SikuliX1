@@ -3,4 +3,4 @@
 
 This is the README in the **release branch** (used to publish stable versions).
 
-**Valid information you can find in the README of branch master**
+**[Valid information you can find in the README of branch master](https://github.com/RaiMan/SikuliX1/blob/master/README.md)**
