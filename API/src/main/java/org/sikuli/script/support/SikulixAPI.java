@@ -6,6 +6,7 @@ package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runners.ServerRunner;
@@ -42,6 +43,20 @@ public class SikulixAPI {
                   + "Press Cancel to terminate",
               "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
         }
+      }
+    }
+
+    if (args.length > 0) {
+      boolean shouldEval = false;
+      for (String arg : args) {
+        if ("eval".equals(arg)) {
+          shouldEval = true;
+          break;
+        }
+      }
+      if (shouldEval) {
+        Debug.logp("SikulixAPI: running eval");
+        Debug.logp("SikulixAPI: ending eval");
       }
     }
     Sikulix.terminate();
