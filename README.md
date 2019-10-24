@@ -19,7 +19,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.0** (branch `release_2.0.x` - [see targeted bugs](https://github.com/RaiMan/SikuliX1/milestone/1))
+**Latest stable version is 2.0.0** (branch `release_2.0.x` - [see related bugs](https://github.com/RaiMan/SikuliX1/milestone/1))
 
 Feature set and API are frozen. Only bugfixes will be applied as needed and available with follow-up release versions. Hence the next bug-fix version will be 2.0.1 most probably in January 2020 or even earlier if it makes sense.
 
