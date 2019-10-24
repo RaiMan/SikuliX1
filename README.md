@@ -51,6 +51,7 @@ For use in **Java Maven projects** the dependency coordinates are:
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
 [Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
+
 **Get the nightly builds ready to use** 
 - [SikuliX IDE for editing and running scripts]()
   - [Jython support for the IDE]()
