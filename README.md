@@ -9,7 +9,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**You need at least Java 8, but it works on Java 9 up to latest (currently 12)**
+**You need at least Java 8, but it works on Java 9 up to latest (currently 13)**
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
@@ -19,7 +19,11 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.0** (branch `release_2.0.x`)
+**Latest stable version is 2.0.0** (branch `release_2.0.x` - [see related bugs](https://github.com/RaiMan/SikuliX1/milestone/1))
+
+Feature set and API are frozen. Only bugfixes will be applied as needed and available with follow-up release versions. Hence the next bug-fix version will be 2.0.1 most probably in January 2020 or even earlier if it makes sense.
+
+New features will only be available in a new major version (currently 2.1.0) and developed in branch master and/or dev_ branches. Until release of a stable 2.1.0, there will be nightly builds and snapshots available (see below).
 
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
@@ -45,7 +49,7 @@ For use in **Java Maven projects** the dependency coordinates are:
 **Current developement version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 
-[Here you can read more about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/newsdev.html)
+[Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
 
 **Get the nightly builds ready to use** 
 - [SikuliX IDE for editing and running scripts]()
@@ -87,8 +91,10 @@ The dependency coordinates are:
 
 #### Contributions are welcome and appreciated
  - for `bugreports and requests for features or enhancements` use the issue tracker here
- - for `smaller bugfixes and/or feature enhancements` you should create a pull request against the target branch (master in most cases)
- - for `more complex revisions and/or enhancements` you should ask for a developement branch together with a short description of your ideas
+ - for `bugfixes` related to the latest release version (currently 2.0.0) you should create a pull request against the release branch (currently `release_2.0.x`), so your fix will be in the next bug-fix release (currently 2.0.1)
+- for `smaller bugfixes and/or feature enhancements` related to the running delopement (currently branch master as version 2.1.0-SNAPSHOT and dev_... branches) you should create a pull request against the target branch
+- a pull request should target only one branch. It is the resposibility and job of the maintainer to apply the changes to other branches in case 
+- for `more complex revisions and/or enhancements` you should ask for a developement branch together with a short description of your ideas
  
  **Please respect the following rules and guidelines when contributing**
   - Start with smaller fixes. E.g. choose an issue from the issue tracker and try to fix it. Or fix issues you encounter while using SikuliX.

@@ -1672,9 +1672,11 @@ public class SikulixIDE extends JFrame {
         new ToolAction(ToolAction.EXTENSIONS)));
 
     if (ExtensionManager.hasAndroidSupport()) {
-      _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-          null,
-          new ToolAction(ToolAction.ANDROID)));
+//TODO switch on IDE Android
+
+//      _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
+//          null,
+//          new ToolAction(ToolAction.ANDROID)));
     }
   }
 
@@ -1692,53 +1694,14 @@ public class SikulixIDE extends JFrame {
     }
 
     public void extensions(ActionEvent ae) {
-      showExtensions();
+      ExtensionManager.show();
     }
 
     public void android(ActionEvent ae) {
-      int WARNING_CANCEL = 2;
-      int WARNING_ACCEPTED = 1;
-      int WARNING_DO_NOTHING = 0;
-      IScreen aScr = (IScreen) ExtensionManager.invokeStatic("ADBScreen.start");
-      String message = aScr.isValidWithMessage();
-      String title = "Android Support - !!EXPERIMENTAL!!";
-
-      if (message.isEmpty()) {
-        String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
-            "click Check: a short test is run with the device\n" +
-            "click Default...: set device as default screen for capture\n" +
-            "click Cancel: capture is reset to local screen\n" +
-            "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
-        String[] options = new String[3];
-        options[WARNING_DO_NOTHING] = "Check";
-        options[WARNING_ACCEPTED] = "Default Android";
-        options[WARNING_CANCEL] = "Cancel";
-        int ret = JOptionPane.showOptionDialog(SikulixIDE.get(), warn, title, 0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-        if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-          defaultScreen = null;
-          return;
-        }
-        if (ret == WARNING_DO_NOTHING) {
-          SikulixIDE.hideIDE();
-          Thread test = new Thread() {
-            @Override
-            public void run() {
-              ExtensionManager.invokeStatic("ADBTest.ideTest", aScr);
-            }
-          };
-          test.start();
-        } else if (ret == WARNING_ACCEPTED) {
-          defaultScreen = aScr;
-          return;
-        }
-      } else {
-        Sikulix.popError(message, title);
-      }
+      SikulixIDE.hideIDE();
+      defaultScreen = (IScreen) ExtensionManager.androidFromIDE();
+      SikulixIDE.showIDE();
     }
-  }
-
-  private void showExtensions() {
-    ExtensionManager.show();
   }
 
   private static IScreen defaultScreen = null;
