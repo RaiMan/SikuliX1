@@ -63,5 +63,6 @@ public interface IScreen {
   Region newRegion(Region reg);
 
   boolean isValid();
+	String isValidWithMessage();
 	String getDeviceDescription();
 }

@@ -24,55 +24,7 @@ public class ExtensionManager {
 
   private static File sxExtensions = new File(RunTime.getAppPath(), "Extensions");
 
-  public static boolean hasShebang(String type, String scriptFile) {
-    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
-      char[] chars = new char[type.length()];
-      int read = reader.read(chars);
-      if (read == type.length()) {
-        if (type.equals(new String(chars).toUpperCase())) {
-          return true;
-        }
-      }
-    } catch (Exception ex) {
-      if (scriptFile.length() >= type.length()
-              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static void show() {
-    int WARNING_CANCEL = 2;
-    int WARNING_ACCEPTED = 1;
-    int WARNING_DO_NOTHING = 0;
-    String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + sxExtensions +
-            "\n\nCurrent content:";
-    List<String> extensionNames = getExtensionNames();
-    for (String extension : extensionNames) {
-      warn += "\n" + extension;
-    }
-    if (hasExtensionsFile()) {
-      warn += "\n\nextensions.txt content:";
-      for (String extension : sxExtensionsFileContent) {
-        warn += "\n" + extension;
-      }
-    }
-    warn += "\n\n" + "see menu File -> Open Special Files";
-    String title = "SikuliX1 Extensions";
-    String[] options = new String[3];
-    options[WARNING_DO_NOTHING] = "OK";
-    options[WARNING_ACCEPTED] = "More ...";
-    options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
-    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
-      return;
-    }
-  }
-
-  //<editor-fold desc="basic handling">
+  //<editor-fold desc="10 basic handling">
   public static String makeClassPath(File jarFile) {
     RunTime.startLog(1, "starting");
     String jarPath = jarFile.getAbsolutePath();
@@ -114,7 +66,7 @@ public class ExtensionManager {
         for (File fExtension : fExtensions) {
           String name = fExtension.getName();
           if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
-                  (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
+              (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
             fExtension.delete();
           }
         }
@@ -152,9 +104,6 @@ public class ExtensionManager {
             if (pExtension.contains(jrubyVersion)) {
               jrubyReady = true;
             }
-          } else if (pExtension.contains("py4j")) {
-          } else {
-            continue;
           }
           classPath += pExtension;
           RunTime.startLog(1, "adding extension: %s", fExtension);
@@ -162,12 +111,12 @@ public class ExtensionManager {
       }
       if (!jythonReady && !jrubyReady) {
         String message = "Neither Jython nor JRuby available" +
-                "\nPlease consult the docs for a solution.\n" +
-                "\nIDE might not be useable with JavaScript only";
+            "\nPlease consult the docs for a solution.\n" +
+            "\nIDE might not be useable with JavaScript only";
         if (RunTime.isIDE()) {
           if (!RunTime.isVerbose()) {
             JOptionPane.showMessageDialog(null, message, "IDE startup problem",
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.ERROR_MESSAGE);
           } else {
             RunTime.startLog(-1, message);
           }
@@ -268,18 +217,66 @@ public class ExtensionManager {
 
   public static String getExtensionsFileDefault() {
     return "# add absolute paths one per line, that point to other jars,\n" +
-            "# that need to be available on Java's classpath at runtime\n" +
-            "# They will be added automatically at startup in the given sequence\n" +
-            "\n" +
-            "# empty lines and lines beginning with # or // are ignored\n" +
-            "# delete the leading # to activate a prepared keyword line\n" +
-            "\n" +
-            "# pointer to a Jython install outside SikuliX\n" +
-            "# jython = c:/jython2.7.1/jython.jar\n" +
-            "\n" +
-            "# the Python executable as used on a commandline\n" +
-            "# activating will enable the support for real Python\n" +
-            "# python = python\n";
+        "# that need to be available on Java's classpath at runtime\n" +
+        "# They will be added automatically at startup in the given sequence\n" +
+        "\n" +
+        "# empty lines and lines beginning with # or // are ignored\n" +
+        "# delete the leading # to activate a prepared keyword line\n" +
+        "\n" +
+        "# pointer to a Jython install outside SikuliX\n" +
+        "# jython = c:/jython2.7.1/jython.jar\n" +
+        "\n" +
+        "# the Python executable as used on a commandline\n" +
+        "# activating will enable the support for real Python\n" +
+        "# python = python\n";
+  }
+
+  public static boolean hasShebang(String type, String scriptFile) {
+    try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
+      char[] chars = new char[type.length()];
+      int read = reader.read(chars);
+      if (read == type.length()) {
+        if (type.equals(new String(chars).toUpperCase())) {
+          return true;
+        }
+      }
+    } catch (Exception ex) {
+      if (scriptFile.length() >= type.length()
+          && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static void show() {
+    int WARNING_CANCEL = 2;
+    int WARNING_ACCEPTED = 1;
+    int WARNING_DO_NOTHING = 0;
+    String warn = "Nothing to do here currently - click what you like ;-)\n" +
+        "\nExtensions folder: \n" + sxExtensions +
+        "\n\nCurrent content:";
+    List<String> extensionNames = getExtensionNames();
+    for (String extension : extensionNames) {
+      warn += "\n" + extension;
+    }
+    if (hasExtensionsFile()) {
+      warn += "\n\nextensions.txt content:";
+      for (String extension : sxExtensionsFileContent) {
+        warn += "\n" + extension;
+      }
+    }
+    warn += "\n\n" + "see menu File -> Open Special Files";
+    String title = "SikuliX1 Extensions";
+    String[] options = new String[3];
+    options[WARNING_DO_NOTHING] = "OK";
+    options[WARNING_ACCEPTED] = "More ...";
+    options[WARNING_CANCEL] = "Cancel";
+    int ret = JOptionPane.showOptionDialog(null, warn, title,
+        0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+      return;
+    }
   }
 
   public static List<String> getExtensionNames() {
@@ -307,7 +304,7 @@ public class ExtensionManager {
   }
   //</editor-fold>
 
-  //<editor-fold desc="Jython/Python support">
+  //<editor-fold desc="20 Jython/Python support">
   static String jythonVersion = "2.7.1";
   private static boolean moveJython = false;
   private static boolean jythonReady = false;
@@ -343,10 +340,10 @@ public class ExtensionManager {
 
   public static String getSitesTxtDefault() {
     return "# add absolute paths one per line, that point to other directories/jars,\n" +
-            "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-            "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-            "\n" +
-            "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+        "\n" +
+        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
   }
 
   public static boolean shouldCheckContent(String type, String identifier) {
@@ -369,7 +366,7 @@ public class ExtensionManager {
   }
   //</editor-fold>
 
-  //<editor-fold desc="JRuby support">
+  //<editor-fold desc="21 JRuby support">
   private static String jrubyVersion = "9.2.0.0";
   private static boolean moveJRuby = false;
   private static boolean jrubyReady = false;
@@ -385,15 +382,104 @@ public class ExtensionManager {
   private static boolean jrubyExtern = false;
   //</editor-fold>
 
+  //<editor-fold desc="22 Android support">
+  private static String pkgAndroid = "org.sikuli.android.";
+  private static Boolean androidReady = null;
+
   public static boolean hasAndroidSupport() {
-    return false;
+    if (null == androidReady) {
+      androidReady = false;
+      try {
+        Class.forName(pkgAndroid + "ADBScreen");
+        androidReady = true;
+      } catch (ClassNotFoundException e) {
+        return false;
+      }
+    }
+    return androidReady;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="runtime access (invoke)">
+  private static Class evalClass(String className) {
+    String pkg = "";
+    Class theClass = null;
+    if (className.startsWith("ADB") && hasAndroidSupport()) {
+      pkg = pkgAndroid;
+    } else {
+      return null;
+    }
+    try {
+      theClass = Class.forName(pkg + className);
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
+    return theClass;
   }
 
-  public static Object run(String method, Object... parms) {
+  private static Method evalMethod(Class theClass, String methodname, Object... params) {
+    Method theMethod = null;
+    Class[] paramClasses = new Class[params.length];
+    try {
+      theMethod = theClass.getMethod(methodname, paramClasses);
+    } catch (NoSuchMethodException e) {
+    }
+    if (null == theMethod) {
+      Method[] methods = theClass.getDeclaredMethods();
+    }
+    return theMethod;
+  }
+
+  private static Object invokeNew(Class theClass, Object... params) {
+    try {
+      return theClass.getConstructor().newInstance();
+    } catch (NoSuchMethodException e) {
+    } catch (IllegalAccessException e) {
+    } catch (InstantiationException e) {
+    } catch (InvocationTargetException e) {
+    }
     return null;
   }
 
-  //<editor-fold desc="10 old handling">
+  public static Object invokeStatic(String method, Object... params) {
+    String[] parts = method.split("\\.");
+    if (parts.length != 2) {
+      return null;
+    }
+    Class theClass = evalClass(parts[0]);
+    if (null != theClass) {
+      String methodname = parts[1];
+      if ("new".equals(methodname)) {
+        return invokeNew(theClass, params);
+      }
+      Method theMethod = evalMethod(theClass, methodname, params);
+      if (null != theMethod) {
+        try {
+          Object returnObject = theMethod.invoke(null, params);
+          return returnObject;
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+      }
+    }
+    return null;
+  }
+
+  public static Object invoke(String method, Object... params) {
+    return null;
+  }
+
+  public static Object invokeAndWait(String method, Object... params) {
+    Object returnObject = invoke(method, params);
+    if (null != returnObject) {
+      //TODO wait
+      return returnObject;
+    }
+    return null;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="99 old handling">
   private static ExtensionManager _instance = null;
   private ArrayList<Extension> extensions;
   private File fExtensions = null;
