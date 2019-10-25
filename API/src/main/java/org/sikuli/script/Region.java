@@ -3,19 +3,18 @@
  */
 package org.sikuli.script;
 
-import java.awt.Rectangle;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Observer;
+import org.sikuli.script.support.*;
+import org.sikuli.util.Highlight;
+
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
-
-import org.sikuli.android.ADBDevice;
-import org.sikuli.android.ADBScreen;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.*;
-import org.sikuli.script.support.Observer;
-import org.sikuli.util.Highlight;
 
 /**
  * A Region is a rectengular area and lies always completely inside its parent screen
@@ -376,7 +375,7 @@ public class Region {
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }
@@ -2193,7 +2192,7 @@ public class Region {
       }
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-            + (color != null ? " color: " + color : ""));
+        + (color != null ? " color: " + color : ""));
     if (regionHighlight != null) {
       highlightClose();
     }
@@ -2495,7 +2494,7 @@ public class Region {
     }
     while (null != response && response) {
       log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-              autoWaitTimeout, targetStr, this.toStringShort());
+          autoWaitTimeout, targetStr, this.toStringShort());
       if (autoWaitTimeout > 0) {
         rf.repeat(autoWaitTimeout);
         lastMatches = rf.getMatches();
@@ -2814,7 +2813,7 @@ public class Region {
       finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
-                new Date().getTime() - lastSearchTimeRepeat);
+            new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
       finder.findRepeat();
@@ -3407,7 +3406,7 @@ public class Region {
       log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForRegion().delay(500);
       ScreenImage simg = getScreen().userCapture(
-              (recap ? "recapture " : "capture missing ") + img.getName());
+          (recap ? "recapture " : "capture missing ") + img.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
@@ -3598,7 +3597,7 @@ public class Region {
 
   private <PSIC> String onEvent(PSIC targetThreshhold, Object observer, ObserveEvent.Type obsType) {
     if (observer != null && (observer.getClass().getName().contains("org.python")
-            || observer.getClass().getName().contains("org.jruby"))) {
+        || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
@@ -3608,13 +3607,13 @@ public class Region {
         response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(
-                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
+              String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
     log(lvl, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
-            (observer == null ? "" : " with callback"), name, targetThreshhold);
+        (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
 
@@ -3657,7 +3656,7 @@ public class Region {
    */
   public String onChange(Integer threshold, Object observer) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            observer, ObserveEvent.Type.CHANGE);
+        observer, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3670,7 +3669,7 @@ public class Region {
    */
   public String onChange(Integer threshold) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            null, ObserveEvent.Type.CHANGE);
+        null, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3737,7 +3736,7 @@ public class Region {
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
     log(lvl, "%s: onChange%s: %s minSize: %d", toStringShort(),
-            (observer == null ? "" : " with callback"), name, threshold);
+        (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
 
@@ -3817,7 +3816,7 @@ public class Region {
     if (observing) {
       observing = false;
       log(lvl, "observe: stopped due to timeout in "
-              + this.toStringShort() + " for " + secs + " seconds");
+          + this.toStringShort() + " for " + secs + " seconds");
     } else {
       log(lvl, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);
@@ -4745,20 +4744,17 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="048 Mobile actions (Android)">
-  private ADBDevice adbDevice = null;
-  private ADBScreen adbScreen = null;
-
-  private boolean isAndroid() {
-    if (isOtherScreen()) {
-      IScreen scr = getScreen();
-      if (scr instanceof ADBScreen) {
-        adbScreen = (ADBScreen) scr;
-        adbDevice = adbScreen.getDevice();
-        return true;
-      }
-    }
-    return false;
-  }
+//  private boolean isAndroid() {
+//    if (isOtherScreen()) {
+//      IScreen scr = getScreen();
+//      if (scr instanceof ADBScreen) {
+//        adbScreen = (ADBScreen) scr;
+//        adbDevice = adbScreen.getDevice();
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
 
   /*
    *
@@ -4771,12 +4767,9 @@ public class Region {
 
 
   public <PFRML> void aTap(PFRML target) throws FindFailed {
-    if (isAndroid() && adbDevice != null) {
-      Location loc = getLocationFromTarget(target);
-      if (loc != null) {
-        adbDevice.tap(loc.x, loc.y);
-        RunTime.pause(adbScreen.waitAfterAction);
-      }
+    Location loc = getLocationFromTarget(target);
+    if (loc != null) {
+      ExtensionManager.invokeAndWait("ADBDevice.tap", loc.x, loc.y);
     }
   }
 
@@ -4789,9 +4782,7 @@ public class Region {
 
 
   public void aInput(String text) {
-    if (isAndroid() && adbDevice != null) {
-      adbDevice.input(text);
-    }
+    ExtensionManager.invokeAndWait("ADBDevice.input", text);
   }
 
   /*
@@ -4803,9 +4794,7 @@ public class Region {
 
 
   public void aKey(int key) {
-    if (isAndroid() && adbDevice != null) {
-      adbDevice.inputKeyEvent(key);
-    }
+    ExtensionManager.invoke("ADBDevice.inputKeyEvent", key);
   }
 
   /*
@@ -4820,13 +4809,10 @@ public class Region {
 
 
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
-    if (isAndroid() && adbDevice != null) {
-      Location locFrom = getLocationFromTarget(from);
-      Location locTo = getLocationFromTarget(to);
-      if (locFrom != null && locTo != null) {
-        adbDevice.swipe(locFrom.x, locFrom.y, locTo.x, locTo.y);
-        RunTime.pause(adbScreen.waitAfterAction);
-      }
+    Location locFrom = getLocationFromTarget(from);
+    Location locTo = getLocationFromTarget(to);
+    if (locFrom != null && locTo != null) {
+      ExtensionManager.invokeAndWait("ADBDevice.swipe", locFrom.x, locFrom.y, locTo.x, locTo.y);
     }
   }
 

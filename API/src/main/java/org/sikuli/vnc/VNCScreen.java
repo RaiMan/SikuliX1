@@ -39,6 +39,12 @@ public class VNCScreen extends Region implements IScreen {
   }
 
   @Override
+  public String isValidWithMessage() {
+    if (isValid()) return "";
+    else return "Not valid: " + toStringShort();
+  }
+
+  @Override
   public String getDeviceDescription() {
     return toStringShort();
   }

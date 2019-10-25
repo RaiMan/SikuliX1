@@ -4,7 +4,6 @@
 
 package org.sikuli.util;
 
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
@@ -512,18 +511,19 @@ public class SikulixTest {
     //</editor-fold>
 
     //<editor-fold desc="test13 android">
-    if (shouldRunTest(13)) {
-      before("test13", "android");
-      Debug.on(3);
-      ADBScreen adb = ADBScreen.start();
-      while (!adb.getDevice().isDisplayOn()) {
-        adb.aKey(224);
-        RunTime.pause(1);
-      }
-      //ScreenImage capture = adb.capture(300, 300, 300, 300);
-      ScreenImage capture = adb.capture();
-      p("%s", capture);
-    }
+// TODO android test
+//    if (shouldRunTest(13)) {
+//      before("test13", "android");
+//      Debug.on(3);
+//      ADBScreen adb = ADBScreen.start();
+//      while (!adb.getDevice().isDisplayOn()) {
+//        adb.aKey(224);
+//        RunTime.pause(1);
+//      }
+//      //ScreenImage capture = adb.capture(300, 300, 300, 300);
+//      ScreenImage capture = adb.capture();
+//      p("%s", capture);
+//    }
     //</editor-fold>
   }
 }
