@@ -12,6 +12,8 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.recorder.actions.IRecordedAction;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
@@ -32,6 +34,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SikulixIDE extends JFrame {
 
