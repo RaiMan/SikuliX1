@@ -518,16 +518,17 @@ def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, pass
 # convenience for an ADBScreen connection
 
 #Debug.log(3, "Jython: sikuli: Sikuli: import ADBScreen")
-import org.sikuli.android.ADBScreen as JADBScreen
+# import org.sikuli.android.ADBScreen as JADBScreen
 
-class ADBScreen(JADBScreen):
-  pass
+#class ADBScreen(JADBScreen):
+#  pass
 
 def adbStart(adbexec = ""):
-  adbscr = ADBScreen(adbexec)
-  if adbscr:
-    return adbscr
-  exit(-1)
+  pass
+  # adbscr = ADBScreen(adbexec)
+  # if adbscr:
+  #   return adbscr
+  # exit(-1)
 
 ## ----------------------------------------------------------------------
 # Switches the frontmost application to the given application.

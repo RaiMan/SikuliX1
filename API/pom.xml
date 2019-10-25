@@ -75,12 +75,14 @@
       <artifactId>sikulix2opencv</artifactId>
       <version>4.1.1</version>
     </dependency>
+<!--
     <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulix2android</artifactId>
       <version>2.1.0-SNAPSHOT</version>
       <optional>true</optional>
     </dependency>
+-->
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
@@ -175,6 +177,12 @@
       <artifactId>jackson-annotations</artifactId>
       <version>2.9.10</version>
     </dependency>
+      <!-- special deps for branch -->
+      <dependency>
+          <groupId>com.1stleg</groupId>
+          <artifactId>jnativehook</artifactId>
+          <version>2.1.0</version>
+      </dependency>
   </dependencies>
 
   <profiles>

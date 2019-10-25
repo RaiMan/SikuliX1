@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jnativehook.keyboard.NativeKeyEvent;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.SXUser32;
 
@@ -21,6 +22,8 @@ public class KeyboardLayout {
   private static final Map<Character, int[]> DEFAULT_KEYBOARD_LAYOUT = buildAwtEnUs(); // en-US;
 
   private static final Map<Integer, Map<Character, int[]>> LAYOUTS = new HashMap<>();
+
+  private static final Map<Character, int[]> JNATIVEHOOK_MAPPINGS = buildJnativehookMappings();
 
   class WindowsVkCodes {
     public static final int VK_SHIFT = 0x10; // SHIFT key
@@ -274,6 +277,12 @@ public class KeyboardLayout {
   private static final int MAPVK_VK_TO_VSC = 0;
 
   private static Map<Character, int[]> mapKeyCodes(int[] modifiers, int keyboarLayoutId) {
+    int[] effectiveModifiers = modifiers;
+
+    if (modifiers.length >= 1 && modifiers[0] == WindowsVkCodes.VK_RMENU) {
+      effectiveModifiers = new int[] { WindowsVkCodes.VK_CONTROL, WindowsVkCodes.VK_MENU };
+    }
+
     Map<Character, int[]> mappings = new HashMap<>();
 
     int spaceScanCode = SXUser32.INSTANCE.MapVirtualKeyExW(WindowsVkCodes.VK_SPACE, MAPVK_VK_TO_VSC, keyboarLayoutId);
@@ -281,7 +290,7 @@ public class KeyboardLayout {
     for (int vk : AUTO_DETECT_VK_CODES) {
       byte[] keyStates = new byte[256];
 
-      for (int modifier : modifiers) {
+      for (int modifier : effectiveModifiers) {
         keyStates[modifier] |= 0x80;
       }
 
@@ -315,7 +324,7 @@ public class KeyboardLayout {
   private static Map<Character, int[]> buildWindowsLayout(int keyboarLayoutId) {
     Map<Character, int[]> layout = new HashMap<>();
 
-    layout.putAll(mapKeyCodes(new int[] { WindowsVkCodes.VK_CONTROL, WindowsVkCodes.VK_MENU }, keyboarLayoutId));
+    layout.putAll(mapKeyCodes(new int[] { WindowsVkCodes.VK_RMENU }, keyboarLayoutId));
     layout.putAll(mapKeyCodes(new int[] { WindowsVkCodes.VK_SHIFT }, keyboarLayoutId));
     layout.putAll(mapKeyCodes(new int[0], keyboarLayoutId));
 
@@ -323,7 +332,7 @@ public class KeyboardLayout {
     layout.put(Key.C_SHIFT, new int[] { WindowsVkCodes.VK_SHIFT });
     layout.put(Key.C_CTRL, new int[] { WindowsVkCodes.VK_CONTROL });
     layout.put(Key.C_ALT, new int[] { WindowsVkCodes.VK_MENU });
-    layout.put(Key.C_ALTGR, new int[] { WindowsVkCodes.VK_CONTROL, WindowsVkCodes.VK_MENU });
+    layout.put(Key.C_ALTGR, new int[] { WindowsVkCodes.VK_RMENU });
     layout.put(Key.C_META, new int[] { WindowsVkCodes.VK_LWIN });
     // Cursor movement
     layout.put(Key.C_UP, new int[] { WindowsVkCodes.VK_UP});
@@ -583,6 +592,146 @@ public class KeyboardLayout {
     return layout;
   }
 
+  private static Map<Character, int[]> buildJnativehookMappings() {
+    Map<Character, int[]> layout = new HashMap<>();
+
+    layout.put('a', new int[] { NativeKeyEvent.VC_A });
+    layout.put('b', new int[] { NativeKeyEvent.VC_B });
+    layout.put('c', new int[] { NativeKeyEvent.VC_C });
+    layout.put('d', new int[] { NativeKeyEvent.VC_D });
+    layout.put('e', new int[] { NativeKeyEvent.VC_E });
+    layout.put('f', new int[] { NativeKeyEvent.VC_F });
+    layout.put('g', new int[] { NativeKeyEvent.VC_G });
+    layout.put('h', new int[] { NativeKeyEvent.VC_H });
+    layout.put('i', new int[] { NativeKeyEvent.VC_I });
+    layout.put('j', new int[] { NativeKeyEvent.VC_J });
+    layout.put('k', new int[] { NativeKeyEvent.VC_K });
+    layout.put('l', new int[] { NativeKeyEvent.VC_L });
+    layout.put('m', new int[] { NativeKeyEvent.VC_M });
+    layout.put('n', new int[] { NativeKeyEvent.VC_N });
+    layout.put('o', new int[] { NativeKeyEvent.VC_O });
+    layout.put('p', new int[] { NativeKeyEvent.VC_P });
+    layout.put('q', new int[] { NativeKeyEvent.VC_Q });
+    layout.put('r', new int[] { NativeKeyEvent.VC_R });
+    layout.put('s', new int[] { NativeKeyEvent.VC_S });
+    layout.put('t', new int[] { NativeKeyEvent.VC_T });
+    layout.put('u', new int[] { NativeKeyEvent.VC_U });
+    layout.put('v', new int[] { NativeKeyEvent.VC_V });
+    layout.put('w', new int[] { NativeKeyEvent.VC_W });
+    layout.put('x', new int[] { NativeKeyEvent.VC_X });
+    layout.put('y', new int[] { NativeKeyEvent.VC_Y });
+    layout.put('z', new int[] { NativeKeyEvent.VC_Z });
+
+    // Row 3 (below function keys)
+//        layout.put('§', new int[]{192}); //not producable
+    layout.put('1', new int[] { NativeKeyEvent.VC_1, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('2', new int[] { NativeKeyEvent.VC_2, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('3', new int[] { NativeKeyEvent.VC_3, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('4', new int[] { NativeKeyEvent.VC_4, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('5', new int[] { NativeKeyEvent.VC_5, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('6', new int[] { NativeKeyEvent.VC_6, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('7', new int[] { NativeKeyEvent.VC_7, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('8', new int[] { NativeKeyEvent.VC_8, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('9', new int[] { NativeKeyEvent.VC_9, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('0', new int[] { NativeKeyEvent.VC_0, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('-', new int[] { NativeKeyEvent.VC_MINUS, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    layout.put('=', new int[] { NativeKeyEvent.VC_EQUALS, NativeKeyEvent.KEY_LOCATION_STANDARD });
+    // Row 2
+    // q w e r t y u i o p
+    layout.put('[', new int[] { NativeKeyEvent.VC_OPEN_BRACKET });
+    layout.put(']', new int[] { NativeKeyEvent.VC_CLOSE_BRACKET });
+    // Row 1
+    // a s d f g h j k l
+    layout.put(';', new int[] { NativeKeyEvent.VC_SEMICOLON });
+    layout.put('\'', new int[] { NativeKeyEvent.VC_QUOTE });
+    layout.put('\\', new int[] { NativeKeyEvent.VC_BACK_SLASH });
+    // RETURN, BACKSPACE, TAB
+    layout.put('\b', new int[] { NativeKeyEvent.VC_BACKSPACE });
+    layout.put('\t', new int[] { NativeKeyEvent.VC_TAB });
+    layout.put('\r', new int[] { NativeKeyEvent.VC_ENTER });
+    layout.put('\n', new int[] { NativeKeyEvent.VC_ENTER });
+    // SPACE
+    layout.put(' ', new int[] { NativeKeyEvent.VC_SPACE });
+    // Row 0 (first above SPACE)
+    layout.put('`', new int[] { NativeKeyEvent.VC_BACKQUOTE });
+    // z x c v b n m
+    layout.put(',', new int[] { NativeKeyEvent.VC_COMMA });
+    layout.put('.', new int[] { NativeKeyEvent.VC_PERIOD });
+    layout.put('/', new int[] { NativeKeyEvent.VC_SLASH });
+
+    // Modifier
+    layout.put(Key.C_SHIFT, new int[] { NativeKeyEvent.VC_SHIFT });
+    layout.put(Key.C_CTRL, new int[] { NativeKeyEvent.VC_CONTROL });
+    layout.put(Key.C_ALT, new int[] { NativeKeyEvent.VC_ALT, NativeKeyEvent.KEY_LOCATION_LEFT });
+    layout.put(Key.C_META, new int[] { NativeKeyEvent.VC_META });
+    layout.put(Key.C_ALTGR, new int[] { NativeKeyEvent.VC_ALT, NativeKeyEvent.KEY_LOCATION_RIGHT });
+    // Cursor movement
+    layout.put(Key.C_UP, new int[] { NativeKeyEvent.VC_UP });
+    layout.put(Key.C_RIGHT, new int[] { NativeKeyEvent.VC_RIGHT });
+    layout.put(Key.C_DOWN, new int[] { NativeKeyEvent.VC_DOWN });
+    layout.put(Key.C_LEFT, new int[] { NativeKeyEvent.VC_LEFT });
+    layout.put(Key.C_PAGE_UP, new int[] { NativeKeyEvent.VC_PAGE_UP });
+    layout.put(Key.C_PAGE_DOWN, new int[] { NativeKeyEvent.VC_PAGE_DOWN });
+    layout.put(Key.C_END, new int[] { NativeKeyEvent.VC_END });
+    layout.put(Key.C_HOME, new int[] { NativeKeyEvent.VC_HOME });
+    layout.put(Key.C_DELETE, new int[] { NativeKeyEvent.VC_DELETE });
+    // Function keys
+    layout.put(Key.C_ESC, new int[] { NativeKeyEvent.VC_ESCAPE });
+    layout.put(Key.C_F1, new int[] { NativeKeyEvent.VC_F1 });
+    layout.put(Key.C_F2, new int[] { NativeKeyEvent.VC_F2 });
+    layout.put(Key.C_F3, new int[] { NativeKeyEvent.VC_F3 });
+    layout.put(Key.C_F4, new int[] { NativeKeyEvent.VC_F4 });
+    layout.put(Key.C_F5, new int[] { NativeKeyEvent.VC_F5 });
+    layout.put(Key.C_F6, new int[] { NativeKeyEvent.VC_F6 });
+    layout.put(Key.C_F7, new int[] { NativeKeyEvent.VC_F7 });
+    layout.put(Key.C_F8, new int[] { NativeKeyEvent.VC_F8 });
+    layout.put(Key.C_F9, new int[] { NativeKeyEvent.VC_F9 });
+    layout.put(Key.C_F10, new int[] { NativeKeyEvent.VC_F10 });
+    layout.put(Key.C_F11, new int[] { NativeKeyEvent.VC_F11 });
+    layout.put(Key.C_F12, new int[] { NativeKeyEvent.VC_F12 });
+    layout.put(Key.C_F13, new int[] { NativeKeyEvent.VC_F13 });
+    layout.put(Key.C_F14, new int[] { NativeKeyEvent.VC_F14 });
+    layout.put(Key.C_F15, new int[] { NativeKeyEvent.VC_F15 });
+    // Toggling kezs
+    layout.put(Key.C_SCROLL_LOCK, new int[] { NativeKeyEvent.VC_SCROLL_LOCK });
+    layout.put(Key.C_NUM_LOCK, new int[] { NativeKeyEvent.VC_NUM_LOCK });
+    layout.put(Key.C_CAPS_LOCK, new int[] { NativeKeyEvent.VC_CAPS_LOCK });
+    layout.put(Key.C_INSERT, new int[] { NativeKeyEvent.VC_INSERT });
+    // Windows special
+    layout.put(Key.C_PAUSE, new int[] { NativeKeyEvent.VC_PAUSE });
+    layout.put(Key.C_PRINTSCREEN, new int[] { NativeKeyEvent.VC_PRINTSCREEN });
+    // Num pad
+    layout.put(Key.C_NUM0, new int[] { NativeKeyEvent.VC_0, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM1, new int[] { NativeKeyEvent.VC_1, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM2, new int[] { NativeKeyEvent.VC_2, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM3, new int[] { NativeKeyEvent.VC_3, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM4, new int[] { NativeKeyEvent.VC_4, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM5, new int[] { NativeKeyEvent.VC_5, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM6, new int[] { NativeKeyEvent.VC_6, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM7, new int[] { NativeKeyEvent.VC_7, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM8, new int[] { NativeKeyEvent.VC_8, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_NUM9, new int[] { NativeKeyEvent.VC_9, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    // Num pad special
+    layout.put(Key.C_SEPARATOR, new int[] { NativeKeyEvent.VC_SEPARATOR });
+    layout.put(Key.C_ADD, new int[] { 0xe4e, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_MINUS, new int[] { 0xe4a, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_MULTIPLY, new int[] { NativeKeyEvent.VC_PRINTSCREEN, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_DIVIDE, new int[] { NativeKeyEvent.VC_SLASH, NativeKeyEvent.KEY_LOCATION_NUMPAD });
+    layout.put(Key.C_CONTEXT, new int[] { NativeKeyEvent.VC_CONTEXT_MENU });
+    layout.put(Key.C_WIN, new int[] { NativeKeyEvent.VC_META });
+    // hack: alternative tab in GUI
+    layout.put(Key.C_NEXT, new int[] { -NativeKeyEvent.VC_TAB });
+    // RETURN, BACKSPACE, TAB
+    layout.put('\r', new int[] { NativeKeyEvent.VC_ENTER });
+    layout.put('\n', new int[] { NativeKeyEvent.VC_ENTER });
+    layout.put('\b', new int[] { NativeKeyEvent.VC_BACKSPACE });
+    layout.put('\t', new int[] { NativeKeyEvent.VC_TAB });
+    // SPACE
+    layout.put(' ', new int[] { NativeKeyEvent.VC_SPACE });
+
+    return layout;
+  }
+
   private static Map<Character, int[]> getCurrentLayout() {
     Map<Character, int[]> layout = DEFAULT_KEYBOARD_LAYOUT;
 
@@ -617,5 +766,81 @@ public class KeyboardLayout {
     }
 
     return keyCodes;
+  }
+
+  public static Character toChar(NativeKeyEvent event, Character[] modifiers) {
+
+    Map<Character, int[]> layout = getCurrentLayout();
+    Character ch = null;
+
+    if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+
+      int code = event.getRawCode();
+
+      switch(code) {
+         case WindowsVkCodes.VK_LSHIFT: case WindowsVkCodes.VK_RSHIFT:
+           code = WindowsVkCodes.VK_SHIFT;
+           break;
+         case WindowsVkCodes.VK_LMENU:
+           code = WindowsVkCodes.VK_MENU;
+           break;
+         case WindowsVkCodes.VK_LCONTROL: case WindowsVkCodes.VK_RCONTROL:
+           code = WindowsVkCodes.VK_CONTROL;
+           break;
+         case WindowsVkCodes.VK_RWIN:
+           code = WindowsVkCodes.VK_LWIN;
+           break;
+      }
+
+      for (Map.Entry<Character, int[]> entry : layout.entrySet()) {
+        int[] vks = entry.getValue();
+
+        if (vks.length == 1 && vks[0] == code) {
+          ch = entry.getKey();
+          break;
+        }
+      }
+    } else {
+      for (Map.Entry<Character, int[]> entry : JNATIVEHOOK_MAPPINGS.entrySet()) {
+        if (entry.getValue().length >= 2) {
+          if (entry.getValue()[0] == event.getKeyCode() && entry.getValue()[1] == event.getKeyLocation()) {
+            ch = entry.getKey();
+            break;
+          }
+        } else {
+          if (entry.getValue()[0] == event.getKeyCode()) {
+            ch = entry.getKey();
+            break;
+          }
+        }
+      }
+    }
+
+    if (ch != null && !Key.isModifier(ch)) {
+      int plainVk = layout.get(ch)[0];
+
+      for (Map.Entry<Character, int[]> entry : layout.entrySet()) {
+        int[] vks = entry.getValue();
+
+        if (vks.length == modifiers.length + 1) {
+          if (Arrays.stream(vks).anyMatch((vk) -> vk == plainVk)) {
+            boolean allMatch = true;
+            for (char modifier : modifiers) {
+              int modifierVk = layout.get(modifier)[0];
+              if (!Arrays.stream(vks).anyMatch((vk) -> vk == modifierVk)) {
+                allMatch = false;
+                break;
+              }
+            }
+
+            if (allMatch) {
+              return entry.getKey();
+            }
+          }
+        }
+      }
+    }
+
+    return ch;
   }
 }
