@@ -155,6 +155,7 @@ public class ExtensionManager {
       return;
     }
     for (String line : sxExtensionsFileContent) {
+      RunTime.startLog(1, "extensions.txt: %s", line);
       String token = "";
       String extPath = line;
       String[] lineParts = line.split("=");

@@ -8,6 +8,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.TextRecognizer;
 import org.sikuli.script.runners.JavaScriptRunner;
+import org.sikuli.util.SikulixTest;
 
 import java.io.File;
 

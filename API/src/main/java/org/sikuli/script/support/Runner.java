@@ -76,11 +76,19 @@ public class Runner {
   }
 
   public static IScriptRunner getRunner(String identifier) {
+    return getRunner(identifier, null);
+  }
+
+  public static IScriptRunner getRunner(String identifier, IScriptRunner.Options options) {
     if (identifier == null) {
       return null;
     }
     synchronized (runners) {
       initRunners();
+      if (null != options) {
+        // TODO select the runner according to some Options aspects
+        // not sure whether this is needed
+      }
       for (IScriptRunner runner : supportedRunners) {
         if (runner.canHandle(identifier)) {
           return runner;
@@ -240,7 +248,7 @@ public class Runner {
   }
 
   public static synchronized int run(String script, String[] args, IScriptRunner.Options options) {
-    IScriptRunner runner = getRunner(script);
+    IScriptRunner runner = getRunner(script, options);
     int retVal;
     retVal = runner.runScript(script, args, options);
     return retVal;

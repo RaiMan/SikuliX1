@@ -1,0 +1,118 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+input[type="text"], textarea {
+  font-size: 14px;
+}
+#container {
+  width: 800px;
+  height: 500px;
+  margin-top: 50px;
+  display: flex;
+  flex-wrap: nowrap;
+}
+#container>* {
+  flex: auto;
+}
+#commands {
+  width: 300px;
+}
+#commands>div {
+  width: 280px;
+  text-align: center;
+}
+#commands>div>* {
+  margin-bottom: 5px;
+}
+#commands .caption {
+  overflow: hidden;
+  text-align: center;
+  margin: 0px;
+}
+#commands .caption>span {
+  position: relative;
+  display: inline-block;
+  margin: 0 2.5em;
+  padding: 0 1em;
+  font-size: 14px;
+  text-align: left;
+}
+#commands .caption>span::before,
+#commands .caption>span::after {
+  position: absolute;
+  top: 50%;
+  content: '';
+  width: 400%;
+  height: 1px;
+  background-color: black;
+}
+#commands .caption>span::before {
+  right: 100%;
+}
+#commands .caption>span::after {
+  left: 100%;
+}
+#commands button {
+  width: 100px;
+  height: 30px;
+  padding: 0px;
+  background-color: white;
+  border: solid 3px black;
+}
+#commands button:disabled {
+  background-color: lightgray;
+}
+#set-part>input {
+  width: 250px;
+  display: inline-block;
+  vertical-align: middle;
+}
+#run-part>*:not(.caption) {
+  display: inline-block;
+  vertical-align: middle;
+}
+#run-part>input {
+  width: 250px;
+}
+#run-part>textarea {
+  width: 250px;
+  height: 100px;
+  resize: none;
+}
+#stop-part {
+  margin-top: 10px;
+}
+#monitor {
+  width: 500px;
+}
+#monitor pre {
+  width: 100%;
+  height: 90%;
+  margin: 0px;
+  padding: 5px;
+  overflow-y: scroll;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border: solid;
+}
+#monitor samp::after {
+  content: "\A> ";
+  white-space: pre;
+}
+footer {
+  width: 800px;
+  text-align: center;
+}
+.font-pass {
+  color: green;
+}
+.font-fail {
+  color: red;
+}
+#initialize-part,
+#set-part {
+  display: none;
+}

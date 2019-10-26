@@ -104,10 +104,24 @@ public class CommandArgs {
 
     cmdArgs.addOption(
         OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
-            .hasOptionalArg()
+            .hasOptionalArgs(2)
             .withArgName(CommandArgsEnum.SERVER.argname())
             .withDescription(CommandArgsEnum.SERVER.description())
             .create(CommandArgsEnum.SERVER.shortname().charAt(0)));
+
+    cmdArgs.addOption(
+            OptionBuilder.withLongOpt(CommandArgsEnum.GROUPS.longname())
+                    .hasOptionalArgs(1)
+                    .withArgName(CommandArgsEnum.GROUPS.argname())
+                    .withDescription(CommandArgsEnum.GROUPS.description())
+                    .create(CommandArgsEnum.GROUPS.shortname().charAt(0)));
+
+    cmdArgs.addOption(
+            OptionBuilder.withLongOpt(CommandArgsEnum.XTRA.longname())
+                    .hasOptionalArgs(1)
+                    .withArgName(CommandArgsEnum.XTRA.argname())
+                    .withDescription(CommandArgsEnum.XTRA.description())
+                    .create(CommandArgsEnum.XTRA.shortname().charAt(0)));
 
     cmdArgs.addOption(
         OptionBuilder.withLongOpt(CommandArgsEnum.PYTHONSERVER.longname())
