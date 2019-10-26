@@ -1301,7 +1301,7 @@ public class FileManager {
         log(-1, "makingScriptJar: script folder invalid: " + scriptFolderSikuli.getAbsolutePath());
         return null;
       }
-      FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
+      xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
       String script = "";
       String prolog = "import org.sikuli.script.SikulixForJython\n" +
           "from sikuli import *\n" +
@@ -1320,7 +1320,7 @@ public class FileManager {
       FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
     } else {
       log(lvl, "makingScriptJar: compiling plain script: %s", scriptFolder);
-      FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+      xcopy(scriptFolder, fScriptSource, skipCompiled);
     }
 
     Sikulix.compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
@@ -1348,7 +1348,7 @@ public class FileManager {
 //    FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
-    if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
+    if (!buildJar(targetJar, jarsList, fileList, preList, new JarFileFilter() {
       @Override
       public boolean accept(ZipEntry entry, String jarname) {
         if (entry.getName().startsWith("META-INF")) {
@@ -1586,11 +1586,11 @@ public class FileManager {
     return fSikuliDir.getAbsolutePath();
   }
 
-  public interface JarFileFilter {
+  public static interface JarFileFilter {
     boolean accept(ZipEntry entry, String jarname);
   }
 
-  public interface FileFilter {
+  public static interface FileFilter {
     boolean accept(File entry);
   }
 
