@@ -1586,12 +1586,12 @@ public class FileManager {
     return fSikuliDir.getAbsolutePath();
   }
 
-  public static interface JarFileFilter {
-    boolean accept(ZipEntry entry, String jarname);
+  static class JarFileFilter {
+    boolean accept(ZipEntry entry, String jarname){return true;}
   }
 
-  public static interface FileFilter {
-    boolean accept(File entry);
+  public static class FileFilter {
+    public boolean accept(File entry){return true;}
   }
 
   private static synchronized void bufferedWrite(InputStream in, OutputStream out) throws IOException {
