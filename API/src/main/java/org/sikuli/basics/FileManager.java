@@ -1282,7 +1282,7 @@ public class FileManager {
     File fScriptSource = new File(fSikulixTemp, "scriptSource");
     File fScriptCompiled = new File(fSikulixTemp, "scriptCompiled");
     File fWorkdir = scriptFolder.getParentFile();
-    FileFilter skipCompiled = new FileFilter() {
+    FileFilter skipCompiled = new FileManager.FileFilter() {
       @Override
       public boolean accept(File entry) {
         if (entry.getName().contains("$py.class")) {
@@ -1348,7 +1348,7 @@ public class FileManager {
 //    FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
-    if (!buildJar(targetJar, jarsList, fileList, preList, new JarFileFilter() {
+    if (!buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
       @Override
       public boolean accept(ZipEntry entry, String jarname) {
         if (entry.getName().startsWith("META-INF")) {
