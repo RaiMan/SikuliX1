@@ -475,15 +475,14 @@ public class Sikulix {
     return false;
   }
 
-  private static class CompileJythonFilter implements FileManager.FileFilter {
+  private static class CompileJythonFilter extends FileManager.FileFilter{
 
     JythonSupport jython = null;
 
-    public CompileJythonFilter(JythonSupport jython) {
+    CompileJythonFilter(JythonSupport jython) {
       this.jython = jython;
     }
 
-    @Override
     public boolean accept(File entry) {
       if (jython != null && entry.isDirectory()) {
         jython = doCompileJythonFolder(jython, entry);
