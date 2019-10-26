@@ -17,11 +17,19 @@ import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
 import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.Location;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -133,6 +141,12 @@ public class EditorPane extends JTextPane {
   }
 
   private IIndentationLogic indentationLogic = null;
+
+  ICodeGenerator getCodeGenerator() {
+    return codeGenerator;
+  }
+
+  private ICodeGenerator codeGenerator = null;
 
   private void initKeyMap() {
     InputMap map = this.getInputMap();
@@ -365,9 +379,14 @@ public class EditorPane extends JTextPane {
       try {
         indentationLogic = editorPaneIDESupport.getIndentationLogic();
         indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-      } catch (Exception ex) { }
+      } catch (Exception ex) {
+      }
+      codeGenerator = editorPaneIDESupport.getCodeGenerator();
+    } else {
+      // Take Jython generator if no IDESupport is available
+      // TODO Needs better implementation
+      codeGenerator = new JythonCodeGenerator();
     }
-
     if (editorPaneType != null) {
       editorKit = new SikuliEditorKit();
       setEditorKit(editorKit);
@@ -383,42 +402,42 @@ public class EditorPane extends JTextPane {
           }
         });
       }
-    }
 
-    if (transferHandler == null) {
-      transferHandler = new MyTransferHandler();
-    }
-    setTransferHandler(transferHandler);
+      if (transferHandler == null) {
+        transferHandler = new MyTransferHandler();
+      }
+      setTransferHandler(transferHandler);
 
-    if (lineHighlighter == null) {
-      lineHighlighter = new EditorCurrentLineHighlighter(this);
-      addCaretListener(lineHighlighter);
-      initKeyMap();
-      //addKeyListener(this);
-      //addCaretListener(this);
-    }
+      if (lineHighlighter == null) {
+        lineHighlighter = new EditorCurrentLineHighlighter(this);
+        addCaretListener(lineHighlighter);
+        initKeyMap();
+        //addKeyListener(this);
+        //addCaretListener(this);
+      }
 
-    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-    if (!popMenuImage.isValidMenu()) {
-      popMenuImage = null;
-    }
+      popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+      if (!popMenuImage.isValidMenu()) {
+        popMenuImage = null;
+      }
 
-    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-    if (!popMenuCompletion.isValidMenu()) {
-      popMenuCompletion = null;
-    }
+      popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+      if (!popMenuCompletion.isValidMenu()) {
+        popMenuCompletion = null;
+      }
 
-    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
-    setMargin(new Insets(3, 3, 3, 3));
-    setBackground(Color.WHITE);
-    if (!Settings.isMac()) {
-      setSelectionColor(new Color(170, 200, 255));
-    }
+      setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
+      setMargin(new Insets(3, 3, 3, 3));
+      setBackground(Color.WHITE);
+      if (!Settings.isMac()) {
+        setSelectionColor(new Color(170, 200, 255));
+      }
 
 //      updateDocumentListeners("initBeforeLoad");
 
-    SikulixIDE.getStatusbar().setType(editorPaneType);
-    log(lvl, "InitTab: (%s)", editorPaneType);
+      SikulixIDE.getStatusbar().setType(editorPaneType);
+      log(lvl, "InitTab: (%s)", editorPaneType);
+    }
   }
 
   private boolean readContent(File scriptFile) {
@@ -1071,34 +1090,14 @@ public class EditorPane extends JTextPane {
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
     }
-    String imgName = new File(ifn).getName();
-    if (img != null) {
-      imgName = new File(img.getName()).getName();
-    }
-    String pat = "Pattern(\"" + imgName + "\")";
-    String patternString = "";
-    if (resizeFactor > 0 && resizeFactor != 1) {
-      patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
-    }
-    if (sim > 0) {
-      if (sim >= 0.99F) {
-        patternString += ".exact()";
-      } else if (sim != 0.7F) {
-        patternString += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
-      }
-    }
-    if (off != null && (off.x != 0 || off.y != 0)) {
-      patternString += ".targetOffset(" + off.x + "," + off.y + ")";
-    }
-    if (null != mask && !mask.isEmpty()) {
-      patternString += "." + mask + ")";
-    }
-    if (!patternString.equals("")) {
-      patternString = pat + patternString;
-    } else {
-      patternString = "\"" + imgName + "\"";
-    }
-    return patternString;
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern();
+    pattern.setFilename(ifn);
+    pattern.setImage(img);
+    pattern.similar(sim);
+    pattern.targetOffset(off);
+    pattern.resize(resizeFactor);
+
+    return codeGenerator.pattern(pattern, mask);
   }
 
   private Map<String, List<Integer>> parseforImages() {

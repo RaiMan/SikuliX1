@@ -4,6 +4,8 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.script.runners.JRubyRunner;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 
 /**
  * all methods from/for IDE, that are JRuby specific
@@ -17,8 +19,7 @@ public class JRubyIDESupport implements IIDESupport {
 
 	@Override
 	public IIndentationLogic getIndentationLogic() {
-		throw new UnsupportedOperationException("Not supported yet.");
-		//To change body of generated methods, choose Tools | Templates.
+    return null;
 	}
 
 	@Override
@@ -26,5 +27,10 @@ public class JRubyIDESupport implements IIDESupport {
 		//TODO run partial script: normalize lines for Ruby
 		return script;
 	}
+
+	@Override
+  public ICodeGenerator getCodeGenerator() {
+	  return new JythonCodeGenerator();
+  }
 
 }

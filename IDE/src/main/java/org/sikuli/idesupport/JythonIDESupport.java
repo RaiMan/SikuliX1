@@ -5,6 +5,8 @@ package org.sikuli.idesupport;
 
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.generators.JythonCodeGenerator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -252,4 +254,9 @@ public class JythonIDESupport implements IIDESupport {
 	}
 	//</editor-fold>
 
+
+	@Override
+  public ICodeGenerator getCodeGenerator() {
+    return new JythonCodeGenerator();
+  }
 }
