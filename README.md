@@ -1,4 +1,5 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX
+[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1?ref=badge_shield)
+SikuliX
 ============
 
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
@@ -103,3 +104,7 @@ The dependency coordinates are:
   - Try to accept the individual coding styles of the acting contributors, even if some of the stuff might be sub-optimal in your eyes.<br>But feel free to talk about your ideas and the reasons behind.
 
  
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1?ref=badge_large)
