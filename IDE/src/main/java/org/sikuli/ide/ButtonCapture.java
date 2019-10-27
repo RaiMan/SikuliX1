@@ -3,8 +3,7 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.basics.*;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Key;
@@ -106,7 +105,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
         new Thread() {
           @Override
           public void run() {
-            sImgNonLocal = (ScreenImage) ExtensionManager.invokeStatic("ADBScreen.userCapture");
+            sImgNonLocal = (ScreenImage) ExtensionManager.invoke("ADBScreen.userCapture", defaultScreen, "");
             ButtonCapture.this.update((EventSubject) null);
           }
         }.start();
