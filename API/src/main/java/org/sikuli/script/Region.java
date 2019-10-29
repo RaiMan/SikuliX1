@@ -2227,7 +2227,7 @@ public class Region {
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
     lastMatch = null;
     String shouldAbort = "";
-    RepeatableFind rf = new RepeatableFind(target, null);
+    RepeatableFind rf = new RepeatableFind(target);
     Image img = rf._image;
     String targetStr = img.getName();
     Boolean response = true;
@@ -2263,7 +2263,8 @@ public class Region {
           break;
         } else if (response) {
           if (img.isRecaptured()) {
-            rf = new RepeatableFind(target, img);
+            rf = new RepeatableFind();
+            rf.setImage(img);
           }
           continue;
         }
@@ -2355,7 +2356,7 @@ public class Region {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     lastMatch = null;
-    RepeatableFind rf = new RepeatableFind(target, null);
+    RepeatableFind rf = new RepeatableFind(target);
     Image img = rf._image;
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
@@ -2795,7 +2796,7 @@ public class Region {
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
    * waiting.
    */
-  private <PSI> Match doFind(PSI ptn, Image img, RepeatableFind repeating) {
+  private <PSI> Match doFind(PSI ptn, Image img, Repeatable repeating) {
     Finder finder = null;
     Match match = null;
     //IScreen screen = null;
@@ -3041,7 +3042,35 @@ public class Region {
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
 
+    public <PSI> Repeatable() {}
+
+    public <PSI> Repeatable(PSI target) {
+      _target = target;
+      _image = Image.getImageFromTarget(target);
+    }
+
+    Object _target;
+    Match _match = null;
+    Image _image = null;
+
+    Finder _finder = null;
+
     private double findTimeout;
+
+    public void setTarget(String target) {
+      _target = target;
+    }
+
+    public void setImage(Image img) {
+      _image = img;
+    }
+
+    public Match getMatch() {
+      if (_finder != null) {
+        _finder.destroy();
+      }
+      return (_match == null) ? _match : new Match(_match);
+    }
 
     abstract void run();
 
@@ -3080,32 +3109,12 @@ public class Region {
 
   private class RepeatableFind extends Repeatable {
 
-    Object _target;
-
-    public void setTarget(String target) {
-      _target = target;
+    public RepeatableFind() {
+      super();
     }
 
-    Match _match = null;
-    Finder _finder = null;
-    Image _image = null;
-
-    public <PSI> RepeatableFind(PSI target, Image img) {
-      _target = target;
-      if (img == null) {
-        _image = Image.getImageFromTarget(target);
-      } else if (target instanceof ScreenImage) {
-        _image = new Image(((ScreenImage) target).getImage());
-      } else {
-        _image = img;
-      }
-    }
-
-    public Match getMatch() {
-      if (_finder != null) {
-        _finder.destroy();
-      }
-      return (_match == null) ? _match : new Match(_match);
+    public <PSI> RepeatableFind(PSI target) {
+      super(target);
     }
 
     @Override
@@ -3120,11 +3129,9 @@ public class Region {
   }
 
   private class RepeatableVanish extends RepeatableFind {
-
     public <PSI> RepeatableVanish(PSI target) {
-      super(target, null);
+      super(target);
     }
-
     @Override
     boolean ifSuccessful() {
       return _match == null;
