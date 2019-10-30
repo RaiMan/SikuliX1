@@ -48,6 +48,7 @@ For use in **Java Maven projects** the dependency coordinates are:
 
 **Current developement version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1?ref=badge_shield)
 
 [Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
 
