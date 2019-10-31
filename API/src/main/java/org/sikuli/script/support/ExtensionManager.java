@@ -3,7 +3,8 @@
  */
 package org.sikuli.script.support;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.ProcessRunner;
 
@@ -48,77 +49,73 @@ public class ExtensionManager {
         return false;
       }
     });
-    boolean extensionsOK = true;
 
     if (!sxExtensions.exists()) {
       sxExtensions.mkdir();
     }
     if (!sxExtensions.exists()) {
-      RunTime.startLog(1, "folder extension not available: %s", sxExtensions);
-      extensionsOK = false;
+      RunTime.terminate(999, "ExtensionManager: folder extension not available: %s", sxExtensions);
     }
 
-    if (extensionsOK) {
-      readExtensions(false);
-      File[] fExtensions = sxExtensions.listFiles();
-      if (moveJython || moveJRuby) {
-        for (File fExtension : fExtensions) {
-          String name = fExtension.getName();
-          if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
-                  (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
-            fExtension.delete();
-          }
-        }
-      }
-      if (null != sxFolderList && sxFolderList.length > 0) {
-        for (File fJar : sxFolderList) {
-          try {
-            Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-            RunTime.startLog(1, "moving to extensions: %s", fJar);
-          } catch (IOException e) {
-            RunTime.startLog(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
-          }
-        }
-      }
-
-      //log(1, "looking for extension jars in: %s", sxExtensions);
-      fExtensions = sxExtensions.listFiles();
+    readExtensions(false);
+    File[] fExtensions = sxExtensions.listFiles();
+    if (moveJython || moveJRuby) {
       for (File fExtension : fExtensions) {
-        String pExtension = fExtension.getAbsolutePath();
-        if (pExtension.endsWith(".jar")) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
-          }
-          if (pExtension.contains("jython") && pExtension.contains("standalone")) {
-            if (jythonReady) {
-              continue;
-            }
-            if (pExtension.contains(jythonVersion)) {
-              jythonReady = true;
-            }
-          } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
-            if (jrubyReady) {
-              continue;
-            }
-            if (pExtension.contains(jrubyVersion)) {
-              jrubyReady = true;
-            }
-          }
-          classPath += pExtension;
-          RunTime.startLog(1, "adding extension: %s", fExtension);
+        String name = fExtension.getName();
+        if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
+                (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
+          fExtension.delete();
         }
       }
-      if (!jythonReady && !jrubyReady) {
-        String message = "Neither Jython nor JRuby available" +
-                "\nPlease consult the docs for a solution.\n" +
-                "\nIDE might not be useable with JavaScript only";
-        if (RunTime.isIDE()) {
-          if (!RunTime.isVerbose()) {
-            JOptionPane.showMessageDialog(null, message, "IDE startup problem",
-                    JOptionPane.ERROR_MESSAGE);
-          } else {
-            RunTime.startLog(-1, message);
+    }
+    if (null != sxFolderList && sxFolderList.length > 0) {
+      for (File fJar : sxFolderList) {
+        try {
+          Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
+          RunTime.startLog(1, "moving to extensions: %s", fJar);
+        } catch (IOException e) {
+          RunTime.startLog(-1, "moving to extensions: %s (%s)", fJar, e.getMessage());
+        }
+      }
+    }
+
+    //log(1, "looking for extension jars in: %s", sxExtensions);
+    fExtensions = sxExtensions.listFiles();
+    for (File fExtension : fExtensions) {
+      String pExtension = fExtension.getAbsolutePath();
+      if (pExtension.endsWith(".jar")) {
+        if (!classPath.isEmpty()) {
+          classPath += File.pathSeparator;
+        }
+        if (pExtension.contains("jython") && pExtension.contains("standalone")) {
+          if (jythonReady) {
+            continue;
           }
+          if (pExtension.contains(jythonVersion)) {
+            jythonReady = true;
+          }
+        } else if (pExtension.contains("jruby") && pExtension.contains("complete")) {
+          if (jrubyReady) {
+            continue;
+          }
+          if (pExtension.contains(jrubyVersion)) {
+            jrubyReady = true;
+          }
+        }
+        classPath += pExtension;
+        RunTime.startLog(1, "adding extension: %s", fExtension);
+      }
+    }
+    if (!jythonReady && !jrubyReady) {
+      String message = "Neither Jython nor JRuby available" +
+              "\nPlease consult the docs for a solution.\n" +
+              "\nIDE might not be useable with JavaScript only";
+      if (RunTime.isIDE()) {
+        if (!RunTime.isVerbose()) {
+          JOptionPane.showMessageDialog(null, message, "IDE startup problem",
+                  JOptionPane.ERROR_MESSAGE);
+        } else {
+          RunTime.startLog(-1, message);
         }
       }
     }
