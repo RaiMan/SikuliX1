@@ -14,7 +14,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.Sikulix;
 import org.sikuli.script.SikulixForJython;
 import org.sikuli.script.support.RunTime;
 
@@ -48,10 +47,6 @@ public class JythonSupport implements IRunnerSupport {
     if (level <= Debug.getDebugLevel()) {
       logp(message, args);
     }
-  }
-
-  public void terminate(int retVal, String msg, Object... args) {
-    Sikulix.terminate(retVal, me + msg, args);
   }
   //</editor-fold>
 

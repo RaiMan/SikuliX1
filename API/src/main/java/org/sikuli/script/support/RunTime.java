@@ -4,16 +4,15 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
-import org.opencv.core.Core;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
@@ -22,10 +21,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLDecoder;
+import java.net.*;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -43,6 +39,8 @@ import java.util.zip.ZipInputStream;
  * any caller
  */
 public class RunTime {
+
+  private static RunTime runTime = null;
 
   private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
 
@@ -104,7 +102,7 @@ public class RunTime {
       return;
     } else {
       classPath = ExtensionManager.makeClassPath(runningJar);
-      RunTime.startLog(1, "Classpath: %s", classPath);
+      //RunTime.startLog(1, "Classpath: %s", classPath);
     }
 
     List<String> cmd = new ArrayList<>();
@@ -256,7 +254,7 @@ public class RunTime {
         Debug.log(3, "Stop HotKey was pressed");
         if (RunTime.get().shouldRunPythonServer()) {
           stopPythonServer();
-          Sikulix.terminate();
+          terminate();
         }
       }
     });
@@ -269,7 +267,7 @@ public class RunTime {
         pythonServer = new py4j.GatewayServer();
       } catch (ClassNotFoundException e) {
         Debug.error("Python server: py4j not on classpath");
-        Sikulix.terminate();
+        terminate();
       }
       pythonServer.start(false);
     }
@@ -752,7 +750,6 @@ public class RunTime {
 
   public static String appDataMsg = "";
 
-  private static RunTime runTime = null;
   public static boolean testing = false;
   public static boolean testingWinApp = false;
 
@@ -842,7 +839,7 @@ public class RunTime {
 
   public String[] ServerList = {};
 
-  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+  public static final String libOpenCV = "opencv_java"; //Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
   public static String NL = "\n";
   public File fLibsProvided;
@@ -912,7 +909,7 @@ public class RunTime {
         runTime.javaVersion = Integer.parseInt(parts[0]);
       }
       runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
-              runTime.javaVersion, vJava, vVM, vClass, vSysArch);
+          runTime.javaVersion, vJava, vVM, vClass, vSysArch);
     } catch (Exception ex) {
     }
 
@@ -1121,7 +1118,7 @@ public class RunTime {
 
     for (String aFile : fTempPath.list()) {
       if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
-              || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+          || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
         FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
       }
     }
@@ -1246,7 +1243,11 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold desc="99 cleanUp">
-  public void terminate(int retval, String message, Object... args) {
+  public static void terminate() {
+    terminate(0, "");
+  }
+
+  public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
     if (!outMsg.isEmpty()) {
       System.out.println("TERMINATING: " + outMsg);
@@ -1435,31 +1436,29 @@ public class RunTime {
         return true;
       }
     }
-    boolean shouldTerminate = false;
-    Error loadError = null;
-    while (!shouldTerminate) {
-      shouldTerminate = true;
-      loadError = null;
-      try {
-        if (runningLinux && libName.startsWith("libopen")) {
-          libName = "opencv_java";
-          System.loadLibrary(libName);
-        } else {
-          System.load(fLib.getAbsolutePath());
-        }
-      } catch (Error e) {
-        loadError = e;
-        if (runningLinux) {
-          log(-1, msg + " not usable: \n%s", libName, loadError);
-          throw new SikuliXception("problem with native library: " + libName);
+    try {
+      if (runningLinux && libName.startsWith("libopen")) {
+        libName = "opencv_java";
+        System.loadLibrary(libName);
+      } else {
+        System.load(fLib.getAbsolutePath());
+      }
+    } catch (Exception e) {
+      log(-1, "not usable: %s", e.getMessage());
+      terminate(999, "problem with native library: " + libName);
+    } catch (UnsatisfiedLinkError e) {
+      log(-1, msg + " (failed) probably dependent libs missing:\n%s", libName, e.getMessage());
+      String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4";
+      if (RunTime.isIDE()) {
+        Debug.error("Save your work, correct the problem and restart the IDE!");
+        try {
+          Desktop.getDesktop().browse(new URI(helpURL));
+        } catch (IOException ex) {
+        } catch (URISyntaxException ex) {
         }
       }
-    }
-    if (loadError != null) {
-      log(-1, "Problematic lib: %s (...TEMP...)", fLib);
-      log(-1, "%s loaded, but it might be a problem with needed dependent libraries\nERROR: %s",
-              libName, loadError.getMessage().replace(fLib.getAbsolutePath(), "...TEMP..."));
-      throw new SikuliXception("problem with native library: " + libName);
+      Debug.error("see: " + helpURL);
+      terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
     log(level, msg + " (success)", libName);
@@ -1537,7 +1536,7 @@ public class RunTime {
         }
       }
       if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-              libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
+          libStamp.length() != sxBuildStamp.length() || 0 != libStamp.compareTo(sxBuildStamp)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
       }
@@ -1549,7 +1548,7 @@ public class RunTime {
         throw new SikuliXception("libsExport: folder not available: " + fLibsFolder.toString());
       }
       String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-              getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
+          getVersionShort(), sxBuildStamp, runningMac ? "M" : (runningWindows ? "W" : "L"));
       FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
@@ -1777,8 +1776,8 @@ public class RunTime {
       return;
     }
     if (!fSikulixLib.exists()
-            || !new File(fSikulixLib, "robot").exists()
-            || !new File(fSikulixLib, "sikuli").exists()) {
+        || !new File(fSikulixLib, "robot").exists()
+        || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
       extractResourcesToFolder("Lib", fSikulixLib, null);
     } else {
@@ -1866,7 +1865,7 @@ public class RunTime {
     logp("user.name: %s", userName);
     logp("java.io.tmpdir: %s", fTempPath);
     logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
-            (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
+        (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
     logp(javaShow);
     logp("app data folder: %s", fSikulixAppPath);
     //logp("libs folder: %s", fLibsFolder);
@@ -2040,7 +2039,7 @@ public class RunTime {
    * @return the filtered list of files (compact sikulixcontent format)
    */
   public List<String> extractResourcesToFolderFromJar(String aJar, String fpRessources, File fFolder, FilenameFilter
-          filter) {
+      filter) {
     List<String> content = new ArrayList<String>();
     File faJar = new File(aJar);
     URL uaJar = null;
@@ -2315,7 +2314,7 @@ public class RunTime {
    * @return success
    */
   public String[] resourceListAsSikulixContentFromJar(String aJar, String folder, File targetFolder, FilenameFilter
-          filter) {
+      filter) {
     List<String> contentList = extractResourcesToFolderFromJar(aJar, folder, null, filter);
     if (contentList == null || contentList.size() == 0) {
       log(-1, "resourceListAsSikulixContentFromJar: did not work: %s", folder);

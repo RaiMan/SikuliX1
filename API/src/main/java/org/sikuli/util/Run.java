@@ -3,7 +3,7 @@
  */
 package org.sikuli.util;
 
-import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.RunTime;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -65,7 +65,7 @@ public class Run {
     ip = getAddress(adr);
     port = getPort(p);
     if (ip == null || port < 0) {
-      Sikulix.terminate(1, "target not valid: %s / %d", adr, p);
+      RunTime.terminate(1, "target not valid: %s / %d", adr, p);
     }
     try {
       socket = new Socket(ip, port);
