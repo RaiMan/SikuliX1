@@ -203,7 +203,7 @@ public class RunTime {
         public void hotkeyPressed(HotkeyEvent e) {
           if (RunTime.get().runningScripts()) {
             Runner.abortAll();
-            Sikulix.terminate(254, "AbortKey was pressed: aborting all running scripts");
+            terminate(254, "AbortKey was pressed: aborting all running scripts");
           }
         }
       });
@@ -211,7 +211,7 @@ public class RunTime {
       if (exitCode > 255) {
         exitCode = 254;
       }
-      Sikulix.terminate(exitCode, "");
+      terminate(exitCode, "");
     }
 
     if (shouldRunPythonServer()) {
@@ -227,7 +227,7 @@ public class RunTime {
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
         cServer.getMethod("run").invoke(null);
-        Sikulix.terminate();
+        terminate();
       } catch (ClassNotFoundException e) {
       } catch (NoSuchMethodException e) {
       } catch (IllegalAccessException e) {
@@ -236,14 +236,14 @@ public class RunTime {
       try {
         cServer = Class.forName("org.sikuli.script.support.SikulixServer");
         if (!(Boolean) cServer.getMethod("run").invoke(null)) {
-          Sikulix.terminate(1, "SikulixServer: terminated with errors");
+          terminate(1, "SikulixServer: terminated with errors");
         }
       } catch (ClassNotFoundException e) {
       } catch (IllegalAccessException e) {
       } catch (InvocationTargetException e) {
       } catch (NoSuchMethodException e) {
       }
-      Sikulix.terminate();
+      terminate();
     }
   }
 
