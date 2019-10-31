@@ -12,11 +12,11 @@ public class IDESplash extends JFrame {
   JLabel action;
   JLabel step;
 
-  public IDESplash() {
-    init();
+  public IDESplash(String version, String jversion) {
+    init(version, jversion);
   }
 
-  void init() {
+  void init(String version, String jversion) {
     setResizable(false);
     setUndecorated(true);
     Container pane = getContentPane();
@@ -24,7 +24,7 @@ public class IDESplash extends JFrame {
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     pane.add(new JLabel(" "));
     pane.add(new JLabel(" "));
-    JLabel title = new JLabel("SikuliX-IDE is starting");
+    JLabel title = new JLabel(String .format("SikuliX-IDE %s is starting on Java %s", version, jversion));
     title.setAlignmentX(CENTER_ALIGNMENT);
     pane.add(title);
     pane.add(new JLabel(" "));

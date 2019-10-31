@@ -64,7 +64,7 @@ public class SikulixIDE extends JFrame {
     get();
 
     if (Debug.getDebugLevel() < 3) {
-      ideSplash = new IDESplash();
+      ideSplash = new IDESplash(runTime.SXVersion, "" + runTime.javaVersion);
     }
 
     log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
@@ -814,6 +814,7 @@ public class SikulixIDE extends JFrame {
   public void showAbout() {
     //TODO full featured About
     String info = "You are running " + runTime.SXVersionIDE
+        + "\nUsing Java version " + runTime.jreVersion
         + "\n\nNeed help? -> start with Help Menu\n\n"
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
