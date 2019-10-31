@@ -8,7 +8,6 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.TextRecognizer;
 import org.sikuli.script.runners.JavaScriptRunner;
-import org.sikuli.util.SikulixTest;
 
 import java.io.File;
 
@@ -40,7 +39,7 @@ public class SikulixAPI {
               "API::JavaScriptRunner " + version, 10, 60, runSomeJS);
         }
       }
-      Sikulix.terminate();
+      RunTime.terminate();
     }
 
     RunTime runtime = RunTime.get();
@@ -48,6 +47,6 @@ public class SikulixAPI {
     TextRecognizer.start();
 
     System.out.println("SikuliX API: nothing to do");
-    Sikulix.terminate();
+    RunTime.terminate();
   }
 }

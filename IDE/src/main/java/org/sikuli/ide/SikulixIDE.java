@@ -571,7 +571,7 @@ public class SikulixIDE extends JFrame {
   void terminate() {
     log(lvl, "Quit requested");
     if (closeIDE()) {
-      runTime.terminate(0, "");
+      RunTime.terminate(0, "");
     }
     log(-1, "Quit: cancelled or did not work");
   }
@@ -1262,7 +1262,7 @@ public class SikulixIDE extends JFrame {
       log(lvl, "Restart IDE requested");
       if (closeIDE()) {
         log(lvl, "Restarting IDE");
-        runTime.terminate(255, "Restarting IDE");
+        RunTime.terminate(255, "Restarting IDE");
       }
       log(-1, "Restart IDE: did not work");
     }

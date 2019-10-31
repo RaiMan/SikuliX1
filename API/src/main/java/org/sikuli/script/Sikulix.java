@@ -387,16 +387,6 @@ public class Sikulix {
   }
   //</editor-fold>
 
-  //<editor-fold desc="15 terminate">
-  public static void terminate(int retVal, String msg, Object... args) {
-    RunTime.get().terminate(retVal, msg, args);
-  }
-
-  public static void terminate() {
-    terminate(0, "");
-  }
-  //</editor-fold>
-
   //<editor-fold desc="99 buildjar, compile">
 
   /**

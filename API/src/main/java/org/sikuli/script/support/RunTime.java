@@ -39,6 +39,8 @@ import java.util.zip.ZipInputStream;
  */
 public class RunTime {
 
+  private static RunTime runTime = null;
+
   private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
 
   public static boolean isIDE() {
@@ -200,7 +202,7 @@ public class RunTime {
         public void hotkeyPressed(HotkeyEvent e) {
           if (RunTime.get().runningScripts()) {
             Runner.abortAll();
-            Sikulix.terminate(254, "AbortKey was pressed: aborting all running scripts");
+            terminate(254, "AbortKey was pressed: aborting all running scripts");
           }
         }
       });
@@ -208,7 +210,7 @@ public class RunTime {
       if (exitCode > 255) {
         exitCode = 254;
       }
-      Sikulix.terminate(exitCode, "");
+      terminate(exitCode, "");
     }
 
     if (shouldRunPythonServer()) {
@@ -220,7 +222,7 @@ public class RunTime {
 
     if (shouldRunServer()) {
       SikulixServer.run();
-      Sikulix.terminate();
+      terminate();
     }
   }
 
@@ -231,7 +233,7 @@ public class RunTime {
         Debug.log(3, "Stop HotKey was pressed");
         if (RunTime.get().shouldRunPythonServer()) {
           stopPythonServer();
-          Sikulix.terminate();
+          terminate();
         }
       }
     });
@@ -244,7 +246,7 @@ public class RunTime {
         pythonServer = new py4j.GatewayServer();
       } catch (ClassNotFoundException e) {
         Debug.error("Python server: py4j not on classpath");
-        Sikulix.terminate();
+        terminate();
       }
       pythonServer.start(false);
     }
@@ -727,7 +729,6 @@ public class RunTime {
 
   public static String appDataMsg = "";
 
-  private static RunTime runTime = null;
   public static boolean testing = false;
   public static boolean testingWinApp = false;
 
@@ -1221,7 +1222,11 @@ public class RunTime {
   //</editor-fold>
 
   //<editor-fold desc="99 cleanUp">
-  public void terminate(int retval, String message, Object... args) {
+  public static void terminate() {
+    terminate(0, "");
+  }
+
+  public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
     if (!outMsg.isEmpty()) {
       System.out.println("TERMINATING: " + outMsg);
