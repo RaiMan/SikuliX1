@@ -4,6 +4,7 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
+import org.opencv.core.Core;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
@@ -16,14 +17,16 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Desktop;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
-import java.util.List;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -839,7 +842,7 @@ public class RunTime {
 
   public String[] ServerList = {};
 
-  public static final String libOpenCV = "opencv_java"; //Core.NATIVE_LIBRARY_NAME;
+  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
   public static String NL = "\n";
   public File fLibsProvided;
