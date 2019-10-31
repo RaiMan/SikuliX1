@@ -130,27 +130,29 @@ public class ExtensionManager {
     String txtExtensions = FileManager.readFileToString(sxExtensionsFile).trim();
     if (!txtExtensions.isEmpty()) {
       String[] lines = txtExtensions.split("\\n");
-      String extlines = "";
       for (String line : lines) {
         line = line.trim();
         if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
           continue;
         }
-        extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
-      if (sxExtensionsFileContent.size() > 0) {
-        RunTime.startLog(1, "extensions.txt\n%s", extlines);
-      }
     }
+
     if (sxExtensionsFileContent.size() == 0) {
       if (!afterStart) {
         RunTime.startLog(1, "no extensions.txt nor valid content");
       }
       return;
     }
+
+    if (!afterStart) {
+      RunTime.startLog(1, "*** Extensions:");
+    }
     for (String line : sxExtensionsFileContent) {
-      RunTime.startLog(1, "extensions.txt: %s", line);
+      if (!afterStart) {
+        RunTime.startLog(1, "%s", line);
+      }
       String token = "";
       String extPath = line;
       String[] lineParts = line.split("=");
