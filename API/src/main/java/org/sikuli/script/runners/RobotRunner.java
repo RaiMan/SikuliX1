@@ -3,14 +3,15 @@
  */
 package org.sikuli.script.runners;
 
-import java.io.File;
-
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
+
+import java.io.File;
 
 public class RobotRunner extends JythonRunner {
 
@@ -89,8 +90,11 @@ public class RobotRunner extends JythonRunner {
 
   @Override
   public boolean isSupported() {
-    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
-    return fLibRobot.exists();
+    //TODO find other way to check wether RFW is available
+//    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
+//    return fLibRobot.exists();
+    //TODO RFW support switched off until problems are solved (2.1.0)
+    return false;
   }
 
   @Override
@@ -115,7 +119,17 @@ public class RobotRunner extends JythonRunner {
     if (null != Settings.BundlePath) {
       jythonSupport.appendSysPath(new File(Settings.BundlePath).getParent());
     }
-    jythonSupport.interpreterExecString("import robot");
+    try {
+      jythonSupport.interpreterExecString("import robot");
+    } catch (Exception e) {
+      if (e.getClass().getSimpleName().contains("PyException")) {
+        String pyException = e.toString();
+        String[] trace = pyException.split("\n");
+        String error = trace[trace.length - 1].trim();
+        Debug.error(this.getName() + ": init: import robot: " + error);
+      }
+      throw e;
+    }
   }
 
   /*

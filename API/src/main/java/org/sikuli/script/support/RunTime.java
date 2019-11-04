@@ -1753,12 +1753,16 @@ public class RunTime {
       return;
     }
     if (!fSikulixLib.exists()
-            || !new File(fSikulixLib, "robot").exists()
             || !new File(fSikulixLib, "sikuli").exists()) {
       fSikulixLib.mkdir();
       extractResourcesToFolder("Lib", fSikulixLib, null);
     } else {
       extractResourcesToFolder("Lib/sikuli", new File(fSikulixLib, "sikuli"), null);
+    }
+    // RFW support: module robot should no longer be here (2.1.0)
+    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
+    if (fLibRobot.exists()) {
+      FileManager.deleteFileOrFolder(fLibRobot);
     }
     isLibExported = true;
   }
