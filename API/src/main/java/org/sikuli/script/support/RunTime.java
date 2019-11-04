@@ -86,7 +86,7 @@ public class RunTime {
       }
     }
 
-    evalArgsStart(args);
+    List<String> finalArgs = evalArgsStart(args);
 
     File runningJar = getRunningJar(type);
     String jarName = runningJar.getName();
@@ -98,8 +98,6 @@ public class RunTime {
     if (jarName.endsWith(".jar")) {
       String classPath = "";
       classPath = ExtensionManager.makeClassPath(runningJar);
-      RunTime.startLog(1, "Classpath: %s", classPath);
-
       List<String> cmd = new ArrayList<>();
       cmd.add("java");
       cmd.add("-Dfile.encoding=UTF-8");
@@ -117,7 +115,7 @@ public class RunTime {
       } else {
         cmd.add("org.sikuli.script.support.SikulixAPI");
       }
-      cmd.addAll(Arrays.asList(args));
+      cmd.addAll(finalArgs);
 
       RunTime.startLog(3, "*********************** leaving start");
       if (shouldDetach()) {
@@ -450,7 +448,8 @@ public class RunTime {
     return file.getAbsolutePath();
   }
 
-  private static void evalArgsStart(String[] args) {
+  private static List<String> evalArgsStart(String[] args) {
+    List<String> finalArgs = new ArrayList<>();
     for (String arg : args) {
       if ("-v".equals(arg)) {
         setVerbose();
@@ -463,7 +462,9 @@ public class RunTime {
       } else if ("-p".equals(arg)) {
         asPyServer = true;
       }
+      finalArgs.add(arg);
     }
+    return finalArgs;
   }
 
   private static String[] userArgs = new String[0];
