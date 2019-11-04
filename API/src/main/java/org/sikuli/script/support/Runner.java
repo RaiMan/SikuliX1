@@ -23,15 +23,13 @@ public class Runner {
 
   static final String me = "Runner: ";
   static final int lvl = 3;
-  static final RunTime runTime = RunTime.get();
+  static void log(int level, String message, Object... args) {
+    Debug.logx(level, me + message, args);
+  }
 
   // <editor-fold desc="00 runner handling">
   private static List<IScriptRunner> runners = new LinkedList<>();
   private static List<IScriptRunner> supportedRunners = new LinkedList<>();
-
-  static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
 
   private static boolean isReady = false;
 
@@ -180,6 +178,8 @@ public class Runner {
         if (runner.isSupported()) {
           script = script.replaceFirst(selector, "").trim();
           return runner.evalScript(script, options);
+        } else {
+          log(-1, "runScript: %s - not supported", selector);
         }
       }
       return 0;
