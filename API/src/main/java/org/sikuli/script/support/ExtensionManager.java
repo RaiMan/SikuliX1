@@ -9,9 +9,12 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
+import java.awt.Desktop;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
