@@ -8,11 +8,11 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
+import java.awt.Desktop;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -112,15 +112,20 @@ public class ExtensionManager {
         }
       }
       if (!jythonReady && !jrubyReady) {
+        // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
+        String helpURL = "https://7i.fi/IDE-Jython";
         String message = "Neither Jython nor JRuby available" +
                 "\nPlease consult the docs for a solution.\n" +
                 "\nIDE might not be useable with JavaScript only";
         if (RunTime.isIDE()) {
-          if (!RunTime.isVerbose()) {
-            JOptionPane.showMessageDialog(null, message, "IDE startup problem",
+            JOptionPane.showMessageDialog(null,
+                    message + "\n\nClick OK to get more help in a browser window",
+                    "IDE startup problem",
                     JOptionPane.ERROR_MESSAGE);
-          } else {
-            RunTime.startLog(-1, message);
+          try {
+            Desktop.getDesktop().browse(new URI(helpURL));
+          } catch (IOException ex) {
+          } catch (URISyntaxException ex) {
           }
         }
       }
