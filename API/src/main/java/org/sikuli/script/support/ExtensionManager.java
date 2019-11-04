@@ -101,21 +101,30 @@ public class ExtensionManager {
           if (pExtension.contains(jrubyVersion)) {
             jrubyReady = true;
           }
+        } else if (pExtension.contains("py4j")) {
+
+        } else {
+          continue;
         }
         classPath += pExtension;
         RunTime.startLog(1, "adding extension: %s", fExtension);
       }
     }
     if (!jythonReady && !jrubyReady) {
+      // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
+      String helpURL = "https://7i.fi/IDE-Jython";
       String message = "Neither Jython nor JRuby available" +
               "\nPlease consult the docs for a solution.\n" +
               "\nIDE might not be useable with JavaScript only";
       if (RunTime.isIDE()) {
-        if (!RunTime.isVerbose()) {
-          JOptionPane.showMessageDialog(null, message, "IDE startup problem",
-                  JOptionPane.ERROR_MESSAGE);
-        } else {
-          RunTime.startLog(-1, message);
+        JOptionPane.showMessageDialog(null,
+                message + "\n\nClick OK to get more help in a browser window",
+                "IDE startup problem",
+                JOptionPane.ERROR_MESSAGE);
+        try {
+          Desktop.getDesktop().browse(new URI(helpURL));
+        } catch (IOException ex) {
+        } catch (URISyntaxException ex) {
         }
       }
     }
