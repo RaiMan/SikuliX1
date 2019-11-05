@@ -19,7 +19,15 @@ public class RobotRunner extends JythonRunner {
   public static final String TYPE = "text/robot";
   public static final String[] EXTENSIONS = new String[] {"robot"};
 
-  private static final RunTime RUN_TIME = RunTime.get();
+  @Override
+  public boolean isSupported() {
+    //TODO find other way to check wether RFW is available
+//    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
+//    return fLibRobot.exists();
+    //TODO RFW support switched off until problems are solved (2.1.0)
+    //TODO import robot (from io import BytesIO) clashes with SikulixServer/io.undertow.core
+    return false;
+  }
 
   @Override
   protected int doEvalScript(String code, IScriptRunner.Options options) {
@@ -86,15 +94,6 @@ public class RobotRunner extends JythonRunner {
       App.openLink("file:" + urlReport);
     }
     return 0;
-  }
-
-  @Override
-  public boolean isSupported() {
-    //TODO find other way to check wether RFW is available
-//    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
-//    return fLibRobot.exists();
-    //TODO RFW support switched off until problems are solved (2.1.0)
-    return false;
   }
 
   @Override
