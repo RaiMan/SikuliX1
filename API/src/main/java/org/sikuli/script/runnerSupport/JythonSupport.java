@@ -520,8 +520,8 @@ public class JythonSupport implements IRunnerSupport {
                 continue;
               }
               if (!path.isEmpty()) {
-                appendSysPath(path);
-                log(lvl, "adding from Lib/site-packages/sites.txt:\n%s", path);
+                addSysPath(path);
+                log(lvl, "added as Jython::sys.path[0] from Lib/site-packages/sites.txt:\n%s", path);
               }
             }
           }
