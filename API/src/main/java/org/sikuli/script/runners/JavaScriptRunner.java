@@ -4,20 +4,19 @@
 
 package org.sikuli.script.runners;
 
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import org.sikuli.basics.Debug;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.RunTime;
+
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
 
 public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
@@ -38,17 +37,14 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   private static final String me = "JSScriptRunner: ";
   private int lvl = 3;
 
-  private ScriptEngine engine;
+  private NashornScriptEngine engine;
 
   private PrintStream stderr;
 
   @Override
   protected void doInit(String[] args) throws Exception {
-    ScriptEngineManager jsFactory = new ScriptEngineManager();
-    engine = jsFactory.getEngineByName("JavaScript");
-
+    engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine();
     log(lvl, "ScriptingEngine started: JavaScript (ending .js)");
-
     String prolog = "";
     prolog += BEFORE_JS_JAVA_8;
     prolog += BEFORE_JS;
@@ -125,8 +121,8 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
   @Override
   public boolean isSupported() {
-    ScriptEngineManager jsFactory = new ScriptEngineManager();
-    return jsFactory.getEngineByName("JavaScript") != null;
+    NashornScriptEngine scriptEngine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine();
+    return  scriptEngine != null;
   }
 
   @Override
