@@ -3,15 +3,16 @@
  */
 package org.sikuli.script;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Date;
-
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.OverlayCapturePrompt;
+
+import java.awt.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * A screen represents a physical monitor with its coordinates and size according to the global
@@ -78,6 +79,51 @@ public class Screen extends Region implements IScreen {
 
   public static boolean isHeadless() {
     return GraphicsEnvironment.isHeadless();
+  }
+
+  public int getScale() {
+    if (0 == getID()) {
+      return getScaleFactor(getPrimaryScreen().x, getPrimaryScreen().y);
+    } else {
+      return getScaleFactor(x, y);
+    }
+  }
+
+  private static int getScaleFactor(int x, int y) {
+    int sFactor = -1;
+    if (RunTime.get().runningMac) {
+      try {
+        Object genv = Class.forName("sun.awt.CGraphicsEnvironment").
+                cast(GraphicsEnvironment.getLocalGraphicsEnvironment());
+        Method getDefaultScreenDevice = genv.getClass().getDeclaredMethod("getDefaultScreenDevice");
+        Method getDevices = genv.getClass().getDeclaredMethod("getScreenDevices");
+        Object[] devices = (Object[]) getDevices.invoke(genv);
+        for (Object device : devices) {
+          sFactor = -1;
+          device = Class.forName("sun.awt.CGraphicsDevice").cast(device);
+          Method getBounds = device.getClass().getDeclaredMethod("getBounds");
+          getBounds.setAccessible(true);
+          Rectangle bounds = (Rectangle) getBounds.invoke(device);
+          if (bounds.x == x && bounds.y == y) {
+            Method getScaleFactor = device.getClass().getDeclaredMethod("getScaleFactor");
+            Object obj = getScaleFactor.invoke(device);
+            if (obj instanceof Integer) {
+              sFactor = ((Integer) obj).intValue();
+              break;
+            }
+          }
+        }
+      } catch (Exception e) {
+        sFactor = -1;
+      }
+    } else if (RunTime.get().runningWindows) {
+      Debug.log(3, "Screen.getScale: not yet implemented for Windows");
+      return 1;
+    } else {
+      Debug.log(3, "Screen.getScale: only implemented for Windows and macOS");
+      return 1;
+    }
+    return sFactor;
   }
 
   private static boolean initMonitors() {

@@ -8,8 +8,10 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.ScreenUnion;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -203,9 +205,49 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
+    //Debug.on(3);
     runTime = RunTime.get();
-    Debug.reset();
+
+    try {
+      ImagePath.setBundlePath(new File("..", "_Support/_test").getCanonicalPath());
+      p("ImagePath: %s", ImagePath.getBundlePath());
+    } catch (IOException e) {
+      p("ImagePath???");
+      System.exit(1);
+    }
+
     scr = new Screen();
+    p("scr(%d): %s", scr.getID(), scr);
+
+    int scaleFactor = scr.getScale();
+    p("Scale(%d) %d", scr.getID(), scaleFactor);
+
+    Screen scr1 = new Screen(1);
+    p("scr1: %s", scr1);
+
+    scaleFactor = scr1.getScale();
+    p("Scale(%d) %d", scr1.getID(), scaleFactor);
+
+    ScreenUnion scrAll = Screen.all();
+    p("scrAll: %s", scrAll);
+
+    ScreenImage scrImg;
+
+    scrImg = scr.capture();
+    scrImg.saveInBundle("scr");
+    p("scr (%dx%d)", scrImg.w, scrImg.h);
+
+    scrImg = scr1.capture();
+    scrImg.saveInBundle("scr1");
+    p("scr1 (%dx%d)", scrImg.w, scrImg.h);
+
+    scrImg = scrAll.capture();
+    scrImg.saveInBundle("scrAll");
+    p("scrAll (%dx%d)", scrImg.w, scrImg.h);
+
+    System.exit(0);
+
+    Debug.reset();
     String browser = "edge";
     if (runTime.runningMac) {
       browser = "safari";
