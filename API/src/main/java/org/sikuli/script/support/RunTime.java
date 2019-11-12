@@ -100,6 +100,23 @@ public class RunTime {
       classPath = ExtensionManager.makeClassPath(runningJar);
       List<String> cmd = new ArrayList<>();
       cmd.add("java");
+      /*
+      --add-opens
+      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
+      --add-opens
+      java.base/sun.nio.ch=ALL-UNNAMED
+      --add-opens
+      java.base/java.io=ALL-UNNAMED
+      -Dnashorn.args=--no-deprecation-warning
+      */
+      cmd.add("--add-opens");
+      cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
+      cmd.add("--add-opens");
+      cmd.add("java.base/sun.nio.ch=ALL-UNNAMED");
+      cmd.add("--add-opens");
+      cmd.add("java.base/java.io=ALL-UNNAMED");
+      cmd.add("-Dnashorn.args=--no-deprecation-warning");
+
       cmd.add("-Dfile.encoding=UTF-8");
       if (startAsIDE) {
         cmd.add("-Dsikuli.IDE_should_run");
