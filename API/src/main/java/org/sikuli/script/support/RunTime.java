@@ -1272,8 +1272,14 @@ public class RunTime {
       Settings.setShowActions(false);
       FindFailed.reset();
     }
-    VNCScreen.stopAll();
-    ExtensionManager.invokeStatic("ADBScreen.stop");
+
+    try {
+      VNCScreen.stopAll();
+      ExtensionManager.invokeStatic("ADBScreen.stop");
+    } catch (Exception e) {
+      Debug.info("Error while stopping VNCScreen: %s", e.getMessage());
+    }
+
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);
     if (null != cleanupRobot) {
