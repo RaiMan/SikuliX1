@@ -78,6 +78,7 @@
       <artifactId>swing-layout</artifactId>
       <version>1.0.3</version>
     </dependency>
+<!--
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
@@ -88,6 +89,7 @@
       <artifactId>jackson-databind</artifactId>
       <version>2.9.10.1</version>
     </dependency>
+-->
   </dependencies>
 
   <build>
