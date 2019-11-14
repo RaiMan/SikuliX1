@@ -16,13 +16,7 @@ import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.script.*;
 import org.sikuli.util.Highlight;
 
-import java.awt.AWTException;
-import java.awt.Color;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
-import java.awt.Rectangle;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -64,6 +58,11 @@ public class RobotDesktop extends Robot implements IRobot {
 
   public RobotDesktop() throws AWTException {
     super();
+    setAutoDelay(stdAutoDelay);
+  }
+
+  public RobotDesktop(GraphicsDevice gdev) throws AWTException {
+    super(gdev);
     setAutoDelay(stdAutoDelay);
   }
 

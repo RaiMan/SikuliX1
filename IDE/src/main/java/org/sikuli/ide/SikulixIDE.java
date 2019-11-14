@@ -223,18 +223,7 @@ public class SikulixIDE extends JFrame {
 
     Dimension windowSize = prefs.getIdeSize();
     Point windowLocation = prefs.getIdeLocation();
-    Rectangle monitor = runTime.hasPoint(windowLocation);
-    if (monitor == null) {
-      log(-1, "Remembered window not valid. Going to primary screen");
-      monitor = runTime.getMonitor(-1);
-      windowSize.width = 0;
-    }
-    if (windowSize.width == 0) {
-      windowSize = new Dimension(1024, 700);
-      windowLocation = new Point(100, 50);
-    }
-    Rectangle win = monitor.intersection(new Rectangle(windowLocation, windowSize));
-    setSize(win.getSize());
+    setSize(windowSize);
     setLocation(windowLocation);
 
     Debug.log(3, "IDE: Adding components to window");

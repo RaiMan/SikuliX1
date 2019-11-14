@@ -8,7 +8,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.ScreenUnion;
 
 import java.io.File;
 import java.io.IOException;
@@ -205,7 +204,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
-    //Debug.on(3);
+    Debug.on(3);
     runTime = RunTime.get();
 
     try {
@@ -216,11 +215,17 @@ public class SikulixTest {
       System.exit(1);
     }
 
+    ScreenImage scrImg;
+
     scr = new Screen();
     p("scr(%d): %s", scr.getID(), scr);
 
     int scaleFactor = scr.getScale();
     p("Scale(%d) %d", scr.getID(), scaleFactor);
+
+    scrImg = scr.capture();
+    scrImg.saveInBundle("scr");
+    p("shot: scr (%dx%d)", scrImg.w, scrImg.h);
 
     Screen scr1 = new Screen(1);
     p("scr1: %s", scr1);
@@ -228,22 +233,26 @@ public class SikulixTest {
     scaleFactor = scr1.getScale();
     p("Scale(%d) %d", scr1.getID(), scaleFactor);
 
-    ScreenUnion scrAll = Screen.all();
-    p("scrAll: %s", scrAll);
-
-    ScreenImage scrImg;
-
-    scrImg = scr.capture();
-    scrImg.saveInBundle("scr");
-    p("scr (%dx%d)", scrImg.w, scrImg.h);
-
     scrImg = scr1.capture();
     scrImg.saveInBundle("scr1");
-    p("scr1 (%dx%d)", scrImg.w, scrImg.h);
+    p("shot: scr1 (%dx%d)", scrImg.w, scrImg.h);
+
+    Mouse.init();
+
+    scr1.hover();
+    p("scr1 hover: %s", Mouse.at());
+
+    scr.hover();
+    p("scr hover: %s", Mouse.at());
+
+/*
+    ScreenUnion scrAll = Screen.all();
+    p("scrAll: %s", scrAll);
 
     scrImg = scrAll.capture();
     scrImg.saveInBundle("scrAll");
     p("scrAll (%dx%d)", scrImg.w, scrImg.h);
+*/
 
     System.exit(0);
 

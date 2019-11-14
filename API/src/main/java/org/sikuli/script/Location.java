@@ -261,33 +261,6 @@ public class Location implements Comparable<Location>{
     return null;
   }
 
-  /**
-    * Returns primary screen, if outside of any screen or not contained in a non-Desktop Screen instance (e.g. remote screen)<br>
-    *
-    * @return the real screen, that contains the given point
-    */
-  public Screen getMonitor() {
-    Rectangle r;
-    Screen scr = null;
-    if (otherScreen == null) {
-      for (int i = 0; i < Screen.getNumberScreens(); i++) {
-        r = Screen.getScreen(i).getBounds();
-        if (r.contains(this.x, this.y)) {
-          scr = Screen.getScreen(i);
-          break;
-        }
-      }
-    } else {
-      Debug.error("Location: getMonitor: (%s, %s) not on real screen - using primary", x, y);
-      scr = Screen.getPrimaryScreen();
-    }
-    if (scr == null) {
-      Debug.error("Location: getMonitor: (%s, %s) outside any screen - using primary", x, y);
-      scr = Screen.getPrimaryScreen();
-    }
-    return scr;
-  }
-
 // TODO Location.getColor() implement more support and make it useable
   /**
    * Get the color at the given Point for details: see java.awt.Robot and ...Color

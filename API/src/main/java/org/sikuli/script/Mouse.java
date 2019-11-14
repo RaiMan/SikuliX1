@@ -3,15 +3,14 @@
  */
 package org.sikuli.script;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.util.Random;
-
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.util.Highlight;
+
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.util.Random;
 
 /**
  * Main pupose is to coordinate the mouse usage among threads <br>
@@ -61,8 +60,10 @@ public class Mouse {
       mouse.device.isMouse = true;
       Location loc = at();
       move(loc);
+      Location loc1 = at();
+      boolean isOk = loc1.x == loc.x && loc1.y == loc.y;
       mouse.device.lastPos = null;
-      log(3, "init end");
+      log(3, "init end (ok = %s) at (%d,%d)", isOk, loc1.x, loc1.y);
     }
   }
 

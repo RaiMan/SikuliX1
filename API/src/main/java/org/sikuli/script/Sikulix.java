@@ -58,11 +58,12 @@ public class Sikulix {
   }
 
   private static Point getLocPopAt() {
-    Rectangle screen0 = RunTime.get().getMonitor(0);
-    if (null == screen0) {
+    if (RunTime.isHeadless()) {
       return null;
     }
-    return new Point((int) screen0.getCenterX(), (int) screen0.getCenterY());
+    //TODO should be IDE monitor
+    Rectangle rect = RunTime.getMonitorBounds();
+    return new Point((int) rect.getCenterX(), (int) rect.getCenterY());
   }
 
   private static JFrame popLocation() {
