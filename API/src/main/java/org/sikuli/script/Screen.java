@@ -60,6 +60,7 @@ public class Screen extends Region implements IScreen {
   static Screen[] screens = null;
 
   static {
+    RunTime.get();
     screens = new Screen[RunTime.getMonitorCount()];
     for (int i = 0; i < screens.length; i++) {
       screens[i] = new Screen(i);
