@@ -114,16 +114,16 @@ java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
 java.base/sun.nio.ch=ALL-UNNAMED
 --add-opens
 java.base/java.io=ALL-UNNAMED
+-------------------- only needed for monitor eval
 --add-opens
 java.desktop/sun.awt=ALL-UNNAMED
+-------------------------
 -Dnashorn.args=--no-deprecation-warning
 */
         cmd.add("--add-opens");
         cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
         cmd.add("--add-opens");
         cmd.add("java.base/sun.nio.ch=ALL-UNNAMED");
-        cmd.add("--add-opens");
-        cmd.add("java.desktop/sun.awt=ALL-UNNAMED");
         cmd.add("--add-opens");
         cmd.add("java.base/java.io=ALL-UNNAMED");
         cmd.add("-Dnashorn.args=--no-deprecation-warning");
