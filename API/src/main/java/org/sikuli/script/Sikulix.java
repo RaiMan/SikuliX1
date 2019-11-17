@@ -58,11 +58,13 @@ public class Sikulix {
   }
 
   private static Point getLocPopAt() {
-    if (RunTime.isHeadless()) {
+    if (Screen.isHeadless()) {
       return null;
     }
-    //TODO should be IDE monitor
-    Rectangle rect = RunTime.getMonitorBounds();
+    Rectangle rect = Screen.getMonitorBounds();
+    if (RunTime.isRunningIDE) {
+      //TODO should be IDE window
+    }
     return new Point((int) rect.getCenterX(), (int) rect.getCenterY());
   }
 

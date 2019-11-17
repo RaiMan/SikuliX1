@@ -204,8 +204,7 @@ public class SikulixTest {
   //</editor-fold>
 
   public static void main(String[] args) {
-    Debug.on(3);
-    runTime = RunTime.get();
+    //Debug.on(3);
 
     try {
       ImagePath.setBundlePath(new File("..", "_Support/_test").getCanonicalPath());
@@ -218,6 +217,7 @@ public class SikulixTest {
     ScreenImage scrImg;
 
     scr = new Screen();
+    Screen scr0 = Screen.get(0); //new Screen();
     p("scr(%d): %s", scr.getID(), scr);
 
     int scaleFactor = scr.getScale();
@@ -230,8 +230,8 @@ public class SikulixTest {
     Screen scr1 = new Screen(1);
     p("scr1: %s", scr1);
 
-    scaleFactor = scr1.getScale();
-    p("Scale(%d) %d", scr1.getID(), scaleFactor);
+//    scaleFactor = scr1.getScale();
+//    p("Scale(%d) %d", scr1.getID(), scaleFactor);
 
     scrImg = scr1.capture();
     scrImg.saveInBundle("scr1");

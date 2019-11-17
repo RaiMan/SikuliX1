@@ -936,7 +936,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
+  //<editor-fold defaultstate="collapsed" desc="003 getters setters modifiers">
 
   /**
    * @return the Screen object containing the region
@@ -1763,10 +1763,10 @@ public class Region {
    * 3rd z: the column number of the wanted cell<br>
    * y and z are counting from 0<br>
    * valid numbers: 200 up to 999 (&lt; 200 are invalid and return the region itself) <br>
-   * example: get(522) will use a raster of 5 rows and 5 columns and return the cell in the middle<br>
+   * example: getTile(522) will use a raster of 5 rows and 5 columns and return the cell in the middle<br>
    * special cases:<br>
    * if either y or z are == or &gt; x: returns the respective row or column<br>
-   * example: get(525) will use a raster of 5 rows and 5 columns and return the row in the middle<br>
+   * example: getTile(525) will use a raster of 5 rows and 5 columns and return the row in the middle<br>
    * <br>
    * internally this is based on {@link #setRaster(int, int) setRaster} and {@link #getCell(int, int) getCell} <br>
    * <br>
@@ -1778,7 +1778,7 @@ public class Region {
    */
 
   /**
-   * the area constants for use with get()
+   * the area constants for use with getTile()
    */
   public static final int NW = 300, NORTH_WEST = NW, TL = NW;
   public static final int NM = 301, NORTH_MID = NM, TM = NM;
@@ -1815,7 +1815,7 @@ public class Region {
   private int rowHd = 0;
   private int colWd = 0;
 
-  public Region get(int part) {
+  public Region getTile(int part) {
     return Region.create(getRectangle(getRect(), part));
   }
 

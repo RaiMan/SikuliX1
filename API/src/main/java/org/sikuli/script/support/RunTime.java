@@ -106,18 +106,18 @@ public class RunTime {
         cmd.add(System.getProperty("java.home") + "/bin/java");
       }
       if (get().isJava9()) {
-      /*
-      Suppress Java 9+ warnings
-      --add-opens
-      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
-      --add-opens
-      java.base/sun.nio.ch=ALL-UNNAMED
-      --add-opens
-      java.base/java.io=ALL-UNNAMED
-      --add-opens
-      java.desktop/sun.awt=ALL-UNNAMED
-      -Dnashorn.args=--no-deprecation-warning
-      */
+/*
+Suppress Java 9+ warnings
+--add-opens
+java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
+--add-opens
+java.base/sun.nio.ch=ALL-UNNAMED
+--add-opens
+java.base/java.io=ALL-UNNAMED
+--add-opens
+java.desktop/sun.awt=ALL-UNNAMED
+-Dnashorn.args=--no-deprecation-warning
+*/
         cmd.add("--add-opens");
         cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
         cmd.add("--add-opens");
@@ -1007,8 +1007,6 @@ public class RunTime {
     });
     //</editor-fold>
 
-    initMonitors();
-
     runTime.init(typ);
     if (Type.IDE.equals(typ)) {
       runTime.initIDEbefore();
@@ -1035,159 +1033,6 @@ public class RunTime {
   }
 */
   //</editor-fold>
-
-  //<editor-fold desc="08 monitors">
-  public static boolean isHeadless() {
-    return GraphicsEnvironment.isHeadless() || monitorCount == 0;
-  }
-
-  public static int getMonitorCount() {
-    return monitorCount;
-  }
-
-  static int monitorCount = 0;
-
-  public static Rectangle getMonitorBounds() {
-    return monitorBounds[0];
-  }
-
-  public static Rectangle getMonitorBounds(int n) {
-    n = n < 0 || n > monitorBounds.length ? 0 : n;
-    return monitorBounds[n];
-  }
-
-  static Rectangle[] monitorBounds = new Rectangle[]{new Rectangle()};
-
-  public static IRobot getRobot(int n) {
-    return monitorRobots[n < 0 || n >= monitorRobots.length ? mainMonitor : n];
-  }
-
-  static IRobot[] monitorRobots = new IRobot[0];
-
-  public static int getMonitor0() {
-    return mainMonitor;
-  }
-
-  static Integer[] screens = new Integer[0];
-
-  public static int getScreenMonitor() {
-    return screens[0];
-  }
-
-  public static int getScreenMonitor(int n) {
-    return screens[n < 0 || n >= screens.length ? 0 : n];
-  }
-
-  static int mainMonitor = -1;
-
-  private static void initMonitors() {
-    if (!GraphicsEnvironment.isHeadless()) {
-      GraphicsDevice[] gdevs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-      monitorCount = gdevs.length;
-      if (monitorCount == 0) {
-        Debug.error("StartUp: GraphicsEnvironment has no ScreenDevices");
-        return;
-      }
-      monitorRobots = new IRobot[monitorCount];
-      monitorBounds = new Rectangle[monitorCount];
-      Rectangle currentBounds;
-      for (int i = 0; i < monitorCount; i++) {
-        GraphicsDevice gdev = gdevs[i];
-        currentBounds = gdev.getDefaultConfiguration().getBounds();
-        try {
-          monitorRobots[i] = new RobotDesktop(gdev);
-        } catch (AWTException e) {
-          monitorRobots[i] = null;
-        }
-        if (currentBounds.contains(new Point(0, 0))) {
-          if (mainMonitor < 0) {
-            mainMonitor = i;
-            Debug.log(3, "ScreenDevice %d has (0,0) --- will be primary Screen(0)", i);
-          } else {
-            Debug.log(3, "ScreenDevice %d too contains (0,0)!", i);
-          }
-        }
-        Debug.log(3, "Monitor %d: (%d, %d) %d x %d", i,
-                currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
-        monitorBounds[i] = currentBounds;
-      }
-      if (mainMonitor < 0) {
-        Debug.log(3, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
-        mainMonitor = 0;
-      }
-      screens = new Integer[monitorCount];
-      screens[0] = mainMonitor;
-      int nMonitor = 0;
-      for (int i = 1; i < screens.length; i++) {
-        if (nMonitor == mainMonitor) {
-          nMonitor++;
-        }
-        screens[i] = nMonitor;
-        nMonitor++;
-      }
-    } else {
-      throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
-    }
-    Debug.log(3, "initMonitors: ended");
-  }
-
-  //TODO resetMonitors
-  public static boolean resetMonitors() {
-    return false;
-  }
-
-  public static void resetMonitorsQuiet() {
-  }
-
-  public static int getScaleFactor(int x, int y) {
-    int sFactor = 1;
-    if (RunTime.get().runningMac) {
-      try {
-        Object genv = Class.forName("sun.awt.CGraphicsEnvironment").
-                cast(GraphicsEnvironment.getLocalGraphicsEnvironment());
-        Method getDevices = genv.getClass().getDeclaredMethod("getScreenDevices");
-        Object[] devices = (Object[]) getDevices.invoke(genv);
-        Class cDevice = Class.forName("sun.awt.CGraphicsDevice");
-        Method getConf = cDevice.getDeclaredMethod("getDefaultConfiguration");
-        Method getScaleFactor = cDevice.getDeclaredMethod("getScaleFactor");
-        if (y < 0) {
-          // get by device index
-          Object device = devices[x < 0 || x >= devices.length ? 0 : x];
-          Object obj = getScaleFactor.invoke(device);
-          if (obj instanceof Integer) {
-            sFactor = ((Integer) obj).intValue();
-          }
-        } else {
-          // find by top-left point
-          for (Object device : devices) {
-            sFactor = 1;
-            device = cDevice.cast(device);
-            Object conf = getConf.invoke(device);
-            Method getBounds = conf.getClass().getMethod("getBounds");
-            Rectangle bounds = (Rectangle) getBounds.invoke(conf);
-            if (bounds.x == x && bounds.y == y) {
-              Object obj = getScaleFactor.invoke(device);
-              if (obj instanceof Integer) {
-                sFactor = ((Integer) obj).intValue();
-                break;
-              }
-            }
-          }
-        }
-      } catch (Exception e) {
-        sFactor = 1;
-      }
-    } else if (RunTime.get().runningWindows) {
-      Debug.log(3, "Screen.getScale: not yet implemented for Windows");
-      return 1;
-    } else {
-      Debug.log(3, "Screen.getScale: only implemented for Windows and macOS");
-      return 1;
-    }
-    return sFactor;
-  }
-  //</editor-fold>
-
 
   //<editor-fold defaultstate="collapsed" desc="05 global init">
   File isRunning = null;
@@ -2998,10 +2843,14 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="22 system enviroment">
+  public static boolean isHeadless() {
+    return GraphicsEnvironment.isHeadless();
+  }
 
   /**
    * print the current java system properties key-value pairs sorted by key
    */
+
   public void dumpSysProps() {
     dumpSysProps(null);
   }

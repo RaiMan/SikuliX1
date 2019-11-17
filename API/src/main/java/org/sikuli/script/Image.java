@@ -537,7 +537,7 @@ public class Image {
   /**
    * create a sub image from this image
    *
-   * @param part (the constants Region.XXX as used with {@link Region#get(int)})
+   * @param part (the constants Region.XXX as used with {@link Region#getTile(int)})
    * @return the sub image
    */
   public Image getSub(int part) {
