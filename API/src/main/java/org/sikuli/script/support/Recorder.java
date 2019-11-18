@@ -27,6 +27,7 @@ import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 import org.jnativehook.mouse.NativeMouseMotionListener;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
@@ -49,7 +50,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
 
-  private boolean running = false;
+  private volatile boolean running = false;
 
   ScreenImage currentImage = null;
   String currentImageFilePath = null;
@@ -57,7 +58,10 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private long currentMouseX = 0;
   private long currentMouseY = 0;
 
-  static {
+  private boolean capturing = false;
+  private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+
+  private static void registerNativeHook() {
     try {
       // Make Global Screen logger quiet.
       // Floods the console otherwise
@@ -69,26 +73,34 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
     } catch (NativeHookException e) {
       Debug.error("Error registering native hook: %s", e.getMessage());
     }
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        try {
-          GlobalScreen.unregisterNativeHook();
-        } catch (NativeHookException e) {
-          Debug.error("Error unregistering native hook: %s", e.getMessage());
-        }
-      }
-    });
-
   }
 
-  private boolean capturing = false;
-  private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+  private static void unregisterNativeHook() {
+    try {
+      /*
+       * We unregister the native hook on Windows because it blocks some special keys
+       * in AWT while registered (e.g. AltGr).
+       *
+       * We do not unregister on Linux because this terminates the whole JVM.
+       * Interestingly, the special keys are not blocked on Linux at all.
+       *
+       * TODO: Has to be checked on Mac OS, but I guess that not unregistering is
+       * the better option here.
+       *
+       * Re-registering doesn't hurt anyway, because JNativeHook checks the register
+       * state before registering again. So unregister is only really needed on Windows.
+       */
+      if (Settings.isWindows()) {
+        GlobalScreen.unregisterNativeHook();
+      }
+    } catch (NativeHookException e) {
+      Debug.error("Error unregistering native hook: %s", e.getMessage());
+    }
+  }
 
   /*
-   * Captures the screen after a given delay.
-   * During the delay, other calls to this method are ignored.
+   * Captures the screen after a given delay. During the delay, other calls to
+   * this method are ignored.
    */
   private void screenshot(long delayMillis) {
     synchronized (SCHEDULER) {
@@ -159,11 +171,11 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
       screenshot(0);
 
+      Recorder.registerNativeHook();
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
       GlobalScreen.addNativeMouseMotionListener(this);
     }
-
   }
 
   /**
@@ -175,9 +187,11 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   public List<IRecordedAction> stop(ProgressMonitor progress) {
     if (running) {
       running = false;
+
       GlobalScreen.removeNativeMouseMotionListener(this);
       GlobalScreen.removeNativeMouseListener(this);
       GlobalScreen.removeNativeKeyListener(this);
+      Recorder.unregisterNativeHook();
 
       synchronized (screenshotDir) {
         List<IRecordedAction> actions = eventsFlow.compile(progress);
