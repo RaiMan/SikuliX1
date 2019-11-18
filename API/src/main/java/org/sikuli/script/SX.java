@@ -4,13 +4,24 @@
 
 package org.sikuli.script;
 
-import org.sikuli.basics.Debug;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Date;
+import java.awt.EventQueue;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
+
+import org.sikuli.basics.Debug;
 
 public class SX {
 
@@ -109,7 +120,6 @@ public class SX {
       String preset = "";
       Boolean hidden = false;
       Integer timeout = 0;
-      boolean running = true;
       Map<String, Object> parameters = new HashMap<>();
       Object returnValue;
 
@@ -154,7 +164,20 @@ public class SX {
             messageText.setEditable(false);
             messageText.setBackground(new JLabel().getBackground());
             final JPasswordField passwordField = new JPasswordField(preset);
-            toGetFocus = passwordField;
+
+            frame.addWindowListener(new WindowAdapter() {
+              @Override
+              public void windowOpened(WindowEvent e) {
+                frame.removeWindowListener(this);
+                new Thread(() -> {
+                  pause(0.3);
+                  EventQueue.invokeLater(() -> {
+                    passwordField.requestFocusInWindow();
+                  });
+                }).start();
+              }
+            });
+
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
             panel.add(passwordField);
@@ -171,29 +194,11 @@ public class SX {
             }
           }
         }
-        stop();
-      }
 
-      JComponent toGetFocus = null;
-
-      public void setFocus() {
-        if (isNotNull(toGetFocus)) {
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              toGetFocus.requestFocusInWindow();
-            }
-          });
+        synchronized(this) {
+          frame.dispose();
+          this.notify();
         }
-      }
-
-      public boolean isRunning() {
-        return running;
-      }
-
-      public void stop() {
-        frame.dispose();
-        running = false;
       }
 
       public int getTimeout() {
@@ -207,15 +212,19 @@ public class SX {
         return returnValue;
       }
     }
+
     RunInput popRun = new RunInput(popType, args);
-    new Thread(popRun).start();
-    pause(0.3);
-    popRun.setFocus();
-    long end = new Date().getTime() + popRun.getTimeout();
-    while (popRun.isRunning()) {
-      pause(0.3);
-      if (end < new Date().getTime()) {
-        popRun.stop();
+
+    if(EventQueue.isDispatchThread()) {
+      popRun.run();
+    } else {
+      synchronized(popRun) {
+        EventQueue.invokeLater(popRun);
+        try {
+          popRun.wait(popRun.getTimeout());
+        } catch (InterruptedException e) {
+          Debug.error("Interrupted while waiting for popup close: %s", e.getMessage());
+        }
       }
     }
     return popRun.getReturnValue();
