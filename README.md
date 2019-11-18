@@ -46,7 +46,7 @@ For use in **Java Maven projects** the dependency coordinates are:
 ```
 <hr>
 
-**Current developement version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
+**Current development version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
 [![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1?ref=badge_shield)
 
@@ -81,7 +81,7 @@ The dependency coordinates are:
 ```
 <hr>
 
-**Developement environment**
+**Development environment**
 
  - Java 13 (OpenJDK release)
  - Windows 10 latest
@@ -93,9 +93,9 @@ The dependency coordinates are:
 #### Contributions are welcome and appreciated
  - for `bugreports and requests for features or enhancements` use the issue tracker here
  - for `bugfixes` related to the latest release version (currently 2.0.0) you should create a pull request against the release branch (currently `release_2.0.x`), so your fix will be in the next bug-fix release (currently 2.0.1)
-- for `smaller bugfixes and/or feature enhancements` related to the running delopement (currently branch master as version 2.1.0-SNAPSHOT and dev_... branches) you should create a pull request against the target branch
+- for `smaller bugfixes and/or feature enhancements` related to the running development (currently branch master as version 2.1.0-SNAPSHOT and dev_... branches) you should create a pull request against the target branch
 - a pull request should target only one branch. It is the resposibility and job of the maintainer to apply the changes to other branches in case 
-- for `more complex revisions and/or enhancements` you should ask for a developement branch together with a short description of your ideas
+- for `more complex revisions and/or enhancements` you should ask for a development branch together with a short description of your ideas
  
  **Please respect the following rules and guidelines when contributing**
   - Start with smaller fixes. E.g. choose an issue from the issue tracker and try to fix it. Or fix issues you encounter while using SikuliX.
