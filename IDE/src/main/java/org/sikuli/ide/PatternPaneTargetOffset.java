@@ -174,8 +174,8 @@ class PatternPaneTargetOffset extends JPanel implements
 	public void mouseReleased(MouseEvent me) {
 	  if (resizable.isVisible()) {
 	    changedBounds = resizable.getBounds();
-	    Location center = convertViewToScreen(new Point(changedBounds.x + STROKE_WIDTH / 2, changedBounds.y + STROKE_WIDTH / 2));
-	    changedBounds = new Rectangle(center.getX(), center.getY(), (int)((changedBounds.width - STROKE_WIDTH) / _zoomRatio), (int)((changedBounds.height - STROKE_WIDTH) / _zoomRatio));
+	    Location center = convertViewToScreen(new Point(changedBounds.x + STROKE_WIDTH, changedBounds.y + STROKE_WIDTH));
+	    changedBounds = new Rectangle(center.getX(), center.getY(), (int)((changedBounds.width - STROKE_WIDTH * 2) / _zoomRatio), (int)((changedBounds.height - STROKE_WIDTH * 2) / _zoomRatio));
 	    setTarget(_offset.x, _offset.y);
 	  }
 	}
@@ -252,11 +252,14 @@ class PatternPaneTargetOffset extends JPanel implements
       if(!resizable.isVisible()) {
         resizable.setVisible(true);
 
+        Point point = this.convertScreenToView(new Location(0, 0));
+        resizable.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
+
         if (changedBounds != null) {
-          Point point = this.convertScreenToView(new Location(changedBounds.x, changedBounds.y));
-          resizable.setBounds(point.x - STROKE_WIDTH / 2, point.y - STROKE_WIDTH / 2, (int)(changedBounds.width * _zoomRatio) + STROKE_WIDTH, (int)(changedBounds.height * _zoomRatio) + STROKE_WIDTH);
+          point = this.convertScreenToView(new Location(changedBounds.x, changedBounds.y));
+          resizable.setBounds(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(changedBounds.width * _zoomRatio) + STROKE_WIDTH * 2, (int)(changedBounds.height * _zoomRatio) + STROKE_WIDTH * 2);
         } else {
-          resizable.setBounds(x - STROKE_WIDTH / 2, y - STROKE_WIDTH / 2, w + STROKE_WIDTH, h + STROKE_WIDTH);
+          resizable.setBounds(x - STROKE_WIDTH, y - STROKE_WIDTH, w + STROKE_WIDTH * 2, h + STROKE_WIDTH * 2);
         }
 
         resizableBorder.setColor(c);

@@ -139,6 +139,8 @@ public class Resizable extends JComponent {
     int MIN_WIDTH = 20;
     int MIN_HEIGHT = 20;
 
+    private Rectangle maxBounds = new Rectangle(Integer.MIN_VALUE / 2, Integer.MIN_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
+
     public Resizable() {
         this(new Border(8));
     }
@@ -154,6 +156,16 @@ public class Resizable extends JComponent {
         if (getParent() != null) {
             getParent().revalidate();
         }
+    }
+
+    public void setMaxBounds(Rectangle maxBounds){
+      this.maxBounds = maxBounds;
+    }
+
+    @Override
+    public void setBounds(int x, int y, int w, int h) {
+      Rectangle b = new Rectangle(x,y,w,h).intersection(maxBounds);
+      super.setBounds(b.x, b.y, b.width, b.height);
     }
 
     MouseInputListener mouseListener = new MouseInputAdapter() {
