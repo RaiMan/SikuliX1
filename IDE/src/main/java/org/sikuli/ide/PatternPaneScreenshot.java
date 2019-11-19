@@ -39,6 +39,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   private JSlider sldSimilar;
   private JSpinner txtNumMatches;
   private LoadingSpinner _loading;
+  private String patternFileName;
 
   static String _I(String key, Object... args) {
     return SikuliIDEI18N._I(key, args);
@@ -129,6 +130,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           final int numMatches) {
     if (!_runFind) {
       _runFind = true;
+      patternFileName = patFilename;
       Thread thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -171,6 +173,11 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     } else {
       setParameters(exact, similarity, numMatches);
     }
+  }
+
+  public void reloadImage() {
+    _runFind = false;
+    setParameters(patternFileName, isExact(), getSimilarity(), getNumMatches());
   }
 
   public void setParameters(boolean exact, float similarity, int numMatches) {

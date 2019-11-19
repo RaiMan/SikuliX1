@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.ProgressMonitor;
 
+import org.apache.commons.io.FileUtils;
 import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.mouse.NativeMouseEvent;
@@ -27,6 +28,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.Finder;
 import org.sikuli.script.Finder.FindInput2;
 import org.sikuli.script.Finder.Finder2;
@@ -307,19 +309,28 @@ public class RecordedEventsFlow {
     return actions;
   }
 
+  private void saveScreenshot(Mat screenshot, File imageFile) {
+    FileManager.saveScreenshotImage(Finder2.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
+  }
+
   private List<IRecordedAction> handleDragDrop(Long time, NativeMouseEvent event) {
     List<IRecordedAction> actions = new ArrayList<>();
 
-    Image dragImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), dragStartEvent);
-    Image dropImage = this.findRelevantImage(readFloorScreenshot(dragStartTime), event);
+    Mat screenshot = readFloorScreenshot(dragStartTime);
+
+    Image dragImage = this.findRelevantImage(screenshot, dragStartEvent);
+    Image dropImage = this.findRelevantImage(screenshot, event);
 
     if (dragImage != null && dropImage != null) {
-      File dragFile = new File(ImagePath.getBundlePath() + File.separator + dragStartTime + ".png");
-      File dropFile = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
+      File dragFile = new File(ImagePath.getBundlePath(), dragStartTime + ".png");
+      File dropFile = new File(ImagePath.getBundlePath(), time + ".png");
 
       try {
         ImageIO.write(dragImage.get(), "PNG", dragFile);
         ImageIO.write(dropImage.get(), "PNG", dropFile);
+
+        saveScreenshot(screenshot, dragFile);
+        saveScreenshot(screenshot, dropFile);
 
         Pattern dragPattern = new Pattern(dragFile.getAbsolutePath());
         dragPattern.targetOffset(dragImage.getOffset());
@@ -350,6 +361,7 @@ public class RecordedEventsFlow {
 
       try {
         ImageIO.write(image.get(), "PNG", file);
+        saveScreenshot(screenshot, file);
       } catch (IOException e) {
         e.printStackTrace();
       }

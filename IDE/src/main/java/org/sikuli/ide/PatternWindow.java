@@ -12,13 +12,23 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
+
+import org.sikuli.script.Image;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
+import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.ScreenUnion;
+
+import jnr.posix.util.Finder;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 
@@ -56,7 +66,15 @@ public class PatternWindow extends JFrame {
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		_imgBtn = imgBtn;
 
-		takeScreenshot();
+		File imgFile = new File(imgBtn.getFileName());
+		BufferedImage savedScreenshot = FileManager.getScreenshotImage(imgFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+
+		if(savedScreenshot != null) {
+		  _simg = new ScreenImage(new Rectangle(0,0,savedScreenshot.getWidth(), savedScreenshot.getHeight()), savedScreenshot);
+		} else {
+		  takeScreenshot();
+		}
+
 		Container c = getContentPane();
 		c.setLayout(new BorderLayout());
     GraphicsConfiguration gc = getGraphicsConfiguration();
@@ -226,6 +244,18 @@ public class PatternWindow extends JFrame {
 		}
 	}
 
+	private void renameScreenshot(String oldFilename, String filename) {
+	  File oldFile = new File(oldFilename);
+    File file = new File(filename);
+
+    File oldScreenshotImageFile = FileManager.getScreenshotImageFile(oldFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+    File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+
+    if (oldScreenshotImageFile.exists()) {
+      FileManager.xcopy(oldScreenshotImageFile, screenshotImageFile);
+    }
+	}
+
 	private void actionPerformedUpdates(Window _parent) {
 		boolean tempDirty = isDirty();
 		if (paneNaming.isDirty()) {
@@ -255,6 +285,7 @@ public class PatternWindow extends JFrame {
 			}
 			try {
 				FileManager.xcopy(oldFilename, filename);
+				renameScreenshot(oldFilename, filename);
 				_imgBtn.setFilename(filename);
         fileRenameOld = oldFilename;
         fileRenameNew = filename;
@@ -267,6 +298,32 @@ public class PatternWindow extends JFrame {
 			paneNaming.updateFilename();
 			addDirty(true);
 		}
+
+
+		Rectangle changedBounds = _tarOffsetPane.getChangedBounds();
+		if(changedBounds != null) {
+
+		  File file = new File(paneNaming.getAbsolutePath());
+
+		  BufferedImage changedImg = _simg.getImage().getSubimage(changedBounds.x,changedBounds.y, changedBounds.width, changedBounds.height);
+
+		  try {
+        ImageIO.write(changedImg, "png", file);
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      _imgBtn.reloadImage();
+      _screenshot.reloadImage();
+      paneNaming.reloadImage();
+
+      File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+      if(!screenshotImageFile.exists()) {
+        FileManager.saveScreenshotImage(_simg.getImage(), file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+      }
+		}
+
 		addDirty(_imgBtn.setParameters(
 						_screenshot.isExact(), _screenshot.getSimilarity(),
 						_screenshot.getNumMatches()));
@@ -282,6 +339,7 @@ public class PatternWindow extends JFrame {
   private boolean revertImageRename() {
     try {
       FileManager.xcopy(fileRenameNew, fileRenameOld);
+      renameScreenshot(fileRenameNew, fileRenameOld);
       _imgBtn.setFilename(fileRenameOld);
     } catch (IOException ioe) {
       Debug.error("revert renaming failed: new: %s \nold: %s\n%s",

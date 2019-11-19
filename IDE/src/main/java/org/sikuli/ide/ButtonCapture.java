@@ -3,6 +3,7 @@
  */
 package org.sikuli.ide;
 
+import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.*;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
@@ -17,12 +18,16 @@ import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 
+import com.google.common.io.Files;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable, EventObserver {
@@ -158,6 +163,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
         if (fullpath != null) {
           fullpath = FileManager.slashify(fullpath, false);
         }
+        FileManager.saveScreenshotImage(ocp.getOriginal().getImage(), filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
       }
     }
     Settings.OverwriteImages = saveOverwrite;
