@@ -20,7 +20,7 @@ import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 
 class PatternPaneTargetOffset extends JPanel implements
-        MouseListener, MouseWheelListener, ChangeListener {
+        MouseListener, MouseWheelListener, ChangeListener, ComponentListener {
 
   final static String me = "PatternPaneTargetOffset: ";
 	static int DEFAULT_H = 120;
@@ -52,6 +52,7 @@ class PatternPaneTargetOffset extends JPanel implements
 
 		addMouseListener(this);
 		addMouseWheelListener(this);
+		addComponentListener(this);
 
 		_loading = new LoadingSpinner();
 		findTarget(patFilename, initOffset);
@@ -257,7 +258,7 @@ class PatternPaneTargetOffset extends JPanel implements
         } else {
           resizable.setBounds(x - STROKE_WIDTH / 2, y - STROKE_WIDTH / 2, w + STROKE_WIDTH, h + STROKE_WIDTH);
         }
-        
+
         resizableBorder.setColor(c);
       }
     } else {
@@ -370,4 +371,22 @@ class PatternPaneTargetOffset extends JPanel implements
 	  }
 	  return null;
 	}
+
+  @Override
+  public void componentResized(ComponentEvent e) {
+    resizable.setVisible(false);
+    this.repaint();
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentShown(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentHidden(ComponentEvent e) {
+  }
 }
