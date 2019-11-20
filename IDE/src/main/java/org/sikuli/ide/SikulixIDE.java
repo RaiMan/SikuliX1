@@ -2257,15 +2257,25 @@ public class SikulixIDE extends JFrame {
     return true;
   }
 
-  synchronized boolean isRunningScript() {
-    return ideIsRunningScript;
+  public void synchronizeScriptStart(Runnable r) {
+    synchronized (this) {
+      r.run();
+    }
   }
 
-  synchronized void setIsRunningScript(boolean state) {
-    ideIsRunningScript = state;
+  public boolean isRunningScript() {
+    synchronized (this) {
+      return ideIsRunningScript;
+    }
   }
 
-  public Boolean ideIsRunningScript = false;
+  public void setIsRunningScript(boolean state) {
+    synchronized (this) {
+      ideIsRunningScript = state;
+    }
+  }
+
+  private boolean ideIsRunningScript = false;
 
   public IScriptRunner getCurrentRunner() {
     return currentRunner;
@@ -2334,7 +2344,7 @@ public class SikulixIDE extends JFrame {
     }
 
     void runCurrentScript() {
-      synchronized (ideIsRunningScript) {
+      synchronizeScriptStart(() -> {
         if (isRunningScript()) {
           log(-1, "Run Script: not possible: already running another script");
           return;
@@ -2430,11 +2440,9 @@ public class SikulixIDE extends JFrame {
             SikulixIDE.showAgain();
           });
 
-          synchronized (ideIsRunningScript) {
-            setIsRunningScript(false);
-          }
+          setIsRunningScript(false);
         }).start();
-      }
+      });
     }
 
     void doBeforeRun() {
