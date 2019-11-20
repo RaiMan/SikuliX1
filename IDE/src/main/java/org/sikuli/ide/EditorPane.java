@@ -1114,7 +1114,6 @@ public class EditorPane extends JTextPane {
     return images;
   }
 
-  //TODO " and ' in comments - line numbers not reported correctly in case
   int lineNumber = 0;
   String uncompleteStringError = "uncomplete_string_error";
 
