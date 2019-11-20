@@ -11,6 +11,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -32,6 +36,8 @@ public class SX {
   }
 
   private static Log log = new Log();
+
+  private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
@@ -196,7 +202,6 @@ public class SX {
         }
 
         synchronized(this) {
-          frame.dispose();
           this.notify();
         }
       }
@@ -208,22 +213,33 @@ public class SX {
         return timeout * 1000;
       }
 
+      public void dispose() {
+         frame.dispose();
+      }
+
       public Object getReturnValue() {
         return returnValue;
       }
     }
 
     RunInput popRun = new RunInput(popType, args);
+    ScheduledFuture<?> timeoutJob = TIMEOUT_EXECUTOR.schedule((() -> {popRun.dispose();}), popRun.getTimeout(), TimeUnit.MILLISECONDS);
 
     if(EventQueue.isDispatchThread()) {
-      popRun.run();
+      try {
+        popRun.run();
+      } finally {
+        timeoutJob.cancel(false);
+      }
     } else {
       synchronized(popRun) {
         EventQueue.invokeLater(popRun);
         try {
-          popRun.wait(popRun.getTimeout());
+          popRun.wait();
         } catch (InterruptedException e) {
           Debug.error("Interrupted while waiting for popup close: %s", e.getMessage());
+        } finally {
+          timeoutJob.cancel(false);
         }
       }
     }
