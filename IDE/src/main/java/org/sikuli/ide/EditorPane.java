@@ -1094,6 +1094,24 @@ public class EditorPane extends JTextPane {
     return codeGenerator.pattern(pattern, mask);
   }
 
+  //TODO move Lexer stuff to its own package
+  private Lexer getLexer() {
+//TODO this only works for cleanbundle to find the image strings
+    String scriptType = "python";
+    if (null != lexers.get(scriptType)) {
+      return lexers.get(scriptType);
+    }
+    try {
+      Lexer lexer = Lexer.getByName(scriptType);
+      lexers.put(scriptType, lexer);
+      return lexer;
+    } catch (ResolutionException ex) {
+      return null;
+    }
+  }
+
+  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
+
   private Map<String, List<Integer>> parseforImages() {
     String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
     log(3, "parseforImages: in %s", pbundle);
@@ -1104,42 +1122,6 @@ public class EditorPane extends JTextPane {
     parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
 //    images = parseForStrings(scriptText);
     log(3, "parseforImages finished");
-    return images;
-  }
-
-  Pattern aString1 = Pattern.compile(".*?'(.*?)'");
-  Pattern aString2 = Pattern.compile(".*?\"(.*?)\"");
-  String stringDelimiter = ".*['\"].*";
-
-  private Map<String, List<Integer>> parseForStrings(String text) {
-    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    String[] lines = text.split("\n");
-    int nLine = 0;
-    for (String line : lines) {
-      if (line.matches(".*['\"].*")) {
-        nLine++;
-        if (line.matches(".*(\"\"\"|''').*")) continue;
-        String tail = line;
-        while (true) {
-          Matcher matcher = aString1.matcher(tail);
-          if (matcher.find()) {
-            String possibleImage = (matcher.group(1) == null ? matcher.group(2) : matcher.group(1)).trim();
-            if (!possibleImage.isEmpty()) {
-              Debug.logp("%d: %s (%s)", nLine, tail, possibleImage);
-            }
-            tail = tail.substring(matcher.end());
-            if (tail.isEmpty()) {
-              break;
-            }
-          } else {
-            if (tail.matches(stringDelimiter)) {
-              Debug.logp("problem: %d: %s", nLine, tail);
-            }
-            break;
-          }
-        }
-      }
-    }
     return images;
   }
 
@@ -1196,6 +1178,43 @@ public class EditorPane extends JTextPane {
     }
   }
 
+  //TODO find image names in script: implement with regex
+  Pattern aString1 = Pattern.compile(".*?'(.*?)'");
+  Pattern aString2 = Pattern.compile(".*?\"(.*?)\"");
+  String stringDelimiter = ".*['\"].*";
+
+  private Map<String, List<Integer>> parseForStrings(String text) {
+    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
+    String[] lines = text.split("\n");
+    int nLine = 0;
+    for (String line : lines) {
+      if (line.matches(".*['\"].*")) {
+        nLine++;
+        if (line.matches(".*(\"\"\"|''').*")) continue;
+        String tail = line;
+        while (true) {
+          Matcher matcher = aString1.matcher(tail);
+          if (matcher.find()) {
+            String possibleImage = (matcher.group(1) == null ? matcher.group(2) : matcher.group(1)).trim();
+            if (!possibleImage.isEmpty()) {
+              Debug.logp("%d: %s (%s)", nLine, tail, possibleImage);
+            }
+            tail = tail.substring(matcher.end());
+            if (tail.isEmpty()) {
+              break;
+            }
+          } else {
+            if (tail.matches(stringDelimiter)) {
+              Debug.logp("problem: %d: %s", nLine, tail);
+            }
+            break;
+          }
+        }
+      }
+    }
+    return images;
+  }
+
   private boolean parseforImagesGetName(String current, boolean inString,
                                         String[] possibleImage, String[] stringType) {
     //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
@@ -1235,23 +1254,6 @@ public class EditorPane extends JTextPane {
       }
     }
   }
-
-  private Lexer getLexer() {
-//TODO this only works for cleanbundle to find the image strings
-    String scriptType = "python";
-    if (null != lexers.get(scriptType)) {
-      return lexers.get(scriptType);
-    }
-    try {
-      Lexer lexer = Lexer.getByName(scriptType);
-      lexers.put(scriptType, lexer);
-      return lexer;
-    } catch (ResolutionException ex) {
-      return null;
-    }
-  }
-
-  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
 
   public boolean showThumbs;
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
