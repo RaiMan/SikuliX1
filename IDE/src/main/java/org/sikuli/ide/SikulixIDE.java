@@ -2351,7 +2351,6 @@ public class SikulixIDE extends JFrame {
           }
           log(3, "Run script continued, though System.out is broken (console output)");
         }
-        sikulixIDE.setIsRunningScript(true);
 
         log(4, "************** before RunScript");
         if (!trySaveScriptsBeforeRun()) {
@@ -2383,6 +2382,7 @@ public class SikulixIDE extends JFrame {
           }
         }
 
+        sikulixIDE.setIsRunningScript(true);
         SikulixIDE.getStatusbar().resetMessage();
         SikulixIDE.hideIDE();
         messages.clear();
