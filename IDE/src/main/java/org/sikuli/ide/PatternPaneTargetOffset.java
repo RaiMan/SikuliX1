@@ -173,10 +173,30 @@ class PatternPaneTargetOffset extends JPanel implements
 	@Override
 	public void mouseReleased(MouseEvent me) {
 	  if (resizable.isVisible()) {
-	    changedBounds = resizable.getBounds();
-	    Location center = convertViewToScreen(new Point(changedBounds.x + STROKE_WIDTH, changedBounds.y + STROKE_WIDTH));
-	    changedBounds = new Rectangle(center.getX(), center.getY(), (int)((changedBounds.width - STROKE_WIDTH * 2) / _zoomRatio), (int)((changedBounds.height - STROKE_WIDTH * 2) / _zoomRatio));
-	    setTarget(_offset.x, _offset.y);
+	    Rectangle oldBounds;
+
+	    if (changedBounds != null) {
+	      oldBounds = changedBounds;
+	    } else {
+	      oldBounds = _match.getRect();
+	    }
+
+	    Rectangle bounds = resizable.getBounds();
+	    Location center = convertViewToScreen(new Point(bounds.x + STROKE_WIDTH, bounds.y + STROKE_WIDTH));
+	    changedBounds = new Rectangle(center.getX(), center.getY(), (int)((bounds.width - STROKE_WIDTH * 2) / _zoomRatio), (int)((bounds.height - STROKE_WIDTH * 2) / _zoomRatio));
+
+	    Point oldTarget = _tar.getPoint();
+
+	    if (changedBounds.contains(oldTarget)) {
+	      // Keep target point at the same absolute location
+	      // -> compensate for center point shift
+		    int centerOffsetX = (int)(oldBounds.getCenterX() - changedBounds.getCenterX());
+		    int centerOffsetY = (int)(oldBounds.getCenterY() - changedBounds.getCenterY());
+		    setTarget(_offset.x + centerOffsetX, _offset.y + centerOffsetY);
+	    } else {
+	      // Keep relative offset from the center point
+	      setTarget(_offset.x, _offset.y);
+	    }
 	  }
 	}
 
