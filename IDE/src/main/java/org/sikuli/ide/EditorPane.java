@@ -365,7 +365,8 @@ public class EditorPane extends JTextPane {
       try {
         indentationLogic = editorPaneIDESupport.getIndentationLogic();
         indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-      } catch (Exception ex) { }
+      } catch (Exception ex) {
+      }
     }
 
     if (editorPaneType != null) {
@@ -530,7 +531,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -1107,14 +1108,18 @@ public class EditorPane extends JTextPane {
     String scriptText = getText();
     Lexer lexer = getLexer();
     Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    parseforImagesWalk(pbundle, lexer, scriptText, 0, images, 0);
+    lineNumber = 0;
+    parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
     log(3, "parseforImages finished");
     return images;
   }
 
   //TODO " and ' in comments - line numbers not reported correctly in case
+  int lineNumber = 0;
+  String uncompleteStringError = "uncomplete_string_error";
+
   private void parseforImagesWalk(String pbundle, Lexer lexer,
-                                  String text, int pos, Map<String, List<Integer>> images, Integer line) {
+                                  String text, int pos, Map<String, List<Integer>> images) {
     //log(3, "parseforImagesWalk");
     Iterable<Token> tokens = lexer.getTokens(text);
     boolean inString = false;
@@ -1125,30 +1130,30 @@ public class EditorPane extends JTextPane {
     for (Token t : tokens) {
       current = t.getValue();
       if (current.endsWith("\n")) {
-        line++;
+        lineNumber++;
         if (inString) {
-          boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "\"%s\"\n" +
-                  "Yes: No images will be deleted!\n" +
-                  "No: Ignore and continue", line, text), "Delete images on save");
-          if (answer) {
-            log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
-            images.clear();
-            images.put("uncomplete_comment_error", null);
-          }
+          SX.popError(
+              String.format("Orphan string delimiter (\" or ')\n" +
+                  "in line %d\n" +
+                  "No images will be deleted!\n" +
+                  "Correct the problem before next save!", lineNumber),
+               "Delete images on save");
+          log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+          images.clear();
+          images.put(uncompleteStringError, null);
           break;
         }
       }
       if (t.getType() == TokenType.Comment) {
         //log(3, "parseforImagesWalk::Comment");
         innerText = t.getValue().substring(1);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images, line);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
         continue;
       }
       if (t.getType() == TokenType.String_Doc) {
         //log(3, "parseforImagesWalk::String_Doc");
         innerText = t.getValue().substring(3, t.getValue().length() - 3);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images, line);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
         continue;
       }
       if (!inString) {
@@ -1224,11 +1229,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1304,8 +1309,8 @@ public class EditorPane extends JTextPane {
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1364,8 +1369,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1419,8 +1424,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", zipPath),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", zipPath),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1485,8 +1490,8 @@ public class EditorPane extends JTextPane {
   private void cleanBundle() {
     log(3, "cleanBundle");
     Set<String> foundImages = parseforImages().keySet();
-    if (foundImages.contains("uncomplete_comment_error")) {
-      log(-1, "cleanBundle aborted (uncomplete_comment_error)");
+    if (foundImages.contains(uncompleteStringError)) {
+      log(-1, "cleanBundle aborted (%s)", uncompleteStringError);
     } else {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
       log(lvl, "cleanBundle finished");
@@ -1503,12 +1508,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1632,7 +1637,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }
