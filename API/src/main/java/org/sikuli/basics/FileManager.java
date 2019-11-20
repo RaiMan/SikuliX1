@@ -1337,7 +1337,7 @@ public class FileManager {
     FileFilter skipCompiled = new FileManager.FileFilter() {
       @Override
       public boolean accept(File entry) {
-        if (entry.getName().contains("$py.class")) {
+        if (entry.getName().contains("$py.class") || entry.getName().equals(SCREENSHOT_DIRECTORY)) {
           return false;
         }
         return true;
