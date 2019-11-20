@@ -1101,7 +1101,44 @@ public class EditorPane extends JTextPane {
     Lexer lexer = getLexer();
     Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
     parseforImagesWalk(pbundle, lexer, scriptText, 0, images, 0);
+//    images = parseForStrings(scriptText);
     log(3, "parseforImages finished");
+    return images;
+  }
+
+  Pattern aString1 = Pattern.compile(".*?'(.*?)'");
+  Pattern aString2 = Pattern.compile(".*?\"(.*?)\"");
+  String stringDelimiter = ".*['\"].*";
+
+  private Map<String, List<Integer>> parseForStrings(String text) {
+    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
+    String[] lines = text.split("\n");
+    int nLine = 0;
+    for (String line : lines) {
+      if (line.matches(".*['\"].*")) {
+        nLine++;
+        if (line.matches(".*(\"\"\"|''').*")) continue;
+        String tail = line;
+        while (true) {
+          Matcher matcher = aString1.matcher(tail);
+          if (matcher.find()) {
+            String possibleImage = (matcher.group(1) == null ? matcher.group(2) : matcher.group(1)).trim();
+            if (!possibleImage.isEmpty()) {
+              Debug.logp("%d: %s (%s)", nLine, tail, possibleImage);
+            }
+            tail = tail.substring(matcher.end());
+            if (tail.isEmpty()) {
+              break;
+            }
+          } else {
+            if (tail.matches(stringDelimiter)) {
+              Debug.logp("problem: %d: %s", nLine, tail);
+            }
+            break;
+          }
+        }
+      }
+    }
     return images;
   }
 
@@ -1121,7 +1158,7 @@ public class EditorPane extends JTextPane {
         line++;
         if (inString) {
           boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "\"%s\"\n" +
+                  "%s\n" +
                   "Yes: No images will be deleted!\n" +
                   "No: Ignore and continue", line, text), "Delete images on save");
           if (answer) {
