@@ -68,10 +68,10 @@ class PatternPaneTargetOffset extends JPanel implements
 		new Thread(() -> {
       Region screenUnion = Region.create(0, 0, 1, 1);
 			Finder f = new Finder(_simg, screenUnion);
+			f.find(patFilename);
 
 			EventQueue.invokeLater(() -> {
   			try {
-  				f.find(patFilename);
   				if (f.hasNext()) {
   //TODO rewrite completely for ScreenUnion
             Screen s = (Screen) screenUnion.getScreen();
