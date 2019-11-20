@@ -1100,7 +1100,8 @@ public class EditorPane extends JTextPane {
     String scriptText = getText();
     Lexer lexer = getLexer();
     Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    parseforImagesWalk(pbundle, lexer, scriptText, 0, images, 0);
+    lineNumber = 0;
+    parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
 //    images = parseForStrings(scriptText);
     log(3, "parseforImages finished");
     return images;
@@ -1142,9 +1143,11 @@ public class EditorPane extends JTextPane {
     return images;
   }
 
-  //TODO " and ' in comments - line numbers not reported correctly in case
+  int lineNumber = 0;
+  String uncompleteStringError = "uncomplete_string_error";
+
   private void parseforImagesWalk(String pbundle, Lexer lexer,
-                                  String text, int pos, Map<String, List<Integer>> images, Integer line) {
+                                  String text, int pos, Map<String, List<Integer>> images) {
     //log(3, "parseforImagesWalk");
     Iterable<Token> tokens = lexer.getTokens(text);
     boolean inString = false;
@@ -1155,30 +1158,30 @@ public class EditorPane extends JTextPane {
     for (Token t : tokens) {
       current = t.getValue();
       if (current.endsWith("\n")) {
-        line++;
+        lineNumber++;
         if (inString) {
-          boolean answer = SX.popAsk(String.format("Possible incomplete string in line %d\n" +
-                  "%s\n" +
-                  "Yes: No images will be deleted!\n" +
-                  "No: Ignore and continue", line, text), "Delete images on save");
-          if (answer) {
-            log(-1, "DeleteImagesOnSave: possible incomplete string in line %d", line);
-            images.clear();
-            images.put("uncomplete_comment_error", null);
-          }
+          SX.popError(
+              String.format("Orphan string delimiter (\" or ')\n" +
+                  "in line %d\n" +
+                  "No images will be deleted!\n" +
+                  "Correct the problem before next save!", lineNumber),
+              "Delete images on save");
+          log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+          images.clear();
+          images.put(uncompleteStringError, null);
           break;
         }
       }
       if (t.getType() == TokenType.Comment) {
         //log(3, "parseforImagesWalk::Comment");
         innerText = t.getValue().substring(1);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images, line);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
         continue;
       }
       if (t.getType() == TokenType.String_Doc) {
         //log(3, "parseforImagesWalk::String_Doc");
         innerText = t.getValue().substring(3, t.getValue().length() - 3);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images, line);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
         continue;
       }
       if (!inString) {
@@ -1515,8 +1518,8 @@ public class EditorPane extends JTextPane {
   private void cleanBundle() {
     log(3, "cleanBundle");
     Set<String> foundImages = parseforImages().keySet();
-    if (foundImages.contains("uncomplete_comment_error")) {
-      log(-1, "cleanBundle aborted (uncomplete_comment_error)");
+    if (foundImages.contains(uncompleteStringError)) {
+      log(-1, "cleanBundle aborted (%s)", uncompleteStringError);
     } else {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
       log(lvl, "cleanBundle finished");
