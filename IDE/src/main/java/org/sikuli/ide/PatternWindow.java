@@ -21,13 +21,9 @@ import java.io.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import org.sikuli.script.Image;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.ScreenUnion;
-
-import jnr.posix.util.Finder;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
