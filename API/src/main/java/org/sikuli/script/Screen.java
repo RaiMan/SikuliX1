@@ -233,8 +233,10 @@ public class Screen extends Region implements IScreen {
     return screens[id];
   }
 
+  //TODO really needed? get scale factor of a monitor
   public int getScale() {
-    return getScaleFactor(getMonitor(), -1);
+    return 1;
+    //return getScaleFactor(getMonitor(), -1);
   }
 
   /**
