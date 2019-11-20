@@ -280,6 +280,25 @@ public class Resizable extends JComponent {
 
                         Rectangle bounds = getBounds();
                         bounds.translate(dx, dy);
+
+                        int minX = maxBounds.x;
+                        int maxX = maxBounds.x + maxBounds.width - bounds.width;
+
+                        if (bounds.x < minX) {
+                          bounds.x = minX;
+                        } else if (bounds.x > maxX) {
+                          bounds.x = maxX;
+                        }
+
+                        int minY = maxBounds.y;
+                        int maxY = maxBounds.y + maxBounds.height - bounds.height;
+
+                        if (bounds.y < minY) {
+                          bounds.y = minY;
+                        } else if (bounds.y > maxY) {
+                          bounds.y = maxY;
+                        }
+
                         setBounds(bounds);
                         resize();
                 }
