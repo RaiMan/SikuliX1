@@ -18,6 +18,8 @@ import java.awt.event.MouseEvent;
 
 /**
  * Inspired from  http://zetcode.com/tutorials/javaswingtutorial/resizablecomponent
+ * 
+ * Implements a rectangle that can be resized using drag & drop.
  *
  * @author mbalmer
  */
@@ -157,7 +159,12 @@ public class Resizable extends JComponent {
             getParent().revalidate();
         }
     }
-
+    
+    /**
+     * Set the maximum extent the box can be resized to
+     * 
+     * @param maxBounds
+     */
     public void setMaxBounds(Rectangle maxBounds){
       this.maxBounds = maxBounds;
     }
