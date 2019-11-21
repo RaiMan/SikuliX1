@@ -259,4 +259,43 @@ public class JythonIDESupport implements IIDESupport {
   public ICodeGenerator getCodeGenerator() {
     return new JythonCodeGenerator();
   }
+
+	private static final Pattern IMAGE_STRING_PATTERN = Pattern.compile("[\"']?([^(/\"']+?\\.png)[\"']?", Pattern.CASE_INSENSITIVE);
+
+  /*
+   * This method is also used by JRubyIDESupport. When modified it must either
+   * be JRuby compatible or JRubyIDESupport needs its own implementation.
+   */
+  @Override
+  public Set<String> findImageStrings(String text) throws IIDESupport.IncompleteStringException {
+    Set<String> images = new HashSet<>();
+
+    Matcher m = IMAGE_STRING_PATTERN.matcher(text);
+
+    while(m.find()) {
+      String string = m.group();
+
+      if((string.startsWith("\"") && string.endsWith("\"")) || (string.startsWith("'") && string.endsWith("'"))) {
+        images.add(m.group(1));
+      } else {
+        int lineNumber = getLineNumber(text, m.start());
+        throw new IIDESupport.IncompleteStringException(lineNumber);
+      }
+    }
+
+    return images;
+  }
+
+  private int getLineNumber(String text, int index) {
+    text = text.replaceAll("\r\n", "\n");
+    int currentChars = 0;
+    String[] lines = text.split("\n");
+    for(int i=0;i<lines.length;i++) {
+      currentChars += (lines[i].length() + 1);
+      if(currentChars > index) {
+        return i + 1;
+      }
+    }
+    return -1;
+  }
 }

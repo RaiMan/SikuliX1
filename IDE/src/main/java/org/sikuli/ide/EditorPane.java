@@ -8,10 +8,6 @@ import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
-import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
-import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Location;
@@ -914,30 +910,12 @@ public class EditorPane extends JTextPane {
     if (fileOverWritten) {
       Image.unCache(newName);
     }
-    Map<String, List<Integer>> images = parseforImages();
-    oldName = new File(oldName).getName();
-    List<Integer> poss = images.get(oldName);
-    if (images.containsKey(oldName) && poss.size() > 0) {
-      Collections.sort(poss, new Comparator<Integer>() {
-        @Override
-        public int compare(Integer o1, Integer o2) {
-          if (o1 > o2) return -1;
-          return 1;
-        }
-      });
-      reparseRenameImages(poss, oldName, new File(newName).getName());
-    }
-    doReparse();
-  }
 
-  private boolean reparseRenameImages(List<Integer> poss, String oldName, String newName) {
-    StringBuilder text = new StringBuilder(getText());
-    int lenOld = oldName.length();
-    for (int pos : poss) {
-      text.replace(pos - lenOld, pos, newName);
-    }
-    setText(text.toString());
-    return true;
+    String text = getText();
+    Pattern oldPattern = Pattern.compile("[\"']" + Pattern.quote(oldName) + "[\"']");
+    text = oldPattern.matcher(text).replaceAll(newName);
+    setText(text);
+    doReparse();
   }
 
   public void doReparse() {
@@ -1094,165 +1072,16 @@ public class EditorPane extends JTextPane {
     return codeGenerator.pattern(pattern, mask);
   }
 
-  //TODO move Lexer stuff to its own package
-  private Lexer getLexer() {
-//TODO this only works for cleanbundle to find the image strings
-    String scriptType = "python";
-    if (null != lexers.get(scriptType)) {
-      return lexers.get(scriptType);
+  private Set<String> parseforImages() throws IIDESupport.IncompleteStringException {
+    if (editorPaneIDESupport != null) {
+      String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
+      log(3, "parseforImages: in %s", pbundle);
+      String scriptText = getText();
+      Set<String> images = editorPaneIDESupport.findImageStrings(scriptText);
+      log(3, "parseforImages finished");
+      return images;
     }
-    try {
-      Lexer lexer = Lexer.getByName(scriptType);
-      lexers.put(scriptType, lexer);
-      return lexer;
-    } catch (ResolutionException ex) {
-      return null;
-    }
-  }
-
-  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
-
-  private Map<String, List<Integer>> parseforImages() {
-    String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
-    log(3, "parseforImages: in %s", pbundle);
-    String scriptText = getText();
-    Lexer lexer = getLexer();
-    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    lineNumber = 0;
-    parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
-//    images = parseForStrings(scriptText);
-    log(3, "parseforImages finished");
-    return images;
-  }
-
-  int lineNumber = 0;
-  String uncompleteStringError = "uncomplete_string_error";
-
-  private void parseforImagesWalk(String pbundle, Lexer lexer,
-                                  String text, int pos, Map<String, List<Integer>> images) {
-    //log(3, "parseforImagesWalk");
-    Iterable<Token> tokens = lexer.getTokens(text);
-    boolean inString = false;
-    String current;
-    String innerText;
-    String[] possibleImage = new String[]{""};
-    String[] stringType = new String[]{""};
-    for (Token t : tokens) {
-      current = t.getValue();
-      if (current.endsWith("\n")) {
-        lineNumber++;
-        if (inString) {
-          SX.popError(
-              String.format("Orphan string delimiter (\" or ')\n" +
-                  "in line %d\n" +
-                  "No images will be deleted!\n" +
-                  "Correct the problem before next save!", lineNumber),
-              "Delete images on save");
-          log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
-          images.clear();
-          images.put(uncompleteStringError, null);
-          break;
-        }
-      }
-      if (t.getType() == TokenType.Comment) {
-        //log(3, "parseforImagesWalk::Comment");
-        innerText = t.getValue().substring(1);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
-        continue;
-      }
-      if (t.getType() == TokenType.String_Doc) {
-        //log(3, "parseforImagesWalk::String_Doc");
-        innerText = t.getValue().substring(3, t.getValue().length() - 3);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
-        continue;
-      }
-      if (!inString) {
-        inString = parseforImagesGetName(current, inString, possibleImage, stringType);
-        continue;
-      }
-      if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
-        inString = false;
-        parseforImagesCollect(pbundle, possibleImage[0], pos + t.getPos(), images);
-        continue;
-      }
-    }
-  }
-
-  //TODO find image names in script: implement with regex
-  Pattern aString1 = Pattern.compile(".*?'(.*?)'");
-  Pattern aString2 = Pattern.compile(".*?\"(.*?)\"");
-  String stringDelimiter = ".*['\"].*";
-
-  private Map<String, List<Integer>> parseForStrings(String text) {
-    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
-    String[] lines = text.split("\n");
-    int nLine = 0;
-    for (String line : lines) {
-      if (line.matches(".*['\"].*")) {
-        nLine++;
-        if (line.matches(".*(\"\"\"|''').*")) continue;
-        String tail = line;
-        while (true) {
-          Matcher matcher = aString1.matcher(tail);
-          if (matcher.find()) {
-            String possibleImage = (matcher.group(1) == null ? matcher.group(2) : matcher.group(1)).trim();
-            if (!possibleImage.isEmpty()) {
-              Debug.logp("%d: %s (%s)", nLine, tail, possibleImage);
-            }
-            tail = tail.substring(matcher.end());
-            if (tail.isEmpty()) {
-              break;
-            }
-          } else {
-            if (tail.matches(stringDelimiter)) {
-              Debug.logp("problem: %d: %s", nLine, tail);
-            }
-            break;
-          }
-        }
-      }
-    }
-    return images;
-  }
-
-  private boolean parseforImagesGetName(String current, boolean inString,
-                                        String[] possibleImage, String[] stringType) {
-    //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
-    if (!inString) {
-      if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
-        possibleImage[0] = "";
-        stringType[0] = current.substring(current.length() - 1, current.length());
-        return true;
-      }
-    }
-    if (!current.isEmpty() && "'\"".contains(current) && stringType[0].equals(current)) {
-      return false;
-    }
-    if (inString) {
-      possibleImage[0] += current;
-    }
-    return inString;
-  }
-
-  private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
-    String fimg;
-    //log(3, "parseforImagesCollect");
-    if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
-      fimg = FileManager.slashify(img, false);
-      if (fimg.contains("/")) {
-        if (!fimg.contains(pbundle)) {
-          return;
-        }
-        img = new File(fimg).getName();
-      }
-      if (images.containsKey(img)) {
-        images.get(img).add(pos);
-      } else {
-        List<Integer> poss = new ArrayList<Integer>();
-        poss.add(pos);
-        images.put(img, poss);
-      }
-    }
+    return null;
   }
 
   public boolean showThumbs;
@@ -1519,12 +1348,21 @@ public class EditorPane extends JTextPane {
 
   private void cleanBundle() {
     log(3, "cleanBundle");
-    Set<String> foundImages = parseforImages().keySet();
-    if (foundImages.contains(uncompleteStringError)) {
-      log(-1, "cleanBundle aborted (%s)", uncompleteStringError);
-    } else {
-      FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
-      log(lvl, "cleanBundle finished");
+    try {
+      Set<String> foundImages = parseforImages();
+      if(foundImages != null) {
+        FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
+        log(lvl, "cleanBundle finished");
+      }
+    } catch(IIDESupport.IncompleteStringException e) {
+      int lineNumber = e.getLineNumber();
+      SX.popError(
+          String.format("Missing string delimiter (\" or ')\n" +
+              "in line %d\n" +
+              "No images will be deleted!\n" +
+              "Correct the problem before next save!", lineNumber),
+          "Delete images on save");
+      log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
     }
   }
 
