@@ -25,6 +25,7 @@ public class PatternPaneNaming extends JPanel {
 	JTextField _txtPath, _txtFileExt;
 	JComboBox _txtFilename;
 	String _oldFilename;
+	ImageIcon icon;
 
 	static String _I(String key, Object... args) {
 		return SikuliIDEI18N._I(key, args);
@@ -48,7 +49,8 @@ public class PatternPaneNaming extends JPanel {
 
 		BufferedImage thumb = _imgBtn.createThumbnailImage(THUMB_MAX_HEIGHT);
 		Border border = LineBorder.createGrayLineBorder();
-		JLabel lblThumb = new JLabel(new ImageIcon(thumb));
+		icon = new ImageIcon(thumb);
+		JLabel lblThumb = new JLabel(icon);
 		lblThumb.setBorder(border);
 
 		_txtPath = new JTextField(fullpath, TXT_FILENAME_LENGTH);
@@ -106,6 +108,11 @@ public class PatternPaneNaming extends JPanel {
 
 	protected void updateFilename() {
 		_oldFilename = (String) _txtFilename.getSelectedItem();
+	}
+
+	public void reloadImage() {
+	  BufferedImage thumb = _imgBtn.createThumbnailImage(THUMB_MAX_HEIGHT);
+	  icon.setImage(thumb);
 	}
 
 	private String getFilenameWithoutExt(File f) {

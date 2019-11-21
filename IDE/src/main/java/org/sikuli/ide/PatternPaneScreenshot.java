@@ -39,6 +39,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   private JSlider sldSimilar;
   private JSpinner txtNumMatches;
   private LoadingSpinner _loading;
+  private String patternFileName;
 
   static String _I(String key, Object... args) {
     return SikuliIDEI18N._I(key, args);
@@ -129,27 +130,28 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           final int numMatches) {
     if (!_runFind) {
       _runFind = true;
-      Thread thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            Finder f = new Finder(_simg, _match_region);
-            f.findAll(new Pattern(patFilename).similar(0.00001f));
-            _fullMatches = new TreeSet<Match>(new Comparator() {
-              @Override
-              public int compare(Object o1, Object o2) {
-                return -1 * ((Comparable) o1).compareTo(o2);
-              }
-              @Override
-              public boolean equals(Object o) {
-                return false;
-              }
-              @Override
-              public int hashCode() {
-                int hash = 3;
-                return hash;
-              }
-            });
+      patternFileName = patFilename;
+      new Thread(() -> {
+        try {
+          Finder f = new Finder(_simg, _match_region);
+          f.findAll(new Pattern(patFilename).similar(0.00001f));
+          _fullMatches = new TreeSet<Match>(new Comparator() {
+            @Override
+            public int compare(Object o1, Object o2) {
+              return -1 * ((Comparable) o1).compareTo(o2);
+            }
+            @Override
+            public boolean equals(Object o) {
+              return false;
+            }
+            @Override
+            public int hashCode() {
+              int hash = 3;
+              return hash;
+            }
+          });
+
+          EventQueue.invokeLater(() -> {
             int count = 0;
             while (f.hasNext()) {
               if (++count > MAX_NUM_MATCHING) {
@@ -162,15 +164,19 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
               }
               setParameters(exact, similarity, numMatches);
             }
-          } catch (Exception e) {
-            Debug.error(me + "Problems searching image in ScreenUnion\n%s", e.getMessage());
-          }
+          });
+        } catch (Exception e) {
+          Debug.error(me + "Problems searching image in ScreenUnion\n%s", e.getMessage());
         }
-      });
-      thread.start();
+      }).start();
     } else {
       setParameters(exact, similarity, numMatches);
     }
+  }
+
+  public void reloadImage() {
+    _runFind = false;
+    setParameters(patternFileName, isExact(), getSimilarity(), getNumMatches());
   }
 
   public void setParameters(boolean exact, float similarity, int numMatches) {

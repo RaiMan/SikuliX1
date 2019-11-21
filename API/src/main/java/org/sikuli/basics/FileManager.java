@@ -37,6 +37,7 @@ import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+import org.apache.commons.io.FileUtils;
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Sikulix;
@@ -56,6 +57,7 @@ public class FileManager {
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
   private static SplashFrame _progress = null;
   private static final String EXECUTABLE = "#executable";
+  private static final String SCREENSHOT_DIRECTORY = ".screenshots";
 
   private static int tryGetFileSize(URL aUrl) {
     HttpURLConnection conn = null;
@@ -1132,6 +1134,37 @@ public class FileManager {
     return fpImage;
   }
 
+  public static void saveScreenshotImage(BufferedImage screenshot, String sImage, String bundlePath) {
+    try {
+      File screenshotDir = new File(bundlePath, SCREENSHOT_DIRECTORY);
+      FileUtils.forceMkdir(screenshotDir);
+      saveImage(screenshot, sImage, screenshotDir.getAbsolutePath());
+     } catch (IOException e) {
+      Debug.error("Problem saving screenshot: %s", e.getMessage());
+    }
+  }
+
+  public static File getScreenshotImageFile(String sImage, String bundlePath) {
+    if (!sImage.endsWith(".png")) {
+      sImage += ".png";
+    }
+
+    File screenshotDir = new File(bundlePath, SCREENSHOT_DIRECTORY);
+    return new File(screenshotDir.getAbsolutePath(), sImage);
+  }
+
+  public static BufferedImage getScreenshotImage(String sImage, String bundlePath) {
+    File screenshotFile = getScreenshotImageFile(sImage, bundlePath);
+    if(screenshotFile.exists()) {
+      try {
+        return ImageIO.read(screenshotFile);
+      } catch (IOException e) {
+        Debug.error("Problem reading screenshot: %s", e.getMessage());
+      }
+    }
+    return null;
+  }
+
   //TODO consolidate with FileManager and Settings
   public static void deleteNotUsedImages(String bundle, Set<String> usedImages) {
     File scriptFolder = new File(bundle);
@@ -1153,6 +1186,17 @@ public class FileManager {
       if (!usedImages.contains(image.getName())) {
         Debug.log(3, "FileManager: delete not used: %s", image.getName());
         image.delete();
+      }
+    }
+
+    File screenshotsDir = new File(bundle, SCREENSHOT_DIRECTORY);
+
+    if(screenshotsDir.exists()) {
+      for(File screenshot : screenshotsDir.listFiles()) {
+        if(!usedImages.contains(screenshot.getName())) {
+          Debug.log(3, "FileManager: delete not used screenshot: %s", screenshot.getName());
+          screenshot.delete();
+        }
       }
     }
   }
@@ -1293,7 +1337,7 @@ public class FileManager {
     FileFilter skipCompiled = new FileManager.FileFilter() {
       @Override
       public boolean accept(File entry) {
-        if (entry.getName().contains("$py.class")) {
+        if (entry.getName().contains("$py.class") || entry.getName().equals(SCREENSHOT_DIRECTORY)) {
           return false;
         }
         return true;

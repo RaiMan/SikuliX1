@@ -11,6 +11,7 @@ import javax.imageio.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import org.sikuli.basics.Debug;
+import org.sikuli.idesupport.Resizable;
 import org.sikuli.script.Finder;
 import org.sikuli.script.Location;
 import org.sikuli.script.Match;
@@ -19,10 +20,11 @@ import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 
 class PatternPaneTargetOffset extends JPanel implements
-        MouseListener, MouseWheelListener, ChangeListener {
+        MouseListener, MouseWheelListener, ChangeListener, ComponentListener {
 
   final static String me = "PatternPaneTargetOffset: ";
 	static int DEFAULT_H = 120;
+	private static final int STROKE_WIDTH = 4;
 	final static float DEFAULT_PATTERN_RATIO = 0.1f;
 	private static final Color COLOR_BG_LINE = new Color(210, 210, 210, 130);
 	ScreenImage _simg;
@@ -36,52 +38,62 @@ class PatternPaneTargetOffset extends JPanel implements
 	private LoadingSpinner _loading;
 	private boolean _finding = true;
   private JLabel _msgApplied;
+  private Resizable.Border resizableBorder = null;
+  private Resizable resizableRect = null;
+  private Rectangle changedBounds;
 
 	public PatternPaneTargetOffset(
           ScreenImage simg, String patFilename, Location initOffset, Dimension pDim, JLabel msgApplied) {
-    _msgApplied = msgApplied;
+    super(null);
+	  _msgApplied = msgApplied;
 		_simg = simg;
 		_ratio = DEFAULT_PATTERN_RATIO;
 		setPreferredSize(new Dimension(pDim.width, pDim.height - DEFAULT_H));
 
 		addMouseListener(this);
 		addMouseWheelListener(this);
+		addComponentListener(this);
 
 		_loading = new LoadingSpinner();
 		findTarget(patFilename, initOffset);
+
+		resizableBorder = new Resizable.Border(STROKE_WIDTH * 3);
+		resizableBorder.setStroke(new BasicStroke(STROKE_WIDTH));
+    resizableRect = new Resizable(resizableBorder);
+    resizableRect.setVisible(false);
+    add(resizableRect);
 	}
 
 	void findTarget(final String patFilename, final Location initOffset) {
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-        Region screenUnion = Region.create(0, 0, 1, 1);
-				Finder f = new Finder(_simg, screenUnion);
-				try {
-					f.find(patFilename);
-					if (f.hasNext()) {
-//TODO rewrite completely for ScreenUnion
+		new Thread(() -> {
+      Region screenUnion = Region.create(0, 0, 1, 1);
+			Finder f = new Finder(_simg, screenUnion);
+			f.find(patFilename);
+
+			EventQueue.invokeLater(() -> {
+  			try {
+  				if (f.hasNext()) {
+  //TODO rewrite completely for ScreenUnion
             Screen s = (Screen) screenUnion.getScreen();
             s.setAsScreenUnion();
-						_match = f.next();
+  					_match = f.next();
             s.setAsScreen();
-						if (initOffset != null) {
-							setTarget(initOffset.x, initOffset.y);
-						} else {
-							setTarget(0, 0);
-						}
-					}
-					_img = ImageIO.read(new File(patFilename));
-				} catch (IOException e) {
-					Debug.error(me + "Can't load " + patFilename);
-				}
-				synchronized (PatternPaneTargetOffset.this) {
-					_finding = false;
-				}
-				repaint();
-			}
-		});
-		thread.start();
+  					if (initOffset != null) {
+  						setTarget(initOffset.x, initOffset.y);
+  					} else {
+  						setTarget(0, 0);
+  					}
+  				}
+  				_img = ImageIO.read(new File(patFilename));
+  			} catch (IOException e) {
+  				Debug.error(me + "Can't load " + patFilename);
+  			}
+  			synchronized (PatternPaneTargetOffset.this) {
+  				_finding = false;
+  			}
+  			repaint();
+			});
+		}).start();
 	}
 
 	static String _I(String key, Object... args) {
@@ -90,8 +102,16 @@ class PatternPaneTargetOffset extends JPanel implements
 
 	public void setTarget(int dx, int dy) {
 		Debug.log(4, me + "new target: " + dx + "," + dy);
+
 		if (_match != null) {
-			Location center = _match.getCenter();
+		  Location center;
+		  if (resizableRect.isVisible()) {
+		    Rectangle bounds = resizableRect.getBounds();
+		    center = convertViewToScreen(new Point((int)bounds.getCenterX(), (int)bounds.getCenterY()));
+		  } else {
+		    center = _match.getCenter();
+		  }
+
 			_tar.x = center.x + dx;
 			_tar.y = center.y + dy;
 		} else {
@@ -109,10 +129,11 @@ class PatternPaneTargetOffset extends JPanel implements
 
 	@Override
 	public void mousePressed(MouseEvent me) {
-		Location tar = convertViewToScreen(me.getPoint());
+	  Location tar = convertViewToScreen(me.getPoint());
 		Debug.log(4, "click: " + me.getPoint() + " -> " + tar.toStringShort());
 		if (_match != null) {
-			Location center = _match.getCenter();
+		  Rectangle bounds = resizableRect.getBounds();
+			Location center = convertViewToScreen(new Point((int)bounds.getCenterX(), (int)bounds.getCenterY()));
 			setTarget(tar.x - center.x, tar.y - center.y);
 		} else {
 			setTarget(tar.x, tar.y);
@@ -126,6 +147,9 @@ class PatternPaneTargetOffset extends JPanel implements
 	}
 
 	private void changeSize(int zoomInOut) {
+	  // set to invisible that the resizable rectangle
+	  // get newly configured in paintMatch()
+	  resizableRect.setVisible(false);
 	  if (zoomInOut == 0) {
       return;
     }
@@ -149,6 +173,32 @@ class PatternPaneTargetOffset extends JPanel implements
 
 	@Override
 	public void mouseReleased(MouseEvent me) {
+	  if (resizableRect.isVisible()) {
+	    Rectangle oldBounds;
+
+	    if (changedBounds != null) {
+	      oldBounds = changedBounds;
+	    } else {
+	      oldBounds = _match.getRect();
+	    }
+
+	    Rectangle bounds = resizableRect.getBounds();
+	    Location center = convertViewToScreen(new Point(bounds.x + STROKE_WIDTH, bounds.y + STROKE_WIDTH));
+	    changedBounds = new Rectangle(center.getX(), center.getY(), (int)((bounds.width - STROKE_WIDTH * 2) / _zoomRatio), (int)((bounds.height - STROKE_WIDTH * 2) / _zoomRatio));
+
+	    Point oldTarget = _tar.getPoint();
+
+	    if (changedBounds.contains(oldTarget)) {
+	      // Keep target point at the same absolute location
+	      // -> compensate for center point shift
+		    int centerOffsetX = (int)(oldBounds.getCenterX() - changedBounds.getCenterX());
+		    int centerOffsetY = (int)(oldBounds.getCenterY() - changedBounds.getCenterY());
+		    setTarget(_offset.x + centerOffsetX, _offset.y + centerOffsetY);
+	    } else {
+	      // Keep relative offset from the center point
+	      setTarget(_offset.x, _offset.y);
+	    }
+	  }
 	}
 
 	@Override
@@ -170,7 +220,6 @@ class PatternPaneTargetOffset extends JPanel implements
 				paintPatternOnly(g2d);
 			}
       paintMatch(g2d);
-//			paintRulers(g2d);
 			paintTarget(g2d);
 			synchronized (this) {
 				if (_finding) {
@@ -181,9 +230,9 @@ class PatternPaneTargetOffset extends JPanel implements
 	}
 
 	private void zoomToMatch() {
-		_viewW = (int) (_match.w / _ratio);
+		_viewW = (int)(_match.w / _ratio);
 		_zoomRatio = getWidth() / (float) _viewW;
-		_viewH = (int) (getHeight() / _zoomRatio);
+		_viewH = (int)(getHeight() / _zoomRatio);
 		_viewX = _match.x + _match.w / 2 - _viewW / 2;
 		_viewY = _match.y + _match.h / 2 - _viewH / 2;
 	}
@@ -217,13 +266,34 @@ class PatternPaneTargetOffset extends JPanel implements
 		int h = (int) ((float) w / _img.getWidth() * _img.getHeight());
 		int x = getWidth() / 2 - w / 2;
     int y = getHeight() / 2 - h / 2;
-		Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.getScore()));
-		g2d.setColor(c);
-//		g2d.fillRect(x, y, w, h);
-    Stroke savedStroke = g2d.getStroke();
-    g2d.setStroke(new BasicStroke(5));
-    g2d.drawRect(x, y, w - 1, h - 1);
-    g2d.setStroke(savedStroke);
+
+    Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.getScore()));
+
+    // setup the resizable rectangle in case of a match, just paint a border otherwise
+    if (_match != null) {
+      if(!resizableRect.isVisible()) {
+        resizableRect.setVisible(true);
+
+        Point point = this.convertScreenToView(new Location(0, 0));
+        resizableRect.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
+
+        // take changed bounds if already changes, the original match bounds otherwise.
+        if (changedBounds != null) {
+          point = this.convertScreenToView(new Location(changedBounds.x, changedBounds.y));
+          resizableRect.setBounds(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(changedBounds.width * _zoomRatio) + STROKE_WIDTH * 2, (int)(changedBounds.height * _zoomRatio) + STROKE_WIDTH * 2);
+        } else {
+          resizableRect.setBounds(x - STROKE_WIDTH, y - STROKE_WIDTH, w + STROKE_WIDTH * 2, h + STROKE_WIDTH * 2);
+        }
+
+        resizableBorder.setColor(c);
+      }
+    } else {
+  		g2d.setColor(c);
+      Stroke savedStroke = g2d.getStroke();
+      g2d.setStroke(new BasicStroke(STROKE_WIDTH));
+      g2d.drawRect(x, y, w - 1, h - 1);
+      g2d.setStroke(savedStroke);
+    }
 	}
 
 	void paintBackground(Graphics g2d) {
@@ -260,37 +330,14 @@ class PatternPaneTargetOffset extends JPanel implements
 		g2d.drawLine(l.x, l.y - CROSS_LEN, l.x, l.y + CROSS_LEN);
 	}
 
-	void paintRulers(Graphics g2d) {
-		int step = (int) (10 * _zoomRatio);
-		if (step < 2) {
-			step = 2;
-		}
-		int h = getHeight(), w = getWidth();
-		if (h % 2 == 1) {
-			h--;
-		}
-		if (w % 2 == 1) {
-			w--;
-		}
-		g2d.setColor(COLOR_BG_LINE);
-		for (int x = w / 2; x >= 0; x -= step) {
-			g2d.drawLine(x, 0, x, h);
-			g2d.drawLine(w - x, 0, w - x, h);
-		}
-		for (int y = h / 2; y >= 0; y -= step) {
-			g2d.drawLine(0, y, w, y);
-			g2d.drawLine(0, h - y, w, h - y);
-		}
-	}
-
 	Location convertViewToScreen(Point p) {
 		Location ret = new Location(0, 0);
 		if (_match != null) {
-			ret.x = (int) (p.x / _zoomRatio + _viewX);
-			ret.y = (int) (p.y / _zoomRatio + _viewY);
+			ret.x = (int)(p.x / _zoomRatio + _viewX);
+			ret.y = (int)(p.y / _zoomRatio + _viewY);
 		} else {
-			ret.x = (int) ((p.x - getWidth() / 2) / _zoomRatio);
-			ret.y = (int) ((p.y - getHeight() / 2) / _zoomRatio);
+			ret.x = (int)((p.x - getWidth() / 2) / _zoomRatio);
+			ret.y = (int)((p.y - getHeight() / 2) / _zoomRatio);
 		}
 		return ret;
 	}
@@ -298,11 +345,11 @@ class PatternPaneTargetOffset extends JPanel implements
 	Point convertScreenToView(Location loc) {
 		Point ret = new Point();
 		if (_match != null) {
-			ret.x = (int) ((loc.x - _viewX) * _zoomRatio);
-			ret.y = (int) ((loc.y - _viewY) * _zoomRatio);
+			ret.x = (int)((loc.x - _viewX) * _zoomRatio);
+			ret.y = (int)((loc.y - _viewY) * _zoomRatio);
 		} else {
-			ret.x = (int) (getWidth() / 2 + loc.x * _zoomRatio);
-			ret.y = (int) (getHeight() / 2 + loc.y * _zoomRatio);
+			ret.x = (int)(getWidth() / 2 + loc.x * _zoomRatio);
+			ret.y = (int)(getHeight() / 2 + loc.y * _zoomRatio);
 		}
 		return ret;
 	}
@@ -343,4 +390,31 @@ class PatternPaneTargetOffset extends JPanel implements
 	public Location getTargetOffset() {
 		return new Location(_offset);
 	}
+
+	public Rectangle getChangedBounds() {
+	  if (changedBounds != null) {
+	    return new Rectangle(changedBounds.x, changedBounds.y, changedBounds.width, changedBounds.height);
+	  }
+	  return null;
+	}
+
+  @Override
+  public void componentResized(ComponentEvent e) {
+    // set to invisible that the resizable rectangle
+    // get newly configured in paintMatch()
+    resizableRect.setVisible(false);
+    this.repaint();
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentShown(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentHidden(ComponentEvent e) {
+  }
 }

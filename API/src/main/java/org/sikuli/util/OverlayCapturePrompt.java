@@ -282,6 +282,10 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     return ret;
   }
 
+  public ScreenImage getOriginal() {
+    return scr_img_original;
+  }
+
   private BufferedImage cropSelection() {
     int w = rSel.width, h = rSel.height;
     if (w <= 0 || h <= 0) {
