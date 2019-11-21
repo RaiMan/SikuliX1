@@ -3,6 +3,8 @@
  */
 package org.sikuli.idesupport;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.Image;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.support.generators.ICodeGenerator;
@@ -260,7 +262,8 @@ public class JythonIDESupport implements IIDESupport {
     return new JythonCodeGenerator();
   }
 
-	private static final Pattern IMAGE_STRING_PATTERN = Pattern.compile("[\"']?([^(/\"']+?\\.png)[\"']?", Pattern.CASE_INSENSITIVE);
+	//private static final Pattern IMAGE_STRING_PATTERN = Pattern.compile("[\"']?([^(/\"']+?\\.png)[\"']?", Pattern.CASE_INSENSITIVE);
+	private static final Pattern IMAGE_STRING_PATTERN = Pattern.compile("[\"']([^\n\"']*)?[\n\"']");
 
   /*
    * This method is also used by JRubyIDESupport. When modified it must either
@@ -268,21 +271,43 @@ public class JythonIDESupport implements IIDESupport {
    */
   @Override
   public Set<String> findImageStrings(String text) throws IIDESupport.IncompleteStringException {
-    Set<String> images = new HashSet<>();
+		Debug.log(3, "%s\n", text);
+		Set<String> images = new HashSet<>();
 
-    Matcher m = IMAGE_STRING_PATTERN.matcher(text);
+    Matcher m = IMAGE_STRING_PATTERN.matcher(text + "\n");
+    String isDouble = "";
 
     while(m.find()) {
       String string = m.group();
-
-      if((string.startsWith("\"") && string.endsWith("\"")) || (string.startsWith("'") && string.endsWith("'"))) {
-        images.add(m.group(1));
+      if(!string.endsWith("\n") &&
+					((string.startsWith("\"") && string.endsWith("\""))
+					|| (string.startsWith("'") && string.endsWith("'")))) {
+      	String possibleImage = m.group(1);
+      	if (possibleImage.isEmpty()) {
+      		isDouble = string.substring(0,1);
+      		continue;
+				}
+      	isDouble = "";
+      	possibleImage = possibleImage.trim();
+      	if(!possibleImage.isEmpty()) {
+      		//TODO handle subfolders
+      		if (possibleImage.contains("/") || possibleImage.contains("\\")) {
+						continue;
+					}
+      		possibleImage = Image.getValidImageFilename(possibleImage);
+					images.add(possibleImage);
+					Debug.log(3, "%s", possibleImage);
+				}
       } else {
+      	if (!isDouble.isEmpty() && string.startsWith(isDouble)) {
+      		isDouble = "";
+      		continue;
+				}
+				Debug.log(3, "error: %s", string.replace("\n", "|NL|"));
         int lineNumber = getLineNumber(text, m.start());
         throw new IIDESupport.IncompleteStringException(lineNumber);
       }
     }
-
     return images;
   }
 

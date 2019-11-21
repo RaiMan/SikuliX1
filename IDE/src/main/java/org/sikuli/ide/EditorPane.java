@@ -1362,7 +1362,7 @@ public class EditorPane extends JTextPane {
               "No images will be deleted!\n" +
               "Correct the problem before next save!", lineNumber),
           "Delete images on save");
-      log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+      log(-1, "DeleteImagesOnSave: No images deleted, caused by missing string delimiter (\" or ') in line %d", lineNumber);
     }
   }
 
