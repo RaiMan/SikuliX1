@@ -3,6 +3,8 @@
  */
 package org.sikuli.idesupport;
 
+import java.util.Set;
+
 import org.sikuli.script.runners.JRubyRunner;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
@@ -31,6 +33,11 @@ public class JRubyIDESupport implements IIDESupport {
 	@Override
   public ICodeGenerator getCodeGenerator() {
 	  return new JythonCodeGenerator();
+  }
+
+  @Override
+  public Set<String> findImageStrings(String text) throws IncompleteStringException {
+    return new JythonIDESupport().findImageStrings(text);
   }
 
 }
