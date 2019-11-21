@@ -218,9 +218,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
           this.wait(100);
         } catch (InterruptedException ie) {
         }
-        int textLen = -1;
-        int textPosEnd = -1;
-        int rowStart = -1;
+
         int availableToRead = 0;
         try {
           availableToRead = pin[i].available();
@@ -233,24 +231,28 @@ public class EditorConsolePane extends JPanel implements Runnable {
           } catch (IOException e) {
           }
           if (null != input) {
-            synchronized (textArea) {
-              appendMsg(htmlize(input));
-              //appendMsg("</br>"); //trial to avoid problems with Utilities.getRowStart
-              textLen = textArea.getDocument().getLength();
-              if (textLen > 0) {
-                textPosEnd = textLen - 1;
-                try {
-                  //TODO horizontal slider should be left adjusted with messages exceeding window width
-                  rowStart = textPosEnd; // currently right adjusted in these cases
-                  if (false) { // currently noop
-                    rowStart = Math.max(0, Utilities.getRowStart(textArea, textPosEnd));
+            String finalInput = input;
+            EventQueue.invokeLater(() -> {
+              synchronized (textArea) {
+                appendMsg(htmlize(finalInput));
+                //appendMsg("</br>"); //trial to avoid problems with Utilities.getRowStart
+                int textLen = textArea.getDocument().getLength();
+                if (textLen > 0) {
+                  int textPosEnd = textLen - 1;
+                  int rowStart = -1;
+                  try {
+                    //TODO horizontal slider should be left adjusted with messages exceeding window width
+                    rowStart = textPosEnd; // currently right adjusted in these cases
+//                    if (false) { // currently noop
+//                      rowStart = Math.max(0, Utilities.getRowStart(textArea, textPosEnd));
+//                    }
+                  } catch (Exception e) {
+                    rowStart = textPosEnd; // fallback when using Utilities.getRowStart
                   }
-                } catch (Exception e) {
-                  rowStart = textPosEnd; // fallback when using Utilities.getRowStart
+                  textArea.setCaretPosition(rowStart);
                 }
-                textArea.setCaretPosition(rowStart);
               }
-            }
+            });
           }
         }
         if (quit) {

@@ -1804,34 +1804,33 @@ public class EditorPane extends JTextPane {
   }
 
   public void runLines(String lines) {
-    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
-    }
-    SikulixIDE.get().setVisible(false);
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        SikulixIDE ide = SikulixIDE.get();
+    SikulixIDE ide = SikulixIDE.get();
 
-        try {
-          ide.setCurrentRunner(editorPane.editorPaneRunner);
-          ide.setCurrentScript(editorPane.getCurrentFile());
-          ide.setIsRunningScript(true);
-          ide.clearMessageArea();
-          ide.resetErrorMark();
+    ide.synchronizeScriptStart(() -> {
+      ide.setVisible(false);
+      ide.setCurrentRunner(editorPane.editorPaneRunner);
+      ide.setCurrentScript(editorPane.getCurrentFile());
+      ide.setIsRunningScript(true);
+      ide.clearMessageArea();
+      ide.resetErrorMark();
 
-          if (hasIDESupport()) {
-            editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
-          } else {
-            editorPane.editorPaneRunner.runLines(lines, null);
+      new Thread(() -> {
+          try {
+            if (hasIDESupport()) {
+              editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
+            } else {
+              editorPane.editorPaneRunner.runLines(lines, null);
+            }
+          } finally {
+            EventQueue.invokeLater(() -> {
+              SikulixIDE.showAgain();
+              ide.setCurrentRunner(null);
+              ide.setCurrentScript(null);
+            });
+            ide.setIsRunningScript(false);
           }
-        } finally {
-          SikulixIDE.showAgain();
-          ide.setCurrentRunner(null);
-          ide.setCurrentScript(null);
-          ide.setIsRunningScript(false);
-        }
-      }
-    }).start();
+      }).start();
+    });
   }
   //</editor-fold>
 
