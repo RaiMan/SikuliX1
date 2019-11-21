@@ -287,11 +287,10 @@ public class JythonIDESupport implements IIDESupport {
   }
 
   private int getLineNumber(String text, int index) {
-    text = text.replaceAll("\r\n", "\n");
     int currentChars = 0;
     String[] lines = text.split("\n");
     for(int i=0;i<lines.length;i++) {
-      currentChars += (lines[i].length() + 1);
+      currentChars += (lines[i].length() + 1); // +1 for \n
       if(currentChars > index) {
         return i + 1;
       }
