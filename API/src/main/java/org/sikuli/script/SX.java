@@ -202,6 +202,7 @@ public class SX {
         }
 
         synchronized(this) {
+          dispose(); // needs to be here, frame is not always closed properly otherwise
           this.notify();
         }
       }
