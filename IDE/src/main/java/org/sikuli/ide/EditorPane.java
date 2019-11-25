@@ -1315,7 +1315,7 @@ public class EditorPane extends JTextPane {
 
     String scriptText = getText();
 
-    for (File imageFile : new File(getBundlePath()).listFiles(new FilenameFilter() {
+    FilenameFilter filter = new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
@@ -1325,7 +1325,9 @@ public class EditorPane extends JTextPane {
         }
         return false;
       }
-    })) {
+    };
+
+    for (File imageFile : new File(getBundlePath()).listFiles(filter)) {
       String name = imageFile.getName();
 
       //keep if mentioned in script with extension
@@ -1347,6 +1349,9 @@ public class EditorPane extends JTextPane {
         //imageFile.delete();
       }
     }
+
+    FileManager.deleteNotUsedScreenshots(getBundlePath(), new File(getBundlePath()).listFiles(filter));
+
     log(lvl, "cleanBundle finished: %s", getCurrentScriptname());
   }
 
