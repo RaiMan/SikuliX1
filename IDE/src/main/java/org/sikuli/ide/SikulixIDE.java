@@ -428,6 +428,9 @@ public class SikulixIDE extends JFrame {
       try {
         editorPane = getPaneAtIndex(tabIndex);
         String fileName = editorPane.editorPaneFileSelected;
+        if (!editorPane.isTemp()) {
+          editorPane.cleanBundle();
+        }
         if (action == DO_NOT_SAVE) {
           if (quitting) {
             editorPane.setDirty(false);

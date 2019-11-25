@@ -680,6 +680,10 @@ public class EditorPane extends JTextPane {
     return editorPaneFile.getName();
   }
 
+  public String getCurrentScriptname() {
+    return FilenameUtils.getBaseName(getCurrentShortFilename());
+  }
+
   public File saveAndGetCurrentFile() {
     if (hasEditingFile() && isDirty()) {
       saveAsSelect();
@@ -1221,34 +1225,6 @@ public class EditorPane extends JTextPane {
     } catch (IOException e) {
       return false;
     }
-    if (isBundle()) {
-      boolean shouldDeleteHTML = true;
-      if (PreferencesUser.get().getAtSaveMakeHTML()) {
-        try {
-          convertSrcToHtml(getSrcBundle());
-          shouldDeleteHTML = false;
-        } catch (Exception ex) {
-          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
-        }
-      }
-      if (shouldDeleteHTML) {
-        String snameDir = editorPaneFile.getParent();
-        if (snameDir.endsWith(".sikuli")) {
-          String sname = snameDir.replace(".sikuli", "") + ".html";
-          (new File(snameDir, sname)).delete();
-        }
-      }
-      if (PreferencesUser.get().getAtSaveCleanBundle()) {
-        if (!editorPaneType.equals(JythonRunner.TYPE)) {
-          log(lvl, "delete-not-used-images for %s using Python string syntax", editorPaneType);
-        }
-        try {
-          cleanBundle();
-        } catch (Exception ex) {
-          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
-        }
-      }
-    }
     setDirty(false);
     return true;
   }
@@ -1334,8 +1310,8 @@ public class EditorPane extends JTextPane {
 //    }
   }
 
-  private void cleanBundle() {
-    log(3, "cleanBundle");
+  protected void cleanBundle() {
+    log(3, "cleanBundle: %s", getCurrentScriptname());
 
     String scriptText = getText();
 
@@ -1371,10 +1347,10 @@ public class EditorPane extends JTextPane {
         //imageFile.delete();
       }
     }
-    log(lvl, "cleanBundle finished");
+    log(lvl, "cleanBundle finished: %s", getCurrentScriptname());
   }
 
-  public boolean close() throws IOException {
+  public boolean close() {
     if (!isTemp()) {
       log(lvl, "Tab close: %s", getCurrentShortFilename());
     }
@@ -1403,6 +1379,34 @@ public class EditorPane extends JTextPane {
         SikulixIDE.get().setCurrentFileTabTitle(fileSaved);
       } else {
         setDirty(false);
+      }
+    }
+    if (isBundle()) {
+      boolean shouldDeleteHTML = true;
+      if (PreferencesUser.get().getAtSaveMakeHTML()) {
+        try {
+          convertSrcToHtml(getSrcBundle());
+          shouldDeleteHTML = false;
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+        }
+      }
+      if (shouldDeleteHTML) {
+        String snameDir = editorPaneFile.getParent();
+        if (snameDir.endsWith(".sikuli")) {
+          String sname = snameDir.replace(".sikuli", "") + ".html";
+          (new File(snameDir, sname)).delete();
+        }
+      }
+      if (PreferencesUser.get().getAtSaveCleanBundle()) {
+        if (!editorPaneType.equals(JythonRunner.TYPE)) {
+          log(lvl, "delete-not-used-images for %s using Python string syntax", editorPaneType);
+        }
+        try {
+          cleanBundle();
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+        }
       }
     }
     return true;
