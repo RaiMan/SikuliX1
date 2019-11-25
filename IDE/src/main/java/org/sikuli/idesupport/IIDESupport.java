@@ -32,7 +32,4 @@ public interface IIDESupport {
 	String normalizePartialScript(String script);
 
 	public ICodeGenerator getCodeGenerator();
-
-	Set<String> findImageStrings(String text) throws IncompleteStringException;
-
 }

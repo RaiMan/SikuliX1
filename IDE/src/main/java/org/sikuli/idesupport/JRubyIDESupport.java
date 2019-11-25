@@ -34,10 +34,4 @@ public class JRubyIDESupport implements IIDESupport {
   public ICodeGenerator getCodeGenerator() {
 	  return new JythonCodeGenerator();
   }
-
-  @Override
-  public Set<String> findImageStrings(String text) throws IncompleteStringException {
-    return new JythonIDESupport().findImageStrings(text);
-  }
-
 }

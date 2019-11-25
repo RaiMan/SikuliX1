@@ -925,7 +925,7 @@ public class Image {
         image.setIsAbsolute(imageFile.isAbsolute());
       } else {
         if (image.bimg != null) {
-          log(3, "reused: %s (%s)", image.imageName, image.fileURL);
+          log(4, "reused: %s (%s)", image.imageName, image.fileURL);
         } else {
           if (Settings.getImageCache() > 0) {
             image.load();

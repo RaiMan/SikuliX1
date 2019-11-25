@@ -539,7 +539,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -1072,27 +1072,15 @@ public class EditorPane extends JTextPane {
     return codeGenerator.pattern(pattern, mask);
   }
 
-  private Set<String> parseforImages() throws IIDESupport.IncompleteStringException {
-    if (editorPaneIDESupport != null) {
-      String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
-      log(3, "parseforImages: in %s", pbundle);
-      String scriptText = getText();
-      Set<String> images = editorPaneIDESupport.findImageStrings(scriptText);
-      log(3, "parseforImages finished");
-      return images;
-    }
-    return null;
-  }
-
   public boolean showThumbs;
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1168,8 +1156,8 @@ public class EditorPane extends JTextPane {
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1228,8 +1216,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1283,8 +1271,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", zipPath),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", zipPath),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1348,22 +1336,42 @@ public class EditorPane extends JTextPane {
 
   private void cleanBundle() {
     log(3, "cleanBundle");
-    try {
-      Set<String> foundImages = parseforImages();
-      if(foundImages != null) {
-        FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
-        log(lvl, "cleanBundle finished");
+
+    String scriptText = getText();
+
+    for (File imageFile : new File(getBundlePath()).listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
+          if (!name.startsWith("_")) {
+            return true;
+          }
+        }
+        return false;
       }
-    } catch(IIDESupport.IncompleteStringException e) {
-      int lineNumber = e.getLineNumber();
-      SX.popError(
-          String.format("Missing string delimiter (\" or ')\n" +
-              "in line %d\n" +
-              "No images will be deleted!\n" +
-              "Correct the problem before next save!", lineNumber),
-          "Delete images on save");
-      log(-1, "DeleteImagesOnSave: No images deleted, caused by missing string delimiter (\" or ') in line %d", lineNumber);
+    })) {
+      String name = imageFile.getName();
+
+      //keep if mentioned in script with extension
+      if (scriptText.contains(name)) {
+        continue;
+      }
+
+      //delete if not mentioned without extension as String
+      String regEx = "['\"]" +  FilenameUtils.getBaseName(name) + "['\"]";
+      boolean found = false;
+      Matcher matcher = Pattern.compile(regEx).matcher(scriptText);
+      if (matcher.find()) {
+        if (matcher.group().endsWith(matcher.group().substring(0,1))) {
+          found = true;
+        }
+      }
+      if (!found) {
+        Debug.logp("*** deleted %s", name);
+        //imageFile.delete();
+      }
     }
+    log(lvl, "cleanBundle finished");
   }
 
   public boolean close() throws IOException {
@@ -1376,12 +1384,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1505,7 +1513,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }
@@ -1653,20 +1661,20 @@ public class EditorPane extends JTextPane {
       ide.resetErrorMark();
 
       new Thread(() -> {
-          try {
-            if (hasIDESupport()) {
-              editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
-            } else {
-              editorPane.editorPaneRunner.runLines(lines, null);
-            }
-          } finally {
-            EventQueue.invokeLater(() -> {
-              SikulixIDE.showAgain();
-              ide.setCurrentRunner(null);
-              ide.setCurrentScript(null);
-            });
-            ide.setIsRunningScript(false);
+        try {
+          if (hasIDESupport()) {
+            editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
+          } else {
+            editorPane.editorPaneRunner.runLines(lines, null);
           }
+        } finally {
+          EventQueue.invokeLater(() -> {
+            SikulixIDE.showAgain();
+            ide.setCurrentRunner(null);
+            ide.setCurrentScript(null);
+          });
+          ide.setIsRunningScript(false);
+        }
       }).start();
     });
   }
