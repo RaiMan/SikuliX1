@@ -1311,10 +1311,8 @@ public class EditorPane extends JTextPane {
   }
 
   protected void cleanBundle() {
-    log(3, "cleanBundle: %s", getCurrentScriptname());
-
+    log(lvl + 1, "cleanBundle: %s", getCurrentScriptname());
     String scriptText = getText();
-
     for (File imageFile : new File(getBundlePath()).listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -1327,27 +1325,20 @@ public class EditorPane extends JTextPane {
       }
     })) {
       String name = imageFile.getName();
-
-      //keep if mentioned in script with extension
+      //keep if imagename with extension (png, jpg, jpeg) is mentioned in script
       if (scriptText.contains(name)) {
         continue;
       }
-
-      //delete if not mentioned without extension as String
-      String regEx = "['\"]" +  FilenameUtils.getBaseName(name) + "['\"]";
-      boolean found = false;
+      //keep if imagename without extension is mentioned as string ("imagename" or 'imagename') in the script
+      String regEx = "['\"]" + Pattern.quote(FilenameUtils.getBaseName(name)) + "['\"]";
       Matcher matcher = Pattern.compile(regEx).matcher(scriptText);
-      if (matcher.find()) {
-        if (matcher.group().endsWith(matcher.group().substring(0,1))) {
-          found = true;
-        }
+      if (matcher.find() && matcher.group().endsWith(matcher.group().substring(0, 1))) {
+        continue;
       }
-      if (!found) {
-        Debug.logp("*** deleted %s", name);
-        //imageFile.delete();
-      }
+      log(lvl + 1, "*** deleted %s", name);
+      imageFile.delete();
     }
-    log(lvl, "cleanBundle finished: %s", getCurrentScriptname());
+    log(lvl + 1, "cleanBundle finished: %s", getCurrentScriptname());
   }
 
   public boolean close() {
