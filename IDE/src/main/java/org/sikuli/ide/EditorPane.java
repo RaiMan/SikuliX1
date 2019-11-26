@@ -1341,7 +1341,7 @@ public class EditorPane extends JTextPane {
       log(lvl + 1, "*** deleted %s", name);
       imageFile.delete();
     }
-    
+
     FileManager.deleteNotUsedScreenshots(getBundlePath(), new File(getBundlePath()).listFiles(filter));
     log(lvl + 1, "cleanBundle finished: %s", getCurrentScriptname());
   }
