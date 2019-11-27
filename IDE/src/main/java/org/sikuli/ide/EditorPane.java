@@ -1313,7 +1313,8 @@ public class EditorPane extends JTextPane {
   protected void cleanBundle() {
     log(lvl + 1, "cleanBundle: %s", getCurrentScriptname());
     String scriptText = getText();
-    for (File imageFile : new File(getBundlePath()).listFiles(new FilenameFilter() {
+
+    FilenameFilter filter = new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
@@ -1323,7 +1324,9 @@ public class EditorPane extends JTextPane {
         }
         return false;
       }
-    })) {
+    };
+
+    for (File imageFile : new File(getBundlePath()).listFiles(filter)) {
       String name = imageFile.getName();
       //keep if imagename with extension (png, jpg, jpeg) is mentioned in script
       if (scriptText.contains(name)) {
@@ -1338,6 +1341,8 @@ public class EditorPane extends JTextPane {
       log(lvl + 1, "*** deleted %s", name);
       imageFile.delete();
     }
+
+    FileManager.deleteNotUsedScreenshots(getBundlePath(), new File(getBundlePath()).listFiles(filter));
     log(lvl + 1, "cleanBundle finished: %s", getCurrentScriptname());
   }
 
