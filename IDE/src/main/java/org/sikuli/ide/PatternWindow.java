@@ -313,6 +313,7 @@ public class PatternWindow extends JFrame {
       _imgBtn.reloadImage();
       _screenshot.reloadImage();
       paneNaming.reloadImage();
+      currentPane.doReparse();
 
       File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
       if(!screenshotImageFile.exists()) {
