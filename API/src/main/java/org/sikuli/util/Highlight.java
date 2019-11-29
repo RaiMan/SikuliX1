@@ -60,6 +60,9 @@ public class Highlight extends JFrame {
       setBackground(new Color(0, 0, 0, 0));
       setAlwaysOnTop(true);
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      setType(JFrame.Type.UTILITY);
+      setFocusableWindowState(false);
+      setAutoRequestFocus(false);
     }
   }
 
