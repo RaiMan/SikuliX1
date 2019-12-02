@@ -90,6 +90,7 @@ public class Highlight extends JFrame {
       sidex = reg.h;
       sidey = reg.w;
       JPanel panel = initAsFrame();
+      panel.setOpaque(false);
       setContentPane(panel);
     }
   }
@@ -184,22 +185,7 @@ public class Highlight extends JFrame {
     int frameW = sidey + 2 * lineWidth;
     int frameH = sidex + 2 * lineWidth;
     setSize(frameW, frameH);
-    JPanel panel = new JPanel() {
-      @Override
-      protected void paintComponent(Graphics g) {
-        if (g instanceof Graphics2D) {
-          Point2D.Float center = new Point2D.Float(frameW / 2.0f, frameH / 2.0f);
-          Color colorFull = getColor();
-          Color colorTrans = new Color(colorFull.getRed(), colorFull.getGreen(), colorFull.getBlue(), 0);
-          float radius = Math.max(center.x, center.y);
-          float[] dist = {0.0f, 1.0f};
-          Color[] colors = {colorTrans, colorFull};
-          Graphics2D g2d = (Graphics2D) g;
-          g2d.setPaint(new RadialGradientPaint(center, radius, dist, colors));
-          g2d.fillRect(0, 0, frameW, frameH);
-        }
-      }
-    };
+    JPanel panel = new JPanel();
     panel.setBorder(BorderFactory.createLineBorder(givenColor, 3));
     return panel;
   }
