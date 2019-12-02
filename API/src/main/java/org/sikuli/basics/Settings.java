@@ -138,6 +138,7 @@ public class Settings {
   public static boolean Highlight = false;
   public static float DefaultHighlightTime = 2f;
   public static String DefaultHighlightColor = "RED";
+  public static boolean HighlightTransparent = false;
   public static double WaitAfterHighlight = 0.3;
 
   public static boolean ActionLogs = true;
@@ -150,10 +151,6 @@ public class Settings {
   public static boolean UserLogs = true;
   public static String UserLogPrefix = "user";
   public static boolean UserLogTime = true;
-
-  public static boolean isJava7() {
-    return Guide.JavaVersion > 6;
-  }
 
   public static String getFilePathSeperator() {
     return File.separator;

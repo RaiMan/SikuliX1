@@ -90,7 +90,11 @@ public class Highlight extends JFrame {
       sidex = reg.h;
       sidey = reg.w;
       JPanel panel = initAsFrame();
-      setContentPane(panel);
+      if (panel == null) {
+        getRootPane().setBorder(BorderFactory.createLineBorder(givenColor, 3));
+      } else {
+        setContentPane(panel);
+      }
     }
   }
 
@@ -184,6 +188,9 @@ public class Highlight extends JFrame {
     int frameW = sidey + 2 * lineWidth;
     int frameH = sidex + 2 * lineWidth;
     setSize(frameW, frameH);
+    if (Settings.HighlightTransparent) {
+      return null;
+    }
     JPanel panel = new JPanel() {
       @Override
       protected void paintComponent(Graphics g) {
