@@ -826,9 +826,6 @@ public class SikulixIDE extends JFrame {
     PreferencesWin pwin = new PreferencesWin();
     pwin.setAlwaysOnTop(true);
     pwin.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    if (!Settings.isJava7()) {
-      pwin.setLocation(getLocation());
-    }
     pwin.setVisible(true);
   }
 
