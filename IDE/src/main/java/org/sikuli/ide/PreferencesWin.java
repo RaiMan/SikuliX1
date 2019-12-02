@@ -5,6 +5,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.PreferencesUser;
 import com.jgoodies.forms.factories.DefaultComponentFactory;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.Element;
+
 import org.jdesktop.layout.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
@@ -56,7 +58,7 @@ public class PreferencesWin extends JFrame {
   private int _spnTabWidth;
   Locale _locale;
   EditorPane codePane;
-	JFrame winPrefMore;
+  JFrame winPrefMore;
 
   boolean isDirty = false;
 
@@ -89,7 +91,7 @@ public class PreferencesWin extends JFrame {
   private JButton _btnOk;
   private JButton _btnApply;
   private JButton _btnCancel;
-	private JButton _btnMore;
+  private JButton _btnMore;
   // JFormDesigner - End of variables declaration  //GEN-END:variables
   //</editor-fold>
 
@@ -134,7 +136,7 @@ public class PreferencesWin extends JFrame {
     _btnOk = new JButton();
     _btnApply = new JButton();
     _btnCancel = new JButton();
-		_btnMore = new JButton();
+    _btnMore = new JButton();
 
     //======== this ========
     Container contentPane = getContentPane();
@@ -177,49 +179,49 @@ public class PreferencesWin extends JFrame {
         GroupLayout paneCaptureLayout = new GroupLayout(paneCapture);
         paneCapture.setLayout(paneCaptureLayout);
         paneCaptureLayout.setHorizontalGroup(
-                paneCaptureLayout.createParallelGroup()
+            paneCaptureLayout.createParallelGroup()
                 .add(paneCaptureLayout.createSequentialGroup()
-                .add(26, 26, 26)
-                .add(paneCaptureLayout.createParallelGroup()
-                .add(GroupLayout.TRAILING, _lblDelay)
-                .add(GroupLayout.TRAILING, _lblHotkey)
-                .add(GroupLayout.TRAILING, _lblNaming))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(paneCaptureLayout.createParallelGroup()
-                .add(_radTimestamp)
-                .add(_radOCR)
-                .add(_radOff)
-                .add(paneCaptureLayout.createSequentialGroup()
-                .add(spnDelay, GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_lblDelaySecs, GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
-                .add(_txtHotkey, GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE))
-                .add(69, 69, 69)));
+                    .add(26, 26, 26)
+                    .add(paneCaptureLayout.createParallelGroup()
+                        .add(GroupLayout.TRAILING, _lblDelay)
+                        .add(GroupLayout.TRAILING, _lblHotkey)
+                        .add(GroupLayout.TRAILING, _lblNaming))
+                    .addPreferredGap(LayoutStyle.RELATED)
+                    .add(paneCaptureLayout.createParallelGroup()
+                        .add(_radTimestamp)
+                        .add(_radOCR)
+                        .add(_radOff)
+                        .add(paneCaptureLayout.createSequentialGroup()
+                            .add(spnDelay, GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
+                            .addPreferredGap(LayoutStyle.RELATED)
+                            .add(_lblDelaySecs, GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
+                        .add(_txtHotkey, GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE))
+                    .add(69, 69, 69)));
         paneCaptureLayout.setVerticalGroup(
-                paneCaptureLayout.createParallelGroup()
+            paneCaptureLayout.createParallelGroup()
                 .add(paneCaptureLayout.createSequentialGroup()
-                .add(34, 34, 34)
-                .add(paneCaptureLayout.createParallelGroup(GroupLayout.BASELINE)
-                .add(_lblHotkey, GroupLayout.PREFERRED_SIZE, 22, GroupLayout.PREFERRED_SIZE)
-                .add(_txtHotkey, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(paneCaptureLayout.createParallelGroup()
-                .add(_lblDelay, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-                .add(spnDelay, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(_lblDelaySecs, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(paneCaptureLayout.createParallelGroup(GroupLayout.LEADING, false)
-                .add(paneCaptureLayout.createSequentialGroup()
-                .add(paneCaptureLayout.createParallelGroup(GroupLayout.BASELINE)
-                .add(_lblNaming, GroupLayout.PREFERRED_SIZE, 22, GroupLayout.PREFERRED_SIZE)
-                .add(_radTimestamp))
-                .add(18, 18, 18)
-                .add(_radOff)
-                .addPreferredGap(LayoutStyle.RELATED))
-                .add(GroupLayout.TRAILING, paneCaptureLayout.createSequentialGroup()
-                .add(_radOCR)
-                .add(21, 21, 21)))
-                .add(80, 80, 80)));
+                    .add(34, 34, 34)
+                    .add(paneCaptureLayout.createParallelGroup(GroupLayout.BASELINE)
+                        .add(_lblHotkey, GroupLayout.PREFERRED_SIZE, 22, GroupLayout.PREFERRED_SIZE)
+                        .add(_txtHotkey, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(LayoutStyle.RELATED)
+                    .add(paneCaptureLayout.createParallelGroup()
+                        .add(_lblDelay, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+                        .add(spnDelay, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .add(_lblDelaySecs, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(LayoutStyle.RELATED)
+                    .add(paneCaptureLayout.createParallelGroup(GroupLayout.LEADING, false)
+                        .add(paneCaptureLayout.createSequentialGroup()
+                            .add(paneCaptureLayout.createParallelGroup(GroupLayout.BASELINE)
+                                .add(_lblNaming, GroupLayout.PREFERRED_SIZE, 22, GroupLayout.PREFERRED_SIZE)
+                                .add(_radTimestamp))
+                            .add(18, 18, 18)
+                            .add(_radOff)
+                            .addPreferredGap(LayoutStyle.RELATED))
+                        .add(GroupLayout.TRAILING, paneCaptureLayout.createSequentialGroup()
+                            .add(_radOCR)
+                            .add(21, 21, 21)))
+                    .add(80, 80, 80)));
       }
       _tabPane.addTab(SikuliIDEI18N._I("prefTabScreenCapturing"), paneCapture);
 
@@ -254,54 +256,54 @@ public class PreferencesWin extends JFrame {
         GroupLayout _paneTextEditingLayout = new GroupLayout(_paneTextEditing);
         _paneTextEditing.setLayout(_paneTextEditingLayout);
         _paneTextEditingLayout.setHorizontalGroup(
-                _paneTextEditingLayout.createParallelGroup()
+            _paneTextEditingLayout.createParallelGroup()
                 .add(GroupLayout.TRAILING, _paneTextEditingLayout.createSequentialGroup()
-                .add(95, 95, 95)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(_titleIndentation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(_paneTextEditingLayout.createSequentialGroup()
-                .add(_titleAppearance, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(_paneTextEditingLayout.createSequentialGroup()
-                .add(29, 29, 29)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(GroupLayout.TRAILING, _lblTabWidth)
-                .add(GroupLayout.TRAILING, _lblFont)
-                .add(GroupLayout.TRAILING, _lblFontSize))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(_cmbFontName, 0, 218, Short.MAX_VALUE)
-                .add(_spnFontSize, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
-                .add(spnTabWidth, GroupLayout.PREFERRED_SIZE, 52, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED, 97, Short.MAX_VALUE))
-                .add(chkExpandTab, GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE))))
-                .addContainerGap()));
+                    .add(95, 95, 95)
+                    .add(_paneTextEditingLayout.createParallelGroup()
+                        .add(_titleIndentation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .add(_paneTextEditingLayout.createSequentialGroup()
+                            .add(_titleAppearance, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(LayoutStyle.RELATED)
+                            .add(_paneTextEditingLayout.createParallelGroup()
+                                .add(_paneTextEditingLayout.createSequentialGroup()
+                                    .add(29, 29, 29)
+                                    .add(_paneTextEditingLayout.createParallelGroup()
+                                        .add(GroupLayout.TRAILING, _lblTabWidth)
+                                        .add(GroupLayout.TRAILING, _lblFont)
+                                        .add(GroupLayout.TRAILING, _lblFontSize))
+                                    .addPreferredGap(LayoutStyle.RELATED)
+                                    .add(_paneTextEditingLayout.createParallelGroup()
+                                        .add(_cmbFontName, 0, 218, Short.MAX_VALUE)
+                                        .add(_spnFontSize, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
+                                        .add(spnTabWidth, GroupLayout.PREFERRED_SIZE, 52, GroupLayout.PREFERRED_SIZE))
+                                    .addPreferredGap(LayoutStyle.RELATED, 97, Short.MAX_VALUE))
+                                .add(chkExpandTab, GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE))))
+                    .addContainerGap()));
         _paneTextEditingLayout.setVerticalGroup(
-                _paneTextEditingLayout.createParallelGroup()
+            _paneTextEditingLayout.createParallelGroup()
                 .add(_paneTextEditingLayout.createSequentialGroup()
-                .add(21, 21, 21)
-                .add(_titleIndentation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(_paneTextEditingLayout.createSequentialGroup()
-                .add(81, 81, 81)
-                .add(_titleAppearance, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(_paneTextEditingLayout.createSequentialGroup()
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(chkExpandTab)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_paneTextEditingLayout.createParallelGroup()
-                .add(_lblTabWidth, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE)
-                .add(spnTabWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .add(40, 40, 40)
-                .add(_paneTextEditingLayout.createParallelGroup(GroupLayout.BASELINE)
-                .add(_lblFont)
-                .add(_cmbFontName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_paneTextEditingLayout.createParallelGroup(GroupLayout.TRAILING)
-                .add(_lblFontSize, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
-                .add(_spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(154, Short.MAX_VALUE)));
+                    .add(21, 21, 21)
+                    .add(_titleIndentation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .add(_paneTextEditingLayout.createParallelGroup()
+                        .add(_paneTextEditingLayout.createSequentialGroup()
+                            .add(81, 81, 81)
+                            .add(_titleAppearance, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .add(_paneTextEditingLayout.createSequentialGroup()
+                            .addPreferredGap(LayoutStyle.RELATED)
+                            .add(chkExpandTab)
+                            .addPreferredGap(LayoutStyle.RELATED)
+                            .add(_paneTextEditingLayout.createParallelGroup()
+                                .add(_lblTabWidth, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE)
+                                .add(spnTabWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                            .add(40, 40, 40)
+                            .add(_paneTextEditingLayout.createParallelGroup(GroupLayout.BASELINE)
+                                .add(_lblFont)
+                                .add(_cmbFontName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                            .addPreferredGap(LayoutStyle.RELATED)
+                            .add(_paneTextEditingLayout.createParallelGroup(GroupLayout.TRAILING)
+                                .add(_lblFontSize, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
+                                .add(_spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+                    .addContainerGap(154, Short.MAX_VALUE)));
         _paneTextEditingLayout.linkSize(new Component[]{_lblTabWidth, spnTabWidth}, GroupLayout.VERTICAL);
         _paneTextEditingLayout.linkSize(new Component[]{_cmbFontName, _lblFont}, GroupLayout.VERTICAL);
       }
@@ -319,35 +321,35 @@ public class PreferencesWin extends JFrame {
         GroupLayout paneGeneralLayout = new GroupLayout(paneGeneral);
         paneGeneral.setLayout(paneGeneralLayout);
         paneGeneralLayout.setHorizontalGroup(
-                paneGeneralLayout.createParallelGroup()
+            paneGeneralLayout.createParallelGroup()
                 .add(paneGeneralLayout.createSequentialGroup()
-                .add(137, 137, 137)
-                .add(paneGeneralLayout.createParallelGroup()
-                .add(paneGeneralLayout.createSequentialGroup()
-                .add(_lblLanguage)
-                .add(185, 185, 185))
-                .add(paneGeneralLayout.createSequentialGroup()
-                .add(38, 38, 38)
-                .add(_cmbLang, GroupLayout.PREFERRED_SIZE, 215, GroupLayout.PREFERRED_SIZE))
-                .add(paneGeneralLayout.createSequentialGroup()
-                .add(_lblUpdates)
-                .add(318, 318, 318))
-                .add(GroupLayout.TRAILING, paneGeneralLayout.createSequentialGroup()
-                .add(38, 38, 38)
-                .add(chkAutoUpdate, GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)))
-                .addContainerGap()));
+                    .add(137, 137, 137)
+                    .add(paneGeneralLayout.createParallelGroup()
+                        .add(paneGeneralLayout.createSequentialGroup()
+                            .add(_lblLanguage)
+                            .add(185, 185, 185))
+                        .add(paneGeneralLayout.createSequentialGroup()
+                            .add(38, 38, 38)
+                            .add(_cmbLang, GroupLayout.PREFERRED_SIZE, 215, GroupLayout.PREFERRED_SIZE))
+                        .add(paneGeneralLayout.createSequentialGroup()
+                            .add(_lblUpdates)
+                            .add(318, 318, 318))
+                        .add(GroupLayout.TRAILING, paneGeneralLayout.createSequentialGroup()
+                            .add(38, 38, 38)
+                            .add(chkAutoUpdate, GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)))
+                    .addContainerGap()));
         paneGeneralLayout.setVerticalGroup(
-                paneGeneralLayout.createParallelGroup()
+            paneGeneralLayout.createParallelGroup()
                 .add(paneGeneralLayout.createSequentialGroup()
-                .add(26, 26, 26)
-                .add(_lblUpdates)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(chkAutoUpdate)
-                .add(40, 40, 40)
-                .add(_lblLanguage)
-                .addPreferredGap(LayoutStyle.RELATED)
-                .add(_cmbLang, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(196, Short.MAX_VALUE)));
+                    .add(26, 26, 26)
+                    .add(_lblUpdates)
+                    .addPreferredGap(LayoutStyle.RELATED)
+                    .add(chkAutoUpdate)
+                    .add(40, 40, 40)
+                    .add(_lblLanguage)
+                    .addPreferredGap(LayoutStyle.RELATED)
+                    .add(_cmbLang, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(196, Short.MAX_VALUE)));
       }
       _tabPane.addTab(SikuliIDEI18N._I("prefTabGeneralSettings"), paneGeneral);
 
@@ -489,7 +491,7 @@ public class PreferencesWin extends JFrame {
     pref.setCaptureHotkey(cap_hkey);
     pref.setCaptureHotkeyModifiers(cap_mod);
     pref.setAutoNamingMethod(
-            _radTimestamp.isSelected() ? PreferencesUser.AUTO_NAMING_TIMESTAMP :
+        _radTimestamp.isSelected() ? PreferencesUser.AUTO_NAMING_TIMESTAMP :
             (_radOCR.isSelected() ? PreferencesUser.AUTO_NAMING_OCR : PreferencesUser.AUTO_NAMING_OFF));
     if (old_cap_hkey != cap_hkey || old_cap_mod != cap_mod) {
       ide.removeCaptureHotkey();
@@ -539,7 +541,7 @@ public class PreferencesWin extends JFrame {
 
   private void initFontPrefs() {
     String[] fontList = GraphicsEnvironment.getLocalGraphicsEnvironment()
-            .getAvailableFontFamilyNames();
+        .getAvailableFontFamilyNames();
     for (String font : fontList) {
       _cmbFontName.addItem(font);
     }
@@ -549,8 +551,8 @@ public class PreferencesWin extends JFrame {
 
   private void initLangPrefs() {
     String[] SUPPORT_LOCALES = {
-      "it", "es", "pt_BR", "ar", "fr", "ru", "bg", "he", "sv", "ca", "ja", "tr",
-      "da", "ko", "uk", "de", "nl", "zh_CN", "en_US", "pl", "zh_TW", "ta_IN"
+        "it", "es", "pt_BR", "ar", "fr", "ru", "bg", "he", "sv", "ca", "ja", "tr",
+        "da", "ko", "uk", "de", "nl", "zh_CN", "en_US", "pl", "zh_TW", "ta_IN"
     };
     Locale[] sortedLocales = new Locale[SUPPORT_LOCALES.length];
     int count = 0;
@@ -565,7 +567,7 @@ public class PreferencesWin extends JFrame {
       sortedLocales[count++] = l;
     }
     Arrays.sort(sortedLocales, new Comparator<Locale>() {
-			@Override
+      @Override
       public int compare(Locale l1, Locale l2) {
         return l1.getDisplayLanguage().compareTo(l2.getDisplayLanguage());
       }
@@ -589,33 +591,28 @@ public class PreferencesWin extends JFrame {
   }
 
   private void btnMoreActionPerformed(ActionEvent e) {
-		winPrefMore = new JFrame("Preferences: more Options ...");
+    winPrefMore = new JFrame("Preferences: more Options ...");
     Container mpwinCP = winPrefMore.getContentPane();
     mpwinCP.setLayout(new BorderLayout());
-		mpwinCP.add(new PreferencesWindowMore(), BorderLayout.CENTER);
-		winPrefMore.pack();
-		winPrefMore.setAlwaysOnTop(true);
-		winPrefMore.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		if (Settings.isJava7()) {
-			winPrefMore.setLocation(getLocation().x-70, getLocation().y);
-		}
-		else {
-			winPrefMore.setLocation(getLocation().x+getWidth()+10, getLocation().y);
-		}
-		winPrefMore.setVisible(true);
+    mpwinCP.add(new PreferencesWindowMore(), BorderLayout.CENTER);
+    winPrefMore.pack();
+    winPrefMore.setAlwaysOnTop(true);
+    winPrefMore.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    winPrefMore.setLocation(getLocation().x - 70, getLocation().y);
+    winPrefMore.setVisible(true);
   }
 
   private void btnOkActionPerformed(ActionEvent e) {
     savePrefs();
     String warn = "Until some bugs have been fixed,\n" +
-            "you should restart the IDE now!\n" +
-						"(except for most options in [more options ...])\n" +
-            "Otherwise you might notice strange behavior ;-)\n" +
-            "--- but only if you have made any changes!\n\n" +
-            "Use CANCEL next time, if nothing was changed!";
+        "you should restart the IDE now!\n" +
+        "(except for most options in [more options ...])\n" +
+        "Otherwise you might notice strange behavior ;-)\n" +
+        "--- but only if you have made any changes!\n\n" +
+        "Use CANCEL next time, if nothing was changed!";
     JOptionPane.showMessageDialog(this, warn,
-            "--- Preferences have been saved ---", JOptionPane.WARNING_MESSAGE);
-		if (winPrefMore != null) winPrefMore.dispose();
+        "--- Preferences have been saved ---", JOptionPane.WARNING_MESSAGE);
+    if (winPrefMore != null) winPrefMore.dispose();
     this.dispose();
   }
 
@@ -627,8 +624,8 @@ public class PreferencesWin extends JFrame {
     if (isDirty) {
       resetPrefs();
     }
-		if (winPrefMore != null) winPrefMore.dispose();
-	  this.dispose();
+    if (winPrefMore != null) winPrefMore.dispose();
+    this.dispose();
   }
 
   private void setTxtHotkey(int code, int mod) {
@@ -650,12 +647,12 @@ public class PreferencesWin extends JFrame {
   }
 
   private void updateFontPreview() {
-    if (! isInitialized || codePane == null) {
+    if (!isInitialized || codePane == null) {
       return;
     }
     SikulixIDE ide = SikulixIDE.get();
     Font font = new Font((String) _cmbFontName.getSelectedItem(), Font.PLAIN,
-            (Integer) _spnFontSize.getValue());
+        (Integer) _spnFontSize.getValue());
     try {
       Element root = codePane.getDocument().getDefaultRootElement();
       codePane.jumpTo(root.getElementIndex(codePane.getCaretPosition()));
@@ -679,10 +676,10 @@ class LocaleListCellRenderer extends DefaultListCellRenderer {
 
   @Override
   public Component getListCellRendererComponent(JList list,
-  Object value, int index, boolean isSelected, boolean hasFocus) {
+                                                Object value, int index, boolean isSelected, boolean hasFocus) {
     Locale locale = (Locale) (value);
     return super.getListCellRendererComponent(list,
-            locale.getDisplayName(locale), index, isSelected, hasFocus);
+        locale.getDisplayName(locale), index, isSelected, hasFocus);
   }
 }
 //</editor-fold>
