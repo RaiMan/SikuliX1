@@ -32,6 +32,7 @@ import java.util.Date;
  */
 public class Debug {
 
+	private static boolean initOK = false;
 	private static int TRACE_LEVEL = 0;
   private static int DEBUG_LEVEL = 0;
 	private static boolean loggerRedirectSupported = true;
@@ -76,6 +77,9 @@ public class Debug {
 
 
 	public static void init() {
+		if (initOK) {
+			return;
+		}
     String debug = System.getProperty("sikuli.Debug");
     if (debug != null) {
 			if ("".equals(debug)) {
@@ -103,6 +107,7 @@ public class Debug {
     if (DEBUG_LEVEL > 0) {
 			setGlobalDebug(DEBUG_LEVEL);
 		}
+    initOK = true;
 	}
 
 	public static boolean isGlobalDebug() {
@@ -489,6 +494,7 @@ public class Debug {
    * @return current debug level
    */
   public static int getDebugLevel() {
+  	init();
     return DEBUG_LEVEL;
   }
 
