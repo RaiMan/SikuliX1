@@ -83,10 +83,14 @@ public class Image {
   }
 
   private Image(URL fURL) {
-    if ("file".equals(fURL.getProtocol())) {
-      init(fURL.getPath(), fURL);
+    if (fURL != null) {
+      if ("file".equals(fURL.getProtocol())) {
+        init(fURL.getPath(), fURL);
+      } else {
+        init(getNameFromURL(fURL), fURL);
+      }
     } else {
-      init(getNameFromURL(fURL), fURL);
+      imageName = "";
     }
   }
 
@@ -600,7 +604,10 @@ public class Image {
    * @return the image
    */
   public static Image create(URL url) {
-    Image img = get(url);
+    Image img = null;
+    if (url != null) {
+      img = get(url);
+    }
     if (img == null) {
       img = new Image(url);
     }
