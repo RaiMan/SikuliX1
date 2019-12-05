@@ -1488,7 +1488,7 @@ public class Finder implements Iterator<Match> {
     double lastScore = -1;
     double scoreMeanDiff = -1;
     double scoreMaxDiff = 0.005;
-    double matchCount = 0;
+    int matchCount = 0;
 
     private int currentX = -1;
     private int currentY = -1;
