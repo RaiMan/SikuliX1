@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.RunTime;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -90,6 +91,9 @@ public class Pattern {
    * @param url image file URL
    */
   public Pattern(URL url) {
+    if (null == url) {
+      RunTime.terminate(999, "Pattern(URL): given url is null - a resource might not be available");
+    }
     image = Image.create(url);
   }
 
