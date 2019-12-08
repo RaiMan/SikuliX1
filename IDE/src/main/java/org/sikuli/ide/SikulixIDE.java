@@ -52,6 +52,8 @@ public class SikulixIDE extends JFrame {
       SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
+    System.out.println("-----------------------------------------------------------------> SikulixIDE::main(): enter");
+
     RunTime.afterStart(RunTime.Type.IDE, args);
 
     if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
@@ -809,7 +811,7 @@ public class SikulixIDE extends JFrame {
   public void showAbout() {
     //TODO full featured About
     String info = "You are running " + runTime.SXVersionIDE
-        + "\nUsing Java version " + runTime.jreVersion
+        + "\nUsing Java version " + runTime.sysPropJRTVersion
         + "\n\nNeed help? -> start with Help Menu\n\n"
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
