@@ -52,7 +52,6 @@ public class SikulixIDE extends JFrame {
       SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
-    System.out.println("-----------------------------------------------------------------> SikulixIDE::main(): enter");
 
     RunTime.afterStart(RunTime.Type.IDE, args);
 
@@ -220,7 +219,7 @@ public class SikulixIDE extends JFrame {
   private void initSikuliIDE() {
     Debug.log(3, "IDE: Reading Preferences");
     prefs = PreferencesUser.get();
-    //prefs.exportPrefs(new File(runTime.fUserDir, "SikulixIDEprefs.txt").getAbsolutePath());
+    //prefs.save(new File(runTime.fUserDir, "SikulixIDEprefs.txt").getAbsolutePath());
     if (prefs.getUserType() < 0) {
       prefs.setIdeSession("");
       prefs.setDefaults();

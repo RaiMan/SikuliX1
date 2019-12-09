@@ -3,7 +3,6 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.guide.Guide;
 import org.sikuli.script.Image;
 import org.sikuli.script.support.RunTime;
 //import org.sikuli.script.RunTime;
@@ -164,7 +163,7 @@ public class Settings {
   }
 
   public static String getDataPath() {
-    return RunTime.get().fSikulixAppPath.getAbsolutePath();
+    return RunTime.get().fSikulixAppFolder.getAbsolutePath();
   }
 
   public static final int ISWINDOWS = 0;

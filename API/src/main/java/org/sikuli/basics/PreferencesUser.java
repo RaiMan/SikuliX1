@@ -6,17 +6,13 @@ package org.sikuli.basics;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.PreferenceChangeListener;
-import java.util.prefs.Preferences;
+import java.util.prefs.*;
 
-import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.RunTime;
 
 public class PreferencesUser {
 
@@ -50,7 +46,7 @@ public class PreferencesUser {
                   + ".log   { color: #09806A; }"
                   + ".error { color: red; }";
   static PreferencesUser _instance = null;
-  Preferences pref = Preferences.userNodeForPackage(Sikulix.class);
+  Preferences pref = null;
 
   public static PreferencesUser get() {
     if (_instance == null) {
@@ -61,6 +57,11 @@ public class PreferencesUser {
 
   private PreferencesUser() {
     Debug.log(3, "init user preferences");
+    if (RunTime.isSandbox()) {
+      pref = Preferences.userNodeForPackage(org.sikuli.script.Sikulix.class);
+    } else {
+      pref = Preferences.userNodeForPackage(org.sikuli.script.Sikulix.class);
+    }
   }
 
   public boolean save(String path) {

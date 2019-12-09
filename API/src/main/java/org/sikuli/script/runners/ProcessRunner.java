@@ -154,6 +154,18 @@ public class ProcessRunner extends AbstractScriptRunner{
 
   public static void detach(List<String> cmd) {
     if (cmd.size() > 0) {
+      String line = "";
+      boolean shouldPrint = false;
+      for (String item : cmd) {
+        line += " " + item.trim();
+        if ("-v".equals(item.trim())) {
+          shouldPrint = true;
+        }
+      }
+      if (shouldPrint) {
+        System.out.println("[DEBUG] ProcessRunner::detach:");
+        System.out.println(line.trim());
+      }
       ProcessBuilder app = new ProcessBuilder();
       Map<String, String> processEnv = app.environment();
       app.command(cmd);

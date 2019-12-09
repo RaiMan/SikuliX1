@@ -131,7 +131,7 @@ public class Options {
         log(-1, "loadOptions: not exists: %s", fOptions);
       }
     } else {
-      for (File aFile : new File[]{runtime.fSikulixStore, runtime.fWorkDir, runtime.fUserDir}) {
+      for (File aFile : new File[]{runtime.fUserDir, runtime.fWorkDir, runtime.fSikulixStore}) {
         fOptions = new File(aFile, fpOptions);
         if (fOptions.exists()) {
           break;

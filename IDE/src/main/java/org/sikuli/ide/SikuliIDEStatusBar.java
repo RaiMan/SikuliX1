@@ -7,6 +7,8 @@ import java.awt.*;
 import javax.swing.*;
 
 import com.explodingpixels.macwidgets.plaf.EmphasizedLabelUI;
+import org.sikuli.script.support.RunTime;
+
 import java.util.Date;
 
 class SikuliIDEStatusBar extends JPanel {
@@ -69,11 +71,17 @@ class SikuliIDEStatusBar extends JPanel {
 
   public void resetMessage() {
     String buildNumber = SikulixIDE.runTime.SXBuildNumber;
-    if (buildNumber.isEmpty()) {
-      setMessage(SikulixIDE.runTime.SXVersionIDE);
-    } else {
-      setMessage(SikulixIDE.runTime.SXVersionIDE + String.format(" build#: %s (%s)", buildNumber, SikulixIDE.runTime.SXBuild));
+    String message = SikulixIDE.runTime.SXVersionIDE;
+    if (!buildNumber.isEmpty()) {
+      message += String.format(" build#: %s (%s)", buildNumber, SikulixIDE.runTime.SXBuild);
     }
+    if (RunTime.isSandbox()) {
+      message += " (Sandbox)";
+    }
+    if (RunTime.isDevelop()) {
+      message += " (dev)";
+    }
+    setMessage(message);
     starting = 0;
   }
 //  @Override
