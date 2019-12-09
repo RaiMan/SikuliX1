@@ -1149,15 +1149,27 @@ java.desktop/sun.awt=ALL-UNNAMED
       userName = "unknown";
     }
 
-    String tmpdir = sysPropJIoTmpdir;
-    if (tmpdir != null && !tmpdir.isEmpty()) {
-      fTempPath = new File(tmpdir);
+    if (!isSandbox()) {
+      String tmpdir = sysPropJIoTmpdir;
+      if (tmpdir != null && !tmpdir.isEmpty()) {
+        fTempPath = new File(tmpdir);
+      } else {
+        throw new SikuliXception("init: java.io.tmpdir not valid (null or empty");
+      }
     } else {
-      throw new SikuliXception("init: java.io.tmpdir not valid (null or empty");
+      File fSandbox = getAppDataFolder().getParentFile();
+      fTempPath = new File(fSandbox, "SikulixTemp");
+      fTempPath.mkdir();
+      if (fTempPath.exists()) {
+        startLog(3, "Sandbox Temp: %s", fTempPath);
+      } else {
+        throw new SikuliXception(String.format("init: Sandbox Temp not possible: %s", fTempPath));
+      }
     }
     fBaseTempPath = new File(fTempPath, String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
+    log(3, " trying temp folder: %s", fpBaseTempPath);
     try {
       File tempTest = new File(fBaseTempPath, "tempTest.txt");
       FileManager.writeStringToFile("temp test", tempTest);
@@ -1171,12 +1183,11 @@ java.desktop/sun.awt=ALL-UNNAMED
         success = false;
       }
       if (!success) {
-        throw new SikuliXception("init: java.io.tmpdir not useable");
+        throw new SikuliXception("init: temp folder not useable");
       }
     } catch (Exception e) {
-      throw new SikuliXception("init: java.io.tmpdir not writable");
+      throw new SikuliXception("init: temp folder not writable");
     }
-    log(3, "temp folder ok: %s", fpBaseTempPath);
     if (Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
       isRunning = new File(fTempPath, isRunningFilename);
       boolean shouldTerminate = false;
