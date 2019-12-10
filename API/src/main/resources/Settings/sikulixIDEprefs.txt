@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE preferences SYSTEM "http://java.sun.com/dtd/preferences.dtd">
+<preferences EXTERNAL_XML_VERSION="1.0">
+  <root type="user">
+    <map/>
+    <node name="org">
+      <map/>
+      <node name="sikuli">
+        <map/>
+        <node name="script">
+          <map>
+            <entry key="IDE_SESSION" value="C:\Users\rmhde\IdeaProjects\_SUPPORT\testHighlight.sikuli"/>
+            <entry key="USER_TYPE" value="2"/>
+            <entry key="CAPTURE_HOTKEY" value="50"/>
+            <entry key="CAPTURE_HOTKEY_MODIFIERS" value="3"/>
+            <entry key="CAPTURE_DELAY" value="1.0"/>
+            <entry key="STOP_HOTKEY" value="67"/>
+            <entry key="STOP_HOTKEY_MODIFIERS" value="9"/>
+            <entry key="EXPAND_TAB" value="true"/>
+            <entry key="TAB_WIDTH" value="4"/>
+            <entry key="FONT_SIZE" value="14"/>
+            <entry key="FONT_NAME" value="Monospaced"/>
+            <entry key="LOCALE" value="de_DE"/>
+            <entry key="AUTO_NAMING" value="0"/>
+            <entry key="PREF_MORE_IMAGE_THUMBS" value="true"/>
+            <entry key="DEFAULT_THUMB_HEIGHT" value="50"/>
+            <entry key="AT_SAVE_MAKE_HTML" value="false"/>
+            <entry key="AT_SAVE_CLEAN_BUNDLE" value="true"/>
+            <entry key="PREF_MORE_RUN_SAVE" value="true"/>
+            <entry key="PREF_MORE_HIGHLIGHT" value="false"/>
+            <entry key="CHECK_UPDATE" value="false"/>
+            <entry key="LAST_SEEN_UPDATE" value="0.0.0"/>
+            <entry key="LAST_CHECK_UPDATE" value="1573201843262"/>
+            <entry key="IDE_SIZE" value="1069x968"/>
+            <entry key="IDE_LOCATION" value="700,73"/>
+            <entry key="PREF_MORE_IMAGES" value="false"/>
+            <entry key="PREF_MORE_IMAGES_PATH" value=""/>
+            <entry key="PREF_MORE_MESSAGE" value="1"/>
+            <entry key="PREF_MORE_LOG_ACTIONS" value="true"/>
+            <entry key="PREF_MORE_LOG_INFO" value="true"/>
+            <entry key="CONSOLE_CSS" value="body   { font-family:monospace; font-size: 11px; }.normal{ color: black; }.debug { color:#505000; }.info  { color: blue; }.log   { color: #09806A; }.error { color: red; }"/>
+            <entry key="LAST_OPEN_DIR" value="C:\Users\rmhde\IdeaProjects\_SUPPORT"/>
+          </map>
+        </node>
+      </node>
+    </node>
+  </root>
+</preferences>

@@ -41,14 +41,7 @@ public class RunTime {
 
   //<editor-fold desc="00 static">
   private RunTime() {
-    if (isDevelop()) {
-      System.out.println("-----------------------------------------------------------------> RunTime: making instance");
-      try {
-        int i = 1 / 0;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+    Debug.logCallStack(2, "RunTime: instantiation");
   }
 
   private static RunTime runTime = null;
@@ -79,16 +72,16 @@ public class RunTime {
   private static File sxAppDataFolder = null;
   private static File sxRunningJar = null;
 
+
   public static boolean isDevelop() {
-    String devIDE = System.getProperty("sikuli.IDE_should_run");
-    String devAPI = System.getProperty("sikuli.API_should_run");
-    if (devIDE != null) {
-      return "develop".equals(devIDE);
-    } else if (devAPI != null) {
-      return "develop".equals(devAPI);
-    }
-    return false;
+    return sxDevelop;
   }
+
+  public static void setDevelop() {
+    sxDevelop = true;
+  }
+
+  private static boolean sxDevelop = false;
 
   public static void setSandbox() {
     sxSandbox = "";
@@ -412,8 +405,8 @@ java.desktop/sun.awt=ALL-UNNAMED
         cmd.add("java.base/java.io=ALL-UNNAMED");
         cmd.add("-Dnashorn.args=--no-deprecation-warning");
       }
-
       cmd.add("-Dfile.encoding=UTF-8");
+
       for (Object key : sysProps.keySet()) {
         if (key.toString().startsWith("sikuli")) {
           String dSetting = "-D" + key.toString();
@@ -469,6 +462,10 @@ java.desktop/sun.awt=ALL-UNNAMED
     getRunningJar(type);
     evalArgsStart(args);
     Debug.log(3, "Sikulix: starting " + startType);
+    if (isSandbox()) {
+      String javaTemp = new File(getAppDataFolder().getParent(), "SikulixJavaTemp").getAbsolutePath();
+      System.setProperty("java.io.tmpdir", javaTemp);
+    }
     evalArgs(args);
     ExtensionManager.readExtensions(true);
 
@@ -527,6 +524,8 @@ java.desktop/sun.awt=ALL-UNNAMED
         setVerbose();
       } else if ("-sandbox".equals(arg)) {
         setSandbox();
+      } else if ("-dev".equals(arg)) {
+        setDevelop();
       } else if ("-q".equals(arg)) {
         setQuiet();
       } else if ("-r".equals(arg)) {
