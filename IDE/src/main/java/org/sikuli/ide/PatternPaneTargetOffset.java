@@ -173,7 +173,7 @@ class PatternPaneTargetOffset extends JPanel implements
 
 	@Override
 	public void mouseReleased(MouseEvent me) {
-	  if (resizableRect.isVisible()) {
+	  if (me.getComponent() == resizableRect) {
 	    Rectangle oldBounds;
 
 	    if (changedBounds != null) {
