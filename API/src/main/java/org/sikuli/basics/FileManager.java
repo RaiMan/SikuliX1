@@ -1261,7 +1261,7 @@ public class FileManager {
   }
 
   public static String makeScriptjar(List<String> options) {
-    File fSikulixTemp = new File(RunTime.get().fSikulixStore, "SikulixTemp");
+    File fSikulixTemp = new File(RunTime.fSikulixStore, "SikulixTemp");
     FileManager.resetFolder(fSikulixTemp);
     String target = doMakeScriptjar(options, fSikulixTemp);
     deleteFileOrFolder(fSikulixTemp);

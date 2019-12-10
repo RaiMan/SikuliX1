@@ -162,10 +162,6 @@ public class Settings {
     return ":";
   }
 
-  public static String getDataPath() {
-    return RunTime.get().fSikulixAppFolder.getAbsolutePath();
-  }
-
   public static final int ISWINDOWS = 0;
   public static final int ISMAC = 1;
   public static final int ISLINUX = 2;

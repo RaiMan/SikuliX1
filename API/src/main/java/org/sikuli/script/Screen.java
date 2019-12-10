@@ -683,7 +683,7 @@ public class Screen extends Region implements IScreen {
     }
     lastScreenImage = simg;
     if (Debug.getDebugLevel() > lvl) {
-      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
+      simg.saveLastScreenImage(RunTime.fSikulixStore);
     }
     return simg;
   }
