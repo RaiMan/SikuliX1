@@ -26,9 +26,22 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   boolean _runFind = false;
   float _similarity;
   int _numMatches;
-  Set<Match> _fullMatches = null;
+  Set<Match> _fullMatches = Collections.synchronizedSet(new TreeSet<Match>(new Comparator<Match>() {
+    @Override
+    public int compare(Match o1, Match o2) {
+      return -1 * o1.compareTo(o2);
+    }
+    @Override
+    public boolean equals(Object o) {
+      return false;
+    }
+    @Override
+    public int hashCode() {
+      int hash = 3;
+      return hash;
+    }
+  }));
   ArrayList<Match> _showMatches = null;
-  final Boolean _showMatchesSynch = true;
   protected ScreenImage _simg;
   protected BufferedImage _screen = null;
   protected Rectangle _uBound;
@@ -119,6 +132,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           final int numMatches) {
     if (!_runFind) {
       _showMatches = null;
+      _fullMatches.clear();
       repaint();
       _runFind = true;
       patternFileName = patFilename;
@@ -126,21 +140,6 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
         try {
           Finder f = new Finder(_simg);
           f.findAll(new Pattern(patFilename).similar(0.00001f));
-          _fullMatches = Collections.synchronizedSet(new TreeSet<Match>(new Comparator<Match>() {
-            @Override
-            public int compare(Match o1, Match o2) {
-              return -1 * o1.compareTo(o2);
-            }
-            @Override
-            public boolean equals(Object o) {
-              return false;
-            }
-            @Override
-            public int hashCode() {
-              int hash = 3;
-              return hash;
-            }
-          }));
 
           int count = 0;
           while (f.hasNext()) {
@@ -226,13 +225,13 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     return _numMatches;
   }
 
-  public void setSimilarity(float similarity) {
+  private void setSimilarity(float similarity) {
     _similarity = similarity > 0.99f ? 0.99f : similarity;
     filterMatches(_similarity, _numMatches);
     repaint();
   }
 
-  public void setNumMatches(int numMatches) {
+  private void setNumMatches(int numMatches) {
     _numMatches = numMatches;
     filterMatches(_similarity, _numMatches);
     repaint();
@@ -241,15 +240,13 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   void filterMatches(float similarity, int numMatches) {
     int count = 0;
     if (_fullMatches != null && numMatches >= 0) {
-      if (_showMatches == null) {
-        _showMatches = new ArrayList<Match>();
-      }
-      synchronized (_showMatchesSynch) {
-        _showMatches.clear();
-        if (numMatches == 0) {
-          return;
-        }
+      _showMatches = new ArrayList<Match>();
 
+      if (numMatches == 0) {
+        return;
+      }
+
+      synchronized(_fullMatches) {
         for (Match m : _fullMatches) {
           if (m.getScore() >= similarity) {
             _showMatches.add(m);
@@ -259,6 +256,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           }
         }
       }
+
 //      _lblMatchCount.setText(Integer.toString(count));
       Debug.log(4, "filterMatches(%.2f,%d): %d", similarity, numMatches, count);
     }
@@ -286,19 +284,16 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   }
 
   void paintMatches(Graphics2D g2d) {
-    synchronized (_showMatchesSynch) {
-      for (Match m : _showMatches) {
-        int x = (int) (m.x * _scale);
-        int y = (int) (m.y * _scale);
-        int w = (int) (m.w * _scale);
-        int h = (int) (m.h * _scale);
-        Color c = PatternSimilaritySlider.getScoreColor(m.getScore());
-        g2d.setColor(c);
-        g2d.fillRect(x, y, w, h);
-        g2d.drawRect(x, y, w - 1, h - 1);
-      }
+    for (Match m : _showMatches) {
+      int x = (int) (m.x * _scale);
+      int y = (int) (m.y * _scale);
+      int w = (int) (m.w * _scale);
+      int h = (int) (m.h * _scale);
+      Color c = PatternSimilaritySlider.getScoreColor(m.getScore());
+      g2d.setColor(c);
+      g2d.fillRect(x, y, w, h);
+      g2d.drawRect(x, y, w - 1, h - 1);
     }
-
   }
 
   @Override
