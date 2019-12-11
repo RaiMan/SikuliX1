@@ -41,6 +41,8 @@ public class PatternWindow extends JFrame {
 	private int tabSequence = 0;
 	private static final int tabMax = 3;
 	private ScreenImage _simg;
+	private ScreenImage savedScreenImage;
+	private boolean previewShowsCurrentScreen = false;
 	private boolean dirty;
   private EditorPane currentPane;
   boolean isFileOverwritten = false;
@@ -63,12 +65,13 @@ public class PatternWindow extends JFrame {
 		_imgBtn = imgBtn;
 
 		File imgFile = new File(imgBtn.getFileName());
-		BufferedImage savedScreenshot = FileManager.getScreenshotImage(imgFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
 
-		if(savedScreenshot != null) {
-		  _simg = new ScreenImage(new Rectangle(0,0,savedScreenshot.getWidth(), savedScreenshot.getHeight()), savedScreenshot);
+		BufferedImage savedImage = FileManager.getScreenshotImage(imgFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+
+		if(savedImage != null) {
+		  _simg = savedScreenImage = new ScreenImage(new Rectangle(0,0,savedImage.getWidth(), savedImage.getHeight()), savedImage);
 		} else {
-		  takeScreenshot();
+		  _simg = takeScreenshot();
 		}
 
 		Container c = getContentPane();
@@ -132,15 +135,67 @@ public class PatternWindow extends JFrame {
 		setVisible(true);
 	}
 
-	void takeScreenshot() {
+	private ScreenImage takeScreenshot() {
 		SikulixIDE ide = SikulixIDE.get();
 		ide.setVisible(false);
+		this.setVisible(false);
 		try {
 			Thread.sleep(500);
 		} catch (Exception e) {
 		}
-		_simg = (new ScreenUnion()).getScreen().capture();
+		ScreenImage img = (new ScreenUnion()).getScreen().capture();
 		SikulixIDE.showAgain();
+		this.setVisible(true);
+		this.requestFocus();
+		return img;
+	}
+
+	private static final String SAVED_SCREEN_LABEL_TEXT = "Matches on saved screen";
+	private static final String SAVED_SCREEN_BUTTON_TEXT = "Switch to current screen";
+	private static final String CURRENT_SCREEN_LABEL_TEXT = "Matches on current screen";
+  private static final String CURRENT_SCREEN_BUTTON_TEXT = "Switch to saved screen";
+  private static final String REFRESH_BUTTON_TEXT = "Refresh current screen";
+
+	private JPanel createPreviewSwitchScreenPanel() {
+	  JPanel p = new JPanel();
+    JLabel switchLabel = new JLabel(SAVED_SCREEN_LABEL_TEXT);
+    JButton switchButton = new JButton(SAVED_SCREEN_BUTTON_TEXT);
+    JButton refreshCurrentScreenButton = new JButton(REFRESH_BUTTON_TEXT);
+    refreshCurrentScreenButton.setVisible(false);
+    refreshCurrentScreenButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        _screenshot.setScreenImage(takeScreenshot());
+        _screenshot.reloadImage();
+      }
+    });
+
+    p.add(switchLabel);
+    p.add(switchButton);
+    p.add(refreshCurrentScreenButton);
+
+    switchButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (previewShowsCurrentScreen) {
+          previewShowsCurrentScreen = false;
+          _screenshot.setScreenImage(_simg);
+          _screenshot.reloadImage();
+          switchLabel.setText(SAVED_SCREEN_LABEL_TEXT);
+          switchButton.setText(SAVED_SCREEN_BUTTON_TEXT);
+          refreshCurrentScreenButton.setVisible(false);
+        } else {
+          previewShowsCurrentScreen = true;
+          _screenshot.setScreenImage(takeScreenshot());
+          _screenshot.reloadImage();
+          switchLabel.setText(CURRENT_SCREEN_LABEL_TEXT);
+          switchButton.setText(CURRENT_SCREEN_BUTTON_TEXT);
+          refreshCurrentScreenButton.setVisible(true);
+        }
+      }
+    });
+
+    return p;
 	}
 
 	private JPanel createPreviewPanel() {
@@ -148,7 +203,13 @@ public class PatternWindow extends JFrame {
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 		_screenshot = new PatternPaneScreenshot(_simg, pDim, msgApplied[tabSequence]);
     createMarginBox(p, _screenshot);
-		p.add(Box.createVerticalStrut(5));
+
+    if(savedScreenImage != null) {
+      p.add(createPreviewSwitchScreenPanel());
+      p.add(Box.createVerticalStrut(20));
+    }else {
+		  p.add(Box.createVerticalStrut(5));
+    }
 		p.add(_screenshot.createControls());
 //		p.add(Box.createVerticalStrut(5));
 //		p.add(msgApplied[tabSequence]);

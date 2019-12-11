@@ -59,8 +59,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     _width = (int) (_match_region.w * _scale);
     setPreferredSize(new Dimension(_width, _height));
     addComponentListener(this);
-    _simg = simg;
-    _screen = simg.getImage();
+    setScreenImage(simg);
     //TODO Necessary? MAX_NUM_MATCHING = (int) Vision.getParameter("FindAllMaxReturn");
     autoResize();
     _loading = new LoadingSpinner();
@@ -322,5 +321,10 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       int val = (Integer) source.getValue();
       setNumMatches(val);
     }
+  }
+
+  public void setScreenImage(ScreenImage simg) {
+    _simg = simg;
+    _screen = simg.getImage();
   }
 }
