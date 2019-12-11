@@ -12,11 +12,10 @@ import javax.swing.event.*;
 import org.sikuli.script.Finder;
 import org.sikuli.script.Match;
 import org.sikuli.script.Pattern;
-import org.sikuli.script.Region;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.ScreenUnion;
 import org.sikuli.basics.Debug;
 
+@SuppressWarnings("serial")
 class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentListener {
   public static final int BOTTOM_MARGIN = 200;
   private static final String me = "PatternPaneScreenshot: ";
@@ -28,15 +27,13 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   float _similarity;
   int _numMatches;
   Set<Match> _fullMatches = null;
-  final Boolean _fullMatchesSynch = true;
   ArrayList<Match> _showMatches = null;
   final Boolean _showMatchesSynch = true;
   protected ScreenImage _simg;
   protected BufferedImage _screen = null;
   protected Rectangle _uBound;
-  private JLabel btnSimilar, _lblMatchCount;
+  private JLabel btnSimilar;
   private JSlider sldSimilar;
-  private JSpinner txtNumMatches;
   private LoadingSpinner _loading;
   private String patternFileName;
 
@@ -121,16 +118,18 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           final boolean exact, final float similarity,
           final int numMatches) {
     if (!_runFind) {
+      _showMatches = null;
+      repaint();
       _runFind = true;
       patternFileName = patFilename;
       new Thread(() -> {
         try {
           Finder f = new Finder(_simg);
           f.findAll(new Pattern(patFilename).similar(0.00001f));
-          _fullMatches = new TreeSet<Match>(new Comparator() {
+          _fullMatches = Collections.synchronizedSet(new TreeSet<Match>(new Comparator<Match>() {
             @Override
-            public int compare(Object o1, Object o2) {
-              return -1 * ((Comparable) o1).compareTo(o2);
+            public int compare(Match o1, Match o2) {
+              return -1 * o1.compareTo(o2);
             }
             @Override
             public boolean equals(Object o) {
@@ -141,23 +140,21 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
               int hash = 3;
               return hash;
             }
-          });
+          }));
+
+          int count = 0;
+          while (f.hasNext()) {
+            if (++count > MAX_NUM_MATCHING) {
+              break;
+            }
+            Match m = f.next();
+            Debug.log(4, me + "f.next(%d): " + m.toString(), count);
+
+            _fullMatches.add(m);
+          }
 
           EventQueue.invokeLater(() -> {
-            int count = 0;
-            while (f.hasNext()) {
-              if (++count > MAX_NUM_MATCHING) {
-                break;
-              }
-              Match m = f.next();
-              Debug.log(4, me + "f.next(%d): " + m.toString(), count);
-              synchronized (_fullMatchesSynch) {
-                _fullMatches.add(m);
-              }
-              EventQueue.invokeLater(() -> {
-                setParameters(exact, similarity, numMatches);
-              });
-            }
+            setParameters(exact, similarity, numMatches);
           });
         } catch (Exception e) {
           Debug.error(me + "Problems searching image in ScreenUnion\n%s", e.getMessage());
@@ -252,13 +249,12 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
         if (numMatches == 0) {
           return;
         }
-        synchronized (_fullMatchesSynch) {
-          for (Match m : _fullMatches) {
-            if (m.getScore() >= similarity) {
-              _showMatches.add(m);
-              if (++count >= numMatches) {
-                break;
-              }
+
+        for (Match m : _fullMatches) {
+          if (m.getScore() >= similarity) {
+            _showMatches.add(m);
+            if (++count >= numMatches) {
+              break;
             }
           }
         }
