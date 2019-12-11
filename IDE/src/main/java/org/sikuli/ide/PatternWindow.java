@@ -165,7 +165,7 @@ public class PatternWindow extends JFrame {
     refreshCurrentScreenButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        _screenshot.setScreenImage(takeScreenshot());
+        _screenshot.setScreenImage(takeScreenshot(), pDim);
         _screenshot.reloadImage();
       }
     });
@@ -179,14 +179,14 @@ public class PatternWindow extends JFrame {
       public void mouseClicked(MouseEvent e) {
         if (previewShowsCurrentScreen) {
           previewShowsCurrentScreen = false;
-          _screenshot.setScreenImage(_simg);
+          _screenshot.setScreenImage(_simg, pDim);
           _screenshot.reloadImage();
           switchLabel.setText(SAVED_SCREEN_LABEL_TEXT);
           switchButton.setText(SAVED_SCREEN_BUTTON_TEXT);
           refreshCurrentScreenButton.setVisible(false);
         } else {
           previewShowsCurrentScreen = true;
-          _screenshot.setScreenImage(takeScreenshot());
+          _screenshot.setScreenImage(takeScreenshot(), pDim);
           _screenshot.reloadImage();
           switchLabel.setText(CURRENT_SCREEN_LABEL_TEXT);
           switchButton.setText(CURRENT_SCREEN_BUTTON_TEXT);
