@@ -73,7 +73,7 @@ class SikuliIDEStatusBar extends JPanel {
     String buildNumber = SikulixIDE.runTime.SXBuildNumber;
     String message = SikulixIDE.runTime.SXVersionIDE;
     if (!buildNumber.isEmpty()) {
-      message += String.format(" build#: %s (%s)", buildNumber, SikulixIDE.runTime.SXBuild);
+      message += String.format(" build#: %s (%s)", buildNumber, RunTime.SXBuild);
     }
     if (RunTime.isSandbox()) {
       message += " (Sandbox)";
