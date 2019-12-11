@@ -306,14 +306,13 @@ public class PatternWindow extends JFrame {
 		  try {
         ImageIO.write(changedImg, "png", file);
       } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        Debug.error("PatternWindow: Error while saving resized pattern image: %s", e.getMessage());
       }
 
       _imgBtn.reloadImage();
       _screenshot.reloadImage();
       paneNaming.reloadImage();
-      currentPane.doReparse();
+      currentPane.repaint();
 
       File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
       if(!screenshotImageFile.exists()) {
