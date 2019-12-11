@@ -239,7 +239,7 @@ public class SikulixServer {
 
     // start the server
     String theServer = String.format("%s %d", theIP, port);
-    isRunning = new File(RunTime.fSikulixStore, "SikulixServer.txt");
+    isRunning = new File(RunTime.get().fSikulixStore, "SikulixServer.txt");
     try {
       try {
         isRunning.createNewFile();

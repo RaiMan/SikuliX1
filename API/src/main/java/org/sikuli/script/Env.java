@@ -9,7 +9,6 @@ import org.sikuli.basics.OS;
 import org.sikuli.natives.OSUtil;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.SysUtil;
-import org.sikuli.script.support.RunTime;
 
 /**
  * features moved to other classes, details below with the methods
@@ -23,7 +22,7 @@ public class Env {
    */
   @Deprecated
   public static String getSikuliDataPath() {
-    return RunTime.getAppDataPath();
+    return Settings.getDataPath();
   }
 
   /**

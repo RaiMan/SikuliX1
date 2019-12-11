@@ -17,7 +17,7 @@ import java.io.File;
 public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
-    RunTime.startAPI(args);
+    RunTime.start(RunTime.Type.API, args);
     System.setProperty("sikuli.API_should_run", "develop");
     SikulixAPI.main(args);
   }

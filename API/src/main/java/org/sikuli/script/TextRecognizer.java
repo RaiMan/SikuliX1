@@ -164,8 +164,10 @@ public class TextRecognizer {
 
   public static boolean extractTessdata() {
     File fTessDataPath;
+    File fTessConfNodict;
+    File fTessEngTData;
     boolean shouldExtract = false;
-    fTessDataPath = new File(RunTime.getAppDataFolder(), "SikulixTesseract/tessdata");
+    fTessDataPath = new File(RunTime.get().fSikulixAppFolder, "SikulixTesseract/tessdata");
     //export latest tessdata to the standard SikuliX tessdata folder in any case
     if (fTessDataPath.exists()) {
       if (RunTime.get().shouldExport()) {

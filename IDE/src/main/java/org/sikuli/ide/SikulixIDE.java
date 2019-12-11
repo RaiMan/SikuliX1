@@ -53,7 +53,7 @@ public class SikulixIDE extends JFrame {
 
   public static void main(String[] args) {
 
-    RunTime.afterStart("IDE", args);
+    RunTime.afterStart(RunTime.Type.IDE, args);
 
     if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
       prepareMacUI();
@@ -817,7 +817,7 @@ public class SikulixIDE extends JFrame {
         + "Tom Yeh\n"
         + "Raimund Hocke aka RaiMan";
     if (!runTime.SXBuildNumber.isEmpty()) {
-      info += String.format("\n\nBuild#: %s (%s)", runTime.SXBuildNumber, RunTime.SXBuild);
+      info += String.format("\n\nBuild#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
     }
     JOptionPane.showMessageDialog(this, info,
         "Sikuli About", JOptionPane.PLAIN_MESSAGE);
@@ -1756,7 +1756,7 @@ public class SikulixIDE extends JFrame {
       locStamp += token.length();
       String latestBuildFull = pageDownload.substring(locStamp, locStamp + 16);
       String latestBuild = latestBuildFull.replaceAll("-", "").replace("_", "").replace(":", "");
-      String actualBuild = runTime.SXBuildStamp;
+      String actualBuild = runTime.sxBuildStamp;
       try {
         long lb = Long.parseLong(latestBuild);
         long ab = Long.parseLong(actualBuild);

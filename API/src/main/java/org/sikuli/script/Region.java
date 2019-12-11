@@ -1400,7 +1400,7 @@ public class Region {
   public void saveLastScreenImage() {
     ScreenImage simg = getScreen().getLastScreenImageFromScreen();
     if (simg != null) {
-      simg.saveLastScreenImage(RunTime.fSikulixStore);
+      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
     }
   }
   //</editor-fold>

@@ -15,11 +15,11 @@ public class SikulixAPI {
 
   public static void main(String[] args) {
 
-    RunTime.afterStart("API", args);
+    RunTime.afterStart(RunTime.Type.API, args);
 
     if (args.length == 2 && "test".equals(args[1])) {
       String version = RunTime.get().getVersion();
-      File lastSession = new File(RunTime.fSikulixStore, "LastAPIJavaScript.js");
+      File lastSession = new File(RunTime.get().fSikulixStore, "LastAPIJavaScript.js");
       String runSomeJS = "";
       if (lastSession.exists()) {
         runSomeJS = FileManager.readFileToString(lastSession);

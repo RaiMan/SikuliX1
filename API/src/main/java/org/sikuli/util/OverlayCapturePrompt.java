@@ -215,7 +215,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
     if (Debug.getDebugLevel() > 2) {
-      scr_img_original.getFile(RunTime.fSikulixStore.getAbsolutePath(), "lastScreenShot");
+      scr_img_original.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot");
     }
     scr_img = scr_img_original.getImage();
     scr_img_darker = scr_img;
