@@ -95,7 +95,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
         } else if (tok.startsWith("similar")) {
           String strArg = tok.substring(tok.lastIndexOf("(") + 1);
           try {
-            sim = Double.valueOf(strArg);
+            sim = Double.parseDouble(strArg);
           } catch (NumberFormatException e) {
             sim = 0.7;
           }
@@ -104,15 +104,15 @@ public class EditorPatternLabel extends EditorRegionLabel {
           String[] args = strArg.split(",");
           try {
             off = new Location(0, 0);
-            off.x = Integer.valueOf(args[0]);
-            off.y = Integer.valueOf(args[1]);
+            off.x = Integer.parseInt(args[0]);
+            off.y = Integer.parseInt(args[1]);
           } catch (NumberFormatException e) {
           }
         } else if (tok.startsWith("resize")) {
           String strArg = tok.substring(tok.lastIndexOf("(") + 1);
           float rf;
           try {
-            rf = Float.valueOf(strArg);
+            rf = Float.parseFloat(strArg);
           } catch (NumberFormatException e) {
             rf = 0;
           }

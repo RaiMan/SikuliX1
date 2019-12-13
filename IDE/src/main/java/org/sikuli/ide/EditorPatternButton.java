@@ -109,7 +109,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 			//System.out.println("token: " + tok);
 			if (tok.startsWith("exact")) {
 				btn.setExact(true);
-				btn.setSimilarity(0.99f);
+				btn.setSimilarity(0.99);
 			} else if (tok.startsWith("Pattern")) {
 				String filename = FileManager.slashify(tok.substring(
 								tok.indexOf("\"") + 1, tok.lastIndexOf("\"")), false);
@@ -122,20 +122,20 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 			} else if (tok.startsWith("similar")) {
 				String strArg = tok.substring(tok.lastIndexOf("(") + 1);
 				try {
-					btn.setSimilarity(Float.valueOf(strArg));
+					btn.setSimilarity(Double.parseDouble(strArg));
 				} catch (NumberFormatException e) {
 					return null;
 				}
 			} else if (tok.startsWith("firstN")) { // FIXME: replace with limit/max
 				String strArg = tok.substring(tok.lastIndexOf("(") + 1);
-				btn._numMatches = Integer.valueOf(strArg);
+				btn._numMatches = Integer.parseInt(strArg);
 			} else if (tok.startsWith("targetOffset")) {
 				String strArg = tok.substring(tok.lastIndexOf("(") + 1);
 				String[] args = strArg.split(",");
 				try {
 					Location offset = new Location(0, 0);
-					offset.x = Integer.valueOf(args[0]);
-					offset.y = Integer.valueOf(args[1]);
+					offset.x = Integer.parseInt(args[0]);
+					offset.y = Integer.parseInt(args[1]);
 					btn.setTargetOffset(offset);
 				} catch (NumberFormatException e) {
 					return null;
@@ -144,7 +144,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         String strArg = tok.substring(tok.lastIndexOf("(") + 1);
         float rf;
         try {
-          rf = Float.valueOf(strArg);
+          rf = Float.parseFloat(strArg);
         } catch (NumberFormatException e) {
           rf = 0;
         }

@@ -94,10 +94,10 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
     String[] tokens = str.split("[(),]");
     int x, y, w, h;
     try {
-      x = Integer.valueOf(tokens[1].trim());
-      y = Integer.valueOf(tokens[2].trim());
-      w = Integer.valueOf(tokens[3].trim());
-      h = Integer.valueOf(tokens[4].trim());
+      x = Integer.parseInt(tokens[1].trim());
+      y = Integer.parseInt(tokens[2].trim());
+      w = Integer.parseInt(tokens[3].trim());
+      h = Integer.parseInt(tokens[4].trim());
     } catch (Exception e) {
       Debug.log(3, me + "createFromString: not possible: %s", str);
       return null;
