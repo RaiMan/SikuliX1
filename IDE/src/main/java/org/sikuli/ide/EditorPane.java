@@ -1061,7 +1061,7 @@ public class EditorPane extends JTextPane {
     return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor, String mask) {
+  public String getPatternString(String ifn, double sim, Location off, Image img, float resizeFactor, String mask) {
 //TODO ifn really needed??
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
@@ -1069,17 +1069,7 @@ public class EditorPane extends JTextPane {
     org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern();
     pattern.setFilename(ifn);
     pattern.setImage(img);
-    /*
-     * We have to do something nasty here because in pattern
-     * the similarity is a double and here we get the similarity
-     * as a float. This means that e.g. 0.7f will be converted to
-     * 0.699999988079071d. Usually this doesn't hurt, but it
-     * causes the code generator to produce code like
-     * Pattern("foo.png").similar(0.70)) instead of just "foo.png"
-     * (0.7 != 0.699999988079071). The toString and parseDouble
-     * converts the float into the proper double value.
-     */
-    pattern.similar(Double.parseDouble(Float.toString(sim)));
+    pattern.similar(sim);
     pattern.targetOffset(off);
     pattern.resize(resizeFactor);
 

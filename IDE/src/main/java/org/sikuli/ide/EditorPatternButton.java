@@ -19,12 +19,12 @@ import org.sikuli.script.Image;
 class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener {
 
 	public static final int DEFAULT_NUM_MATCHES = 50;
-	static final float DEFAULT_SIMILARITY = 0.7f;
+	static final double DEFAULT_SIMILARITY = 0.7;
 	private String _imgFilename, _thumbFname, _imgFilenameSaved;
   private Image _image;
   private JLabel patternImageIcon = null;
 	private EditorPane _pane;
-	private float _similarity, _similaritySaved;
+	private double _similarity, _similaritySaved;
 	private float _resizeFactor;
 	private String _mask;
 	private int _numMatches = DEFAULT_NUM_MATCHES;
@@ -164,7 +164,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		if (pwin == null) {
 			_offsetSaved = new Location(_offset);
 			_similaritySaved = _similarity;
-      _exactSaved = _similarity >= 0.99f;
+      _exactSaved = _similarity >= 0.99;
 			_imgFilenameSaved = _imgFilename.substring(0);
 			pwin = new PatternWindow(this, _exactSaved, _similarity, _numMatches);
 			pwin.setTargetOffset(_offset);
@@ -270,7 +270,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		}
 	}
 
-	public boolean setParameters(boolean exact, float similarity, int numMatches) {
+	public boolean setParameters(boolean exact, double similarity, int numMatches) {
 		boolean dirty = false;
 		Debug.log(3, "ThumbButtonLabel: setParameters: " + exact + "," + similarity + "," + numMatches);
 		dirty |= setExact(exact);
@@ -293,12 +293,12 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		return false;
 	}
 
-	public boolean setSimilarity(float val) {
-		float sim;
+	public boolean setSimilarity(double val) {
+		double sim;
 		if (val < 0) {
 			sim = 0;
 		} else if (val >= 1) {
-			sim = 0.99f;
+			sim = 0.99;
 		} else {
 			sim = val;
 		}
@@ -309,7 +309,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		return false;
 	}
 
-  public float getSimilarity() {
+  public double getSimilarity() {
     return _similarity;
   }
 
