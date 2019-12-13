@@ -24,7 +24,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   int _width, _height;
   double _scale, _ratio;
   boolean _runFind = false;
-  float _similarity;
+  double _similarity;
   int _numMatches;
   Set<Match> _fullMatches = Collections.synchronizedSet(new TreeSet<Match>(new Comparator<Match>() {
     @Override
@@ -128,7 +128,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   }
 
   public void setParameters(final String patFilename,
-          final boolean exact, final float similarity,
+          final boolean exact, final double similarity,
           final int numMatches) {
     if (!_runFind) {
       _showMatches = null;
@@ -139,7 +139,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       new Thread(() -> {
         try {
           Finder f = new Finder(_simg);
-          f.findAll(new Pattern(patFilename).similar(0.00001f));
+          f.findAll(new Pattern(patFilename).similar(0.00001));
 
           int count = 0;
           while (f.hasNext()) {
@@ -169,14 +169,14 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     setParameters(patternFileName, isExact(), getSimilarity(), getNumMatches());
   }
 
-  public void setParameters(boolean exact, float similarity, int numMatches) {
+  public void setParameters(boolean exact, double similarity, int numMatches) {
     if (numMatches > MAX_NUM_MATCHING) {
       numMatches = MAX_NUM_MATCHING;
     }
     if (!exact) {
       _similarity = similarity;
     } else {
-      _similarity = 0.99f;
+      _similarity = 0.99;
     }
     _numMatches = numMatches;
     filterMatches(_similarity, _numMatches);
@@ -214,10 +214,10 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   }
 
   public boolean isExact() {
-    return _similarity >= 0.99f;
+    return _similarity >= 0.99;
   }
 
-  public float getSimilarity() {
+  public double getSimilarity() {
     return _similarity;
   }
 
@@ -225,8 +225,8 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     return _numMatches;
   }
 
-  private void setSimilarity(float similarity) {
-    _similarity = similarity > 0.99f ? 0.99f : similarity;
+  private void setSimilarity(double similarity) {
+    _similarity = similarity > 0.99 ? 0.99 : similarity;
     filterMatches(_similarity, _numMatches);
     repaint();
   }
@@ -237,7 +237,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     repaint();
   }
 
-  void filterMatches(float similarity, int numMatches) {
+  void filterMatches(double similarity, int numMatches) {
     int count = 0;
     if (_fullMatches != null && numMatches >= 0) {
       _showMatches = new ArrayList<Match>();
@@ -302,7 +302,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     if (src instanceof JSlider) {
       JSlider source = (JSlider) e.getSource();
       int val = (int) source.getValue();
-      setSimilarity((float) val / 100);
+      setSimilarity((double) val / 100);
     } else if (src instanceof JSpinner) {
       JSpinner source = (JSpinner) e.getSource();
       int val = (Integer) source.getValue();

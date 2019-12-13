@@ -55,11 +55,11 @@ public class PatternWindow extends JFrame {
 	}
 
 	public PatternWindow(EditorPatternButton imgBtn, boolean exact,
-					float similarity, int numMatches) {
+					double similarity, int numMatches) {
 		init(imgBtn, exact, similarity, numMatches);
 	}
 
-	private void init(EditorPatternButton imgBtn, boolean exact, float similarity, int numMatches) {
+	private void init(EditorPatternButton imgBtn, boolean exact, double similarity, int numMatches) {
 		setTitle(_I("winPatternSettings"));
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		_imgBtn = imgBtn;
