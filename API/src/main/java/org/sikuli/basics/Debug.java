@@ -559,75 +559,76 @@ public class Debug {
     }
   }
 
-	private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
-		boolean success = false;
-		String error = "";
-		if (privateLogger != null) {
-			String prefix = "", pln = "";
-			Method plf = null;
-			if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
-				prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
-				plf = privateLoggerInfo;
-				pln = privateLoggerInfoName;
-			} else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
-				prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
-				plf = privateLoggerAction;
-				pln = privateLoggerActionName;
-			} else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
-				prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
-				plf = privateLoggerError;
-				pln = privateLoggerErrorName;
-			} else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
-				prefix = privateLoggerPrefixAll ?
-								(privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
-				plf = privateLoggerDebug;
-				pln = privateLoggerDebugName;
-			} else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
-				prefix = privateLoggerPrefixAll ?
-									(privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
-				plf = privateLoggerUser;
-				pln = privateLoggerUserName;
-			}
-			if (!pln.isEmpty()) {
-				String msg = null;
-				if (args == null) {
-					msg = prefix + message;
-				} else {
-					msg = String.format(prefix + message, args);
-				}
-				if (isJython) {
-					success = JythonSupport.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
-				} else if (isJRuby) {
-					success = false;
-				} else {
-					try {
-						plf.invoke(privateLogger,
-										new Object[]{msg});
-						return true;
-					} catch (Exception e) {
-						error = ": " + e.getMessage();
-						success = false;
-					}
-				}
-				if (!success) {
-					Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
-					if (type == CallbackType.INFO) {
-						privateLoggerInfoName = "";
-					} else if (type == CallbackType.ACTION) {
-						privateLoggerActionName = "";
-					} else if (type == CallbackType.ERROR) {
-						privateLoggerErrorName = "";
-					} else if (type == CallbackType.DEBUG) {
-						privateLoggerDebugName = "";
-					} else if (type == CallbackType.USER) {
-						privateLoggerUserName = "";
-					}
-				}
-			}
-		}
-		return success;
-	}
-	/**
+  private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
+    boolean success = false;
+    String error = "";
+    if (privateLogger != null) {
+      String prefix = "", pln = "";
+      Method plf = null;
+      if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
+        plf = privateLoggerInfo;
+        pln = privateLoggerInfoName;
+      } else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
+        plf = privateLoggerAction;
+        pln = privateLoggerActionName;
+      } else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
+        plf = privateLoggerError;
+        pln = privateLoggerErrorName;
+      } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ?
+            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+        plf = privateLoggerDebug;
+        pln = privateLoggerDebugName;
+      } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ?
+            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+        plf = privateLoggerUser;
+        pln = privateLoggerUserName;
+      }
+      if (!pln.isEmpty()) {
+        String msg = null;
+        if (args == null || args.length == 0) {
+          msg = prefix + message;
+        } else {
+          msg = String.format(prefix + message, args);
+        }
+        if (isJython) {
+          success = JythonSupport.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
+        } else if (isJRuby) {
+          success = false;
+        } else {
+          try {
+            plf.invoke(privateLogger,
+                new Object[]{msg});
+            return true;
+          } catch (Exception e) {
+            error = ": " + e.getMessage();
+            success = false;
+          }
+        }
+        if (!success) {
+          Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
+          if (type == CallbackType.INFO) {
+            privateLoggerInfoName = "";
+          } else if (type == CallbackType.ACTION) {
+            privateLoggerActionName = "";
+          } else if (type == CallbackType.ERROR) {
+            privateLoggerErrorName = "";
+          } else if (type == CallbackType.DEBUG) {
+            privateLoggerDebugName = "";
+          } else if (type == CallbackType.USER) {
+            privateLoggerUserName = "";
+          }
+        }
+      }
+    }
+    return success;
+  }
+
+  /**
    * Sikuli messages from actions like click, ...<br> switch on/off: Settings.ActionLogs
    *
    * @param message String or format string (String.format)
@@ -797,7 +798,12 @@ public class Debug {
   }
 
   public static String logp(String msg, Object... args) {
-    String out = String.format(msg, args);
+    String out;
+    if(args != null && args.length > 0) {
+      out = String.format(msg, args);
+    } else {
+      out = msg;
+    }
     if (!beQuiet) {
       System.out.println(out);
     }
@@ -851,7 +857,11 @@ public class Debug {
 			if (!prefix.isEmpty()) {
         prefix = "[" + prefix + stime + "] ";
       }
-      sout = String.format(message, args);
+      if(args != null && args.length > 0) {
+        sout = String.format(message, args);
+      } else {
+        sout = message;
+      }
       boolean isRedirected = false;
 			if (level > -99) {
 				isRedirected = doRedirect(CallbackType.DEBUG, prefix, sout);
