@@ -18,8 +18,6 @@ import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 
-import com.google.common.io.Files;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.*;
