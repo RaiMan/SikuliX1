@@ -32,7 +32,7 @@ class PatternSimilaritySlider extends JSlider {
 		final int y1 = 22, y2 = 33;
     int span = w - margin * 2;
 		for (int i = 0; i < span; i++) {
-			float score = (float) i / span;
+			double score = (double) i / span;
 			g.setColor(getScoreColor(score));
 			g.drawLine(margin + i, y1, margin + i, y2);
 		}

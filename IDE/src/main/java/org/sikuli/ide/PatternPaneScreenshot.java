@@ -302,7 +302,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     if (src instanceof JSlider) {
       JSlider source = (JSlider) e.getSource();
       int val = (int) source.getValue();
-      setSimilarity((float) val / 100);
+      setSimilarity((double) val / 100);
     } else if (src instanceof JSpinner) {
       JSpinner source = (JSpinner) e.getSource();
       int val = (Integer) source.getValue();
