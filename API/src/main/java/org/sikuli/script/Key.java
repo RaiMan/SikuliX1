@@ -603,6 +603,7 @@ public class Key {
       case Key.C_CTRL:  return "#CTRL.";
       case Key.C_ALT:   return "#ALT.";
       case Key.C_META:  return "#META.";
+      case Key.C_ALTGR: return "#ALTGR.";
 
       default:
         return "" + key;

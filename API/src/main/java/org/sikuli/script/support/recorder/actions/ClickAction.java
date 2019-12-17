@@ -7,26 +7,17 @@ package org.sikuli.script.support.recorder.actions;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.generators.ICodeGenerator;
 
-public class ClickAction implements IRecordedAction {
-  private Pattern pattern;
+public class ClickAction extends PatternAction implements IRecordedAction {
   private String[] modifiers;
 
   public ClickAction(Pattern pattern, String[] modifiers) {
-    this.pattern = pattern;
+    super(pattern);
     this.modifiers = modifiers;
   }
 
   @Override
   public String generate(ICodeGenerator generator) {
-    return generator.click(pattern, modifiers);
-  }
-
-  public Pattern getPattern() {
-    return pattern;
-  }
-
-  public void setPattern(Pattern pattern) {
-    this.pattern = pattern;
+    return generator.click(getPattern(), modifiers);
   }
 
   public String[] getModifiers() {
