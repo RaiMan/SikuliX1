@@ -26,6 +26,8 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseListener;
 import org.jnativehook.mouse.NativeMouseMotionListener;
+import org.jnativehook.mouse.NativeMouseWheelEvent;
+import org.jnativehook.mouse.NativeMouseWheelListener;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder;
@@ -39,7 +41,7 @@ import org.sikuli.script.support.recorder.actions.IRecordedAction;
  *
  * @author balmma
  */
-public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener {
+public class Recorder implements NativeKeyListener, NativeMouseListener, NativeMouseMotionListener, NativeMouseWheelListener {
 
   private static final long MOUSE_SCREENSHOT_DELAY = 500;
   private static final long MOUSE_MOVE_SCREENSHOT_DELAY = 100;
@@ -175,6 +177,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
       GlobalScreen.addNativeMouseMotionListener(this);
+      GlobalScreen.addNativeMouseWheelListener(this);
     }
   }
 
@@ -188,6 +191,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
     if (running) {
       running = false;
 
+      GlobalScreen.removeNativeMouseWheelListener(this);
       GlobalScreen.removeNativeMouseMotionListener(this);
       GlobalScreen.removeNativeMouseListener(this);
       GlobalScreen.removeNativeKeyListener(this);
@@ -251,5 +255,11 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       saveMousePosition(e);
       add(e, MOUSE_MOVE_SCREENSHOT_DELAY);
     }
+  }
+
+  @Override
+  public void nativeMouseWheelMoved(NativeMouseWheelEvent e) {
+    saveMousePosition(e);
+    add(e, MOUSE_SCREENSHOT_DELAY);
   }
 }

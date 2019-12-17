@@ -37,6 +37,8 @@ public interface ICodeGenerator {
 
   public String rightClick(Pattern pattern, String[] modifiers);
 
+  public String wheel(Pattern pattern, int direction, int steps, String[] modifiers, long stepDelay);
+
   public String typeText(String text, String[] modifiers);
 
   public String typeKey(String key, String[] modifiers);

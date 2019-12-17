@@ -480,19 +480,26 @@ public class Mouse {
    * @param steps value
    */
   public static void wheel(int direction, int steps) {
-    wheel(direction, steps, null);
+    wheel(null, direction, steps, 0);
   }
 
-  protected static void wheel(int direction, int steps, Region region) {
-    wheel(direction,steps,region, WHEEL_STEP_DELAY);
+  protected static void wheel(Region region, int direction, int steps, int modifiers) {
+    wheel(region, direction,steps, modifiers, WHEEL_STEP_DELAY);
   }
 
-  protected static void wheel(int direction, int steps, Region region, int stepDelay) {
+  protected static void wheel(Region region, int direction, int steps, int modifiers, int stepDelay) {
+    System.out.println(stepDelay);
+
     if (get().device.isSuspended()) {
       return;
     }
     IRobot r = Screen.getRobot(region);
     get().device.use(region);
+
+    if (modifiers > 0) {
+      r.pressModifiers(modifiers);
+    }
+
     String wheelComment = (direction == WHEEL_UP ? "Content upwards" : "Content downwards");
     if (!Settings.WheelNatural) {
       wheelComment = (direction == WHEEL_UP ? "Content downwards" : "Content upwards");
@@ -503,6 +510,11 @@ public class Mouse {
       r.mouseWheel(direction);
       r.delay(stepDelay);
     }
+
+    if (modifiers > 0) {
+      r.releaseModifiers(modifiers);
+    }
+
     get().device.let(region);
   }
 }

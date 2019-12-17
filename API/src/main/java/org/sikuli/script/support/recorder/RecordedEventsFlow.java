@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.mouse.NativeMouseEvent;
+import org.jnativehook.mouse.NativeMouseWheelEvent;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -37,6 +39,7 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.Key;
 import org.sikuli.script.Location;
 import org.sikuli.script.Match;
+import org.sikuli.script.Mouse;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.RunTime;
@@ -48,6 +51,8 @@ import org.sikuli.script.support.recorder.actions.RightClickAction;
 import org.sikuli.script.support.recorder.actions.TypeKeyAction;
 import org.sikuli.script.support.recorder.actions.TypeTextAction;
 import org.sikuli.script.support.recorder.actions.WaitAction;
+import org.sikuli.script.support.recorder.actions.MouseWheelAction;
+import org.sikuli.script.support.recorder.actions.PatternAction;
 
 /**
  * Keeps a list of successive recorded events and
@@ -216,24 +221,25 @@ public class RecordedEventsFlow {
         .toArray(new String[modifiers.size()]);
   }
 
+  /*
+   * Finds the next key press event within 3 seconds
+   */
   private Long findNextPressedKeyEventTime(Long time) {
-    Long nextEventTime = events.ceilingKey(time + 1);
+    Map<Long, NativeInputEvent> nextEvents = events.subMap(time + 1, time + 3000);
 
-    if (nextEventTime == null || nextEventTime - time > 3000) {
-      return null;
+    for(Map.Entry<Long, NativeInputEvent> entry : nextEvents.entrySet()) {
+      NativeInputEvent event = entry.getValue();
+
+      if(event instanceof NativeKeyEvent) {
+        if(NativeKeyEvent.NATIVE_KEY_PRESSED == entry.getValue().getID()) {
+          return entry.getKey();
+        }
+      } else {
+        return null;
+      }
     }
 
-    NativeInputEvent event = events.get(nextEventTime);
-
-    if (!(event instanceof NativeKeyEvent)) {
-      return null;
-    }
-
-    if (event.getID() == NativeKeyEvent.NATIVE_KEY_PRESSED) {
-      return nextEventTime;
-    }
-
-    return findNextPressedKeyEventTime(nextEventTime);
+    return null;
   }
 
   private String getKeyText(char ch) {
@@ -255,6 +261,27 @@ public class RecordedEventsFlow {
 
   private Map.Entry<Long, NativeInputEvent> getNextEvent(Long time) {
     return events.ceilingEntry(time + 1);
+  }
+
+  /*
+   * Finds the next mouse wheel event within 1 second in the given direction
+   */
+  private NativeMouseWheelEvent findNextWheelEvent(long time, int direction) {
+    Collection<NativeInputEvent> nextEvents = events.subMap(time + 1, time + 1000).values();
+
+    for (NativeInputEvent event : nextEvents){
+      if(NativeMouseEvent.NATIVE_MOUSE_WHEEL == event.getID()) {
+        NativeMouseWheelEvent wheelEvent = (NativeMouseWheelEvent) event;
+        int eventDirection = wheelEvent.getWheelRotation() > 0 ? Mouse.WHEEL_DOWN : Mouse.WHEEL_UP;
+        if (eventDirection == direction) {
+          return wheelEvent;
+        } else {
+          return null;
+        }
+      }
+    }
+
+    return null;
   }
 
   private Long pressedTime = null;
@@ -304,13 +331,11 @@ public class RecordedEventsFlow {
             dragStartEvent = null;
           }
       }
+    } else if (NativeMouseEvent.NATIVE_MOUSE_WHEEL == event.getID()) {
+      actions.addAll(this.handleMouseWheel(time, (NativeMouseWheelEvent) event));
     }
 
     return actions;
-  }
-
-  private void saveScreenshot(Mat screenshot, File imageFile) {
-    FileManager.saveScreenshotImage(Finder2.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
   }
 
   private List<IRecordedAction> handleDragDrop(Long time, NativeMouseEvent event) {
@@ -386,11 +411,68 @@ public class RecordedEventsFlow {
     return actions;
   }
 
+  private int wheelSteps = 0;
+  private Long wheelStartTime = null;
+
+  private List<IRecordedAction> handleMouseWheel(Long time, NativeMouseWheelEvent event) {
+    List<IRecordedAction> actions = new ArrayList<>();
+
+    if (wheelStartTime == null) {
+      wheelStartTime = time;
+    }
+
+    int steps = event.getWheelRotation();
+    int direction = steps > 0 ? Mouse.WHEEL_DOWN : Mouse.WHEEL_UP;
+    steps = Math.abs(steps);
+
+    wheelSteps += steps;
+
+    NativeMouseWheelEvent nextWheelEvent = findNextWheelEvent(time, direction);
+
+    if (nextWheelEvent == null) {
+      Long firstMouseMoveEventTime = findFirstMouseMoveTime(wheelStartTime);
+
+      Mat screenshot = readCeilingScreenshot(firstMouseMoveEventTime);
+
+      Image image = findRelevantImage(screenshot, event);
+
+      if (image != null) {
+        File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
+
+        try {
+          ImageIO.write(image.get(), "PNG", file);
+          saveScreenshot(screenshot, file);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+        Pattern pattern = new Pattern(file.getAbsolutePath());
+        pattern.targetOffset(image.getOffset());
+        pattern.similar(image.getSimilarity());
+
+        long stepDelay = (time - wheelStartTime) / wheelSteps;
+
+        MouseWheelAction wheelAction = new MouseWheelAction(pattern, direction, wheelSteps, getModifierTexts(), stepDelay);
+
+        actions.add(waitIfNeeded(image, firstMouseMoveEventTime, wheelAction));
+      }
+
+      wheelSteps = 0;
+      wheelStartTime = null;
+    }
+
+    return actions;
+  }
+
+  private void saveScreenshot(Mat screenshot, File imageFile) {
+    FileManager.saveScreenshotImage(Finder2.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
+  }
+
   /*
    * detects if the image was already there before the mouse started to move. If
    * not, it prepends a wait to the click.
    */
-  private IRecordedAction waitIfNeeded(Image image, Long time, ClickAction action) {
+  private IRecordedAction waitIfNeeded(Image image, Long time, PatternAction action) {
     Long lastNonMouseMoveEventTime = events.floorKey(time - 1);
 
     if (lastNonMouseMoveEventTime == null) {

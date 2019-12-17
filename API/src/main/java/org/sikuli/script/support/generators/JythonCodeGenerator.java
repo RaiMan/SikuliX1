@@ -9,6 +9,7 @@ import java.util.Locale;
 
 import org.sikuli.script.Image;
 import org.sikuli.script.Location;
+import org.sikuli.script.Mouse;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
@@ -70,6 +71,37 @@ public class JythonCodeGenerator implements ICodeGenerator {
   @Override
   public String rightClick(Pattern pattern, String[] modifiers) {
     return mouse("rightClick", pattern, modifiers);
+  }
+
+  @Override
+  public String wheel(Pattern pattern, int direction, int steps, String[] modifiers, long stepDelay) {
+    String code = "wheel(";
+
+    if (pattern != null) {
+      code += pattern(pattern, null);
+      code += ", ";
+    }
+
+    code += direction > 0 ? "WHEEL_DOWN" : "WHEEL_UP";
+    code += ", ";
+    code += steps;
+
+    if(modifiers.length > 0) {
+      code += ", ";
+      code += String.join(" + ", modifiers);
+    }
+
+    if (stepDelay != Mouse.WHEEL_STEP_DELAY) {
+      if(modifiers.length == 0) {
+        code += ", 0";
+      }
+
+      code += ", ";
+      code += stepDelay;
+    }
+
+    code += ")";
+    return code;
   }
 
   @Override
