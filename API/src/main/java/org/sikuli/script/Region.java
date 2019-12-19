@@ -489,7 +489,7 @@ public class Region {
     if (!isOtherScreen()) {
       return loc;
     }
-    return loc.setOtherScreen(scr);
+    return loc.setOtherScreen(getScreen());
   }
 
   /**
@@ -1446,7 +1446,7 @@ public class Region {
    */
   public Region offset(Object whatever) {
     Offset offset = new Offset(whatever);
-    return Region.create(x + offset.x, y + offset.y, w, h, scr);
+    return Region.create(x + offset.x, y + offset.y, w, h, getScreen());
   }
 
   /**
@@ -1457,7 +1457,7 @@ public class Region {
    * @return the new region
    */
   public Region offset(int x, int y) {
-    return Region.create(this.x + x, this.y + y, w, h, scr);
+    return Region.create(this.x + x, this.y + y, w, h, getScreen());
   }
 
   /**
@@ -1512,7 +1512,7 @@ public class Region {
   public Region grow(int w, int h) {
     Rectangle r = getRect();
     r.grow(w, h);
-    return Region.create(r.x, r.y, r.width, r.height, scr);
+    return Region.create(r.x, r.y, r.width, r.height, getScreen());
   }
 
   /**
@@ -1526,7 +1526,7 @@ public class Region {
    * @return the new region
    */
   public Region grow(int l, int r, int t, int b) {
-    return Region.create(x - l, y - t, w + l + r, h + t + b, scr);
+    return Region.create(x - l, y - t, w + l + r, h + t + b, getScreen());
   }
 
   /**
@@ -1574,7 +1574,7 @@ public class Region {
     } else {
       _x = x + w;
     }
-    return Region.create(_x, y, Math.abs(width), h, scr);
+    return Region.create(_x, y, Math.abs(width), h, getScreen());
   }
 
   /**
@@ -1619,7 +1619,7 @@ public class Region {
     } else {
       _x = x - width;
     }
-    return Region.create(getScreen().getBounds().intersection(new Rectangle(_x, y, Math.abs(width), h)), scr);
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(_x, y, Math.abs(width), h)), getScreen());
   }
 
   /**
@@ -1664,7 +1664,7 @@ public class Region {
     } else {
       _y = y - height;
     }
-    return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), scr);
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), getScreen());
   }
 
   /**
@@ -1709,7 +1709,7 @@ public class Region {
     } else {
       _y = y + h;
     }
-    return Region.create(x, _y, w, Math.abs(height), scr);
+    return Region.create(x, _y, w, Math.abs(height), getScreen());
   }
 
   /**
@@ -1720,7 +1720,7 @@ public class Region {
    */
   public Region union(Region ur) {
     Rectangle r = getRect().union(ur.getRect());
-    return Region.create(r.x, r.y, r.width, r.height, scr);
+    return Region.create(r.x, r.y, r.width, r.height, getScreen());
   }
 
   /**
@@ -1731,7 +1731,7 @@ public class Region {
    */
   public Region intersection(Region ir) {
     Rectangle r = getRect().intersection(ir.getRect());
-    return Region.create(r.x, r.y, r.width, r.height, scr);
+    return Region.create(r.x, r.y, r.width, r.height, getScreen());
   }
 
   public Region getInset(Region inset) {
@@ -2901,7 +2901,7 @@ public class Region {
 
   private void runFinder(Finder f, Object target) {
     if (Debug.shouldHighlight()) {
-      if (this.scr.getW() > w + 20 && this.scr.getH() > h + 20) {
+      if (getScreen().getW() > w + 20 && getScreen().getH() > h + 20) {
         highlight(2, "#000255000");
       }
     }
@@ -2935,7 +2935,7 @@ public class Region {
       if (this.contains(r)) {
         Finder f = new Finder(base.getSub(r.getRect()), r);
         if (Debug.shouldHighlight()) {
-          if (this.scr.getW() > w + 10 && this.scr.getH() > h + 10) {
+          if (getScreen().getW() > w + 10 && getScreen().getH() > h + 10) {
             highlight(2, "#000255000");
           }
         }
@@ -3339,7 +3339,7 @@ public class Region {
       Match m = wait(target);
       if (m != null) {
         if (isOtherScreen()) {
-          return m.getTarget().setOtherScreen(scr);
+          return m.getTarget().setOtherScreen(getScreen());
         } else {
           return m.getTarget();
         }
