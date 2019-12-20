@@ -559,6 +559,7 @@ public class SikulixIDE extends JFrame {
       return true;
     }
     log(-1, "restoreScriptFromSession: Can't load: %s", file);
+    tabs.remove(tabs.getSelectedIndex());
     return false;
   }
   //</editor-fold>
