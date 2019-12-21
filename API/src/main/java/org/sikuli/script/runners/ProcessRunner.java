@@ -194,13 +194,13 @@ public class ProcessRunner extends AbstractScriptRunner{
     return exitValue;
   }
 
-  public static int startApp(String... givenCmd) {
+  public static boolean startApp(String... givenCmd) {
     List<String> cmd = new ArrayList<>();
     cmd.addAll(Arrays.asList(givenCmd));
     return startApp(cmd);
   }
 
-  public static int startApp(List<String> givenCmd) {
+  public static boolean startApp(List<String> givenCmd) {
     RunTime runTime = RunTime.get();
     int exitValue = 0;
     if (runTime.runningWindows) {
@@ -227,23 +227,15 @@ public class ProcessRunner extends AbstractScriptRunner{
         app.redirectErrorStream(true);
         app.redirectInput(ProcessBuilder.Redirect.INHERIT);
         app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        Process process = null;
         try {
-          process = app.start();
+          app.start();
         } catch (Exception e) {
           p("[Error] ProcessRunner: start: %s", e.getMessage());
-        }
-        try {
-          if (process != null) {
-            process.waitFor();
-            exitValue = process.exitValue();
-          }
-        } catch (InterruptedException e) {
-          p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+          return false;
         }
       }
     }
-    return exitValue;
+    return true;
   }
 
   private static List<String> startAppParams(List<String> cmd, String param) {
