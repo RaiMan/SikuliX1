@@ -50,7 +50,9 @@ public class Observer {
     log(3, "resetting observe states for " + observedRegion.toStringShort());
     synchronized (eventNames) {
       for (String name : eventNames.keySet()) {
-        eventStates.put(name, State.FIRST);
+        if (eventStates.get(name) != State.INACTIVE) {
+          eventStates.put(name, State.FIRST);
+        }
         eventCounts.put(name, 0);
         eventMatches.put(name, null);
       }
@@ -168,6 +170,9 @@ public class Observer {
         } else {
           eventStates.put(name, State.UNKNOWN);
         }
+      }
+      if (eventStates.get(name) == State.INACTIVE || eventStates.get(name) == State.MISSING) {
+        continue;
       }
       Object ptn = eventNames.get(name);
       Image img = Image.getImageFromTarget(ptn);
