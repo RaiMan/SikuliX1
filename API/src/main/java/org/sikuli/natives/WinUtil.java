@@ -23,6 +23,7 @@ import org.sikuli.script.runners.ProcessRunner;
 
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +44,8 @@ public class WinUtil implements OSUtil {
     private String imageName;
 
     public ProcessInfo(
-            final int pid,
-            final String imageName) {
+        final int pid,
+        final String imageName) {
       this.pid = pid;
       this.imageName = imageName;
     }
@@ -90,23 +91,23 @@ public class WinUtil implements OSUtil {
     /* Enumerate all of the windows and add all of the one for the
      * given process id to our list. */
     boolean result = user32.EnumWindows(
-            new WinUser.WNDENUMPROC() {
-              public boolean callback(
-                      final HWND hwnd, final Pointer data) {
+        new WinUser.WNDENUMPROC() {
+          public boolean callback(
+              final HWND hwnd, final Pointer data) {
 
-                if (user32.IsWindowVisible(hwnd)) {
-                  IntByReference windowPid = new IntByReference();
-                  user32.GetWindowThreadProcessId(hwnd, windowPid);
+            if (user32.IsWindowVisible(hwnd)) {
+              IntByReference windowPid = new IntByReference();
+              user32.GetWindowThreadProcessId(hwnd, windowPid);
 
-                  String windowTitle = getWindowTitle(hwnd);
+              String windowTitle = getWindowTitle(hwnd);
 
-                  windows.add(new WindowInfo(hwnd, windowPid.getValue(), windowTitle));
-                }
+              windows.add(new WindowInfo(hwnd, windowPid.getValue(), windowTitle));
+            }
 
-                return true;
-              }
-            },
-            null);
+            return true;
+          }
+        },
+        null);
 
     /* Handle errors. */
     if (!result && Kernel32.INSTANCE.GetLastError() != 0) {
@@ -135,11 +136,11 @@ public class WinUtil implements OSUtil {
     List<ProcessInfo> processList = new ArrayList<ProcessInfo>();
 
     HANDLE snapshot = Kernel32.INSTANCE.CreateToolhelp32Snapshot(
-            Tlhelp32.TH32CS_SNAPPROCESS, new DWORD(0));
+        Tlhelp32.TH32CS_SNAPPROCESS, new DWORD(0));
 
     try {
       Tlhelp32.PROCESSENTRY32.ByReference pe
-              = new Tlhelp32.PROCESSENTRY32.ByReference();
+          = new Tlhelp32.PROCESSENTRY32.ByReference();
       for (boolean more = Kernel32.INSTANCE.Process32First(snapshot, pe);
            more;
            more = Kernel32.INSTANCE.Process32Next(snapshot, pe)) {
@@ -158,15 +159,15 @@ public class WinUtil implements OSUtil {
 
   private static String getProcessImageName(int pid) {
     HANDLE hProcess = Kernel32.INSTANCE.OpenProcess(
-            0x1000,
-            false,
-            pid);
+        0x1000,
+        false,
+        pid);
 
     if (hProcess != null) {
       try {
         char[] imageNameChars = new char[1024];
         IntByReference imageNameLen
-                = new IntByReference(imageNameChars.length);
+            = new IntByReference(imageNameChars.length);
         if (Kernel32.INSTANCE.QueryFullProcessImageName(hProcess, 0, imageNameChars, imageNameLen)) {
           String name = FilenameUtils.getName(new String(imageNameChars, 0, imageNameLen.getValue()));
           return name;
@@ -251,6 +252,7 @@ public class WinUtil implements OSUtil {
 
   @Override
   public App get(App app) {
+    app.log("Win:get(App): %s", app);
     if (app.getPID() > 0) {
       app = getTaskByPID(app);
     } else {
@@ -261,19 +263,24 @@ public class WinUtil implements OSUtil {
 
   private static App getTaskByName(App app) {
 
-    String appName = app.getToken().isEmpty() ? app.getName() + ".exe" : app.getToken();
+    if (app.getName().startsWith(App.isWindowTitle)) {
+      return getTaskByWindow(app);
+    } else {
+      new File(app.getExec()).getName();
+      String appName = app.getToken().isEmpty() ? new File(app.getExec()).getName() : app.getToken();
 
-    List<ProcessInfo> processes = allProcesses();
+      app.log("Win:getTaskByName: %s", appName);
+      List<ProcessInfo> processes = allProcesses();
 
-    for (ProcessInfo p : processes) {
-      if (p.getImageName() != null && p.getImageName().equals(appName)) {
-        app.setPID(p.getPid());
-        app.setWindow(getTopWindowTitle(p.getPid()));
-        return app;
+      for (ProcessInfo p : processes) {
+        if (p.getImageName() != null && p.getImageName().equals(appName)) {
+          app.setPID(p.getPid());
+          app.setWindow(getTopWindowTitle(p.getPid()));
+          return app;
+        }
       }
+      return app;
     }
-
-    return getTaskByWindow(app);
   }
 
   private static App getTaskByPID(App app) {
@@ -281,6 +288,7 @@ public class WinUtil implements OSUtil {
       return app;
     }
 
+    app.log("Win:getTaskByPID: %s", app.getPID());
     List<ProcessInfo> processes = allProcesses();
 
     for (ProcessInfo p : processes) {
@@ -295,7 +303,8 @@ public class WinUtil implements OSUtil {
   }
 
   private static App getTaskByWindow(App app) {
-    String title = app.getName();
+    app.log("Win:getTaskByWindow: %s", app.getName());
+    String title = app.getName().replace(App.isWindowTitle, "");
 
     List<WindowInfo> windows = allWindows();
 
@@ -303,8 +312,16 @@ public class WinUtil implements OSUtil {
       String windowTitle = window.getTitle();
 
       if (windowTitle != null && windowTitle.contains(title)) {
-        app.setPID(window.getPid());
+        int pid = window.getPid();
+        app.setPID(pid);
         app.setWindow(windowTitle);
+        List<ProcessInfo> processes = allProcesses();
+        for (ProcessInfo pInfo : processes) {
+          if (pid == pInfo.getPid()) {
+            app.setNameGiven(app.getName());
+            app.setName(pInfo.getImageName());
+          }
+        }
         return app;
       }
     }
@@ -340,15 +357,14 @@ public class WinUtil implements OSUtil {
       String cmd = app.getExec();
       String workDir = app.getWorkDir();
       if (!app.getOptions().isEmpty()) {
-        start(cmd, workDir, app.getOptions());
+        return start(cmd, workDir, app.getOptions());
       } else {
-        start(cmd, workDir);
+        return start(cmd, workDir);
       }
     }
-    return true;
   }
 
-  private int start(String... cmd) {
+  private boolean start(String... cmd) {
     return ProcessRunner.startApp(cmd);
   }
 

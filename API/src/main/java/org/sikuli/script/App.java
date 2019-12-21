@@ -56,6 +56,8 @@ public class App {
     appsMac.put(Type.VIEWER, "Preview");
   }
 
+  public static final String isWindowTitle = "?WindowTitle?";
+
   //  //<editor-fold defaultstate="collapsed" desc="9 features based on org.apache.httpcomponents.httpclient">
 //  private static CloseableHttpClient httpclient = null;
 //
@@ -287,7 +289,7 @@ public class App {
   private int appPID = -1;
   private int maxWait = 10;
 
-  private static void log(String msg, Object... args) {
+  public static void log(String msg, Object... args) {
     if (shouldLog) {
       Debug.logp("[AppLog] " + msg, args);
     }
@@ -315,29 +317,28 @@ public class App {
 
   public App(String name) {
     this();
-    appNameGiven = name;
-    init(appNameGiven);
+    init(name);
   }
 
   private void init(String name) {
     if (name.isEmpty()) {
       return;
     }
-    appName = appExec = appNameGiven;
+    appNameGiven = name;
     String[] parts;
     //C:\Program Files\Mozilla Firefox\firefox.exe -- options
-    parts = appName.split(" -- ");
+    parts = appNameGiven.split(" -- ");
     if (parts.length > 1) {
       appOptions = parts[1].trim();
       appExec = parts[0].replace("\"", "").trim();
     } else {
-      if (appName.startsWith("\"")) {
-        parts = appName.substring(1).split("\"");
+      if (appNameGiven.startsWith("\"")) {
+        parts = appNameGiven.substring(1).split("\"");
         if (parts.length > 1) {
-          appOptions = appName.substring(parts[0].length() + 2).trim();
+          appOptions = appNameGiven.substring(parts[0].length() + 2).trim();
           appExec = parts[0];
         } else {
-          appExec = appName.replace("\"", "");
+          appExec = appNameGiven.replace("\"", "");
         }
       }
     }
@@ -353,21 +354,25 @@ public class App {
     }
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
-      if (appName.lastIndexOf(".") > appName.length() - 5) {
-        appName = appName.substring(0, appName.lastIndexOf("."));
-      }
+//      if (appName.lastIndexOf(".") > appName.length() - 5) {
+//        appName = appName.substring(0, appName.lastIndexOf("."));
+//      }
+    } else {
+      appName = isWindowTitle + appNameGiven;
     }
     log("App.create: %s", toStringShort());
   }
 
   @Override
   public String toString() {
-    //_osUtil.get(this);
-    return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
+    if (appNameGiven.startsWith(isWindowTitle)) {
+      return String.format("[%d:%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
+    } else {
+      return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
+    }
   }
 
   public String toStringShort() {
-    //_osUtil.get(this);
     return String.format("[%d:%s]", appPID, appName);
   }
   //</editor-fold>
@@ -427,6 +432,10 @@ public class App {
       appOptions = "";
     }
     return this;
+  }
+
+  public void setNameGiven(String nameGiven) {
+    appNameGiven = nameGiven;
   }
 
   public String getNameGiven() {
@@ -751,6 +760,9 @@ public class App {
       return false;
     } else {
       isFocused = true;
+      if (appName.startsWith(isWindowTitle)) {
+        log("");
+      }
       log("App.focus: %s", this);
     }
     return true;
