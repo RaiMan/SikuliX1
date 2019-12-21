@@ -3,16 +3,11 @@
  */
 package org.sikuli.script.support;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+
+import java.util.*;
 
 /**
  * INTERNAL USE implements the observe action for a region and calls the ObserverCallBacks
@@ -76,7 +71,7 @@ public class Observer {
   }
 
   public void setActive(String name, boolean state) {
-    if (eventNames.containsKey(me)) {
+    if (eventNames.containsKey(name)) {
       if (state) {
         eventStates.put(name, State.FIRST);
       } else {
