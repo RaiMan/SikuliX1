@@ -77,10 +77,6 @@ public class RecordedEventsFlow {
   List<Character> modifiers = new ArrayList<>();
   StringBuilder typedText = new StringBuilder();
 
-  static {
-    RunTime.loadLibrary(RunTime.libOpenCV);
-  }
-
   /**
    * Adds an event to the event flow.
    *

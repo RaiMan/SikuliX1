@@ -1509,7 +1509,6 @@ java.desktop/sun.awt=ALL-UNNAMED
     if (!areLibsExported) {
       throw new SikuliXception("loadLib: deferred exporting of libs did not work");
     }
-    File fLibsFolderUsed = fLibsFolder;
     if (runningWindows) {
       libName += ".dll";
     } else if (runningMac) {
@@ -1519,21 +1518,18 @@ java.desktop/sun.awt=ALL-UNNAMED
     }
     File fLib = new File(fLibsFolder, libName);
     int level = lvl;
+    Boolean libLoaded = libsLoaded.get(libName);
+    libLoaded = libLoaded == null ? false : libLoaded;
     if (!runningLinux) {
-      Boolean vLib = libsLoaded.get(libName);
-      if (vLib == null || !fLib.exists()) {
-        if (!fLib.exists()) {
-          throw new SikuliXception(String.format("loadlib: %s not in any libs folder", libName));
-        } else {
-          vLib = false;
-        }
+      if (!libLoaded && !fLib.exists()) {
+        terminate(999, "loadlib: %s not in any libs folder", libName);
       }
-      if (vLib) {
-        level++;
-        msg += " already loaded";
-        log(level, msg, libName);
-        return true;
-      }
+    }
+    if (libLoaded) {
+      level++;
+      msg += " already loaded";
+      log(level, msg, libName);
+      return true;
     }
     try {
       if (runningLinux && libName.startsWith("libopen")) {
