@@ -324,29 +324,31 @@ public class App {
     if (name.isEmpty()) {
       return;
     }
-    appNameGiven = name;
+    appNameGiven = name.trim();
     String[] parts;
     //C:\Program Files\Mozilla Firefox\firefox.exe -- options
     parts = appNameGiven.split(" -- ");
+    String possibleAppExec = "";
     if (parts.length > 1) {
       appOptions = parts[1].trim();
-      appExec = parts[0].replace("\"", "").trim();
+      possibleAppExec = parts[0].replace("\"", "").trim();
     } else {
       if (appNameGiven.startsWith("\"")) {
         parts = appNameGiven.substring(1).split("\"");
         if (parts.length > 1) {
           appOptions = appNameGiven.substring(parts[0].length() + 2).trim();
-          appExec = parts[0];
+          possibleAppExec = parts[0];
         } else {
-          appExec = appNameGiven.replace("\"", "");
+          possibleAppExec = appNameGiven.replace("\"", "");
         }
+      } else {
+        possibleAppExec = appNameGiven;
       }
     }
-    File fExec = new File(appExec);
+    File fExec = new File(possibleAppExec);
     if (fExec.isAbsolute()) {
       if (!fExec.exists()) {
         log("App: init: does not exist or not valid: %s", fExec);
-        appExec = "";
       } else {
         appExec = fExec.getAbsolutePath();
         appExecPath = fExec.getParent();
@@ -360,7 +362,7 @@ public class App {
     } else {
       appName = isWindowTitle + appNameGiven;
     }
-    log("App.create: %s", toStringShort());
+    log("App.create: %s", toString());
   }
 
   @Override
