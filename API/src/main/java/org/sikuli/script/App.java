@@ -360,7 +360,14 @@ public class App {
 //        appName = appName.substring(0, appName.lastIndexOf("."));
 //      }
     } else {
-      appName = isWindowTitle + appNameGiven;
+      if (!RunTime.onWindows()) {
+        if (!possibleAppExec.startsWith("?")) {
+          appExec = possibleAppExec;
+        }
+        appName = possibleAppExec;
+      } else {
+        appName = isWindowTitle + appNameGiven;
+      }
     }
     log("App.create: %s", toString());
   }
@@ -578,7 +585,7 @@ public class App {
    * @return this or null on failure
    */
   public boolean open() {
-    openAndWait(3);
+    openAndWait(5);
     return isValid();
   }
 
@@ -597,7 +604,8 @@ public class App {
   private void openAndWait(int waitTime) {
     isOpen = false;
     if (!isRunning(0)) {
-      if (_osUtil.open(this)) {
+      boolean isOpen = _osUtil.open(this);
+      if (isOpen) {
         if (!isRunning(waitTime)) {
           log("App.open: not running after %d secs (%s)", waitTime, appNameGiven);
         } else {
@@ -633,6 +641,21 @@ public class App {
     return new App(appName).close();
   }
 
+  public boolean isClosing() {
+    return isClosing;
+  }
+
+  private boolean isClosing = false;
+
+  /**
+   * tries to close the app defined by this App instance, waits max 10 seconds for the app to no longer be running
+   *
+   * @return this or null on failure
+   */
+  public boolean close() {
+    return close(5);
+  }
+
   /**
    * tries to close the app defined by this App instance, waits max given seconds for the app to no longer be running
    *
@@ -644,29 +667,24 @@ public class App {
       return false;
     }
     boolean success = _osUtil.close(this);
-//    if (success) {
-//      int timeTowait = maxWait;
-//      if (waitTime > 0) {
-//        timeTowait = waitTime;
-//      }
-//      while (isRunning(0) && timeTowait > 0) {
-//        timeTowait--;
-//      }
-//    }
+    if (success) {
+      isClosing = true;
+      int timeTowait = maxWait;
+      if (waitTime > 0) {
+        timeTowait = waitTime;
+      }
+      while (isRunning(0) && timeTowait > 0) {
+        pause(1);
+        timeTowait--;
+      }
+    }
+    isClosing = false;
     if (isValid() || !success) {
       log("App.close: did not work: %s", this);
       return false;
-    } log("App.close: %s", this);
+    }
+    log("App.close: %s", this);
     return true;
-  }
-
-  /**
-   * tries to close the app defined by this App instance, waits max 10 seconds for the app to no longer be running
-   *
-   * @return this or null on failure
-   */
-  public boolean close() {
-    return close(0);
   }
 
   public int closeByKey() {
