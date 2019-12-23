@@ -20,94 +20,20 @@ import java.util.List;
 import java.util.Map;
 
 public class LinuxUtil implements OSUtil {
-  
-  private static boolean wmctrlAvail = true;
-  private static boolean xdoToolAvail = true;
-  
-  private String[] wmctrlLine = new String[0];
-  
-  @Override
-  public void checkFeatureAvailability() {
-    List<CommandLine> commands = Arrays.asList(
-        CommandLine.parse("wmctrl -m"),
-        CommandLine.parse("xdotool -v")
-    );
-    for (CommandLine cmd : commands) {
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      String commandstring = StringUtils.toString(cmd.toStrings(), " ");
-      
-      try {
-        DefaultExecutor executor = new DefaultExecutor();
-        // other return values throw exception
-        executor.setExitValue(0);
-        //save system output
-        executor.setStreamHandler(new PumpStreamHandler(outputStream));
-        executor.execute(cmd);
-      } catch (ExecuteException e) {
-        // it ran, but exited with non-zero status -- accept
-        Debug.info("App: command %s ran, but failed: `%s'. Hoping for the best",
-            commandstring, e.toString());
-      } catch (IOException e) {
-        String executable = cmd.toStrings()[0];
-        if (executable.equals("wmctrl")) {
-          wmctrlAvail = false;
-        }
-        if (executable.equals("xdotool")) {
-          xdoToolAvail = false;
-        }
-        Debug.error("App: command %s is not executable, the App features will not work", executable);
-      } finally {
-        logCommandSysout(commandstring, outputStream);
-      }
-    }
-  }
-  
-  private static void logCommandSysout(String commandstring, ByteArrayOutputStream outputStream) {
-    //try to create some useful error output
-    if (outputStream.size() > 0) {
-      Debug.log(4, "command '" + commandstring + "' output:\n" + outputStream.toString());
-    }
-  }
-  
-  private boolean isAvailable(boolean module, String cmd, String feature) {
-    if (module) {
-      return true;
-    }
-    Debug.error("%s: feature %s: not available or not working", cmd, feature);
-    return false;
+
+  private enum SearchType {
+
+    APP_NAME,
+    WINDOW_ID,
+    PID
   }
 
-  private App getApp(int appPID, String appName) {
-    return new App(appName); //, "" + appPID, "", "", "");
-  }
-
+  //<editor-fold desc="01 open">
   @Override
-  public App get(App app) {
-    int pid;
-    if (app == null) {
-      return app;
-    } else if (app.getPID() >= 0) {
-      pid = app.getPID();
-    } else if (app.getName() == null || app.getName().isEmpty()) {
-      return app;
-    } else {
-      pid = this.findWindowPID(app.getName(), 0);
-    }
-    //save system output
-    final DefaultExecutor executor = new DefaultExecutor();
-    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    executor.setStreamHandler(new PumpStreamHandler(outputStream));
-    final CommandLine command = CommandLine.parse("ps -p " + pid);
-    try {
-      //check if PID exists, if not throw exception
-      executor.execute(command);
-      app.setPID(pid);
-      return app;
-    } catch (IOException e) {
-      System.out.println("[error] App.isRunning: '" + command + "'" + e.getMessage());
-      logCommandSysout(command.toString(), outputStream);
-      return app;
-    }
+  public boolean open(App app) {
+    int pid = open(app.getExec());
+    app.setPID(pid);
+    return pid > -1;
   }
 
   private int open(String appName) {
@@ -124,43 +50,26 @@ public class LinuxUtil implements OSUtil {
       //return p.exitValue();
     } catch (Exception e) {
       System.out.println("[error] openApp:\n" + e.getMessage());
-      return 0;
+      return -1;
     }
   }
-  
-  @Override
-  public boolean open(App app) {
-    int ret = open(app.getExec());
-    return ret == 0;
-  }
+  //</editor-fold>
 
-  private int switchtoWindow(String appName, int winNum) {
-    int windowPID = findWindowPID(appName, winNum);
-//    if (windowPID > 1) {
-//      return switchto(windowPID, winNum);
-//    }
-    if (windowPID > -1 && wmctrlLine.length > 0) {
-      return bringWindowToFront(wmctrlLine[0], windowPID);
-    }
-    System.err.println("[error] switchApp: could not identify process with search name '" + appName + "'");
-    return -1;
-  }
-  
-  private App switchtoWindow(String appName) {
-    int ret = switchtoWindow(appName, 0);
-    return new App(appName);
-  }
-  
+  //<editor-fold desc="02 focus">
+  String currentWindowTitle = "";
+
   @Override
   public boolean switchto(App app) {
     int ret = -1;
+    currentWindowTitle = "";
     if (app.getPID() > 0) {
       ret = switchto(app.getPID(), 0);
       if (ret > -1) {
         app.setFocused(true);
+        app.setWindow(currentWindowTitle);
       }
     }
-    return ret == 0;
+    return ret > -1;
   }
 
   @Override
@@ -168,6 +77,67 @@ public class LinuxUtil implements OSUtil {
     //TODO switchto window title
     App app = new App();
     return app;
+  }
+
+  private int switchto(int pid, int num) {
+    if (!isAvailable(wmctrlAvail, "switchApp", "wmctrl")) {
+      return -1;
+    }
+    String winLine[] = findWindow("" + pid, num, SearchType.PID);
+    if (winLine == null || winLine.length < 1) {
+      return -1;
+    }
+    currentWindowTitle = winLine[9];
+    return bringWindowToFront(winLine[0], pid);
+  }
+
+//  private int switchtoWindow(String appName, int winNum) {
+//    int windowPID = findWindowPID(appName, winNum);
+////    if (windowPID > 1) {
+////      return switchto(windowPID, winNum);
+////    }
+//    if (windowPID > -1 && wmctrlLine.length > 0) {
+//      return bringWindowToFront(wmctrlLine[0], windowPID);
+//    }
+//    System.err.println("[error] switchApp: could not identify process with search name '" + appName + "'");
+//    return -1;
+//  }
+//
+//  private App switchtoWindow(String appName) {
+//    int ret = switchtoWindow(appName, 0);
+//    return new App(appName);
+//  }
+  //</editor-fold>
+
+  //<editor-fold desc="03 close">
+  @Override
+  public boolean close(App app) {
+    int ret;
+    if (app.getPID() > 0) {
+      ret = close(app.getPID());
+    } else {
+      ret = close(app.getExec());
+    }
+    return ret == 0;
+  }
+
+  private int close(int pid) {
+    if (!isAvailable(wmctrlAvail, "closeApp", "wmctrl")) {
+      return -1;
+    }
+    String winLine[] = findWindow("" + pid, 0, SearchType.PID);
+    if (winLine == null) {
+      return -1;
+    }
+    String cmd[] = {"wmctrl", "-ic", winLine[0]};
+    try {
+      Process p = Runtime.getRuntime().exec(cmd);
+      p.waitFor();
+      return p.exitValue();
+    } catch (Exception e) {
+      System.out.println("[error] closeApp:\n" + e.getMessage());
+      return -1;
+    }
   }
 
   private int close(String appName) {
@@ -194,23 +164,9 @@ public class LinuxUtil implements OSUtil {
       return -1;
     }
   }
-  
-  @Override
-  public boolean close(App app) {
-    int ret;
-    if (app.getPID() > 0) {
-      ret = close(app.getPID());
-    } else {
-      ret = close(app.getExec());
-    }
-    return ret == 0;
-  }
-  
-  @Override
-  public List<App> getApps(String name) {
-    return null;
-  }
-  
+  //</editor-fold>
+
+  //<editor-fold desc="04 windows">
   @Override
   public Rectangle getFocusedWindow() {
     if (!isAvailable(xdoToolAvail, "getFocusedWindow", "xdoTool")) {
@@ -233,12 +189,22 @@ public class LinuxUtil implements OSUtil {
     }
     return null;
   }
-  
+
+  @Override
+  public Rectangle getWindow(App app) {
+    return getWindow(app, 0);
+  }
+
+  @Override
+  public Rectangle getWindow(App app, int num) {
+    return new Rectangle();
+  }
+
   @Override
   public Rectangle getWindow(String appName) {
     return getWindow(appName, 0);
   }
-  
+
   private Rectangle findRegion(String appName, int winNum, SearchType type) {
     String[] winLine = findWindow(appName, winNum, type);
     if (winLine != null && winLine.length >= 7) {
@@ -314,7 +280,7 @@ public class LinuxUtil implements OSUtil {
    * @param winNum
    * @return the PID or -1 on errors
    */
-  protected int findWindowPID(String appName, int winNum) {
+  private int findWindowPID(String appName, int winNum) {
     wmctrlLine = new String[0];
     String[] windowLine = findWindow(appName, winNum, SearchType.APP_NAME);
     if (windowLine != null && windowLine.length > 1) {
@@ -324,16 +290,6 @@ public class LinuxUtil implements OSUtil {
     return -1;
   }
 
-  @Override
-  public Rectangle getWindow(App app) {
-    return getWindow(app, 0);
-  }
-
-  @Override
-  public Rectangle getWindow(App app, int num) {
-    return new Rectangle();
-  }
-  
   private Rectangle getWindow(String appName, int winNum) {
     return findRegion(appName, winNum, SearchType.APP_NAME);
   }
@@ -344,49 +300,6 @@ public class LinuxUtil implements OSUtil {
   
   private Rectangle getWindow(int pid, int winNum) {
     return findRegion("" + pid, winNum, SearchType.PID);
-  }
-  
-  private int close(int pid) {
-    if (!isAvailable(wmctrlAvail, "closeApp", "wmctrl")) {
-      return -1;
-    }
-    String winLine[] = findWindow("" + pid, 0, SearchType.PID);
-    if (winLine == null) {
-      return -1;
-    }
-    String cmd[] = {"wmctrl", "-ic", winLine[0]};
-    try {
-      Process p = Runtime.getRuntime().exec(cmd);
-      p.waitFor();
-      return p.exitValue();
-    } catch (Exception e) {
-      System.out.println("[error] closeApp:\n" + e.getMessage());
-      return -1;
-    }
-  }
-  
-  private int switchto(int pid, int num) {
-    if (!isAvailable(wmctrlAvail, "switchApp", "wmctrl")) {
-      return -1;
-    }
-    String winLine[] = findWindow("" + pid, num, SearchType.PID);
-    if (winLine == null || winLine.length < 1) {
-      System.err.println("[error] switchApp: window of PID '" + pid + "' couldn't be found!");
-      return -1;
-    }
-/*
-    try {
-      // execute wmctrl with hex, e.g. 'wmctrl -ia 0x00000'
-      CommandExecutorHelper.execute("wmctrl -ia " + winLine[0], 0);
-      //on the success exit value = 0 -> so no exception will be thrown
-      return pid;
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.err.println("[error] switchApp:\n" + e.getMessage());
-      return -1;
-    }
-*/
-    return bringWindowToFront(winLine[0], pid);
   }
   
   private int bringWindowToFront(String windowID, int pid) {
@@ -406,11 +319,103 @@ public class LinuxUtil implements OSUtil {
   public List<Region> getWindows(App app) {
     return new ArrayList<>();
   }
+  //</editor-fold>
 
-  private enum SearchType {
-    
-    APP_NAME,
-    WINDOW_ID,
-    PID
+  //<editor-fold desc="05 wmctrl xdotool">
+  private static boolean wmctrlAvail = true;
+  private static boolean xdoToolAvail = true;
+
+  private String[] wmctrlLine = new String[0];
+
+  @Override
+  public void checkFeatureAvailability() {
+    List<CommandLine> commands = Arrays.asList(
+            CommandLine.parse("wmctrl -m"),
+            CommandLine.parse("xdotool -v")
+    );
+    for (CommandLine cmd : commands) {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      String commandstring = StringUtils.toString(cmd.toStrings(), " ");
+
+      try {
+        DefaultExecutor executor = new DefaultExecutor();
+        // other return values throw exception
+        executor.setExitValue(0);
+        //save system output
+        executor.setStreamHandler(new PumpStreamHandler(outputStream));
+        executor.execute(cmd);
+      } catch (ExecuteException e) {
+        // it ran, but exited with non-zero status -- accept
+        Debug.info("App: command %s ran, but failed: `%s'. Hoping for the best",
+                commandstring, e.toString());
+      } catch (IOException e) {
+        String executable = cmd.toStrings()[0];
+        if (executable.equals("wmctrl")) {
+          wmctrlAvail = false;
+        }
+        if (executable.equals("xdotool")) {
+          xdoToolAvail = false;
+        }
+        Debug.error("App: command %s is not executable, the App features will not work", executable);
+      } finally {
+        logCommandSysout(commandstring, outputStream);
+      }
+    }
+  }
+
+  private static void logCommandSysout(String commandstring, ByteArrayOutputStream outputStream) {
+    //try to create some useful error output
+    if (outputStream.size() > 0) {
+      Debug.log(4, "command '" + commandstring + "' output:\n" + outputStream.toString());
+    }
+  }
+
+  private boolean isAvailable(boolean module, String cmd, String feature) {
+    if (module) {
+      return true;
+    }
+    Debug.error("%s: feature %s: not available or not working", cmd, feature);
+    return false;
+  }
+  //</editor-fold>
+
+  @Override
+  public App get(App app) {
+    int pid;
+    if (app == null) {
+      return app;
+    }
+    pid = app.getPID();
+    if (!app.isClosing() && pid < 0) {
+      if (app.getNameGiven() != null && !app.getNameGiven().isEmpty()) {
+        pid = findWindowPID(app.getNameGiven(), 0);
+        app.setPID(pid);
+      }
+      return app;
+    }
+    if (app.isClosing() && pid > -1) {
+      DefaultExecutor executor = new DefaultExecutor();
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      executor.setStreamHandler(new PumpStreamHandler(outputStream));
+      CommandLine command = CommandLine.parse("ps -p " + pid);
+      try {
+        executor.execute(command);
+        app.setPID(pid);
+      } catch (Exception e) {
+        if (outputStream.toString().split("\\n").length == 1) {
+          app.setPID(-1);
+          app.setWindow("");
+        } else {
+          Debug.log(3, "[error] LinuxUtil::executeCommand: %s (%s)", command, e.getMessage());
+          logCommandSysout(command.toString(), outputStream);
+        }
+      }
+    }
+    return app;
+  }
+
+  @Override
+  public List<App> getApps(String name) {
+    return null;
   }
 }
