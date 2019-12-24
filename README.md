@@ -84,15 +84,20 @@ The dependency coordinates are:
 **Development environment**
 
  - Java 13 (OpenJDK release)
- - Windows 10 latest
+ - Java 8 (Oracle) for comatibility test
+ - Source and target level for Java is version 8 as long as supported by Oracle
+ - Maven project
+ - Windows 10 latest (Pro 64-Bit)
  - Mac 10.15 latest
- - Ubuntu 18.04 in WSL on Windows 10 (basic tests only)
+ - Ubuntu 18.04 in WSL on Windows 10 (basic tests only, headless)
+ - Ubuntu 18.04 running in Oracle VM VirtualBox 6.1 on Windows 10
+ - Using IntelliJ IDEA CE in all environments
 
 <hr>
 
 #### Contributions are welcome and appreciated
  - for `bugreports and requests for features or enhancements` use the issue tracker here
- - for `bugfixes` related to the latest release version (currently 2.0.0) you should create a pull request against the release branch (currently `release_2.0.x`), so your fix will be in the next bug-fix release (currently 2.0.1)
+ - for `bugfixes` related to the latest release version you should create a pull request against the release branch (currently `release_2.0.x`), so your fix will be in the next bug-fix release (see milestones).
 - for `smaller bugfixes and/or feature enhancements` related to the running development (currently branch master as version 2.1.0-SNAPSHOT and dev_... branches) you should create a pull request against the target branch
 - a pull request should target only one branch. It is the resposibility and job of the maintainer to apply the changes to other branches in case 
 - for `more complex revisions and/or enhancements` you should ask for a development branch together with a short description of your ideas
