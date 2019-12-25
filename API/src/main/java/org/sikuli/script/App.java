@@ -368,13 +368,13 @@ public class App {
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
     } else {
-      if (RunTime.onWindows() || possibleAppExec.startsWith("?")) {
+      if (RunTime.get().runningWindows || possibleAppExec.startsWith("?")) {
         appName = appNameGiven;
         setGivenAsWindowTitle();
         if (appName.startsWith("?")) {
           appName = appName.substring(1);
         }
-      } else if (!RunTime.onWindows()) {
+      } else if (!RunTime.get().runningWindows) {
         appExec = possibleAppExec;
         appName = possibleAppExec;
       }
