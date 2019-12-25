@@ -210,6 +210,8 @@ public class ProcessRunner extends AbstractScriptRunner{
       cmd.add("taskkill");
       cmd.add("/PID");
       cmd.add(givenCmd.get(0));
+      cmd.add(">nul");
+      cmd.add("2>&1");
       if (cmd.size() > 0) {
         ProcessBuilder app = new ProcessBuilder();
         Map<String, String> processEnv = app.environment();
@@ -254,6 +256,8 @@ public class ProcessRunner extends AbstractScriptRunner{
           startAppParams(cmd, givenCmd.get(np));
         }
       }
+      cmd.add(">nul");
+      cmd.add("2>&1");
       if (cmd.size() > 0) {
         ProcessBuilder app = new ProcessBuilder();
         Map<String, String> processEnv = app.environment();
