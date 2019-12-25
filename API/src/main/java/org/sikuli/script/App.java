@@ -698,6 +698,7 @@ public class App {
       return false;
     }
     log("App.close: %s", this);
+    reset();
     return true;
   }
 

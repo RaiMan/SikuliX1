@@ -194,6 +194,40 @@ public class ProcessRunner extends AbstractScriptRunner{
     return exitValue;
   }
 
+  public static boolean closeApp(String... givenCmd) {
+    List<String> cmd = new ArrayList<>();
+    cmd.addAll(Arrays.asList(givenCmd));
+    return closeApp(cmd);
+  }
+
+  public static boolean closeApp(List<String> givenCmd) {
+    RunTime runTime = RunTime.get();
+    int exitValue = 0;
+    if (runTime.runningWindows) {
+      List<String> cmd = new ArrayList<>();
+      cmd.add("cmd");
+      cmd.add("/C");
+      cmd.add("taskkill");
+      cmd.add("/PID");
+      cmd.add(givenCmd.get(0));
+      if (cmd.size() > 0) {
+        ProcessBuilder app = new ProcessBuilder();
+        Map<String, String> processEnv = app.environment();
+        app.command(cmd);
+        app.redirectErrorStream(true);
+        app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        try {
+          app.start();
+        } catch (Exception e) {
+          p("[Error] ProcessRunner: taskkill: %s", e.getMessage());
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   public static boolean startApp(String... givenCmd) {
     List<String> cmd = new ArrayList<>();
     cmd.addAll(Arrays.asList(givenCmd));
