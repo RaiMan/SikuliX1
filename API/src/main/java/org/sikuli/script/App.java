@@ -56,7 +56,18 @@ public class App {
     appsMac.put(Type.VIEWER, "Preview");
   }
 
-  public static final String isWindowTitle = "?WindowTitle?";
+  private boolean isGivenAsWindowTitle = false;
+  public boolean isWindow() {
+    return isGivenAsWindowTitle;
+  }
+
+  private void setGivenAsWindowTitle() {
+    isGivenAsWindowTitle = true;
+  }
+
+  private void resetGivenAsWindowTitle() {
+    isGivenAsWindowTitle = false;
+  }
 
   //  //<editor-fold defaultstate="collapsed" desc="9 features based on org.apache.httpcomponents.httpclient">
 //  private static CloseableHttpClient httpclient = null;
@@ -356,17 +367,16 @@ public class App {
     }
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
-//      if (appName.lastIndexOf(".") > appName.length() - 5) {
-//        appName = appName.substring(0, appName.lastIndexOf("."));
-//      }
     } else {
-      if (!RunTime.onWindows()) {
-        if (!possibleAppExec.startsWith("?")) {
-          appExec = possibleAppExec;
+      if (RunTime.onWindows() || possibleAppExec.startsWith("?")) {
+        appName = appNameGiven;
+        setGivenAsWindowTitle();
+        if (appName.startsWith("?")) {
+          appName = appName.substring(1);
         }
+      } else if (!RunTime.onWindows()) {
+        appExec = possibleAppExec;
         appName = possibleAppExec;
-      } else {
-        appName = isWindowTitle + appNameGiven;
       }
     }
     log("App.create: %s", toString());
@@ -374,15 +384,19 @@ public class App {
 
   @Override
   public String toString() {
-    if (appNameGiven.startsWith(isWindowTitle)) {
-      return String.format("[%d:%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
+    if (isWindow()) {
+      return String.format("[%d:?%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
     } else {
       return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
     }
   }
 
   public String toStringShort() {
-    return String.format("[%d:%s]", appPID, appName);
+    if (isWindow()) {
+      return String.format("[%d:?%s]", appPID, appName);
+    } else {
+      return String.format("[%d:%s]", appPID, appName);
+    }
   }
   //</editor-fold>
 
@@ -754,12 +768,6 @@ public class App {
   public static App focus(String title, int index) {
     App app = new App(title);
     app.focus();
-
-    // Does not make sense if title is not a valid executable name
-    // -> gives error popup on windows
-//    if (!app.isRunning()) {
-//      app.open();
-//    }
     return app;
   }
 
@@ -780,8 +788,8 @@ public class App {
       return false;
     } else {
       isFocused = true;
-      if (appName.startsWith(isWindowTitle)) {
-        log("");
+      if (isWindow()) {
+        resetGivenAsWindowTitle();
       }
       log("App.focus: %s", this);
     }

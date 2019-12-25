@@ -263,7 +263,7 @@ public class WinUtil implements OSUtil {
 
   private static App getTaskByName(App app) {
 
-    if (app.getName().startsWith(App.isWindowTitle)) {
+    if (app.isWindow()) {
       return getTaskByWindow(app);
     } else {
       new File(app.getExec()).getName();
@@ -304,7 +304,7 @@ public class WinUtil implements OSUtil {
 
   private static App getTaskByWindow(App app) {
     app.log("Win:getTaskByWindow: %s", app.getName());
-    String title = app.getName().replace(App.isWindowTitle, "");
+    String title = app.getName();
 
     List<WindowInfo> windows = allWindows();
 
