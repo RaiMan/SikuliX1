@@ -410,6 +410,7 @@ public class WinUtil implements OSUtil {
     return false;
   }
 
+  //TODO implement using JNA
   public native int closeApp(int pid);
 
   @Override

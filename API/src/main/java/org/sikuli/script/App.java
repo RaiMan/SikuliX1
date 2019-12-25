@@ -316,7 +316,7 @@ public class App {
 
   public void reset() {
     appPID = -1;
-    appWindow = "???";
+    appWindow = "";
   }
 
   public App() {
