@@ -13,7 +13,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -485,7 +484,15 @@ public class App {
     appExec = exec;
   }
 
-  public String getWindow() {
+  public String getTitle() {
+    return getWindowTitle();
+  }
+
+  public String getTitle(int windowNumber) {
+    return getWindowTitle();
+  }
+
+  public String getWindowTitle() {
     return appWindow == null ? "" : appWindow;
   }
 
@@ -560,7 +567,7 @@ public class App {
     if (!isValid()) {
       return false;
     }
-    return !getWindow().isEmpty();
+    return !getWindowTitle().isEmpty();
   }
   //</editor-fold>
 
@@ -807,7 +814,7 @@ public class App {
    * @return the region
    */
   public Region window() {
-    return asRegion(_osUtil.getWindow(this, 0));
+    return window(0);
   }
 
   /**
@@ -819,7 +826,17 @@ public class App {
    * @return the region
    */
   public Region window(int winNum) {
-    return asRegion(_osUtil.getWindow(this, winNum));
+    Region windowRegion = null;
+    Rectangle windowRect = _osUtil.getWindow(this, winNum);
+    if (null != windowRect) {
+      windowRegion = asRegion(windowRect);
+      if (winNum == 0) {
+        windowRegion.setName(getTitle());
+      } else {
+
+      }
+    }
+    return windowRegion;
   }
 
   /**
