@@ -403,11 +403,11 @@ public class WinUtil implements OSUtil {
 
   @Override
   public boolean close(App app) {
-    if (closeApp(app.getPID()) == 0) {
-      app.reset();
-      return true;
-    }
-    return false;
+    return ProcessRunner.closeApp("" + app.getPID());
+//    if (closeApp(app.getPID()) == 0) {
+//      app.reset();
+//      return true;
+//    }
   }
 
   //TODO implement using JNA
