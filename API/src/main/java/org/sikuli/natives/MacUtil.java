@@ -10,7 +10,6 @@ import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +88,7 @@ public class MacUtil implements OSUtil {
           app.setName(theApp.getName());
           app.setToken(theApp.getToken());
           app.setExec(theApp.getExec());
-          app.setWindow(theApp.getWindow());
+          app.setWindow(theApp.getWindowTitle());
         }
       }
       return app;
@@ -120,7 +119,7 @@ public class MacUtil implements OSUtil {
                 app.setExec(part);
                 continue;
               }
-              app.setWindow(app.getWindow() + "," + parts);
+              app.setWindow(app.getWindowTitle() + "," + parts);
             }
           }
         }

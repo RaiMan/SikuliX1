@@ -1447,11 +1447,6 @@ public class Finder implements Iterator<Match> {
     public String toString() {
       return String.format("(stdDev: %.4f mean: %4f)", targetStdDev, targetMean);
     }
-
-  //TODO for compilation - remove when native is obsolete
-    public static long getCPtr(FindInput2 p) {
-      return 0;
-    }
   }
 
   public static class FindResult2 implements Iterator<Match> {
