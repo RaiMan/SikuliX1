@@ -104,6 +104,15 @@ public class JythonSupport implements IRunnerSupport {
     runTime.isJythonReady = true;
   }
 
+  /**
+   * For experts, who want to tweak the Jython interprter instance<br>
+   *   Usage: org.sikuli.script.runnerSupport.JythonSupport.get().interpreterGet()
+   * @return the singleton Jython interpreter instance (org.python.util.PythonInterpreter)
+   */
+  public PythonInterpreter interpreterGet() {
+    return interpreter;
+  }
+
   public void interpreterCleanup() {
     if (null != interpreter) {
       interpreter.cleanup();
