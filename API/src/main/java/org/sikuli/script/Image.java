@@ -3,36 +3,21 @@
  */
 package org.sikuli.script;
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Transparency;
-import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.SampleModel;
-import java.awt.image.WritableRaster;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import javax.imageio.ImageIO;
-
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.color.ColorSpace;
+import java.awt.image.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.*;
 
 /**
  * This class hides the complexity behind image names given as string.
@@ -884,6 +869,20 @@ public class Image {
     return false;
   }
   //</editor-fold>
+
+  public void save(String name) {
+    save(name, ImagePath.getBundlePath());
+  }
+
+  public void save(String name, String path) {
+    File fImg = new File(path, name);
+    try {
+      ImageIO.write(get(), "png", fImg);
+      Debug.log(3, "Image::save: %s", fImg);
+    } catch (IOException e) {
+      Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
+    }
+  }
 
   //<editor-fold desc="03 load">
   /**
