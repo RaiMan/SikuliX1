@@ -15,13 +15,18 @@ import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
 import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
 import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
 import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
-import org.sikuli.script.*;
 import org.sikuli.script.Image;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.Location;
+import org.sikuli.script.SX;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.script.support.*;
+import org.sikuli.script.support.ExtensionManager;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Runner;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -39,16 +44,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
+import java.util.*;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import org.sikuli.script.SX;
 
 public class EditorPane extends JTextPane {
 
