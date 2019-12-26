@@ -4,7 +4,10 @@
 package org.sikuli.ide;
 
 import org.apache.commons.io.FilenameUtils;
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.PreferencesUser;
+import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
@@ -39,8 +42,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
@@ -1151,12 +1154,13 @@ public class EditorPane extends JTextPane {
       return null;
     }
     String filename = file.getAbsolutePath();
-    if (!isBundle()) {
-      int currentTab = getTabs().getSelectedIndex();
-      if (alreadyOpen(filename, currentTab) != -1) {
-        log(-1, "saveAs: target bundle is open in IDE - close bundle before doing saveAs");
-        return null;
-      }
+    int currentTab = getTabs().getSelectedIndex();
+    int tabAlreadyOpen = alreadyOpen(filename, currentTab);
+    if (-1 != tabAlreadyOpen) {
+      SX.popError(String.format("Target is open in IDE\n%s\n" +
+              "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
+              "SaveAs: file is opened");
+      return null;
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
