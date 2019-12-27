@@ -3,28 +3,22 @@
  */
 package org.sikuli.script;
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Transparency;
+import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.SampleModel;
-import java.awt.image.WritableRaster;
+import java.awt.image.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -383,25 +377,33 @@ public class Image {
   }
 
   /**
-   * resize the loaded image with factor using Graphics2D.drawImage
+   * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor) {
-    int type;
     return resize(get(), factor);
   }
 
   public static BufferedImage resize(BufferedImage bimg, float factor) {
-    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
-    int width = (int) (bimg.getWidth() * factor);
-    int height = (int) (bimg.getHeight() * factor);
-    BufferedImage resizedImage = new BufferedImage(width, height, type);
-    Graphics2D g = resizedImage.createGraphics();
-    g.drawImage(bimg, 0, 0, width, height, null);
-    g.dispose();
-    return resizedImage;
+    return Finder.Finder2.getBufferedImage(cvResize(bimg, factor));
+//    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
+//    int width = (int) (bimg.getWidth() * factor);
+//    int height = (int) (bimg.getHeight() * factor);
+//    BufferedImage resizedImage = new BufferedImage(width, height, type);
+//    Graphics2D g = resizedImage.createGraphics();
+//    g.drawImage(bimg, 0, 0, width, height, null);
+//    g.dispose();
+//    return resizedImage;
+  }
+
+  public static Mat cvResize(BufferedImage bimg, double rFactor) {
+    Mat mat = Finder.Finder2.makeMat(bimg);
+    int newW = (int) (rFactor * bimg.getWidth());
+    int newH = (int) (rFactor * bimg.getHeight());
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
+    return mat;
   }
 
   /**
@@ -884,6 +886,20 @@ public class Image {
     return false;
   }
   //</editor-fold>
+
+  public void save(String name) {
+    save(name, ImagePath.getBundlePath());
+  }
+
+  public void save(String name, String path) {
+    File fImg = new File(path, name);
+    try {
+      ImageIO.write(get(), "png", fImg);
+      Debug.log(3, "Image::save: %s", fImg);
+    } catch (IOException e) {
+      Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
+    }
+  }
 
   //<editor-fold desc="03 load">
   /**
