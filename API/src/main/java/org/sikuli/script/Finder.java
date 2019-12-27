@@ -215,19 +215,22 @@ public class Finder implements Iterator<Match> {
   }
 
   private Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
-    BufferedImage newBimg = img.get();
     float factor = oneTimeResize;
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
+    Mat mat;
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
-      newBimg = Image.resize(newBimg, factor);
+      //mat = Finder2.makeMat(Image.resize(img.get(), factor), false);
+      mat = Image.cvResize(img.get(),factor);
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
-      newBimg = Settings.ImageCallback.callback(img);
+      BufferedImage newBimg = Settings.ImageCallback.callback(img);
+      mat = Finder2.makeMat(newBimg, false);
+    } else {
+      mat = Finder2.makeMat(img.get(), false);
     }
-    Mat mat = Finder2.makeMat(newBimg, false);
     if (mat.empty()) {
       log(-1, "%s: conversion error --- find will fail", img);
     }

@@ -4,6 +4,9 @@
 package org.sikuli.script;
 
 import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -368,25 +371,33 @@ public class Image {
   }
 
   /**
-   * resize the loaded image with factor using Graphics2D.drawImage
+   * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor) {
-    int type;
     return resize(get(), factor);
   }
 
   public static BufferedImage resize(BufferedImage bimg, float factor) {
-    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
-    int width = (int) (bimg.getWidth() * factor);
-    int height = (int) (bimg.getHeight() * factor);
-    BufferedImage resizedImage = new BufferedImage(width, height, type);
-    Graphics2D g = resizedImage.createGraphics();
-    g.drawImage(bimg, 0, 0, width, height, null);
-    g.dispose();
-    return resizedImage;
+    return Finder.Finder2.getBufferedImage(cvResize(bimg, factor));
+//    int type = bimg.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bimg.getType();
+//    int width = (int) (bimg.getWidth() * factor);
+//    int height = (int) (bimg.getHeight() * factor);
+//    BufferedImage resizedImage = new BufferedImage(width, height, type);
+//    Graphics2D g = resizedImage.createGraphics();
+//    g.drawImage(bimg, 0, 0, width, height, null);
+//    g.dispose();
+//    return resizedImage;
+  }
+
+  public static Mat cvResize(BufferedImage bimg, double rFactor) {
+    Mat mat = Finder.Finder2.makeMat(bimg);
+    int newW = (int) (rFactor * bimg.getWidth());
+    int newH = (int) (rFactor * bimg.getHeight());
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
+    return mat;
   }
 
   /**
