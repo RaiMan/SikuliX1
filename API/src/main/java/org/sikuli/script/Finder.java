@@ -228,7 +228,7 @@ public class Finder implements Iterator<Match> {
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
       if (!mat.empty()) {
-        img.resize(mat, factor);
+        Image.resize(mat, factor);
       }
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
