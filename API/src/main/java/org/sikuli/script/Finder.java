@@ -50,11 +50,13 @@ public class Finder implements Iterator<Match> {
 
   private static String me = "Finder: ";
   private static int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
 
   private static String markRegex = Key.ESC;
+
   public static String asRegEx(String text) {
     return markRegex + text;
   }
@@ -68,7 +70,8 @@ public class Finder implements Iterator<Match> {
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
-  protected Finder() {}
+  protected Finder() {
+  }
 
   public Finder(FindInput2 findInput) {
     _findInput = findInput;
@@ -97,7 +100,7 @@ public class Finder implements Iterator<Match> {
    * <br>internally used with a screen snapshot
    *
    * @param imageFilename a string (name, path, url)
-   * @param region search Region within image - topleft = (0,0)
+   * @param region        search Region within image - topleft = (0,0)
    */
   public Finder(String imageFilename, Region region) {
     Image img = Image.create(imageFilename);
@@ -132,7 +135,7 @@ public class Finder implements Iterator<Match> {
   /**
    * Finder constructor for special use from a region on a ScreenImage
    *
-   * @param simg ScreenImage
+   * @param simg   ScreenImage
    * @param region the cropping region
    */
   public Finder(ScreenImage simg, Region region) {
@@ -161,6 +164,7 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
+
   /**
    * internal use: to be able to reuse the same Finder
    */
@@ -192,6 +196,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a find op with the given image or the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param imageOrText image file name or text
    * @return null. if find setup not possible
    */
@@ -239,6 +244,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a find op with the given pattern in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param aPtn Pattern
    * @return null. if find setup not possible
    */
@@ -267,6 +273,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a find op with the given image in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param img Image
    * @return null. if find setup not possible
    */
@@ -292,6 +299,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a find op with the given image in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param img BufferedImage
    * @return null. if find setup not possible
    */
@@ -334,6 +342,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a text find with the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param text text
    * @return null. if find setup not possible
    */
@@ -397,9 +406,11 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="findAll">
+
   /**
    * do a findAll op with the given image or the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param imageOrText iamge file name or text
    * @return null. if find setup not possible
    */
@@ -423,10 +434,11 @@ public class Finder implements Iterator<Match> {
   /**
    * do a find op with the given pattern in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param aPtn Pattern
    * @return null. if find setup not possible
    */
-  public String findAll(Pattern aPtn)  {
+  public String findAll(Pattern aPtn) {
     if (!valid) {
       log(-1, "not valid");
       return null;
@@ -454,10 +466,11 @@ public class Finder implements Iterator<Match> {
   /**
    * do a findAll op with the given image in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param img Image
    * @return null. if find setup not possible
    */
-  public String findAll(Image img)  {
+  public String findAll(Image img) {
     if (!valid) {
       log(-1, "not valid");
       return null;
@@ -480,6 +493,7 @@ public class Finder implements Iterator<Match> {
   /**
    * do a findAll op with the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
+   *
    * @param text text
    * @return null. if find setup not possible
    */
@@ -503,7 +517,6 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   *
    * @return true if Finder has a next match, false otherwise
    */
   @Override
@@ -515,7 +528,6 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   *
    * @return the next match or null
    */
   @Override
@@ -568,7 +580,7 @@ public class Finder implements Iterator<Match> {
   */
 
   @Override
-  public void remove(){
+  public void remove() {
     destroy();
   }
 
@@ -1066,7 +1078,7 @@ public class Finder implements Iterator<Match> {
         aMatBGR.put(0, 0, data);
         return aMatBGR;
       } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-                  || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+              || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
         String bImgType = "BYTE_BINARY";
         if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
           bImgType = "BYTE_INDEXED";
@@ -1074,7 +1086,7 @@ public class Finder implements Iterator<Match> {
         log.trace("makeMat: %s (%dx%d)", bImgType, bImg.getWidth(), bImg.getHeight());
         BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
         Graphics graphics = bimg3b.getGraphics();
-        graphics.drawImage(bImg,0, 0, null);
+        graphics.drawImage(bImg, 0, 0, null);
         byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
         Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
         aMatBGR.put(0, 0, data);
@@ -1104,7 +1116,7 @@ public class Finder implements Iterator<Match> {
         log.trace("makeMat: BYTE_BINARY (%dx%d)", bImg.getWidth(), bImg.getHeight());
         BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
         Graphics graphics = bimg3b.getGraphics();
-        graphics.drawImage(bImg,0, 0, null);
+        graphics.drawImage(bImg, 0, 0, null);
         byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
         Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
         aMatBGR.put(0, 0, data);
@@ -1391,6 +1403,7 @@ public class Finder implements Iterator<Match> {
     public boolean isWhite() {
       return isValid() && blackColor;
     }
+
     public double getResizeFactor() {
       return isValid() ? resizeFactor : 1;
     }
@@ -1509,7 +1522,9 @@ public class Finder implements Iterator<Match> {
     double lastScore = -1;
     double scoreMeanDiff = -1;
     double scoreMaxDiff = 0.005;
-    int matchCount = 0;
+    int matchCount = -1;
+    int lastMatchCount = -1;
+    boolean currentIsMatch = false;
 
     private int currentX = -1;
     private int currentY = -1;
@@ -1527,28 +1542,26 @@ public class Finder implements Iterator<Match> {
         }
         return false;
       }
-      resultMinMax = Core.minMaxLoc(result);
-      currentScore = resultMinMax.maxVal;
-      currentX = (int) resultMinMax.maxLoc.x;
-      currentY = (int) resultMinMax.maxLoc.y;
-      if (lastScore < 0) {
-        lastScore = currentScore;
-        targetScore = findInput.getScore();
-        baseW = result.width();
-        baseH = result.height();
-        targetW = findInput.getTarget().width();
-        targetH = findInput.getTarget().height();
-        marginX = (int) (targetW * 0.8);
-        marginY = (int) (targetH * 0.8);
-        matchCount = 0;
+      if (matchCount < 0 || matchCount > lastMatchCount) {
+        resultMinMax = Core.minMaxLoc(result);
+        currentScore = resultMinMax.maxVal;
+        currentX = (int) resultMinMax.maxLoc.x;
+        currentY = (int) resultMinMax.maxLoc.y;
       }
       boolean isMatch = false;
-      if (currentScore > targetScore) {
-        if (matchCount == 0) {
-          isMatch = true;
-        } else if (matchCount == 1) {
+      if (matchCount < 0) {
+        targetScore = findInput.getScore();
+        targetW = findInput.getTarget().width();
+        targetH = findInput.getTarget().height();
+//        marginX = (int) (targetW * 0.1);
+//        marginY = (int) (targetH * 0.1);
+        marginX = marginY = 0;
+        matchCount = lastMatchCount = 0;
+        isMatch = true;
+      } else if (matchCount > lastMatchCount) {
+        if (matchCount == 1) {
           scoreMeanDiff = lastScore - currentScore;
-          isMatch = true;
+          isMatch = currentScore > targetScore;
         } else {
           double scoreDiff = lastScore - currentScore;
           if (findInput.isPattern || scoreDiff <= (scoreMeanDiff + 0.01)) { // 0.005
@@ -1556,11 +1569,13 @@ public class Finder implements Iterator<Match> {
             isMatch = true;
           }
         }
-        if (!isMatch) {
-          Debug.log(3, "findAll: (%d) stop: %.4f (%.4f) %s", matchCount, currentScore, scoreMeanDiff, findInput);
-        }
+      } else {
+        return currentIsMatch;
       }
-      return isMatch;
+      if (!isMatch) {
+        Debug.log(3, "findAll: (%d) stop: %.4f (%.4f) %s", matchCount, currentScore, scoreMeanDiff, findInput);
+      }
+      return currentIsMatch = isMatch;
     }
 
     public Match next() {
@@ -1572,11 +1587,14 @@ public class Finder implements Iterator<Match> {
           match.setText(nextWord.getText().trim());
         } else {
           match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);
+          lastMatchCount = matchCount;
           matchCount++;
           lastScore = currentScore;
           //int margin = getPurgeMargin();
-          Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, result.width()));
-          Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, result.height()));
+          Range rangeX = new Range(Math.max(currentX - marginX, 0),
+                                    Math.min(currentX + targetW + marginX, result.width()));
+          Range rangeY = new Range(Math.max(currentY - marginY, 0),
+                                    Math.min(currentY + targetH + marginY, result.height()));
           result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
         }
       }
