@@ -370,35 +370,33 @@ public class TextRecognizer {
   }
 
   public BufferedImage optimize(BufferedImage bimg) {
-    Mat img = Finder2.makeMat(bimg);
+    Mat mimg = Finder2.makeMat(bimg);
 
-    Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
 
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
-    img = unsharpMask(img, 3);
+    mimg = unsharpMask(mimg, 3);
 
     // Resize to optimumDPI
     actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
     float rFactor = factor();
 
     if (rFactor > 1) {
-      int newW = (int) (rFactor * bimg.getWidth());
-      int newH = (int) (rFactor * bimg.getHeight());
-      Imgproc.resize(img, img, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
+      Image.resize(mimg, rFactor);
     }
 
     // sharpen the enlarged image again
-    img = unsharpMask(img, 5);
+    mimg = unsharpMask(mimg, 5);
 
     // invert in case of mainly dark background
-    if (Core.mean(img).val[0] < 127) {
-      Core.bitwise_not(img, img);
+    if (Core.mean(mimg).val[0] < 127) {
+      Core.bitwise_not(mimg, mimg);
     }
 
     // configure tesseract to handle the resized image correctly
     setVariable("user_defined_dpi", "" + optimumDPI);
 
-    return Finder2.getBufferedImage(img);
+    return Finder2.getBufferedImage(mimg);
 
   }
 
