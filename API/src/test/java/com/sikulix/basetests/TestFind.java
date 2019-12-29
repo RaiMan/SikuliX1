@@ -13,6 +13,7 @@ public class TestFind {
   private String currentTest = "";
   private String result = "";
   private String info = "";
+  private String baseImage = "";
   private static String imagesPath = "target/test-classes/testimages";
 
   private static String message(String message, Object... args) {
@@ -31,6 +32,10 @@ public class TestFind {
     return "[FAILED] " + info;
   }
 
+  private String getBaseImage(String image) {
+    return baseImage.isEmpty() ? image : baseImage;
+  }
+
   @BeforeClass
   public static void setUpClass() {
     ImagePath.setBundleFolder(new File(RunTime.sysPropUserDir, imagesPath));
@@ -45,6 +50,7 @@ public class TestFind {
     currentTest = "currentTest";
     result = "";
     info = "";
+    //baseImage = "macButtonsChrome";
   }
 
   @After
@@ -66,7 +72,7 @@ public class TestFind {
   @Test
   public void test_001_FinderFind() {
     currentTest = "test_001_FinderFind";
-    String imageBase = "buttons";
+    String imageBase = getBaseImage("buttons");
     Finder finder = new Finder(Image.create(imageBase));
     String imageFind = "apple";
     finder.find(imageFind);
@@ -78,7 +84,7 @@ public class TestFind {
   @Test
   public void test_002_FinderFindResized() {
     currentTest = "test_002_FinderFindResized";
-    String imageBase = "buttons";
+    String imageBase = getBaseImage("buttons");
     Finder finder = new Finder(Image.create(imageBase));
     String imageFind = "macButton";
     Pattern imageFindResized = new Pattern(imageFind).resize(0.5f);
@@ -91,7 +97,7 @@ public class TestFind {
   @Test
   public void test_003_FinderFindAll1() {
     currentTest = "test_003_FinderFindAll1";
-    String imageBase = "buttons";
+    String imageBase = getBaseImage("buttons");
     Finder finder = new Finder(Image.create(imageBase));
     findAll(finder, "apple", imageBase);
   }
@@ -112,7 +118,7 @@ public class TestFind {
   public void test_004_FinderFindAll2() {
     //Debug.on(3);
     currentTest = "test_004_FinderFindAll1";
-    String imageBase = "buttons";
+    String imageBase = getBaseImage("buttons");
     Finder finder = new Finder(Image.create(imageBase));
     findAll(finder, "button", imageBase);
   }
