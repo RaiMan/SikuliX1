@@ -1,0 +1,10 @@
+balloons = "balloons.png"
+bPink = "bPink.png"
+bBlue = "bBlue.png"
+bGreen = "bGreen.png"
+bRed = "bRed.png"
+bYellow = "bYellow.png"
+
+bNotePlain = "bNotePlain.png"
+bNoteAcc = "bNoteAcc.png"
+bNoteDot = "bNoteDot.png"
