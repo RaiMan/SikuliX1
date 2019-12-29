@@ -1,3 +1,5 @@
 buttons = "buttons.png"
 button = "button.png"
 apple = "apple.png"
+macButton = "macButton.png"
+macApple = "macApple.png"
