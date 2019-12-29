@@ -89,7 +89,7 @@ public class TestFind {
   @Test
   public void test_003_FinderFindAll1() {
     currentTest = "test_003_FinderFindAll1";
-    String imageBase = "buttons1";
+    String imageBase = "buttons";
     Finder finder = new Finder(Image.create(imageBase));
     findAll(finder, "apple", imageBase);
   }
