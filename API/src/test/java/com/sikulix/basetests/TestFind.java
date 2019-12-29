@@ -14,7 +14,7 @@ public class TestFind {
   private String result = "";
   private String info = "";
   private String baseImage = "winButtonsEdge";
-  private static String imagesPath = "target/test-classes/testimages";
+  private static String imagesPath = "src/test/resources/testimages";
 
   private static String message(String message, Object... args) {
     return(String.format(message, args));
@@ -72,6 +72,7 @@ public class TestFind {
   private String testBaseImage = "";
 //  private String testBaseImage = "macButtonsSafari";
 //  private String testBaseImage = "macButtonsChrome";
+//  private String testBaseImage = "macButtonsFirefox";
 
   @Test
   public void test_001_FinderFind() {
