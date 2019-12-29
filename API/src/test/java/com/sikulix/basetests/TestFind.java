@@ -39,6 +39,7 @@ public class TestFind {
   @BeforeClass
   public static void setUpClass() {
     ImagePath.setBundleFolder(new File(RunTime.sysPropUserDir, imagesPath));
+    //baseImage = "macButtonsChrome";
   }
 
   @AfterClass
@@ -50,7 +51,6 @@ public class TestFind {
     currentTest = "currentTest";
     result = "";
     info = "";
-    //baseImage = "macButtonsChrome";
   }
 
   @After
