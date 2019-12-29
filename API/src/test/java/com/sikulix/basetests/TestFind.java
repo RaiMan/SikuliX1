@@ -2,6 +2,7 @@ package com.sikulix.basetests;
 
 import org.junit.*;
 import org.junit.runners.MethodSorters;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 
@@ -13,8 +14,8 @@ public class TestFind {
   private String currentTest = "";
   private String result = "";
   private String info = "";
-  private String baseImage = "winButtonsEdge";
-  private static String imagesPath = "src/test/resources/testimages";
+  private String baseImage = "balloons";
+  private static String imagesPath = "src/test/resources/testBalloons";
 
   private static String message(String message, Object... args) {
     return(String.format(message, args));
@@ -68,26 +69,25 @@ public class TestFind {
     logr("should not fail ;-)");
   }
 
-  private String imageFind = "";
   private String testBaseImage = "";
-//  private String testBaseImage = "macButtonsSafari";
-//  private String testBaseImage = "macButtonsChrome";
-//  private String testBaseImage = "macButtonsFirefox";
+  private String[] imageList = new String[]{"bPink", "bGreen", "bBlue", "bRed", "bYellow",
+      "bNotePlain", "bNoteAcc", "bNoteDot"};
 
   @Test
   public void test_001_FinderFind() {
     currentTest = "test_001_FinderFind";
     String imageBase = getBaseImage(testBaseImage);
     Finder finder = new Finder(Image.create(imageBase));
-    find(finder, "apple", imageBase);
-    find(finder, "button", imageBase);
+    for (String image : imageList) {
+      find(finder, image, imageBase);
+    }
   }
 
   private void find(Finder finder, String image, String imageBase) {
     findResized(finder, image, imageBase, 1);
   }
 
-  @Test
+  @Ignore
   public void test_002_FinderFindResized() {
     currentTest = "test_002_FinderFindResized";
     String imageBase = getBaseImage(testBaseImage);
@@ -114,19 +114,33 @@ public class TestFind {
     currentTest = "test_003_FinderFindAll";
     String imageBase = getBaseImage(testBaseImage);
     Finder finder = new Finder(Image.create(imageBase));
-    findAll(finder, "apple", imageBase);
-    findAll(finder, "button", imageBase);
+    for (String image : imageList) {
+      findAll(finder, image, imageBase);
+    }
   }
 
-  private void findAll(Finder finder, String img, String imageBase) {
-    String imageFind = img;
-    finder.findAll(imageFind);
-    info = message("findAll: %s in: %s", imageFind, imageBase);
+  private void findAll(Finder finder, Object image, String imageBase) {
+    if (image instanceof String) {
+      finder.findAll((String) image);
+    } else if (image instanceof Pattern) {
+      finder.findAll((Pattern) image);
+    }
+    info = message("findAll: %s in: %s", image, imageBase);
     assert finder.hasNext() : getErrorMessage();
     Match match = finder.next();
     while (null != match) {
       logr(info + " (%%%.2f) (%d,%d)",100 * match.getScore(), match.x, match.y);
       match = finder.next();
+    }
+  }
+
+  @Test
+  public void test_004_FinderFindAllPattern() {
+    currentTest = "test_004_FinderFindAllPattern";
+    String imageBase = getBaseImage(testBaseImage);
+    Finder finder = new Finder(Image.create(imageBase));
+    for (String image : imageList) {
+      findAll(finder, new Pattern(image).similar(0.95), imageBase);
     }
   }
 }

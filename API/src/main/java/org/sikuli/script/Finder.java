@@ -1554,11 +1554,17 @@ public class Finder implements Iterator<Match> {
       } else if (matchCount > lastMatchCount) {
         if (matchCount == 2) {
           scoreMeanDiff = lastScore - currentScore;
-          isMatch = currentScore > targetScore;
+          if (findInput.isPattern && currentScore > targetScore) {
+            isMatch = true;
+          } else if (scoreMeanDiff < 0.02) {
+            isMatch = currentScore > targetScore;
+          }
         } else {
           double scoreDiff = lastScore - currentScore;
-          if (findInput.isPattern || scoreDiff <= (scoreMeanDiff + 0.01)) { // 0.005
-            scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
+          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
+          if (findInput.isPattern && currentScore > targetScore) {
+            isMatch = true;
+          } else if (scoreDiff <= (scoreMeanDiff + 0.02)) {
             isMatch = true;
           }
         }
@@ -1596,14 +1602,9 @@ public class Finder implements Iterator<Match> {
     }
 
     private int getPurgeMargin() {
-      if (currentScore < 0.95) {
-        return 4;
-      } else if (currentScore < 0.85) {
-        return 8;
-      } else if (currentScore < 0.71) {
-        return 16;
-      }
-      return 2;
+      int targetSize = (targetW + targetH) / 2;
+      int range = 11 -((int) (currentScore * 10));
+      return 20 + 10 * range;
     }
 
     double bestScore = 0;

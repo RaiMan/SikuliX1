@@ -380,7 +380,7 @@ public class Pattern {
     String ret = "P(" + image.getName()
             + (isValid() ? "" : " -- not valid!")
             + ")";
-    ret += " S: " + similarity;
+    ret += String.format(" S:%.2f", similarity);
     if (offset.x != 0 || offset.y != 0) {
       ret += " T: " + offset.x + "," + offset.y;
     }
