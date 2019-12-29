@@ -13,7 +13,7 @@ public class TestFind {
   private String currentTest = "";
   private String result = "";
   private String info = "";
-  private String baseImage = "";
+  private String baseImage = "winButtonsEdge";
   private static String imagesPath = "target/test-classes/testimages";
 
   private static String message(String message, Object... args) {
@@ -26,20 +26,19 @@ public class TestFind {
     log(" [ERROR] " + message, args);
   }
   private void logr(String message, Object... args) {
-    result += "\n" + message(message, args);
+    result += "\n  " + message(message, args);
   }
   private String getErrorMessage() {
     return "[FAILED] " + info;
   }
 
   private String getBaseImage(String image) {
-    return baseImage.isEmpty() ? image : baseImage;
+    return image.isEmpty() ? baseImage : image;
   }
 
   @BeforeClass
   public static void setUpClass() {
     ImagePath.setBundleFolder(new File(RunTime.sysPropUserDir, imagesPath));
-    //baseImage = "macButtonsChrome";
   }
 
   @AfterClass
@@ -69,37 +68,53 @@ public class TestFind {
     logr("should not fail ;-)");
   }
 
+  private String imageFind = "";
+  private String testBaseImage = "";
+//  private String testBaseImage = "macButtonsSafari";
+//  private String testBaseImage = "macButtonsChrome";
+
   @Test
   public void test_001_FinderFind() {
     currentTest = "test_001_FinderFind";
-    String imageBase = getBaseImage("buttons");
+    String imageBase = getBaseImage(testBaseImage);
     Finder finder = new Finder(Image.create(imageBase));
-    String imageFind = "apple";
-    finder.find(imageFind);
-    info = message("find: %s in: %s", imageFind, imageBase);
-    assert finder.hasNext() : getErrorMessage();
-    logr(info + " (%%%.4f)", 100 * finder.next().getScore());
+    find(finder, "apple", imageBase);
+    find(finder, "button", imageBase);
+  }
+
+  private void find(Finder finder, String image, String imageBase) {
+    findResized(finder, image, imageBase, 1);
   }
 
   @Test
   public void test_002_FinderFindResized() {
     currentTest = "test_002_FinderFindResized";
-    String imageBase = getBaseImage("buttons");
+    String imageBase = getBaseImage(testBaseImage);
     Finder finder = new Finder(Image.create(imageBase));
-    String imageFind = "macButton";
-    Pattern imageFindResized = new Pattern(imageFind).resize(0.5f);
-    finder.find(imageFindResized);
-    info = message("find: %s (resized 0.5) in: %s", imageFind, imageBase);
+    findResized(finder, "macApple", imageBase, 0.5);
+    findResized(finder, "macButton", imageBase, 0.5);
+  }
+
+  private void findResized(Finder finder, String image, String imageBase, double factor) {
+    if (factor > 0 && factor != 1) {
+      finder.find(new Pattern(image).resize((float) factor));
+      info = message("find: %s (x %.1f) in: %s", image, factor, imageBase);
+    } else {
+      finder.find(image);
+      info = message("find: %s in: %s", image, imageBase);
+    }
     assert finder.hasNext() : getErrorMessage();
-    logr(info + " (%%%.2f)", 100 * finder.next().getScore());
+    Match match = finder.next();
+    logr(info + " (%%%.2f) (%d,%d)",100 * match.getScore(), match.x, match.y);
   }
 
   @Test
-  public void test_003_FinderFindAll1() {
-    currentTest = "test_003_FinderFindAll1";
-    String imageBase = getBaseImage("buttons");
+  public void test_003_FinderFindAll() {
+    currentTest = "test_003_FinderFindAll";
+    String imageBase = getBaseImage(testBaseImage);
     Finder finder = new Finder(Image.create(imageBase));
     findAll(finder, "apple", imageBase);
+    findAll(finder, "button", imageBase);
   }
 
   private void findAll(Finder finder, String img, String imageBase) {
@@ -109,18 +124,9 @@ public class TestFind {
     assert finder.hasNext() : getErrorMessage();
     Match match = finder.next();
     while (null != match) {
-      logr(info + " (%%%.4f) (%d,%d)",100 * match.getScore(), match.x, match.y);
+      logr(info + " (%%%.2f) (%d,%d)",100 * match.getScore(), match.x, match.y);
       match = finder.next();
     }
-  }
-
-  @Test
-  public void test_004_FinderFindAll2() {
-    //Debug.on(3);
-    currentTest = "test_004_FinderFindAll1";
-    String imageBase = getBaseImage("buttons");
-    Finder finder = new Finder(Image.create(imageBase));
-    findAll(finder, "button", imageBase);
   }
 }
 

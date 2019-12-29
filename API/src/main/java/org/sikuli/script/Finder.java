@@ -619,7 +619,7 @@ public class Finder implements Iterator<Match> {
       }
     }
 
-    private static Log log = new Log("Finder2");
+    public static Log log = new Log("Finder2");
 
     private Mat mBase = getNewMat();
     private Mat mResult = getNewMat();
@@ -1484,7 +1484,7 @@ public class Finder implements Iterator<Match> {
     }
 
     public String toString() {
-      return String.format("(stdDev: %.4f mean: %4f)", targetStdDev, targetMean);
+      return String.format("(Pixel: stdDev: %.4f mean: %4f)", targetStdDev, targetMean);
     }
   }
 
@@ -1507,6 +1507,9 @@ public class Finder implements Iterator<Match> {
     public FindResult2(Mat result, FindInput2 findInput) {
       this.result = result;
       this.findInput = findInput;
+      this.targetScore = findInput.getScore();
+      this.targetW = findInput.getTarget().width();
+      this.targetH = findInput.getTarget().height();
     }
 
     public FindResult2(Mat result, FindInput2 target, int[] off) {
@@ -1528,12 +1531,8 @@ public class Finder implements Iterator<Match> {
 
     private int currentX = -1;
     private int currentY = -1;
-    private int baseW = -1;
-    private int baseH = -1;
     private int targetW = -1;
     private int targetH = -1;
-    private int marginX = -1;
-    private int marginY = -1;
 
     public boolean hasNext() {
       if (findInput.isText()) {
@@ -1550,16 +1549,10 @@ public class Finder implements Iterator<Match> {
       }
       boolean isMatch = false;
       if (matchCount < 0) {
-        targetScore = findInput.getScore();
-        targetW = findInput.getTarget().width();
-        targetH = findInput.getTarget().height();
-//        marginX = (int) (targetW * 0.1);
-//        marginY = (int) (targetH * 0.1);
-        marginX = marginY = 0;
-        matchCount = lastMatchCount = 0;
+        matchCount = lastMatchCount = 1;
         isMatch = true;
       } else if (matchCount > lastMatchCount) {
-        if (matchCount == 1) {
+        if (matchCount == 2) {
           scoreMeanDiff = lastScore - currentScore;
           isMatch = currentScore > targetScore;
         } else {
@@ -1573,7 +1566,8 @@ public class Finder implements Iterator<Match> {
         return currentIsMatch;
       }
       if (!isMatch) {
-        Debug.log(3, "findAll: (%d) stop: %.4f (%.4f) %s", matchCount, currentScore, scoreMeanDiff, findInput);
+        Finder2.log.trace("stop at match %d: %%%.4f (avg: %.4f) %s",
+                matchCount, currentScore, scoreMeanDiff, findInput.toString());
       }
       return currentIsMatch = isMatch;
     }
@@ -1590,11 +1584,11 @@ public class Finder implements Iterator<Match> {
           lastMatchCount = matchCount;
           matchCount++;
           lastScore = currentScore;
-          //int margin = getPurgeMargin();
-          Range rangeX = new Range(Math.max(currentX - marginX, 0),
-                                    Math.min(currentX + targetW + marginX, result.width()));
-          Range rangeY = new Range(Math.max(currentY - marginY, 0),
-                                    Math.min(currentY + targetH + marginY, result.height()));
+          int margin = getPurgeMargin();
+          Range rangeX = new Range(Math.max(currentX - margin, 0),
+                                    Math.min(currentX + targetW, result.width()));
+          Range rangeY = new Range(Math.max(currentY - margin, 0),
+                                    Math.min(currentY + targetH, result.height()));
           result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
         }
       }

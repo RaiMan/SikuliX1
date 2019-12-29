@@ -1,4 +1,4 @@
-buttons = "buttons.png"
+winbuttonsEdge = "winButtonsEdge.png"
 macButtonsChrome = "macButtonsChrome.png"
 macButtonsSafari = "macButtonsSafari.png"
 button = "button.png"
