@@ -13,7 +13,7 @@ public class TestFind {
   private String currentTest = "";
   private String result = "";
   private String info = "";
-  private static String imagesPath = "target/test-classes/images";
+  private static String imagesPath = "target/test-classes/testimages";
 
   private static String message(String message, Object... args) {
     return(String.format(message, args));
@@ -57,6 +57,8 @@ public class TestFind {
   @Test
   public void test_000_play() {
     currentTest = "test_000_play";
+    info = message("setup: bundlepath is null");
+    assert null != ImagePath.getBundlePath() : getErrorMessage();
     logr("Images: %s", ImagePath.getBundlePath());
     logr("should not fail ;-)");
   }

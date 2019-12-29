@@ -148,7 +148,7 @@
       <artifactId>slf4j-nop</artifactId>
       <version>1.7.28</version>
     </dependency>
-    <!-- special deps for branch -->
+    <!-- special deps for new server -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -175,12 +175,13 @@
       <artifactId>jackson-annotations</artifactId>
       <version>2.9.10</version>
     </dependency>
-    <!-- special deps for branch -->
+    <!-- special deps for new recorder -->
     <dependency>
       <groupId>com.1stleg</groupId>
       <artifactId>jnativehook</artifactId>
       <version>2.1.0</version>
     </dependency>
+    <!-- special deps for testing -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
