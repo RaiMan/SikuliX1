@@ -30,6 +30,21 @@ import java.util.regex.Matcher;
 
 public class Finder implements Iterator<Match> {
 
+  private static String markRegex = Key.ESC;
+
+  public static String asRegEx(String text) {
+    return markRegex + text;
+  }
+
+  public static boolean isRegEx(String text) {
+    return text.startsWith(markRegex);
+  }
+
+  public static java.util.regex.Pattern getRegEx(String text) {
+    return java.util.regex.Pattern.compile(text.substring(1));
+  }
+
+  //<editor-fold desc="00 housekeeping">
   private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
@@ -54,22 +69,9 @@ public class Finder implements Iterator<Match> {
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
+  //</editor-fold>
 
-  private static String markRegex = Key.ESC;
-
-  public static String asRegEx(String text) {
-    return markRegex + text;
-  }
-
-  public static boolean isRegEx(String text) {
-    return text.startsWith(markRegex);
-  }
-
-  public static java.util.regex.Pattern getRegEx(String text) {
-    return java.util.regex.Pattern.compile(text.substring(1));
-  }
-
-  //<editor-fold defaultstate="collapsed" desc="Constructors">
+  //<editor-fold defaultstate="collapsed" desc="02 Constructors">
   protected Finder() {
   }
 
@@ -163,7 +165,7 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="internal repeating">
+  //<editor-fold defaultstate="collapsed" desc="05 internal repeating">
 
   /**
    * internal use: to be able to reuse the same Finder
@@ -191,7 +193,7 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="find">
+  //<editor-fold defaultstate="collapsed" desc="06 find">
 
   /**
    * do a find op with the given image or the given text in the Finder's image
@@ -405,7 +407,7 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="findAll">
+  //<editor-fold defaultstate="collapsed" desc="07 findAll">
 
   /**
    * do a findAll op with the given image or the given text in the Finder's image
@@ -507,7 +509,7 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Iterator">
+  //<editor-fold defaultstate="collapsed" desc="08 Iterator">
   public List<Match> getList() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {
@@ -591,10 +593,9 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-//</editor-fold>
-
   public static class Finder2 {
 
+    //<editor-fold desc="housekeeping">
     static {
       RunTime.loadLibrary(RunTime.libOpenCV);
     }
@@ -602,7 +603,6 @@ public class Finder implements Iterator<Match> {
     protected static void init() {
     }
 
-    //<editor-fold desc="housekeeping">
     static class Log {
       private static String prefix = "UnKnown";
 
@@ -636,6 +636,7 @@ public class Finder implements Iterator<Match> {
     }
     //</editor-fold>
 
+    //<editor-fold desc="find text/image">
     private FindInput2 fInput = null;
 
     protected static FindResult2 find(FindInput2 findInput) {
