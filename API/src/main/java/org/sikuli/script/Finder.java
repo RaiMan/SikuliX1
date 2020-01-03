@@ -1529,6 +1529,7 @@ public class Finder implements Iterator<Match> {
     int matchCount = -1;
     int lastMatchCount = -1;
     boolean currentIsMatch = false;
+    List<Point> matchRectangles = new ArrayList<>();
 
     private int currentX = -1;
     private int currentY = -1;
@@ -1543,10 +1544,17 @@ public class Finder implements Iterator<Match> {
         return false;
       }
       if (matchCount < 0 || matchCount > lastMatchCount) {
-        resultMinMax = Core.minMaxLoc(result);
-        currentScore = resultMinMax.maxVal;
-        currentX = (int) resultMinMax.maxLoc.x;
-        currentY = (int) resultMinMax.maxLoc.y;
+        Rectangle currentRect;
+        while (true) {
+          resultMinMax = Core.minMaxLoc(result);
+          currentScore = resultMinMax.maxVal;
+          currentX = (int) resultMinMax.maxLoc.x;
+          currentY = (int) resultMinMax.maxLoc.y;
+          currentRect = new Rectangle(currentX, currentY, targetW, targetH);
+          if (isMatchValid()) {
+            break;
+          }
+        }
       }
       boolean isMatch = false;
       if (matchCount < 0) {
@@ -1562,10 +1570,10 @@ public class Finder implements Iterator<Match> {
           }
         } else {
           double scoreDiff = lastScore - currentScore;
-          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
           if (findInput.isPattern && currentScore > targetScore) {
             isMatch = true;
           } else if (scoreDiff <= (scoreMeanDiff + 0.02)) {
+            scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
             isMatch = true;
           }
         }
@@ -1577,6 +1585,35 @@ public class Finder implements Iterator<Match> {
                 matchCount, currentScore, scoreMeanDiff, findInput.toString());
       }
       return currentIsMatch = isMatch;
+    }
+
+    private boolean isMatchValid() {
+      Rectangle currentRect = new Rectangle(currentX, currentY, targetW, targetH);
+      for (Point point : matchRectangles) {
+        Rectangle rect = new Rectangle((int) point.x, (int) point.y, targetW, targetH);
+        boolean isIntersecting = currentRect.intersects(rect);
+        matchRectangles.add(point);
+        if (isIntersecting) {
+          purgeMatchResult(false);
+          return false;
+        }
+      }
+      purgeMatchResult(true);
+      return true;
+    }
+
+    private void purgeMatchResult(boolean withMargin) {
+      int margin = 0;
+      if (withMargin) {
+        int targetSize = (targetW + targetH) / 2;
+        int range = 11 - ((int) (currentScore * 10));
+        margin = 20 + 10 * range;
+      }
+      Range rangeX = new Range(Math.max(currentX - margin, 0),
+              Math.min(currentX + targetW, result.width()));
+      Range rangeY = new Range(Math.max(currentY - margin, 0),
+              Math.min(currentY + targetH, result.height()));
+      result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(-1));
     }
 
     public Match next() {
@@ -1591,21 +1628,9 @@ public class Finder implements Iterator<Match> {
           lastMatchCount = matchCount;
           matchCount++;
           lastScore = currentScore;
-          int margin = getPurgeMargin();
-          Range rangeX = new Range(Math.max(currentX - margin, 0),
-                                    Math.min(currentX + targetW, result.width()));
-          Range rangeY = new Range(Math.max(currentY - margin, 0),
-                                    Math.min(currentY + targetH, result.height()));
-          result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
         }
       }
       return match;
-    }
-
-    private int getPurgeMargin() {
-      int targetSize = (targetW + targetH) / 2;
-      int range = 11 -((int) (currentScore * 10));
-      return 20 + 10 * range;
     }
 
     double bestScore = 0;
