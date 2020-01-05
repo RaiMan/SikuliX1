@@ -1269,7 +1269,15 @@ public class Finder implements Iterator<Match> {
       if (SX.isNull(source) && SX.isNull(where)) {
         return false;
       }
-      if (SX.isNotNull(target) && !target.empty()) {
+      if (SX.isNotNull(target) && !targetTypeText) {
+        if (target.empty()) {
+          throw new SikuliXception("Finder::isValid: image to search is empty");
+        }
+        if (source.width() < target.width() || source.height() < target.height()) {
+          throw new SikuliXception(
+                  String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
+                  target.width(), target.height(), source.width(), source.height()));
+        }
         return true;
       }
       if (targetTypeText && !targetText.isEmpty()) {
