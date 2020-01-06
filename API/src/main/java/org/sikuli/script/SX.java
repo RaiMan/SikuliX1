@@ -4,6 +4,9 @@
 
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
+
+import javax.swing.*;
 import java.awt.EventQueue;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
@@ -15,17 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextArea;
-
-import org.sikuli.basics.Debug;
 
 public class SX {
 
@@ -41,7 +33,7 @@ public class SX {
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
-    POPUP, POPASK, POPERROR, POPINPUT
+    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT
   }
 
   private static  boolean isVersion1() { return true; }
@@ -70,6 +62,31 @@ public class SX {
       return (String) doPop(PopType.POPINPUT, args);
     }
     return null;
+  }
+
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever, options-list)
+   * @return
+   */
+  public static String popSelect(Object... args) {
+    if (isHeadless()) {
+      log.error("running headless: input");
+    } else {
+
+      return (String) doPop(PopType.POPSELECT, args);
+    }
+    return null;
+  }
+
+  public static String popSelectPy(Object... args) {
+    Object[] newArgs = new Object[args.length];
+    for (int n = 1; n < args.length; n++) {
+      newArgs[n - 1] = args[n];
+    }
+    newArgs[args.length - 1] = args[0];
+    return popSelect(newArgs);
   }
 
   /**
@@ -126,6 +143,7 @@ public class SX {
       String preset = "";
       Boolean hidden = false;
       Integer timeout = 0;
+      Object options = null;
       Map<String, Object> parameters = new HashMap<>();
       Object returnValue;
 
@@ -138,6 +156,7 @@ public class SX {
         hidden = (Boolean) parameters.get("hidden");
         timeout = (Integer) parameters.get("timeout");
         frame = getFrame(parameters.get("location"));
+        options = parameters.get("options");
       }
 
       @Override
@@ -199,6 +218,17 @@ public class SX {
               }
             }
           }
+        } else if (PopType.POPSELECT.equals(popType)) {
+          Object[] realOptions = new Object[0];
+          if (options != null && options instanceof Object[]) {
+            realOptions = (Object[]) options;
+          }
+          if (realOptions.length == 0) {
+            returnValue = "";
+          } else {
+            returnValue = JOptionPane.showInputDialog(frame, message, title,
+                    JOptionPane.PLAIN_MESSAGE, null, realOptions, preset);
+          }
         }
 
         synchronized(this) {
@@ -248,25 +278,34 @@ public class SX {
   }
 
   private static Map<String, Object> getPopParameters(Object... args) {
-    String parameterNames = "message,title,preset,hidden,timeout,location";
-    String parameterClass = "s,s,s,b,i,e";
-    Object[] parameterDefault = new Object[]{"not set", "SikuliX", "", false, Integer.MAX_VALUE, on()};
+    String parameterNames = "message,title,preset,hidden,timeout,location,options";
+    String parameterClass = "s,s,s,b,i,e,o";
+    Object[] parameterDefault = new Object[]{"not set", "SikuliX", "",
+            false, Integer.MAX_VALUE, null, new Object[0]};
     return Parameters.get(parameterNames, parameterClass, parameterDefault, args);
   }
 
   private static JFrame getFrame(Object point) {
-    int x;
-    int y;
-    if (point instanceof Point) {
-      x = ((Point) point).x;
-      y = ((Point) point).y;
-    } else {
-      if (isVersion1()) {
-        x = ((Region) point).getCenter().x;
-        y = ((Region) point).getCenter().y;
+    Location currentPopLocation = Sikulix.getCurrentPopLocation();
+    int x = currentPopLocation.x;
+    int y = currentPopLocation.y;
+    if (null != point) {
+      if (point instanceof Point) {
+        x = ((Point) point).x;
+        y = ((Point) point).y;
       } else {
-        x = ((Element) point).getCenter().x;
-        y = ((Element) point).getCenter().y;
+        if (isVersion1()) {
+          if (point instanceof Region) {
+            x = ((Region) point).getCenter().x;
+            y = ((Region) point).getCenter().y;
+          } else if (point instanceof Location) {
+            x = ((Location) point).x;
+            y = ((Location) point).y;
+          }
+        } else {
+          x = ((Element) point).getCenter().x;
+          y = ((Element) point).getCenter().y;
+        }
       }
     }
     JFrame anchor = new JFrame();
@@ -309,11 +348,13 @@ public class SX {
                 clazz = "Region";
               }
               clazz = "Element";
+            } else if ("o".equals(clazz)) {
+              clazz = "Object";
             }
           }
           if ("String".equals(clazz) || "Integer".equals(clazz) ||
                   "Double".equals(clazz) || "Boolean".equals(clazz) ||
-                  "Element".equals(clazz) || "Region".equals(clazz)) {
+                  "Element".equals(clazz) || "Region".equals(clazz) || "Object".equals(clazz)) {
             parameterTypes.put(names[n], clazz);
           }
         }
@@ -360,6 +401,8 @@ public class SX {
         } else if (possibleValue instanceof Element) {
           value = possibleValue;
         }
+      } else if ("Object".equals(clazz)) {
+        value = possibleValue;
       }
       return value;
     }

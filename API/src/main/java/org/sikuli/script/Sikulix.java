@@ -65,6 +65,16 @@ public class Sikulix {
     return new Point((int) screen0.getCenterX(), (int) screen0.getCenterY());
   }
 
+  public static Location getCurrentPopLocation() {
+    if (null == locPopAt) {
+      locPopAt = getLocPopAt();
+      if (null == locPopAt) {
+        return null;
+      }
+    }
+    return new Location(locPopAt);
+  }
+
   private static JFrame popLocation() {
     if (null == locPopAt) {
       locPopAt = getLocPopAt();
