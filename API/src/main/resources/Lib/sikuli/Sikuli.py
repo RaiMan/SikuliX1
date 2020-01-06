@@ -393,20 +393,23 @@ def popat(*args):
 # @param msg The given message string.
 # @param title gets the window title.
 def popup(msg, title="Sikuli Info"):
-  Sikulix.popup(msg, title)
+  #Sikulix.popup(msg, title)
+  Do.popup(msg, title)
 
 # Show error popup (special icon) containing the given message.
 # @param msg The given message string.
 # @param title gets the window title.
 def popError(msg, title="Sikuli Error"):
-  Sikulix.popError(msg, title)
+  #Sikulix.popError(msg, title)
+  Do.popError(msg, title)
 
 # Show a popup containing the given message asking for yes or no
 # @param msg The given message string.
 # @param title gets the window title.
 # @return True if answered Yes, else False
 def popAsk(msg, title="Sikuli Decision"):
-  return Sikulix.popAsk(msg, title)
+  #return Sikulix.popAsk(msg, title)
+  return Do.popAsk(msg, title)
 
 ##
 # Shows a question-message dialog requesting input from the user.
@@ -419,7 +422,8 @@ def popAsk(msg, title="Sikuli Decision"):
 def input(msg="", default="", title="Sikuli Input", hidden=False):
   if (hidden):
     default = ""
-  return Sikulix.input(msg, default, title, hidden)
+  #return Sikulix.input(msg, default, title, hidden)
+  return Do.input(msg, title, default, hidden)
 
 ##
 # Shows a dialog request to enter text in a multiline text field
@@ -449,7 +453,8 @@ def select(msg="", title="Sikuli Selection", options=(), default=None):
       default = None
   except:
     pass
-  return Sikulix.popSelect(msg, title, options, default)
+  #return Sikulix.popSelect(msg, title, options, default)
+  return Do.popSelectPy(options, msg, title, default, None, None, None)
 
 def popFile(title = "Select File or Folder"):
   return Sikulix.popFile(title)
