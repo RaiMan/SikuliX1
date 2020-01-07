@@ -83,7 +83,7 @@ public class TextRecognizer {
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
 
-  private static final int TESSERACT_USER_DEFINED_DPI = 70;
+  private static final int TESSERACT_USER_DEFINED_DPI = 300;
 
   private TextRecognizer() {
     Finder.Finder2.init();
@@ -116,6 +116,9 @@ public class TextRecognizer {
    * text is between 20 and 30 px in the scaled image.
    */
   public float resizeFactor = 2.0f;
+
+
+  public Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
 
   private float factor() {
     // LEGACY: Calculate the resize factor based on the optimal and
@@ -181,8 +184,8 @@ public class TextRecognizer {
     }
     textRecognizer.setLanguage(textRecognizer.language);
 
-    // Set user_defined_dpi to the Tesseract default to
-    // avoid getting an error message on STDERR.
+    // Set user_defined_dpi to something other than 70 to avoid
+    // getting an error message on STDERR about guessing the resolution.
     // Interestingly, setting this to whatever value between
     // 70 and 2400 seems to have no impact on accuracy.
     // Not with LSTM and not with the legacy model either.
@@ -410,7 +413,7 @@ public class TextRecognizer {
     float rFactor = factor();
 
     if (rFactor > 1) {
-      Image.resize(mimg, rFactor);
+      Image.resize(mimg, rFactor, resizeInterpolation);
     }
 
     // sharpen the enlarged image again
