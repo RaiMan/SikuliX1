@@ -54,6 +54,25 @@ public class Image {
     Debug.logx(level, me + message, args);
   }
 
+  /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    private int value;
+
+    private Interpolation(int value) {
+      this.value = value;
+    }
+  }
+
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
@@ -373,42 +392,82 @@ public class Image {
   /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
+   * Uses CUBIC as the interpolation algorithm.
+   *
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor) {
-    return resize(get(), factor);
+    return resize(factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the loaded image with factor using OpenCV ImgProc.resize()
+   *
+   * @param factor resize factor
+   * @param interpolation algorithm used for pixel interpolation
+   *
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public BufferedImage resize(float factor, Interpolation interpolation) {
+    return resize(get(), factor, interpolation);
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   *
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
+    return resize(bimg, factor, Interpolation.CUBIC);
   }
 
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
    *
    * @param factor resize factor
+   * @param interpolation algorithm used for pixel interpolation
+   *
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
-  public static BufferedImage resize(BufferedImage bimg, float factor) {
-    return Finder.Finder2.getBufferedImage(cvResize(bimg, factor));
+  public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
+    return Finder.Finder2.getBufferedImage(cvResize(bimg, factor, interpolation));
+  }
+
+  /**
+   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
+   *
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   */
+  public static void resize(Mat mat, float factor) {
+    resize(mat, factor, Interpolation.CUBIC);
   }
 
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
    *
    * @param factor resize factor
+   * @param interpolation algorithm used for pixel interpolation.
    */
-  public static void resize(Mat mat, float factor) {
-    cvResize(mat, factor);
+  public static void resize(Mat mat, float factor, Interpolation interpolation) {
+    cvResize(mat, factor, interpolation);
   }
 
-  private static Mat cvResize(BufferedImage bimg, double rFactor) {
+  private static Mat cvResize(BufferedImage bimg, double rFactor, Interpolation interpolation) {
     Mat mat = Finder.Finder2.makeMat(bimg);
-    cvResize(mat, rFactor);
+    cvResize(mat, rFactor, interpolation);
     return mat;
   }
 
-  private static void cvResize(Mat mat, double rFactor) {
+  private static void cvResize(Mat mat, double rFactor, Interpolation interpolation) {
     int newW = (int) (rFactor * mat.width());
     int newH = (int) (rFactor * mat.height());
-    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, Imgproc.INTER_CUBIC);
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
   }
 
   /**
