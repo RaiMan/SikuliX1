@@ -76,12 +76,14 @@ public class TextRecognizer {
     TESSERACT_LSTM_COMBINED, // 2
     DEFAULT // 3
   }
-  
+
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
+
+  private static final int TESSERACT_USER_DEFINED_DPI = 70;
 
   private TextRecognizer() {
     Finder.Finder2.init();
@@ -94,15 +96,34 @@ public class TextRecognizer {
     return true;
   }
 
+  /**
+   * @deprecated Will be removed in future versions
+   *
+   * @return the current screen resolution in dots per inch
+   */
   public int getActualDPI() {
-    return actualDPI;
+    return Toolkit.getDefaultToolkit().getScreenResolution();
   }
 
-  private int actualDPI = 72;
-  public float optimumDPI = 192;
+  /**
+   * @deprecated use resize factor instead
+   */
+  public Float optimumDPI = null;
+
+  /**
+   * The resize factor should be set to a value that the
+   * height of a upper case character of the expected
+   * text is between 20 and 30 px in the scaled image.
+   */
+  public float resizeFactor = 2.0f;
 
   private float factor() {
-    return optimumDPI / actualDPI;
+    // LEGACY: Calculate the resize factor based on the optimal and
+    // calculated DPI value if optimumDPI has been set manually
+    if (optimumDPI != null) {
+      return optimumDPI / getActualDPI();
+    }
+    return resizeFactor;
   }
 
   private Tesseract1 tess = null;
@@ -159,6 +180,15 @@ public class TextRecognizer {
       throw new SikuliXception(String.format("fatal: " + "TextRecognizer could not be initialized"));
     }
     textRecognizer.setLanguage(textRecognizer.language);
+
+    // Set user_defined_dpi to the Tesseract default to
+    // avoid getting an error message on STDERR.
+    // Interestingly, setting this to whatever value between
+    // 70 and 2400 seems to have no impact on accuracy.
+    // Not with LSTM and not with the legacy model either.
+    // TODO Investigate this further
+    textRecognizer.setVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
+
     return textRecognizer;
   }
 
@@ -377,8 +407,6 @@ public class TextRecognizer {
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
     mimg = unsharpMask(mimg, 3);
 
-    // Resize to optimumDPI
-    actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
     float rFactor = factor();
 
     if (rFactor > 1) {
@@ -392,9 +420,6 @@ public class TextRecognizer {
     if (Core.mean(mimg).val[0] < 127) {
       Core.bitwise_not(mimg, mimg);
     }
-
-    // configure tesseract to handle the resized image correctly
-    setVariable("user_defined_dpi", "" + optimumDPI);
 
     return Finder2.getBufferedImage(mimg);
 
