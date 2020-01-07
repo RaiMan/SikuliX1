@@ -16,6 +16,9 @@ import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -106,17 +109,49 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated use resize factor instead
+   * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
    */
   public Float optimumDPI = null;
 
   /**
-   * The resize factor should be set to a value that the
-   * height of a upper case character of the expected
-   * text is between 20 and 30 px in the scaled image.
+   * Hint for the OCR Engine about the expected font size in pt
+   *
+   * @param size expected font size in pt
    */
-  public float resizeFactor = 2.0f;
+  public void setExpectedFontSize(int size) {
+    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+    try {
+      Font font = new Font(g.getFont().getFontName(), 0, size);
+      FontMetrics fm = g.getFontMetrics(font);
+      expectedXHeight = fm.getLineMetrics("X", g).getHeight();
+    } finally {
+      g.dispose();
+    }
+  }
 
+  /**
+   * Hint for the OCR Engine about the expected height of an uppercase X in px
+   *
+   * @param height of an uppercase X in px
+   */
+  public void setExpectedXHeight(int height) {
+    expectedXHeight = height;
+  }
+
+  private float getDefaultXHeight() {
+    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+    try {
+      Font font = g.getFont();
+      FontMetrics fm = g.getFontMetrics(font);
+      return fm.getLineMetrics("X", g).getHeight();
+    } finally {
+      g.dispose();
+    }
+  }
+
+  private float expectedXHeight = getDefaultXHeight();
+
+  private static final int OPTIMAL_X_HEIGHT = 30;
 
   public Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
 
@@ -126,7 +161,7 @@ public class TextRecognizer {
     if (optimumDPI != null) {
       return optimumDPI / getActualDPI();
     }
-    return resizeFactor;
+    return OPTIMAL_X_HEIGHT / expectedXHeight;
   }
 
   private Tesseract1 tess = null;
@@ -425,7 +460,6 @@ public class TextRecognizer {
     }
 
     return Finder2.getBufferedImage(mimg);
-
   }
 
   public Region rescale(Rectangle rect) {
