@@ -16,6 +16,9 @@ import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -76,12 +79,14 @@ public class TextRecognizer {
     TESSERACT_LSTM_COMBINED, // 2
     DEFAULT // 3
   }
-  
+
   private static int lvl = 3;
 
   private static TextRecognizer textRecognizer = null;
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
+
+  private static final int TESSERACT_USER_DEFINED_DPI = 300;
 
   private TextRecognizer() {
     Finder.Finder2.init();
@@ -94,15 +99,69 @@ public class TextRecognizer {
     return true;
   }
 
+  /**
+   * @deprecated Will be removed in future versions
+   *
+   * @return the current screen resolution in dots per inch
+   */
   public int getActualDPI() {
-    return actualDPI;
+    return Toolkit.getDefaultToolkit().getScreenResolution();
   }
 
-  private int actualDPI = 72;
-  public float optimumDPI = 192;
+  /**
+   * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
+   */
+  public Float optimumDPI = null;
+
+  /**
+   * Hint for the OCR Engine about the expected font size in pt
+   *
+   * @param size expected font size in pt
+   */
+  public void setExpectedFontSize(int size) {
+    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+    try {
+      Font font = new Font(g.getFont().getFontName(), 0, size);
+      FontMetrics fm = g.getFontMetrics(font);
+      expectedXHeight = fm.getLineMetrics("X", g).getHeight();
+    } finally {
+      g.dispose();
+    }
+  }
+
+  /**
+   * Hint for the OCR Engine about the expected height of an uppercase X in px
+   *
+   * @param height of an uppercase X in px
+   */
+  public void setExpectedXHeight(int height) {
+    expectedXHeight = height;
+  }
+
+  private float getDefaultXHeight() {
+    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+    try {
+      Font font = g.getFont();
+      FontMetrics fm = g.getFontMetrics(font);
+      return fm.getLineMetrics("X", g).getHeight();
+    } finally {
+      g.dispose();
+    }
+  }
+
+  private float expectedXHeight = getDefaultXHeight();
+
+  private static final int OPTIMAL_X_HEIGHT = 30;
+
+  public Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
 
   private float factor() {
-    return optimumDPI / actualDPI;
+    // LEGACY: Calculate the resize factor based on the optimal and
+    // calculated DPI value if optimumDPI has been set manually
+    if (optimumDPI != null) {
+      return optimumDPI / getActualDPI();
+    }
+    return OPTIMAL_X_HEIGHT / expectedXHeight;
   }
 
   private Tesseract1 tess = null;
@@ -159,6 +218,15 @@ public class TextRecognizer {
       throw new SikuliXception(String.format("fatal: " + "TextRecognizer could not be initialized"));
     }
     textRecognizer.setLanguage(textRecognizer.language);
+
+    // Set user_defined_dpi to something other than 70 to avoid
+    // getting an error message on STDERR about guessing the resolution.
+    // Interestingly, setting this to whatever value between
+    // 70 and 2400 seems to have no impact on accuracy.
+    // Not with LSTM and not with the legacy model either.
+    // TODO Investigate this further
+    textRecognizer.setVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
+
     return textRecognizer;
   }
 
@@ -377,12 +445,10 @@ public class TextRecognizer {
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
     mimg = unsharpMask(mimg, 3);
 
-    // Resize to optimumDPI
-    actualDPI = Toolkit.getDefaultToolkit().getScreenResolution();
     float rFactor = factor();
 
     if (rFactor > 1) {
-      Image.resize(mimg, rFactor);
+      Image.resize(mimg, rFactor, resizeInterpolation);
     }
 
     // sharpen the enlarged image again
@@ -393,11 +459,7 @@ public class TextRecognizer {
       Core.bitwise_not(mimg, mimg);
     }
 
-    // configure tesseract to handle the resized image correctly
-    setVariable("user_defined_dpi", "" + optimumDPI);
-
     return Finder2.getBufferedImage(mimg);
-
   }
 
   public Region rescale(Rectangle rect) {
