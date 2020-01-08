@@ -100,7 +100,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated Will be removed in future versions
+   * @deprecated Use Toolkit.getDefaultToolkit().getScreenResolution() directly.
    *
    * @return the current screen resolution in dots per inch
    */
@@ -447,7 +447,7 @@ public class TextRecognizer {
 
     float rFactor = factor();
 
-    if (rFactor > 1) {
+    if (rFactor != 1) {
       Image.resize(mimg, rFactor, resizeInterpolation);
     }
 
