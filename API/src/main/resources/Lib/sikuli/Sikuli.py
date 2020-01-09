@@ -446,18 +446,20 @@ def select(msg="", title="Sikuli Selection", options=(), default=None):
   if  optionsLen == 0:
     return ""
   try:
-    default = 0 + default;
-    if default > -1 and default < optionsLen:
-      default = options[default]
-    else:
-      default = None
+    ndefault = 0 + default;
+    if ndefault > -1 and ndefault < optionsLen:
+      default = options[ndefault]
   except:
     pass
   #return Sikulix.popSelect(msg, title, options, default)
-  return Do.popSelectPy(options, msg, title, default, None, None, None)
+  optionString = "";
+  for option in options:
+    optionString += str(len(option) + 1000) + option
+  return Do.popSelect(msg, title, default, None, None, None, optionString)
 
 def popFile(title = "Select File or Folder"):
-  return Sikulix.popFile(title)
+  #return Sikulix.popFile(title)
+  return Do.popFile("", title)
 
 ## ----------------------------------------------------------------------
 # set the default screen to given or primary screen
