@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
 import java.awt.EventQueue;
@@ -12,7 +13,10 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -33,7 +37,7 @@ public class SX {
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
-    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT
+    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE
   }
 
   private static  boolean isVersion1() { return true; }
@@ -72,21 +76,20 @@ public class SX {
    */
   public static String popSelect(Object... args) {
     if (isHeadless()) {
-      log.error("running headless: input");
+      log.error("running headless: select");
     } else {
-
       return (String) doPop(PopType.POPSELECT, args);
     }
     return null;
   }
 
-  public static String popSelectPy(Object... args) {
-    Object[] newArgs = new Object[args.length];
-    for (int n = 1; n < args.length; n++) {
-      newArgs[n - 1] = args[n];
+  public static String popFile(Object... args) {
+    if (isHeadless()) {
+      log.error("running headless: file");
+    } else {
+      return (String) doPop(PopType.POPFILE, args);
     }
-    newArgs[args.length - 1] = args[0];
-    return popSelect(newArgs);
+    return null;
   }
 
   /**
@@ -220,8 +223,31 @@ public class SX {
           }
         } else if (PopType.POPSELECT.equals(popType)) {
           Object[] realOptions = new Object[0];
-          if (options != null && options instanceof Object[]) {
-            realOptions = (Object[]) options;
+          List<String> optionList = new ArrayList<>();
+          if (options != null) {
+            if (options instanceof Object[]) {
+              realOptions = (Object[]) options;
+            } else if (options instanceof String) {
+              String optionString = (String) options;
+              int slen;
+              while (!optionString.isEmpty()) {
+                try {
+                  slen = Integer.parseInt(optionString.substring(0, 4));
+                } catch (NumberFormatException e) {
+                  slen = 0;
+                }
+                if (slen == 0 || slen < 1000) {
+                  realOptions = new Object[0];
+                  break;
+                }
+                slen -= 1000;
+                optionList.add(optionString.substring(4, 4 + slen ));
+                optionString = optionString.substring(slen + 4);
+              }
+              if (optionList.size() > 0) {
+                realOptions = optionList.toArray();
+              }
+            }
           }
           if (realOptions.length == 0) {
             returnValue = "";
@@ -229,6 +255,9 @@ public class SX {
             returnValue = JOptionPane.showInputDialog(frame, message, title,
                     JOptionPane.PLAIN_MESSAGE, null, realOptions, preset);
           }
+        } else if (PopType.POPFILE.equals(popType)) {
+          File fileChoosen = new SikulixFileChooser(frame).open(title);
+          returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
         }
 
         synchronized(this) {
@@ -418,8 +447,8 @@ public class SX {
             Object arg = getParameter(args[argsn], parameterName);
             if (isNotNull(arg)) {
               params.put(parameterName, arg);
-              argsn++;
             }
+            argsn++;
           }
           n++;
         }

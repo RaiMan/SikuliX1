@@ -35,6 +35,7 @@ public class SikulixFileChooser {
     return PreferencesUser.get().get("LAST_OPEN_DIR", "");
   }
 
+  //TODO implement according to SX.doPop
   private boolean fromPopFile = false;
 
   public File open() {
@@ -43,7 +44,7 @@ public class SikulixFileChooser {
   }
 
   public File open(String title) {
-    fromPopFile = true;
+    //fromPopFile = true;
     File selectedFile = show(title, LOAD, DIRSANDFILES);
     return selectedFile;
   }

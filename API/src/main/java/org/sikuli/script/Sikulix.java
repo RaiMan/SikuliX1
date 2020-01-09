@@ -107,11 +107,12 @@ public class Sikulix {
   }
 
   public static void popup(String message, String title) {
-    JFrame anchor = popLocation();
-    JOptionPane.showMessageDialog(anchor, message, title, JOptionPane.PLAIN_MESSAGE);
-    if (anchor != null) {
-      anchor.dispose();
-    }
+//    JFrame anchor = popLocation();
+//    JOptionPane.showMessageDialog(anchor, message, title, JOptionPane.PLAIN_MESSAGE);
+//    if (anchor != null) {
+//      anchor.dispose();
+//    }
+    SX.popup();
   }
   //</editor-fold>
 
@@ -121,11 +122,12 @@ public class Sikulix {
   }
 
   public static void popError(String message, String title) {
-    JFrame anchor = popLocation();
-    JOptionPane.showMessageDialog(anchor, message, title, JOptionPane.ERROR_MESSAGE);
-    if (anchor != null) {
-      anchor.dispose();
-    }
+//    JFrame anchor = popLocation();
+//    JOptionPane.showMessageDialog(anchor, message, title, JOptionPane.ERROR_MESSAGE);
+//    if (anchor != null) {
+//      anchor.dispose();
+//    }
+    SX.popError(message, title);
   }
   //</editor-fold>
 
@@ -138,15 +140,16 @@ public class Sikulix {
     if (title == null) {
       title = "... something to decide!";
     }
-    JFrame anchor = popLocation();
-    int ret = JOptionPane.showConfirmDialog(anchor, msg, title, JOptionPane.YES_NO_OPTION);
-    if (anchor != null) {
-      anchor.dispose();
-    }
-    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
-      return false;
-    }
-    return true;
+//    JFrame anchor = popLocation();
+//    int ret = JOptionPane.showConfirmDialog(anchor, msg, title, JOptionPane.YES_NO_OPTION);
+//    if (anchor != null) {
+//      anchor.dispose();
+//    }
+//    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
+//      return false;
+//    }
+//    return true;
+    return SX.popAsk(msg, title);
   }
   //</editor-fold>
 
@@ -179,28 +182,29 @@ public class Sikulix {
     if (preset == null) {
       preset = options[0];
     }
-    JFrame anchor = popLocation();
-    String ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-            JOptionPane.PLAIN_MESSAGE, null, options, preset);
-    if (anchor != null) {
-      anchor.dispose();
-    }
-    return ret;
+//    JFrame anchor = popLocation();
+//    String ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
+//            JOptionPane.PLAIN_MESSAGE, null, options, preset);
+//    if (anchor != null) {
+//      anchor.dispose();
+//    }
+    return SX.popSelect(msg, title, preset, null, null, null, options);
   }
   //</editor-fold>
 
   //<editor-fold desc="06 popFile">
   public static String popFile(String title) {
-    popat(new Screen(0).getCenter());
-    JFrame anchor = popLocation();
-    File fileChoosen = new SikulixFileChooser(anchor).open(title);
-    if (anchor != null) {
-      anchor.dispose();
-    }
-    if (fileChoosen == null) {
-      return "";
-    }
-    return fileChoosen.getAbsolutePath();
+//    popat(new Screen(0).getCenter());
+//    JFrame anchor = popLocation();
+//    File fileChoosen = new SikulixFileChooser(anchor).open(title);
+//    if (anchor != null) {
+//      anchor.dispose();
+//    }
+//    if (fileChoosen == null) {
+//      return "";
+//    }
+//    return fileChoosen.getAbsolutePath();
+    return SX.popFile(title);
   }
   //</editor-fold>
 
