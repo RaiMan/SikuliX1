@@ -3,6 +3,15 @@
  */
 package org.sikuli.script;
 
+import java.awt.Rectangle;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.*;
+
+import net.sourceforge.tess4j.Word;
+import org.sikuli.android.ADBDevice;
+import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Observer;
@@ -2987,8 +2996,7 @@ public class Region {
         if (findingText) {
           if (TextRecognizer.start().isValid()) {
             finder = new Finder(this);
-            finder.setFindAll();
-            finder.findText(someText);
+            finder.findAllText(someText);
           }
         }
       } else if (ptn instanceof Pattern) {
@@ -5170,15 +5178,37 @@ public class Region {
    */
   public String text() {
     ScreenImage simg = getScreen().capture(x, y, w, h);
-    String ocrText = TextRecognizer.doOCR(simg).trim();
-    return ocrText.replace("\n\n", "\n");
+    return TextRecognizer.doOCR(simg).trim().replace("\n\n", "\n");
   }
 
-  public List<Match> collectWords() {
-    return findWords("...");
+  public List<String> textLines() {
+    List<String> lines = new ArrayList<>();
+    List<Match> matches = collectLines();
+    for (Match match : matches) {
+      lines.add(match.getText());
+    }
+    return lines;
   }
 
-  public List<String> collectWordsText() {
+  public List<Match> collectLines() {
+    List<Match> lines = new ArrayList<>();
+    double factor = TextRecognizer.getCurrentResize();
+    for (Word line : TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage())) {
+      lines.add(new Match(line.getBoundingBox(), line.getConfidence(), line.getText().trim(), factor, this));
+    }
+    return lines;
+  }
+
+  /**
+   * @deprecated use textLines() instead
+   * @return
+   */
+  @Deprecated
+  public List<String> collectLinesText() {
+    return textLines();
+  }
+
+  public List<String> textWords() {
     List<String> words = new ArrayList<>();
     List<Match> matches = collectWords();
     for (Match match : matches) {
@@ -5187,17 +5217,21 @@ public class Region {
     return words;
   }
 
-  public List<Match> collectLines() {
-    return findLines("...");
+  public List<Match> collectWords() {
+    List<Match> words = new ArrayList<>();
+    double factor = TextRecognizer.getCurrentResize();
+    for (Word word : TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage())) {
+      words.add(new Match(word.getBoundingBox(), word.getConfidence(), word.getText().trim(), factor, this));
+    }
+    return words;
   }
 
-  public List<String> collectLinesText() {
-    List<String> lines = new ArrayList<>();
-    List<Match> matches = collectLines();
-    for (Match match : matches) {
-      lines.add(match.getText());
-    }
-    return lines;
+  /**
+   * @deprecated use textWords() instead
+   * @return
+   */
+  public List<String> collectWordsText() {
+    return textWords();
   }
   //</editor-fold>
 }

@@ -37,12 +37,6 @@ public class Finder implements Iterator<Match> {
   private FindResult2 _results = null;
   private Region where = null;
 
-  public void setFindAll() {
-    isFindAll = true;
-  }
-
-  private boolean isFindAll = false;
-
   private int currentMatchIndex;
   private boolean repeating = false;
   private boolean valid = true;
@@ -52,19 +46,6 @@ public class Finder implements Iterator<Match> {
   private static int lvl = 3;
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
-  }
-
-  private static String markRegex = Key.ESC;
-  public static String asRegEx(String text) {
-    return markRegex + text;
-  }
-
-  public static boolean isRegEx(String text) {
-    return text.startsWith(markRegex);
-  }
-
-  public static java.util.regex.Pattern getRegEx(String text) {
-    return java.util.regex.Pattern.compile(text.substring(1));
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
@@ -188,7 +169,6 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find">
-
   /**
    * do a find op with the given image or the given text in the Finder's image
    * (hasNext() and next() will reveal possible match results)
@@ -395,6 +375,7 @@ public class Finder implements Iterator<Match> {
     return hasNext();
   }
 //</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="findAll">
   /**
@@ -411,8 +392,7 @@ public class Finder implements Iterator<Match> {
     Image img = Image.create(imageOrText);
     _image = img;
     if (img.isText()) {
-      setFindAll();
-      return findText(imageOrText);
+      return findAllText(imageOrText);
     }
     if (img.isValid()) {
       return findAll(img);
@@ -476,6 +456,66 @@ public class Finder implements Iterator<Match> {
       return null;
     }
   }
+  //</editor-fold>
+
+  //<editor-fold desc="findText">
+  /**
+   * do a text find with the given text in the Finder's image
+   * (hasNext() and next() will reveal possible match results)
+   * @param text text
+   * @return null. if find setup not possible
+   */
+  public String findText(String text) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
+    _findInput.setTargetText(text);
+    _findInput.setWhere(where);
+    _results = Finder2.find(_findInput);
+    currentMatchIndex = 0;
+    return text;
+  }
+
+  public boolean findWord(String text) {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findWords(String text) {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    _findInput.setFindAll();
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findWords() {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    _findInput.setFindAll();
+    findText("");
+    return hasNext();
+  }
+
+  public boolean findLine(String text) {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findLines(String text) {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    _findInput.setFindAll();
+    findText(text);
+    return hasNext();
+  }
+
+  public boolean findLines() {
+    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    _findInput.setFindAll();
+    findText("");
+    return hasNext();
+  }
 
   /**
    * do a findAll op with the given text in the Finder's image
@@ -491,7 +531,21 @@ public class Finder implements Iterator<Match> {
     _findInput.setFindAll();
     return findText(text);
   }
-//</editor-fold>
+
+  private static String markRegex = Key.ESC;
+
+  public static String asRegEx(String text) {
+    return markRegex + text;
+  }
+
+  public static boolean isRegEx(String text) {
+    return text.startsWith(markRegex);
+  }
+
+  public static java.util.regex.Pattern getRegEx(String text) {
+    return java.util.regex.Pattern.compile(text.substring(1));
+  }
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
   public List<Match> getList() {
@@ -579,8 +633,6 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-//</editor-fold>
-
   public static class Finder2 {
 
     static {
@@ -639,15 +691,12 @@ public class Finder implements Iterator<Match> {
     private boolean isCheckLastSeen = false;
     private static final double downSimDiff = 0.15;
 
-    private int levelWord = 3;
-    private int levelLine = 2;
-
     private boolean isWord() {
-      return fInput.getTextLevel() == levelWord;
+      return fInput.getTextLevel() == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD;
     }
 
     private boolean isLine() {
-      return fInput.getTextLevel() == levelLine;
+      return fInput.getTextLevel() == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE;
     }
 
     private boolean isTextMatching(String base, String probe, java.util.regex.Pattern pattern) {
@@ -677,9 +726,9 @@ public class Finder implements Iterator<Match> {
         BufferedImage bimg = where.getScreen().capture(where).getImage();
         BufferedImage bimgWork = null;
         String text = fInput.getTargetText();
-        if ("...".equals(text)) {
-          text = "";
-        }
+//        if ("...".equals(text)) {
+//          text = "";
+//        }
         TextRecognizer tr = TextRecognizer.start();
         if (tr.isValid()) {
           Tesseract1 tapi = tr.getAPI();
@@ -711,7 +760,7 @@ public class Finder implements Iterator<Match> {
                 pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
               }
             }
-            wordsFound = tapi.getWords(bimgWork, levelLine);
+            wordsFound = tapi.getWords(bimgWork, TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
           }
           timer = new Date().getTime() - timer;
           List<Word> wordsMatch = new ArrayList<>();
@@ -738,7 +787,7 @@ public class Finder implements Iterator<Match> {
               List<String> wordsInText = new ArrayList<>();
               if (globalSearch) {
                 BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
-                wordsInLine = tapi.getWords(bLine, levelWord);
+                wordsInLine = tapi.getWords(bLine, TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
                 if (singleWord) {
                   for (Word wordInLine : wordsInLine) {
                     if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
