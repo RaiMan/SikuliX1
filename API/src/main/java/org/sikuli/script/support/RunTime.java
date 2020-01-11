@@ -1300,6 +1300,7 @@ public class RunTime {
       Settings.Highlight = false;
       Settings.setShowActions(false);
       FindFailed.reset();
+      TextRecognizer.reset();
     }
 
     try {
