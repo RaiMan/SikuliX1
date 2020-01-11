@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import net.sourceforge.tess4j.Word;
 import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -1341,7 +1342,43 @@ public class Image {
    * @return the text or empty string
    */
   public String text() {
-    return TextRecognizer.doOCR(get());
+    return TextRecognizer.doOCR(get()).trim().replace("\n\n", "\n");
+  }
+
+  public List<String> textLines() {
+    List<String> lines = new ArrayList<>();
+    List<Match> matches = collectLines();
+    for (Match match : matches) {
+      lines.add(match.getText());
+    }
+    return lines;
+  }
+
+  public List<Match> collectLines() {
+    List<Match> lines = new ArrayList<>();
+    double factor = TextRecognizer.getCurrentResize();
+    for (Word line : TextRecognizer.readLines(get())) {
+      lines.add(new Match(line.getBoundingBox(), line.getConfidence(), line.getText(), factor));
+    }
+    return lines;
+  }
+
+  public List<String> textWords() {
+    List<String> words = new ArrayList<>();
+    List<Match> matches = collectWords();
+    for (Match match : matches) {
+      words.add(match.getText());
+    }
+    return words;
+  }
+
+  public List<Match> collectWords() {
+    List<Match> words = new ArrayList<>();
+    double factor = TextRecognizer.getCurrentResize();
+    for (Word word : TextRecognizer.readLines(get())) {
+      words.add(new Match(word.getBoundingBox(), word.getConfidence(), word.getText(), factor));
+    }
+    return words;
   }
 
   /**

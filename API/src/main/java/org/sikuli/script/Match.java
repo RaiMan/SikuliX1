@@ -5,6 +5,8 @@ package org.sikuli.script;
 
 import org.sikuli.script.support.IScreen;
 
+import java.awt.*;
+
 /**
  * holds the result of a find operation, is itself the region on the screen,
  * where the image was found and hence inherits all methods from {@link Region}.
@@ -87,21 +89,24 @@ public class Match extends Region implements Comparable<Match> {
     init(region.x, region.y, region.w, region.h, parent);
   }
 
-  /**
-   * internally used constructor by TextRecognizer.listText()
-   *
-   * @param x x
-   * @param y y
-   * @param w width
-   * @param h height
-   * @param Score SimScore
-   * @param parent Screen
-   * @param text given text
-   */
-  protected Match(int x, int y, int w, int h, double Score, IScreen parent, String text) {
-    init(x, y, w, h, parent);
-    simScore = Score;
+  protected Match(Rectangle rect, double confidence, String text, double scaleFactor, Region base) {
+    int rx = base.x + (int) (rect.getX() / scaleFactor);
+    int ry = base.y + (int) (rect.getY() / scaleFactor);
+    int rw = (int) (rect.getWidth() / scaleFactor) + 2;
+    int rh = (int) (rect.getHeight() / scaleFactor) + 2;
+    init(rx, ry, rw, rh, base.getScreen());
+    simScore = confidence/100;
     ocrText = text;
+  }
+
+  protected Match(Rectangle rect, double confidence, String text, double scaleFactor) {
+    x = (int) (rect.getX() / scaleFactor);
+    y = (int) (rect.getY() / scaleFactor);
+    int rw = (int) (rect.getWidth() / scaleFactor) + 2;
+    int rh = (int) (rect.getHeight() / scaleFactor) + 2;
+    simScore = confidence/100;
+    ocrText = text;
+    onScreen = false;
   }
 
   public Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {

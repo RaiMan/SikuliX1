@@ -1362,6 +1362,7 @@ java.desktop/sun.awt=ALL-UNNAMED
       Settings.Highlight = false;
       Settings.setShowActions(false);
       FindFailed.reset();
+      TextRecognizer.reset();
     }
 
     try {

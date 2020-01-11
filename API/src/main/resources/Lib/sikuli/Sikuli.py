@@ -109,7 +109,7 @@ PSM_CIRCLE_WORD =  TextOCR.PageSegMode.CIRCLE_WORD
 PSM_SINGLE_CHAR =  TextOCR.PageSegMode.SINGLE_CHAR
 PSM_SPARSE_TEXT =  TextOCR.PageSegMode.SPARSE_TEXT
 PSM_SPARSE_TEXT_OSD =  TextOCR.PageSegMode.SPARSE_TEXT_OSD
-PSM_COUNT =  TextOCR.PageSegMode.COUNT
+PSM_RAW_LINE =  TextOCR.PageSegMode.RAW_LINE
 
 #Debug.log(3, "Jython: sikuli: Sikuli: import Match")
 from org.sikuli.script import Match as JMatch
