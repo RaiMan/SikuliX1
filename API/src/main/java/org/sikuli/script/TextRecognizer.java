@@ -393,7 +393,7 @@ public class TextRecognizer {
   /**
    * Hint for the OCR Engine about the expected font size in pt
    *
-   * @param size expected font size in pt (must be > 7)
+   * @param size expected font size in pt (must be greater than 7)
    */
   public void setFontSize(int size) {
     if (size > 7) {
