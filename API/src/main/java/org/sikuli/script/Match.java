@@ -20,7 +20,7 @@ public class Match extends Region implements Comparable<Match> {
   private double simScore = 0;
   private Location target = null;
   private Image image = null;
-  private String ocrText = null;
+  private String ocrText = "";
   private long lastSearchTime = -1;
   private long lastFindTime = -1;
   private int index = -1;
