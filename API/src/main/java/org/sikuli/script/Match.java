@@ -89,21 +89,17 @@ public class Match extends Region implements Comparable<Match> {
     init(region.x, region.y, region.w, region.h, parent);
   }
 
-  protected Match(Rectangle rect, double confidence, String text, double scaleFactor, Region base) {
-    int rx = base.x + (int) (rect.getX() / scaleFactor);
-    int ry = base.y + (int) (rect.getY() / scaleFactor);
-    int rw = (int) (rect.getWidth() / scaleFactor) + 2;
-    int rh = (int) (rect.getHeight() / scaleFactor) + 2;
-    init(rx, ry, rw, rh, base.getScreen());
+  protected Match(Rectangle rect, double confidence, String text, Region base) {
+    init(rect.x, rect.y, rect.width, rect.height, base.getScreen());
     simScore = confidence/100;
     ocrText = text;
   }
 
-  protected Match(Rectangle rect, double confidence, String text, double scaleFactor) {
-    x = (int) (rect.getX() / scaleFactor);
-    y = (int) (rect.getY() / scaleFactor);
-    int rw = (int) (rect.getWidth() / scaleFactor) + 2;
-    int rh = (int) (rect.getHeight() / scaleFactor) + 2;
+  protected Match(Rectangle rect, double confidence, String text) {
+    x = rect.x;
+    y = rect.y;
+    w = rect.width;
+    h = rect.height;
     simScore = confidence/100;
     ocrText = text;
     onScreen = false;

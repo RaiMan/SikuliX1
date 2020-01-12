@@ -726,9 +726,6 @@ public class Finder implements Iterator<Match> {
         BufferedImage bimg = where.getScreen().capture(where).getImage();
         BufferedImage bimgWork = null;
         String text = fInput.getTargetText();
-//        if ("...".equals(text)) {
-//          text = "";
-//        }
         TextRecognizer tr = TextRecognizer.start();
         if (tr.isValid()) {
           Tesseract1 tapi = tr.getAPI();
@@ -782,9 +779,7 @@ public class Finder implements Iterator<Match> {
                 continue;
               }
               Rectangle wordOrLine = word.getBoundingBox();
-              Word found = null;
               List<Word> wordsInLine = null;
-              List<String> wordsInText = new ArrayList<>();
               if (globalSearch) {
                 BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
                 wordsInLine = tapi.getWords(bLine, TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);

@@ -3,7 +3,6 @@
  */
 package org.sikuli.script;
 
-import net.sourceforge.tess4j.Word;
 import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -1355,12 +1354,7 @@ public class Image {
   }
 
   public List<Match> collectLines() {
-    List<Match> lines = new ArrayList<>();
-    double factor = TextRecognizer.getCurrentResize();
-    for (Word line : TextRecognizer.readLines(get())) {
-      lines.add(new Match(line.getBoundingBox(), line.getConfidence(), line.getText(), factor));
-    }
-    return lines;
+    return TextRecognizer.readLines(get());
   }
 
   public List<String> textWords() {
@@ -1373,12 +1367,7 @@ public class Image {
   }
 
   public List<Match> collectWords() {
-    List<Match> words = new ArrayList<>();
-    double factor = TextRecognizer.getCurrentResize();
-    for (Word word : TextRecognizer.readLines(get())) {
-      words.add(new Match(word.getBoundingBox(), word.getConfidence(), word.getText(), factor));
-    }
-    return words;
+    return TextRecognizer.readWords(get());
   }
 
   /**
