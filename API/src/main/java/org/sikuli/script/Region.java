@@ -352,6 +352,9 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="004 housekeeping">
+  protected boolean isEmpty() {
+    return w <= 1 && h <= 1;
+  }
 
   private boolean isScreenUnion = false;
   private boolean isVirtual = false;
@@ -1352,15 +1355,15 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="050 save capture to file">
-  public String saveScreenCapture() {
+  public String saveCapture() {
     return getScreen().capture(this).save();
   }
 
-  public String saveScreenCapture(String path) {
+  public String saveCapture(String path) {
     return getScreen().capture(this).save(path);
   }
 
-  public String saveScreenCapture(String path, String name) {
+  public String saveCapture(String path, String name) {
     return getScreen().capture(this).save(path, name);
   }
 
@@ -2764,6 +2767,11 @@ public class Region {
   }
   //--------------------------------
 
+  /**
+   * Find the first word as text (top left to bottom right) containing the given text
+   * @param word
+   * @return a text match or null if not found
+   */
   public Match findWord(String word) {
     Match match = null;
     if (!word.isEmpty()) {
@@ -2775,6 +2783,11 @@ public class Region {
     return match;
   }
 
+  /**
+   * Find all words as text (top left to bottom right) containing the given text
+   * @param word
+   * @return a list of text matches
+   */
   public List<Match> findWords(String word) {
     Finder finder = ((Finder) doFindText(word, levelWord, true));
     if (null != finder) {
@@ -2783,6 +2796,19 @@ public class Region {
     return new ArrayList<>();
   }
 
+  /**
+   * Find all words as text (top left to bottom right)
+   * @return a list of text matches
+   */
+  public List<Match> findWords() {
+    return TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage(), this);
+  }
+
+  /**
+   * Find the first line as text (top left to bottom right) containing the given text
+   * @param text
+   * @return a text match or null if not found
+   */
   public Match findLine(String text) {
     Match match = null;
     if (!text.isEmpty()) {
@@ -2794,6 +2820,11 @@ public class Region {
     return match;
   }
 
+  /**
+   * Find all lines as text (top left to bottom right) containing the given text
+   * @param text
+   * @return a list of text matches or empty list if not found
+   */
   public List<Match> findLines(String text) {
     Finder finder = (Finder) doFindText(text, levelLine, true);
     if (null != finder) {
@@ -2802,6 +2833,13 @@ public class Region {
     return new ArrayList<>();
   }
 
+  /**
+   * Find all lines as text (top left to bottom right)
+   * @return a list of text matches or empty list if not found
+   */
+  public List<Match> findLines() {
+    return TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage(), this);
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="021 find internal methods">
@@ -5183,6 +5221,10 @@ public class Region {
     return lines;
   }
 
+  /**
+   * @deprecated use findLines() instead
+   * @return
+   */
   public List<Match> collectLines() {
     return TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage(), this);
   }
@@ -5205,6 +5247,10 @@ public class Region {
     return words;
   }
 
+  /**
+   * @deprecated use findWords() instead
+   * @return
+   */
   public List<Match> collectWords() {
     return TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage(), this);
   }
