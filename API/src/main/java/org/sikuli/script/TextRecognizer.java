@@ -411,7 +411,7 @@ public class TextRecognizer {
   /**
    * Hint for the OCR Engine about the expected height of an uppercase X in px
    *
-   * @param height of an uppercase X in px (must be > 7)
+   * @param height of an uppercase X in px (must be greater than 7)
    */
   public void setUppercaseXHeight(int height) {
     if (height > 7) {
