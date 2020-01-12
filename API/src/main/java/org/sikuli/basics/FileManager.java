@@ -588,12 +588,22 @@ public class FileManager {
     if (null == path) {
       return null;
     }
+    File fImage = new File(path, name);
+    String formatName = "png";
     if (name == null) {
-      name = "nonamegiven";
+      fImage = new File(path, String.format("noname-%d.png", name, new Date().getTime()));
+    } else if (name.startsWith("#")) {
+      fImage = new File(path, String.format("%s-%d.png", name.substring(1), new Date().getTime()));
+    } else if (!name.isEmpty()) {
+      if(!name.contains(".")) {
+        fImage = new File(path, name + ".png");
+      } else {
+        formatName = name.substring(name.lastIndexOf(".") + 1);
+      }
     }
-    File fImage = new File(path, String.format("%s-%d.png", name, new Date().getTime()));
     try {
-      ImageIO.write(img, "png", fImage);
+      ImageIO.write(img, formatName, fImage);
+      log(3, "saveImage: %s", fImage);
     } catch (Exception ex) {
       log(-1, "saveTimedImage: did not work: %s (%s)", fImage, ex.getMessage());
       return null;

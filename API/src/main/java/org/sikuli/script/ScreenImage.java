@@ -110,7 +110,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save() {
-    return FileManager.saveTimedImage(_img, RunTime.get().fpBaseTempPath, "sikuliximage");
+    return FileManager.saveTimedImage(_img, RunTime.get().fpBaseTempPath, "#sikuliximage");
   }
 
 	/**
@@ -132,7 +132,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save(String path) {
-    return FileManager.saveTimedImage(_img, path, "sikuliximage");
+    return FileManager.saveTimedImage(_img, path, "#sikuliximage");
   }
 
 	/**

@@ -785,12 +785,12 @@ public class Screen extends Region implements IScreen {
   }
 
   public String saveCapture(String name) {
-    return saveCapture(name, null);
+    return saveCapture(name, new Region(0, 0, 0, 0, this));
   }
 
   public String saveCapture(String name, Region reg) {
     ScreenImage simg;
-    if (reg == null) {
+    if (reg.isEmpty()) {
       simg = userCapture("Capture for image " + name);
     } else {
       simg = capture(reg);
@@ -798,7 +798,7 @@ public class Screen extends Region implements IScreen {
     if (simg == null) {
       return null;
     } else {
-      return simg.saveInBundle(name);
+      return simg.save(name);
     }
   }
 
