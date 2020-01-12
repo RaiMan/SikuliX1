@@ -16,12 +16,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Desktop;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +45,7 @@ public class TextRecognizer {
   public void status() {
     Debug.logp("Textrecognizer current settings" +
         "\ndata = %s" +
-        "\nlanguage(%s) oem(%d) psm(%d) height(%.1f)",
+        "\nlanguage(%s) oem(%d) psm(%d) height(%d)",
         dataPath, language, oem, psm, uppercaseXHeight);
   }
 
@@ -134,8 +129,6 @@ public class TextRecognizer {
 
   public static boolean extractTessdata() {
     File fTessDataPath;
-    File fTessConfNodict;
-    File fTessEngTData;
     boolean shouldExtract = false;
     fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
     //export latest tessdata to the standard SikuliX tessdata folder in any case
@@ -408,7 +401,7 @@ public class TextRecognizer {
       try {
         Font font = new Font(g.getFont().getFontName(), 0, size);
         FontMetrics fm = g.getFontMetrics(font);
-        uppercaseXHeight = fm.getLineMetrics("X", g).getHeight();
+        uppercaseXHeight = (int) fm.getLineMetrics("X", g).getHeight();
       } finally {
         g.dispose();
       }
@@ -432,22 +425,22 @@ public class TextRecognizer {
     uppercaseXHeight = getDefaultUppercaseXHeight();
   }
 
-  public double getUppercaseXHeight() {
+  public int getUppercaseXHeight() {
     return uppercaseXHeight;
   }
 
-  private float getDefaultUppercaseXHeight() {
+  private int getDefaultUppercaseXHeight() {
     Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
     try {
       Font font = g.getFont();
       FontMetrics fm = g.getFontMetrics(font);
-      return fm.getLineMetrics("X", g).getHeight();
+      return (int) fm.getLineMetrics("X", g).getHeight();
     } finally {
       g.dispose();
     }
   }
 
-  private float uppercaseXHeight = getDefaultUppercaseXHeight();
+  private int uppercaseXHeight = getDefaultUppercaseXHeight();
 
   private static final int OPTIMAL_X_HEIGHT = 30;
 
@@ -536,20 +529,51 @@ public class TextRecognizer {
   public static int PAGE_ITERATOR_LEVEL_LINE = 2;
   public static int PAGE_ITERATOR_LEVEL_WORD = 3;
 
-  public static List<Word> readLines(BufferedImage bimg) {
-    TextRecognizer tr = start();
-    if (tr.isValid()) {
-      return tr.getAPI().getWords(tr.optimize(bimg), PAGE_ITERATOR_LEVEL_LINE);
-    }
-    return new ArrayList<>();
+  protected static List<Match> readLines(BufferedImage bimg) {
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, null);
   }
 
-  public static List<Word> readWords(BufferedImage bimg) {
+  public static List<Match> readWords(BufferedImage bimg) {
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, null);
+  }
+
+  protected static List<Match> readLines(BufferedImage bimg, Region base) {
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, base);
+  }
+
+  public static List<Match> readWords(BufferedImage bimg, Region base) {
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, base);
+  }
+
+  private static List<Match> readTextItems(BufferedImage bimg, int level, Region base) {
+    List<Match> lines = new ArrayList<>();
     TextRecognizer tr = start();
     if (tr.isValid()) {
-      return tr.getAPI().getWords(tr.optimize(bimg), PAGE_ITERATOR_LEVEL_WORD);
+      BufferedImage bimgResized = tr.optimize(bimg);
+      List<Word> textItems = tr.getAPI().getWords(bimgResized, level);
+      double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
+      double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
+      int offX = 0;
+      int offY = 0;
+      if (null != base) {
+        offX = base.x;
+        offY = base.y;
+      }
+      for (Word textItem : textItems) {
+        Rectangle boundingBox = textItem.getBoundingBox();
+        Rectangle realBox = new Rectangle(
+                offX + (int) (boundingBox.x * wFactor) - 1,
+                offY + (int) (boundingBox.y * hFactor) - 1,
+                1 + (int) (boundingBox.width * wFactor) + 2,
+                1 + (int) (boundingBox.height * hFactor) + 2);
+        if (null == base) {
+          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText()));
+        } else {
+          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText(), base));
+        }
+      }
     }
-    return new ArrayList<>();
+    return lines;
   }
   //</editor-fold>
 
@@ -558,8 +582,8 @@ public class TextRecognizer {
     Region reg = new Region(); //rescale(rect);
     reg.x = base.x + (int) (rect.getX() / factor);
     reg.y = base.y + (int) (rect.getY() / factor);
-    reg.w = (int) (rect.getWidth() / factor) + 2;
-    reg.h = (int) (rect.getHeight() / factor) + 2;
+    reg.w = (int) (1 + rect.getWidth() / factor);
+    reg.h = (int) (1 + rect.getHeight() / factor);
     reg.setScreen(base.getScreen().getID());
     return reg;
   }
@@ -567,23 +591,6 @@ public class TextRecognizer {
   public Rectangle relocateAsRectangle(Rectangle rect, Region base) {
     Region reg = relocate(rect, base, factor());
     return new Rectangle(reg.x, reg.y, reg.w, reg.h);
-  }
-
-  public Region[] getLines(BufferedImage bimg, Region base) {
-    List<Rectangle> lines = new ArrayList<>();
-    try {
-      lines = tess.getSegmentedRegions(bimg, 2);
-    } catch (TesseractException e) {
-    }
-    Region[] regLines = new Region[lines.size()];
-    if (lines.size() > 0) {
-      int n = 0;
-      for (Rectangle line : lines) {
-        regLines[n] = relocate(line, base, 1);
-        n++;
-      }
-    }
-    return regLines;
   }
   //</editor-fold>
 

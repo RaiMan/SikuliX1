@@ -3,20 +3,19 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.android.ADBDevice;
+import org.sikuli.android.ADBScreen;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Observer;
+import org.sikuli.script.support.*;
+import org.sikuli.util.Highlight;
+
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.*;
-
-import net.sourceforge.tess4j.Word;
-import org.sikuli.android.ADBDevice;
-import org.sikuli.android.ADBScreen;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.*;
-import org.sikuli.script.support.Observer;
-import org.sikuli.util.Highlight;
 
 /**
  * A Region is a rectengular area and lies always completely inside its parent screen
@@ -4923,12 +4922,7 @@ public class Region {
   }
 
   public List<Match> collectLines() {
-    List<Match> lines = new ArrayList<>();
-    double factor = TextRecognizer.getCurrentResize();
-    for (Word line : TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage())) {
-      lines.add(new Match(line.getBoundingBox(), line.getConfidence(), line.getText().trim(), factor, this));
-    }
-    return lines;
+    return TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage(), this);
   }
 
   /**
@@ -4950,12 +4944,7 @@ public class Region {
   }
 
   public List<Match> collectWords() {
-    List<Match> words = new ArrayList<>();
-    double factor = TextRecognizer.getCurrentResize();
-    for (Word word : TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage())) {
-      words.add(new Match(word.getBoundingBox(), word.getConfidence(), word.getText().trim(), factor, this));
-    }
-    return words;
+    return TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage(), this);
   }
 
   /**
