@@ -2205,7 +2205,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="020 find public methods">
+  //<editor-fold defaultstate="collapsed" desc="020 find image public methods">
 
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
@@ -2684,9 +2684,9 @@ public class Region {
     }
     return theUnion;
   }
+  //</editor-fold>
 
-  //------------------------------
-
+  //<editor-fold desc="021 find text public methods">
   public Match waitText(String text, double timeout) throws FindFailed {
     return wait("\t" + text + "\t", timeout);
   }
@@ -2752,7 +2752,6 @@ public class Region {
   public List<Match> findAllT(String text) {
     return findAllText(text);
   }
-  //--------------------------------
 
   /**
    * Find the first word as text (top left to bottom right) containing the given text
@@ -2829,12 +2828,8 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="021 find internal methods">
+  //<editor-fold defaultstate="collapsed" desc="022 find internal methods">
 
-  /**
-   * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
-   * waiting.
-   */
   private <PSI> Match doFind(PSI ptn, Image img, Repeatable repeating) {
     Finder finder = null;
     Match match = null;
@@ -2982,10 +2977,6 @@ public class Region {
     return new Finder(base, this);
   }
 
-  /**
-   * Match findAll( Pattern/String/Image ) finds all the given pattern on the screen and returns the best matches
-   * without waiting.
-   */
   private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) {
     boolean findingText = false;
     Finder finder = null;
@@ -3043,8 +3034,8 @@ public class Region {
     return null;
   }
 
-  private int levelWord = 3;
-  private int levelLine = 2;
+  private int levelWord = TextRecognizer.PAGE_ITERATOR_LEVEL_WORD;
+  private int levelLine = TextRecognizer.PAGE_ITERATOR_LEVEL_LINE;
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
@@ -3208,7 +3199,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="022 Find internal support">
+  //<editor-fold defaultstate="collapsed" desc="023 find internal support">
   private class SubFindRun implements Runnable {
 
     Match[] mArray;

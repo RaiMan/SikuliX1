@@ -651,228 +651,106 @@ public class Finder implements Iterator<Match> {
     }
 
     private FindResult2 doFind() {
-      FindResult2 findResult = null;
       if (!fInput.isValid()) {
-        return findResult;
+        return null;
       }
       if (fInput.isText()) {
-        boolean globalSearch = false;
-        Region where = fInput.getWhere();
-        BufferedImage bimg = where.getScreen().capture(where).getImage();
-        BufferedImage bimgWork = null;
-        String text = fInput.getTargetText();
-        TextRecognizer tr = TextRecognizer.start();
-        if (tr.isValid()) {
-          Tesseract1 tapi = tr.getAPI();
-          long timer = new Date().getTime();
-          int textLevel = fInput.getTextLevel();
-          List<Word> wordsFound = null;
-          bimgWork = tr.optimize(bimg);
-          boolean singleWord = true;
-          String[] textSplit = new String[0];
-          java.util.regex.Pattern pattern = null;
-          if (isRegEx(text)) {
-            if (textLevel < 0) {
-              text = text.substring(1);
-              log.error("RegEx not supported: %s", text);
-            } else {
-              pattern = getRegEx(text);
-            }
-          } else {
-            text = text.trim();
-          }
-          if (textLevel > -1) {
-            wordsFound = tapi.getWords(bimgWork, textLevel);
-          } else {
-            globalSearch = true;
-            textSplit = text.split("\\s");
-            if (textSplit.length > 1) {
-              singleWord = false;
-              if (textSplit.length == 3 && textSplit[1].contains("+")) {
-                pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
-              }
-            }
-            wordsFound = tapi.getWords(bimgWork, TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
-          }
-          timer = new Date().getTime() - timer;
-          List<Word> wordsMatch = new ArrayList<>();
-          if (!text.isEmpty()) {
-            for (Word word : wordsFound) {
-              if (isWord()) {
-                if (!isTextMatching(word.getText(), text, pattern)) {
-                  continue;
-                }
-              } else if (isLine()) {
-                if (!isTextContained(word.getText(), text, pattern)) {
-                  continue;
-                }
-              } else if (globalSearch) {
-                if (!isTextContained(word.getText().toLowerCase(), text.toLowerCase(), pattern)) {
-                  continue;
-                }
-              } else {
-                continue;
-              }
-              Rectangle wordOrLine = word.getBoundingBox();
-              List<Word> wordsInLine = null;
-              if (globalSearch) {
-                BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
-                wordsInLine = tapi.getWords(bLine, TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
-                if (singleWord) {
-                  for (Word wordInLine : wordsInLine) {
-                    if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
-                      continue;
-                    }
-                    Rectangle rword = new Rectangle(wordInLine.getBoundingBox());
-                    rword.x += wordOrLine.x;
-                    rword.y += wordOrLine.y;
-                    Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
-                    wordsMatch.add(new Word(wordInLine.getText(), wordInLine.getConfidence(), trueRectangel));
-                  }
-                } else {
-                  int startText = -1;
-                  int endText = -1;
-                  int ix = 0;
-                  String firstWord = textSplit[0].toLowerCase();
-                  String lastWord = textSplit[textSplit.length - 1].toLowerCase();
-                  for (Word wordInLine : wordsInLine) {
-                    if (startText < 0) {
-                      if (isTextContained(wordInLine.getText().toLowerCase(), firstWord, null)) {
-                        startText = ix;
-                      }
-                    } else if (endText < 0) {
-                      if (isTextContained(wordInLine.getText().toLowerCase(), lastWord, null)) {
-                        endText = ix;
-                      }
-                    } else {
-                      break;
-                    }
-                    ix++;
-                  }
-                  if (startText > -1 && endText > -1) {
-                    Rectangle rword = (new Rectangle(wordsInLine.get(startText).getBoundingBox())).
-                            union(new Rectangle(wordsInLine.get(endText).getBoundingBox()));
-                    rword.x += wordOrLine.x;
-                    rword.y += wordOrLine.y;
-                    Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
-                    wordsMatch.add(new Word(text, wordsInLine.get(startText).getConfidence(), trueRectangel));
-                  }
-                }
-              } else {
-                Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
-                wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
-              }
-            }
-            if (wordsMatch.size() > 0) {
-              log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
-              findResult = new FindResult2(wordsMatch, fInput);
-            } else {
-              log.trace("doFindText: %s (%d msec): not found", text, timer);
-            }
-          } else {
-            if (isWord()) {
-              log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
-            } else {
-              log.trace("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
-            }
-            for (Word word : wordsFound) {
-              Rectangle wordOrLine = word.getBoundingBox();
-              Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
-              wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
-            }
-            findResult = new FindResult2(wordsMatch, fInput);
-          }
-        }
+        return doFindText();
       } else {
-        FindInput2 findInput = fInput;
-        log.trace("doFind: start %s", findInput);
-        mBase = findInput.getBase();
-        boolean success = false;
-        long begin_lap = 0;
-        long begin_find = new Date().getTime();
-        Core.MinMaxLocResult mMinMax = null;
-
-        double rfactor = 0;
-        boolean downSizeFound = false;
-        double downSizeScore = -1;
-        double downSizeWantedScore = 0;
-        Mat findWhere = getNewMat();
-        Mat findWhat = getNewMat();
-
-        boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
-        //TODO search downsized?
-        trueOrFalse = false;
-        if (trueOrFalse) {
-          // ************************************************* search in downsized
-          begin_lap = new Date().getTime();
-          double imgFactor = findInput.getResizeFactor();
-          Size sizeBase, sizePattern;
-          mResult = null;
-          for (double factor : resizeLevels) {
-            rfactor = factor * imgFactor;
-            sizeBase = new Size(this.mBase.cols() / rfactor, this.mBase.rows() / rfactor);
-            sizePattern = new Size(findInput.getTarget().cols() / rfactor, findInput.getTarget().rows() / rfactor);
-            Imgproc.resize(this.mBase, findWhere, sizeBase, 0, 0, Imgproc.INTER_AREA);
-            Imgproc.resize(findInput.getTarget(), findWhat, sizePattern, 0, 0, Imgproc.INTER_AREA);
-            mResult = doFindMatch(findWhat, findWhere, findInput);
-            mMinMax = Core.minMaxLoc(mResult);
-            downSizeWantedScore = ((int) ((findInput.getScore() - downSimDiff) * 100)) / 100.0;
-            downSizeScore = mMinMax.maxVal;
-            if (downSizeScore > downSizeWantedScore) {
-              downSizeFound = true;
-              break;
-            }
-          }
-          log.trace("downSizeFound: %s", downSizeFound);
-          log.trace("doFind: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_lap);
-        }
-        findWhere = this.mBase;
-        trueOrFalse = !findInput.isFindAll() && downSizeFound;
-        if (trueOrFalse) {
-          // ************************************* check after downsized success
-          if (findWhere.size().equals(findInput.getTarget().size())) {
-            // trust downsized mResult, if images have same size
-            return new FindResult2(mResult, findInput);
-          } else {
-            int maxLocX = (int) (mMinMax.maxLoc.x * rfactor);
-            int maxLocY = (int) (mMinMax.maxLoc.y * rfactor);
-            begin_lap = new Date().getTime();
-            int margin = ((int) findInput.getResizeFactor()) + 1;
-            Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
-                    Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
-                    Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
-            Rectangle rWhere = new Rectangle(0, 0, findWhere.cols(), findWhere.rows());
-            Rectangle rSubNew = rWhere.intersection(rSub);
-            Rect rectSub = new Rect(rSubNew.x, rSubNew.y, rSubNew.width, rSubNew.height);
-            mResult = doFindMatch(findInput.getTarget(), findWhere.submat(rectSub), findInput);
-            mMinMax = Core.minMaxLoc(mResult);
-            double maxVal = mMinMax.maxVal;
-            double wantedScore = findInput.getScore();
-            if (maxVal > wantedScore) {
-              findResult = new FindResult2(mResult, findInput, new int[]{rectSub.x, rectSub.y});
-            }
-            if (SX.isNotNull(findResult)) {
-              log.trace("doFind: after down: %%%.2f(?%%%.2f) %d msec",
-                      maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
-            }
-          }
-        }
-        // ************************************** search in original
-        if (downSizeScore < 0) {
-          begin_lap = new Date().getTime();
-          mResult = doFindMatch(findInput.getTarget(), findWhere, findInput);
-          mMinMax = Core.minMaxLoc(mResult);
-          if (!isCheckLastSeen) {
-            log.trace("doFind: in original: %%%.4f (?%.0f) %d msec %s",
-                    mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
-                    findInput.hasMask() ? " **withMask" : "");
-          }
-          if (mMinMax.maxVal > findInput.getScore()) {
-            findResult = new FindResult2(mResult, findInput);
-          }
-        }
-        log.trace("doFind: end %d msec", new Date().getTime() - begin_find);
+        return doFindImage();
       }
+    }
+
+    private FindResult2 doFindImage() {
+      FindResult2 findResult = null;
+      FindInput2 findInput = fInput;
+      log.trace("doFind: start %s", findInput);
+      mBase = findInput.getBase();
+      boolean success = false;
+      long begin_lap = 0;
+      long begin_find = new Date().getTime();
+      Core.MinMaxLocResult mMinMax = null;
+
+      double rfactor = 0;
+      boolean downSizeFound = false;
+      double downSizeScore = -1;
+      double downSizeWantedScore = 0;
+      Mat findWhere = getNewMat();
+      Mat findWhat = getNewMat();
+
+      boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
+      //TODO search downsized?
+      trueOrFalse = false;
+      if (trueOrFalse) {
+        // ************************************************* search in downsized
+        begin_lap = new Date().getTime();
+        double imgFactor = findInput.getResizeFactor();
+        Size sizeBase, sizePattern;
+        mResult = null;
+        for (double factor : resizeLevels) {
+          rfactor = factor * imgFactor;
+          sizeBase = new Size(this.mBase.cols() / rfactor, this.mBase.rows() / rfactor);
+          sizePattern = new Size(findInput.getTarget().cols() / rfactor, findInput.getTarget().rows() / rfactor);
+          Imgproc.resize(this.mBase, findWhere, sizeBase, 0, 0, Imgproc.INTER_AREA);
+          Imgproc.resize(findInput.getTarget(), findWhat, sizePattern, 0, 0, Imgproc.INTER_AREA);
+          mResult = doFindMatch(findWhat, findWhere, findInput);
+          mMinMax = Core.minMaxLoc(mResult);
+          downSizeWantedScore = ((int) ((findInput.getScore() - downSimDiff) * 100)) / 100.0;
+          downSizeScore = mMinMax.maxVal;
+          if (downSizeScore > downSizeWantedScore) {
+            downSizeFound = true;
+            break;
+          }
+        }
+        log.trace("downSizeFound: %s", downSizeFound);
+        log.trace("doFind: down: %%%.2f %d msec", 100 * mMinMax.maxVal, new Date().getTime() - begin_lap);
+      }
+      findWhere = this.mBase;
+      trueOrFalse = !findInput.isFindAll() && downSizeFound;
+      if (trueOrFalse) {
+        // ************************************* check after downsized success
+        if (findWhere.size().equals(findInput.getTarget().size())) {
+          // trust downsized mResult, if images have same size
+          return new FindResult2(mResult, findInput);
+        } else {
+          int maxLocX = (int) (mMinMax.maxLoc.x * rfactor);
+          int maxLocY = (int) (mMinMax.maxLoc.y * rfactor);
+          begin_lap = new Date().getTime();
+          int margin = ((int) findInput.getResizeFactor()) + 1;
+          Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
+                  Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
+                  Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
+          Rectangle rWhere = new Rectangle(0, 0, findWhere.cols(), findWhere.rows());
+          Rectangle rSubNew = rWhere.intersection(rSub);
+          Rect rectSub = new Rect(rSubNew.x, rSubNew.y, rSubNew.width, rSubNew.height);
+          mResult = doFindMatch(findInput.getTarget(), findWhere.submat(rectSub), findInput);
+          mMinMax = Core.minMaxLoc(mResult);
+          double maxVal = mMinMax.maxVal;
+          double wantedScore = findInput.getScore();
+          if (maxVal > wantedScore) {
+            findResult = new FindResult2(mResult, findInput, new int[]{rectSub.x, rectSub.y});
+          }
+          if (SX.isNotNull(findResult)) {
+            log.trace("doFind: after down: %%%.2f(?%%%.2f) %d msec",
+                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
+          }
+        }
+      }
+      // ************************************** search in original
+      if (downSizeScore < 0) {
+        begin_lap = new Date().getTime();
+        mResult = doFindMatch(findInput.getTarget(), findWhere, findInput);
+        mMinMax = Core.minMaxLoc(mResult);
+        if (!isCheckLastSeen) {
+          log.trace("doFind: in original: %%%.4f (?%.0f) %d msec %s",
+                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
+                  findInput.hasMask() ? " **withMask" : "");
+        }
+        if (mMinMax.maxVal > findInput.getScore()) {
+          findResult = new FindResult2(mResult, findInput);
+        }
+      }
+      log.trace("doFind: end %d msec", new Date().getTime() - begin_find);
       return findResult;
     }
 
@@ -908,6 +786,138 @@ public class Finder implements Iterator<Match> {
         }
       }
       return mResult;
+    }
+
+    private FindResult2 doFindText() {
+      FindResult2 findResult = null;
+      boolean globalSearch = false;
+      Region where = fInput.getWhere();
+      BufferedImage bimg = where.getScreen().capture(where).getImage();
+      BufferedImage bimgWork = null;
+      String text = fInput.getTargetText();
+      TextRecognizer tr = TextRecognizer.start();
+      if (tr.isValid()) {
+        Tesseract1 tapi = tr.getAPI();
+        long timer = new Date().getTime();
+        int textLevel = fInput.getTextLevel();
+        List<Word> wordsFound = null;
+        bimgWork = tr.optimize(bimg);
+        boolean singleWord = true;
+        String[] textSplit = new String[0];
+        java.util.regex.Pattern pattern = null;
+        if (isRegEx(text)) {
+          if (textLevel < 0) {
+            text = text.substring(1);
+            log.error("RegEx not supported: %s", text);
+          } else {
+            pattern = getRegEx(text);
+          }
+        } else {
+          text = text.trim();
+        }
+        if (textLevel > -1) {
+          wordsFound = tapi.getWords(bimgWork, textLevel);
+        } else {
+          globalSearch = true;
+          textSplit = text.split("\\s");
+          if (textSplit.length > 1) {
+            singleWord = false;
+            if (textSplit.length == 3 && textSplit[1].contains("+")) {
+              pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
+            }
+          }
+          wordsFound = tapi.getWords(bimgWork, TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+        }
+        timer = new Date().getTime() - timer;
+        List<Word> wordsMatch = new ArrayList<>();
+        if (!text.isEmpty()) {
+          for (Word word : wordsFound) {
+            if (isWord()) {
+              if (!isTextMatching(word.getText(), text, pattern)) {
+                continue;
+              }
+            } else if (isLine()) {
+              if (!isTextContained(word.getText(), text, pattern)) {
+                continue;
+              }
+            } else if (globalSearch) {
+              if (!isTextContained(word.getText().toLowerCase(), text.toLowerCase(), pattern)) {
+                continue;
+              }
+            } else {
+              continue;
+            }
+            Rectangle wordOrLine = word.getBoundingBox();
+            List<Word> wordsInLine = null;
+            if (globalSearch) {
+              BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
+              wordsInLine = tapi.getWords(bLine, TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+              if (singleWord) {
+                for (Word wordInLine : wordsInLine) {
+                  if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
+                    continue;
+                  }
+                  Rectangle rword = new Rectangle(wordInLine.getBoundingBox());
+                  rword.x += wordOrLine.x;
+                  rword.y += wordOrLine.y;
+                  Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
+                  wordsMatch.add(new Word(wordInLine.getText(), wordInLine.getConfidence(), trueRectangel));
+                }
+              } else {
+                int startText = -1;
+                int endText = -1;
+                int ix = 0;
+                String firstWord = textSplit[0].toLowerCase();
+                String lastWord = textSplit[textSplit.length - 1].toLowerCase();
+                for (Word wordInLine : wordsInLine) {
+                  if (startText < 0) {
+                    if (isTextContained(wordInLine.getText().toLowerCase(), firstWord, null)) {
+                      startText = ix;
+                    }
+                  } else if (endText < 0) {
+                    if (isTextContained(wordInLine.getText().toLowerCase(), lastWord, null)) {
+                      endText = ix;
+                    }
+                  } else {
+                    break;
+                  }
+                  ix++;
+                }
+                if (startText > -1 && endText > -1) {
+                  Rectangle rword = (new Rectangle(wordsInLine.get(startText).getBoundingBox())).
+                          union(new Rectangle(wordsInLine.get(endText).getBoundingBox()));
+                  rword.x += wordOrLine.x;
+                  rword.y += wordOrLine.y;
+                  Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
+                  wordsMatch.add(new Word(text, wordsInLine.get(startText).getConfidence(), trueRectangel));
+                }
+              }
+            } else {
+              Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
+              wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
+            }
+          }
+          if (wordsMatch.size() > 0) {
+            log.trace("doFindText: %s found: %d times (%d msec) ", text, wordsMatch.size(), timer);
+            findResult = new FindResult2(wordsMatch, fInput);
+          } else {
+            log.trace("doFindText: %s (%d msec): not found", text, timer);
+          }
+        } else {
+          if (isWord()) {
+            log.trace("doFindText: listWords: %d words (%d msec) ", wordsFound.size(), timer);
+          } else {
+            log.trace("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
+          }
+          for (Word word : wordsFound) {
+            Rectangle wordOrLine = word.getBoundingBox();
+            Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
+            wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
+          }
+          findResult = new FindResult2(wordsMatch, fInput);
+        }
+      }
+      return findResult;
     }
     //</editor-fold>
 
