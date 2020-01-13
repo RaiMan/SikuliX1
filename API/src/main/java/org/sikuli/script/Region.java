@@ -1355,19 +1355,9 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="050 save capture to file">
-  public String saveCapture() {
-    return getScreen().capture(this).save();
+  public String saveCapture(Object... args) {
+    return ((Screen) getScreen()).cmdCapture(args).getStoredAt();
   }
-
-  public String saveCapture(String path) {
-    return getScreen().capture(this).save(path);
-  }
-
-  public String saveCapture(String path, String name) {
-    return getScreen().capture(this).save(path, name);
-  }
-
-  // ************************************************
 
   /**
    * get the last image taken on this regions screen

@@ -822,24 +822,6 @@ public class Screen extends Region implements IScreen {
     return simg;
   }
 
-  public String saveCapture(String name) {
-    return saveCapture(name, new Region(0, 0, 0, 0, this));
-  }
-
-  public String saveCapture(String name, Region reg) {
-    ScreenImage simg;
-    if (reg.isEmpty()) {
-      simg = userCapture("Capture for image " + name);
-    } else {
-      simg = capture(reg);
-    }
-    if (simg == null) {
-      return null;
-    } else {
-      return simg.save(name);
-    }
-  }
-
   /**
    * interactive region create with predefined message: lets the user draw the rectangle using the
    * mouse
