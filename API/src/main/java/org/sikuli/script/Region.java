@@ -2203,7 +2203,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="020 find public methods">
+  //<editor-fold defaultstate="collapsed" desc="020 find image public methods">
 
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
@@ -2681,9 +2681,9 @@ public class Region {
     }
     return theUnion;
   }
+  //</editor-fold>
 
-  //------------------------------
-
+  //<editor-fold desc="021 find text public methods">
   public Match waitText(String text, double timeout) throws FindFailed {
     return wait("\t" + text + "\t", timeout);
   }
@@ -2749,7 +2749,6 @@ public class Region {
   public List<Match> findAllT(String text) {
     return findAllText(text);
   }
-  //--------------------------------
 
   /**
    * Find the first word as text (top left to bottom right) containing the given text
@@ -2826,7 +2825,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="021 find internal methods">
+  //<editor-fold defaultstate="collapsed" desc="022 find internal methods">
 
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
@@ -3199,7 +3198,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="022 Find internal support">
+  //<editor-fold defaultstate="collapsed" desc="023 Find internal support">
   private class SubFindRun implements Runnable {
 
     Match[] mArray;
