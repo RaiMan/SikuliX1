@@ -3,19 +3,16 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.android.ADBDevice;
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Observer;
 import org.sikuli.script.support.*;
 import org.sikuli.util.Highlight;
 
+import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.Rectangle;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
 
 /**
