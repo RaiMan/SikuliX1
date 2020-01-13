@@ -53,49 +53,28 @@ public class Finder implements Iterator<Match> {
   protected Finder() {
   }
 
-  public Finder(FindInput2 findInput) {
-    _findInput = findInput;
-  }
-
+  /**
+   * Finder constructor from a region on a screen
+   *
+   * @param reg Region
+   */
   public Finder(Region reg) {
+    log(lvl, "Region: %s", reg);
     where = reg;
   }
 
-  public Region getRegion() {
-    return where;
-  }
-
   /**
-   * Finder constructor (finding within an image).
-   * <br>internally used with a screen snapshot
+   * Finder constructor from an Image
    *
-   * @param imageFilename a string (name, path, url)
+   * @param img Image
    */
-  public Finder(String imageFilename) {
-    this(imageFilename, null);
+  public Finder(Image img) {
+    log(lvl, "Image: %s", img);
+    _findInput.setSource(Finder2.makeMat(img.get()));
   }
 
   /**
-   * Finder constructor (finding within an image within the given region).
-   * <br>internally used with a screen snapshot
-   *
-   * @param imageFilename a string (name, path, url)
-   * @param region        search Region within image - topleft = (0,0)
-   */
-  public Finder(String imageFilename, Region region) {
-    Image img = Image.create(imageFilename);
-    if (img.isValid()) {
-      _findInput.setSource(Finder2.makeMat(img.get()));
-      _region = region;
-      screenFinder = false;
-    } else {
-      log(-1, "imagefile not found:\n%s", imageFilename);
-      valid = false;
-    }
-  }
-
-  /**
-   * Constructor for special use from a BufferedImage
+   * Constructor from a BufferedImage
    *
    * @param bimg BufferedImage
    */
@@ -104,7 +83,7 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   * Finder constructor for special use from a ScreenImage
+   * Finder constructor from a ScreenImage
    *
    * @param simg ScreenImage
    */
@@ -122,18 +101,7 @@ public class Finder implements Iterator<Match> {
     initScreenFinder(simg, region);
   }
 
-  /**
-   * Finder constructor for special use from an Image
-   *
-   * @param img Image
-   */
-  public Finder(Image img) {
-    log(lvl, "Image: %s", img);
-    _findInput.setSource(Finder2.makeMat(img.get()));
-  }
-
   private void initScreenFinder(ScreenImage simg, Region region) {
-    _findInput = new FindInput2();
     setScreenImage(simg);
     _region = region;
   }
