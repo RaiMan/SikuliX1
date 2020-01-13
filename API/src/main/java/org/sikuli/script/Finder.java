@@ -660,40 +660,6 @@ public class Finder implements Iterator<Match> {
       }
     }
 
-    private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-      Mat mResult = getNewMat();
-      if (what.empty()) {
-        log.error("doFindMatch: image conversion to cvMat did not work");
-      } else {
-        Mat mWhere = where;
-        if (findInput.isGray()) {
-          Imgproc.cvtColor(where, mWhere, Imgproc.COLOR_BGR2GRAY);
-        }
-        if (!findInput.isPlainColor()) {
-          if (findInput.hasMask()) {
-            Mat mask = findInput.getMask();
-            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
-          } else {
-            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCOEFF_NORMED);
-          }
-        } else {
-          Mat wherePlain = mWhere;
-          Mat whatPlain = what;
-          if (findInput.isBlack()) {
-            Core.bitwise_not(mWhere, wherePlain);
-            Core.bitwise_not(what, whatPlain);
-          }
-          if (findInput.hasMask()) {
-            Imgproc.matchTemplate(wherePlain, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
-          } else {
-            Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
-          }
-          Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
-        }
-      }
-      return mResult;
-    }
-
     private FindResult2 doFindImage() {
       FindResult2 findResult = null;
       FindInput2 findInput = fInput;
@@ -785,6 +751,40 @@ public class Finder implements Iterator<Match> {
       }
       log.trace("doFindImage: end %d msec", new Date().getTime() - begin_find);
       return findResult;
+    }
+
+    private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
+      Mat mResult = getNewMat();
+      if (what.empty()) {
+        log.error("doFindMatch: image conversion to cvMat did not work");
+      } else {
+        Mat mWhere = where;
+        if (findInput.isGray()) {
+          Imgproc.cvtColor(where, mWhere, Imgproc.COLOR_BGR2GRAY);
+        }
+        if (!findInput.isPlainColor()) {
+          if (findInput.hasMask()) {
+            Mat mask = findInput.getMask();
+            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCORR_NORMED, mask);
+          } else {
+            Imgproc.matchTemplate(mWhere, what, mResult, Imgproc.TM_CCOEFF_NORMED);
+          }
+        } else {
+          Mat wherePlain = mWhere;
+          Mat whatPlain = what;
+          if (findInput.isBlack()) {
+            Core.bitwise_not(mWhere, wherePlain);
+            Core.bitwise_not(what, whatPlain);
+          }
+          if (findInput.hasMask()) {
+            Imgproc.matchTemplate(wherePlain, what, mResult, Imgproc.TM_SQDIFF_NORMED, findInput.getMask());
+          } else {
+            Imgproc.matchTemplate(wherePlain, whatPlain, mResult, Imgproc.TM_SQDIFF_NORMED);
+          }
+          Core.subtract(Mat.ones(mResult.size(), CvType.CV_32F), mResult, mResult);
+        }
+      }
+      return mResult;
     }
 
     private FindResult2 doFindText() {
