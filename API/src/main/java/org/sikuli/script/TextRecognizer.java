@@ -42,11 +42,15 @@ public class TextRecognizer {
     Finder.Finder2.init();
   }
 
-  public void status() {
-    Debug.logp("Textrecognizer current settings" +
-        "\ndata = %s" +
-        "\nlanguage(%s) oem(%d) psm(%d) height(%d)",
-        dataPath, language, oem, psm, uppercaseXHeight);
+  public static void status() {
+    if (textRecognizer != null) {
+      TextRecognizer tr = textRecognizer;
+      Debug.logp("Textrecognizer current settings" +
+              "\ndata = %s" +
+              "\nlanguage(%s) oem(%d) psm(%d) height(%d) factor(%.2f) dpi(%d) %s",
+          tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
+          Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
+    }
   }
 
   public boolean isValid() {
@@ -386,11 +390,6 @@ public class TextRecognizer {
 
   //<editor-fold desc="10 image optimization">
   /**
-   * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
-   */
-  public Float optimumDPI = null;
-
-  /**
    * Hint for the OCR Engine about the expected font size in pt
    *
    * @param size expected font size in pt (must be greater than 7)
@@ -440,11 +439,20 @@ public class TextRecognizer {
     }
   }
 
+  /**
+   * @deprecated use setFontSize(int size) or setUppercaseXHeight(int height) instead
+   */
+  public Float optimumDPI = null;
+
   private int uppercaseXHeight = getDefaultUppercaseXHeight();
 
-  private static final int OPTIMAL_X_HEIGHT = 30;
+  private static final float OPTIMAL_X_HEIGHT = 30;
 
-  public Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
+  public void setResizeInterpolation(Image.Interpolation resizeInterpolation) {
+    this.resizeInterpolation = resizeInterpolation;
+  }
+
+  public Image.Interpolation resizeInterpolation = Image.Interpolation.CUBIC;
 
   private float factor() {
     // LEGACY: Calculate the resize factor based on the optimal and
@@ -562,10 +570,10 @@ public class TextRecognizer {
       for (Word textItem : textItems) {
         Rectangle boundingBox = textItem.getBoundingBox();
         Rectangle realBox = new Rectangle(
-                offX + (int) (boundingBox.x * wFactor) - 1,
-                offY + (int) (boundingBox.y * hFactor) - 1,
-                1 + (int) (boundingBox.width * wFactor) + 2,
-                1 + (int) (boundingBox.height * hFactor) + 2);
+            offX + (int) (boundingBox.x * wFactor) - 1,
+            offY + (int) (boundingBox.y * hFactor) - 1,
+            1 + (int) (boundingBox.width * wFactor) + 2,
+            1 + (int) (boundingBox.height * hFactor) + 2);
         if (null == base) {
           lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText()));
         } else {
