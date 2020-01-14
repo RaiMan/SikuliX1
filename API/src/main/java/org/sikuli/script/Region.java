@@ -4942,7 +4942,7 @@ public class Region {
   }
 
   /**
-   * get text from this region<b>
+   * get text from this region
    *   supposing it is one line of text
    *
    * @return the text or empty string
@@ -4952,7 +4952,7 @@ public class Region {
   }
 
   /**
-   * get text from this region<b>
+   * get text from this region
    *   supposing it is one word
    *
    * @return the text or empty string
@@ -4962,7 +4962,7 @@ public class Region {
   }
 
   /**
-   * get text from this region<b>
+   * get text from this region
    *   supposing it is one character
    *
    * @return the text or empty string

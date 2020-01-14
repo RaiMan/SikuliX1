@@ -1355,7 +1355,7 @@ public class Image {
   }
 
   /**
-   * convenience method: get text from given image file<b>
+   * convenience method: get text from given image file
    *   supposing it is one line of text
    *
    * @param imgFile image filename
@@ -1366,7 +1366,7 @@ public class Image {
   }
 
   /**
-   * get text from this image<b>
+   * get text from this image
    *   supposing it is one line of text
    *
    * @return the text or empty string
@@ -1379,7 +1379,7 @@ public class Image {
   }
 
   /**
-   * convenience method: get text from given image file<b>
+   * convenience method: get text from given image file
    *   supposing it is one word
    *
    * @param imgFile image filename
@@ -1390,7 +1390,7 @@ public class Image {
   }
 
   /**
-   * get text from this image<b>
+   * get text from this image
    *   supposing it is one word
    *
    * @return the text or empty string
@@ -1403,7 +1403,7 @@ public class Image {
   }
 
   /**
-   * convenience method: get text from given image file<b>
+   * convenience method: get text from given image file
    *   supposing it is one word
    *
    * @param imgFile image filename
@@ -1414,7 +1414,7 @@ public class Image {
   }
 
   /**
-   * get text from this image<b>
+   * get text from this image
    *   supposing it is one word
    *
    */
