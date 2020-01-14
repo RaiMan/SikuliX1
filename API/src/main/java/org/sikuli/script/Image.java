@@ -338,6 +338,22 @@ public class Image {
     return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
   }
 
+  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect, Region where) {
+    Rectangle crop;
+    if (null != where) {
+      crop = where.getRect().intersection(rect);
+      crop.x -= where.x;
+      crop.y -= where.y;
+    } else {
+      crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
+    }
+    BufferedImage newBimg = new BufferedImage(crop.width, crop.height, bimg.getType());
+    Graphics2D g2d = newBimg.createGraphics();
+    g2d.drawImage(getSubimage(bimg, crop), 0, 0, null);
+    g2d.dispose();
+    return newBimg;
+  }
+
   /**
    * return the image's BufferedImage (load it if not in cache)
    *
@@ -1462,6 +1478,4 @@ public class Image {
   public Match findT(String text) {
     return findText(text);
   }
-
-
 }

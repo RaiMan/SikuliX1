@@ -751,21 +751,23 @@ public class Finder implements Iterator<Match> {
       String text = fInput.getTargetText();
       boolean globalSearch = false;
       boolean singleWord = true;
-      List<Word> wordsFound = null;
+      List<Match> wordsFound;
       String[] textSplit = new String[0];
       java.util.regex.Pattern pattern = null;
 
       Tesseract1 tapi = tr.getAPI();
       int textLevel = fInput.getTextLevel();
       long timer = new Date().getTime();
-      BufferedImage bimgWork = tr.optimize(fInput.getImage());
+      BufferedImage bimg = fInput.getImage();
       if (fInput.isTextRegEx()) {
         pattern = fInput.getRegEx();
       } else {
         text = text.trim();
       }
-      if (textLevel > -1) {
-        wordsFound = tapi.getWords(bimgWork, textLevel);
+      if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE) {
+        wordsFound = TextRecognizer.readLines(bimg, where);
+      } else if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD) {
+        wordsFound = TextRecognizer.readWords(bimg, where);
       } else {
         globalSearch = true;
         textSplit = text.split("\\s");
@@ -775,41 +777,41 @@ public class Finder implements Iterator<Match> {
             pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
           }
         }
-        wordsFound = tapi.getWords(bimgWork, TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+        wordsFound = TextRecognizer.readLines(bimg, where);
       }
       timer = new Date().getTime() - timer;
       List<Match> wordsMatch = new ArrayList<>();
       if (!text.isEmpty()) {
-        for (Word word : wordsFound) {
+        for (Match match : wordsFound) {
           if (isWord()) {
-            if (!isTextMatching(word.getText(), text, pattern)) {
+            if (!isTextMatching(match.getText(), text, pattern)) {
               continue;
             }
           } else if (isLine()) {
-            if (!isTextContained(word.getText(), text, pattern)) {
+            if (!isTextContained(match.getText(), text, pattern)) {
               continue;
             }
           } else if (globalSearch) {
-            if (!isTextContained(word.getText().toLowerCase(), text.toLowerCase(), pattern)) {
+            if (!isTextContained(match.getText().toLowerCase(), text.toLowerCase(), pattern)) {
               continue;
             }
           } else {
             continue;
           }
-          Rectangle wordOrLine = word.getBoundingBox();
-          List<Word> wordsInLine = null;
+          Rectangle wordOrLine = match.getRect();
+          List<Match> wordsInLine;
           if (globalSearch) {
-            BufferedImage bLine = Image.getSubimage(bimgWork, wordOrLine);
-            wordsInLine = tapi.getWords(bLine, TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+            BufferedImage bLine = Image.createSubimage(bimg, wordOrLine, where);
+            wordsInLine = TextRecognizer.readWords(bLine, match);
             if (singleWord) {
-              for (Word wordInLine : wordsInLine) {
+              for (Match wordInLine : wordsInLine) {
                 if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
                   continue;
                 }
-                Rectangle rword = new Rectangle(wordInLine.getBoundingBox());
-                rword.x += wordOrLine.x;
-                rword.y += wordOrLine.y;
-                wordsMatch.add(new Match(rword, wordInLine.getConfidence(), wordInLine.getText(), where));
+                Rectangle rword = new Rectangle(wordInLine.getRect());
+//                rword.x += wordOrLine.x;
+//                rword.y += wordOrLine.y;
+                wordsMatch.add(new Match(rword, wordInLine.getScore(), wordInLine.getText(), where));
               }
             } else {
               int startText = -1;
@@ -817,7 +819,7 @@ public class Finder implements Iterator<Match> {
               int ix = 0;
               String firstWord = textSplit[0].toLowerCase();
               String lastWord = textSplit[textSplit.length - 1].toLowerCase();
-              for (Word wordInLine : wordsInLine) {
+              for (Match wordInLine : wordsInLine) {
                 if (startText < 0) {
                   if (isTextContained(wordInLine.getText().toLowerCase(), firstWord, null)) {
                     startText = ix;
@@ -832,16 +834,17 @@ public class Finder implements Iterator<Match> {
                 ix++;
               }
               if (startText > -1 && endText > -1) {
-                Rectangle rword = (new Rectangle(wordsInLine.get(startText).getBoundingBox())).
-                    union(new Rectangle(wordsInLine.get(endText).getBoundingBox()));
+                Rectangle rword = (new Rectangle(wordsInLine.get(startText).getRect())).
+                    union(new Rectangle(wordsInLine.get(endText).getRect()));
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                wordsMatch.add(new Match(text, wordsInLine.get(startText).getConfidence(), trueRectangel));
+                double score = (wordsInLine.get(startText).getScore() + wordsInLine.get(startText).getScore()) / 2;
+                String foundText = wordsInLine.get(startText).getText() + " ... " + wordsInLine.get(endText);
+                wordsMatch.add(new Match(rword, score, foundText, where));
               }
             }
           } else {
-            Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
-            wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
+            wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
           }
         }
         if (wordsMatch.size() > 0) {
@@ -856,10 +859,9 @@ public class Finder implements Iterator<Match> {
         } else {
           log.trace("doFindText: listLines: %d lines (%d msec) ", wordsFound.size(), timer);
         }
-        for (Word word : wordsFound) {
-          Rectangle wordOrLine = word.getBoundingBox();
-          Rectangle trueRectangel = tr.relocateAsRectangle(wordOrLine, where);
-          wordsMatch.add(new Word(word.getText(), word.getConfidence(), trueRectangel));
+        for (Match match : wordsFound) {
+          Rectangle wordOrLine = match.getRect();
+          wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
         }
         findResult = new FindResult2(wordsMatch, fInput);
       }
@@ -1190,7 +1192,7 @@ public class Finder implements Iterator<Match> {
       if (where != null) {
         return where.getScreen().capture(where).getImage();
       } else if (source != null) {
-        Finder.Finder2.getBufferedImage(source);
+        return Finder.Finder2.getBufferedImage(source);
       } else if (image != null) {
         return image.get();
       }
@@ -1269,7 +1271,7 @@ public class Finder implements Iterator<Match> {
     }
 
     public boolean isTextRegEx() {
-      return isTextRegEx();
+      return textRegex;
     }
 
     public java.util.regex.Pattern getRegEx() {
@@ -1441,13 +1443,13 @@ public class Finder implements Iterator<Match> {
     private int offX = 0;
     private int offY = 0;
     private Mat result = null;
-    private List<Word> words = new ArrayList<>();
+    private List<Match> matches = new ArrayList<>();
 
     private FindResult2() {
     }
 
-    public FindResult2(List<Word> words, FindInput2 findInput) {
-      this.words = words;
+    public FindResult2(List<Match> matches, FindInput2 findInput) {
+      this.matches = matches;
       this.findInput = findInput;
     }
 
@@ -1482,7 +1484,7 @@ public class Finder implements Iterator<Match> {
 
     public boolean hasNext() {
       if (findInput.isText()) {
-        if (words.size() > 0) {
+        if (matches.size() > 0) {
           return true;
         }
         return false;
@@ -1527,9 +1529,7 @@ public class Finder implements Iterator<Match> {
       Match match = null;
       if (hasNext()) {
         if (findInput.isText()) {
-          Word nextWord = words.remove(0);
-          match = new Match(new Region(nextWord.getBoundingBox()), nextWord.getConfidence() / 100);
-          match.setText(nextWord.getText().trim());
+          return matches.remove(0);
         } else {
           match = new Match(currentX + offX, currentY + offY, targetW, targetH, currentScore, null);
           matchCount++;
