@@ -117,11 +117,15 @@ public class Match extends Region implements Comparable<Match> {
 //  }
 
   private void init(int X, int Y, int W, int H, IScreen parent) {
-    x = X;
-    y = Y;
-    w = W;
-    h = H;
-    setScreen(parent);
+	  if (parent != null) {
+      x = X;
+      y = Y;
+      w = W;
+      h = H;
+      setScreen(parent);
+    } else {
+
+    }
   }
 
   public static Match create(Match match, IScreen screen) {

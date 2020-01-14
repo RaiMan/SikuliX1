@@ -626,22 +626,6 @@ public class TextRecognizer {
   public int getActualDPI() {
     return Toolkit.getDefaultToolkit().getScreenResolution();
   }
-
-
-  private Region relocate(Rectangle rect, Region base, double factor) {
-    Region reg = new Region(); //rescale(rect);
-    reg.x = base.x + (int) (rect.getX() / factor);
-    reg.y = base.y + (int) (rect.getY() / factor);
-    reg.w = (int) (1 + rect.getWidth() / factor);
-    reg.h = (int) (1 + rect.getHeight() / factor);
-    reg.setScreen(base.getScreen().getID());
-    return reg;
-  }
-
-  public Rectangle relocateAsRectangle(Rectangle rect, Region base) {
-    Region reg = relocate(rect, base, factor());
-    return new Rectangle(reg.x, reg.y, reg.w, reg.h);
-  }
   //</editor-fold>
 
   //<editor-fold desc="99 obsolete">

@@ -1451,4 +1451,17 @@ public class Image {
     return TextRecognizer.readWords(get());
   }
   //</editor-fold>
+
+  public Match findText(String text) {
+    Finder finder = new Finder(this);
+    finder.findText(text);
+    if (finder.hasNext()) return finder.next();
+    return null;
+  }
+
+  public Match findT(String text) {
+    return findText(text);
+  }
+
+
 }

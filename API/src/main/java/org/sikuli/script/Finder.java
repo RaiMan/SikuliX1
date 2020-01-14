@@ -435,20 +435,6 @@ public class Finder implements Iterator<Match> {
     _findInput.setFindAll();
     return findText(text);
   }
-
-  private static String markRegex = Key.ESC;
-
-  public static String asRegEx(String text) {
-    return markRegex + text;
-  }
-
-  public static boolean isRegEx(String text) {
-    return text.startsWith(markRegex);
-  }
-
-  public static java.util.regex.Pattern getRegEx(String text) {
-    return java.util.regex.Pattern.compile(text.substring(1));
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
@@ -685,8 +671,8 @@ public class Finder implements Iterator<Match> {
           begin_lap = new Date().getTime();
           int margin = ((int) findInput.getResizeFactor()) + 1;
           Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
-                  Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
-                  Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
+              Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
+              Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
           Rectangle rWhere = new Rectangle(0, 0, findWhere.cols(), findWhere.rows());
           Rectangle rSubNew = rWhere.intersection(rSub);
           Rect rectSub = new Rect(rSubNew.x, rSubNew.y, rSubNew.width, rSubNew.height);
@@ -699,7 +685,7 @@ public class Finder implements Iterator<Match> {
           }
           if (SX.isNotNull(findResult)) {
             log.trace("doFindImage after down: %%%.2f(?%%%.2f) %d msec",
-                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
+                maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
           }
         }
       }
@@ -710,8 +696,8 @@ public class Finder implements Iterator<Match> {
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
           log.trace("doFindImage: in original: %%%.4f (?%.0f) %d msec %s",
-                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
-                  findInput.hasMask() ? " **withMask" : "");
+              mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
+              findInput.hasMask() ? " **withMask" : "");
         }
         if (mMinMax.maxVal > findInput.getScore()) {
           findResult = new FindResult2(mResult, findInput);
@@ -761,26 +747,20 @@ public class Finder implements Iterator<Match> {
         return null;
       }
       FindResult2 findResult = null;
-      boolean globalSearch = false;
       Region where = fInput.getWhere();
-      BufferedImage bimg = where.getScreen().capture(where).getImage();
-      BufferedImage bimgWork = null;
       String text = fInput.getTargetText();
-      Tesseract1 tapi = tr.getAPI();
-      long timer = new Date().getTime();
-      int textLevel = fInput.getTextLevel();
-      List<Word> wordsFound = null;
-      bimgWork = tr.optimize(bimg);
+      boolean globalSearch = false;
       boolean singleWord = true;
+      List<Word> wordsFound = null;
       String[] textSplit = new String[0];
       java.util.regex.Pattern pattern = null;
-      if (isRegEx(text)) {
-        if (textLevel < 0) {
-          text = text.substring(1);
-          log.error("RegEx not supported: %s", text);
-        } else {
-          pattern = getRegEx(text);
-        }
+
+      Tesseract1 tapi = tr.getAPI();
+      int textLevel = fInput.getTextLevel();
+      long timer = new Date().getTime();
+      BufferedImage bimgWork = tr.optimize(fInput.getImage());
+      if (fInput.isTextRegEx()) {
+        pattern = fInput.getRegEx();
       } else {
         text = text.trim();
       }
@@ -798,7 +778,7 @@ public class Finder implements Iterator<Match> {
         wordsFound = tapi.getWords(bimgWork, TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
       }
       timer = new Date().getTime() - timer;
-      List<Word> wordsMatch = new ArrayList<>();
+      List<Match> wordsMatch = new ArrayList<>();
       if (!text.isEmpty()) {
         for (Word word : wordsFound) {
           if (isWord()) {
@@ -829,8 +809,7 @@ public class Finder implements Iterator<Match> {
                 Rectangle rword = new Rectangle(wordInLine.getBoundingBox());
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
-                wordsMatch.add(new Word(wordInLine.getText(), wordInLine.getConfidence(), trueRectangel));
+                wordsMatch.add(new Match(rword, wordInLine.getConfidence(), wordInLine.getText(), where));
               }
             } else {
               int startText = -1;
@@ -854,11 +833,10 @@ public class Finder implements Iterator<Match> {
               }
               if (startText > -1 && endText > -1) {
                 Rectangle rword = (new Rectangle(wordsInLine.get(startText).getBoundingBox())).
-                        union(new Rectangle(wordsInLine.get(endText).getBoundingBox()));
+                    union(new Rectangle(wordsInLine.get(endText).getBoundingBox()));
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                Rectangle trueRectangel = tr.relocateAsRectangle(rword, where);
-                wordsMatch.add(new Word(text, wordsInLine.get(startText).getConfidence(), trueRectangel));
+                wordsMatch.add(new Match(text, wordsInLine.get(startText).getConfidence(), trueRectangel));
               }
             }
           } else {
@@ -1012,7 +990,7 @@ public class Finder implements Iterator<Match> {
         aMatBGR.put(0, 0, data);
         return aMatBGR;
       } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-              || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+          || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
         String bImgType = "BYTE_BINARY";
         if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
           bImgType = "BYTE_INDEXED";
@@ -1208,6 +1186,19 @@ public class Finder implements Iterator<Match> {
 
     private Region where = null;
 
+    public BufferedImage getImage() {
+      if (where != null) {
+        return where.getScreen().capture(where).getImage();
+      } else if (source != null) {
+        Finder.Finder2.getBufferedImage(source);
+      } else if (image != null) {
+        return image.get();
+      }
+      return null;
+    }
+
+    private Image image = null;
+
     private double similarity = 0.7;
 
     private boolean findAll = false;
@@ -1246,8 +1237,8 @@ public class Finder implements Iterator<Match> {
         }
         if (source.width() < target.width() || source.height() < target.height()) {
           throw new SikuliXception(
-                  String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
-                          target.width(), target.height(), source.width(), source.height()));
+              String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
+                  target.width(), target.height(), source.width(), source.height()));
         }
         return true;
       }
@@ -1269,6 +1260,20 @@ public class Finder implements Iterator<Match> {
 
     public boolean isText() {
       return targetTypeText;
+    }
+
+    private boolean textRegex = false;
+
+    public void textAsRegEx() {
+      textRegex = true;
+    }
+
+    public boolean isTextRegEx() {
+      return isTextRegEx();
+    }
+
+    public java.util.regex.Pattern getRegEx() {
+      return java.util.regex.Pattern.compile(targetText);
     }
 
     public boolean isFindAll() {
@@ -1388,7 +1393,7 @@ public class Finder implements Iterator<Match> {
       plainColor = false;
       blackColor = false;
       resizeFactor = Math.min(((double) targetBGR.width()) / resizeMinDownSample,
-              ((double) targetBGR.height()) / resizeMinDownSample);
+          ((double) targetBGR.height()) / resizeMinDownSample);
       resizeFactor = Math.max(1.0, resizeFactor);
       MatOfDouble pMean = new MatOfDouble();
       MatOfDouble pStdDev = new MatOfDouble();
