@@ -54,25 +54,6 @@ public class Image {
     Debug.logx(level, me + message, args);
   }
 
-  /**
-   * Available resize interpolation algorithms
-   */
-  public enum Interpolation {
-    NEAREST(Imgproc.INTER_NEAREST),
-    LINEAR(Imgproc.INTER_LINEAR),
-    CUBIC(Imgproc.INTER_CUBIC),
-    AREA(Imgproc.INTER_AREA),
-    LANCZOS4(Imgproc.INTER_LANCZOS4),
-    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
-    MAX(Imgproc.INTER_MAX);
-
-    private int value;
-
-    private Interpolation(int value) {
-      this.value = value;
-    }
-  }
-
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
@@ -390,6 +371,25 @@ public class Image {
   }
 
   /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    private int value;
+
+    private Interpolation(int value) {
+      this.value = value;
+    }
+  }
+
+  /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
    * Uses CUBIC as the interpolation algorithm.
@@ -468,34 +468,6 @@ public class Image {
     int newW = (int) (rFactor * mat.width());
     int newH = (int) (rFactor * mat.height());
     Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
-  }
-
-  /**
-   * create a sub image from this image
-   *
-   * @param x pixel column
-   * @param y pixel row
-   * @param w width
-   * @param h height
-   * @return the new image
-   */
-  public Image getSub(int x, int y, int w, int h) {
-    BufferedImage bi = createBufferedImage(w, h);
-    Graphics2D g = bi.createGraphics();
-    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-    g.dispose();
-    return new Image(bi);
-  }
-
-  private static BufferedImage createBufferedImage(int w, int h) {
-    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    int[] nBits = {8, 8, 8, 8};
-    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-    DataBufferByte db = new DataBufferByte(w * h * 4);
-    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-    BufferedImage bm = new BufferedImage(cm, r, false, null);
-    return bm;
   }
   //</editor-fold>
 
@@ -603,7 +575,6 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
-
   /**
    * create a sub image from this image
    *
@@ -613,6 +584,34 @@ public class Image {
   public Image getSub(int part) {
     Rectangle r = Region.getRectangle(new Rectangle(0, 0, getSize().width, getSize().height), part);
     return getSub(r.x, r.y, r.width, r.height);
+  }
+
+  /**
+   * create a sub image from this image
+   *
+   * @param x pixel column
+   * @param y pixel row
+   * @param w width
+   * @param h height
+   * @return the new image
+   */
+  public Image getSub(int x, int y, int w, int h) {
+    BufferedImage bi = createBufferedImage(w, h);
+    Graphics2D g = bi.createGraphics();
+    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+    g.dispose();
+    return new Image(bi);
+  }
+
+  private static BufferedImage createBufferedImage(int w, int h) {
+    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+    int[] nBits = {8, 8, 8, 8};
+    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+    SampleModel sm = cm.createCompatibleSampleModel(w, h);
+    DataBufferByte db = new DataBufferByte(w * h * 4);
+    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+    BufferedImage bm = new BufferedImage(cm, r, false, null);
+    return bm;
   }
 
   /**
@@ -951,21 +950,7 @@ public class Image {
   }
   //</editor-fold>
 
-  public void save(String name) {
-    save(name, ImagePath.getBundlePath());
-  }
-
-  public void save(String name, String path) {
-    File fImg = new File(path, name);
-    try {
-      ImageIO.write(get(), "png", fImg);
-      Debug.log(3, "Image::save: %s", fImg);
-    } catch (IOException e) {
-      Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
-    }
-  }
-
-  //<editor-fold desc="03 load">
+  //<editor-fold desc="03 load/save">
   /**
    * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
    * create and load a new image
@@ -1116,9 +1101,23 @@ public class Image {
   }
 
   public boolean wasRecaptured = false;
+
+  public void save(String name) {
+    save(name, ImagePath.getBundlePath());
+  }
+
+  public void save(String name, String path) {
+    File fImg = new File(path, name);
+    try {
+      ImageIO.write(get(), "png", fImg);
+      Debug.log(3, "Image::save: %s", fImg);
+    } catch (IOException e) {
+      Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
+    }
+  }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="waitAfter">
+  //<editor-fold defaultstate="collapsed" desc="00 8 waitAfter">
   private int waitAfter;
 
   /**
@@ -1142,7 +1141,7 @@ public class Image {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="lastSeen">
+  //<editor-fold defaultstate="collapsed" desc="00 7 lastSeen">
   private Rectangle lastSeen = null;
   private double lastScore = 0.0;
 
@@ -1335,6 +1334,17 @@ public class Image {
   }
   //</editor-fold>
 
+  //<editor-fold desc="20 text/OCR">
+  /**
+   * convenience method: get text from given image file
+   *
+   * @param imgFile image filename
+   * @return the text or null
+   */
+  public static String text(String imgFile) {
+    return create(imgFile).text();
+  }
+
   /**
    * OCR-read the text from the image
    *
@@ -1342,6 +1352,77 @@ public class Image {
    */
   public String text() {
     return TextRecognizer.doOCR(get()).trim().replace("\n\n", "\n");
+  }
+
+  /**
+   * convenience method: get text from given image file<b>
+   *   supposing it is one line of text
+   *
+   * @param imgFile image filename
+   * @return the text or empty string
+   */
+  public static String textLine(String imgFile) {
+    return create(imgFile).textLine();
+  }
+
+  /**
+   * get text from this image<b>
+   *   supposing it is one line of text
+   *
+   * @return the text or empty string
+   */
+  public String textLine() {
+    TextRecognizer tr = TextRecognizer.asLine();
+    String text = tr.read(get());
+    tr.reset();
+    return text;
+  }
+
+  /**
+   * convenience method: get text from given image file<b>
+   *   supposing it is one word
+   *
+   * @param imgFile image filename
+   * @return the text or empty string
+   */
+  public static String textWord(String imgFile) {
+    return create(imgFile).textWord();
+  }
+
+  /**
+   * get text from this image<b>
+   *   supposing it is one word
+   *
+   * @return the text or empty string
+   */
+  public String textWord() {
+    TextRecognizer tr = TextRecognizer.asWord();
+    String text = tr.read(get());
+    tr.reset();
+    return text;
+  }
+
+  /**
+   * convenience method: get text from given image file<b>
+   *   supposing it is one word
+   *
+   * @param imgFile image filename
+   * @return the text or empty string
+   */
+  public static String textChar(String imgFile) {
+    return create(imgFile).textChar();
+  }
+
+  /**
+   * get text from this image<b>
+   *   supposing it is one word
+   *
+   */
+  public String textChar() {
+    TextRecognizer tr = TextRecognizer.asChar();
+    String text = tr.read(get());
+    tr.reset();
+    return text;
   }
 
   public List<String> textLines() {
@@ -1369,14 +1450,5 @@ public class Image {
   public List<Match> collectWords() {
     return TextRecognizer.readWords(get());
   }
-
-  /**
-   * convenience method: get text from given image file
-   *
-   * @param imgFile image filename
-   * @return the text or null
-   */
-  public static String text(String imgFile) {
-    return create(imgFile).text();
-  }
+  //</editor-fold>
 }

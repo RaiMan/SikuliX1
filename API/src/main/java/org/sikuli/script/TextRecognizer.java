@@ -57,11 +57,13 @@ public class TextRecognizer {
   public static void status() {
     if (textRecognizer != null) {
       TextRecognizer tr = textRecognizer;
-      Debug.logp("Textrecognizer current settings" +
+      Debug.logp("Textrecognizer: current settings" +
               "\ndata = %s" +
               "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
           tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
           Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
+    } else {
+      Debug.logp("Textrecognizer: not running");
     }
   }
 
@@ -179,7 +181,7 @@ public class TextRecognizer {
     textRecognizer = null;
   }
 
-  public static void reset() {
+  public static TextRecognizer reset() {
     if (null != textRecognizer) {
       if (textRecognizer.shouldRestart) {
         stop();
@@ -191,7 +193,10 @@ public class TextRecognizer {
         textRecognizer.resetDataPath();
         textRecognizer.resetLanguage();
       }
+    } else {
+      start();
     }
+    return textRecognizer;
   }
   //</editor-fold>
 
@@ -278,6 +283,30 @@ public class TextRecognizer {
 
   public TextRecognizer setPSM(PageSegMode psm) {
     return setPSM(psm.ordinal());
+  }
+
+  public static TextRecognizer asLine() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_LINE);
+    }
+    return tr;
+  }
+
+  public static TextRecognizer asWord() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_WORD);
+    }
+    return tr;
+  }
+
+  public static TextRecognizer asChar() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_CHAR);
+    }
+    return tr;
   }
 
   /**
@@ -419,7 +448,7 @@ public class TextRecognizer {
    *
    * @param size expected font size in pt
    */
-  public void setExpectedFontSize(int size) {
+  public void setFontSize(int size) {
     Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
     try {
       Font font = new Font(g.getFont().getFontName(), 0, size);
@@ -526,10 +555,10 @@ public class TextRecognizer {
     return text;
   }
 
-  private String read(BufferedImage bimg) {
+  public String read(BufferedImage bimg) {
     if (isValid()) {
       try {
-        return tess.doOCR(optimize(bimg));
+        return tess.doOCR(optimize(bimg)).trim();
       } catch (TesseractException e) {
         Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
       }

@@ -5177,7 +5177,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="035 OCR - read text">
-
   /**
    * tries to read the text in this region<br> might contain misread characters, NL characters and
    * other stuff, when interpreting contained grafics as text<br>
@@ -5186,8 +5185,41 @@ public class Region {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    ScreenImage simg = getScreen().capture(x, y, w, h);
-    return TextRecognizer.doOCR(simg).trim().replace("\n\n", "\n");
+    return getImage().text().trim().replace("\n\n", "\n");
+  }
+
+  private Image getImage() {
+    return new Image(getScreen().capture(x, y, w, h));
+  }
+
+  /**
+   * get text from this region<b>
+   *   supposing it is one line of text
+   *
+   * @return the text or empty string
+   */
+  public String textLine() {
+    return getImage().textLine();
+  }
+
+  /**
+   * get text from this region<b>
+   *   supposing it is one word
+   *
+   * @return the text or empty string
+   */
+  public String textWord() {
+    return getImage().textWord();
+  }
+
+  /**
+   * get text from this region<b>
+   *   supposing it is one character
+   *
+   * @return the text or empty string
+   */
+  public String textChar() {
+    return getImage().textChar();
   }
 
   public List<String> textLines() {
