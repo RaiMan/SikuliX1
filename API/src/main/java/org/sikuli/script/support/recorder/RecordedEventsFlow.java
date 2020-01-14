@@ -642,10 +642,7 @@ public class RecordedEventsFlow {
    * found
    */
   private void adjustSimilarity(Image image, Mat screenshot) {
-    FindInput2 input = new FindInput2();
-    input.setSource(screenshot);
-
-    Finder finder = new Finder(input);
+    Finder finder = new Finder(screenshot);
     finder.find(image);
     List<Match> matches = finder.getList();
 

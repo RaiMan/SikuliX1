@@ -314,7 +314,7 @@ public class SikulixTest {
       before("test2", "findChanges");
       show(testImage, 0);
       scr.wait(2.0);
-      Finder finder = new Finder(testImage);
+      Finder finder = new Finder(Image.create(testImage));
       String imgChange = "findChange3";
       List<Region> changes = finder.findChanges(imgChange);
       match = scr.exists(testImage, 10);

@@ -90,6 +90,15 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
+   * Finder constructor from OpenCV Mat
+   *
+   * @param image Image
+   */
+  public Finder(Mat image) {
+    _findInput.setSource(image);
+  }
+
+  /**
    * Finder constructor for special use from a region on a ScreenImage
    *
    * @param simg ScreenImage
