@@ -4937,7 +4937,7 @@ public class Region {
     return getImage().text().trim().replace("\n\n", "\n");
   }
 
-  private Image getImage() {
+  public Image getImage() {
     return new Image(getScreen().capture(x, y, w, h));
   }
 
@@ -4948,7 +4948,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textLine() {
-    return getImage().textLine();
+    return TextRecognizer.readLine(this);
   }
 
   /**
@@ -4958,7 +4958,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textWord() {
-    return getImage().textWord();
+    return TextRecognizer.readWord(this);
   }
 
   /**
@@ -4968,7 +4968,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textChar() {
-    return getImage().textChar();
+    return TextRecognizer.readChar(this);
   }
 
   public List<String> textLines() {

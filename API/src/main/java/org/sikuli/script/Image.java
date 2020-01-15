@@ -1378,7 +1378,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textLine(String imgFile) {
-    return create(imgFile).textLine();
+    return TextRecognizer.readLine(imgFile);
   }
 
   /**
@@ -1388,10 +1388,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textLine() {
-    TextRecognizer tr = TextRecognizer.asLine();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
+    return TextRecognizer.readLine(get());
   }
 
   /**
@@ -1402,7 +1399,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textWord(String imgFile) {
-    return create(imgFile).textWord();
+    return TextRecognizer.readLine(imgFile);
   }
 
   /**
@@ -1412,10 +1409,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textWord() {
-    TextRecognizer tr = TextRecognizer.asWord();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
+    return TextRecognizer.readWord(get());
   }
 
   /**
@@ -1426,7 +1420,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textChar(String imgFile) {
-    return create(imgFile).textChar();
+    return TextRecognizer.readChar(imgFile);
   }
 
   /**
@@ -1435,10 +1429,7 @@ public class Image {
    *
    */
   public String textChar() {
-    TextRecognizer tr = TextRecognizer.asChar();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
+    return TextRecognizer.readChar(get());
   }
 
   public List<String> textLines() {

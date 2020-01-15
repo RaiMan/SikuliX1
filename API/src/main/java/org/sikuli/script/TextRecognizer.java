@@ -187,7 +187,7 @@ public class TextRecognizer {
         stop();
         start();
       } else {
-        textRecognizer.resetUppercaseXHeight();
+        textRecognizer.resetHeight();
         textRecognizer.setOEM(OcrEngineMode.DEFAULT);
         textRecognizer.setPSM(PageSegMode.AUTO);
         textRecognizer.resetDataPath();
@@ -464,15 +464,15 @@ public class TextRecognizer {
    *
    * @param height of an uppercase X in px
    */
-  public void setUppercaseXHeight(int height) {
+  public void setHeight(int height) {
     uppercaseXHeight = height;
   }
 
-  public void resetUppercaseXHeight() {
-    uppercaseXHeight = getDefaultXHeight();
+  public void resetHeight() {
+    uppercaseXHeight = getDefaultHeight();
   }
 
-  private float getDefaultXHeight() {
+  private float getDefaultHeight() {
     Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
     try {
       Font font = g.getFont();
@@ -483,7 +483,7 @@ public class TextRecognizer {
     }
   }
 
-  private float uppercaseXHeight = getDefaultXHeight();
+  private float uppercaseXHeight = getDefaultHeight();
 
   private static final int OPTIMAL_X_HEIGHT = 30;
 
@@ -566,6 +566,66 @@ public class TextRecognizer {
       Debug.error("TextRecognizer: read: not valid");
     }
     return "";
+  }
+
+  public static String readText(Object... args) {
+    TextRecognizer tr = TextRecognizer.start();
+    return readXXXrun(tr, args);
+  }
+
+  public static String readLine(Object... args) {
+    TextRecognizer tr = TextRecognizer.asLine();
+    return readXXXrun(tr, args);
+  }
+
+  public static String readWord(Object... args) {
+    TextRecognizer tr = TextRecognizer.asWord();
+    return readXXXrun(tr, args);
+  }
+
+  public static String readChar(Object... args) {
+    TextRecognizer tr = TextRecognizer.asChar();
+    return readXXXrun(tr, args);
+  }
+
+  private static String readXXXrun(TextRecognizer tr, Object... args) {
+    String text = "";
+    BufferedImage bimg = readXXXevalParameters(tr, args);
+    if (bimg != null) {
+      text = tr.read(bimg);
+    }
+    if (Debug.getDebugLevel() > 2) {
+      TextRecognizer.status();
+    }
+    tr.reset();
+    return text;
+  }
+
+  private static BufferedImage readXXXevalParameters(TextRecognizer tr, Object... args) {
+    BufferedImage bimg = null;
+    for (Object arg : args) {
+      if (arg instanceof Number) {
+        tr.setHeight((Integer) arg);
+      } else {
+        bimg = getBufferedImage(arg);
+      }
+    }
+    return bimg;
+  }
+
+  private static BufferedImage getBufferedImage(Object whatEver) {
+    if (whatEver instanceof String) {
+      return Image.create((String) whatEver).get();
+    } else if (whatEver instanceof Region) {
+      return ((Region) whatEver).getImage().get();
+    } else if (whatEver instanceof Image) {
+      return ((Image) whatEver).get();
+    } else if (whatEver instanceof ScreenImage) {
+      return ((ScreenImage) whatEver).getImage();
+    } else if (whatEver instanceof BufferedImage) {
+      return (BufferedImage) whatEver;
+    }
+    return null;
   }
 
   protected static List<Match> readLines(BufferedImage bimg) {
