@@ -198,6 +198,56 @@ public class TextRecognizer {
     }
     return textRecognizer;
   }
+
+  private int savedPSM = -1;
+
+  public void resetSavedPSM() {
+    if (savedPSM > -1) {
+      setPSM(savedPSM);
+      savedPSM = -1;
+    }
+  }
+
+  private float savedXHeight = -1;
+
+  public void resetSavedXHeight() {
+    if (savedXHeight > -1) {
+      uppercaseXHeight = savedXHeight;
+      savedXHeight = -1;
+    }
+  }
+
+  private void savePSM() {
+    savedXHeight = uppercaseXHeight;
+  }
+
+  private void saveHeight() {
+    savedXHeight = uppercaseXHeight;
+  }
+
+  public static TextRecognizer asLine() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_LINE);
+    }
+    return tr;
+  }
+
+  public static TextRecognizer asWord() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_WORD);
+    }
+    return tr;
+  }
+
+  public static TextRecognizer asChar() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.setPSM(PageSegMode.SINGLE_CHAR);
+    }
+    return tr;
+  }
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
@@ -283,30 +333,6 @@ public class TextRecognizer {
 
   public TextRecognizer setPSM(PageSegMode psm) {
     return setPSM(psm.ordinal());
-  }
-
-  public static TextRecognizer asLine() {
-    TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_LINE);
-    }
-    return tr;
-  }
-
-  public static TextRecognizer asWord() {
-    TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_WORD);
-    }
-    return tr;
-  }
-
-  public static TextRecognizer asChar() {
-    TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_CHAR);
-    }
-    return tr;
   }
 
   /**
@@ -570,22 +596,43 @@ public class TextRecognizer {
 
   public static String readText(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
-    return readXXXrun(tr, args);
+    tr.saveHeight();
+    String text = readXXXrun(tr, args);
+    tr.resetSavedXHeight();
+    return text;
   }
 
   public static String readLine(Object... args) {
-    TextRecognizer tr = TextRecognizer.asLine();
-    return readXXXrun(tr, args);
+    TextRecognizer tr = TextRecognizer.start();
+    tr.savePSM();
+    tr.saveHeight();
+    tr.setPSM(PageSegMode.SINGLE_LINE);
+    String text = readXXXrun(tr, args);
+    tr.resetSavedPSM();
+    tr.resetSavedXHeight();
+    return text;
   }
 
   public static String readWord(Object... args) {
-    TextRecognizer tr = TextRecognizer.asWord();
-    return readXXXrun(tr, args);
+    TextRecognizer tr = TextRecognizer.start();
+    tr.savePSM();
+    tr.saveHeight();
+    tr.setPSM(PageSegMode.SINGLE_WORD);
+    String text = readXXXrun(tr, args);
+    tr.resetSavedPSM();
+    tr.resetSavedXHeight();
+    return text;
   }
 
   public static String readChar(Object... args) {
-    TextRecognizer tr = TextRecognizer.asChar();
-    return readXXXrun(tr, args);
+    TextRecognizer tr = TextRecognizer.start();
+    tr.savePSM();
+    tr.saveHeight();
+    tr.setPSM(PageSegMode.SINGLE_CHAR);
+    String text = readXXXrun(tr, args);
+    tr.resetSavedPSM();
+    tr.resetSavedXHeight();
+    return text;
   }
 
   private static String readXXXrun(TextRecognizer tr, Object... args) {
@@ -597,7 +644,6 @@ public class TextRecognizer {
     if (Debug.getDebugLevel() > 2) {
       TextRecognizer.status();
     }
-    tr.reset();
     return text;
   }
 
