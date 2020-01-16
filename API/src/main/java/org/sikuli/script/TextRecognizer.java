@@ -218,7 +218,7 @@ public class TextRecognizer {
   }
 
   private void savePSM() {
-    savedXHeight = uppercaseXHeight;
+    savedPSM = psm;
   }
 
   private void saveHeight() {
@@ -564,35 +564,9 @@ public class TextRecognizer {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 OCR from BufferedImage">
+  //<editor-fold desc="20 OCR from Regions or images">
   public static final int PAGE_ITERATOR_LEVEL_WORD = 3;
   public static final int PAGE_ITERATOR_LEVEL_LINE = 2;
-
-  public static String doOCR(ScreenImage simg) {
-    return doOCR(simg.getImage());
-  }
-
-  public static String doOCR(BufferedImage bimg) {
-    String text = "";
-    TextRecognizer tr = start();
-    if (tr.isValid()) {
-      text = tr.read(bimg);
-    }
-    return text;
-  }
-
-  public String read(BufferedImage bimg) {
-    if (isValid()) {
-      try {
-        return tess.doOCR(optimize(bimg)).trim();
-      } catch (TesseractException e) {
-        Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
-      }
-    } else {
-      Debug.error("TextRecognizer: read: not valid");
-    }
-    return "";
-  }
 
   public static String readText(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
@@ -635,6 +609,19 @@ public class TextRecognizer {
     return text;
   }
 
+  private String read(BufferedImage bimg) {
+    if (isValid()) {
+      try {
+        return tess.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
+      } catch (TesseractException e) {
+        Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
+      }
+    } else {
+      Debug.error("TextRecognizer: read: not valid");
+    }
+    return "";
+  }
+
   private static String readXXXrun(TextRecognizer tr, Object... args) {
     String text = "";
     BufferedImage bimg = readXXXevalParameters(tr, args);
@@ -662,8 +649,11 @@ public class TextRecognizer {
   private static BufferedImage getBufferedImage(Object whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver).get();
+    } else if (whatEver instanceof File) {
+      return Image.create((File) whatEver).get();
     } else if (whatEver instanceof Region) {
-      return ((Region) whatEver).getImage().get();
+      Region reg = (Region) whatEver;
+      return reg.getScreen().capture(reg).getImage();
     } else if (whatEver instanceof Image) {
       return ((Image) whatEver).get();
     } else if (whatEver instanceof ScreenImage) {
@@ -672,6 +662,31 @@ public class TextRecognizer {
       return (BufferedImage) whatEver;
     }
     return null;
+  }
+
+  /**
+   * @deprecated use readText() instead
+   * @param simg
+   * @return the text read
+   */
+  @Deprecated
+  public static String doOCR(ScreenImage simg) {
+    return doOCR(simg.getImage());
+  }
+
+  /**
+   * @deprecated use readText() instead
+   * @param bimg
+   * @return the text read
+   */
+  @Deprecated
+  public static String doOCR(BufferedImage bimg) {
+    String text = "";
+    TextRecognizer tr = start();
+    if (tr.isValid()) {
+      text = tr.read(bimg);
+    }
+    return text;
   }
 
   protected static List<Match> readLines(BufferedImage bimg) {
@@ -712,9 +727,9 @@ public class TextRecognizer {
             1 + (int) (boundingBox.width * wFactor) + 2,
             1 + (int) (boundingBox.height * hFactor) + 2);
         if (null == base) {
-          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText()));
+          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
         } else {
-          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText(), base));
+          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim(), base));
         }
       }
     }
@@ -751,7 +766,7 @@ public class TextRecognizer {
   }
 
   /**
-   * deprecated use doOCR() instead
+   * deprecated use readText() instead
    *
    * @param simg
    * @return text
@@ -763,7 +778,7 @@ public class TextRecognizer {
   }
 
   /**
-   * deprecated use doOCR() instead
+   * deprecated use readText() instead
    *
    * @param bimg
    * @return text

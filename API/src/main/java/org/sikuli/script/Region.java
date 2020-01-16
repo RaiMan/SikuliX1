@@ -4927,14 +4927,15 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="035 OCR - read text">
   /**
-   * tries to read the text in this region<br> might contain misread characters, NL characters and
+   * tries to read the text in this region<br>
+   * might contain misread characters, NL characters and
    * other stuff, when interpreting contained grafics as text<br>
-   * Best results: one line of text with no grafics in the line
+   * Best results: one or more lines of text with no contained grafics
    *
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    return getImage().text().trim().replace("\n\n", "\n");
+    return TextRecognizer.readText(this);
   }
 
   public Image getImage() {
@@ -4971,9 +4972,13 @@ public class Region {
     return TextRecognizer.readChar(this);
   }
 
+  /**
+   * find text lines in this region
+   * @return list of strings each representing one line of text
+   */
   public List<String> textLines() {
     List<String> lines = new ArrayList<>();
-    List<Match> matches = collectLines();
+    List<Match> matches = findLines();
     for (Match match : matches) {
       lines.add(match.getText());
     }
@@ -4997,9 +5002,15 @@ public class Region {
     return textLines();
   }
 
+  /**
+   * find the words as text in this region (top left to bottom right)<br>
+   * a word is a sequence of detected utf8-characters surrounded by significant background space
+   * might contain characters misinterpreted from contained grafics
+   * @return list of strings each representing one word
+   */
   public List<String> textWords() {
     List<String> words = new ArrayList<>();
-    List<Match> matches = collectWords();
+    List<Match> matches = findWords();
     for (Match match : matches) {
       words.add(match.getText());
     }

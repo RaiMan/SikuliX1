@@ -602,6 +602,10 @@ public class Image {
     return getSub(r.x, r.y, r.width, r.height);
   }
 
+  public Image getSub(Region reg) {
+    return getSub(reg.x, reg.y, reg.w, reg.h);
+  }
+
   /**
    * create a sub image from this image
    *
@@ -655,6 +659,24 @@ public class Image {
    */
   public static Image create(String fName) {
     Image img = get(fName);
+    return createImageValidate(img);
+  }
+
+  /**
+   * create a new image from the given file <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param imageFile a Java File object
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  public static Image create(File imageFile) {
+    Image img = get(imageFile.getAbsolutePath());
     return createImageValidate(img);
   }
 
@@ -1362,12 +1384,15 @@ public class Image {
   }
 
   /**
-   * OCR-read the text from the image
+   * tries to read the text in this image<br>
+   * might contain misread characters, NL characters and
+   * other stuff, when interpreting contained grafics as text<br>
+   * Best results: one or more lines of text with no contained grafics
    *
-   * @return the text or empty string
+   * @return the text read (utf8 encoded)
    */
   public String text() {
-    return TextRecognizer.doOCR(get()).trim().replace("\n\n", "\n");
+    return TextRecognizer.readText(get());
   }
 
   /**
@@ -1414,7 +1439,7 @@ public class Image {
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one word
+   *   supposing it is one character
    *
    * @param imgFile image filename
    * @return the text or empty string
@@ -1425,48 +1450,55 @@ public class Image {
 
   /**
    * get text from this image
-   *   supposing it is one word
+   *   supposing it is one Character
    *
    */
   public String textChar() {
     return TextRecognizer.readChar(get());
   }
 
+  /**
+   * find text lines in this region
+   * @return list of strings each representing one line of text
+   */
   public List<String> textLines() {
     List<String> lines = new ArrayList<>();
-    List<Match> matches = collectLines();
+    List<Match> matches = TextRecognizer.readLines(get());
     for (Match match : matches) {
       lines.add(match.getText());
     }
     return lines;
   }
 
-  public List<Match> collectLines() {
+  /**
+   * Find all lines as text (top left to bottom right)
+   * @return a list of text matches or empty list if not found
+   */
+  public List<Match> findLines() {
     return TextRecognizer.readLines(get());
   }
 
+  /**
+   * find the words as text in this image (top left to bottom right)<br>
+   * a word is a sequence of detected utf8-characters surrounded by significant background space
+   * (might contain characters misinterpreted from contained grafics)
+   * @return list of strings each representing one word
+   */
   public List<String> textWords() {
     List<String> words = new ArrayList<>();
-    List<Match> matches = collectWords();
+    List<Match> matches = TextRecognizer.readWords(get());
     for (Match match : matches) {
       words.add(match.getText());
     }
     return words;
   }
 
-  public List<Match> collectWords() {
+  /**
+   * Find all words as text (top left to bottom right)
+   * @return a list of text matches
+   */
+  public List<Match> findWords() {
     return TextRecognizer.readWords(get());
   }
   //</editor-fold>
-
-  public Match findText(String text) {
-    Finder finder = new Finder(this);
-    finder.findText(text);
-    if (finder.hasNext()) return finder.next();
-    return null;
-  }
-
-  public Match findT(String text) {
-    return findText(text);
-  }
 }
