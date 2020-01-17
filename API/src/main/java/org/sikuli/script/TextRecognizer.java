@@ -58,10 +58,10 @@ public class TextRecognizer {
     if (textRecognizer != null) {
       TextRecognizer tr = textRecognizer;
       Debug.logp("Textrecognizer: current settings" +
-              "\ndata = %s" +
-              "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
-          tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
-          Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
+                      "\ndata = %s" +
+                      "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
+              tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
+              Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
     } else {
       Debug.logp("Textrecognizer: not running");
     }
@@ -366,10 +366,10 @@ public class TextRecognizer {
 //    }
     if (isValid()) {
       if (psm == PageSegMode.OSD_ONLY.ordinal() || psm == PageSegMode.AUTO_OSD.ordinal()
-          || psm == PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+              || psm == PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
         if (!hasOsdTrData) {
           String msg = String.format("TextRecognizer: setPSM(%d): needs OSD, " +
-              "but no osd.traineddata found in tessdata folder", psm);
+                  "but no osd.traineddata found in tessdata folder", psm);
           //RunTime.get().terminate(999, msg);
           throw new SikuliXception(String.format("fatal: " + msg));
         }
@@ -404,7 +404,7 @@ public class TextRecognizer {
           tess.setDatapath(dataPath);
         } else {
           String msg = String.format("TextRecognizer: setDataPath: not valid " +
-              "- no %s.traineddata (%s)", language, newDataPath);
+                  "- no %s.traineddata (%s)", language, newDataPath);
           //RunTime.get().terminate(999, msg);
           throw new SikuliXception(String.format("fatal: " + msg));
         }
@@ -474,14 +474,17 @@ public class TextRecognizer {
    *
    * @param size expected font size in pt
    */
-  public void setFontSize(int size) {
-    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
-    try {
-      Font font = new Font(g.getFont().getFontName(), 0, size);
-      FontMetrics fm = g.getFontMetrics(font);
-      uppercaseXHeight = fm.getLineMetrics("X", g).getHeight();
-    } finally {
-      g.dispose();
+  public static void setFontSize(int size) {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+      try {
+        Font font = new Font(g.getFont().getFontName(), 0, size);
+        FontMetrics fm = g.getFontMetrics(font);
+        tr.uppercaseXHeight = fm.getLineMetrics("X", g).getHeight();
+      } finally {
+        g.dispose();
+      }
     }
   }
 
@@ -490,12 +493,18 @@ public class TextRecognizer {
    *
    * @param height of an uppercase X in px
    */
-  public void setHeight(int height) {
-    uppercaseXHeight = height;
+  public static void setHeight(int height) {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.uppercaseXHeight = height;
+    }
   }
 
-  public void resetHeight() {
-    uppercaseXHeight = getDefaultHeight();
+  public static void resetHeight() {
+    TextRecognizer tr = TextRecognizer.start();
+    if (tr.isValid()) {
+      tr.uppercaseXHeight = tr.getDefaultHeight();
+    }
   }
 
   private float getDefaultHeight() {
@@ -570,42 +579,54 @@ public class TextRecognizer {
 
   public static String readText(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
-    tr.saveHeight();
-    String text = readXXXrun(tr, args);
-    tr.resetSavedXHeight();
+    String text = "";
+    if (tr.isValid()) {
+      tr.saveHeight();
+      text = readXXXrun(tr, args);
+      tr.resetSavedXHeight();
+    }
     return text;
   }
 
   public static String readLine(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
-    tr.savePSM();
-    tr.saveHeight();
-    tr.setPSM(PageSegMode.SINGLE_LINE);
-    String text = readXXXrun(tr, args);
-    tr.resetSavedPSM();
-    tr.resetSavedXHeight();
+    String text = "";
+    if (tr.isValid()) {
+      tr.savePSM();
+      tr.saveHeight();
+      tr.setPSM(PageSegMode.SINGLE_LINE);
+      text = readXXXrun(tr, args);
+      tr.resetSavedPSM();
+      tr.resetSavedXHeight();
+    }
     return text;
   }
 
   public static String readWord(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
-    tr.savePSM();
-    tr.saveHeight();
-    tr.setPSM(PageSegMode.SINGLE_WORD);
-    String text = readXXXrun(tr, args);
-    tr.resetSavedPSM();
-    tr.resetSavedXHeight();
+    String text = "";
+    if (tr.isValid()) {
+      tr.savePSM();
+      tr.saveHeight();
+      tr.setPSM(PageSegMode.SINGLE_WORD);
+      text = readXXXrun(tr, args);
+      tr.resetSavedPSM();
+      tr.resetSavedXHeight();
+    }
     return text;
   }
 
   public static String readChar(Object... args) {
     TextRecognizer tr = TextRecognizer.start();
-    tr.savePSM();
-    tr.saveHeight();
-    tr.setPSM(PageSegMode.SINGLE_CHAR);
-    String text = readXXXrun(tr, args);
-    tr.resetSavedPSM();
-    tr.resetSavedXHeight();
+    String text = "";
+    if (tr.isValid()) {
+      tr.savePSM();
+      tr.saveHeight();
+      tr.setPSM(PageSegMode.SINGLE_CHAR);
+      text = readXXXrun(tr, args);
+      tr.resetSavedPSM();
+      tr.resetSavedXHeight();
+    }
     return text;
   }
 
@@ -665,9 +686,9 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated use readText() instead
    * @param simg
    * @return the text read
+   * @deprecated use readText() instead
    */
   @Deprecated
   public static String doOCR(ScreenImage simg) {
@@ -675,9 +696,9 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated use readText() instead
    * @param bimg
    * @return the text read
+   * @deprecated use readText() instead
    */
   @Deprecated
   public static String doOCR(BufferedImage bimg) {
@@ -722,10 +743,10 @@ public class TextRecognizer {
       for (Word textItem : textItems) {
         Rectangle boundingBox = textItem.getBoundingBox();
         Rectangle realBox = new Rectangle(
-            offX + (int) (boundingBox.x * wFactor) - 1,
-            offY + (int) (boundingBox.y * hFactor) - 1,
-            1 + (int) (boundingBox.width * wFactor) + 2,
-            1 + (int) (boundingBox.height * hFactor) + 2);
+                offX + (int) (boundingBox.x * wFactor) - 1,
+                offY + (int) (boundingBox.y * hFactor) - 1,
+                1 + (int) (boundingBox.width * wFactor) + 2,
+                1 + (int) (boundingBox.height * hFactor) + 2);
         if (null == base) {
           lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
         } else {
