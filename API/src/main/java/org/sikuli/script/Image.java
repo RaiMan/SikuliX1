@@ -1399,7 +1399,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textLine(String imgFile) {
-    return TextRecognizer.readLine(imgFile);
+    return TextRecognizer.readText(imgFile, OCR.options().asLine());
   }
 
   /**
@@ -1409,7 +1409,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textLine() {
-    return TextRecognizer.readLine(get());
+    return TextRecognizer.readText(get(), OCR.options().asLine());
   }
 
   /**
@@ -1420,7 +1420,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textWord(String imgFile) {
-    return TextRecognizer.readLine(imgFile);
+    return TextRecognizer.readText(imgFile, OCR.options().asWord());
   }
 
   /**
@@ -1430,7 +1430,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textWord() {
-    return TextRecognizer.readWord(get());
+    return TextRecognizer.readText(get(), OCR.options().asWord());
   }
 
   /**
@@ -1441,7 +1441,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textChar(String imgFile) {
-    return TextRecognizer.readChar(imgFile);
+    return TextRecognizer.readText(imgFile, OCR.options().asChar());
   }
 
   /**
@@ -1449,7 +1449,7 @@ public class Image {
    * supposing it is one Character
    */
   public String textChar() {
-    return TextRecognizer.readChar(get());
+    return TextRecognizer.readText(get(), OCR.options().asChar());
   }
 
   /**

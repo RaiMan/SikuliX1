@@ -4,6 +4,7 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
+import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -38,60 +39,83 @@ public class TextRecognizer {
     RunTime.loadLibrary(RunTime.libOpenCV);
   }
 
-  private static TextRecognizer textRecognizer = null;
-  private Tesseract1 tess = null;
+  private static TextRecognizer TR = null;
 
-  public boolean isValid() {
-    if (tess == null) {
-      return false;
-    }
-    return true;
+  public Tesseract1 getAPI() {
+    return trOptions.tesseract();
   }
 
-  public static void status() {
-    if (textRecognizer != null) {
-      TextRecognizer tr = textRecognizer;
+  private OCR.Options trOptions = null;
+
+  public static OCR.Options getOptions() {
+    if (TR != null) {
+      return TR.trOptions;
+    }
+    return null;
+  }
+
+  private void useOptions(OCR.Options newOptions) {
+    if (newOptions == null) {
+      return;
+    }
+    trOptions.oem(newOptions.oem())
+        .psm(newOptions.psm())
+        .textHeight(newOptions.textHeight());
+  }
+
+  public static boolean status() {
+    if (TR != null) {
+      TextRecognizer tr = TR;
       Debug.logp("OCR: current settings" +
-                      "\ndata = %s" +
-                      "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
-              tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
-              Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
+              "\ndata = %s" +
+              "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
+          tr.trOptions.dataPath(), tr.trOptions.language(), tr.trOptions.oem(), tr.trOptions.psm(),
+          tr.trOptions.textHeight(), tr.trOptions.factor(),
+          Toolkit.getDefaultToolkit().getScreenResolution(), tr.trOptions.resizeInterpolation());
+      return true;
     } else {
       Debug.logp("OCR: not running");
+      return false;
     }
   }
 
   private static final int TESSERACT_USER_DEFINED_DPI = 300;
 
   public static TextRecognizer start() {
-    if (textRecognizer == null) {
-      textRecognizer = new TextRecognizer();
+    return start(null);
+  }
+
+  public static TextRecognizer start(OCR.Options options) {
+    Tesseract1 tess = null;
+    if (TR == null) {
+      TR = new TextRecognizer();
       Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
       try {
-        textRecognizer.tess = new Tesseract1();
+        tess = new Tesseract1();
+        if (options == null) {
+          TR.trOptions = options;
+          TR.trOptions.tesseract(tess);
+        } else {
+          TR.trOptions = new OCR.Options(tess);
+        }
         boolean tessdataOK = extractTessdata();
         if (tessdataOK) {
-          Debug.log(lvl, "OCR: start: data folder: %s", textRecognizer.dataPath);
-          textRecognizer.tess.setDatapath(textRecognizer.dataPath);
-          if (!new File(textRecognizer.dataPath, textRecognizer.language + ".traineddata").exists()) {
-            textRecognizer = null;
-            Debug.error("OCR: start: no %s.traineddata - provide another language", textRecognizer.language);
+          Debug.log(lvl, "OCR: start: data folder: %s", TR.trOptions.dataPath());
+          tess.setDatapath(TR.trOptions.dataPath());
+          if (!new File(TR.trOptions.dataPath(), TR.trOptions.language() + ".traineddata").exists()) {
+            Debug.error("OCR: start: no %s.traineddata - provide another language", TR.trOptions.language());
+            TR = null;
           } else {
-            Debug.log(lvl, "OCR: start: language: %s", textRecognizer.language);
+            Debug.log(lvl, "OCR: start: language: %s", TR.trOptions.language());
           }
         } else {
-          textRecognizer = null;
-          if (textRecognizer.dataPathProvided) {
-            Debug.error("OCR: start: provided tessdata folder not found: %s", Settings.OcrDataPath);
-          } else {
-            Debug.error("OCR: start: no valid tesseract data folder");
-          }
+          Debug.error("OCR: start: no valid tesseract data folder: %s", TR.trOptions.dataPath());
+          TR = null;
         }
       } catch (Exception e) {
-        textRecognizer = null;
         Debug.error("OCR: start: %s", e.getMessage());
+        TR = null;
       } catch (UnsatisfiedLinkError e) {
-        textRecognizer = null;
         String helpURL;
         Debug.error("OCR: start: Tesseract library problems: %s", e.getMessage());
         if (RunTime.get().runningWindows) {
@@ -108,31 +132,29 @@ public class TextRecognizer {
           } catch (URISyntaxException ex) {
           }
         }
+        TR = null;
       }
-      if (null != textRecognizer) {
-        textRecognizer.setLanguage(textRecognizer.language);
-        textRecognizer.setOEM(OcrEngineMode.DEFAULT);
-        textRecognizer.setPSM(PageSegMode.AUTO);
-
+      if (null != TR) {
+        TR.trOptions.init();
         // Set user_defined_dpi to something other than 70 to avoid
         // getting an error message on STDERR about guessing the resolution.
         // Interestingly, setting this to whatever value between
         // 70 and 2400 seems to have no impact on accuracy.
         // Not with LSTM and not with the legacy model either.
         // TODO Investigate this further
-        textRecognizer.setVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
+        TR.setVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
 
-        textRecognizer.shouldRestart = false;
+        TR.shouldRestart = false;
       }
     }
-    if (null == textRecognizer) {
+    if (null == TR) {
       //RunTime.get().terminate(999, "TextRecognizer could not be initialized");
       throw new SikuliXception(String.format("fatal: " + "TextRecognizer could not be initialized"));
     }
-    return textRecognizer;
+    return TR;
   }
 
-  public static boolean extractTessdata() {
+  private static boolean extractTessdata() {
     File fTessDataPath;
     boolean shouldExtract = false;
     fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
@@ -156,148 +178,54 @@ public class TextRecognizer {
     // if set, try with provided tessdata folder
     if (Settings.OcrDataPath != null) {
       fTessDataPath = new File(Settings.OcrDataPath, "tessdata");
-      textRecognizer.dataPathProvided = true;
     }
     if (fTessDataPath.exists()) {
-      textRecognizer.startDataPath = fTessDataPath.getAbsolutePath();
-      textRecognizer.dataPath = textRecognizer.startDataPath;
-      textRecognizer.hasOsdTrData = new File(textRecognizer.dataPath, "osd.traineddata").exists();
+      TR.trOptions.startDataPath(fTessDataPath.getAbsolutePath());
+      TR.hasOsdTrData = new File(TR.trOptions.dataPath(), "osd.traineddata").exists();
       return true;
     }
     return false;
   }
 
-  public Tesseract1 getAPI() {
-    return tess;
-  }
-
   public static void stop() {
-    textRecognizer = null;
+    TR = null;
   }
 
   public static TextRecognizer reset() {
-    if (null != textRecognizer) {
-      if (textRecognizer.shouldRestart) {
+    if (null != TR) {
+      if (TR.shouldRestart) {
         stop();
         start();
       } else {
-        textRecognizer.resetHeight();
-        textRecognizer.setOEM(OcrEngineMode.DEFAULT);
-        textRecognizer.setPSM(PageSegMode.AUTO);
-        textRecognizer.resetDataPath();
-        textRecognizer.resetLanguage();
+        TR.trOptions = OCR.Options.reset(TR.trOptions);
       }
     } else {
       start();
     }
-    return textRecognizer;
-  }
-
-  private int savedPSM = -1;
-
-  private void resetSavedPSM() {
-    if (savedPSM > -1) {
-      setPSM(savedPSM);
-      savedPSM = -1;
-    }
-  }
-
-  private float savedXHeight = -1;
-
-  private void resetSavedXHeight() {
-    if (savedXHeight > -1) {
-      uppercaseXHeight = savedXHeight;
-      savedXHeight = -1;
-    }
-  }
-
-  private void savePSM() {
-    savedPSM = psm;
-  }
-
-  private void saveHeight() {
-    savedXHeight = uppercaseXHeight;
+    return TR;
   }
 
   public static TextRecognizer asLine() {
     TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_LINE);
-    }
+    tr.setPSM(OCR.PageSegMode.SINGLE_LINE);
     return tr;
   }
 
   public static TextRecognizer asWord() {
     TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_WORD);
-    }
+    tr.setPSM(OCR.PageSegMode.SINGLE_WORD);
     return tr;
   }
 
   public static TextRecognizer asChar() {
     TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.setPSM(PageSegMode.SINGLE_CHAR);
-    }
+    tr.setPSM(OCR.PageSegMode.SINGLE_CHAR);
     return tr;
   }
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
-
-  /**
-   * Page segmentation modes:
-   * 0    Orientation and script detection (OSD) only.
-   * 1    Automatic page segmentation with OSD.
-   * 2    Automatic page segmentation, but no OSD, or OCR.
-   * 3    Fully automatic page segmentation, but no OSD. (Default)
-   * 4    Assume a single column of text of variable sizes.
-   * 5    Assume a single uniform block of vertically aligned text.
-   * 6    Assume a single uniform block of text.
-   * 7    Treat the image as a single text line.
-   * 8    Treat the image as a single word.
-   * 9    Treat the image as a single word in a circle.
-   * 10    Treat the image as a single character.
-   * 11    Sparse text. Find as much text as possible in no particular order.
-   * 12    Sparse text with OSD.
-   * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
-   */
-  public enum PageSegMode {
-    OSD_ONLY, // 0
-    AUTO_OSD, // 1
-    AUTO_ONLY, // 2
-    AUTO, // 3
-    SINGLE_COLUMN, // 4
-    SINGLE_BLOCK_VERT_TEXT, // 5
-    SINGLE_BLOCK, // 6
-    SINGLE_LINE, // 7
-    SINGLE_WORD, // 8
-    CIRCLE_WORD, // 9
-    SINGLE_CHAR, // 10
-    SPARSE_TEXT, // 11
-    SPARSE_TEXT_OSD, // 12
-    RAW_LINE // 13
-  }
-
-  /**
-   * OCR Engine modes:
-   * 0    Original Tesseract only.
-   * 1    Cube only.
-   * 2    Tesseract + cube.
-   * 3    Default, based on what is available.
-   */
-  public enum OcrEngineMode {
-    TESSERACT_ONLY, // 0
-    LSTM_ONLY, // 1
-    TESSERACT_LSTM_COMBINED, // 2
-    DEFAULT // 3
-  }
-
-  private int oem = -1;
-  private int psm = -1;
-
-  public TextRecognizer setOEM(OcrEngineMode oem) {
+  public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
     return setOEM(oem.ordinal());
   }
 
@@ -316,16 +244,13 @@ public class TextRecognizer {
       Debug.error("Tesseract: oem invalid (%d) - using default (3)", oem);
       oem = 3;
     }
-    if (isValid()) {
-      this.oem = oem;
-      tess.setOcrEngineMode(this.oem);
-    }
+    trOptions.oem(oem);
     return this;
   }
 
   private boolean hasOsdTrData = false;
 
-  public TextRecognizer setPSM(PageSegMode psm) {
+  public TextRecognizer setPSM(OCR.PageSegMode psm) {
     return setPSM(psm.ordinal());
   }
 
@@ -354,71 +279,33 @@ public class TextRecognizer {
       Debug.error("Tesseract: psm invalid (%d) - using default (3)", psm);
       psm = 3;
     }
-//    if (psm == 3) {
-//      resetPSM();
-//      return this;
-//    }
-    if (isValid()) {
-      if (psm == PageSegMode.OSD_ONLY.ordinal() || psm == PageSegMode.AUTO_OSD.ordinal()
-              || psm == PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
-        if (!hasOsdTrData) {
-          String msg = String.format("OCR: setPSM(%d): needs OSD, " +
-                  "but no osd.traineddata found in tessdata folder", psm);
-          //RunTime.get().terminate(999, msg);
-          throw new SikuliXception(String.format("fatal: " + msg));
-        }
+    if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
+        || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+      if (!hasOsdTrData) {
+        String msg = String.format("OCR: setPSM(%d): needs OSD, " +
+            "but no osd.traineddata found in tessdata folder", psm);
+        //RunTime.get().terminate(999, msg);
+        throw new SikuliXception(String.format("fatal: " + msg));
       }
-      this.psm = psm;
-      tess.setPageSegMode(this.psm);
     }
+    trOptions.psm(psm);
     return this;
   }
 
   public TextRecognizer resetPSM() {
-    this.psm = -1;
-    if (isValid()) {
-      tess.setPageSegMode(-1);
-    }
+    trOptions.psm(-1);
     return this;
   }
   //</editor-fold>
 
   //<editor-fold desc="03 set datapath, language, variable, configs">
-  private boolean dataPathProvided = false;
-  private String startDataPath = null;
-  private String dataPath = null;
-  private String startLanguage = Settings.OcrLanguage;
-  private String language = startLanguage;
-
   public TextRecognizer setDataPath(String newDataPath) {
-    if (isValid()) {
-      if (new File(newDataPath).exists()) {
-        if (new File(newDataPath, language + ".traineddata").exists()) {
-          dataPath = newDataPath;
-          tess.setDatapath(dataPath);
-        } else {
-          String msg = String.format("OCR: setDataPath: not valid " +
-                  "- no %s.traineddata (%s)", language, newDataPath);
-          //RunTime.get().terminate(999, msg);
-          throw new SikuliXception(String.format("fatal: " + msg));
-        }
-      }
-    }
-    return this;
-  }
-
-  private void resetDataPath() {
-    dataPath = startDataPath;
-    tess.setDatapath(dataPath);
-  }
-
-  public TextRecognizer setLanguage(String language) {
-    if (isValid()) {
-      if (new File(dataPath, language + ".traineddata").exists()) {
-        this.language = language;
-        tess.setLanguage(this.language);
+    if (new File(newDataPath).exists()) {
+      if (new File(newDataPath, trOptions.language() + ".traineddata").exists()) {
+        trOptions.dataPath(newDataPath);
       } else {
-        String msg = String.format("OCR: setLanguage: no %s.traineddata in %s", language, this.dataPath);
+        String msg = String.format("OCR: setDataPath: not valid " +
+            "- no %s.traineddata (%s)", trOptions.language(), newDataPath);
         //RunTime.get().terminate(999, msg);
         throw new SikuliXception(String.format("fatal: " + msg));
       }
@@ -426,43 +313,37 @@ public class TextRecognizer {
     return this;
   }
 
-  private void resetLanguage() {
-    language = startLanguage;
-    tess.setLanguage(language);
+  public TextRecognizer setLanguage(String language) {
+    if (new File(trOptions.dataPath(), language + ".traineddata").exists()) {
+      trOptions.language(language);
+    } else {
+      String msg = String.format("OCR: setLanguage: no %s.traineddata in %s", language, trOptions.dataPath());
+      throw new SikuliXception(String.format("fatal: " + msg));
+    }
+    return this;
   }
 
   private boolean shouldRestart = false;
 
   public TextRecognizer setVariable(String key, String value) {
-    if (isValid()) {
-      shouldRestart = true;
-      tess.setTessVariable(key, value);
-    }
+    shouldRestart = true;
+    trOptions.tesseract().setTessVariable(key, value);
     return this;
   }
 
   public TextRecognizer setConfigs(String... configs) {
-    if (isValid()) {
-      setConfigs(Arrays.asList(configs));
-    }
+    setConfigs(Arrays.asList(configs));
     return this;
   }
 
   public TextRecognizer setConfigs(List<String> configs) {
-    if (isValid()) {
-      shouldRestart = true;
-      tess.setConfigs(configs);
-    }
+    shouldRestart = true;
+    trOptions.tesseract().setConfigs(configs);
     return this;
   }
   //</editor-fold>
 
   //<editor-fold desc="10 image optimization">
-  /**
-   * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
-   */
-  private Float optimumDPI = null;
-
   /**
    * Hint for the OCR Engine about the expected font size in pt
    *
@@ -470,15 +351,13 @@ public class TextRecognizer {
    */
   protected static void setFontSize(int size) {
     TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
-      try {
-        Font font = new Font(g.getFont().getFontName(), 0, size);
-        FontMetrics fm = g.getFontMetrics(font);
-        tr.uppercaseXHeight = fm.getLineMetrics("X", g).getHeight();
-      } finally {
-        g.dispose();
-      }
+    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
+    try {
+      Font font = new Font(g.getFont().getFontName(), 0, size);
+      FontMetrics fm = g.getFontMetrics(font);
+      tr.trOptions.textHeight(fm.getLineMetrics("X", g).getHeight());
+    } finally {
+      g.dispose();
     }
   }
 
@@ -487,44 +366,8 @@ public class TextRecognizer {
    *
    * @param height of an uppercase X in px
    */
-  protected static void setHeight(int height) {
-    TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.uppercaseXHeight = height;
-    }
-  }
-
-  protected static void resetHeight() {
-    TextRecognizer tr = TextRecognizer.start();
-    if (tr.isValid()) {
-      tr.uppercaseXHeight = tr.getDefaultHeight();
-    }
-  }
-
-  private float getDefaultHeight() {
-    Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
-    try {
-      Font font = g.getFont();
-      FontMetrics fm = g.getFontMetrics(font);
-      return fm.getLineMetrics("X", g).getHeight();
-    } finally {
-      g.dispose();
-    }
-  }
-
-  private float uppercaseXHeight = getDefaultHeight();
-
-  private static final int OPTIMAL_X_HEIGHT = 30;
-
-  private Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
-
-  private float factor() {
-    // LEGACY: Calculate the resize factor based on the optimal and
-    // calculated DPI value if optimumDPI has been set manually
-    if (optimumDPI != null) {
-      return optimumDPI / getActualDPI();
-    }
-    return OPTIMAL_X_HEIGHT / uppercaseXHeight;
+  protected static void setTextHeight(int height) {
+    TextRecognizer.start().trOptions.textHeight(height);
   }
 
   public BufferedImage optimize(BufferedImage bimg) {
@@ -535,10 +378,10 @@ public class TextRecognizer {
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
     mimg = unsharpMask(mimg, 3);
 
-    float rFactor = factor();
+    float rFactor = trOptions.factor();
 
     if (rFactor > 0 && rFactor != 1) {
-      Image.resize(mimg, rFactor, resizeInterpolation);
+      Image.resize(mimg, rFactor, trOptions.resizeInterpolation());
     }
 
     // sharpen the enlarged image again
@@ -567,102 +410,91 @@ public class TextRecognizer {
   public static final int PAGE_ITERATOR_LEVEL_WORD = 3;
   public static final int PAGE_ITERATOR_LEVEL_LINE = 2;
 
-  public static String readText(Object... args) {
-    TextRecognizer tr = TextRecognizer.start();
-    String text = "";
-    if (tr.isValid()) {
-      tr.saveHeight();
-      text = readXXXrun(tr, args);
-      tr.resetSavedXHeight();
-    }
+  public static <SFIRBS> String readText(SFIRBS from) {
+    String text = doRead(from, null);
     return text;
   }
 
-  public static String readLine(Object... args) {
-    TextRecognizer tr = TextRecognizer.start();
-    String text = "";
-    if (tr.isValid()) {
-      tr.savePSM();
-      tr.saveHeight();
-      tr.setPSM(PageSegMode.SINGLE_LINE);
-      text = readXXXrun(tr, args);
-      tr.resetSavedPSM();
-      tr.resetSavedXHeight();
-    }
+  public static <SFIRBS> String readText(SFIRBS from, OCR.Options options) {
+    String text = doRead(from, null);
     return text;
   }
 
-  public static String readWord(Object... args) {
+  private static String doRead(Object from, OCR.Options options) {
     TextRecognizer tr = TextRecognizer.start();
     String text = "";
-    if (tr.isValid()) {
-      tr.savePSM();
-      tr.saveHeight();
-      tr.setPSM(PageSegMode.SINGLE_WORD);
-      text = readXXXrun(tr, args);
-      tr.resetSavedPSM();
-      tr.resetSavedXHeight();
-    }
-    return text;
-  }
-
-  public static String readChar(Object... args) {
-    TextRecognizer tr = TextRecognizer.start();
-    String text = "";
-    if (tr.isValid()) {
-      tr.savePSM();
-      tr.saveHeight();
-      tr.setPSM(PageSegMode.SINGLE_CHAR);
-      text = readXXXrun(tr, args);
-      tr.resetSavedPSM();
-      tr.resetSavedXHeight();
-    }
-    return text;
-  }
-
-//  private String read(BufferedImage bimg) {
-//    if (isValid()) {
-//      try {
-//        return tess.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
-//      } catch (TesseractException e) {
-//        Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
-//      }
-//    } else {
-//      Debug.error("OCR: read: not valid");
-//    }
-//    return "";
-//  }
-
-  private static String readXXXrun(TextRecognizer tr, Object... args) {
-    String text = "";
-    BufferedImage bimg = readXXXevalParameters(tr, args);
+    BufferedImage bimg = getBufferedImage(from);
     if (bimg != null) {
-//      if (tr.psm == PageSegMode.AUTO.ordinal()) {
-        text = "";
-        for (Match line : readLines(bimg)) {
-          if (!text.isEmpty()) text += "\n";
-          text += line.getText();
-        }
-//      } else {
-//        text = tr.read(bimg);
-//      }
-    }
-    if (Debug.getDebugLevel() > 2) {
-      TextRecognizer.status();
-    }
-    return text;
-  }
-
-  private static BufferedImage readXXXevalParameters(TextRecognizer tr, Object... args) {
-    BufferedImage bimg = null;
-    for (Object arg : args) {
-      if (arg instanceof Number) {
-        tr.setHeight((Integer) arg);
-      } else {
-        bimg = getBufferedImage(arg);
+      OCR.Options savedOptions = null;
+      if (null != options) {
+        savedOptions = tr.trOptions;
+        tr.useOptions(options);
+      }
+      text = tr.read(bimg);
+      if (null != options) {
+        tr.useOptions(savedOptions);
       }
     }
-    return bimg;
+    return text;
+  }
+
+  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
+    return readLines(from, null);
+  }
+
+  public static <SFIRBS> List<Match> readLines(SFIRBS from, OCR.Options options) {
+    BufferedImage bimg = getBufferedImage(from);
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, options);
+  }
+
+  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
+    return readWords(from, null);
+  }
+
+  public static <SFIRBS> List<Match> readWords(SFIRBS from, OCR.Options options) {
+    BufferedImage bimg = getBufferedImage(from);
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, options);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="30 helper">
+  private static List<Match> readTextItems(BufferedImage bimg, int level, OCR.Options options) {
+    List<Match> lines = new ArrayList<>();
+    if (null == bimg) {
+      return lines;
+    }
+    TextRecognizer tr = start();
+    OCR.Options savedOptions = null;
+    if (null != options) {
+      savedOptions = tr.trOptions;
+      tr.useOptions(options);
+    }
+    BufferedImage bimgResized = tr.optimize(bimg);
+    List<Word> textItems = tr.getAPI().getWords(bimgResized, level);
+    if (null != options) {
+      tr.useOptions(savedOptions);
+    }
+    double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
+    double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
+    for (Word textItem : textItems) {
+      Rectangle boundingBox = textItem.getBoundingBox();
+      Rectangle realBox = new Rectangle(
+          (int) (boundingBox.x * wFactor) - 1,
+          (int) (boundingBox.y * hFactor) - 1,
+          1 + (int) (boundingBox.width * wFactor) + 2,
+          1 + (int) (boundingBox.height * hFactor) + 2);
+      lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
+    }
+    return lines;
+  }
+
+  private String read(BufferedImage bimg) {
+    try {
+      return TR.trOptions.tesseract().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
+    } catch (TesseractException e) {
+      Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
+    }
+    return "";
   }
 
   private static BufferedImage getBufferedImage(Object whatEver) {
@@ -684,6 +516,18 @@ public class TextRecognizer {
   }
 
   /**
+   * @return the current screen resolution in dots per inch
+   * @deprecated Will be removed in future versions<br>
+   * use Toolkit.getDefaultToolkit().getScreenResolution()
+   */
+  public int getActualDPI() {
+    return Toolkit.getDefaultToolkit().getScreenResolution();
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="99 obsolete">
+
+  /**
    * @param simg
    * @return the text read
    * @deprecated use readText() instead
@@ -700,61 +544,10 @@ public class TextRecognizer {
    */
   @Deprecated
   public static String doOCR(BufferedImage bimg) {
-    String text = "";
     TextRecognizer tr = start();
-    if (tr.isValid()) {
-      text = tr.readText(bimg);
-    }
+    String text = tr.readText(bimg);
     return text;
   }
-
-  public static List<Match> readStuff(int level, Object... args) {
-    return readTextItems(readXXXevalParameters(null, args), level);
-  }
-
-  public static List<Match> readLines(BufferedImage bimg) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE);
-  }
-
-  public static List<Match> readWords(BufferedImage bimg) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD);
-  }
-
-  private static List<Match> readTextItems(BufferedImage bimg, int level) {
-    List<Match> lines = new ArrayList<>();
-    TextRecognizer tr = start();
-    if (tr.isValid()) {
-      BufferedImage bimgResized = tr.optimize(bimg);
-      List<Word> textItems = tr.getAPI().getWords(bimgResized, level);
-      double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
-      double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
-      for (Word textItem : textItems) {
-        Rectangle boundingBox = textItem.getBoundingBox();
-        Rectangle realBox = new Rectangle(
-                (int) (boundingBox.x * wFactor) - 1,
-                (int) (boundingBox.y * hFactor) - 1,
-                1 + (int) (boundingBox.width * wFactor) + 2,
-                1 + (int) (boundingBox.height * hFactor) + 2);
-        lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
-      }
-    }
-    return lines;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="30 helper">
-
-  /**
-   * @return the current screen resolution in dots per inch
-   * @deprecated Will be removed in future versions<br>
-   * use Toolkit.getDefaultToolkit().getScreenResolution()
-   */
-  public int getActualDPI() {
-    return Toolkit.getDefaultToolkit().getScreenResolution();
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="99 obsolete">
 
   /**
    * use start() instead
@@ -764,9 +557,6 @@ public class TextRecognizer {
   @Deprecated
   public static TextRecognizer getInstance() {
     TextRecognizer tr = TextRecognizer.start();
-    if (!tr.isValid()) {
-      return null;
-    }
     return tr;
   }
 

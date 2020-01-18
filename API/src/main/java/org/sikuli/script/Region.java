@@ -379,7 +379,7 @@ public class Region {
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }
@@ -2194,7 +2194,7 @@ public class Region {
       }
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-            + (color != null ? " color: " + color : ""));
+        + (color != null ? " color: " + color : ""));
     if (regionHighlight != null) {
       highlightClose();
     }
@@ -2496,7 +2496,7 @@ public class Region {
     }
     while (null != response && response) {
       log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-              autoWaitTimeout, targetStr, this.toStringShort());
+          autoWaitTimeout, targetStr, this.toStringShort());
       if (autoWaitTimeout > 0) {
         rf.repeat(autoWaitTimeout);
         lastMatches = rf.getMatches();
@@ -2685,7 +2685,7 @@ public class Region {
 
   //<editor-fold desc="021 find text public methods">
   public Match waitText(String text, double timeout) throws FindFailed {
-    return wait("\t" + text + "\t", timeout);
+    return relocateInRegion(wait("\t" + text + "\t", timeout));
   }
 
   public Match waitText(String text) throws FindFailed {
@@ -2752,6 +2752,7 @@ public class Region {
 
   /**
    * Find the first word as text (top left to bottom right) containing the given text
+   *
    * @param word
    * @return a text match or null if not found
    */
@@ -2760,7 +2761,7 @@ public class Region {
     if (!word.isEmpty()) {
       Object result = doFindText(word, levelWord, false);
       if (result != null) {
-        match = (Match) result;
+        match = relocateInRegion( (Match) result);
       }
     }
     return match;
@@ -2768,35 +2769,46 @@ public class Region {
 
   /**
    * Find all words as text (top left to bottom right) containing the given text
+   *
    * @param word
    * @return a list of text matches
    */
   public List<Match> findWords(String word) {
     Finder finder = ((Finder) doFindText(word, levelWord, true));
     if (null != finder) {
-      return finder.getList();
+      return finder.getListForRegion(this);
     }
     return new ArrayList<>();
   }
 
   /**
    * Find all words as text (top left to bottom right)
+   *
    * @return a list of text matches
    */
   public List<Match> findWords() {
-    return relocate(TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage()));
   }
 
-  private List<Match> relocate(List<Match> matches) {
+  public List<Match> relocateInRegion(List<Match> matches) {
     for (Match match : matches) {
       match.x += this.x;
       match.y += this.y;
+      match.setScreen(this.getScreen());
     }
     return matches;
   }
 
+  public Match relocateInRegion(Match match) {
+    match.x += this.x;
+    match.y += this.y;
+    match.setScreen(this.getScreen());
+    return match;
+  }
+
   /**
    * Find the first line as text (top left to bottom right) containing the given text
+   *
    * @param text
    * @return a text match or null if not found
    */
@@ -2805,7 +2817,7 @@ public class Region {
     if (!text.isEmpty()) {
       Object result = doFindText(text, levelLine, false);
       if (result != null) {
-        match = (Match) result;
+        match = relocateInRegion((Match) result);
       }
     }
     return match;
@@ -2813,23 +2825,25 @@ public class Region {
 
   /**
    * Find all lines as text (top left to bottom right) containing the given text
+   *
    * @param text
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines(String text) {
     Finder finder = (Finder) doFindText(text, levelLine, true);
     if (null != finder) {
-      return finder.getList();
+      return finder.getListForRegion(this);
     }
     return new ArrayList<>();
   }
 
   /**
    * Find all lines as text (top left to bottom right)
+   *
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
-    return relocate(TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage()));
   }
   //</editor-fold>
 
@@ -2857,7 +2871,7 @@ public class Region {
       finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
-                new Date().getTime() - lastSearchTimeRepeat);
+            new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
       finder.findRepeat();
@@ -2882,11 +2896,9 @@ public class Region {
         }
         if (findingText) {
           log(lvl, "doFind: Switching to TextSearch");
-          if (TextRecognizer.start().isValid()) {
-            finder = new Finder(this);
-            lastSearchTime = (new Date()).getTime();
-            finder.findText(someText);
-          }
+          finder = new Finder(this);
+          lastSearchTime = (new Date()).getTime();
+          finder.findText(someText);
         }
       } else if (ptn instanceof Pattern) {
         if (img.isValid()) {
@@ -3016,10 +3028,8 @@ public class Region {
           }
         }
         if (findingText) {
-          if (TextRecognizer.start().isValid()) {
-            finder = new Finder(this);
-            finder.findAllText(someText);
-          }
+          finder = new Finder(this);
+          finder.findAllText(someText);
         }
       } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
@@ -3052,29 +3062,27 @@ public class Region {
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
-    if (TextRecognizer.start().isValid()) {
-      Finder finder = new Finder(this);
-      returnValue = finder;
-      lastSearchTime = (new Date()).getTime();
-      if (level == levelWord) {
-        if (multi) {
-          if (finder.findWords(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findWord(text)) {
-            returnValue = finder.next();
-          }
+    TextRecognizer.start();
+    Finder finder = new Finder(this);
+    lastSearchTime = (new Date()).getTime();
+    if (level == levelWord) {
+      if (multi) {
+        if (finder.findWords(text)) {
+          returnValue = finder;
         }
-      } else if (level == levelLine) {
-        if (multi) {
-          if (finder.findLines(text)) {
-            returnValue = finder;
-          }
-        } else {
-          if (finder.findLine(text)) {
-            returnValue = finder.next();
-          }
+      } else {
+        if (finder.findWord(text)) {
+          returnValue = finder.next();
+        }
+      }
+    } else if (level == levelLine) {
+      if (multi) {
+        if (finder.findLines(text)) {
+          returnValue = finder;
+        }
+      } else {
+        if (finder.findLine(text)) {
+          returnValue = finder.next();
         }
       }
     }
@@ -3449,7 +3457,7 @@ public class Region {
       log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForRegion().delay(500);
       ScreenImage simg = getScreen().userCapture(
-              (recap ? "recapture " : "capture missing ") + img.getName());
+          (recap ? "recapture " : "capture missing ") + img.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
@@ -3640,7 +3648,7 @@ public class Region {
 
   private <PSIC> String onEvent(PSIC targetThreshhold, Object observer, ObserveEvent.Type obsType) {
     if (observer != null && (observer.getClass().getName().contains("org.python")
-            || observer.getClass().getName().contains("org.jruby"))) {
+        || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
@@ -3650,13 +3658,13 @@ public class Region {
         response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(
-                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
+              String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
     log(lvl, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
-            (observer == null ? "" : " with callback"), name, targetThreshhold);
+        (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
 
@@ -3699,7 +3707,7 @@ public class Region {
    */
   public String onChange(Integer threshold, Object observer) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            observer, ObserveEvent.Type.CHANGE);
+        observer, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3712,7 +3720,7 @@ public class Region {
    */
   public String onChange(Integer threshold) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-            null, ObserveEvent.Type.CHANGE);
+        null, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -3779,7 +3787,7 @@ public class Region {
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
     log(lvl, "%s: onChange%s: %s minSize: %d", toStringShort(),
-            (observer == null ? "" : " with callback"), name, threshold);
+        (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
 
@@ -3859,7 +3867,7 @@ public class Region {
     if (observing) {
       observing = false;
       log(lvl, "observe: stopped due to timeout in "
-              + this.toStringShort() + " for " + secs + " seconds");
+          + this.toStringShort() + " for " + secs + " seconds");
     } else {
       log(lvl, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);
@@ -4934,6 +4942,7 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="035 OCR - read text">
+
   /**
    * tries to read the text in this region<br>
    * might contain misread characters, NL characters and
@@ -4952,36 +4961,37 @@ public class Region {
 
   /**
    * get text from this region
-   *   supposing it is one line of text
+   * supposing it is one line of text
    *
    * @return the text or empty string
    */
   public String textLine() {
-    return TextRecognizer.readLine(this);
+    return TextRecognizer.readText(this, OCR.options().asLine());
   }
 
   /**
    * get text from this region
-   *   supposing it is one word
+   * supposing it is one word
    *
    * @return the text or empty string
    */
   public String textWord() {
-    return TextRecognizer.readWord(this);
+    return TextRecognizer.readText(this, OCR.options().asWord());
   }
 
   /**
    * get text from this region
-   *   supposing it is one character
+   * supposing it is one character
    *
    * @return the text or empty string
    */
   public String textChar() {
-    return TextRecognizer.readChar(this);
+    return TextRecognizer.readText(this, OCR.options().asChar());
   }
 
   /**
    * find text lines in this region
+   *
    * @return list of strings each representing one line of text
    */
   public List<String> textLines() {
@@ -4994,16 +5004,16 @@ public class Region {
   }
 
   /**
-   * @deprecated use findLines() instead
    * @return
+   * @deprecated use findLines() instead
    */
   public List<Match> collectLines() {
     return findLines();
   }
 
   /**
-   * @deprecated use textLines() instead
    * @return
+   * @deprecated use textLines() instead
    */
   @Deprecated
   public List<String> collectLinesText() {
@@ -5014,6 +5024,7 @@ public class Region {
    * find the words as text in this region (top left to bottom right)<br>
    * a word is a sequence of detected utf8-characters surrounded by significant background space
    * might contain characters misinterpreted from contained grafics
+   *
    * @return list of strings each representing one word
    */
   public List<String> textWords() {
@@ -5026,16 +5037,16 @@ public class Region {
   }
 
   /**
-   * @deprecated use findWords() instead
    * @return
+   * @deprecated use findWords() instead
    */
   public List<Match> collectWords() {
     return findWords();
   }
 
   /**
-   * @deprecated use textWords() instead
    * @return
+   * @deprecated use textWords() instead
    */
   public List<String> collectWordsText() {
     return textWords();

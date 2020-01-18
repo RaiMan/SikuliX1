@@ -445,6 +445,14 @@ public class Finder implements Iterator<Match> {
     return matches;
   }
 
+  public List<Match> getListForRegion(Region reg) {
+    List<Match> matches = new ArrayList<>();
+    while (hasNext()) {
+      matches.add(reg.relocateInRegion(next()));
+    }
+    return matches;
+  }
+
   /**
    * @return true if Finder has a next match, false otherwise
    */
@@ -742,9 +750,6 @@ public class Finder implements Iterator<Match> {
 
     private FindResult2 doFindText() {
       TextRecognizer tr = TextRecognizer.start();
-      if (!tr.isValid()) {
-        return null;
-      }
       FindResult2 findResult = null;
       Region where = fInput.getWhere();
       String text = fInput.getTargetText();

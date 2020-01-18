@@ -3,15 +3,16 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.io.*;
-import javax.swing.*;
-import javax.swing.border.*;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.TextRecognizer;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
 //RaiMan not used import org.sikuli.script.TextRecognizer;
 public class PatternPaneNaming extends JPanel {
@@ -127,11 +128,7 @@ public class PatternPaneNaming extends JPanel {
 	}
 
 	public static String getFilenameFromImage(BufferedImage img) {
-		TextRecognizer tr = TextRecognizer.start();
-		if (!tr.isValid()) {
-			return "";
-		}
-		String text = TextRecognizer.doOCR(img);
+		String text = new org.sikuli.script.Image(img).text();
 		text = text.replaceAll("\\W", "");
 		if (text.length() > MAX_OCR_TEXT_LENGTH) {
 			return text.substring(0, MAX_OCR_TEXT_LENGTH);
