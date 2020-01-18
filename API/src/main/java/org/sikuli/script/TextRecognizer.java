@@ -34,13 +34,9 @@ public class TextRecognizer {
   public static String versionTesseract = "4.1.0";
 
   //<editor-fold desc="00 start, stop, reset">
-  static {
+  public TextRecognizer() {
     RunTime.loadLibrary(RunTime.libOpenCV);
   }
-
-//  private TextRecognizer() {
-//    Finder.Finder2.init();
-//  }
 
   private static TextRecognizer textRecognizer = null;
   private Tesseract1 tess = null;
