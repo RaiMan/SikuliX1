@@ -4,7 +4,6 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -16,12 +15,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Desktop;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -205,7 +199,7 @@ public class TextRecognizer {
 
   private int savedPSM = -1;
 
-  public void resetSavedPSM() {
+  private void resetSavedPSM() {
     if (savedPSM > -1) {
       setPSM(savedPSM);
       savedPSM = -1;
@@ -214,7 +208,7 @@ public class TextRecognizer {
 
   private float savedXHeight = -1;
 
-  public void resetSavedXHeight() {
+  private void resetSavedXHeight() {
     if (savedXHeight > -1) {
       uppercaseXHeight = savedXHeight;
       savedXHeight = -1;
@@ -471,7 +465,7 @@ public class TextRecognizer {
   /**
    * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
    */
-  protected Float optimumDPI = null;
+  private Float optimumDPI = null;
 
   /**
    * Hint for the OCR Engine about the expected font size in pt
@@ -630,24 +624,32 @@ public class TextRecognizer {
     return text;
   }
 
-  private String read(BufferedImage bimg) {
-    if (isValid()) {
-      try {
-        return tess.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
-      } catch (TesseractException e) {
-        Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
-      }
-    } else {
-      Debug.error("OCR: read: not valid");
-    }
-    return "";
-  }
+//  private String read(BufferedImage bimg) {
+//    if (isValid()) {
+//      try {
+//        return tess.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
+//      } catch (TesseractException e) {
+//        Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
+//      }
+//    } else {
+//      Debug.error("OCR: read: not valid");
+//    }
+//    return "";
+//  }
 
   private static String readXXXrun(TextRecognizer tr, Object... args) {
     String text = "";
     BufferedImage bimg = readXXXevalParameters(tr, args);
     if (bimg != null) {
-      text = tr.read(bimg);
+//      if (tr.psm == PageSegMode.AUTO.ordinal()) {
+        text = "";
+        for (Match line : readLines(bimg)) {
+          if (!text.isEmpty()) text += "\n";
+          text += line.getText();
+        }
+//      } else {
+//        text = tr.read(bimg);
+//      }
     }
     if (Debug.getDebugLevel() > 2) {
       TextRecognizer.status();
@@ -705,28 +707,24 @@ public class TextRecognizer {
     String text = "";
     TextRecognizer tr = start();
     if (tr.isValid()) {
-      text = tr.read(bimg);
+      text = tr.readText(bimg);
     }
     return text;
   }
 
-  protected static List<Match> readLines(BufferedImage bimg) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, null);
+  public static List<Match> readStuff(int level, Object... args) {
+    return readTextItems(readXXXevalParameters(null, args), level);
+  }
+
+  public static List<Match> readLines(BufferedImage bimg) {
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE);
   }
 
   public static List<Match> readWords(BufferedImage bimg) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, null);
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD);
   }
 
-  protected static List<Match> readLines(BufferedImage bimg, Region base) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, base);
-  }
-
-  public static List<Match> readWords(BufferedImage bimg, Region base) {
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, base);
-  }
-
-  private static List<Match> readTextItems(BufferedImage bimg, int level, Region base) {
+  private static List<Match> readTextItems(BufferedImage bimg, int level) {
     List<Match> lines = new ArrayList<>();
     TextRecognizer tr = start();
     if (tr.isValid()) {
@@ -734,24 +732,14 @@ public class TextRecognizer {
       List<Word> textItems = tr.getAPI().getWords(bimgResized, level);
       double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
       double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
-      int offX = 0;
-      int offY = 0;
-      if (null != base) {
-        offX = base.x;
-        offY = base.y;
-      }
       for (Word textItem : textItems) {
         Rectangle boundingBox = textItem.getBoundingBox();
         Rectangle realBox = new Rectangle(
-                offX + (int) (boundingBox.x * wFactor) - 1,
-                offY + (int) (boundingBox.y * hFactor) - 1,
+                (int) (boundingBox.x * wFactor) - 1,
+                (int) (boundingBox.y * hFactor) - 1,
                 1 + (int) (boundingBox.width * wFactor) + 2,
                 1 + (int) (boundingBox.height * hFactor) + 2);
-        if (null == base) {
-          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
-        } else {
-          lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim(), base));
-        }
+        lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
       }
     }
     return lines;
@@ -795,7 +783,7 @@ public class TextRecognizer {
   @Deprecated
   public String recognize(ScreenImage simg) {
     BufferedImage bimg = simg.getImage();
-    return read(bimg);
+    return readText(bimg);
   }
 
   /**
@@ -806,7 +794,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public String recognize(BufferedImage bimg) {
-    return read(bimg);
+    return readText(bimg);
   }
   //</editor-fold>
 

@@ -2784,7 +2784,15 @@ public class Region {
    * @return a list of text matches
    */
   public List<Match> findWords() {
-    return TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage(), this);
+    return relocate(TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage()));
+  }
+
+  private List<Match> relocate(List<Match> matches) {
+    for (Match match : matches) {
+      match.x += this.x;
+      match.y += this.y;
+    }
+    return matches;
   }
 
   /**
@@ -2821,7 +2829,7 @@ public class Region {
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
-    return TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage(), this);
+    return relocate(TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage()));
   }
   //</editor-fold>
 
@@ -4990,7 +4998,7 @@ public class Region {
    * @return
    */
   public List<Match> collectLines() {
-    return TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage(), this);
+    return findLines();
   }
 
   /**
@@ -5022,7 +5030,7 @@ public class Region {
    * @return
    */
   public List<Match> collectWords() {
-    return TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage(), this);
+    return findWords();
   }
 
   /**

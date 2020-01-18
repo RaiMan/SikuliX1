@@ -214,6 +214,7 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 0 imageName">
+
   /**
    * @return the image's absolute filename or null if jar, http or in memory
    * image
@@ -338,15 +339,9 @@ public class Image {
     return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
   }
 
-  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect, Region where) {
+  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect) {
     Rectangle crop;
-    if (null != where) {
-      crop = where.getRect().intersection(rect);
-      crop.x -= where.x;
-      crop.y -= where.y;
-    } else {
-      crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
-    }
+    crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
     BufferedImage newBimg = new BufferedImage(crop.width, crop.height, bimg.getType());
     Graphics2D g2d = newBimg.createGraphics();
     g2d.drawImage(getSubimage(bimg, crop), 0, 0, null);
@@ -407,7 +402,7 @@ public class Image {
 
   /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
    * @param factor resize factor
@@ -420,9 +415,8 @@ public class Image {
   /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
-   * @param factor resize factor
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
-   *
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor, Interpolation interpolation) {
@@ -431,7 +425,7 @@ public class Image {
 
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
    * @param factor resize factor
@@ -444,9 +438,8 @@ public class Image {
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
    *
-   * @param factor resize factor
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
-   *
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
@@ -455,7 +448,7 @@ public class Image {
 
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
    * @param factor resize factor
@@ -467,7 +460,7 @@ public class Image {
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
    *
-   * @param factor resize factor
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation.
    */
   public static void resize(Mat mat, float factor, Interpolation interpolation) {
@@ -591,6 +584,7 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
+
   /**
    * create a sub image from this image
    *
@@ -989,6 +983,7 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="03 load/save">
+
   /**
    * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
    * create and load a new image
@@ -1373,6 +1368,7 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="20 text/OCR">
+
   /**
    * convenience method: get text from given image file
    *
@@ -1397,7 +1393,7 @@ public class Image {
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one line of text
+   * supposing it is one line of text
    *
    * @param imgFile image filename
    * @return the text or empty string
@@ -1408,7 +1404,7 @@ public class Image {
 
   /**
    * get text from this image
-   *   supposing it is one line of text
+   * supposing it is one line of text
    *
    * @return the text or empty string
    */
@@ -1418,7 +1414,7 @@ public class Image {
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one word
+   * supposing it is one word
    *
    * @param imgFile image filename
    * @return the text or empty string
@@ -1429,7 +1425,7 @@ public class Image {
 
   /**
    * get text from this image
-   *   supposing it is one word
+   * supposing it is one word
    *
    * @return the text or empty string
    */
@@ -1439,7 +1435,7 @@ public class Image {
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one character
+   * supposing it is one character
    *
    * @param imgFile image filename
    * @return the text or empty string
@@ -1450,8 +1446,7 @@ public class Image {
 
   /**
    * get text from this image
-   *   supposing it is one Character
-   *
+   * supposing it is one Character
    */
   public String textChar() {
     return TextRecognizer.readChar(get());
@@ -1459,6 +1454,7 @@ public class Image {
 
   /**
    * find text lines in this region
+   *
    * @return list of strings each representing one line of text
    */
   public List<String> textLines() {
@@ -1472,6 +1468,7 @@ public class Image {
 
   /**
    * Find all lines as text (top left to bottom right)
+   *
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
@@ -1482,6 +1479,7 @@ public class Image {
    * find the words as text in this image (top left to bottom right)<br>
    * a word is a sequence of detected utf8-characters surrounded by significant background space
    * (might contain characters misinterpreted from contained grafics)
+   *
    * @return list of strings each representing one word
    */
   public List<String> textWords() {
@@ -1495,6 +1493,7 @@ public class Image {
 
   /**
    * Find all words as text (top left to bottom right)
+   *
    * @return a list of text matches
    */
   public List<Match> findWords() {

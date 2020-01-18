@@ -4,9 +4,7 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.Word;
 import org.opencv.core.*;
-import org.opencv.core.Point;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -15,7 +13,9 @@ import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 
 public class Finder implements Iterator<Match> {
@@ -765,9 +764,9 @@ public class Finder implements Iterator<Match> {
         text = text.trim();
       }
       if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE) {
-        wordsFound = TextRecognizer.readLines(bimg, where);
+        wordsFound = TextRecognizer.readLines(bimg);
       } else if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD) {
-        wordsFound = TextRecognizer.readWords(bimg, where);
+        wordsFound = TextRecognizer.readWords(bimg);
       } else {
         globalSearch = true;
         textSplit = text.split("\\s");
@@ -777,7 +776,7 @@ public class Finder implements Iterator<Match> {
             pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
           }
         }
-        wordsFound = TextRecognizer.readLines(bimg, where);
+        wordsFound = TextRecognizer.readLines(bimg);
       }
       timer = new Date().getTime() - timer;
       List<Match> wordsMatch = new ArrayList<>();
@@ -801,16 +800,16 @@ public class Finder implements Iterator<Match> {
           Rectangle wordOrLine = match.getRect();
           List<Match> wordsInLine;
           if (globalSearch) {
-            BufferedImage bLine = Image.createSubimage(bimg, wordOrLine, where);
-            wordsInLine = TextRecognizer.readWords(bLine, match);
+            BufferedImage bLine = Image.createSubimage(bimg, wordOrLine);
+            wordsInLine = TextRecognizer.readWords(bLine);
             if (singleWord) {
               for (Match wordInLine : wordsInLine) {
                 if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {
                   continue;
                 }
                 Rectangle rword = new Rectangle(wordInLine.getRect());
-//                rword.x += wordOrLine.x;
-//                rword.y += wordOrLine.y;
+                rword.x += wordOrLine.x;
+                rword.y += wordOrLine.y;
                 wordsMatch.add(new Match(rword, wordInLine.getScore(), wordInLine.getText(), where));
               }
             } else {
