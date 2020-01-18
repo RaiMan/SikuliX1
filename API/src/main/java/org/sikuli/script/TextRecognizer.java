@@ -40,9 +40,13 @@ public class TextRecognizer {
   public static String versionTesseract = "4.1.0";
 
   //<editor-fold desc="00 start, stop, reset">
-  private TextRecognizer() {
-    Finder.Finder2.init();
+  static {
+    RunTime.loadLibrary(RunTime.libOpenCV);
   }
+
+//  private TextRecognizer() {
+//    Finder.Finder2.init();
+//  }
 
   private static TextRecognizer textRecognizer = null;
   private Tesseract1 tess = null;
@@ -57,13 +61,13 @@ public class TextRecognizer {
   public static void status() {
     if (textRecognizer != null) {
       TextRecognizer tr = textRecognizer;
-      Debug.logp("Textrecognizer: current settings" +
+      Debug.logp("OCR: current settings" +
                       "\ndata = %s" +
                       "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
               tr.dataPath, tr.language, tr.oem, tr.psm, tr.uppercaseXHeight, tr.factor(),
               Toolkit.getDefaultToolkit().getScreenResolution(), tr.resizeInterpolation);
     } else {
-      Debug.logp("Textrecognizer: not running");
+      Debug.logp("OCR: not running");
     }
   }
 
@@ -72,34 +76,34 @@ public class TextRecognizer {
   public static TextRecognizer start() {
     if (textRecognizer == null) {
       textRecognizer = new TextRecognizer();
-      Debug.log(lvl, "TextRecognizer: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
+      Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
       try {
         textRecognizer.tess = new Tesseract1();
         boolean tessdataOK = extractTessdata();
         if (tessdataOK) {
-          Debug.log(lvl, "TextRecognizer: start: data folder: %s", textRecognizer.dataPath);
+          Debug.log(lvl, "OCR: start: data folder: %s", textRecognizer.dataPath);
           textRecognizer.tess.setDatapath(textRecognizer.dataPath);
           if (!new File(textRecognizer.dataPath, textRecognizer.language + ".traineddata").exists()) {
             textRecognizer = null;
-            Debug.error("TextRecognizer: start: no %s.traineddata - provide another language", textRecognizer.language);
+            Debug.error("OCR: start: no %s.traineddata - provide another language", textRecognizer.language);
           } else {
-            Debug.log(lvl, "TextRecognizer: start: language: %s", textRecognizer.language);
+            Debug.log(lvl, "OCR: start: language: %s", textRecognizer.language);
           }
         } else {
           textRecognizer = null;
           if (textRecognizer.dataPathProvided) {
-            Debug.error("TextRecognizer: start: provided tessdata folder not found: %s", Settings.OcrDataPath);
+            Debug.error("OCR: start: provided tessdata folder not found: %s", Settings.OcrDataPath);
           } else {
-            Debug.error("TextRecognizer: start: no valid tesseract data folder");
+            Debug.error("OCR: start: no valid tesseract data folder");
           }
         }
       } catch (Exception e) {
         textRecognizer = null;
-        Debug.error("TextRecognizer: start: %s", e.getMessage());
+        Debug.error("OCR: start: %s", e.getMessage());
       } catch (UnsatisfiedLinkError e) {
         textRecognizer = null;
         String helpURL;
-        Debug.error("TextRecognizer: start: Tesseract library problems: %s", e.getMessage());
+        Debug.error("OCR: start: Tesseract library problems: %s", e.getMessage());
         if (RunTime.get().runningWindows) {
           helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
         } else {
@@ -154,9 +158,9 @@ public class TextRecognizer {
     if (shouldExtract) {
       long tessdataStart = new Date().getTime();
       List<String> files = RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null);
-      Debug.log("TextRecognizer: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
+      Debug.log("OCR: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
       if (files.size() == 0) {
-        Debug.error("TextRecognizer: start: export tessdata not possible");
+        Debug.error("OCR: start: export tessdata not possible");
       }
     }
     // if set, try with provided tessdata folder
@@ -368,7 +372,7 @@ public class TextRecognizer {
       if (psm == PageSegMode.OSD_ONLY.ordinal() || psm == PageSegMode.AUTO_OSD.ordinal()
               || psm == PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
         if (!hasOsdTrData) {
-          String msg = String.format("TextRecognizer: setPSM(%d): needs OSD, " +
+          String msg = String.format("OCR: setPSM(%d): needs OSD, " +
                   "but no osd.traineddata found in tessdata folder", psm);
           //RunTime.get().terminate(999, msg);
           throw new SikuliXception(String.format("fatal: " + msg));
@@ -403,7 +407,7 @@ public class TextRecognizer {
           dataPath = newDataPath;
           tess.setDatapath(dataPath);
         } else {
-          String msg = String.format("TextRecognizer: setDataPath: not valid " +
+          String msg = String.format("OCR: setDataPath: not valid " +
                   "- no %s.traineddata (%s)", language, newDataPath);
           //RunTime.get().terminate(999, msg);
           throw new SikuliXception(String.format("fatal: " + msg));
@@ -424,7 +428,7 @@ public class TextRecognizer {
         this.language = language;
         tess.setLanguage(this.language);
       } else {
-        String msg = String.format("TextRecognizer: setLanguage: no %s.traineddata in %s", language, this.dataPath);
+        String msg = String.format("OCR: setLanguage: no %s.traineddata in %s", language, this.dataPath);
         //RunTime.get().terminate(999, msg);
         throw new SikuliXception(String.format("fatal: " + msg));
       }
@@ -467,14 +471,14 @@ public class TextRecognizer {
   /**
    * @deprecated use setExpectedFontSize(int size) or setExpectedXHeight(int height) instead
    */
-  public Float optimumDPI = null;
+  protected Float optimumDPI = null;
 
   /**
    * Hint for the OCR Engine about the expected font size in pt
    *
    * @param size expected font size in pt
    */
-  public static void setFontSize(int size) {
+  protected static void setFontSize(int size) {
     TextRecognizer tr = TextRecognizer.start();
     if (tr.isValid()) {
       Graphics g = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB).getGraphics();
@@ -493,14 +497,14 @@ public class TextRecognizer {
    *
    * @param height of an uppercase X in px
    */
-  public static void setHeight(int height) {
+  protected static void setHeight(int height) {
     TextRecognizer tr = TextRecognizer.start();
     if (tr.isValid()) {
       tr.uppercaseXHeight = height;
     }
   }
 
-  public static void resetHeight() {
+  protected static void resetHeight() {
     TextRecognizer tr = TextRecognizer.start();
     if (tr.isValid()) {
       tr.uppercaseXHeight = tr.getDefaultHeight();
@@ -523,10 +527,6 @@ public class TextRecognizer {
   private static final int OPTIMAL_X_HEIGHT = 30;
 
   private Image.Interpolation resizeInterpolation = Image.Interpolation.LINEAR;
-
-  public void setResizeInterpolation(Image.Interpolation resizeInterpolation) {
-    this.resizeInterpolation = resizeInterpolation;
-  }
 
   private float factor() {
     // LEGACY: Calculate the resize factor based on the optimal and
@@ -635,10 +635,10 @@ public class TextRecognizer {
       try {
         return tess.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
       } catch (TesseractException e) {
-        Debug.error("TextRecognizer: read: Tess4J: doOCR: %s", e.getMessage());
+        Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       }
     } else {
-      Debug.error("TextRecognizer: read: not valid");
+      Debug.error("OCR: read: not valid");
     }
     return "";
   }

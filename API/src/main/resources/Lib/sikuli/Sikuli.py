@@ -91,7 +91,9 @@ import org.sikuli.script.TextRecognizer as JTextOCR
 class TextOCR(JTextOCR):
   pass
 
-class OCR(JTextOCR):
+import org.sikuli.script.OCR as JOCR
+
+class OCR(JOCR):
   pass
 
 OEM_TESSERACT_ONLY = TextOCR.OcrEngineMode.TESSERACT_ONLY
