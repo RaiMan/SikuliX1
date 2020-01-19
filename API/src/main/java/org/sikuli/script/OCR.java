@@ -73,7 +73,7 @@ public class OCR extends TextRecognizer {
     //<editor-fold desc="02 init, reset">
     public String toString() {
         String msg = String.format(
-                "OCR.OPtions:" +
+                "OCR.Options:" +
                 "\ndata = %s" +
                 "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d/%d) %s",
                 dataPath(), language(), oem(), psm(),
