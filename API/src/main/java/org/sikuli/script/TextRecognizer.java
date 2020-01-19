@@ -65,51 +65,53 @@ public class TextRecognizer {
 
   public static boolean status() {
     if (TR != null) {
-      TextRecognizer tr = TR;
+      OCR.Options opts = TR.trOptions;
       Debug.logp("OCR: current settings" +
               "\ndata = %s" +
               "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
-          tr.trOptions.dataPath(), tr.trOptions.language(), tr.trOptions.oem(), tr.trOptions.psm(),
-          tr.trOptions.textHeight(), tr.trOptions.factor(),
-          Toolkit.getDefaultToolkit().getScreenResolution(), tr.trOptions.resizeInterpolation());
+          opts.dataPath(), opts.language(), opts.oem(), opts.psm(),
+          opts.textHeight(), opts.factor(),
+          Toolkit.getDefaultToolkit().getScreenResolution(), opts.resizeInterpolation());
+      if (opts.hasVariablesOrConfigs()) {
+        Debug.logp(opts.logVariablesConfigs());
+      }
       return true;
     } else {
       Debug.logp("OCR: not running");
       return false;
     }
   }
-
-  private static final int TESSERACT_USER_DEFINED_DPI = 300;
-
+  
   public static TextRecognizer start() {
     return start(null);
   }
 
   public static TextRecognizer start(OCR.Options options) {
-    Tesseract1 tess = null;
-    if (TR == null) {
+    if (TR == null || options != null) {
       TR = new TextRecognizer();
       Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
       try {
-        tess = new Tesseract1();
-        if (options == null) {
+        if (options != null) {
           TR.trOptions = options;
-          TR.trOptions.tesseract(tess);
+          TR.trOptions.tesseract(OCR.newTesseract());
         } else {
-          TR.trOptions = new OCR.Options(tess);
+          TR.trOptions = new OCR.Options(OCR.newTesseract());
         }
-        boolean tessdataOK = extractTessdata();
-        if (tessdataOK) {
-          Debug.log(lvl, "OCR: start: data folder: %s", TR.trOptions.dataPath());
-          tess.setDatapath(TR.trOptions.dataPath());
-          if (!new File(TR.trOptions.dataPath(), TR.trOptions.language() + ".traineddata").exists()) {
-            Debug.error("OCR: start: no %s.traineddata - provide another language", TR.trOptions.language());
-            TR = null;
-          } else {
+        File fTessDataPath = extractTessdata();
+        if (null != fTessDataPath) {
+          // if set, try with provided tessdata folder
+          if (Settings.OcrDataPath != null) {
+            fTessDataPath = new File(Settings.OcrDataPath, "tessdata");
+          }
+          if (fTessDataPath.exists()) {
+            TR.trOptions.startDataPath(fTessDataPath.getAbsolutePath());
+            Debug.log(lvl, "OCR: start: data folder: %s", TR.trOptions.dataPath());
             Debug.log(lvl, "OCR: start: language: %s", TR.trOptions.language());
+          } else {
+            Debug.error("OCR: start: no valid tesseract data folder: %s", TR.trOptions.dataPath());
+            TR = null;
           }
         } else {
-          Debug.error("OCR: start: no valid tesseract data folder: %s", TR.trOptions.dataPath());
           TR = null;
         }
       } catch (Exception e) {
@@ -136,15 +138,6 @@ public class TextRecognizer {
       }
       if (null != TR) {
         TR.trOptions.init();
-        // Set user_defined_dpi to something other than 70 to avoid
-        // getting an error message on STDERR about guessing the resolution.
-        // Interestingly, setting this to whatever value between
-        // 70 and 2400 seems to have no impact on accuracy.
-        // Not with LSTM and not with the legacy model either.
-        // TODO Investigate this further
-        TR.setVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
-
-        TR.shouldRestart = false;
       }
     }
     if (null == TR) {
@@ -154,10 +147,9 @@ public class TextRecognizer {
     return TR;
   }
 
-  private static boolean extractTessdata() {
-    File fTessDataPath;
+  private static File extractTessdata() {
     boolean shouldExtract = false;
-    fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
+    File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
     //export latest tessdata to the standard SikuliX tessdata folder in any case
     if (fTessDataPath.exists()) {
       if (RunTime.get().shouldExport()) {
@@ -173,54 +165,38 @@ public class TextRecognizer {
       Debug.log("OCR: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
       if (files.size() == 0) {
         Debug.error("OCR: start: export tessdata not possible");
+        return null;
       }
     }
-    // if set, try with provided tessdata folder
-    if (Settings.OcrDataPath != null) {
-      fTessDataPath = new File(Settings.OcrDataPath, "tessdata");
-    }
-    if (fTessDataPath.exists()) {
-      TR.trOptions.startDataPath(fTessDataPath.getAbsolutePath());
-      TR.hasOsdTrData = new File(TR.trOptions.dataPath(), "osd.traineddata").exists();
-      return true;
-    }
-    return false;
+    return fTessDataPath;
   }
 
   public static void stop() {
     TR = null;
   }
 
-  public static TextRecognizer reset() {
+  public static void reset() {
     if (null != TR) {
-      if (TR.shouldRestart) {
-        stop();
-        start();
-      } else {
-        TR.trOptions = OCR.Options.reset(TR.trOptions);
-      }
-    } else {
-      start();
+      TR.trOptions = OCR.Options.reset(TR.trOptions);
     }
-    return TR;
   }
 
   public static TextRecognizer asLine() {
-    TextRecognizer tr = TextRecognizer.start();
-    tr.setPSM(OCR.PageSegMode.SINGLE_LINE);
-    return tr;
+    stop();
+    TR = TextRecognizer.start(OCR.options().psm(OCR.PageSegMode.SINGLE_LINE));
+    return TR;
   }
 
   public static TextRecognizer asWord() {
-    TextRecognizer tr = TextRecognizer.start();
-    tr.setPSM(OCR.PageSegMode.SINGLE_WORD);
-    return tr;
+    stop();
+    TR = TextRecognizer.start(OCR.options().psm(OCR.PageSegMode.SINGLE_WORD));
+    return TR;
   }
 
   public static TextRecognizer asChar() {
-    TextRecognizer tr = TextRecognizer.start();
-    tr.setPSM(OCR.PageSegMode.SINGLE_CHAR);
-    return tr;
+    stop();
+    TR = TextRecognizer.start(OCR.options().psm(OCR.PageSegMode.SINGLE_CHAR));
+    return TR;
   }
   //</editor-fold>
 
@@ -247,8 +223,6 @@ public class TextRecognizer {
     trOptions.oem(oem);
     return this;
   }
-
-  private boolean hasOsdTrData = false;
 
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
     return setPSM(psm.ordinal());
@@ -281,7 +255,7 @@ public class TextRecognizer {
     }
     if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
         || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
-      if (!hasOsdTrData) {
+      if (!new File(TR.trOptions.dataPath(), "osd.traineddata").exists()) {
         String msg = String.format("OCR: setPSM(%d): needs OSD, " +
             "but no osd.traineddata found in tessdata folder", psm);
         //RunTime.get().terminate(999, msg);
@@ -326,8 +300,7 @@ public class TextRecognizer {
   private boolean shouldRestart = false;
 
   public TextRecognizer setVariable(String key, String value) {
-    shouldRestart = true;
-    trOptions.tesseract().setTessVariable(key, value);
+    trOptions.variable(key, value);
     return this;
   }
 
@@ -337,8 +310,7 @@ public class TextRecognizer {
   }
 
   public TextRecognizer setConfigs(List<String> configs) {
-    shouldRestart = true;
-    trOptions.tesseract().setConfigs(configs);
+    trOptions.configs(configs);
     return this;
   }
   //</editor-fold>

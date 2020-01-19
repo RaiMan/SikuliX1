@@ -1,12 +1,20 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.Tesseract1;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.*;
+import java.util.List;
 
 public class OCR extends TextRecognizer {
+
+  public static Tesseract1 newTesseract() {
+    return new Tesseract1();
+  }
 
   /**
    * OCR Engine modes:
@@ -56,17 +64,51 @@ public class OCR extends TextRecognizer {
     RAW_LINE // 13
   }
 
-  public static void withSmallFont() {
-    TextRecognizer tr = TextRecognizer.start();
-    tr.setTextHeight(11);
-  }
-
   public static Options options() {
     return Options.options();
   }
 
   public static class Options {
 
+    //<editor-fold desc="02 init, reset">
+    private Options() {}
+
+    public static Options options() {
+      return new Options();
+    }
+
+    private static final int TESSERACT_USER_DEFINED_DPI = 300;
+
+    public Options init() {
+
+      // Set user_defined_dpi to something other than 70 to avoid
+      // getting an error message on STDERR about guessing the resolution.
+      // Interestingly, setting this to whatever value between
+      // 70 and 2400 seems to have no impact on accuracy.
+      // Not with LSTM and not with the legacy model either.
+      // TODO Investigate this further
+      globalVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
+
+      optionsToTesseract();
+      return this;
+    }
+
+    public static Options reset(Options currentOptions) {
+      Options options;
+      if (currentOptions.hasVariablesOrConfigs()) {
+        options = new Options();
+        options.tesseract(OCR.newTesseract());
+        options.globalVariables(currentOptions);
+      } else {
+        options = new Options(currentOptions.tesseract);
+      }
+      options.startDataPath(currentOptions.startDataPath);
+      options.optionsToTesseract();
+      return options;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="05 tesseract">
     private Tesseract1 tesseract = null;
 
     public Tesseract1 tesseract() {
@@ -81,25 +123,6 @@ public class OCR extends TextRecognizer {
     public Options(Tesseract1 tesseract) {
       this.tesseract = tesseract;
     }
-
-    private Options() {}
-
-    public static Options options() {
-      return new Options();
-    }
-
-    public Options init() {
-      optionsToTesseract();
-      return this;
-    }
-
-    public static Options reset(Options currentOptions) {
-      Options options = new Options(currentOptions.tesseract);
-      options.startDataPath(currentOptions.startDataPath);
-      options.optionsToTesseract();
-      return options;
-    }
-
     private void optionsToTesseract() {
       if (tesseract == null) {
         return;
@@ -108,8 +131,16 @@ public class OCR extends TextRecognizer {
       tesseract.setPageSegMode(o_psm);
       tesseract.setLanguage(o_language);
       tesseract.setDatapath(o_dataPath);
+      if (savedConfigs.size() > 0) {
+        tesseract.setConfigs(savedConfigs);
+      }
+      for (String key : savedVariables.keySet()) {
+        tesseract.setTessVariable(key, savedVariables.get(key));
+      }
     }
+    //</editor-fold>
 
+    //<editor-fold desc="10 oem">
     private int o_oem = OcrEngineMode.DEFAULT.ordinal();
     
     public int oem() {
@@ -128,7 +159,9 @@ public class OCR extends TextRecognizer {
       oem(oem.ordinal());
       return this;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="11 psm">
     private int o_psm = PageSegMode.AUTO.ordinal();
  
     public int psm() {
@@ -162,7 +195,9 @@ public class OCR extends TextRecognizer {
       psm(PageSegMode.SINGLE_CHAR);
       return this;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="12 language">
     private String startLanguage = Settings.OcrLanguage;
     private String o_language = startLanguage;
 
@@ -177,7 +212,9 @@ public class OCR extends TextRecognizer {
       }
       return this;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="13 datapath">
     private String startDataPath = null;
     private String o_dataPath = null;
 
@@ -194,8 +231,25 @@ public class OCR extends TextRecognizer {
     }
 
     public Options startDataPath(String dataPath) {
-      startDataPath = dataPath;
-      dataPath(dataPath);
+      if (checkDataPath(dataPath)) {
+        startDataPath = dataPath;
+        o_dataPath = dataPath;
+      }
+      return this;
+    }
+
+    private boolean checkDataPath(String dataPath) {
+      if (new File(dataPath, language() + ".traineddata").exists()) {
+        return true;
+      }
+      Debug.error("OCR: datapath: no %s.traineddata - provide another language", language());
+      return false;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="14 optimization">
+    public Options smallFont() {
+      textHeight(11);
       return this;
     }
 
@@ -249,5 +303,101 @@ public class OCR extends TextRecognizer {
       }
       return OPTIMAL_X_HEIGHT / uppercaseXHeight;
     }
+    //</editor-fold>
+
+    //<editor-fold desc="15 variables">
+    private Map<String, String> savedVariables = new HashMap<>();
+    private Map<String, String> savedGlobalVariables = new HashMap<>();
+
+    public Options variable(String key, String value) {
+      savedVariables.put(key, value);
+      if (null != tesseract) {
+        tesseract.setTessVariable(key, value);
+      }
+      return this;
+    }
+
+    protected Options globalVariable(String key, String value) {
+      savedGlobalVariables.put(key, value);
+      if (null != tesseract) {
+        tesseract.setTessVariable(key, value);
+      }
+      return this;
+    }
+
+    private void globalVariables(Options currentOptions) {
+      for (String key : currentOptions.savedGlobalVariables.keySet()) {
+        globalVariable(key, currentOptions.savedGlobalVariables.get(key));
+      }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="16 configs">
+    private List<String> savedConfigs = new ArrayList<>();
+
+    public Options configs(String... configs) {
+      configs(Arrays.asList(configs));
+      return this;
+    }
+
+    public Options configs(List<String> configs) {
+      savedConfigs = new ArrayList<>();
+      for (String config : configs) {
+        if (!savedConfigs.contains(config)) {
+          savedConfigs.add(config);
+        }
+      }
+      if (null != tesseract) {
+        tesseract.setConfigs(configs);
+      }
+      return this;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="20 helpers">
+    protected boolean hasVariablesOrConfigs() {
+      return savedConfigs.size() > 0 || savedVariables.size() > 0 || savedGlobalVariables.size() > 0;
+    }
+
+    public String logVariablesConfigs() {
+      String logConfigs = "";
+      for (String config: savedConfigs) {
+        if (!logConfigs.isEmpty()) {
+          logConfigs += ",";
+        }
+        logConfigs += config;
+      }
+      if (!logConfigs.isEmpty()) {
+        logConfigs = "configs: " + logConfigs;
+      }
+      String logVariables = "";
+      for (String key: savedVariables.keySet()) {
+        if (!logVariables.isEmpty()) {
+          logVariables += ",";
+        }
+        logVariables += key + ":" + savedVariables.get(key);
+      }
+      if (!logVariables.isEmpty()) {
+        logVariables = "variables: " + logVariables;
+      }
+      String logGlobalVariables = "";
+      for (String key: savedGlobalVariables.keySet()) {
+        if (!logGlobalVariables.isEmpty()) {
+          logGlobalVariables += ",";
+        }
+        logGlobalVariables += key + ":" + savedGlobalVariables.get(key);
+      }
+      if (!logGlobalVariables.isEmpty()) {
+        logGlobalVariables = "global variables: " + logGlobalVariables;
+      }
+      if (!logConfigs.isEmpty()) {
+        logConfigs += "\n";
+      }
+      if (!logGlobalVariables.isEmpty()) {
+        logGlobalVariables += "\n";
+      }
+      return (logConfigs + logGlobalVariables + logVariables).trim();
+    }
+    //</editor-fold>
   }
 }
