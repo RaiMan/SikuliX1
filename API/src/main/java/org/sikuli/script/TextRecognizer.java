@@ -58,9 +58,9 @@ public class TextRecognizer {
     if (newOptions == null) {
       return;
     }
-    trOptions.oem(newOptions.oem())
-        .psm(newOptions.psm())
-        .textHeight(newOptions.textHeight());
+    newOptions.updateFrom(trOptions);
+    trOptions = newOptions;
+    trOptions.optionsToTesseract();
   }
 
   public static boolean status() {
@@ -388,7 +388,7 @@ public class TextRecognizer {
   }
 
   public static <SFIRBS> String readText(SFIRBS from, OCR.Options options) {
-    String text = doRead(from, null);
+    String text = doRead(from, options);
     return text;
   }
 

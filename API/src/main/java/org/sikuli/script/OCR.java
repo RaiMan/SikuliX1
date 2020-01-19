@@ -77,8 +77,6 @@ public class OCR extends TextRecognizer {
       return new Options();
     }
 
-    private static final int TESSERACT_USER_DEFINED_DPI = 300;
-
     public Options init() {
 
       // Set user_defined_dpi to something other than 70 to avoid
@@ -87,7 +85,7 @@ public class OCR extends TextRecognizer {
       // 70 and 2400 seems to have no impact on accuracy.
       // Not with LSTM and not with the legacy model either.
       // TODO Investigate this further
-      globalVariable("user_defined_dpi", Integer.toString(TESSERACT_USER_DEFINED_DPI));
+      globalVariable("user_defined_dpi", Integer.toString(userDPI()));
 
       optionsToTesseract();
       return this;
@@ -106,6 +104,14 @@ public class OCR extends TextRecognizer {
       options.optionsToTesseract();
       return options;
     }
+
+    protected Options updateFrom(Options currentOpts) {
+      tesseract(currentOpts.tesseract());
+      if (dataPath() == null) {
+        startDataPath(currentOpts.dataPath());
+      }
+      return this;
+    }
     //</editor-fold>
 
     //<editor-fold desc="05 tesseract">
@@ -123,7 +129,8 @@ public class OCR extends TextRecognizer {
     public Options(Tesseract1 tesseract) {
       this.tesseract = tesseract;
     }
-    private void optionsToTesseract() {
+
+    protected void optionsToTesseract() {
       if (tesseract == null) {
         return;
       }
@@ -131,6 +138,9 @@ public class OCR extends TextRecognizer {
       tesseract.setPageSegMode(o_psm);
       tesseract.setLanguage(o_language);
       tesseract.setDatapath(o_dataPath);
+      for (String key : savedGlobalVariables.keySet()) {
+        tesseract.setTessVariable(key, savedGlobalVariables.get(key));
+      }
       if (savedConfigs.size() > 0) {
         tesseract.setConfigs(savedConfigs);
       }
@@ -292,6 +302,19 @@ public class OCR extends TextRecognizer {
 
     public Options bestDPI(int dpi) {
       bestDPI = (float) dpi;
+      return this;
+    }
+
+    private static final int TESSERACT_USER_DEFINED_DPI = 300;
+    private int userDPI = TESSERACT_USER_DEFINED_DPI;
+
+    private int userDPI() {
+      return userDPI;
+    }
+
+    public Options userDPI(int dpi) {
+      if (dpi < 70) dpi = Toolkit.getDefaultToolkit().getScreenResolution();
+          userDPI = dpi;
       return this;
     }
 
