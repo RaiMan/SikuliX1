@@ -75,10 +75,10 @@ public class OCR extends TextRecognizer {
         String msg = String.format(
                 "OCR.OPtions:" +
                 "\ndata = %s" +
-                "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
+                "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d/%d) %s",
                 dataPath(), language(), oem(), psm(),
                 textHeight(), factor(),
-                Toolkit.getDefaultToolkit().getScreenResolution(), resizeInterpolation());
+                Toolkit.getDefaultToolkit().getScreenResolution(), userDPI(), resizeInterpolation());
         if (hasVariablesOrConfigs()) {
           msg += "\n" + logVariablesConfigs();
         }
