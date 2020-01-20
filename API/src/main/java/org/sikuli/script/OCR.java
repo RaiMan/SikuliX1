@@ -11,7 +11,7 @@ import java.util.List;
 
 public class OCR extends TextRecognizer {
 
-  private OCR(Options options) {
+  protected OCR(Options options) {
     super(options);
   }
 

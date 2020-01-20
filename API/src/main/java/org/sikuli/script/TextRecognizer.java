@@ -39,7 +39,7 @@ public class TextRecognizer {
   private OCR.Options options;
 
   //<editor-fold desc="00 start, stop, reset">
-  public TextRecognizer(OCR.Options options) {
+  protected TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
     tesseract = new Tesseract1();
     this.options = options;
