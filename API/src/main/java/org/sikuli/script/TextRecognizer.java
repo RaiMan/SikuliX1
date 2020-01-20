@@ -167,16 +167,29 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
+
+  /**
+   * Sets the OEM globally.
+   *
+   * @deprecated Use OCR.globalOptions().setOEM(OCR.OcrEngineMode oem)
+   *
+   * @param oem
+   * @return
+   */
   public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
     return setOEM(oem.ordinal());
   }
 
   /**
+   * Sets the OEM globally.
+   *
    * OCR Engine modes:
    * 0    Original Tesseract only.
    * 1    Cube only.
    * 2    Tesseract + cube.
    * 3    Default, based on what is available.
+   *
+   * @deprecated Use OCR.globalOptions().setOEM(int oem)
    *
    * @param oem
    * @return
@@ -186,11 +199,22 @@ public class TextRecognizer {
     return this;
   }
 
+
+  /**
+   * Sets the PSM globally.
+   *
+   * @deprecated Use OCR.globalOptions().setPSM(OCR.PageSegMode psm)
+   *
+   * @param psm
+   * @return
+   */
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
     return setPSM(psm.ordinal());
   }
 
   /**
+   * Sets the PSM globally.
+   *
    * Page segmentation modes:
    * 0    Orientation and script detection (OSD) only.
    * 1    Automatic page segmentation with OSD.
@@ -207,6 +231,8 @@ public class TextRecognizer {
    * 12    Sparse text with OSD.
    * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    *
+   * @deprecated Use OCR.globalOptions().setPSM(int psm)
+   *
    * @param psm
    * @return the textRecognizer instance
    */
@@ -215,6 +241,13 @@ public class TextRecognizer {
     return this;
   }
 
+  /**
+   * Sets the PSM to -1 globally
+   *
+   * @deprecated Use OCR.globalOptions().resetPSM()
+   *
+   * @return
+   */
   public TextRecognizer resetPSM() {
     OCR.globalOptions().resetPSM();
     return this;
@@ -222,11 +255,28 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="03 set datapath, language, variable, configs">
+
+  /**
+   * Sets the dataPath globally
+   *
+   * @deprecated Use OCR.globalOptions().setDataPath(String dataPath)
+   *
+   * @param dataPath
+   * @return
+   */
   public TextRecognizer setDataPath(String dataPath) {
     OCR.globalOptions().dataPath(dataPath);
     return this;
   }
 
+  /**
+   * Sets the OCR language globally
+   *
+   * @deprecated Use OCR.globalOptions().setLanguage(String language)
+   *
+   * @param language
+   * @return
+   */
   public TextRecognizer setLanguage(String language) {
     OCR.globalOptions().language(language);
     return this;
@@ -234,16 +284,41 @@ public class TextRecognizer {
 
   private boolean shouldRestart = false;
 
+  /**
+   * Sets a Tesseract variable globally.
+   *
+   * @deprecated Use OCR.globalOptions().variable(String key, String value)
+   *
+   * @param key
+   * @param value
+   * @return
+   */
   public TextRecognizer setVariable(String key, String value) {
     OCR.globalOptions().variable(key, value);
     return this;
   }
 
+  /**
+   * Sets Tesseract configs globally
+   *
+   * @deprecated Use OCR.globalOptions.configs(String... configs)
+   *
+   * @param configs
+   * @return
+   */
   public TextRecognizer setConfigs(String... configs) {
     setConfigs(Arrays.asList(configs));
     return this;
   }
 
+  /**
+   * Sets Tesseract configs globally
+   *
+   * @deprecated Use OCR.globalOptions.configs(List<String> configs)
+   *
+   * @param configs
+   * @return
+   */
   public TextRecognizer setConfigs(List<String> configs) {
     OCR.globalOptions().configs(configs);
     return this;
@@ -252,7 +327,9 @@ public class TextRecognizer {
 
   //<editor-fold desc="10 image optimization">
   /**
-   * Hint for the OCR Engine about the expected font size in pt
+   * Hint for the OCR Engine about the expected font size in pt globally
+   *
+   * @deprecated Use OCR.globalOptions().setFontSize(int size)
    *
    * @param size expected font size in pt
    */
@@ -262,7 +339,9 @@ public class TextRecognizer {
   }
 
   /**
-   * Hint for the OCR Engine about the expected height of an uppercase X in px
+   * Hint for the OCR Engine about the expected height of an uppercase X in px globally.
+   *
+   * @deprecated USe OCR.globalOptions().setTextHeight(int height)
    *
    * @param height of an uppercase X in px
    */
