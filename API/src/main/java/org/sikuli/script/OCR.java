@@ -365,10 +365,10 @@ public class OCR extends TextRecognizer implements Cloneable {
     //</editor-fold>
 
     //<editor-fold desc="16 configs">
-    private List<String> configs = new ArrayList<>();
+    private Set<String> configs = new LinkedHashSet<>();
 
     public List<String> configs() {
-      return configs;
+      return new ArrayList<>(configs);
     }
 
     public Options configs(String... configs) {
@@ -377,7 +377,7 @@ public class OCR extends TextRecognizer implements Cloneable {
     }
 
     public Options configs(List<String> configs) {
-      this.configs = configs;
+      this.configs = new LinkedHashSet<>(configs);
       return this;
     }
     //</editor-fold>
