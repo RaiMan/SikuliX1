@@ -14,7 +14,7 @@ public class OCR extends TextRecognizer {
   private OCR(Options options) {
     super(options);
   }
- 
+
   /**
    * OCR Engine modes:
    * 0    Original Tesseract only.
@@ -100,10 +100,10 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     public Options reset() {
-      o_oem = OcrEngineMode.DEFAULT.ordinal();
-      o_psm = PageSegMode.AUTO.ordinal();
-      o_language = startLanguage;
-      o_dataPath = defaultDataPath;
+      oem = OcrEngineMode.DEFAULT.ordinal();
+      psm = PageSegMode.AUTO.ordinal();
+      language = startLanguage;
+      dataPath = defaultDataPath;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
@@ -114,10 +114,10 @@ public class OCR extends TextRecognizer {
     }
 
     public void initTesseract(ITesseract tesseract) {
-      tesseract.setOcrEngineMode(o_oem);
-      tesseract.setPageSegMode(o_psm);
-      tesseract.setLanguage(o_language);
-      tesseract.setDatapath(o_dataPath);
+      tesseract.setOcrEngineMode(oem);
+      tesseract.setPageSegMode(psm);
+      tesseract.setLanguage(language);
+      tesseract.setDatapath(dataPath);
       for (Map.Entry<String, String> entry : variables.entrySet()) {
         tesseract.setTessVariable(entry.getKey(), entry.getValue());
       }
@@ -128,17 +128,17 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="10 oem">
-    private int o_oem;
+    private int oem;
 
     public int oem() {
-      return o_oem;
+      return oem;
     }
 
     public Options oem(int oem) {
       if (oem < 0 || oem > 3) {
         throw new IllegalArgumentException(String.format("Invaid OEM %s", oem));
       }
-      o_oem = oem;
+      this.oem = oem;
       return this;
     }
 
@@ -149,10 +149,10 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="11 psm">
-    private int o_psm;
+    private int psm;
 
     public int psm() {
-      return o_psm;
+      return psm;
     }
 
     public Options psm(int psm) {
@@ -167,7 +167,7 @@ public class OCR extends TextRecognizer {
         }
       }
 
-      o_psm = psm;
+      this.psm = psm;
       return this;
     }
 
@@ -177,7 +177,7 @@ public class OCR extends TextRecognizer {
     }
 
     public Options resetPSM() {
-      o_psm = -1;
+      psm = -1;
       return this;
     }
 
@@ -199,15 +199,15 @@ public class OCR extends TextRecognizer {
 
     //<editor-fold desc="12 language">
     private String startLanguage = Settings.OcrLanguage;
-    private String o_language;
+    private String language;
 
     public String language() {
-      return o_language;
+      return language;
     }
 
     public Options language(String language) {
       if (new File(dataPath(), language + ".traineddata").exists()) {
-        o_language = language;
+        this.language = language;
       } else {
         throw new SikuliXception(String.format("OCR: setLanguage: no %s.traineddata in %s", language, dataPath()));
       }
@@ -218,13 +218,13 @@ public class OCR extends TextRecognizer {
     //<editor-fold desc="13 datapath">
 
     protected static String defaultDataPath = null;
-    private String o_dataPath;
+    private String dataPath;
 
     public String dataPath() {
-      if (o_dataPath == null) {
+      if (dataPath == null) {
         return defaultDataPath;
       }
-      return o_dataPath;
+      return dataPath;
     }
 
     public Options dataPath(String dataPath) {
@@ -232,7 +232,7 @@ public class OCR extends TextRecognizer {
         throw new IllegalArgumentException(String.format("OCR: datapath: no %s.traineddata - provide another language", language()));
       }
 
-      o_dataPath = dataPath;
+      this.dataPath = dataPath;
       return this;
     }
 
