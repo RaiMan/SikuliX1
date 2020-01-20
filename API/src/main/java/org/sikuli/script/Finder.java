@@ -3,7 +3,6 @@
  */
 package org.sikuli.script;
 
-import net.sourceforge.tess4j.Tesseract1;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -759,7 +758,6 @@ public class Finder implements Iterator<Match> {
       String[] textSplit = new String[0];
       java.util.regex.Pattern pattern = null;
 
-      Tesseract1 tapi = tr.getAPI();
       int textLevel = fInput.getTextLevel();
       long timer = new Date().getTime();
       BufferedImage bimg = fInput.getImage();
