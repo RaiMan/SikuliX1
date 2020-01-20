@@ -32,27 +32,20 @@ public class TextRecognizer {
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
 
-  private ITesseract tesseract;
-
   public ITesseract getTesseractAPI() {
-    return tesseract;
-  }
-
-  private OCR.Options options;
-
-  public OCR.Options options() {
-    return options;
-  }
-
-  //<editor-fold desc="00 start, stop, reset">
-  protected TextRecognizer() {
-    this(OCR.globalOptions());
-  }
-
-  protected TextRecognizer(OCR.Options options) {
-    RunTime.loadLibrary(RunTime.libOpenCV);
     try {
-      tesseract = new Tesseract1();
+      ITesseract tesseract = new Tesseract1();
+      tesseract.setOcrEngineMode(options.oem());
+      tesseract.setPageSegMode(options.psm());
+      tesseract.setLanguage(options.language());
+      tesseract.setDatapath(options.dataPath());
+      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
+        tesseract.setTessVariable(entry.getKey(), entry.getValue());
+      }
+      if (!options.configs().isEmpty()) {
+        tesseract.setConfigs(new ArrayList<>(options.configs()));
+      }
+      return tesseract;
     } catch (UnsatisfiedLinkError e) {
       String helpURL;
       if (RunTime.get().runningWindows) {
@@ -71,6 +64,21 @@ public class TextRecognizer {
       }
       throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
     }
+  }
+
+  private OCR.Options options;
+
+  public OCR.Options options() {
+    return options;
+  }
+
+  //<editor-fold desc="00 start, stop, reset">
+  protected TextRecognizer() {
+    this(OCR.globalOptions());
+  }
+
+  protected TextRecognizer(OCR.Options options) {
+    RunTime.loadLibrary(RunTime.libOpenCV);
     this.options = options;
   }
 
@@ -106,21 +114,7 @@ public class TextRecognizer {
       }
       OCR.Options.defaultDataPath = defaultDataPath;
     }
-    tr.initTesseract(options);
     return tr;
-  }
-
-  private void initTesseract(OCR.Options options) {
-    tesseract.setOcrEngineMode(options.oem());
-    tesseract.setPageSegMode(options.psm());
-    tesseract.setLanguage(options.language());
-    tesseract.setDatapath(options.dataPath());
-    for (Map.Entry<String, String> entry : options.variables().entrySet()) {
-      tesseract.setTessVariable(entry.getKey(), entry.getValue());
-    }
-    if (!options.configs().isEmpty()) {
-      tesseract.setConfigs(new ArrayList<>(options.configs()));
-    }
   }
 
   public static void reset() {
@@ -380,7 +374,7 @@ public class TextRecognizer {
     String text = "";
     BufferedImage bimg = getBufferedImage(from);
     try {
-      text = tr.tesseract.doOCR(tr.optimize(bimg)).trim().replace("\n\n", "\n");
+      text = tr.getTesseractAPI().doOCR(tr.optimize(bimg)).trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
       Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       return "";
@@ -392,7 +386,7 @@ public class TextRecognizer {
     List<Match> lines = new ArrayList<>();
     TextRecognizer tr = start(options);
     BufferedImage bimgResized = tr.optimize(bimg);
-    List<Word> textItems = tr.tesseract.getWords(bimgResized, level);
+    List<Word> textItems = tr.getTesseractAPI().getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
     double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
     for (Word textItem : textItems) {

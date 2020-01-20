@@ -1,6 +1,5 @@
 package org.sikuli.script;
 
-import net.sourceforge.tess4j.ITesseract;
 import org.sikuli.basics.Settings;
 
 import java.awt.*;
@@ -9,7 +8,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class OCR extends TextRecognizer {
+public class OCR extends TextRecognizer implements Cloneable {
 
   protected OCR() {
     super();
@@ -73,26 +72,6 @@ public class OCR extends TextRecognizer {
     return globalOptions;
   }
 
-  public static Options newOptions() {
-    return new Options().reset();
-  }
-
-  public static void asText() {
-    OCR.globalOptions().psm(PageSegMode.AUTO);
-  }
-
-  public static void asLine() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_LINE);
-  }
-
-  public static void asWord() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_WORD);
-  }
-
-  public static void asChar() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_CHAR);
-  }
-
   public static class Options {
 
     //<editor-fold desc="02 init, reset">
@@ -110,7 +89,7 @@ public class OCR extends TextRecognizer {
       return msg;
     }
 
-    private Options() {
+    public Options() {
       reset();
     }
 
@@ -118,10 +97,26 @@ public class OCR extends TextRecognizer {
       return new Options();
     }
 
+    @Override
+    public Options clone() {
+      Options options = new Options();
+      options.oem = oem;
+      options.psm = psm;
+      options.language = language;
+      options.dataPath = dataPath;
+      options.textHeight = textHeight;
+      options.resizeInterpolation = resizeInterpolation;
+      options.variables = new LinkedHashMap<>(variables);
+      options.configs = new ArrayList<>(configs);
+      options.bestDPI = bestDPI;
+      options.userDPI = userDPI;
+      return options;
+    }
+
     public Options reset() {
       oem = OcrEngineMode.DEFAULT.ordinal();
       psm = PageSegMode.AUTO.ordinal();
-      language = startLanguage;
+      language = Settings.OcrLanguage;
       dataPath = defaultDataPath;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
@@ -188,24 +183,47 @@ public class OCR extends TextRecognizer {
       return this;
     }
 
+    /**
+     * Options to recognize a single line of text.
+     *
+     * Returns a clone of this Options instance with single line PSM.
+     *
+     * Doesn't alter this object.
+     *
+     * @return cloned options
+     */
     public Options asLine() {
-      psm(PageSegMode.SINGLE_LINE);
-      return this;
+      return clone().psm(PageSegMode.SINGLE_LINE);
     }
 
+    /**
+     * Options to recognize a single word.
+     *
+     * Returns a clone of this Options instance with single word PSM.
+     *
+     * Doesn't alter this object.
+     *
+     * @return cloned options
+     */
     public Options asWord() {
-      psm(PageSegMode.SINGLE_WORD);
-      return this;
+      return clone().psm(PageSegMode.SINGLE_WORD);
     }
 
+    /**
+     * Options to recognize a single character.
+     *
+     * Returns a clone of this Options instance with single char PSM.
+     *
+     * Doesn't alter this object.
+     *
+     * @return cloned options
+     */
     public Options asChar() {
-      psm(PageSegMode.SINGLE_CHAR);
-      return this;
+      return clone().psm(PageSegMode.SINGLE_CHAR);
     }
     //</editor-fold>
 
     //<editor-fold desc="12 language">
-    private String startLanguage = Settings.OcrLanguage;
     private String language;
 
     public String language() {
@@ -334,8 +352,7 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="15 variables">
-    //TODO vorgegebene Reihenfolge wichtig?
-    private Map<String, String> variables = new HashMap<>();
+    private Map<String, String> variables = new LinkedHashMap<>();
 
     public Map<String, String> variables() {
       return variables;
@@ -348,10 +365,9 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="16 configs">
-    //TODO vorgegebene Reihenfolge wichtig?
-    private Set<String> configs = new HashSet<>();
+    private List<String> configs = new ArrayList<>();
 
-    public Set<String> configs() {
+    public List<String> configs() {
       return configs;
     }
 
@@ -361,7 +377,7 @@ public class OCR extends TextRecognizer {
     }
 
     public Options configs(List<String> configs) {
-      this.configs = new HashSet<>(configs);
+      this.configs = configs;
       return this;
     }
     //</editor-fold>
