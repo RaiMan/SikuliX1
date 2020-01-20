@@ -4966,7 +4966,10 @@ public class Region {
    * @return the text or empty string
    */
   public String textLine() {
-    return TextRecognizer.readText(this, OCR.options().asLine());
+    OCR.asLine();
+    String text = TextRecognizer.readText(this);
+    OCR.asText();
+    return text;
   }
 
   /**
@@ -4976,7 +4979,10 @@ public class Region {
    * @return the text or empty string
    */
   public String textWord() {
-    return TextRecognizer.readText(this, OCR.options().asWord());
+    OCR.asWord();
+    String text = TextRecognizer.readText(this);
+    OCR.asText();
+    return text;
   }
 
   /**
@@ -4986,7 +4992,10 @@ public class Region {
    * @return the text or empty string
    */
   public String textChar() {
-    return TextRecognizer.readText(this, OCR.options().asChar());
+    OCR.asChar();
+    String text = TextRecognizer.readText(this);
+    OCR.asText();
+    return text;
   }
 
   /**

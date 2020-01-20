@@ -11,6 +11,10 @@ import java.util.List;
 
 public class OCR extends TextRecognizer {
 
+  protected OCR() {
+    super();
+  }
+
   protected OCR(Options options) {
     super(options);
   }
@@ -63,31 +67,47 @@ public class OCR extends TextRecognizer {
     RAW_LINE // 13
   }
 
-  public static Options options() {
-    return Options.options();
-  }
-
   private static Options globalOptions = Options.options();
 
   public static Options globalOptions() {
     return globalOptions;
   }
 
+  public static Options newOptions() {
+    return new Options().reset();
+  }
+
+  public static void asText() {
+    OCR.globalOptions().psm(PageSegMode.AUTO);
+  }
+
+  public static void asLine() {
+    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_LINE);
+  }
+
+  public static void asWord() {
+    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_WORD);
+  }
+
+  public static void asChar() {
+    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_CHAR);
+  }
+
   public static class Options {
 
     //<editor-fold desc="02 init, reset">
     public String toString() {
-        String msg = String.format(
-                "OCR.Options:" +
-                "\ndata = %s" +
-                "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d/%d) %s",
-                dataPath(), language(), oem(), psm(),
-                textHeight(), factor(),
-                Toolkit.getDefaultToolkit().getScreenResolution(), userDPI(), resizeInterpolation());
-        if (hasVariablesOrConfigs()) {
-          msg += "\n" + logVariablesConfigs();
-        }
-        return msg;
+      String msg = String.format(
+          "OCR.Options:" +
+              "\ndata = %s" +
+              "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d/%d) %s",
+          dataPath(), language(), oem(), psm(),
+          textHeight(), factor(),
+          Toolkit.getDefaultToolkit().getScreenResolution(), userDPI(), resizeInterpolation());
+      if (hasVariablesOrConfigs()) {
+        msg += "\n" + logVariablesConfigs();
+      }
+      return msg;
     }
 
     private Options() {
@@ -97,7 +117,6 @@ public class OCR extends TextRecognizer {
     public static Options options() {
       return new Options();
     }
-    //</editor-fold>
 
     public Options reset() {
       oem = OcrEngineMode.DEFAULT.ordinal();
@@ -112,19 +131,6 @@ public class OCR extends TextRecognizer {
       userDPI(TESSERACT_USER_DEFINED_DPI);
       return this;
     }
-
-    public void initTesseract(ITesseract tesseract) {
-      tesseract.setOcrEngineMode(oem);
-      tesseract.setPageSegMode(psm);
-      tesseract.setLanguage(language);
-      tesseract.setDatapath(dataPath);
-      for (Map.Entry<String, String> entry : variables.entrySet()) {
-        tesseract.setTessVariable(entry.getKey(), entry.getValue());
-      }
-      if (!configs.isEmpty()) {
-        tesseract.setConfigs(new ArrayList<>(configs));
-      }
-    }
     //</editor-fold>
 
     //<editor-fold desc="10 oem">
@@ -136,7 +142,7 @@ public class OCR extends TextRecognizer {
 
     public Options oem(int oem) {
       if (oem < 0 || oem > 3) {
-        throw new IllegalArgumentException(String.format("Invaid OEM %s", oem));
+        throw new IllegalArgumentException(String.format("OCR: Invalid OEM %s (0 .. 3)", oem));
       }
       this.oem = oem;
       return this;
@@ -157,16 +163,17 @@ public class OCR extends TextRecognizer {
 
     public Options psm(int psm) {
       if (psm < 0 || psm > 13) {
-        throw new IllegalArgumentException(String.format("Tesseract: psm invalid (%d) - using default (3)", psm));
+        throw new IllegalArgumentException(String.format("OCR: Invalid PSM %s (0 .. 12)", psm));
       }
-      if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
-          || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
-        if (!new File(dataPath(), "osd.traineddata").exists()) {
-          throw new IllegalArgumentException( String.format("OCR: setPSM(%d): needs OSD, " +
-              "but no osd.traineddata found in tessdata folder", psm));
+      if (null != dataPath) {
+        if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
+            || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+          if (!new File(dataPath(), "osd.traineddata").exists()) {
+            throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
+                "but no osd.traineddata found in tessdata folder", psm));
+          }
         }
       }
-
       this.psm = psm;
       return this;
     }
@@ -206,17 +213,15 @@ public class OCR extends TextRecognizer {
     }
 
     public Options language(String language) {
-      if (new File(dataPath(), language + ".traineddata").exists()) {
-        this.language = language;
-      } else {
-        throw new SikuliXception(String.format("OCR: setLanguage: no %s.traineddata in %s", language, dataPath()));
+      if (dataPath() != null && !new File(dataPath(), language + ".traineddata").exists()) {
+        throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s", language, dataPath()));
       }
+      this.language = language;
       return this;
     }
     //</editor-fold>
 
     //<editor-fold desc="13 datapath">
-
     protected static String defaultDataPath = null;
     private String dataPath;
 
@@ -228,26 +233,20 @@ public class OCR extends TextRecognizer {
     }
 
     public Options dataPath(String dataPath) {
-      if(!checkDataPath(dataPath)) {
-        throw new IllegalArgumentException(String.format("OCR: datapath: no %s.traineddata - provide another language", language()));
+      if(!"tessdata".equals(new File(dataPath).getName())) {
+        dataPath = new File(dataPath, "tessdata").getAbsolutePath();
       }
-
+      if (!new File(dataPath, language + ".traineddata").exists()) {
+        throw new IllegalArgumentException(String.format("OCR: datapath: no %s.traineddata in %s", language(), dataPath));
+      }
       this.dataPath = dataPath;
       return this;
-    }
-
-
-    private boolean checkDataPath(String dataPath) {
-      if (new File(dataPath, language() + ".traineddata").exists()) {
-        return true;
-      }
-      return false;
     }
     //</editor-fold>
 
     //<editor-fold desc="14 optimization">
     public Options smallFont() {
-      textHeight(11);
+      textHeight(10);
       return this;
     }
 
@@ -313,13 +312,14 @@ public class OCR extends TextRecognizer {
     }
 
     public Options userDPI(int dpi) {
-      if(dpi < 70 || dpi > 2400) {
-        throw new IllegalArgumentException("user DPI must be between 70 and 2400");
+      if (dpi == 0) {
+        dpi = Toolkit.getDefaultToolkit().getScreenResolution();
       }
-
+      if (dpi < 70 || dpi > 2400) {
+        throw new IllegalArgumentException(String.format("OCR: Invalid user DPI: %s (must be 70 .. 2400)", dpi));
+      }
       userDPI = dpi;
       variable("user_defined_dpi", Integer.toString(userDPI()));
-
       return this;
     }
 
@@ -334,7 +334,12 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="15 variables">
+    //TODO vorgegebene Reihenfolge wichtig?
     private Map<String, String> variables = new HashMap<>();
+
+    public Map<String, String> variables() {
+      return variables;
+    }
 
     public Options variable(String key, String value) {
       variables.put(key, value);
@@ -343,7 +348,12 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="16 configs">
+    //TODO vorgegebene Reihenfolge wichtig?
     private Set<String> configs = new HashSet<>();
+
+    public Set<String> configs() {
+      return configs;
+    }
 
     public Options configs(String... configs) {
       configs(Arrays.asList(configs));
@@ -367,7 +377,7 @@ public class OCR extends TextRecognizer {
         logConfigs = "configs: " + logConfigs;
       }
       String logVariables = "";
-      for (String key: variables.keySet()) {
+      for (String key : variables.keySet()) {
         if (!logVariables.isEmpty()) {
           logVariables += ",";
         }

@@ -12,7 +12,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
@@ -23,9 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 
 public class TextRecognizer {
@@ -36,63 +33,26 @@ public class TextRecognizer {
   public static String versionTesseract = "4.1.0";
 
   private ITesseract tesseract;
+
+  public ITesseract getTesseractAPI() {
+    return tesseract;
+  }
+
   private OCR.Options options;
 
+  public OCR.Options options() {
+    return options;
+  }
+
   //<editor-fold desc="00 start, stop, reset">
+  protected TextRecognizer() {
+    this(OCR.globalOptions());
+  }
+
   protected TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
-    tesseract = new Tesseract1();
-    this.options = options;
-  }
-
-  public static boolean status() {
-    OCR.Options opts = OCR.globalOptions();
-    Debug.logp("OCR: current settings" +
-            "\ndata = %s" +
-            "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
-        opts.dataPath(), opts.language(), opts.oem(), opts.psm(),
-        opts.textHeight(), opts.factor(),
-        Toolkit.getDefaultToolkit().getScreenResolution(), opts.resizeInterpolation());
-    if (opts.hasVariablesOrConfigs()) {
-      Debug.logp(opts.logVariablesConfigs());
-    }
-    return true;
-  }
-
-  public static TextRecognizer start() {
-    return start(OCR.globalOptions());
-  }
-
-  public static TextRecognizer start(OCR.Options options) {
-    if (options == null) {
-      options = OCR.globalOptions();
-    }
-
-    Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
-
-    TextRecognizer tr = new TextRecognizer(options);
-
     try {
-      if (OCR.Options.defaultDataPath == null) {
-        File fTessDataPath = extractTessdata();
-        if (null != fTessDataPath) {
-          // if set, try with provided tessdata folder
-          if (Settings.OcrDataPath != null) {
-            fTessDataPath = new File(Settings.OcrDataPath, "tessdata");
-          }
-          if (fTessDataPath.exists()) {
-            OCR.Options.defaultDataPath = fTessDataPath.getAbsolutePath();
-            Debug.log(lvl, "OCR: start: data folder: %s", OCR.Options.defaultDataPath);
-            Debug.log(lvl, "OCR: start: language: %s", options.language());
-          } else {
-            throw new SikuliXception(String.format("OCR: start: no valid tesseract data folder: %s", OCR.Options.defaultDataPath));
-          }
-        } else {
-          throw new SikuliXception("Extracting SikuliX tessdata went wrong.");
-        }
-      }
-    } catch (Exception e) {
-      throw new SikuliXception(String.format("OCR: start: %s", e.getMessage()));
+      tesseract = new Tesseract1();
     } catch (UnsatisfiedLinkError e) {
       String helpURL;
       if (RunTime.get().runningWindows) {
@@ -111,110 +71,120 @@ public class TextRecognizer {
       }
       throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
     }
+    this.options = options;
+  }
 
+  public static TextRecognizer start() {
+    return start(OCR.globalOptions());
+  }
+
+  public static TextRecognizer start(OCR.Options options) {
+    Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
+    if (options == null) {
+      options = OCR.globalOptions();
+    }
+    TextRecognizer tr = new TextRecognizer(options);
+    if (OCR.Options.defaultDataPath == null) {
+      // export SikuliX eng.traineddata, if libs are exported as well
+      File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
+      boolean shouldExport = RunTime.get().shouldExport();
+      boolean fExists = fTessDataPath.exists();
+      if (!fExists || shouldExport) {
+        if (0 == RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
+          throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
+        }
+      }
+      // if set, try with provided tessdata parent folder
+      String defaultDataPath;
+      if (Settings.OcrDataPath != null) {
+        defaultDataPath = new File(Settings.OcrDataPath, "tessdata").getAbsolutePath();
+      } else {
+        defaultDataPath = fTessDataPath.getAbsolutePath();
+      }
+      if (options.dataPath() == null) {
+        options.dataPath(defaultDataPath);
+      }
+      OCR.Options.defaultDataPath = defaultDataPath;
+    }
+    tr.initTesseract(options);
     return tr;
   }
 
-  public ITesseract getAPI() {
-    return tesseract;
-  }
-
-  private static File extractTessdata() {
-    boolean shouldExtract = false;
-    File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-    //export latest tessdata to the standard SikuliX tessdata folder in any case
-    if (fTessDataPath.exists()) {
-      if (RunTime.get().shouldExport()) {
-        shouldExtract = true;
-        FileManager.deleteFileOrFolder(fTessDataPath);
-      }
-    } else {
-      shouldExtract = true;
+  private void initTesseract(OCR.Options options) {
+    tesseract.setOcrEngineMode(options.oem());
+    tesseract.setPageSegMode(options.psm());
+    tesseract.setLanguage(options.language());
+    tesseract.setDatapath(options.dataPath());
+    for (Map.Entry<String, String> entry : options.variables().entrySet()) {
+      tesseract.setTessVariable(entry.getKey(), entry.getValue());
     }
-    if (shouldExtract) {
-      long tessdataStart = new Date().getTime();
-      List<String> files = RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null);
-      Debug.log("OCR: start: extracting tessdata took %d msec", new Date().getTime() - tessdataStart);
-      if (files.size() == 0) {
-        Debug.error("OCR: start: export tessdata not possible");
-        return null;
-      }
+    if (!options.configs().isEmpty()) {
+      tesseract.setConfigs(new ArrayList<>(options.configs()));
     }
-    return fTessDataPath;
   }
 
   public static void reset() {
     OCR.globalOptions().reset();
   }
 
-  public static TextRecognizer asLine() {
-    reset();
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_LINE);
-    return TextRecognizer.start();
+  public static void status() {
+    Debug.logp("Global settings " + OCR.globalOptions().toString());
   }
 
-  public static TextRecognizer asWord() {
-    reset();
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_WORD);
-    return TextRecognizer.start();
-  }
-
-  public static TextRecognizer asChar() {
-    reset();
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_CHAR);
-    return TextRecognizer.start();
+  public String toString() {
+    return options.toString();
   }
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
 
   /**
-   * Sets the OEM globally.
-   *
-   * @deprecated Use OCR.globalOptions().setOEM(OCR.OcrEngineMode oem)
+   * Sets the OEM
    *
    * @param oem
    * @return
+   * @deprecated Use options().oem()
    */
+  @Deprecated
   public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
     return setOEM(oem.ordinal());
   }
 
   /**
-   * Sets the OEM globally.
-   *
+   * Sets the OEM.
+   * <p>
    * OCR Engine modes:
    * 0    Original Tesseract only.
    * 1    Cube only.
    * 2    Tesseract + cube.
    * 3    Default, based on what is available.
    *
-   * @deprecated Use OCR.globalOptions().setOEM(int oem)
-   *
    * @param oem
    * @return
+   * @deprecated Use options().oem()
    */
+  @Deprecated
   public TextRecognizer setOEM(int oem) {
-    OCR.globalOptions().oem(oem);
+    options().oem(oem);
     return this;
   }
 
 
   /**
-   * Sets the PSM globally.
-   *
-   * @deprecated Use OCR.globalOptions().setPSM(OCR.PageSegMode psm)
+   * Sets the PSM.
    *
    * @param psm
    * @return
+   * @deprecated Use options().psm()
    */
+  @Deprecated
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
     return setPSM(psm.ordinal());
   }
 
   /**
-   * Sets the PSM globally.
-   *
+   * Sets the PSM.
+   * <p>
    * Page segmentation modes:
    * 0    Orientation and script detection (OSD) only.
    * 1    Automatic page segmentation with OSD.
@@ -231,25 +201,13 @@ public class TextRecognizer {
    * 12    Sparse text with OSD.
    * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    *
-   * @deprecated Use OCR.globalOptions().setPSM(int psm)
-   *
    * @param psm
    * @return the textRecognizer instance
+   * @deprecated Use options().psm()
    */
+  @Deprecated
   public TextRecognizer setPSM(int psm) {
-    OCR.globalOptions().psm(psm);
-    return this;
-  }
-
-  /**
-   * Sets the PSM to -1 globally
-   *
-   * @deprecated Use OCR.globalOptions().resetPSM()
-   *
-   * @return
-   */
-  public TextRecognizer resetPSM() {
-    OCR.globalOptions().resetPSM();
+    options().psm(psm);
     return this;
   }
   //</editor-fold>
@@ -257,96 +215,93 @@ public class TextRecognizer {
   //<editor-fold desc="03 set datapath, language, variable, configs">
 
   /**
-   * Sets the dataPath globally
-   *
-   * @deprecated Use OCR.globalOptions().setDataPath(String dataPath)
+   * Sets the dataPath
    *
    * @param dataPath
    * @return
+   * @deprecated Use options().datapath()
    */
+  @Deprecated
   public TextRecognizer setDataPath(String dataPath) {
-    OCR.globalOptions().dataPath(dataPath);
+    options().dataPath(dataPath);
     return this;
   }
 
   /**
-   * Sets the OCR language globally
-   *
-   * @deprecated Use OCR.globalOptions().setLanguage(String language)
+   * Sets the OCR language
    *
    * @param language
    * @return
+   * @deprecated Use options().language()
    */
+  @Deprecated
   public TextRecognizer setLanguage(String language) {
-    OCR.globalOptions().language(language);
+    options().language(language);
     return this;
   }
 
-  private boolean shouldRestart = false;
-
   /**
-   * Sets a Tesseract variable globally.
-   *
-   * @deprecated Use OCR.globalOptions().variable(String key, String value)
+   * Sets a Tesseract variable.
    *
    * @param key
    * @param value
    * @return
+   * @deprecated Use options().variable(String key, String value)
    */
+  @Deprecated
   public TextRecognizer setVariable(String key, String value) {
-    OCR.globalOptions().variable(key, value);
+    options().variable(key, value);
     return this;
   }
 
   /**
-   * Sets Tesseract configs globally
-   *
-   * @deprecated Use OCR.globalOptions.configs(String... configs)
+   * Sets Tesseract configs
    *
    * @param configs
    * @return
+   * @deprecated Use OCR.globalOptions.configs(String... configs)
    */
+  @Deprecated
   public TextRecognizer setConfigs(String... configs) {
     setConfigs(Arrays.asList(configs));
     return this;
   }
 
   /**
-   * Sets Tesseract configs globally
-   *
-   * @deprecated Use OCR.globalOptions.configs(List<String> configs)
+   * Sets Tesseract configs
    *
    * @param configs
    * @return
+   * @deprecated Use options.configs(List<String> configs)
    */
+  @Deprecated
   public TextRecognizer setConfigs(List<String> configs) {
-    OCR.globalOptions().configs(configs);
+    options().configs(configs);
     return this;
   }
   //</editor-fold>
 
   //<editor-fold desc="10 image optimization">
+
   /**
    * Hint for the OCR Engine about the expected font size in pt globally
    *
-   * @deprecated Use OCR.globalOptions().setFontSize(int size)
-   *
    * @param size expected font size in pt
+   * @deprecated Use options().setFontSize(int size)
    */
   public TextRecognizer setFontSize(int size) {
-    OCR.globalOptions().setFontSize(size);
+    options().setFontSize(size);
     return this;
   }
 
   /**
    * Hint for the OCR Engine about the expected height of an uppercase X in px globally.
    *
-   * @deprecated USe OCR.globalOptions().setTextHeight(int height)
-   *
    * @param height of an uppercase X in px
+   * @deprecated USe options().setTextHeight(int height)
    */
   public TextRecognizer setTextHeight(int height) {
-    OCR.globalOptions().textHeight(height);
+    options().textHeight(height);
     return this;
   }
 
@@ -400,14 +355,6 @@ public class TextRecognizer {
     return text;
   }
 
-  private static String doRead(Object from, OCR.Options options) {
-    TextRecognizer tr = TextRecognizer.start(options);
-    String text = "";
-    BufferedImage bimg = getBufferedImage(from);
-    text = tr.read(bimg);
-    return text;
-  }
-
   public static <SFIRBS> List<Match> readLines(SFIRBS from) {
     return readLines(from, OCR.globalOptions());
   }
@@ -428,13 +375,24 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="30 helper">
+  private static String doRead(Object from, OCR.Options options) {
+    TextRecognizer tr = TextRecognizer.start(options);
+    String text = "";
+    BufferedImage bimg = getBufferedImage(from);
+    try {
+      text = tr.tesseract.doOCR(tr.optimize(bimg)).trim().replace("\n\n", "\n");
+    } catch (TesseractException e) {
+      Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
+      return "";
+    }
+    return text;
+  }
+
   private static List<Match> readTextItems(BufferedImage bimg, int level, OCR.Options options) {
     List<Match> lines = new ArrayList<>();
-
     TextRecognizer tr = start(options);
     BufferedImage bimgResized = tr.optimize(bimg);
-    List<Word> textItems = tr.getAPI().getWords(bimgResized, level);
-
+    List<Word> textItems = tr.tesseract.getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
     double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
     for (Word textItem : textItems) {
@@ -447,16 +405,6 @@ public class TextRecognizer {
       lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
     }
     return lines;
-  }
-
-  private String read(BufferedImage bimg) {
-    try {
-      options.initTesseract(tesseract);
-      return tesseract.doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
-    } catch (TesseractException e) {
-      Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
-    }
-    return "";
   }
 
   private static BufferedImage getBufferedImage(Object whatEver) {
