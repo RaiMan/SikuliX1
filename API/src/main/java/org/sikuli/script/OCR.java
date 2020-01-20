@@ -107,7 +107,7 @@ public class OCR extends TextRecognizer implements Cloneable {
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
       options.variables = new LinkedHashMap<>(variables);
-      options.configs = new ArrayList<>(configs);
+      options.configs = new LinkedHashSet<>(configs);
       options.bestDPI = bestDPI;
       options.userDPI = userDPI;
       return options;
