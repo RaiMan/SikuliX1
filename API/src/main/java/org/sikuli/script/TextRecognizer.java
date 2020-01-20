@@ -337,6 +337,15 @@ public class TextRecognizer {
     OCR.globalOptions().setFontSize(size);
     return this;
   }
+  
+  public TextRecognizer setOptions(OCR.Options options){
+    this.options = options;
+    return this;
+  }
+  
+  public OCR.Options getOptions(){
+    return this.options;
+  }
 
   /**
    * Hint for the OCR Engine about the expected height of an uppercase X in px globally.
