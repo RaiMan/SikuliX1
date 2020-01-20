@@ -1,7 +1,6 @@
 package org.sikuli.script;
 
 import net.sourceforge.tess4j.ITesseract;
-import net.sourceforge.tess4j.Tesseract1;
 import org.sikuli.basics.Settings;
 
 import java.awt.*;
@@ -15,11 +14,7 @@ public class OCR extends TextRecognizer {
   private OCR(Options options) {
     super(options);
   }
-
-  public static Tesseract1 newTesseract() {
-    return new Tesseract1();
-  }
-
+ 
   /**
    * OCR Engine modes:
    * 0    Original Tesseract only.
