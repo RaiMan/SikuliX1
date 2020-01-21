@@ -394,6 +394,22 @@ public class OCR {
     }
     //</editor-fold>
   }
+  
+  /**
+   * Creates a new TextRecognizer instance using the global options.
+   */
+  public static TextRecognizer start() {
+    return start(globalOptions());
+  }
+  
+  /**
+   * Creates a new TextRecognizer instance.
+   * 
+   * @param options
+   */
+  public static TextRecognizer start(Options options) {
+    return TextRecognizer.start(options);
+  }  
 
   /**
    * Reads text from the given source.
