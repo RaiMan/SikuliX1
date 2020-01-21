@@ -379,40 +379,40 @@ public class Finder implements Iterator<Match> {
   }
 
   public boolean findWord(String text) {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_WORD);
     findText(text);
     return hasNext();
   }
 
   public boolean findWords(String text) {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_WORD);
     _findInput.setFindAll();
     findText(text);
     return hasNext();
   }
 
   public boolean findWords() {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_WORD);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_WORD);
     _findInput.setFindAll();
     findText("");
     return hasNext();
   }
 
   public boolean findLine(String text) {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_LINE);
     findText(text);
     return hasNext();
   }
 
   public boolean findLines(String text) {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_LINE);
     _findInput.setFindAll();
     findText(text);
     return hasNext();
   }
 
   public boolean findLines() {
-    _findInput.setTextLevel(TextRecognizer.PAGE_ITERATOR_LEVEL_LINE);
+    _findInput.setTextLevel(OCR.PAGE_ITERATOR_LEVEL_LINE);
     _findInput.setFindAll();
     findText("");
     return hasNext();
@@ -586,11 +586,11 @@ public class Finder implements Iterator<Match> {
     private static final double downSimDiff = 0.15;
 
     private boolean isWord() {
-      return fInput.getTextLevel() == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD;
+      return fInput.getTextLevel() == OCR.PAGE_ITERATOR_LEVEL_WORD;
     }
 
     private boolean isLine() {
-      return fInput.getTextLevel() == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE;
+      return fInput.getTextLevel() == OCR.PAGE_ITERATOR_LEVEL_LINE;
     }
 
     private boolean isTextMatching(String base, String probe, java.util.regex.Pattern pattern) {
@@ -765,9 +765,9 @@ public class Finder implements Iterator<Match> {
       } else {
         text = text.trim();
       }
-      if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE) {
+      if (textLevel == OCR.PAGE_ITERATOR_LEVEL_LINE) {
         wordsFound = OCR.readLines(bimg);
-      } else if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD) {
+      } else if (textLevel == OCR.PAGE_ITERATOR_LEVEL_WORD) {
         wordsFound = OCR.readWords(bimg);
       } else {
         globalSearch = true;

@@ -1,5 +1,6 @@
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
 import java.awt.*;
@@ -14,6 +15,7 @@ import java.util.List;
 
 public class OCR {
 
+  //<editor-fold desc="02 housekeeping">
   /**
    * OCR Engine modes:
    * 0    Tesseract Legacy only.
@@ -62,6 +64,11 @@ public class OCR {
     RAW_LINE // 13
   }
 
+  public static final int PAGE_ITERATOR_LEVEL_WORD = 3;
+  public static final int PAGE_ITERATOR_LEVEL_LINE = 2;
+  //</editor-fold>
+
+  //<editor-fold desc="05 options">
   private static Options globalOptions = Options.options();
 
   public static Options globalOptions() {
@@ -222,9 +229,6 @@ public class OCR {
     }
 
     public Options language(String language) {
-      if (!new File(dataPath(), language + ".traineddata").exists()) {
-        throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s", language, dataPath()));
-      }
       this.language = language;
       return this;
     }
@@ -394,7 +398,9 @@ public class OCR {
     }
     //</editor-fold>
   }
+  //</editor-fold>
 
+  //<editor-fold desc="10 start">
   /**
    * Creates a new TextRecognizer instance using the global options.
    */
@@ -408,9 +414,30 @@ public class OCR {
    * @param options
    */
   public static TextRecognizer start(Options options) {
-    return TextRecognizer.start(options);
+    return TextRecognizer.get(options);
   }
 
+  /**
+   * Resets the global options to the initial defaults
+   * @return
+   */
+  @Deprecated
+  public static Options reset() {
+    return OCR.globalOptions().reset();
+  }
+
+  /**
+   * prints out the current global options
+   * @return
+   * @deprecated use OCR.status() instead
+   */
+  @Deprecated
+  public static void status() {
+    Debug.logp("Global settings " + OCR.globalOptions().toString());
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="20 text">
   /**
    * Reads text from the given source.
    *
@@ -436,7 +463,9 @@ public class OCR {
     TextRecognizer tr = TextRecognizer.start(options);
     return tr.readText(from);
   }
+  //</editor-fold>
 
+  //<editor-fold desc="21 line">
   /**
    * Reads text from the given source assuming the source
    * contains a single line of text.
@@ -463,7 +492,32 @@ public class OCR {
   public static <SFIRBS> String readLine(SFIRBS from, Options options) {
     return readText(from, options.clone().asLine());
   }
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return lines
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
+    return readLines(from, globalOptions());
+  }
 
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return lines
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
+    TextRecognizer tr = start(options);
+    return tr.readLines(from);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="22 word">
   /**
    * Reads text from the given source assuming the source
    * contains a single word.
@@ -490,7 +544,32 @@ public class OCR {
   public static <SFIRBS> String readWord(SFIRBS from, Options options) {
     return readText(from, options.clone().asWord());
   }
+  /**
+   *  Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return words
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
+    return readWords(from, OCR.globalOptions());
+  }
 
+  /**
+   * Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return words
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
+    TextRecognizer tr = start(options);
+    return tr.readWords(from);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="23 char">
   /**
    * Reads text from the given source assuming the source
    * contains a single character.
@@ -517,52 +596,5 @@ public class OCR {
   public static <SFIRBS> String readChar(SFIRBS from, Options options) {
     return readText(from, options.clone().asChar());
   }
-
-  /**
-   * Read text and return a list of lines.
-   *
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from source to read text from
-   * @return lines
-   */
-  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
-    return readLines(from, globalOptions());
-  }
-
-  /**
-   * Read text and return a list of lines.
-   *
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from source to read text from
-   * @param options options for the used TextRecognizer
-   * @return lines
-   */
-  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
-    TextRecognizer tr = start(options);
-    return tr.readLines(from);
-  }
-
-  /**
-   *  Read text and return a list of words.
-   *
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from source to read text from
-   * @return words
-   */
-  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
-    return readWords(from, OCR.globalOptions());
-  }
-
-  /**
-   * Read text and return a list of words.
-   *
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from source to read text from
-   * @param options options for the used TextRecognizer
-   * @return words
-   */
-  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
-    TextRecognizer tr = start(options);
-    return tr.readWords(from);
-  }
+  //</editor-fold>
 }

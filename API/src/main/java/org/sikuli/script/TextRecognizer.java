@@ -25,6 +25,14 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Intended to be used only internally - still public for being backward compatible
+ *
+ * New projects should use class OCR
+ *
+ * Implementation of the Tess4J/Tesseract API
+ *
+ */
 public class TextRecognizer {
 
   private static int lvl = 3;
@@ -32,45 +40,7 @@ public class TextRecognizer {
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
 
-  public ITesseract getTesseractAPI() {
-    try {
-      ITesseract tesseract = new Tesseract1();
-      tesseract.setOcrEngineMode(options.oem());
-      tesseract.setPageSegMode(options.psm());
-      tesseract.setLanguage(options.language());
-      tesseract.setDatapath(options.dataPath());
-      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
-        tesseract.setTessVariable(entry.getKey(), entry.getValue());
-      }
-      if (!options.configs().isEmpty()) {
-        tesseract.setConfigs(new ArrayList<>(options.configs()));
-      }
-      return tesseract;
-    } catch (UnsatisfiedLinkError e) {
-      String helpURL;
-      if (RunTime.get().runningWindows) {
-        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
-      } else {
-        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
-      }
-      Debug.error("see: " + helpURL);
-      if (RunTime.isIDE()) {
-        Debug.error("Save your work, correct the problem and restart the IDE!");
-        try {
-          Desktop.getDesktop().browse(new URI(helpURL));
-        } catch (IOException ex) {
-        } catch (URISyntaxException ex) {
-        }
-      }
-      throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
-    }
-  }
-
   private OCR.Options options;
-
-  public OCR.Options options() {
-    return options;
-  }
 
   //<editor-fold desc="00 start, stop, reset">
   protected TextRecognizer() {
@@ -80,13 +50,33 @@ public class TextRecognizer {
   protected TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
     this.options = options;
+    if (!new File(options.dataPath(), options.language() + ".traineddata").exists()) {
+      throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s",
+              options.language(), options.dataPath()));
+    }
   }
 
+  /**
+   * Creates a new TextRecognizer instance using the global options.
+   * @return
+   * @deprecated use OCR.start() instead
+   */
+  @Deprecated
   public static TextRecognizer start() {
     return start(OCR.globalOptions());
   }
 
+  /**
+   * Creates a new TextRecognizer instance using the given options.
+   * @return
+   * @deprecated use OCR.start() instead
+   */
+  @Deprecated
   public static TextRecognizer start(OCR.Options options) {
+    return TextRecognizer.get(options);
+  }
+
+  protected static TextRecognizer get(OCR.Options options) {
     initDefaultDataPath();
 
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
@@ -97,38 +87,33 @@ public class TextRecognizer {
     return new TextRecognizer(options);
   }
 
-  private static void initDefaultDataPath() {
-    if (OCR.Options.defaultDataPath == null) {
-      // export SikuliX eng.traineddata, if libs are exported as well
-      File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-      boolean shouldExport = RunTime.get().shouldExport();
-      boolean fExists = fTessDataPath.exists();
-      if (!fExists || shouldExport) {
-        if (0 == RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
-          throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
-        }
-      }
-      // if set, try with provided tessdata parent folder
-      String defaultDataPath;
-      if (Settings.OcrDataPath != null) {
-        defaultDataPath = new File(Settings.OcrDataPath, "tessdata").getAbsolutePath();
-      } else {
-        defaultDataPath = fTessDataPath.getAbsolutePath();
-      }
-      OCR.Options.defaultDataPath = defaultDataPath;
-    }
-  }
 
+  /**
+   * Resets the global options to the initial defaults
+   * @return
+   * @deprecated use OCR.reset() instead
+   */
+  @Deprecated
   public static void reset() {
     OCR.globalOptions().reset();
   }
 
+  /**
+   * prints out the current global options
+   * @return
+   * @deprecated use OCR.status() instead
+   */
+  @Deprecated
   public static void status() {
     Debug.logp("Global settings " + OCR.globalOptions().toString());
   }
 
   public String toString() {
     return options.toString();
+  }
+
+  public OCR.Options options() {
+    return options;
   }
   //</editor-fold>
 
@@ -301,7 +286,7 @@ public class TextRecognizer {
     return this;
   }
 
-  public BufferedImage optimize(BufferedImage bimg) {
+  private BufferedImage optimize(BufferedImage bimg) {
     Mat mimg = Finder2.makeMat(bimg);
 
     Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
@@ -337,26 +322,79 @@ public class TextRecognizer {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 OCR from Regions or images">
-  public static final int PAGE_ITERATOR_LEVEL_WORD = 3;
-  public static final int PAGE_ITERATOR_LEVEL_LINE = 2;
-
-  public <SFIRBS> String readText(SFIRBS from) {
+  //<editor-fold desc="20 text, lines, words - internal use">
+  protected <SFIRBS> String readText(SFIRBS from) {
     return doRead(from);
   }
 
-  public <SFIRBS> List<Match> readLines(SFIRBS from) {
+  protected <SFIRBS> List<Match> readLines(SFIRBS from) {
     BufferedImage bimg = getBufferedImage(from);
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE);
+    return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_LINE);
   }
 
-  public <SFIRBS> List<Match> readWords(SFIRBS from) {
+  protected <SFIRBS> List<Match> readWords(SFIRBS from) {
     BufferedImage bimg = getBufferedImage(from);
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD);
+    return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_WORD);
   }
   //</editor-fold>
 
   //<editor-fold desc="30 helper">
+  private static void initDefaultDataPath() {
+    if (OCR.Options.defaultDataPath == null) {
+      // export SikuliX eng.traineddata, if libs are exported as well
+      File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
+      boolean shouldExport = RunTime.get().shouldExport();
+      boolean fExists = fTessDataPath.exists();
+      if (!fExists || shouldExport) {
+        if (0 == RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
+          throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
+        }
+      }
+      // if set, try with provided tessdata parent folder
+      String defaultDataPath;
+      if (Settings.OcrDataPath != null) {
+        defaultDataPath = new File(Settings.OcrDataPath, "tessdata").getAbsolutePath();
+      } else {
+        defaultDataPath = fTessDataPath.getAbsolutePath();
+      }
+      OCR.Options.defaultDataPath = defaultDataPath;
+    }
+  }
+
+  public ITesseract getTesseractAPI() {
+    try {
+      ITesseract tesseract = new Tesseract1();
+      tesseract.setOcrEngineMode(options.oem());
+      tesseract.setPageSegMode(options.psm());
+      tesseract.setLanguage(options.language());
+      tesseract.setDatapath(options.dataPath());
+      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
+        tesseract.setTessVariable(entry.getKey(), entry.getValue());
+      }
+      if (!options.configs().isEmpty()) {
+        tesseract.setConfigs(new ArrayList<>(options.configs()));
+      }
+      return tesseract;
+    } catch (UnsatisfiedLinkError e) {
+      String helpURL;
+      if (RunTime.get().runningWindows) {
+        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
+      } else {
+        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
+      }
+      Debug.error("see: " + helpURL);
+      if (RunTime.isIDE()) {
+        Debug.error("Save your work, correct the problem and restart the IDE!");
+        try {
+          Desktop.getDesktop().browse(new URI(helpURL));
+        } catch (IOException ex) {
+        } catch (URISyntaxException ex) {
+        }
+      }
+      throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
+    }
+  }
+
   protected <SFIRBS> String doRead(SFIRBS from) {
     String text = "";
     BufferedImage bimg = getBufferedImage(from);
@@ -417,30 +455,28 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="99 obsolete">
-
   /**
    * @param simg
    * @return the text read
-   * @deprecated use readText() instead
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String doOCR(ScreenImage simg) {
-    return doOCR(simg.getImage());
+    return OCR.readText(simg);
   }
 
   /**
    * @param bimg
    * @return the text read
-   * @deprecated use readText() instead
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String doOCR(BufferedImage bimg) {
-    String text = readText(bimg);
-    return text;
+    return OCR.readText(bimg);
   }
 
   /**
-   * use start() instead
+   * use OCR.start() instead
    *
    * @return
    */
@@ -450,7 +486,7 @@ public class TextRecognizer {
   }
 
   /**
-   * deprecated use readText() instead
+   * deprecated use OCR.readText() instead
    *
    * @param simg
    * @return text
@@ -458,18 +494,18 @@ public class TextRecognizer {
   @Deprecated
   public String recognize(ScreenImage simg) {
     BufferedImage bimg = simg.getImage();
-    return readText(bimg);
+    return OCR.readText(bimg);
   }
 
   /**
-   * deprecated use readText() instead
+   * deprecated use OCR.readText() instead
    *
    * @param bimg
    * @return text
    */
   @Deprecated
   public String recognize(BufferedImage bimg) {
-    return readText(bimg);
+    return OCR.readText(bimg);
   }
   //</editor-fold>
 
