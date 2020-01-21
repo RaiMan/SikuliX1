@@ -117,7 +117,7 @@ public class OCR extends TextRecognizer implements Cloneable {
       oem = OcrEngineMode.DEFAULT.ordinal();
       psm = PageSegMode.AUTO.ordinal();
       language = Settings.OcrLanguage;
-      dataPath = defaultDataPath;
+      dataPath = null;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
@@ -160,15 +160,15 @@ public class OCR extends TextRecognizer implements Cloneable {
       if (psm < 0 || psm > 13) {
         throw new IllegalArgumentException(String.format("OCR: Invalid PSM %s (0 .. 12)", psm));
       }
-      if (null != dataPath) {
-        if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
-            || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
-          if (!new File(dataPath(), "osd.traineddata").exists()) {
-            throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
-                "but no osd.traineddata found in tessdata folder", psm));
-          }
+
+      if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
+          || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+        if (!new File(dataPath(), "osd.traineddata").exists()) {
+          throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
+              "but no osd.traineddata found in tessdata folder", psm));
         }
       }
+
       this.psm = psm;
       return this;
     }
@@ -178,48 +178,43 @@ public class OCR extends TextRecognizer implements Cloneable {
       return this;
     }
 
+    /**
+     * Sets this Options PSM to -1
+     *
+     * This causes Tess4J not to set the PSM at all.
+     *
+     * @return
+     */
     public Options resetPSM() {
       psm = -1;
       return this;
     }
 
     /**
-     * Options to recognize a single line of text.
+     * Configure Options in order to recognize a single line.
      *
-     * Returns a clone of this Options instance with single line PSM.
-     *
-     * Doesn't alter this object.
-     *
-     * @return cloned options
+     * @return this Options
      */
     public Options asLine() {
-      return clone().psm(PageSegMode.SINGLE_LINE);
+      return psm(PageSegMode.SINGLE_LINE);
     }
 
     /**
-     * Options to recognize a single word.
+     * Configure Options in order to recognize a single word.
      *
-     * Returns a clone of this Options instance with single word PSM.
-     *
-     * Doesn't alter this object.
-     *
-     * @return cloned options
+     * @return this Options
      */
     public Options asWord() {
-      return clone().psm(PageSegMode.SINGLE_WORD);
+      return psm(PageSegMode.SINGLE_WORD);
     }
 
     /**
-     * Options to recognize a single character.
+     * Configure Options in order to recognize a single character.
      *
-     * Returns a clone of this Options instance with single char PSM.
-     *
-     * Doesn't alter this object.
-     *
-     * @return cloned options
+     * @return this Options
      */
     public Options asChar() {
-      return clone().psm(PageSegMode.SINGLE_CHAR);
+      return psm(PageSegMode.SINGLE_CHAR);
     }
     //</editor-fold>
 
@@ -231,7 +226,7 @@ public class OCR extends TextRecognizer implements Cloneable {
     }
 
     public Options language(String language) {
-      if (dataPath() != null && !new File(dataPath(), language + ".traineddata").exists()) {
+      if (!new File(dataPath(), language + ".traineddata").exists()) {
         throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s", language, dataPath()));
       }
       this.language = language;
@@ -253,9 +248,6 @@ public class OCR extends TextRecognizer implements Cloneable {
     public Options dataPath(String dataPath) {
       if(!"tessdata".equals(new File(dataPath).getName())) {
         dataPath = new File(dataPath, "tessdata").getAbsolutePath();
-      }
-      if (!new File(dataPath, language + ".traineddata").exists()) {
-        throw new IllegalArgumentException(String.format("OCR: datapath: no %s.traineddata in %s", language(), dataPath));
       }
       this.dataPath = dataPath;
       return this;

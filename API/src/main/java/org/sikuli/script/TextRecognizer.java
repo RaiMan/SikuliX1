@@ -87,11 +87,17 @@ public class TextRecognizer {
   }
 
   public static TextRecognizer start(OCR.Options options) {
+    initDefaultDataPath();
+
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
       options = OCR.globalOptions();
     }
-    TextRecognizer tr = new TextRecognizer(options);
+
+    return new TextRecognizer(options);
+  }
+
+  private static void initDefaultDataPath() {
     if (OCR.Options.defaultDataPath == null) {
       // export SikuliX eng.traineddata, if libs are exported as well
       File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
@@ -109,12 +115,8 @@ public class TextRecognizer {
       } else {
         defaultDataPath = fTessDataPath.getAbsolutePath();
       }
-      if (options.dataPath() == null) {
-        options.dataPath(defaultDataPath);
-      }
       OCR.Options.defaultDataPath = defaultDataPath;
     }
-    return tr;
   }
 
   public static void reset() {
