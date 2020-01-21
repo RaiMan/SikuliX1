@@ -16,9 +16,9 @@ public class OCR {
 
   /**
    * OCR Engine modes:
-   * 0    Original Tesseract only.
-   * 1    Cube only.
-   * 2    Tesseract + cube.
+   * 0    Tesseract Legacy only.
+   * 1    LSTM only.
+   * 2    LSTM + Legacy.
    * 3    Default, based on what is available.
    */
   public enum OcrEngineMode {
