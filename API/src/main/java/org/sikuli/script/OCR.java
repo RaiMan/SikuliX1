@@ -8,6 +8,10 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Static helper class for OCR.
+ */
+
 public class OCR {
 
   /**
@@ -391,52 +395,156 @@ public class OCR {
     //</editor-fold>
   }
 
+  /**
+   * Reads text from the given source.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
   public static <SFIRBS> String readText(Object from) {
     return readText(from, globalOptions());
   }
 
+  /**
+   * Reads text from the given source.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
   public static <SFIRBS> String readText(SFIRBS from, Options options) {
     TextRecognizer tr = TextRecognizer.start(options);
     return tr.readText(from);
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single line of text.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
   public static <SFIRBS> String readLine(SFIRBS from) {
     return readLine(from, globalOptions());
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single line of text.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
   public static <SFIRBS> String readLine(SFIRBS from, Options options) {
     return readText(from, options.clone().asLine());
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single word.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
   public static <SFIRBS> String readWord(SFIRBS from) {
     return readWord(from, globalOptions());
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single word.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
   public static <SFIRBS> String readWord(SFIRBS from, Options options) {
     return readText(from, options.clone().asWord());
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single character.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
   public static <SFIRBS> String readChar(SFIRBS from) {
     return readChar(from, globalOptions());
   }
 
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single character.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
   public static <SFIRBS> String readChar(SFIRBS from, Options options) {
     return readText(from, options.clone().asChar());
   }
 
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return lines
+   */
   public static <SFIRBS> List<Match> readLines(SFIRBS from) {
     return readLines(from, globalOptions());
   }
 
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return lines
+   */
   public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
     TextRecognizer tr = TextRecognizer.start(options);
     return tr.readLines(from);
   }
 
+  /**
+   *  Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return words
+   */
   public static <SFIRBS> List<Match> readWords(SFIRBS from) {
     return readWords(from, OCR.globalOptions());
   }
 
+  /**
+   * Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return words
+   */
   public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
     TextRecognizer tr = TextRecognizer.start(options);
     return tr.readWords(from);
