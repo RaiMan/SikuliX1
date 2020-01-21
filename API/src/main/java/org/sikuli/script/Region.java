@@ -2787,7 +2787,7 @@ public class Region {
    * @return a list of text matches
    */
   public List<Match> findWords() {
-    return relocateInRegion(TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(OCR.readWords(getScreen().capture(x, y, w, h).getImage()));
   }
 
   public List<Match> relocateInRegion(List<Match> matches) {
@@ -2843,7 +2843,7 @@ public class Region {
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
-    return relocateInRegion(TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(OCR.readLines(getScreen().capture(x, y, w, h).getImage()));
   }
   //</editor-fold>
 
@@ -3062,7 +3062,6 @@ public class Region {
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
-    TextRecognizer.start();
     Finder finder = new Finder(this);
     lastSearchTime = (new Date()).getTime();
     if (level == levelWord) {
@@ -3277,11 +3276,9 @@ public class Region {
         }
       }
       if (findingText) {
-        if (TextRecognizer.getInstance() != null) {
-          log(lvl, "findInImage: Switching to TextSearch");
-          finder = new Finder(getScreen().capture(x, y, w, h), this);
-          finder.findText((String) target);
-        }
+        log(lvl, "findInImage: Switching to TextSearch");
+        finder = new Finder(getScreen().capture(x, y, w, h), this);
+        finder.findText((String) target);
       }
     } else if (target instanceof Pattern) {
       if (((Pattern) target).isValid()) {
@@ -4952,7 +4949,7 @@ public class Region {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    return TextRecognizer.readText(this);
+    return OCR.readText(this);
   }
 
   public Image getImage() {
@@ -4966,10 +4963,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textLine() {
-    OCR.asLine();
-    String text = TextRecognizer.readText(this);
-    OCR.asText();
-    return text;
+    return OCR.readLine(this);
   }
 
   /**
@@ -4979,10 +4973,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textWord() {
-    OCR.asWord();
-    String text = TextRecognizer.readText(this);
-    OCR.asText();
-    return text;
+    return OCR.readWord(this);
   }
 
   /**
@@ -4992,10 +4983,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textChar() {
-    OCR.asChar();
-    String text = TextRecognizer.readText(this);
-    OCR.asText();
-    return text;
+    return OCR.readChar(this);
   }
 
   /**

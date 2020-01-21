@@ -1,6 +1,5 @@
 package org.sikuli.script;
 
-import net.sourceforge.tess4j.ITesseract;
 import org.sikuli.basics.Settings;
 
 import java.awt.*;
@@ -9,21 +8,17 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class OCR extends TextRecognizer {
+/**
+ * Static helper class for OCR.
+ */
 
-  protected OCR() {
-    super();
-  }
-
-  protected OCR(Options options) {
-    super(options);
-  }
+public class OCR {
 
   /**
    * OCR Engine modes:
-   * 0    Original Tesseract only.
-   * 1    Cube only.
-   * 2    Tesseract + cube.
+   * 0    Tesseract Legacy only.
+   * 1    LSTM only.
+   * 2    LSTM + Legacy.
    * 3    Default, based on what is available.
    */
   public enum OcrEngineMode {
@@ -73,27 +68,7 @@ public class OCR extends TextRecognizer {
     return globalOptions;
   }
 
-  public static Options newOptions() {
-    return new Options().reset();
-  }
-
-  public static void asText() {
-    OCR.globalOptions().psm(PageSegMode.AUTO);
-  }
-
-  public static void asLine() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_LINE);
-  }
-
-  public static void asWord() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_WORD);
-  }
-
-  public static void asChar() {
-    OCR.globalOptions().psm(OCR.PageSegMode.SINGLE_CHAR);
-  }
-
-  public static class Options {
+  public static class Options implements Cloneable {
 
     //<editor-fold desc="02 init, reset">
     public String toString() {
@@ -110,7 +85,7 @@ public class OCR extends TextRecognizer {
       return msg;
     }
 
-    private Options() {
+    public Options() {
       reset();
     }
 
@@ -118,11 +93,27 @@ public class OCR extends TextRecognizer {
       return new Options();
     }
 
+    @Override
+    public Options clone() {
+      Options options = new Options();
+      options.oem = oem;
+      options.psm = psm;
+      options.language = language;
+      options.dataPath = dataPath;
+      options.textHeight = textHeight;
+      options.resizeInterpolation = resizeInterpolation;
+      options.variables = new LinkedHashMap<>(variables);
+      options.configs = new LinkedHashSet<>(configs);
+      options.bestDPI = bestDPI;
+      options.userDPI = userDPI;
+      return options;
+    }
+
     public Options reset() {
       oem = OcrEngineMode.DEFAULT.ordinal();
       psm = PageSegMode.AUTO.ordinal();
-      language = startLanguage;
-      dataPath = defaultDataPath;
+      language = Settings.OcrLanguage;
+      dataPath = null;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
@@ -165,15 +156,15 @@ public class OCR extends TextRecognizer {
       if (psm < 0 || psm > 13) {
         throw new IllegalArgumentException(String.format("OCR: Invalid PSM %s (0 .. 12)", psm));
       }
-      if (null != dataPath) {
-        if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
-            || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
-          if (!new File(dataPath(), "osd.traineddata").exists()) {
-            throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
-                "but no osd.traineddata found in tessdata folder", psm));
-          }
+
+      if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
+          || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+        if (!new File(dataPath(), "osd.traineddata").exists()) {
+          throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
+              "but no osd.traineddata found in tessdata folder", psm));
         }
       }
+
       this.psm = psm;
       return this;
     }
@@ -183,29 +174,47 @@ public class OCR extends TextRecognizer {
       return this;
     }
 
+    /**
+     * Sets this Options PSM to -1
+     *
+     * This causes Tess4J not to set the PSM at all.
+     *
+     * @return
+     */
     public Options resetPSM() {
       psm = -1;
       return this;
     }
 
+    /**
+     * Configure Options in order to recognize a single line.
+     *
+     * @return this Options
+     */
     public Options asLine() {
-      psm(PageSegMode.SINGLE_LINE);
-      return this;
+      return psm(PageSegMode.SINGLE_LINE);
     }
 
+    /**
+     * Configure Options in order to recognize a single word.
+     *
+     * @return this Options
+     */
     public Options asWord() {
-      psm(PageSegMode.SINGLE_WORD);
-      return this;
+      return psm(PageSegMode.SINGLE_WORD);
     }
 
+    /**
+     * Configure Options in order to recognize a single character.
+     *
+     * @return this Options
+     */
     public Options asChar() {
-      psm(PageSegMode.SINGLE_CHAR);
-      return this;
+      return psm(PageSegMode.SINGLE_CHAR);
     }
     //</editor-fold>
 
     //<editor-fold desc="12 language">
-    private String startLanguage = Settings.OcrLanguage;
     private String language;
 
     public String language() {
@@ -213,7 +222,7 @@ public class OCR extends TextRecognizer {
     }
 
     public Options language(String language) {
-      if (dataPath() != null && !new File(dataPath(), language + ".traineddata").exists()) {
+      if (!new File(dataPath(), language + ".traineddata").exists()) {
         throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s", language, dataPath()));
       }
       this.language = language;
@@ -235,9 +244,6 @@ public class OCR extends TextRecognizer {
     public Options dataPath(String dataPath) {
       if(!"tessdata".equals(new File(dataPath).getName())) {
         dataPath = new File(dataPath, "tessdata").getAbsolutePath();
-      }
-      if (!new File(dataPath, language + ".traineddata").exists()) {
-        throw new IllegalArgumentException(String.format("OCR: datapath: no %s.traineddata in %s", language(), dataPath));
       }
       this.dataPath = dataPath;
       return this;
@@ -334,8 +340,7 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="15 variables">
-    //TODO vorgegebene Reihenfolge wichtig?
-    private Map<String, String> variables = new HashMap<>();
+    private Map<String, String> variables = new LinkedHashMap<>();
 
     public Map<String, String> variables() {
       return variables;
@@ -348,11 +353,10 @@ public class OCR extends TextRecognizer {
     //</editor-fold>
 
     //<editor-fold desc="16 configs">
-    //TODO vorgegebene Reihenfolge wichtig?
-    private Set<String> configs = new HashSet<>();
+    private Set<String> configs = new LinkedHashSet<>();
 
-    public Set<String> configs() {
-      return configs;
+    public List<String> configs() {
+      return new ArrayList<>(configs);
     }
 
     public Options configs(String... configs) {
@@ -361,7 +365,7 @@ public class OCR extends TextRecognizer {
     }
 
     public Options configs(List<String> configs) {
-      this.configs = new HashSet<>(configs);
+      this.configs = new LinkedHashSet<>(configs);
       return this;
     }
     //</editor-fold>
@@ -389,5 +393,176 @@ public class OCR extends TextRecognizer {
       return (logConfigs + logVariables).trim();
     }
     //</editor-fold>
+  }
+
+  /**
+   * Creates a new TextRecognizer instance using the global options.
+   */
+  public static TextRecognizer start() {
+    return start(globalOptions());
+  }
+
+  /**
+   * Creates a new TextRecognizer instance.
+   *
+   * @param options
+   */
+  public static TextRecognizer start(Options options) {
+    return TextRecognizer.start(options);
+  }
+
+  /**
+   * Reads text from the given source.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readText(Object from) {
+    return readText(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readText(SFIRBS from, Options options) {
+    TextRecognizer tr = TextRecognizer.start(options);
+    return tr.readText(from);
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single line of text.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readLine(SFIRBS from) {
+    return readLine(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single line of text.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readLine(SFIRBS from, Options options) {
+    return readText(from, options.clone().asLine());
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single word.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readWord(SFIRBS from) {
+    return readWord(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single word.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readWord(SFIRBS from, Options options) {
+    return readText(from, options.clone().asWord());
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single character.
+   *
+   * Uses the global options.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readChar(SFIRBS from) {
+    return readChar(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source assuming the source
+   * contains a single character.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readChar(SFIRBS from, Options options) {
+    return readText(from, options.clone().asChar());
+  }
+
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return lines
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
+    return readLines(from, globalOptions());
+  }
+
+  /**
+   * Read text and return a list of lines.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return lines
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
+    TextRecognizer tr = start(options);
+    return tr.readLines(from);
+  }
+
+  /**
+   *  Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @return words
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
+    return readWords(from, OCR.globalOptions());
+  }
+
+  /**
+   * Read text and return a list of words.
+   *
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from source to read text from
+   * @param options options for the used TextRecognizer
+   * @return words
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
+    TextRecognizer tr = start(options);
+    return tr.readWords(from);
   }
 }

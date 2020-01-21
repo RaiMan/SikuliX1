@@ -32,27 +32,20 @@ public class TextRecognizer {
   public static String versionTess4J = "4.4.1";
   public static String versionTesseract = "4.1.0";
 
-  private ITesseract tesseract;
-
   public ITesseract getTesseractAPI() {
-    return tesseract;
-  }
-
-  private OCR.Options options;
-
-  public OCR.Options options() {
-    return options;
-  }
-
-  //<editor-fold desc="00 start, stop, reset">
-  protected TextRecognizer() {
-    this(OCR.globalOptions());
-  }
-
-  protected TextRecognizer(OCR.Options options) {
-    RunTime.loadLibrary(RunTime.libOpenCV);
     try {
-      tesseract = new Tesseract1();
+      ITesseract tesseract = new Tesseract1();
+      tesseract.setOcrEngineMode(options.oem());
+      tesseract.setPageSegMode(options.psm());
+      tesseract.setLanguage(options.language());
+      tesseract.setDatapath(options.dataPath());
+      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
+        tesseract.setTessVariable(entry.getKey(), entry.getValue());
+      }
+      if (!options.configs().isEmpty()) {
+        tesseract.setConfigs(new ArrayList<>(options.configs()));
+      }
+      return tesseract;
     } catch (UnsatisfiedLinkError e) {
       String helpURL;
       if (RunTime.get().runningWindows) {
@@ -71,6 +64,21 @@ public class TextRecognizer {
       }
       throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
     }
+  }
+
+  private OCR.Options options;
+
+  public OCR.Options options() {
+    return options;
+  }
+
+  //<editor-fold desc="00 start, stop, reset">
+  protected TextRecognizer() {
+    this(OCR.globalOptions());
+  }
+
+  protected TextRecognizer(OCR.Options options) {
+    RunTime.loadLibrary(RunTime.libOpenCV);
     this.options = options;
   }
 
@@ -79,11 +87,17 @@ public class TextRecognizer {
   }
 
   public static TextRecognizer start(OCR.Options options) {
+    initDefaultDataPath();
+
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
       options = OCR.globalOptions();
     }
-    TextRecognizer tr = new TextRecognizer(options);
+
+    return new TextRecognizer(options);
+  }
+
+  private static void initDefaultDataPath() {
     if (OCR.Options.defaultDataPath == null) {
       // export SikuliX eng.traineddata, if libs are exported as well
       File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
@@ -101,25 +115,7 @@ public class TextRecognizer {
       } else {
         defaultDataPath = fTessDataPath.getAbsolutePath();
       }
-      if (options.dataPath() == null) {
-        options.dataPath(defaultDataPath);
-      }
       OCR.Options.defaultDataPath = defaultDataPath;
-    }
-    tr.initTesseract(options);
-    return tr;
-  }
-
-  private void initTesseract(OCR.Options options) {
-    tesseract.setOcrEngineMode(options.oem());
-    tesseract.setPageSegMode(options.psm());
-    tesseract.setLanguage(options.language());
-    tesseract.setDatapath(options.dataPath());
-    for (Map.Entry<String, String> entry : options.variables().entrySet()) {
-      tesseract.setTessVariable(entry.getKey(), entry.getValue());
-    }
-    if (!options.configs().isEmpty()) {
-      tesseract.setConfigs(new ArrayList<>(options.configs()));
     }
   }
 
@@ -345,42 +341,27 @@ public class TextRecognizer {
   public static final int PAGE_ITERATOR_LEVEL_WORD = 3;
   public static final int PAGE_ITERATOR_LEVEL_LINE = 2;
 
-  public static <SFIRBS> String readText(SFIRBS from) {
-    String text = doRead(from, OCR.globalOptions());
-    return text;
+  public <SFIRBS> String readText(SFIRBS from) {
+    return doRead(from);
   }
 
-  public static <SFIRBS> String readText(SFIRBS from, OCR.Options options) {
-    String text = doRead(from, options);
-    return text;
-  }
-
-  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
-    return readLines(from, OCR.globalOptions());
-  }
-
-  public static <SFIRBS> List<Match> readLines(SFIRBS from, OCR.Options options) {
+  public <SFIRBS> List<Match> readLines(SFIRBS from) {
     BufferedImage bimg = getBufferedImage(from);
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE, options);
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_LINE);
   }
 
-  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
-    return readWords(from, OCR.globalOptions());
-  }
-
-  public static <SFIRBS> List<Match> readWords(SFIRBS from, OCR.Options options) {
+  public <SFIRBS> List<Match> readWords(SFIRBS from) {
     BufferedImage bimg = getBufferedImage(from);
-    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD, options);
+    return readTextItems(bimg, PAGE_ITERATOR_LEVEL_WORD);
   }
   //</editor-fold>
 
   //<editor-fold desc="30 helper">
-  private static String doRead(Object from, OCR.Options options) {
-    TextRecognizer tr = TextRecognizer.start(options);
+  protected <SFIRBS> String doRead(SFIRBS from) {
     String text = "";
     BufferedImage bimg = getBufferedImage(from);
     try {
-      text = tr.tesseract.doOCR(tr.optimize(bimg)).trim().replace("\n\n", "\n");
+      text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
       Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       return "";
@@ -388,11 +369,11 @@ public class TextRecognizer {
     return text;
   }
 
-  private static List<Match> readTextItems(BufferedImage bimg, int level, OCR.Options options) {
+  protected <SFIRBS> List<Match> readTextItems(SFIRBS from, int level) {
     List<Match> lines = new ArrayList<>();
-    TextRecognizer tr = start(options);
-    BufferedImage bimgResized = tr.optimize(bimg);
-    List<Word> textItems = tr.tesseract.getWords(bimgResized, level);
+    BufferedImage bimg = getBufferedImage(from);
+    BufferedImage bimgResized = optimize(bimg);
+    List<Word> textItems = getTesseractAPI().getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
     double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();
     for (Word textItem : textItems) {
@@ -407,7 +388,7 @@ public class TextRecognizer {
     return lines;
   }
 
-  private static BufferedImage getBufferedImage(Object whatEver) {
+  private <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver).get();
     } else if (whatEver instanceof File) {
@@ -443,7 +424,7 @@ public class TextRecognizer {
    * @deprecated use readText() instead
    */
   @Deprecated
-  public static String doOCR(ScreenImage simg) {
+  public String doOCR(ScreenImage simg) {
     return doOCR(simg.getImage());
   }
 
@@ -453,8 +434,8 @@ public class TextRecognizer {
    * @deprecated use readText() instead
    */
   @Deprecated
-  public static String doOCR(BufferedImage bimg) {
-    String text = TextRecognizer.readText(bimg);
+  public String doOCR(BufferedImage bimg) {
+    String text = readText(bimg);
     return text;
   }
 
@@ -465,8 +446,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static TextRecognizer getInstance() {
-    TextRecognizer tr = TextRecognizer.start();
-    return tr;
+    return TextRecognizer.start();
   }
 
   /**
