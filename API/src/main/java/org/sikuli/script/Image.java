@@ -1388,7 +1388,7 @@ public class Image {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    return TextRecognizer.readText(get());
+    return OCR.readText(get());
   }
 
   /**
@@ -1399,7 +1399,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textLine(String imgFile) {
-    return TextRecognizer.readText(imgFile, OCR.globalOptions().clone().asLine());
+    return OCR.readText(imgFile, OCR.globalOptions().clone().asLine());
   }
 
   /**
@@ -1409,7 +1409,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textLine() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asLine());
+    return OCR.readText(this, OCR.globalOptions().clone().asLine());
   }
 
   /**
@@ -1420,7 +1420,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textWord(String imgFile) {
-    return TextRecognizer.readText(imgFile, OCR.globalOptions().clone().asWord());
+    return OCR.readText(imgFile, OCR.globalOptions().clone().asWord());
   }
 
   /**
@@ -1430,7 +1430,7 @@ public class Image {
    * @return the text or empty string
    */
   public String textWord() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asWord());
+    return OCR.readText(this, OCR.globalOptions().clone().asWord());
   }
 
   /**
@@ -1441,7 +1441,7 @@ public class Image {
    * @return the text or empty string
    */
   public static String textChar(String imgFile) {
-    return TextRecognizer.readText(imgFile, OCR.globalOptions().clone().asChar());
+    return OCR.readText(imgFile, OCR.globalOptions().clone().asChar());
   }
 
   /**
@@ -1449,7 +1449,7 @@ public class Image {
    * supposing it is one Character
    */
   public String textChar() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asChar());
+    return OCR.readText(this, OCR.globalOptions().clone().asChar());
   }
 
   /**
@@ -1459,7 +1459,7 @@ public class Image {
    */
   public List<String> textLines() {
     List<String> lines = new ArrayList<>();
-    List<Match> matches = TextRecognizer.readLines(get());
+    List<Match> matches = OCR.readLines(get());
     for (Match match : matches) {
       lines.add(match.getText());
     }
@@ -1472,7 +1472,7 @@ public class Image {
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
-    return TextRecognizer.readLines(get());
+    return OCR.readLines(get());
   }
 
   /**
@@ -1484,7 +1484,7 @@ public class Image {
    */
   public List<String> textWords() {
     List<String> words = new ArrayList<>();
-    List<Match> matches = TextRecognizer.readWords(get());
+    List<Match> matches = OCR.readWords(get());
     for (Match match : matches) {
       words.add(match.getText());
     }
@@ -1497,7 +1497,7 @@ public class Image {
    * @return a list of text matches
    */
   public List<Match> findWords() {
-    return TextRecognizer.readWords(get());
+    return OCR.readWords(get());
   }
   //</editor-fold>
 }

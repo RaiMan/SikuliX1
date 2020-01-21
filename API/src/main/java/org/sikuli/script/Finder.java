@@ -767,9 +767,9 @@ public class Finder implements Iterator<Match> {
         text = text.trim();
       }
       if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_LINE) {
-        wordsFound = TextRecognizer.readLines(bimg);
+        wordsFound = OCR.readLines(bimg);
       } else if (textLevel == TextRecognizer.PAGE_ITERATOR_LEVEL_WORD) {
-        wordsFound = TextRecognizer.readWords(bimg);
+        wordsFound = OCR.readWords(bimg);
       } else {
         globalSearch = true;
         textSplit = text.split("\\s");
@@ -779,7 +779,7 @@ public class Finder implements Iterator<Match> {
             pattern = java.util.regex.Pattern.compile(textSplit[0] + ".*?" + textSplit[2]);
           }
         }
-        wordsFound = TextRecognizer.readLines(bimg);
+        wordsFound = OCR.readLines(bimg);
       }
       timer = new Date().getTime() - timer;
       List<Match> wordsMatch = new ArrayList<>();
@@ -804,7 +804,7 @@ public class Finder implements Iterator<Match> {
           List<Match> wordsInLine;
           if (globalSearch) {
             BufferedImage bLine = Image.createSubimage(bimg, wordOrLine);
-            wordsInLine = TextRecognizer.readWords(bLine);
+            wordsInLine = OCR.readWords(bLine);
             if (singleWord) {
               for (Match wordInLine : wordsInLine) {
                 if (!isTextContained(wordInLine.getText().toLowerCase(), text.toLowerCase(), null)) {

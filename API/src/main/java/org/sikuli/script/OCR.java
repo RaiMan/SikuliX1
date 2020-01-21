@@ -8,15 +8,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class OCR extends TextRecognizer implements Cloneable {
-
-  protected OCR() {
-    super();
-  }
-
-  protected OCR(Options options) {
-    super(options);
-  }
+public class OCR {
 
   /**
    * OCR Engine modes:
@@ -72,7 +64,7 @@ public class OCR extends TextRecognizer implements Cloneable {
     return globalOptions;
   }
 
-  public static class Options {
+  public static class Options implements Cloneable {
 
     //<editor-fold desc="02 init, reset">
     public String toString() {
@@ -397,5 +389,32 @@ public class OCR extends TextRecognizer implements Cloneable {
       return (logConfigs + logVariables).trim();
     }
     //</editor-fold>
+  }
+
+  public static <SFIRBS> String readText(Object from) {
+    return readText(from, OCR.globalOptions());
+  }
+
+  public static <SFIRBS> String readText(SFIRBS from, Options options) {
+    TextRecognizer tr = TextRecognizer.start(options);
+    return tr.readText(from);
+  }
+
+  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
+    return readLines(from, OCR.globalOptions());
+  }
+
+  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
+    TextRecognizer tr = TextRecognizer.start(options);
+    return tr.readLines(from);
+  }
+
+  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
+    return readWords(from, OCR.globalOptions());
+  }
+
+  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
+    TextRecognizer tr = TextRecognizer.start(options);
+    return tr.readWords(from);
   }
 }

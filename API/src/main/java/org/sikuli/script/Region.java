@@ -2787,7 +2787,7 @@ public class Region {
    * @return a list of text matches
    */
   public List<Match> findWords() {
-    return relocateInRegion(TextRecognizer.readWords(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(OCR.readWords(getScreen().capture(x, y, w, h).getImage()));
   }
 
   public List<Match> relocateInRegion(List<Match> matches) {
@@ -2843,7 +2843,7 @@ public class Region {
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines() {
-    return relocateInRegion(TextRecognizer.readLines(getScreen().capture(x, y, w, h).getImage()));
+    return relocateInRegion(OCR.readLines(getScreen().capture(x, y, w, h).getImage()));
   }
   //</editor-fold>
 
@@ -4952,7 +4952,7 @@ public class Region {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    return TextRecognizer.readText(this);
+    return OCR.readText(this);
   }
 
   public Image getImage() {
@@ -4966,7 +4966,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textLine() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asLine());
+    return OCR.readText(this, OCR.globalOptions().clone().asLine());
   }
 
   /**
@@ -4976,7 +4976,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textWord() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asWord());
+    return OCR.readText(this, OCR.globalOptions().clone().asWord());
   }
 
   /**
@@ -4986,7 +4986,7 @@ public class Region {
    * @return the text or empty string
    */
   public String textChar() {
-    return TextRecognizer.readText(this, OCR.globalOptions().clone().asChar());
+    return OCR.readText(this, OCR.globalOptions().clone().asChar());
   }
 
   /**
