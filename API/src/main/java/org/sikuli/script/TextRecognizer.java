@@ -49,17 +49,14 @@ public class TextRecognizer {
 
   protected TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
+    options.validate();
     this.options = options;
-    if (!new File(options.dataPath(), options.language() + ".traineddata").exists()) {
-      throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s",
-              options.language(), options.dataPath()));
-    }
   }
 
   /**
    * Creates a new TextRecognizer instance using the global options.
    * @return
-   * @deprecated use OCR.start() instead
+   * @deprecated no longer needed at all
    */
   @Deprecated
   public static TextRecognizer start() {
@@ -69,7 +66,7 @@ public class TextRecognizer {
   /**
    * Creates a new TextRecognizer instance using the given options.
    * @return
-   * @deprecated use OCR.start() instead
+   * @deprecated no longer needed at all
    */
   @Deprecated
   public static TextRecognizer start(OCR.Options options) {

@@ -100,6 +100,13 @@ public class OCR {
       return new Options();
     }
 
+    public void validate() {
+      if (!new File(dataPath(), language() + ".traineddata").exists()) {
+        throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s",
+                language(), dataPath()));
+      }
+    }
+
     @Override
     public Options clone() {
       Options options = new Options();
@@ -400,28 +407,11 @@ public class OCR {
   }
   //</editor-fold>
 
-  //<editor-fold desc="10 start">
-  /**
-   * Creates a new TextRecognizer instance using the global options.
-   */
-  public static TextRecognizer start() {
-    return start(globalOptions());
-  }
-
-  /**
-   * Creates a new TextRecognizer instance.
-   *
-   * @param options
-   */
-  public static TextRecognizer start(Options options) {
-    return TextRecognizer.get(options);
-  }
-
+  //<editor-fold desc="10 global">
   /**
    * Resets the global options to the initial defaults
    * @return
    */
-  @Deprecated
   public static Options reset() {
     return OCR.globalOptions().reset();
   }
@@ -429,9 +419,7 @@ public class OCR {
   /**
    * prints out the current global options
    * @return
-   * @deprecated use OCR.status() instead
    */
-  @Deprecated
   public static void status() {
     Debug.logp("Global settings " + OCR.globalOptions().toString());
   }
@@ -447,7 +435,7 @@ public class OCR {
    * @param from source to read text from
    * @return text
    */
-  public static <SFIRBS> String readText(Object from) {
+  public static <SFIRBS> String readText(SFIRBS from) {
     return readText(from, globalOptions());
   }
 
@@ -460,7 +448,7 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readText(SFIRBS from, Options options) {
-    TextRecognizer tr = TextRecognizer.start(options);
+    TextRecognizer tr = TextRecognizer.get(options);
     return tr.readText(from);
   }
   //</editor-fold>
@@ -512,8 +500,7 @@ public class OCR {
    * @return lines
    */
   public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
-    TextRecognizer tr = start(options);
-    return tr.readLines(from);
+    return TextRecognizer.get(options).readLines(from);
   }
   //</editor-fold>
 
@@ -564,8 +551,7 @@ public class OCR {
    * @return words
    */
   public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
-    TextRecognizer tr = start(options);
-    return tr.readWords(from);
+    return TextRecognizer.get(options).readWords(from);
   }
   //</editor-fold>
 
