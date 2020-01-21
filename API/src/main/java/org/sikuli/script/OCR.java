@@ -392,7 +392,7 @@ public class OCR {
   }
 
   public static <SFIRBS> String readText(Object from) {
-    return readText(from, OCR.globalOptions());
+    return readText(from, globalOptions());
   }
 
   public static <SFIRBS> String readText(SFIRBS from, Options options) {
@@ -400,8 +400,32 @@ public class OCR {
     return tr.readText(from);
   }
 
+  public static <SFIRBS> String readLine(SFIRBS from) {
+    return readLine(from, globalOptions());
+  }
+
+  public static <SFIRBS> String readLine(SFIRBS from, Options options) {
+    return readText(from, options.clone().asLine());
+  }
+
+  public static <SFIRBS> String readWord(SFIRBS from) {
+    return readWord(from, globalOptions());
+  }
+
+  public static <SFIRBS> String readWord(SFIRBS from, Options options) {
+    return readText(from, options.clone().asWord());
+  }
+
+  public static <SFIRBS> String readChar(SFIRBS from) {
+    return readChar(from, globalOptions());
+  }
+
+  public static <SFIRBS> String readChar(SFIRBS from, Options options) {
+    return readText(from, options.clone().asChar());
+  }
+
   public static <SFIRBS> List<Match> readLines(SFIRBS from) {
-    return readLines(from, OCR.globalOptions());
+    return readLines(from, globalOptions());
   }
 
   public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
