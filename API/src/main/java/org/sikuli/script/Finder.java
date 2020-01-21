@@ -748,7 +748,6 @@ public class Finder implements Iterator<Match> {
     }
 
     private FindResult2 doFindText() {
-      TextRecognizer tr = TextRecognizer.start();
       FindResult2 findResult = null;
       Region where = fInput.getWhere();
       String text = fInput.getTargetText();

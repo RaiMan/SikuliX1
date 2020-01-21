@@ -394,22 +394,22 @@ public class OCR {
     }
     //</editor-fold>
   }
-  
+
   /**
    * Creates a new TextRecognizer instance using the global options.
    */
   public static TextRecognizer start() {
     return start(globalOptions());
   }
-  
+
   /**
    * Creates a new TextRecognizer instance.
-   * 
+   *
    * @param options
    */
   public static TextRecognizer start(Options options) {
     return TextRecognizer.start(options);
-  }  
+  }
 
   /**
    * Reads text from the given source.
@@ -538,7 +538,7 @@ public class OCR {
    * @return lines
    */
   public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
-    TextRecognizer tr = TextRecognizer.start(options);
+    TextRecognizer tr = start(options);
     return tr.readLines(from);
   }
 
@@ -562,7 +562,7 @@ public class OCR {
    * @return words
    */
   public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
-    TextRecognizer tr = TextRecognizer.start(options);
+    TextRecognizer tr = start(options);
     return tr.readWords(from);
   }
 }

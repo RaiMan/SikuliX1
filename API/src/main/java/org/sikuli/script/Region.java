@@ -3062,7 +3062,6 @@ public class Region {
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
-    TextRecognizer.start();
     Finder finder = new Finder(this);
     lastSearchTime = (new Date()).getTime();
     if (level == levelWord) {
@@ -3277,11 +3276,9 @@ public class Region {
         }
       }
       if (findingText) {
-        if (TextRecognizer.getInstance() != null) {
-          log(lvl, "findInImage: Switching to TextSearch");
-          finder = new Finder(getScreen().capture(x, y, w, h), this);
-          finder.findText((String) target);
-        }
+        log(lvl, "findInImage: Switching to TextSearch");
+        finder = new Finder(getScreen().capture(x, y, w, h), this);
+        finder.findText((String) target);
       }
     } else if (target instanceof Pattern) {
       if (((Pattern) target).isValid()) {
