@@ -23,12 +23,6 @@ import java.util.List;
 
 public class ADBScreen extends Region implements EventObserver, IScreen {
 
-  private static String me = "ADBScreen: ";
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
   private static boolean isFake = false;
   protected IRobot robot = null;
   private static int logLvl = 3;
@@ -56,7 +50,7 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
       try {
         screen = new ADBScreen(adbExec);
       } catch (Exception e) {
-        log(-1, "start: No devices attached");
+        Debug.log(-1, "ADBScreen: start: No devices attached");
         screen = null;
       }
     }
@@ -137,7 +131,7 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
       return;
     }
     if (null == device.isDisplayOn()) {
-      log(-1, "wakeUp: not possible - see log");
+      Debug.log(-1, "wakeUp: not possible - see log");
       return;
     }
     if (!device.isDisplayOn()) {
@@ -185,10 +179,10 @@ public class ADBScreen extends Region implements EventObserver, IScreen {
   public ScreenImage capture(int x, int y, int w, int h) {
     ScreenImage simg = null;
     if (device != null) {
-      log(logLvl, "ADBScreen.capture: (%d,%d) %dx%d", x, y, w, h);
+      Debug.log(3, "ADBScreen.capture: (%d,%d) %dx%d", x, y, w, h);
       simg = device.captureScreen(new Rectangle(x, y, w, h));
     } else {
-      log(-1, "capture: no ADBRobot available");
+      Debug.log(-1, "capture: no ADBRobot available");
     }
     lastScreenImage = simg;
     return simg;

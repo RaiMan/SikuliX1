@@ -20,14 +20,9 @@ import java.util.*;
 /**
  * A Region is a rectengular area and lies always completely inside its parent screen
  */
-public class Region {
+public class Region extends Pixels {
 
-  private static String me = "Region: ";
-  private static int lvl = 3;
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
+  public static final String logName = "Region: ";
 
   //<editor-fold desc="000 for Python">
   public static Region getDefaultInstance4py() {
@@ -63,14 +58,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="001 Fields x, y, w, h">
-
-  /**
-   * @return x of top left corner
-   */
-  public int getX() {
-    return x;
-  }
-
   /**
    * @param X new x position of top left corner
    */
@@ -81,18 +68,6 @@ public class Region {
   }
 
   /**
-   * X-coordinate of the Region
-   */
-  public int x;
-
-  /**
-   * @return y of top left corner
-   */
-  public int getY() {
-    return y;
-  }
-
-  /**
    * @param Y new y position of top left corner
    */
   public Region setY(int Y) {
@@ -100,19 +75,6 @@ public class Region {
     initScreen(null);
     return this;
   }
-
-  /**
-   * Y-coordinate of the Region
-   */
-  public int y;
-
-  /**
-   * @return width of region
-   */
-  public int getW() {
-    return w;
-  }
-
   /**
    * @param W new width
    */
@@ -121,19 +83,6 @@ public class Region {
     initScreen(null);
     return this;
   }
-
-  /**
-   * Width of the Region
-   */
-  public int w;
-
-  /**
-   * @return height of region
-   */
-  public int getH() {
-    return h;
-  }
-
   /**
    * @param H new height
    */
@@ -142,11 +91,6 @@ public class Region {
     initScreen(null);
     return this;
   }
-
-  /**
-   * Height of the Region
-   */
-  public int h;
   //</editor-fold>
 
   //<editor-fold desc="010 Fields throwException, findFailed/imageMissing">
@@ -192,7 +136,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="2 findFailedResponse">
-
   /**
    * FindFailedResponse.<br>
    * ABORT - abort script on FindFailed <br>
@@ -231,19 +174,10 @@ public class Region {
   public void setFindFailedHandler(Object handler) {
     findFailedResponse = FindFailedResponse.HANDLE;
     findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
-    log(lvl, "Setting FindFailedHandler");
+    log(logLevel, "Setting FindFailedHandler");
   }
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
-  //</editor-fold>
-
-  //<editor-fold desc="4 imageMissingHandler">
-  public void setImageMissingHandler(Object handler) {
-    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
-    log(lvl, "Setting ImageMissingHandler");
-  }
-
-  private Object imageMissingHandler = FindFailed.getImageMissingHandler();
   //</editor-fold>
 
   //</editor-fold>
@@ -339,10 +273,6 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold desc="004 housekeeping">
-  protected boolean isEmpty() {
-    return w <= 1 && h <= 1;
-  }
-
   private boolean isScreenUnion = false;
   private boolean isVirtual = false;
 
@@ -361,16 +291,6 @@ public class Region {
 
   private static Region fakeRegion;
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  private String name = "";
-
   /**
    * {@inheritDoc}
    *
@@ -384,8 +304,8 @@ public class Region {
       scrText = getScreen().getIDString();
     }
     String nameText = "";
-    if (!name.isEmpty()) {
-      nameText = "#" + name + "# ";
+    if (!getName().isEmpty()) {
+      nameText = "#" + getName() + "# ";
     }
     return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
   }
@@ -399,6 +319,10 @@ public class Region {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="005 Init & special use">
+
+  public Image getImage() {
+    return new Image(getScreen().capture(x, y, w, h));
+  }
 
   /**
    * INTERNAL USE
@@ -2237,7 +2161,7 @@ public class Region {
       response = handleImageMissing(img, false); //wait
       if (response == null) {
         if (Settings.SwitchToText) {
-          log(lvl, "wait: image missing: switching to text search (deprecated - use text methods)");
+          log(logLevel, "wait: image missing: switching to text search (deprecated - use text methods)");
           response = true;
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
@@ -2247,7 +2171,7 @@ public class Region {
       }
     }
     while (null != response && response) {
-      log(lvl, "wait: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+      log(logLevel, "wait: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
       if (rf.repeat(timeout)) {
         lastMatch = rf.getMatch();
         //lastMatch.setImage(img);
@@ -2256,7 +2180,7 @@ public class Region {
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
-        log(lvl, "wait: %s appeared (%s)", img.getName(), lastMatch);
+        log(logLevel, "wait: %s appeared (%s)", img.getName(), lastMatch);
         return lastMatch;
       } else {
         response = handleFindFailed(target, img);
@@ -2272,7 +2196,7 @@ public class Region {
         break;
       }
     }
-    log(lvl, "wait: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+    log(logLevel, "wait: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
     if (!shouldAbort.isEmpty()) {
       throw new FindFailed(shouldAbort);
     }
@@ -2296,23 +2220,22 @@ public class Region {
   }
 
   /**
-   * finds the given Pattern, String or Image in the region and returns the best match. If AutoWaitTimeout is set, this
-   * is equivalent to wait(). Otherwise only one search attempt will be done.
+   * finds the given Pattern, String or Image in the region and returns the best match.
    *
    * @param <PSI>  Pattern, String or Image
-   * @param target A search criteria
+   * @param target
    * @return If found, the element. null otherwise
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
     lastMatch = null;
-    Image img = Image.getImageFromTarget(target);
+    Image img = Pixels.getImageFromTarget(target);
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false); //find()
       if (response == null) {
         if (Settings.SwitchToText) {
-          log(lvl, "find: image missing: switching to text search (deprecated - use text methods)");
+          log(logLevel, "find: image missing: switching to text search (deprecated - use text methods)");
           response = true;
           img.setIsText(true);
           target = (PSI) ("\t" + target + "\t");
@@ -2323,7 +2246,7 @@ public class Region {
     }
     String targetStr = img.getName();
     while (null != response && response) {
-      log(lvl, "find: waiting 0 secs for %s to appear in %s", targetStr, this.toStringShort());
+      log(logLevel, "find: waiting 0 secs for %s to appear in %s", targetStr, this.toStringShort());
       lastMatch = doFind(target, img, null);
       if (lastMatch != null) {
         if (isOtherScreen()) {
@@ -2331,10 +2254,10 @@ public class Region {
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
-        log(lvl, "find: %s appeared (%s)", targetStr, lastMatch);
+        log(logLevel, "find: %s appeared (%s)", targetStr, lastMatch);
         break;
       }
-      log(lvl, "find: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+      log(logLevel, "find: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
       if (null == lastMatch) {
         response = handleFindFailed(target, img);
       }
@@ -2364,7 +2287,7 @@ public class Region {
       response = handleImageMissing(img, false);//exists
       if (response == null) {
         if (Settings.SwitchToText) {
-          log(lvl, "Exists: image missing: switching to text search (deprecated - use text methods)");
+          log(logLevel, "Exists: image missing: switching to text search (deprecated - use text methods)");
           response = true;
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
@@ -2374,7 +2297,7 @@ public class Region {
       }
     }
     String targetStr = img.getName();
-    log(lvl, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+    log(logLevel, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
     if (rf.repeat(timeout)) {
       lastMatch = rf.getMatch();
       //lastMatch.setImage(img);
@@ -2383,10 +2306,10 @@ public class Region {
       } else if (img != null) {
         img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
       }
-      log(lvl, "exists: %s has appeared (%s)", targetStr, lastMatch);
+      log(logLevel, "exists: %s has appeared (%s)", targetStr, lastMatch);
       return lastMatch;
     }
-    log(lvl, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+    log(logLevel, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
     return null;
   }
 
@@ -2452,12 +2375,12 @@ public class Region {
       response = handleImageMissing(img, false);//waitVanish
     }
     if (null != response && response) {
-      log(lvl, "waiting for " + targetStr + " to vanish within %.1f secs", timeout);
+      log(logLevel, "waiting for " + targetStr + " to vanish within %.1f secs", timeout);
       if (rv.repeat(timeout)) {
-        log(lvl, "%s vanished", targetStr);
+        log(logLevel, "%s vanished", targetStr);
         return true;
       }
-      log(lvl, "%s did not vanish before timeout", targetStr);
+      log(logLevel, "%s did not vanish before timeout", targetStr);
       return false;
     }
     return false;
@@ -2495,7 +2418,7 @@ public class Region {
       }
     }
     while (null != response && response) {
-      log(lvl, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
+      log(logLevel, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
           autoWaitTimeout, targetStr, this.toStringShort());
       if (autoWaitTimeout > 0) {
         rf.repeat(autoWaitTimeout);
@@ -2504,10 +2427,10 @@ public class Region {
         lastMatches = doFindAll(target, null);
       }
       if (lastMatches != null) {
-        log(lvl, "findAll: %s has appeared", targetStr);
+        log(logLevel, "findAll: %s has appeared", targetStr);
         break;
       } else {
-        log(lvl, "findAll: %s did not appear", targetStr);
+        log(logLevel, "findAll: %s did not appear", targetStr);
         response = handleFindFailed(target, img);
       }
     }
@@ -2611,7 +2534,7 @@ public class Region {
   }
 
   public Match findBestList(List<Object> pList) {
-    Debug.log(lvl, "findBest: enter");
+    Debug.log(logLevel, "findBest: enter");
     if (pList == null || pList.size() == 0) {
       return null;
     }
@@ -2645,7 +2568,7 @@ public class Region {
   }
 
   public List<Match> findAnyList(List<Object> pList) {
-    Debug.log(lvl, "findAny: enter");
+    Debug.log(logLevel, "findAny: enter");
     if (pList == null || pList.size() == 0) {
       return new ArrayList<Match>();
     }
@@ -2685,7 +2608,7 @@ public class Region {
 
   //<editor-fold desc="021 find text public methods">
   public Match waitText(String text, double timeout) throws FindFailed {
-    return relocateInRegion(wait("\t" + text + "\t", timeout));
+    return relocate(wait("\t" + text + "\t", timeout));
   }
 
   public Match waitText(String text) throws FindFailed {
@@ -2729,11 +2652,11 @@ public class Region {
     return existsT(text, autoWaitTimeout);
   }
 
-  public Match hasText(String text) {
-    return existsText(text, 0);
+  public boolean hasText(String text) {
+    return null != existsText(text, 0);
   }
 
-  public Match hasT(String text) {
+  public boolean hasT(String text) {
     return hasText(text);
   }
 
@@ -2750,47 +2673,7 @@ public class Region {
     return findAllText(text);
   }
 
-  /**
-   * Find the first word as text (top left to bottom right) containing the given text
-   *
-   * @param word
-   * @return a text match or null if not found
-   */
-  public Match findWord(String word) {
-    Match match = null;
-    if (!word.isEmpty()) {
-      Object result = doFindText(word, levelWord, false);
-      if (result != null) {
-        match = relocateInRegion( (Match) result);
-      }
-    }
-    return match;
-  }
-
-  /**
-   * Find all words as text (top left to bottom right) containing the given text
-   *
-   * @param word
-   * @return a list of text matches
-   */
-  public List<Match> findWords(String word) {
-    Finder finder = ((Finder) doFindText(word, levelWord, true));
-    if (null != finder) {
-      return finder.getListForRegion(this);
-    }
-    return new ArrayList<>();
-  }
-
-  /**
-   * Find all words as text (top left to bottom right)
-   *
-   * @return a list of text matches
-   */
-  public List<Match> findWords() {
-    return relocateInRegion(OCR.readWords(getScreen().capture(x, y, w, h).getImage()));
-  }
-
-  public List<Match> relocateInRegion(List<Match> matches) {
+  public List<Match> relocate(List<Match> matches) {
     for (Match match : matches) {
       match.x += this.x;
       match.y += this.y;
@@ -2799,56 +2682,15 @@ public class Region {
     return matches;
   }
 
-  public Match relocateInRegion(Match match) {
+  public Match relocate(Match match) {
     match.x += this.x;
     match.y += this.y;
     match.setScreen(this.getScreen());
     return match;
   }
-
-  /**
-   * Find the first line as text (top left to bottom right) containing the given text
-   *
-   * @param text
-   * @return a text match or null if not found
-   */
-  public Match findLine(String text) {
-    Match match = null;
-    if (!text.isEmpty()) {
-      Object result = doFindText(text, levelLine, false);
-      if (result != null) {
-        match = relocateInRegion((Match) result);
-      }
-    }
-    return match;
-  }
-
-  /**
-   * Find all lines as text (top left to bottom right) containing the given text
-   *
-   * @param text
-   * @return a list of text matches or empty list if not found
-   */
-  public List<Match> findLines(String text) {
-    Finder finder = (Finder) doFindText(text, levelLine, true);
-    if (null != finder) {
-      return finder.getListForRegion(this);
-    }
-    return new ArrayList<>();
-  }
-
-  /**
-   * Find all lines as text (top left to bottom right)
-   *
-   * @return a list of text matches or empty list if not found
-   */
-  public List<Match> findLines() {
-    return relocateInRegion(OCR.readLines(getScreen().capture(x, y, w, h).getImage()));
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="022 find internal methods">
-
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
    * waiting.
@@ -2895,7 +2737,7 @@ public class Region {
           }
         }
         if (findingText) {
-          log(lvl, "doFind: Switching to TextSearch");
+          log(logLevel, "doFind: Switching to TextSearch");
           finder = new Finder(this);
           lastSearchTime = (new Date()).getTime();
           finder.findText(someText);
@@ -2989,10 +2831,10 @@ public class Region {
           f.find(new Pattern(ptn).similar(score));
         }
         if (f.hasNext()) {
-          log(lvl, "checkLastSeen: still there");
+          log(logLevel, "checkLastSeen: still there");
           return f;
         }
-        log(lvl, "checkLastSeen: not there");
+        log(logLevel, "checkLastSeen: not there");
       }
     }
     return new Finder(base, this);
@@ -3057,37 +2899,6 @@ public class Region {
     return null;
   }
 
-  private int levelWord = 3;
-  private int levelLine = 2;
-
-  private Object doFindText(String text, int level, boolean multi) {
-    Object returnValue = null;
-    Finder finder = new Finder(this);
-    lastSearchTime = (new Date()).getTime();
-    if (level == levelWord) {
-      if (multi) {
-        if (finder.findWords(text)) {
-          returnValue = finder;
-        }
-      } else {
-        if (finder.findWord(text)) {
-          returnValue = finder.next();
-        }
-      }
-    } else if (level == levelLine) {
-      if (multi) {
-        if (finder.findLines(text)) {
-          returnValue = finder;
-        }
-      } else {
-        if (finder.findLine(text)) {
-          returnValue = finder.next();
-        }
-      }
-    }
-    return returnValue;
-  }
-
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
 
@@ -3143,7 +2954,7 @@ public class Region {
     public <PSI> RepeatableFind(PSI target, Image img) {
       _target = target;
       if (img == null) {
-        _image = Image.getImageFromTarget(target);
+        _image = Pixels.getImageFromTarget(target);
       } else if (target instanceof ScreenImage) {
         _image = new Image(((ScreenImage) target).getImage());
       } else {
@@ -3191,7 +3002,7 @@ public class Region {
     public <PSI> RepeatableFindAll(PSI target, Image img) {
       _target = target;
       if (img == null) {
-        _image = Image.getImageFromTarget(target);
+        _image = Pixels.getImageFromTarget(target);
       } else {
         _image = img;
       }
@@ -3276,7 +3087,7 @@ public class Region {
         }
       }
       if (findingText) {
-        log(lvl, "findInImage: Switching to TextSearch");
+        log(logLevel, "findInImage: Switching to TextSearch");
         finder = new Finder(getScreen().capture(x, y, w, h), this);
         finder.findText((String) target);
       }
@@ -3329,7 +3140,7 @@ public class Region {
       }
       nobj++;
     }
-    Debug.log(lvl, "findAnyCollect: waiting for SubFindRuns");
+    Debug.log(logLevel, "findAnyCollect: waiting for SubFindRuns");
     nobj = 0;
     boolean all = false;
     while (!all) {
@@ -3338,7 +3149,7 @@ public class Region {
         all &= sub.hasFinished();
       }
     }
-    Debug.log(lvl, "findAnyCollect: SubFindRuns finished");
+    Debug.log(logLevel, "findAnyCollect: SubFindRuns finished");
     nobj = 0;
     for (Match match : mArray) {
       if (match != null) {
@@ -3388,14 +3199,14 @@ public class Region {
   }
 
   private <PSI> Boolean handleFindFailed(PSI target, Image img) {
-    log(lvl, "handleFindFailed: %s", target);
+    log(logLevel, "handleFindFailed: %s", target);
     Boolean state = null;
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
     if (FindFailedResponse.HANDLE.equals(response)) {
       ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
       if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
-        log(lvl, "handleFindFailed: Response.HANDLE: calling handler");
+        log(logLevel, "handleFindFailed: Response.HANDLE: calling handler");
         evt = new ObserveEvent("", type, target, img, this, 0);
         ((ObserverCallBack) findFailedHandler).findfailed(evt);
         response = evt.getResponse();
@@ -3435,23 +3246,23 @@ public class Region {
   }
 
   private Boolean handleImageMissing(Image img, boolean recap) {
-    log(lvl, "handleImageMissing: %s", img.getName());
+    log(logLevel, "handleImageMissing: %s", img.getName());
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
     if (!recap && imageMissingHandler != null) {
-      log(lvl, "handleImageMissing: calling handler");
+      log(logLevel, "handleImageMissing: calling handler");
       evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
       ((ObserverCallBack) imageMissingHandler).missing(evt);
       response = evt.getResponse();
     }
     if (recap || FindFailedResponse.PROMPT.equals(response)) {
       if (!recap) {
-        log(lvl, "handleImageMissing: Response.PROMPT");
+        log(logLevel, "handleImageMissing: Response.PROMPT");
       }
       response = handleFindFailedShowDialog(img, true);
     }
     if (FindFailedResponse.RETRY.equals(response)) {
-      log(lvl, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
+      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForRegion().delay(500);
       ScreenImage simg = getScreen().userCapture(
           (recap ? "recapture " : "capture missing ") + img.getName());
@@ -3464,7 +3275,7 @@ public class Region {
         simg.getFile(path, img.getName());
         Image.reinit(img);
         if (img.isValid()) {
-          log(lvl, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
+          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
           Image.setIDEshouldReload(img);
           return true;
         }
@@ -3475,55 +3286,20 @@ public class Region {
       log(-1, "Did you want to find text? If yes, use text methods (see docs).");
       return null;
     }
-    log(lvl, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
+    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
     return false;
   }
 
   private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
-    log(lvl, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
+    log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
     FindFailedResponse response;
     FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
     fd.setVisible(true);
     response = fd.getResponse();
     fd.dispose();
     wait(0.5);
-    log(lvl, "handleFindFailedShowDialog: answer is %s", response);
+    log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
     return response;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="025 lastMatch">
-  /**
-   * The last found {@link Match} in the Region
-   */
-  private Match lastMatch = null;
-
-  /**
-   * The last found {@link Match}es in the Region
-   */
-  private Iterator<Match> lastMatches = null;
-  private long lastSearchTime = -1;
-  private long lastFindTime = -1;
-  private long lastSearchTimeRepeat = -1;
-
-  /**
-   * a find operation saves its match on success in the used region object<br>unchanged if not successful
-   *
-   * @return the Match object from last successful find in this region
-   */
-  public Match getLastMatch() {
-    return lastMatch;
-  }
-
-  // ************************************************
-
-  /**
-   * a searchAll operation saves its matches on success in the used region object<br>unchanged if not successful
-   *
-   * @return a Match-Iterator of matches from last successful searchAll in this region
-   */
-  public Iterator<Match> getLastMatches() {
-    return lastMatches;
   }
   //</editor-fold>
 
@@ -3649,7 +3425,7 @@ public class Region {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
-      Image img = Image.getImageFromTarget(targetThreshhold);
+      Image img = Pixels.getImageFromTarget(targetThreshhold);
       Boolean response = true;
       if (!img.isValid() && img.hasIOException()) {
         response = handleImageMissing(img, false);//onAppear, ...
@@ -3660,7 +3436,7 @@ public class Region {
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
-    log(lvl, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
+    log(logLevel, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
         (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
@@ -3783,7 +3559,7 @@ public class Region {
 
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
-    log(lvl, "%s: onChange%s: %s minSize: %d", toStringShort(),
+    log(logLevel, "%s: onChange%s: %s minSize: %d", toStringShort(),
         (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
@@ -3830,7 +3606,7 @@ public class Region {
         return false;
       }
     }
-    log(lvl, "observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
+    log(logLevel, "observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
     int MaxTimePerScan = (int) (1000.0 / observeScanRate);
     long begin_t = (new Date()).getTime();
     long stop_t;
@@ -3863,10 +3639,10 @@ public class Region {
     boolean observeSuccess = false;
     if (observing) {
       observing = false;
-      log(lvl, "observe: stopped due to timeout in "
+      log(logLevel, "observe: stopped due to timeout in "
           + this.toStringShort() + " for " + secs + " seconds");
     } else {
-      log(lvl, "observe: ended successfully: " + this.toStringShort());
+      log(logLevel, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);
     }
     return observeSuccess;
@@ -3888,7 +3664,7 @@ public class Region {
     observingInBackground = true;
     Thread observeThread = new Thread(new ObserverThread(secs));
     observeThread.start();
-    log(lvl, "observeInBackground now running");
+    log(logLevel, "observeInBackground now running");
     return true;
   }
 
@@ -3920,7 +3696,7 @@ public class Region {
    * stops a running observer
    */
   public void stopObserver() {
-    log(lvl, "observe: request to stop observer for " + this.toStringShort());
+    log(logLevel, "observe: request to stop observer for " + this.toStringShort());
     observing = false;
     observingInBackground = false;
   }
@@ -3965,7 +3741,7 @@ public class Region {
    * @throws FindFailed for Pattern or Filename
    */
   public <PFRML> int hover(PFRML target) throws FindFailed {
-    log(lvl, "hover: " + target);
+    log(logLevel, "hover: " + target);
     return mouseMove(target);
   }
 
@@ -4474,13 +4250,13 @@ public class Region {
     Settings.TypeDelay = 0.0;
     robot.typeStarts();
     for (int i = 0; i < text.length(); i++) {
-      log(lvl + 1, "write: (%d) %s", i, text.substring(i));
+      log(logLevel + 1, "write: (%d) %s", i, text.substring(i));
       c = text.charAt(i);
       token = null;
       boolean isModifier = false;
       if (c == '#') {
         if (text.charAt(i + 1) == '#') {
-          log(lvl, "write at: %d: %s", i, c);
+          log(logLevel, "write at: %d: %s", i, c);
           i += 1;
           continue;
         }
@@ -4498,9 +4274,9 @@ public class Region {
       }
       Integer key = -1;
       if (token == null) {
-        log(lvl + 1, "write: %d: %s", i, c);
+        log(logLevel + 1, "write: %d: %s", i, c);
       } else {
-        log(lvl + 1, "write: token at %d: %s", i, token);
+        log(logLevel + 1, "write: token at %d: %s", i, token);
         int repeat = 0;
         if (token.toUpperCase().startsWith("#W")) {
           if (token.length() > 3) {
@@ -4512,9 +4288,9 @@ public class Region {
             }
             if ((token.startsWith("#w") && t > 60)) {
               pause = 20 + (t > 1000 ? 1000 : t);
-              log(lvl + 1, "write: type delay: " + t);
+              log(logLevel + 1, "write: type delay: " + t);
             } else {
-              log(lvl + 1, "write: wait: " + t);
+              log(logLevel + 1, "write: wait: " + t);
               robot.delay((t < 60 ? t * 1000 : t));
             }
             continue;
@@ -4537,9 +4313,9 @@ public class Region {
         }
         if (-1 < (key = Key.toJavaKeyCodeFromText(token))) {
           if (repeat > 0) {
-            log(lvl + 1, "write: %s Repeating: %d", token, repeat);
+            log(logLevel + 1, "write: %s Repeating: %d", token, repeat);
           } else {
-            log(lvl + 1, "write: %s", tokenSave);
+            log(logLevel + 1, "write: %s", tokenSave);
             repeat = 1;
           }
           i += tokenSave.length() - 1;
@@ -4560,7 +4336,7 @@ public class Region {
         }
       }
       if (!modifier.isEmpty()) {
-        log(lvl + 1, "write: modifier + " + modifier);
+        log(logLevel + 1, "write: modifier + " + modifier);
         for (int n = 0; n < modifier.length(); n++) {
           robot.keyDown(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n + 1))));
         }
@@ -4571,7 +4347,7 @@ public class Region {
         robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);
       }
       if (!modifier.isEmpty()) {
-        log(lvl + 1, "write: modifier - " + modifier);
+        log(logLevel + 1, "write: modifier - " + modifier);
         for (int n = 0; n < modifier.length(); n++) {
           robot.keyUp(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n + 1))));
         }
@@ -4706,7 +4482,7 @@ public class Region {
       if ((modifiers & KeyModifier.WIN) != 0) {
         modifiers -= KeyModifier.WIN;
         modifiers |= KeyModifier.META;
-        log(lvl, "Key.WIN as modifier");
+        log(logLevel, "Key.WIN as modifier");
         modWindows = "Windows";
       }
       if (modifiers != 0) {
@@ -4716,7 +4492,7 @@ public class Region {
         }
       }
       Debug.action("%s TYPE \"%s\"", modText, showText);
-      log(lvl, "%s TYPE \"%s\"", modText, showText);
+      log(logLevel, "%s TYPE \"%s\"", modText, showText);
       profiler.lap("before getting Robot");
       IRobot r = getRobotForRegion();
       int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
@@ -4935,118 +4711,6 @@ public class Region {
       aSwipe(new Location(swipeStep, midY), new Location(w - swipeStep, midY));
     } catch (FindFailed findFailed) {
     }
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="035 OCR - read text">
-
-  /**
-   * tries to read the text in this region<br>
-   * might contain misread characters, NL characters and
-   * other stuff, when interpreting contained grafics as text<br>
-   * Best results: one or more lines of text with no contained grafics
-   *
-   * @return the text read (utf8 encoded)
-   */
-  public String text() {
-    return OCR.readText(this);
-  }
-
-  public Image getImage() {
-    return new Image(getScreen().capture(x, y, w, h));
-  }
-
-  /**
-   * get text from this region
-   * supposing it is one line of text
-   *
-   * @return the text or empty string
-   */
-  public String textLine() {
-    return OCR.readLine(this);
-  }
-
-  /**
-   * get text from this region
-   * supposing it is one word
-   *
-   * @return the text or empty string
-   */
-  public String textWord() {
-    return OCR.readWord(this);
-  }
-
-  /**
-   * get text from this region
-   * supposing it is one character
-   *
-   * @return the text or empty string
-   */
-  public String textChar() {
-    return OCR.readChar(this);
-  }
-
-  /**
-   * find text lines in this region
-   *
-   * @return list of strings each representing one line of text
-   */
-  public List<String> textLines() {
-    List<String> lines = new ArrayList<>();
-    List<Match> matches = findLines();
-    for (Match match : matches) {
-      lines.add(match.getText());
-    }
-    return lines;
-  }
-
-  /**
-   * @return
-   * @deprecated use findLines() instead
-   */
-  public List<Match> collectLines() {
-    return findLines();
-  }
-
-  /**
-   * @return
-   * @deprecated use textLines() instead
-   */
-  @Deprecated
-  public List<String> collectLinesText() {
-    return textLines();
-  }
-
-  /**
-   * find the words as text in this region (top left to bottom right)<br>
-   * a word is a sequence of detected utf8-characters surrounded by significant background space
-   * might contain characters misinterpreted from contained grafics
-   *
-   * @return list of strings each representing one word
-   */
-  public List<String> textWords() {
-    List<String> words = new ArrayList<>();
-    List<Match> matches = findWords();
-    for (Match match : matches) {
-      words.add(match.getText());
-    }
-    return words;
-  }
-
-  /**
-   * @return
-   * @deprecated use findWords() instead
-   */
-  public List<Match> collectWords() {
-    return findWords();
-  }
-
-  /**
-   * @return
-   * @deprecated use textWords() instead
-   */
-  public List<String> collectWordsText() {
-    return textWords();
   }
   //</editor-fold>
 }

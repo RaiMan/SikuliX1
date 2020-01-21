@@ -52,45 +52,25 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-   * Finder constructor from a region on a screen
-   *
-   * @param reg Region
+   * Create a Finder for the given element
+   * @param inWhat
+   * @param <RIBS> Region, Image, BufferedImage or ScreenImage
    */
-  public Finder(Region reg) {
-    log(lvl, "Region: %s", reg);
-    where = reg;
+  public <RIBS> Finder(RIBS inWhat) {
+    if (inWhat instanceof Region) {
+      where = (Region) inWhat;
+    } else if (inWhat instanceof Image) {
+      _findInput.setSource(Finder2.makeMat(((Image) inWhat).get()));
+    } else if (inWhat instanceof BufferedImage) {
+      _findInput.setSource(Finder2.makeMat(((BufferedImage) inWhat)));
+    } else if (inWhat instanceof ScreenImage) {
+      initScreenFinder(((ScreenImage) inWhat), null);
+    }
+    throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
   }
 
   /**
-   * Finder constructor from an Image
-   *
-   * @param img Image
-   */
-  public Finder(Image img) {
-    log(lvl, "Image: %s", img);
-    _findInput.setSource(Finder2.makeMat(img.get()));
-  }
-
-  /**
-   * Constructor from a BufferedImage
-   *
-   * @param bimg BufferedImage
-   */
-  public Finder(BufferedImage bimg) {
-    _findInput.setSource(Finder2.makeMat(bimg));
-  }
-
-  /**
-   * Finder constructor from a ScreenImage
-   *
-   * @param simg ScreenImage
-   */
-  public Finder(ScreenImage simg) {
-    initScreenFinder(simg, null);
-  }
-
-  /**
-   * Finder constructor for special use from a region on a ScreenImage
+   * Finder for a Region on a ScreenImage
    *
    * @param simg   ScreenImage
    * @param region the cropping region
@@ -444,10 +424,11 @@ public class Finder implements Iterator<Match> {
     return matches;
   }
 
-  public List<Match> getListForRegion(Region reg) {
+  public <RI> List<Match> getListFor(RI what) {
     List<Match> matches = new ArrayList<>();
+    if (what instanceof Pixels)
     while (hasNext()) {
-      matches.add(reg.relocateInRegion(next()));
+      matches.add(((Pixels) what).relocate(next()));
     }
     return matches;
   }

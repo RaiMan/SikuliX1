@@ -25,12 +25,7 @@ import org.sikuli.util.OverlayCapturePrompt;
  */
 public class Screen extends Region implements IScreen {
 
-  private static String me = "Screen: ";
-  private static int lvl = 3;
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
+  protected static final String logName = "Screen: ";
 
   private static IRobot globalRobot = null;
   protected static Screen[] screens = null;
@@ -66,9 +61,9 @@ public class Screen extends Region implements IScreen {
 
   private static boolean initMonitors() {
     if (!isHeadless()) {
-      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
+      log(logLevel, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
       genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-      log(lvl, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
+      log(logLevel, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
       gdevs = genv.getScreenDevices();
       nMonitors = gdevs.length;
       mainMonitor = -1;
@@ -82,17 +77,17 @@ public class Screen extends Region implements IScreen {
         if (currentBounds.contains(new Point(0, 0))) {
           if (mainMonitor < 0) {
             mainMonitor = i;
-            log(lvl, "ScreenDevice %d has (0,0) --- will be primary Screen(0)", i);
+            log(logLevel, "ScreenDevice %d has (0,0) --- will be primary Screen(0)", i);
           } else {
-            log(lvl, "ScreenDevice %d too contains (0,0)!", i);
+            log(logLevel, "ScreenDevice %d too contains (0,0)!", i);
           }
         }
-        log(lvl, "Monitor %d: (%d, %d) %d x %d", i,
+        log(logLevel, "Monitor %d: (%d, %d) %d x %d", i,
                 currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
         monitorBounds[i] = currentBounds;
       }
       if (mainMonitor < 0) {
-        log(lvl, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
+        log(logLevel, "No ScreenDevice has (0,0) --- using 0 as primary: %s", monitorBounds[0]);
         mainMonitor = 0;
       }
       return true;
@@ -135,7 +130,7 @@ public class Screen extends Region implements IScreen {
         return;
       }
     }
-    log(lvl, "initScreens: starting");
+    log(logLevel, "initScreens: starting");
     if (initMonitors()) {
       primaryScreen = 0;
       getGlobalRobot();
@@ -155,7 +150,7 @@ public class Screen extends Region implements IScreen {
       Mouse.init();
 
       if (nMonitors > 1) {
-        log(lvl, "initScreens: multi monitor mouse check");
+        log(logLevel, "initScreens: multi monitor mouse check");
         Location lnow = Mouse.at();
         float mmd = Settings.MoveMouseDelay;
         Settings.MoveMouseDelay = 0f;
@@ -165,17 +160,17 @@ public class Screen extends Region implements IScreen {
           Mouse.move(lc);
           lcn = Mouse.at();
           if (!lc.equals(lcn)) {
-            log(lvl, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
+            log(logLevel, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
                     s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
           } else {
-            log(lvl, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
+            log(logLevel, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
           }
         }
         Mouse.move(lnow);
         Settings.MoveMouseDelay = mmd;
       }
     }
-    log(lvl, "initScreens: ending");
+    log(logLevel, "initScreens: ending");
   }
   //</editor-fold>
 
@@ -644,7 +639,7 @@ public class Screen extends Region implements IScreen {
               rect.width, rect.height, new Date().getTime() - lastCaptureTime);
     }
     lastScreenImage = simg;
-    if (Debug.getDebugLevel() > lvl) {
+    if (Debug.getDebugLevel() > logLevel) {
       simg.saveLastScreenImage(RunTime.get().fSikulixStore);
     }
     return simg;
