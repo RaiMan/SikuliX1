@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * Static helper class for OCR.
+ * 
+ * The methods in this class are not threadsafe.
  */
 
 public class OCR {
