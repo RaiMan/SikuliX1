@@ -43,11 +43,11 @@ public class TextRecognizer {
   private OCR.Options options;
 
   //<editor-fold desc="00 start, stop, reset">
-  protected TextRecognizer() {
-    this(OCR.globalOptions());
+  private TextRecognizer() {
+    this(OCR.options());
   }
 
-  protected TextRecognizer(OCR.Options options) {
+  private TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
     options.validate();
     this.options = options;
@@ -60,17 +60,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static TextRecognizer start() {
-    return start(OCR.globalOptions());
-  }
-
-  /**
-   * Creates a new TextRecognizer instance using the given options.
-   * @return
-   * @deprecated no longer needed at all
-   */
-  @Deprecated
-  public static TextRecognizer start(OCR.Options options) {
-    return TextRecognizer.get(options);
+    return get(OCR.options());
   }
 
   protected static TextRecognizer get(OCR.Options options) {
@@ -78,7 +68,7 @@ public class TextRecognizer {
 
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
-      options = OCR.globalOptions();
+      options = OCR.options();
     }
 
     return new TextRecognizer(options);
@@ -92,7 +82,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static void reset() {
-    OCR.globalOptions().reset();
+    OCR.reset();
   }
 
   /**
@@ -102,16 +92,13 @@ public class TextRecognizer {
    */
   @Deprecated
   public static void status() {
-    Debug.logp("Global settings " + OCR.globalOptions().toString());
+    OCR.status();
   }
 
   public String toString() {
     return options.toString();
   }
 
-  public OCR.Options options() {
-    return options;
-  }
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
@@ -121,11 +108,12 @@ public class TextRecognizer {
    *
    * @param oem
    * @return
-   * @deprecated Use options().oem()
+   * @deprecated Use OCR.options().oem(OCR.OcrEngineMode oem)
    */
   @Deprecated
   public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
-    return setOEM(oem.ordinal());
+    OCR.options().oem(oem);
+    return this;
   }
 
   /**
@@ -139,11 +127,11 @@ public class TextRecognizer {
    *
    * @param oem
    * @return
-   * @deprecated Use options().oem()
+   * @deprecated Use OCR.options().oem(int oem)
    */
   @Deprecated
   public TextRecognizer setOEM(int oem) {
-    options().oem(oem);
+    OCR.options().oem(oem);
     return this;
   }
 
@@ -153,11 +141,12 @@ public class TextRecognizer {
    *
    * @param psm
    * @return
-   * @deprecated Use options().psm()
+   * @deprecated Use OCR.options().psm(OCR.PageSegMode psm)
    */
   @Deprecated
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
-    return setPSM(psm.ordinal());
+    OCR.options().psm(psm);
+    return this;
   }
 
   /**
@@ -181,11 +170,11 @@ public class TextRecognizer {
    *
    * @param psm
    * @return the textRecognizer instance
-   * @deprecated Use options().psm()
+   * @deprecated Use OCR.options().psm(int psm)
    */
   @Deprecated
   public TextRecognizer setPSM(int psm) {
-    options().psm(psm);
+    OCR.options().psm(psm);
     return this;
   }
   //</editor-fold>
@@ -197,11 +186,11 @@ public class TextRecognizer {
    *
    * @param dataPath
    * @return
-   * @deprecated Use options().datapath()
+   * @deprecated Use OCR.options().datapath(String dataPath)
    */
   @Deprecated
   public TextRecognizer setDataPath(String dataPath) {
-    options().dataPath(dataPath);
+    OCR.options().dataPath(dataPath);
     return this;
   }
 
@@ -210,11 +199,11 @@ public class TextRecognizer {
    *
    * @param language
    * @return
-   * @deprecated Use options().language()
+   * @deprecated Use OCR.options().language(String language)
    */
   @Deprecated
   public TextRecognizer setLanguage(String language) {
-    options().language(language);
+    OCR.options().language(language);
     return this;
   }
 
@@ -224,11 +213,11 @@ public class TextRecognizer {
    * @param key
    * @param value
    * @return
-   * @deprecated Use options().variable(String key, String value)
+   * @deprecated Use OCR.options().variable(String key, String value)
    */
   @Deprecated
   public TextRecognizer setVariable(String key, String value) {
-    options().variable(key, value);
+    OCR.options().variable(key, value);
     return this;
   }
 
@@ -237,11 +226,11 @@ public class TextRecognizer {
    *
    * @param configs
    * @return
-   * @deprecated Use OCR.globalOptions.configs(String... configs)
+   * @deprecated Use OCR.options.configs(String... configs)
    */
   @Deprecated
   public TextRecognizer setConfigs(String... configs) {
-    setConfigs(Arrays.asList(configs));
+    OCR.options().configs(Arrays.asList(configs));
     return this;
   }
 
@@ -250,38 +239,16 @@ public class TextRecognizer {
    *
    * @param configs
    * @return
-   * @deprecated Use options.configs(List<String> configs)
+   * @deprecated Use OCR.options.configs(List<String> configs)
    */
   @Deprecated
   public TextRecognizer setConfigs(List<String> configs) {
-    options().configs(configs);
+    OCR.options().configs(configs);
     return this;
   }
   //</editor-fold>
 
   //<editor-fold desc="10 image optimization">
-
-  /**
-   * Hint for the OCR Engine about the expected font size in pt globally
-   *
-   * @param size expected font size in pt
-   * @deprecated Use options().setFontSize(int size)
-   */
-  public TextRecognizer setFontSize(int size) {
-    options().setFontSize(size);
-    return this;
-  }
-
-  /**
-   * Hint for the OCR Engine about the expected height of an uppercase X in px globally.
-   *
-   * @param height of an uppercase X in px
-   * @deprecated USe options().setTextHeight(int height)
-   */
-  public TextRecognizer setTextHeight(int height) {
-    options().textHeight(height);
-    return this;
-  }
 
   private BufferedImage optimize(BufferedImage bimg) {
     Mat mimg = Finder2.makeMat(bimg);
@@ -473,7 +440,7 @@ public class TextRecognizer {
   }
 
   /**
-   * use OCR.start() instead
+   * @deprecated use static OCR class instead
    *
    * @return
    */
