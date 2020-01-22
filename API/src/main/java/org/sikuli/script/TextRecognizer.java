@@ -27,35 +27,28 @@ import java.util.List;
 
 /**
  * Intended to be used only internally - still public for being backward compatible
- *
- * New projects should use class OCR
- *
+ *<p></p>
+ * <b>New projects should use class OCR</b>
+ *<p></p>
  * Implementation of the Tess4J/Tesseract API
  *
  */
 public class TextRecognizer {
 
+  private TextRecognizer() {
+  }
+
   private static int lvl = 3;
 
-  public static String versionTess4J = "4.4.1";
-  public static String versionTesseract = "4.1.0";
+  private static final String versionTess4J = "4.4.1";
+  private static final String versionTesseract = "4.1.0";
 
   private OCR.Options options;
 
-  //<editor-fold desc="00 start, stop, reset">
-  protected TextRecognizer() {
-    this(OCR.globalOptions());
-  }
-
-  protected TextRecognizer(OCR.Options options) {
-    RunTime.loadLibrary(RunTime.libOpenCV);
-    options.validate();
-    this.options = options;
-  }
-
+  //<editor-fold desc="00 instance, reset">
   /**
-   * Creates a new TextRecognizer instance using the global options.
-   * @return
+   * New TextRecognizer instance using the global options.
+   * @return instance
    * @deprecated no longer needed at all
    */
   @Deprecated
@@ -63,22 +56,66 @@ public class TextRecognizer {
     return TextRecognizer.get(OCR.globalOptions());
   }
 
+  /**
+   * INTERNAL
+   * @param options an Options set
+   * @return a new TextRecognizer instance
+   */
   protected static TextRecognizer get(OCR.Options options) {
+    RunTime.loadLibrary(RunTime.libOpenCV);
+
     initDefaultDataPath();
 
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
       options = OCR.globalOptions();
     }
+    options.validate();
 
-    return new TextRecognizer(options);
+    TextRecognizer textRecognizer = new TextRecognizer();
+    textRecognizer.options = options;
+
+    return textRecognizer;
   }
 
+  private ITesseract getTesseractAPI() {
+    try {
+      ITesseract tesseract = new Tesseract1();
+      tesseract.setOcrEngineMode(options.oem());
+      tesseract.setPageSegMode(options.psm());
+      tesseract.setLanguage(options.language());
+      tesseract.setDatapath(options.dataPath());
+      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
+        tesseract.setTessVariable(entry.getKey(), entry.getValue());
+      }
+      if (!options.configs().isEmpty()) {
+        tesseract.setConfigs(new ArrayList<>(options.configs()));
+      }
+      return tesseract;
+    } catch (UnsatisfiedLinkError e) {
+      String helpURL;
+      if (RunTime.get().runningWindows) {
+        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
+      } else {
+        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
+      }
+      Debug.error("see: " + helpURL);
+      if (RunTime.isIDE()) {
+        Debug.error("Save your work, correct the problem and restart the IDE!");
+        try {
+          Desktop.getDesktop().browse(new URI(helpURL));
+        } catch (IOException ex) {
+        } catch (URISyntaxException ex) {
+        }
+      }
+      throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
+    }
+  }
 
   /**
-   * Resets the global options to the initial defaults
-   * @return
+   * @return the global Options
    * @deprecated use OCR.reset() instead
+   * @see OCR#reset()
    */
   @Deprecated
   public static void reset() {
@@ -86,32 +123,22 @@ public class TextRecognizer {
   }
 
   /**
-   * prints out the current global options
-   * @return
    * @deprecated use OCR.status() instead
+   * @see OCR#status()
    */
   @Deprecated
   public static void status() {
     Debug.logp("Global settings " + OCR.globalOptions().toString());
-  }
-
-  public String toString() {
-    return options.toString();
-  }
-
-  public OCR.Options options() {
-    return options;
   }
   //</editor-fold>
 
   //<editor-fold desc="02 set OEM, PSM">
 
   /**
-   * Sets the OEM
-   *
    * @param oem
-   * @return
+   * @return instance
    * @deprecated Use options().oem()
+   * @see OCR.Options#oem(OCR.OcrEngineMode)
    */
   @Deprecated
   public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
@@ -119,31 +146,23 @@ public class TextRecognizer {
   }
 
   /**
-   * Sets the OEM.
-   * <p>
-   * OCR Engine modes:
-   * 0    Original Tesseract only.
-   * 1    Cube only.
-   * 2    Tesseract + cube.
-   * 3    Default, based on what is available.
-   *
    * @param oem
-   * @return
-   * @deprecated Use options().oem()
+   * @return instance
+   * @deprecated use OCR.globalOptions().oem()
+   * @see OCR.Options#oem(int)
    */
   @Deprecated
   public TextRecognizer setOEM(int oem) {
-    options().oem(oem);
+    options.oem(oem);
     return this;
   }
 
 
   /**
-   * Sets the PSM.
-   *
    * @param psm
-   * @return
-   * @deprecated Use options().psm()
+   * @return instance
+   * @deprecated use OCR.globalOptions().psm()
+   * @see OCR.Options#psm(OCR.PageSegMode)
    */
   @Deprecated
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
@@ -151,31 +170,14 @@ public class TextRecognizer {
   }
 
   /**
-   * Sets the PSM.
-   * <p>
-   * Page segmentation modes:
-   * 0    Orientation and script detection (OSD) only.
-   * 1    Automatic page segmentation with OSD.
-   * 2    Automatic page segmentation, but no OSD, or OCR.
-   * 3    Fully automatic page segmentation, but no OSD. (Default)
-   * 4    Assume a single column of text of variable sizes.
-   * 5    Assume a single uniform block of vertically aligned text.
-   * 6    Assume a single uniform block of text.
-   * 7    Treat the image as a single text line.
-   * 8    Treat the image as a single word.
-   * 9    Treat the image as a single word in a circle.
-   * 10    Treat the image as a single character.
-   * 11    Sparse text. Find as much text as possible in no particular order.
-   * 12    Sparse text with OSD.
-   * 13    Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
-   *
    * @param psm
-   * @return the textRecognizer instance
-   * @deprecated Use options().psm()
+   * @return instance
+   * @deprecated use OCR.globalOptions().psm()
+   * @see OCR.Options#psm(int)
    */
   @Deprecated
   public TextRecognizer setPSM(int psm) {
-    options().psm(psm);
+    options.psm(psm);
     return this;
   }
   //</editor-fold>
@@ -183,51 +185,47 @@ public class TextRecognizer {
   //<editor-fold desc="03 set datapath, language, variable, configs">
 
   /**
-   * Sets the dataPath
-   *
    * @param dataPath
-   * @return
-   * @deprecated Use options().datapath()
+   * @return instance
+   * @deprecated use OCR.globalOptions().datapath()
+   * @see OCR.Options#dataPath()
    */
   @Deprecated
   public TextRecognizer setDataPath(String dataPath) {
-    options().dataPath(dataPath);
+    options.dataPath(dataPath);
     return this;
   }
 
   /**
-   * Sets the OCR language
-   *
    * @param language
-   * @return
-   * @deprecated Use options().language()
+   * @return instance
+   * @deprecated use OCR.globalOptions().language()
+   * @see OCR.Options#language(String)
    */
   @Deprecated
   public TextRecognizer setLanguage(String language) {
-    options().language(language);
+    options.language(language);
     return this;
   }
 
   /**
-   * Sets a Tesseract variable.
-   *
    * @param key
    * @param value
-   * @return
-   * @deprecated Use options().variable(String key, String value)
+   * @return instance
+   * @deprecated use OCR.globalOptions().variable(String key, String value)
+   * @see OCR.Options#variable(String, String)
    */
   @Deprecated
   public TextRecognizer setVariable(String key, String value) {
-    options().variable(key, value);
+    options.variable(key, value);
     return this;
   }
 
   /**
-   * Sets Tesseract configs
-   *
    * @param configs
-   * @return
+   * @return instance
    * @deprecated Use OCR.globalOptions.configs(String... configs)
+   * @see OCR.Options#configs(String...)
    */
   @Deprecated
   public TextRecognizer setConfigs(String... configs) {
@@ -236,40 +234,38 @@ public class TextRecognizer {
   }
 
   /**
-   * Sets Tesseract configs
-   *
    * @param configs
    * @return
    * @deprecated Use options.configs(List<String> configs)
+   * @see OCR.Options#configs(List)
    */
   @Deprecated
   public TextRecognizer setConfigs(List<String> configs) {
-    options().configs(configs);
+    options.configs(configs);
     return this;
   }
   //</editor-fold>
 
   //<editor-fold desc="10 image optimization">
-
   /**
-   * Hint for the OCR Engine about the expected font size in pt globally
-   *
    * @param size expected font size in pt
-   * @deprecated Use options().setFontSize(int size)
+   * @deprecated use OCR.globalOptions().fontSize(int size)
+   * @see OCR.Options#fontSize(int)
    */
+  @Deprecated
   public TextRecognizer setFontSize(int size) {
-    options().setFontSize(size);
+    options.fontSize(size);
     return this;
   }
 
   /**
-   * Hint for the OCR Engine about the expected height of an uppercase X in px globally.
-   *
    * @param height of an uppercase X in px
-   * @deprecated USe options().setTextHeight(int height)
+   * @deprecated use OCR.globalOptions().textHeight(int height)
+   * @see OCR.Options#textHeight(float)
    */
+  @Deprecated
   public TextRecognizer setTextHeight(int height) {
-    options().textHeight(height);
+    options.textHeight(height);
     return this;
   }
 
@@ -315,12 +311,12 @@ public class TextRecognizer {
   }
 
   protected <SFIRBS> List<Match> readLines(SFIRBS from) {
-    BufferedImage bimg = getBufferedImage(from);
+    BufferedImage bimg = Pixels.getBufferedImage(from);
     return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_LINE);
   }
 
   protected <SFIRBS> List<Match> readWords(SFIRBS from) {
-    BufferedImage bimg = getBufferedImage(from);
+    BufferedImage bimg = Pixels.getBufferedImage(from);
     return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_WORD);
   }
   //</editor-fold>
@@ -348,43 +344,9 @@ public class TextRecognizer {
     }
   }
 
-  public ITesseract getTesseractAPI() {
-    try {
-      ITesseract tesseract = new Tesseract1();
-      tesseract.setOcrEngineMode(options.oem());
-      tesseract.setPageSegMode(options.psm());
-      tesseract.setLanguage(options.language());
-      tesseract.setDatapath(options.dataPath());
-      for (Map.Entry<String, String> entry : options.variables().entrySet()) {
-        tesseract.setTessVariable(entry.getKey(), entry.getValue());
-      }
-      if (!options.configs().isEmpty()) {
-        tesseract.setConfigs(new ArrayList<>(options.configs()));
-      }
-      return tesseract;
-    } catch (UnsatisfiedLinkError e) {
-      String helpURL;
-      if (RunTime.get().runningWindows) {
-        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
-      } else {
-        helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
-      }
-      Debug.error("see: " + helpURL);
-      if (RunTime.isIDE()) {
-        Debug.error("Save your work, correct the problem and restart the IDE!");
-        try {
-          Desktop.getDesktop().browse(new URI(helpURL));
-        } catch (IOException ex) {
-        } catch (URISyntaxException ex) {
-        }
-      }
-      throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
-    }
-  }
-
   protected <SFIRBS> String doRead(SFIRBS from) {
     String text = "";
-    BufferedImage bimg = getBufferedImage(from);
+    BufferedImage bimg = Pixels.getBufferedImage(from);
     try {
       text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
@@ -396,7 +358,7 @@ public class TextRecognizer {
 
   protected <SFIRBS> List<Match> readTextItems(SFIRBS from, int level) {
     List<Match> lines = new ArrayList<>();
-    BufferedImage bimg = getBufferedImage(from);
+    BufferedImage bimg = Pixels.getBufferedImage(from);
     BufferedImage bimgResized = optimize(bimg);
     List<Word> textItems = getTesseractAPI().getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
@@ -412,40 +374,24 @@ public class TextRecognizer {
     }
     return lines;
   }
+  //</editor-fold>
 
-  private <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
-    if (whatEver instanceof String) {
-      return Image.create((String) whatEver).get();
-    } else if (whatEver instanceof File) {
-      return Image.create((File) whatEver).get();
-    } else if (whatEver instanceof Region) {
-      Region reg = (Region) whatEver;
-      return reg.getScreen().capture(reg).getImage();
-    } else if (whatEver instanceof Image) {
-      return ((Image) whatEver).get();
-    } else if (whatEver instanceof ScreenImage) {
-      return ((ScreenImage) whatEver).getImage();
-    } else if (whatEver instanceof BufferedImage) {
-      return (BufferedImage) whatEver;
-    }
-    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
-  }
-
+  //<editor-fold desc="99 obsolete">
   /**
    * @return the current screen resolution in dots per inch
    * @deprecated Will be removed in future versions<br>
    * use Toolkit.getDefaultToolkit().getScreenResolution()
    */
+  @Deprecated
   public int getActualDPI() {
     return Toolkit.getDefaultToolkit().getScreenResolution();
   }
-  //</editor-fold>
 
-  //<editor-fold desc="99 obsolete">
   /**
    * @param simg
    * @return the text read
    * @deprecated use OCR.readText() instead
+   * @see OCR#readText(Object)
    */
   @Deprecated
   public String doOCR(ScreenImage simg) {
@@ -456,6 +402,7 @@ public class TextRecognizer {
    * @param bimg
    * @return the text read
    * @deprecated use OCR.readText() instead
+   * @see OCR#readText(Object)
    */
   @Deprecated
   public String doOCR(BufferedImage bimg) {
@@ -463,20 +410,10 @@ public class TextRecognizer {
   }
 
   /**
-   * use OCR.start() instead
-   *
-   * @return
-   */
-  @Deprecated
-  public static TextRecognizer getInstance() {
-    return TextRecognizer.start();
-  }
-
-  /**
-   * deprecated use OCR.readText() instead
-   *
    * @param simg
    * @return text
+   * @deprecated use OCR.readText() instead
+   * @see OCR#readText(Object)
    */
   @Deprecated
   public String recognize(ScreenImage simg) {
@@ -485,10 +422,10 @@ public class TextRecognizer {
   }
 
   /**
-   * deprecated use OCR.readText() instead
-   *
    * @param bimg
    * @return text
+   * @deprecated use OCR.readText() instead
+   * @see OCR#readText(Object)
    */
   @Deprecated
   public String recognize(BufferedImage bimg) {

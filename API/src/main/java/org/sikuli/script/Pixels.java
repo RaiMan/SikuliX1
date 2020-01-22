@@ -2,6 +2,8 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -80,6 +82,15 @@ public abstract class Pixels {
   private String name = "";
   //</editor-fold>
 
+  //<editor-fold desc="08 imageMissingHandler">
+  protected void setImageMissingHandler(Object handler) {
+    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
+  }
+
+  protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
+  //</editor-fold>
+
+  //<editor-fold desc="10 find image">
   /**
    * finds the given Pattern, String or Image in the region and returns the best match.
    *
@@ -93,16 +104,9 @@ public abstract class Pixels {
     throw new SikuliXception(String.format("Pixels: find: not implemented for", this.getClass().getCanonicalName()));
     //return match;
   }
-
-  //<editor-fold desc="08 imageMissingHandler">
-  protected void setImageMissingHandler(Object handler) {
-    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
-  }
-
-  protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="10 OCR - read text, line, word, char">
+  //<editor-fold defaultstate="collapsed" desc="12 OCR - read text, line, word, char">
   /**
    * tries to read the text in this region/image<br>
    * might contain misread characters, NL characters and
@@ -343,6 +347,24 @@ public abstract class Pixels {
     } else {
       throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
     }
+  }
+
+  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
+    if (whatEver instanceof String) {
+      return Image.create((String) whatEver).get();
+    } else if (whatEver instanceof File) {
+      return Image.create((File) whatEver).get();
+    } else if (whatEver instanceof Region) {
+      Region reg = (Region) whatEver;
+      return reg.getScreen().capture(reg).getImage();
+    } else if (whatEver instanceof Image) {
+      return ((Image) whatEver).get();
+    } else if (whatEver instanceof ScreenImage) {
+      return ((ScreenImage) whatEver).getImage();
+    } else if (whatEver instanceof BufferedImage) {
+      return (BufferedImage) whatEver;
+    }
+    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
   }
 
   public Image getImage() {
