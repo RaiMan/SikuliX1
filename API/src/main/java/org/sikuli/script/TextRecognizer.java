@@ -43,9 +43,6 @@ public class TextRecognizer {
   private OCR.Options options;
 
   //<editor-fold desc="00 start, stop, reset">
-  private TextRecognizer() {
-    this(OCR.options());
-  }
 
   private TextRecognizer(OCR.Options options) {
     RunTime.loadLibrary(RunTime.libOpenCV);
