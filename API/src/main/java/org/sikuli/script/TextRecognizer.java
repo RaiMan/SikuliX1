@@ -57,7 +57,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static TextRecognizer start() {
-    return get(OCR.options());
+    return get(OCR.defaultOptions());
   }
 
   protected static TextRecognizer get(OCR.Options options) {
@@ -65,7 +65,7 @@ public class TextRecognizer {
 
     Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
-      options = OCR.options();
+      options = OCR.defaultOptions();
     }
 
     return new TextRecognizer(options);
@@ -105,11 +105,11 @@ public class TextRecognizer {
    *
    * @param oem
    * @return
-   * @deprecated Use OCR.options().oem(OCR.OcrEngineMode oem)
+   * @deprecated Use OCR.defaultOptions().oem(OCR.OcrEngineMode oem)
    */
   @Deprecated
   public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
-    OCR.options().oem(oem);
+    OCR.defaultOptions().oem(oem);
     return this;
   }
 
@@ -124,11 +124,11 @@ public class TextRecognizer {
    *
    * @param oem
    * @return
-   * @deprecated Use OCR.options().oem(int oem)
+   * @deprecated Use OCR.defaultOptions().oem(int oem)
    */
   @Deprecated
   public TextRecognizer setOEM(int oem) {
-    OCR.options().oem(oem);
+    OCR.defaultOptions().oem(oem);
     return this;
   }
 
@@ -138,11 +138,11 @@ public class TextRecognizer {
    *
    * @param psm
    * @return
-   * @deprecated Use OCR.options().psm(OCR.PageSegMode psm)
+   * @deprecated Use OCR.defaultOptions().psm(OCR.PageSegMode psm)
    */
   @Deprecated
   public TextRecognizer setPSM(OCR.PageSegMode psm) {
-    OCR.options().psm(psm);
+    OCR.defaultOptions().psm(psm);
     return this;
   }
 
@@ -167,11 +167,11 @@ public class TextRecognizer {
    *
    * @param psm
    * @return the textRecognizer instance
-   * @deprecated Use OCR.options().psm(int psm)
+   * @deprecated Use OCR.defaultOptions().psm(int psm)
    */
   @Deprecated
   public TextRecognizer setPSM(int psm) {
-    OCR.options().psm(psm);
+    OCR.defaultOptions().psm(psm);
     return this;
   }
   //</editor-fold>
@@ -183,11 +183,11 @@ public class TextRecognizer {
    *
    * @param dataPath
    * @return
-   * @deprecated Use OCR.options().datapath(String dataPath)
+   * @deprecated Use OCR.defaultOptions().datapath(String dataPath)
    */
   @Deprecated
   public TextRecognizer setDataPath(String dataPath) {
-    OCR.options().dataPath(dataPath);
+    OCR.defaultOptions().dataPath(dataPath);
     return this;
   }
 
@@ -196,11 +196,11 @@ public class TextRecognizer {
    *
    * @param language
    * @return
-   * @deprecated Use OCR.options().language(String language)
+   * @deprecated Use OCR.defaultOptions().language(String language)
    */
   @Deprecated
   public TextRecognizer setLanguage(String language) {
-    OCR.options().language(language);
+    OCR.defaultOptions().language(language);
     return this;
   }
 
@@ -210,11 +210,11 @@ public class TextRecognizer {
    * @param key
    * @param value
    * @return
-   * @deprecated Use OCR.options().variable(String key, String value)
+   * @deprecated Use OCR.defaultOptions().variable(String key, String value)
    */
   @Deprecated
   public TextRecognizer setVariable(String key, String value) {
-    OCR.options().variable(key, value);
+    OCR.defaultOptions().variable(key, value);
     return this;
   }
 
@@ -223,11 +223,11 @@ public class TextRecognizer {
    *
    * @param configs
    * @return
-   * @deprecated Use OCR.options.configs(String... configs)
+   * @deprecated Use OCR.defaultOptions().configs(String... configs)
    */
   @Deprecated
   public TextRecognizer setConfigs(String... configs) {
-    OCR.options().configs(Arrays.asList(configs));
+    OCR.defaultOptions().configs(Arrays.asList(configs));
     return this;
   }
 
@@ -236,11 +236,11 @@ public class TextRecognizer {
    *
    * @param configs
    * @return
-   * @deprecated Use OCR.options.configs(List<String> configs)
+   * @deprecated Use OCR.defaultOptions().configs(List<String> configs)
    */
   @Deprecated
   public TextRecognizer setConfigs(List<String> configs) {
-    OCR.options().configs(configs);
+    OCR.defaultOptions().configs(configs);
     return this;
   }
   //</editor-fold>

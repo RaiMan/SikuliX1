@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Static helper class for OCR.
- * 
+ *
  * The methods in this class are not threadsafe.
  */
 
@@ -78,10 +78,10 @@ public class OCR {
   }
 
   //<editor-fold desc="05 options">
-  private static Options options = Options.options();
+  private static Options defaultOptions = new Options();
 
-  public static Options options() {
-    return options;
+  public static Options defaultOptions() {
+    return defaultOptions;
   }
 
   public static class Options implements Cloneable {
@@ -103,10 +103,6 @@ public class OCR {
 
     public Options() {
       reset();
-    }
-
-    public static Options options() {
-      return new Options();
     }
 
     public void validate() {
@@ -422,7 +418,7 @@ public class OCR {
    * @return
    */
   public static Options reset() {
-    return options().reset();
+    return defaultOptions().reset();
   }
 
   /**
@@ -430,7 +426,7 @@ public class OCR {
    * @return
    */
   public static void status() {
-    Debug.logp("Global settings " + OCR.options().toString());
+    Debug.logp("Global settings " + OCR.defaultOptions().toString());
   }
   //</editor-fold>
 
@@ -445,7 +441,7 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readText(SFIRBS from) {
-    return readText(from, options());
+    return readText(from, defaultOptions());
   }
 
   /**
@@ -474,7 +470,7 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readLine(SFIRBS from) {
-    return readLine(from, options());
+    return readLine(from, defaultOptions());
   }
 
   /**
@@ -497,7 +493,7 @@ public class OCR {
    * @return lines
    */
   public static <SFIRBS> List<Match> readLines(SFIRBS from) {
-    return readLines(from, options());
+    return readLines(from, defaultOptions());
   }
 
   /**
@@ -525,7 +521,7 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readWord(SFIRBS from) {
-    return readWord(from, options());
+    return readWord(from, defaultOptions());
   }
 
   /**
@@ -548,7 +544,7 @@ public class OCR {
    * @return words
    */
   public static <SFIRBS> List<Match> readWords(SFIRBS from) {
-    return readWords(from, OCR.options());
+    return readWords(from, OCR.defaultOptions());
   }
 
   /**
@@ -576,7 +572,7 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readChar(SFIRBS from) {
-    return readChar(from, options());
+    return readChar(from, defaultOptions());
   }
 
   /**
