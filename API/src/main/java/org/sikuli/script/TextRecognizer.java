@@ -60,17 +60,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static TextRecognizer start() {
-    return start(OCR.globalOptions());
-  }
-
-  /**
-   * Creates a new TextRecognizer instance using the given options.
-   * @return
-   * @deprecated no longer needed at all
-   */
-  @Deprecated
-  public static TextRecognizer start(OCR.Options options) {
-    return TextRecognizer.get(options);
+    return TextRecognizer.get(OCR.globalOptions());
   }
 
   protected static TextRecognizer get(OCR.Options options) {
