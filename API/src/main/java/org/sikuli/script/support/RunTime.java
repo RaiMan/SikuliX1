@@ -1300,7 +1300,9 @@ public class RunTime {
       Settings.Highlight = false;
       Settings.setShowActions(false);
       FindFailed.reset();
-      TextRecognizer.reset();
+      OCR.reset();
+      Settings.OcrLanguage = Settings.OcrLanguageDefault;
+      Settings.OcrDataPath = null;
     }
 
     try {
