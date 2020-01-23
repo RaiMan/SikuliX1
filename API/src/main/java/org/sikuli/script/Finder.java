@@ -65,8 +65,9 @@ public class Finder implements Iterator<Match> {
       _findInput.setSource(Finder2.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
       initScreenFinder(((ScreenImage) inWhat), null);
+    } else {
+      throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
-    throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
   }
 
   /**
