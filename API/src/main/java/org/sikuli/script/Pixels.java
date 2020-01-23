@@ -180,9 +180,9 @@ public abstract class Pixels {
   }
 
   /**
-   * Find all lines as text (top left to bottom right)
+   * Find all lines as text (top left to bottom right) in this {@link Region} or {@link Image}
    *
-   * @return a list of text matches or empty list if not found
+   * @return a list of text {@link Match}es or empty list if not found
    */
   public List<Match> findLines() {
     return relocate(OCR.readLines(this));
@@ -419,6 +419,7 @@ public abstract class Pixels {
   /**
    * @return
    * @deprecated use findLines() instead
+   * @see #findLines()
    */
   public List<Match> collectLines() {
     return findLines();

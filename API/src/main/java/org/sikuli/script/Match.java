@@ -8,12 +8,16 @@ import org.sikuli.script.support.IScreen;
 import java.awt.*;
 
 /**
- * holds the result of a find operation, is itself the region on the screen,
- * where the image was found and hence inherits all methods from {@link Region}.
- * <br>
- * attributes:<br> the match score (0 ... 1.0)<br> the click target (e.g.
- * from {@link Pattern})<br> a ref to the image used for search<br>or the text used for
- * find text<br>and elapsed times for debugging
+ * The region on the screen or rectangle in the image,
+ * where the given image or text was found.
+ * <p>-</p>
+ * <p>Is itself a {@link Region} and holds:</p>
+ * <ul>
+ * <li>the match score (0 ... 1.0) {@link #getScore()}</li>
+ * <li>the click target {@link #getTarget()} (e.g. from {@link Pattern})</li>
+ * <li>a ref to the image used for search {@link #getImage()} or {@link #getImageFilename()}</li>
+ * <li>the found text {@link #getText()} in case of text find ops</li>
+ * </ul>
  */
 public class Match extends Region implements Comparable<Match> {
 
