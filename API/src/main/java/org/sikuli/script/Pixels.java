@@ -334,6 +334,12 @@ public abstract class Pixels {
   //</editor-fold>
 
   //<editor-fold desc="20 helper">
+  /**
+   * INTERNAL: get Image from target
+   * @param target  Pattern, Filename, Image, ScreenImage
+   * @param <PSI>
+   * @return Image object
+   */
   public static <PSI> Image getImageFromTarget(PSI target) {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
@@ -345,7 +351,7 @@ public abstract class Pixels {
     } else if (target instanceof ScreenImage) {
       return new Image(((ScreenImage) target).getImage());
     } else {
-      throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
+      throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
     }
   }
 
@@ -367,15 +373,15 @@ public abstract class Pixels {
     throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
   }
 
-  public Image getImage() {
-    return null;
+  protected Image getImage() {
+    throw new SikuliXception(String.format("Pixels: getImage: not implemented for", this.getClass().getCanonicalName()));
   }
 
-  public List<Match> relocate(List<Match> matches) {
+  protected List<Match> relocate(List<Match> matches) {
     return matches;
   }
 
-  public Match relocate(Match match) {
+  protected Match relocate(Match match) {
     return match;
   }
   //</editor-fold>
@@ -428,6 +434,7 @@ public abstract class Pixels {
   /**
    * @return
    * @deprecated use textLines() instead
+   * @see #textLines()
    */
   @Deprecated
   public List<String> collectLinesText() {
@@ -437,7 +444,9 @@ public abstract class Pixels {
   /**
    * @return
    * @deprecated use findWords() instead
+   * @see #findWords()
    */
+  @Deprecated
   public List<Match> collectWords() {
     return findWords();
   }
@@ -445,7 +454,9 @@ public abstract class Pixels {
   /**
    * @return
    * @deprecated use textWords() instead
+   * @see #textWords()
    */
+  @Deprecated
   public List<String> collectWordsText() {
     return textWords();
   }

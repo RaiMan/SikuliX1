@@ -2673,7 +2673,7 @@ public class Region extends Pixels {
     return findAllText(text);
   }
 
-  public List<Match> relocate(List<Match> matches) {
+  protected List<Match> relocate(List<Match> matches) {
     for (Match match : matches) {
       match.x += this.x;
       match.y += this.y;
@@ -2682,7 +2682,7 @@ public class Region extends Pixels {
     return matches;
   }
 
-  public Match relocate(Match match) {
+  protected Match relocate(Match match) {
     match.x += this.x;
     match.y += this.y;
     match.setScreen(this.getScreen());
