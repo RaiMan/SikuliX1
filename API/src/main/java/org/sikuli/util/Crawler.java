@@ -46,7 +46,10 @@ public class Crawler {
     System.out.println(String.format(message, args));
   }
 
+  static boolean shouldReflect = false;
   static boolean onlyMissing = false;
+  static boolean noComments = false;
+  static String NL = "";
 
   static Map<String, List<String>> functions;
   static String[] strings;
@@ -59,8 +62,16 @@ public class Crawler {
   public static void main(String[] args) {
     if (args.length == 0) return;
     for (String arg : args) {
+      if (arg.equals("+")) {
+        shouldReflect = true;
+        continue;
+      }
       if (arg.equals("?")) {
         onlyMissing = true;
+        continue;
+      }
+      if (arg.equals("-")) {
+        noComments = true;
         continue;
       }
       if (arg.startsWith("#")) {
@@ -77,8 +88,10 @@ public class Crawler {
         p("ERROR: not exists %s", fSource);
         System.exit(1);
       }
-//      crawlClass(className);
-//      printFunctions();
+      if (shouldReflect) {
+        crawlClass(className);
+        printFunctions();
+      }
       commentReset();
       try {
         Stream<String> lines = Files.lines(Paths.get(fSource.getAbsolutePath()));
@@ -87,6 +100,7 @@ public class Crawler {
         e.printStackTrace();
       }
       onlyMissing = false;
+      noComments = false;
     }
   }
 
@@ -99,8 +113,12 @@ public class Crawler {
       return;
     }
     if (line.startsWith("//")) {
-      if (line.startsWith("//<editor-fold")) {
-        p("(%d) %s", lineNumber, line);
+      if (!onlyMissing && line.startsWith("//<editor-fold")) {
+        if (noComments) {
+          NL = "";
+        }
+        p("%s(%d) %s", NL, lineNumber, line);
+        NL = "";
       }
       return;
     }
@@ -116,40 +134,43 @@ public class Crawler {
       if (!line.contains("class")) {
         line = line.substring(7, line.length() - 1).trim();
         String[] parts = line.split("\\s");
-        String function = parts[1];
-        if (function.startsWith("<")) function = line.split("> ")[1].split("\\s")[1];
-        function = line.substring(line.indexOf(function));
-        String docs = lastComment;
-        boolean hasDocs = true;
-        if (docs.isEmpty()) {
-          docs = "\n* no javadoc *";
-          hasDocs = false;
-        }
-        if (hasDocs) {
-          List<String> item = new ArrayList<>();
-          item.add(function);
-          item.add(docs);
-          functionDocs.add(item);
-        }
-        if (!onlyMissing || (onlyMissing && !hasDocs)) {
+        if (parts.length > 1) {
+          String function = parts[1];
+          if (function.startsWith("<")) {
+            int end = line.indexOf(">");
+            if (end < 0) {
+              p("ERROR: unbalanced <>: %s", line);
+              System.exit(1);
+            }
+            function = line.substring(end + 1).split("\\s")[1];
+          }
+          function = line.substring(line.indexOf(function));
+          String docs = lastComment;
+          boolean hasDocs = true;
+          if (docs.isEmpty()) {
+            docs = "\n* no javadoc *";
+            hasDocs = false;
+          }
           if (hasDocs) {
-            p("%s\n(%d) %s", docs, lineNumber, function);
-          } else
-            p("(%d) ??? %s", lineNumber, function);
+            List<String> item = new ArrayList<>();
+            item.add(function);
+            item.add(docs);
+            functionDocs.add(item);
+          }
+          if (!onlyMissing || (onlyMissing && !hasDocs)) {
+            if (hasDocs) {
+              p("%s\n(%d) %s", docs, lineNumber, function);
+            } else
+              p("(%d) ?doc? %s", lineNumber, function);
+          }
+        } else {
+          p("\n(%d) ??? %s", lineNumber, line);
         }
-        commentResetAll();
-        return;
       }
-    }
-    if (inComment && line.startsWith("*")) {
-      if (line.startsWith("*/")) {
-        commentReset();
-      } else {
-        commentAddLine(line);
-      }
+      NL = "\n";
+      commentResetAll();
       return;
     }
-    commentResetAll();
   }
 
   static boolean inComment = false;

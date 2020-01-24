@@ -681,6 +681,9 @@ public class OCR {
   }
   //</editor-fold>
 
+  /**
+   * chapter info
+   */
   //<editor-fold desc="21 line">
 
   /**
