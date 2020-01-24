@@ -71,10 +71,18 @@ public abstract class Pixels {
     return w <= 1 && h <= 1;
   }
 
+  /**
+   * INTERNAL: to identify a Region or Image
+   * @return the name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * INTERNAL: to identify a Region or Image
+   * @param name to be used
+   */
   public void setName(String name) {
     this.name = name;
   }
