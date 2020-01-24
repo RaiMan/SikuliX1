@@ -18,6 +18,29 @@ import java.util.stream.Stream;
 
 public class Crawler {
 
+  private static final String pyMethod = "" +
+      ".. py:class:: %s\n" +
+      "\n" +
+      "\t.. py:method:: %s\n" +
+      "\n" +
+      "\t\t%s\n" +
+      "\n" +
+      "%s" +
+      "\t\t:return: %s\n";
+
+  private static String pyMethodParams = "\t\t:param %s: %s\n";
+
+  private static String createPyMethod(String clazz, String method, String text,
+                                       Map<String, String> params, String returns) {
+    String docMethod;
+    String docParams = "";
+    for (String pName : params.keySet()) {
+      docParams += String.format(pyMethodParams, pName, params.get(pName));
+    }
+    docMethod = String.format(pyMethod, clazz, method, docParams, returns);
+    return docMethod;
+  }
+
   private static void p(String message, Object... args) {
     if (message.isEmpty()) message = "%s";
     System.out.println(String.format(message, args));
@@ -32,8 +55,6 @@ public class Crawler {
   static File sourceBase = new File(RunTime.get().fWorkDir, "/src/main/java");
 
   static int lineNumber = 0;
-
-  static Map<String, Object> state = new HashMap<>();
 
   public static void main(String[] args) {
     if (args.length == 0) return;
@@ -69,6 +90,8 @@ public class Crawler {
     }
   }
 
+  private static List<List<String>> functionDocs = new ArrayList<>();
+
   static void processLine(String line) {
     lineNumber++;
     line = line.trim();
@@ -82,10 +105,10 @@ public class Crawler {
       return;
     }
     if (line.startsWith("/**")) {
-      if (inComment()) {
+      if (inComment) {
         commentReset();
       } else {
-        commentStart();
+        inComment = true;
       }
       return;
     }
@@ -96,11 +119,17 @@ public class Crawler {
         String function = parts[1];
         if (function.startsWith("<")) function = line.split("> ")[1].split("\\s")[1];
         function = line.substring(line.indexOf(function));
-        String docs = commentLast();
+        String docs = lastComment;
         boolean hasDocs = true;
         if (docs.isEmpty()) {
           docs = "\n* no javadoc *";
           hasDocs = false;
+        }
+        if (hasDocs) {
+          List<String> item = new ArrayList<>();
+          item.add(function);
+          item.add(docs);
+          functionDocs.add(item);
         }
         if (!onlyMissing || (onlyMissing && !hasDocs)) {
           if (hasDocs) {
@@ -112,7 +141,7 @@ public class Crawler {
         return;
       }
     }
-    if (inComment() && line.startsWith("*")) {
+    if (inComment && line.startsWith("*")) {
       if (line.startsWith("*/")) {
         commentReset();
       } else {
@@ -123,32 +152,24 @@ public class Crawler {
     commentResetAll();
   }
 
+  static boolean inComment = false;
+  static String currentComment = "";
+  static String lastComment = "";
+
   static void commentReset() {
-    state.put("inComment", false);
-    state.put("lastComment", state.get("currentComment"));
-    state.put("currentComment", "");
+    inComment = false;
+    lastComment = currentComment;
+    currentComment = "";
   }
 
   static void commentResetAll() {
-    state.put("inComment", false);
-    state.put("lastComment", "");
-    state.put("currentComment", "");
-  }
-
-  static void commentStart() {
-    state.put("inComment", true);
-  }
-
-  static boolean inComment() {
-    return (boolean) state.get("inComment");
+    inComment = false;
+    lastComment = "";
+    currentComment = "";
   }
 
   static void commentAddLine(String line) {
-    state.put("currentComment", state.get("currentComment") + "\n" + line);
-  }
-
-  static String commentLast() {
-    return (String) state.get("lastComment");
+    currentComment = currentComment + "\n" + line;
   }
 
   static void crawlClass(String className) {
