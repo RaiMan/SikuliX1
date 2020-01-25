@@ -4,13 +4,12 @@
 
 package org.sikuli.util;
 
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -30,6 +29,7 @@ public class Crawler {
   }
 
   static String className = "";
+  static String classOuter = "";
 
   static boolean shouldReflect = false;
   static boolean onlyMissing = false;
@@ -78,6 +78,7 @@ public class Crawler {
         noComments = false;
       }
       className = thisPackg + arg;
+      classOuter = arg;
       String fpSource = sourceBase.getAbsolutePath() + "/" + className.replace(".", "/") + ".java";
       File fSource = new File(fpSource);
       if (!fSource.exists()) {
@@ -104,15 +105,15 @@ public class Crawler {
 
   //<editor-fold desc="10 reflect class">
   static List<Map<String, List<String>>> classes = new ArrayList<>();
-  static Map<String, List<String>> functions;
   static String[] strings;
 
   static void crawlClass(String className) {
     String orgSignature = "";
     String signature = "";
+    boolean isInner = false;
+    Map<String, List<String>> functions;
     for (String clazz : classNames) {
       functions = new HashMap<>();
-      classes.add(functions);
       try {
         Class<?> aClass;
         if (className.endsWith(clazz)) {
@@ -123,19 +124,31 @@ public class Crawler {
         }
         String cName = aClass.getSimpleName();
         String superClass = aClass.getSuperclass().getSimpleName();
-        p("------- Class: %s (%s)", className, superClass);
+        ArrayList<String> classInfo = new ArrayList<>();
+        classInfo.add(String.format("%s (%s)", className, superClass));
+        if (isInner) {
+          classInfo.add(classOuter);
+        }
+        functions.put("#name", classInfo);
         Method[] declaredMethods = aClass.getDeclaredMethods();
         Constructor<?>[] declaredConstructors = aClass.getDeclaredConstructors();
         Field[] declaredFields = aClass.getDeclaredFields();
-        for (Constructor c : declaredConstructors) {
-          signature = c.toGenericString();
-          if (!signature.startsWith("public")) {
-            continue;
+        for (Constructor constructor : declaredConstructors) {
+          int modifiers = constructor.getModifiers();
+          if ((modifiers & Modifier.PUBLIC) == 0) continue;
+          String constrName = constructor.getName().replace(thisPackg, "");
+          if (isInner) {
+            constrName = constrName.split("\\$")[1];
           }
-          signature = signature.substring("public".length() + 1).replace("org.sikuli.script.", "");
-          ;
-          strings = signature.split("\\(");
-          signature = strings[0] + "(" + strings[1];
+          String params = "()";
+          String hasThrows = "";
+          if (constructor.getExceptionTypes().length > 0) {
+            hasThrows = String.format("!%s", (Object[]) constructor.getExceptionTypes());
+          }
+          if (constructor.getParameterCount() > 0) {
+            throw new SikuliXception("Constructor Params ?? " + constructor.toGenericString());
+          }
+          signature = constrName + params + hasThrows;
           if (functions.containsKey(" ")) {
             functions.get(" ").add(signature);
           } else {
@@ -144,45 +157,45 @@ public class Crawler {
             functions.put(" ", signatures);
           }
         }
-        for (Method m : declaredMethods) {
-          signature = m.toGenericString();
-          orgSignature = signature;
-          if (!signature.startsWith("public")) {
+        for (Method method : declaredMethods) {
+          int modifiers = method.getModifiers();
+          if ((modifiers & Modifier.PUBLIC) == 0) {
             continue;
           }
-          boolean isStatic = false;
-          boolean hasThrows = false;
-          signature = signature.replace("public ", "").trim();
-          signature = signature.replace("java.lang.", "");
-          signature = signature.replace("java.util.", "");
-          signature = signature.replace("org.sikuli.script.", "");
-          signature = signature.replace(cName + ".", "");
-          if (signature.startsWith("static")) {
-            signature = signature.substring(7);
-            isStatic = true;
+          boolean isStatic = (modifiers & Modifier.STATIC) == 1 ? true : false;
+          String methName = method.getName().replace(thisPackg, "");
+          if (isInner) {
+            methName = methName.split("\\$")[1];
           }
-          if (signature.startsWith("<")) {
-            strings = signature.split("> ");
-            signature = signature.substring(strings[0].length() + 2);
+          String parameter = "()";
+          String hasThrows = "";
+          if (method.getExceptionTypes().length > 0) {
+            hasThrows = String.format(" !%s", (Object[]) method.getExceptionTypes());
           }
-          strings = signature.split(" ");
-          String returns = strings[0];
-          strings = strings[1].split("\\(");
-          String function = strings[0];
-          String functionName = function;
+          if (method.getParameterCount() > 0) {
+            String genericString = method.toGenericString();
+            Type[] gpTypes = method.getGenericParameterTypes();
+            String[] parameters = new String[gpTypes.length];
+            int n = 0;
+            for (Type param : gpTypes) {
+              parameters[n] = param.getTypeName();
+              n++;
+            }
+            parameter = String.format("%s", (Object[]) gpTypes);
+          }
+          String returns = method.getReturnType().toString();
+          if ("void".equals(returns)) {
+            signature = parameter + " void" + hasThrows;
+          } else {
+            signature = String.format("%s -> %s%s", returns, parameter, hasThrows);
+          }
+
           String getterSetter = "";
+          String function = methName;
           if (function.startsWith("get") || function.startsWith("set")) {
             getterSetter = function.substring(0, 3);
             function = function.substring(3);
           }
-          signature = signature.replace(functionName, "");
-          if (signature.contains("throws")) {
-            strings = signature.split(" throws ");
-            hasThrows = true;
-            signature = strings[0];
-          }
-          strings = signature.split(" ");
-          signature = getterSetter + strings[1] + " -> " + strings[0] + (hasThrows ? "!" : "");
           if (isStatic) function = "!" + function;
           if (!getterSetter.isEmpty()) function = "+" + function;
           if (functions.containsKey(function)) {
@@ -232,33 +245,37 @@ public class Crawler {
             functions.put(function, newSignatures);
           }
         }
-        functions = sortMap(functions);
+        classes.add(sortMap(functions));
       } catch (Exception e) {
-        e.printStackTrace();
         p("Error: class %s (%s)", className, orgSignature);
       }
+      isInner = true;
     }
   }
 
   static void printFunctions() {
-    for (Map<String, List<String>> cFunctions : classes) {
-      for (String function : cFunctions.keySet()) {
+    for (Map<String, List<String>> clazz : classes) {
+      p("%-20s : %s", "----- Class -----", clazz.get("#name"));
+      for (String function : clazz.keySet()) {
+        if (function.startsWith("#")) {
+          continue;
+        }
         String name = function;
         if (function.startsWith("+")) {
           name = "+" + function.substring(1, 2).toLowerCase() + function.substring(2);
         }
-        p("%-20s : %s", name, functions.get(function));
+        p("%-20s : %s", name, clazz.get(function));
       }
     }
   }
 
   static Map<String, List<String>> sortMap(Map<String, List<String>> map) {
     List<Map.Entry<String, List<String>>> entries
-        = new ArrayList<>(map.entrySet());
+            = new ArrayList<>(map.entrySet());
     Collections.sort(entries, new Comparator<Map.Entry<String, List<String>>>() {
       @Override
       public int compare(
-          Map.Entry<String, List<String>> o1, Map.Entry<String, List<String>> o2) {
+              Map.Entry<String, List<String>> o1, Map.Entry<String, List<String>> o2) {
         return o1.getKey().toLowerCase().compareTo(o2.getKey().toLowerCase());
       }
     });
@@ -402,14 +419,14 @@ public class Crawler {
 
   //<editor-fold desc="pymethod">
   private static final String pyMethod = "" +
-      ".. py:class:: %s\n" +
-      "\n" +
-      "\t.. py:method:: %s\n" +
-      "\n" +
-      "\t\t%s\n" +
-      "\n" +
-      "%s" +
-      "\t\t:return: %s\n";
+          ".. py:class:: %s\n" +
+          "\n" +
+          "\t.. py:method:: %s\n" +
+          "\n" +
+          "\t\t%s\n" +
+          "\n" +
+          "%s" +
+          "\t\t:return: %s\n";
   //</editor-fold>
 
   private static String pyMethodParams = "\t\t:param %s: %s\n";
