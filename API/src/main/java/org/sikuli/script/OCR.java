@@ -30,7 +30,7 @@ public class OCR {
    * 3  DEFAULT         Default, based on what is available. (DEFAULT)
    * </pre>
    */
-  public enum OcrEngineMode {
+  public enum OEM {
     TESSERACT_ONLY, // 0
     LSTM_ONLY, // 1
     TESSERACT_LSTM_COMBINED, // 2
@@ -56,7 +56,7 @@ public class OCR {
    * 13  RAW_LINE         Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    * </pre>
    */
-  public enum PageSegMode {
+  public enum PSM {
     OSD_ONLY, // 0
     AUTO_OSD, // 1
     AUTO_ONLY, // 2
@@ -155,8 +155,8 @@ public class OCR {
      * @return this
      */
     public Options reset() {
-      oem = OcrEngineMode.DEFAULT.ordinal();
-      psm = PageSegMode.AUTO.ordinal();
+      oem = OEM.DEFAULT.ordinal();
+      psm = PSM.AUTO.ordinal();
       language = Settings.OcrLanguage;
       dataPath = null;
       textHeight = getDefaultTextHeight();
@@ -212,7 +212,7 @@ public class OCR {
      * get this OEM
      *
      * @return oem as int
-     * @see OcrEngineMode
+     * @see OEM
      */
     public int oem() {
       return oem;
@@ -223,7 +223,7 @@ public class OCR {
      *
      * @param oem as int
      * @return this Options
-     * @see OcrEngineMode
+     * @see OEM
      */
     public Options oem(int oem) {
       if (oem < 0 || oem > 3) {
@@ -238,9 +238,9 @@ public class OCR {
      *
      * @param oem as enum constant
      * @return this Options
-     * @see OcrEngineMode
+     * @see OEM
      */
-    public Options oem(OcrEngineMode oem) {
+    public Options oem(OEM oem) {
       oem(oem.ordinal());
       return this;
     }
@@ -253,7 +253,7 @@ public class OCR {
      * get this PSM
      *
      * @return psm as int
-     * @see PageSegMode
+     * @see PSM
      */
     public int psm() {
       return psm;
@@ -264,15 +264,15 @@ public class OCR {
      *
      * @param psm as int
      * @return this Options
-     * @see PageSegMode
+     * @see PSM
      */
     public Options psm(int psm) {
       if (psm < 0 || psm > 13) {
         throw new IllegalArgumentException(String.format("OCR: Invalid PSM %s (0 .. 12)", psm));
       }
 
-      if (psm == OCR.PageSegMode.OSD_ONLY.ordinal() || psm == OCR.PageSegMode.AUTO_OSD.ordinal()
-              || psm == OCR.PageSegMode.SPARSE_TEXT_OSD.ordinal()) {
+      if (psm == PSM.OSD_ONLY.ordinal() || psm == PSM.AUTO_OSD.ordinal()
+              || psm == PSM.SPARSE_TEXT_OSD.ordinal()) {
         if (!new File(dataPath(), "osd.traineddata").exists()) {
           throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
                   "but no osd.traineddata found in tessdata folder", psm));
@@ -288,9 +288,9 @@ public class OCR {
      *
      * @param psm as enum constant
      * @return this Options
-     * @see PageSegMode
+     * @see PSM
      */
-    public Options psm(PageSegMode psm) {
+    public Options psm(PSM psm) {
       psm(psm.ordinal());
       return this;
     }
@@ -314,7 +314,7 @@ public class OCR {
      * @return this Options
      */
     public Options asLine() {
-      return psm(PageSegMode.SINGLE_LINE);
+      return psm(PSM.SINGLE_LINE);
     }
 
     /**
@@ -323,7 +323,7 @@ public class OCR {
      * @return this Options
      */
     public Options asWord() {
-      return psm(PageSegMode.SINGLE_WORD);
+      return psm(PSM.SINGLE_WORD);
     }
 
     /**
@@ -332,7 +332,7 @@ public class OCR {
      * @return this Options
      */
     public Options asChar() {
-      return psm(PageSegMode.SINGLE_CHAR);
+      return psm(PSM.SINGLE_CHAR);
     }
     //</editor-fold>
 

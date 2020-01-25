@@ -138,10 +138,10 @@ public class TextRecognizer {
    * @param oem
    * @return instance
    * @deprecated Use options().oem()
-   * @see OCR.Options#oem(OCR.OcrEngineMode)
+   * @see OCR.Options#oem(OCR.OEM)
    */
   @Deprecated
-  public TextRecognizer setOEM(OCR.OcrEngineMode oem) {
+  public TextRecognizer setOEM(OCR.OEM oem) {
     return setOEM(oem.ordinal());
   }
 
@@ -162,10 +162,10 @@ public class TextRecognizer {
    * @param psm
    * @return instance
    * @deprecated use OCR.globalOptions().psm()
-   * @see OCR.Options#psm(OCR.PageSegMode)
+   * @see OCR.Options#psm(OCR.PSM)
    */
   @Deprecated
-  public TextRecognizer setPSM(OCR.PageSegMode psm) {
+  public TextRecognizer setPSM(OCR.PSM psm) {
     return setPSM(psm.ordinal());
   }
 
