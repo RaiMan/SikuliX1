@@ -2627,9 +2627,9 @@ public class Region extends Pixels {
     return waitText(text, 0);
   }
 
-  public Match findT(String text) throws FindFailed {
-    return findText(text);
-  }
+//  public Match findT(String text) throws FindFailed {
+//    return findText(text);
+//  }
 
   public Match existsText(String text, double timeout) {
     Match match = null;
@@ -2644,21 +2644,21 @@ public class Region extends Pixels {
     return existsText(text, autoWaitTimeout);
   }
 
-  public Match existsT(String text, double timeout) {
-    return existsText(text, timeout);
-  }
-
-  public Match existsT(String text) {
-    return existsT(text, autoWaitTimeout);
-  }
+//  public Match existsT(String text, double timeout) {
+//    return existsText(text, timeout);
+//  }
+//
+//  public Match existsT(String text) {
+//    return existsT(text, autoWaitTimeout);
+//  }
 
   public boolean hasText(String text) {
     return null != existsText(text, 0);
   }
 
-  public boolean hasT(String text) {
-    return hasText(text);
-  }
+//  public boolean hasT(String text) {
+//    return hasText(text);
+//  }
 
   public List<Match> findAllText(String text) {
     List<Match> matches = new ArrayList<>();

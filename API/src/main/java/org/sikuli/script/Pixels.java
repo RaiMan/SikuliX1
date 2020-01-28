@@ -18,6 +18,10 @@ public abstract class Pixels {
     Debug.logx(level, logName + message, args);
   }
 
+  protected Pixels returnThis() {
+    return this;
+  }
+
   //<editor-fold desc="01 Fields x, y, w, h">
   /**
    * @return x of top left corner
@@ -316,10 +320,6 @@ public abstract class Pixels {
     //TODO existsText: try: findText:true catch: false
     throw new SikuliXception(String.format("Pixels: existsText: not implemented for", this.getClass().getCanonicalName()));
     //return match;
-  }
-
-  public Match existsT(String text, double timeout) {
-    return existsText(text);
   }
 
   public boolean hasText(String text) {
