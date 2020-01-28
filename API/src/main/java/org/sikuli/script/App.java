@@ -579,7 +579,7 @@ public class App {
    * If the app is already open, it is brought to foreground
    *
    * @param appName  name - something that could be used on commandline to start the app
-   * @param waitTime
+   * @param waitTime to wait for app to open (secs)
    * @return the App instance
    */
   public static App open(String appName, int waitTime) {
@@ -680,6 +680,7 @@ public class App {
   /**
    * tries to close the app defined by this App instance, waits max given seconds for the app to no longer be running
    *
+   * @param waitTime to wait for app to close (secs)
    * @return this or null on failure
    */
   public boolean close(int waitTime) {
@@ -768,8 +769,9 @@ public class App {
 
   /**
    * tries to identify a running app with name or (part of) window title
-   * bringing its topmost window to front
+   * bringing its window with given index to front
    *
+   * @param index of the window among the found windows
    * @param title name
    * @return an App instance - is invalid and not useable if not found as running
    */

@@ -53,9 +53,9 @@ public class ObserverCallBack implements EventListener {
 
 
   /**
-   * INTERNAL USE: callbacks from Jython or JRuby
-   * @param callback
-   * @param obsType
+   * INTERNAL: callbacks from Jython or JRuby
+   * @param callback funtion to call
+   * @param obsType observer type
    */
   public ObserverCallBack(Object callback, ObserveEvent.Type obsType) {
     this.callback = callback;
@@ -74,7 +74,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * INTERNAL USE
-   * @param givenType
+   * @param givenType observer type
    */
   public void setType(ObserveEvent.Type givenType) {
     obsType = givenType;
@@ -82,7 +82,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * INTERNAL USE
-   * @return
+   * @return observer type
    */
   public ObserveEvent.Type getType() {
     return obsType;
@@ -92,7 +92,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle appear events
-   * @param event
+   * @param event that happened
    */
   public void appeared(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.APPEAR.equals(obsType)) {
@@ -102,7 +102,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle vanish events
-   * @param event
+   * @param event that happened
    */
   public void vanished(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.VANISH.equals(obsType)) {
@@ -112,7 +112,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle changed events
-   * @param event
+   * @param event that happened
    */
   public void changed(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.CHANGE.equals(obsType)) {
@@ -122,7 +122,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle FindFailed events
-   * @param event
+   * @param event that happened
    */
   public void findfailed(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.FINDFAILED.equals(obsType)) {
@@ -132,7 +132,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle image missing events
-   * @param event
+   * @param event that happened
    */
   public void missing(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.MISSING.equals(obsType)) {
@@ -142,7 +142,7 @@ public class ObserverCallBack implements EventListener {
 
   /**
    * to be overwritten to handle generic events
-   * @param event
+   * @param event that happened
    */
   public void happened(ObserveEvent event) {
     if (scriptHelper != null && ObserveEvent.Type.GENERIC.equals(obsType)) {

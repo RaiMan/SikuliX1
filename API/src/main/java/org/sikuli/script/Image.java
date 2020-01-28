@@ -421,6 +421,7 @@ public class Image extends Pixels {
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
+   * @param bimg given image
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
@@ -431,6 +432,7 @@ public class Image extends Pixels {
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
    *
+   * @param bimg given image
    * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
    * @return a new BufferedImage resized (width*factor, height*factor)
@@ -444,6 +446,7 @@ public class Image extends Pixels {
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
+   * @param mat given image as cvMat
    * @param factor resize factor
    */
   public static void resize(Mat mat, float factor) {
@@ -453,6 +456,7 @@ public class Image extends Pixels {
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
    *
+   * @param mat given image as cvMat
    * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation.
    */

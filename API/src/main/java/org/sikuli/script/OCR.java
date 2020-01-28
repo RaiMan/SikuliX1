@@ -13,7 +13,7 @@ import java.util.*;
 
 /**
  * Static helper class for OCR via Tess4J/Tesseract.
- * <br><br>
+ * <p>
  * The methods in this class are not threadsafe.
  * @see <a href="https://sikulix-2014.readthedocs.io/en/latest/textandocr.html">SikuliX docs: Text and OCR</a>
  */
@@ -22,8 +22,8 @@ public class OCR {
   //<editor-fold desc="02 housekeeping">
 
   /**
+   * OCR Engine modes.
    * <pre>
-   * OCR Engine modes:
    * 0  TESSERACT_ONLY  Tesseract Legacy only.
    * 1  LSTM_ONLY       LSTM only.
    * 2  TESSERACT_LSTM_COMBINED  LSTM + Legacy.
@@ -38,7 +38,7 @@ public class OCR {
   }
 
   /**
-   * Page segmentation modes:
+   * Page segmentation modes.
    * <pre>
    * 0  OSD_ONLY   Orientation and script detection (OSD) only.
    * 1  AUTO_OSD   Automatic page segmentation with OSD.
@@ -74,13 +74,11 @@ public class OCR {
   }
 
   /**
-   * INTERNAL:
-   * Tesseract option
+   * INTERNAL: Tesseract option.
    */
   protected static final int PAGE_ITERATOR_LEVEL_WORD = 3;
   /**
-   * INTERNAL:
-   * Tesseract option
+   * INTERNAL: Tesseract option.
    */
   protected static final int PAGE_ITERATOR_LEVEL_LINE = 2;
   //</editor-fold>
@@ -89,9 +87,9 @@ public class OCR {
   private static Options options = new Options();
 
   /**
-   * access/get the current global options set (Singleton)
+   * access/get the current global Options (Singleton).
    *
-   * @return the global options
+   * @return the global Options
    */
   public static Options globalOptions() {
     return options;
@@ -99,10 +97,10 @@ public class OCR {
 
   /**
    * A container for the options relevant for using {@link OCR} on
-   * {@link Region}s or {@link Image}s
+   * {@link Region}s or {@link Image}s.
    * <p>Use OCR.{@link #Options()} to get a new option set</p>
    * <p>use OCR.{@link #globalOptions()} to access the global options</p>
-   * <br><br>
+   * <p>
    * In case you have to consult the Tesseract docs
    * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
    */
@@ -111,8 +109,8 @@ public class OCR {
     //<editor-fold desc="02 init, reset">
 
     /**
-     * create a new options set from the initial defaults settings
-     * <br><br>
+     * create a new Options set from the initial defaults settings.
+     * <p>
      * about the default settings see {@link #reset()}
      */
     public Options() {
@@ -120,7 +118,8 @@ public class OCR {
     }
 
     /**
-     * @return new options as copy of this options
+     * makes a copy of this Options
+     * @return new Options as copy
      */
     @Override
     public Options clone() {
@@ -139,7 +138,7 @@ public class OCR {
     }
 
     /**
-     * resets this option set to the initial defaults:
+     * resets this Options set to the initial defaults.
      * <pre>
      * oem = OcrEngineMode.DEFAULT.ordinal();
      * psm = PageSegMode.AUTO.ordinal();
@@ -149,7 +148,7 @@ public class OCR {
      * variables.clear();
      * configs.clear();
      * </pre>
-     * <b>comment on dataPath==null:</b> dataPath will be evaluated at the next use of an OCR feature
+     * comment on <b>dataPath==null</b>: dataPath will be evaluated at the next use of an OCR feature
      * to the SikuliX default or Settings.OcrDataPath (if set)
      *
      * @return this
@@ -169,9 +168,9 @@ public class OCR {
     }
 
     /**
-     * the current state of this Options as some formatted lines of text
+     * Current state of this Options as some formatted lines of text.
      * <pre>
-     * OCR.options:
+     * OCR.Options:
      * data = ...some-path.../tessdata
      * language(eng) oem(3) psm(3) height(15,1) factor(1,99) dpi(96)
      * configs: conf1, conf2, ...
@@ -194,8 +193,7 @@ public class OCR {
     }
 
     /**
-     * INTERNAL:
-     * validation of this Options before being used in OCR features
+     * INTERNAL: validates this Options before OCR usage.
      */
     protected void validate() {
       if (!new File(dataPath(), language() + ".traineddata").exists()) {
@@ -209,7 +207,7 @@ public class OCR {
     private int oem;
 
     /**
-     * get this OEM
+     * get this OEM.
      *
      * @return oem as int
      * @see OEM
@@ -219,7 +217,7 @@ public class OCR {
     }
 
     /**
-     * set this OEM
+     * set this OEM.
      *
      * @param oem as int
      * @return this Options
@@ -234,7 +232,7 @@ public class OCR {
     }
 
     /**
-     * set this OEM
+     * set this OEM.
      *
      * @param oem as enum constant
      * @return this Options
@@ -250,7 +248,7 @@ public class OCR {
     private int psm;
 
     /**
-     * get this PSM
+     * get this PSM.
      *
      * @return psm as int
      * @see PSM
@@ -260,7 +258,7 @@ public class OCR {
     }
 
     /**
-     * set this PSM
+     * set this PSM.
      *
      * @param psm as int
      * @return this Options
@@ -284,7 +282,7 @@ public class OCR {
     }
 
     /**
-     * set this PSM
+     * set this PSM.
      *
      * @param psm as enum constant
      * @return this Options
@@ -296,8 +294,8 @@ public class OCR {
     }
 
     /**
-     * Sets this Options PSM to -1
-     * <br><br>
+     * Sets this PSM to -1.
+     * <p>
      * This causes Tess4J not to set the PSM at all.
      * <br>Only use it, if you know what you are doing.
      *
@@ -309,7 +307,7 @@ public class OCR {
     }
 
     /**
-     * Configure Options in order to recognize a single line.
+     * Configure Options to recognize a single line.
      *
      * @return this Options
      */
@@ -318,7 +316,7 @@ public class OCR {
     }
 
     /**
-     * Configure Options in order to recognize a single word.
+     * Configure Options to recognize a single word.
      *
      * @return this Options
      */
@@ -327,7 +325,7 @@ public class OCR {
     }
 
     /**
-     * Configure Options in order to recognize a single character.
+     * Configure Options to recognize a single character.
      *
      * @return this Options
      */
@@ -340,6 +338,7 @@ public class OCR {
     private String language;
 
     /**
+     * get the cutrrent language
      * @return the language short string
      * @see #language(String)
      */
@@ -348,9 +347,10 @@ public class OCR {
     }
 
     /**
-     * Set the language short string (must not be null or empty,
-     * see {@link Settings#OcrLanguage} for a useable fallback)
-     * <p>According to the Tesseract rules as base this is a 3-lowercase-letters string
+     * Set the language short string.
+     * <p>(must not be null or empty,
+     * see {@link Settings#OcrLanguage} for a useable fallback)</p>
+     * <p>According to the Tesseract rules this is a 3-lowercase-letters string
      * like eng, deu, fra, rus, ....</p>
      * <p>For special cases it might be something like xxx_yyy (chi_sim)
      * or even xxx_yyyy (deu_frak) or even xxx_yyy_zzzz (chi_tra_vert), but always all lowercase.</p>
@@ -375,10 +375,11 @@ public class OCR {
     private String dataPath;
 
     /**
-     * might be null, if no OCR feature was used until now
+     * get the current datapath in this Options.
+     * <p>might be null, if no OCR feature was used until now</p>
      * <p>if null, it will be evaluated at time of OCR feature usage to the default
      * SikuliX path or to Settings.OcrDataPath (if set)</p>
-     * @return the current Tesseract datapath in this option set
+     * @return the current Tesseract datapath in this Options
      */
     public String dataPath() {
       if (dataPath == null) {
@@ -388,9 +389,8 @@ public class OCR {
     }
 
     /**
-     * Set the folder where Tesseract will find language and configs files
-     * in the tessdata subfolder
-     * (the path spec might be given without the trailing /tessdata)
+     * Set folder for Tesseract to find language and configs files.
+     * <p>in the tessdata subfolder (the path spec might be given without the trailing /tessdata)</p>
      * <p><b>TAKE CARE,</b> that all is in place at time of OCR feature usage</p>
      * <p><b>if null,</b> it will be evaluated at time of OCR feature usage to the default
      * SikuliX path or to Settings.OcrDataPath (if set)</p>
@@ -411,7 +411,8 @@ public class OCR {
 
     //<editor-fold desc="14 optimization">
     /**
-     * Convenience: Configure the Option's optimization<br>
+     * Convenience: Configure the Option's optimization.
+     * <p>
      * Might give better results in cases with small
      * fonts with a pixel height lt 12 (font sizes lt 10)
      * @return this Options
@@ -437,7 +438,7 @@ public class OCR {
     private static final int OPTIMAL_X_HEIGHT = 30;
 
     /**
-     * The current base value for image optimization before OCR<br>
+     * current base for image optimization before OCR.
      * @return value
      * @see #textHeight(float)
      */
@@ -446,7 +447,8 @@ public class OCR {
     }
 
     /**
-     * Configure the image optimization before given to OCR<br>
+     * Configure image optimization.
+     * <p>
      * should be the (in case average) height in pixels of an uppercase X in the image's text
      * <p><b>NOTE:</b> should only be tried in cases, where the defaults do not lead to acceptable results</p>
      * @param height a number of pixels
@@ -458,7 +460,8 @@ public class OCR {
     }
 
     /**
-     * Configure the image optimization before given to OCR<br>
+     * Configure the image optimization.
+     * <p>
      * should be the (in case average) fontsize as base for internally calculating the {@link #textHeight()}
      * <p><b>NOTE:</b> should only be tried in cases, where the defaults do not lead to acceptable results</p>
      * @param size of a font
@@ -483,9 +486,8 @@ public class OCR {
     }
 
     /**
-     * INTERNAL (under investigation)<p>
-     *   should not be used - not supported
-     * </p>
+     * INTERNAL (under investigation).
+     * <p>should not be used - not supported
      * @param method {@link Image.Interpolation}
      * @return this Options
      */
@@ -501,9 +503,8 @@ public class OCR {
     }
 
     /**
-     * INTERNAL (under investigation)<p>
-     *   should not be used - not supported
-     * </p>
+     * INTERNAL (under investigation).
+     * <p>should not be used - not supported
      * @param dpi the dpi value
      * @return this Options
      */
@@ -516,9 +517,8 @@ public class OCR {
     private int userDPI;
 
     /**
-     * INTERNAL (under investigation)<p>
-     *   should not be used - not supported
-     * </p>
+     * INTERNAL (under investigation).
+     * <p>should not be used - not supported
      * @param dpi 70 .. 2400
      * @return this Options
      */
@@ -557,8 +557,9 @@ public class OCR {
     }
 
     /**
-     * set a variable to be given to Tesseract<p>
-     *   you should know, what you are doing - consult the Tesseract docs
+     * set a variable for Tesseract.
+     * <p>
+     * you should know, what you are doing - consult the Tesseract docs
      * </p>
      * @param key the key
      * @param value the value
@@ -575,6 +576,7 @@ public class OCR {
     private Set<String> configs = new LinkedHashSet<>();
 
     /**
+     * get current configs
      * @return currently stored names of configs files
      * @see #configs(String...)
      */
@@ -583,9 +585,8 @@ public class OCR {
     }
 
     /**
-     * set a one ore more configs file names to be given to Tesseract<p>
-     *   you should know, what you are doing - consult the Tesseract docs
-     * </p>
+     * set one ore more configs file names.
+     * <p>you should know, what you are doing - consult the Tesseract docs
      * @param configs one or more configs filenames
      * @return this Options
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
@@ -596,9 +597,8 @@ public class OCR {
     }
 
     /**
-     * set a list of configs file names to be given to Tesseract<p>
-     *   you should know, what you are doing - consult the Tesseract docs
-     * </p>
+     * set a list of configs file names.
+     * <p>you should know, what you are doing - consult the Tesseract docs
      * @param configs a list of configs filenames
      * @return this Options
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
@@ -638,16 +638,16 @@ public class OCR {
   //<editor-fold desc="10 global">
 
   /**
-   * Resets the global options to the initial defaults
+   * Resets the global options to the initial defaults.
    * @see OCR.Options#reset()
-   * @return global Options
+   * @return the global Options
    */
   public static Options reset() {
     return globalOptions().reset();
   }
 
   /**
-   * prints out the current global options
+   * prints out the current global options.
    */
   public static void status() {
     Debug.logp("Global settings " + globalOptions().toString());
@@ -657,9 +657,7 @@ public class OCR {
   //<editor-fold desc="20 text">
   /**
    * Reads text from the given source.
-   * <p>
-   * Uses the global options.
-   *
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @return text
@@ -670,7 +668,7 @@ public class OCR {
 
   /**
    * Reads text from the given source.
-   *
+   * <p>Uses the given options
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  Options to be used
@@ -687,11 +685,9 @@ public class OCR {
   //<editor-fold desc="21 line">
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single line of text.
-   * <p>
-   * Uses the global options.
-   *
+   * Reads text from the given source (line).
+   * <p>assuming the source contains a single line of text.
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @return text
@@ -701,9 +697,9 @@ public class OCR {
   }
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single line of text.
-   *
+   * Reads text from the given source (line).
+   * <p>assuming the source contains a single line of text.
+   * <p>Uses the given options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  options for the used TextRecognizer
@@ -714,19 +710,19 @@ public class OCR {
   }
 
   /**
-   * Read text and return a list of lines.
-   *
+   * Reads text from the given source as lines.
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
-   * @return lines
+   * @return lines as a list of matches
    */
   public static <SFIRBS> List<Match> readLines(SFIRBS from) {
     return readLines(from, globalOptions());
   }
 
   /**
-   * Read text and return a list of lines.
-   *
+   * Reads text from the given source as lines.
+   * <p>Uses the given options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  options for the used TextRecognizer
@@ -740,11 +736,9 @@ public class OCR {
   //<editor-fold desc="22 word">
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single word.
-   * <p>
-   * Uses the global options.
-   *
+   * Reads text from the given source (word).
+   * <p>assuming the source contains a single word of text.
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @return text
@@ -754,9 +748,9 @@ public class OCR {
   }
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single word.
-   *
+   * Reads text from the given source (word).
+   * <p>assuming the source contains a single word of text.
+   * <p>Uses the given options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  options for the used TextRecognizer
@@ -767,23 +761,23 @@ public class OCR {
   }
 
   /**
-   * Read text and return a list of words.
-   *
+   * Reads text from the given source as words.
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
-   * @return words
+   * @return words as alist of matches
    */
   public static <SFIRBS> List<Match> readWords(SFIRBS from) {
     return readWords(from, OCR.globalOptions());
   }
 
   /**
-   * Read text and return a list of words.
-   *
+   * Reads text from the given source as words.
+   * <p>Uses the given options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  options for the used TextRecognizer
-   * @return words
+   * @return words as a list of matches
    */
   public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
     return TextRecognizer.get(options).readWords(from);
@@ -793,11 +787,9 @@ public class OCR {
   //<editor-fold desc="23 char">
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single character.
-   * <p>
-   * Uses the global options.
-   *
+   * Reads text from the given source (character).
+   * <p>assuming the source contains a single character.
+   * <p>Uses the global options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @return text
@@ -807,9 +799,9 @@ public class OCR {
   }
 
   /**
-   * Reads text from the given source assuming the source
-   * contains a single character.
-   *
+   * Reads text from the given source (character).
+   * <p>assuming the source contains a single character.
+   * <p>Uses the given options.
    * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
    * @param from     source to read text from
    * @param options  options for the used TextRecognizer

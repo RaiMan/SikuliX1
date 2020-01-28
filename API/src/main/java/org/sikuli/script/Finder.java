@@ -53,7 +53,7 @@ public class Finder implements Iterator<Match> {
 
   /**
    * Create a Finder for the given element
-   * @param inWhat
+   * @param inWhat in what element (RIBS) to search
    * @param <RIBS> Region, Image, BufferedImage or ScreenImage
    */
   public <RIBS> Finder(RIBS inWhat) {
@@ -509,7 +509,7 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
-  public static class Finder2 {
+  protected static class Finder2 {
 
     static {
       RunTime.loadLibrary(RunTime.libOpenCV);
@@ -1139,7 +1139,7 @@ public class Finder implements Iterator<Match> {
     //</editor-fold>
   }
 
-  public static class FindInput2 {
+  private static class FindInput2 {
 
     static {
       Finder2.init();
@@ -1420,7 +1420,7 @@ public class Finder implements Iterator<Match> {
     }
   }
 
-  public static class FindResult2 implements Iterator<Match> {
+  private static class FindResult2 implements Iterator<Match> {
 
     private FindInput2 findInput = null;
     private int offX = 0;

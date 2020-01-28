@@ -60,6 +60,7 @@ public class Region extends Pixels {
   //<editor-fold desc="001 Fields x, y, w, h">
   /**
    * @param X new x position of top left corner
+   * @return this Region
    */
   public Region setX(int X) {
     x = X;
@@ -69,6 +70,7 @@ public class Region extends Pixels {
 
   /**
    * @param Y new y position of top left corner
+   * @return this Region
    */
   public Region setY(int Y) {
     y = Y;
@@ -77,6 +79,7 @@ public class Region extends Pixels {
   }
   /**
    * @param W new width
+   * @return this Region
    */
   public Region setW(int W) {
     w = W > 1 ? W : 1;
@@ -85,6 +88,7 @@ public class Region extends Pixels {
   }
   /**
    * @param H new height
+   * @return this Region
    */
   public Region setH(int H) {
     h = H > 1 ? H : 1;
@@ -460,9 +464,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE: flags this region as belonging to a non-Desktop screen
+   * INTERNAL: flags this region as belonging to a non-Desktop screen
    *
    * @param aScreen screen
+   * @return this Region
    */
   public Region setOtherScreen(IScreen aScreen) {
     scr = aScreen;
@@ -552,11 +557,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * Convenience: a minimal Region to be used as a Point (backport from Version 2)<br>
-   * is always on primary screen
+   * Convenience: a minimal Region to be used as a Point
    *
-   * @param X
-   * @param Y
+   * @param X top left x
+   * @param Y top left y
    */
   public Region(int X, int Y) {
     this(X, Y, 1, 1, null);
@@ -586,7 +590,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * Create a new region from another region<br>including the region's settings
+   * Create a new region from another region.
+   * including the region's settings
    *
    * @param r the region
    */
@@ -1976,15 +1981,16 @@ public class Region extends Pixels {
   //<editor-fold defaultstate="collapsed" desc="028 highlight">
 
   /**
-   * highlight (internal use for Python support):
+   * INTERNAL: highlight (for Python support):
+   * <pre>
    * all act on the related Region
    * () - on/off,
    * (int) - int seconds
    * (String) - on/off with given color
    * (int,String) - int seconds with given color
    * (float), (float,String) - same as int
-   *
-   * @param args
+   * </pre>
+   * @param args valuaes as above
    * @return this
    */
   public Region highlight4py(ArrayList args) {
@@ -2030,6 +2036,7 @@ public class Region extends Pixels {
 
   /**
    * Switch on the regions highlight with default color
+   * @return this Region
    */
   public Region highlightOn() {
     return highlightOn(null);
@@ -2039,6 +2046,7 @@ public class Region extends Pixels {
    * Switch on the regions highlight with given color
    *
    * @param color Color of frame (see method highlight(color))
+   * @return this Region
    */
   public Region highlightOn(String color) {
     return highlight(0, color);
@@ -2046,6 +2054,7 @@ public class Region extends Pixels {
 
   /**
    * Switch off the regions highlight
+   * @return this Region
    */
   public Region highlightOff() {
     if (regionHighlight != null) {
@@ -2223,7 +2232,7 @@ public class Region extends Pixels {
    * finds the given Pattern, String or Image in the region and returns the best match.
    *
    * @param <PSI>  Pattern, String or Image
-   * @param target
+   * @param target what (PSI) to find
    * @return If found, the element. null otherwise
    * @throws FindFailed if the Find operation failed
    */

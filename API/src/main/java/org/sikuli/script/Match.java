@@ -241,7 +241,7 @@ public class Match extends Region implements Comparable<Match> {
    *
    * @param text
    */
-  public void setText(String text) {
+  protected void setText(String text) {
     ocrText = text;
   }
 
