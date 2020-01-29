@@ -9,6 +9,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * INTERNAL: An abstract super-class for {@link Region} and {@link Image}.
+ * <br>
+ * <p>BE AWARE: This class cannot be used as such (cannot be instantiated)
+ * <br>... instead use the classes Region or Image as needed</p>
+ * NOTES:
+ * <br>- the classname might change in the future without notice
+ * <br>- the intention is, to have only one implementation for features, that are the same for Region and Image
+ * <br>- the implementation here is ongoing beginning with version 2.0.2 and hence not complete yet
+ * <br>- you might get <b>not-implemented exceptions</b> until complete
+ */
 public abstract class Pixels {
 
   protected static final int logLevel = 3;
@@ -31,7 +42,7 @@ public abstract class Pixels {
   }
 
   /**
-   * X-coordinate of the Region
+   * X-coordinate of the Region (ignored for Image)
    */
   public int x = 0;
 
@@ -43,31 +54,31 @@ public abstract class Pixels {
   }
 
   /**
-   * Y-coordinate of the Region
+   * Y-coordinate of the Region (ignored for Image)
    */
   public int y = 0;
 
   /**
-   * @return width of region
+   * @return width of region/image
    */
   public int getW() {
     return w;
   }
 
   /**
-   * Width of the Region
+   * Width of the Region/Image
    */
   public int w = 0;
 
   /**
-   * @return height of region
+   * @return height of region/image
    */
   public int getH() {
     return h;
   }
 
   /**
-   * Height of the Region
+   * Height of the Region/Image
    */
   public int h = 0;
 
@@ -107,7 +118,7 @@ public abstract class Pixels {
    * finds the given Pattern, String or Image in the region and returns the best match.
    *
    * @param <PSI>  Pattern, String or Image
-   * @param target
+   * @param target what (PSI) to find in this Region
    * @return If found, the element. null otherwise
    * @throws FindFailed if the Find operation failed
    */
@@ -214,7 +225,7 @@ public abstract class Pixels {
   /**
    * Find the first word as text (top left to bottom right) containing the given text
    *
-   * @param word
+   * @param word to be searched
    * @return a text match or null if not found
    */
   public Match findWord(String word) {
@@ -231,7 +242,7 @@ public abstract class Pixels {
   /**
    * Find all words as text (top left to bottom right) containing the given text
    *
-   * @param word
+   * @param word to be searched
    * @return a list of text matches
    */
   public List<Match> findWords(String word) {
@@ -245,7 +256,7 @@ public abstract class Pixels {
   /**
    * Find the first line as text (top left to bottom right) containing the given text
    *
-   * @param text
+   * @param text the line should contain
    * @return a text match or null if not found
    */
   public Match findLine(String text) {
@@ -262,7 +273,7 @@ public abstract class Pixels {
   /**
    * Find all lines as text (top left to bottom right) containing the given text
    *
-   * @param text
+   * @param text the lines should contain
    * @return a list of text matches or empty list if not found
    */
   public List<Match> findLines(String text) {
@@ -322,6 +333,10 @@ public abstract class Pixels {
     //return match;
   }
 
+  public Match existsT(String text) {
+    return existsText(text);
+  }
+
   public boolean hasText(String text) {
     return null != existsText(text);
   }
@@ -344,8 +359,8 @@ public abstract class Pixels {
   //<editor-fold desc="20 helper">
   /**
    * INTERNAL: get Image from target
-   * @param target  Pattern, Filename, Image, ScreenImage
-   * @param <PSI>
+   * @param <PSI>   Pattern, Filename, Image, ScreenImage
+   * @param target what(PSI) to search
    * @return Image object
    */
   public static <PSI> Image getImageFromTarget(PSI target) {
@@ -369,8 +384,7 @@ public abstract class Pixels {
     } else if (whatEver instanceof File) {
       return Image.create((File) whatEver).get();
     } else if (whatEver instanceof Region) {
-      Region reg = (Region) whatEver;
-      return reg.getScreen().capture(reg).getImage();
+      return ((Region) whatEver).getImage().get();
     } else if (whatEver instanceof Image) {
       return ((Image) whatEver).get();
     } else if (whatEver instanceof ScreenImage) {
@@ -409,9 +423,10 @@ public abstract class Pixels {
   protected long lastSearchTimeRepeat = -1;
 
   /**
-   * a find operation saves its match on success in the used region object<br>unchanged if not successful
+   * a find operation saves its match on success in this region/image.
+   * <br>... unchanged if not successful
    *
-   * @return the Match object from last successful find in this region
+   * @return the Match object from last successful find
    */
   public Match getLastMatch() {
     return lastMatch;
@@ -420,9 +435,10 @@ public abstract class Pixels {
   // ************************************************
 
   /**
-   * a searchAll operation saves its matches on success in the used region object<br>unchanged if not successful
+   * a searchAll operation saves its matches on success in this region/image
+   * <br>... unchanged if not successful
    *
-   * @return a Match-Iterator of matches from last successful searchAll in this region
+   * @return a Match-Iterator of matches from last successful searchAll
    */
   public Iterator<Match> getLastMatches() {
     return lastMatches;
@@ -431,7 +447,7 @@ public abstract class Pixels {
 
   //<editor-fold desc="99 obsolete">
   /**
-   * @return
+   * @return a list of matches
    * @deprecated use findLines() instead
    * @see #findLines()
    */
@@ -440,7 +456,7 @@ public abstract class Pixels {
   }
 
   /**
-   * @return
+   * @return a list of lines as strings
    * @deprecated use textLines() instead
    * @see #textLines()
    */
@@ -450,7 +466,7 @@ public abstract class Pixels {
   }
 
   /**
-   * @return
+   * @return a list of matches
    * @deprecated use findWords() instead
    * @see #findWords()
    */
@@ -460,7 +476,7 @@ public abstract class Pixels {
   }
 
   /**
-   * @return
+   * @return a list of words sa strings
    * @deprecated use textWords() instead
    * @see #textWords()
    */

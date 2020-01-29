@@ -18,7 +18,12 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A Region is a rectengular area and lies always completely inside its parent screen
+ * A Region is a rectengular area on a screen.
+ * <br>
+ * <p>completely contained in that screen (no screen overlapping)</p>
+ * NOTES:
+ * <br>- when needed (find ops), the pixel content is captured from the screen
+ * <br>- if nothing else is said, the center pixel is the target for mouse actions
  */
 public class Region extends Pixels {
 
@@ -2636,10 +2641,6 @@ public class Region extends Pixels {
     return waitText(text, 0);
   }
 
-//  public Match findT(String text) throws FindFailed {
-//    return findText(text);
-//  }
-
   public Match existsText(String text, double timeout) {
     Match match = null;
     try {
@@ -2653,21 +2654,9 @@ public class Region extends Pixels {
     return existsText(text, autoWaitTimeout);
   }
 
-//  public Match existsT(String text, double timeout) {
-//    return existsText(text, timeout);
-//  }
-//
-//  public Match existsT(String text) {
-//    return existsT(text, autoWaitTimeout);
-//  }
-
   public boolean hasText(String text) {
     return null != existsText(text, 0);
   }
-
-//  public boolean hasT(String text) {
-//    return hasText(text);
-//  }
 
   public List<Match> findAllText(String text) {
     List<Match> matches = new ArrayList<>();
@@ -2676,10 +2665,6 @@ public class Region extends Pixels {
     } catch (FindFailed ff) {
     }
     return matches;
-  }
-
-  public List<Match> findAllT(String text) {
-    return findAllText(text);
   }
 
   protected List<Match> relocate(List<Match> matches) {
