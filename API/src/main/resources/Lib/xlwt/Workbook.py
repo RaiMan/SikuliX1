@@ -40,6 +40,8 @@ Record Order in BIFF8
       EOF
 '''
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 import BIFFRecords
 import Style
 

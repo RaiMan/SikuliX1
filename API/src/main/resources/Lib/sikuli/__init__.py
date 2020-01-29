@@ -1,4 +1,3 @@
-# Copyright 2010-2018, Sikuli.org, sikulix.com
-# Released under the MIT License.
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
 
 from Sikuli import *

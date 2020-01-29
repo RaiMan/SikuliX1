@@ -28,6 +28,8 @@ is not set), it repeats the attributes of its style XF record.
 
 '''
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 import BIFFRecords
 
 class Font(object):

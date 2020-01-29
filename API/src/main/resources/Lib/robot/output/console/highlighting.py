@@ -1,5 +1,5 @@
-#  Copyright 2008-2015 Nokia Networks
-#  Copyright 2016-     Robot Framework Foundation
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,10 +12,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
-# Windows highlighting code adapted from color_console.py. It is copyright
-# Andre Burgaud, licensed under the MIT License, and available here:
-# http://www.burgaud.com/bring-colors-to-the-windows-console-with-python/
 
 from contextlib import contextmanager
 import os

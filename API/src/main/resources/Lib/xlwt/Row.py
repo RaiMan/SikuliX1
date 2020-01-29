@@ -1,5 +1,7 @@
 # -*- coding: windows-1252 -*-
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 import BIFFRecords
 import Style
 from Cell import StrCell, BlankCell, NumberCell, FormulaCell, MulBlankCell, BooleanCell, ErrorCell, \

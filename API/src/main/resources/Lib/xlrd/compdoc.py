@@ -1,11 +1,8 @@
 # -*- coding: cp1252 -*-
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 ##
-# Implements the minimal functionality required
-# to extract a "Workbook" or "Book" stream (as one big string)
-# from an OLE2 Compound Document file.
-# <p>Copyright � 2005-2012 Stephen John Machin, Lingfo Pty Ltd</p>
-# <p>This module is part of the xlrd package, which is released under a BSD-style licence.</p>
 ##
 
 # No part of the content of this file was derived from the works of David Giffin.
