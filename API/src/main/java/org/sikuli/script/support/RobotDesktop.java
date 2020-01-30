@@ -116,6 +116,9 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
     Debug.log(4, "RobotDesktop: smoothMove (%.1f): %s ---> %s", ms / 1000f, src, dest);
+    if (src.equals(dest)) {
+      return;
+    }
     if (ms == 0) {
       doMouseMove(dest.x, dest.y);
       waitForIdle();
