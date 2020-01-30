@@ -184,12 +184,15 @@ public class Mouse {
    *
    * wait before and after: &gt; 9 taken as milli secs - 1 ... 9 are seconds
    *
-   * @param loc where to click
+   * @param loc where to click (not null)
    * @param action L,R,M left, right, middle - D means double click
    * @param args timing parameters
    * @return the location
    */
   public static Location click(Location loc, String action, Integer... args) {
+    if (null == loc) {
+      throw new IllegalArgumentException("Mouse: click: Location should not be null");
+    }
     if (get().device.isSuspended() || loc.isOtherScreen()) {
       return null;
     }
