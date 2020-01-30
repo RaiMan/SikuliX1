@@ -36,7 +36,13 @@ public class ObserveEvent {
   }
 
   /**
-   * INTERNAL USE ONLY: creates an observed event
+   * INTERNAL: creates an observed event
+   * @param name name
+   * @param type type
+   * @param v1 value 1
+   * @param v2 value 2
+   * @param v3 value 3
+   * @param now now
    */
   public ObserveEvent(String name, Type type, Object v1, Object v2, Object v3, long now) {
     init(name, type, v1, v2, v3, now);
@@ -142,7 +148,7 @@ public class ObserveEvent {
    * @param v2
    * @param v3
    */
-  public void setVals(Object v1, Object v2, Object v3) {
+  protected void setVals(Object v1, Object v2, Object v3) {
     vals[0] = v1;
     vals[1] = v2;
     vals[2] = v3;

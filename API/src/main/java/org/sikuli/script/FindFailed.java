@@ -151,7 +151,7 @@ public class FindFailed extends SikuliException {
 
   //************************* intern
 
-  static Object setHandler(Object handler, ObserveEvent.Type type) {
+  public static Object setHandler(Object handler, ObserveEvent.Type type) {
     if (handler != null && (handler.getClass().getName().contains("org.python")
             || handler.getClass().getName().contains("org.jruby"))) {
       handler = new ObserverCallBack(handler, type);

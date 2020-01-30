@@ -92,10 +92,6 @@ public class Screen extends Region implements IScreen {
   private static String me = "Screen: ";
   private static int lvl = 3;
 
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
   public static Screen getDefaultInstance4py() {
     return new Screen();
   }

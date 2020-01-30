@@ -480,7 +480,7 @@ public class ImagePath {
   /**
    * remove entry with given path (same as given with add)
    *
-   * @param directory
+   * @param directory relative or absolute path as File
    * @return true on success, false otherwise
    */
   public static boolean remove(File directory) {

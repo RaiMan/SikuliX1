@@ -90,25 +90,10 @@ import org.sikuli.script.TextRecognizer as JTextOCR
 class TextOCR(JTextOCR):
   pass
 
-OEM_TESSERACT_ONLY = TextOCR.OcrEngineMode.TESSERACT_ONLY
-OEM_LSTM_ONLY = TextOCR.OcrEngineMode.LSTM_ONLY
-OEM_TESSERACT_LSTM_COMBINED = TextOCR.OcrEngineMode.TESSERACT_LSTM_COMBINED
-OEM_DEFAULT = TextOCR.OcrEngineMode.DEFAULT
+import org.sikuli.script.OCR as JOCR
 
-PSM_OSD_ONLY =  TextOCR.PageSegMode.OSD_ONLY
-PSM_AUTO_OSD =  TextOCR.PageSegMode.AUTO_OSD
-PSM_AUTO_ONLY =  TextOCR.PageSegMode.AUTO_ONLY
-PSM_AUTO =  TextOCR.PageSegMode.AUTO
-PSM_SINGLE_COLUMN =  TextOCR.PageSegMode.SINGLE_COLUMN
-PSM_SINGLE_BLOCK_VERT_TEXT =  TextOCR.PageSegMode.SINGLE_BLOCK_VERT_TEXT
-PSM_SINGLE_BLOCK =  TextOCR.PageSegMode.SINGLE_BLOCK
-PSM_SINGLE_LINE =  TextOCR.PageSegMode.SINGLE_LINE
-PSM_SINGLE_WORD =  TextOCR.PageSegMode.SINGLE_WORD
-PSM_CIRCLE_WORD =  TextOCR.PageSegMode.CIRCLE_WORD
-PSM_SINGLE_CHAR =  TextOCR.PageSegMode.SINGLE_CHAR
-PSM_SPARSE_TEXT =  TextOCR.PageSegMode.SPARSE_TEXT
-PSM_SPARSE_TEXT_OSD =  TextOCR.PageSegMode.SPARSE_TEXT_OSD
-PSM_RAW_LINE =  TextOCR.PageSegMode.RAW_LINE
+class OCR(JOCR):
+  pass
 
 #Debug.log(3, "Jython: sikuli: Sikuli: import Match")
 from org.sikuli.script import Match as JMatch

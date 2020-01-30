@@ -45,15 +45,10 @@ import java.util.*;
  * image) (managed as a configurable cache)<br>
  * The caching can be configured using {@link Settings#setImageCache(int)}
  */
-public class Image {
+public class Image extends Pixels {
 
-  private static String me = "Image: ";
-  private static int lvl = 3;
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
+  private static String logName = "Image: ";
+  
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
@@ -78,19 +73,19 @@ public class Image {
         init(getNameFromURL(fURL), fURL);
       }
     } else {
-      imageName = "";
+      setName("");
     }
   }
 
   private void init(String fileName, URL fURL) {
-    imageName = fileName;
-    if (imageName.isEmpty() || fURL == null) {
+    setName(fileName);
+    if (getName().isEmpty() || fURL == null) {
       return;
     }
     fileURL = fURL;
     if (ImagePath.isImageBundled(fURL)) {
       imageIsBundled = true;
-      imageName = new File(imageName).getName();
+      setName(new File(getName()).getName());
     }
     load();
   }
@@ -115,7 +110,7 @@ public class Image {
 
   private Image copy() {
     Image imgTarget = new Image();
-    imgTarget.setName(imageName);
+    imgTarget.setName(getName());
     imgTarget.setFileURL(fileURL);
     imgTarget.setBimg(bimg);
     imgTarget.setIsAbsolute(imageIsAbsolute);
@@ -151,14 +146,14 @@ public class Image {
    * @param name descriptive name
    */
   public Image(BufferedImage img, String name) {
-    imageName = isBImg;
+    setName(isBImg);
     if (name != null) {
-      imageName += name;
+      setName(getName() + name);
     }
     bimg = img;
-    bwidth = bimg.getWidth();
-    bheight = bimg.getHeight();
-    log(lvl, "BufferedImage: (%d, %d)%s", bwidth, bheight,
+    w = bimg.getWidth();
+    h = bimg.getHeight();
+    log(logLevel, "BufferedImage: (%d, %d)%s", w, h,
             (name == null ? "" : " with name: " + name));
   }
 
@@ -207,13 +202,14 @@ public class Image {
   @Override
   public String toString() {
     return String.format(
-            (imageName != null ? imageName : "__UNKNOWN__") + ": (%dx%d)", bwidth, bheight)
+            (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
             + (lastSeen == null ? ""
             : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 0 imageName">
+
   /**
    * @return the image's absolute filename or null if jar, http or in memory
    * image
@@ -222,7 +218,7 @@ public class Image {
     if (fileURL != null && "file".equals(fileURL.getProtocol())) {
       return new File(fileURL.getPath()).getAbsolutePath();
     } else {
-      return imageName;
+      return getName();
     }
   }
 
@@ -236,24 +232,24 @@ public class Image {
     bHasIOException = state;
   }
 
-  /**
-   * Get the image's descriptive name
-   *
-   * @return the name
-   */
-  public String getName() {
-    if (isText()) {
-      return imageNameGiven;
-    }
-    return imageName;
-  }
-
-  public Image setName(String imageName) {
-    this.imageName = imageName;
-    return this;
-  }
-
-  private String imageName = null;
+//  /**
+//   * Get the image's descriptive name
+//   *
+//   * @return the name
+//   */
+//  public String getName() {
+//    if (isText()) {
+//      return imageNameGiven;
+//    }
+//    return getName();
+//  }
+//
+//  public Image setName(String imageName) {
+//    this.imageName = imageName;
+//    return this;
+//  }
+//
+//  private String imageName = null;
   private String imageNameGiven = null;
   //</editor-fold>
 
@@ -318,24 +314,32 @@ public class Image {
   public Image setBimg(BufferedImage bimg) {
     this.bimg = bimg;
     if (bimg != null) {
-      bwidth = bimg.getWidth();
-      bheight = bimg.getHeight();
+      w = bimg.getWidth();
+      h = bimg.getHeight();
       bsize = bimg.getData().getDataBuffer().getSize();
     } else {
       bsize = 0;
-      bwidth = -1;
-      bheight = -1;
+      w = -1;
+      h = -1;
     }
     return this;
   }
 
   private BufferedImage bimg = null;
   private int bsize = 0;
-  private int bwidth = -1;
-  private int bheight = -1;
 
   public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
     return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
+  }
+
+  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect) {
+    Rectangle crop;
+    crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
+    BufferedImage newBimg = new BufferedImage(crop.width, crop.height, bimg.getType());
+    Graphics2D g2d = newBimg.createGraphics();
+    g2d.drawImage(getSubimage(bimg, crop), 0, 0, null);
+    g2d.dispose();
+    return newBimg;
   }
 
   /**
@@ -346,9 +350,9 @@ public class Image {
   public BufferedImage get() {
     if (bimg != null) {
       if (fileURL == null) {
-        log(lvl + 1, "getImage inMemory: %s", imageName);
+        log(logLevel + 1, "getImage inMemory: %s", getName());
       } else {
-        log(lvl + 1, "getImage from cache: %s", imageName);
+        log(logLevel + 1, "getImage from cache: %s", getName());
       }
       return bimg;
     } else {
@@ -360,7 +364,7 @@ public class Image {
    * @return size of image
    */
   public Dimension getSize() {
-    return new Dimension(bwidth, bheight);
+    return new Dimension(w, h);
   }
 
   private int getKB() {
@@ -391,7 +395,7 @@ public class Image {
 
   /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
    * @param factor resize factor
@@ -404,9 +408,8 @@ public class Image {
   /**
    * resize the loaded image with factor using OpenCV ImgProc.resize()
    *
-   * @param factor resize factor
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
-   *
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor, Interpolation interpolation) {
@@ -415,9 +418,10 @@ public class Image {
 
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
+   * @param bimg given image
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
@@ -428,9 +432,9 @@ public class Image {
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
    *
-   * @param factor resize factor
+   * @param bimg given image
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
-   *
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
@@ -439,9 +443,10 @@ public class Image {
 
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   *
+   * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
+   * @param mat given image as cvMat
    * @param factor resize factor
    */
   public static void resize(Mat mat, float factor) {
@@ -451,7 +456,8 @@ public class Image {
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
    *
-   * @param factor resize factor
+   * @param mat given image as cvMat
+   * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation.
    */
   public static void resize(Mat mat, float factor, Interpolation interpolation) {
@@ -575,15 +581,20 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
+
   /**
    * create a sub image from this image
    *
-   * @param part (the constants Region.XXX as used with {@link Region#getTile(int)})
+   * @param part (the constants Region.XXX as used with {@link Region#get(int)})
    * @return the sub image
    */
   public Image getSub(int part) {
     Rectangle r = Region.getRectangle(new Rectangle(0, 0, getSize().width, getSize().height), part);
     return getSub(r.x, r.y, r.width, r.height);
+  }
+
+  public Image getSub(Region reg) {
+    return getSub(reg.x, reg.y, reg.w, reg.h);
   }
 
   /**
@@ -643,6 +654,24 @@ public class Image {
   }
 
   /**
+   * create a new image from the given file <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param imageFile a Java File object
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  public static Image create(File imageFile) {
+    Image img = get(imageFile.getAbsolutePath());
+    return createImageValidate(img);
+  }
+
+  /**
    * create a new Image with Pattern aspects from an existing Pattern
    *
    * @param p a Pattern
@@ -677,22 +706,6 @@ public class Image {
       img = new Image(url);
     }
     return createImageValidate(img);
-  }
-
-  public static <PSI> Image getImageFromTarget(PSI target) {
-    if (target instanceof Pattern) {
-      return ((Pattern) target).getImage();
-    } else if (target instanceof String) {
-      Image img = get((String) target);
-      img = createImageValidate(img);
-      return img;
-    } else if (target instanceof Image) {
-      return (Image) target;
-    } else if (target instanceof ScreenImage) {
-      return new Image(((ScreenImage) target).getImage());
-    } else {
-      throw new RuntimeException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
-    }
   }
 
   /**
@@ -809,17 +822,17 @@ public class Image {
     List<String> imageNamePurgeList = new ArrayList<>();
     URL imgURL;
     Image img;
-    log(lvl + 1, "purge: ImagePath: %s", pathURL.getPath());
+    log(logLevel + 1, "purge: ImagePath: %s", pathURL.getPath());
     Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
     Map.Entry<URL, Image> entry;
     while (it.hasNext()) {
       entry = it.next();
       imgURL = entry.getKey();
       if (imgURL.toString().startsWith(pathURL.toString())) {
-        log(lvl + 1, "purge: URL: %s", imgURL.toString());
+        log(logLevel + 1, "purge: URL: %s", imgURL.toString());
         img = entry.getValue();
         imagePurgeList.add(img);
-        imageNamePurgeList.add(img.imageName);
+        imageNamePurgeList.add(img.getName());
         it.remove();
       }
     }
@@ -829,7 +842,7 @@ public class Image {
         img = bit.next();
         if (imagePurgeList.contains(img)) {
           bit.remove();
-          log(lvl + 1, "purge: bimg: %s", img);
+          log(logLevel + 1, "purge: bimg: %s", img);
           currentMemoryDown(img.bsize);
         }
       }
@@ -867,31 +880,31 @@ public class Image {
    * @param lvl debug level used here
    */
   public static void dump(int lvl) {
-    log(lvl, "--- start of Image dump ---");
+    log(logLevel, "--- start of Image dump ---");
     ImagePath.dump(lvl);
-    log(lvl, "ImageFiles entries: %d", imageFiles.size());
+    log(logLevel, "ImageFiles entries: %d", imageFiles.size());
     Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
     Map.Entry<URL, Image> entry;
     while (it.hasNext()) {
       entry = it.next();
-      log(lvl, entry.getKey().toString());
+      log(logLevel, entry.getKey().toString());
     }
-    log(lvl, "ImageNames entries: %d", imageNames.size());
+    log(logLevel, "ImageNames entries: %d", imageNames.size());
     Iterator<Map.Entry<String, URL>> nit = imageNames.entrySet().iterator();
     Map.Entry<String, URL> name;
     while (nit.hasNext()) {
       name = nit.next();
-      log(lvl, "%s %d KB (%s)", new File(name.getKey()).getName(),
+      log(logLevel, "%s %d KB (%s)", new File(name.getKey()).getName(),
               imageFiles.get(name.getValue()).getKB(), name.getValue());
     }
     if (Settings.getImageCache() == 0) {
-      log(lvl, "Cache state: switched off!");
+      log(logLevel, "Cache state: switched off!");
     } else {
-      log(lvl, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
+      log(logLevel, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
               Settings.getImageCache(), images.size(),
               (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
     }
-    log(lvl, "--- end of Image dump ---");
+    log(logLevel, "--- end of Image dump ---");
   }
 
   /**
@@ -926,7 +939,7 @@ public class Image {
       File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
       if (FileManager.xcopy(fOrg, fBack)) {
         hasBackup = fBack.getPath();
-        log(lvl, "backup: %s created", fBack.getName());
+        log(logLevel, "backup: %s created", fBack.getName());
         return true;
       }
       log(-1, "backup: %s did not work", fBack.getName());
@@ -939,7 +952,7 @@ public class Image {
       File fBack = new File(hasBackup);
       File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
       if (FileManager.xcopy(fBack, fOrg)) {
-        log(lvl, "restore: %s restored", fOrg.getName());
+        log(logLevel, "restore: %s restored", fOrg.getName());
         FileManager.deleteFileOrFolder(fBack);
         hasBackup = "";
         return true;
@@ -951,6 +964,7 @@ public class Image {
   //</editor-fold>
 
   //<editor-fold desc="03 load/save">
+
   /**
    * FOR INTERNAL USE: tries to get the image from the cache, if not cached yet:
    * create and load a new image
@@ -988,8 +1002,8 @@ public class Image {
       }
       if (imageURL != null) {
         image = imageFiles.get(imageURL);
-        if (image != null && null == imageNames.get(image.imageName)) {
-          imageNames.put(image.imageName, imageURL);
+        if (image != null && null == imageNames.get(image.getName())) {
+          imageNames.put(image.getName(), imageURL);
         }
       }
       if (image == null) {
@@ -997,7 +1011,7 @@ public class Image {
         image.setIsAbsolute(imageFile.isAbsolute());
       } else {
         if (image.bimg != null) {
-          log(4, "reused: %s (%s)", image.imageName, image.fileURL);
+          log(3, "reused: %s (%s)", image.getName(), image.fileURL);
         } else {
           if (Settings.getImageCache() > 0) {
             image.load();
@@ -1021,20 +1035,20 @@ public class Image {
         fileURL = null;
         return null;
       }
-      if (imageName != null) {
+      if (getName() != null) {
         imageFiles.put(fileURL, this);
-        imageNames.put(imageName, fileURL);
-        bwidth = bImage.getWidth();
-        bheight = bImage.getHeight();
+        imageNames.put(getName(), fileURL);
+        w = bImage.getWidth();
+        h = bImage.getHeight();
         bsize = bImage.getData().getDataBuffer().getSize();
-        log(lvl, "loaded: %s (%s)", imageName, fileURL);
+        log(logLevel, "loaded: %s (%s)", getName(), fileURL);
         if (isCaching()) {
           int maxMemory = Settings.getImageCache() * MB;
           currentMemoryUp(bsize);
           bimg = bImage;
           images.add(this);
-          log(lvl, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
-                  imageName, getKB(),
+          log(logLevel, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
+                  getName(), getKB(),
                   images.size(), (int) (currentMemory / KB),
                   (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
         }
@@ -1058,11 +1072,11 @@ public class Image {
         return null;
       }
       imageFiles.put(fileURL, this);
-      imageNames.put(imageName, fileURL);
-      bwidth = bImage.getWidth();
-      bheight = bImage.getHeight();
+      imageNames.put(getName(), fileURL);
+      w = bImage.getWidth();
+      h = bImage.getHeight();
       bsize = bImage.getData().getDataBuffer().getSize();
-      log(lvl, "loaded again: %s (%s)", imageName, fileURL);
+      log(logLevel, "loaded again: %s (%s)", getName(), fileURL);
     }
     return bImage;
   }
@@ -1334,7 +1348,7 @@ public class Image {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 text/OCR">
+  //<editor-fold desc="20 text/OCR from imagefile">
   /**
    * convenience method: get text from given image file
    *
@@ -1342,113 +1356,40 @@ public class Image {
    * @return the text or null
    */
   public static String text(String imgFile) {
-    return create(imgFile).text();
-  }
-
-  /**
-   * OCR-read the text from the image
-   *
-   * @return the text or empty string
-   */
-  public String text() {
-    return TextRecognizer.doOCR(get()).trim().replace("\n\n", "\n");
+    return OCR.readText(imgFile);
   }
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one line of text
+   * supposing it is one line of text
    *
    * @param imgFile image filename
    * @return the text or empty string
    */
   public static String textLine(String imgFile) {
-    return create(imgFile).textLine();
-  }
-
-  /**
-   * get text from this image
-   *   supposing it is one line of text
-   *
-   * @return the text or empty string
-   */
-  public String textLine() {
-    TextRecognizer tr = TextRecognizer.asLine();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
+    return OCR.readLine(imgFile);
   }
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one word
+   * supposing it is one word
    *
    * @param imgFile image filename
    * @return the text or empty string
    */
   public static String textWord(String imgFile) {
-    return create(imgFile).textWord();
-  }
-
-  /**
-   * get text from this image
-   *   supposing it is one word
-   *
-   * @return the text or empty string
-   */
-  public String textWord() {
-    TextRecognizer tr = TextRecognizer.asWord();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
+    return OCR.readWord(imgFile);
   }
 
   /**
    * convenience method: get text from given image file
-   *   supposing it is one word
+   * supposing it is one character
    *
    * @param imgFile image filename
    * @return the text or empty string
    */
   public static String textChar(String imgFile) {
-    return create(imgFile).textChar();
-  }
-
-  /**
-   * get text from this image
-   *   supposing it is one word
-   *
-   */
-  public String textChar() {
-    TextRecognizer tr = TextRecognizer.asChar();
-    String text = tr.read(get());
-    tr.reset();
-    return text;
-  }
-
-  public List<String> textLines() {
-    List<String> lines = new ArrayList<>();
-    List<Match> matches = collectLines();
-    for (Match match : matches) {
-      lines.add(match.getText());
-    }
-    return lines;
-  }
-
-  public List<Match> collectLines() {
-    return TextRecognizer.readLines(get());
-  }
-
-  public List<String> textWords() {
-    List<String> words = new ArrayList<>();
-    List<Match> matches = collectWords();
-    for (Match match : matches) {
-      words.add(match.getText());
-    }
-    return words;
-  }
-
-  public List<Match> collectWords() {
-    return TextRecognizer.readWords(get());
+    return OCR.readChar(imgFile);
   }
   //</editor-fold>
 }

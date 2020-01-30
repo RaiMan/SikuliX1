@@ -4,24 +4,6 @@
 
 package org.sikuli.script.support.recorder;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
-import javax.swing.ProgressMonitor;
-
-import org.apache.commons.io.FileUtils;
 import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.mouse.NativeMouseEvent;
@@ -33,28 +15,18 @@ import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.Finder;
-import org.sikuli.script.Finder.FindInput2;
+import org.sikuli.script.*;
 import org.sikuli.script.Finder.Finder2;
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Key;
-import org.sikuli.script.Location;
-import org.sikuli.script.Match;
-import org.sikuli.script.Mouse;
-import org.sikuli.script.Pattern;
 import org.sikuli.script.support.KeyboardLayout;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.recorder.actions.ClickAction;
-import org.sikuli.script.support.recorder.actions.DoubleClickAction;
-import org.sikuli.script.support.recorder.actions.DragDropAction;
-import org.sikuli.script.support.recorder.actions.IRecordedAction;
-import org.sikuli.script.support.recorder.actions.RightClickAction;
-import org.sikuli.script.support.recorder.actions.TypeKeyAction;
-import org.sikuli.script.support.recorder.actions.TypeTextAction;
-import org.sikuli.script.support.recorder.actions.WaitAction;
-import org.sikuli.script.support.recorder.actions.MouseWheelAction;
-import org.sikuli.script.support.recorder.actions.PatternAction;
+import org.sikuli.script.support.recorder.actions.*;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Keeps a list of successive recorded events and

@@ -324,7 +324,7 @@ public class Location implements Comparable<Location>{
    * creates a {@link Region} with the given points as top-left and bottom-right corners
    *
    * @param loc the other corner
-   * @return
+   * @return a new Region
    */
   public Region union(Location loc) {
     Rectangle r1 = new Rectangle(this.x, this.y, 0, 0);

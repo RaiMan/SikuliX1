@@ -21,6 +21,8 @@ echo $apisrc/ObserverCallBack.java >>createJavadocsClasses
 echo $apisrc/ObserveEvent.java >>createJavadocsClasses
 echo $apisrc/App.java >>createJavadocsClasses
 echo $apisrc/Env.java >>createJavadocsClasses
+echo $apisrc/Pixels.java >>createJavadocsClasses
+echo $apisrc/OCR.java >>createJavadocsClasses
 echo $basicssrc/Settings.java >>createJavadocsClasses
 echo $basicssrc/Debug.java >>createJavadocsClasses
 javadoc -public -classpath $apijar -d pages/javadocs @createJavadocsClasses

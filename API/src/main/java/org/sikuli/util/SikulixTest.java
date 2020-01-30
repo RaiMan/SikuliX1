@@ -395,7 +395,7 @@ public class SikulixTest {
       String aText = "very lazy dog";
       if (openTestPage()) {
         Match found = null;
-        found = reg.hasText(Finder.asRegEx(aText));
+        found = reg.existsText(Finder.asRegEx(aText));
         if (SX.isNotNull(found)) {
           found.highlight(2);
         }

@@ -103,10 +103,11 @@ public class Settings {
   public static String BundlePath = null;
   public static boolean OverwriteImages = false;
 
+  public static final String OcrLanguageDefault = "eng";
+  public static String OcrLanguage = OcrLanguageDefault;
   public static String OcrDataPath = null;
   public static boolean OcrTextSearch = true;
   public static boolean OcrTextRead = true;
-  public static String OcrLanguage = "eng";
   public static boolean SwitchToText = false;
 
   public static boolean TRUE = true;
