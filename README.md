@@ -21,7 +21,7 @@ the source code of the application or web page you want to act on. [More details
 
 **Latest stable version is 2.0.2** (branch `release_2.0.x` - [see what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes))
 
-New features will only be available in a new major version (currently 2.1.0) and developed in branch master and/or dev_ branches. 
+New features will only be available in new major versions (currently 2.1.0, branches master and/or dev_...). 
 <br>Until release of a stable 2.1.0, there will be nightly builds and snapshots available (see below).
 
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
