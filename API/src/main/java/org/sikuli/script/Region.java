@@ -4295,6 +4295,7 @@ public class Region extends Pixels {
    * @param target    Pattern, Filename, Text, Region, Match or Location
    * @param direction to move the wheel
    * @param steps     the number of steps
+   * @param modifiers constants according to class Key - combine using +
    * @param stepDelay number of milliseconds to wait when incrementing the step value
    * @return 1 if possible, 0 otherwise
    * @throws FindFailed if the Find operation failed
