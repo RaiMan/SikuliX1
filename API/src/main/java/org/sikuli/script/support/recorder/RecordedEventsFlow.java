@@ -10,9 +10,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -74,7 +76,7 @@ public class RecordedEventsFlow {
   private TreeMap<Long, NativeInputEvent> events = new TreeMap<>();
   private TreeMap<Long, String> screenshots = new TreeMap<>();
 
-  List<Character> modifiers = new ArrayList<>();
+  Set<Character> modifiers = new LinkedHashSet<>();
   StringBuilder typedText = new StringBuilder();
 
   /**
