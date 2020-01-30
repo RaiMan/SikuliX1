@@ -113,7 +113,6 @@ public class TextRecognizer {
   }
 
   /**
-   * @return the global Options
    * @deprecated use OCR.reset() instead
    * @see OCR#reset()
    */
@@ -236,7 +235,7 @@ public class TextRecognizer {
   /**
    * @param configs
    * @return
-   * @deprecated Use options.configs(List<String> configs)
+   * @deprecated Use options.configs
    * @see OCR.Options#configs(List)
    */
   @Deprecated
