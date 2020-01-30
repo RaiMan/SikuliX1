@@ -19,7 +19,7 @@ import org.sikuli.script.Image;
 class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener {
 
 	public static final int DEFAULT_NUM_MATCHES = 50;
-	static final double DEFAULT_SIMILARITY = 0.7;
+	static final float DEFAULT_SIMILARITY = 0.7f;
 	private String _imgFilename, _thumbFname, _imgFilenameSaved;
   private Image _image;
   private JLabel patternImageIcon = null;
@@ -56,10 +56,11 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 	}
 
   protected EditorPatternButton(EditorPatternLabel lbl) {
+    //TODO image icon has to be reloaded if changed in Preview
     super();
-    this._image = null;
     _lbl = lbl;
     _imgFilename = _lbl.getFile();
+    _image = Image.createThumbNail(_imgFilename);
 		_exact = false;
 		_similarity = _lbl.getSimilarity();
 		_resizeFactor = _lbl.getResizeFactor();
