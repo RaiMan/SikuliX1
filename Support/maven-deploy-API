@@ -3,4 +3,4 @@ export GPG_TTY=$(tty)
 rm -f -R ~/.m2/repository/com/sikulix/sikulixapi
 cd ~/IdeaProjects/SikuliX
 mvn clean deploy -pl API -P build-source,build-docs,sign,maven-release
-cd ~
+cd ~/IdeaProjects/SikuliX
