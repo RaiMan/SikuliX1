@@ -1,8 +1,6 @@
 # -*- coding: windows-1251 -*-
 
-#  Portions are Copyright (C) 2005 Roman V. Kiseliov
-#  Portions are Copyright (c) 2004 Evgeny Filatov <fufff@users.sourceforge.net>
-#  Portions are Copyright (c) 2002-2004 John McNamara (Perl Spreadsheet::WriteExcel)
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
 
 from BIFFRecords import BiffRecord
 from struct import pack, unpack

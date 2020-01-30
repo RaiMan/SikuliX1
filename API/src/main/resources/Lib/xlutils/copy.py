@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2012 Simplistix Ltd
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
 #
 # This Software is released under the MIT License:
 # http://www.opensource.org/licenses/mit-license.html

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.util;
 
 import org.sikuli.basics.Debug;

@@ -3,6 +3,8 @@
 lots of Excel Magic Numbers
 """
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 # Boundaries BIFF8+
 
 MAX_ROW = 65536

@@ -1,3 +1,5 @@
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 from sikuli import *
 
 from org.sikuli.script import Pattern

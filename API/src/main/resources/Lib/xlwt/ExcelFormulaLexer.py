@@ -1,5 +1,7 @@
 # -*- coding: windows-1252 -*-
 
+#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+
 from antlr import EOF, CommonToken as Tok, TokenStream, TokenStreamException
 import ExcelFormulaParser
 from re import compile as recompile, LOCALE, IGNORECASE, VERBOSE
