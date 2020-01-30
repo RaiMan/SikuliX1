@@ -364,7 +364,7 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public void keyUp() {
     keyUp(heldKeys);
-    for (int code : heldKeyCodes) {
+    for (int code : new ArrayList<>(heldKeyCodes)) {
       keyUp(code);
     }
   }
