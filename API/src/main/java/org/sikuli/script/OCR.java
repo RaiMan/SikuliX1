@@ -522,7 +522,7 @@ public class OCR {
     private String language;
 
     /**
-     * get the cutrrent language
+     * get the current language
      * @return the language short string
      * @see #language(String)
      */
