@@ -3,23 +3,29 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import javax.imageio.*;
-import javax.swing.*;
-import org.sikuli.script.Location;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.PreferencesUser;
 import org.sikuli.script.Image;
+import org.sikuli.script.Location;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 
 class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener {
 
 	public static final int DEFAULT_NUM_MATCHES = 50;
-	static final float DEFAULT_SIMILARITY = 0.7f;
+	static final double DEFAULT_SIMILARITY = 0.7;
 	private String _imgFilename, _thumbFname, _imgFilenameSaved;
   private Image _image;
   private JLabel patternImageIcon = null;
