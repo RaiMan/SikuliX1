@@ -636,7 +636,7 @@ public class OCR {
       return (logConfigs + logVariables).trim();
     }
     //</editor-fold>
-  }
+  } // end-class Option
   //</editor-fold>
 
   //<editor-fold desc="10 global">
