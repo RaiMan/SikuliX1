@@ -394,7 +394,7 @@ public class OCR {
      * get this OEM.
      *
      * @return oem as int
-     * @see OEM
+     * @see OCR.OEM
      */
     public int oem() {
       return oem;
@@ -405,7 +405,7 @@ public class OCR {
      *
      * @param oem as int
      * @return this Options
-     * @see OEM
+     * @see OCR.OEM
      */
     public Options oem(int oem) {
       if (oem < 0 || oem > 3) {
@@ -420,7 +420,7 @@ public class OCR {
      *
      * @param oem as enum constant
      * @return this Options
-     * @see OEM
+     * @see OCR.OEM
      */
     public Options oem(OEM oem) {
       oem(oem.ordinal());
@@ -435,7 +435,7 @@ public class OCR {
      * get this PSM.
      *
      * @return psm as int
-     * @see PSM
+     * @see OCR.PSM
      */
     public int psm() {
       return psm;
@@ -446,7 +446,7 @@ public class OCR {
      *
      * @param psm as int
      * @return this Options
-     * @see PSM
+     * @see OCR.PSM
      */
     public Options psm(int psm) {
       if (psm < 0 || psm > 13) {
@@ -470,7 +470,7 @@ public class OCR {
      *
      * @param psm as enum constant
      * @return this Options
-     * @see PSM
+     * @see OCR.PSM
      */
     public Options psm(PSM psm) {
       psm(psm.ordinal());
