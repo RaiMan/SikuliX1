@@ -33,6 +33,7 @@ public class OCR {
    * 2  TESSERACT_LSTM_COMBINED  LSTM + Legacy.
    * 3  DEFAULT         Default, based on what is available. (DEFAULT)
    * </pre>
+   * Usage: OCR.OEM.MODE
    */
   public enum OEM {
     TESSERACT_ONLY, // 0
@@ -59,6 +60,7 @@ public class OCR {
    * 12  SPARSE_TEXT_OSD  Sparse text with OSD.
    * 13  RAW_LINE         Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    * </pre>
+   * Usage: OCR.PSM.MODE
    */
   public enum PSM {
     OSD_ONLY, // 0
