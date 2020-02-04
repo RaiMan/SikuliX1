@@ -271,7 +271,7 @@ public class OCR {
   //<editor-fold desc="30 The options set for OCR (OCR.Options) class">
   /**
    * A container for the options relevant for using {@link OCR} on
-   * {@link Region}s or {@link Image}s.
+   * {@link Region} or {@link Image}.
    * <p>Use OCR.{@link #Options()} to get a new option set</p>
    * <p>use OCR.{@link #globalOptions()} to access the global options</p>
    * <p>
@@ -782,7 +782,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="20 helpers">
+    //<editor-fold desc="20 helpers private">
     private boolean hasVariablesOrConfigs() {
       return !configs.isEmpty() || !variables.isEmpty();
     }
@@ -805,6 +805,6 @@ public class OCR {
       return (logConfigs + logVariables).trim();
     }
     //</editor-fold>
-  }
+  } // end-class
   //</editor-fold>
 }
