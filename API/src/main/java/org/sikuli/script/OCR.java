@@ -101,7 +101,7 @@ public class OCR {
 
   /**
    * Resets the global options to the initial defaults.
-   * @see OCR.Options#reset()
+   * @see #reset()
    * @return the global Options
    */
   public static Options reset() {
@@ -272,8 +272,8 @@ public class OCR {
   /**
    * A container for the options relevant for using {@link OCR} on
    * {@link Region} or {@link Image}.
-   * <p>Use OCR.{@link #Options()} to get a new option set</p>
-   * <p>use OCR.{@link #globalOptions()} to access the global options</p>
+   * <p>Use {@link OCR#Options} to get a new option set</p>
+   * <p>use {@link #globalOptions} to access the global options</p>
    * <p>
    * In case you have to consult the Tesseract docs
    * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
@@ -284,7 +284,7 @@ public class OCR {
     /**
      * create a new Options set from the initial defaults settings.
      * <p>
-     * about the default settings see {@link #reset()}
+     * about the default settings see {@link #reset}
      */
     public Options() {
       reset();
@@ -303,8 +303,8 @@ public class OCR {
       options.dataPath = dataPath;
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
-      options.variables = new LinkedHashMap<>(variables);
-      options.configs = new LinkedHashSet<>(configs);
+      options.variablesStore = new LinkedHashMap<>(variablesStore);
+      options.configsStore = new LinkedHashSet<>(configsStore);
       options.bestDPI = bestDPI;
       options.userDPI = userDPI;
       return options;
@@ -333,8 +333,8 @@ public class OCR {
       dataPath = null;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
-      variables.clear();
-      configs.clear();
+      variablesStore.clear();
+      configsStore.clear();
       bestDPI = null;
       userDPI(TESSERACT_USER_DEFINED_DPI);
       return this;
@@ -719,14 +719,14 @@ public class OCR {
     //</editor-fold>
 
     //<editor-fold desc="15 Handle Tesseract variables">
-    private Map<String, String> variables = new LinkedHashMap<>();
+    private Map<String, String> variablesStore = new LinkedHashMap<>();
 
     /**
      * @return the currently stored variables
-     * @see #variable(String, String)
+     * @see #variable
      */
     public Map<String, String> variables() {
-      return variables;
+      return variablesStore;
     }
 
     /**
@@ -740,21 +740,20 @@ public class OCR {
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
      */
     public Options variable(String key, String value) {
-      variables.put(key, value);
+      variablesStore.put(key, value);
       return this;
     }
     //</editor-fold>
 
     //<editor-fold desc="16 Handle Tesseract configs">
-    private Set<String> configs = new LinkedHashSet<>();
+    private Set<String> configsStore = new LinkedHashSet<>();
 
     /**
      * get current configs
      * @return currently stored names of configs files
-     * @see #configs(String...)
      */
     public List<String> configs() {
-      return new ArrayList<>(configs);
+      return new ArrayList<>(configsStore);
     }
 
     /**
@@ -777,14 +776,14 @@ public class OCR {
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
      */
     public Options configs(List<String> configs) {
-      this.configs = new LinkedHashSet<>(configs);
+      this.configsStore = new LinkedHashSet<>(configs);
       return this;
     }
     //</editor-fold>
 
     //<editor-fold desc="20 helpers private">
     private boolean hasVariablesOrConfigs() {
-      return !configs.isEmpty() || !variables.isEmpty();
+      return !configsStore.isEmpty() || !variablesStore.isEmpty();
     }
 
     private String logVariablesConfigs() {
@@ -793,11 +792,11 @@ public class OCR {
         logConfigs = "configs: " + logConfigs;
       }
       String logVariables = "";
-      for (String key : variables.keySet()) {
+      for (String key : variablesStore.keySet()) {
         if (!logVariables.isEmpty()) {
           logVariables += ",";
         }
-        logVariables += key + ":" + variables.get(key);
+        logVariables += key + ":" + variablesStore.get(key);
       }
       if (!logVariables.isEmpty()) {
         logVariables = "variables: " + logVariables;
