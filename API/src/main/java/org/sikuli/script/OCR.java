@@ -418,7 +418,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="11 Handle PSM - Page Segmentaion Mode (OCR.Options.psm)">
+    //<editor-fold desc="11 Handle PSM - Page Segmentation Mode (OCR.Options.psm)">
     private int psm;
 
     /**
@@ -660,7 +660,7 @@ public class OCR {
     }
 
     /**
-     * INTERNAL (under investigation).
+     * INTERNAL: (under investigation).
      * <p>should not be used - not supported
      * <p>see {@link Image.Interpolation} for method options
      * @param method the interpolation method
@@ -678,7 +678,7 @@ public class OCR {
     }
 
     /**
-     * INTERNAL (under investigation).
+     * INTERNAL: (under investigation).
      * <p>should not be used - not supported
      * @param dpi the dpi value
      * @return this Options
@@ -692,7 +692,7 @@ public class OCR {
     private int userDPI;
 
     /**
-     * INTERNAL (under investigation).
+     * INTERNAL: (under investigation).
      * <p>should not be used - not supported
      * @param dpi 70 .. 2400
      * @return this Options

@@ -33,10 +33,6 @@ public abstract class Pixels {
     Debug.logx(level, logName + message, args);
   }
 
-  protected Pixels returnThis() {
-    return this;
-  }
-
   //<editor-fold desc="01 Fields x, y, w, h">
   /**
    * @return x of top left corner
@@ -109,7 +105,7 @@ public abstract class Pixels {
   private String name = "";
   //</editor-fold>
 
-  //<editor-fold desc="08 imageMissingHandler">
+  //<editor-fold desc="08 imageMissingHandler private">
   protected void setImageMissingHandler(Object handler) {
     imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
   }
@@ -225,7 +221,7 @@ public abstract class Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold desc="15 find text (word, line)">
+  //<editor-fold desc="15 find text as word or line">
   /**
    * Find the first word as text (top left to bottom right) containing the given text
    *
@@ -360,7 +356,7 @@ public abstract class Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 helper">
+  //<editor-fold desc="20 helper private">
   /**
    * INTERNAL: get Image from target
    * @param <PSI>   Pattern, Filename, Image, ScreenImage
@@ -449,7 +445,7 @@ public abstract class Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold desc="99 obsolete">
+  //<editor-fold desc="99 deprecated features">
   /**
    * @return a list of matches
    * @deprecated use findLines() instead
@@ -489,6 +485,5 @@ public abstract class Pixels {
     return textWords();
   }
   //</editor-fold>
-
 
 }
