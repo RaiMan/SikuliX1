@@ -33,7 +33,7 @@ public abstract class Pixels {
     Debug.logx(level, logName + message, args);
   }
 
-  //<editor-fold desc="01 Fields x, y, w, h">
+  //<editor-fold desc="00 Fields x, y, w, h">
   /**
    * @return x of top left corner
    */

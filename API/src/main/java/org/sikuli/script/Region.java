@@ -213,10 +213,9 @@ public class Region extends Pixels {
   //<editor-fold desc="011 Fields wait observe timing">
 
   /**
-   * the time in seconds a find operation should wait
-   * <p>
-   * for the appearence of the target in this region<br>
-   * initial value is the global AutoWaitTimeout setting at time of Region creation<br>
+   * the time in seconds a find operation should wait.
+   * <br>for the appearence of the target in this region
+   * <br>initial value is the global AutoWaitTimeout setting at time of Region creation
    *
    * @param sec seconds
    */
@@ -712,8 +711,12 @@ public class Region extends Pixels {
   public final static int BOTTOM = 1;
 
   /**
-   * create a region with a corner at the given point<br>as specified with x y<br> 0 0 top left<br> 0 1 bottom left<br>
-   * 1 0 top right<br> 1 1 bottom right<br>
+   * create a region with a corner at the given point.
+   * <br>as specified with x y
+   * <br> 0 0 top left
+   * <br> 0 1 bottom left
+   * <br> 1 0 top right
+   * <br> 1 1 bottom right
    *
    * @param loc                the refence point
    * @param create_x_direction == 0 is left side !=0 is right side
@@ -755,9 +758,13 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region with a corner at the given point<br>as specified with x y<br> 0 0 top left<br> 0 1 bottom left<br>
-   * 1 0 top right<br> 1 1 bottom right<br>same as the corresponding create method, here to be naming compatible with
-   * class Location
+   * create a region with a corner at the given point.
+   * <br>as specified with x y
+   * <br> 0 0 top left
+   * <br> 0 1 bottom left
+   * <br>1 0 top right
+   * <br> 1 1 bottom right
+   * <br>same as the corresponding create method, here to be naming compatible with class Location
    *
    * @param loc the refence point
    * @param x   ==0 is left side !=0 is right side
@@ -792,7 +799,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * Create a region from another region<br>including the region's settings
+   * Create a region from another region including the region's settings
    *
    * @param r the region
    * @return then new region
@@ -1099,7 +1106,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position/size<br>this might move the region even to another screen
+   * set the regions position/size.
+   * <br>this might move the region even to another screen
    *
    * @param r the AWT Rectangle to use for position/size
    * @return the region itself
@@ -1109,7 +1117,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position/size<br>this might move the region even to another screen
+   * set the regions position/size.
+   * <br>this might move the region even to another screen
    *
    * @param X new x of top left corner
    * @param Y new y of top left corner
@@ -1127,7 +1136,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position/size<br>this might move the region even to another screen
+   * set the regions position/size.
+   * <br>this might move the region even to another screen
    *
    * @param r the region to use for position/size
    * @return the region itself
@@ -1149,7 +1159,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * resets this region to the given location, and size <br> this might move the region even to another screen
+   * resets this region to the given location, and size.
+   * <br> this might move the region even to another screen
    *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
@@ -1168,7 +1179,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * resets this region to the given rectangle <br> this might move the region even to another screen
+   * resets this region to the given rectangle.
+   * <br> this might move the region even to another screen
    *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
@@ -1180,7 +1192,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * resets this region to the given region <br> this might move the region even to another screen
+   * resets this region to the given region.
+   * <br> this might move the region even to another screen
    *
    * <br>Because of the wanted side effect for the containing screen, this should only be used with screen objects.
    * <br>For Region objects use setRect() instead.
@@ -1214,7 +1227,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position<br>this might move the region even to another screen
+   * set the regions position.
+   * <br>this might move the region even to another screen
    *
    * @param loc new top left corner
    * @return the region itself
@@ -1226,7 +1240,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position<br>this might move the region even to another screen
+   * set the regions position.
+   * <br>this might move the region even to another screen
    *
    * @param loc new top left corner
    * @return the region itself
@@ -1239,7 +1254,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * set the regions position/size<br>this might move the region even to another screen
+   * set the regions position/size.
+   * <br>this might move the region even to another screen
    *
    * @param r Region
    * @return the region itself
@@ -1251,7 +1267,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * resize the region using the given padding values<br>might be negative
+   * resize the region using the given padding values.
+   * <br>might be negative
    *
    * @param l padding on left side
    * @param r padding on right side
@@ -1275,7 +1292,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * extend the region, so it contains the given region<br>but only the part inside the current screen
+   * extend the region, so it contains the given region.
+   * <br>but only the part inside the current screen
    *
    * @param r the region to include
    * @return the region itself
@@ -1289,7 +1307,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * extend the region, so it contains the given point<br>but only the part inside the current screen
+   * extend the region, so it contains the given point.
+   * <br>but only the part inside the current screen
    *
    * @param loc the point to include
    * @return the region itself
@@ -1493,8 +1512,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region right of the right side with same height. the new region extends to the right screen border<br>
-   * use grow() to include the current region
+   * create a region right of the right side with same height. the new region extends to the right screen border.
+   * <br> use grow() to include the current region
    *
    * @return the new region
    */
@@ -1504,9 +1523,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region right of the right side with same height and given width. negative width creates the right part
-   * with width inside the region<br>
-   * use grow() to include the current region
+   * create a region right of the right side with same height and given width.
+   * <br>negative width creates the right part
+   * with width inside the region
+   * <br>use grow() to include the current region
    *
    * @param width pixels
    * @return the new region
@@ -1529,7 +1549,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * negative offset goes to the left <br>might be off current screen
+   * negative offset goes to the left.
+   * <br>might be off current screen
    *
    * @param offset pixels
    * @return point with given offset horizontally to middle point on left edge
@@ -1539,8 +1560,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region left of the left side with same height<br> the new region extends to the left screen border<br> use
-   * grow() to include the current region
+   * create a region left of the left side with same height.
+   * <br> the new region extends to the left screen border
+   * <br> use grow() to include the current region
    *
    * @return the new region
    */
@@ -1550,8 +1572,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region left of the left side with same height and given width<br>
-   * negative width creates the left part with width inside the region use grow() to include the current region <br>
+   * create a region left of the left side with same height and given width.
+   * <br> negative width creates the left part with width inside the region use grow() to include the current region
    *
    * @param width pixels
    * @return the new region
@@ -1574,7 +1596,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * negative offset goes towards top of screen <br>might be off current screen
+   * negative offset goes towards top of screen.
+   * <br>might be off current screen
    *
    * @param offset pixels
    * @return point with given offset vertically to middle point on top edge
@@ -1584,8 +1607,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region above the top side with same width<br> the new region extends to the top screen border<br> use
-   * grow() to include the current region
+   * create a region above the top side with same width.
+   * <br> the new region extends to the top screen border
+   * <br> use grow() to include the current region
    *
    * @return the new region
    */
@@ -1595,8 +1619,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region above the top side with same width and given height<br>
-   * negative height creates the top part with height inside the region use grow() to include the current region
+   * create a region above the top side with same width and given height
+   * <br> negative height creates the top part with height inside the region use grow() to include the current region
    *
    * @param height pixels
    * @return the new region
@@ -1619,7 +1643,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * positive offset goes towards bottom of screen <br>might be off current screen
+   * positive offset goes towards bottom of screen.
+   * <br>might be off current screen
    *
    * @param offset pixels
    * @return point with given offset vertically to middle point on bottom edge
@@ -1629,8 +1654,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region below the bottom side with same width<br> the new region extends to the bottom screen border<br>
-   * use grow() to include the current region
+   * create a region below the bottom side with same width.
+   * <br> the new region extends to the bottom screen border
+   * <br> use grow() to include the current region
    *
    * @return the new region
    */
@@ -1640,8 +1666,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * create a region below the bottom side with same width and given height<br>
-   * negative height creates the bottom part with height inside the region use grow() to include the current region
+   * create a region below the bottom side with same width and given height.
+   * <br>negative height creates the bottom part with height inside the region use grow() to include the current region
    *
    * @param height pixels
    * @return the new region
@@ -1688,7 +1714,7 @@ public class Region extends Pixels {
 
   /**
    * select the specified part of the region.
-   * <p>
+   * <br>
    * <br>Constants for the top parts of a region (Usage: Region.CONSTANT)<br>
    * shown in brackets: possible shortcuts for the part constant<br>
    * NORTH (NH, TH) - upper half <br>
@@ -1827,8 +1853,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * store info: this region is divided vertically into n even rows <br>
-   * a preparation for using getRow()
+   * store info: this region is divided vertically into n even rows.
+   * <br>a preparation for using getRow()
    *
    * @param n number of rows
    * @return the top row
@@ -1838,8 +1864,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * store info: this region is divided horizontally into n even columns <br>
-   * a preparation for using getCol()
+   * store info: this region is divided horizontally into n even columns.
+   * <br> a preparation for using getCol()
    *
    * @param n number of columns
    * @return the leftmost column
@@ -1888,9 +1914,9 @@ public class Region extends Pixels {
   private int spanMin = 5;
 
   /**
-   * store info: this region is divided into a raster of even cells <br>
-   * a preparation for using getCell()<br>
-   * adjusted to a minimum cell size of 5 x 5 pixels
+   * store info: this region is divided into a raster of even cells.
+   * <br>a preparation for using getCell()
+   * <br>adjusted to a minimum cell size of 5 x 5 pixels
    *
    * @param r number of rows
    * @param c number of columns
@@ -1915,7 +1941,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * get the specified row counting from 0<br>
+   * get the specified row counting from 0.
+   * <br>
    * negative counts reverse from the end (last is -1)<br>
    * values outside range are 0 or last respectively
    *
@@ -1939,8 +1966,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * get the specified column counting from 0<br>
-   * negative counts reverse from the end (last is -1)<br>
+   * get the specified column counting from 0.
+   * <br>
+   * negative counts reverse from the end (last is -1)
+   * <br>
    * values outside range are 0 or last respectively
    *
    * @param c column number
@@ -1972,7 +2001,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * get the specified cell counting from (0, 0), if a raster is setup <br>
+   * get the specified cell counting from (0, 0), if a raster is setup.
+   * <br>
    * negative counts reverse from the end (last = -1) values outside range are 0 or last respectively
    *
    * @param r row number
@@ -2102,12 +2132,13 @@ public class Region extends Pixels {
   }
 
   /**
-   * Toggle the regions Highlight border (given color)<br>
+   * Toggle the regions Highlight border (given color).
+   * <br>
    * allowed color specifications for frame color: <br>
    * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
    * uppercase can be mixed, internally transformed to all uppercase) <br>
    * - these colornames exactly written: lightGray, LIGHT_GRAY, darkGray and DARK_GRAY <br>
-   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)
+   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)<br>
    * - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb are integer values in range 0 - 255
    * padded with leading zeros if needed (hence exactly 9 digits)
    *
@@ -2303,7 +2334,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * Check if target exists with a specified timeout<br>
+   * Check if target exists with a specified timeout.
+   * <br>
    * timout = 0: returns immediately after first search,
    * does not raise FindFailed
    *
@@ -2360,13 +2392,15 @@ public class Region extends Pixels {
   }
 
   /**
-   * Check if target exists<br>
+   * Check if target exists.
+   * <pre>
    * - does not raise FindFailed
-   * - like exists(target, 0) but returns true/false<br>
-   * - which means only one search <br>
-   * - no wait for target to appear<br>
-   * - intended to be used in logical expressions<br>
+   * - like exists(target, 0) but returns true/false
+   * - which means only one search
+   * - no wait for target to appear
+   * - intended to be used in logical expressions
    * - use getLastMatch() to get the match if found
+   * </pre>
    *
    * @param <PSI>  Pattern, String or Image
    * @param target Pattern, String or Image
@@ -2377,12 +2411,13 @@ public class Region extends Pixels {
   }
 
   /**
-   * Check if target appears within the specified time<br>
+   * Check if target appears within the specified time
+   * <pre>
    * - does not raise FindFailed
-   * - like exists(target, timeout) but returns true/false<br>
-   * - intended to be used in logical expressions<br>
+   * - like exists(target, timeout) but returns true/false
+   * - intended to be used in logical expressions
    * - use getLastMatch() to get the match if found
-   *
+   * </pre>
    * @param <PSI>   Pattern, String or Image
    * @param target  The target to search for
    * @param timeout Timeout in seconds
@@ -3412,7 +3447,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for target and notify the given observer about this
-   * event<br>
+   * event.
+   * <br>
    * for details about the observe event handler: {@link ObserverCallBack}<br>
    * for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}<br>
    *
@@ -3427,7 +3463,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for target success and details about the event can be
-   * obtained using @{link Observing}<br>
+   * obtained using {@link Observing}.
+   * <br>
    * for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}<br>
    *
    * @param <PSI>  Pattern, String or Image
@@ -3462,7 +3499,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for the target to vanish and notify the given observer
-   * about this event<br>
+   * about this event.
+   * <br>
    * for details about the observe event handler: {@link ObserverCallBack}<br>
    * for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}<br>
    *
@@ -3477,7 +3515,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for the target to vanish success and details about the
-   * event can be obtained using @{link Observing}<br>
+   * event can be obtained using {@link Observing}.
+   * <br>
    * for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}<br>
    *
    * @param <PSI>  Pattern, String or Image
@@ -3504,7 +3543,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for changes in the region success and details about the
-   * event can be obtained using @{link Observing}<br>
+   * event can be obtained using {@link Observing}.
+   * <br>
    * for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}
    *
    * @param threshold minimum size of changes (rectangle threshhold x threshold)
@@ -3517,7 +3557,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for changes in the region and notify the given observer
-   * about this event <br>
+   * about this event.
+   * <br>
    * minimum size of changes used: Settings.ObserveMinChangedPixels for details about the observe event handler:
    * {@link ObserverCallBack} for details about APPEAR/VANISH/CHANGE events: {@link ObserveEvent}
    *
@@ -3530,7 +3571,8 @@ public class Region extends Pixels {
 
   /**
    * a subsequently started observer in this region should wait for changes in the region success and details about the
-   * event can be obtained using @{link Observing}<br>
+   * event can be obtained using {@link Observing}.
+   * <br>
    * minimum size of changes used: Settings.ObserveMinChangedPixels for details about APPEAR/VANISH/CHANGE events:
    * {@link ObserveEvent}
    *
@@ -3740,8 +3782,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to region's last successful match <br>use center if no lastMatch <br>
-   * if region is a match: move to targetOffset <br>same as mouseMove
+   * move the mouse pointer to region's last successful match.
+   * <br>use center if no lastMatch
+   * <br>if region is a match: move to targetOffset
+   * <br>same as mouseMove
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -3750,9 +3794,13 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> same as mouseMove<br> Pattern or Filename - do a find
-   * before and use the match<br> Region - position at center<br> Match - position at match's targetOffset<br> Location
-   * - position at that point<br>
+   * move the mouse pointer to the given target location.
+   * <br>same as mouseMove
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML> to search: Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -3765,8 +3813,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * left click at the region's last successful match <br>use center if no lastMatch <br>if region is a match: click
-   * targetOffset
+   * left click at the region's last successful match.
+   * <br>use center if no lastMatch
+   * <br>if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -3779,9 +3828,12 @@ public class Region extends Pixels {
   }
 
   /**
-   * left click at the given target location<br> Pattern or Filename - do a find before and use the match<br> Region -
-   * position at center<br> Match - position at match's targetOffset<br>
-   * Location - position at that point<br>
+   * left click at the given target location.
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML> to search: Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -3794,9 +3846,13 @@ public class Region extends Pixels {
 
 
   /**
-   * left click at the given target location<br> holding down the given modifier keys<br>
-   * Pattern or Filename - do a find before and use the match<br> Region - position at center<br>
-   * Match - position at match's targetOffset<br> Location - position at that point<br>
+   * left click at the given target location.
+   * <br> holding down the given modifier keys
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML>   to search: Pattern, Filename, Text, Region, Match or Location
    * @param target    Pattern, Filename, Text, Region, Match or Location
@@ -3823,8 +3879,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * double click at the region's last successful match <br>use center if no lastMatch <br>if region is a match: click
-   * targetOffset
+   * double click at the region's last successful match
+   * <br>use center if no lastMatch
+   * <br>if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -3837,9 +3894,12 @@ public class Region extends Pixels {
   }
 
   /**
-   * double click at the given target location<br> Pattern or Filename - do a find before and use the match<br> Region -
-   * position at center<br> Match - position at match's targetOffset<br>
-   * Location - position at that point<br>
+   * double click at the given target location.
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -3852,9 +3912,13 @@ public class Region extends Pixels {
 
 
   /**
-   * double click at the given target location<br> holding down the given modifier keys<br>
-   * Pattern or Filename - do a find before and use the match<br> Region - position at center<br > Match - position at
-   * match's targetOffset<br> Location - position at that point<br>
+   * double click at the given target location.
+   * <br> holding down the given modifier keys
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location
    * @param target    Pattern, Filename, Text, Region, Match or Location
@@ -3873,8 +3937,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * right click at the region's last successful match <br>use center if no lastMatch <br>if region is a match: click
-   * targetOffset
+   * right click at the region's last successful match.
+   * <br>use center if no lastMatch
+   * <br>if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -3887,8 +3952,12 @@ public class Region extends Pixels {
   }
 
   /**
-   * right click at the given target location<br> Pattern or Filename - do a find before and use the match<br> Region -
-   * position at center<br> Match - position at match's targetOffset<br > Location - position at that point<br>
+   * right click at the given target location
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -3901,9 +3970,13 @@ public class Region extends Pixels {
 
 
   /**
-   * right click at the given target location<br> holding down the given modifier keys<br>
-   * Pattern or Filename - do a find before and use the match<br> Region - position at center<br > Match - position at
-   * match's targetOffset<br> Location - position at that point<br>
+   * right click at the given target location
+   * <br> holding down the given modifier keys
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location
    * @param target    Pattern, Filename, Text, Region, Match or Location
@@ -3934,7 +4007,8 @@ public class Region extends Pixels {
   //<editor-fold defaultstate="collapsed" desc="041 Mouse actions - drag & drop">
 
   /**
-   * Drag from region's last match and drop at given target <br>applying Settings.DelayAfterDrag and DelayBeforeDrop
+   * Drag from region's last match and drop at given target.
+   * <br>applying Settings.DelayAfterDrag and DelayBeforeDrop
    * <br> using left mouse button
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
@@ -3947,8 +4021,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * Drag from a position and drop to another using left mouse button<br>applying Settings.DelayAfterDrag and
-   * DelayBeforeDrop
+   * Drag from a position and drop to another using left mouse button.
+   * <br>applying Settings.DelayAfterDrag and DelayBeforeDrop
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param t1      source position
@@ -3988,8 +4062,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * Prepare a drag action: move mouse to given target <br>press and hold left mouse button <br >wait
-   * Settings.DelayAfterDrag
+   * Prepare a drag action: move mouse to given target.
+   * <br>press and hold left mouse button
+   * <br>wait Settings.DelayAfterDrag
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -4024,9 +4099,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * finalize a drag action with a drop: move mouse to given target <br>
-   * wait Settings.DelayBeforeDrop <br>
-   * before releasing the left mouse button
+   * finalize a drag action with a drop: move mouse to given target.
+   * <br> wait Settings.DelayBeforeDrop before releasing the left mouse button
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -4085,7 +4159,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the region's last successful match<br>same as hover<br>
+   * move the mouse pointer to the region's last successful match.
+   * <br>same as hover
+   * <br>
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -4098,9 +4174,13 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> same as hover<br> Pattern or Filename - do a find before
-   * and use the match<br> Region - position at center<br> Match - position at match's targetOffset<br>
-   * Location - position at that point<br>
+   * move the mouse pointer to the given target location
+   * <br> same as hover
+   * <br> Pattern or Filename - do a find before and use the match
+   * <br> Region - position at center
+   * <br> Match - position at match's targetOffset
+   * <br> Location - position at that point
+   * <br>
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
    * @param target  Pattern, Filename, Text, Region, Match or Location
@@ -4132,8 +4212,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * Move the wheel at the current mouse position<br> the given steps in the given direction: <br >Button.WHEEL_DOWN,
-   * Button.WHEEL_UP
+   * Move the wheel at the current mouse position.
+   * <br> the given steps in the given direction:
+   * <br>Button.WHEEL_DOWN,
+   * <br>Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps     the number of steps
@@ -4144,8 +4226,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * Move the wheel at the current mouse position<br> the given steps in the given direction: <br >Button.WHEEL_DOWN,
-   * Button.WHEEL_UP
+   * Move the wheel at the current mouse position.
+   * <br> the given steps in the given direction:
+   * <br>Button.WHEEL_DOWN,
+   * <br>Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps     the number of steps
@@ -4159,8 +4243,10 @@ public class Region extends Pixels {
 
 
   /**
-   * Move the wheel at the current mouse position<br> the given steps in the given direction: <br >Button.WHEEL_DOWN,
-   * Button.WHEEL_UP
+   * Move the wheel at the current mouse position
+   * <br> the given steps in the given direction:
+   * <br>Button.WHEEL_DOWN,
+   * <br>Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps     the number of steps
@@ -4172,8 +4258,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * Move the wheel at the current mouse position<br> the given steps in the given direction: <br >Button.WHEEL_DOWN,
-   * Button.WHEEL_UP
+   * Move the wheel at the current mouse position.
+   * <br> the given steps in the given direction:
+   * <br>Button.WHEEL_DOWN,
+   * <br>Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps     the number of steps
@@ -4187,8 +4275,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * Move the wheel at the current mouse position<br> the given steps in the given direction: <br >Button.WHEEL_DOWN,
-   * Button.WHEEL_UP
+   * Move the wheel at the current mouse position.
+   * <br> the given steps in the given direction:
+   * <br>Button.WHEEL_DOWN,
+   * <br>Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps     the number of steps
@@ -4206,7 +4296,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> and move the wheel the given steps in the given direction:
+   * move the mouse pointer to the given target location
+   * <br> and move the wheel the given steps in the given direction:
    * <br>Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location target
@@ -4221,7 +4312,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> and move the wheel the given steps in the given direction:
+   * move the mouse pointer to the given target location
+   * <br> and move the wheel the given steps in the given direction:
    * <br>Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location target
@@ -4238,7 +4330,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> and move the wheel the given steps in the given direction:
+   * move the mouse pointer to the given target location
+   * <br> and move the wheel the given steps in the given direction:
    * <br>Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location target
@@ -4270,7 +4363,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> and move the wheel the given steps in the given direction:
+   * move the mouse pointer to the given target location.
+   * <br> and move the wheel the given steps in the given direction:
    * <br>Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location target
@@ -4288,7 +4382,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * move the mouse pointer to the given target location<br> and move the wheel the given steps in the given direction:
+   * move the mouse pointer to the given target location.
+   * <br> and move the wheel the given steps in the given direction:
    * <br>Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location target
@@ -4336,8 +4431,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * press and hold the given keys including modifier keys <br>use the key constants defined in class Key, <br>which
-   * only provides a subset of a US-QWERTY PC keyboard layout <br>might be mixed with simple characters
+   * press and hold the given keys including modifier keys.
+   * <br>use the key constants defined in class Key,
+   * <br>which only provides a subset of a US-QWERTY PC keyboard layout
+   * <br>might be mixed with simple characters
    * <br>use + to concatenate Key constants
    *
    * @param keys valid keys
@@ -4513,9 +4610,10 @@ public class Region extends Pixels {
   }
 
   /**
-   * enters the given text one character/key after another using keyDown/keyUp
-   * <br>about the usable Key constants see keyDown(keys) <br>Class Key only provides a subset of a US-QWERTY PC
-   * keyboard layout<br>the text is entered at the current position of the focus/carret
+   * enters the given text one character/key after another using keyDown/keyUp.
+   * <br>about the usable Key constants see keyDown(keys)
+   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
+   * <br>the text is entered at the current position of the focus/carret
    *
    * @param text containing characters and/or Key constants
    * @return 1 if possible, 0 otherwise
@@ -4529,9 +4627,11 @@ public class Region extends Pixels {
   }
 
   /**
-   * enters the given text one character/key after another using keyDown/keyUp<br>while holding down the given modifier
-   * keys <br>about the usable Key constants see keyDown(keys) <br>Class Key only provides a subset of a US-QWERTY PC
-   * keyboard layout<br>the text is entered at the current position of the focus/carret
+   * enters the given text one character/key after another using keyDown/keyUp.
+   * <br>while holding down the given modifier keys
+   * <br>about the usable Key constants see keyDown(keys)
+   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
+   * <br>the text is entered at the current position of the focus/carret
    *
    * @param text      containing characters and/or Key constants
    * @param modifiers constants according to class KeyModifiers
@@ -4546,11 +4646,11 @@ public class Region extends Pixels {
   }
 
   /**
-   * enters the given text one character/key after another using
-   * <p>
-   * keyDown/keyUp<br>while holding down the given modifier keys <br>about the usable Key constants see keyDown(keys)
-   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout<br>the text is entered at the current
-   * position of the focus/carret
+   * enters the given text one character/key after another using keyDown/keyUp.
+   * <br>while holding down the given modifier keys
+   * <br>about the usable Key constants see keyDown(keys)
+   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
+   * <br>the text is entered at the current position of the focus/carret
    *
    * @param text      containing characters and/or Key constants
    * @param modifiers constants according to class Key - combine using +
@@ -4578,8 +4678,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br>enters the given text one
-   * character/key after another using keyDown/keyUp <br>about the usable Key constants see keyDown(keys)
+   * first does a click(target) at the given target position to gain focus/carret.
+   * <br>then enters the given text one character/key after another using keyDown/keyUp
+   * <br>about the usable Key constants see keyDown(keys)
    * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
@@ -4593,9 +4694,11 @@ public class Region extends Pixels {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br>enters the given text one
-   * character/key after another using keyDown/keyUp <br>while holding down the given modifier keys<br>about the usable
-   * Key constants see keyDown(keys) <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
+   * first does a click(target) at the given target position to gain focus/carret
+   * <br>enters the given text one character/key after another using keyDown/keyUp
+   * <br>while holding down the given modifier keys
+   * <br>about the usable Key constants see keyDown(keys)
+   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location
    * @param target    Pattern, Filename, Text, Region, Match or Location
@@ -4609,9 +4712,11 @@ public class Region extends Pixels {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br>enters the given text one
-   * character/key after another using keyDown/keyUp <br>while holding down the given modifier keys<br>about the usable
-   * Key constants see keyDown(keys) <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
+   * first does a click(target) at the given target position to gain focus/carret
+   * <br>enters the given text one character/key after another using keyDown/keyUp
+   * <br>while holding down the given modifier keys
+   * <br>about the usable Key constants see keyDown(keys)
+   * <br>Class Key only provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PFRML>   Pattern, Filename, Text, Region, Match or Location
    * @param target    Pattern, Filename, Text, Region, Match or Location
@@ -4683,8 +4788,8 @@ public class Region extends Pixels {
   }
 
   /**
-   * pastes the text at the current position of the focus/carret <br>using the clipboard and strg/ctrl/cmd-v (paste
-   * keyboard shortcut)
+   * pastes the text at the current position of the focus/carret.
+   * <br>using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
    *
    * @param text a string, which might contain unicode characters
    * @return 0 if possible, 1 otherwise
@@ -4698,8 +4803,9 @@ public class Region extends Pixels {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br> and then pastes the text <br>
-   * using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
+   * first does a click(target) at the given target position to gain focus/carret.
+   * <br> and then pastes the text
+   * <br> using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
    *
    * @param <PFRML> Pattern, Filename, Text, Region, Match or Location target
    * @param target  Pattern, Filename, Text, Region, Match or Location
