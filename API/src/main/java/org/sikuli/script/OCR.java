@@ -663,7 +663,7 @@ public class OCR {
      * INTERNAL (under investigation).
      * <p>should not be used - not supported
      * <p>see {@link Image.Interpolation} for method options
-     * @param method
+     * @param method the interpolation method
      * @return this Options
      */
     public Options resizeInterpolation(Image.Interpolation method) {
