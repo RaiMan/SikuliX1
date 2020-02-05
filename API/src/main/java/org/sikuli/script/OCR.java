@@ -91,7 +91,7 @@ public class OCR {
   private static Options options = new Options();
 
   /**
-   * access/get the current global Options (Singleton).
+   * access/get the current global Options as singleton.
    *
    * @return the global Options
    */
@@ -101,7 +101,18 @@ public class OCR {
 
   /**
    * Resets the global options to the initial defaults.
-   * @see #reset()
+   * <pre>
+   * oem = OcrEngineMode.DEFAULT.ordinal();
+   * psm = PageSegMode.AUTO.ordinal();
+   * language = Settings.OcrLanguage;
+   * dataPath = null; //(see comment)
+   * textHeight = getDefaultTextHeight();
+   * variables.clear();
+   * configs.clear();
+   * </pre>
+   * comment on <b>dataPath==null</b>: dataPath will be evaluated at the next use of an OCR feature
+   * to the SikuliX default or Settings.OcrDataPath (if set)
+   *
    * @return the global Options
    */
   public static Options reset() {
@@ -268,23 +279,23 @@ public class OCR {
   }
   //</editor-fold>
 
-  //<editor-fold desc="30 The options set for OCR (OCR.Options) class">
+  //<editor-fold desc="30 The options set for OCR (OCR.Options.class)">
   /**
    * A container for the options relevant for using {@link OCR} on
    * {@link Region} or {@link Image}.
    * <p>Use {@link OCR#Options} to get a new option set</p>
-   * <p>use {@link #globalOptions} to access the global options</p>
+   * <p>use {@link OCR#globalOptions} to access the global options</p>
    * <p>
    * In case you have to consult the Tesseract docs
    * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
    */
   public static class Options implements Cloneable {
 
-    //<editor-fold desc="00 Global stuff for OCR.Options">
+    //<editor-fold desc="00 Global stuff for OCR.Options (OCR.Options.global)">
     /**
      * create a new Options set from the initial defaults settings.
      * <p>
-     * about the default settings see {@link #reset}
+     * about the default settings see {@link OCR#reset}
      */
     public Options() {
       reset();
@@ -312,19 +323,9 @@ public class OCR {
 
     /**
      * resets this Options set to the initial defaults.
-     * <pre>
-     * oem = OcrEngineMode.DEFAULT.ordinal();
-     * psm = PageSegMode.AUTO.ordinal();
-     * language = Settings.OcrLanguage;
-     * dataPath = null; //(see comment)
-     * textHeight = getDefaultTextHeight();
-     * variables.clear();
-     * configs.clear();
-     * </pre>
-     * comment on <b>dataPath==null</b>: dataPath will be evaluated at the next use of an OCR feature
-     * to the SikuliX default or Settings.OcrDataPath (if set)
      *
      * @return this
+     * @see OCR#reset()
      */
     public Options reset() {
       oem = OEM.DEFAULT.ordinal();
@@ -376,7 +377,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="10 Handle OCR Engine Mode (OEM)">
+    //<editor-fold desc="10 Handle OEM - OCR Engine Mode (OCR.Options.oem)">
     private int oem;
 
     /**
@@ -417,7 +418,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="11 Handle Page Segmentaion Mode (PSM)">
+    //<editor-fold desc="11 Handle PSM - Page Segmentaion Mode (OCR.Options.psm)">
     private int psm;
 
     /**
@@ -507,7 +508,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="12 Handle different languages">
+    //<editor-fold desc="12 Handle languages (OCR.Options.language)">
     private String language;
 
     /**
@@ -543,7 +544,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="13 Handle the Tesseract datapath">
+    //<editor-fold desc="13 Handle datapath (OCR.Options.dataPath)">
     protected static String defaultDataPath = null;
     private String dataPath;
 
@@ -582,7 +583,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="14 Handle the pre-OCR image optimization">
+    //<editor-fold desc="14 Handle the pre-OCR image optimization (OCR.Options.optimization)">
     /**
      * Convenience: Configure the Option's optimization.
      * <p>
@@ -635,7 +636,7 @@ public class OCR {
     /**
      * Configure the image optimization.
      * <p>
-     * should be the (in case average) fontsize as base for internally calculating the {@link #textHeight()}
+     * should be the (in case average) fontsize as base for internally calculating the {@link OCR.Options#textHeight()}
      * <p><b>NOTE:</b> should only be tried in cases, where the defaults do not lead to acceptable results</p>
      * @param size of a font
      * @return this Options
@@ -661,7 +662,8 @@ public class OCR {
     /**
      * INTERNAL (under investigation).
      * <p>should not be used - not supported
-     * @param method {@link Image.Interpolation}
+     * <p>see {@link Image.Interpolation} for method options
+     * @param method
      * @return this Options
      */
     public Options resizeInterpolation(Image.Interpolation method) {
@@ -718,7 +720,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="15 Handle Tesseract variables">
+    //<editor-fold desc="15 Handle Tesseract variables (OCR.Options.variable)">
     private Map<String, String> variablesStore = new LinkedHashMap<>();
 
     /**
@@ -745,7 +747,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="16 Handle Tesseract configs">
+    //<editor-fold desc="16 Handle Tesseract configs (OCR.Options.configs)">
     private Set<String> configsStore = new LinkedHashSet<>();
 
     /**
