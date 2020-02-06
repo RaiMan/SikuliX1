@@ -24,21 +24,7 @@ import java.util.*;
  */
 public class Region extends Pixels {
 
-  public static final String logName = "Region: ";
-
-  //<editor-fold desc="000 Fields x, y, w, h">
-  /*
-   * Used for LEGACY handling in
-   * int wheel(PFRML target, int direction, int steps, int modifiers)
-   */
-  private final Set<Integer> WHEEL_MODIFIERS = new HashSet<>(Arrays.asList(new Integer[] {
-      0,
-      KeyModifier.CTRL,
-      KeyModifier.ALT,
-      KeyModifier.SHIFT,
-      KeyModifier.CMD
-  }));
-
+  //<editor-fold desc="000 Fields and global features">
   /**
    * @param X new x position of top left corner
    * @return this Region
@@ -82,6 +68,57 @@ public class Region extends Pixels {
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @return the description
+   */
+  @Override
+  public String toString() {
+    String scrText = getScreen() == null ? "?" :
+        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+    if (isOtherScreen()) {
+      scrText = getScreen().getIDString();
+    }
+    String nameText = "";
+    if (!getName().isEmpty()) {
+      nameText = "#" + getName() + "# ";
+    }
+    return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
+  }
+
+  /**
+   * @return a compact description
+   */
+  public String toStringShort() {
+    return toString();
+  }
+
+  /**
+   * Check whether this Region is contained by any of the available screens
+   *
+   * @return true if yes, false otherwise
+   */
+  public boolean isValid() {
+    if (this instanceof Screen) {
+      return true;
+    }
+    return getScreen() != null && w != 0 && h != 0;
+  }
+
+  /**
+   * synonym for showMonitors
+   */
+  public void showScreens() {
+    Screen.showMonitors();
+  }
+
+  /**
+   * synonym for resetMonitors
+   */
+  public void resetScreens() {
+    Screen.resetMonitors();
+  }
   //</editor-fold>
 
   //<editor-fold desc="001 for Python private">
@@ -128,8 +165,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold desc="016 throwexception">
-
+  //<editor-fold desc="017 handle FindFailed and ImageMissing">
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
    * false - do not abort script on FindFailed (might lead to NPE's later)<br>
@@ -167,9 +203,6 @@ public class Region extends Pixels {
 
   private boolean throwExceptionDefault = Settings.ThrowException;
   private boolean throwException = throwExceptionDefault;
-  //</editor-fold>
-
-  //<editor-fold desc="017 findFailedResponse">
 
   /**
    * FindFailedResponse.<br>
@@ -203,9 +236,7 @@ public class Region extends Pixels {
 
   private FindFailedResponse findFailedResponseDefault = FindFailed.getResponse();
   private FindFailedResponse findFailedResponse = findFailedResponseDefault;
-  //</editor-fold>
 
-  //<editor-fold desc="018 findFailedHandler">
   public void setFindFailedHandler(Object handler) {
     findFailedResponse = FindFailedResponse.HANDLE;
     findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
@@ -213,9 +244,113 @@ public class Region extends Pixels {
   }
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
+
+  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
+    log(logLevel, "handleFindFailed: %s", target);
+    Boolean state = null;
+    ObserveEvent evt = null;
+    FindFailedResponse response = findFailedResponse;
+    if (FindFailedResponse.HANDLE.equals(response)) {
+      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
+      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
+        log(logLevel, "handleFindFailed: Response.HANDLE: calling handler");
+        evt = new ObserveEvent("", type, target, img, this, 0);
+        ((ObserverCallBack) findFailedHandler).findfailed(evt);
+        response = evt.getResponse();
+      }
+    }
+    if (FindFailedResponse.ABORT.equals(response)) {
+      state = null;
+    } else if (FindFailedResponse.SKIP.equals(response)) {
+      state = false;
+    } else if (FindFailedResponse.RETRY.equals(response)) {
+      state = true;
+    }
+    if (FindFailedResponse.PROMPT.equals(response)) {
+      response = handleFindFailedShowDialog(img, false);
+    } else {
+      return state;
+    }
+    if (FindFailedResponse.ABORT.equals(response)) {
+      state = null;
+    } else if (FindFailedResponse.SKIP.equals(response)) {
+      // TODO HACK to allow recapture on FindFailed PROMPT
+      if (img.backup()) {
+        img.delete();
+        state = handleImageMissing(img, true); //hack: FindFailed-ReCapture
+        if (state == null || !state) {
+          if (!img.restore()) {
+            state = null;
+          } else {
+            img.get();
+          }
+        }
+      }
+    } else if (FindFailedResponse.RETRY.equals(response)) {
+      state = true;
+    }
+    return state;
+  }
+
+  private Boolean handleImageMissing(Image img, boolean recap) {
+    log(logLevel, "handleImageMissing: %s", img.getName());
+    ObserveEvent evt = null;
+    FindFailedResponse response = findFailedResponse;
+    if (!recap && imageMissingHandler != null) {
+      log(logLevel, "handleImageMissing: calling handler");
+      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
+      ((ObserverCallBack) imageMissingHandler).missing(evt);
+      response = evt.getResponse();
+    }
+    if (recap || FindFailedResponse.PROMPT.equals(response)) {
+      if (!recap) {
+        log(logLevel, "handleImageMissing: Response.PROMPT");
+      }
+      response = handleFindFailedShowDialog(img, true);
+    }
+    if (FindFailedResponse.RETRY.equals(response)) {
+      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
+      getRobotForRegion().delay(500);
+      ScreenImage simg = getScreen().userCapture(
+          (recap ? "recapture " : "capture missing ") + img.getName());
+      if (simg != null) {
+        String path = ImagePath.getBundlePath();
+        if (path == null) {
+          log(-1, "handleImageMissing: no bundle path - aborting");
+          return null;
+        }
+        simg.getFile(path, img.getName());
+        Image.reinit(img);
+        if (img.isValid()) {
+          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
+          Image.setIDEshouldReload(img);
+          return true;
+        }
+      }
+      return null;
+    } else if (findFailedResponse.ABORT.equals(response)) {
+      log(-1, "handleImageMissing: Response.ABORT: aborting");
+      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
+      return null;
+    }
+    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
+    return false;
+  }
+
+  private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
+    log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
+    FindFailedResponse response;
+    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
+    fd.setVisible(true);
+    response = fd.getResponse();
+    fd.dispose();
+    wait(0.5);
+    log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
+    return response;
+  }
   //</editor-fold>
 
-  //<editor-fold desc="019 Fields wait observe timing">
+  //<editor-fold desc="019 wait observe timing">
 
   /**
    * the time in seconds a find operation should wait.
@@ -304,7 +439,7 @@ public class Region extends Pixels {
   private int repeatWaitTime = repeatWaitTimeDefault;
   //</editor-fold>
 
-  //<editor-fold desc="004 housekeeping">
+  //<editor-fold desc="004 housekeeping private">
 
   private boolean isScreenUnion = false;
   private boolean isVirtual = false;
@@ -323,42 +458,16 @@ public class Region extends Pixels {
   }
 
   private static Region fakeRegion;
-
-
-  /**
-   * {@inheritDoc}
-   *
-   * @return the description
-   */
-  @Override
-  public String toString() {
-    String scrText = getScreen() == null ? "?" :
-        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
-    if (isOtherScreen()) {
-      scrText = getScreen().getIDString();
-    }
-    String nameText = "";
-    if (!getName().isEmpty()) {
-      nameText = "#" + getName() + "# ";
-    }
-    return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
-  }
-
-  /**
-   * @return a compact description
-   */
-  public String toStringShort() {
-    return toString();
-  }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="005 Init & special use">
+  //<editor-fold defaultstate="collapsed" desc="005 Init & special use private">
 
-  public Image getImage() {
+  protected Image getImage() {
     return new Image(getScreen().capture(x, y, w, h));
   }
+
   /**
-   * INTERNAL USE
+   * INTERNAL: USE
    *
    * @param iscr screen
    */
@@ -442,7 +551,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE - EXPERIMENTAL if true: this region is not bound to any screen
+   * INTERNAL: USE - EXPERIMENTAL if true: this region is not bound to any screen
    *
    * @param rect rectangle
    * @return the current state
@@ -459,7 +568,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE - EXPERIMENTAL if true: this region is not bound to any screen
+   * INTERNAL: USE - EXPERIMENTAL if true: this region is not bound to any screen
    *
    * @return the current state
    */
@@ -468,7 +577,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE - EXPERIMENTAL
+   * INTERNAL: USE - EXPERIMENTAL
    *
    * @param state if true: this region is not bound to any screen
    */
@@ -521,18 +630,6 @@ public class Region extends Pixels {
       return null;
     }
     return rect;
-  }
-
-  /**
-   * Check whether this Region is contained by any of the available screens
-   *
-   * @return true if yes, false otherwise
-   */
-  public boolean isValid() {
-    if (this instanceof Screen) {
-      return true;
-    }
-    return getScreen() != null && w != 0 && h != 0;
   }
   //</editor-fold>
 
@@ -860,125 +957,6 @@ public class Region extends Pixels {
   //<editor-fold defaultstate="collapsed" desc="008 handle coordinates">
 
   /**
-   * check if current region contains given point
-   *
-   * @param point Point
-   * @return true/false
-   */
-  public boolean contains(Location point) {
-    return getRect().contains(point.x, point.y);
-  }
-
-  /**
-   * check if mouse pointer is inside current region
-   *
-   * @return true/false
-   */
-  public boolean containsMouse() {
-    return contains(Mouse.at());
-  }
-
-  /**
-   * new region with same offset to current screen's top left on given screen
-   *
-   * @param scrID number of screen
-   * @return new region
-   */
-  public Region copyTo(int scrID) {
-    return copyTo(Screen.getScreen(scrID));
-  }
-
-  /**
-   * new region with same offset to current screen's top left on given screen
-   *
-   * @param screen new parent screen
-   * @return new region
-   */
-  public Region copyTo(IScreen screen) {
-    Location o = new Location(getScreen().getBounds().getLocation());
-    Location n = new Location(screen.getBounds().getLocation());
-    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h, screen);
-  }
-
-  /**
-   * used in Observer.callChangeObserving, Finder.next to adjust region relative coordinates of matches to screen
-   * coordinates
-   *
-   * @param m
-   * @return the modified match
-   */
-  protected Match toGlobalCoord(Match m) {
-    m.x += x;
-    m.y += y;
-    return m;
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
-
-  /**
-   * @return the Screen object containing the region
-   */
-  public IScreen getScreen() {
-    return scr;
-  }
-
-  // to avoid NPE for Regions being outside any screen
-  private IRobot getRobotForRegion() {
-    if (getScreen() == null || isScreenUnion) {
-      return Screen.getPrimaryScreen().getRobot();
-    }
-    return getScreen().getRobot();
-  }
-
-  /**
-   * @return the screen, that contains the top left corner of the region. Returns primary screen if outside of any
-   * screen.
-   * @deprecated Only for compatibility, to get the screen containing this region, use {@link #getScreen()}
-   */
-  @Deprecated
-  public IScreen getScreenContaining() {
-    return getScreen();
-  }
-
-  /**
-   * Sets a new Screen for this region.
-   *
-   * @param scr the containing screen object
-   * @return the region itself
-   */
-  protected Region setScreen(IScreen scr) {
-    initScreen(scr);
-    return this;
-  }
-
-  /**
-   * Sets a new Screen for this region.
-   *
-   * @param id the containing screen object's id
-   * @return the region itself
-   */
-  protected Region setScreen(int id) {
-    return setScreen(Screen.getScreen(id));
-  }
-
-  /**
-   * synonym for showMonitors
-   */
-  public void showScreens() {
-    Screen.showMonitors();
-  }
-
-  /**
-   * synonym for resetMonitors
-   */
-  public void resetScreens() {
-    Screen.resetMonitors();
-  }
-
-  // ************************************************
-
-  /**
    * @return the center pixel location of the region
    */
   public Location getCenter() {
@@ -1087,9 +1065,124 @@ public class Region extends Pixels {
     initScreen(null);
     return this;
   }
+  /**
+   * @return current location of mouse pointer
+   * @deprecated use {@link Mouse#at()} instead
+   */
+  @Deprecated
+  public static Location atMouse() {
+    return Mouse.at();
+  }
+
+  /**
+   * check if current region contains given point
+   *
+   * @param point Point
+   * @return true/false
+   */
+  public boolean contains(Location point) {
+    return getRect().contains(point.x, point.y);
+  }
+
+  /**
+   * check if mouse pointer is inside current region
+   *
+   * @return true/false
+   */
+  public boolean containsMouse() {
+    return contains(Mouse.at());
+  }
+
+  /**
+   * new region with same offset to current screen's top left on given screen
+   *
+   * @param scrID number of screen
+   * @return new region
+   */
+  public Region copyTo(int scrID) {
+    return copyTo(Screen.getScreen(scrID));
+  }
+
+  /**
+   * new region with same offset to current screen's top left on given screen
+   *
+   * @param screen new parent screen
+   * @return new region
+   */
+  public Region copyTo(IScreen screen) {
+    Location o = new Location(getScreen().getBounds().getLocation());
+    Location n = new Location(screen.getBounds().getLocation());
+    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h, screen);
+  }
+
+  /**
+   * create a Location object, that can be used as an offset taking the width and hight of this Region
+   *
+   * @return a new Location object with width and height as x and y
+   */
+  public Location asOffset() {
+    return new Location(w, h);
+  }
+
+//TODO  obsolete??
+/*
+  protected Match toGlobalCoord(Match m) {
+    m.x += x;
+    m.y += y;
+    return m;
+  }
+*/
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
+
+  /**
+   * @return the Screen object containing the region
+   */
+  public IScreen getScreen() {
+    return scr;
+  }
+
+  // to avoid NPE for Regions being outside any screen
+  private IRobot getRobotForRegion() {
+    if (getScreen() == null || isScreenUnion) {
+      return Screen.getPrimaryScreen().getRobot();
+    }
+    return getScreen().getRobot();
+  }
+
+  /**
+   * @return the screen, that contains the top left corner of the region. Returns primary screen if outside of any
+   * screen.
+   * @deprecated Only for compatibility, to get the screen containing this region, use {@link #getScreen()}
+   */
+  @Deprecated
+  public IScreen getScreenContaining() {
+    return getScreen();
+  }
+
+  /**
+   * Sets a new Screen for this region.
+   *
+   * @param scr the containing screen object
+   * @return the region itself
+   */
+  protected Region setScreen(IScreen scr) {
+    initScreen(scr);
+    return this;
+  }
+
+  /**
+   * Sets a new Screen for this region.
+   *
+   * @param id the containing screen object's id
+   * @return the region itself
+   */
+  protected Region setScreen(int id) {
+    return setScreen(Screen.getScreen(id));
+  }
 
   // ************************************************
-
 
   /**
    * @param W new width
@@ -1385,7 +1478,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="007 spatial operators - new regions">
+  //<editor-fold defaultstate="collapsed" desc="007 new regions relative to this region">
 
   /**
    * check if current region contains given region
@@ -1395,15 +1488,6 @@ public class Region extends Pixels {
    */
   public boolean contains(Region region) {
     return getRect().contains(region.getRect());
-  }
-
-  /**
-   * create a Location object, that can be used as an offset taking the width and hight of this Region
-   *
-   * @return a new Location object with width and height as x and y
-   */
-  public Location asOffset() {
-    return new Location(w, h);
   }
 
   /**
@@ -1498,25 +1582,6 @@ public class Region extends Pixels {
   }
 
   /**
-   * point middle on right edge
-   *
-   * @return point middle on right edge
-   */
-  public Location rightAt() {
-    return rightAt(0);
-  }
-
-  /**
-   * positive offset goes to the right. might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset horizontally to middle point on right edge
-   */
-  public Location rightAt(int offset) {
-    return checkAndSetRemote(new Location(x + w + offset, y + h / 2));
-  }
-
-  /**
    * create a region right of the right side with same height. the new region extends to the right screen border.
    * <br> use grow() to include the current region
    *
@@ -1544,24 +1609,6 @@ public class Region extends Pixels {
       _x = x + w;
     }
     return Region.create(_x, y, Math.abs(width), h, getScreen());
-  }
-
-  /**
-   * @return point middle on left edge
-   */
-  public Location leftAt() {
-    return leftAt(0);
-  }
-
-  /**
-   * negative offset goes to the left.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset horizontally to middle point on left edge
-   */
-  public Location leftAt(int offset) {
-    return checkAndSetRemote(new Location(x - offset, y + h / 2));
   }
 
   /**
@@ -1594,24 +1641,6 @@ public class Region extends Pixels {
   }
 
   /**
-   * @return point middle on top edge
-   */
-  public Location aboveAt() {
-    return aboveAt(0);
-  }
-
-  /**
-   * negative offset goes towards top of screen.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset vertically to middle point on top edge
-   */
-  public Location aboveAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y - offset));
-  }
-
-  /**
    * create a region above the top side with same width.
    * <br> the new region extends to the top screen border
    * <br> use grow() to include the current region
@@ -1638,24 +1667,6 @@ public class Region extends Pixels {
       _y = y - height;
     }
     return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), getScreen());
-  }
-
-  /**
-   * @return point middle on bottom edge
-   */
-  public Location belowAt() {
-    return belowAt(0);
-  }
-
-  /**
-   * positive offset goes towards bottom of screen.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset vertically to middle point on bottom edge
-   */
-  public Location belowAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
   }
 
   /**
@@ -1713,6 +1724,81 @@ public class Region extends Pixels {
     return new Region(x + inset.x, y + inset.y, inset.w, inset.h);
   }
 
+  //</editor-fold>
+
+  //<editor-fold desc="009 points relative to the region">
+  /**
+   * point middle on right edge
+   *
+   * @return point middle on right edge
+   */
+  public Location rightAt() {
+    return rightAt(0);
+  }
+
+  /**
+   * positive offset goes to the right. might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset horizontally to middle point on right edge
+   */
+  public Location rightAt(int offset) {
+    return checkAndSetRemote(new Location(x + w + offset, y + h / 2));
+  }
+
+  /**
+   * @return point middle on left edge
+   */
+  public Location leftAt() {
+    return leftAt(0);
+  }
+
+  /**
+   * negative offset goes to the left.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset horizontally to middle point on left edge
+   */
+  public Location leftAt(int offset) {
+    return checkAndSetRemote(new Location(x - offset, y + h / 2));
+  }
+
+  /**
+   * @return point middle on top edge
+   */
+  public Location aboveAt() {
+    return aboveAt(0);
+  }
+
+  /**
+   * negative offset goes towards top of screen.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset vertically to middle point on top edge
+   */
+  public Location aboveAt(int offset) {
+    return checkAndSetRemote(new Location(x + w / 2, y - offset));
+  }
+
+  /**
+   * @return point middle on bottom edge
+   */
+  public Location belowAt() {
+    return belowAt(0);
+  }
+
+  /**
+   * positive offset goes towards bottom of screen.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset vertically to middle point on bottom edge
+   */
+  public Location belowAt(int offset) {
+    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="006 parts of a Region">
@@ -3253,112 +3339,7 @@ public class Region extends Pixels {
     }
     return null;
   }
-
-  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
-    log(logLevel, "handleFindFailed: %s", target);
-    Boolean state = null;
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (FindFailedResponse.HANDLE.equals(response)) {
-      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
-      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
-        log(logLevel, "handleFindFailed: Response.HANDLE: calling handler");
-        evt = new ObserveEvent("", type, target, img, this, 0);
-        ((ObserverCallBack) findFailedHandler).findfailed(evt);
-        response = evt.getResponse();
-      }
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      state = false;
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    if (FindFailedResponse.PROMPT.equals(response)) {
-      response = handleFindFailedShowDialog(img, false);
-    } else {
-      return state;
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      // TODO HACK to allow recapture on FindFailed PROMPT
-      if (img.backup()) {
-        img.delete();
-        state = handleImageMissing(img, true); //hack: FindFailed-ReCapture
-        if (state == null || !state) {
-          if (!img.restore()) {
-            state = null;
-          } else {
-            img.get();
-          }
-        }
-      }
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    return state;
-  }
-
-  private Boolean handleImageMissing(Image img, boolean recap) {
-    log(logLevel, "handleImageMissing: %s", img.getName());
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (!recap && imageMissingHandler != null) {
-      log(logLevel, "handleImageMissing: calling handler");
-      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
-      ((ObserverCallBack) imageMissingHandler).missing(evt);
-      response = evt.getResponse();
-    }
-    if (recap || FindFailedResponse.PROMPT.equals(response)) {
-      if (!recap) {
-        log(logLevel, "handleImageMissing: Response.PROMPT");
-      }
-      response = handleFindFailedShowDialog(img, true);
-    }
-    if (FindFailedResponse.RETRY.equals(response)) {
-      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
-      getRobotForRegion().delay(500);
-      ScreenImage simg = getScreen().userCapture(
-          (recap ? "recapture " : "capture missing ") + img.getName());
-      if (simg != null) {
-        String path = ImagePath.getBundlePath();
-        if (path == null) {
-          log(-1, "handleImageMissing: no bundle path - aborting");
-          return null;
-        }
-        simg.getFile(path, img.getName());
-        Image.reinit(img);
-        if (img.isValid()) {
-          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
-          Image.setIDEshouldReload(img);
-          return true;
-        }
-      }
-      return null;
-    } else if (findFailedResponse.ABORT.equals(response)) {
-      log(-1, "handleImageMissing: Response.ABORT: aborting");
-      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
-      return null;
-    }
-    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
-    return false;
-  }
-
-  private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
-    log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
-    FindFailedResponse response;
-    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
-    fd.setVisible(true);
-    response = fd.getResponse();
-    fd.dispose();
-    wait(0.5);
-    log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
-    return response;
-  }
   //</editor-fold>
-
 
   //<editor-fold defaultstate="collapsed" desc="030 Observing">
   /**
@@ -3776,7 +3757,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="040 Mouse actions - clicking">
+  //<editor-fold defaultstate="collapsed" desc="040 Mouse - click">
   public Location checkMatch() {
     if (lastMatch != null) {
       return lastMatch.getTarget();
@@ -4007,7 +3988,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="041 Mouse actions - drag & drop">
+  //<editor-fold defaultstate="collapsed" desc="041 Mouse - drag & drop">
 
   /**
    * Drag from region's last match and drop at given target.
@@ -4133,7 +4114,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="042 Mouse actions - low level + Wheel">
+  //<editor-fold defaultstate="collapsed" desc="042 Mouse - low level">
 
   /**
    * press and hold the specified buttons - use + to combine Button.LEFT left mouse button Button.MIDDLE middle mouse
@@ -4213,6 +4194,20 @@ public class Region extends Pixels {
       return 0;
     }
   }
+  //</editor-fold>
+
+  //<editor-fold desc="043 Mouse wheel">
+  /*
+   * Used for LEGACY handling in
+   * int wheel(PFRML target, int direction, int steps, int modifiers)
+   */
+  private final Set<Integer> WHEEL_MODIFIERS = new HashSet<>(Arrays.asList(new Integer[] {
+      0,
+      KeyModifier.CTRL,
+      KeyModifier.ALT,
+      KeyModifier.SHIFT,
+      KeyModifier.CMD
+  }));
 
   /**
    * Move the wheel at the current mouse position.
@@ -4410,66 +4405,9 @@ public class Region extends Pixels {
     }
     return 0;
   }
-
-  /**
-   * @return current location of mouse pointer
-   * @deprecated use {@link Mouse#at()} instead
-   */
-  @Deprecated
-  public static Location atMouse() {
-    return Mouse.at();
-  }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="045 Keyboard actions + paste">
-
-  /**
-   * press and hold the given key use a constant from java.awt.event.KeyEvent which might be special in the current
-   * machine/system environment
-   *
-   * @param keycode Java KeyCode
-   */
-  public void keyDown(int keycode) {
-    getRobotForRegion().keyDown(keycode);
-  }
-
-  /**
-   * press and hold the given keys including modifier keys.
-   * <br>use the key constants defined in class Key,
-   * <br>which only provides a subset of a US-QWERTY PC keyboard layout
-   * <br>might be mixed with simple characters
-   * <br>use + to concatenate Key constants
-   *
-   * @param keys valid keys
-   */
-  public void keyDown(String keys) {
-    getRobotForRegion().keyDown(keys);
-  }
-
-  /**
-   * release all currently pressed keys
-   */
-  public void keyUp() {
-    getRobotForRegion().keyUp();
-  }
-
-  /**
-   * release the given keys (see keyDown(keycode) )
-   *
-   * @param keycode Java KeyCode
-   */
-  public void keyUp(int keycode) {
-    getRobotForRegion().keyUp(keycode);
-  }
-
-  /**
-   * release the given keys (see keyDown(keys) )
-   *
-   * @param keys valid keys
-   */
-  public void keyUp(String keys) {
-    getRobotForRegion().keyUp(keys);
-  }
+  //<editor-fold defaultstate="collapsed" desc="045 Keyboard">
 
   /**
    * Compact alternative for type() with more options <br>
@@ -4789,7 +4727,59 @@ public class Region extends Pixels {
   public void delayType(int millisecs) {
     Settings.TypeDelay = millisecs;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="046 Keyboard - low level">
+  /**
+   * press and hold the given key use a constant from java.awt.event.KeyEvent which might be special in the current
+   * machine/system environment
+   *
+   * @param keycode Java KeyCode
+   */
+  public void keyDown(int keycode) {
+    getRobotForRegion().keyDown(keycode);
+  }
+
+  /**
+   * press and hold the given keys including modifier keys.
+   * <br>use the key constants defined in class Key,
+   * <br>which only provides a subset of a US-QWERTY PC keyboard layout
+   * <br>might be mixed with simple characters
+   * <br>use + to concatenate Key constants
+   *
+   * @param keys valid keys
+   */
+  public void keyDown(String keys) {
+    getRobotForRegion().keyDown(keys);
+  }
+
+  /**
+   * release all currently pressed keys
+   */
+  public void keyUp() {
+    getRobotForRegion().keyUp();
+  }
+
+  /**
+   * release the given keys (see keyDown(keycode) )
+   *
+   * @param keycode Java KeyCode
+   */
+  public void keyUp(int keycode) {
+    getRobotForRegion().keyUp(keycode);
+  }
+
+  /**
+   * release the given keys (see keyDown(keys) )
+   *
+   * @param keys valid keys
+   */
+  public void keyUp(String keys) {
+    getRobotForRegion().keyUp(keys);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="047 paste unicode text via clipboard">
   /**
    * pastes the text at the current position of the focus/carret.
    * <br>using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
