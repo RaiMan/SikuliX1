@@ -436,21 +436,36 @@ public class SX {
       return value;
     }
 
+    private int findNextParameter(Object possibleValue, int parmIndex) {
+      parmIndex++;
+      Object value = null;
+      while (parmIndex < parameterNames.length) {
+        value = getParameter(possibleValue, parameterNames[parmIndex]);
+        if (value == null) {
+          parmIndex++;
+        } else {
+          return parmIndex;
+        }
+      }
+      return -1;
+    }
+
     public Map<String, Object> getParameters(Object[] args) {
       Map<String, Object> params = new HashMap<>();
       if (isNotNull(parameterNames)) {
         int n = 0;
-        int argsn = 0;
         for (String parameterName : parameterNames) {
           params.put(parameterName, parameterDefaults[n]);
-          if (args.length > 0 && argsn < args.length) {
-            Object arg = getParameter(args[argsn], parameterName);
-            if (isNotNull(arg)) {
-              params.put(parameterName, arg);
-            }
-            argsn++;
-          }
           n++;
+        }
+        int argParm = -1;
+        for (Object arg : args) {
+          argParm = findNextParameter(arg, argParm);
+          if (argParm < 0) {
+            break;
+          } else {
+            params.put(parameterNames[argParm], arg);
+          }
         }
       }
       return params;
