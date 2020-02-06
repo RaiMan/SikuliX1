@@ -27,10 +27,11 @@ import java.util.List;
 public abstract class Pixels {
 
   protected static final int logLevel = 3;
-  protected static final String logName = "Pixel: ";
 
   protected static void log(int level, String message, Object... args) {
-    Debug.logx(level, logName + message, args);
+    String className = Thread.currentThread().getStackTrace()[2].getClassName();
+    String caller = className.substring(className.lastIndexOf(".") +1);
+    Debug.logx(level, caller + ": " + message, args);
   }
 
   //<editor-fold desc="00 Fields x, y, w, h">
