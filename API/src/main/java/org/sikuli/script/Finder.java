@@ -54,9 +54,9 @@ public class Finder implements Iterator<Match> {
   /**
    * Create a Finder for the given element
    * @param inWhat in what element (RIBS) to search
-   * @param <RIBS> Region, Image, BufferedImage or ScreenImage
+   * @param <RIBS> Region, Image, BufferedImage, ScreenImage, cvMat
    */
-  public <RIBS> Finder(RIBS inWhat) {
+  public <RIBSM> Finder(RIBSM inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
@@ -65,6 +65,8 @@ public class Finder implements Iterator<Match> {
       _findInput.setSource(Finder2.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
       initScreenFinder(((ScreenImage) inWhat), null);
+    } else if (inWhat instanceof Mat) {
+      _findInput.setSource((Mat) inWhat);
     } else {
       throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
