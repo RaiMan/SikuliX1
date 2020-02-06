@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A Region is a rectengular area on a screen.
- * <br>
+ * A Region is a rectangular area on a screen.
  * <p>completely contained in that screen (no screen overlapping)</p>
  * NOTES:
  * <br>- when needed (find ops), the pixel content is captured from the screen
@@ -26,53 +25,19 @@ import java.util.*;
 public class Region extends Pixels {
 
   public static final String logName = "Region: ";
+
+  //<editor-fold desc="000 Fields x, y, w, h">
   /*
    * Used for LEGACY handling in
    * int wheel(PFRML target, int direction, int steps, int modifiers)
    */
   private final Set<Integer> WHEEL_MODIFIERS = new HashSet<>(Arrays.asList(new Integer[] {
-    0,
-    KeyModifier.CTRL,
-    KeyModifier.ALT,
-    KeyModifier.SHIFT,
-    KeyModifier.CMD
+      0,
+      KeyModifier.CTRL,
+      KeyModifier.ALT,
+      KeyModifier.SHIFT,
+      KeyModifier.CMD
   }));
-
-  //<editor-fold desc="000 for Python">
-  public static Region getDefaultInstance4py() {
-    return new Screen();
-  }
-
-  public static Region make4py(ArrayList args) {
-    log(3, "make: args: %s", args);
-    Region reg = new Screen();
-    if (null != args) {
-      int argn = 1;
-      for (Object arg : args) {
-        log(3, "%d: %s (%s)", argn++, arg.getClass().getSimpleName(), arg);
-      }
-      if (args.size() == 4) {
-        //case1: Region(x,y,w,h)
-        int num = 4;
-        for (Object arg : args) {
-          if (arg instanceof Integer) {
-            num--;
-          }
-        }
-        if (num == 0) {
-          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
-        }
-      } else if (args.size() == 1 && args.get(0) instanceof Region) {
-        //case2: Region(Region)
-        reg = create((Region) args.get(0));
-      }
-    }
-    return reg;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="001 Fields x, y, w, h">
-
 
   /**
    * @param X new x position of top left corner
@@ -119,8 +84,44 @@ public class Region extends Pixels {
 
   //</editor-fold>
 
-  //<editor-fold desc="010 Fields throwException, findFailed/imageMissing">
-  //<editor-fold desc="1 throwexception">
+  //<editor-fold desc="001 for Python">
+  /**
+   * Get a default Region for Python
+   * @return the default screen
+   */
+  public static Region getDefaultInstance4py() {
+    return new Screen();
+  }
+
+  public static Region make4py(ArrayList args) {
+    log(3, "make: args: %s", args);
+    Region reg = new Screen();
+    if (null != args) {
+      int argn = 1;
+      for (Object arg : args) {
+        log(3, "%d: %s (%s)", argn++, arg.getClass().getSimpleName(), arg);
+      }
+      if (args.size() == 4) {
+        //case1: Region(x,y,w,h)
+        int num = 4;
+        for (Object arg : args) {
+          if (arg instanceof Integer) {
+            num--;
+          }
+        }
+        if (num == 0) {
+          reg = create((Integer) args.get(0), (Integer) args.get(1), (Integer) args.get(2), (Integer) args.get(3));
+        }
+      } else if (args.size() == 1 && args.get(0) instanceof Region) {
+        //case2: Region(Region)
+        reg = create((Region) args.get(0));
+      }
+    }
+    return reg;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="016 throwexception">
 
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
@@ -161,7 +162,7 @@ public class Region extends Pixels {
   private boolean throwException = throwExceptionDefault;
   //</editor-fold>
 
-  //<editor-fold desc="2 findFailedResponse">
+  //<editor-fold desc="017 findFailedResponse">
 
   /**
    * FindFailedResponse.<br>
@@ -197,7 +198,7 @@ public class Region extends Pixels {
   private FindFailedResponse findFailedResponse = findFailedResponseDefault;
   //</editor-fold>
 
-  //<editor-fold desc="3 findFailedHandler">
+  //<editor-fold desc="018 findFailedHandler">
   public void setFindFailedHandler(Object handler) {
     findFailedResponse = FindFailedResponse.HANDLE;
     findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
@@ -207,10 +208,7 @@ public class Region extends Pixels {
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
   //</editor-fold>
 
-
-  //</editor-fold>
-
-  //<editor-fold desc="011 Fields wait observe timing">
+  //<editor-fold desc="019 Fields wait observe timing">
 
   /**
    * the time in seconds a find operation should wait.
@@ -278,7 +276,7 @@ public class Region extends Pixels {
   private float observeScanRate = observeScanRateDefault;
 
   /**
-   * INTERNAL USE: Observe
+   * INTERNAL: Observe
    *
    * @return the regions current RepeatWaitTime time in seconds
    */
@@ -287,7 +285,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE: Observe set the regions individual WaitForVanish
+   * INTERNAL: Observe set the regions individual WaitForVanish
    *
    * @param time in seconds
    */
@@ -472,7 +470,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE: checks wether this region belongs to a non-Desktop screen
+   * INTERNAL: checks wether this region belongs to a non-Desktop screen
    *
    * @return true/false
    */
@@ -481,7 +479,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE: flags this region as belonging to a non-Desktop screen
+   * INTERNAL: flags this region as belonging to a non-Desktop screen
    */
   public void setOtherScreen() {
     otherScreen = true;
@@ -2076,7 +2074,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE ONLY
+   * INTERNAL: ONLY
    */
   public void internalUseOnlyHighlightReset() {
     regionHighlight = null;
@@ -3584,7 +3582,7 @@ public class Region extends Pixels {
 
   //<editor-fold defaultstate="collapsed" desc="obsolete">
 //	/**
-//	 *INTERNAL USE ONLY: for use with scripting API bridges
+//	 *INTERNAL: ONLY: for use with scripting API bridges
 //	 * @param <PSI> Pattern, String or Image
 //	 * @param target Pattern, String or Image
 //	 * @param observer ObserverCallBack
@@ -3595,7 +3593,7 @@ public class Region extends Pixels {
 //	}
 //
 //	/**
-//	 *INTERNAL USE ONLY: for use with scripting API bridges
+//	 *INTERNAL: ONLY: for use with scripting API bridges
 //	 * @param <PSI> Pattern, String or Image
 //	 * @param target Pattern, String or Image
 //	 * @param observer ObserverCallBack
@@ -3606,7 +3604,7 @@ public class Region extends Pixels {
 //	}
 //
 //	/**
-//	 *INTERNAL USE ONLY: for use with scripting API bridges
+//	 *INTERNAL: ONLY: for use with scripting API bridges
 //	 * @param threshold min pixel size - 0 = ObserveMinChangedPixels
 //	 * @param observer ObserverCallBack
 //	 * @return the event's name
@@ -3647,7 +3645,7 @@ public class Region extends Pixels {
   }
 
   /**
-   * INTERNAL USE ONLY: for use with scripting API bridges
+   * INTERNAL: ONLY: for use with scripting API bridges
    *
    * @param secs time in seconds the observer should run
    * @return false if not possible, true if events have happened
