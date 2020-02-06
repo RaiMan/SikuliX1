@@ -54,7 +54,7 @@ public class Finder implements Iterator<Match> {
   /**
    * Create a Finder for the given element
    * @param inWhat in what element (RIBS) to search
-   * @param <RIBS> Region, Image, BufferedImage, ScreenImage, cvMat
+   * @param <RIBSM> Region, Image, BufferedImage, ScreenImage, cvMat
    */
   public <RIBSM> Finder(RIBSM inWhat) {
     if (inWhat instanceof Region) {

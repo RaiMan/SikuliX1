@@ -283,7 +283,7 @@ public class OCR {
   /**
    * A container for the options relevant for using {@link OCR} on
    * {@link Region} or {@link Image}.
-   * <p>Use {@link OCR#Options} to get a new option set</p>
+   * <p>Use {@link OCR.Options#Options()} to get a new option set</p>
    * <p>use {@link OCR#globalOptions} to access the global options</p>
    * <p>
    * In case you have to consult the Tesseract docs
