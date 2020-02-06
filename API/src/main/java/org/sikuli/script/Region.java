@@ -84,15 +84,22 @@ public class Region extends Pixels {
 
   //</editor-fold>
 
-  //<editor-fold desc="001 for Python">
+  //<editor-fold desc="001 for Python private">
   /**
-   * Get a default Region for Python
+   * INTERNAL: Get a default Region for Python
    * @return the default screen
    */
   public static Region getDefaultInstance4py() {
     return new Screen();
   }
 
+  /**
+   * Create a new Region
+   * <br>- Region(x, y, w, h)
+   * <br>- Region(someRegion)
+   * @param args
+   * @return new Region
+   */
   public static Region make4py(ArrayList args) {
     log(3, "make: args: %s", args);
     Region reg = new Screen();
@@ -2190,7 +2197,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="020 find image public methods">
+  //<editor-fold defaultstate="collapsed" desc="020 find image">
 
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
@@ -2673,7 +2680,7 @@ public class Region extends Pixels {
   }
   //</editor-fold>
 
-  //<editor-fold desc="021 find text public methods">
+  //<editor-fold desc="021 find text">
   public Match waitText(String text, double timeout) throws FindFailed {
     return relocate(wait("\t" + text + "\t", timeout));
   }
@@ -2739,7 +2746,7 @@ public class Region extends Pixels {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="022 find internal methods">
+  //<editor-fold defaultstate="collapsed" desc="022 find internal private">
 
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
@@ -3073,9 +3080,7 @@ public class Region extends Pixels {
       return _matches != null;
     }
   }
-  //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="023 Find internal support">
   private class SubFindRun implements Runnable {
 
     Match[] mArray;
