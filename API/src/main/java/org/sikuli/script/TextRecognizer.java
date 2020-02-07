@@ -310,12 +310,12 @@ public class TextRecognizer {
   }
 
   protected <SFIRBS> List<Match> readLines(SFIRBS from) {
-    BufferedImage bimg = Pixels.getBufferedImage(from);
+    BufferedImage bimg = Element.getBufferedImage(from);
     return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_LINE);
   }
 
   protected <SFIRBS> List<Match> readWords(SFIRBS from) {
-    BufferedImage bimg = Pixels.getBufferedImage(from);
+    BufferedImage bimg = Element.getBufferedImage(from);
     return readTextItems(bimg, OCR.PAGE_ITERATOR_LEVEL_WORD);
   }
   //</editor-fold>
@@ -345,7 +345,7 @@ public class TextRecognizer {
 
   protected <SFIRBS> String doRead(SFIRBS from) {
     String text = "";
-    BufferedImage bimg = Pixels.getBufferedImage(from);
+    BufferedImage bimg = Element.getBufferedImage(from);
     try {
       text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
@@ -357,7 +357,7 @@ public class TextRecognizer {
 
   protected <SFIRBS> List<Match> readTextItems(SFIRBS from, int level) {
     List<Match> lines = new ArrayList<>();
-    BufferedImage bimg = Pixels.getBufferedImage(from);
+    BufferedImage bimg = Element.getBufferedImage(from);
     BufferedImage bimgResized = optimize(bimg);
     List<Word> textItems = getTesseractAPI().getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();

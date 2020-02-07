@@ -19,12 +19,12 @@ import java.util.List;
  * <p>BE AWARE: This class cannot be used as such (cannot be instantiated)
  * <br>... instead use the classes Region or Image as needed</p>
  * NOTES:
- * <br>- the classname might change in the future without notice
- * <br>- the intention is, to have only one implementation for features, that are the same for Region and Image
+ * <br>- the intention is, to have only one implementation for features,
+ * that are the same for Region, Image and other pixel/screen related classes
  * <br>- the implementation here is ongoing beginning with version 2.0.2 and hence not complete yet
  * <br>- you might get <b>not-implemented exceptions</b> until complete
  */
-public abstract class Pixels {
+public abstract class Element {
 
   protected static final int logLevel = 3;
 
@@ -364,7 +364,7 @@ public abstract class Pixels {
    * @param target what(PSI) to search
    * @return Image object
    */
-  public static <PSI> Image getImageFromTarget(PSI target) {
+  public static <PSI> Image getImage(PSI target) {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {

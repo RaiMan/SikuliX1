@@ -175,7 +175,7 @@ public class Observer {
         continue;
       }
       Object ptn = eventNames.get(name);
-      Image img = Pixels.getImageFromTarget(ptn);
+      Image img = Element.getImage(ptn);
       if (img == null || !img.isUseable()) {
         Debug.error("EventMgr: checkPatterns: Image not valid", ptn);
         eventStates.put(name, State.MISSING);
