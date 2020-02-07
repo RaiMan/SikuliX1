@@ -13,22 +13,22 @@ jsonOff = function() {
 };
 
 isNull = function(aObj) {
-	if (!Commands.isJSON(aObj)) {
+	if (!JavaScriptSupport.isJSON(aObj)) {
 		return aObj == null;
 	}
-	return Commands.fromJSON(aObj) == null;
+	return JavaScriptSupport.fromJSON(aObj) == null;
 };
 
 json = function(aObj) {
-	if (!Commands.isJSON(aObj)) {
+	if (!JavaScriptSupport.isJSON(aObj)) {
 		return aObj;
 	}
-	return Commands.fromJSON(aObj);
+	return JavaScriptSupport.fromJSON(aObj);
 };
 
 getArgsForJ = function(args) {
   var jargs;
-  if (Commands.isNashorn()) {
+  if (JavaScriptSupport.isNashorn()) {
     jargs = Java.to(args);
   } else {
     jargs = java.lang.reflect.Array.newInstance(java.lang.Object, args.length);
@@ -40,7 +40,7 @@ getArgsForJ = function(args) {
 };
 
 makeRetVal = function(aObj) {
-  Commands.restoreUsed();
+  JavaScriptSupport.restoreUsed();
   return makeRetValDo(aObj);
 };
 
@@ -64,55 +64,55 @@ run = function() {
   if (arguments.length < 1) {
     return;
   }
-  return makeRetValDo(Commands.call("run", getArgsForJ(arguments)));
+  return makeRetValDo(JavaScriptSupport.call("run", getArgsForJ(arguments)));
 }
 
 use = function() {
-  return makeRetValDo(Commands.call("use", getArgsForJ(arguments)));
+  return makeRetValDo(JavaScriptSupport.call("use", getArgsForJ(arguments)));
 };
 
 use1 = function() {
-  return makeRetValDo(Commands.call("use1", getArgsForJ(arguments)));
+  return makeRetValDo(JavaScriptSupport.call("use1", getArgsForJ(arguments)));
 };
 
 wait = function() {
-  return makeRetVal(Commands.call("wait", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("wait", getArgsForJ(arguments)));
 };
 
 waitVanish = function() {
-  return makeRetVal(Commands.call("waitVanish", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("waitVanish", getArgsForJ(arguments)));
 };
 
 exists = function() {
-  return makeRetVal(Commands.call("exists", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("exists", getArgsForJ(arguments)));
 };
 
 click = function() {
-  return makeRetVal(Commands.call("click", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("click", getArgsForJ(arguments)));
 };
 
 doubleClick = function() {
-  return makeRetVal(Commands.call("doubleClick", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("doubleClick", getArgsForJ(arguments)));
 };
 
 rightClick = function() {
-  return makeRetVal(Commands.call("rightClick", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("rightClick", getArgsForJ(arguments)));
 };
 
 hover = function() {
-  return makeRetVal(Commands.call("hover", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("hover", getArgsForJ(arguments)));
 };
 
 type = function() {
-  return makeRetVal(Commands.call("type", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("type", getArgsForJ(arguments)));
 };
 
 write = function() {
-  return makeRetVal(Commands.call("write", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("write", getArgsForJ(arguments)));
 };
 
 paste = function() {
-  return makeRetVal(Commands.call("paste", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("paste", getArgsForJ(arguments)));
 };
 
 closeApp = function() {
@@ -134,42 +134,42 @@ closeBrowserWindow = function() {
 };
 
 circle = function() {
-  return makeRetVal(Commands.call("circle", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("circle", getArgsForJ(arguments)));
 };
 
 rectangle = function() {
-  return makeRetVal(Commands.call("rectangle", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("rectangle", getArgsForJ(arguments)));
 };
 
 text = function() {
-  return makeRetVal(Commands.call("text", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("text", getArgsForJ(arguments)));
 };
 
 tooltip = function() {
-  return makeRetVal(Commands.call("tooltip", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("tooltip", getArgsForJ(arguments)));
 };
 
 flag = function() {
-  return makeRetVal(Commands.call("flag", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("flag", getArgsForJ(arguments)));
 };
 
 callout = function() {
-  return makeRetVal(Commands.call("callout", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("callout", getArgsForJ(arguments)));
 };
 
 image = function() {
-  return makeRetVal(Commands.call("image", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("image", getArgsForJ(arguments)));
 };
 
 arrow = function() {
-  return makeRetVal(Commands.call("arrow", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("arrow", getArgsForJ(arguments)));
 };
 
 bracket = function() {
-  return makeRetVal(Commands.call("bracket", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("bracket", getArgsForJ(arguments)));
 };
 
 button = function() {
-  return makeRetVal(Commands.call("button", getArgsForJ(arguments)));
+  return makeRetVal(JavaScriptSupport.call("button", getArgsForJ(arguments)));
 };
 

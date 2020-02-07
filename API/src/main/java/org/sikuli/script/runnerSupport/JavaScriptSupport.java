@@ -369,7 +369,7 @@ public class JavaScriptSupport implements IRunnerSupport{
         int len = args.length;
         Match aMatch;
         if (len == 0 || args[0] == null) {
-            Mouse.move(scr.checkMatch());
+            Mouse.move(scr.match().getTarget());
             return Mouse.at();
         }
         if (len < 4) {
@@ -383,7 +383,7 @@ public class JavaScriptSupport implements IRunnerSupport{
                     aMatch = wait(args);
                     Mouse.move(aMatch.getTarget());
                 } catch (Exception ex) {
-                    Mouse.move(scr.checkMatch());
+                    Mouse.move(scr.match().getTarget());
                 }
                 return Mouse.at();
             } else if (aObj instanceof Region) {
@@ -393,7 +393,7 @@ public class JavaScriptSupport implements IRunnerSupport{
             }
             if (len > 1) {
                 if (isNumber(aObj) && isNumber(args[1])) {
-                    Mouse.move(scr.checkMatch().offset(getInteger(aObj), getInteger(args[1])));
+                    Mouse.move(scr.match().getTarget().offset(getInteger(aObj), getInteger(args[1])));
                     return Mouse.at();
                 } else if (len == 3 && loc != null && isNumber(args[1]) && isNumber(args[2])) {
                     Mouse.move(loc.offset(getInteger(args[1], 0), getInteger(args[2], 0)));
@@ -405,7 +405,7 @@ public class JavaScriptSupport implements IRunnerSupport{
                 return Mouse.at();
             }
         }
-        Mouse.move(scr.checkMatch());
+        Mouse.move(scr.match().getTarget());
         return Mouse.at();
     }
 
