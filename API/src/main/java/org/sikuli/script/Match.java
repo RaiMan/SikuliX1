@@ -31,39 +31,8 @@ public class Match extends Region implements Comparable<Match> {
   private boolean onScreen = true;
 
   public Match() {
-
+    this(null);
   }
-
-  public void setOnScreen(boolean state) {
-    onScreen = state;
-  }
-
-  public int getIndex() {
-    return index;
-  }
-
-  public void setIndex(int index) {
-    this.index = index;
-  }
-
-	/**
-	 * INTERNAL USE
-	 * set the elapsed times from search
-	 * @param ftime time
-	 * @param stime time
-	 */
-	public void setTimes(long ftime, long stime) {
-    lastFindTime = ftime;
-    lastSearchTime = stime;
-  }
-
-	/**
-	 *
-	 * @return this Match's actual waiting time from last successful find
-	 */
-	public long getTime() {
-		return lastFindTime;
-	}
 
   /**
    * create a copy of Match object<br>
@@ -71,20 +40,58 @@ public class Match extends Region implements Comparable<Match> {
    *
    * @param m other Match
    */
-  public Match(Match m) {
-    if (SX.isNull(m)) {
+  public Match(Element element) {
+    if (SX.isNull(element)) {
       init(0, 0, 1, 1, Screen.getPrimaryScreen());
+    } else if (element instanceof Match) {
+      Match match = (Match) element;
+      init(match.x, match.y, match.w, match.h, match.getScreen());
+      copy(match);
+    } else {
+      init(element.x, element.y, element.w, element.h, element.getScreen());
     }
-    init(m.x, m.y, m.w, m.h, m.getScreen());
-    copy(m);
   }
 
-	/**
-	 * create a Match from a region with given SimScore
-	 * @param reg Region
-	 * @param sc SimScore
-	 */
-	public Match(Region reg, double sc) {
+  public Match setOnScreen(boolean state) {
+    onScreen = state;
+    return this;
+  }
+
+  public int getIndex() {
+    return index;
+  }
+
+  public Match setIndex(int index) {
+    this.index = index;
+    return this;
+  }
+
+  /**
+   * INTERNAL USE
+   * set the elapsed times from search
+   *
+   * @param ftime time
+   * @param stime time
+   */
+  public void setTimes(long ftime, long stime) {
+    lastFindTime = ftime;
+    lastSearchTime = stime;
+  }
+
+  /**
+   * @return this Match's actual waiting time from last successful find
+   */
+  public long getTime() {
+    return lastFindTime;
+  }
+
+  /**
+   * create a Match from a region with given SimScore
+   *
+   * @param reg Region
+   * @param sc  SimScore
+   */
+  public Match(Region reg, double sc) {
     init(reg.x, reg.y, reg.w, reg.h, reg.getScreen());
     simScore = sc;
   }
@@ -95,7 +102,7 @@ public class Match extends Region implements Comparable<Match> {
 
   protected Match(Rectangle rect, double confidence, String text, Region base) {
     init(rect.x, rect.y, rect.width, rect.height, base == null ? null : base.getScreen());
-    simScore = confidence/100;
+    simScore = confidence / 100;
     ocrText = text;
   }
 
@@ -104,7 +111,7 @@ public class Match extends Region implements Comparable<Match> {
     y = rect.y;
     w = rect.width;
     h = rect.height;
-    simScore = confidence/100;
+    simScore = confidence / 100;
     ocrText = text;
     onScreen = false;
   }
@@ -126,8 +133,8 @@ public class Match extends Region implements Comparable<Match> {
     w = W;
     h = H;
     if (parent != null) {
-    setScreen(parent);
-  }
+      setScreen(parent);
+    }
   }
 
   public static Match create(Match match, IScreen screen) {
@@ -159,6 +166,7 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    * {@inheritDoc}
+   *
    * @return the point defined by target offset (if set) or the center
    */
   @Override
@@ -171,23 +179,25 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    * like {@link Pattern#targetOffset(org.sikuli.script.Location) Pattern.targetOffset}
-	 * sets the click target by offset relative to the center
+   * sets the click target by offset relative to the center
    *
    * @param offset as a Location
    */
-  public void setTargetOffset(Location offset) {
+  public Match setTargetOffset(Location offset) {
     target = new Location(getCenter());
     target.translate(offset.x, offset.y);
+    return this;
   }
 
   /**
    * like {@link Pattern#targetOffset(int, int) Pattern.targetOffset}
-	 * sets the click target relative to the center
+   * sets the click target relative to the center
+   *
    * @param x x offset
    * @param y y offset
    */
   public void setTargetOffset(int x, int y) {
-    setTargetOffset(new Location(x,y));
+    setTargetOffset(new Location(x, y));
   }
 
   /**
@@ -201,14 +211,17 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    * set the image after finding with success
+   *
    * @param img Image
    */
-  protected void setImage(Image img) {
+  protected Match setImage(Image img) {
     image = img;
+    return this;
   }
 
   /**
    * get the image used for searching
+   *
    * @return image or null
    */
   public Image getImage() {
@@ -217,6 +230,7 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    * get the filename of the image used for searching
+   *
    * @return filename
    */
   public String getImageFilename() {
@@ -224,7 +238,6 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   /**
-   *
    * @return the text stored by findWord, findLine, ...
    */
   public String getText() {
@@ -233,10 +246,12 @@ public class Match extends Region implements Comparable<Match> {
 
   /**
    * internally used to set the text found by findWord, findLine, ...
+   *
    * @param text
    */
-  protected void setText(String text) {
+  protected Match setText(String text) {
     ocrText = text;
+    return this;
   }
 
   @Override
@@ -272,7 +287,7 @@ public class Match extends Region implements Comparable<Match> {
     }
     Match that = (Match) oThat;
     return x == that.x && y == that.y && w == that.w && h == that.h
-            && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
+        && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
   }
 
   @Override
@@ -292,18 +307,19 @@ public class Match extends Region implements Comparable<Match> {
   @Override
   public String toStringShort() {
     return String.format("M[%d,%d %dx%d]On(%s) S %d", x, y, w, h,
-              (getScreen()== null ? "?" : getScreen().getID()),
-              Math.round(simScore * 10000));
+        (getScreen() == null ? "?" : getScreen().getID()),
+        Math.round(simScore * 10000));
   }
 
 
-	/**
-	 * INTERNAL USE
+  /**
+   * INTERNAL USE
    *
-	 * @param tx x
-	 * @param ty y
-	 */
-	public void setTarget(int tx, int ty) {
-		target = new Location(tx, ty);
-	}
+   * @param tx x
+   * @param ty y
+   */
+  public Match setTarget(int tx, int ty) {
+    target = new Location(tx, ty);
+    return this;
+  }
 }

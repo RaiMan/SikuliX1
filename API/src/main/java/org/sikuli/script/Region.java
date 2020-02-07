@@ -26,49 +26,6 @@ public class Region extends Element {
 
   //<editor-fold desc="000 Fields and global features">
   /**
-   * @param X new x position of top left corner
-   * @return this Region
-   */
-  public Region setX(int X) {
-    x = X;
-    initScreen(null);
-    return this;
-  }
-
-
-  /**
-   * @param Y new y position of top left corner
-   * @return this Region
-   */
-  public Region setY(int Y) {
-    y = Y;
-    initScreen(null);
-    return this;
-  }
-
-
-  /**
-   * @param W new width
-   * @return this Region
-   */
-  public Region setW(int W) {
-    w = W > 1 ? W : 1;
-    initScreen(null);
-    return this;
-  }
-
-
-  /**
-   * @param H new height
-   * @return this Region
-   */
-  public Region setH(int H) {
-    h = H > 1 ? H : 1;
-    initScreen(null);
-    return this;
-  }
-
-  /**
    * {@inheritDoc}
    *
    * @return the description
@@ -104,20 +61,6 @@ public class Region extends Element {
       return true;
     }
     return getScreen() != null && w != 0 && h != 0;
-  }
-
-  /**
-   * synonym for showMonitors
-   */
-  public void showScreens() {
-    Screen.showMonitors();
-  }
-
-  /**
-   * synonym for resetMonitors
-   */
-  public void resetScreens() {
-    Screen.resetMonitors();
   }
   //</editor-fold>
 
@@ -165,291 +108,7 @@ public class Region extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="017 handle FindFailed and ImageMissing">
-  /**
-   * true - should throw {@link FindFailed} if not found in this region<br>
-   * false - do not abort script on FindFailed (might lead to NPE's later)<br>
-   * default: {@link Settings#ThrowException}<br>
-   * sideEffects: {@link #setFindFailedResponse(FindFailedResponse)} true:ABORT, false:SKIP<br>
-   * see also: {@link #setFindFailedResponse(FindFailedResponse)}<br>
-   * and: {@link #setFindFailedHandler(Object)}
-   *
-   * @param flag true/false
-   */
-  public void setThrowException(boolean flag) {
-    throwException = flag;
-    if (throwException) {
-      findFailedResponse = FindFailedResponse.ABORT;
-    } else {
-      findFailedResponse = FindFailedResponse.SKIP;
-    }
-  }
-
-  /**
-   * reset to default {@link #setThrowException(boolean)}
-   */
-  public void resetThrowException() {
-    setThrowException(throwExceptionDefault);
-  }
-
-  /**
-   * current setting {@link #setThrowException(boolean)}
-   *
-   * @return true/false
-   */
-  public boolean getThrowException() {
-    return throwException;
-  }
-
-  private boolean throwExceptionDefault = Settings.ThrowException;
-  private boolean throwException = throwExceptionDefault;
-
-  /**
-   * FindFailedResponse.<br>
-   * ABORT - abort script on FindFailed <br>
-   * SKIP - ignore FindFailed<br>
-   * PROMPT - display prompt on FindFailed to let user decide how to proceed<br>
-   * RETRY - continue to wait for appearence after FindFailed<br>
-   * HANDLE - call a handler on exception {@link #setFindFailedHandler(Object)}<br>
-   * default: ABORT<br>
-   * see also: {@link #setThrowException(boolean)}
-   *
-   * @param response {@link FindFailed}
-   */
-  public void setFindFailedResponse(FindFailedResponse response) {
-    findFailedResponse = response;
-  }
-
-  /**
-   * reset to default {@link #setFindFailedResponse(FindFailedResponse)}
-   */
-  public void resetFindFailedResponse() {
-    setFindFailedResponse(findFailedResponseDefault);
-  }
-
-  /**
-   * @return the current setting {@link #setFindFailedResponse(FindFailedResponse)}
-   */
-  public FindFailedResponse getFindFailedResponse() {
-    return findFailedResponse;
-  }
-
-  private FindFailedResponse findFailedResponseDefault = FindFailed.getResponse();
-  private FindFailedResponse findFailedResponse = findFailedResponseDefault;
-
-  public void setFindFailedHandler(Object handler) {
-    findFailedResponse = FindFailedResponse.HANDLE;
-    findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
-    log(logLevel, "Setting FindFailedHandler");
-  }
-
-  private Object findFailedHandler = FindFailed.getFindFailedHandler();
-
-  private <PSI> Boolean handleFindFailed(PSI target, Image img) {
-    log(logLevel, "handleFindFailed: %s", target);
-    Boolean state = null;
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (FindFailedResponse.HANDLE.equals(response)) {
-      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
-      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
-        log(logLevel, "handleFindFailed: Response.HANDLE: calling handler");
-        evt = new ObserveEvent("", type, target, img, this, 0);
-        ((ObserverCallBack) findFailedHandler).findfailed(evt);
-        response = evt.getResponse();
-      }
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      state = false;
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    if (FindFailedResponse.PROMPT.equals(response)) {
-      response = handleFindFailedShowDialog(img, false);
-    } else {
-      return state;
-    }
-    if (FindFailedResponse.ABORT.equals(response)) {
-      state = null;
-    } else if (FindFailedResponse.SKIP.equals(response)) {
-      // TODO HACK to allow recapture on FindFailed PROMPT
-      if (img.backup()) {
-        img.delete();
-        state = handleImageMissing(img, true); //hack: FindFailed-ReCapture
-        if (state == null || !state) {
-          if (!img.restore()) {
-            state = null;
-          } else {
-            img.get();
-          }
-        }
-      }
-    } else if (FindFailedResponse.RETRY.equals(response)) {
-      state = true;
-    }
-    return state;
-  }
-
-  private Boolean handleImageMissing(Image img, boolean recap) {
-    log(logLevel, "handleImageMissing: %s", img.getName());
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (!recap && imageMissingHandler != null) {
-      log(logLevel, "handleImageMissing: calling handler");
-      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
-      ((ObserverCallBack) imageMissingHandler).missing(evt);
-      response = evt.getResponse();
-    }
-    if (recap || FindFailedResponse.PROMPT.equals(response)) {
-      if (!recap) {
-        log(logLevel, "handleImageMissing: Response.PROMPT");
-      }
-      response = handleFindFailedShowDialog(img, true);
-    }
-    if (FindFailedResponse.RETRY.equals(response)) {
-      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
-      getRobotForRegion().delay(500);
-      ScreenImage simg = getScreen().userCapture(
-          (recap ? "recapture " : "capture missing ") + img.getName());
-      if (simg != null) {
-        String path = ImagePath.getBundlePath();
-        if (path == null) {
-          log(-1, "handleImageMissing: no bundle path - aborting");
-          return null;
-        }
-        simg.getFile(path, img.getName());
-        Image.reinit(img);
-        if (img.isValid()) {
-          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
-          Image.setIDEshouldReload(img);
-          return true;
-        }
-      }
-      return null;
-    } else if (findFailedResponse.ABORT.equals(response)) {
-      log(-1, "handleImageMissing: Response.ABORT: aborting");
-      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
-      return null;
-    }
-    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
-    return false;
-  }
-
-  private FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
-    log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
-    FindFailedResponse response;
-    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
-    fd.setVisible(true);
-    response = fd.getResponse();
-    fd.dispose();
-    wait(0.5);
-    log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
-    return response;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="019 wait observe timing">
-
-  /**
-   * the time in seconds a find operation should wait.
-   * <br>for the appearence of the target in this region
-   * <br>initial value is the global AutoWaitTimeout setting at time of Region creation
-   *
-   * @param sec seconds
-   */
-  public void setAutoWaitTimeout(double sec) {
-    autoWaitTimeout = sec;
-  }
-
-  /**
-   * current setting for this region (see setAutoWaitTimeout)
-   *
-   * @return value of seconds
-   */
-  public double getAutoWaitTimeout() {
-    return autoWaitTimeout;
-  }
-
-  /**
-   * Default time to wait for an image {@link Settings}
-   */
-  private double autoWaitTimeoutDefault = Settings.AutoWaitTimeout;
-  private double autoWaitTimeout = autoWaitTimeoutDefault;
-
-  /**
-   * @return the regions current WaitScanRate
-   */
-  public float getWaitScanRate() {
-    return waitScanRate;
-  }
-
-  /**
-   * set the regions individual WaitScanRate
-   *
-   * @param waitScanRate decimal number
-   */
-  public void setWaitScanRate(float waitScanRate) {
-    this.waitScanRate = waitScanRate;
-  }
-
-  private float waitScanRateDefault = Settings.WaitScanRate;
-  private float waitScanRate = waitScanRateDefault;
-
-
-  /**
-   * @return the regions current ObserveScanRate
-   */
-  public float getObserveScanRate() {
-    return observeScanRate;
-  }
-
-  /**
-   * set the regions individual ObserveScanRate
-   *
-   * @param observeScanRate decimal number
-   */
-  public void setObserveScanRate(float observeScanRate) {
-    this.observeScanRate = observeScanRate;
-  }
-
-  private float observeScanRateDefault = Settings.ObserveScanRate;
-  private float observeScanRate = observeScanRateDefault;
-
-  /**
-   * INTERNAL: Observe
-   *
-   * @return the regions current RepeatWaitTime time in seconds
-   */
-  public int getRepeatWaitTime() {
-    return repeatWaitTime;
-  }
-
-  /**
-   * INTERNAL: Observe set the regions individual WaitForVanish
-   *
-   * @param time in seconds
-   */
-  public void setRepeatWaitTime(int time) {
-    repeatWaitTime = time;
-  }
-
-  private int repeatWaitTimeDefault = Settings.RepeatWaitTime;
-  private int repeatWaitTime = repeatWaitTimeDefault;
-  //</editor-fold>
-
   //<editor-fold desc="004 housekeeping private">
-
-  private boolean isScreenUnion = false;
-  private boolean isVirtual = false;
-
-  /**
-   * The Screen containing the Region
-   */
-  private IScreen scr;
-  protected boolean otherScreen = false;
-
   protected static Region getFakeRegion() {
     if (fakeRegion == null) {
       fakeRegion = new Region(0, 0, 5, 5);
@@ -458,178 +117,9 @@ public class Region extends Element {
   }
 
   private static Region fakeRegion;
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="005 Init & special use private">
 
   protected Image getImage() {
     return new Image(getScreen().capture(x, y, w, h));
-  }
-
-  /**
-   * INTERNAL: USE
-   *
-   * @param iscr screen
-   */
-  public void initScreen(IScreen iscr) {
-    // check given screen first
-    Rectangle rect, screenRect;
-    IScreen screen, screenOn;
-    if (iscr != null) {
-      if (iscr.isOtherScreen()) {
-        if (x < 0) {
-          w = w + x;
-          x = 0;
-        }
-        if (y < 0) {
-          h = h + y;
-          y = 0;
-        }
-        this.scr = iscr;
-        this.otherScreen = true;
-        return;
-      }
-      if (iscr.getID() > -1) {
-        rect = regionOnScreen(iscr);
-        if (rect != null) {
-          x = rect.x;
-          y = rect.y;
-          w = rect.width;
-          h = rect.height;
-          this.scr = iscr;
-          return;
-        }
-      } else {
-        // is ScreenUnion
-        return;
-      }
-    }
-    // check all possible screens if no screen was given or the region is not on given screen
-    // crop to the screen with the largest intersection
-    screenRect = new Rectangle(0, 0, 0, 0);
-    screenOn = null;
-
-    if (scr == null || !scr.isOtherScreen()) {
-      for (int i = 0; i < Screen.getNumberScreens(); i++) {
-        screen = Screen.getScreen(i);
-        rect = regionOnScreen(screen);
-        if (rect != null) {
-          if (rect.width * rect.height > screenRect.width * screenRect.height) {
-            screenRect = rect;
-            screenOn = screen;
-          }
-        }
-      }
-    } else {
-      rect = regionOnScreen(scr);
-      if (rect != null) {
-        if (rect.width * rect.height > screenRect.width * screenRect.height) {
-          screenRect = rect;
-          screenOn = scr;
-        }
-      }
-    }
-
-    if (screenOn != null) {
-      x = screenRect.x;
-      y = screenRect.y;
-      w = screenRect.width;
-      h = screenRect.height;
-      this.scr = screenOn;
-    } else {
-      // no screen found
-      this.scr = null;
-      Debug.error("Region(%d,%d,%d,%d) outside any screen - subsequent actions might not work as expected", x, y, w, h);
-    }
-  }
-
-  private Location checkAndSetRemote(Location loc) {
-    if (!isOtherScreen()) {
-      return loc;
-    }
-    return loc.setOtherScreen(getScreen());
-  }
-
-  /**
-   * INTERNAL: USE - EXPERIMENTAL if true: this region is not bound to any screen
-   *
-   * @param rect rectangle
-   * @return the current state
-   */
-  public static Region virtual(Rectangle rect) {
-    Region reg = new Region();
-    reg.x = rect.x;
-    reg.y = rect.y;
-    reg.w = rect.width;
-    reg.h = rect.height;
-    reg.setVirtual(true);
-    reg.scr = Screen.getPrimaryScreen();
-    return reg;
-  }
-
-  /**
-   * INTERNAL: USE - EXPERIMENTAL if true: this region is not bound to any screen
-   *
-   * @return the current state
-   */
-  public boolean isVirtual() {
-    return isVirtual;
-  }
-
-  /**
-   * INTERNAL: USE - EXPERIMENTAL
-   *
-   * @param state if true: this region is not bound to any screen
-   */
-  public void setVirtual(boolean state) {
-    isVirtual = state;
-  }
-
-  /**
-   * INTERNAL: checks wether this region belongs to a non-Desktop screen
-   *
-   * @return true/false
-   */
-  public boolean isOtherScreen() {
-    return otherScreen;
-  }
-
-  /**
-   * INTERNAL: flags this region as belonging to a non-Desktop screen
-   */
-  public void setOtherScreen() {
-    otherScreen = true;
-  }
-
-  /**
-   * INTERNAL: flags this region as belonging to a non-Desktop screen
-   *
-   * @param aScreen screen
-   * @return this Region
-   */
-  public Region setOtherScreen(IScreen aScreen) {
-    scr = aScreen;
-    setOtherScreen();
-    return this;
-  }
-
-  /**
-   * Checks if the Screen contains the Region.
-   *
-   * @param screen The Screen in which the Region might be
-   * @return True, if the Region is on the Screen. False if the Region is not inside the Screen
-   */
-  protected Rectangle regionOnScreen(IScreen screen) {
-    if (screen == null) {
-      return null;
-    }
-    // get intersection of Region and Screen
-    Rectangle rect = screen.getRect().intersection(getRect());
-    // no Intersection, Region is not on the Screen
-    if (rect.isEmpty()) {
-      return null;
-    }
-    return rect;
   }
   //</editor-fold>
 
@@ -649,6 +139,8 @@ public class Region extends Element {
     this.isScreenUnion = isScreenUnion;
     this.rows = 0;
   }
+
+  private boolean isScreenUnion = false;
 
   /**
    * Create a region with the provided coordinate / size and screen
@@ -733,16 +225,10 @@ public class Region extends Element {
     y = r.y;
     w = r.w;
     h = r.h;
-    scr = r.getScreen();
-    otherScreen = r.isOtherScreen();
+    setScreen(r.getScreen());
+    setOtherScreenOf(r);
     rows = 0;
-    autoWaitTimeout = r.autoWaitTimeout;
-    findFailedResponse = r.findFailedResponse;
-    findFailedHandler = r.findFailedHandler;
-    throwException = r.throwException;
-    waitScanRate = r.waitScanRate;
-    observeScanRate = r.observeScanRate;
-    repeatWaitTime = r.repeatWaitTime;
+    copyAllAttributes(r);
   }
 
   /**
@@ -908,9 +394,7 @@ public class Region extends Element {
    */
   public static Region create(Region r) {
     Region reg = Region.create(r.x, r.y, r.w, r.h, r.getScreen());
-    reg.autoWaitTimeout = r.autoWaitTimeout;
-    reg.findFailedResponse = r.findFailedResponse;
-    reg.throwException = r.throwException;
+    reg.copyAllAttributes(r);
     return reg;
   }
 
@@ -955,36 +439,6 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="008 handle coordinates">
-
-  /**
-   * @return the center pixel location of the region
-   */
-  public Location getCenter() {
-    return checkAndSetRemote(new Location(getX() + getW() / 2, getY() + getH() / 2));
-  }
-
-  /**
-   * convenience method
-   *
-   * @return the region's center
-   */
-  public Location getTarget() {
-    return getCenter();
-  }
-
-  /**
-   * Moves the region to the area, whose center is the given location
-   *
-   * @param loc the location which is the new center of the region
-   * @return the region itself
-   */
-  public Region setCenter(Location loc) {
-    Location c = getCenter();
-    x = x - c.x + loc.x;
-    y = y - c.y + loc.y;
-    initScreen(null);
-    return this;
-  }
 
   /**
    * @return top left corner Location
@@ -1137,21 +591,6 @@ public class Region extends Element {
   //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
 
   /**
-   * @return the Screen object containing the region
-   */
-  public IScreen getScreen() {
-    return scr;
-  }
-
-  // to avoid NPE for Regions being outside any screen
-  private IRobot getRobotForRegion() {
-    if (getScreen() == null || isScreenUnion) {
-      return Screen.getPrimaryScreen().getRobot();
-    }
-    return getScreen().getRobot();
-  }
-
-  /**
    * @return the screen, that contains the top left corner of the region. Returns primary screen if outside of any
    * screen.
    * @deprecated Only for compatibility, to get the screen containing this region, use {@link #getScreen()}
@@ -1159,27 +598,6 @@ public class Region extends Element {
   @Deprecated
   public IScreen getScreenContaining() {
     return getScreen();
-  }
-
-  /**
-   * Sets a new Screen for this region.
-   *
-   * @param scr the containing screen object
-   * @return the region itself
-   */
-  protected Region setScreen(IScreen scr) {
-    initScreen(scr);
-    return this;
-  }
-
-  /**
-   * Sets a new Screen for this region.
-   *
-   * @param id the containing screen object's id
-   * @return the region itself
-   */
-  protected Region setScreen(int id) {
-    return setScreen(Screen.getScreen(id));
   }
 
   // ************************************************
@@ -1194,54 +612,6 @@ public class Region extends Element {
     h = H > 1 ? H : 1;
     initScreen(null);
     return this;
-  }
-
-  /**
-   * @return the AWT Rectangle of the region
-   */
-  public Rectangle getRect() {
-    return new Rectangle(x, y, w, h);
-  }
-
-  /**
-   * set the regions position/size.
-   * <br>this might move the region even to another screen
-   *
-   * @param r the AWT Rectangle to use for position/size
-   * @return the region itself
-   */
-  public Region setRect(Rectangle r) {
-    return setRect(r.x, r.y, r.width, r.height);
-  }
-
-  /**
-   * set the regions position/size.
-   * <br>this might move the region even to another screen
-   *
-   * @param X new x of top left corner
-   * @param Y new y of top left corner
-   * @param W new width
-   * @param H new height
-   * @return the region itself
-   */
-  public Region setRect(int X, int Y, int W, int H) {
-    x = X;
-    y = Y;
-    w = W > 1 ? W : 1;
-    h = H > 1 ? H : 1;
-    initScreen(null);
-    return this;
-  }
-
-  /**
-   * set the regions position/size.
-   * <br>this might move the region even to another screen
-   *
-   * @param r the region to use for position/size
-   * @return the region itself
-   */
-  public Region setRect(Region r) {
-    return setRect(r.x, r.y, r.w, r.h);
   }
 
   // ****************************************************
@@ -1361,7 +731,7 @@ public class Region extends Element {
    */
   @Deprecated
   public Region morphTo(Region r) {
-    return setRect(r);
+    return (Region) setRect(r);
   }
 
   /**
@@ -2286,18 +1656,6 @@ public class Region extends Element {
   //<editor-fold defaultstate="collapsed" desc="020 find image">
 
   /**
-   * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
-   *
-   * @param timeout The time to wait
-   */
-  public void wait(double timeout) {
-    try {
-      Thread.sleep((long) (timeout * 1000L));
-    } catch (InterruptedException e) {
-    }
-  }
-
-  /**
    * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
    *
    * @param <PSI>   Pattern, String or Image
@@ -2332,7 +1690,7 @@ public class Region extends Element {
         lastMatch = rf.getMatch();
         //lastMatch.setImage(img);
         if (isOtherScreen()) {
-          lastMatch.setOtherScreen();
+          lastMatch.setOtherScreenOf(this);
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
@@ -2372,7 +1730,7 @@ public class Region extends Element {
       wait(0.0 + ((Double) target));
       return null;
     }
-    return wait(target, autoWaitTimeout);
+    return wait(target, getAutoWaitTimeout());
   }
 
   /**
@@ -2406,7 +1764,7 @@ public class Region extends Element {
       lastMatch = doFind(target, img, null);
       if (lastMatch != null) {
         if (isOtherScreen()) {
-          lastMatch.setOtherScreen();
+          lastMatch.setOtherScreenOf(this);
         } else if (img != null) {
           img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         }
@@ -2459,7 +1817,7 @@ public class Region extends Element {
       lastMatch = rf.getMatch();
       //lastMatch.setImage(img);
       if (isOtherScreen()) {
-        lastMatch.setOtherScreen();
+        lastMatch.setOtherScreenOf(this);
       } else if (img != null) {
         img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
       }
@@ -2479,7 +1837,7 @@ public class Region extends Element {
    * @return the match (null if not found or image file missing)
    */
   public <PSI> Match exists(PSI target) {
-    return exists(target, autoWaitTimeout);
+    return exists(target, getAutoWaitTimeout());
   }
 
   /**
@@ -2554,7 +1912,7 @@ public class Region extends Element {
    * @return true if the target vanishes, otherwise returns false.
    */
   public <PSI> boolean waitVanish(PSI target) {
-    return waitVanish(target, autoWaitTimeout);
+    return waitVanish(target, getAutoWaitTimeout());
   }
 
   /**
@@ -2579,9 +1937,9 @@ public class Region extends Element {
     }
     while (null != response && response) {
       log(logLevel, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-          autoWaitTimeout, targetStr, this.toStringShort());
-      if (autoWaitTimeout > 0) {
-        rf.repeat(autoWaitTimeout);
+          getAutoWaitTimeout(), targetStr, this.toStringShort());
+      if (getAutoWaitTimeout() > 0) {
+        rf.repeat(getAutoWaitTimeout());
         lastMatches = rf.getMatches();
       } else {
         lastMatches = doFindAll(target, null);
@@ -2772,7 +2130,7 @@ public class Region extends Element {
   }
 
   public Match waitText(String text) throws FindFailed {
-    return waitText(text, autoWaitTimeout);
+    return waitText(text, getAutoWaitTimeout());
   }
 
   public Match waitT(String text, double timeout) throws FindFailed {
@@ -2780,7 +2138,7 @@ public class Region extends Element {
   }
 
   public Match waitT(String text) throws FindFailed {
-    return waitT(text, autoWaitTimeout);
+    return waitT(text, getAutoWaitTimeout());
   }
 
   public Match findText(String text) throws FindFailed {
@@ -2798,7 +2156,7 @@ public class Region extends Element {
   }
 
   public Match existsText(String text) {
-    return existsText(text, autoWaitTimeout);
+    return existsText(text, getAutoWaitTimeout());
   }
 
   public boolean hasText(String text) {
@@ -2844,7 +2202,7 @@ public class Region extends Element {
     //IScreen screen = null;
     boolean findingText = false;
     ScreenImage simg;
-    double findTimeout = autoWaitTimeout;
+    double findTimeout = getAutoWaitTimeout();
     String someText = "";
     if (repeating != null) {
       findTimeout = repeating.getFindTimeOut();
@@ -3063,7 +2421,7 @@ public class Region extends Element {
     // throws Exception if any unexpected error occurs
     boolean repeat(double timeout) {
       findTimeout = timeout;
-      int MaxTimePerScan = (int) (1000.0 / waitScanRate);
+      int MaxTimePerScan = (int) (1000.0 / getWaitScanRate());
       int timeoutMilli = (int) (timeout * 1000);
       long begin_t = (new Date()).getTime();
       do {
@@ -3076,9 +2434,9 @@ public class Region extends Element {
         }
         long after_find = (new Date()).getTime();
         if (after_find - before_find < MaxTimePerScan) {
-          getRobotForRegion().delay((int) (MaxTimePerScan - (after_find - before_find)));
+          getRobotForElement().delay((int) (MaxTimePerScan - (after_find - before_find)));
         } else {
-          getRobotForRegion().delay(10);
+          getRobotForElement().delay(10);
         }
       } while (begin_t + timeout * 1000 > (new Date()).getTime());
       return false;
@@ -3302,42 +2660,6 @@ public class Region extends Element {
       nobj++;
     }
     return mList;
-  }
-
-  protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
-    if (target instanceof ArrayList) {
-      ArrayList parms = (ArrayList) target;
-      if (parms.size() == 1) {
-        target = (PSIMRL) parms.get(0);
-      } else if (parms.size() == 2) {
-        if (parms.get(0) instanceof Integer && parms.get(0) instanceof Integer) {
-          return new Location((Integer) parms.get(0), (Integer) parms.get(1));
-        }
-      } else {
-        return null;
-      }
-    }
-    if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-      Match m = wait(target);
-      if (m != null) {
-        if (isOtherScreen()) {
-          return m.getTarget().setOtherScreen(getScreen());
-        } else {
-          return m.getTarget();
-        }
-      }
-      return null;
-    }
-    if (target instanceof Match) {
-      return ((Match) target).getTarget();
-    }
-    if (target instanceof Region) {
-      return ((Region) target).getCenter();
-    }
-    if (target instanceof Location) {
-      return new Location((Location) target);
-    }
-    return null;
   }
   //</editor-fold>
 
@@ -3652,7 +2974,7 @@ public class Region extends Element {
       }
     }
     log(logLevel, "observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
-    int MaxTimePerScan = (int) (1000.0 / observeScanRate);
+    int MaxTimePerScan = (int) (1000.0 / getObserveScanRate());
     long begin_t = (new Date()).getTime();
     long stop_t;
     if (secs > Long.MAX_VALUE) {
@@ -3758,110 +3080,6 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="040 Mouse - click">
-  public Location checkMatch() {
-    if (lastMatch != null) {
-      return lastMatch.getTarget();
-    }
-    return getTarget();
-  }
-
-  /**
-   * move the mouse pointer to region's last successful match.
-   * <br>use center if no lastMatch
-   * <br>if region is a match: move to targetOffset
-   * <br>same as mouseMove
-   *
-   * @return 1 if possible, 0 otherwise
-   */
-  public int hover() {
-    return mouseMove();
-  }
-
-  /**
-   * move the mouse pointer to the given target location.
-   * <br>same as mouseMove
-   * <br> Pattern or Filename - do a find before and use the match
-   * <br> Region - position at center
-   * <br> Match - position at match's targetOffset
-   * <br> Location - position at that point
-   * <br>
-   *
-   * @param <PFRML> to search: Pattern, Filename, Text, Region, Match or Location
-   * @param target  Pattern, Filename, Text, Region, Match or Location
-   * @return 1 if possible, 0 otherwise
-   * @throws FindFailed for Pattern or Filename
-   */
-  public <PFRML> int hover(PFRML target) throws FindFailed {
-    log(logLevel, "hover: " + target);
-    return mouseMove(target);
-  }
-
-  /**
-   * left click at the region's last successful match.
-   * <br>use center if no lastMatch
-   * <br>if region is a match: click targetOffset
-   *
-   * @return 1 if possible, 0 otherwise
-   */
-  public int click() {
-    try { // needed to cut throw chain for FindFailed
-      return click(checkMatch(), 0);
-    } catch (FindFailed ex) {
-      return 0;
-    }
-  }
-
-  /**
-   * left click at the given target location.
-   * <br> Pattern or Filename - do a find before and use the match
-   * <br> Region - position at center
-   * <br> Match - position at match's targetOffset
-   * <br> Location - position at that point
-   * <br>
-   *
-   * @param <PFRML> to search: Pattern, Filename, Text, Region, Match or Location
-   * @param target  Pattern, Filename, Text, Region, Match or Location
-   * @return 1 if possible, 0 otherwise
-   * @throws FindFailed for Pattern or Filename
-   */
-  public <PFRML> int click(PFRML target) throws FindFailed {
-    return click(target, 0);
-  }
-
-
-  /**
-   * left click at the given target location.
-   * <br> holding down the given modifier keys
-   * <br> Pattern or Filename - do a find before and use the match
-   * <br> Region - position at center
-   * <br> Match - position at match's targetOffset
-   * <br> Location - position at that point
-   * <br>
-   *
-   * @param <PFRML>   to search: Pattern, Filename, Text, Region, Match or Location
-   * @param target    Pattern, Filename, Text, Region, Match or Location
-   * @param modifiers the value of the resulting bitmask (see KeyModifier)
-   * @return 1 if possible, 0 otherwise
-   * @throws FindFailed for Pattern or Filename
-   */
-  public <PFRML> int click(PFRML target, Integer modifiers) throws FindFailed {
-    int ret = 0;
-    if (target instanceof ArrayList) {
-      ArrayList parms = (ArrayList) target;
-      if (parms.size() > 0) {
-        target = (PFRML) parms.get(0);
-      } else {
-        return ret;
-      }
-    }
-    Location loc = getLocationFromTarget(target);
-    if (null != loc) {
-      ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
-    }
-    //TODO      SikuliActionManager.getInstance().clickTarget(this, target, _lastScreenImage, _lastMatch);
-    return ret;
-  }
-
   /**
    * double click at the region's last successful match
    * <br>use center if no lastMatch
@@ -3871,7 +3089,7 @@ public class Region extends Element {
    */
   public int doubleClick() {
     try { // needed to cut throw chain for FindFailed
-      return doubleClick(checkMatch(), 0);
+      return doubleClick(match(), 0);
     } catch (FindFailed ex) {
       return 0;
     }
@@ -3929,7 +3147,7 @@ public class Region extends Element {
    */
   public int rightClick() {
     try { // needed to cut throw chain for FindFailed
-      return rightClick(checkMatch(), 0);
+      return rightClick(match(), 0);
     } catch (FindFailed ex) {
       return 0;
     }
@@ -3976,15 +3194,6 @@ public class Region extends Element {
     }
     //TODO      SikuliActionManager.getInstance().rightClickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
-  }
-
-  /**
-   * time in milliseconds to delay between button down/up at next click only (max 1000)
-   *
-   * @param millisecs value
-   */
-  public void delayClick(int millisecs) {
-    Settings.ClickDelay = millisecs;
   }
   //</editor-fold>
 
@@ -4114,88 +3323,6 @@ public class Region extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="042 Mouse - low level">
-
-  /**
-   * press and hold the specified buttons - use + to combine Button.LEFT left mouse button Button.MIDDLE middle mouse
-   * button Button.RIGHT right mouse button
-   *
-   * @param buttons spec
-   */
-  public void mouseDown(int buttons) {
-    Mouse.down(buttons, this);
-  }
-
-  /**
-   * release all currently held buttons
-   */
-  public void mouseUp() {
-    Mouse.up(0, this);
-  }
-
-  /**
-   * release the specified mouse buttons (see mouseDown) if buttons==0, all currently held buttons are released
-   *
-   * @param buttons spec
-   */
-  public void mouseUp(int buttons) {
-    Mouse.up(buttons, this);
-  }
-
-  /**
-   * move the mouse pointer to the region's last successful match.
-   * <br>same as hover
-   * <br>
-   *
-   * @return 1 if possible, 0 otherwise
-   */
-  public int mouseMove() {
-    try { // needed to cut throw chain for FindFailed
-      return mouseMove(checkMatch());
-    } catch (FindFailed ex) {
-    }
-    return 0;
-  }
-
-  /**
-   * move the mouse pointer to the given target location
-   * <br> same as hover
-   * <br> Pattern or Filename - do a find before and use the match
-   * <br> Region - position at center
-   * <br> Match - position at match's targetOffset
-   * <br> Location - position at that point
-   * <br>
-   *
-   * @param <PFRML> Pattern, Filename, Text, Region, Match or Location
-   * @param target  Pattern, Filename, Text, Region, Match or Location
-   * @return 1 if possible, 0 otherwise
-   * @throws FindFailed for Pattern or Filename
-   */
-  public <PFRML> int mouseMove(PFRML target) throws FindFailed {
-    int ret = 0;
-    Location loc = getLocationFromTarget(target);
-    if (null != loc) {
-      ret = Mouse.move(loc, this);
-    }
-    return ret;
-  }
-
-  /**
-   * move the mouse from the current position to the offset position given by the parameters
-   *
-   * @param xoff horizontal offset (&lt; 0 left, &gt; 0 right)
-   * @param yoff vertical offset (&lt; 0 up, &gt; 0 down)
-   * @return 1 if possible, 0 otherwise
-   */
-  public int mouseMove(int xoff, int yoff) {
-    try {
-      return mouseMove(Mouse.at().offset(xoff, yoff));
-    } catch (Exception ex) {
-      return 0;
-    }
-  }
-  //</editor-fold>
-
   //<editor-fold desc="043 Mouse wheel">
   /*
    * Used for LEGACY handling in
@@ -4286,7 +3413,7 @@ public class Region extends Element {
    */
   public int wheel(int direction, int steps, int modifiers, int stepDelay) {
     try { // needed to cut throw chain for FindFailed
-      wheel(checkMatch(),  direction, steps, modifiers, stepDelay);
+      wheel(match(),  direction, steps, modifiers, stepDelay);
       return 1;
     } catch (FindFailed ex) {
       return 0;
@@ -4434,7 +3561,7 @@ public class Region extends Element {
     String token, tokenSave;
     String modifier = "";
     int k;
-    IRobot robot = getRobotForRegion();
+    IRobot robot = getRobotForElement();
     int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
     Settings.TypeDelay = 0.0;
     robot.typeStarts();
@@ -4698,7 +3825,7 @@ public class Region extends Element {
       Debug.action("%s TYPE \"%s\"", modText, showText);
       log(logLevel, "%s TYPE \"%s\"", modText, showText);
       profiler.lap("before getting Robot");
-      IRobot r = getRobotForRegion();
+      IRobot r = getRobotForElement();
       int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
       Settings.TypeDelay = 0.0;
       profiler.lap("before typing");
@@ -4737,7 +3864,7 @@ public class Region extends Element {
    * @param keycode Java KeyCode
    */
   public void keyDown(int keycode) {
-    getRobotForRegion().keyDown(keycode);
+    getRobotForElement().keyDown(keycode);
   }
 
   /**
@@ -4750,14 +3877,14 @@ public class Region extends Element {
    * @param keys valid keys
    */
   public void keyDown(String keys) {
-    getRobotForRegion().keyDown(keys);
+    getRobotForElement().keyDown(keys);
   }
 
   /**
    * release all currently pressed keys
    */
   public void keyUp() {
-    getRobotForRegion().keyUp();
+    getRobotForElement().keyUp();
   }
 
   /**
@@ -4766,7 +3893,7 @@ public class Region extends Element {
    * @param keycode Java KeyCode
    */
   public void keyUp(int keycode) {
-    getRobotForRegion().keyUp(keycode);
+    getRobotForElement().keyUp(keycode);
   }
 
   /**
@@ -4775,7 +3902,7 @@ public class Region extends Element {
    * @param keys valid keys
    */
   public void keyUp(String keys) {
-    getRobotForRegion().keyUp(keys);
+    getRobotForElement().keyUp(keys);
   }
   //</editor-fold>
 
@@ -4813,7 +3940,7 @@ public class Region extends Element {
     if (text != null) {
       App.setClipboard(text);
       int mod = Key.getHotkeyModifier();
-      IRobot r = getRobotForRegion();
+      IRobot r = getRobotForElement();
       r.keyDown(mod);
       r.keyDown(KeyEvent.VK_V);
       r.keyUp(KeyEvent.VK_V);

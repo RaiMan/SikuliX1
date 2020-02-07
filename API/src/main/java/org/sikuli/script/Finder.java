@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 
 public class Finder implements Iterator<Match> {
 
-  private Region _region = null;
+  private Region  _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
   private FindInput2 _findInput = new FindInput2();
@@ -486,17 +486,13 @@ public class Finder implements Iterator<Match> {
         match.x += _region.x;
         match.y += _region.y;
       }
-      IScreen parentScreen = null;
       if (screenFinder && _region != null) {
-        parentScreen = _region.getScreen();
-        match = Match.create(match, parentScreen);
+        match.setScreen(_region.getScreen());
       }
       if (_pattern != null) {
-        Location offset = _pattern.getTargetOffset();
-        match.setTargetOffset(offset);
+        match.setTargetOffset(_pattern.getTargetOffset());
       }
-      match.setOnScreen(screenFinder);
-      match.setImage(_image);
+      match.setOnScreen(screenFinder).setImage(_image);
     }
     return match;
   }

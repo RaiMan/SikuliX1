@@ -247,7 +247,7 @@ public class Mouse {
     }
   }
 
-  protected static int click(Location loc, int buttons, Integer modifiers, boolean dblClick, Region region) {
+  protected static int click(Location loc, int buttons, Integer modifiers, boolean dblClick, Object owner) {
     if (modifiers == null) {
       modifiers = 0;
     }
@@ -268,7 +268,7 @@ public class Mouse {
       profiler.end();
       return 0;
     }
-    get().device.use(region);
+    get().device.use(owner);
     profiler.lap("before move");
     doMove(shouldMove, screen, loc, robot);
     robot.clickStarts();
@@ -300,7 +300,7 @@ public class Mouse {
     robot.clickEnds();
     robot.waitForIdle();
     profiler.lap("before let");
-    get().device.let(region);
+    get().device.let(owner);
     long duration = profiler.end();
     Debug.action(getClickMsg(loc, buttons, modifiers, dblClick, duration));
     return 1;
@@ -401,7 +401,7 @@ public class Mouse {
     return move(at().offset(xoff, yoff));
   }
 
-  protected static int move(Location loc, Region region) {
+  protected static int move(Location loc, Object owner) {
     if (get().device.isSuspended()) {
       return 0;
     }
@@ -416,7 +416,7 @@ public class Mouse {
         return 0;
       }
       if (!robot.isRemote()) {
-        get().device.use(region);
+        get().device.use(owner);
       }
       if (Mouse.hasRandom()) {
         Location offset = Mouse.get().makeRandom(loc);
@@ -424,7 +424,7 @@ public class Mouse {
       }
       doMove(true, screen, loc, robot);
       if (!robot.isRemote()) {
-        get().device.let(region);
+        get().device.let(owner);
       }
       return 1;
     }
@@ -440,12 +440,12 @@ public class Mouse {
     down(buttons, null);
   }
 
-  protected static void down(int buttons, Region region) {
+  protected static void down(int buttons, Element element) {
     if (get().device.isSuspended()) {
       return;
     }
-    get().device.use(region);
-    Screen.getRobot(region).mouseDown(buttons);
+    get().device.use(element);
+    element.getRobotForElement().mouseDown(buttons);
   }
 
   /**
@@ -465,13 +465,13 @@ public class Mouse {
     up(buttons, null);
   }
 
-  protected static void up(int buttons, Region region) {
+  protected static void up(int buttons, Element element) {
     if (get().device.isSuspended()) {
       return;
     }
-    Screen.getRobot(region).mouseUp(buttons);
-    if (region != null) {
-      get().device.let(region);
+    element.getRobotForElement().mouseUp(buttons);
+    if (element != null) {
+      get().device.let(element);
     }
   }
 

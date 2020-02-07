@@ -61,6 +61,10 @@ public class Image extends Element {
   private Image() {
   }
 
+  protected boolean isOnScreen() {
+    return false;
+  }
+
   private Image(String fname, URL fURL) {
     init(fname, fURL);
   }

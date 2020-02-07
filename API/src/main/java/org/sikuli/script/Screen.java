@@ -183,27 +183,6 @@ public class Screen extends Region implements IScreen {
 
   //<editor-fold desc="01 getter/setter">
   /**
-   * {@inheritDoc}
-   *
-   * @return Screen
-   */
-  @Override
-  public Screen getScreen() {
-    return this;
-  }
-
-  /**
-   * Should not be used - makes no sense for Screen object
-   *
-   * @param s Screen
-   * @return returns a new Region with the screen's location/dimension
-   */
-  @Override
-  protected Region setScreen(IScreen s) {
-    return new Region(getBounds());
-  }
-
-  /**
    * @return number of available screens
    */
   public static int getNumberScreens() {
@@ -292,12 +271,12 @@ public class Screen extends Region implements IScreen {
   //<editor-fold desc="02 factory for non-local instances">
   @Override
   public Region setOther(Region element) {
-    return element.setOtherScreen(this);
+    return (Region) element.setOtherScreen(this);
   }
 
   @Override
   public Location setOther(Location element) {
-    return element.setOtherScreen(this);
+    return (Location) element.setOtherScreen(this);
   }
 
   /**
@@ -340,7 +319,7 @@ public class Screen extends Region implements IScreen {
 
   @Override
   public Location newLocation(int x, int y) {
-    return new Location(x, y).setOtherScreen(this);
+    return (Location) new Location(x, y).setOtherScreen(this);
   }
   //</editor-fold>
 
