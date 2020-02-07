@@ -3,15 +3,19 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 
 public class Sikulix {
@@ -155,31 +159,31 @@ public class Sikulix {
 
   //<editor-fold desc="05 popSelect">
   public static String popSelect(String msg, String[] options, String preset) {
-    return popSelect(msg, null, options, preset);
+    return popSelect(msg, "", preset, options);
   }
 
   public static String popSelect(String msg, String[] options) {
     if (options.length == 0) {
       return "";
     }
-    return popSelect(msg, null, options, options[0]);
+    return popSelect(msg, "", options[0], options);
   }
 
   public static String popSelect(String msg, String title, String[] options) {
     if (options.length == 0) {
       return "";
     }
-    return popSelect(msg, title, options, options[0]);
+    return popSelect(msg, title, options[0], options);
   }
 
-  public static String popSelect(String msg, String title, String[] options, String preset) {
-    if (title == null || "".equals(title)) {
+  public static String popSelect(String msg, String title, String preset, String[] options) {
+    if (title == null || title.isEmpty()) {
       title = "... something to select!";
     }
     if (options.length == 0) {
       return "";
     }
-    if (preset == null) {
+    if (preset == null || preset.isEmpty()) {
       preset = options[0];
     }
 //    JFrame anchor = popLocation();
@@ -188,7 +192,7 @@ public class Sikulix {
 //    if (anchor != null) {
 //      anchor.dispose();
 //    }
-    return SX.popSelect(msg, title, preset, null, null, null, options);
+    return SX.popSelect(msg, title, preset, null, Integer.MAX_VALUE, null, options);
   }
   //</editor-fold>
 

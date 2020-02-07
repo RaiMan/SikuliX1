@@ -428,6 +428,9 @@ public class SX {
       parmIndex++;
       Object value = null;
       while (parmIndex < parameterNames.length) {
+        if (null == possibleValue) {
+          return parmIndex;
+        }
         value = getParameter(possibleValue, parameterNames[parmIndex]);
         if (value == null) {
           parmIndex++;
