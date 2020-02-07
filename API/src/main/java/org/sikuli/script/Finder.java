@@ -427,9 +427,9 @@ public class Finder implements Iterator<Match> {
 
   public <RI> List<Match> getListFor(RI what) {
     List<Match> matches = new ArrayList<>();
-    if (what instanceof Pixels)
+    if (what instanceof Element)
     while (hasNext()) {
-      matches.add(((Pixels) what).relocate(next()));
+      matches.add(((Element) what).relocate(next()));
     }
     return matches;
   }

@@ -24,7 +24,7 @@ import java.util.List;
  * <br>- the implementation here is ongoing beginning with version 2.0.2 and hence not complete yet
  * <br>- you might get <b>not-implemented exceptions</b> until complete
  */
-public abstract class Pixels {
+public abstract class Element {
 
   protected static final int logLevel = 3;
 
@@ -34,7 +34,7 @@ public abstract class Pixels {
     Debug.logx(level, caller + ": " + message, args);
   }
 
-  protected Pixels returnThis() {
+  protected Element returnThis() {
     return this;
   }
 

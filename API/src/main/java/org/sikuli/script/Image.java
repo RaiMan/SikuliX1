@@ -45,7 +45,7 @@ import java.util.*;
  * image) (managed as a configurable cache)<br>
  * The caching can be configured using {@link Settings#setImageCache(int)}
  */
-public class Image extends Pixels {
+public class Image extends Element {
 
   private static String logName = "Image: ";
   

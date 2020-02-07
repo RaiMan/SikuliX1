@@ -25,7 +25,7 @@ import java.util.*;
  * <br>- when needed (find ops), the pixel content is captured from the screen
  * <br>- if nothing else is said, the center pixel is the target for mouse actions
  */
-public class Region extends Pixels {
+public class Region extends Element {
 
   public static final String logName = "Region: ";
 
@@ -2243,7 +2243,7 @@ public class Region extends Pixels {
    */
   public <PSI> Match find(PSI target) throws FindFailed {
     lastMatch = null;
-    Image img = Pixels.getImageFromTarget(target);
+    Image img = Element.getImageFromTarget(target);
     Boolean response = true;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false); //find()
@@ -2948,7 +2948,7 @@ public class Region extends Pixels {
     public <PSI> RepeatableFind(PSI target, Image img) {
       _target = target;
       if (img == null) {
-        _image = Pixels.getImageFromTarget(target);
+        _image = Element.getImageFromTarget(target);
       } else if (target instanceof ScreenImage) {
         _image = new Image(((ScreenImage) target).getImage());
       } else {
@@ -2996,7 +2996,7 @@ public class Region extends Pixels {
     public <PSI> RepeatableFindAll(PSI target, Image img) {
       _target = target;
       if (img == null) {
-        _image = Pixels.getImageFromTarget(target);
+        _image = Element.getImageFromTarget(target);
       } else {
         _image = img;
       }
@@ -3419,7 +3419,7 @@ public class Region extends Pixels {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
-      Image img = Pixels.getImageFromTarget(targetThreshhold);
+      Image img = Element.getImageFromTarget(targetThreshhold);
       Boolean response = true;
       if (!img.isValid() && img.hasIOException()) {
         response = handleImageMissing(img, false);//onAppear, ...
