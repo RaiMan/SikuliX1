@@ -40,8 +40,6 @@ public class SX {
     POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE
   }
 
-  private static  boolean isVersion1() { return true; }
-
   private static boolean isHeadless() {
     return GraphicsEnvironment.isHeadless();
   }
@@ -183,7 +181,7 @@ public class SX {
               title = "Sikuli input request";
             }
             returnValue = JOptionPane.showInputDialog(frame, message, title,
-                    JOptionPane.PLAIN_MESSAGE, null, null, preset);
+                JOptionPane.PLAIN_MESSAGE, null, null, preset);
           } else {
             JTextArea messageText = new JTextArea(message);
             messageText.setColumns(20);
@@ -241,7 +239,7 @@ public class SX {
                   break;
                 }
                 slen -= 1000;
-                optionList.add(optionString.substring(4, 4 + slen ));
+                optionList.add(optionString.substring(4, 4 + slen));
                 optionString = optionString.substring(slen + 4);
               }
               if (optionList.size() > 0) {
@@ -253,14 +251,14 @@ public class SX {
             returnValue = "";
           } else {
             returnValue = JOptionPane.showInputDialog(frame, message, title,
-                    JOptionPane.PLAIN_MESSAGE, null, realOptions, preset);
+                JOptionPane.PLAIN_MESSAGE, null, realOptions, preset);
           }
         } else if (PopType.POPFILE.equals(popType)) {
           File fileChoosen = new SikulixFileChooser(frame).open(title);
           returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
         }
 
-        synchronized(this) {
+        synchronized (this) {
           dispose(); // needs to be here, frame is not always closed properly otherwise
           this.notify();
         }
@@ -274,7 +272,7 @@ public class SX {
       }
 
       public void dispose() {
-         frame.dispose();
+        frame.dispose();
       }
 
       public Object getReturnValue() {
@@ -283,16 +281,18 @@ public class SX {
     }
 
     RunInput popRun = new RunInput(popType, args);
-    ScheduledFuture<?> timeoutJob = TIMEOUT_EXECUTOR.schedule((() -> {popRun.dispose();}), popRun.getTimeout(), TimeUnit.MILLISECONDS);
+    ScheduledFuture<?> timeoutJob = TIMEOUT_EXECUTOR.schedule((() -> {
+      popRun.dispose();
+    }), popRun.getTimeout(), TimeUnit.MILLISECONDS);
 
-    if(EventQueue.isDispatchThread()) {
+    if (EventQueue.isDispatchThread()) {
       try {
         popRun.run();
       } finally {
         timeoutJob.cancel(false);
       }
     } else {
-      synchronized(popRun) {
+      synchronized (popRun) {
         EventQueue.invokeLater(popRun);
         try {
           popRun.wait();
@@ -310,7 +310,7 @@ public class SX {
     String parameterNames = "message,title,preset,hidden,timeout,location,options";
     String parameterClass = "s,s,s,b,i,e,o";
     Object[] parameterDefault = new Object[]{"not set", "SikuliX", "",
-            false, Integer.MAX_VALUE, null, new Object[0]};
+        false, Integer.MAX_VALUE, null, new Object[0]};
     return Parameters.get(parameterNames, parameterClass, parameterDefault, args);
   }
 
@@ -323,17 +323,12 @@ public class SX {
         x = ((Point) point).x;
         y = ((Point) point).y;
       } else {
-        if (isVersion1()) {
-          if (point instanceof Region) {
-            x = ((Region) point).getCenter().x;
-            y = ((Region) point).getCenter().y;
-          } else if (point instanceof Location) {
-            x = ((Location) point).x;
-            y = ((Location) point).y;
-          }
-        } else {
-          x = ((Element) point).getCenter().x;
-          y = ((Element) point).getCenter().y;
+        if (point instanceof Region) {
+          x = ((Region) point).getCenter().x;
+          y = ((Region) point).getCenter().y;
+        } else if (point instanceof Location) {
+          x = ((Location) point).x;
+          y = ((Location) point).y;
         }
       }
     }
@@ -373,17 +368,14 @@ public class SX {
             } else if ("b".equals(clazz)) {
               clazz = "Boolean";
             } else if ("e".equals(clazz)) {
-              if (isVersion1()) {
-                clazz = "Region";
-              }
-              clazz = "Element";
+              clazz = "Region";
             } else if ("o".equals(clazz)) {
               clazz = "Object";
             }
           }
           if ("String".equals(clazz) || "Integer".equals(clazz) ||
-                  "Double".equals(clazz) || "Boolean".equals(clazz) ||
-                  "Element".equals(clazz) || "Region".equals(clazz) || "Object".equals(clazz)) {
+              "Double".equals(clazz) || "Boolean".equals(clazz) ||
+              "Region".equals(clazz) || "Object".equals(clazz)) {
             parameterTypes.put(names[n], clazz);
           }
         }
@@ -422,12 +414,8 @@ public class SX {
         if (possibleValue instanceof Boolean) {
           value = possibleValue;
         }
-      } else if ("Element".equals(clazz)) {
-        if (isVersion1()) {
-          if (possibleValue instanceof Region) {
-            value = possibleValue;
-          }
-        } else if (possibleValue instanceof Element) {
+      } else if ("Region".equals(clazz)) {
+        if (possibleValue instanceof Region) {
           value = possibleValue;
         }
       } else if ("Object".equals(clazz)) {
@@ -471,8 +459,6 @@ public class SX {
       return params;
     }
   }
-
-  static class Element extends Region {}
   //</editor-fold>
 
   public static boolean isNotNull(Object obj) {
