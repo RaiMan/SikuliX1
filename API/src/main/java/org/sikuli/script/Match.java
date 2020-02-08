@@ -35,10 +35,10 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   /**
-   * create a copy of Match object<br>
+   * create a copy of another Match or create new Match with element's dimension<br>
    * to e.g. set another TargetOffset for same match
    *
-   * @param m other Match
+   * @param element other Match (copied) or element (dimension only)
    */
   public Match(Element element) {
     if (SX.isNull(element)) {
