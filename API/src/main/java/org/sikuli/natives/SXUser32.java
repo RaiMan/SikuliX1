@@ -15,10 +15,14 @@ public interface SXUser32 extends User32 {
   short GetKeyState(int vKey);
 
   int MapVirtualKeyExW (int uCode, int nMapType, int dwhkl);
+  
+  int MapVirtualKeyW(int uCode, int uMapType);
 
   boolean GetKeyboardState(byte[] lpKeyState);
 
   int ToUnicodeEx(int wVirtKey, int wScanCode, byte[] lpKeyState, char[] pwszBuff, int cchBuff, int wFlags, int dwhkl);
-
+  
+  void keybd_event(byte bVk, byte bScan, DWORD dwFlags, ULONG_PTR dwExtraInfo);
+  
 }
 
