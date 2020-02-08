@@ -30,6 +30,9 @@ public class Match extends Region implements Comparable<Match> {
   private int index = -1;
   private boolean onScreen = true;
 
+  /**
+   * creates a Match on primary screen as (0, 0, 1, 1)
+   */
   public Match() {
     this(null);
   }
