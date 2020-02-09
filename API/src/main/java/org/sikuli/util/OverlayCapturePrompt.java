@@ -217,7 +217,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     if (Debug.getDebugLevel() > 2) {
       scr_img_original.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot");
     }
-    scr_img = scr_img_original.getImage();
+    scr_img = scr_img_original.getBufferedImage();
     scr_img_darker = scr_img;
     scr_img_type = scr_img.getType();
     scr_img_rect = new Rectangle(scrOCP.getBounds());
@@ -302,7 +302,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     BufferedImage crop = new BufferedImage(w, h, scr_img_type);
     Graphics2D crop_g2d = crop.createGraphics();
     try {
-      crop_g2d.drawImage(scr_img_original.getImage().getSubimage(x, y, w, h), null, 0, 0);
+      crop_g2d.drawImage(scr_img_original.getBufferedImage().getSubimage(x, y, w, h), null, 0, 0);
     } catch (RasterFormatException e) {
       Debug.error("OverlayCapturePrompt: cropSelection: RasterFormatException", e.getMessage());
     }

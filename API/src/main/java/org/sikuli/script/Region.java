@@ -2460,7 +2460,7 @@ public class Region extends Element {
       if (img == null) {
         _image = Element.getImage(target);
       } else if (target instanceof ScreenImage) {
-        _image = new Image(((ScreenImage) target).getImage());
+        _image = new Image(((ScreenImage) target).getBufferedImage());
       } else {
         _image = img;
       }

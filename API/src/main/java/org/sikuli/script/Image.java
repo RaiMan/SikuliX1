@@ -58,27 +58,30 @@ public class Image extends Element {
     return new Image(new Screen().capture());
   }
 
-  private Image() {
-  }
-
   protected boolean isOnScreen() {
     return false;
   }
 
-  private Image(String fname, URL fURL) {
-    init(fname, fURL);
+  protected Image() {
   }
 
-  private Image(URL fURL) {
-    if (fURL != null) {
-      if ("file".equals(fURL.getProtocol())) {
-        init(fURL.getPath(), fURL);
-      } else {
-        init(getNameFromURL(fURL), fURL);
-      }
-    } else {
-      setName("");
+  private Image copy() {
+    Image imgTarget = new Image();
+    imgTarget.setName(getName());
+    imgTarget.setFileURL(fileURL);
+    imgTarget.setBimg(bimg);
+    imgTarget.setIsAbsolute(imageIsAbsolute);
+    imgTarget.setIsText(imageIsText);
+    imgTarget.setIsBundled(imageIsBundled);
+    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
+    imgTarget.setHasIOException(hasIOException());
+    if (isPattern()) {
+      imgTarget.setSimilarity(similarity);
+      imgTarget.setOffset(offset);
+      imgTarget.setWaitAfter(waitAfter);
+      imgTarget.setIsPattern(true);
     }
+    return imgTarget;
   }
 
   private void init(String fileName, URL fURL) {
@@ -112,23 +115,50 @@ public class Image extends Element {
     }
   }
 
-  private Image copy() {
-    Image imgTarget = new Image();
-    imgTarget.setName(getName());
-    imgTarget.setFileURL(fileURL);
-    imgTarget.setBimg(bimg);
-    imgTarget.setIsAbsolute(imageIsAbsolute);
-    imgTarget.setIsText(imageIsText);
-    imgTarget.setIsBundled(imageIsBundled);
-    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
-    imgTarget.setHasIOException(hasIOException());
-    if (isPattern()) {
-      imgTarget.setSimilarity(similarity);
-      imgTarget.setOffset(offset);
-      imgTarget.setWaitAfter(waitAfter);
-      imgTarget.setIsPattern(true);
+  private Image(String fname, URL fURL) {
+    init(fname, fURL);
+  }
+
+  private Image(URL fURL) {
+    if (fURL != null) {
+      if ("file".equals(fURL.getProtocol())) {
+        init(fURL.getPath(), fURL);
+      } else {
+        init(getNameFromURL(fURL), fURL);
+      }
+    } else {
+      setName("");
     }
-    return imgTarget;
+  }
+
+  /**
+   * Create an Image from various sources.
+   * <pre>
+   * - from a file (File, String, URL)
+   * - from an {@link Element} (Region, Image, ...)
+   * - from a BufferedImage or OpenCV Mat
+   * </pre>
+   * @param what the source
+   * @param <SUFEBM> see source variants
+   */
+  public <SUFEBM> Image(SUFEBM what) {
+
+  }
+
+  /**
+   * Create an Image from various sources.
+   * <pre>
+   * - from a file (File, String, URL)
+   * - from an {@link Element} (Region, Image, ...)
+   * - from a BufferedImage or OpenCV Mat
+   * </pre>
+   * @param what the source
+   * @param <SUFEBM> see source variants
+   * @param name to identify non-file images
+   */
+  //TODO is an image name really needed?
+  public <SUFEBM> Image(SUFEBM what, String name) {
+
   }
 
   /**
@@ -168,7 +198,7 @@ public class Image extends Element {
    * @param img ScreenImage
    */
   public Image(ScreenImage img) {
-    this(img.getImage(), null);
+    this(img.getBufferedImage(), null);
   }
 
   /**
@@ -180,7 +210,7 @@ public class Image extends Element {
    * @param name descriptive name
    */
   public Image(ScreenImage img, String name) {
-    this(img.getImage(), name);
+    this(img.getBufferedImage(), name);
   }
 
   /**
@@ -718,14 +748,16 @@ public class Image extends Element {
    * @param fName image filename
    * @return this
    */
+  //TODO move to IDE
   public static Image createThumbNail(String fName) {
     Image img = get(fName);
     return createImageValidate(img);
   }
 
+  //TODO bullshit
   private static Image createImageValidate(Image img) {
     if (img == null) {
-      return new Image("", null);
+      return new Image("", "");
     }
     if (!img.isValid()) {
       if (Settings.OcrTextSearch || Settings.SwitchToText) {
@@ -741,13 +773,13 @@ public class Image extends Element {
     return img;
   }
 
-  public static boolean isValidImageFilename(String fname) {
+  private static boolean isValidImageFilename(String fname) {
     String validEndings = ".png.jpg.jpeg";
     String ending = FilenameUtils.getExtension(fname);
     return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
   }
 
-  public static String getValidImageFilename(String fname) {
+  private static String getValidImageFilename(String fname) {
     if (isValidImageFilename(fname)) {
       return fname;
     }
@@ -1120,11 +1152,11 @@ public class Image extends Element {
 
   public boolean wasRecaptured = false;
 
-  public void save(String name) {
-    save(name, ImagePath.getBundlePath());
+  public String save(String name) {
+    return save(name, ImagePath.getBundlePath());
   }
 
-  public void save(String name, String path) {
+  public String save(String name, String path) {
     File fImg = new File(path, name);
     try {
       ImageIO.write(get(), "png", fImg);
@@ -1132,6 +1164,7 @@ public class Image extends Element {
     } catch (IOException e) {
       Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
     }
+    return fImg.getAbsolutePath();
   }
   //</editor-fold>
 

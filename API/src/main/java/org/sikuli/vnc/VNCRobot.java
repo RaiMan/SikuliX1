@@ -694,7 +694,7 @@ class VNCRobot implements IRobot {
   @Override
   public Color getColorAt(int x, int y) {
     ScreenImage image = captureScreen(new Rectangle(x, y, 1, 1));
-    return new Color(image.getImage().getRGB(0, 0));
+    return new Color(image.getBufferedImage().getRGB(0, 0));
   }
 
   @Override

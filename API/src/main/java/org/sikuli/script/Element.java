@@ -1142,7 +1142,7 @@ public abstract class Element {
     } else if (target instanceof Image) {
       return (Image) target;
     } else if (target instanceof ScreenImage) {
-      return new Image(((ScreenImage) target).getImage());
+      return new Image(((ScreenImage) target).getBufferedImage());
     } else {
       throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
     }
@@ -1158,7 +1158,7 @@ public abstract class Element {
     } else if (whatEver instanceof Image) {
       return ((Image) whatEver).get();
     } else if (whatEver instanceof ScreenImage) {
-      return ((ScreenImage) whatEver).getImage();
+      return ((ScreenImage) whatEver).getBufferedImage();
     } else if (whatEver instanceof BufferedImage) {
       return (BufferedImage) whatEver;
     }

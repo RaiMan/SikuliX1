@@ -8,7 +8,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
@@ -88,7 +87,7 @@ public class Finder implements Iterator<Match> {
   }
 
   protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(Finder2.makeMat(simg.getImage()));
+    _findInput.setSource(Finder2.makeMat(simg.getBufferedImage()));
   }
 //</editor-fold>
 
@@ -1209,7 +1208,7 @@ public class Finder implements Iterator<Match> {
 
     public BufferedImage getImage() {
       if (where != null) {
-        return where.getScreen().capture(where).getImage();
+        return where.getScreen().capture(where).getBufferedImage();
       } else if (source != null) {
         return Finder.Finder2.getBufferedImage(source);
       } else if (image != null) {

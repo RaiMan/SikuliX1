@@ -318,7 +318,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
 
   private void initScreenImage(ScreenImage simg, Dimension pDim) {
     _simg = simg;
-    _screen = simg.getImage();
+    _screen = simg.getBufferedImage();
     _ratio = (double)simg.w / simg.h;
     _height = pDim.height - BOTTOM_MARGIN;
     _scale = (double) _height / simg.h;

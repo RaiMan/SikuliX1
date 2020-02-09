@@ -3,30 +3,30 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Settings;
-import org.sikuli.basics.FileManager;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
 import javax.imageio.ImageIO;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
- * CANDIDATE FOR DEPRECATION
- *
  * stores a BufferedImage usually ceated by screen capture,
  * the screen rectangle it was taken from and
  * the filename, where it is stored as PNG (only if requested)
  *
- * This will be replaced by Image in the long run
+ * @deprecated will be replaced by {@link Image}
  */
-public class ScreenImage {
+@Deprecated
+public class ScreenImage extends Image {
 
 	/**
 	 * x, y, w, h of the stored ROI
@@ -79,11 +79,10 @@ public class ScreenImage {
 	 * creates the PNG tempfile only when needed.
 	 *
 	 * @return absolute path to stored tempfile
-	 * @throws IOException if not found
 	 * @deprecated use getFile() instead
 	 */
 	@Deprecated
-	public String getFilename() throws IOException {
+	public String getFilename() {
 		return getFile();
 	}
 
@@ -91,7 +90,7 @@ public class ScreenImage {
    * INTERNAL USE: use getTimedFile() instead
    * @return absolute path to stored file
    */
-	public String getFile() {
+	private String getFile() {
     if (_filename == null) {
       _filename = save();
     }
@@ -208,7 +207,7 @@ public class ScreenImage {
 	 *
 	 * @return the stored image in memory
 	 */
-	public BufferedImage getImage() {
+	public BufferedImage getBufferedImage() {
 		return _img;
 	}
 
@@ -248,8 +247,8 @@ public class ScreenImage {
     Mat otherGray = new Mat();
     Mat mDiffAbs = new Mat();
 
-    Imgproc.cvtColor(Finder2.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
-    Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Finder2.makeMat(this.getBufferedImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getBufferedImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return Core.countNonZero(mDiffAbs) == 0;
   }

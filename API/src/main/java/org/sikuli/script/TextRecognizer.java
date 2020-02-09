@@ -416,7 +416,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public String recognize(ScreenImage simg) {
-    BufferedImage bimg = simg.getImage();
+    BufferedImage bimg = simg.getBufferedImage();
     return OCR.readText(bimg);
   }
 

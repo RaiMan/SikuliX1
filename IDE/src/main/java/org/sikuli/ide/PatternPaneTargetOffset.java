@@ -245,7 +245,7 @@ class PatternPaneTargetOffset extends JPanel implements
     int subY = _viewY < 0 ? 0 : _viewY;
 		int subW = _viewW - (subX - _viewX);
     int subH = _viewH - (subY - _viewY);
-		BufferedImage img = _simg.getImage();
+		BufferedImage img = _simg.getBufferedImage();
 		if (subX + subW >= img.getWidth()) {
 			subW = img.getWidth() - subX;
 		}
@@ -275,7 +275,7 @@ class PatternPaneTargetOffset extends JPanel implements
         resizableRect.setVisible(true);
 
         Point point = this.convertScreenToView(new Location(0, 0));
-        resizableRect.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
+        resizableRect.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getBufferedImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getBufferedImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
 
         // take changed bounds if already changes, the original match bounds otherwise.
         if (changedBounds != null) {

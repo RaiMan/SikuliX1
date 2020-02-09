@@ -112,7 +112,7 @@ public class Pattern {
    * @param simg ScreenImage
    */
   public Pattern(ScreenImage simg) {
-    image = new Image(simg.getImage());
+    image = new Image(simg.getBufferedImage());
   }
 
   /**

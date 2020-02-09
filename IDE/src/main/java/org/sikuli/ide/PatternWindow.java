@@ -362,7 +362,7 @@ public class PatternWindow extends JFrame {
 
 		  File file = new File(paneNaming.getAbsolutePath());
 
-		  BufferedImage changedImg = _simg.getImage().getSubimage(changedBounds.x,changedBounds.y, changedBounds.width, changedBounds.height);
+		  BufferedImage changedImg = _simg.getBufferedImage().getSubimage(changedBounds.x,changedBounds.y, changedBounds.width, changedBounds.height);
 
 		  try {
         ImageIO.write(changedImg, "png", file);
@@ -377,7 +377,7 @@ public class PatternWindow extends JFrame {
 
       File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
       if(!screenshotImageFile.exists()) {
-        FileManager.saveScreenshotImage(_simg.getImage(), file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+        FileManager.saveScreenshotImage(_simg.getBufferedImage(), file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
       }
 		}
 
