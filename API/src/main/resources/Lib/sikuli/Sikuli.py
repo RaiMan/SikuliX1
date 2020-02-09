@@ -224,13 +224,13 @@ def delOpt(props, key):
 def uprint(*args):
   for e in args[:-1]:
     if isinstance(e, str):
-      print e,
+      print(e),
     else:
-      print e.encode("utf8"),
+      print(e.encode("utf8")),
   if isinstance(args[-1], str):
-    print args[-1]
+    print(args[-1])
   else:
-    print args[-1].encode("utf8")
+    print(args[-1].encode("utf8"))
 
 ##
 # to make an utf8-encoded string from a str object
