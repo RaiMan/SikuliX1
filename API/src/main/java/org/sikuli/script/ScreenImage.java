@@ -81,7 +81,7 @@ public class ScreenImage extends Image {
 	 * creates the PNG tempfile only when needed.
 	 *
 	 * @return absolute path to stored tempfile
-	 * @deprecated use getFile() instead
+	 * @deprecated use save() instead
 	 */
 	@Deprecated
 	public String getFilename() {

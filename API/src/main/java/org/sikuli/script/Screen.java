@@ -612,7 +612,7 @@ public class Screen extends Region implements IScreen {
       }
     }
     if (shot != null) {
-      shot.getFile();
+      shot.getFilename();
     }
     return shot;
   }
