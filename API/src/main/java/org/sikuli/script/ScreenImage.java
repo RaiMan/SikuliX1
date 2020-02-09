@@ -18,6 +18,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+//TODO will be substituted internally by Image
+
 /**
  * stores a BufferedImage usually ceated by screen capture,
  * the screen rectangle it was taken from and
