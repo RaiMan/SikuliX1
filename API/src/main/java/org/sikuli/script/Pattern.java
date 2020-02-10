@@ -16,15 +16,19 @@ import java.util.List;
  * to define a more complex search target<br>
  * - non-standard minimum similarity <br>
  * - click target other than center <br>
- * - image as in-memory image
+ * - masked image (ignore transparent pixels)
+ * - resize in case of different environment (scaled views)
+ * - wait after used in actions like click
  */
-public class Pattern {
+
+//TODO all stuff besides attribute handling should be in Image
+
+public class Pattern extends Image {
 
   private Image image = null;
   private double similarity = Settings.MinSimilarity;
   private Location offset = new Location(0, 0);
   private int waitAfter = 0;
-  private boolean imagePattern = false;
   private float resizeFactor = 0;
 
   /**
@@ -44,7 +48,6 @@ public class Pattern {
     similarity = p.similarity;
     offset.x = p.offset.x;
     offset.y = p.offset.y;
-    imagePattern = image.isPattern();
   }
 
   /**
@@ -54,26 +57,6 @@ public class Pattern {
    */
   public Pattern(Image img) {
     image = img.create(img);
-    image.setIsPattern(false);
-    imagePattern = true;
-  }
-
-  public Pattern resize(float factor) {
-    resizeFactor = factor;
-    return this;
-  }
-
-  public float getResize() {
-    return resizeFactor;
-  }
-
-  /**
-   * true if Pattern was created from Image
-   *
-   * @return true/false
-   */
-  public boolean isImagePattern() {
-    return imagePattern;
   }
 
   /**
@@ -115,13 +98,14 @@ public class Pattern {
     image = new Image(simg.getBufferedImage());
   }
 
-  /**
-   * check wether the image is valid
-   *
-   * @return true if image is useable
-   */
-  public boolean isValid() {
-    return image.isValid() || imagePattern;
+  //TODO revise implementation of auto-resize
+  public Pattern resize(float factor) {
+    resizeFactor = factor;
+    return this;
+  }
+
+  public float getResize() {
+    return resizeFactor;
   }
 
   private Mat patternMask = Finder.Finder2.getNewMat();

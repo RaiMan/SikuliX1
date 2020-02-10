@@ -744,7 +744,7 @@ public abstract class Element {
   private IScreen otherScreen = null;
   //</editor-fold>
 
-  //<editor-fold desc="020 handle FindFailed and ImageMissing">
+  //<editor-fold desc="016 handle FindFailed and ImageMissing">
   protected <PSI> Boolean handleFindFailed(PSI target, Image img) {
     log(logLevel, "handleFindFailed: %s", target);
     Boolean state = null;
@@ -847,9 +847,7 @@ public abstract class Element {
     log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
     return response;
   }
-  //</editor-fold>
 
-  //<editor-fold desc="08 imageMissingHandler private">
   protected void setImageMissingHandler(Object handler) {
     imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
   }
@@ -857,7 +855,54 @@ public abstract class Element {
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
   //</editor-fold>
 
-  //<editor-fold desc="10 find image">
+  //<editor-fold desc="018 lastMatch">
+  /**
+   * The last found {@link Match} in the Region
+   */
+  protected Match lastMatch = null;
+
+  /**
+   * The last found {@link Match}es in the Region
+   */
+  protected Iterator<Match> lastMatches = null;
+  protected long lastSearchTime = -1;
+  protected long lastFindTime = -1;
+  protected long lastSearchTimeRepeat = -1;
+
+  /**
+   * a find operation saves its match on success in this region/image.
+   * <br>... unchanged if not successful
+   *
+   * @return the Match object from last successful find
+   */
+  public Match getLastMatch() {
+    return lastMatch;
+  }
+
+  public Match match() {
+    if (null != lastMatch) {
+      return lastMatch;
+    }
+    return new Match(this);
+  }
+
+  public Match match(Match match) {
+    lastMatch = match;
+    return match;
+  }
+
+  /**
+   * a searchAll operation saves its matches on success in this region/image
+   * <br>... unchanged if not successful
+   *
+   * @return a Match-Iterator of matches from last successful searchAll
+   */
+  public Iterator<Match> getLastMatches() {
+    return lastMatches;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="020 find image">
   /**
    * finds the given Pattern, String or Image in the Element and returns the best match.
    *
@@ -899,7 +944,7 @@ public abstract class Element {
 
     //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="12 OCR - read text, line, word, char">
+  //<editor-fold defaultstate="collapsed" desc="030 OCR - read text, line, word, char">
   /**
    * tries to read the text in this region/image<br>
    * might contain misread characters, NL characters and
@@ -991,7 +1036,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="15 find text as word or line">
+  //<editor-fold desc="032 find text as word or line">
   /**
    * Find the first word as text (top left to bottom right) containing the given text
    *
@@ -1086,7 +1131,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="17 find text like find image">
+  //<editor-fold desc="034 find text like find image">
   public Match findText(String text) throws FindFailed {
     //TODO implement findText
     throw new SikuliXception(String.format("Pixels: findText: not implemented for", this.getClass().getCanonicalName()));
@@ -1126,107 +1171,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="20 helper private">
-  /**
-   * INTERNAL: get Image from target
-   * @param <PSI>   Pattern, Filename, Image, ScreenImage
-   * @param target what(PSI) to search
-   * @return Image object
-   */
-  public static <PSI> Image getImage(PSI target) {
-    if (target instanceof Pattern) {
-      return ((Pattern) target).getImage();
-    } else if (target instanceof String) {
-      Image img = Image.create((String) target);
-      return img;
-    } else if (target instanceof Image) {
-      return (Image) target;
-    } else if (target instanceof ScreenImage) {
-      return new Image(((ScreenImage) target).getBufferedImage());
-    } else {
-      throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
-    }
-  }
-
-  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
-    if (whatEver instanceof String) {
-      return Image.create((String) whatEver).get();
-    } else if (whatEver instanceof File) {
-      return Image.create((File) whatEver).get();
-    } else if (whatEver instanceof Region) {
-      return ((Region) whatEver).getImage().get();
-    } else if (whatEver instanceof Image) {
-      return ((Image) whatEver).get();
-    } else if (whatEver instanceof ScreenImage) {
-      return ((ScreenImage) whatEver).getBufferedImage();
-    } else if (whatEver instanceof BufferedImage) {
-      return (BufferedImage) whatEver;
-    }
-    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
-  }
-
-  protected Image getImage() {
-    throw new SikuliXception(String.format("Pixels: getImage: not implemented for", this.getClass().getCanonicalName()));
-  }
-
-  protected List<Match> relocate(List<Match> matches) {
-    return matches;
-  }
-
-  protected Match relocate(Match match) {
-    return match;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="25 lastMatch">
-  /**
-   * The last found {@link Match} in the Region
-   */
-  protected Match lastMatch = null;
-
-  /**
-   * The last found {@link Match}es in the Region
-   */
-  protected Iterator<Match> lastMatches = null;
-  protected long lastSearchTime = -1;
-  protected long lastFindTime = -1;
-  protected long lastSearchTimeRepeat = -1;
-
-  /**
-   * a find operation saves its match on success in this region/image.
-   * <br>... unchanged if not successful
-   *
-   * @return the Match object from last successful find
-   */
-  public Match getLastMatch() {
-    return lastMatch;
-  }
-
-  public Match match() {
-    if (null != lastMatch) {
-      return lastMatch;
-    }
-    return new Match(this);
-  }
-
-  public Match match(Match match) {
-    lastMatch = match;
-    return match;
-  }
-  // ************************************************
-
-  /**
-   * a searchAll operation saves its matches on success in this region/image
-   * <br>... unchanged if not successful
-   *
-   * @return a Match-Iterator of matches from last successful searchAll
-   */
-  public Iterator<Match> getLastMatches() {
-    return lastMatches;
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="030 Mouse - low level">
+  //<editor-fold defaultstate="collapsed" desc="040 Mouse - low level">
 
   /**
    * press and hold the specified buttons - use + to combine Button.LEFT left mouse button Button.MIDDLE middle mouse
@@ -1308,7 +1253,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="032 Mouse - click">
+  //<editor-fold desc="042 Mouse - click">
   /**
    * time in milliseconds to delay between button down/up at next click only (max 1000)
    *
@@ -1415,6 +1360,58 @@ public abstract class Element {
   }
   //</editor-fold>
 
+  //<editor-fold desc="090 helper private">
+  /**
+   * INTERNAL: get Image from target
+   * @param <PSI>   Pattern, Filename, Image, ScreenImage
+   * @param target what(PSI) to search
+   * @return Image object
+   */
+  public static <PSI> Image getImage(PSI target) {
+    if (target instanceof Pattern) {
+      return ((Pattern) target).getImage();
+    } else if (target instanceof String) {
+      Image img = Image.create((String) target);
+      return img;
+    } else if (target instanceof Image) {
+      return (Image) target;
+    } else if (target instanceof ScreenImage) {
+      return new Image(((ScreenImage) target).getBufferedImage());
+    } else {
+      throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
+    }
+  }
+
+  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
+    if (whatEver instanceof String) {
+      return Image.create((String) whatEver).get();
+    } else if (whatEver instanceof File) {
+      return Image.create((File) whatEver).get();
+    } else if (whatEver instanceof Region) {
+      return ((Region) whatEver).getImage().get();
+    } else if (whatEver instanceof Image) {
+      return ((Image) whatEver).get();
+    } else if (whatEver instanceof ScreenImage) {
+      return ((ScreenImage) whatEver).getBufferedImage();
+    } else if (whatEver instanceof BufferedImage) {
+      return (BufferedImage) whatEver;
+    }
+    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
+  }
+
+  protected Image getImage() {
+    throw new SikuliXception(String.format("Pixels: getImage: not implemented for", this.getClass().getCanonicalName()));
+  }
+
+  protected List<Match> relocate(List<Match> matches) {
+    return matches;
+  }
+
+  protected Match relocate(Match match) {
+    return match;
+  }
+  //</editor-fold>
+
   //<editor-fold desc="99 deprecated features">
   /**
    * @return a list of matches
@@ -1455,5 +1452,4 @@ public abstract class Element {
     return textWords();
   }
   //</editor-fold>
-
 }

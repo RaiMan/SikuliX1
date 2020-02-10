@@ -24,7 +24,6 @@ import java.util.*;
 
 /**
  * This class hides the complexity behind image names given as string.
- * <br>Image does not have public nor public constructors: use create()
  * <br>It's companion is {@link ImagePath} that maintains a list of places, where image files are
  * loaded from.<br>
  * An Image object:<br>
@@ -49,10 +48,6 @@ public class Image extends Element {
 
   private static String logName = "Image: ";
   
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
-
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
@@ -134,7 +129,7 @@ public class Image extends Element {
   /**
    * Create an Image from various sources.
    * <pre>
-   * - from a file (File, String, URL)
+   * - from a file (String, URL, File)
    * - from an {@link Element} (Region, Image, ...)
    * - from a BufferedImage or OpenCV Mat
    * </pre>
@@ -148,7 +143,7 @@ public class Image extends Element {
   /**
    * Create an Image from various sources.
    * <pre>
-   * - from a file (File, String, URL)
+   * - from a file (String, URL, File)
    * - from an {@link Element} (Region, Image, ...)
    * - from a BufferedImage or OpenCV Mat
    * </pre>
@@ -435,8 +430,9 @@ public class Image extends Element {
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
-  public BufferedImage resize(float factor) {
-    return resize(factor, Interpolation.CUBIC);
+  //TODO official API should be size() and should return Image
+  public Object resize(float factor) {
+    return (BufferedImage) resize(factor, Interpolation.CUBIC);
   }
 
   /**
@@ -446,6 +442,7 @@ public class Image extends Element {
    * @param interpolation algorithm used for pixel interpolation
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
+  //TODO official API should be size() and should return Image
   public BufferedImage resize(float factor, Interpolation interpolation) {
     return resize(get(), factor, interpolation);
   }
@@ -463,38 +460,16 @@ public class Image extends Element {
     return resize(bimg, factor, Interpolation.CUBIC);
   }
 
-  /**
-   * resize the given image with factor using OpenCV ImgProc.resize()
-   *
-   * @param bimg given image
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
+  private static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
     return Finder.Finder2.getBufferedImage(cvResize(bimg, factor, interpolation));
   }
 
-  /**
-   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param mat given image as cvMat
-   * @param factor resize factor
-   */
-  public static void resize(Mat mat, float factor) {
+// resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()
+  protected static void resize(Mat mat, float factor) {
     resize(mat, factor, Interpolation.CUBIC);
   }
 
-  /**
-   * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
-   *
-   * @param mat given image as cvMat
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation.
-   */
-  public static void resize(Mat mat, float factor, Interpolation interpolation) {
+  protected static void resize(Mat mat, float factor, Interpolation interpolation) {
     cvResize(mat, factor, interpolation);
   }
 
@@ -788,6 +763,9 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="02 caching">
+  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
+  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
+  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
   private static final int KB = 1024;
   private static final int MB = KB * KB;
   private final static String isBImg = "__BufferedImage__";

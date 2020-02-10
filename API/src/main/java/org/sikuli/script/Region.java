@@ -2211,7 +2211,7 @@ public class Region extends Element {
       finder = repeating._finder;
       simg = getScreen().capture(this);
       finder.setScreenImage(simg);
-      finder.setRepeating();
+      //TODO finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
             new Date().getTime() - lastSearchTimeRepeat);
@@ -2352,7 +2352,7 @@ public class Region extends Element {
     if (repeating != null && repeating._finder != null) {
       finder = repeating._finder;
       finder.setScreenImage(getScreen().capture(x, y, w, h));
-      finder.setRepeating();
+      //TODO finder.setRepeating();
       finder.findAllRepeat();
     } else {
       Image img = null;

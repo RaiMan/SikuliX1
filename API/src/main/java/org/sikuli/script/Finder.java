@@ -27,6 +27,18 @@ import java.util.regex.Matcher;
 
 public class Finder implements Iterator<Match> {
 
+  //TODO needed? currentMatchIndex
+  private int currentMatchIndex;
+
+  private boolean screenFinder = true;
+
+  private static String me = "Finder: ";
+  private static int lvl = 3;
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, me + message, args);
+  }
+
+  //<editor-fold defaultstate="collapsed" desc="Constructors">
   private Region  _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
@@ -34,19 +46,6 @@ public class Finder implements Iterator<Match> {
   private FindResult2 _results = null;
   private Region where = null;
 
-  private int currentMatchIndex;
-  private boolean repeating = false;
-  private boolean valid = true;
-  private boolean screenFinder = true;
-
-  private static String me = "Finder: ";
-  private static int lvl = 3;
-
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
-  }
-
-  //<editor-fold defaultstate="collapsed" desc="Constructors">
   protected Finder() {
   }
 
@@ -92,10 +91,8 @@ public class Finder implements Iterator<Match> {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
-
-  /**
-   * internal use: to be able to reuse the same Finder
-   */
+  //TODO needed? repeating
+  private boolean repeating = false;
   protected void setRepeating() {
     repeating = true;
   }
@@ -105,7 +102,7 @@ public class Finder implements Iterator<Match> {
    */
   protected void findRepeat() {
     _results = Finder2.find(_findInput);
-    currentMatchIndex = 0;
+    //currentMatchIndex = 0;
   }
 
   /**
@@ -114,7 +111,7 @@ public class Finder implements Iterator<Match> {
   protected void findAllRepeat() {
     Debug timing = Debug.startTimer("Finder.findAll");
     _results = Finder2.find(_findInput);
-    currentMatchIndex = 0;
+    //currentMatchIndex = 0;
     timing.end();
   }
 //</editor-fold>
@@ -129,10 +126,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String find(String imageOrText) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     Image img = Image.create(imageOrText);
     if (img.isText()) {
       return findText(imageOrText);
@@ -177,10 +170,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String find(Pattern aPtn) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     if (aPtn.isValid()) {
       _pattern = aPtn;
       if (_pattern.hasMask()) {
@@ -191,7 +180,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setIsPattern();
       _results = Finder2.find(_findInput);
-      currentMatchIndex = 0;
+      //currentMatchIndex = 0;
       return aPtn.getFilename();
     } else {
       return null;
@@ -206,16 +195,12 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String find(Image img) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     if (img.isValid()) {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
       _results = Finder2.find(_findInput);
-      currentMatchIndex = 0;
+      //currentMatchIndex = 0;
       return img.getFilename();
     } else if (img.isUseable()) {
       return find(new Pattern(img));
@@ -232,10 +217,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String find(BufferedImage img) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     return find(new Image(img));
   }
 
@@ -277,10 +258,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String findAll(String imageOrText) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     Image img = Image.create(imageOrText);
     _image = img;
     if (img.isText()) {
@@ -300,10 +277,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String findAll(Pattern aPtn) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     if (aPtn.isValid()) {
       _pattern = aPtn;
       _image = aPtn.getImage();
@@ -316,7 +289,7 @@ public class Finder implements Iterator<Match> {
       }
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
-      currentMatchIndex = 0;
+      //currentMatchIndex = 0;
       timing.end();
       return aPtn.getFilename();
     } else {
@@ -332,10 +305,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String findAll(Image img) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     if (img.isValid()) {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
@@ -343,7 +312,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
-      currentMatchIndex = 0;
+      //currentMatchIndex = 0;
       timing.end();
       return img.getFilename();
     } else {
@@ -362,14 +331,10 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String findText(String text) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     _findInput.setTargetText(text);
     _findInput.setWhere(where);
     _results = Finder2.find(_findInput);
-    currentMatchIndex = 0;
+    //currentMatchIndex = 0;
     return text;
   }
 
@@ -421,10 +386,6 @@ public class Finder implements Iterator<Match> {
    * @return null. if find setup not possible
    */
   public String findAllText(String text) {
-    if (!valid) {
-      log(-1, "not valid");
-      return null;
-    }
     _findInput.setFindAll();
     return findText(text);
   }
@@ -576,6 +537,7 @@ public class Finder implements Iterator<Match> {
     }
     //</editor-fold>
 
+    //<editor-fold desc="find internal">
     private FindInput2 fInput = null;
 
     protected static FindResult2 find(FindInput2 findInput) {
@@ -1148,8 +1110,8 @@ public class Finder implements Iterator<Match> {
       return extracted;
     }
 
-    protected final static String PNG = "png";
-    protected final static String dotPNG = "." + PNG;
+    private final static String PNG = "png";
+    private final static String dotPNG = "." + PNG;
 
     public static BufferedImage getBufferedImage(Mat mat) {
       return getBufferedImage(mat, dotPNG);
