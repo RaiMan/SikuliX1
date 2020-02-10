@@ -5,8 +5,8 @@ package org.sikuli.script;
 
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -25,17 +25,30 @@ import java.util.List;
 
 public class Pattern extends Image {
 
+  //private double similarity = Settings.MinSimilarity;
+  //private Location offset = new Location(0, 0);
+
+  //<editor-fold desc="00 instance">
+  //TODO not needed anymore
   private Image image = null;
-  private double similarity = Settings.MinSimilarity;
-  private Location offset = new Location(0, 0);
-  private int waitAfter = 0;
-  private float resizeFactor = 0;
 
   /**
    * creates empty Pattern object at least setFilename() or setBImage() must be used before the
    * Pattern object is ready for anything
    */
   public Pattern() {
+  }
+
+  protected void copyAllAttributes(Element element) {
+    super.copyAllAttributes(element);
+    if (element instanceof Pattern) {
+      similarity = ((Pattern) element).getSimilarity();
+      offset.x = ((Pattern) element).offset.x;
+      offset.y = ((Pattern) element).offset.y;
+      copyMaskAttributes((Pattern) element);
+      resizeFactor = ((Pattern) element).resizeFactor;
+      waitAfter = ((Pattern) element).waitAfter;
+    }
   }
 
   /**
@@ -45,9 +58,6 @@ public class Pattern extends Image {
    */
   public Pattern(Pattern p) {
     image = p.getImage();
-    similarity = p.similarity;
-    offset.x = p.offset.x;
-    offset.y = p.offset.y;
   }
 
   /**
@@ -98,6 +108,23 @@ public class Pattern extends Image {
     image = new Image(simg.getBufferedImage());
   }
 
+  @Override
+  public String toString() {
+    String ret = "P(" + (image == null ? "null" : image.getName())
+        + (isValid() ? "" : " -- not valid!")
+        + ")";
+    ret += " S: " + similarity;
+    if (offset.x != 0 || offset.y != 0) {
+      ret += " T: " + offset.x + "," + offset.y;
+    }
+    if (withMask || isMask) {
+      ret += " masked";
+    }
+    return ret;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="resize">
   //TODO revise implementation of auto-resize
   public Pattern resize(float factor) {
     resizeFactor = factor;
@@ -108,7 +135,61 @@ public class Pattern extends Image {
     return resizeFactor;
   }
 
-  private Mat patternMask = Finder.Finder2.getNewMat();
+  private float resizeFactor = 0;
+  //</editor-fold>
+
+  //<editor-fold desc="mask">
+  private boolean withMask = false;
+  private Mat patternMask = SXOpenCV.newMat();
+  private boolean isMask = false;
+
+  private void copyMaskAttributes(Pattern pattern) {
+    patternMask = pattern.patternMask.clone();
+    isMask = pattern.isMask;
+    withMask = pattern.withMask;
+  }
+
+  public Pattern mask(String sMask) {
+    return withMask(new Pattern(Image.create(sMask)));
+  }
+
+  public Pattern mask(Image iMask) {
+    return withMask(new Pattern(iMask));
+  }
+
+  public Pattern mask(Pattern pMask) {
+    return withMask(pMask);
+  }
+
+  public Pattern withMask(Pattern pMask) {
+    if (isValid()) {
+      Mat mask = SXOpenCV.newMat();
+      if (pMask.isValid()) {
+        if (pMask.hasMask()) {
+          mask = pMask.getMask();
+        } else {
+          mask = pMask.extractMask();
+        }
+      }
+      if (mask.empty()
+          || image.getSize().getWidth() != mask.width()
+          || image.getSize().getHeight() != mask.height()) {
+        Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
+        mask = SXOpenCV.newMat();
+      } else {
+        Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
+      }
+      if (!mask.empty()) {
+        patternMask = mask;
+        withMask = true;
+      }
+    }
+    return this;
+  }
+
+  public Pattern withMask() {
+    return mask();
+  }
 
   public Mat getMask() {
     return patternMask;
@@ -117,13 +198,6 @@ public class Pattern extends Image {
   public boolean hasMask() {
     return !patternMask.empty();
   }
-
-  private Mat extractMask() {
-    List<Mat> mats = Finder.Finder2.extractMask(Finder.Finder2.makeMat(image.get(), false), false);
-    return mats.get(1);
-  }
-
-  private boolean isMask = false;
 
   public Pattern mask() {
     return asMask();
@@ -143,50 +217,13 @@ public class Pattern extends Image {
     return this;
   }
 
-  private boolean withMask = false;
-
-  public Pattern mask(String sMask) {
-    return withMask(new Pattern(Image.create(sMask)));
+  private Mat extractMask() {
+    List<Mat> mats = SXOpenCV.extractMask(SXOpenCV.makeMat(image.get(), false), false);
+    return mats.get(1);
   }
+  //</editor-fold>
 
-  public Pattern mask(Image iMask) {
-    return withMask(new Pattern(iMask));
-  }
-
-  public Pattern mask(Pattern pMask) {
-    return withMask(pMask);
-  }
-
-  public Pattern withMask(Pattern pMask) {
-    if (isValid()) {
-      Mat mask = Finder.Finder2.getNewMat();
-      if (pMask.isValid()) {
-        if (pMask.hasMask()) {
-          mask = pMask.getMask();
-        } else {
-          mask = pMask.extractMask();
-        }
-      }
-      if (mask.empty()
-              || image.getSize().getWidth() != mask.width()
-              || image.getSize().getHeight() != mask.height()) {
-        Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
-        mask = Finder.Finder2.getNewMat();
-      } else {
-        Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
-      }
-      if (!mask.empty()) {
-        patternMask = mask;
-        withMask = true;
-      }
-    }
-    return this;
-  }
-
-  public Pattern withMask() {
-    return mask();
-  }
-
+  //<editor-fold desc="filename, URL">
   /**
    * set a new image for this pattern
    *
@@ -239,7 +276,9 @@ public class Pattern extends Image {
   public URL getFileURL() {
     return image.getURL();
   }
+  //</editor-fold>
 
+  //<editor-fold desc="similarity">
   /**
    * sets the minimum Similarity to use with findX
    *
@@ -267,7 +306,9 @@ public class Pattern extends Image {
   public double getSimilar() {
     return this.similarity;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="target offset">
   /**
    * set the offset from the match's center to be used with mouse actions
    *
@@ -299,78 +340,16 @@ public class Pattern extends Image {
   public Location getTargetOffset() {
     return offset;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="target image">
   /**
-   * ONLY FOR INTERNAL USE! Might vanish without notice!
+   * INTERNAL: USE! Might vanish without notice!
    *
    * @return might be null
    */
   public BufferedImage getBImage() {
-    return image.get();
+    return getBufferedImage();
   }
-
-  /**
-   * ONLY FOR INTERNAL USE! Might vanish without notice!
-   *
-   * @param bimg BufferedImage
-   * @return the Pattern object itself
-   */
-  public Pattern setBImage(BufferedImage bimg) {
-    image = new Image(bimg);
-    return this;
-  }
-
-  /**
-   * sets the Pattern's image
-   *
-   * @param img Image
-   * @return the Pattern object itself
-   */
-  public Pattern setImage(Image img) {
-    image = img;
-    return this;
-  }
-
-  /**
-   * get the Pattern's image
-   *
-   * @return Image
-   */
-  public Image getImage() {
-    return image;
-  }
-
-  /**
-   * set the seconds to wait, after this pattern is acted on
-   *
-   * @param secs seconds
-   */
-  public void setTimeAfter(int secs) {
-    waitAfter = secs;
-  }
-
-  /**
-   * <br>TODO: Usage to be implemented!
-   * get the seconds to wait, after this pattern is acted on
-   *
-   * @return time in seconds
-   */
-  public int getTimeAfter() {
-    return waitAfter;
-  }
-
-  @Override
-  public String toString() {
-    String ret = "P(" + image.getName()
-            + (isValid() ? "" : " -- not valid!")
-            + ")";
-    ret += " S: " + similarity;
-    if (offset.x != 0 || offset.y != 0) {
-      ret += " T: " + offset.x + "," + offset.y;
-    }
-    if (withMask || isMask) {
-      ret += " masked";
-    }
-    return ret;
-  }
+  //</editor-fold>
 }

@@ -227,7 +227,7 @@ public class Match extends Region implements Comparable<Match> {
    *
    * @return image or null
    */
-  public Image getImage() {
+  public Image getTargetImage() {
     return image;
   }
 

@@ -16,7 +16,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.recorder.actions.*;
 
@@ -435,7 +434,7 @@ public class RecordedEventsFlow {
   }
 
   private void saveScreenshot(Mat screenshot, File imageFile) {
-    FileManager.saveScreenshotImage(Finder2.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
+    FileManager.saveScreenshotImage(Element.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
   }
 
   /*
@@ -450,7 +449,7 @@ public class RecordedEventsFlow {
     }
 
     Mat lastNonMouseMoveScreenshot = readFloorScreenshot(lastNonMouseMoveEventTime);
-    Finder finder = new Finder(Finder2.getBufferedImage(lastNonMouseMoveScreenshot));
+    Finder finder = new Finder(Element.getBufferedImage(lastNonMouseMoveScreenshot));
 
     finder.find(image);
 
@@ -596,7 +595,7 @@ public class RecordedEventsFlow {
 
     Mat part = new Mat(screenshot, roi);
 
-    Image image = new Image(Finder2.getBufferedImage(part));
+    Image image = new Image(Element.getBufferedImage(part));
 
     adjustOffset(image, roi, event);
     adjustSimilarity(image, screenshot);

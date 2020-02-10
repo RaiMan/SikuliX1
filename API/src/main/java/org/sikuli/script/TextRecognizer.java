@@ -7,14 +7,10 @@ import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,8 +18,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Intended to be used only internally - still public for being backward compatible
@@ -267,41 +265,6 @@ public class TextRecognizer {
     options.textHeight(height);
     return this;
   }
-
-  private BufferedImage optimize(BufferedImage bimg) {
-    Mat mimg = Finder2.makeMat(bimg);
-
-    Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
-
-    // sharpen original image to primarily get rid of sub pixel rendering artifacts
-    mimg = unsharpMask(mimg, 3);
-
-    float rFactor = options.factor();
-
-    if (rFactor > 0 && rFactor != 1) {
-      Image.resize(mimg, rFactor, options.resizeInterpolation());
-    }
-
-    // sharpen the enlarged image again
-    mimg = unsharpMask(mimg, 5);
-
-    // invert in case of mainly dark background
-    if (Core.mean(mimg).val[0] < 127) {
-      Core.bitwise_not(mimg, mimg);
-    }
-
-    return Finder2.getBufferedImage(mimg);
-  }
-
-  /*
-   * sharpens the image using an unsharp mask
-   */
-  private Mat unsharpMask(Mat img, double sigma) {
-    Mat blurred = new Mat();
-    Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
-    Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
-    return img;
-  }
   //</editor-fold>
 
   //<editor-fold desc="20 text, lines, words - internal use">
@@ -347,7 +310,8 @@ public class TextRecognizer {
     String text = "";
     BufferedImage bimg = Element.getBufferedImage(from);
     try {
-      text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
+      text = getTesseractAPI().doOCR(SXOpenCV.optimize(bimg, options.factor(), options.resizeInterpolation()))
+          .trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
       Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       return "";
@@ -358,7 +322,7 @@ public class TextRecognizer {
   protected <SFIRBS> List<Match> readTextItems(SFIRBS from, int level) {
     List<Match> lines = new ArrayList<>();
     BufferedImage bimg = Element.getBufferedImage(from);
-    BufferedImage bimgResized = optimize(bimg);
+    BufferedImage bimgResized = SXOpenCV.optimize(bimg, options.factor(), options.resizeInterpolation());
     List<Word> textItems = getTesseractAPI().getWords(bimgResized, level);
     double wFactor = (double) bimg.getWidth() / bimgResized.getWidth();
     double hFactor = (double) bimg.getHeight() / bimgResized.getHeight();

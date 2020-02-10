@@ -4,12 +4,11 @@
 package org.sikuli.script;
 
 import org.apache.commons.io.FilenameUtils;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.SXOpenCV;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -46,8 +45,6 @@ import java.util.*;
  */
 public class Image extends Element {
 
-  private static String logName = "Image: ";
-  
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
@@ -60,22 +57,46 @@ public class Image extends Element {
   protected Image() {
   }
 
+  /**
+   * Create an Image from various sources.
+   * <pre>
+   * - from a file (String, URL, File)
+   * - from an {@link Element} (Region, Image, ...)
+   * - from a BufferedImage or OpenCV Mat
+   * </pre>
+   * @param what the source
+   * @param <SUFEBM> see source variants
+   */
+  public <SUFEBM> Image(SUFEBM what) {
+    this(what, "");
+  }
+
+  /**
+   * Create an Image from various sources.
+   * <pre>
+   * - from a file (String, URL, File)
+   * - from an {@link Element} (Region, Image, ...)
+   * - from a BufferedImage or OpenCV Mat
+   * </pre>
+   * @param what the source
+   * @param <SUFEBM> see source variants
+   * @param name to identify non-file images
+   */
+  //TODO is an image name really needed?
+  public <SUFEBM> Image(SUFEBM what, String name) {
+
+  }
+
   private Image copy() {
     Image imgTarget = new Image();
     imgTarget.setName(getName());
     imgTarget.setFileURL(fileURL);
-    imgTarget.setBimg(bimg);
     imgTarget.setIsAbsolute(imageIsAbsolute);
     imgTarget.setIsText(imageIsText);
     imgTarget.setIsBundled(imageIsBundled);
     imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
     imgTarget.setHasIOException(hasIOException());
-    if (isPattern()) {
-      imgTarget.setSimilarity(similarity);
-      imgTarget.setOffset(offset);
-      imgTarget.setWaitAfter(waitAfter);
-      imgTarget.setIsPattern(true);
-    }
+    imgTarget.setContent(getClone());
     return imgTarget;
   }
 
@@ -110,122 +131,13 @@ public class Image extends Element {
     }
   }
 
-  private Image(String fname, URL fURL) {
-    init(fname, fURL);
-  }
-
-  private Image(URL fURL) {
-    if (fURL != null) {
-      if ("file".equals(fURL.getProtocol())) {
-        init(fURL.getPath(), fURL);
-      } else {
-        init(getNameFromURL(fURL), fURL);
-      }
-    } else {
-      setName("");
-    }
-  }
-
-  /**
-   * Create an Image from various sources.
-   * <pre>
-   * - from a file (String, URL, File)
-   * - from an {@link Element} (Region, Image, ...)
-   * - from a BufferedImage or OpenCV Mat
-   * </pre>
-   * @param what the source
-   * @param <SUFEBM> see source variants
-   */
-  public <SUFEBM> Image(SUFEBM what) {
-
-  }
-
-  /**
-   * Create an Image from various sources.
-   * <pre>
-   * - from a file (String, URL, File)
-   * - from an {@link Element} (Region, Image, ...)
-   * - from a BufferedImage or OpenCV Mat
-   * </pre>
-   * @param what the source
-   * @param <SUFEBM> see source variants
-   * @param name to identify non-file images
-   */
-  //TODO is an image name really needed?
-  public <SUFEBM> Image(SUFEBM what, String name) {
-
-  }
-
-  /**
-   * create a new image from a buffered image<br>
-   * can only be reused with the object reference
-   *
-   * @param img BufferedImage
-   */
-  public Image(BufferedImage img) {
-    this(img, null);
-  }
-
-  /**
-   * create a new image from a buffered image<br>
-   * giving it a descriptive name for printout and logging <br>
-   * can only be reused with the object reference
-   *
-   * @param img  BufferedImage
-   * @param name descriptive name
-   */
-  public Image(BufferedImage img, String name) {
-    setName(isBImg);
-    if (name != null) {
-      setName(getName() + name);
-    }
-    bimg = img;
-    w = bimg.getWidth();
-    h = bimg.getHeight();
-    log(logLevel, "BufferedImage: (%d, %d)%s", w, h,
-            (name == null ? "" : " with name: " + name));
-  }
-
-  /**
-   * create a new image from a Sikuli ScreenImage (captured)<br>
-   * can only be reused with the object reference
-   *
-   * @param img ScreenImage
-   */
-  public Image(ScreenImage img) {
-    this(img.getBufferedImage(), null);
-  }
-
-  /**
-   * create a new image from a Sikuli ScreenImage (captured)<br>
-   * giving it a descriptive name for printout and logging <br>
-   * can only be reused with the object reference
-   *
-   * @param img  ScreenImage
-   * @param name descriptive name
-   */
-  public Image(ScreenImage img, String name) {
-    this(img.getBufferedImage(), name);
-  }
-
   /**
    * check whether image is available for Finder.find()<br>
-   * This is for backward compatibility<br>
-   * The new ImageFinder uses isUsable()
    *
-   * @return true if lodable from file or is an in memory image
+   * @return true if has pixel content
    */
   public boolean isValid() {
-    return fileURL != null || getName().contains(isBImg);
-  }
-
-  /**
-   * checks, wether the Image can be used with the new ImageFinder
-   *
-   * @return true/false
-   */
-  public boolean isUseable() {
-    return isValid() || imageIsPattern;
+    return !getContent().empty();
   }
 
   @Override
@@ -235,6 +147,7 @@ public class Image extends Element {
             + (lastSeen == null ? ""
             : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
+
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 0 imageName">
@@ -415,24 +328,51 @@ public class Image extends Element {
     LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
     MAX(Imgproc.INTER_MAX);
 
-    private int value;
+    public int value;
 
-    private Interpolation(int value) {
+    Interpolation(int value) {
       this.value = value;
     }
   }
 
   /**
-   * resize the loaded image with factor using OpenCV ImgProc.resize()
+   * resize the Image in place with factor
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Image size(float factor) {
+    return size(factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the Image in place with factor
+   * <p>
+   * Uses the given interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @param interpolation algorithm {@link Interpolation}
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Image size(float factor, Interpolation interpolation) {
+    SXOpenCV.resize(getContent(), factor, interpolation);
+    return this;
+  }
+
+  /**
+   * resize the Image with factor
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
-  //TODO official API should be size() and should return Image
   public Object resize(float factor) {
-    return (BufferedImage) resize(factor, Interpolation.CUBIC);
+    return resize(factor, Interpolation.CUBIC);
   }
 
   /**
@@ -442,9 +382,8 @@ public class Image extends Element {
    * @param interpolation algorithm used for pixel interpolation
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
-  //TODO official API should be size() and should return Image
   public BufferedImage resize(float factor, Interpolation interpolation) {
-    return resize(get(), factor, interpolation);
+    return getBufferedImage(SXOpenCV.cvResize(getClone(), factor, interpolation));
   }
 
   /**
@@ -461,30 +400,10 @@ public class Image extends Element {
   }
 
   private static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
-    return Finder.Finder2.getBufferedImage(cvResize(bimg, factor, interpolation));
+    return Element.getBufferedImage(SXOpenCV.cvResize(bimg, factor, interpolation));
   }
 
-// resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()
-  protected static void resize(Mat mat, float factor) {
-    resize(mat, factor, Interpolation.CUBIC);
-  }
-
-  protected static void resize(Mat mat, float factor, Interpolation interpolation) {
-    cvResize(mat, factor, interpolation);
-  }
-
-  private static Mat cvResize(BufferedImage bimg, double rFactor, Interpolation interpolation) {
-    Mat mat = Finder.Finder2.makeMat(bimg);
-    cvResize(mat, rFactor, interpolation);
-    return mat;
-  }
-
-  private static void cvResize(Mat mat, double rFactor, Interpolation interpolation) {
-    int newW = (int) (rFactor * mat.width());
-    int newH = (int) (rFactor * mat.height());
-    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
-  }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 3 isText">
   private boolean imageIsText = false;
@@ -526,25 +445,9 @@ public class Image extends Element {
 
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="00 6 isPattern">
-  private boolean imageIsPattern = false;
-
-  /**
-   * true if this image contains pattern aspects<br>
-   * only useable with the new ImageFinder
-   *
-   * @return true if yes, false otherwise
-   */
-  public boolean isPattern() {
-    return imageIsPattern;
-  }
-
-  public Image setIsPattern(boolean imageIsPattern) {
-    this.imageIsPattern = imageIsPattern;
-    return this;
-  }
-
-  private Location offset = new Location(0, 0);
+  //<editor-fold desc="00 6 Pattern aspects for Recording">
+  //TODO move to/implement in Pattern (Recoder !!!)
+  protected Location offset = new Location(0, 0);
 
   /**
    * Get the value of offset
@@ -566,7 +469,7 @@ public class Image extends Element {
     return this;
   }
 
-  private double similarity = Settings.MinSimilarity;
+  protected double similarity = Settings.MinSimilarity;
 
   /**
    * Get the value of similarity
@@ -678,21 +581,6 @@ public class Image extends Element {
   public static Image create(File imageFile) {
     Image img = get(imageFile.getAbsolutePath());
     return createImageValidate(img);
-  }
-
-  /**
-   * create a new Image with Pattern aspects from an existing Pattern
-   *
-   * @param p a Pattern
-   * @return the new Image
-   */
-  public static Image create(Pattern p) {
-    Image img = p.getImage().copy();
-    img.setIsPattern(true);
-    img.setSimilarity(p.getSimilar());
-    img.setOffset(p.getTargetOffset());
-    img.setWaitAfter(p.getTimeAfter());
-    return img;
   }
 
   /**
@@ -1021,7 +909,7 @@ public class Image extends Element {
         }
       }
       if (image == null) {
-        image = new Image(imageFileName, imageURL);
+        image = new Image(imageURL);
         image.setIsAbsolute(imageFile.isAbsolute());
       } else {
         if (image.bimg != null) {
@@ -1147,7 +1035,7 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 8 waitAfter">
-  private int waitAfter;
+  protected int waitAfter;
 
   /**
    * Get the value of waitAfter

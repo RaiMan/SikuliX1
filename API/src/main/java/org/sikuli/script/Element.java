@@ -4,16 +4,17 @@
 
 package org.sikuli.script;
 
+import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.FindFailedDialog;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -36,7 +37,7 @@ public abstract class Element {
 
   protected static void log(int level, String message, Object... args) {
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
-    String caller = className.substring(className.lastIndexOf(".") +1);
+    String caller = className.substring(className.lastIndexOf(".") + 1);
     Debug.logx(level, caller + ": " + message, args);
   }
 
@@ -53,6 +54,7 @@ public abstract class Element {
   /**
    * sets x to the given value.
    * convenience: allow calculated decimals
+   *
    * @param x new x
    * @return this
    */
@@ -70,12 +72,12 @@ public abstract class Element {
 
   /**
    * x (horizontal) of top left corner or point.
-   *
    */
   public int x = 0;
 
   /**
    * sets y to the given value
+   *
    * @param y new y
    * @return this
    */
@@ -87,6 +89,7 @@ public abstract class Element {
   /**
    * sets y to the given value
    * convenience: allow calculated decimals
+   *
    * @param y new y
    * @return this
    */
@@ -109,6 +112,7 @@ public abstract class Element {
 
   /**
    * sets the coordinates/top left corner to the given values
+   *
    * @param x new x
    * @param y new y
    * @return this
@@ -134,14 +138,16 @@ public abstract class Element {
 
   /**
    * get as AWT point
+   *
    * @return Point
    */
   public Point getPoint() {
-    return new Point(x,y);
+    return new Point(x, y);
   }
   //</editor-fold>
 
   //<editor-fold desc="001 Fields w, h - dimension (0 for points)">
+
   /**
    * @return width of the Element (0 for Points)
    */
@@ -168,6 +174,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="005 Fields rectangle">
+
   /**
    * @return the AWT Rectangle of the region
    */
@@ -217,7 +224,46 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="005 global features">
+  //<editor-fold desc="006 Fields pixel content">
+  public static <SUFEBM> Image getImage(SUFEBM target) {
+    if (target instanceof Image) {
+      return (Image) target;
+    }
+    return new Image(target);
+  }
+
+  public static <SUFEBM> BufferedImage getBufferedImage(SUFEBM whatEver) {
+    return getImage(whatEver).getBufferedImage();
+  }
+
+  public Image getImage() {
+    return new Image(this);
+  }
+
+  public BufferedImage getBufferedImage() {
+    return SXOpenCV.makeBufferedImage(getImage().getContent(), PNG);
+  }
+
+  public Mat getContent() {
+    return content;
+  }
+
+  public Mat getClone() {
+    return content.clone();
+  }
+
+  public void setContent(Mat mat) {
+    content = mat;
+  }
+
+  private Mat content = SXOpenCV.newMat();
+
+  private final static String PNG = "png";
+  private final static String dotPNG = "." + PNG;
+
+  //</editor-fold>
+
+  //<editor-fold desc="010 global features">
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
     if (target instanceof ArrayList) {
       ArrayList parms = (ArrayList) target;
@@ -287,13 +333,11 @@ public abstract class Element {
   }
 
   protected void copyAllAttributes(Element element) {
-    setWaitScanRate(element.getWaitScanRate());
-    setObserveScanRate(element.getObserveScanRate());
-    setRepeatWaitTime(element.getRepeatWaitTime());
-    setAutoWaitTimeout(element.getAutoWaitTimeout());
-    setFindFailedResponse(element.getFindFailedResponse());
-    setFindFailedHandler(element.getFindFailedHandler());
-    setThrowException(element.getThrowException());
+    x = element.x;
+    y = element.y;
+    w = element.w;
+    h = element.h;
+    content = element.getClone();
   }
 
   /**
@@ -322,6 +366,7 @@ public abstract class Element {
 
   /**
    * INTERNAL: to identify an Element
+   *
    * @return the name
    */
   public String getName() {
@@ -330,6 +375,7 @@ public abstract class Element {
 
   /**
    * INTERNAL: to identify an Element
+   *
    * @param name to be used
    */
   public void setName(String name) {
@@ -339,7 +385,7 @@ public abstract class Element {
   private String name = "";
   //</editor-fold>
 
-  //<editor-fold desc="006 wait observe timing">
+  //<editor-fold desc="011 wait observe timing">
 
   /**
    * the time in seconds a find operation should wait.
@@ -428,7 +474,8 @@ public abstract class Element {
   private int repeatWaitTime = repeatWaitTimeDefault;
   //</editor-fold>
 
-  //<editor-fold desc="007 FindFailed Settings">
+  //<editor-fold desc="012 FindFailed Settings">
+
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
    * false - do not abort script on FindFailed (might lead to NPE's later)<br>
@@ -513,7 +560,7 @@ public abstract class Element {
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
   //</editor-fold>
 
-  //<editor-fold desc="009 Screen related">
+  //<editor-fold desc="015 Screen related">
   //TODO revise local/remote screen handling
   protected Location checkAndSetRemote(Location loc) {
     if (!isOtherScreen()) {
@@ -522,7 +569,8 @@ public abstract class Element {
     return (Location) loc.setOtherScreen(getScreen());
   }
 
-  //TODo revise initScreen/initRegion
+  //TODO revise initScreen/initRegion
+
   /**
    * INTERNAL: USE
    *
@@ -701,9 +749,11 @@ public abstract class Element {
   private IScreen scr;
 
   //TODO feature otherScreen has to be revised
+
   /**
    * INTERNAL USE
    * reveals wether the containing screen is a DeskTopScreen or not
+   *
    * @return null if DeskTopScreen
    */
   public boolean isOtherScreen() {
@@ -713,6 +763,7 @@ public abstract class Element {
   /**
    * INTERNAL USE
    * identifies the point as being on a non-desktop-screen
+   *
    * @param scr Screen
    * @return this
    */
@@ -725,6 +776,7 @@ public abstract class Element {
    * INTERNAL USE
    * identifies the point as being on a non-desktop-screen
    * if this is true for the given Element
+   *
    * @return this
    */
   protected Element setOtherScreenOf(Element element) {
@@ -903,6 +955,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="020 find image">
+
   /**
    * finds the given Pattern, String or Image in the Element and returns the best match.
    *
@@ -942,9 +995,10 @@ public abstract class Element {
     //return match;
   }
 
-    //</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="030 OCR - read text, line, word, char">
+
   /**
    * tries to read the text in this region/image<br>
    * might contain misread characters, NL characters and
@@ -1037,6 +1091,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="032 find text as word or line">
+
   /**
    * Find the first word as text (top left to bottom right) containing the given text
    *
@@ -1048,7 +1103,7 @@ public abstract class Element {
     if (!word.isEmpty()) {
       Object result = doFindText(word, levelWord, false);
       if (result != null) {
-        match = relocate( (Match) result);
+        match = relocate((Match) result);
       }
     }
     return match;
@@ -1254,6 +1309,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="042 Mouse - click">
+
   /**
    * time in milliseconds to delay between button down/up at next click only (max 1000)
    *
@@ -1361,48 +1417,6 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="090 helper private">
-  /**
-   * INTERNAL: get Image from target
-   * @param <PSI>   Pattern, Filename, Image, ScreenImage
-   * @param target what(PSI) to search
-   * @return Image object
-   */
-  public static <PSI> Image getImage(PSI target) {
-    if (target instanceof Pattern) {
-      return ((Pattern) target).getImage();
-    } else if (target instanceof String) {
-      Image img = Image.create((String) target);
-      return img;
-    } else if (target instanceof Image) {
-      return (Image) target;
-    } else if (target instanceof ScreenImage) {
-      return new Image(((ScreenImage) target).getBufferedImage());
-    } else {
-      throw new IllegalArgumentException(String.format("SikuliX: find, wait, exists: invalid parameter: %s", target));
-    }
-  }
-
-  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
-    if (whatEver instanceof String) {
-      return Image.create((String) whatEver).get();
-    } else if (whatEver instanceof File) {
-      return Image.create((File) whatEver).get();
-    } else if (whatEver instanceof Region) {
-      return ((Region) whatEver).getImage().get();
-    } else if (whatEver instanceof Image) {
-      return ((Image) whatEver).get();
-    } else if (whatEver instanceof ScreenImage) {
-      return ((ScreenImage) whatEver).getBufferedImage();
-    } else if (whatEver instanceof BufferedImage) {
-      return (BufferedImage) whatEver;
-    }
-    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
-  }
-
-  protected Image getImage() {
-    throw new SikuliXception(String.format("Pixels: getImage: not implemented for", this.getClass().getCanonicalName()));
-  }
-
   protected List<Match> relocate(List<Match> matches) {
     return matches;
   }
@@ -1413,10 +1427,11 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="99 deprecated features">
+
   /**
    * @return a list of matches
-   * @deprecated use findLines() instead
    * @see #findLines()
+   * @deprecated use findLines() instead
    */
   public List<Match> collectLines() {
     return findLines();
@@ -1424,8 +1439,8 @@ public abstract class Element {
 
   /**
    * @return a list of lines as strings
-   * @deprecated use textLines() instead
    * @see #textLines()
+   * @deprecated use textLines() instead
    */
   @Deprecated
   public List<String> collectLinesText() {
@@ -1434,8 +1449,8 @@ public abstract class Element {
 
   /**
    * @return a list of matches
-   * @deprecated use findWords() instead
    * @see #findWords()
+   * @deprecated use findWords() instead
    */
   @Deprecated
   public List<Match> collectWords() {
@@ -1444,8 +1459,8 @@ public abstract class Element {
 
   /**
    * @return a list of words sa strings
-   * @deprecated use textWords() instead
    * @see #textWords()
+   * @deprecated use textWords() instead
    */
   @Deprecated
   public List<String> collectWordsText() {

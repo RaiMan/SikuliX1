@@ -1069,9 +1069,8 @@ public class EditorPane extends JTextPane {
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
     }
-    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern();
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
     pattern.setFilename(ifn);
-    pattern.setImage(img);
     pattern.similar(sim);
     pattern.targetOffset(off);
     pattern.resize(resizeFactor);

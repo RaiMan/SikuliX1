@@ -9,8 +9,8 @@ import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.SXOpenCV;
 
 import javax.imageio.ImageIO;
 import java.awt.Rectangle;
@@ -245,12 +245,12 @@ public class ScreenImage extends Image {
       return false;
     }
 
-    Mat thisGray = new Mat();
-    Mat otherGray = new Mat();
-    Mat mDiffAbs = new Mat();
+    Mat thisGray = SXOpenCV.newMat();
+    Mat otherGray = SXOpenCV.newMat();
+    Mat mDiffAbs = SXOpenCV.newMat();
 
-    Imgproc.cvtColor(Finder2.makeMat(this.getBufferedImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
-    Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getBufferedImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(SXOpenCV.makeMat(this.getBufferedImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(SXOpenCV.makeMat(((ScreenImage) other).getBufferedImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return Core.countNonZero(mDiffAbs) == 0;
   }

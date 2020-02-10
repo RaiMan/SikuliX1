@@ -25,6 +25,17 @@ import java.util.*;
 public class Region extends Element {
 
   //<editor-fold desc="000 Fields and global features">
+  protected void copyAllAttributes(Element element) {
+    super.copyAllAttributes(element);
+    setWaitScanRate(element.getWaitScanRate());
+    setObserveScanRate(element.getObserveScanRate());
+    setRepeatWaitTime(element.getRepeatWaitTime());
+    setAutoWaitTimeout(element.getAutoWaitTimeout());
+    setFindFailedResponse(element.getFindFailedResponse());
+    setFindFailedHandler(element.getFindFailedHandler());
+    setThrowException(element.getThrowException());
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -118,7 +129,7 @@ public class Region extends Element {
 
   private static Region fakeRegion;
 
-  protected Image getImage() {
+  public Image getImage() {
     return new Image(getScreen().capture(x, y, w, h));
   }
   //</editor-fold>
