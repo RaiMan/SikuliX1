@@ -5,11 +5,10 @@ package org.sikuli.script;
 
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -21,91 +20,43 @@ import java.util.List;
  * - wait after used in actions like click
  */
 
-//TODO all stuff besides attribute handling should be in Image
-
-public class Pattern extends Image {
-
-  //private double similarity = Settings.MinSimilarity;
-  //private Location offset = new Location(0, 0);
+public class Pattern {
 
   //<editor-fold desc="00 instance">
-  //TODO not needed anymore
-  private Image image = null;
-
-  /**
-   * creates empty Pattern object at least setFilename() or setBImage() must be used before the
-   * Pattern object is ready for anything
-   */
-  public Pattern() {
+  private Pattern() {
   }
 
-  protected void copyAllAttributes(Element element) {
-    super.copyAllAttributes(element);
-    if (element instanceof Pattern) {
-      similarity = ((Pattern) element).getSimilarity();
-      offset.x = ((Pattern) element).offset.x;
-      offset.y = ((Pattern) element).offset.y;
-      copyMaskAttributes((Pattern) element);
-      resizeFactor = ((Pattern) element).resizeFactor;
-      waitAfter = ((Pattern) element).waitAfter;
+  protected void copyAllAttributes(Pattern pattern) {
+    image = new Image(pattern.image);
+    similarity = pattern.similarity;
+    offset.x = pattern.offset.x;
+    offset.y = pattern.offset.y;
+    copyMaskAttributes(pattern);
+    resizeFactor = pattern.resizeFactor;
+    waitAfter = pattern.waitAfter;
+  }
+
+  public boolean isValid() {
+    return image != null;
+  }
+
+  /**
+   * Create a Pattern from various sources.
+   * <pre>
+   * - from another pattern with all attributes
+   * - from a file (String, URL, File)
+   * - from an image {@link Element}
+   * - from a BufferedImage or OpenCV Mat
+   * </pre>
+   * @param what the source
+   * @param <PSUFEBM> see source variants
+   */
+  public <PSUFEBM> Pattern(PSUFEBM what) {
+    if (what instanceof Pattern) {
+      copyAllAttributes((Pattern) what);
+    } else {
+      image = new Image(what);
     }
-  }
-
-  /**
-   * create a new Pattern from another (attribs are copied)
-   *
-   * @param p other Pattern
-   */
-  public Pattern(Pattern p) {
-    image = p.getImage();
-  }
-
-  /**
-   * create a Pattern with given image<br>
-   *
-   * @param img Image
-   */
-  public Pattern(Image img) {
-    image = img.create(img);
-  }
-
-  /**
-   * create a Pattern based on an image file name<br>
-   *
-   * @param imgpath image filename
-   */
-  public Pattern(String imgpath) {
-    image = Image.create(imgpath);
-  }
-
-  /**
-   * Pattern from a Java resource (Object.class.getResource)
-   *
-   * @param url image file URL
-   */
-  public Pattern(URL url) {
-    if (null == url) {
-      RunTime.terminate(999, "Pattern(URL): given url is null - a resource might not be available");
-    }
-    image = Image.create(url);
-  }
-
-  /**
-   * A Pattern from a BufferedImage
-   *
-   * @param bimg BufferedImage
-   */
-  public Pattern(BufferedImage bimg) {
-    image = new Image(bimg);
-  }
-
-  /**
-   * A Pattern from a ScreenImage
-   *
-   * @param simg ScreenImage
-   */
-  public Pattern(ScreenImage simg) {
-    image = new Image(simg.getBufferedImage());
   }
 
   @Override
@@ -223,7 +174,22 @@ public class Pattern extends Image {
   }
   //</editor-fold>
 
-  //<editor-fold desc="filename, URL">
+  //<editor-fold desc="image">
+  private Image image = null;
+
+  public Image getImage() {
+    return image;
+  }
+
+  //TODO revise: used only in Guide
+  public BufferedImage getBImage() {
+    BufferedImage bimg = null;
+    if (isValid()) {
+      bimg = image.getBufferedImage();
+    }
+    return bimg;
+  }
+
   /**
    * set a new image for this pattern
    *
@@ -236,49 +202,20 @@ public class Pattern extends Image {
   }
 
   /**
-   * set a new image for this pattern
-   *
-   * @param fileURL image file URL
-   * @return the Pattern itself
-   */
-  public Pattern setFilename(URL fileURL) {
-    image = Image.create(fileURL);
-    return this;
-  }
-
-  /**
-   * set a new image for this pattern
-   *
-   * @param img Image
-   * @return the Pattern itself
-   */
-  public Pattern setFilename(Image img) {
-    image = img;
-    return this;
-  }
-
-  /**
    * the current image's absolute filepath
    * <br>will return null, if image is in jar or in web
-   * <br>use getFileURL in this case
    *
    * @return might be null
    */
+  //TODO should work for all images (jar, web, ...)
   public String getFilename() {
     return image.getFilename();
-  }
-
-  /**
-   * the current image's URL
-   *
-   * @return might be null
-   */
-  public URL getFileURL() {
-    return image.getURL();
   }
   //</editor-fold>
 
   //<editor-fold desc="similarity">
+  private double similarity = Settings.MinSimilarity;
+
   /**
    * sets the minimum Similarity to use with findX
    *
@@ -309,6 +246,7 @@ public class Pattern extends Image {
   //</editor-fold>
 
   //<editor-fold desc="target offset">
+
   /**
    * set the offset from the match's center to be used with mouse actions
    *
@@ -334,22 +272,34 @@ public class Pattern extends Image {
     return this;
   }
 
-  /**
-   * @return the current offset
-   */
-  public Location getTargetOffset() {
+  public Location  getTargetOffset() {
     return offset;
   }
+
+  private Location offset = new Location(0, 0);
   //</editor-fold>
 
-  //<editor-fold desc="target image">
+  //<editor-fold defaultstate="collapsed" desc="waitAfter">
+  protected int waitAfter;
+
   /**
-   * INTERNAL: USE! Might vanish without notice!
+   * Get the value of waitAfter
    *
-   * @return might be null
+   * @return the value of waitAfter
    */
-  public BufferedImage getBImage() {
-    return getBufferedImage();
+  public int getWaitAfter() {
+    return waitAfter;
+  }
+
+  /**
+   * Set the value of waitAfter
+   *
+   * @param waitAfter new value of waitAfter
+   * @return the image
+   */
+  public Pattern setWaitAfter(int waitAfter) {
+    this.waitAfter = waitAfter;
+    return this;
   }
   //</editor-fold>
 }

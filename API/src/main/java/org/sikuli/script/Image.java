@@ -446,7 +446,6 @@ public class Image extends Element {
 //</editor-fold>
 
   //<editor-fold desc="00 6 Pattern aspects for Recording">
-  //TODO move to/implement in Pattern (Recoder !!!)
   protected Location offset = new Location(0, 0);
 
   /**
