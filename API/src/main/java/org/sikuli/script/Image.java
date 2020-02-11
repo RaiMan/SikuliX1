@@ -63,11 +63,12 @@ public class Image extends Element {
    * - from a file (String, URL, File)
    * - from an {@link Element} (Region, Image, ...)
    * - from a BufferedImage or OpenCV Mat
+   * - from a Pattern including the Pattern specific attributes
    * </pre>
    * @param what the source
-   * @param <SUFEBM> see source variants
+   * @param <SUFEBMP> see source variants
    */
-  public <SUFEBM> Image(SUFEBM what) {
+  public <SUFEBMP> Image(SUFEBMP what) {
     this(what, "");
   }
 
@@ -79,15 +80,75 @@ public class Image extends Element {
    * - from a BufferedImage or OpenCV Mat
    * </pre>
    * @param what the source
-   * @param <SUFEBM> see source variants
+   * @param <SUFEBMP> see source variants
    * @param name to identify non-file images
    */
   //TODO is an image name really needed?
-  public <SUFEBM> Image(SUFEBM what, String name) {
+  public <SUFEBMP> Image(SUFEBMP what, String name) {
 
   }
 
-  private Image copy() {
+  /**
+   * create a new Image as copy of the given Image
+   *
+   * @param image given Image
+   * @return new Image
+   */
+  public static Image create(Image image) {
+    return new Image(image);
+  }
+
+  /**
+   * create a new image from a filename <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param fName image filename
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  public static Image create(String fName) {
+    return new Image(fName);
+  }
+
+  /**
+   * create a new image from the given file <br>
+   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
+   * relative filename: [...path.../]name[.png] is searched on current image path<br>
+   * absolute filename is taken as is
+   * if image exists, it is loaded to cache <br>
+   * already loaded image with same name (given path) is reused (taken from cache) <br>
+   * <p>
+   * if image not found, it might be a text to be searched (imageIsText = true)
+   *
+   * @param imageFile a Java File object
+   * @return an Image object (might not be valid - check with isValid())
+   */
+  public static Image create(File imageFile) {
+    return new Image(imageFile);
+  }
+
+  /**
+   * create a new image from the given url <br>
+   * file ending .png is added if missing <br>
+   * filename: ...url-path.../name[.png] is loaded from the url and and cached
+   * <br>
+   * already loaded image with same url is reused (reference) and taken from
+   * cache
+   *
+   * @param url image file URL
+   * @return the image
+   */
+  public static Image create(URL url) {
+    return new Image(url);
+  }
+
+  protected void copyAllAttributes(Element element) {
+    super.copyAllAttributes(element);
     Image imgTarget = new Image();
     imgTarget.setName(getName());
     imgTarget.setFileURL(fileURL);
@@ -96,8 +157,6 @@ public class Image extends Element {
     imgTarget.setIsBundled(imageIsBundled);
     imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
     imgTarget.setHasIOException(hasIOException());
-    imgTarget.setContent(getClone());
-    return imgTarget;
   }
 
   private void init(String fileName, URL fURL) {
@@ -445,37 +504,25 @@ public class Image extends Element {
 
 //</editor-fold>
 
-  //<editor-fold desc="00 6 Pattern aspects for Recording">
-  protected Location offset = new Location(0, 0);
-
-  /**
-   * Get the value of offset
-   *
-   * @return the value of offset
-   */
-  public Location getOffset() {
-    return offset;
+  //<editor-fold desc="00 6 Pattern aspects">
+  private <PE> void copyPatternAttributes(PE source) {
+    if (source instanceof Pattern) {
+      similarity = pattern.similarity;
+      offset.x = pattern.offset.x;
+      offset.y = pattern.offset.y;
+      resizeFactor = pattern.resizeFactor;
+      waitAfter = pattern.waitAfter;
+    }
   }
 
-  /**
-   * Set the value of offset
-   *
-   * @param offset new value of offset
-   * @return the image
-   */
-  public Image setOffset(Location offset) {
-    this.offset = offset;
-    return this;
-  }
-
-  protected double similarity = Settings.MinSimilarity;
+  private double similarity = Settings.MinSimilarity;
 
   /**
    * Get the value of similarity
    *
    * @return the value of similarity
    */
-  public double getSimilarity() {
+  public double similarity() {
     return similarity;
   }
 
@@ -485,8 +532,52 @@ public class Image extends Element {
    * @param similarity new value of similarity
    * @return the image
    */
-  public Image setSimilarity(double similarity) {
+  public Image similarity(double similarity) {
     this.similarity = similarity;
+    return this;
+  }
+
+  private Location offset = new Location(0, 0);
+
+  /**
+   * Get the value of offset
+   *
+   * @return the value of offset
+   */
+  public Location offset() {
+    return offset;
+  }
+
+  /**
+   * Set the value of offset
+   *
+   * @param offset new value of offset
+   * @return the image
+   */
+  public Image offset(Location offset) {
+    this.offset = offset;
+    return this;
+  }
+
+  private int waitAfter;
+
+  /**
+   * Get the value of waitAfter
+   *
+   * @return the value of waitAfter
+   */
+  public int waitAfter() {
+    return waitAfter;
+  }
+
+  /**
+   * Set the value of waitAfter
+   *
+   * @param waitAfter new value of waitAfter
+   * @return the image
+   */
+  public Image waitAfter(int waitAfter) {
+    this.waitAfter = waitAfter;
     return this;
   }
   //</editor-fold>
@@ -535,75 +626,7 @@ public class Image extends Element {
     BufferedImage bm = new BufferedImage(cm, r, false, null);
     return bm;
   }
-
-  /**
-   * create a new Image as copy of the given Image
-   *
-   * @param imgSrc given Image
-   * @return new Image
-   */
-  public static Image create(Image imgSrc) {
-    return imgSrc.copy();
-  }
-
-  /**
-   * create a new image from a filename <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param fName image filename
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(String fName) {
-    Image img = get(fName);
-    return createImageValidate(img);
-  }
-
-  /**
-   * create a new image from the given file <br>
-   * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
-   * relative filename: [...path.../]name[.png] is searched on current image path<br>
-   * absolute filename is taken as is
-   * if image exists, it is loaded to cache <br>
-   * already loaded image with same name (given path) is reused (taken from cache) <br>
-   * <p>
-   * if image not found, it might be a text to be searched (imageIsText = true)
-   *
-   * @param imageFile a Java File object
-   * @return an Image object (might not be valid - check with isValid())
-   */
-  public static Image create(File imageFile) {
-    Image img = get(imageFile.getAbsolutePath());
-    return createImageValidate(img);
-  }
-
-  /**
-   * create a new image from the given url <br>
-   * file ending .png is added if missing <br>
-   * filename: ...url-path.../name[.png] is loaded from the url and and cached
-   * <br>
-   * already loaded image with same url is reused (reference) and taken from
-   * cache
-   *
-   * @param url image file URL
-   * @return the image
-   */
-  public static Image create(URL url) {
-    Image img = null;
-    if (url != null) {
-      img = get(url);
-    }
-    if (img == null) {
-      img = new Image(url);
-    }
-    return createImageValidate(img);
-  }
-
+  
   /**
    * FOR INTERNAL USE: from IDE - suppresses load error message
    *
@@ -1030,30 +1053,6 @@ public class Image extends Element {
       Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
     }
     return fImg.getAbsolutePath();
-  }
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="00 8 waitAfter">
-  protected int waitAfter;
-
-  /**
-   * Get the value of waitAfter
-   *
-   * @return the value of waitAfter
-   */
-  public int getWaitAfter() {
-    return waitAfter;
-  }
-
-  /**
-   * Set the value of waitAfter
-   *
-   * @param waitAfter new value of waitAfter
-   * @return the image
-   */
-  public Image setWaitAfter(int waitAfter) {
-    this.waitAfter = waitAfter;
-    return this;
   }
   //</editor-fold>
 

@@ -327,11 +327,11 @@ public class RecordedEventsFlow {
         saveScreenshot(screenshot, dropFile);
 
         Pattern dragPattern = new Pattern(dragFile.getAbsolutePath());
-        dragPattern.targetOffset(dragImage.getOffset());
-        dragPattern.similar(dragImage.getSimilarity());
+        dragPattern.targetOffset(dragImage.offset());
+        dragPattern.similar(dragImage.similarity());
         Pattern dropPattern = new Pattern(dropFile.getAbsolutePath());
-        dropPattern.targetOffset(dropImage.getOffset());
-        dropPattern.similar(dropImage.getSimilarity());
+        dropPattern.targetOffset(dropImage.offset());
+        dropPattern.similar(dropImage.similarity());
 
         actions.add(new DragDropAction(dragPattern, dropPattern));
       } catch (IOException e) {
@@ -361,8 +361,8 @@ public class RecordedEventsFlow {
       }
 
       Pattern pattern = new Pattern(file.getAbsolutePath());
-      pattern.targetOffset(image.getOffset());
-      pattern.similar(image.getSimilarity());
+      pattern.targetOffset(image.offset());
+      pattern.similar(image.similarity());
 
       ClickAction clickAction = null;
 
@@ -416,8 +416,8 @@ public class RecordedEventsFlow {
         }
 
         Pattern pattern = new Pattern(file.getAbsolutePath());
-        pattern.targetOffset(image.getOffset());
-        pattern.similar(image.getSimilarity());
+        pattern.targetOffset(image.offset());
+        pattern.similar(image.similarity());
 
         long stepDelay = (time - wheelStartTime) / wheelSteps;
 
@@ -607,7 +607,7 @@ public class RecordedEventsFlow {
    * restores the original event location on the image
    */
   private void adjustOffset(Image image, Rect roi, NativeMouseEvent event) {
-    image.setOffset(new Location(event.getX() - roi.x - roi.width / 2, event.getY() - roi.y - roi.height / 2));
+    image.offset(new Location(event.getX() - roi.x - roi.width / 2, event.getY() - roi.y - roi.height / 2));
   }
 
   /*
@@ -623,7 +623,7 @@ public class RecordedEventsFlow {
       // matches are sorted best first, take second match
       // as reference for adjustment
       double nextScore = Math.ceil(matches.get(1).getScore() * 10) / 10;
-      image.setSimilarity(nextScore);
+      image.similarity(nextScore);
     }
   }
 

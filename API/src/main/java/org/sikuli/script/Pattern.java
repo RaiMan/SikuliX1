@@ -18,6 +18,8 @@ import java.util.List;
  * - masked image (ignore transparent pixels)
  * - resize in case of different environment (scaled views)
  * - wait after used in actions like click
+ *
+ * NOTE: Pattern is a <b>candidate for deprecation</b> in the long run and will be substituted by Image
  */
 
 public class Pattern {

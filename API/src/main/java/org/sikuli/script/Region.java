@@ -1262,7 +1262,7 @@ public class Region extends Element {
   /**
    * to support a raster over the region
    */
-  private int rows;
+  private int rows = 0;
   private int cols = 0;
   private int rowH = 0;
   private int colW = 0;
