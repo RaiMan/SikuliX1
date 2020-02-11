@@ -65,7 +65,8 @@ public class Image extends Element {
    * - from a BufferedImage or OpenCV Mat
    * - from a Pattern including the Pattern specific attributes
    * </pre>
-   * @param what the source
+   *
+   * @param what      the source
    * @param <SUFEBMP> see source variants
    */
   public <SUFEBMP> Image(SUFEBMP what) {
@@ -79,13 +80,26 @@ public class Image extends Element {
    * - from an {@link Element} (Region, Image, ...)
    * - from a BufferedImage or OpenCV Mat
    * </pre>
-   * @param what the source
+   *
+   * @param what      the source
    * @param <SUFEBMP> see source variants
-   * @param name to identify non-file images
+   * @param name      to identify non-file images
    */
   //TODO is an image name really needed?
   public <SUFEBMP> Image(SUFEBMP what, String name) {
-
+    setName(name);
+    sourceClass = what.getClass().getSimpleName();
+    if (what instanceof Pattern) {
+      init((Pattern) what);
+    } else if (what instanceof String) {
+      init((String) what);
+    } else if (what instanceof File) {
+      init((File) what);
+    } else if (what instanceof URL) {
+      init((URL) what);
+    } else if (what instanceof Element) {
+      init((Element) what);
+    }
   }
 
   /**
@@ -147,16 +161,44 @@ public class Image extends Element {
     return new Image(url);
   }
 
-  protected void copyAllAttributes(Element element) {
-    super.copyAllAttributes(element);
-    Image imgTarget = new Image();
-    imgTarget.setName(getName());
-    imgTarget.setFileURL(fileURL);
-    imgTarget.setIsAbsolute(imageIsAbsolute);
-    imgTarget.setIsText(imageIsText);
-    imgTarget.setIsBundled(imageIsBundled);
-    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
-    imgTarget.setHasIOException(hasIOException());
+  protected void copyElementAttributes(Element element) {
+    super.copyElementAttributes(element);
+    setName(element.getName());
+    ((Image) element).setFileURL(fileURL);
+    ((Image) element).setIsAbsolute(imageIsAbsolute);
+    ((Image) element).setIsText(imageIsText);
+    ((Image) element).setIsBundled(imageIsBundled);
+    ((Image) element).setLastSeen(getLastSeen(), getLastSeenScore());
+    ((Image) element).setHasIOException(hasIOException());
+  }
+
+  private void init(Image image) {
+
+  }
+
+  private void init(Pattern pattern) {
+
+  }
+
+  private void init(String filename) {
+
+  }
+
+  private void init(File file) {
+
+  }
+
+  private void init(URL fileURL) {
+
+  }
+
+  private void init(Element element) {
+    copyElementRectangle(element);
+    if (element.isOnScreen()) {
+      setContent(element.getImage().getContent());
+    } else {
+      copyElementContent(element);
+    }
   }
 
   private void init(String fileName, URL fURL) {
@@ -199,13 +241,13 @@ public class Image extends Element {
     return !getContent().empty();
   }
 
-  @Override
-  public String toString() {
-    return String.format(
-            (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
-            + (lastSeen == null ? ""
-            : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
-  }
+//  @Override
+//  public String toString() {
+//    return String.format(
+//            (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
+//            + (lastSeen == null ? ""
+//            : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
+//  }
 
   //</editor-fold>
 
@@ -233,7 +275,7 @@ public class Image extends Element {
     bHasIOException = state;
   }
 
-//  /**
+  //  /**
 //   * Get the image's descriptive name
 //   *
 //   * @return the name
@@ -412,7 +454,7 @@ public class Image extends Element {
    * <p>
    * Uses the given interpolation algorithm.
    *
-   * @param factor resize factor
+   * @param factor        resize factor
    * @param interpolation algorithm {@link Interpolation}
    * @return this Image resized
    * @see Interpolation
@@ -442,7 +484,7 @@ public class Image extends Element {
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
   public BufferedImage resize(float factor, Interpolation interpolation) {
-    return getBufferedImage(SXOpenCV.cvResize(getClone(), factor, interpolation));
+    return getBufferedImage(SXOpenCV.cvResize(cloneContent(), factor, interpolation));
   }
 
   /**
@@ -450,7 +492,7 @@ public class Image extends Element {
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
-   * @param bimg given image
+   * @param bimg   given image
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
@@ -507,11 +549,13 @@ public class Image extends Element {
   //<editor-fold desc="00 6 Pattern aspects">
   private <PE> void copyPatternAttributes(PE source) {
     if (source instanceof Pattern) {
-      similarity = pattern.similarity;
-      offset.x = pattern.offset.x;
-      offset.y = pattern.offset.y;
-      resizeFactor = pattern.resizeFactor;
-      waitAfter = pattern.waitAfter;
+      similarity = ((Pattern) source).getSimilar();
+      offset = ((Pattern) source).getTargetOffset();
+      waitAfter = ((Pattern) source).waitAfter();
+    } else if (source instanceof Image) {
+      similarity = ((Image) source).similarity;
+      offset = ((Image) source).offset;
+      waitAfter = ((Image) source).waitAfter;
     }
   }
 
@@ -626,7 +670,7 @@ public class Image extends Element {
     BufferedImage bm = new BufferedImage(cm, r, false, null);
     return bm;
   }
-  
+
   /**
    * FOR INTERNAL USE: from IDE - suppresses load error message
    *
@@ -819,14 +863,14 @@ public class Image extends Element {
     while (nit.hasNext()) {
       name = nit.next();
       log(logLevel, "%s %d KB (%s)", new File(name.getKey()).getName(),
-              imageFiles.get(name.getValue()).getKB(), name.getValue());
+          imageFiles.get(name.getValue()).getKB(), name.getValue());
     }
     if (Settings.getImageCache() == 0) {
       log(logLevel, "Cache state: switched off!");
     } else {
       log(logLevel, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
-              Settings.getImageCache(), images.size(),
-              (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
+          Settings.getImageCache(), images.size(),
+          (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
     }
     log(logLevel, "--- end of Image dump ---");
   }
@@ -972,9 +1016,9 @@ public class Image extends Element {
           bimg = bImage;
           images.add(this);
           log(logLevel, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
-                  getName(), getKB(),
-                  images.size(), (int) (currentMemory / KB),
-                  (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
+              getName(), getKB(),
+              images.size(), (int) (currentMemory / KB),
+              (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
         }
       } else {
         log(-1, "invalid! not loaded! %s", fileURL);
@@ -1250,6 +1294,7 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="20 text/OCR from imagefile">
+
   /**
    * convenience method: get text from given image file
    *

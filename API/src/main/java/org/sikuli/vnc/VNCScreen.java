@@ -3,19 +3,22 @@
  */
 package org.sikuli.vnc;
 
+import com.sikulix.vnc.VNCClient;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
+import org.sikuli.script.FindFailed;
+import org.sikuli.script.Location;
+import org.sikuli.script.Region;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.util.OverlayCapturePrompt;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.*;
-
-import com.sikulix.vnc.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VNCScreen extends Region implements IScreen {
   private VNCClient client;
@@ -242,7 +245,7 @@ public class VNCScreen extends Region implements IScreen {
   }
 
   @Override
-  protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
+  protected Location getLocationFromTarget(Object target) throws FindFailed {
     Location location = super.getLocationFromTarget(target);
     if (location != null) {
       location.setOtherScreen(this);

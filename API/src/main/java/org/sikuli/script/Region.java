@@ -25,8 +25,8 @@ import java.util.*;
 public class Region extends Element {
 
   //<editor-fold desc="000 Fields and global features">
-  protected void copyAllAttributes(Element element) {
-    super.copyAllAttributes(element);
+  protected void copyElementAttributes(Element element) {
+    super.copyElementAttributes(element);
     setWaitScanRate(element.getWaitScanRate());
     setObserveScanRate(element.getObserveScanRate());
     setRepeatWaitTime(element.getRepeatWaitTime());
@@ -130,7 +130,7 @@ public class Region extends Element {
   private static Region fakeRegion;
 
   public Image getImage() {
-    return new Image(getScreen().capture(x, y, w, h));
+    return getScreen().capture(x, y, w, h);
   }
   //</editor-fold>
 
@@ -239,7 +239,7 @@ public class Region extends Element {
     setScreen(r.getScreen());
     setOtherScreenOf(r);
     rows = 0;
-    copyAllAttributes(r);
+    copyElementAttributes(r);
   }
 
   /**
@@ -405,7 +405,7 @@ public class Region extends Element {
    */
   public static Region create(Region r) {
     Region reg = Region.create(r.x, r.y, r.w, r.h, r.getScreen());
-    reg.copyAllAttributes(r);
+    reg.copyElementAttributes(r);
     return reg;
   }
 

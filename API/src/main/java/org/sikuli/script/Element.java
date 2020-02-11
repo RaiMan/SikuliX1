@@ -21,13 +21,13 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * INTERNAL: An abstract super-class for {@link Region} and {@link Image}.
+ * INTERNAL: An abstract super-class for {@link Region}, {@link Location}, {@link Image} ... .
  * <br>
  * <p>BE AWARE: This class cannot be used as such (cannot be instantiated)
- * <br>... instead use the classes Region or Image as needed</p>
+ * <br>... instead use the sub-classes as needed</p>
  * NOTES:
  * <br>- the intention is, to have only one implementation for features,
- * that are the same for Region, Image and other pixel/screen related classes
+ * that are the same for all or some pixel/screen related classes
  * <br>- the implementation here is ongoing beginning with version 2.0.2 and hence not complete yet
  * <br>- you might get <b>not-implemented exceptions</b> until complete
  */
@@ -39,6 +39,31 @@ public abstract class Element {
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
     String caller = className.substring(className.lastIndexOf(".") + 1);
     Debug.logx(level, caller + ": " + message, args);
+  }
+
+  public String toString() {
+    String clazz = this.getClass().getSimpleName();
+    return String.format("[Element: %s(%s) (%d,%d %dx%d)]", clazz, sourceClass, x, y, w, h);
+  }
+
+  protected void copyElementRectangle(Element element) {
+    x = element.x;
+    y = element.y;
+    w = element.w;
+    h = element.h;
+  }
+
+  protected void copyElementContent(Element element) {
+    content = element.cloneContent();
+  }
+
+  protected void copyElementAttributes(Element element) {
+    name = element.name;
+    copyElementRectangle(element);
+    copyElementContent(element);
+    copyMatchAttributes(element);
+    copyTimingAttributes(element);
+    copyFindFailedSettings(element);
   }
 
   //<editor-fold desc="000 Fields x, y - top left corner or point (0 for Images)">
@@ -173,7 +198,7 @@ public abstract class Element {
   public int h = 0;
   //</editor-fold>
 
-  //<editor-fold desc="005 Fields rectangle">
+  //<editor-fold desc="002 Fields rectangle">
 
   /**
    * @return the AWT Rectangle of the region
@@ -224,7 +249,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="006 Fields pixel content">
+  //<editor-fold desc="003 Fields pixel content">
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
@@ -248,7 +273,7 @@ public abstract class Element {
     return content;
   }
 
-  public Mat getClone() {
+  public Mat cloneContent() {
     return content.clone();
   }
 
@@ -260,109 +285,9 @@ public abstract class Element {
 
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
-
   //</editor-fold>
 
-  //<editor-fold desc="010 global features">
-  protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
-    if (target instanceof ArrayList) {
-      ArrayList parms = (ArrayList) target;
-      if (parms.size() == 1) {
-        target = (PSIMRL) parms.get(0);
-      } else if (parms.size() == 2) {
-        if (parms.get(0) instanceof Integer && parms.get(0) instanceof Integer) {
-          return new Location((Integer) parms.get(0), (Integer) parms.get(1));
-        }
-      } else {
-        return null;
-      }
-    }
-    if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-      Match m = wait(target);
-      if (m != null) {
-        if (isOtherScreen()) {
-          return (Location) m.getTarget().setOtherScreen(getScreen());
-        } else {
-          return m.getTarget();
-        }
-      }
-      return null;
-    }
-    if (target instanceof Element) {
-      return ((Element) target).getTarget();
-    }
-    return null;
-  }
-
-  // to avoid NPE for Regions being outside any screen
-  protected IRobot getRobotForElement() {
-    if (getScreen() == null) {
-      return Screen.getGlobalRobot();
-    }
-    return getScreen().getRobot();
-  }
-
-  /**
-   * convenience method
-   *
-   * @return the region's center
-   */
-  public Location getTarget() {
-    return getCenter();
-  }
-
-  /**
-   * @return the center pixel location of the Element or the Point
-   */
-  public Location getCenter() {
-    return checkAndSetRemote(new Location(getX() + getW() / 2, getY() + getH() / 2));
-  }
-
-  /**
-   * Moves the region to the area, whose center is the given location
-   *
-   * @param loc the location which is the new center of the region
-   * @return the region itself
-   */
-  public Element setCenter(Location loc) {
-    Location c = getCenter();
-    x = x - c.x + loc.x;
-    y = y - c.y + loc.y;
-    initScreen(null);
-    return this;
-  }
-
-  protected void copyAllAttributes(Element element) {
-    x = element.x;
-    y = element.y;
-    w = element.w;
-    h = element.h;
-    content = element.getClone();
-  }
-
-  /**
-   * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
-   *
-   * @param timeout The time to wait
-   */
-  public void wait(double timeout) {
-    try {
-      Thread.sleep((long) (timeout * 1000L));
-    } catch (InterruptedException e) {
-    }
-  }
-
-  protected boolean isOnScreen() {
-    return true;
-  }
-
-  protected boolean isPoint() {
-    return false;
-  }
-
-  protected boolean isEmpty() {
-    return w <= 1 && h <= 1;
-  }
+  //<editor-fold desc="005 Fields name, lastMatch, ...">
 
   /**
    * INTERNAL: to identify an Element
@@ -383,14 +308,66 @@ public abstract class Element {
   }
 
   private String name = "";
+  protected String sourceClass = "";
+
+  protected Match lastMatch = null;
+  protected Iterator<Match> lastMatches = null;
+
+  //TODO need to be cloned?
+  protected void copyMatchAttributes(Element element) {
+    lastMatch = element.lastMatch;
+    lastMatches = element.lastMatches;
+  }
+
+  protected long lastSearchTime = -1;
+  protected long lastFindTime = -1;
+  protected long lastSearchTimeRepeat = -1;
+
+  /**
+   * a find operation saves its match on success in this region/image.
+   * <br>... unchanged if not successful
+   *
+   * @return the Match object from last successful find
+   */
+  public Match getLastMatch() {
+    return lastMatch;
+  }
+
+  public Match match() {
+    if (null != lastMatch) {
+      return lastMatch;
+    }
+    return new Match(this);
+  }
+
+  public Match match(Match match) {
+    lastMatch = match;
+    return match;
+  }
+
+  /**
+   * a searchAll operation saves its matches on success in this region/image
+   * <br>... unchanged if not successful
+   *
+   * @return a Match-Iterator of matches from last successful searchAll
+   */
+  public Iterator<Match> getLastMatches() {
+    return lastMatches;
+  }
   //</editor-fold>
 
-  //<editor-fold desc="011 wait observe timing">
+  //<editor-fold desc="007 Fields wait observe timing">
+  protected void copyTimingAttributes(Element element) {
+    autoWaitTimeout = element.autoWaitTimeout;
+    waitScanRate = element.waitScanRate;
+    observeScanRate = element.observeScanRate;
+    repeatWaitTime = element.repeatWaitTime;
+  }
 
   /**
    * the time in seconds a find operation should wait.
-   * <br>for the appearence of the target in this region
-   * <br>initial value is the global AutoWaitTimeout setting at time of Region creation
+   * <br>for the appearence of the target in this element
+   * <br>initial value is {@link Settings#AutoWaitTimeout} (default 3) - ignored for non-screen
    *
    * @param sec seconds
    */
@@ -399,31 +376,32 @@ public abstract class Element {
   }
 
   /**
-   * current setting for this region (see setAutoWaitTimeout)
+   * current autoWaitTimeout
    *
-   * @return value of seconds
+   * @return value in seconds
+   * @see #setAutoWaitTimeout(double)
    */
   public double getAutoWaitTimeout() {
     return autoWaitTimeout;
   }
 
-  /**
-   * Default time to wait for an image {@link Settings}
-   */
   private double autoWaitTimeoutDefault = Settings.AutoWaitTimeout;
   private double autoWaitTimeout = autoWaitTimeoutDefault;
 
   /**
-   * @return the regions current WaitScanRate
+   * @return current WaitScanRate as rate per second
+   * @see #setWaitScanRate(float)
    */
   public float getWaitScanRate() {
     return waitScanRate;
   }
 
   /**
-   * set the regions individual WaitScanRate
+   * the rate how often an image search should be repeated in this element.
+   * <br>pause between subsequent searches is 1/waitScanrate in seconds
+   * <br>initial value is {@link Settings#WaitScanRate} (default 3) - ignored for non-screen
    *
-   * @param waitScanRate decimal number
+   * @param waitScanRate decimal number as rate per second
    */
   public void setWaitScanRate(float waitScanRate) {
     this.waitScanRate = waitScanRate;
@@ -434,16 +412,17 @@ public abstract class Element {
 
 
   /**
-   * @return the regions current ObserveScanRate
+   * @return current observeScanRate as rate per second
+   * @see #setObserveScanRate(float)
    */
   public float getObserveScanRate() {
     return observeScanRate;
   }
 
   /**
-   * set the regions individual ObserveScanRate
+   * set the individual observeScanRate
    *
-   * @param observeScanRate decimal number
+   * @param observeScanRate decimal number as rate per second
    */
   public void setObserveScanRate(float observeScanRate) {
     this.observeScanRate = observeScanRate;
@@ -474,7 +453,12 @@ public abstract class Element {
   private int repeatWaitTime = repeatWaitTimeDefault;
   //</editor-fold>
 
-  //<editor-fold desc="012 FindFailed Settings">
+  //<editor-fold desc="008 Fields FindFailed Settings">
+  protected void copyFindFailedSettings(Element element) {
+    throwException = element.throwException;
+    findFailedResponse = element.findFailedResponse;
+    findFailedHandler = element.findFailedHandler;
+  }
 
   /**
    * true - should throw {@link FindFailed} if not found in this region<br>
@@ -558,6 +542,103 @@ public abstract class Element {
   }
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
+  //</editor-fold>
+
+  //<editor-fold desc="010 global features">
+  protected Location getLocationFromTarget(Object target) throws FindFailed {
+    if (!(target instanceof ArrayList)) {
+      if (target instanceof Element && ((Element) target).isOnScreen()) {
+        return ((Element) target).getTarget();
+      }
+      Image image = Image.getImage(target);
+      if (image.isValid()) {
+        Match match = wait(image);
+        if (match != null) {
+          if (isOtherScreen()) {
+            return (Location) match.getTarget().setOtherScreen(getScreen());
+          } else {
+            return match.getTarget();
+          }
+        }
+        return null;
+      }
+      //TODO allow AWT elements: Rectangle, Point, ...
+    } else {
+      ArrayList parms = (ArrayList) target;
+      if (parms.size() == 1) {
+        target = parms.get(0);
+      } else if (parms.size() == 2) {
+        if (parms.get(0) instanceof Integer && parms.get(0) instanceof Integer) {
+          return new Location((Integer) parms.get(0), (Integer) parms.get(1));
+        }
+      } else {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // to avoid NPE for Regions being outside any screen
+  protected IRobot getRobotForElement() {
+    if (getScreen() == null) {
+      return Screen.getGlobalRobot();
+    }
+    return getScreen().getRobot();
+  }
+
+  /**
+   * convenience method
+   *
+   * @return the region's center
+   */
+  public Location getTarget() {
+    return getCenter();
+  }
+
+  /**
+   * @return the center pixel location of the Element or the Point
+   */
+  public Location getCenter() {
+    return checkAndSetRemote(new Location(getX() + getW() / 2, getY() + getH() / 2));
+  }
+
+  /**
+   * Moves the region to the area, whose center is the given location
+   *
+   * @param loc the location which is the new center of the region
+   * @return the region itself
+   */
+  public Element setCenter(Location loc) {
+    Location c = getCenter();
+    x = x - c.x + loc.x;
+    y = y - c.y + loc.y;
+    initScreen(null);
+    return this;
+  }
+
+  /**
+   * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
+   *
+   * @param timeout The time to wait
+   */
+  public void wait(double timeout) {
+    try {
+      Thread.sleep((long) (timeout * 1000L));
+    } catch (InterruptedException e) {
+    }
+  }
+
+  protected boolean isOnScreen() {
+    return true;
+  }
+
+  protected boolean isPoint() {
+    return false;
+  }
+
+  protected boolean isEmpty() {
+    return w <= 1 && h <= 1;
+  }
   //</editor-fold>
 
   //<editor-fold desc="015 Screen related">
@@ -905,53 +986,6 @@ public abstract class Element {
   }
 
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
-  //</editor-fold>
-
-  //<editor-fold desc="018 lastMatch">
-  /**
-   * The last found {@link Match} in the Region
-   */
-  protected Match lastMatch = null;
-
-  /**
-   * The last found {@link Match}es in the Region
-   */
-  protected Iterator<Match> lastMatches = null;
-  protected long lastSearchTime = -1;
-  protected long lastFindTime = -1;
-  protected long lastSearchTimeRepeat = -1;
-
-  /**
-   * a find operation saves its match on success in this region/image.
-   * <br>... unchanged if not successful
-   *
-   * @return the Match object from last successful find
-   */
-  public Match getLastMatch() {
-    return lastMatch;
-  }
-
-  public Match match() {
-    if (null != lastMatch) {
-      return lastMatch;
-    }
-    return new Match(this);
-  }
-
-  public Match match(Match match) {
-    lastMatch = match;
-    return match;
-  }
-
-  /**
-   * a searchAll operation saves its matches on success in this region/image
-   * <br>... unchanged if not successful
-   *
-   * @return a Match-Iterator of matches from last successful searchAll
-   */
-  public Iterator<Match> getLastMatches() {
-    return lastMatches;
-  }
   //</editor-fold>
 
   //<editor-fold desc="020 find image">
@@ -1399,19 +1433,10 @@ public abstract class Element {
    */
   public <PFRML> int click(PFRML target, Integer modifiers) throws FindFailed {
     int ret = 0;
-    if (target instanceof ArrayList) {
-      ArrayList parms = (ArrayList) target;
-      if (parms.size() > 0) {
-        target = (PFRML) parms.get(0);
-      } else {
-        return ret;
-      }
-    }
     Location loc = getLocationFromTarget(target);
     if (null != loc) {
-      ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
+      ret = Mouse.click(loc, InputEvent.BUTTON1_DOWN_MASK, modifiers, false, this);
     }
-    //TODO      SikuliActionManager.getInstance().clickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
   }
   //</editor-fold>

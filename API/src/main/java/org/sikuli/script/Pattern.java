@@ -282,14 +282,14 @@ public class Pattern {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="waitAfter">
-  protected int waitAfter;
+  private int waitAfter;
 
   /**
    * Get the value of waitAfter
    *
    * @return the value of waitAfter
    */
-  public int getWaitAfter() {
+  public int waitAfter() {
     return waitAfter;
   }
 
@@ -299,7 +299,7 @@ public class Pattern {
    * @param waitAfter new value of waitAfter
    * @return the image
    */
-  public Pattern setWaitAfter(int waitAfter) {
+  public Pattern waitAfter(int waitAfter) {
     this.waitAfter = waitAfter;
     return this;
   }

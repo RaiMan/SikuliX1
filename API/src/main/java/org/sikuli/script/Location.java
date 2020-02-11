@@ -58,6 +58,11 @@ public class Location extends Element implements Comparable<Location>{
   protected boolean isPoint() {
     return true;
   }
+
+  public Image getImage() {
+    //TODO implement Image from Location (see Recorder)
+    return new Image();
+  }
   //</editor-fold>
 
   //<editor-fold desc="001 Constructors">
@@ -341,50 +346,6 @@ public class Location extends Element implements Comparable<Location>{
   public Location below(int dy) {
     return (Location) new Location(x, y + dy).setOtherScreenOf(this);
   }
-  //</editor-fold>
-
-  //TODO needed?? click() returns self
-  //<editor-fold desc="011 actions">
-
-//  /**
-//   * Move the mouse to this location point
-//   *
-//   * @return this
-//   */
-//  public Location hover() {
-//    Mouse.move(this);
-//    return this;
-//  }
-//
-//  /**
-//   * Move the mouse to this location point and click left
-//   *
-//   * @return this
-//   */
-//  public Location click() {
-//    Mouse.click(this, "L");
-//    return this;
-//  }
-//
-//  /**
-//   * Move the mouse to this location point and double click left
-//   *
-//   * @return this
-//   */
-//  public Location doubleClick() {
-//    Mouse.click(this, "LD");
-//    return this;
-//  }
-//
-//  /**
-//   * Move the mouse to this location point and click right
-//   *
-//   * @return this
-//   */
-//  public Location rightClick() {
-//    Mouse.click(this, "R");
-//    return this;
-//  }
   //</editor-fold>
 
   //<editor-fold desc="008 internal">

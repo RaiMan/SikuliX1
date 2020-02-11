@@ -30,11 +30,10 @@ import java.io.IOException;
 @Deprecated
 public class ScreenImage extends Image {
 
-	/**
-	 * x, y, w, h of the stored ROI
-	 *
-	 */
-	public int x, y, w, h;
+	public Mat getContent() {
+		return SXOpenCV.makeMat(_img);
+	}
+
 	protected Rectangle _roi;
 	protected BufferedImage _img;
 	protected String _filename = null;
