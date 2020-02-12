@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import org.opencv.core.*;
+import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -50,6 +51,10 @@ public class SXOpenCV {
       Debug.log(-1,"SXOpenCV: makeBufferedImage: %s error(%s)", content, ex.getMessage());
     }
     return bImg;
+  }
+
+  public static BufferedImage makeBufferedImage(Mat content) {
+    return (BufferedImage) HighGui.toBufferedImage(content);
   }
 
   public static Mat makeMat(BufferedImage bImg) {

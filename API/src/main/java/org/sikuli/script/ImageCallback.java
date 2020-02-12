@@ -8,6 +8,6 @@ import java.awt.image.BufferedImage;
 
 public class ImageCallback {
   public BufferedImage callback(Image img) {
-    return img.get();
+    return img.getBufferedImage();
   }
 }

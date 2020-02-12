@@ -95,7 +95,7 @@ public class FindFailedDialog extends JDialog implements ActionListener {
     dialog.setLayout(new BorderLayout());
     if (img.isValid()) {
       if (!img.isText()) {
-        Image bimage = img.get();
+        Image bimage = img.getBufferedImage();
         if (bimage != null) {
           String rescale = "";
           JLabel iconLabel = new JLabel();

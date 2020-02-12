@@ -49,7 +49,7 @@ public class Finder implements Iterator<Match> {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
-      _findInput.setSource(SXOpenCV.makeMat(((Image) inWhat).get()));
+      _findInput.setSource(SXOpenCV.makeMat(((Image) inWhat).getBufferedImage()));
     } else if (inWhat instanceof BufferedImage) {
       _findInput.setSource(SXOpenCV.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
@@ -136,7 +136,7 @@ public class Finder implements Iterator<Match> {
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
-    Mat mat = SXOpenCV.makeMat(img.get(), false);
+    Mat mat = SXOpenCV.makeMat(img.getBufferedImage(), false);
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
       if (!mat.empty()) {
@@ -952,7 +952,7 @@ public class Finder implements Iterator<Match> {
       } else if (source != null) {
         return Element.getBufferedImage(source);
       } else if (image != null) {
-        return image.get();
+        return image.getBufferedImage();
       }
       return null;
     }

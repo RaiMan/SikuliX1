@@ -4,7 +4,9 @@
 
 package org.sikuli.script;
 
+import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.FindFailedDialog;
@@ -12,9 +14,15 @@ import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.SXOpenCV;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -50,26 +58,6 @@ public abstract class Element {
   public String toString() {
     String clazz = this.getClass().getSimpleName();
     return String.format("[Element: %s(%s) (%d,%d %dx%d)]", clazz, sourceClass, x, y, w, h);
-  }
-
-  protected void copyElementRectangle(Element element) {
-    x = element.x;
-    y = element.y;
-    w = element.w;
-    h = element.h;
-  }
-
-  protected void copyElementContent(Element element) {
-    content = element.cloneContent();
-  }
-
-  protected void copyElementAttributes(Element element) {
-    name = element.name;
-    copyElementRectangle(element);
-    copyElementContent(element);
-    copyMatchAttributes(element);
-    copyTimingAttributes(element);
-    copyFindFailedSettings(element);
   }
 
   //<editor-fold desc="000 Fields x, y - top left corner or point (0 for Images)">
@@ -175,6 +163,13 @@ public abstract class Element {
   public Point getPoint() {
     return new Point(x, y);
   }
+
+  protected void copyElementRectangle(Element element) {
+    x = element.x;
+    y = element.y;
+    w = element.w;
+    h = element.h;
+  }
   //</editor-fold>
 
   //<editor-fold desc="001 Fields w, h - dimension (0 for points)">
@@ -208,6 +203,13 @@ public abstract class Element {
   protected void setSize(Mat mat) {
     w = mat.cols();
     h = mat.rows();
+  }
+
+  /**
+   * @return size of image
+   */
+  public Dimension getSize() {
+    return new Dimension(w, h);
   }
 
   /**
@@ -276,7 +278,7 @@ public abstract class Element {
   }
 
   public BufferedImage getBufferedImage() {
-    return SXOpenCV.makeBufferedImage(getImage().getContent(), PNG);
+    return SXOpenCV.makeBufferedImage(getImage().getContent());
   }
 
   public Mat getContent() {
@@ -296,10 +298,43 @@ public abstract class Element {
     setSize(mat);
   }
 
+  protected void copyElementContent(Element element) {
+    content = element.cloneContent();
+  }
+
   private Mat content = SXOpenCV.newMat();
 
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
+
+  public URL imageURL() {
+    return imageURL;
+  }
+
+  public void imageURL(URL imageURL) {
+    this.imageURL = imageURL;
+  }
+
+  public void imageURL(String fileName) {
+    try {
+      fileName = new File(fileName).getCanonicalPath();
+    } catch (IOException e) {
+      return;
+    }
+    try {
+      imageURL = new URL("file://" + fileName);
+    } catch (MalformedURLException e) {
+    }
+  }
+
+  private URL imageURL = null;
+
+  public String imageFileName() {
+    if (imageURL != null) {
+      return imageURL.getPath();
+    }
+    return null;
+  }
   //</editor-fold>
 
   //<editor-fold desc="005 Fields name, lastMatch, ...">
@@ -310,6 +345,9 @@ public abstract class Element {
    * @return the name
    */
   public String getName() {
+    if (name.isEmpty() && imageFileName() != null) {
+      return new File(imageFileName()).getName();
+    }
     return name;
   }
 
@@ -560,6 +598,28 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="010 global features">
+  protected void copyElementAttributes(Element element) {
+    name = element.name;
+    copyElementRectangle(element);
+    copyElementContent(element);
+    copyMatchAttributes(element);
+    copyTimingAttributes(element);
+    copyFindFailedSettings(element);
+  }
+
+  protected static boolean isValidImageFilename(String fname) {
+    String validEndings = ".png.jpg.jpeg";
+    String ending = FilenameUtils.getExtension(fname);
+    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
+  }
+
+  protected static String getValidImageFilename(String fname) {
+    if (isValidImageFilename(fname)) {
+      return fname;
+    }
+    return fname + ".png";
+  }
+
   protected Location getLocationFromTarget(Object target) throws FindFailed {
     if (!(target instanceof ArrayList)) {
       if (target instanceof Element && ((Element) target).isOnScreen()) {
@@ -653,6 +713,25 @@ public abstract class Element {
 
   protected boolean isEmpty() {
     return w <= 1 && h <= 1;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="011 save content to file">
+  public String save(String name) {
+    return save(name, ImagePath.getBundlePath());
+  }
+
+  public String save(String name, String path) {
+    name = getValidImageFilename(name);
+    File fImg = new File(path, name);
+    boolean imwrite = Imgcodecs.imwrite(fImg.getAbsolutePath(), content);
+    if (imwrite) {
+      Debug.log(3, "Image::save: %s", fImg);
+    } else {
+      Debug.error("Image::save: %s did not work", fImg);
+      return null;
+    }
+    return fImg.getAbsolutePath();
   }
   //</editor-fold>
 
@@ -930,7 +1009,7 @@ public abstract class Element {
           if (!img.restore()) {
             state = null;
           } else {
-            img.get();
+            img.getBufferedImage();
           }
         }
       }
@@ -967,7 +1046,7 @@ public abstract class Element {
           return null;
         }
         simg.getFile(path, img.getName());
-        Image.reinit(img);
+        img.reloadContent();
         if (img.isValid()) {
           log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
           Image.setIDEshouldReload(img);

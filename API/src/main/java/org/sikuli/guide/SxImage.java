@@ -7,11 +7,12 @@
  */
 package org.sikuli.guide;
 
+import org.sikuli.script.Image;
+import org.sikuli.script.Region;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import org.sikuli.script.Region;
-import org.sikuli.script.Image;
 
 public class SxImage extends Visual {
 
@@ -21,7 +22,7 @@ public class SxImage extends Visual {
 
   public SxImage(String filename) {
     super();
-    init(Image.create(filename).get());
+    init(Image.create(filename).getBufferedImage());
   }
 
   public SxImage(BufferedImage image) {

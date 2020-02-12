@@ -1682,7 +1682,7 @@ public class Region extends Element {
     Image img = rf._image;
     String targetStr = img.getName();
     Boolean response = true;
-    if (!img.isText() && !img.isValid() && img.hasIOException()) {
+    if (!img.isText() && !img.isValid()) {
       response = handleImageMissing(img, false); //wait
       if (response == null) {
         if (Settings.SwitchToText) {
@@ -1756,7 +1756,7 @@ public class Region extends Element {
     lastMatch = null;
     Image img = Element.getImage(target);
     Boolean response = true;
-    if (!img.isText() && !img.isValid() && img.hasIOException()) {
+    if (!img.isText() && !img.isValid()) {
       response = handleImageMissing(img, false); //find()
       if (response == null) {
         if (Settings.SwitchToText) {
@@ -1809,7 +1809,7 @@ public class Region extends Element {
     RepeatableFind rf = new RepeatableFind(target, null);
     Image img = rf._image;
     Boolean response = true;
-    if (!img.isText() && !img.isValid() && img.hasIOException()) {
+    if (!img.isText() && !img.isValid()) {
       response = handleImageMissing(img, false);//exists
       if (response == null) {
         if (Settings.SwitchToText) {
@@ -1900,7 +1900,7 @@ public class Region extends Element {
     Image img = rv._image;
     String targetStr = img.getName();
     Boolean response = true;
-    if (!img.isValid() && img.hasIOException()) {
+    if (!img.isValid()) {
       response = handleImageMissing(img, false);//waitVanish
     }
     if (null != response && response) {
@@ -1940,7 +1940,7 @@ public class Region extends Element {
     Image img = rf._image;
     String targetStr = img.getName();
     Boolean response = true;
-    if (!img.isValid() && img.hasIOException()) {
+    if (!img.isValid()) {
       response = handleImageMissing(img, false);//findAll
       if (response == null) {
         throw new RuntimeException(String.format("SikuliX: findAll: ImageMissing: %s", target));
@@ -2469,9 +2469,7 @@ public class Region extends Element {
     public <PSI> RepeatableFind(PSI target, Image img) {
       _target = target;
       if (img == null) {
-        _image = Element.getImage(target);
-      } else if (target instanceof ScreenImage) {
-        _image = new Image(((ScreenImage) target).getBufferedImage());
+        _image = new Image(target);
       } else {
         _image = img;
       }
@@ -2800,7 +2798,7 @@ public class Region extends Element {
     if (!(targetThreshhold instanceof Integer)) {
       Image img = Element.getImage(targetThreshhold);
       Boolean response = true;
-      if (!img.isValid() && img.hasIOException()) {
+      if (!img.isValid()) {
         response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(

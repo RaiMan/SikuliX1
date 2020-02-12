@@ -3,8 +3,15 @@
  */
 package org.sikuli.util;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.script.Location;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.RunTime;
+
+import javax.swing.*;
 import java.awt.*;
-import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -12,11 +19,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.awt.image.RasterFormatException;
 import java.awt.image.RescaleOp;
-import javax.swing.JFrame;
-import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 /**
  * INTERNAL USE implements the screen overlay used with the capture feature
@@ -54,7 +56,6 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   private int scr_img_type = BufferedImage.TYPE_INT_RGB;
   private double scr_img_scale = 1;
   private Rectangle scr_img_rect = null;
-  private ScreenImage scr_img_original = null;
   private int destMinX, destMaxX, destMinY, destMaxY;
 
   private boolean isLocalScreen = true;
@@ -212,6 +213,12 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     prompt(null);
   }
 
+  private ScreenImage scr_img_original = null;
+
+  public ScreenImage getOriginal() {
+    return scr_img_original;
+  }
+
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
     if (Debug.getDebugLevel() > 2) {
@@ -282,10 +289,6 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     return ret;
   }
 
-  public ScreenImage getOriginal() {
-    return scr_img_original;
-  }
-
   private BufferedImage cropSelection() {
     int w = rSel.width, h = rSel.height;
     if (w <= 0 || h <= 0) {
@@ -302,7 +305,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     BufferedImage crop = new BufferedImage(w, h, scr_img_type);
     Graphics2D crop_g2d = crop.createGraphics();
     try {
-      crop_g2d.drawImage(scr_img_original.getBufferedImage().getSubimage(x, y, w, h), null, 0, 0);
+      crop_g2d.drawImage(getOriginal().getBufferedImage().getSubimage(x, y, w, h), null, 0, 0);
     } catch (RasterFormatException e) {
       Debug.error("OverlayCapturePrompt: cropSelection: RasterFormatException", e.getMessage());
     }

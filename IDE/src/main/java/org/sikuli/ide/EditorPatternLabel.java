@@ -3,6 +3,14 @@
  */
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.script.Image;
+import org.sikuli.script.Location;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.text.Element;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Point;
@@ -11,18 +19,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Locale;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.border.Border;
-import javax.swing.text.Element;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.script.Image;
-import org.sikuli.script.Location;
 
 public class EditorPatternLabel extends EditorRegionLabel {
 
@@ -146,7 +142,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 						&& FileManager.isFilenameDotted(givenName)) {
 			return;
 		}
-		Image img = Image.createThumbNail(givenName);
+		Image img = new Image(givenName);
 		if (img.isValid()) {
 			if (isFromCapture || !img.isAbsolute() || img.isBundled()) {
 				image = img;
@@ -165,7 +161,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
   public void showPopup(boolean show) {
     if (show) {
       if (imgpop == null) {
-        BufferedImage img = image.get();
+        BufferedImage img = image.getBufferedImage();
         if (img == null) {
           Debug.log(4, "EditorPatternLabel: mouseEntered: not found " + this.imgName);
           return;
@@ -214,7 +210,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 
   public void resetLabel(String givenFileName, double sim, Location off, float resizeFactor) {
     imgName = (new File(givenFileName)).getName();
-    image = Image.createThumbNail(imgName);
+    image = new Image(imgName);
     imgFile = image.getFilename();
     imgNameShort = imgName.replaceFirst(".png", "").replaceFirst(".jpg", "");
     this.sim = sim;

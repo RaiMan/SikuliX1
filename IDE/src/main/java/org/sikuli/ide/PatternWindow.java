@@ -343,7 +343,7 @@ public class PatternWindow extends JFrame {
 			try {
 				FileManager.xcopy(oldFilename, filename);
 				renameScreenshot(oldFilename, filename);
-				_imgBtn.setFilename(filename);
+				_imgBtn.setImage(filename);
         fileRenameOld = oldFilename;
         fileRenameNew = filename;
 			} catch (IOException ioe) {
@@ -397,7 +397,7 @@ public class PatternWindow extends JFrame {
     try {
       FileManager.xcopy(fileRenameNew, fileRenameOld);
       renameScreenshot(fileRenameNew, fileRenameOld);
-      _imgBtn.setFilename(fileRenameOld);
+      _imgBtn.setImage(fileRenameOld);
     } catch (IOException ioe) {
       Debug.error("revert renaming failed: new: %s \nold: %s\n%s",
               fileRenameNew, fileRenameOld, ioe.getMessage());

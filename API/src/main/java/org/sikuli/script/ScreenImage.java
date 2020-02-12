@@ -66,6 +66,7 @@ public class ScreenImage extends Image {
 		y = (int) roi.getY();
 		w = _img.getWidth();
 		h = _img.getHeight();
+		setContent(SXOpenCV.makeMat(img));
 	}
 
   public ScreenImage getSub(Rectangle sub) {
@@ -135,17 +136,18 @@ public class ScreenImage extends Image {
     return FileManager.saveTimedImage(_img, path, "#sikuliximage");
   }
 
-	/**
-	 * stores the image as PNG file in the given path
-	 * with a created filename (givenName-timestamp.png)
-	 *
-	 * @param path valid path string
-	 * @param name file name
-	 * @return absolute path to stored file
-	 */
-  public String save(String path, String name) {
-    return FileManager.saveTimedImage(_img, path, name);
-  }
+//TODO save as timestamped image
+//	/**
+//	 * stores the image as PNG file in the given path
+//	 * with a created filename (givenName-timestamp.png)
+//	 *
+//	 * @param path valid path string
+//	 * @param name file name
+//	 * @return absolute path to stored file
+//	 */
+//  public String save(String path, String name) {
+//    return FileManager.saveTimedImage(_img, path, name);
+//  }
 
 	/**
 	 * stores the image as PNG file in the given path

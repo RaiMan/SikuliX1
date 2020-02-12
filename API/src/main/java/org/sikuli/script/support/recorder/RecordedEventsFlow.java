@@ -320,8 +320,8 @@ public class RecordedEventsFlow {
       File dropFile = new File(ImagePath.getBundlePath(), time + ".png");
 
       try {
-        ImageIO.write(dragImage.get(), "PNG", dragFile);
-        ImageIO.write(dropImage.get(), "PNG", dropFile);
+        ImageIO.write(dragImage.getBufferedImage(), "PNG", dragFile);
+        ImageIO.write(dropImage.getBufferedImage(), "PNG", dropFile);
 
         saveScreenshot(screenshot, dragFile);
         saveScreenshot(screenshot, dropFile);
@@ -354,7 +354,7 @@ public class RecordedEventsFlow {
       File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
 
       try {
-        ImageIO.write(image.get(), "PNG", file);
+        ImageIO.write(image.getBufferedImage(), "PNG", file);
         saveScreenshot(screenshot, file);
       } catch (IOException e) {
         e.printStackTrace();
@@ -409,7 +409,7 @@ public class RecordedEventsFlow {
         File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
 
         try {
-          ImageIO.write(image.get(), "PNG", file);
+          ImageIO.write(image.getBufferedImage(), "PNG", file);
           saveScreenshot(screenshot, file);
         } catch (IOException e) {
           e.printStackTrace();

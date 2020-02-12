@@ -6,6 +6,7 @@ package org.sikuli.script.test;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.opencv.highgui.HighGui;
@@ -128,5 +129,12 @@ public class ElementTest {
     testOutro("%s (%s)", image, httpURI);
     testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  static Image savedImage = null;
+
+  @Ignore
+  public void test900_Template() {
+    savedImage = new Image(testName);
   }
 }

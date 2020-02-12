@@ -171,7 +171,7 @@ public class Pattern {
   }
 
   private Mat extractMask() {
-    List<Mat> mats = SXOpenCV.extractMask(SXOpenCV.makeMat(image.get(), false), false);
+    List<Mat> mats = SXOpenCV.extractMask(SXOpenCV.makeMat(image.getBufferedImage(), false), false);
     return mats.get(1);
   }
   //</editor-fold>
