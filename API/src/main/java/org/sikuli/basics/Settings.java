@@ -60,7 +60,8 @@ public class Settings {
 
   public static org.sikuli.script.ImageCallback ImageCallback = null;
 
-  private static int ImageCache = 64;
+  //private static int ImageCache = 64;
+  private static int ImageCache = 0;
 
   public static void setImageCache(int max) {
     if (ImageCache > max) {

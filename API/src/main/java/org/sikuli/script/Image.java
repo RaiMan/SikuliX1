@@ -4,6 +4,9 @@
 package org.sikuli.script;
 
 import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -16,7 +19,10 @@ import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
@@ -87,7 +93,6 @@ public class Image extends Element {
    */
   //TODO is an image name really needed?
   public <SUFEBMP> Image(SUFEBMP what, String name) {
-    setName(name);
     sourceClass = what.getClass().getSimpleName();
     if (what instanceof Pattern) {
       init((Pattern) what);
@@ -100,6 +105,13 @@ public class Image extends Element {
     } else if (what instanceof Element) {
       init((Element) what);
     }
+  }
+
+  public Image(Class clazz, String resource) {
+    if (!new File(resource).isAbsolute()) {
+      resource = "/" + resource;
+    }
+    init("class://" + clazz.getCanonicalName() + resource);
   }
 
   /**
@@ -181,15 +193,113 @@ public class Image extends Element {
   }
 
   private void init(String filename) {
-
+    String validFilename = getValidImageFilename(filename);
+    URI uri = null;
+    String scheme = "file";
+    try {
+      uri = new URI(validFilename);
+      if (null != uri.getScheme()) {
+        scheme = uri.getScheme();
+      }
+    } catch (URISyntaxException e) {
+      terminate("init: %s", filename);
+    }
+    if (scheme.equals("file")) {
+      init(new File(validFilename));
+    } else if (scheme.equals("class")) {
+      init(uri);
+    }
   }
 
   private void init(File file) {
+    if (null == file) {
+      return;
+    }
+    if (file.isAbsolute()) {
+      try {
+        imageURL = new URL(file.getAbsolutePath());
+      } catch (MalformedURLException e) {
+      }
+    } else {
+      imageURL = ImagePath.find(file.getPath());
+    }
+    if (null != imageURL && new File(imageURL.getPath()).exists()) {
+      String canonicalPath = "";
+      try {
+        canonicalPath = new File(imageURL.getPath()).getCanonicalPath();
+      } catch (IOException e) {
+        terminate("init: %s (s)", imageURL, e.getMessage());
+      }
+      try {
+        imageURL = new URL("file://" + canonicalPath);
+      } catch (MalformedURLException e) {
+        terminate("init: %s (%s)", imageURL, e.getMessage());
+      }
+      if (isCaching()) {
+        setContent(ImageCache.get(imageURL));
+      }
+      if (!isValid()) {
+        setContent(Imgcodecs.imread(imageURL.getPath(), -1));
+        if (isValid() && isCaching()) {
+          ImageCache.put(imageURL, getContent());
+        }
+      }
+      if (isValid()) {
+        setSize(getContent());
+      }
+    }
+  }
+
+  private static boolean isFile(URL url) {
+    return url.getProtocol().equals("file");
+  }
+
+  private static File asFile(URL url) {
+    File file = null;
+    if (url.getProtocol().equals("file")) {
+      try {
+        file = new File(url.getPath()).getCanonicalFile();
+      } catch (IOException e) {
+        terminate("init: %s (%s)", url, e.getMessage());
+      }
+    }
+    return file;
+  }
+
+  URL imageURL = null;
+
+  private void init(URL url) {
+    if (isFile(url)) {
+      init(asFile(url));
+    }
 
   }
 
-  private void init(URL fileURL) {
-
+  private void init(URI uri) {
+    if (uri.getScheme().equals("class")) {
+      Class clazz = null;
+      try {
+        clazz = Class.forName(uri.getAuthority());
+      } catch (ClassNotFoundException e) {
+        terminate("init: %s (%s)", uri, e.getMessage());
+      }
+      URL resource = clazz.getResource(uri.getPath());
+      if (resource == null) {
+        terminate("init: %s (not found)", uri);
+      }
+      try {
+        InputStream inputStream = resource.openStream();
+        byte[] bytes = inputStream.readAllBytes();
+        MatOfByte matOfByte = new MatOfByte();
+        matOfByte.fromArray(bytes);
+        Mat content = Imgcodecs.imdecode(matOfByte, -1);
+        setContent(content);
+        setSize(content);
+      } catch (IOException e) {
+        terminate("init: %s (io-error)", uri);
+      }
+      log(-1, "DebugStop");
+    }
   }
 
   private void init(Element element) {
@@ -297,6 +407,18 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="00 1 URL">
+  private static boolean isValidImageFilename(String fname) {
+    String validEndings = ".png.jpg.jpeg";
+    String ending = FilenameUtils.getExtension(fname);
+    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
+  }
+
+  private static String getValidImageFilename(String fname) {
+    if (isValidImageFilename(fname)) {
+      return fname;
+    }
+    return fname + ".png";
+  }
 
   /**
    * @return the evaluated url for this image (might be null)
@@ -702,18 +824,6 @@ public class Image extends Element {
     return img;
   }
 
-  private static boolean isValidImageFilename(String fname) {
-    String validEndings = ".png.jpg.jpeg";
-    String ending = FilenameUtils.getExtension(fname);
-    return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
-  }
-
-  private static String getValidImageFilename(String fname) {
-    if (isValidImageFilename(fname)) {
-      return fname;
-    }
-    return fname + ".png";
-  }
   //</editor-fold>
 
   //<editor-fold desc="02 caching">
@@ -863,14 +973,14 @@ public class Image extends Element {
     while (nit.hasNext()) {
       name = nit.next();
       log(logLevel, "%s %d KB (%s)", new File(name.getKey()).getName(),
-          imageFiles.get(name.getValue()).getKB(), name.getValue());
+              imageFiles.get(name.getValue()).getKB(), name.getValue());
     }
     if (Settings.getImageCache() == 0) {
       log(logLevel, "Cache state: switched off!");
     } else {
       log(logLevel, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
-          Settings.getImageCache(), images.size(),
-          (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
+              Settings.getImageCache(), images.size(),
+              (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
     }
     log(logLevel, "--- end of Image dump ---");
   }
@@ -1016,9 +1126,9 @@ public class Image extends Element {
           bimg = bImage;
           images.add(this);
           log(logLevel, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
-              getName(), getKB(),
-              images.size(), (int) (currentMemory / KB),
-              (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
+                  getName(), getKB(),
+                  images.size(), (int) (currentMemory / KB),
+                  (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
         }
       } else {
         log(-1, "invalid! not loaded! %s", fileURL);
@@ -1338,4 +1448,24 @@ public class Image extends Element {
     return OCR.readChar(imgFile);
   }
   //</editor-fold>
+
+  private static class ImageCache {
+    static Map<URL, Mat> cache = Collections.synchronizedMap(new HashMap<URL, Mat>());
+
+    static Mat put(URL key, Mat value) {
+      return cache.put(key, value);
+    }
+
+    static Mat get(URL key) {
+      Mat content = cache.get(key);
+      if (null == content) {
+        return new Mat();
+      }
+      return content;
+    }
+
+    static void reset() {
+      cache = Collections.synchronizedMap(new HashMap<URL, Mat>());
+    }
+  }
 }

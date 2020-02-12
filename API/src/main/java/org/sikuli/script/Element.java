@@ -41,6 +41,12 @@ public abstract class Element {
     Debug.logx(level, caller + ": " + message, args);
   }
 
+  protected static void terminate(String message, Object... args) {
+    String className = Thread.currentThread().getStackTrace()[2].getClassName();
+    String caller = className.substring(className.lastIndexOf(".") + 1);
+    throw new SikuliXception(caller + ": " + String.format(message, args));
+  }
+
   public String toString() {
     String clazz = this.getClass().getSimpleName();
     return String.format("[Element: %s(%s) (%d,%d %dx%d)]", clazz, sourceClass, x, y, w, h);
@@ -199,6 +205,10 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="002 Fields rectangle">
+  protected void setSize(Mat mat) {
+    w = mat.cols();
+    h = mat.rows();
+  }
 
   /**
    * @return the AWT Rectangle of the region
