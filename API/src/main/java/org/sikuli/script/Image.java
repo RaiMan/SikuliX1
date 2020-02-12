@@ -51,6 +51,11 @@ import java.util.*;
  */
 public class Image extends Element {
 
+  void log() {
+    //TODO ****************** debug stop
+    log(-1, "DebugStop");
+  }
+
   //<editor-fold desc="00 0  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
@@ -206,7 +211,7 @@ public class Image extends Element {
     }
     if (scheme.equals("file")) {
       init(new File(validFilename));
-    } else if (scheme.equals("class")) {
+    } else {
       init(uri);
     }
   }
@@ -276,6 +281,7 @@ public class Image extends Element {
   }
 
   private void init(URI uri) {
+    URL resource = null;
     if (uri.getScheme().equals("class")) {
       Class clazz = null;
       try {
@@ -283,10 +289,18 @@ public class Image extends Element {
       } catch (ClassNotFoundException e) {
         terminate("init: %s (%s)", uri, e.getMessage());
       }
-      URL resource = clazz.getResource(uri.getPath());
+      resource = clazz.getResource(uri.getPath());
       if (resource == null) {
         terminate("init: %s (not found)", uri);
       }
+    } else if (uri.getScheme().startsWith("http")) {
+      try {
+        resource = uri.toURL();
+      } catch (MalformedURLException e) {
+        terminate("init: %s (not valid)", uri);
+      }
+    }
+    if (null != resource) {
       try {
         InputStream inputStream = resource.openStream();
         byte[] bytes = inputStream.readAllBytes();
@@ -298,7 +312,6 @@ public class Image extends Element {
       } catch (IOException e) {
         terminate("init: %s (io-error)", uri);
       }
-      log(-1, "DebugStop");
     }
   }
 

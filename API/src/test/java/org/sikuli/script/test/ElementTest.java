@@ -8,11 +8,9 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Location;
-import org.sikuli.script.Region;
+import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
@@ -26,6 +24,7 @@ public class ElementTest {
   String methodName = "NotValid";
   RunTime runTime = RunTime.get();
   String bundlePath = null;
+  static boolean showImage = true;
 
   void testIntro() {
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
@@ -34,6 +33,19 @@ public class ElementTest {
   void testOutro(String message, Object... args) {
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
     Debug.logp(methodName + ": " + message, args);
+  }
+
+  void testShow(Image image) {
+    if (!showImage || !image.isValid()) {
+      return;
+    }
+    HighGui.namedWindow(methodName);
+    Screen screen = Screen.getPrimaryScreen();
+    int x = (screen.w - image.w) / 2;
+    int y = (screen.h - image.h) / 2;
+    HighGui.moveWindow(methodName, x, y);
+    HighGui.imshow(methodName, image.getContent());
+    HighGui.waitKey(3000);
   }
 
   @Before
@@ -49,6 +61,7 @@ public class ElementTest {
   public void test000_StartUp() {
     Region region = new Region(100, 200, 300, 400);
     Image image = new Image(region);
+    showImage = false;
   }
 
   @Test
@@ -56,6 +69,7 @@ public class ElementTest {
     Region region = new Region(100, 200, 300, 400);
     Image image = new Image(region);
     testOutro("%s", image);
+    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -64,6 +78,7 @@ public class ElementTest {
     Location location = new Location(100, 200);
     Image image = new Image(location);
     testOutro("%s", image);
+    testShow(image);
     assertFalse("Valid???: " + image.toString(), image.isValid());
   }
 
@@ -72,6 +87,7 @@ public class ElementTest {
     Region region = new Region(100, 200, 300, 400);
     Image image = region.getImage();
     testOutro("%s", image);
+    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -82,6 +98,7 @@ public class ElementTest {
     String imageName = "../images/" + testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
+    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -90,6 +107,7 @@ public class ElementTest {
     String imageName = testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
+    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -98,6 +116,17 @@ public class ElementTest {
     String resName = "class:///images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
     testOutro("%s (%s)", image, resName);
+    testShow(image);
+    assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
+
+  @Test
+  public void test007_ImageFileHTTP() {
+    Image image = new Image(httpURI);
+    testOutro("%s (%s)", image, httpURI);
+    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 }

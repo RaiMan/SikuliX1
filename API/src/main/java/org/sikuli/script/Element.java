@@ -291,6 +291,11 @@ public abstract class Element {
     content = mat;
   }
 
+  public void setContentAndSize(Mat mat) {
+    setContent(mat);
+    setSize(mat);
+  }
+
   private Mat content = SXOpenCV.newMat();
 
   private final static String PNG = "png";
