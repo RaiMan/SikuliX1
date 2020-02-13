@@ -4,6 +4,22 @@
 
 package org.sikuli.script.support;
 
+import org.apache.commons.io.FileUtils;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.NativeInputEvent;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
+import org.jnativehook.mouse.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
+import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.recorder.RecordedEventsFlow;
+import org.sikuli.script.support.recorder.actions.IRecordedAction;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,27 +30,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.ProgressMonitor;
-
-import org.apache.commons.io.FileUtils;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
-import org.jnativehook.NativeInputEvent;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.keyboard.NativeKeyListener;
-import org.jnativehook.mouse.NativeMouseEvent;
-import org.jnativehook.mouse.NativeMouseListener;
-import org.jnativehook.mouse.NativeMouseMotionListener;
-import org.jnativehook.mouse.NativeMouseWheelEvent;
-import org.jnativehook.mouse.NativeMouseWheelListener;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.Finder;
-import org.sikuli.script.Screen;
-import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.recorder.RecordedEventsFlow;
-import org.sikuli.script.support.recorder.actions.IRecordedAction;
 
 /**
  * Records native input events and transforms them into executable actions.
@@ -114,13 +109,11 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
               if (screenshotDir.exists()) {
                 ScreenImage img = Screen.getPrimaryScreen().capture();
                 // Dedupe screenshots
-                if (new Finder(img).findDiffPercentage(currentImage) > 0.0001) {
+                if (img.diffPercentage(currentImage) > 0.0001) {
                   currentImage = img;
-                  currentImageFilePath = currentImage.save(screenshotDir.getAbsolutePath());
-                  eventsFlow.addScreenshot(currentImageFilePath);
-                } else {
-                  eventsFlow.addScreenshot(currentImageFilePath);
+                  currentImageFilePath = currentImage.save(screenshotDir);
                 }
+                eventsFlow.addScreenshot(currentImageFilePath);
               }
             }
           } finally {
@@ -169,7 +162,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
         screenshotDir = Files.createTempDirectory("sikulix").toFile();
         screenshotDir.deleteOnExit();
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new SikuliXception("Recorder: createTempDirectory: not possible");
       }
 
       screenshot(0);

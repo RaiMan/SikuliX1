@@ -54,6 +54,9 @@ public class SXOpenCV {
   }
 
   public static BufferedImage makeBufferedImage(Mat content) {
+    if (content.empty()) {
+      return null;
+    }
     return (BufferedImage) HighGui.toBufferedImage(content);
   }
 
@@ -286,5 +289,19 @@ public class SXOpenCV {
     return img;
   }
 
-
+  public static double diffPercentage(Mat mat1, Mat mat2) {
+    if (mat1.type() != mat2.type()) {
+      return 1.0;
+    }
+    if (mat1.cols() != mat2.cols() || mat1.rows() != mat2.rows()) {
+      return 1.0;
+    }
+    Mat thisGray = SXOpenCV.newMat();
+    Mat otherGray = SXOpenCV.newMat();
+    Mat mDiffAbs = SXOpenCV.newMat();
+    Imgproc.cvtColor(mat1, thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(mat2, otherGray, Imgproc.COLOR_BGR2GRAY);
+    Core.absdiff(thisGray, otherGray, mDiffAbs);
+    return (double) Core.countNonZero(mDiffAbs) / (thisGray.cols() * thisGray.rows());
+  }
 }

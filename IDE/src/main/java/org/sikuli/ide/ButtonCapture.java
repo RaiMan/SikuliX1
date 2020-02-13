@@ -4,7 +4,6 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Sikulix;
@@ -165,8 +164,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       if (filename != null) {
         fullpath = capturedImage.save(filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
         capturedImage.imageURL(fullpath);
-        fullpath = capturedImage.imageFileName();
-        FileManager.saveScreenshotImage(ocp.getOriginal().getBufferedImage(), filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
+        ocp.getOriginal().save(filename, SikulixIDE.get().getCurrentCodePane().getScreenshotFolder());
       }
     }
     Settings.OverwriteImages = saveOverwrite;

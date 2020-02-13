@@ -14,7 +14,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.recorder.actions.*;
@@ -351,7 +350,7 @@ public class RecordedEventsFlow {
     Image image = findRelevantImage(screenshot, event);
 
     if (image != null) {
-      File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
+      File file = new File(ImagePath.getBundlePath(),"" + time + ".png");
 
       try {
         ImageIO.write(image.getBufferedImage(), "PNG", file);
@@ -406,7 +405,7 @@ public class RecordedEventsFlow {
       Image image = findRelevantImage(screenshot, event);
 
       if (image != null) {
-        File file = new File(ImagePath.getBundlePath() + File.separator + time + ".png");
+        File file = new File(ImagePath.getBundlePath(), "" + time + ".png");
 
         try {
           ImageIO.write(image.getBufferedImage(), "PNG", file);
@@ -434,7 +433,7 @@ public class RecordedEventsFlow {
   }
 
   private void saveScreenshot(Mat screenshot, File imageFile) {
-    FileManager.saveScreenshotImage(Element.getBufferedImage(screenshot), imageFile.getName(), ImagePath.getBundlePath());
+    new Image(screenshot).save(imageFile);
   }
 
   /*
@@ -595,7 +594,7 @@ public class RecordedEventsFlow {
 
     Mat part = new Mat(screenshot, roi);
 
-    Image image = new Image(Element.getBufferedImage(part));
+    Image image = new Image(part);
 
     adjustOffset(image, roi, event);
     adjustSimilarity(image, screenshot);

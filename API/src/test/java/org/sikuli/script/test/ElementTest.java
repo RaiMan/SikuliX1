@@ -37,6 +37,11 @@ public class ElementTest {
   }
 
   void testShow(Image image) {
+    testShow(image, 3000);
+//    HighGui.destroyAllWindows();
+  }
+
+  void testShow(Image image, int time) {
     if (!showImage || !image.isValid()) {
       return;
     }
@@ -46,7 +51,9 @@ public class ElementTest {
     int y = (screen.h - image.h) / 2;
     HighGui.moveWindow(methodName, x, y);
     HighGui.imshow(methodName, image.getContent());
-    HighGui.waitKey(3000);
+    if (time > 0) {
+      HighGui.waitKey(time);
+    }
   }
 
   @Before
@@ -129,6 +136,17 @@ public class ElementTest {
     testOutro("%s (%s)", image, httpURI);
     testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  @Test
+  public void test100_ImageFind() {
+    Image shot = new Image("shot");
+    Match match = null;
+    try {
+      match = shot.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    testOutro("%s in %s is %s", testName, shot, match);
   }
 
   static Image savedImage = null;

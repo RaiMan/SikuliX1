@@ -3,30 +3,19 @@
  */
 package org.sikuli.ide;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.GraphicsConfiguration;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.ScreenUnion;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class PatternWindow extends JFrame {
 
@@ -63,14 +52,18 @@ public class PatternWindow extends JFrame {
 		setTitle(_I("winPatternSettings"));
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		_imgBtn = imgBtn;
+		currentPane = SikulixIDE.get().getCurrentCodePane();
 
 		File imgFile = new File(imgBtn.getFileName());
 
-		BufferedImage savedImage = FileManager.getScreenshotImage(imgFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
-
-		if(savedImage != null) {
-		  _simg = savedScreenImage = new ScreenImage(new Rectangle(0,0,savedImage.getWidth(), savedImage.getHeight()), savedImage);
-		} else {
+		_simg = null;
+		if (currentPane.hasScreenshotImage(imgFile.getName())) {
+			ScreenImage screenshotImage = currentPane.getScreenshotImage(imgFile.getName());
+			if (null != screenshotImage) {
+				_simg = savedScreenImage = screenshotImage;
+			}
+		}
+		if (_simg == null) {
 		  _simg = takeScreenshot();
 		}
 
@@ -130,7 +123,6 @@ public class PatternWindow extends JFrame {
       Debug.error(me + "Problem while setting up pattern pane\n%s", e.getMessage());
 		}
 		setDirty(false);
-    currentPane = SikulixIDE.get().getCurrentCodePane();
     setLocation(pLoc);
 		setVisible(true);
 	}
@@ -303,13 +295,13 @@ public class PatternWindow extends JFrame {
 
 	private void renameScreenshot(String oldFilename, String filename) {
 	  File oldFile = new File(oldFilename);
-    File file = new File(filename);
+    File newFile = new File(filename);
 
-    File oldScreenshotImageFile = FileManager.getScreenshotImageFile(oldFile.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
-    File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
+    File oldScreenshotImageFile = currentPane.getScreenshotImageFile(oldFile.getName());
+    File newScreenshotImageFile = currentPane.getScreenshotImageFile(newFile.getName());
 
     if (oldScreenshotImageFile.exists()) {
-      FileManager.xcopy(oldScreenshotImageFile, screenshotImageFile);
+      FileManager.xcopy(oldScreenshotImageFile, newScreenshotImageFile);
     }
 	}
 
@@ -375,10 +367,9 @@ public class PatternWindow extends JFrame {
       paneNaming.reloadImage();
       currentPane.repaint();
 
-      File screenshotImageFile = FileManager.getScreenshotImageFile(file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
-      if(!screenshotImageFile.exists()) {
-        FileManager.saveScreenshotImage(_simg.getBufferedImage(), file.getName(), SikulixIDE.get().getCurrentCodePane().getImagePath());
-      }
+      if (!currentPane.hasScreenshotImage(file.getName())) {
+				_simg.save(file.getName(), currentPane.getScreenshotFolder());
+			}
 		}
 
 		addDirty(_imgBtn.setParameters(

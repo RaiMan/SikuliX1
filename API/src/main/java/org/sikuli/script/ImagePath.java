@@ -3,6 +3,11 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.support.RunTime;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -14,11 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.support.RunTime;
 
 /**
  * maintain the path list of locations, where images will be searched.
@@ -38,6 +38,8 @@ public class ImagePath {
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
+
+  public static final String SCREENSHOT_DIRECTORY = ".screenshots";
 
   //<editor-fold desc="01 path list">
   private static final List<PathEntry> imagePaths = Collections.synchronizedList(new ArrayList<PathEntry>());

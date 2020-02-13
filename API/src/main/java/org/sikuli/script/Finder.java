@@ -224,19 +224,6 @@ public class Finder implements Iterator<Match> {
     }
     return Finder2.findChanges(_findInput);
   }
-  public double findDiffPercentage(Object changedImage) {
-    if (SX.isNull(changedImage)) {
-      return 1.0;
-    }
-    if (changedImage instanceof String) {
-      Image img = Image.create((String) changedImage);
-      _findInput.setTarget(possibleImageResizeOrCallback(img));
-    } else if (changedImage instanceof ScreenImage) {
-      Image img = new Image((ScreenImage) changedImage);
-      _findInput.setTarget(possibleImageResizeOrCallback(img));
-    }
-    return Finder2.findDiffPercentage(_findInput);
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="findAll">
@@ -875,17 +862,6 @@ public class Finder implements Iterator<Match> {
         //logShow(mDiffAbs);
       }
       return rectangles;
-    }
-
-    public static double findDiffPercentage(FindInput2 findInput) {
-      Mat previousGray = SXOpenCV.newMat();
-      Mat nextGray = SXOpenCV.newMat();
-      Mat mDiffAbs = SXOpenCV.newMat();
-
-      Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
-      Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
-      Core.absdiff(previousGray, nextGray, mDiffAbs);
-      return (double) Core.countNonZero(mDiffAbs) / (findInput.getBase().cols() * findInput.getBase().rows());
     }
 
     public static List<Region> contoursToRectangle(List<MatOfPoint> contours) {

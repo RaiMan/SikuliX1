@@ -12,9 +12,7 @@ import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Location;
-import org.sikuli.script.SX;
+import org.sikuli.script.*;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
@@ -31,6 +29,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.text.Element;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -520,6 +519,26 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="15 content file">
+  public File getScreenshotImageFile(String imageName) {
+    if (!imageName.endsWith(".png")) {
+      imageName += ".png";
+    }
+    File screenshotDir = new File(getImagePath(), ImagePath.SCREENSHOT_DIRECTORY);
+    return new File(screenshotDir, imageName);
+  }
+
+  public boolean hasScreenshotImage(String imageName) {
+    return getScreenshotImageFile(imageName).exists();
+  }
+
+  public ScreenImage getScreenshotImage(String imageName) {
+    File screenshotFile = getScreenshotImageFile(imageName);
+    if (screenshotFile.exists()) {
+      return new ScreenImage(screenshotFile);
+    }
+    return null;
+  }
+
   public void setTemp(boolean temp) {
     editorPaneIsTemp = temp;
   }
@@ -542,7 +561,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-        FilenameUtils.getExtension(fileName).equals("sikuli")) {
+            FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -706,6 +725,10 @@ public class EditorPane extends JTextPane {
 
   public String getImagePath() {
     return editorPaneImageFolder.getAbsolutePath();
+  }
+
+  public String getScreenshotFolder() {
+    return new File(editorPaneImageFolder, ImagePath.SCREENSHOT_DIRECTORY).getAbsolutePath();
   }
 
   public void setBundleFolder() {
@@ -1082,11 +1105,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1157,14 +1180,14 @@ public class EditorPane extends JTextPane {
     int tabAlreadyOpen = alreadyOpen(filename, currentTab);
     if (-1 != tabAlreadyOpen) {
       SX.popError(String.format("Target is open in IDE\n%s\n" +
-              "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
+                      "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
               "SaveAs: file is opened");
       return null;
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", filename),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+              null, SikuliIDEI18N._I("msgFileExists", filename),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1223,8 +1246,8 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-          new FileOutputStream(editorPaneFile.getAbsolutePath()),
-          "UTF8")));
+              new FileOutputStream(editorPaneFile.getAbsolutePath()),
+              "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1250,8 +1273,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", zipPath),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+              null, SikuliIDEI18N._I("msgFileExists", zipPath),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1359,12 +1382,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-          SikuliIDEI18N._I("dlgAskCloseTab"),
-          JOptionPane.YES_NO_CANCEL_OPTION,
-          JOptionPane.WARNING_MESSAGE,
-          null,
-          options, options[0]);
+              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+              SikuliIDEI18N._I("dlgAskCloseTab"),
+              JOptionPane.YES_NO_CANCEL_OPTION,
+              JOptionPane.WARNING_MESSAGE,
+              null,
+              options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1516,7 +1539,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-            filename, e.getMessage());
+                filename, e.getMessage());
         return f;
       }
     }

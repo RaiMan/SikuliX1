@@ -109,13 +109,15 @@ public class Image extends Element {
       init((URL) what);
     } else if (what instanceof Element) {
       init((Element) what);
+    } else if (what instanceof Mat) {
+      init((Mat) what);
     }
   }
 
   /**
    * Creates an Image from a resource file on classpath.
    *
-   * @param clazz a class found on classpath as reference
+   * @param clazz    a class found on classpath as reference
    * @param resource the resource identifier (.png is assumed)
    */
   public Image(Class clazz, String resource) {
@@ -248,6 +250,12 @@ public class Image extends Element {
     }
   }
 
+  private void init(Mat mat) {
+    setContent(mat);
+    w = mat.cols();
+    h = mat.rows();
+  }
+
   public void reloadContent() {
     if (imageURL() != null) {
       init(imageURL());
@@ -280,15 +288,6 @@ public class Image extends Element {
     } else {
       return getName();
     }
-  }
-
-  /**
-   * check whether image has pixel content<br>
-   *
-   * @return true if has pixel content
-   */
-  public boolean isValid() {
-    return !getContent().empty();
   }
   //</editor-fold>
 
@@ -408,7 +407,15 @@ public class Image extends Element {
   }
   //</editor-fold>
 
+  public double diffPercentage(Image otherImage) {
+    if (SX.isNull(otherImage)) {
+      return 1.0;
+    }
+    return SXOpenCV.diffPercentage(getContent(), otherImage.getContent());
+  }
+
   //<editor-fold defaultstate="collapsed" desc="00 1 URL">
+
   /**
    * @return the evaluated url for this image (might be null)
    */
@@ -491,6 +498,7 @@ public class Image extends Element {
 //</editor-fold>
 
   //<editor-fold desc="800 create obsolete">
+
   /**
    * create a new Image as copy of the given Image
    *

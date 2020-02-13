@@ -3,31 +3,17 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.Image;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.RunTime;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.UnknownHostException;
+import java.io.*;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.security.CodeSource;
 import java.util.*;
@@ -35,13 +21,6 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-
-import org.apache.commons.io.FileUtils;
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Sikulix;
 
 /**
  * INTERNAL USE: Support for accessing files and other ressources
@@ -58,7 +37,6 @@ public class FileManager {
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
   private static SplashFrame _progress = null;
   private static final String EXECUTABLE = "#executable";
-  private static final String SCREENSHOT_DIRECTORY = ".screenshots";
 
   private static int tryGetFileSize(URL aUrl) {
     HttpURLConnection conn = null;
@@ -576,14 +554,6 @@ public class FileManager {
       e.printStackTrace();
     }
     return null;
-  }
-
-  public static String saveTimedImage(BufferedImage img) {
-    return saveTimedImage(img, ImagePath.getBundlePath(), null);
-  }
-
-  public static String saveTimedImage(BufferedImage img, String path) {
-    return saveTimedImage(img, path, null);
   }
 
   public static String saveTimedImage(BufferedImage img, String path, String name) {
@@ -1145,37 +1115,6 @@ public class FileManager {
     return fpImage;
   }
 
-  public static void saveScreenshotImage(BufferedImage screenshot, String sImage, String bundlePath) {
-    try {
-      File screenshotDir = new File(bundlePath, SCREENSHOT_DIRECTORY);
-      FileUtils.forceMkdir(screenshotDir);
-      saveImage(screenshot, sImage, screenshotDir.getAbsolutePath());
-     } catch (IOException e) {
-      Debug.error("Problem saving screenshot: %s", e.getMessage());
-    }
-  }
-
-  public static File getScreenshotImageFile(String sImage, String bundlePath) {
-    if (!sImage.endsWith(".png")) {
-      sImage += ".png";
-    }
-
-    File screenshotDir = new File(bundlePath, SCREENSHOT_DIRECTORY);
-    return new File(screenshotDir.getAbsolutePath(), sImage);
-  }
-
-  public static BufferedImage getScreenshotImage(String sImage, String bundlePath) {
-    File screenshotFile = getScreenshotImageFile(sImage, bundlePath);
-    if(screenshotFile.exists()) {
-      try {
-        return ImageIO.read(screenshotFile);
-      } catch (IOException e) {
-        Debug.error("Problem reading screenshot: %s", e.getMessage());
-      }
-    }
-    return null;
-  }
-
   //TODO consolidate with FileManager and Settings
   public static void deleteNotUsedScreenshots(String bundle, File[] images) {
     List<String> imageNames = Arrays.stream(images).map((f) -> f.getName()).collect(Collectors.toList());
@@ -1185,7 +1124,7 @@ public class FileManager {
       return;
     }
 
-    File screenshotsDir = new File(bundle, SCREENSHOT_DIRECTORY);
+    File screenshotsDir = new File(bundle, ImagePath.SCREENSHOT_DIRECTORY);
 
     if(screenshotsDir.exists()) {
       for(File screenshot : screenshotsDir.listFiles()) {
@@ -1333,7 +1272,7 @@ public class FileManager {
     FileFilter skipCompiled = new FileManager.FileFilter() {
       @Override
       public boolean accept(File entry) {
-        if (entry.getName().contains("$py.class") || entry.getName().equals(SCREENSHOT_DIRECTORY)) {
+        if (entry.getName().contains("$py.class") || entry.getName().equals(ImagePath.SCREENSHOT_DIRECTORY)) {
           return false;
         }
         return true;

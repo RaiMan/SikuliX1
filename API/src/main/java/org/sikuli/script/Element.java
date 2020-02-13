@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -262,9 +263,21 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
+
+  /**
+   * check whether image has pixel content<br>
+   *
+   * @return true if has pixel content
+   */
+  public boolean isValid() {
+    return !getContent().empty();
+  }
+
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
+    } else if (target instanceof Pattern) {
+      return ((Pattern) target).getImage();
     }
     return new Image(target);
   }
@@ -722,16 +735,29 @@ public abstract class Element {
   }
 
   public String save(String name, String path) {
-    name = getValidImageFilename(name);
-    File fImg = new File(path, name);
-    boolean imwrite = Imgcodecs.imwrite(fImg.getAbsolutePath(), content);
-    if (imwrite) {
-      Debug.log(3, "Image::save: %s", fImg);
-    } else {
-      Debug.error("Image::save: %s did not work", fImg);
+    if (!isValid()) {
       return null;
     }
-    return fImg.getAbsolutePath();
+    File fImg = new File(path, name);
+    return save(fImg);
+  }
+
+  public String save(File imageFile) {
+    boolean imwrite = false;
+    File parent = imageFile.getParentFile();
+    String name = getValidImageFilename(imageFile.getName());
+    try {
+      FileUtils.forceMkdir(parent);
+      imwrite = Imgcodecs.imwrite(new File(parent, name).getAbsolutePath(), content);
+    } catch (IOException e) {
+    }
+    if (imwrite) {
+      Debug.log(3, "Image::save: %s", imageFile);
+    } else {
+      Debug.error("Image::save: %s did not work", imageFile);
+      return null;
+    }
+    return imageFile.getAbsolutePath();
   }
   //</editor-fold>
 
@@ -1094,8 +1120,8 @@ public abstract class Element {
    */
   public <PSI> Match find(PSI target) throws FindFailed {
     //TODO implement find image
-    throw new SikuliXception(String.format("Pixels: find: not implemented for", this.getClass().getCanonicalName()));
-    //return match;
+    //throw new SikuliXception(String.format("Element: find: not implemented for %s", this.getClass().getCanonicalName()));
+    return null;
   }
 
   /**
