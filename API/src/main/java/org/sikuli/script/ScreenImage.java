@@ -125,11 +125,11 @@ public class ScreenImage extends Image {
 	 * @param path valid path string
 	 * @return absolute path to stored file
 	 */
-	public String save(String path) {
-		return save(new File(path));
+	public String saveInto(String path) {
+		return saveInto(new File(path));
 	}
 
-	public String save(File path) {
+	public String saveInto(File path) {
 		File fImage = new File(path, String.format("%s-%d.png", "sikuliximage", new Date().getTime()));
 		try {
 			ImageIO.write(_img, FilenameUtils.getExtension(fImage.getName()), fImage);
@@ -259,7 +259,7 @@ public class ScreenImage extends Image {
 	 * @return absolute path to stored file
 	 */
   public String getFile(String path) {
-    return save(path);
+    return saveInto(path);
   }
 
   public void saveLastScreenImage(File fPath) {

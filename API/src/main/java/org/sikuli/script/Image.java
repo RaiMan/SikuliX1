@@ -246,7 +246,9 @@ public class Image extends Element {
     if (element.isOnScreen()) {
       setContent(element.getImage().getContent());
     } else {
+      copyElementRectangle(element);
       copyElementContent(element);
+      imageURL(element.imageURL());
     }
   }
 

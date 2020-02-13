@@ -1595,7 +1595,13 @@ public class FileManager {
   }
 
   public static boolean pathEquals(String path1, String path2) {
-    return new File(path1).equals(new File(path2));
+    try {
+      File file1 = new File(path1).getCanonicalFile();
+      File file2 = new File(path2).getCanonicalFile();
+      return file1.equals(file2);
+    } catch (IOException e) {
+      return false;
+    }
   }
 
 }

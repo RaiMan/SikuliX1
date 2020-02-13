@@ -746,9 +746,10 @@ public abstract class Element {
     boolean imwrite = false;
     File parent = imageFile.getParentFile();
     String name = getValidImageFilename(imageFile.getName());
+    imageFile = new File(parent, name);
     try {
       FileUtils.forceMkdir(parent);
-      imwrite = Imgcodecs.imwrite(new File(parent, name).getAbsolutePath(), content);
+      imwrite = Imgcodecs.imwrite(imageFile.getAbsolutePath(), content);
     } catch (IOException e) {
     }
     if (imwrite) {

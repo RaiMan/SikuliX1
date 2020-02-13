@@ -111,7 +111,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
                 // Dedupe screenshots
                 if (img.diffPercentage(currentImage) > 0.0001) {
                   currentImage = img;
-                  currentImageFilePath = currentImage.save(screenshotDir);
+                  currentImageFilePath = currentImage.saveInto(screenshotDir);
                 }
                 eventsFlow.addScreenshot(currentImageFilePath);
               }

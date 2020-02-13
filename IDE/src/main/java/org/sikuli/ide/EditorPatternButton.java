@@ -421,7 +421,8 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
   @Override
   public String toString() {
-    return _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor, _mask);
+    String patternString = _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor, _mask);
+    return patternString;
   }
 
   private void setButtonText() {

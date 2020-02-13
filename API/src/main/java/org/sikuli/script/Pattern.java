@@ -58,6 +58,8 @@ public class Pattern {
       copyAllAttributes((Pattern) what);
     } else {
       image = new Image(what);
+
+      toString();
     }
   }
 
