@@ -142,6 +142,9 @@ public class Image extends Element {
   }
 
   private void init(String filename) {
+    if (filename.isEmpty()) {
+      initTerminate("%s", "init: filename is empty");
+    }
     filename = getValidImageFilename(filename);
     try {
       URI uri = new URI(filename);
@@ -153,13 +156,9 @@ public class Image extends Element {
     init(new File(filename));
   }
 
-  private void initTerminate(Object item, String message) {
-
-  }
-
   private void init(File file) {
     if (null == file) {
-      return;
+      initTerminate("%s", "init: file is null");
     }
     URL imageURL = null;
     if (file.isAbsolute() || file.getPath().startsWith("\\")) {
@@ -171,9 +170,9 @@ public class Image extends Element {
       imageURL = ImagePath.find(file.getPath());
     }
     if (imageURL == null || !new File(imageURL.getPath()).exists()) {
-      initTerminate(file, "file not found or path not valid");
+      initTerminate("init: %s file not found or path not valid", file);
     }
-    URL(imageURL);
+    url(imageURL);
     if (isCaching()) {
       setContent(ImageCache.get(imageURL));
     }
@@ -190,7 +189,11 @@ public class Image extends Element {
 
   private void init(URL url) {
     if (isFile(url)) {
-      init(asFile(url));
+      File file = asFile(url);
+      if (null == file) {
+        initTerminate( "%s url not valid", url);
+      }
+      init(file);
     }
   }
 
@@ -201,17 +204,17 @@ public class Image extends Element {
       try {
         clazz = Class.forName(uri.getAuthority());
       } catch (ClassNotFoundException e) {
-        terminate("init: %s (%s)", uri, e.getMessage());
+        initTerminate("%s class not found", uri);
       }
       resource = clazz.getResource(uri.getPath());
       if (resource == null) {
-        terminate("init: %s (not found)", uri);
+        initTerminate("%s (not found)", uri);
       }
     } else if (uri.getScheme().startsWith("http")) {
       try {
         resource = uri.toURL();
       } catch (MalformedURLException e) {
-        terminate("init: %s (not valid)", uri);
+        initTerminate("%s uri not valid", uri);
       }
     }
     if (null != resource) {
@@ -223,7 +226,7 @@ public class Image extends Element {
         Mat content = Imgcodecs.imdecode(matOfByte, -1);
         setContentAndSize(content);
       } catch (IOException e) {
-        terminate("init: %s (io-error)", uri);
+        initTerminate("%s io error", uri);
       }
     }
   }
@@ -235,7 +238,7 @@ public class Image extends Element {
     } else {
       copyElementRectangle(element);
       copyElementContent(element);
-      URL(element.URL());
+      url(element.url());
     }
   }
 
@@ -245,9 +248,13 @@ public class Image extends Element {
     h = mat.rows();
   }
 
+  private void initTerminate(String message, Object item) {
+    terminate("init: " + message, item);
+  }
+
   public void reloadContent() {
-    if (URL() != null) {
-      init(URL());
+    if (url() != null) {
+      init(url());
     }
   }
 
@@ -261,7 +268,6 @@ public class Image extends Element {
       try {
         file = new File(url.getPath()).getCanonicalFile();
       } catch (IOException e) {
-        terminate("init: %s (%s)", url, e.getMessage());
       }
     }
     return file;
@@ -272,8 +278,8 @@ public class Image extends Element {
    * image
    */
   public String getFilename() {
-    if (URL() != null && "file".equals(URL().getProtocol())) {
-      return new File(URL().getPath()).getAbsolutePath();
+    if (url() != null && "file".equals(url().getProtocol())) {
+      return new File(url().getPath()).getAbsolutePath();
     } else {
       return getName();
     }
@@ -409,7 +415,7 @@ public class Image extends Element {
    * @return the evaluated url for this image (might be null)
    */
   public URL getURL() {
-    return URL();
+    return url();
   }
 
   public Image setFileURL(URL fileURL) {

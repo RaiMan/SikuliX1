@@ -10,19 +10,16 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.FindFailedDialog;
-import org.sikuli.script.support.IRobot;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.SXOpenCV;
+import org.sikuli.script.support.*;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -324,15 +321,64 @@ public abstract class Element {
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
 
-  public URL URL() {
+  public static URL makeURL(Object item) {
+    return makeURL(item, RunTime.get().fWorkDir);
+  }
+
+  public static URL makeURL(Object item, Object base) {
+    URL url = null;
+    File file = null;
+    if (item instanceof String) {
+      String itemName = (String) item;
+      try {
+        URI uri = new URI(itemName);
+        if (uri.getScheme() != null && !"file".equals(uri.getScheme())) {
+          try {
+            return uri.toURL();
+          } catch (MalformedURLException e) {
+          }
+        }
+      } catch (URISyntaxException e) {
+      }
+      file = new File(itemName);
+    } else if (item instanceof File) {
+      file = (File) item;
+    }
+    if (file == null) {
+      return null;
+    }
+    if (!file.isAbsolute() && !file.getPath().startsWith("\\") && base != null) {
+      String itemName = file.getPath();
+      if (base instanceof URL) {
+        URL baseURL = (URL) base;
+        if ("file".equals(baseURL.getProtocol())) {
+          file = new File(new File(baseURL.getPath()), itemName);
+        } else
+          terminate("makeURL: not supported for non-File base: %s", base);
+      }
+      if (base instanceof String) {
+        file = new File((String) base, itemName);
+      }
+      if (base instanceof File) {
+        file = new File((File) base, itemName);
+      }
+    }
+    try {
+      url = file.toURI().toURL();
+    } catch (MalformedURLException e) {
+    }
+    return url;
+  }
+
+  public URL url() {
     return imageURL;
   }
 
-  public void URL(URL imageURL) {
+  public void url(URL imageURL) {
     this.imageURL = imageURL;
   }
 
-  public void URL(String fileName) {
+  public void url(String fileName) {
     try {
       fileName = new File(fileName).getCanonicalPath();
     } catch (IOException e) {
