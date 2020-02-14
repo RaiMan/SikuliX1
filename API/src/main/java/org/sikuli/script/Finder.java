@@ -1166,6 +1166,18 @@ public class Finder implements Iterator<Match> {
       }
     }
 
+    public String dump() {
+      Object base = null;
+      if (where != null) {
+        base = where;
+      } else if (source != null) {
+        base = source;
+      } else if (image != null) {
+        base = image;
+      }
+      return String.format("where: %s", base);
+    }
+
     public String toString() {
       return String.format("(stdDev: %.4f mean: %4f)", targetStdDev, targetMean);
     }

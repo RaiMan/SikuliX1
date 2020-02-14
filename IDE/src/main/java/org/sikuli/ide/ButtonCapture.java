@@ -163,7 +163,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
       if (filename != null) {
         fullpath = capturedImage.save(filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
-        capturedImage.imageURL(fullpath);
+        capturedImage.URL(fullpath);
         ocp.getOriginal().save(filename, SikulixIDE.get().getCurrentCodePane().getScreenshotFolder());
       }
     }
@@ -184,13 +184,13 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
           if (_lbl == null) {
             insertAtCursor(SikulixIDE.get().getCurrentCodePane(), imgCaptured);
           } else {
-            _lbl.setFile(imgCaptured.imageFileName());
+            _lbl.setFile(imgCaptured.fileName());
           }
         } else {
           insertAtCursor(_codePane, imgCaptured);
         }
       } else {
-        replaceButton(src, imgCaptured.imageFileName());
+        replaceButton(src, imgCaptured.fileName());
       }
     } else {
       Debug.log(3, "ButtonCapture: Capture cancelled");
@@ -297,7 +297,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
           pane.insertComponent(comp);
         }
       } else {
-        EditorPatternLabel label = new EditorPatternLabel(pane, capturedImage.imageFileName(), true);
+        EditorPatternLabel label = new EditorPatternLabel(pane, capturedImage.fileName(), true);
         pane.insertComponent(label);
       }
     }

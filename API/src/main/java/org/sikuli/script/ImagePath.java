@@ -630,10 +630,10 @@ public class ImagePath {
     URL fURL = null;
     String proto = "";
     File imageFile = new File(imageFileName);
-    if (imageFile.isAbsolute()) {
+    if (imageFile.isAbsolute() || imageFileName.startsWith("\\")) {
       if (imageFile.exists()) {
         try {
-          fURL = new URL("file", null, new File(imageFileName).getPath());
+          fURL = imageFile.toURI().toURL();
         } catch (MalformedURLException e) {
         }
       } else {
@@ -647,11 +647,13 @@ public class ImagePath {
         }
         proto = path.pathURL.getProtocol();
         if ("file".equals(proto)) {
-          if (new File(path.pathURL.getPath(), imageFileName).exists()) {
+          imageFile = new File(path.pathURL.getPath(), imageFileName);
+          if (imageFile.exists()) {
             try {
-              fURL = new URL("file", null, new File(path.pathURL.getPath(), imageFileName).getPath());
+              fURL = imageFile.toURI().toURL();
               break;
             } catch (MalformedURLException e) {
+              break;
             }
           }
         } else if ("jar".equals(proto) || proto.startsWith("http")) {
@@ -662,7 +664,7 @@ public class ImagePath {
         }
       }
       if (fURL == null) {
-        log(-1, "find: not there: %s", imageFileName);
+        log(-1, "find: %s file not found", imageFileName);
         dump(lvl);
       }
       return fURL;

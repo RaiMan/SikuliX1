@@ -51,7 +51,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
   private EditorPatternButton(EditorPane pane, Image img) {
     this._image = img;
-    this._imgFilename = img.imageFileName();
+    this._imgFilename = img.fileName();
     setIcon(new ImageIcon(createThumbnailImage(_image, PreferencesUser.get().getDefaultThumbHeight())));
     init(pane, null, null);
   }

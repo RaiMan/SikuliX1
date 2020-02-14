@@ -58,7 +58,11 @@ public abstract class Element {
 
   public String toString() {
     String clazz = this.getClass().getSimpleName();
-    return String.format("[Element: %s(%s) (%d,%d %dx%d)]", clazz, sourceClass, x, y, w, h);
+    String fileName = "";
+    if (fileName() != null) {
+      fileName = "(" + new File(fileName()).getName() + ")";
+    }
+    return String.format("[Element: %s(%s) (%d,%d %dx%d) %s]", clazz, sourceClass, x, y, w, h, fileName);
   }
 
   //<editor-fold desc="000 Fields x, y - top left corner or point (0 for Images)">
@@ -320,15 +324,15 @@ public abstract class Element {
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
 
-  public URL imageURL() {
+  public URL URL() {
     return imageURL;
   }
 
-  public void imageURL(URL imageURL) {
+  public void URL(URL imageURL) {
     this.imageURL = imageURL;
   }
 
-  public void imageURL(String fileName) {
+  public void URL(String fileName) {
     try {
       fileName = new File(fileName).getCanonicalPath();
     } catch (IOException e) {
@@ -342,9 +346,14 @@ public abstract class Element {
 
   private URL imageURL = null;
 
-  public String imageFileName() {
+  public String fileName() {
+    File file = file();
+    return (file == null ? null : file.getAbsolutePath());
+  }
+
+  public File file() {
     if (imageURL != null) {
-      return imageURL.getPath();
+      return new File(imageURL.getPath());
     }
     return null;
   }
@@ -358,8 +367,8 @@ public abstract class Element {
    * @return the name
    */
   public String getName() {
-    if (name.isEmpty() && imageFileName() != null) {
-      return new File(imageFileName()).getName();
+    if (name.isEmpty() && fileName() != null) {
+      return new File(fileName()).getName();
     }
     return name;
   }

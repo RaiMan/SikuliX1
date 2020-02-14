@@ -142,22 +142,19 @@ public class Image extends Element {
   }
 
   private void init(String filename) {
-    String validFilename = getValidImageFilename(filename);
-    URI uri = null;
-    String scheme = "file";
+    filename = getValidImageFilename(filename);
     try {
-      uri = new URI(validFilename);
-      if (null != uri.getScheme()) {
-        scheme = uri.getScheme();
+      URI uri = new URI(filename);
+      if (uri.getScheme() != null && !"file".equals(uri.getScheme())) {
+        init(uri);
       }
     } catch (URISyntaxException e) {
-      terminate("init: %s", filename);
     }
-    if (scheme.equals("file")) {
-      init(new File(validFilename));
-    } else {
-      init(uri);
-    }
+    init(new File(filename));
+  }
+
+  private void initTerminate(Object item, String message) {
+
   }
 
   private void init(File file) {
@@ -165,39 +162,29 @@ public class Image extends Element {
       return;
     }
     URL imageURL = null;
-    if (file.isAbsolute()) {
+    if (file.isAbsolute() || file.getPath().startsWith("\\")) {
       try {
-        imageURL = new URL("file://" + file.getAbsolutePath());
+        imageURL = file.toURI().toURL();
       } catch (MalformedURLException e) {
       }
     } else {
       imageURL = ImagePath.find(file.getPath());
     }
-    if (null != imageURL && new File(imageURL.getPath()).exists()) {
-      String canonicalPath = "";
-      try {
-        canonicalPath = new File(imageURL.getPath()).getCanonicalPath();
-      } catch (IOException e) {
-        terminate("init: %s (s)", imageURL, e.getMessage());
+    if (imageURL == null || !new File(imageURL.getPath()).exists()) {
+      initTerminate(file, "file not found or path not valid");
+    }
+    URL(imageURL);
+    if (isCaching()) {
+      setContent(ImageCache.get(imageURL));
+    }
+    if (!isValid()) {
+      setContent(Imgcodecs.imread(fileName(), -1));
+      if (isValid() && isCaching()) {
+        ImageCache.put(imageURL, getContent());
       }
-      try {
-        imageURL = new URL("file://" + canonicalPath);
-      } catch (MalformedURLException e) {
-        terminate("init: %s (%s)", imageURL, e.getMessage());
-      }
-      imageURL(imageURL);
-      if (isCaching()) {
-        setContent(ImageCache.get(imageURL));
-      }
-      if (!isValid()) {
-        setContent(Imgcodecs.imread(imageURL.getPath(), -1));
-        if (isValid() && isCaching()) {
-          ImageCache.put(imageURL, getContent());
-        }
-      }
-      if (isValid()) {
-        setSize(getContent());
-      }
+    }
+    if (isValid()) {
+      setSize(getContent());
     }
   }
 
@@ -248,7 +235,7 @@ public class Image extends Element {
     } else {
       copyElementRectangle(element);
       copyElementContent(element);
-      imageURL(element.imageURL());
+      URL(element.URL());
     }
   }
 
@@ -259,8 +246,8 @@ public class Image extends Element {
   }
 
   public void reloadContent() {
-    if (imageURL() != null) {
-      init(imageURL());
+    if (URL() != null) {
+      init(URL());
     }
   }
 
@@ -285,8 +272,8 @@ public class Image extends Element {
    * image
    */
   public String getFilename() {
-    if (imageURL() != null && "file".equals(imageURL().getProtocol())) {
-      return new File(imageURL().getPath()).getAbsolutePath();
+    if (URL() != null && "file".equals(URL().getProtocol())) {
+      return new File(URL().getPath()).getAbsolutePath();
     } else {
       return getName();
     }
@@ -422,7 +409,7 @@ public class Image extends Element {
    * @return the evaluated url for this image (might be null)
    */
   public URL getURL() {
-    return imageURL();
+    return URL();
   }
 
   public Image setFileURL(URL fileURL) {
