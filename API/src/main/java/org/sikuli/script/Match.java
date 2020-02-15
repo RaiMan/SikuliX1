@@ -318,7 +318,7 @@ public class Match extends Region implements Comparable<Match> {
     String message = "M[%d,%d %dx%d";
     String onScreen = " ";
     if (isOnScreen()) {
-      onScreen = String.format("On(%s)", getScreen().getID());
+      onScreen = String.format(" On(%s) ", getScreen().getID());
     }
     return String.format(message + onScreen + "S(%.2f)]", x, y, w, h,
             ((float) Math.round(score() * 10000))/100);
