@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 
@@ -58,6 +59,7 @@ public class ElementTest {
 
   @Before
   public void setUp() {
+    Settings.NewFind = false;
     if (null == bundlePath) {
       File bundleFile = new File(runTime.fWorkDir, "src/main/resources/images");
       ImagePath.setBundleFolder(bundleFile);
@@ -151,16 +153,33 @@ public class ElementTest {
 
 
   @Test
-  public void test150_RegionFind() {
+  public void test150_RegionFindOld() {
     Region reg = new Screen();
     Match match = null;
     try {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {
     }
+    if (null != match) {
+//      match.highlight(2);
+    }
     testOutro("%s in %s is %s", testName, reg, match);
   }
 
+  @Test
+  public void test151_RegionFindNew() {
+    Settings.NewFind = true;
+    Region reg = new Screen();
+    Match match = null;
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    if (null != match) {
+//      match.highlight(2);
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+  }
   static Image savedImage = null;
 
   @Ignore

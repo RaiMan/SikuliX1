@@ -1754,7 +1754,7 @@ public class Region extends Element {
    */
   public <PSI> Match find(PSI target) throws FindFailed {
     Image img = Element.getImage(target);
-    if (RunTime.get().getVersionShort().equals("2.1.0")) {
+    if (Settings.NewFind) {
       Image imgRegion = getImage();
       imgRegion.onScreen(true);
       return imgRegion.find(target);

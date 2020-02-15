@@ -18,6 +18,8 @@ import java.util.Date;
 public class Settings {
 
 
+  public static boolean NewFind = false;
+
   public static synchronized void init(RunTime givenRunTime) {
     runTime = givenRunTime;
   }
