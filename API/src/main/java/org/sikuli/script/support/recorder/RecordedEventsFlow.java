@@ -454,7 +454,7 @@ public class RecordedEventsFlow {
 
     List<Match> matches = finder.getList();
 
-    boolean wasHereBeforeMouseMove = matches.stream().anyMatch((m) -> m.getScore() > 0.9);
+    boolean wasHereBeforeMouseMove = matches.stream().anyMatch((m) -> m.score() > 0.9);
 
     if (!wasHereBeforeMouseMove) {
       Pattern pattern = action.getPattern();
@@ -621,7 +621,7 @@ public class RecordedEventsFlow {
     if (matches.size() > 1) {
       // matches are sorted best first, take second match
       // as reference for adjustment
-      double nextScore = Math.ceil(matches.get(1).getScore() * 10) / 10;
+      double nextScore = Math.ceil(matches.get(1).score() * 10) / 10;
       image.similarity(nextScore);
     }
   }

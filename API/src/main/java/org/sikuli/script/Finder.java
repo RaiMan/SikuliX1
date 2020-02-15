@@ -25,12 +25,13 @@ public class Finder implements Iterator<Match> {
 
   private static String me = "Finder: ";
   private static int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
-  private Region  _region = null;
+  private Region _region = null;
   private Pattern _pattern = null;
   private Image _image = null;
   private FindInput2 _findInput = new FindInput2();
@@ -42,7 +43,8 @@ public class Finder implements Iterator<Match> {
 
   /**
    * Create a Finder for the given element
-   * @param inWhat in what element (RIBS) to search
+   *
+   * @param inWhat  in what element (RIBS) to search
    * @param <RIBSM> Region, Image, BufferedImage, ScreenImage, cvMat
    */
   public <RIBSM> Finder(RIBSM inWhat) {
@@ -84,6 +86,7 @@ public class Finder implements Iterator<Match> {
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
   //TODO needed? repeating
   private boolean repeating = false;
+
   protected void setRepeating() {
     repeating = true;
   }
@@ -395,9 +398,9 @@ public class Finder implements Iterator<Match> {
   public <RI> List<Match> getListFor(RI what) {
     List<Match> matches = new ArrayList<>();
     if (what instanceof Element)
-    while (hasNext()) {
-      matches.add(((Element) what).relocate(next()));
-    }
+      while (hasNext()) {
+        matches.add(((Element) what).relocate(next()));
+      }
     return matches;
   }
 
@@ -430,7 +433,8 @@ public class Finder implements Iterator<Match> {
       if (_pattern != null) {
         match.setTargetOffset(_pattern.getTargetOffset());
       }
-      match.setOnScreen(screenFinder).setImage(_image);
+      match.setOnScreen(screenFinder);
+      match.setImage(_image);
     }
     return match;
   }
@@ -623,8 +627,8 @@ public class Finder implements Iterator<Match> {
           begin_lap = new Date().getTime();
           int margin = ((int) findInput.getResizeFactor()) + 1;
           Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
-              Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
-              Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
+                  Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
+                  Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
           Rectangle rWhere = new Rectangle(0, 0, findWhere.cols(), findWhere.rows());
           Rectangle rSubNew = rWhere.intersection(rSub);
           Rect rectSub = new Rect(rSubNew.x, rSubNew.y, rSubNew.width, rSubNew.height);
@@ -637,7 +641,7 @@ public class Finder implements Iterator<Match> {
           }
           if (SX.isNotNull(findResult)) {
             log.trace("doFindImage after down: %%%.2f(?%%%.2f) %d msec",
-                maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
+                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
           }
         }
       }
@@ -648,8 +652,8 @@ public class Finder implements Iterator<Match> {
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
           log.trace("doFindImage: in original: %%%.4f (?%.0f) %d msec %s",
-              mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
-              findInput.hasMask() ? " **withMask" : "");
+                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
+                  findInput.hasMask() ? " **withMask" : "");
         }
         if (mMinMax.maxVal > findInput.getScore()) {
           findResult = new FindResult2(mResult, findInput);
@@ -758,7 +762,7 @@ public class Finder implements Iterator<Match> {
                 Rectangle rword = new Rectangle(wordInLine.getRect());
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                wordsMatch.add(new Match(rword, wordInLine.getScore(), wordInLine.getText(), where));
+                wordsMatch.add(new Match(rword, wordInLine.score(), wordInLine.getText(), where));
               }
             } else {
               int startText = -1;
@@ -782,16 +786,16 @@ public class Finder implements Iterator<Match> {
               }
               if (startText > -1 && endText > -1) {
                 Rectangle rword = (new Rectangle(wordsInLine.get(startText).getRect())).
-                    union(new Rectangle(wordsInLine.get(endText).getRect()));
+                        union(new Rectangle(wordsInLine.get(endText).getRect()));
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                double score = (wordsInLine.get(startText).getScore() + wordsInLine.get(startText).getScore()) / 2;
+                double score = (wordsInLine.get(startText).score() + wordsInLine.get(startText).score()) / 2;
                 String foundText = wordsInLine.get(startText).getText() + " ... " + wordsInLine.get(endText);
                 wordsMatch.add(new Match(rword, score, foundText, where));
               }
             }
           } else {
-            wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
+            wordsMatch.add(new Match(match.getRect(), match.score(), match.getText(), where));
           }
         }
         if (wordsMatch.size() > 0) {
@@ -808,7 +812,7 @@ public class Finder implements Iterator<Match> {
         }
         for (Match match : wordsFound) {
           Rectangle wordOrLine = match.getRect();
-          wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
+          wordsMatch.add(new Match(match.getRect(), match.score(), match.getText(), where));
         }
         findResult = new FindResult2(wordsMatch, fInput);
       }
@@ -973,8 +977,8 @@ public class Finder implements Iterator<Match> {
         }
         if (source.width() < target.width() || source.height() < target.height()) {
           throw new SikuliXception(
-              String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
-                  target.width(), target.height(), source.width(), source.height()));
+                  String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
+                          target.width(), target.height(), source.width(), source.height()));
         }
         return true;
       }
@@ -1129,7 +1133,7 @@ public class Finder implements Iterator<Match> {
       plainColor = false;
       blackColor = false;
       resizeFactor = Math.min(((double) targetBGR.width()) / resizeMinDownSample,
-          ((double) targetBGR.height()) / resizeMinDownSample);
+              ((double) targetBGR.height()) / resizeMinDownSample);
       resizeFactor = Math.max(1.0, resizeFactor);
       MatOfDouble pMean = new MatOfDouble();
       MatOfDouble pStdDev = new MatOfDouble();
@@ -1313,10 +1317,10 @@ public class Finder implements Iterator<Match> {
           if (SX.isNull(match)) {
             break;
           }
-          meanScore = (meanScore * matches.size() + match.getScore()) / (matches.size() + 1);
-          bestScore = Math.max(bestScore, match.getScore());
+          meanScore = (meanScore * matches.size() + match.score()) / (matches.size() + 1);
+          bestScore = Math.max(bestScore, match.score());
           matches.add(match);
-          scores.add(match.getScore());
+          scores.add(match.score());
         }
         stdDevScore = calcStdDev(scores, meanScore);
         return matches;

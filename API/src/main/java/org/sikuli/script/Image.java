@@ -61,10 +61,6 @@ public class Image extends Element {
     return new Image(new Screen().capture());
   }
 
-  protected boolean isOnScreen() {
-    return false;
-  }
-
   protected Image() {
   }
 
@@ -99,6 +95,7 @@ public class Image extends Element {
   //TODO is an image name really needed?
   public <SUFEBMP> Image(SUFEBMP what, String name) {
     sourceClass = what.getClass().getSimpleName();
+    onScreen(false);
     if (what instanceof Pattern) {
       init((Pattern) what);
     } else if (what instanceof String) {
@@ -234,7 +231,7 @@ public class Image extends Element {
   private void init(Element element) {
     copyElementRectangle(element);
     if (element.isOnScreen()) {
-      setContent(element.getImage().getContent());
+      setContent(element.getContent());
     } else {
       copyElementRectangle(element);
       copyElementContent(element);
@@ -283,86 +280,6 @@ public class Image extends Element {
     } else {
       return getName();
     }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="002 Pattern aspects">
-  private <PE> void copyPatternAttributes(PE source) {
-    if (source instanceof Pattern) {
-      similarity = ((Pattern) source).getSimilar();
-      offset = ((Pattern) source).getTargetOffset();
-      waitAfter = ((Pattern) source).waitAfter();
-    } else if (source instanceof Image) {
-      similarity = ((Image) source).similarity;
-      offset = ((Image) source).offset;
-      waitAfter = ((Image) source).waitAfter;
-    }
-  }
-
-  private double similarity = Settings.MinSimilarity;
-
-  /**
-   * Get the value of similarity
-   *
-   * @return the value of similarity
-   */
-  public double similarity() {
-    return similarity;
-  }
-
-  /**
-   * Set the value of similarity
-   *
-   * @param similarity new value of similarity
-   * @return the image
-   */
-  public Image similarity(double similarity) {
-    this.similarity = similarity;
-    return this;
-  }
-
-  private Location offset = new Location(0, 0);
-
-  /**
-   * Get the value of offset
-   *
-   * @return the value of offset
-   */
-  public Location offset() {
-    return offset;
-  }
-
-  /**
-   * Set the value of offset
-   *
-   * @param offset new value of offset
-   * @return the image
-   */
-  public Image offset(Location offset) {
-    this.offset = offset;
-    return this;
-  }
-
-  private int waitAfter;
-
-  /**
-   * Get the value of waitAfter
-   *
-   * @return the value of waitAfter
-   */
-  public int waitAfter() {
-    return waitAfter;
-  }
-
-  /**
-   * Set the value of waitAfter
-   *
-   * @param waitAfter new value of waitAfter
-   * @return the image
-   */
-  public Image waitAfter(int waitAfter) {
-    this.waitAfter = waitAfter;
-    return this;
   }
   //</editor-fold>
 

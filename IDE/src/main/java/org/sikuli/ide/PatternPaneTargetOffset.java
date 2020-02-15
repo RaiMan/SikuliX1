@@ -267,7 +267,7 @@ class PatternPaneTargetOffset extends JPanel implements
 		int x = getWidth() / 2 - w / 2;
     int y = getHeight() / 2 - h / 2;
 
-    Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.getScore()));
+    Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.score()));
 
     // setup the resizable rectangle in case of a match, just paint a border otherwise
     if (_match != null) {

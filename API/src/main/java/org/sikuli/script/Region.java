@@ -1651,7 +1651,7 @@ public class Region extends Element {
     if (secs < 0) {
       secs = -secs;
       if (lastMatch != null) {
-        return lastMatch.highlight(secs, color);
+        return new Region(lastMatch).highlight(secs, color);
       }
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
@@ -1703,7 +1703,7 @@ public class Region extends Element {
         if (isOtherScreen()) {
           lastMatch.setOtherScreenOf(this);
         } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+          img.setLastSeen(lastMatch.getRect(), lastMatch.score());
         }
         log(logLevel, "wait: %s appeared (%s)", img.getName(), lastMatch);
         return lastMatch;
@@ -1753,8 +1753,13 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    lastMatch = null;
     Image img = Element.getImage(target);
+    if (RunTime.get().getVersionShort().equals("2.1.0")) {
+      Image imgRegion = getImage();
+      imgRegion.onScreen(true);
+      return imgRegion.find(target);
+    }
+    lastMatch = null;
     Boolean response = true;
     if (!img.isText() && !img.isValid()) {
       response = handleImageMissing(img, false); //find()
@@ -1777,7 +1782,7 @@ public class Region extends Element {
         if (isOtherScreen()) {
           lastMatch.setOtherScreenOf(this);
         } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+          img.setLastSeen(lastMatch.getRect(), lastMatch.score());
         }
         log(logLevel, "find: %s appeared (%s)", targetStr, lastMatch);
         break;
@@ -1830,7 +1835,7 @@ public class Region extends Element {
       if (isOtherScreen()) {
         lastMatch.setOtherScreenOf(this);
       } else if (img != null) {
-        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+        img.setLastSeen(lastMatch.getRect(), lastMatch.score());
       }
       log(logLevel, "exists: %s has appeared (%s)", targetStr, lastMatch);
       return lastMatch;
@@ -2073,7 +2078,7 @@ public class Region extends Element {
       Collections.sort(mList, new Comparator<Match>() {
         @Override
         public int compare(Match m1, Match m2) {
-          double ms = m2.getScore() - m1.getScore();
+          double ms = m2.score() - m1.score();
           if (ms < 0) {
             return -1;
           } else if (ms > 0) {
@@ -2627,7 +2632,7 @@ public class Region extends Element {
     if (finder.hasNext()) {
       match = finder.next();
       //match.setImage(img);
-      img.setLastSeen(match.getRect(), match.getScore());
+      img.setLastSeen(match.getRect(), match.score());
     }
     return match;
   }

@@ -218,9 +218,9 @@ public class Observer {
         if (finder.hasNext()) {
           match = finder.next();
           match.setTimes(0, now - lastSearchTime);
-          if (match.getScore() >= getSimiliarity(ptn)) {
+          if (match.score() >= getSimiliarity(ptn)) {
             hasMatch = true;
-            img.setLastSeen(match.getRect(), match.getScore());
+            img.setLastSeen(match.getRect(), match.score());
           }
         }
       }

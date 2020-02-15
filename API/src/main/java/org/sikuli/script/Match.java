@@ -13,7 +13,7 @@ import java.awt.*;
  * <p>-</p>
  * <p>Is itself a {@link Region} and holds:</p>
  * <ul>
- * <li>the match score (0 ... 1.0) {@link #getScore()}</li>
+ * <li>the match score (0 ... 1.0) {@link #score()}</li>
  * <li>the click target {@link #getTarget()} (e.g. from {@link Pattern})</li>
  * <li>a ref to the image used for search {@link #getImage()} or {@link #getImageFilename()}</li>
  * <li>the found text {@link #getText()} in case of text find ops</li>
@@ -21,7 +21,6 @@ import java.awt.*;
  */
 public class Match extends Region implements Comparable<Match> {
 
-  private double simScore = 0;
   private Location target = null;
   private Image image = null;
   private String ocrText = "";
@@ -30,6 +29,9 @@ public class Match extends Region implements Comparable<Match> {
   private int index = -1;
   private boolean onScreen = true;
 
+  public void setOnScreen(boolean state) {
+    onScreen = state;
+  }
   /**
    * creates a Match on primary screen as (0, 0, 1, 1)
    */
@@ -53,11 +55,6 @@ public class Match extends Region implements Comparable<Match> {
     } else {
       init(element.x, element.y, element.w, element.h, element.getScreen());
     }
-  }
-
-  public Match setOnScreen(boolean state) {
-    onScreen = state;
-    return this;
   }
 
   public int getIndex() {
@@ -116,7 +113,7 @@ public class Match extends Region implements Comparable<Match> {
     h = rect.height;
     simScore = confidence / 100;
     ocrText = text;
-    onScreen = false;
+    onScreen(false);
   }
 
   public Match(int _x, int _y, int _w, int _h, double score, IScreen _parent) {
@@ -156,6 +153,7 @@ public class Match extends Region implements Comparable<Match> {
     }
     lastFindTime = m.lastFindTime;
     lastSearchTime = m.lastSearchTime;
+    setScreen(m.getScreen());
   }
 
   /**
@@ -163,9 +161,15 @@ public class Match extends Region implements Comparable<Match> {
    *
    * @return a decimal value between 0 (no match) and 1 (exact match)
    */
-  public double getScore() {
+  public double score() {
     return simScore;
   }
+
+  public void score(double simScore) {
+    this.simScore = simScore;
+  }
+
+  private double simScore = 0;
 
   /**
    * {@inheritDoc}
@@ -293,9 +297,11 @@ public class Match extends Region implements Comparable<Match> {
         && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
   }
 
-  @Override
-  public String toString() {
+  public String toStringLong() {
     String text = super.toString().replace("R[", "M[");
+    if (!isOnScreen()) {
+
+    }
     String starget;
     Location c = getCenter();
     if (target != null && !c.equals(target)) {
@@ -308,10 +314,14 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   @Override
-  public String toStringShort() {
-    return String.format("M[%d,%d %dx%d]On(%s) S %d", x, y, w, h,
-        (getScreen() == null ? "?" : getScreen().getID()),
-        Math.round(simScore * 10000));
+  public String toString() {
+    String message = "M[%d,%d %dx%d";
+    String onScreen = " ";
+    if (isOnScreen()) {
+      onScreen = String.format("On(%s)", getScreen().getID());
+    }
+    return String.format(message + onScreen + "S(%.2f)]", x, y, w, h,
+            ((float) Math.round(score() * 10000))/100);
   }
 
 

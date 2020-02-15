@@ -6,13 +6,17 @@ package org.sikuli.script;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -183,6 +187,10 @@ public abstract class Element {
     return w;
   }
 
+  public void setW(int w) {
+    this.w = w;
+  }
+
   /**
    * Width of the Element (0 for Points)
    */
@@ -193,6 +201,10 @@ public abstract class Element {
    */
   public int getH() {
     return h;
+  }
+
+  public void setH(int h) {
+    this.h = h;
   }
 
   /**
@@ -665,6 +677,85 @@ public abstract class Element {
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
   //</editor-fold>
 
+  //<editor-fold desc="009 Fields Pattern aspects">
+  private <PE> void copyPatternAttributes(PE source) {
+    if (source instanceof Pattern) {
+      similarity = ((Pattern) source).getSimilar();
+      offset(((Pattern) source).getTargetOffset());
+      waitAfter = ((Pattern) source).waitAfter();
+    } else if (source instanceof Image) {
+      similarity = ((Image) source).similarity();
+      offset(((Image) source).offset());
+      waitAfter = ((Image) source).waitAfter();
+    }
+  }
+
+  private double similarity = Settings.MinSimilarity;
+
+  /**
+   * Get the value of similarity
+   *
+   * @return the value of similarity
+   */
+  public double similarity() {
+    return similarity;
+  }
+
+  /**
+   * Set the value of similarity
+   *
+   * @param similarity new value of similarity
+   * @return the image
+   */
+  public void similarity(double similarity) {
+    this.similarity = similarity;
+  }
+
+  private int offsetX = 0;
+  private int offsetY = 0;
+
+  /**
+   * Get the value of offset
+   *
+   * @return the value of offset
+   */
+  public Location offset() {
+    return new Location(offsetX, offsetY);
+  }
+
+  /**
+   * Set the value of offset
+   *
+   * @param offset new value of offset
+   * @return the image
+   */
+  public void offset(Location offset) {
+    this.offsetX = offset.x;
+    this.offsetY = offset.y;
+  }
+
+  private int waitAfter;
+
+  /**
+   * Get the value of waitAfter
+   *
+   * @return the value of waitAfter
+   */
+  public int waitAfter() {
+    return waitAfter;
+  }
+
+  /**
+   * Set the value of waitAfter
+   *
+   * @param waitAfter new value of waitAfter
+   * @return the image
+   */
+  public void waitAfter(int waitAfter) {
+    this.waitAfter = waitAfter;
+  }
+  //</editor-fold>
+
   //<editor-fold desc="010 global features">
   protected void copyElementAttributes(Element element) {
     name = element.name;
@@ -771,10 +862,6 @@ public abstract class Element {
     }
   }
 
-  protected boolean isOnScreen() {
-    return true;
-  }
-
   protected boolean isPoint() {
     return false;
   }
@@ -818,6 +905,16 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="015 Screen related">
+  protected boolean isOnScreen() {
+    return isScreenElement;
+  }
+
+  protected void onScreen(boolean state) {
+    isScreenElement = state;
+  }
+
+  private boolean isScreenElement = true;
+
   //TODO revise local/remote screen handling
   protected Location checkAndSetRemote(Location loc) {
     if (!isOtherScreen()) {
@@ -986,7 +1083,10 @@ public abstract class Element {
     if (this instanceof IScreen) {
       return;
     }
-    this.scr = scr;
+    if (isOnScreen()) {
+      this.scr = scr;
+      isOnScreen();
+    }
   }
 
   /**
@@ -1175,9 +1275,31 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    //TODO implement find image
-    //throw new SikuliXception(String.format("Element: find: not implemented for %s", this.getClass().getCanonicalName()));
-    return null;
+    Match match = null;
+    if (isValid()) {
+      Image image = new Image(target);
+      if (image.isValid()) {
+        Mat result = new Mat();
+        Image imgWhere = getImage();
+        Mat where = imgWhere.getContent();
+        Mat what = image.getContent();
+        Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
+        Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
+        double maxVal = minMax.maxVal;
+        if (maxVal > image.similarity()) {
+          match = new Match();
+          match.setX(image.x + (int) minMax.maxLoc.x);
+          match.setY(image.y + (int) minMax.maxLoc.y);
+          match.setW(image.w);
+          match.setH(image.h);
+          match.score(maxVal);
+          match.offset(image.offset());
+          match.setImage(image);
+          match.onScreen(isOnScreen());
+        }
+      }
+    }
+    return match;
   }
 
   /**

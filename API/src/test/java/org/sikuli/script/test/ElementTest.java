@@ -119,7 +119,7 @@ public class ElementTest {
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
-  @Test
+  @Ignore
   public void test006_ImageFileResource() {
     String resName = "class:///images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
@@ -130,7 +130,7 @@ public class ElementTest {
 
   String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
 
-  @Test
+  @Ignore
   public void test007_ImageFileHTTP() {
     Image image = new Image(httpURI);
     testOutro("%s (%s)", image, httpURI);
@@ -147,6 +147,18 @@ public class ElementTest {
     } catch (FindFailed findFailed) {
     }
     testOutro("%s in %s is %s", testName, shot, match);
+  }
+
+
+  @Test
+  public void test150_RegionFind() {
+    Region reg = new Screen();
+    Match match = null;
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
   }
 
   static Image savedImage = null;
