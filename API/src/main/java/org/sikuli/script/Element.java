@@ -14,9 +14,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -538,9 +536,19 @@ public abstract class Element {
    */
   public void setWaitScanRate(float waitScanRate) {
     this.waitScanRate = waitScanRate;
+    scanWait = 1000 / waitScanRate;
+  }
+
+  private void waitAfterScan(long before) {
+    double time = scanWait - new Date().getTime() + before;
+    if (time < 0.01) {
+      return;
+    }
+    wait(time);
   }
 
   private float waitScanRateDefault = Settings.WaitScanRate;
+  private double scanWait = 1000 / waitScanRateDefault;
   private float waitScanRate = waitScanRateDefault;
 
 
@@ -1279,25 +1287,31 @@ public abstract class Element {
     if (isValid()) {
       Image image = new Image(target);
       if (image.isValid()) {
-        Mat result = new Mat();
-        Image imgWhere = getImage();
-        Mat where = imgWhere.getContent();
-        Mat what = image.getContent();
-        Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
-        Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
-        double maxVal = minMax.maxVal;
-        if (maxVal > image.similarity()) {
-          match = new Match();
-          match.setX(image.x + (int) minMax.maxLoc.x);
-          match.setY(image.y + (int) minMax.maxLoc.y);
-          match.setW(image.w);
-          match.setH(image.h);
-          match.score(maxVal);
-          match.offset(image.offset());
-          match.setImage(image);
-          match.onScreen(isOnScreen());
-        }
+        match = doFind(this, image);
       }
+    }
+    return match;
+  }
+
+  private Match doFind(Element element, Image image) {
+    Mat where = element.getImage().getContent();
+    Mat what = image.getContent();
+    double wantedScore = image.similarity();
+    Mat result = new Mat();
+    Match match = null;
+    Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
+    Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
+    double maxVal = minMax.maxVal;
+    if (maxVal > wantedScore) {
+      match = new Match();
+      match.setX(image.x + (int) minMax.maxLoc.x);
+      match.setY(image.y + (int) minMax.maxLoc.y);
+      match.setW(image.w);
+      match.setH(image.h);
+      match.score(maxVal);
+      match.offset(image.offset());
+      match.setImage(image);
+      match.onScreen(isOnScreen());
     }
     return match;
   }
@@ -1319,12 +1333,25 @@ public abstract class Element {
   }
 
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
-    if (!isOnScreen()) {
+    if (!isOnScreen() || timeout < 0.01) {
       return find(target);
     }
-    //TODO implement wait image
-    throw new SikuliXception(String.format("Pixels: find: not implemented for", this.getClass().getCanonicalName()));
-    //return match;
+    Match match = null;
+    if (isValid()) {
+      Image image = new Image(target);
+      if (image.isValid()) {
+        long waitUntil = new Date().getTime() + (int) (timeout * 1000);
+        while (true) {
+          long before = new Date().getTime();
+          if (before > waitUntil) {
+            break;
+          }
+          match = doFind(this, image);
+          waitAfterScan(before);
+        }
+      }
+    }
+    return match;
   }
 
   //</editor-fold>

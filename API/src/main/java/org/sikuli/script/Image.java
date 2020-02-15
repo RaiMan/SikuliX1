@@ -147,6 +147,7 @@ public class Image extends Element {
       URI uri = new URI(filename);
       if (uri.getScheme() != null && !"file".equals(uri.getScheme())) {
         init(uri);
+        return;
       }
     } catch (URISyntaxException e) {
     }
@@ -233,7 +234,6 @@ public class Image extends Element {
     if (element.isOnScreen()) {
       setContent(element.getContent());
     } else {
-      copyElementRectangle(element);
       copyElementContent(element);
       url(element.url());
     }

@@ -3,16 +3,18 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Observer;
 import org.sikuli.script.support.*;
 import org.sikuli.util.Highlight;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
 
 /**
@@ -131,6 +133,10 @@ public class Region extends Element {
 
   public Image getImage() {
     return getScreen().capture(x, y, w, h);
+  }
+
+  public Mat getContent() {
+    return getImage().getContent();
   }
   //</editor-fold>
 

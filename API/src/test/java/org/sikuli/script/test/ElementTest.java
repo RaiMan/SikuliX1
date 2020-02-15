@@ -37,24 +37,21 @@ public class ElementTest {
     Debug.logp(methodName + ": " + message, args);
   }
 
-  void testShow(Image image) {
-    testShow(image, 3000);
-//    HighGui.destroyAllWindows();
+  void show(Image image) {
+    show(methodName, image);
   }
 
-  void testShow(Image image, int time) {
+  void show(String title, Image image) {
     if (!showImage || !image.isValid()) {
       return;
     }
-    HighGui.namedWindow(methodName);
+    HighGui.namedWindow(title);
     Screen screen = Screen.getPrimaryScreen();
     int x = (screen.w - image.w) / 2;
     int y = (screen.h - image.h) / 2;
-    HighGui.moveWindow(methodName, x, y);
-    HighGui.imshow(methodName, image.getContent());
-    if (time > 0) {
-      HighGui.waitKey(time);
-    }
+    HighGui.moveWindow(title, x, y); 
+    HighGui.imshow(title, image.getContent());
+    HighGui.waitKey(3000);
   }
 
   @Before
@@ -78,8 +75,8 @@ public class ElementTest {
   public void test001_ImageRegion() {
     Region region = new Region(100, 200, 300, 400);
     Image image = new Image(region);
+    show(image);
     testOutro("%s", image);
-    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -88,7 +85,6 @@ public class ElementTest {
     Location location = new Location(100, 200);
     Image image = new Image(location);
     testOutro("%s", image);
-    testShow(image);
     assertFalse("Valid???: " + image.toString(), image.isValid());
   }
 
@@ -96,8 +92,8 @@ public class ElementTest {
   public void test003_ImageScreenImage() {
     Region region = new Region(100, 200, 300, 400);
     Image image = region.getImage();
+    show(image);
     testOutro("%s", image);
-    testShow(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -108,7 +104,7 @@ public class ElementTest {
     String imageName = "../images/" + testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
-    testShow(image);
+    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -117,26 +113,26 @@ public class ElementTest {
     String imageName = testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
-    testShow(image);
+    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
-  @Ignore
+  @Test
   public void test006_ImageFileResource() {
     String resName = "class:///images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
     testOutro("%s (%s)", image, resName);
-    testShow(image);
+    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
   String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
 
-  @Ignore
+  @Test
   public void test007_ImageFileHTTP() {
     Image image = new Image(httpURI);
     testOutro("%s (%s)", image, httpURI);
-    testShow(image);
+    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -151,7 +147,6 @@ public class ElementTest {
     testOutro("%s in %s is %s", testName, shot, match);
   }
 
-
   @Test
   public void test150_RegionFindOld() {
     Region reg = new Screen();
@@ -160,6 +155,7 @@ public class ElementTest {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {
     }
+///TODO check highlight
     if (null != match) {
 //      match.highlight(2);
     }
@@ -167,7 +163,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test151_RegionFindNew() {
+  public void test151_RegionFind() {
     Settings.NewFind = true;
     Region reg = new Screen();
     Match match = null;
@@ -175,11 +171,28 @@ public class ElementTest {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {
     }
+///TODO check highlight
     if (null != match) {
 //      match.highlight(2);
     }
     testOutro("%s in %s is %s", testName, reg, match);
   }
+
+  @Test
+  public void test155_RegionWait() {
+    Settings.NewFind = true;
+    Region reg = new Screen();
+    Match match = null;
+    try {
+      match = reg.wait(testName, 5);
+    } catch (FindFailed findFailed) {
+    }
+    if (null != match) {
+//      match.highlight(2);
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+  }
+
   static Image savedImage = null;
 
   @Ignore
