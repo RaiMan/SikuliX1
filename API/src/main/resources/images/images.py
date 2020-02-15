@@ -1,4 +1,6 @@
 test = "test.png"
 testBig = "testBig.png"
 shot = "shot.png"
-print find(test)
+match = find(test)
+match.highlight(2)
+print match
