@@ -4,8 +4,6 @@
 package org.sikuli.script;
 
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -20,7 +18,6 @@ import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -170,33 +167,26 @@ public class Image extends Element {
     if (imageURL == null || !new File(imageURL.getPath()).exists()) {
       initTerminate("init: %s file not found or path not valid", file);
     }
-    url(imageURL);
-    if (isCaching()) {
-      setContent(ImageCache.get(url()));
-    }
-    if (!isValid()) {
-      setContent(Imgcodecs.imread(fileName(), -1));
-      if (isValid() && isCaching()) {
-        ImageCache.put(url(), getContent());
-      }
-    }
-    if (isValid()) {
-      setSize(getContent());
-    }
+    createContent(imageURL);
   }
 
   private void init(URL url) {
     if (isFile(url)) {
-      File file = asFile(url);
-      if (null == file) {
+      if (null == asFile(url)) {
         initTerminate( "%s url not valid", url);
       }
-      init(file);
+      createContent(url);
     }
+
   }
 
   private void init(URI uri) {
     URL resource = null;
+    try {
+      resource = uri.toURL();
+    } catch (MalformedURLException e) {
+      initTerminate("%s uri not valid", uri);
+    }
     if (uri.getScheme().equals("class")) {
       Class clazz = null;
       try {
@@ -215,18 +205,7 @@ public class Image extends Element {
         initTerminate("%s uri not valid", uri);
       }
     }
-    if (null != resource) {
-      try {
-        InputStream inputStream = resource.openStream();
-        byte[] bytes = inputStream.readAllBytes();
-        MatOfByte matOfByte = new MatOfByte();
-        matOfByte.fromArray(bytes);
-        Mat content = Imgcodecs.imdecode(matOfByte, -1);
-        setContentAndSize(content);
-      } catch (IOException e) {
-        initTerminate("%s io error", uri);
-      }
-    }
+    init(resource);
   }
 
   private void init(Element element) {
@@ -622,11 +601,15 @@ public class Image extends Element {
 //</editor-fold>
 
   //<editor-fold desc="820 caching obsolete">
+  static boolean isCaching() {
+    return Settings.getImageCache() > 0;
+  }
+
   public static Map<URL, List<Object>> getCache() {
     return ImageCache.cache;
   }
 
-  private static class ImageCache {
+  static class ImageCache {
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
     static Mat put(URL key, Mat mat) {
@@ -703,10 +686,6 @@ public class Image extends Element {
   private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
     currentMemoryDown(sizeOld);
     return currentMemoryUp(sizeNew);
-  }
-
-  private static boolean isCaching() {
-    return Settings.getImageCache() > 0;
   }
 
   public static void clearCache(int maxSize) {

@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -19,6 +20,7 @@ import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -324,6 +326,37 @@ public abstract class Element {
 
   protected void copyElementContent(Element element) {
     content = element.cloneContent();
+  }
+
+  protected void createContent(URL url) {
+    url(imageURL);
+    if (Image.isCaching()) {
+      setContent(Image.ImageCache.get(url()));
+    }
+    if (!isValid()) {
+      if ("file".equals(url.getProtocol())) {
+        setContent(Imgcodecs.imread(fileName(), -1));
+      } else if (url.getProtocol().startsWith("http")) {
+        try {
+          InputStream inputStream = url.openStream();
+          byte[] bytes = inputStream.readAllBytes();
+          MatOfByte matOfByte = new MatOfByte();
+          matOfByte.fromArray(bytes);
+          Mat content = Imgcodecs.imdecode(matOfByte, -1);
+          setContentAndSize(content);
+        } catch (IOException e) {
+          terminate("content: io error: %s", url);
+        }
+      } else {
+        terminate("content: not supported: %s", url);
+      }
+      if (isValid() && Image.isCaching()) {
+        Image.ImageCache.put(url(), getContent());
+      }
+    }
+    if (isValid()) {
+      setSize(getContent());
+    }
   }
 
   private Mat content = SXOpenCV.newMat();
