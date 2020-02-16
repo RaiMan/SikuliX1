@@ -384,19 +384,31 @@ public abstract class Element {
     return imageURL;
   }
 
-  public void url(URL imageURL) {
-    this.imageURL = imageURL;
+  public void url(URL url) {
+    if (url.getProtocol().equals("file")) {
+      try {
+        url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
+      } catch (IOException e) {
+        terminate("url: problem with file (%s)", e.getMessage());
+      }
+    }
+    this.imageURL = url;
   }
 
   public void url(String fileName) {
+    String problem = null;
     try {
       fileName = new File(fileName).getCanonicalPath();
     } catch (IOException e) {
-      return;
+      problem = e.getMessage();
     }
     try {
-      imageURL = new URL("file://" + fileName);
+      imageURL = new File(fileName).toURI().toURL();
     } catch (MalformedURLException e) {
+      problem = e.getMessage();
+    }
+    if (null != problem) {
+      terminate("url: problem with file (%s)", problem);
     }
   }
 

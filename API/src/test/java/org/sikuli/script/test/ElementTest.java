@@ -16,6 +16,9 @@ import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -198,5 +201,11 @@ public class ElementTest {
   @Ignore
   public void test900_Template() {
     savedImage = new Image(testName);
+  }
+
+  @Test
+  public void test999() {
+    Map<URL, List<Object>> cache = Image.getCache();
+    cache.toString();
   }
 }

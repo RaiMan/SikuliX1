@@ -172,12 +172,12 @@ public class Image extends Element {
     }
     url(imageURL);
     if (isCaching()) {
-      setContent(ImageCache.get(imageURL));
+      setContent(ImageCache.get(url()));
     }
     if (!isValid()) {
       setContent(Imgcodecs.imread(fileName(), -1));
       if (isValid() && isCaching()) {
-        ImageCache.put(imageURL, getContent());
+        ImageCache.put(url(), getContent());
       }
     }
     if (isValid()) {
@@ -622,23 +622,37 @@ public class Image extends Element {
 //</editor-fold>
 
   //<editor-fold desc="820 caching obsolete">
-  private static class ImageCache {
-    static Map<URL, Mat> cache = Collections.synchronizedMap(new HashMap<URL, Mat>());
+  public static Map<URL, List<Object>> getCache() {
+    return ImageCache.cache;
+  }
 
-    static Mat put(URL key, Mat value) {
-      return cache.put(key, value);
+  private static class ImageCache {
+    static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
+
+    static Mat put(URL key, Mat mat) {
+      ArrayList<Object> items = new ArrayList<>();
+      items.add(mat);
+      items.add(0);
+      cache.put(key, items);
+      return mat;
     }
 
     static Mat get(URL key) {
-      Mat content = cache.get(key);
+      List<Object> items = cache.get(key);
+      if (items == null) {
+        return new Mat();
+      }
+      Object content = items.get(0);
       if (null == content) {
         return new Mat();
       }
-      return content;
+      Integer count = (Integer) items.get(1);
+      items.set(1, count + 1);
+      return (Mat) content;
     }
 
     static void reset() {
-      cache = Collections.synchronizedMap(new HashMap<URL, Mat>());
+      cache = Collections.synchronizedMap(new HashMap<>());
     }
   }
 
