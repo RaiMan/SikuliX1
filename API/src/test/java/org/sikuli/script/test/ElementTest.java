@@ -4,10 +4,7 @@
 
 package org.sikuli.script.test;
 
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
@@ -37,6 +34,7 @@ public class ElementTest {
 
   void testOutro(String message, Object... args) {
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+    if (args[0] instanceof Image) show((Image) args[0]);
     Debug.logp(methodName + ": " + message, args);
   }
 
@@ -69,16 +67,18 @@ public class ElementTest {
 
   @Test
   public void test000_StartUp() {
-    Region region = new Region(100, 200, 300, 400);
-    Image image = new Image(region);
+    if (!RunTime.isHeadless()) {
+      Region region = new Region(100, 200, 300, 400);
+      Image image = new Image(region);
+    }
     showImage = false;
   }
 
   @Test
   public void test001_ImageRegion() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region region = new Region(100, 200, 300, 400);
     Image image = new Image(region);
-    show(image);
     testOutro("%s", image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
@@ -95,7 +95,6 @@ public class ElementTest {
   public void test003_ImageScreenImage() {
     Region region = new Region(100, 200, 300, 400);
     Image image = region.getImage();
-    show(image);
     testOutro("%s", image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
@@ -107,7 +106,6 @@ public class ElementTest {
     String imageName = "../images/" + testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
-    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -116,7 +114,6 @@ public class ElementTest {
     String imageName = testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
-    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -125,7 +122,6 @@ public class ElementTest {
     String resName = "class:///images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
     testOutro("%s (%s)", image, resName);
-    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -135,7 +131,6 @@ public class ElementTest {
   public void test007_ImageFileHTTP() {
     Image image = new Image(httpURI);
     testOutro("%s (%s)", image, httpURI);
-    show(image);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
@@ -200,12 +195,16 @@ public class ElementTest {
 
   @Ignore
   public void test900_Template() {
-    savedImage = new Image(testName);
+    Settings.NewFind = true;
+    Image image = savedImage = new Image(testName);
+    testOutro("%s", "testName");
+    show(image);
+    assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 
   @Test
   public void test999() {
     Map<URL, List<Object>> cache = Image.getCache();
-    cache.toString();
+    testOutro("cache: %d", cache.size());
   }
 }
