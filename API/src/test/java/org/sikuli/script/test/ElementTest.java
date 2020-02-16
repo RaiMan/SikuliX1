@@ -75,7 +75,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test001_ImageRegion() {
+  public void test010_ImageRegion() {
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region region = new Region(100, 200, 300, 400);
     Image image = new Image(region);
@@ -84,7 +84,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test002_ImageLocation() {
+  public void test011_ImageLocation() {
     Location location = new Location(100, 200);
     Image image = new Image(location);
     testOutro("%s", image);
@@ -92,7 +92,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test003_ImageScreenImage() {
+  public void test012_ImageScreenImage() {
     Region region = new Region(100, 200, 300, 400);
     Image image = region.getImage();
     testOutro("%s", image);
@@ -102,7 +102,7 @@ public class ElementTest {
   String testName = "test";
 
   @Test
-  public void test004_ImageFilename() {
+  public void test020_ImageFilename() {
     String imageName = "../images/" + testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
@@ -110,7 +110,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test005_ImageFilenameCached() {
+  public void test021_ImageFilenameCached() {
     String imageName = testName;
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
@@ -118,7 +118,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test006_ImageFileResource() {
+  public void test030_ImageFileResource() {
     String resName = "class:///images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
     testOutro("%s (%s)", image, resName);
@@ -128,7 +128,14 @@ public class ElementTest {
   String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
 
   @Test
-  public void test007_ImageFileHTTP() {
+  public void test040_ImageFileHTTP() {
+    Image image = new Image(httpURI);
+    testOutro("%s (%s)", image, httpURI);
+    assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  @Test
+  public void test041_ImageFileHTTPCached() {
     Image image = new Image(httpURI);
     testOutro("%s (%s)", image, httpURI);
     assertTrue("NotValid: " + image.toString(), image.isValid());
@@ -146,7 +153,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test150_RegionFindOld() {
+  public void test200_RegionFindOld() {
     Region reg = new Screen();
     Match match = null;
     try {
@@ -161,7 +168,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test151_RegionFind() {
+  public void test201_RegionFind() {
     Settings.NewFind = true;
     Region reg = new Screen();
     Match match = null;
@@ -177,7 +184,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test155_RegionWait() {
+  public void test202_RegionWait() {
     Settings.NewFind = true;
     Region reg = new Screen();
     Match match = null;
@@ -205,6 +212,6 @@ public class ElementTest {
   @Test
   public void test999() {
     Map<URL, List<Object>> cache = Image.getCache();
-    testOutro("cache: %d", cache.size());
+    testOutro("%s", Image.cacheStats());
   }
 }

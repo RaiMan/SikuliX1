@@ -3,19 +3,19 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.Desktop;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.security.CodeSource;
+import java.util.List;
 import java.util.*;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -1065,54 +1065,6 @@ public class FileManager {
     } catch (UnknownHostException ex) {
       return null;
     }
-  }
-
-  public static String saveImage(BufferedImage img, String sImage, String bundlePath) {
-    final int MAX_ALT_NUM = 3;
-    String fullpath = bundlePath;
-    File fBundle = new File(fullpath);
-    if (!fBundle.exists()) {
-      fBundle.mkdir();
-    }
-    if (!sImage.endsWith(".png")) {
-      sImage += ".png";
-    }
-    File fImage = new File(fBundle, sImage);
-    boolean shouldReload = false;
-    int count = 0;
-    String msg = fImage.getName() + " exists - using ";
-    while (count < MAX_ALT_NUM) {
-      if (fImage.exists()) {
-        if (Settings.OverwriteImages) {
-          shouldReload = true;
-          break;
-        } else {
-          fImage = new File(fBundle, FileManager.getAltFilename(fImage.getName()));
-        }
-      } else {
-        if (count > 0) {
-          Debug.log(msg + fImage.getName() + " (Utils.saveImage)");
-        }
-        break;
-      }
-      count++;
-    }
-    if (count >= MAX_ALT_NUM) {
-      fImage = new File(fBundle, Settings.getTimestamp() + ".png");
-      Debug.log(msg + fImage.getName() + " (Utils.saveImage)");
-    }
-    String fpImage = fImage.getAbsolutePath();
-    fpImage = fpImage.replaceAll("\\\\", "/");
-    try {
-      ImageIO.write(img, "png", new File(fpImage));
-    } catch (IOException e) {
-      Debug.error("Util.saveImage: Problem trying to save image file: %s\n%s", fpImage, e.getMessage());
-      return null;
-    }
-    if (shouldReload) {
-      Image.reload(sImage);
-    }
-    return fpImage;
   }
 
   //TODO consolidate with FileManager and Settings

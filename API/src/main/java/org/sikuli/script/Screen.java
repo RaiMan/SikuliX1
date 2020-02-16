@@ -587,7 +587,7 @@ public class Screen extends Region implements IScreen {
               if (!path.isEmpty()) {
                 shot.getFile(path, name);
               } else {
-                shot.saveInBundle(name);
+                shot.save(name);
               }
             }
             return shot;

@@ -132,7 +132,8 @@ public class Region extends Element {
   private static Region fakeRegion;
 
   public Image getImage() {
-    return getScreen().capture(x, y, w, h);
+    ScreenImage image = getScreen().capture(x, y, w, h);
+    return image;
   }
 
   public Mat getContent() {

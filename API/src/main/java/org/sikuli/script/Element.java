@@ -277,15 +277,6 @@ public abstract class Element {
 
   //<editor-fold desc="003 Fields pixel content">
 
-  /**
-   * check whether image has pixel content<br>
-   *
-   * @return true if has pixel content
-   */
-  public boolean isValid() {
-    return !getContent().empty();
-  }
-
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
@@ -300,66 +291,123 @@ public abstract class Element {
   }
 
   public Image getImage() {
-    return new Image(this);
+    return (Image) this;
   }
 
   public BufferedImage getBufferedImage() {
     return SXOpenCV.makeBufferedImage(getImage().getContent());
   }
 
+  /**
+   * check whether image has pixel content<br>
+   *
+   * @return true if has pixel content
+   */
+  public boolean isValid() {
+    if (isOnScreen() || null == imageURL) {
+      if (content.empty() && this instanceof ScreenImage) {
+        content = ((ScreenImage) this).makeMat();
+      }
+      return !content.empty();
+    }
+    return Image.ImageCache.isValid(imageURL);
+  }
+
   public Mat getContent() {
-    return content;
+    if (isOnScreen() || null == imageURL) {
+      if (content.empty() && this instanceof ScreenImage) {
+        content = ((ScreenImage) this).makeMat();
+      }
+      return content;
+    }
+    Mat mat = Image.ImageCache.get(imageURL);
+    return mat;
   }
 
   public Mat cloneContent() {
-    return content.clone();
+    return getContent().clone();
   }
 
   public void setContent(Mat mat) {
     content = mat;
   }
 
-  public void setContentAndSize(Mat mat) {
-    setContent(mat);
-    setSize(mat);
+  protected void copyElementContent(Element element) {
+    setContent(element.cloneContent());
   }
 
-  protected void copyElementContent(Element element) {
-    content = element.cloneContent();
+  public boolean isFakeImage() {
+    return getName().equals(FAKE_IMAGE);
+  }
+
+  public void asFakeImage() {
+    setName(FAKE_IMAGE);
+  }
+
+  private static final String FAKE_IMAGE = "Internal-Fake-Image";
+
+  protected static void reload(String fpImage) {
+    URL url = evalURL(new File(fpImage));
+    if (url != null) {
+      Image image = new Image();
+      image.asFakeImage();
+      image.createContent(url);
+    }
+  }
+
+  protected static URL evalURL(File imagefile) {
+    URL url = null;
+    if (imagefile.isAbsolute() || imagefile.getPath().startsWith("\\")) {
+      try {
+        url = imagefile.toURI().toURL();
+      } catch (MalformedURLException e) {
+      }
+    } else {
+      url = ImagePath.find(imagefile.getPath());
+    }
+    if (url == null || !new File(url.getPath()).exists()) {
+      return null;
+    }
+    return url;
   }
 
   protected void createContent(URL url) {
-    url(imageURL);
-    if (Image.isCaching()) {
-      setContent(Image.ImageCache.get(url()));
-    }
-    if (!isValid()) {
-      if ("file".equals(url.getProtocol())) {
-        setContent(Imgcodecs.imread(fileName(), -1));
-      } else if (url.getProtocol().startsWith("http")) {
-        try {
-          InputStream inputStream = url.openStream();
-          byte[] bytes = inputStream.readAllBytes();
-          MatOfByte matOfByte = new MatOfByte();
-          matOfByte.fromArray(bytes);
-          Mat content = Imgcodecs.imdecode(matOfByte, -1);
-          setContentAndSize(content);
-        } catch (IOException e) {
-          terminate("content: io error: %s", url);
-        }
-      } else {
-        terminate("content: not supported: %s", url);
-      }
-      if (isValid() && Image.isCaching()) {
-        Image.ImageCache.put(url(), getContent());
+    if ("file".equals(url.getProtocol())) {
+      try {
+        url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
+      } catch (IOException e) {
+        terminate("content: io error: %s", url);
       }
     }
-    if (isValid()) {
-      setSize(getContent());
+    byte[] bytes = null;
+    try {
+      InputStream inputStream = url.openStream();
+      imageURL = url;
+      if (!isFakeImage() && Image.ImageCache.isValid(url)) {
+        setSize(Image.ImageCache.get(url));
+        return;
+      }
+      bytes = inputStream.readAllBytes();
+    } catch (IOException e) {
+      terminate("content: io error: %s", url);
     }
+    MatOfByte matOfByte = new MatOfByte();
+    matOfByte.fromArray(bytes);
+    Mat content = Imgcodecs.imdecode(matOfByte, -1);
+    if (!isFakeImage()) {
+      setSize(content);
+    }
+    Image.ImageCache.put(url, content);
   }
 
   private Mat content = SXOpenCV.newMat();
+
+  public double diffPercentage(Image otherImage) {
+    if (SX.isNull(otherImage)) {
+      return 1.0;
+    }
+    return SXOpenCV.diffPercentage(getContent(), otherImage.getContent());
+  }
 
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
@@ -422,7 +470,7 @@ public abstract class Element {
       try {
         url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
       } catch (IOException e) {
-        terminate("url: problem with file (%s)", e.getMessage());
+        terminate("url: problem with file: %s", e.getMessage());
       }
     }
     this.imageURL = url;
@@ -441,7 +489,7 @@ public abstract class Element {
       problem = e.getMessage();
     }
     if (null != problem) {
-      terminate("url: problem with file (%s)", problem);
+      terminate("url: problem with file: %s (%s)", fileName, problem);
     }
   }
 
@@ -930,7 +978,7 @@ public abstract class Element {
   }
 
   public String save(String name, String path) {
-    if (!isValid()) {
+    if (!isValid() || path == null) {
       return null;
     }
     File fImg = new File(path, name);
@@ -944,7 +992,7 @@ public abstract class Element {
     imageFile = new File(parent, name);
     try {
       FileUtils.forceMkdir(parent);
-      imwrite = Imgcodecs.imwrite(imageFile.getAbsolutePath(), content);
+      imwrite = Imgcodecs.imwrite(imageFile.getAbsolutePath(), getContent());
     } catch (IOException e) {
     }
     if (imwrite) {

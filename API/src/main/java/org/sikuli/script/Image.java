@@ -10,18 +10,15 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.SXOpenCV;
 
 import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.*;
 
 /**
@@ -30,21 +27,11 @@ import java.util.*;
  * loaded from.<br>
  * An Image object:<br>
  * - has a name, either given or taken from the basename<br>
- * - keeps it's in memory buffered image in a configurable cache avoiding reload
- * from source<br>
+ * - keeps it's pixel content in a configurable cache avoiding reload from source<br>
  * - remembers, where it was found when searched the last time<br>
- * - can be sourced from the filesystem, from jars, from the web and from other
- * in memory images <br>
- * - will have features for basic image manipulation and presentation<br>
- * - contains the stuff to communicate with the underlying OpenCV based search
- * engine <br>
- * <p>
- * This class maintains<br>
- * - a list of all images ever loaded in this session with their source
- * reference and a ref to the image object<br>
- * - a list of all images currently having their content in memory (buffered
- * image) (managed as a configurable cache)<br>
- * The caching can be configured using {@link Settings#setImageCache(int)}
+ * - can be sourced from the filesystem, from jars, from the web and from other in memory images <br>
+ * - has features for basic image manipulation and presentation<br>
+ * - contains the stuff to communicate with the underlying OpenCV based search engine <br>
  */
 public class Image extends Element {
 
@@ -115,6 +102,7 @@ public class Image extends Element {
    * @param resource the resource identifier (.png is assumed)
    */
   public Image(Class clazz, String resource) {
+    onScreen(false);
     if (!new File(resource).isAbsolute()) {
       resource = "/" + resource;
     }
@@ -136,8 +124,8 @@ public class Image extends Element {
   }
 
   private void init(String filename) {
-    if (filename.isEmpty()) {
-      initTerminate("%s", "init: filename is empty");
+    if (null == filename || filename.isEmpty()) {
+      initTerminate("%s", "filename null or empty");
     }
     filename = getValidImageFilename(filename);
     try {
@@ -153,31 +141,17 @@ public class Image extends Element {
 
   private void init(File file) {
     if (null == file) {
-      initTerminate("%s", "init: file is null");
+      initTerminate("%s", "file is null");
     }
-    URL imageURL = null;
-    if (file.isAbsolute() || file.getPath().startsWith("\\")) {
-      try {
-        imageURL = file.toURI().toURL();
-      } catch (MalformedURLException e) {
-      }
-    } else {
-      imageURL = ImagePath.find(file.getPath());
-    }
-    if (imageURL == null || !new File(imageURL.getPath()).exists()) {
+    URL imageURL = evalURL(file);
+    if (imageURL == null) {
       initTerminate("init: %s file not found or path not valid", file);
     }
     createContent(imageURL);
   }
 
   private void init(URL url) {
-    if (isFile(url)) {
-      if (null == asFile(url)) {
-        initTerminate( "%s url not valid", url);
-      }
-      createContent(url);
-    }
-
+    createContent(url);
   }
 
   private void init(URI uri) {
@@ -185,37 +159,31 @@ public class Image extends Element {
     try {
       resource = uri.toURL();
     } catch (MalformedURLException e) {
-      initTerminate("%s uri not valid", uri);
     }
     if (uri.getScheme().equals("class")) {
       Class clazz = null;
       try {
         clazz = Class.forName(uri.getAuthority());
       } catch (ClassNotFoundException e) {
-        initTerminate("%s class not found", uri);
+        initTerminate("class not found: %s", uri);
       }
       resource = clazz.getResource(uri.getPath());
       if (resource == null) {
-        initTerminate("%s (not found)", uri);
-      }
-    } else if (uri.getScheme().startsWith("http")) {
-      try {
-        resource = uri.toURL();
-      } catch (MalformedURLException e) {
-        initTerminate("%s uri not valid", uri);
+        initTerminate("not found: %s", uri);
       }
     }
-    init(resource);
+    if (resource == null) {
+      initTerminate("uri not valid: %s", uri);
+    }
+    createContent(resource);
   }
 
   private void init(Element element) {
-    copyElementRectangle(element);
     if (element.isOnScreen()) {
-      setContent(element.getContent());
-    } else {
-      copyElementContent(element);
-      url(element.url());
+      element = element.getImage();
     }
+    copyElementRectangle(element);
+    copyElementContent(element);
   }
 
   private void init(Mat mat) {
@@ -234,21 +202,6 @@ public class Image extends Element {
     }
   }
 
-  private static boolean isFile(URL url) {
-    return url.getProtocol().equals("file");
-  }
-
-  private static File asFile(URL url) {
-    File file = null;
-    if (url.getProtocol().equals("file")) {
-      try {
-        file = new File(url.getPath()).getCanonicalFile();
-      } catch (IOException e) {
-      }
-    }
-    return file;
-  }
-
   /**
    * @return the image's absolute filename or null if jar, http or in memory
    * image
@@ -259,6 +212,236 @@ public class Image extends Element {
     } else {
       return getName();
     }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="001 caching">
+  static boolean isCaching() {
+    return Settings.getImageCache() > 0;
+  }
+
+  public static Map<URL, List<Object>> getCache() {
+    return ImageCache.cache;
+  }
+
+  public static String cacheStats() {
+    return ImageCache.stats();
+  }
+
+  static class ImageCache {
+    static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
+
+    static Mat put(URL key, Mat mat) {
+      ArrayList<Object> items = new ArrayList<>();
+      items.add(mat);
+      items.add(0.0);
+      cache.put(key, items);
+      return mat;
+    }
+
+    static Mat get(URL key) {
+      List<Object> items = cache.get(key);
+      if (items == null) {
+        return new Mat();
+      }
+      Object content = items.get(0);
+      if (null == content) {
+        return new Mat();
+      }
+      Double count = (Double) items.get(1) + 1;
+      if (count < Double.MAX_VALUE)
+      items.set(1, count);
+      return (Mat) content;
+    }
+
+    static void reset() {
+      cache = Collections.synchronizedMap(new HashMap<>());
+    }
+
+    public static boolean isValid(URL url) {
+      List<Object> items = cache.get(url);
+      if (items == null) {
+        return false;
+      }
+      return null != items.get(0) && !((Mat) items.get(0)).empty();
+    }
+
+    public static String stats() {
+      int count = cache.size();
+      double size = 0;
+      double used = 0;
+      for ( List<Object> items : cache.values()) {
+        size += ((Mat) items.get(0)).width() * ((Mat) items.get(0)).height();
+        used += (Double) items.get(1);
+      }
+      return String.format("ImageCache: urls(%d) size(%.0f KB) used(%.0f times)", count, size / 1000, used);
+    }
+  }
+
+  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
+  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
+  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
+  private static final int KB = 1024;
+  private static final int MB = KB * KB;
+  private int bsize = 0;
+
+  private static long currentMemory = 0;
+
+  private static synchronized long currentMemoryChange(long size, long max) {
+    long maxMemory = max;
+    if (max < 0) {
+      maxMemory = Settings.getImageCache() * MB;
+      currentMemory += size;
+    }
+    if (currentMemory > maxMemory) {
+      Image first;
+      while (images.size() > 0 && currentMemory > maxMemory) {
+        first = images.remove(0);
+        currentMemory -= first.bsize;
+      }
+      if (maxMemory == 0) {
+        currentMemory = 0;
+      } else {
+        currentMemory = Math.max(0, currentMemory);
+      }
+    }
+    if (size < 0) {
+      currentMemory = Math.max(0, currentMemory);
+    }
+    return currentMemory;
+  }
+
+  private static long currentMemoryUp(long size) {
+    return currentMemoryChange(size, -1);
+  }
+
+  private static long currentMemoryDown(long size) {
+    currentMemory -= size;
+    currentMemory = Math.max(0, currentMemory);
+    return currentMemoryChange(-size, -1);
+  }
+
+  private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
+    currentMemoryDown(sizeOld);
+    return currentMemoryUp(sizeNew);
+  }
+
+  public static void clearCache(int maxSize) {
+    currentMemoryChange(0, maxSize);
+  }
+
+  public static void purge() {
+    purge(ImagePath.getBundle());
+  }
+
+  public static void purge(ImagePath.PathEntry path) {
+    if (path == null) {
+      return;
+    }
+    purge(path.pathURL);
+  }
+
+  private static synchronized void purge(URL pathURL) {
+    List<Image> imagePurgeList = new ArrayList<>();
+    List<String> imageNamePurgeList = new ArrayList<>();
+    URL imgURL;
+    Image img;
+    log(logLevel + 1, "purge: ImagePath: %s", pathURL.getPath());
+    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
+    Map.Entry<URL, Image> entry;
+    while (it.hasNext()) {
+      entry = it.next();
+      imgURL = entry.getKey();
+      if (imgURL.toString().startsWith(pathURL.toString())) {
+        log(logLevel + 1, "purge: URL: %s", imgURL.toString());
+        img = entry.getValue();
+        imagePurgeList.add(img);
+        imageNamePurgeList.add(img.getName());
+        it.remove();
+      }
+    }
+    if (!imagePurgeList.isEmpty()) {
+      Iterator<Image> bit = images.iterator();
+      while (bit.hasNext()) {
+        img = bit.next();
+        if (imagePurgeList.contains(img)) {
+          bit.remove();
+          log(logLevel + 1, "purge: bimg: %s", img);
+          currentMemoryDown(img.bsize);
+        }
+      }
+    }
+    for (String name : imageNamePurgeList) {
+      imageNames.remove(name);
+    }
+  }
+
+  private static void unCache(URL imgURL) {
+    Image img = imageFiles.get(imgURL);
+    if (img == null) {
+      return;
+    }
+    currentMemoryDown(img.bsize);
+    images.remove(img);
+  }
+
+  public static void unCache(String fileName) {
+    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
+  }
+
+  /**
+   * clears all caches (should only be needed for debugging)
+   */
+  public static void reset() {
+    clearCache(0);
+    imageNames.clear();
+    imageFiles.clear();
+  }
+
+  public File remove() {
+    URL furl = null;
+    if (isFile()) {
+      furl = getURL();
+      unCache(furl);
+      return new File(furl.getPath());
+    }
+    return null;
+  }
+
+  public void delete() {
+    File fImg = remove();
+    if (null != fImg) FileManager.deleteFileOrFolder(fImg);
+  }
+
+  private String hasBackup = "";
+
+  public boolean backup() {
+    if (isValid()) {
+      File fOrg = new File(fileURL.getPath());
+      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
+      if (FileManager.xcopy(fOrg, fBack)) {
+        hasBackup = fBack.getPath();
+        log(logLevel, "backup: %s created", fBack.getName());
+        return true;
+      }
+      log(-1, "backup: %s did not work", fBack.getName());
+    }
+    return false;
+  }
+
+  public boolean restore() {
+    if (!hasBackup.isEmpty()) {
+      File fBack = new File(hasBackup);
+      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
+      if (FileManager.xcopy(fBack, fOrg)) {
+        log(logLevel, "restore: %s restored", fOrg.getName());
+        FileManager.deleteFileOrFolder(fBack);
+        hasBackup = "";
+        return true;
+      }
+      log(-1, "restore: %s did not work", fBack.getName());
+    }
+    return false;
   }
   //</editor-fold>
 
@@ -298,14 +481,111 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  public double diffPercentage(Image otherImage) {
-    if (SX.isNull(otherImage)) {
-      return 1.0;
-    }
-    return SXOpenCV.diffPercentage(getContent(), otherImage.getContent());
+  //<editor-fold defaultstate="collapsed" desc="005 bufferedImage --- to be checked">
+
+  //TODO bufferedImage --- to be checked
+
+  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect) {
+    Rectangle crop;
+    crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
+    BufferedImage newBimg = new BufferedImage(crop.width, crop.height, bimg.getType());
+    Graphics2D g2d = newBimg.createGraphics();
+    BufferedImage subimage = bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
+    g2d.drawImage(subimage, 0, 0, null);
+    g2d.dispose();
+    return newBimg;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="00 1 URL">
+  /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    public int value;
+
+    Interpolation(int value) {
+      this.value = value;
+    }
+  }
+
+  /**
+   * resize the Image in place with factor
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Image size(float factor) {
+    return size(factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the Image in place with factor
+   * <p>
+   * Uses the given interpolation algorithm.
+   *
+   * @param factor        resize factor
+   * @param interpolation algorithm {@link Interpolation}
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Image size(float factor, Interpolation interpolation) {
+    SXOpenCV.resize(getContent(), factor, interpolation);
+    return this;
+  }
+
+  /**
+   * resize the Image with factor
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public Object resize(float factor) {
+    return resize(factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the loaded image with factor using OpenCV ImgProc.resize()
+   *
+   * @param factor        resize factor
+   * @param interpolation algorithm used for pixel interpolation
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public BufferedImage resize(float factor, Interpolation interpolation) {
+    return getBufferedImage(SXOpenCV.cvResize(cloneContent(), factor, interpolation));
+  }
+
+  /**
+   * resize the given image with factor using OpenCV ImgProc.resize()
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param bimg   given image
+   * @param factor resize factor
+   * @return a new BufferedImage resized (width*factor, height*factor)
+   */
+  public static BufferedImage resize(BufferedImage bimg, float factor) {
+    return resize(bimg, factor, Interpolation.CUBIC);
+  }
+
+  private static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
+    return Element.getBufferedImage(SXOpenCV.cvResize(bimg, factor, interpolation));
+  }
+
+//</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="700 URL --- to be checked">
 
   /**
    * @return the evaluated url for this image (might be null)
@@ -346,7 +626,7 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="00 3 isText">
+  //<editor-fold defaultstate="collapsed" desc="710 isText --- to be checked">
   private boolean imageIsText = false;
 
   /**
@@ -369,7 +649,7 @@ public class Image extends Element {
   private String imageNameGiven = null;
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="00 5 isBundled">
+  //<editor-fold defaultstate="collapsed" desc="720 isBundled --- to be checked">
   private boolean imageIsBundled = false;
 
   private Image setIsBundled(boolean imageIsBundled) {
@@ -493,407 +773,10 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="810 bufferedImage obsolete">
-  private BufferedImage bimg = null;
-  private int bsize = 0;
-
-  public static BufferedImage getSubimage(BufferedImage bimg, Rectangle rect) {
-    return bimg.getSubimage(rect.x, rect.y, (int) rect.getWidth(), (int) rect.getHeight());
-  }
-
-  public static BufferedImage createSubimage(BufferedImage bimg, Rectangle rect) {
-    Rectangle crop;
-    crop = new Rectangle(0, 0, bimg.getWidth(), bimg.getHeight()).intersection(rect);
-    BufferedImage newBimg = new BufferedImage(crop.width, crop.height, bimg.getType());
-    Graphics2D g2d = newBimg.createGraphics();
-    g2d.drawImage(getSubimage(bimg, crop), 0, 0, null);
-    g2d.dispose();
-    return newBimg;
-  }
-
-  /**
-   * Available resize interpolation algorithms
-   */
-  public enum Interpolation {
-    NEAREST(Imgproc.INTER_NEAREST),
-    LINEAR(Imgproc.INTER_LINEAR),
-    CUBIC(Imgproc.INTER_CUBIC),
-    AREA(Imgproc.INTER_AREA),
-    LANCZOS4(Imgproc.INTER_LANCZOS4),
-    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
-    MAX(Imgproc.INTER_MAX);
-
-    public int value;
-
-    Interpolation(int value) {
-      this.value = value;
-    }
-  }
-
-  /**
-   * resize the Image in place with factor
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param factor resize factor
-   * @return this Image resized
-   * @see Interpolation
-   */
-  public Image size(float factor) {
-    return size(factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the Image in place with factor
-   * <p>
-   * Uses the given interpolation algorithm.
-   *
-   * @param factor        resize factor
-   * @param interpolation algorithm {@link Interpolation}
-   * @return this Image resized
-   * @see Interpolation
-   */
-  public Image size(float factor, Interpolation interpolation) {
-    SXOpenCV.resize(getContent(), factor, interpolation);
-    return this;
-  }
-
-  /**
-   * resize the Image with factor
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public Object resize(float factor) {
-    return resize(factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the loaded image with factor using OpenCV ImgProc.resize()
-   *
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public BufferedImage resize(float factor, Interpolation interpolation) {
-    return getBufferedImage(SXOpenCV.cvResize(cloneContent(), factor, interpolation));
-  }
-
-  /**
-   * resize the given image with factor using OpenCV ImgProc.resize()
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param bimg   given image
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public static BufferedImage resize(BufferedImage bimg, float factor) {
-    return resize(bimg, factor, Interpolation.CUBIC);
-  }
-
-  private static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
-    return Element.getBufferedImage(SXOpenCV.cvResize(bimg, factor, interpolation));
-  }
-
-//</editor-fold>
-
-  //<editor-fold desc="820 caching obsolete">
-  static boolean isCaching() {
-    return Settings.getImageCache() > 0;
-  }
-
-  public static Map<URL, List<Object>> getCache() {
-    return ImageCache.cache;
-  }
-
-  static class ImageCache {
-    static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
-
-    static Mat put(URL key, Mat mat) {
-      ArrayList<Object> items = new ArrayList<>();
-      items.add(mat);
-      items.add(0);
-      cache.put(key, items);
-      return mat;
-    }
-
-    static Mat get(URL key) {
-      List<Object> items = cache.get(key);
-      if (items == null) {
-        return new Mat();
-      }
-      Object content = items.get(0);
-      if (null == content) {
-        return new Mat();
-      }
-      Integer count = (Integer) items.get(1);
-      items.set(1, count + 1);
-      return (Mat) content;
-    }
-
-    static void reset() {
-      cache = Collections.synchronizedMap(new HashMap<>());
-    }
-  }
-
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
-  private static final int KB = 1024;
-  private static final int MB = KB * KB;
-  private final static String isBImg = "__BufferedImage__";
-
-  private static long currentMemory = 0;
-
-  private static synchronized long currentMemoryChange(long size, long max) {
-    long maxMemory = max;
-    if (max < 0) {
-      maxMemory = Settings.getImageCache() * MB;
-      currentMemory += size;
-    }
-    if (currentMemory > maxMemory) {
-      Image first;
-      while (images.size() > 0 && currentMemory > maxMemory) {
-        first = images.remove(0);
-        first.bimg = null;
-        currentMemory -= first.bsize;
-      }
-      if (maxMemory == 0) {
-        currentMemory = 0;
-      } else {
-        currentMemory = Math.max(0, currentMemory);
-      }
-    }
-    if (size < 0) {
-      currentMemory = Math.max(0, currentMemory);
-    }
-    return currentMemory;
-  }
-
-  private static long currentMemoryUp(long size) {
-    return currentMemoryChange(size, -1);
-  }
-
-  private static long currentMemoryDown(long size) {
-    currentMemory -= size;
-    currentMemory = Math.max(0, currentMemory);
-    return currentMemoryChange(-size, -1);
-  }
-
-  private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
-    currentMemoryDown(sizeOld);
-    return currentMemoryUp(sizeNew);
-  }
-
-  public static void clearCache(int maxSize) {
-    currentMemoryChange(0, maxSize);
-  }
-
-  public static void purge() {
-    purge(ImagePath.getBundle());
-  }
-
-  public static void purge(ImagePath.PathEntry path) {
-    if (path == null) {
-      return;
-    }
-    purge(path.pathURL);
-  }
-
-  private static synchronized void purge(URL pathURL) {
-    List<Image> imagePurgeList = new ArrayList<>();
-    List<String> imageNamePurgeList = new ArrayList<>();
-    URL imgURL;
-    Image img;
-    log(logLevel + 1, "purge: ImagePath: %s", pathURL.getPath());
-    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
-    Map.Entry<URL, Image> entry;
-    while (it.hasNext()) {
-      entry = it.next();
-      imgURL = entry.getKey();
-      if (imgURL.toString().startsWith(pathURL.toString())) {
-        log(logLevel + 1, "purge: URL: %s", imgURL.toString());
-        img = entry.getValue();
-        imagePurgeList.add(img);
-        imageNamePurgeList.add(img.getName());
-        it.remove();
-      }
-    }
-    if (!imagePurgeList.isEmpty()) {
-      Iterator<Image> bit = images.iterator();
-      while (bit.hasNext()) {
-        img = bit.next();
-        if (imagePurgeList.contains(img)) {
-          bit.remove();
-          log(logLevel + 1, "purge: bimg: %s", img);
-          currentMemoryDown(img.bsize);
-        }
-      }
-    }
-    for (String name : imageNamePurgeList) {
-      imageNames.remove(name);
-    }
-  }
-
-  private static void unCache(URL imgURL) {
-    Image img = imageFiles.get(imgURL);
-    if (img == null) {
-      return;
-    }
-    currentMemoryDown(img.bsize);
-    images.remove(img);
-  }
-
-  //TODO make obsolete
-  public static void unCache(String fileName) {
-    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
-  }
-
-  /**
-   * clears all caches (should only be needed for debugging)
-   */
-  public static void reset() {
-    clearCache(0);
-    imageNames.clear();
-    imageFiles.clear();
-  }
-
-  public File remove() {
-    URL furl = null;
-    if (isFile()) {
-      furl = getURL();
-      unCache(furl);
-      return new File(furl.getPath());
-    }
-    return null;
-  }
-
-  public void delete() {
-    File fImg = remove();
-    if (null != fImg) FileManager.deleteFileOrFolder(fImg);
-  }
-
-  private String hasBackup = "";
-
-  public boolean backup() {
-    if (isValid()) {
-      File fOrg = new File(fileURL.getPath());
-      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
-      if (FileManager.xcopy(fOrg, fBack)) {
-        hasBackup = fBack.getPath();
-        log(logLevel, "backup: %s created", fBack.getName());
-        return true;
-      }
-      log(-1, "backup: %s did not work", fBack.getName());
-    }
-    return false;
-  }
-
-  public boolean restore() {
-    if (!hasBackup.isEmpty()) {
-      File fBack = new File(hasBackup);
-      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
-      if (FileManager.xcopy(fBack, fOrg)) {
-        log(logLevel, "restore: %s restored", fOrg.getName());
-        FileManager.deleteFileOrFolder(fBack);
-        hasBackup = "";
-        return true;
-      }
-      log(-1, "restore: %s did not work", fBack.getName());
-    }
-    return false;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="03 load/save">
-//  private static Image get(String fName) {
-//    if (fName == null || fName.isEmpty()) {
-//      return null;
-//    }
-//    Image image = null;
-//    if (fName.startsWith("\t") && fName.endsWith("\t")) {
-//      fName = fName.substring(1, fName.length() - 1);
-//      image = new Image();
-//      image.setIsText(true);
-//    } else {
-//      URL imageURL = null;
-//      String imageFileName = getValidImageFilename(fName);
-//      if (imageFileName.isEmpty()) {
-//        log(-1, "not a valid image type: " + fName);
-//        imageFileName = fName;
-//      }
-//      File imageFile = new File(imageFileName);
-//      if (imageFile.isAbsolute() && imageFile.exists()) {
-//        try {
-//          imageURL = new URL("file", null, imageFile.getPath());
-//        } catch (MalformedURLException e) {
-//        }
-//      } else {
-//        imageURL = imageNames.get(imageFileName);
-//        if (imageURL == null) {
-//          imageURL = ImagePath.find(imageFileName);
-//        }
-//      }
-//      if (imageURL != null) {
-//        image = imageFiles.get(imageURL);
-//        if (image != null && null == imageNames.get(image.getName())) {
-//          imageNames.put(image.getName(), imageURL);
-//        }
-//      }
-//      if (image == null) {
-//        image = new Image(imageURL);
-//        image.setIsAbsolute(imageFile.isAbsolute());
-//      } else {
-//        if (image.bimg != null) {
-//          log(3, "reused: %s (%s)", image.getName(), image.fileURL);
-//        } else {
-//          if (Settings.getImageCache() > 0) {
-//            image.load();
-//          }
-//        }
-//      }
-//    }
-//    image.imageNameGiven = fName;
-//    return image;
-//  }
-
-//  private BufferedImage load() {
-//    BufferedImage bImage = null;
-//    if (fileURL != null) {
-//      bimg = null;
-//      try {
-//        bImage = ImageIO.read(fileURL);
-//      } catch (Exception e) {
-//        log(-1, "load: failed: %s", fileURL);
-//        fileURL = null;
-//        return null;
-//      }
-//      if (getName() != null) {
-//        imageFiles.put(fileURL, this);
-//        imageNames.put(getName(), fileURL);
-//        w = bImage.getWidth();
-//        h = bImage.getHeight();
-//        bsize = bImage.getData().getDataBuffer().getSize();
-//        log(logLevel, "loaded: %s (%s)", getName(), fileURL);
-//        if (isCaching()) {
-//          currentMemoryUp(bsize);
-//          bimg = bImage;
-//          images.add(this);
-//        }
-//      } else {
-//        log(-1, "invalid! not loaded! %s", fileURL);
-//      }
-//    }
-//    return bImage;
-//  }
-
+  //<editor-fold desc="830 load/save --- to be checked">
   private BufferedImage loadAgain() {
     BufferedImage bImage = null;
     if (fileURL != null) {
-      bimg = null;
       try {
         bImage = ImageIO.read(fileURL);
       } catch (Exception e) {
@@ -909,19 +792,6 @@ public class Image extends Element {
       log(logLevel, "loaded again: %s (%s)", getName(), fileURL);
     }
     return bImage;
-  }
-
-  public static void reload(String fpImage) {
-//    URL uImage = FileManager.makeURL(fpImage);
-    URL uImage = imageNames.get(fpImage);
-    if (imageFiles.containsKey(uImage)) {
-      Image image = imageFiles.get(uImage);
-      int sizeOld = image.bsize;
-      if (null != image.loadAgain()) {
-        currentMemoryDownUp(sizeOld, image.bsize);
-        image.setLastSeen(null, 0);
-      }
-    }
   }
 
   public static void setIDEshouldReload(Image img) {
@@ -945,208 +815,5 @@ public class Image extends Element {
   }
 
   public boolean wasRecaptured = false;
-  //</editor-fold>
-
-  //<editor-fold desc="10 raster">
-  /**
-   * to support a raster over the image
-   */
-  private int rows = 0;
-  private int cols = 0;
-  private int rowH = 0;
-  private int colW = 0;
-  private int rowHd = 0;
-  private int colWd = 0;
-
-  /**
-   * store info: this image is divided vertically into n even rows <br>
-   * a preparation for using getRow()
-   *
-   * @param n number of rows
-   * @return the top row
-   */
-  public Image setRows(int n) {
-    return setRaster(n, 0);
-  }
-
-  /**
-   * store info: this image is divided horizontally into n even columns <br>
-   * a preparation for using getCol()
-   *
-   * @param n number of Columns
-   * @return the leftmost column
-   */
-  public Image setCols(int n) {
-    return setRaster(0, n);
-  }
-
-  /**
-   * @return number of eventually defined rows in this image or 0
-   */
-  public int getRows() {
-    return rows;
-  }
-
-  /**
-   * @return height of eventually defined rows in this image or 0
-   */
-  public int getRowH() {
-    return rowH;
-  }
-
-  /**
-   * @return number of eventually defined columns in this image or 0
-   */
-  public int getCols() {
-    return cols;
-  }
-
-  /**
-   * @return width of eventually defined columns in this image or 0
-   */
-  public int getColW() {
-    return colW;
-  }
-
-  /**
-   * store info: this image is divided into a raster of even cells <br>
-   * a preparation for using getCell()
-   *
-   * @param r number of rows
-   * @param c number of columns
-   * @return the top left cell
-   */
-  public Image setRaster(int r, int c) {
-    rows = r;
-    cols = c;
-    if (r > 0) {
-      rowH = (int) (getSize().height / r);
-      rowHd = getSize().height - r * rowH;
-    }
-    if (c > 0) {
-      colW = (int) (getSize().width / c);
-      colWd = getSize().width - c * colW;
-    }
-    return getCell(0, 0);
-  }
-
-  /**
-   * get the specified row counting from 0, if rows or raster are setup <br>negative
-   * counts reverse from the end (last = -1) <br>values outside range are 0 or last
-   * respectively
-   *
-   * @param r row number
-   * @return the row as new image or the image itself, if no rows are setup
-   */
-  public Image getRow(int r) {
-    if (rows == 0) {
-      return this;
-    }
-    if (r < 0) {
-      r = rows + r;
-    }
-    r = Math.max(0, r);
-    r = Math.min(r, rows - 1);
-    return getSub(0, r * rowH, getSize().width, rowH);
-  }
-
-  /**
-   * get the specified column counting from 0, if columns or raster are setup<br>
-   * negative counts reverse from the end (last = -1) <br>values outside range are 0
-   * or last respectively
-   *
-   * @param c column number
-   * @return the column as new image or the image itself, if no columns are
-   * setup
-   */
-  public Image getCol(int c) {
-    if (cols == 0) {
-      return this;
-    }
-    if (c < 0) {
-      c = cols + c;
-    }
-    c = Math.max(0, c);
-    c = Math.min(c, cols - 1);
-    return getSub(c * colW, 0, colW, getSize().height);
-  }
-
-  /**
-   * get the specified cell counting from (0, 0), if a raster is setup <br>
-   * negative counts reverse from the end (last = -1) <br>values outside range are 0
-   * or last respectively
-   *
-   * @param r row number
-   * @param c column number
-   * @return the cell as new image or the image itself, if no raster is setup
-   */
-  public Image getCell(int r, int c) {
-    if (rows == 0) {
-      return getCol(c);
-    }
-    if (cols == 0) {
-      return getRow(r);
-    }
-    if (rows == 0 && cols == 0) {
-      return this;
-    }
-    if (r < 0) {
-      r = rows - r;
-    }
-    if (c < 0) {
-      c = cols - c;
-    }
-    r = Math.max(0, r);
-    r = Math.min(r, rows - 1);
-    c = Math.max(0, c);
-    c = Math.min(c, cols - 1);
-    return getSub(c * colW, r * rowH, colW, rowH);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="20 text/OCR from imagefile">
-
-  /**
-   * convenience method: get text from given image file
-   *
-   * @param imgFile image filename
-   * @return the text or null
-   */
-  public static String text(String imgFile) {
-    return OCR.readText(imgFile);
-  }
-
-  /**
-   * convenience method: get text from given image file
-   * supposing it is one line of text
-   *
-   * @param imgFile image filename
-   * @return the text or empty string
-   */
-  public static String textLine(String imgFile) {
-    return OCR.readLine(imgFile);
-  }
-
-  /**
-   * convenience method: get text from given image file
-   * supposing it is one word
-   *
-   * @param imgFile image filename
-   * @return the text or empty string
-   */
-  public static String textWord(String imgFile) {
-    return OCR.readWord(imgFile);
-  }
-
-  /**
-   * convenience method: get text from given image file
-   * supposing it is one character
-   *
-   * @param imgFile image filename
-   * @return the text or empty string
-   */
-  public static String textChar(String imgFile) {
-    return OCR.readChar(imgFile);
-  }
   //</editor-fold>
 }
