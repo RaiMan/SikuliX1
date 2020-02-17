@@ -11,10 +11,7 @@ import org.sikuli.script.Location;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.text.Element;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -243,7 +240,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 
   public void setLabelPyText() {
     if (!lblText.startsWith(NOTFOUND)) {
-      pyText = pane.getPatternString(imgName, sim, off, image, resizeFactor, mask);
+      pyText = pane.getPatternString(image, sim, off, resizeFactor, mask);
     }
   }
 

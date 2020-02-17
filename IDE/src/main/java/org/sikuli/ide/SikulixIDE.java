@@ -2056,7 +2056,7 @@ public class SikulixIDE extends JFrame {
                 new EditorRegionButton(codePane, x, y, w, h).toString()));
           }
         } else {
-          codePane.insertStringRegion(x, y, w, h);
+          codePane.insertRegionString(x, y, w, h);
         }
       }
     }

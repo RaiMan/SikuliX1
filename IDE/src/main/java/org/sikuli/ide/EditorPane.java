@@ -12,6 +12,7 @@ import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.Location;
 import org.sikuli.script.SX;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.runners.JythonRunner;
@@ -912,12 +913,21 @@ public class EditorPane extends JTextPane {
     setCaretPosition(end);
   }
 
-  public void insertStringRegion(int x, int y, int w, int h) {
-    insertString(String.format("Region(%d,%d,%d,%d)", x, y, w, h));
+  public String getRegionString(int x, int y, int w, int h) {
+    return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  private void insertStringPattern(org.sikuli.script.Pattern pattern) {
-    insertString(codeGenerator.pattern(pattern));
+  public void insertRegionString(int x, int y, int w, int h) {
+    insertString(getRegionString(x, y, w, h));
+  }
+
+  public String getPatternString(org.sikuli.script.Image img, double sim, Location off, float resizeFactor, String mask) {
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
+    pattern.similar(sim);
+    pattern.targetOffset(off);
+    pattern.resize(resizeFactor);
+    pattern.setMaskFromString(mask);
+    return codeGenerator.pattern(pattern);
   }
 
   private void insertString(int pos, String str) {

@@ -303,5 +303,9 @@ public class Pattern {
     this.waitAfter = waitAfter;
     return this;
   }
+
+  public void setMaskFromString(String mask) {
+    //TODO mask from string
+  }
   //</editor-fold>
 }

@@ -8,3 +8,5 @@ finder = Finder(simg, Region(0,0,1,1))
 finder.find(img)
 if finder.hasNext():
   finder.next().highlight(2)
+
+pattern = Pattern("pattern.png").exact().targetOffset(49,38)
