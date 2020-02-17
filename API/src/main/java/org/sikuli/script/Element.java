@@ -333,7 +333,11 @@ public abstract class Element {
   }
 
   protected void copyElementContent(Element element) {
-    setContent(element.cloneContent());
+    if (element.url() != null) {
+      url(element.url());
+    } else {
+      setContent(element.cloneContent());
+    }
   }
 
   public boolean isFakeImage() {
@@ -505,6 +509,10 @@ public abstract class Element {
       return new File(imageURL.getPath());
     }
     return null;
+  }
+
+  static boolean isFile(URL url) {
+    return url != null && url.getProtocol().equals("file");
   }
   //</editor-fold>
 

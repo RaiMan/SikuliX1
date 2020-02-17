@@ -85,6 +85,7 @@ public class ElementTest {
 
   @Test
   public void test011_ImageLocation() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Location location = new Location(100, 200);
     Image image = new Image(location);
     testOutro("%s", image);
@@ -93,6 +94,7 @@ public class ElementTest {
 
   @Test
   public void test012_ImageScreenImage() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region region = new Region(100, 200, 300, 400);
     Image image = region.getImage();
     testOutro("%s", image);
@@ -115,6 +117,14 @@ public class ElementTest {
     Image image = new Image(imageName);
     testOutro("%s (%s)", image, imageName);
     assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  @Test
+  public void test025_PatternImageFilename() {
+    String imageName = testName;
+    Pattern pattern = new Pattern(imageName);
+    testOutro("%s (%s)", pattern, imageName);
+    assertTrue("NotValid: " + pattern.toString(), pattern.isValid());
   }
 
   @Test
@@ -154,6 +164,7 @@ public class ElementTest {
 
   @Test
   public void test200_RegionFindOld() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region reg = new Screen();
     Match match = null;
     try {
@@ -169,6 +180,7 @@ public class ElementTest {
 
   @Test
   public void test201_RegionFind() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewFind = true;
     Region reg = new Screen();
     Match match = null;
@@ -185,6 +197,7 @@ public class ElementTest {
 
   @Test
   public void test202_RegionWait() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewFind = true;
     Region reg = new Screen();
     Match match = null;

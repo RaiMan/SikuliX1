@@ -39,7 +39,7 @@ public class Pattern {
   }
 
   public boolean isValid() {
-    return image != null;
+    return image != null && image.isValid();
   }
 
   /**
@@ -58,8 +58,6 @@ public class Pattern {
       copyAllAttributes((Pattern) what);
     } else {
       image = new Image(what);
-
-      toString();
     }
   }
 

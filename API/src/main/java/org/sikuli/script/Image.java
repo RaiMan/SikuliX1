@@ -231,11 +231,12 @@ public class Image extends Element {
   static class ImageCache {
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
-    static Mat put(URL key, Mat mat) {
+    static Mat put(URL url, Mat mat) {
       ArrayList<Object> items = new ArrayList<>();
       items.add(mat);
       items.add(0.0);
-      cache.put(key, items);
+      items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1);
+      cache.put(url, items);
       return mat;
     }
 
