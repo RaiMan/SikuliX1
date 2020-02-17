@@ -803,6 +803,14 @@ public abstract class Element {
     }
   }
 
+  private boolean withMask = false;
+  private Mat patternMask = SXOpenCV.newMat();
+  private boolean isMask = false;
+
+  public abstract boolean hasMask();
+
+  public abstract Mat cloneMask();
+
   private double similarity = Settings.MinSimilarity;
 
   /**

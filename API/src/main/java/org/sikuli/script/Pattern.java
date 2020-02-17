@@ -30,6 +30,7 @@ public class Pattern {
     pattern.targetOffset(off);
     pattern.resize(rFactor);
     pattern.setMaskFromString(mask);
+    return pattern;
   }
 
   //<editor-fold desc="00 instance">
@@ -157,14 +158,18 @@ public class Pattern {
     return !patternMask.empty();
   }
 
-  private Mat extractMask() {
+  private Mat extractMask(Image... args) {
+    Image image;
+    if (args.length == 0) {
+      image = this.image;
+    } else
+      image = args[0];
     List<Mat> mats = SXOpenCV.extractMask(image.getContent(), false);
     return mats.get(1);
   }
 
-  protected static Mat extractMask(Image image) {
-    List<Mat> mats = SXOpenCV.extractMask(image.getContent(), false);
-    return mats.get(1);
+  public void setMaskFromString(String mask) {
+    //TODO mask from string
   }
   //</editor-fold>
 
@@ -294,10 +299,6 @@ public class Pattern {
   public Pattern waitAfter(int waitAfter) {
     this.waitAfter = waitAfter;
     return this;
-  }
-
-  public void setMaskFromString(String mask) {
-    //TODO mask from string
   }
   //</editor-fold>
 }
