@@ -921,13 +921,8 @@ public class EditorPane extends JTextPane {
     insertString(getRegionString(x, y, w, h));
   }
 
-  public String getPatternString(org.sikuli.script.Image img, double sim, Location off, float resizeFactor, String mask) {
-    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
-    pattern.similar(sim);
-    pattern.targetOffset(off);
-    pattern.resize(resizeFactor);
-    pattern.setMaskFromString(mask);
-    return codeGenerator.pattern(pattern);
+  public String getPatternString(org.sikuli.script.Image img, double sim, Location off, float rFactor, String mask) {
+    return codeGenerator.pattern(org.sikuli.script.Pattern.make(img, sim, off, rFactor, mask));
   }
 
   private void insertString(int pos, String str) {
