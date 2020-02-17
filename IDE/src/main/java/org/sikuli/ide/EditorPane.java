@@ -916,8 +916,8 @@ public class EditorPane extends JTextPane {
     insertString(String.format("Region(%d,%d,%d,%d)", x, y, w, h));
   }
 
-  private String insertStringPattern(org.sikuli.script.Pattern pattern) {
-    return codeGenerator.pattern(pattern);
+  private void insertStringPattern(org.sikuli.script.Pattern pattern) {
+    insertString(codeGenerator.pattern(pattern));
   }
 
   private void insertString(int pos, String str) {
