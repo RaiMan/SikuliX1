@@ -19,7 +19,8 @@ import java.io.IOException;
 
 public class PatternWindow extends JFrame {
 
-  private static final String me = "PatternWindow: ";
+	//<editor-fold desc="000 instance">
+	private static final String me = "PatternWindow: ";
 	private EditorPatternButton _imgBtn;
 	private PatternPaneScreenshot _screenshot;
 	private PatternPaneTargetOffset _tarOffsetPane;
@@ -127,21 +128,50 @@ public class PatternWindow extends JFrame {
 		setVisible(true);
 	}
 
-	private ScreenImage takeScreenshot() {
-		SikulixIDE ide = SikulixIDE.get();
-		ide.setVisible(false);
-		this.setVisible(false);
-		try {
-			Thread.sleep(500);
-		} catch (Exception e) {
-		}
-		ScreenImage img = (new ScreenUnion()).getScreen().capture();
-		SikulixIDE.showAgain();
-		this.setVisible(true);
-		this.requestFocus();
-		return img;
+	private JComponent createButtons() {
+		JPanel pane = new JPanel(new GridBagLayout());
+		JButton btnOK = new JButton(_I("ok"));
+		btnOK.addActionListener(new ActionOK(this));
+		JButton btnApply = new JButton(_I("apply"));
+		btnApply.addActionListener(new ActionApply(this));
+		final JButton btnCancel = new JButton(_I("cancel"));
+		btnCancel.addActionListener(new ActionCancel(this));
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridy = 3;
+		c.gridx = 0;
+		c.insets = new Insets(5, 0, 10, 0);
+		c.anchor = GridBagConstraints.LAST_LINE_END;
+		pane.add(btnOK, c);
+		c.gridx = 1;
+		pane.add(btnApply, c);
+		c.gridx = 2;
+		pane.add(btnCancel, c);
+		this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				btnCancel.doClick();
+			}
+		});
+		KeyStroke escapeKeyStroke =
+				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+		this.getRootPane().
+				getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).
+				put(escapeKeyStroke, "ESCAPE");
+		this.getRootPane().getActionMap().put("ESCAPE",
+				new AbstractAction() {
+					public void actionPerformed(ActionEvent e) {
+						btnCancel.doClick();
+					}
+				});
+		return pane;
 	}
 
+	public void close() {
+		_simg = null;
+		_imgBtn.resetWindow();
+	}
+	//</editor-fold>
+
+	//<editor-fold desc="010 preview panel">
 	private static final String SAVED_SCREEN_LABEL_TEXT = "Matches on saved screen";
 	private static final String SAVED_SCREEN_BUTTON_TEXT = "Switch to current screen";
 	private static final String CURRENT_SCREEN_LABEL_TEXT = "Matches on current screen";
@@ -190,6 +220,21 @@ public class PatternWindow extends JFrame {
     return p;
 	}
 
+	private ScreenImage takeScreenshot() {
+		SikulixIDE ide = SikulixIDE.get();
+		ide.setVisible(false);
+		this.setVisible(false);
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {
+		}
+		ScreenImage img = (new ScreenUnion()).getScreen().capture();
+		SikulixIDE.showAgain();
+		this.setVisible(true);
+		this.requestFocus();
+		return img;
+	}
+
 	private JPanel createPreviewPanel() {
 		JPanel p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
@@ -200,6 +245,7 @@ public class PatternWindow extends JFrame {
       p.add(createPreviewSwitchScreenPanel());
       p.add(Box.createVerticalStrut(20));
     }else {
+    	//TODO add reload button even if no screenshot
 		  p.add(Box.createVerticalStrut(5));
     }
 		p.add(_screenshot.createControls());
@@ -209,6 +255,18 @@ public class PatternWindow extends JFrame {
 		return p;
 	}
 
+	private void createMarginBox(Container c, Component comp) {
+		c.add(Box.createVerticalStrut(10));
+		Box lrMargins = Box.createHorizontalBox();
+		lrMargins.add(Box.createHorizontalStrut(10));
+		lrMargins.add(comp);
+		lrMargins.add(Box.createHorizontalStrut(10));
+		c.add(lrMargins);
+		c.add(Box.createVerticalStrut(10));
+	}
+	//</editor-fold>
+
+	//<editor-fold desc="020 target panel">
 	private JPanel createTargetPanel() {
 		JPanel p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
@@ -221,90 +279,14 @@ public class PatternWindow extends JFrame {
 		return p;
 	}
 
-	private JComponent createButtons() {
-		JPanel pane = new JPanel(new GridBagLayout());
-		JButton btnOK = new JButton(_I("ok"));
-		btnOK.addActionListener(new ActionOK(this));
-		JButton btnApply = new JButton(_I("apply"));
-		btnApply.addActionListener(new ActionApply(this));
-		final JButton btnCancel = new JButton(_I("cancel"));
-		btnCancel.addActionListener(new ActionCancel(this));
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridy = 3;
-		c.gridx = 0;
-		c.insets = new Insets(5, 0, 10, 0);
-		c.anchor = GridBagConstraints.LAST_LINE_END;
-		pane.add(btnOK, c);
-		c.gridx = 1;
-		pane.add(btnApply, c);
-		c.gridx = 2;
-		pane.add(btnCancel, c);
-		this.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent we) {
-				btnCancel.doClick();
-			}
-		});
-		KeyStroke escapeKeyStroke =
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
-		this.getRootPane().
-			getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).
-				put(escapeKeyStroke, "ESCAPE");
-		this.getRootPane().getActionMap().put("ESCAPE",
-			new AbstractAction() {
-				public void actionPerformed(ActionEvent e) {
-					btnCancel.doClick();
-			}
-		});
-		return pane;
-	}
-
-	private void createMarginBox(Container c, Component comp) {
-		c.add(Box.createVerticalStrut(10));
-		Box lrMargins = Box.createHorizontalBox();
-		lrMargins.add(Box.createHorizontalStrut(10));
-		lrMargins.add(comp);
-		lrMargins.add(Box.createHorizontalStrut(10));
-		c.add(lrMargins);
-		c.add(Box.createVerticalStrut(10));
-	}
-
-	public void setMessageApplied(int i, boolean flag) {
-		if (flag) {
-      for (JLabel m : msgApplied) {
-        m.setText("     (changed)");
-      }
-		} else {
-			msgApplied[i].setText("     (          )");
-		}
-	}
-
-	public void close() {
-		_simg = null;
-		_imgBtn.resetWindow();
-	}
-
-	public JTabbedPane getTabbedPane() {
-		return tabPane;
-	}
-
 	public void setTargetOffset(Location offset) {
 		if (offset != null) {
 			_tarOffsetPane.setTarget(offset.x, offset.y);
 		}
 	}
+	//</editor-fold>
 
-	private void renameScreenshot(String oldFilename, String filename) {
-	  File oldFile = new File(oldFilename);
-    File newFile = new File(filename);
-
-    File oldScreenshotImageFile = currentPane.getScreenshotImageFile(oldFile.getName());
-    File newScreenshotImageFile = currentPane.getScreenshotImageFile(newFile.getName());
-
-    if (oldScreenshotImageFile.exists()) {
-      FileManager.xcopy(oldScreenshotImageFile, newScreenshotImageFile);
-    }
-	}
-
+	//<editor-fold desc="actions OK/APPLY/CANCEL,  dirty ">
 	private void actionPerformedUpdates(Window _parent) {
 		boolean tempDirty = isDirty();
 		if (paneNaming.isDirty()) {
@@ -378,24 +360,46 @@ public class PatternWindow extends JFrame {
 		addDirty(_imgBtn.setTargetOffset(_tarOffsetPane.getTargetOffset()));
 		if (isDirty() || tempDirty) {
 			Debug.log(3, "Preview: update: " + _imgBtn.toString());
-			int i = _imgBtn.getWindow().getTabbedPane().getSelectedIndex();
+			int i = _imgBtn.getWindow().tabPane.getSelectedIndex();
 			_imgBtn.getWindow().setMessageApplied(i, true);
 			_imgBtn.repaint();
 		}
 	}
 
-  private boolean revertImageRename() {
-    try {
-      FileManager.xcopy(fileRenameNew, fileRenameOld);
-      renameScreenshot(fileRenameNew, fileRenameOld);
-      _imgBtn.setImage(fileRenameOld);
-    } catch (IOException ioe) {
-      Debug.error("revert renaming failed: new: %s \nold: %s\n%s",
-              fileRenameNew, fileRenameOld, ioe.getMessage());
-      return false;
-    }
-    return true;
-  }
+	public void setMessageApplied(int i, boolean flag) {
+		if (flag) {
+			for (JLabel m : msgApplied) {
+				m.setText("     (changed)");
+			}
+		} else {
+			msgApplied[i].setText("     (          )");
+		}
+	}
+
+	private void renameScreenshot(String oldFilename, String filename) {
+		File oldFile = new File(oldFilename);
+		File newFile = new File(filename);
+
+		File oldScreenshotImageFile = currentPane.getScreenshotImageFile(oldFile.getName());
+		File newScreenshotImageFile = currentPane.getScreenshotImageFile(newFile.getName());
+
+		if (oldScreenshotImageFile.exists()) {
+			FileManager.xcopy(oldScreenshotImageFile, newScreenshotImageFile);
+		}
+	}
+
+	private boolean revertImageRename() {
+		try {
+			FileManager.xcopy(fileRenameNew, fileRenameOld);
+			renameScreenshot(fileRenameNew, fileRenameOld);
+			_imgBtn.setImage(fileRenameOld);
+		} catch (IOException ioe) {
+			Debug.error("revert renaming failed: new: %s \nold: %s\n%s",
+					fileRenameNew, fileRenameOld, ioe.getMessage());
+			return false;
+		}
+		return true;
+	}
 
 	class ActionOK implements ActionListener {
 
@@ -409,7 +413,7 @@ public class PatternWindow extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
 			if (fileRenameOld != null) {
-				currentPane.reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
+				currentPane.parseTextAgainOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
 			}
 			_imgBtn.getWindow().close();
 			_parent.dispose();
@@ -428,7 +432,7 @@ public class PatternWindow extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
-			_imgBtn.getWindow().getTabbedPane().getSelectedComponent().transferFocus();
+			_imgBtn.getWindow().tabPane.getSelectedComponent().transferFocus();
 		}
 	}
 
@@ -466,4 +470,5 @@ public class PatternWindow extends JFrame {
 	protected void addDirty(boolean flag) {
 		dirty |= flag;
 	}
+	//</editor-fold>
 }

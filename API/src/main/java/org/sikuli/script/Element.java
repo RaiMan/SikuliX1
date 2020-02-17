@@ -12,6 +12,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 
@@ -349,14 +350,16 @@ public abstract class Element {
   }
 
   private static final String FAKE_IMAGE = "Internal-Fake-Image";
+  static final String OK = "";
 
-  protected static void reload(String fpImage) {
+  protected static String reload(String fpImage) {
     URL url = evalURL(new File(fpImage));
     if (url != null) {
       Image image = new Image();
       image.asFakeImage();
-      image.createContent(url);
+      return image.createContent(url);
     }
+    return OK;
   }
 
   protected static URL evalURL(File imagefile) {
@@ -375,12 +378,12 @@ public abstract class Element {
     return url;
   }
 
-  protected void createContent(URL url) {
+  protected String createContent(URL url) {
     if ("file".equals(url.getProtocol())) {
       try {
         url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
       } catch (IOException e) {
-        terminate("content: io error: %s", url);
+        return String.format("content: io error: %s", url);
       }
     }
     byte[] bytes = null;
@@ -389,11 +392,11 @@ public abstract class Element {
       imageURL = url;
       if (!isFakeImage() && Image.ImageCache.isValid(url)) {
         setSize(Image.ImageCache.get(url));
-        return;
+        return OK;
       }
       bytes = inputStream.readAllBytes();
     } catch (IOException e) {
-      terminate("content: io error: %s", url);
+      return String.format("content: io error: %s", url);
     }
     MatOfByte matOfByte = new MatOfByte();
     matOfByte.fromArray(bytes);
@@ -402,6 +405,7 @@ public abstract class Element {
       setSize(content);
     }
     Image.ImageCache.put(url, content);
+    return OK;
   }
 
   private Mat content = SXOpenCV.newMat();
@@ -798,6 +802,18 @@ public abstract class Element {
       waitAfter = ((Image) source).waitAfter();
     }
   }
+
+  private boolean withMask = false;
+  private Mat patternMask = SXOpenCV.newMat();
+  private boolean isMask = false;
+
+  public boolean hasMask() {
+    return !patternMask.empty();
+  };
+
+  public Mat cloneMask() {
+    return patternMask.clone();
+  };
 
   private double similarity = Settings.MinSimilarity;
 
@@ -1262,7 +1278,59 @@ public abstract class Element {
   private IScreen otherScreen = null;
   //</editor-fold>
 
-  //<editor-fold desc="016 handle FindFailed and ImageMissing">
+  //<editor-fold desc="016 handle image missing">
+  protected void setImageMissingHandler(Object handler) {
+    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
+  }
+
+  protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
+
+  protected Boolean handleImageMissing(Image img, boolean recap) {
+    log(logLevel, "handleImageMissing: %s", img.getName());
+    ObserveEvent evt = null;
+    FindFailedResponse response = findFailedResponse;
+    if (!recap && imageMissingHandler != null) {
+      log(logLevel, "handleImageMissing: calling handler");
+      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
+      ((ObserverCallBack) imageMissingHandler).missing(evt);
+      response = evt.getResponse();
+    }
+    if (recap || FindFailedResponse.PROMPT.equals(response)) {
+      if (!recap) {
+        log(logLevel, "handleImageMissing: Response.PROMPT");
+      }
+      response = handleFindFailedShowDialog(img, true);
+    }
+    if (FindFailedResponse.RETRY.equals(response)) {
+      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
+      getRobotForElement().delay(500);
+      ScreenImage simg = getScreen().userCapture((recap ? "recapture " : "capture missing ") + img.getName());
+      if (simg != null) {
+        String path = ImagePath.getBundlePath();
+        if (path == null) {
+          log(-1, "handleImageMissing: no bundle path - aborting");
+          return null;
+        }
+        simg.getFile(path, img.getName());
+        img.reloadContent();
+        if (img.isValid()) {
+          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
+          Image.setIDEshouldReload(img);
+          return true;
+        }
+      }
+      return null;
+    } else if (findFailedResponse.ABORT.equals(response)) {
+      log(-1, "handleImageMissing: Response.ABORT: aborting");
+      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
+      return null;
+    }
+    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
+    return false;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="017 handle FindFailed">
   protected <PSI> Boolean handleFindFailed(PSI target, Image img) {
     log(logLevel, "handleFindFailed: %s", target);
     Boolean state = null;
@@ -1310,49 +1378,43 @@ public abstract class Element {
     return state;
   }
 
-  protected Boolean handleImageMissing(Image img, boolean recap) {
-    log(logLevel, "handleImageMissing: %s", img.getName());
-    ObserveEvent evt = null;
-    FindFailedResponse response = findFailedResponse;
-    if (!recap && imageMissingHandler != null) {
-      log(logLevel, "handleImageMissing: calling handler");
-      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
-      ((ObserverCallBack) imageMissingHandler).missing(evt);
-      response = evt.getResponse();
-    }
-    if (recap || FindFailedResponse.PROMPT.equals(response)) {
-      if (!recap) {
-        log(logLevel, "handleImageMissing: Response.PROMPT");
+  private String hasBackup = "";
+
+  boolean backup() {
+    if (isValid()) {
+      File fOrg = new File(url().getPath());
+      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
+      if (FileManager.xcopy(fOrg, fBack)) {
+        hasBackup = fBack.getPath();
+        log(logLevel, "backup: %s created", fBack.getName());
+        return true;
       }
-      response = handleFindFailedShowDialog(img, true);
+      log(-1, "backup: %s did not work", fBack.getName());
     }
-    if (FindFailedResponse.RETRY.equals(response)) {
-      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
-      getRobotForElement().delay(500);
-      ScreenImage simg = getScreen().userCapture((recap ? "recapture " : "capture missing ") + img.getName());
-      if (simg != null) {
-        String path = ImagePath.getBundlePath();
-        if (path == null) {
-          log(-1, "handleImageMissing: no bundle path - aborting");
-          return null;
-        }
-        simg.getFile(path, img.getName());
-        img.reloadContent();
-        if (img.isValid()) {
-          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
-          Image.setIDEshouldReload(img);
-          return true;
-        }
-      }
-      return null;
-    } else if (findFailedResponse.ABORT.equals(response)) {
-      log(-1, "handleImageMissing: Response.ABORT: aborting");
-      log(-1, "Did you want to find text? If yes, use text methods (see docs).");
-      return null;
-    }
-    log(logLevel, "handleImageMissing: skip requested on %s", (recap ? "recapture " : "capture missing "));
     return false;
   }
+
+  boolean restore() {
+    if (!hasBackup.isEmpty()) {
+      File fBack = new File(hasBackup);
+      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
+      if (FileManager.xcopy(fBack, fOrg)) {
+        log(logLevel, "restore: %s restored", fOrg.getName());
+        FileManager.deleteFileOrFolder(fBack);
+        hasBackup = "";
+        return true;
+      }
+      log(-1, "restore: %s did not work", fBack.getName());
+    }
+    return false;
+  }
+
+  //TODO delete an Image??
+  void delete() {
+    //TODO File fImg = remove();
+    //if (null != fImg) FileManager.deleteFileOrFolder(fImg);
+  }
+
 
   protected FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
     log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
@@ -1365,12 +1427,6 @@ public abstract class Element {
     log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
     return response;
   }
-
-  protected void setImageMissingHandler(Object handler) {
-    imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
-  }
-
-  protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
   //</editor-fold>
 
   //<editor-fold desc="020 find image">

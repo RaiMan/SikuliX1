@@ -126,12 +126,17 @@ public class ImagePath {
       if (pathEntry == null) {
         continue;
       }
-      Image.purge(pathEntry);
+      imageCachePurge();
     }
     PathEntry bundlePath = getBundle();
     imagePaths.clear();
     imagePaths.add(bundlePath);
   }
+
+  //TODO image cache purge ???
+  private static void imageCachePurge() {
+  }
+
   //</editor-fold>
 
   //<editor-fold desc="02 init path entry">
@@ -499,7 +504,7 @@ public class ImagePath {
    */
   private static boolean remove(URL pURL) {
     if (bundleEquals(pURL)) {
-      Image.purge();
+      imageCachePurge();
       return true;
     }
     Iterator<PathEntry> it = imagePaths.subList(1, imagePaths.size()).iterator();
@@ -510,7 +515,7 @@ public class ImagePath {
         continue;
       }
       it.remove();
-      Image.purge(pathEntry);
+      imageCachePurge();
     }
     return true;
   }
@@ -582,7 +587,7 @@ public class ImagePath {
     }
     if (folder.exists()) {
       PathEntry oldBundle = getBundle();
-      Image.purge(oldBundle);
+      imageCachePurge();
       PathEntry pathEntry = new PathEntry(folder);
       if (pathEntry.isValid()) {
         setBundle(pathEntry);

@@ -17,11 +17,10 @@ public interface ICodeGenerator {
    *
    *
    * @param pattern
-   * @param mask mask code TODO needs to be abstracted away
    *
    * @return
    */
-  public String pattern(Pattern pattern, String mask);
+  public String pattern(Pattern pattern);
 
   public String click(Pattern pattern, String[] modifiers);
 

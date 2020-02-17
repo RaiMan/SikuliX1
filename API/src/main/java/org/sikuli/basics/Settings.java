@@ -67,7 +67,7 @@ public class Settings {
 
   public static void setImageCache(int max) {
     if (ImageCache > max) {
-      Image.clearCache(max);
+      Image.resetCache();
     }
     ImageCache = max;
   }

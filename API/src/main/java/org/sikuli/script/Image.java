@@ -5,11 +5,9 @@ package org.sikuli.script;
 
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
-import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.SXOpenCV;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
@@ -76,7 +74,6 @@ public class Image extends Element {
    * @param <SUFEBMP> see source variants
    * @param name      to identify non-file images
    */
-  //TODO is an image name really needed?
   public <SUFEBMP> Image(SUFEBMP what, String name) {
     sourceClass = what.getClass().getSimpleName();
     onScreen(false);
@@ -140,21 +137,29 @@ public class Image extends Element {
   }
 
   private void init(File file) {
+    String error = OK;
     if (null == file) {
       initTerminate("%s", "file is null");
     }
     URL imageURL = evalURL(file);
-    if (imageURL == null) {
-      initTerminate("init: %s file not found or path not valid", file);
+    if (imageURL != null) {
+      error = createContent(imageURL);
+    } else {
+      error = String.format("init: %s file not found or path not valid", file);
     }
-    createContent(imageURL);
+    if (!error.isEmpty()) {
+      //TODO image missing
+    }
   }
 
   private void init(URL url) {
-    createContent(url);
+    if (!createContent(url).isEmpty()) {
+      //TODO image missing
+    };
   }
 
   private void init(URI uri) {
+    String error = OK;
     URL resource = null;
     try {
       resource = uri.toURL();
@@ -165,17 +170,19 @@ public class Image extends Element {
       try {
         clazz = Class.forName(uri.getAuthority());
       } catch (ClassNotFoundException e) {
-        initTerminate("class not found: %s", uri);
+        error = String.format("class not found: %s", uri);
       }
       resource = clazz.getResource(uri.getPath());
       if (resource == null) {
-        initTerminate("not found: %s", uri);
+        error = String.format("not found: %s", uri);
       }
     }
     if (resource == null) {
-      initTerminate("uri not valid: %s", uri);
+      error = String.format("uri not valid: %s", uri);
     }
-    createContent(resource);
+    if (!error.isEmpty() || !createContent(resource).isEmpty()) {
+      //TODO image missing
+    };
   }
 
   private void init(Element element) {
@@ -215,9 +222,13 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="001 caching">
+  //<editor-fold desc="001 caching new">
   static boolean isCaching() {
     return Settings.getImageCache() > 0;
+  }
+
+  public static void resetCache() {
+    ImageCache.reset();
   }
 
   public static Map<URL, List<Object>> getCache() {
@@ -229,6 +240,8 @@ public class Image extends Element {
   }
 
   static class ImageCache {
+    private static double currentSize = 0;
+
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
     static Mat put(URL url, Mat mat) {
@@ -277,172 +290,6 @@ public class Image extends Element {
       }
       return String.format("ImageCache: urls(%d) size(%.0f KB) used(%.0f times)", count, size / 1000, used);
     }
-  }
-
-  private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
-  private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
-  private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
-  private static final int KB = 1024;
-  private static final int MB = KB * KB;
-  private int bsize = 0;
-
-  private static long currentMemory = 0;
-
-  private static synchronized long currentMemoryChange(long size, long max) {
-    long maxMemory = max;
-    if (max < 0) {
-      maxMemory = Settings.getImageCache() * MB;
-      currentMemory += size;
-    }
-    if (currentMemory > maxMemory) {
-      Image first;
-      while (images.size() > 0 && currentMemory > maxMemory) {
-        first = images.remove(0);
-        currentMemory -= first.bsize;
-      }
-      if (maxMemory == 0) {
-        currentMemory = 0;
-      } else {
-        currentMemory = Math.max(0, currentMemory);
-      }
-    }
-    if (size < 0) {
-      currentMemory = Math.max(0, currentMemory);
-    }
-    return currentMemory;
-  }
-
-  private static long currentMemoryUp(long size) {
-    return currentMemoryChange(size, -1);
-  }
-
-  private static long currentMemoryDown(long size) {
-    currentMemory -= size;
-    currentMemory = Math.max(0, currentMemory);
-    return currentMemoryChange(-size, -1);
-  }
-
-  private static long currentMemoryDownUp(int sizeOld, int sizeNew) {
-    currentMemoryDown(sizeOld);
-    return currentMemoryUp(sizeNew);
-  }
-
-  public static void clearCache(int maxSize) {
-    currentMemoryChange(0, maxSize);
-  }
-
-  public static void purge() {
-    purge(ImagePath.getBundle());
-  }
-
-  public static void purge(ImagePath.PathEntry path) {
-    if (path == null) {
-      return;
-    }
-    purge(path.pathURL);
-  }
-
-  private static synchronized void purge(URL pathURL) {
-    List<Image> imagePurgeList = new ArrayList<>();
-    List<String> imageNamePurgeList = new ArrayList<>();
-    URL imgURL;
-    Image img;
-    log(logLevel + 1, "purge: ImagePath: %s", pathURL.getPath());
-    Iterator<Map.Entry<URL, Image>> it = imageFiles.entrySet().iterator();
-    Map.Entry<URL, Image> entry;
-    while (it.hasNext()) {
-      entry = it.next();
-      imgURL = entry.getKey();
-      if (imgURL.toString().startsWith(pathURL.toString())) {
-        log(logLevel + 1, "purge: URL: %s", imgURL.toString());
-        img = entry.getValue();
-        imagePurgeList.add(img);
-        imageNamePurgeList.add(img.getName());
-        it.remove();
-      }
-    }
-    if (!imagePurgeList.isEmpty()) {
-      Iterator<Image> bit = images.iterator();
-      while (bit.hasNext()) {
-        img = bit.next();
-        if (imagePurgeList.contains(img)) {
-          bit.remove();
-          log(logLevel + 1, "purge: bimg: %s", img);
-          currentMemoryDown(img.bsize);
-        }
-      }
-    }
-    for (String name : imageNamePurgeList) {
-      imageNames.remove(name);
-    }
-  }
-
-  private static void unCache(URL imgURL) {
-    Image img = imageFiles.get(imgURL);
-    if (img == null) {
-      return;
-    }
-    currentMemoryDown(img.bsize);
-    images.remove(img);
-  }
-
-  public static void unCache(String fileName) {
-    unCache(FileManager.makeURL(new File(fileName).getAbsolutePath()));
-  }
-
-  /**
-   * clears all caches (should only be needed for debugging)
-   */
-  public static void reset() {
-    clearCache(0);
-    imageNames.clear();
-    imageFiles.clear();
-  }
-
-  public File remove() {
-    URL furl = null;
-    if (isFile()) {
-      furl = getURL();
-      unCache(furl);
-      return new File(furl.getPath());
-    }
-    return null;
-  }
-
-  public void delete() {
-    File fImg = remove();
-    if (null != fImg) FileManager.deleteFileOrFolder(fImg);
-  }
-
-  private String hasBackup = "";
-
-  public boolean backup() {
-    if (isValid()) {
-      File fOrg = new File(fileURL.getPath());
-      File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
-      if (FileManager.xcopy(fOrg, fBack)) {
-        hasBackup = fBack.getPath();
-        log(logLevel, "backup: %s created", fBack.getName());
-        return true;
-      }
-      log(-1, "backup: %s did not work", fBack.getName());
-    }
-    return false;
-  }
-
-  public boolean restore() {
-    if (!hasBackup.isEmpty()) {
-      File fBack = new File(hasBackup);
-      File fOrg = new File(hasBackup.replace("_BACKUP_", ""));
-      if (FileManager.xcopy(fBack, fOrg)) {
-        log(logLevel, "restore: %s restored", fOrg.getName());
-        FileManager.deleteFileOrFolder(fBack);
-        hasBackup = "";
-        return true;
-      }
-      log(-1, "restore: %s did not work", fBack.getName());
-    }
-    return false;
   }
   //</editor-fold>
 
@@ -585,47 +432,6 @@ public class Image extends Element {
   }
 
 //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="700 URL --- to be checked">
-
-  /**
-   * @return the evaluated url for this image (might be null)
-   */
-  public URL getURL() {
-    return url();
-  }
-
-  public Image setFileURL(URL fileURL) {
-    this.fileURL = fileURL;
-    return this;
-  }
-
-  private URL fileURL = null;
-
-  public boolean isFile() {
-    if (isValid()) {
-      URL furl = getURL();
-      if ("file".equals(furl.getProtocol())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean imageIsAbsolute = false;
-
-  /**
-   * @return true if image was given with absolute filepath
-   */
-  public boolean isAbsolute() {
-    return imageIsAbsolute;
-  }
-
-  public Image setIsAbsolute(boolean val) {
-    imageIsAbsolute = val;
-    return this;
-  }
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="710 isText --- to be checked">
   private boolean imageIsText = false;
@@ -774,27 +580,48 @@ public class Image extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="830 load/save --- to be checked">
-  private BufferedImage loadAgain() {
-    BufferedImage bImage = null;
-    if (fileURL != null) {
-      try {
-        bImage = ImageIO.read(fileURL);
-      } catch (Exception e) {
-        log(-1, "loadAgain: failed: %s", fileURL);
-        imageFiles.remove(fileURL);
-        return null;
-      }
-      imageFiles.put(fileURL, this);
-      imageNames.put(getName(), fileURL);
-      w = bImage.getWidth();
-      h = bImage.getHeight();
-      bsize = bImage.getData().getDataBuffer().getSize();
-      log(logLevel, "loaded again: %s (%s)", getName(), fileURL);
-    }
-    return bImage;
+  //<editor-fold defaultstate="collapsed" desc="810 URL --- to be checked">
+
+  /**
+   * @return the evaluated url for this image (might be null)
+   */
+  public URL getURL() {
+    return url();
   }
 
+  public Image setFileURL(URL fileURL) {
+    this.fileURL = fileURL;
+    return this;
+  }
+
+  private URL fileURL = null;
+
+  public boolean isFile() {
+    if (isValid()) {
+      URL furl = getURL();
+      if ("file".equals(furl.getProtocol())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean imageIsAbsolute = false;
+
+  /**
+   * @return true if image was given with absolute filepath
+   */
+  public boolean isAbsolute() {
+    return imageIsAbsolute;
+  }
+
+  public Image setIsAbsolute(boolean val) {
+    imageIsAbsolute = val;
+    return this;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="830 load/save --- to be checked">
   public static void setIDEshouldReload(Image img) {
     ideShouldReload = true;
     img.wasRecaptured = true;

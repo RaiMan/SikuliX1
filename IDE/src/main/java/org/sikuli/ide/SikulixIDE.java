@@ -1158,7 +1158,7 @@ public class SikulixIDE extends JFrame {
         String fname = codePane.saveAsSelect();
         if (fname != null) {
           setCurrentFileTabTitle(fname);
-          codePane.doReparse();
+          codePane.parseTextAgain();
           codePane.setDirty(false);
         } else {
           log(-1, "doSaveAs: %s not completed", orgName);
@@ -1653,7 +1653,7 @@ public class SikulixIDE extends JFrame {
       }
       boolean showThumbsState = chkShowThumbs.getState();
       getCurrentCodePane().showThumbs = showThumbsState;
-      getCurrentCodePane().doReparse();
+      getCurrentCodePane().parseTextAgain();
       return;
     }
   }
@@ -2056,7 +2056,7 @@ public class SikulixIDE extends JFrame {
                 new EditorRegionButton(codePane, x, y, w, h).toString()));
           }
         } else {
-          codePane.insertString(codePane.getRegionString(x, y, w, h));
+          codePane.insertRegionString(x, y, w, h);
         }
       }
     }
@@ -2142,7 +2142,7 @@ public class SikulixIDE extends JFrame {
       String line = "";
       EditorPane codePane = getCurrentCodePane();
       line = codePane.getLineTextAtCaret();
-      String item = codePane.parseLineText(line);
+      String item = codePane.parseLine(line);
       if (!item.isEmpty()) {
         String eval = "";
         item = item.replaceAll("\"", "\\\"");
@@ -2197,7 +2197,7 @@ public class SikulixIDE extends JFrame {
       log(3, "TRACE: ButtonShowIn triggered");
       EditorPane codePane = getCurrentCodePane();
       String line = codePane.getLineTextAtCaret();
-      item = codePane.parseLineText(line);
+      item = codePane.parseLine(line);
       item = item.replaceAll("\"", "\\\"");
       if (item.startsWith("Pattern")) {
         item = "m = null; r = #region#; "
@@ -2436,7 +2436,7 @@ public class SikulixIDE extends JFrame {
             if (Image.getIDEshouldReload()) {
               EditorPane pane = getCurrentCodePane();
               int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-              getCurrentCodePane().doReparse();
+              getCurrentCodePane().parseTextAgain();
               getCurrentCodePane().jumpTo(line);
             }
             SikulixIDE.showAgain();
@@ -2521,7 +2521,7 @@ public class SikulixIDE extends JFrame {
 
               EventQueue.invokeLater(() -> {
                 pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
-                pane.doReparse();
+                pane.parseTextAgain();
               });
             }
           } finally {

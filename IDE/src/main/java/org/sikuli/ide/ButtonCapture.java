@@ -100,7 +100,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     }
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
-    givenName = codePane.parseLineText("#" + line.trim());
+    givenName = codePane.parseLine("#" + line.trim());
     if (!givenName.isEmpty()) {
       Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
     }

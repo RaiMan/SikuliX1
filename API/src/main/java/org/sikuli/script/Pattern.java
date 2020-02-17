@@ -18,11 +18,20 @@ import java.util.List;
  * - masked image (ignore transparent pixels)
  * - resize in case of different environment (scaled views)
  * - wait after used in actions like click
- *
+ * <p>
  * NOTE: Pattern is a <b>candidate for deprecation</b> in the long run and will be substituted by Image
  */
 
 public class Pattern {
+
+  public static Pattern make(Image img, double sim, Location off, float rFactor, String mask) {
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
+    pattern.similar(sim);
+    pattern.targetOffset(off);
+    pattern.resize(rFactor);
+    pattern.setMaskFromString(mask);
+    return pattern;
+  }
 
   //<editor-fold desc="00 instance">
   private Pattern() {
@@ -50,7 +59,8 @@ public class Pattern {
    * - from an image {@link Element}
    * - from a BufferedImage or OpenCV Mat
    * </pre>
-   * @param what the source
+   *
+   * @param what      the source
    * @param <PSUFEBM> see source variants
    */
   public <PSUFEBM> Pattern(PSUFEBM what) {
@@ -102,35 +112,21 @@ public class Pattern {
     withMask = pattern.withMask;
   }
 
-  public Pattern mask(String sMask) {
-    return withMask(new Pattern(Image.create(sMask)));
-  }
-
-  public Pattern mask(Image iMask) {
-    return withMask(new Pattern(iMask));
-  }
-
-  public Pattern mask(Pattern pMask) {
-    return withMask(pMask);
-  }
-
-  public Pattern withMask(Pattern pMask) {
-    if (isValid()) {
-      Mat mask = SXOpenCV.newMat();
-      if (pMask.isValid()) {
-        if (pMask.hasMask()) {
-          mask = pMask.getMask();
-        } else {
-          mask = pMask.extractMask();
-        }
+  public <SUFEBMP> Pattern mask(SUFEBMP what) {
+    Image maskImage = new Image(what);
+    Mat mask;
+    if (isValid() && maskImage.isValid()) {
+      if (maskImage.hasMask()) {
+        mask = maskImage.cloneMask();
+      } else {
+        mask = extractMask(maskImage);
       }
       if (mask.empty()
           || image.getSize().getWidth() != mask.width()
           || image.getSize().getHeight() != mask.height()) {
-        Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
-        mask = SXOpenCV.newMat();
+        Debug.log(-1, "Pattern (%s): withMask: not valid", image, maskImage);
       } else {
-        Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
+        Debug.log(3, "Pattern: %s withMask: %s", image, maskImage);
       }
       if (!mask.empty()) {
         patternMask = mask;
@@ -138,22 +134,6 @@ public class Pattern {
       }
     }
     return this;
-  }
-
-  public Pattern withMask() {
-    return mask();
-  }
-
-  public Mat getMask() {
-    return patternMask;
-  }
-
-  public boolean hasMask() {
-    return !patternMask.empty();
-  }
-
-  public Pattern mask() {
-    return asMask();
   }
 
   public Pattern asMask() {
@@ -170,9 +150,26 @@ public class Pattern {
     return this;
   }
 
-  private Mat extractMask() {
-    List<Mat> mats = SXOpenCV.extractMask(SXOpenCV.makeMat(image.getBufferedImage(), false), false);
+  public Mat getMask() {
+    return patternMask;
+  }
+
+  public boolean hasMask() {
+    return !patternMask.empty();
+  }
+
+  private Mat extractMask(Image... args) {
+    Image image;
+    if (args.length == 0) {
+      image = this.image;
+    } else
+      image = args[0];
+    List<Mat> mats = SXOpenCV.extractMask(image.getContent(), false);
     return mats.get(1);
+  }
+
+  public void setMaskFromString(String mask) {
+    //TODO mask from string
   }
   //</editor-fold>
 
@@ -274,7 +271,7 @@ public class Pattern {
     return this;
   }
 
-  public Location  getTargetOffset() {
+  public Location getTargetOffset() {
     return offset;
   }
 

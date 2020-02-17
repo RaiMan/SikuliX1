@@ -25,7 +25,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   public static final int DEFAULT_NUM_MATCHES = 50;
   static final double DEFAULT_SIMILARITY = 0.7;
   private String _imgFilename, _imgFilenameSaved;
-  private Image _image;
+  private org.sikuli.script.Image _image;
   private EditorPane _pane;
   private double _similarity, _similaritySaved;
   private float _resizeFactor;
@@ -100,7 +100,6 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     if (!str.startsWith("Pattern")) {
       String possibleFileName = str.substring(1, str.length() - 1);
       Image img = new Image(possibleFileName);
-//      if (img.isValid() && img.isBundled()) {
       if (img.isValid()) {
         return new EditorPatternButton(parentPane, img);
       }
@@ -109,7 +108,6 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     EditorPatternButton btn = new EditorPatternButton(parentPane);
     String[] tokens = str.split("\\)\\s*\\.?");
     for (String tok : tokens) {
-      //System.out.println("token: " + tok);
       if (tok.startsWith("exact")) {
         btn.setExact(true);
         btn.setSimilarity(0.99);
@@ -117,7 +115,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         String filename = FileManager.slashify(tok.substring(
                 tok.indexOf("\"") + 1, tok.lastIndexOf("\"")), false);
         Image img = new Image(filename);
-        if (img.isValid() && img.isBundled()) {
+        if (img.isValid()) {
           btn.setImage(img);
         } else {
           return null;
@@ -421,7 +419,8 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
   @Override
   public String toString() {
-    String patternString = _pane.getPatternString(_imgFilename, _similarity, _offset, _image, _resizeFactor, _mask);
+    if (_imgFilename == null && _image == null) return "";
+    String patternString = _pane.getPatternString(_image, _similarity, _offset, _resizeFactor, _mask);
     return patternString;
   }
 
