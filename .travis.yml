@@ -14,7 +14,7 @@ env:
 before_install:
 - openssl aes-256-cbc -K $encrypted_20efacf1f04e_key -iv $encrypted_20efacf1f04e_iv
   -in codesigning/codesigning.asc.enc -out codesigning/codesigning.asc -d
-install: mvn install -P complete-jar,build-source -B
+install: mvn install -P complete-jar,build-source -DskipTests=true -B
 before_script:
 - gpg --fast-import codesigning/codesigning.asc
 script:
