@@ -830,7 +830,6 @@ public abstract class Element {
    * Set the value of similarity
    *
    * @param similarity new value of similarity
-   * @return the image
    */
   public void similarity(double similarity) {
     this.similarity = similarity;
@@ -852,7 +851,6 @@ public abstract class Element {
    * Set the value of offset
    *
    * @param offset new value of offset
-   * @return the image
    */
   public void offset(Location offset) {
     this.offsetX = offset.x;
@@ -874,7 +872,6 @@ public abstract class Element {
    * Set the value of waitAfter
    *
    * @param waitAfter new value of waitAfter
-   * @return the image
    */
   public void waitAfter(int waitAfter) {
     this.waitAfter = waitAfter;
