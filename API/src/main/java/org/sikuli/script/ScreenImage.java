@@ -150,6 +150,7 @@ public class ScreenImage extends Image {
       name = "_" + name;
     }
     String fileName = super.save(name);
+    //TODO check success (image missing?)
     Image.reload(fileName);
     return fileName;
   }
