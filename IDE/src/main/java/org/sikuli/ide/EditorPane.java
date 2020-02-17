@@ -932,13 +932,12 @@ public class EditorPane extends JTextPane {
       log(-1, "appendString: Problem while trying to append\n%s", e.getMessage());
     }
   }
-
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
   public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
     if (fileOverWritten) {
-      Image.unCache(newName);
+      //TODO ImageCache action?
     }
 
     String text = getText();

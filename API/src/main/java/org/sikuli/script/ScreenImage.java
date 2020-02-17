@@ -109,6 +109,7 @@ public class ScreenImage extends Image {
   }
   //</editor-fold>
 
+  //TODO getSub
   public ScreenImage getSub(Rectangle sub) {
     if (!_roi.contains(sub)) {
       return this;
@@ -117,7 +118,7 @@ public class ScreenImage extends Image {
     return new ScreenImage(sub, img);
   }
 
-  //<editor-fold desc="10 save content">
+  //<editor-fold desc="10 save content --- to be revised">
 
   /**
    * stores the image as PNG file in the given path
@@ -202,9 +203,6 @@ public class ScreenImage extends Image {
 //  public String save(String path, String name) {
 //    return FileManager.saveTimedImage(_img, path, name);
 //  }
-  //</editor-fold>
-
-  //<editor-fold desc="11 save content TODO">
 
   /**
    * creates the PNG tempfile only when needed.
