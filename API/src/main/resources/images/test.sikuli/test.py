@@ -1,6 +1,6 @@
 img = "img.png"
 
-img = r"\Users\rmhde\IdeaProjects\SikuliX1\API\src\main\resources\images\test.sikuli\img.png"
+img = r"C:\Users\rmhde\IdeaProjects\SikuliX1\API\src\main\resources\images\_backUp\test"
 
 simg = SCREEN.cmdCapture(SCREEN)
 print "capture:", simg

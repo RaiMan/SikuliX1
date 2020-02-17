@@ -11,8 +11,9 @@ import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
-import org.sikuli.script.Image;
-import org.sikuli.script.*;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.SX;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
@@ -29,7 +30,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.MouseInputAdapter;
-import javax.swing.text.Element;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -349,7 +349,8 @@ public class EditorPane extends JTextPane {
       if (!isBundle()) {
         checkSource();
       }
-      doParse();
+      //TODO parse content
+      parseText();
       restoreCaretPosition();
       setDirty(false);
     }
@@ -911,6 +912,14 @@ public class EditorPane extends JTextPane {
     setCaretPosition(end);
   }
 
+  public void insertStringRegion(int x, int y, int w, int h) {
+    insertString(String.format("Region(%d,%d,%d,%d)", x, y, w, h));
+  }
+
+  private String insertStringPattern(org.sikuli.script.Pattern pattern) {
+    return codeGenerator.pattern(pattern);
+  }
+
   private void insertString(int pos, String str) {
     Document doc = getDocument();
     try {
@@ -920,7 +929,7 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  //TODO not used
+  //TODO not used: appendString
   public void appendString(String str) {
     Document doc = getDocument();
     try {
@@ -935,50 +944,32 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
-  public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
-    if (fileOverWritten) {
-      //TODO ImageCache action?
-    }
-
-    String text = getText();
-    Pattern oldPattern = Pattern.compile("[\"']" + Pattern.quote(oldName) + "[\"']");
-    text = oldPattern.matcher(text).replaceAll(newName);
-    setText(text);
-    doReparse();
-  }
-
-  public void doReparse() {
-    saveCaretPosition();
-    readContent(getText());
-    updateDocumentListeners("reparse");
-    doParse();
-    restoreCaretPosition();
-  }
-
-  public void doParse() {
+  public void parseText() {
     Document doc = getDocument();
     Element root = doc.getDefaultRootElement();
     parse(root);
   }
 
-  private void parse(Element node) {
-    if (!showThumbs) {
-      // do not show any thumbnails
-      return;
-    }
-    int count = node.getElementCount();
-    for (int i = 0; i < count; i++) {
-      Element elm = node.getElement(i);
-      log(lvl + 1, elm.toString());
-      if (elm.isLeaf()) {
-        parseRange(elm.getStartOffset(), elm.getEndOffset());
-      } else {
-        parse(elm);
-      }
-    }
+  public void parseTextAgain() {
+    saveCaretPosition();
+    readContent(getText());
+    updateDocumentListeners("reparse");
+    parseText();
+    restoreCaretPosition();
   }
 
-  public String parseLineText(String line) {
+  public void parseTextAgainOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
+    if (fileOverWritten) {
+      //TODO ImageCache action?
+    }
+    String text = getText();
+    Pattern oldPattern = Pattern.compile("[\"']" + Pattern.quote(oldName) + "[\"']");
+    text = oldPattern.matcher(text).replaceAll(newName);
+    setText(text);
+    parseTextAgain();
+  }
+
+  public String parseLine(String line) {
     if (line.startsWith("#")) {
       Pattern aName = Pattern.compile("^#[A-Za-z0-9_]+ =$");
       Matcher mN = aName.matcher(line);
@@ -1010,6 +1001,23 @@ public class EditorPane extends JTextPane {
       return line.substring(mI.start(), mI.end());
     }
     return "";
+  }
+
+  private void parse(Element node) {
+    if (!showThumbs) {
+      // do not show any thumbnails
+      return;
+    }
+    int count = node.getElementCount();
+    for (int i = 0; i < count; i++) {
+      Element elm = node.getElement(i);
+      log(lvl + 1, elm.toString());
+      if (elm.isLeaf()) {
+        parseRange(elm.getStartOffset(), elm.getEndOffset());
+      } else {
+        parse(elm);
+      }
+    }
   }
 
   private int parseRange(int start, int end) {
@@ -1080,24 +1088,6 @@ public class EditorPane extends JTextPane {
       return true;
     }
     return false;
-  }
-
-  public String getRegionString(int x, int y, int w, int h) {
-    return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
-  }
-
-  public String getPatternString(String ifn, double sim, Location off, Image img, float resizeFactor, String mask) {
-//TODO ifn really needed??
-    if (ifn == null) {
-      return "\"" + EditorPatternLabel.CAPTURE + "\"";
-    }
-    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
-//    pattern.setFilename(ifn);
-    pattern.similar(sim);
-    pattern.targetOffset(off);
-    pattern.resize(resizeFactor);
-
-    return codeGenerator.pattern(pattern, mask);
   }
 
   public boolean showThumbs;
