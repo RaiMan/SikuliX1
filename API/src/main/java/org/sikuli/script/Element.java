@@ -300,7 +300,7 @@ public abstract class Element {
   }
 
   public BufferedImage getBufferedImage() {
-    return SXOpenCV.makeBufferedImage(getImage().getContent());
+    return SXOpenCV.makeBufferedImage(getImage().getContent(), ".png");
   }
 
   /**
@@ -539,7 +539,6 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="005 Fields name, lastMatch, ...">
-
   /**
    * INTERNAL: to identify an Element
    *
@@ -1367,13 +1366,6 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    Match match = null;
-    if (isValid()) {
-      Image image = new Image(target);
-      if (image.isValid()) {
-        match = doFind(image);
-      }
-    }
     return doFind((Object) target);
   }
 
@@ -1384,21 +1376,40 @@ public abstract class Element {
   private static final boolean FINDALL = true;
 
   private Match doFind(Object target, boolean findAll) {
-    if (isValid()) {
+    Debug timer = Debug.startTimer("Element::dofind");
+    if (!isValid()) {
       return null;
     }
+    Mat where = getImage().getContent();
+    timer.lap("where: content");
     Match match = null;
     Image image = new Image(target);
     if (!image.isValid()) {
       return null;
     }
-    Mat where = getImage().getContent();
+    Mat mask = new Mat();
     Mat what = image.getContent();
+//TODO ********************** transparency
+    if (what.channels() == 4) {
+      List<Mat> mats = SXOpenCV.extractMask(what, true);
+      what = mats.get(0);
+      mask = mats.get(1);
+    }
+    if (image.hasMask()) {
+      List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
+      mask = mats.get(1);
+    }
+    timer.lap("what: content");
     double wantedScore = image.similarity();
     Mat result = new Mat();
-    Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
+    if (mask.empty()) {
+      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
+    } else {
+      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCORR_NORMED, mask);
+    }
     Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
     double maxVal = minMax.maxVal;
+    timer.lap("matchTemplate");
     if (maxVal > wantedScore) {
       match = new Match();
       match.setX(image.x + (int) minMax.maxLoc.x);
@@ -1413,6 +1424,7 @@ public abstract class Element {
         match.setResult(minMax);
       }
     }
+    timer.end();
     return match;
   }
 
@@ -1451,6 +1463,9 @@ public abstract class Element {
             break;
           }
           match = doFind(image);
+          if (match != null) {
+            break;
+          }
           waitAfterScan(before);
         }
       }

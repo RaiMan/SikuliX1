@@ -38,6 +38,7 @@ public class Debug {
   private static boolean loggerRedirectSupported = true;
   public static boolean shouldLogJython = false;
   private long _beginTime = 0;
+  private long _lapTime = 0;
   private String _message;
   private String _title = null;
   private static PrintStream printout = null;
@@ -1015,6 +1016,7 @@ public class Debug {
       profile("TStart: " + _message, args);
     }
     _beginTime = (new Date()).getTime();
+    _lapTime = _beginTime;
   }
 
   private long endTiming(String message, boolean isLap, Object... args) {
@@ -1022,16 +1024,20 @@ public class Debug {
       profile("TError: timer not started (%s)", message);
       return -1;
     }
-    long t = (new Date()).getTime();
-    long dt = t - _beginTime;
-    if (!isLap) {
-      _beginTime = 0;
+    long now = (new Date()).getTime();
+    long delta;
+    if (isLap) {
+      delta = now - _lapTime;
+      _lapTime = now;
+    } else {
+      delta = now - _beginTime;
+      _beginTime = now;
     }
     if (!"".equals(message)) {
-      profile(String.format((isLap ? "TLap:" : "TEnd") +
-          " (%.3f sec): ", (float) dt / 1000) + message, args);
+      profile(String.format((isLap ? "TLap:" : "TEnd:") +
+          " (%.3f sec): ", (float) delta / 1000) + message, args);
     }
-    return dt;
+    return delta;
   }
 
   private static enum CallbackType {

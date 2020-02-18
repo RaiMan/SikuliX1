@@ -61,6 +61,7 @@ public class SXOpenCV {
   }
 
   public static Mat makeMat(BufferedImage bImg) {
+
     return makeMat(bImg, true);
   }
 
@@ -219,7 +220,7 @@ public class SXOpenCV {
     } else {
       targetBGR = target;
     }
-    if (!onlyChannel4 && (mask.empty() || nChannels == 3)) {
+    if (!onlyChannel4 && mask.empty()) {
       Mat mGray = new Mat();
       Imgproc.cvtColor(targetBGR, mGray, Imgproc.COLOR_BGR2GRAY);
       int allPixel = (int) mGray.size().area();

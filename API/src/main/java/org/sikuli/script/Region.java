@@ -1683,6 +1683,13 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation finally failed
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
+    if (Settings.NewFind) {
+      Debug timer = Debug.startTimer("Region::startingWait");
+      Image imgRegion = getImage();
+      imgRegion.onScreen(true);
+      timer.end();
+      return imgRegion.wait(target, timeout);
+    }
     lastMatch = null;
     String shouldAbort = "";
     RepeatableFind rf = new RepeatableFind(target, null);
@@ -1760,12 +1767,14 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    Image img = Element.getImage(target);
     if (Settings.NewFind) {
+      Debug timer = Debug.startTimer("Region::startingFind");
       Image imgRegion = getImage();
       imgRegion.onScreen(true);
+      timer.end();
       return imgRegion.find(target);
     }
+    Image img = Element.getImage(target);
     lastMatch = null;
     Boolean response = true;
     if (!img.isText() && !img.isValid()) {

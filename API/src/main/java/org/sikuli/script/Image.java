@@ -191,6 +191,7 @@ public class Image extends Element {
     }
     copyElementRectangle(element);
     copyElementContent(element);
+    copyPatternAttributes(element);
   }
 
   private void init(Mat mat) {
@@ -335,10 +336,12 @@ public class Image extends Element {
       similarity = ((Pattern) source).getSimilar();
       offset(((Pattern) source).getTargetOffset());
       waitAfter = ((Pattern) source).waitAfter();
+      maskImage = ((Pattern) source).getMask();
     } else if (source instanceof Image) {
       similarity = ((Image) source).similarity();
       offset(((Image) source).offset());
       waitAfter = ((Image) source).waitAfter();
+      maskImage = ((Image) source).getMask();
     }
   }
 
