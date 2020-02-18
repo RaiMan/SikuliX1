@@ -38,7 +38,7 @@ public class Finder implements Iterator<Match> {
   private FindResult2 _results = null;
   private Region where = null;
 
-  protected Finder() {
+  private Finder() {
   }
 
   /**
@@ -167,7 +167,7 @@ public class Finder implements Iterator<Match> {
     if (aPtn.isValid()) {
       _pattern = aPtn;
       if (_pattern.hasMask()) {
-        _findInput.setMask(_pattern.getMask());
+        _findInput.setMask(_pattern.getMask().getContent());
       }
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
@@ -266,7 +266,7 @@ public class Finder implements Iterator<Match> {
       _findInput.setIsPattern();
       _findInput.setFindAll();
       if (_pattern.hasMask()) {
-        _findInput.setMask(_pattern.getMask());
+        _findInput.setMask(_pattern.getMask().getContent());
       }
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
@@ -387,6 +387,10 @@ public class Finder implements Iterator<Match> {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
+  public static Iterator<Match> createIterator(Match doFind) {
+    return new Finder();
+  }
+
   public List<Match> getList() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {
@@ -1056,12 +1060,6 @@ public class Finder implements Iterator<Match> {
       return !hasMask() && !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
     }
 
-    private double scoreMaxDiff = 0.05;
-
-    protected double getScoreMaxDiff() {
-      return scoreMaxDiff;
-    }
-
     protected double getScore() {
       return similarity;
     }
@@ -1070,53 +1068,38 @@ public class Finder implements Iterator<Match> {
       findAll = true;
     }
 
-    protected boolean plainColor = false;
-    protected boolean blackColor = false;
-    protected boolean whiteColor = false;
-    protected boolean grayColor = false;
-
-    public boolean isPlainColor() {
-      return isValid() && plainColor;
-    }
-
-    public boolean isBlack() {
-      return isValid() && blackColor;
-    }
-
-    public boolean isGray() {
-      return isValid() && grayColor;
-    }
-
-    public boolean isWhite() {
-      return isValid() && blackColor;
-    }
-
-    public double getResizeFactor() {
+    private double getResizeFactor() {
       return isValid() ? resizeFactor : 1;
     }
 
-    protected double resizeFactor;
+    private double resizeFactor;
 
     private final int resizeMinDownSample = 12;
-    private int[] meanColor = null;
-    private double minThreshhold = 1.0E-5;
-
-    public Color getMeanColor() {
-      return new Color(meanColor[2], meanColor[1], meanColor[0]);
-    }
-
-    public boolean isMeanColorEqual(Color otherMeanColor) {
-      Color col = getMeanColor();
-      int r = (col.getRed() - otherMeanColor.getRed()) * (col.getRed() - otherMeanColor.getRed());
-      int g = (col.getGreen() - otherMeanColor.getGreen()) * (col.getGreen() - otherMeanColor.getGreen());
-      int b = (col.getBlue() - otherMeanColor.getBlue()) * (col.getBlue() - otherMeanColor.getBlue());
-      return Math.sqrt(r + g + b) < minThreshhold;
-    }
 
     double targetStdDev = -1;
     double targetMean = -1;
 
-    public void setAttributes() {
+    private int[] meanColor = null;
+    private double minThreshhold = 1.0E-5;
+
+    private boolean plainColor = false;
+    private boolean blackColor = false;
+    private boolean whiteColor = false;
+    private boolean grayColor = false;
+    private boolean isPlainColor() {
+      return isValid() && plainColor;
+    }
+    private boolean isBlack() {
+      return isValid() && blackColor;
+    }
+    private boolean isGray() {
+      return isValid() && grayColor;
+    }
+    private boolean isWhite() {
+      return isValid() && whiteColor;
+    }
+
+    private void setAttributes() {
       if (targetTypeText) {
         return;
       }
@@ -1168,6 +1151,18 @@ public class Finder implements Iterator<Match> {
       if (meanColor.length > 1) {
         whiteColor = isMeanColorEqual(Color.WHITE);
       }
+    }
+
+    private Color getMeanColor() {
+      return new Color(meanColor[2], meanColor[1], meanColor[0]);
+    }
+
+    private boolean isMeanColorEqual(Color otherMeanColor) {
+      Color col = getMeanColor();
+      int r = (col.getRed() - otherMeanColor.getRed()) * (col.getRed() - otherMeanColor.getRed());
+      int g = (col.getGreen() - otherMeanColor.getGreen()) * (col.getGreen() - otherMeanColor.getGreen());
+      int b = (col.getBlue() - otherMeanColor.getBlue()) * (col.getBlue() - otherMeanColor.getBlue());
+      return Math.sqrt(r + g + b) < minThreshhold;
     }
 
     public String dump() {

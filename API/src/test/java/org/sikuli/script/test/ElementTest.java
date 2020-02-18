@@ -102,6 +102,8 @@ public class ElementTest {
   }
 
   String testName = "test";
+  String testNameTrans = "test";
+  String testNameMask = "test";
 
   @Test
   public void test020_ImageFilename() {
@@ -179,7 +181,23 @@ public class ElementTest {
   }
 
   @Test
-  public void test201_RegionFind() {
+  public void test210_RegionFindTransOld() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Region reg = new Screen();
+    Match match = null;
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+///TODO check highlight
+    if (null != match) {
+//      match.highlight(2);
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+  }
+
+  @Test
+  public void test250_RegionFind() {
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewFind = true;
     Region reg = new Screen();
@@ -196,7 +214,7 @@ public class ElementTest {
   }
 
   @Test
-  public void test202_RegionWait() {
+  public void test252_RegionWait() {
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewFind = true;
     Region reg = new Screen();

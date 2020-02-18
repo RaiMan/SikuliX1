@@ -227,6 +227,10 @@ public abstract class Element {
     return new Dimension(w, h);
   }
 
+  public boolean sameSize(Element element) {
+    return getSize().equals(element.getSize());
+  }
+
   /**
    * @return the AWT Rectangle of the region
    */
@@ -350,6 +354,16 @@ public abstract class Element {
   }
 
   private static final String FAKE_IMAGE = "Internal-Fake-Image";
+
+  public boolean isMaskImage() {
+    return getName().equals(MASK_IMAGE);
+  }
+
+  public static String asMaskImage() {
+    return MASK_IMAGE;
+  }
+
+  private static final String MASK_IMAGE = "Internal-Mask-Image";
   static final String OK = "";
 
   protected static String reload(String fpImage) {
@@ -401,6 +415,10 @@ public abstract class Element {
     MatOfByte matOfByte = new MatOfByte();
     matOfByte.fromArray(bytes);
     Mat content = Imgcodecs.imdecode(matOfByte, -1);
+    if (isMaskImage()) {
+      List<Mat> mats = SXOpenCV.extractMask(getContent(), false);
+      content = mats.get(1);
+    }
     if (!isFakeImage()) {
       setSize(content);
     }
@@ -788,94 +806,6 @@ public abstract class Element {
   }
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
-  //</editor-fold>
-
-  //<editor-fold desc="009 Fields Pattern aspects">
-  private <PE> void copyPatternAttributes(PE source) {
-    if (source instanceof Pattern) {
-      similarity = ((Pattern) source).getSimilar();
-      offset(((Pattern) source).getTargetOffset());
-      waitAfter = ((Pattern) source).waitAfter();
-    } else if (source instanceof Image) {
-      similarity = ((Image) source).similarity();
-      offset(((Image) source).offset());
-      waitAfter = ((Image) source).waitAfter();
-    }
-  }
-
-  private boolean withMask = false;
-  private Mat patternMask = SXOpenCV.newMat();
-  private boolean isMask = false;
-
-  public boolean hasMask() {
-    return !patternMask.empty();
-  };
-
-  public Mat cloneMask() {
-    return patternMask.clone();
-  };
-
-  private double similarity = Settings.MinSimilarity;
-
-  /**
-   * Get the value of similarity
-   *
-   * @return the value of similarity
-   */
-  public double similarity() {
-    return similarity;
-  }
-
-  /**
-   * Set the value of similarity
-   *
-   * @param similarity new value of similarity
-   */
-  public void similarity(double similarity) {
-    this.similarity = similarity;
-  }
-
-  private int offsetX = 0;
-  private int offsetY = 0;
-
-  /**
-   * Get the value of offset
-   *
-   * @return the value of offset
-   */
-  public Location offset() {
-    return new Location(offsetX, offsetY);
-  }
-
-  /**
-   * Set the value of offset
-   *
-   * @param offset new value of offset
-   */
-  public void offset(Location offset) {
-    this.offsetX = offset.x;
-    this.offsetY = offset.y;
-  }
-
-  private int waitAfter;
-
-  /**
-   * Get the value of waitAfter
-   *
-   * @return the value of waitAfter
-   */
-  public int waitAfter() {
-    return waitAfter;
-  }
-
-  /**
-   * Set the value of waitAfter
-   *
-   * @param waitAfter new value of waitAfter
-   */
-  public void waitAfter(int waitAfter) {
-    this.waitAfter = waitAfter;
-  }
   //</editor-fold>
 
   //<editor-fold desc="010 global features">
@@ -1441,18 +1371,31 @@ public abstract class Element {
     if (isValid()) {
       Image image = new Image(target);
       if (image.isValid()) {
-        match = doFind(this, image);
+        match = doFind(image);
       }
     }
-    return match;
+    return doFind((Object) target);
   }
 
-  private Match doFind(Element element, Image image) {
-    Mat where = element.getImage().getContent();
+  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+    return Finder.createIterator(doFind(target, FINDALL));
+  }
+
+  private static final boolean FINDALL = true;
+
+  private Match doFind(Object target, boolean findAll) {
+    if (isValid()) {
+      return null;
+    }
+    Match match = null;
+    Image image = new Image(target);
+    if (!image.isValid()) {
+      return null;
+    }
+    Mat where = getImage().getContent();
     Mat what = image.getContent();
     double wantedScore = image.similarity();
     Mat result = new Mat();
-    Match match = null;
     Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
     Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
     double maxVal = minMax.maxVal;
@@ -1466,8 +1409,15 @@ public abstract class Element {
       match.offset(image.offset());
       match.setImage(image);
       match.onScreen(isOnScreen());
+      if (findAll) {
+        match.setResult(minMax);
+      }
     }
     return match;
+  }
+
+  private Match doFind(Object target) {
+    return doFind(target, false);
   }
 
   /**
@@ -1500,7 +1450,7 @@ public abstract class Element {
           if (before > waitUntil) {
             break;
           }
-          match = doFind(this, image);
+          match = doFind(image);
           waitAfterScan(before);
         }
       }

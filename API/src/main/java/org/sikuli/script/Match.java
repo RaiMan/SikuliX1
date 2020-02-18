@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import org.opencv.core.Core;
 import org.sikuli.script.support.IScreen;
 
 import java.awt.*;
@@ -324,6 +325,11 @@ public class Match extends Region implements Comparable<Match> {
             ((float) Math.round(score() * 10000))/100);
   }
 
+  private Core.MinMaxLocResult result = null;
+
+  protected void setResult(Core.MinMaxLocResult result) {
+    this.result = result;
+  }
 
   /**
    * INTERNAL USE

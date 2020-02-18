@@ -329,6 +329,100 @@ public class Image extends Element {
   }
   //</editor-fold>
 
+  //<editor-fold desc="004 Fields Pattern aspects">
+  private <PE> void copyPatternAttributes(PE source) {
+    if (source instanceof Pattern) {
+      similarity = ((Pattern) source).getSimilar();
+      offset(((Pattern) source).getTargetOffset());
+      waitAfter = ((Pattern) source).waitAfter();
+    } else if (source instanceof Image) {
+      similarity = ((Image) source).similarity();
+      offset(((Image) source).offset());
+      waitAfter = ((Image) source).waitAfter();
+    }
+  }
+
+  Image maskImage = null;
+
+  public <SUFEBMP> Image mask(SUFEBMP what) {
+    maskImage = new Image(what, Element.asMaskImage());
+    return this;
+  }
+
+  boolean hasMask() {
+    return null != maskImage;
+  }
+
+  Image getMask() {
+    return maskImage;
+  }
+
+  private double similarity = Settings.MinSimilarity;
+
+  /**
+   * Get the value of similarity
+   *
+   * @return the value of similarity
+   */
+  public double similarity() {
+    return similarity;
+  }
+
+  /**
+   * Set the value of similarity
+   *
+   * @param similarity new value of similarity
+   */
+  public Image similarity(double similarity) {
+    this.similarity = similarity;
+    return this;
+  }
+
+  private int offsetX = 0;
+  private int offsetY = 0;
+
+  /**
+   * Get the value of offset
+   *
+   * @return the value of offset
+   */
+  public Location offset() {
+    return new Location(offsetX, offsetY);
+  }
+
+  /**
+   * Set the value of offset
+   *
+   * @param offset new value of offset
+   */
+  public Image offset(Location offset) {
+    this.offsetX = offset.x;
+    this.offsetY = offset.y;
+    return this;
+  }
+
+  private int waitAfter;
+
+  /**
+   * Get the value of waitAfter
+   *
+   * @return the value of waitAfter
+   */
+  public int waitAfter() {
+    return waitAfter;
+  }
+
+  /**
+   * Set the value of waitAfter
+   *
+   * @param waitAfter new value of waitAfter
+   */
+  public Image waitAfter(int waitAfter) {
+    this.waitAfter = waitAfter;
+    return this;
+  }
+  //</editor-fold>
+
   //<editor-fold defaultstate="collapsed" desc="005 bufferedImage --- to be checked">
 
   //TODO bufferedImage --- to be checked
