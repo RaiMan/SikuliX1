@@ -437,7 +437,7 @@ public class Finder implements Iterator<Match> {
       if (_pattern != null) {
         match.setTargetOffset(_pattern.getTargetOffset());
       }
-      match.setOnScreen(screenFinder);
+      match.onScreen(screenFinder);
       match.setImage(_image);
     }
     return match;

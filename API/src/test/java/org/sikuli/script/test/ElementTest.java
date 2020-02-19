@@ -261,7 +261,6 @@ public class ElementTest {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {
     }
-///TODO check highlight
     if (null != match) {
       if (showImage) {
         match.highlight(2);

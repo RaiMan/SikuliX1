@@ -5,15 +5,17 @@
 package org.sikuli.script.support;
 
 import org.opencv.core.*;
-import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Element;
 import org.sikuli.script.Image;
+import org.sikuli.script.Match;
+import org.sikuli.script.SikuliXception;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
@@ -39,7 +41,10 @@ public class SXOpenCV {
     return new Mat();
   }
 
-  public static BufferedImage makeBufferedImage(Mat content, String type) {
+  private static BufferedImage makeBufferedImage(Mat content, String type) {
+    if (content.empty()) {
+      return null;
+    }
     BufferedImage bImg = null;
     MatOfByte bytemat = new MatOfByte();
     Imgcodecs.imencode(type, content, bytemat);
@@ -54,10 +59,7 @@ public class SXOpenCV {
   }
 
   public static BufferedImage makeBufferedImage(Mat content) {
-    if (content.empty()) {
-      return null;
-    }
-    return (BufferedImage) HighGui.toBufferedImage(content);
+    return makeBufferedImage(content, ".png");
   }
 
   public static Mat makeMat(BufferedImage bImg) {
@@ -132,22 +134,22 @@ public class SXOpenCV {
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else {
-      Debug.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
+      //TYPE_CUSTOM 0
+      //*OK* TYPE_INT_RGB 1
+      //TYPE_INT_ARGB 2
+      //TYPE_INT_ARGB_PRE 3
+      //TYPE_INT_BGR 4
+      //*OK* TYPE_3BYTE_BGR 5
+      //*OK* TYPE_4BYTE_ABGR 6
+      //TYPE_4BYTE_ABGR_PRE 7
+      //TYPE_USHORT_565_RGB 8
+      //TYPE_USHORT_555_RGB 9
+      //*OK* TYPE_BYTE_GRAY 10
+      //TYPE_USHORT_GRAY 11
+      //*OK* TYPE_BYTE_BINARY 12
+      //TYPE_BYTE_INDEXED 13
+      throw new SikuliXception("SXOpenCV::makeMat: BufferedImage: type not supported: " + bImg.getType());
     }
-    return new Mat();
-  }
-
-  public static boolean isOpaque(BufferedImage bImg) {
-    if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-      List<Mat> mats = getMatList(bImg);
-      Mat transMat = mats.get(0);
-      int allPixel = (int) transMat.size().area();
-      int nonZeroPixel = Core.countNonZero(transMat);
-      if (nonZeroPixel != allPixel) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private static List<Mat> getMatList(BufferedImage bImg) {
@@ -304,5 +306,24 @@ public class SXOpenCV {
     Imgproc.cvtColor(mat2, otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return (double) Core.countNonZero(mDiffAbs) / (thisGray.cols() * thisGray.rows());
+  }
+
+  public static Match doFindMatch(Mat where, Mat what, Mat mask, double similarity, boolean findAll) {
+    Mat result = new Mat();
+    if (mask.empty()) {
+      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
+    } else {
+      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCORR_NORMED, mask);
+    }
+    Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
+    double maxVal = minMax.maxVal;
+    if (maxVal > similarity) {
+      Point point = new Point((int) minMax.maxLoc.x, (int) minMax.maxLoc.y);
+      if (!findAll) {
+        minMax = null;
+      }
+      return new Match(point, maxVal, minMax);
+    }
+    return null;
   }
 }

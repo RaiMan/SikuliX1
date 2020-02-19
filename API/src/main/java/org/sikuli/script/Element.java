@@ -6,11 +6,9 @@ package org.sikuli.script;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -300,7 +298,7 @@ public abstract class Element {
   }
 
   public BufferedImage getBufferedImage() {
-    return SXOpenCV.makeBufferedImage(getImage().getContent(), ".png");
+    return SXOpenCV.makeBufferedImage(getImage().getContent());
   }
 
   /**
@@ -539,6 +537,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="005 Fields name, lastMatch, ...">
+
   /**
    * INTERNAL: to identify an Element
    *
@@ -661,12 +660,19 @@ public abstract class Element {
     scanWait = 1000 / waitScanRate;
   }
 
-  private void waitAfterScan(long before) {
-    double time = scanWait - new Date().getTime() + before;
-    if (time < 0.01) {
+  private void waitAfterScan(long before, long until) {
+    long now = new Date().getTime();
+    long time = (long) (scanWait - now + before);
+    if (time < 10) {
       return;
     }
-    wait(time);
+    if ((now + time) > until) {
+      time = until - now;
+    }
+    try {
+      Thread.sleep(time);
+    } catch (InterruptedException e) {
+    }
   }
 
   private float waitScanRateDefault = Settings.WaitScanRate;
@@ -1370,66 +1376,7 @@ public abstract class Element {
   }
 
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    return Finder.createIterator(doFind(target, FINDALL));
-  }
-
-  private static final boolean FINDALL = true;
-
-  private Match doFind(Object target, boolean findAll) {
-    Debug timer = Debug.startTimer("Element::dofind");
-    if (!isValid()) {
-      return null;
-    }
-    Mat where = getImage().getContent();
-    timer.lap("where: content");
-    Match match = null;
-    Image image = new Image(target);
-    if (!image.isValid()) {
-      return null;
-    }
-    Mat mask = new Mat();
-    Mat what = image.getContent();
-//TODO ********************** transparency
-    if (what.channels() == 4) {
-      List<Mat> mats = SXOpenCV.extractMask(what, true);
-      what = mats.get(0);
-      mask = mats.get(1);
-    }
-    if (image.hasMask()) {
-      List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
-      mask = mats.get(1);
-    }
-    timer.lap("what: content");
-    double wantedScore = image.similarity();
-    Mat result = new Mat();
-    if (mask.empty()) {
-      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
-    } else {
-      Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCORR_NORMED, mask);
-    }
-    Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
-    double maxVal = minMax.maxVal;
-    timer.lap("matchTemplate");
-    if (maxVal > wantedScore) {
-      match = new Match();
-      match.setX(image.x + (int) minMax.maxLoc.x);
-      match.setY(image.y + (int) minMax.maxLoc.y);
-      match.setW(image.w);
-      match.setH(image.h);
-      match.score(maxVal);
-      match.offset(image.offset());
-      match.setImage(image);
-      match.onScreen(isOnScreen());
-      if (findAll) {
-        match.setResult(minMax);
-      }
-    }
-    timer.end();
-    return match;
-  }
-
-  private Match doFind(Object target) {
-    return doFind(target, false);
+    return Finder.createIterator(doFind(target, FINDALL, 0));
   }
 
   /**
@@ -1450,29 +1397,56 @@ public abstract class Element {
 
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
     if (!isOnScreen() || timeout < 0.01) {
-      return find(target);
+      return doFind(target);
     }
-    Match match = null;
-    if (isValid()) {
-      Image image = new Image(target);
-      if (image.isValid()) {
-        long waitUntil = new Date().getTime() + (int) (timeout * 1000);
-        while (true) {
-          long before = new Date().getTime();
-          if (before > waitUntil) {
-            break;
-          }
-          match = doFind(image);
-          if (match != null) {
-            break;
-          }
-          waitAfterScan(before);
-        }
-      }
-    }
-    return match;
+    return doFind(target, false, timeout);
   }
 
+  //</editor-fold>
+
+  //<editor-fold desc="029 find image private">
+  private static final boolean FINDALL = true;
+
+  private Match doFind(Object target) {
+    return doFind(target, false, 0);
+  }
+
+  private Match doFind(Object target, boolean findAll, double timeout) {
+    if (!isValid()) {
+      return null;
+    }
+    Mat where = getImage().getContent();
+    Match matchResult = null;
+    Image image = new Image(target);
+    if (!image.isValid()) {
+      return null;
+    }
+    Mat mask = new Mat();
+    Mat what = image.getContent();
+    if (what.channels() == 4) {
+      List<Mat> mats = SXOpenCV.extractMask(what, true);
+      what = mats.get(0);
+      mask = mats.get(1);
+    }
+    if (image.hasMask()) {
+      List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
+      mask = mats.get(1);
+    }
+    long before = new Date().getTime();
+    long waitUntil = before + (int) (timeout * 1000);
+    while (true) {
+      matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
+      if (matchResult != null || timeout < 0.01) {
+        break;
+      }
+      if (before > waitUntil) {
+        break;
+      }
+      waitAfterScan(before, waitUntil);
+      before = new Date().getTime();
+    }
+    return Match.createFromResult(image, matchResult);
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="030 OCR - read text, line, word, char">

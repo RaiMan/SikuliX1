@@ -6,7 +6,10 @@ package org.sikuli.script;
 import org.opencv.core.Core;
 import org.sikuli.script.support.IScreen;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * The region on the screen or rectangle in the image,
@@ -20,19 +23,9 @@ import java.awt.*;
  * <li>the found text {@link #getText()} in case of text find ops</li>
  * </ul>
  */
-public class Match extends Region implements Comparable<Match> {
+public class Match extends Region implements Iterator<Match>, Comparable<Match> {
 
-  private Location target = null;
-  private Image image = null;
-  private String ocrText = "";
-  private long lastSearchTime = -1;
-  private long lastFindTime = -1;
-  private int index = -1;
-  private boolean onScreen = true;
-
-  public void setOnScreen(boolean state) {
-    onScreen = state;
-  }
+  //<editor-fold desc="00 instance">
   /**
    * creates a Match on primary screen as (0, 0, 1, 1)
    */
@@ -56,34 +49,6 @@ public class Match extends Region implements Comparable<Match> {
     } else {
       init(element.x, element.y, element.w, element.h, element.getScreen());
     }
-  }
-
-  public int getIndex() {
-    return index;
-  }
-
-  public Match setIndex(int index) {
-    this.index = index;
-    return this;
-  }
-
-  /**
-   * INTERNAL USE
-   * set the elapsed times from search
-   *
-   * @param ftime time
-   * @param stime time
-   */
-  public void setTimes(long ftime, long stime) {
-    lastFindTime = ftime;
-    lastSearchTime = stime;
-  }
-
-  /**
-   * @return this Match's actual waiting time from last successful find
-   */
-  public long getTime() {
-    return lastFindTime;
   }
 
   /**
@@ -157,6 +122,80 @@ public class Match extends Region implements Comparable<Match> {
     setScreen(m.getScreen());
   }
 
+  @Override
+  public int compareTo(Match m) {
+    if (simScore != m.simScore) {
+      return simScore < m.simScore ? -1 : 1;
+    }
+    if (x != m.x) {
+      return x - m.x;
+    }
+    if (y != m.y) {
+      return y - m.y;
+    }
+    if (w != m.w) {
+      return w - m.w;
+    }
+    if (h != m.h) {
+      return h - m.h;
+    }
+    if (equals(m)) {
+      return 0;
+    }
+    return -1;
+  }
+
+  @Override
+  public boolean equals(Object oThat) {
+    if (this == oThat) {
+      return true;
+    }
+    if (!(oThat instanceof Match)) {
+      return false;
+    }
+    Match that = (Match) oThat;
+    return x == that.x && y == that.y && w == that.w && h == that.h
+            && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
+  }
+
+  public String toStringLong() {
+    String text = super.toString().replace("R[", "M[");
+    if (!isOnScreen()) {
+
+    }
+    String starget;
+    Location c = getCenter();
+    if (target != null && !c.equals(target)) {
+      starget = String.format("T:%d,%d", target.x, target.y);
+    } else {
+      starget = String.format("C:%d,%d", c.x, c.y);
+    }
+    String findTimes = String.format("[%d msec]", lastFindTime);
+    return String.format("%s S:%.2f %s %s", text, simScore, starget, findTimes);
+  }
+
+  @Override
+  public String toString() {
+    String message = "M[%d,%d %dx%d";
+    String onScreen = " ";
+    if (isOnScreen()) {
+      onScreen = String.format(" On(%s) ", getScreen().getID());
+    }
+    return String.format(message + onScreen + "S(%.2f)]", x, y, w, h,
+            ((float) Math.round(score() * 10000))/100);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="01 similarity">
+  /**
+   * the match score
+   *
+   * @return a decimal value between 0 (no match) and 1 (exact match)
+   */
+  public double getScore() {
+    return simScore;
+  }
+
   /**
    * the match score
    *
@@ -171,6 +210,10 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   private double simScore = 0;
+  //</editor-fold>
+
+  //<editor-fold desc="02 offset">
+  private Location target = null;
 
   /**
    * {@inheritDoc}
@@ -218,6 +261,21 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   /**
+   * INTERNAL USE
+   *
+   * @param tx x
+   * @param ty y
+   */
+  public Match setTarget(int tx, int ty) {
+    target = new Location(tx, ty);
+    return this;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="03 image">
+  private Image image = null;
+
+  /**
    * set the image after finding with success
    *
    * @param img Image
@@ -244,6 +302,10 @@ public class Match extends Region implements Comparable<Match> {
   public String getImageFilename() {
     return image.getFilename();
   }
+  //</editor-fold>
+
+  //<editor-fold desc="04 text">
+  private String ocrText = "";
 
   /**
    * @return the text stored by findWord, findLine, ...
@@ -261,84 +323,90 @@ public class Match extends Region implements Comparable<Match> {
     ocrText = text;
     return this;
   }
+  //</editor-fold>
 
-  @Override
-  public int compareTo(Match m) {
-    if (simScore != m.simScore) {
-      return simScore < m.simScore ? -1 : 1;
-    }
-    if (x != m.x) {
-      return x - m.x;
-    }
-    if (y != m.y) {
-      return y - m.y;
-    }
-    if (w != m.w) {
-      return w - m.w;
-    }
-    if (h != m.h) {
-      return h - m.h;
-    }
-    if (equals(m)) {
-      return 0;
-    }
-    return -1;
+  //<editor-fold desc="05 index">
+  public int getIndex() {
+    return index;
   }
 
-  @Override
-  public boolean equals(Object oThat) {
-    if (this == oThat) {
-      return true;
-    }
-    if (!(oThat instanceof Match)) {
-      return false;
-    }
-    Match that = (Match) oThat;
-    return x == that.x && y == that.y && w == that.w && h == that.h
-        && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
+  public Match setIndex(int index) {
+    this.index = index;
+    return this;
   }
 
-  public String toStringLong() {
-    String text = super.toString().replace("R[", "M[");
-    if (!isOnScreen()) {
+  private int index = -1;
+  //</editor-fold>
 
-    }
-    String starget;
-    Location c = getCenter();
-    if (target != null && !c.equals(target)) {
-      starget = String.format("T:%d,%d", target.x, target.y);
-    } else {
-      starget = String.format("C:%d,%d", c.x, c.y);
-    }
-    String findTimes = String.format("[%d msec]", lastFindTime);
-    return String.format("%s S:%.2f %s %s", text, simScore, starget, findTimes);
-  }
-
-  @Override
-  public String toString() {
-    String message = "M[%d,%d %dx%d";
-    String onScreen = " ";
-    if (isOnScreen()) {
-      onScreen = String.format(" On(%s) ", getScreen().getID());
-    }
-    return String.format(message + onScreen + "S(%.2f)]", x, y, w, h,
-            ((float) Math.round(score() * 10000))/100);
-  }
-
-  private Core.MinMaxLocResult result = null;
-
-  protected void setResult(Core.MinMaxLocResult result) {
-    this.result = result;
-  }
+  //<editor-fold desc="09 timing">
+  private long lastSearchTime = -1;
+  private long lastFindTime = -1;
 
   /**
    * INTERNAL USE
+   * set the elapsed times from search
    *
-   * @param tx x
-   * @param ty y
+   * @param ftime time
+   * @param stime time
    */
-  public Match setTarget(int tx, int ty) {
-    target = new Location(tx, ty);
-    return this;
+  public void setTimes(long ftime, long stime) {
+    lastFindTime = ftime;
+    lastSearchTime = stime;
   }
+
+  /**
+   * @return this Match's actual waiting time from last successful find
+   */
+  public long getTime() {
+    return lastFindTime;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="10 Iterator Match">
+  private Core.MinMaxLocResult result = null;
+
+  public Match(Point point, double score, Core.MinMaxLocResult minMax) {
+    this();
+    this.x = point.x;
+    this.y = point.y;
+    this.simScore =score;
+    this.result = minMax;
+  }
+
+  public static Match createFromResult(Image image, Match matchResult) {
+    Match match = null;
+    if (matchResult != null) {
+      match = new Match();
+      match.setX(image.x + matchResult.x);
+      match.setY(image.y + matchResult.y);
+      match.setW(image.w);
+      match.setH(image.h);
+      match.score(matchResult.score());
+      match.offset(image.offset());
+      match.setImage(image);
+      match.onScreen(image.isOnScreen());
+    }
+    return match;
+  }
+
+  @Override
+  public boolean hasNext() {
+    return false;
+  }
+
+  @Override
+  public Match next() {
+    return null;
+  }
+
+  @Override
+  public void remove() {
+
+  }
+
+  @Override
+  public void forEachRemaining(Consumer<? super Match> action) {
+
+  }
+  //</editor-fold>
 }
