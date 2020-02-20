@@ -273,7 +273,7 @@ public class MacUtil implements OSUtil {
             "resultlist";
     int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
     String result = RunTime.get().getLastCommandResult().trim();
-    String[] processes = result.split(", ###");
+    String[] processes = (", " + result).split(", ###");
     List<App> appList = new ArrayList<>();
     int pid = 0;
     for (String process : processes) {
