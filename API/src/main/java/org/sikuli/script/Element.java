@@ -669,9 +669,11 @@ public abstract class Element {
     if ((now + time) > until) {
       time = until - now;
     }
-    try {
-      Thread.sleep(time);
-    } catch (InterruptedException e) {
+    if (time > 9) {
+      try {
+        Thread.sleep(time);
+      } catch (InterruptedException e) {
+      }
     }
   }
 
