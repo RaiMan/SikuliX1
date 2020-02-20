@@ -1,2 +1,7 @@
 test = "test.png"
 shot = "shot.png"
+house = "house_shot.png"
+house1 = "house1.png"
+house2 = "house2.png"
+houseT = "houseT.png"
+treeT = "treeT.png"
