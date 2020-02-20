@@ -19,7 +19,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.2** (branch `release_2.0.x` - [see what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes))
+**Latest stable version is 2.0.3** (branch `release_2.0.x` - [see what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes))
 
 New features will only be available in new major versions (currently 2.1.0, branches master and/or dev_...). 
 <br>Until release of a stable 2.1.0, there will be nightly builds and snapshots available (see below).
@@ -27,12 +27,12 @@ New features will only be available in new major versions (currently 2.1.0, bran
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
 **Get SikuliX ready to use**
-- [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.2/+download/sikulix-2.0.2.jar)
+- [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.3/+download/sikulix-2.0.3.jar)
   - [Jython support for the IDE](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar)
   - [JRuby support for the IDE](https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar)
   - download all needed to one folder and run sikulix-2.0.x.jar
   <br><br>
-- [SikuliX Java API for programming in Java or Java aware languages](https://launchpad.net/sikuli/sikulix/2.0.2/+download/sikulixapi-2.0.2.jar)
+- [SikuliX Java API for programming in Java or Java aware languages](https://launchpad.net/sikuli/sikulix/2.0.3/+download/sikulixapi-2.0.3.jar)
   - for use in non-Maven projects
  
 For use in **Java Maven projects** the dependency coordinates are:
@@ -40,7 +40,7 @@ For use in **Java Maven projects** the dependency coordinates are:
 <dependency>
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>2.0.2</version>
+  <version>2.0.3</version>
 </dependency>
 ```
 <hr>
