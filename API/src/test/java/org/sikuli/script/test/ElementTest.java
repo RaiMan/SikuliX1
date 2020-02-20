@@ -10,8 +10,11 @@ import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
+import org.sikuli.script.Image;
 import org.sikuli.script.support.RunTime;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.net.URL;
 import java.util.Date;
@@ -38,7 +41,9 @@ public class ElementTest {
   void testOutro(String message, Object... args) {
     String duration = String.format("%5d", new Date().getTime() - start);
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-    if (args[0] instanceof Image) show((Image) args[0]);
+    if (args.length > 0 && args[0] instanceof Image) {
+      show((Image) args[0]);
+    }
     Debug.logp(duration + " " + methodName + ": " + message, args);
   }
 
@@ -81,6 +86,20 @@ public class ElementTest {
     }
     showImage = false;
     Settings.ProfileLogs = false;
+  }
+
+  @Test
+  public void test001_Playground() {
+    testIntro();
+    JFrame frame = new JFrame();
+    frame.setAlwaysOnTop(true);
+    frame.setUndecorated(true);
+    frame.setPreferredSize(new Dimension(600, 400));
+    frame.add(new JLabel(new ImageIcon(new File(bundlePath, "")))
+    frame.pack();
+    frame.setVisible(true);
+    RunTime.pause(3);
+    testOutro("");
   }
 
   @Test
