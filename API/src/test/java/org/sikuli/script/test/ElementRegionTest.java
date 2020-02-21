@@ -21,6 +21,7 @@ public class ElementRegionTest extends SXTest {
   @Before
   public void setUp() {
     setUpBase();
+    Settings.setImageCache(0);
   }
 
   @Test
@@ -104,6 +105,7 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test252_RegionWait() {
+    waitBefore = 2;
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewFind = true;
@@ -137,7 +139,7 @@ public class ElementRegionTest extends SXTest {
         match.highlight(2);
       }
     }
-    testOutro("%s in %s is %s", testName, reg, match);
+    testOutro("%s in %s is %s", testNameTrans, reg, match);
   }
 
   @Ignore
