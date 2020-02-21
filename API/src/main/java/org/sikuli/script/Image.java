@@ -111,7 +111,7 @@ public class Image extends Element {
     setName(element.getName());
     ((Image) element).setFileURL(fileURL);
     ((Image) element).setIsAbsolute(imageIsAbsolute);
-    ((Image) element).setIsText(imageIsText);
+    element.asText(isText());
     ((Image) element).setIsBundled(imageIsBundled);
     ((Image) element).setLastSeen(getLastSeen(), getLastSeenScore());
   }
@@ -179,8 +179,7 @@ public class Image extends Element {
     }
     if (resource == null) {
       error = String.format("uri not valid: %s", uri);
-    }
-    if (!error.isEmpty() || !createContent(resource).isEmpty()) {
+    } else if (!createContent(resource).isEmpty()) {
       //TODO image missing
     };
   }
@@ -531,21 +530,6 @@ public class Image extends Element {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="710 isText --- to be checked">
-  private boolean imageIsText = false;
-
-  /**
-   * @return true if the given image name did not give a valid image so it might
-   * be text to search
-   */
-  public boolean isText() {
-    return imageIsText;
-  }
-
-  public Image setIsText(boolean val) {
-    imageIsText = val;
-    return this;
-  }
-
   public String getNameAsText() {
     return imageNameGiven;
   }
@@ -719,10 +703,10 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="830 load/save --- to be checked">
-  public static void setIDEshouldReload(Image img) {
+  public static void setIDEshouldReload(Element img) { //TODO
     ideShouldReload = true;
-    img.wasRecaptured = true;
-    img.lastSeen = null;
+    ((Image)img).wasRecaptured = true;
+    ((Image)img).lastSeen = null;
   }
 
   public static boolean getIDEshouldReload() {

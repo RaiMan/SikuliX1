@@ -1698,7 +1698,7 @@ public class Region extends Element {
         if (Settings.SwitchToText) {
           log(logLevel, "wait: image missing: switching to text search (deprecated - use text methods)");
           response = true;
-          img.setIsText(true);
+          img.asText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
           throw new RuntimeException(String.format("SikuliX: wait: ImageMissing: %s", target));
@@ -1775,7 +1775,7 @@ public class Region extends Element {
         if (Settings.SwitchToText) {
           log(logLevel, "find: image missing: switching to text search (deprecated - use text methods)");
           response = true;
-          img.setIsText(true);
+          img.asText(true);
           target = (PSI) ("\t" + target + "\t");
         } else {
           throw new RuntimeException(String.format("SikuliX: find: ImageMissing: %s", target));
@@ -1828,7 +1828,7 @@ public class Region extends Element {
         if (Settings.SwitchToText) {
           log(logLevel, "Exists: image missing: switching to text search (deprecated - use text methods)");
           response = true;
-          img.setIsText(true);
+          img.asText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
           throw new RuntimeException(String.format("SikuliX: exists: ImageMissing: %s", target));

@@ -10,8 +10,10 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SXTest;
+import org.sikuli.util.Highlight;
 
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +87,32 @@ public class ElementRegionTest extends SXTest {
   }
 
   @Test
+  public void test220_RegionFindAllOld() {
+    testIntro(testBase);
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Region reg = new Screen();
+    Iterator<Match> matches = null;
+    try {
+      matches = reg.findAll(testName);
+    } catch (FindFailed findFailed) {
+    }
+    Match match = null;
+    int matchCount = 0;
+    while (matches.hasNext()) {
+      matchCount++;
+      match = matches.next();
+      if (showImage) {
+        match.highlight();
+      }
+    }
+    if (showImage) {
+      Highlight.closeAll();
+    }
+    testOutro("%s in %s is %s (%d)", testName, reg, match, matchCount);
+    Assert.assertNotNull("Not Found!", match);
+  }
+
+  @Test
   public void test250_RegionFind() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
@@ -101,6 +129,31 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertNotNull("Not Found!", match);
+  }
+
+  @Test
+  public void test251_RegionFindFailed() {
+    testIntro();
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.NewFind = true;
+    Region reg = new Screen();
+    Match match = null;
+    String error = "";
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+      error = findFailed.getMessage();
+    }
+    if (null != match) {
+      if (showImage) {
+        match.highlight(2);
+      }
+      testOutro("%s in %s is %s", testName, reg, match);
+    } else {
+      testOutro("Not Found: %s in %s", testName, reg);
+    }
+    Assert.assertFalse("Should not be fond!", error.isEmpty());
   }
 
   @Test
@@ -121,6 +174,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertNotNull("Not Found!", match);
   }
 
   @Test
@@ -140,6 +194,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testNameTrans, reg, match);
+    Assert.assertNotNull("Not Found!", match);
   }
 
   @Ignore
@@ -160,6 +215,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertNotNull("Not Found!", match);
   }
 
   @Test

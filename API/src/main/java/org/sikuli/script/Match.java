@@ -181,8 +181,12 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
     if (isOnScreen()) {
       onScreen = String.format(" On(%s) ", getScreen().getID());
     }
-    return String.format(message + onScreen + "S(%.2f) (%d, %d)]", x, y, w, h,
-            ((float) Math.round(score() * 10000))/100, lastFindTime, lastSearchTime);
+    String time = "";
+    if (lastFindTime > 0) {
+      time = String.format(" (%d, %d)",lastFindTime, lastSearchTime);
+    }
+    return String.format(message + onScreen + "S(%.2f)%s]", x, y, w, h,
+            ((float) Math.round(score() * 10000))/100, time);
   }
   //</editor-fold>
 

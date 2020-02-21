@@ -369,7 +369,7 @@ public abstract class Element {
     if (url != null) {
       Image image = new Image();
       image.asFakeImage();
-      return image.createContent(url);
+      return image.createContent(url); //TODO revise FakeImage hack
     }
     return OK;
   }
@@ -391,36 +391,54 @@ public abstract class Element {
   }
 
   protected String createContent(URL url) {
+    String error = "";
     if ("file".equals(url.getProtocol())) {
       try {
         url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
       } catch (IOException e) {
-        return String.format("content: io error: %s", url);
+        error = String.format("content: io error: %s", url);
       }
     }
-    byte[] bytes = null;
-    try {
-      InputStream inputStream = url.openStream();
-      imageURL = url;
-      if (!isFakeImage() && Image.ImageCache.isValid(url)) {
-        setSize(Image.ImageCache.get(url));
-        return OK;
+    if (error.isEmpty()) {
+      byte[] bytes = null;
+      try {
+        InputStream inputStream = url.openStream();
+        imageURL = url;
+        if (!isFakeImage() && Image.ImageCache.isValid(url)) {
+          setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
+          return OK;
+        }
+        bytes = inputStream.readAllBytes();
+      } catch (IOException e) {
+        error = String.format("content: io error: %s", url);
       }
-      bytes = inputStream.readAllBytes();
-    } catch (IOException e) {
-      return String.format("content: io error: %s", url);
+      if (bytes != null) {
+        MatOfByte matOfByte = new MatOfByte();
+        matOfByte.fromArray(bytes);
+        Mat content = Imgcodecs.imdecode(matOfByte, -1);
+        if (isMaskImage()) {
+          List<Mat> mats = SXOpenCV.extractMask(getContent(), false);
+          content = mats.get(1);
+        }
+        if (!isFakeImage()) {
+          setSize(content);
+        }
+        Image.ImageCache.put(url, content);
+      }
     }
-    MatOfByte matOfByte = new MatOfByte();
-    matOfByte.fromArray(bytes);
-    Mat content = Imgcodecs.imdecode(matOfByte, -1);
-    if (isMaskImage()) {
-      List<Mat> mats = SXOpenCV.extractMask(getContent(), false);
-      content = mats.get(1);
+    if (!error.isEmpty()) {
+      Boolean response = handleImageMissing(this, false); //TODO
+      if (response == null) {
+        if (Settings.SwitchToText) {
+          log(logLevel, "image missing: switching to text search (deprecated - use text methods)");
+//          response = true;
+//          img.setIsText(true);
+//          rf.setTarget("\t" + target + "\t");
+        } else {
+          throw new RuntimeException(String.format("createContent: ImageMissing:"));
+        }
+      }
     }
-    if (!isFakeImage()) {
-      setSize(content);
-    }
-    Image.ImageCache.put(url, content);
     return OK;
   }
 
@@ -536,7 +554,17 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="005 Fields name, lastMatch, ...">
+  //<editor-fold desc="005 Fields name, lastMatch, text...">
+  private boolean isText = false;
+
+  public boolean isText() {
+    return isText;
+  }
+
+  public Element asText(boolean state) {
+    isText = state;
+    return this;
+  }
 
   /**
    * INTERNAL: to identify an Element
@@ -1219,13 +1247,17 @@ public abstract class Element {
 
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
 
-  protected Boolean handleImageMissing(Image img, boolean recap) {
-    log(logLevel, "handleImageMissing: %s", img.getName());
+  protected Boolean handleImageMissing(Element element, boolean recap) {
+    if (!(this instanceof Image)) {
+      terminate("handleImageMissing: not valid for this");
+    }
+    Image image = (Image) element;
+    log(logLevel, "handleImageMissing: %s", image.getName());
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
     if (!recap && imageMissingHandler != null) {
       log(logLevel, "handleImageMissing: calling handler");
-      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, img, this, 0);
+      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, image, this, 0);
       ((ObserverCallBack) imageMissingHandler).missing(evt);
       response = evt.getResponse();
     }
@@ -1233,28 +1265,28 @@ public abstract class Element {
       if (!recap) {
         log(logLevel, "handleImageMissing: Response.PROMPT");
       }
-      response = handleFindFailedShowDialog(img, true);
+      response = handleFindFailedShowDialog(image, true);
     }
     if (FindFailedResponse.RETRY.equals(response)) {
       log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForElement().delay(500);
-      ScreenImage simg = getScreen().userCapture((recap ? "recapture " : "capture missing ") + img.getName());
+      ScreenImage simg = getScreen().userCapture((recap ? "recapture " : "capture missing ") + image.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
           log(-1, "handleImageMissing: no bundle path - aborting");
           return null;
         }
-        simg.getFile(path, img.getName());
-        img.reloadContent();
-        if (img.isValid()) {
-          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), img);
-          Image.setIDEshouldReload(img);
+        simg.getFile(path, image.getName());
+        image.reloadContent();
+        if (image.isValid()) {
+          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), image);
+          Image.setIDEshouldReload(image);
           return true;
         }
       }
       return null;
-    } else if (findFailedResponse.ABORT.equals(response)) {
+    } else if (FindFailedResponse.ABORT.equals(response)) {
       log(-1, "handleImageMissing: Response.ABORT: aborting");
       log(-1, "Did you want to find text? If yes, use text methods (see docs).");
       return null;
@@ -1349,11 +1381,10 @@ public abstract class Element {
     //if (null != fImg) FileManager.deleteFileOrFolder(fImg);
   }
 
-
-  protected FindFailedResponse handleFindFailedShowDialog(Image img, boolean shouldCapture) {
+  protected FindFailedResponse handleFindFailedShowDialog(Element image, boolean shouldCapture) {
     log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
     FindFailedResponse response;
-    FindFailedDialog fd = new FindFailedDialog(img, shouldCapture);
+    FindFailedDialog fd = new FindFailedDialog(image, shouldCapture);
     fd.setVisible(true);
     response = fd.getResponse();
     fd.dispose();
@@ -1374,11 +1405,11 @@ public abstract class Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    return doFind((Object) target);
+    return doFind(target);
   }
 
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    return Finder.createIterator(doFind(target, FINDALL, 0));
+    return doFind(target, FINDALL, 0);
   }
 
   /**
@@ -1409,50 +1440,70 @@ public abstract class Element {
   //<editor-fold desc="029 find image private">
   private static final boolean FINDALL = true;
 
-  private Match doFind(Object target) {
+  private Match doFind(Object target) throws FindFailed {
     return doFind(target, false, 0);
   }
 
-  private Match doFind(Object target, boolean findAll, double timeout) {
+  private Match doFind(Object target, boolean findAll, double timeout) throws FindFailed {
     if (!isValid()) {
       return null;
     }
-    long startFind = new Date().getTime();
-    long startSearch, searchTime;
-    Match matchResult = null;
-    Image image = new Image(target);
-    if (!image.isValid()) {
-      return null;
-    }
-    Mat mask = new Mat();
-    Mat what = image.getContent();
-    if (what.channels() == 4) {
-      List<Mat> mats = SXOpenCV.extractMask(what, true);
-      what = mats.get(0);
-      mask = mats.get(1);
-    }
-    if (image.hasMask()) {
-      List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
-      mask = mats.get(1);
-    }
-    long before = new Date().getTime();
-    long waitUntil = before + (int) (timeout * 1000);
+    Match match = null;
     while (true) {
-      Mat where = getImage().getContent();
-      startSearch = new Date().getTime();
-      matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
-      searchTime = new Date().getTime() - startSearch;
-      if (matchResult != null || timeout < 0.01) {
-        break;
+      long startFind = new Date().getTime();
+      long startSearch, searchTime;
+      Match matchResult;
+      String shouldAbort = "";
+      Image image = new Image(target);
+      if (!image.isValid()) {
+        return null;
       }
-      if (before > waitUntil) {
-        break;
+      Mat mask = new Mat();
+      Mat what = image.getContent();
+      if (what.channels() == 4) {
+        List<Mat> mats = SXOpenCV.extractMask(what, true);
+        what = mats.get(0);
+        mask = mats.get(1);
       }
-      waitAfterScan(before, waitUntil);
-      before = new Date().getTime();
+      if (image.hasMask()) {
+        List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
+        mask = mats.get(1);
+      }
+      long before = new Date().getTime();
+      long waitUntil = before + (int) (timeout * 1000);
+      while (true) {
+        Mat where = getImage().getContent();
+        startSearch = new Date().getTime();
+        matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
+        searchTime = new Date().getTime() - startSearch;
+        if (matchResult != null || timeout < 0.01) {
+          break;
+        }
+        if (before > waitUntil) {
+          break;
+        }
+        waitAfterScan(before, waitUntil);
+        before = new Date().getTime();
+      }
+      long findTime = new Date().getTime() - startFind;
+      match = Match.createFromResult(image, matchResult, findTime, searchTime);
+      if (match == null) {
+        Boolean response = handleFindFailed(target, image); //TODO Find Failed
+        if (null == response) {
+          shouldAbort = FindFailed.createErrorMessage(this, image);
+        } else if (response) {
+          //TODO Find Failed: RepeatFind(target, img)
+          if (image.isRecaptured()) {
+          }
+          continue;
+        }
+        if (!shouldAbort.isEmpty()) {
+          throw new FindFailed(shouldAbort);
+        }
+      }
+      break;
     }
-    long findTime = new Date().getTime() - startFind;
-    return Match.createFromResult(image, matchResult, findTime, searchTime);
+    return match;
   }
   //</editor-fold>
 

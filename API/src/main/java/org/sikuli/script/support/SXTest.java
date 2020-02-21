@@ -7,10 +7,8 @@ package org.sikuli.script.support;
 import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.*;
 import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Region;
-import org.sikuli.script.Screen;
 
 import javax.swing.*;
 import java.awt.*;
@@ -64,6 +62,19 @@ public class SXTest {
     return frame;
   }
 
+  public ObserverCallBack createObserverCallBack() {
+    return new ObserverCallBack() {
+      @Override
+      public void findfailed(ObserveEvent event) {
+        event.setResponse(FindFailedResponse.ABORT);
+      }
+      @Override
+      public void missing (ObserveEvent event) {
+        event.setResponse(FindFailedResponse.ABORT);
+      }
+    };
+  }
+
   public void setUpBase() {
     Settings.NewFind = false;
     if (null == bundlePath) {
@@ -92,7 +103,9 @@ public class SXTest {
         @Override
         public void run() {
           RunTime.pause(waitBefore);
-          defaultFrame.setVisible(true);
+          if (null != defaultFrame) {
+            defaultFrame.setVisible(true);
+          }
         }
       }).start();
       RunTime.pause(1);

@@ -12,7 +12,28 @@ package org.sikuli.script;
  */
 public class FindFailed extends SikuliException {
 
-	/**
+  //<editor-fold desc="00 instance">
+  /**
+   * the exception
+   * @param message to be shown
+   */
+  public FindFailed(String message) {
+    super(message);
+    _name = "FindFailed";
+  }
+
+  /**
+   * reset all: response ABORT, findFailedHandler null, imageMissingHandler null
+   */
+  public static void reset() {
+    response = ABORT;
+    ffHandler = null;
+    imHandler = null;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="05 FindFailedResponse">
+  /**
 	 * FindFailedResponse PROMPT: should display a prompt dialog with the failing image
 	 * having the options retry, skip and abort
 	 */
@@ -37,26 +58,6 @@ public class FindFailed extends SikuliException {
 	 * FindFailedResponse HANDLE: should call a handler {@link #setFindFailedHandler(Object)} on FindFailed
 	 */
 	public static final FindFailedResponse HANDLE = FindFailedResponse.HANDLE;
-
-  /**
-	 * the exception
-	 * @param message to be shown
-	 */
-	public FindFailed(String message) {
-    super(message);
-    _name = "FindFailed";
-  }
-
-  /**
-   * reset all: response ABORT, findFailedHandler null, imageMissingHandler null
-   */
-  public static void reset() {
-    response = ABORT;
-    ffHandler = null;
-    imHandler = null;
-  }
-
-  //************************* FindFailedResponse
 
   /**
    * Global FindFailedResponse for new {@link Region}s<br>
@@ -90,9 +91,9 @@ public class FindFailed extends SikuliException {
   }
 
   private static FindFailedResponse response = ABORT;
+  //</editor-fold>
 
-  //************************* FindFailedHandler
-
+  //<editor-fold desc="010 FindFailed handler">
   /**
    * Global FindFailedHandler for new {@link Region}s<br>
    * default: none
@@ -120,9 +121,9 @@ public class FindFailed extends SikuliException {
   }
 
   private static Object ffHandler = null;
+  //</editor-fold>
 
-  //************************* ImageMissingHandler
-
+  //<editor-fold desc="015 ImageMissing handler">
   /**
    * Global ImageMissingHandler for new {@link Region}s<br>
    * default: none
@@ -148,10 +149,9 @@ public class FindFailed extends SikuliException {
   }
 
   private static Object imHandler = null;
+  //</editor-fold>
 
-  //************************* intern
-
-  public static Object setHandler(Object handler, ObserveEvent.Type type) {
+  protected static Object setHandler(Object handler, ObserveEvent.Type type) {
     if (handler != null && (handler.getClass().getName().contains("org.python")
             || handler.getClass().getName().contains("org.jruby"))) {
       handler = new ObserverCallBack(handler, type);
@@ -161,12 +161,12 @@ public class FindFailed extends SikuliException {
     return handler;
   }
 
-  public static String createErrorMessage(Region reg, Image img) {
+  protected static String createErrorMessage(Element reg, Image img) {
     String msg = "";
     if (img.isText()) {
       msg = String.format("%s as text", img.getName());
     } else if (img.getSize().width < 0 && img.getSize().height < 0) {
-      msg = String.format("%s not loaded", img.getName());
+      msg = String.format("%s not loaded", img.url());
     } else {
       msg = String.format("%s in %s", img, reg);
     }
