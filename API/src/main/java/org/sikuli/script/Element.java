@@ -1575,6 +1575,9 @@ public abstract class Element {
       }
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
+      if (where.empty()) {
+        where = getImage().getContent();
+      }
       while (true) {
         if (isOnScreen()) {
           where = getImage().getContent();
