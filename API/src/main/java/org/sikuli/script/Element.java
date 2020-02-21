@@ -1544,6 +1544,11 @@ public abstract class Element {
     if (!isValid()) {
       return null;
     }
+    Mat where = new Mat();
+    if (!isOnScreen() && getContent().channels() == 4) {
+      List<Mat> mats = SXOpenCV.extractMask(getContent(), true);
+      where = mats.get(0);
+    }
     Match match = null;
     while (true) {
       long startFind = new Date().getTime();
@@ -1571,7 +1576,9 @@ public abstract class Element {
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
       while (true) {
-        Mat where = getImage().getContent();
+        if (isOnScreen()) {
+          where = getImage().getContent();
+        }
         startSearch = new Date().getTime();
         matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
         searchTime = new Date().getTime() - startSearch;

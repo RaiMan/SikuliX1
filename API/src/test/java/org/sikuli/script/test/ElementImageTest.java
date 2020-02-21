@@ -4,10 +4,12 @@
 
 package org.sikuli.script.test;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.FindFailed;
 import org.sikuli.script.Image;
 import org.sikuli.script.Match;
@@ -35,6 +37,20 @@ public class ElementImageTest extends SXTest {
     testIntro();
     Image shot = new Image(testBase);
     Match match = null;
+    try {
+      match = shot.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    testOutro("%s in %s is %s", testName, shot, match);
+  }
+
+  @Test
+  public void test105_ImageFindResize() {
+    testIntro();
+    Image shot = new Image(testBaseX2);
+    Assert.assertTrue("", shot.isValid());
+    Match match = null;
+    Settings.AlwaysResize = 2;
     try {
       match = shot.find(testName);
     } catch (FindFailed findFailed) {
