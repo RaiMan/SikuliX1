@@ -76,7 +76,7 @@ public class SXTest {
   }
 
   public void setUpBase() {
-    Settings.NewFind = false;
+    Settings.NewAPI = false;
     if (null == bundlePath) {
       setUpTime = new Date().getTime();
       File bundleFile = new File(runTime.fWorkDir, "src/main/resources/images");
@@ -128,7 +128,7 @@ public class SXTest {
   }
 
   public void test900_Template() {
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Image image = new Image("some image");
     //image is shown if first parm and single test
     testOutro("%s", image);

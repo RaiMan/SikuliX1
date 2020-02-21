@@ -1683,7 +1683,7 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation finally failed
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
-    if (Settings.NewFind) {
+    if (Settings.NewAPI) {
       return super.wait(target, timeout);
     }
     lastMatch = null;
@@ -1763,7 +1763,7 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    if (Settings.NewFind) {
+    if (Settings.NewAPI) {
       return super.find(target);
     }
     Image img = Element.getImage(target);
@@ -1948,7 +1948,7 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
-    if (Settings.NewFind) {
+    if (Settings.NewAPI) {
       return super.findAll(target);
     }
     lastMatches = null;

@@ -4,9 +4,7 @@
 package org.sikuli.script;
 
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.*;
 import java.awt.color.ColorSpace;
@@ -439,95 +437,7 @@ public class Image extends Element {
     g2d.dispose();
     return newBimg;
   }
-
-  /**
-   * Available resize interpolation algorithms
-   */
-  public enum Interpolation {
-    NEAREST(Imgproc.INTER_NEAREST),
-    LINEAR(Imgproc.INTER_LINEAR),
-    CUBIC(Imgproc.INTER_CUBIC),
-    AREA(Imgproc.INTER_AREA),
-    LANCZOS4(Imgproc.INTER_LANCZOS4),
-    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
-    MAX(Imgproc.INTER_MAX);
-
-    public int value;
-
-    Interpolation(int value) {
-      this.value = value;
-    }
-  }
-
-  /**
-   * resize the Image in place with factor
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param factor resize factor
-   * @return this Image resized
-   * @see Interpolation
-   */
-  public Image size(float factor) {
-    return size(factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the Image in place with factor
-   * <p>
-   * Uses the given interpolation algorithm.
-   *
-   * @param factor        resize factor
-   * @param interpolation algorithm {@link Interpolation}
-   * @return this Image resized
-   * @see Interpolation
-   */
-  public Image size(float factor, Interpolation interpolation) {
-    SXOpenCV.resize(getContent(), factor, interpolation);
-    return this;
-  }
-
-  /**
-   * resize the Image with factor
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public Object resize(float factor) {
-    return resize(factor, Interpolation.CUBIC);
-  }
-
-  /**
-   * resize the loaded image with factor using OpenCV ImgProc.resize()
-   *
-   * @param factor        resize factor
-   * @param interpolation algorithm used for pixel interpolation
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public BufferedImage resize(float factor, Interpolation interpolation) {
-    return getBufferedImage(SXOpenCV.cvResize(cloneContent(), factor, interpolation));
-  }
-
-  /**
-   * resize the given image with factor using OpenCV ImgProc.resize()
-   * <p>
-   * Uses CUBIC as the interpolation algorithm.
-   *
-   * @param bimg   given image
-   * @param factor resize factor
-   * @return a new BufferedImage resized (width*factor, height*factor)
-   */
-  public static BufferedImage resize(BufferedImage bimg, float factor) {
-    return resize(bimg, factor, Interpolation.CUBIC);
-  }
-
-  private static BufferedImage resize(BufferedImage bimg, float factor, Interpolation interpolation) {
-    return Element.getBufferedImage(SXOpenCV.cvResize(bimg, factor, interpolation));
-  }
-
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="710 isText --- to be checked">
   public String getNameAsText() {

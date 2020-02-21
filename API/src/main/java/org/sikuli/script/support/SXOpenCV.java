@@ -53,7 +53,7 @@ public class SXOpenCV {
     try {
       bImg = ImageIO.read(in);
     } catch (IOException ex) {
-      Debug.log(-1,"SXOpenCV: makeBufferedImage: %s error(%s)", content, ex.getMessage());
+      Debug.log(-1, "SXOpenCV: makeBufferedImage: %s error(%s)", content, ex.getMessage());
     }
     return bImg;
   }
@@ -68,6 +68,9 @@ public class SXOpenCV {
   }
 
   public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
+    if (null == bImg) {
+      return new Mat();
+    }
     if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
       Debug.trace("makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
       int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
@@ -239,25 +242,25 @@ public class SXOpenCV {
   }
 
   // resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()
-    public static void resize(Mat mat, float factor) {
-      resize(mat, factor, Image.Interpolation.CUBIC);
-    }
+  public static void resize(Mat mat, float factor) {
+    resize(mat, factor, Image.Interpolation.CUBIC);
+  }
 
   public static void resize(Mat mat, float factor, Image.Interpolation interpolation) {
-        cvResize(mat, factor, interpolation);
-      }
+    cvResize(mat, factor, interpolation);
+  }
 
   public static Mat cvResize(BufferedImage bimg, double rFactor, Image.Interpolation interpolation) {
-          Mat mat = makeMat(bimg);
-          return cvResize(mat, rFactor, interpolation);
-        }
+    Mat mat = makeMat(bimg);
+    return cvResize(mat, rFactor, interpolation);
+  }
 
   public static Mat cvResize(Mat mat, double rFactor, Image.Interpolation interpolation) {
-      int newW = (int) (rFactor * mat.width());
-      int newH = (int) (rFactor * mat.height());
-      Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
-      return mat;
-    }
+    int newW = (int) (rFactor * mat.width());
+    int newH = (int) (rFactor * mat.height());
+    Imgproc.resize(mat, mat, new Size(newW, newH), 0, 0, interpolation.value);
+    return mat;
+  }
 
   public static BufferedImage optimize(BufferedImage bimg, float rFactor, Image.Interpolation interpolation) {
     Mat mimg = makeMat(bimg);

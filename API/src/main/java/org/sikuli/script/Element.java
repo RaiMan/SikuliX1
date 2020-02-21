@@ -9,6 +9,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -230,6 +231,53 @@ public abstract class Element {
   }
 
   /**
+   * Available resize interpolation algorithms
+   */
+  public enum Interpolation {
+    NEAREST(Imgproc.INTER_NEAREST),
+    LINEAR(Imgproc.INTER_LINEAR),
+    CUBIC(Imgproc.INTER_CUBIC),
+    AREA(Imgproc.INTER_AREA),
+    LANCZOS4(Imgproc.INTER_LANCZOS4),
+    LINEAR_EXACT(Imgproc.INTER_LINEAR_EXACT),
+    MAX(Imgproc.INTER_MAX);
+
+    public int value;
+
+    Interpolation(int value) {
+      this.value = value;
+    }
+  }
+
+  /**
+   * resize the Image in place with factor
+   * <p>
+   * Uses CUBIC as the interpolation algorithm.
+   *
+   * @param factor resize factor
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Element size(float factor) {
+    return size(factor, Interpolation.CUBIC);
+  }
+
+  /**
+   * resize the Image in place with factor
+   * <p>
+   * Uses the given interpolation algorithm.
+   *
+   * @param factor        resize factor
+   * @param interpolation algorithm {@link Interpolation}
+   * @return this Image resized
+   * @see Interpolation
+   */
+  public Element size(float factor, Interpolation interpolation) {
+    SXOpenCV.resize(getContent(), factor, interpolation);
+    return this;
+  }
+
+  /**
    * @return the AWT Rectangle of the region
    */
   public Rectangle getRect() {
@@ -276,9 +324,46 @@ public abstract class Element {
   public Element setRect(Region r) {
     return setRect(r.x, r.y, r.w, r.h);
   }
+
+  private float resizeFactor = 1;
+
+  public float resize() {
+    return resizeFactor;
+  }
+
+  public Element resize(float factor) {
+    resizeFactor = Math.max(factor, 0.1f);
+    return this;
+  }
+
+  private float resizeDone = 1;
+
+  public float resizeDone() {
+    return resizeDone;
+  }
+
+  public Element resizeDone(float factor) {
+    resizeDone = factor;
+    return this;
+  }
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
+  protected void possibleImageResizeOrCallback(Image image) {
+    float factor = 1;
+    if (Settings.ImageCallback != null) {
+      Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
+      if (!contentResized.empty()) {
+        image.updateContent(contentResized);
+      }
+    } else {
+      factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
+      if (factor > 0.1 && factor != 1 && factor != resizeDone()) {
+        SXOpenCV.cvResize(image.getContent(), factor, Image.Interpolation.CUBIC);
+        image.resizeDone(factor);
+      }
+    }
+  }
 
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
@@ -323,8 +408,7 @@ public abstract class Element {
       }
       return content;
     }
-    Mat mat = Image.ImageCache.get(imageURL);
-    return mat;
+    return Image.ImageCache.get(imageURL);
   }
 
   public Mat cloneContent() {
@@ -333,6 +417,14 @@ public abstract class Element {
 
   public void setContent(Mat mat) {
     content = mat;
+  }
+
+  public void updateContent(Mat mat) {
+    if (null == imageURL) {
+      content = mat;
+    } else {
+      Image.ImageCache.put(imageURL, mat);
+    }
   }
 
   protected void copyElementContent(Element element) {
@@ -533,6 +625,10 @@ public abstract class Element {
     if (null != problem) {
       terminate("url: problem with file: %s (%s)", fileName, problem);
     }
+  }
+
+  public boolean hasURL() {
+    return null != imageURL;
   }
 
   private URL imageURL = null;
@@ -1457,6 +1553,9 @@ public abstract class Element {
       Image image = new Image(target);
       if (!image.isValid()) {
         return null;
+      }
+      if (image.hasURL()) {
+        possibleImageResizeOrCallback(image);
       }
       Mat mask = new Mat();
       Mat what = image.getContent();

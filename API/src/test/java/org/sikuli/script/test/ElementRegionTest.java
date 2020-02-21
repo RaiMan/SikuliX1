@@ -116,7 +116,7 @@ public class ElementRegionTest extends SXTest {
   public void test250_RegionFind() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     try {
@@ -136,7 +136,7 @@ public class ElementRegionTest extends SXTest {
   public void test251_RegionFindFailed() {
     testIntro();
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     String error = "";
@@ -161,7 +161,7 @@ public class ElementRegionTest extends SXTest {
     waitBefore = 2;
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     try {
@@ -181,7 +181,7 @@ public class ElementRegionTest extends SXTest {
   public void test260_RegionFindTrans() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     try {
@@ -201,7 +201,7 @@ public class ElementRegionTest extends SXTest {
   public void test261_RegionFindMask() {
     testIntro();
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewFind = true;
+    Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     try {
