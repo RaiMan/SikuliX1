@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ElementTestRegion extends SXTest {
+public class ElementRegionTest extends SXTest {
 
   @Before
   public void setUp() {

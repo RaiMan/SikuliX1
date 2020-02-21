@@ -21,7 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ElementTestBasics extends SXTest {
+public class ElementBasicsTest extends SXTest {
 
   @Before
   public void setUp() {

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ElementTestImage extends SXTest {
+public class ElementImageTest extends SXTest {
 
   @Before
   public void setUp() {
