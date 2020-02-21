@@ -1684,11 +1684,7 @@ public class Region extends Element {
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
     if (Settings.NewFind) {
-      Debug timer = Debug.startTimer("Region::startingWait");
-      Image imgRegion = getImage();
-      imgRegion.onScreen(true);
-      timer.end();
-      return imgRegion.wait(target, timeout);
+      return super.wait(target, timeout);
     }
     lastMatch = null;
     String shouldAbort = "";
@@ -1768,11 +1764,7 @@ public class Region extends Element {
    */
   public <PSI> Match find(PSI target) throws FindFailed {
     if (Settings.NewFind) {
-      Debug timer = Debug.startTimer("Region::startingFind");
-      Image imgRegion = getImage();
-      imgRegion.onScreen(true);
-      timer.end();
-      return imgRegion.find(target);
+      return super.find(target);
     }
     Image img = Element.getImage(target);
     lastMatch = null;
@@ -1956,6 +1948,9 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+    if (Settings.NewFind) {
+      return super.findAll(target);
+    }
     lastMatches = null;
     RepeatableFindAll rf = new RepeatableFindAll(target, null);
     Image img = rf._image;

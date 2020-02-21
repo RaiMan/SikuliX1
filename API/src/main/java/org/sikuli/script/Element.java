@@ -1417,7 +1417,8 @@ public abstract class Element {
     if (!isValid()) {
       return null;
     }
-    Mat where = getImage().getContent();
+    long startFind = new Date().getTime();
+    long startSearch, searchTime;
     Match matchResult = null;
     Image image = new Image(target);
     if (!image.isValid()) {
@@ -1437,7 +1438,10 @@ public abstract class Element {
     long before = new Date().getTime();
     long waitUntil = before + (int) (timeout * 1000);
     while (true) {
+      Mat where = getImage().getContent();
+      startSearch = new Date().getTime();
       matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
+      searchTime = new Date().getTime() - startSearch;
       if (matchResult != null || timeout < 0.01) {
         break;
       }
@@ -1447,7 +1451,8 @@ public abstract class Element {
       waitAfterScan(before, waitUntil);
       before = new Date().getTime();
     }
-    return Match.createFromResult(image, matchResult);
+    long findTime = new Date().getTime() - startFind;
+    return Match.createFromResult(image, matchResult, findTime, searchTime);
   }
   //</editor-fold>
 
