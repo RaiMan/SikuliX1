@@ -1,4 +1,5 @@
 house = "house_shot.png"
+housex2 = "house_shot_mac.png"
 house1 = "house1.png"
 house2 = "house2.png"
 houseT = "houseTx.png"
