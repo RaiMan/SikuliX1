@@ -181,8 +181,8 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
     if (isOnScreen()) {
       onScreen = String.format(" On(%s) ", getScreen().getID());
     }
-    return String.format(message + onScreen + "S(%.2f)]", x, y, w, h,
-            ((float) Math.round(score() * 10000))/100);
+    return String.format(message + onScreen + "S(%.2f) (%d, %d)]", x, y, w, h,
+            ((float) Math.round(score() * 10000))/100, lastFindTime, lastSearchTime);
   }
   //</editor-fold>
 
@@ -373,7 +373,7 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
     this.result = minMax;
   }
 
-  public static Match createFromResult(Image image, Match matchResult) {
+  public static Match createFromResult(Image image, Match matchResult, long findTime, long searchTime) {
     Match match = null;
     if (matchResult != null) {
       match = new Match();
@@ -385,6 +385,8 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
       match.offset(image.offset());
       match.setImage(image);
       match.onScreen(image.isOnScreen());
+      match.lastFindTime = findTime;
+      match.lastSearchTime = searchTime;
     }
     return match;
   }
