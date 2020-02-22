@@ -181,6 +181,38 @@ public class ElementRegionTest extends SXTest {
   }
 
   @Test
+  public void test253_RegionFindAll() {
+    testIntro(testBase);
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.NewAPI = true;
+    Region reg = new Screen();
+    Iterator<Match> matches = null;
+//    Match matches = null;
+//    List<Match>  matches = null;
+    int matchCount = 0;
+    try {
+//      matches = reg.findAll(testName).asMatch();
+      matches = reg.findAll(testName);
+    } catch (FindFailed findFailed) {
+    }
+    Match match = null;
+//    matchCount = matches.size();
+//    int matchCount = 0;
+    while (matches.hasNext()) {
+      matchCount++;
+      match = matches.next();
+      if (showImage) {
+        match.highlight();
+      }
+    }
+    if (showImage) {
+      Highlight.closeAll(3);
+    }
+    testOutro("%s in %s is %s (%d)", testName, reg, match, matchCount);
+    Assert.assertNotNull("Not Found!", match);
+  }
+
+  @Test
   public void test260_RegionFindTrans() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
@@ -202,13 +234,34 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test261_RegionFindMask() {
-    testIntro();
+    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
     Region reg = new Screen();
     Match match = null;
     try {
       Image imageMasked = new Image(testName).mask(testNameMask);
+      match = reg.find(imageMasked);
+    } catch (FindFailed findFailed) {
+    }
+    if (null != match) {
+      if (showImage) {
+        match.highlight(2);
+      }
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
+  }
+
+  @Test
+  public void test262_RegionFindIsMasked() {
+    testIntro(testBase);
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.NewAPI = true;
+    Region reg = new Screen();
+    Match match = null;
+    try {
+      Image imageMasked = new Image(testNameMask).mask();
       match = reg.find(imageMasked);
     } catch (FindFailed findFailed) {
     }

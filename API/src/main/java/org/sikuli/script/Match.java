@@ -4,11 +4,14 @@
 package org.sikuli.script;
 
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Range;
+import org.opencv.core.Scalar;
 import org.sikuli.script.support.IScreen;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.Iterator;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -23,9 +26,10 @@ import java.util.function.Consumer;
  * <li>the found text {@link #getText()} in case of text find ops</li>
  * </ul>
  */
-public class Match extends Region implements Iterator<Match>, Comparable<Match> {
+public class Match extends Region implements Matches, Comparable<Match> {
 
   //<editor-fold desc="00 instance">
+
   /**
    * creates a Match on primary screen as (0, 0, 1, 1)
    */
@@ -155,7 +159,7 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
     }
     Match that = (Match) oThat;
     return x == that.x && y == that.y && w == that.w && h == that.h
-            && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
+        && Math.abs(simScore - that.simScore) < 1e-5 && getTarget().equals(that.getTarget());
   }
 
   public String toStringLong() {
@@ -183,14 +187,15 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
     }
     String time = "";
     if (lastFindTime > 0) {
-      time = String.format(" (%d, %d)",lastFindTime, lastSearchTime);
+      time = String.format(" (%d, %d)", lastFindTime, lastSearchTime);
     }
     return String.format(message + onScreen + "S(%.2f)%s]", x, y, w, h,
-            ((float) Math.round(score() * 10000))/100, time);
+        ((float) Math.round(score() * 10000)) / 100, time);
   }
   //</editor-fold>
 
   //<editor-fold desc="01 similarity">
+
   /**
    * the match score
    *
@@ -366,15 +371,27 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
   }
   //</editor-fold>
 
-  //<editor-fold desc="10 Iterator Match">
-  private Core.MinMaxLocResult result = null;
+  //<editor-fold desc="20 Iterator basics">
+  private Mat result = null;
 
-  public Match(Point point, double score, Core.MinMaxLocResult minMax) {
+  double bestScore = 0;
+  double meanScore = 0;
+  double stdDevScore = 0;
+
+  private double calcStdDev(List<Double> doubles, double mean) {
+    double stdDev = 0;
+    for (double doubleVal : doubles) {
+      stdDev += (doubleVal - mean) * (doubleVal - mean);
+    }
+    return Math.sqrt(stdDev / doubles.size());
+  }
+
+  public Match(Point point, double score, Mat result) {
     this();
     this.x = point.x;
     this.y = point.y;
-    this.simScore =score;
-    this.result = minMax;
+    this.simScore = score;
+    this.result = result;
   }
 
   public static Match createFromResult(Image image, Match matchResult, long findTime, long searchTime) {
@@ -391,18 +408,9 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
       match.onScreen(image.isOnScreen());
       match.lastFindTime = findTime;
       match.lastSearchTime = searchTime;
+      match.result = matchResult.result;
     }
     return match;
-  }
-
-  @Override
-  public boolean hasNext() {
-    return false;
-  }
-
-  @Override
-  public Match next() {
-    return null;
   }
 
   @Override
@@ -413,6 +421,110 @@ public class Match extends Region implements Iterator<Match>, Comparable<Match> 
   @Override
   public void forEachRemaining(Consumer<? super Match> action) {
 
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="21 Iterator iterate">
+  private Core.MinMaxLocResult resultMinMax = null;
+
+  private double currentScore = -1;
+  double targetScore = -1;
+  double lastScore = -1;
+  double scoreMeanDiff = -1;
+  int matchCount = 0;
+
+  private int currentX = -1;
+  private int currentY = -1;
+  private int targetW = -1;
+  private int targetH = -1;
+  private int marginX = -1;
+  private int marginY = -1;
+
+  @Override
+  public boolean hasNext() {
+    resultMinMax = Core.minMaxLoc(result);
+    currentScore = resultMinMax.maxVal;
+    currentX = (int) resultMinMax.maxLoc.x;
+    currentY = (int) resultMinMax.maxLoc.y;
+    if (lastScore < 0) {
+      lastScore = currentScore;
+      targetScore = image.similarity();
+      targetW = image.w;
+      targetH = image.h;
+      marginX = (int) (targetW * 0.8);
+      marginY = (int) (targetH * 0.8);
+      matchCount = 0;
+    }
+    boolean isMatch = false;
+    if (currentScore > targetScore) {
+      if (matchCount == 0) {
+        isMatch = true;
+      } else if (matchCount == 1) {
+        scoreMeanDiff = lastScore - currentScore;
+        isMatch = true;
+      } else {
+        double scoreDiff = lastScore - currentScore;
+        if (scoreDiff <= (scoreMeanDiff + 0.01)) { // 0.005
+          scoreMeanDiff = ((scoreMeanDiff * matchCount) + scoreDiff) / (matchCount + 1);
+          isMatch = true;
+        }
+      }
+    }
+    return isMatch;
+  }
+
+  @Override
+  public Match next() {
+    Match match = null;
+    if (hasNext()) {
+      match = new Match(currentX, currentY, targetW, targetH, currentScore, null);
+      matchCount++;
+      lastScore = currentScore;
+      //int margin = getPurgeMargin();
+      Range rangeX = new Range(Math.max(currentX - marginX, 0), Math.min(currentX + marginX, result.width()));
+      Range rangeY = new Range(Math.max(currentY - marginY, 0), Math.min(currentY + marginY, result.height()));
+      result.colRange(rangeX).rowRange(rangeY).setTo(new Scalar(0f));
+    }
+    return match;
+  }
+
+  private int getPurgeMargin() {
+    if (currentScore < 0.95) {
+      return 4;
+    } else if (currentScore < 0.85) {
+      return 8;
+    } else if (currentScore < 0.71) {
+      return 16;
+    }
+    return 2;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="025 as List / Match">
+  @Override
+  public List<Match> asList() {
+    if (hasNext()) {
+      java.util.List<Match> matches = new ArrayList<Match>();
+      java.util.List<Double> scores = new ArrayList<>();
+      while (true) {
+        Match match = next();
+        if (SX.isNull(match)) {
+          break;
+        }
+        meanScore = (meanScore * matches.size() + match.score()) / (matches.size() + 1);
+        bestScore = Math.max(bestScore, match.score());
+        matches.add(match);
+        scores.add(match.score());
+      }
+      stdDevScore = calcStdDev(scores, meanScore);
+      return matches;
+    }
+    return null;
+  }
+
+  @Override
+  public Match asMatch() {
+    return this;
   }
   //</editor-fold>
 }

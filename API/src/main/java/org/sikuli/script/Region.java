@@ -1947,7 +1947,8 @@ public class Region extends Element {
    * @return All elements matching
    * @throws FindFailed if the Find operation failed
    */
-  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+//  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+  public <PSI> Matches findAll(PSI target) throws FindFailed {
     if (Settings.NewAPI) {
       return super.findAll(target);
     }
@@ -2372,7 +2373,7 @@ public class Region extends Element {
    * Match findAll( Pattern/String/Image ) finds all the given pattern on the screen and returns the best matches
    * without waiting.
    */
-  private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) {
+  private <PSI> Matches doFindAll(PSI ptn, RepeatableFindAll repeating) {
     boolean findingText = false;
     Finder finder = null;
     String someText = "";
@@ -2522,7 +2523,7 @@ public class Region extends Element {
   private class RepeatableFindAll extends Repeatable {
 
     Object _target;
-    Iterator<Match> _matches = null;
+    Matches _matches = null;
     Finder _finder = null;
     Image _image = null;
 
@@ -2535,7 +2536,7 @@ public class Region extends Element {
       }
     }
 
-    public Iterator<Match> getMatches() {
+    public Matches getMatches() {
       return _matches;
     }
 

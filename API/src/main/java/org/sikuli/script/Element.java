@@ -687,7 +687,7 @@ public abstract class Element {
   protected String sourceClass = "";
 
   protected Match lastMatch = null;
-  protected Iterator<Match> lastMatches = null;
+  protected Matches lastMatches = null;
 
   //TODO need to be cloned?
   protected void copyMatchAttributes(Element element) {
@@ -1504,7 +1504,7 @@ public abstract class Element {
     return doFind(target);
   }
 
-  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+  public <PSI> Matches findAll(PSI target) throws FindFailed {
     return doFind(target, FINDALL, 0);
   }
 
@@ -1564,14 +1564,20 @@ public abstract class Element {
       }
       Mat mask = new Mat();
       Mat what = image.getContent();
-      if (what.channels() == 4) {
-        List<Mat> mats = SXOpenCV.extractMask(what, true);
+      if (image.isMasked()) {
+        List<Mat> mats = SXOpenCV.extractMask(what, false);
         what = mats.get(0);
         mask = mats.get(1);
-      }
-      if (image.hasMask()) {
-        List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
-        mask = mats.get(1);
+      } else {
+        if (what.channels() == 4) {
+          List<Mat> mats = SXOpenCV.extractMask(what, true);
+          what = mats.get(0);
+          mask = mats.get(1);
+        }
+        if (image.hasMask()) {
+          List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
+          mask = mats.get(1);
+        }
       }
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);

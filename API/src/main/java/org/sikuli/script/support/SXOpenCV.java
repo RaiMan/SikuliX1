@@ -323,9 +323,9 @@ public class SXOpenCV {
     if (maxVal > similarity) {
       Point point = new Point((int) minMax.maxLoc.x, (int) minMax.maxLoc.y);
       if (!findAll) {
-        minMax = null;
+        result = null;
       }
-      return new Match(point, maxVal, minMax);
+      return new Match(point, maxVal, result);
     }
     return null;
   }

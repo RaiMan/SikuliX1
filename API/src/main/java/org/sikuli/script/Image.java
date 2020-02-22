@@ -342,14 +342,31 @@ public class Image extends Element {
       offset(((Image) source).offset());
       waitAfter = ((Image) source).waitAfter();
       maskImage = ((Image) source).getMask();
+      isMasked = ((Image) source).isMasked();
     }
   }
 
   Image maskImage = null;
 
-  public <SUFEBMP> Image mask(SUFEBMP what) {
-    maskImage = new Image(what, Element.asMaskImage());
+  public <SUFEBMP> Image mask(SUFEBMP what) {   //TODO allow a color other than black
+    Image mImage = new Image(what, Element.asMaskImage());
+    if (mImage.getSize().equals(getSize())) {
+      maskImage = mImage;
+    } else {
+      terminate("mask: must be same size: image: %s mask: %s", this, mImage);
+    }
     return this;
+  }
+
+  public Image mask() {
+    isMasked = true;
+    return this;
+  }
+
+  private boolean isMasked = false;
+
+  boolean isMasked() {
+    return isMasked;
   }
 
   boolean hasMask() {

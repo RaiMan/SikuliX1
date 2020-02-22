@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.regex.Matcher;
 
-public class Finder implements Iterator<Match> {
+public class Finder implements Matches {
 
   //TODO needed? currentMatchIndex
   private int currentMatchIndex;
@@ -443,30 +443,6 @@ public class Finder implements Iterator<Match> {
     return match;
   }
 
-  /*
-    public Match next() {
-      Match match = null;
-      if (hasNext()) {
-        FindResult fr = _results.get(_cur_result_i++);
-        IScreen parentScreen = null;
-        if (screenFinder && _region != null) {
-          parentScreen = _region.getScreen();
-        }
-        match = new Match(fr, parentScreen);
-        match.setOnScreen(screenFinder);
-        fr.delete();
-        if (_region != null) {
-          match = _region.toGlobalCoord(match);
-        }
-        if (_pattern != null) {
-          Location offset = _pattern.getTargetOffset();
-          match.setTargetOffset(offset);
-        }
-        match.setImage(_image);
-      }
-      return match;
-    }
-  */
 
   @Override
   public void remove() {
@@ -478,6 +454,17 @@ public class Finder implements Iterator<Match> {
     _results = null;
     _pattern = null;
   }
+
+  @Override
+  public Match asMatch() {
+    return null;
+  }
+
+  @Override
+  public List<Match> asList() {
+    return null;
+  }
+
 //</editor-fold>
 
   public static class Finder2 {
