@@ -106,7 +106,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     if (showImage) {
-      Highlight.closeAll();
+      Highlight.closeAll(3);
     }
     testOutro("%s in %s is %s (%d)", testName, reg, match, matchCount);
     Assert.assertNotNull("Not Found!", match);
