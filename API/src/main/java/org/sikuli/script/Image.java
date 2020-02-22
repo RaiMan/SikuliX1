@@ -75,6 +75,9 @@ public class Image extends Element {
   public <SUFEBMP> Image(SUFEBMP what, String name) {
     sourceClass = what.getClass().getSimpleName();
     onScreen(false);
+    if (!name.isEmpty()) {
+      setName(name);
+    }
     if (what instanceof Pattern) {
       init((Pattern) what);
     } else if (what instanceof String) {

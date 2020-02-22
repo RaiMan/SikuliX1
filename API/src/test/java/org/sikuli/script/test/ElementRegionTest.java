@@ -69,7 +69,7 @@ public class ElementRegionTest extends SXTest {
     Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
-  @Ignore
+  @Test
   public void test211_RegionFindMaskOld() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
@@ -200,7 +200,7 @@ public class ElementRegionTest extends SXTest {
     Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
-  @Ignore
+  @Test
   public void test261_RegionFindMask() {
     testIntro();
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());

@@ -509,7 +509,7 @@ public abstract class Element {
         matOfByte.fromArray(bytes);
         Mat content = Imgcodecs.imdecode(matOfByte, -1);
         if (isMaskImage()) {
-          List<Mat> mats = SXOpenCV.extractMask(getContent(), false);
+          List<Mat> mats = SXOpenCV.extractMask(content, false);
           content = mats.get(1);
         }
         if (!isFakeImage()) {
