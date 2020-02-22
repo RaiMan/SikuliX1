@@ -1544,6 +1544,7 @@ public abstract class Element {
     if (!isValid()) {
       return null;
     }
+    long startFind = new Date().getTime();
     Mat where = new Mat();
     if (!isOnScreen() && getContent().channels() == 4) {
       List<Mat> mats = SXOpenCV.extractMask(getContent(), true);
@@ -1551,7 +1552,6 @@ public abstract class Element {
     }
     Match match = null;
     while (true) {
-      long startFind = new Date().getTime();
       long startSearch, searchTime;
       Match matchResult;
       String shouldAbort = "";
@@ -1575,6 +1575,9 @@ public abstract class Element {
       }
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
+      if (!isOnScreen() && where.empty()) {
+        where = getImage().getContent();
+      }
       while (true) {
         if (isOnScreen()) {
           where = getImage().getContent();
@@ -1601,6 +1604,7 @@ public abstract class Element {
           //TODO Find Failed: RepeatFind(target, img)
           if (image.isRecaptured()) {
           }
+          startFind = new Date().getTime();
           continue;
         }
         if (!shouldAbort.isEmpty()) {
