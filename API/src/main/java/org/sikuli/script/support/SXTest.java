@@ -52,7 +52,10 @@ public class SXTest {
     HighGui.waitKey(3000);
   }
 
-  public JFrame createFrame(String imageName) {
+  public JFrame createFrame(JFrame givenFrame, String imageName) {
+    if (null != givenFrame) {
+      givenFrame.dispose();
+    }
     JFrame frame = new JFrame();
     frame.setAlwaysOnTop(true);
     frame.setUndecorated(true);
@@ -104,7 +107,11 @@ public class SXTest {
       int pause = 1;
       String imageName = (String) args[0];
       if (null == defaultFrame || !imageName.equals(defaultFrameImage)) {
-        defaultFrame = createFrame((String) args[0]);
+        if (null != defaultFrame) {
+          defaultFrame.dispose();
+        }
+        defaultFrameImage = (String) args[0];
+        defaultFrame = createFrame(defaultFrame, defaultFrameImage);
         pause = 2;
       }
       new Thread(new Runnable() {
@@ -133,6 +140,10 @@ public class SXTest {
       showCV((Image) args[0]);
     }
     Debug.logp(duration + " " + methodName + ": " + message, args);
+  }
+
+  public boolean checkMatch(Match match, double score) {
+    return match != null && match.score() > score;
   }
 
   public void test900_Template() {

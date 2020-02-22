@@ -47,6 +47,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Test
@@ -65,6 +66,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Ignore
@@ -84,6 +86,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Test
@@ -129,7 +132,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
-    Assert.assertNotNull("Not Found!", match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Test
@@ -174,7 +177,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
-    Assert.assertNotNull("Not Found!", match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Test
@@ -194,7 +197,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testNameTrans, reg, match);
-    Assert.assertNotNull("Not Found!", match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Ignore
@@ -215,7 +218,7 @@ public class ElementRegionTest extends SXTest {
       }
     }
     testOutro("%s in %s is %s", testName, reg, match);
-    Assert.assertNotNull("Not Found!", match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
   }
 
   @Test
