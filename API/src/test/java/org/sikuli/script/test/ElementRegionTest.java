@@ -191,8 +191,9 @@ public class ElementRegionTest extends SXTest {
 //    List<Match>  matches = null;
     int matchCount = 0;
     try {
-//      matches = reg.findAll(testName).asMatch();
       matches = reg.findAll(testName);
+//      matches = reg.findAll(testName).asMatch();
+//      matches = reg.findAll(testName).asList();
     } catch (FindFailed findFailed) {
     }
     Match match = null;
