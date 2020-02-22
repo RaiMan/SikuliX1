@@ -25,6 +25,7 @@ public class SXTest {
 
   public static long setUpTime = 0;
   public static JFrame defaultFrame = null;
+  public static String defaultFrameImage = null;
   public static long waitBefore = 0;
 
   public static String testBase = "house_shot";
@@ -100,7 +101,7 @@ public class SXTest {
   public void testIntro(Object... args) {
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
     if (args.length > 0 && args[0] instanceof String) {
-      defaultFrame = createFrame(testBase);
+      defaultFrame = createFrame((String) args[0]);
       new Thread(new Runnable() {
         @Override
         public void run() {
@@ -110,7 +111,7 @@ public class SXTest {
           }
         }
       }).start();
-      RunTime.pause(1);
+      RunTime.pause(3);
     }
     start = new Date().getTime();
   }
