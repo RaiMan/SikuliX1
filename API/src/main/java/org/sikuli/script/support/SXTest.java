@@ -127,6 +127,7 @@ public class SXTest {
       defaultFrame.setVisible(false);
       RunTime.pause(1);
     }
+    waitBefore = 0;
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
     if (args.length > 0 && args[0] instanceof Image) {
       showCV((Image) args[0]);

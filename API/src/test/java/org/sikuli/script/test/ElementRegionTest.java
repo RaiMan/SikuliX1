@@ -188,11 +188,9 @@ public class ElementRegionTest extends SXTest {
       match = reg.find(testNameTrans);
     } catch (FindFailed findFailed) {
     }
-    if (showImage) {
-      if (null != match) {
+    if (null != match) {
+      if (showImage) {
         match.highlight(2);
-      } else {
-        RunTime.pause(1);
       }
     }
     testOutro("%s in %s is %s", testNameTrans, reg, match);
