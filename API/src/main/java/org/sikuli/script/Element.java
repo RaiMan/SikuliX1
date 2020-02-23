@@ -6,8 +6,7 @@ package org.sikuli.script;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -16,6 +15,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 
 import java.awt.*;
+import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -535,6 +535,52 @@ public abstract class Element {
   }
 
   private Mat content = SXOpenCV.newMat();
+
+  private double stdDev = -1;
+
+  public void stdDev(double value) {
+    stdDev = value;
+  }
+
+  private double mean = -1;
+
+  public void mean(double value) {
+    mean = value;
+  }
+
+  private Color meanColor = null;
+
+  public void meanColor(Color color) {
+    meanColor = color;
+  }
+
+  private boolean plain = false;
+
+  public boolean plain() {
+    return plain;
+  }
+
+  public void plain(boolean state) {
+    plain = state;
+  }
+
+  private boolean black = false;
+
+  public void black(boolean state) {
+    black = state;
+  }
+
+  private boolean white = false;
+
+  public void white(boolean state) {
+    white = state;
+  }
+
+  private boolean gray = false;
+
+  public void gray(boolean state) {
+    gray = state;
+  }
 
   public double diffPercentage(Image otherImage) {
     if (SX.isNull(otherImage)) {
@@ -1531,6 +1577,14 @@ public abstract class Element {
     return doFind(target, false, timeout);
   }
 
+  public <SUFEBMP> List<Match> findChanges(SUFEBMP image) {
+    List<Match> changes = new ArrayList<>();
+    if (SX.isNotNull(image)) {
+      Image changedImage = new Image(image);
+      changes = SXOpenCV.doFindChanges((Image) this, changedImage);
+    }
+    return changes;
+  }
   //</editor-fold>
 
   //<editor-fold desc="029 find image private">
@@ -1579,6 +1633,7 @@ public abstract class Element {
           mask = mats.get(1);
         }
       }
+      SXOpenCV.setAttributes(image, what, mask);
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
       if (!isOnScreen() && where.empty()) {
@@ -1589,7 +1644,7 @@ public abstract class Element {
           where = getImage().getContent();
         }
         startSearch = new Date().getTime();
-        matchResult = SXOpenCV.doFindMatch(where, what, mask, image.similarity(), findAll);
+        matchResult = SXOpenCV.doFindMatch(where, what, mask, image, findAll);
         searchTime = new Date().getTime() - startSearch;
         if (matchResult != null || timeout < 0.01) {
           break;

@@ -10,9 +10,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.FindFailed;
-import org.sikuli.script.Image;
-import org.sikuli.script.Match;
+import org.sikuli.script.*;
 import org.sikuli.script.support.SXTest;
 
 import java.net.URL;
@@ -68,6 +66,18 @@ public class ElementImageTest extends SXTest {
     } catch (FindFailed findFailed) {
     }
     testOutro("%s in %s is %s", testName, shot, match);
+  }
+
+  @Test
+  public void test120_ImageFindChanges() { //TODO
+    testIntro();
+    Image original = new Image("testOriginal");
+    Image changed = new Image("testChanged");
+    List<Match> changes = original.findChanges(changed);
+    for (Match change : changes) {
+      //change.getInset(change);
+    }
+    testOutro("%s == %s changes %d", original, changed, changes.size());
   }
 
   @Test
