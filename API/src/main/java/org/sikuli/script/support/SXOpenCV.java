@@ -196,9 +196,9 @@ public class SXOpenCV {
     for (int n = 0; n < channels; n++) {
       listMat.add(mat);
     }
-    Mat mResult = new Mat();
-    Core.merge(listMat, mResult);
-    return mResult;
+    Mat result = new Mat();
+    Core.merge(listMat, result);
+    return result;
   }
 
   public static List<Mat> extractMask(Mat target, boolean onlyChannel4) {
@@ -322,7 +322,24 @@ public class SXOpenCV {
       downSizeFactor = Math.max(1.0, Math.min(downW, downH));
     }
     Mat result = new Mat();
-    if (mask.empty()) {
+    Mat finalWhere = where;
+    if (image.gray()) {
+      Imgproc.cvtColor(where, finalWhere, Imgproc.COLOR_BGR2GRAY);
+    }
+    if (image.plain()) {
+      Mat finalWherePlain = finalWhere;
+      Mat finalWhatPlain = what;
+      if (image.black()) {
+        Core.bitwise_not(finalWhere, finalWherePlain);
+        Core.bitwise_not(what, finalWhatPlain);
+      }
+      if (mask.empty()) {
+        Imgproc.matchTemplate(finalWherePlain, finalWhatPlain, result, Imgproc.TM_SQDIFF_NORMED);
+      } else {
+        Imgproc.matchTemplate(finalWherePlain, what, result, Imgproc.TM_SQDIFF_NORMED, mask);
+      }
+      Core.subtract(Mat.ones(result.size(), CvType.CV_32F), result, result);
+    } else if (mask.empty()) {
       Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
     } else {
       Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCORR_NORMED, mask);

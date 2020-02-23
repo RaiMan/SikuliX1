@@ -570,6 +570,10 @@ public abstract class Element {
     black = state;
   }
 
+  public boolean black() {
+    return black;
+  }
+
   private boolean white = false;
 
   public void white(boolean state) {
@@ -580,6 +584,10 @@ public abstract class Element {
 
   public void gray(boolean state) {
     gray = state;
+  }
+
+  public boolean gray() {
+    return gray;
   }
 
   public double diffPercentage(Image otherImage) {
