@@ -456,32 +456,6 @@ public abstract class Element {
   private static final String MASK_IMAGE = "Internal-Mask-Image";
   static final String OK = "";
 
-  protected static String reload(String fpImage) {
-    URL url = evalURL(new File(fpImage));
-    if (url != null) {
-      Image image = new Image();
-      image.asFakeImage();
-      return image.createContent(url); //TODO revise FakeImage hack
-    }
-    return OK;
-  }
-
-  protected static URL evalURL(File imagefile) {
-    URL url = null;
-    if (imagefile.isAbsolute() || imagefile.getPath().startsWith("\\")) {
-      try {
-        url = imagefile.toURI().toURL();
-      } catch (MalformedURLException e) {
-      }
-    } else {
-      url = ImagePath.find(imagefile.getPath());
-    }
-    if (url == null || !new File(url.getPath()).exists()) {
-      return null;
-    }
-    return url;
-  }
-
   protected String createContent(URL url) {
     String error = "";
     if ("file".equals(url.getProtocol())) {
@@ -534,8 +508,20 @@ public abstract class Element {
     return OK;
   }
 
-  private Mat content = SXOpenCV.newMat();
+  protected static String reload(String fpImage) {
+    URL url = evalURL(new File(fpImage));
+    if (url != null) {
+      Image image = new Image();
+      image.asFakeImage();
+      return image.createContent(url); //TODO revise FakeImage hack
+    }
+    return OK;
+  }
 
+  private Mat content = SXOpenCV.newMat();
+  //</editor-fold>
+
+  //<editor-fold desc="004 Fields CV-attributes">
   private double stdDev = -1;
 
   public void stdDev(double value) {
@@ -596,7 +582,9 @@ public abstract class Element {
     }
     return SXOpenCV.diffPercentage(getContent(), otherImage.getContent());
   }
+  //</editor-fold>
 
+  //<editor-fold desc="005 Fields URL, filename">
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
 
@@ -687,6 +675,22 @@ public abstract class Element {
 
   private URL imageURL = null;
 
+  protected static URL evalURL(File imagefile) {
+    URL url = null;
+    if (imagefile.isAbsolute() || imagefile.getPath().startsWith("\\")) {
+      try {
+        url = imagefile.toURI().toURL();
+      } catch (MalformedURLException e) {
+      }
+    } else {
+      url = ImagePath.find(imagefile.getPath());
+    }
+    if (url == null || !new File(url.getPath()).exists()) {
+      return null;
+    }
+    return url;
+  }
+
   public String fileName() {
     File file = file();
     return (file == null ? null : file.getAbsolutePath());
@@ -704,7 +708,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="005 Fields name, lastMatch, text...">
+  //<editor-fold desc="006 Fields name, lastMatch, text...">
   private boolean isText = false;
 
   public boolean isText() {
