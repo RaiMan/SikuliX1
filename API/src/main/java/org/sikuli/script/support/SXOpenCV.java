@@ -8,13 +8,11 @@ import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.Element;
+import org.sikuli.script.*;
 import org.sikuli.script.Image;
-import org.sikuli.script.Match;
-import org.sikuli.script.SikuliXception;
 
 import javax.imageio.ImageIO;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -198,9 +196,9 @@ public class SXOpenCV {
     for (int n = 0; n < channels; n++) {
       listMat.add(mat);
     }
-    Mat mResult = new Mat();
-    Core.merge(listMat, mResult);
-    return mResult;
+    Mat result = new Mat();
+    Core.merge(listMat, result);
+    return result;
   }
 
   public static List<Mat> extractMask(Mat target, boolean onlyChannel4) {
@@ -311,16 +309,44 @@ public class SXOpenCV {
     return (double) Core.countNonZero(mDiffAbs) / (thisGray.cols() * thisGray.rows());
   }
 
-  public static Match doFindMatch(Mat where, Mat what, Mat mask, double similarity, boolean findAll) {
+  private static boolean downSize = false;
+  private static final double minThreshhold = 1.0E-5;
+
+  public static Match doFindMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
+    if (downSize) {
+      //TODO downsizing
+      double downSizeFactor;
+      final int downSizeMinSample = 12;
+      double downW = ((double) what.width()) / downSizeMinSample;
+      double downH = ((double) what.height()) / downSizeMinSample;
+      downSizeFactor = Math.max(1.0, Math.min(downW, downH));
+    }
     Mat result = new Mat();
-    if (mask.empty()) {
+    Mat finalWhere = where;
+    if (image.gray()) {
+      Imgproc.cvtColor(where, finalWhere, Imgproc.COLOR_BGR2GRAY);
+    }
+    if (image.plain()) {
+      Mat finalWherePlain = finalWhere;
+      Mat finalWhatPlain = what;
+      if (image.black()) {
+        Core.bitwise_not(finalWhere, finalWherePlain);
+        Core.bitwise_not(what, finalWhatPlain);
+      }
+      if (mask.empty()) {
+        Imgproc.matchTemplate(finalWherePlain, finalWhatPlain, result, Imgproc.TM_SQDIFF_NORMED);
+      } else {
+        Imgproc.matchTemplate(finalWherePlain, what, result, Imgproc.TM_SQDIFF_NORMED, mask);
+      }
+      Core.subtract(Mat.ones(result.size(), CvType.CV_32F), result, result);
+    } else if (mask.empty()) {
       Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCOEFF_NORMED);
     } else {
       Imgproc.matchTemplate(where, what, result, Imgproc.TM_CCORR_NORMED, mask);
     }
     Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
     double maxVal = minMax.maxVal;
-    if (maxVal > similarity) {
+    if (maxVal > image.similarity()) {
       Point point = new Point((int) minMax.maxLoc.x, (int) minMax.maxLoc.y);
       if (!findAll) {
         result = null;
@@ -328,5 +354,117 @@ public class SXOpenCV {
       return new Match(point, maxVal, result);
     }
     return null;
+  }
+
+  public static void setAttributes(Element element, Mat content, Mat mask) {
+    if (content.channels() == 1) {
+      element.gray(true);
+    }
+
+    Mat finalContent = newMat();
+    if (mask.empty()) {
+      finalContent = content;
+    } else {
+      Core.multiply(content, mask, finalContent);
+    }
+
+    MatOfDouble pMean = new MatOfDouble();
+    MatOfDouble pStdDev = new MatOfDouble();
+    Core.meanStdDev(finalContent, pMean, pStdDev);
+
+    double sum = 0.0;
+    double[] arr = pStdDev.toArray();
+    for (
+        int i = 0;
+        i < arr.length; i++) {
+      sum += arr[i];
+    }
+
+    element.stdDev(sum);
+    element.plain(sum < minThreshhold);
+
+    sum = 0.0;
+    arr = pMean.toArray();
+    int[] cvMeanColor = new int[arr.length];
+    for (
+        int i = 0;
+        i < arr.length; i++) {
+      cvMeanColor[i] = (int) arr[i];
+      sum += arr[i];
+    }
+
+    element.mean(sum);
+
+    element.black(sum < minThreshhold && element.plain());
+
+    if (cvMeanColor.length > 1) {
+      element.white(isColorEqual(cvMeanColor, Color.WHITE));
+      element.meanColor(new Color(cvMeanColor[2], cvMeanColor[1], cvMeanColor[0]));
+    }
+  }
+
+  private static boolean isColorEqual(int[] cvColor, Color otherColor) {
+    Color col = new Color(cvColor[2], cvColor[1], cvColor[0]);
+    int r = (col.getRed() - otherColor.getRed()) * (col.getRed() - otherColor.getRed());
+    int g = (col.getGreen() - otherColor.getGreen()) * (col.getGreen() - otherColor.getGreen());
+    int b = (col.getBlue() - otherColor.getBlue()) * (col.getBlue() - otherColor.getBlue());
+    return Math.sqrt(r + g + b) < minThreshhold;
+  }
+
+  private static int toGray = Imgproc.COLOR_BGR2GRAY;
+  private static int toColor = Imgproc.COLOR_GRAY2BGR;
+  private static int gray = CvType.CV_8UC1;
+  private static int colored = CvType.CV_8UC3;
+  private static int transparent = CvType.CV_8UC4;
+
+  public static List<Match> doFindChanges(Image original, Image changed) {
+    List<Match> changes = new ArrayList<>();
+    if (changed.isValid()) {
+      int PIXEL_DIFF_THRESHOLD = 3;
+      int IMAGE_DIFF_THRESHOLD = 5;
+      Mat previousGray = SXOpenCV.newMat();
+      Mat nextGray = SXOpenCV.newMat();
+      Mat mDiffAbs = SXOpenCV.newMat();
+      Mat mDiffTresh = SXOpenCV.newMat();
+
+      Imgproc.cvtColor(original.getContent(), previousGray, toGray);
+      Imgproc.cvtColor(changed.getContent(), nextGray, toGray);
+      Core.absdiff(previousGray, nextGray, mDiffAbs);
+      Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
+
+      if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
+        Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
+        Imgproc.dilate(mDiffAbs, mDiffAbs, SXOpenCV.newMat());
+        Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
+        Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
+
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Mat mHierarchy = SXOpenCV.newMat();
+        Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        changes = contoursToRectangle(contours);
+      }
+    }
+    return changes;
+  }
+
+  private static List<Match> contoursToRectangle(List<MatOfPoint> contours) {
+    List<Match> rectangles = new ArrayList<>();
+    for (MatOfPoint contour : contours) {
+      int x1 = 99999;
+      int y1 = 99999;
+      int x2 = 0;
+      int y2 = 0;
+      List<org.opencv.core.Point> points = contour.toList();
+      for (org.opencv.core.Point point : points) {
+        int x = (int) point.x;
+        int y = (int) point.y;
+        if (x < x1) x1 = x;
+        if (x > x2) x2 = x;
+        if (y < y1) y1 = y;
+        if (y > y2) y2 = y;
+      }
+      rectangles.add((Match) new Region(x1, y1, x2 - x1, y2 - y1));
+    }
+    return rectangles;
   }
 }
