@@ -271,7 +271,7 @@ public class SX {
         } else if (PopType.POPFILE.equals(popType)) {
           File fileChoosen = new SikulixFileChooser(frame).open(title);
           returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
-        } else if (PopType.POPGENERIC.equals(popType)) {
+        } else if (PopType.POPGENERIC.equals(popType)) { //TODO allow the other button options
           returnValue = Boolean.FALSE;
           if (options instanceof String[]) {
             String[] realOptions = (String[]) options;
