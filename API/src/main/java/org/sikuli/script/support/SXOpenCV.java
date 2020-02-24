@@ -463,7 +463,7 @@ public class SXOpenCV {
         if (y < y1) y1 = y;
         if (y > y2) y2 = y;
       }
-      rectangles.add((Match) new Region(x1, y1, x2 - x1, y2 - y1));
+      rectangles.add(new Match(x1, y1, x2 - x1, y2 - y1));
     }
     return rectangles;
   }

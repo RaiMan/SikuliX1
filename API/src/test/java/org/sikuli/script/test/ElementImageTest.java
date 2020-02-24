@@ -12,6 +12,7 @@ import org.junit.runners.MethodSorters;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.SXTest;
+import org.sikuli.util.Highlight;
 
 import java.net.URL;
 import java.util.List;
@@ -69,15 +70,21 @@ public class ElementImageTest extends SXTest {
   }
 
   @Test
-  public void test120_ImageFindChanges() { //TODO
-    testIntro();
+  public void test120_ImageFindChanges() {
+    testIntro(testBase);
     Image original = new Image(testBase);
     Image changed = new Image(testChanged);
     List<Match> changes = original.findChanges(changed);
     for (Match change : changes) {
-      //change.getInset(change);
+      if (showImage) {
+        change.highlight();
+      }
     }
-    testOutro("%s == %s changes %d", original, changed, changes.size());
+    if (showImage) {
+      Highlight.closeAll(3);
+    }
+    testOutro("%s%s == %s changes %d", "", original, changed, changes.size());
+    Assert.assertTrue("Not all changes!", changes.size() == 6);
   }
 
   @Test

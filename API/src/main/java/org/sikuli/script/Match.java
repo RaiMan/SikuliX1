@@ -54,6 +54,10 @@ public class Match extends Region implements Matches, Comparable<Match> {
       init(element.x, element.y, element.w, element.h, element.getScreen());
     }
   }
+  
+  public Match(int x, int y, int w, int h) {
+    init(x, y, w, h, null);
+  }
 
   /**
    * create a Match from a region with given SimScore
