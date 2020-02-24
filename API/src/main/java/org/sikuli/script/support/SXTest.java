@@ -29,6 +29,7 @@ public class SXTest {
   public static long waitBefore = 0;
 
   public static String testBase = "house_shot";
+  public static String testChanged = "house_shot_changed";
   public static String testBaseX2 = "house_shot_mac";
   public static String testName = "house1";
   public static String testNameTrans = "houseTx";

@@ -71,8 +71,8 @@ public class ElementImageTest extends SXTest {
   @Test
   public void test120_ImageFindChanges() { //TODO
     testIntro();
-    Image original = new Image("testOriginal");
-    Image changed = new Image("testChanged");
+    Image original = new Image(testBase);
+    Image changed = new Image(testChanged);
     List<Match> changes = original.findChanges(changed);
     for (Match change : changes) {
       //change.getInset(change);
