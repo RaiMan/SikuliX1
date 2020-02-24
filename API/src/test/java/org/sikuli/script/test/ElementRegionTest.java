@@ -181,24 +181,18 @@ public class ElementRegionTest extends SXTest {
   }
 
   @Test
-  public void test253_RegionFindAll() {
+  public void test253_RegionFindAllIterator() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
     Region reg = new Screen();
     Iterator<Match> matches = null;
-//    Match matches = null;
-//    List<Match>  matches = null;
     int matchCount = 0;
     try {
       matches = reg.findAll(testName);
-//      matches = reg.findAll(testName).asMatch();
-//      matches = reg.findAll(testName).asList();
     } catch (FindFailed findFailed) {
     }
     Match match = null;
-//    matchCount = matches.size();
-//    int matchCount = 0;
     while (matches.hasNext()) {
       matchCount++;
       match = matches.next();
@@ -211,6 +205,29 @@ public class ElementRegionTest extends SXTest {
     }
     testOutro("%s in %s is %s (%d)", testName, reg, match, matchCount);
     Assert.assertNotNull("Not Found!", match);
+  }
+
+  @Test
+  public void test254_RegionFindAllList() {
+    testIntro(testBase);
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.NewAPI = true;
+    Region reg = new Screen();
+    List<Match>  matches = null;
+    int matchCount = 0;
+    try {
+      matches = reg.findAll(testName).asList();
+    } catch (FindFailed findFailed) {
+    }
+    matchCount = matches.size();
+    if (showImage) {
+      for (Match match : matches) {
+        match.highlight();
+      }
+      Highlight.closeAll(3);
+    }
+    testOutro("%s in %s found %d times", testName, reg, matchCount);
+    Assert.assertTrue("Not Found!", matchCount == 3);
   }
 
   @Test
