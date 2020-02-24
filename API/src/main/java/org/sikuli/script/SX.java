@@ -37,7 +37,7 @@ public class SX {
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
-    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE
+    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE, POPGENERIC
   }
 
   private static boolean isHeadless() {
@@ -116,6 +116,21 @@ public class SX {
       log.error("running headless: popAsk");
     } else {
       return (Boolean) doPop(PopType.POPASK, args);
+    }
+    return false;
+  }
+
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever)
+   * @return
+   */
+  public static Boolean popGeneric(Object... args) {
+    if (isHeadless()) {
+      log.error("running headless: popGeneric");
+    } else {
+      return (Boolean) doPop(PopType.POPGENERIC, args);
     }
     return false;
   }
@@ -256,6 +271,15 @@ public class SX {
         } else if (PopType.POPFILE.equals(popType)) {
           File fileChoosen = new SikulixFileChooser(frame).open(title);
           returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
+        } else if (PopType.POPGENERIC.equals(popType)) {
+          returnValue = Boolean.FALSE;
+          if (options instanceof String[]) {
+            String[] realOptions = (String[]) options;
+            int response = JOptionPane.showOptionDialog(frame, message, title,
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                realOptions, preset);
+            returnValue = response == 0 ? Boolean.TRUE : Boolean.FALSE;
+          }
         }
 
         synchronized (this) {
