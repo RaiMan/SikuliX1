@@ -1612,15 +1612,22 @@ public abstract class Element {
     }
     long startFind = new Date().getTime();
     Mat where = new Mat();
-    if (!isOnScreen() && getContent().channels() == 4) {
-      List<Mat> mats = SXOpenCV.extractMask(getContent(), true);
-      where = mats.get(0);
+    if (!isOnScreen()) {
+      if (getContent().channels() == 4) {
+        List<Mat> mats = SXOpenCV.extractMask(getContent(), true);
+        where = mats.get(0);
+      } else {
+        where = getImage().getContent();
+      }
     }
-    Match match = null;
+    long whereTime = new Date().getTime() - startFind;
+    long whatTime = 0;
+    Match match;
     while (true) {
-      long startSearch, searchTime;
+      long startSearch, searchTime, startWhat;
       Match matchResult;
       String shouldAbort = "";
+      startWhat = new Date().getTime();
       Image image = new Image(target);
       if (!image.isValid()) {
         return null;
@@ -1646,14 +1653,14 @@ public abstract class Element {
         }
       }
       SXOpenCV.setAttributes(image, what, mask);
+      whatTime = new Date().getTime() - startWhat;
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
-      if (!isOnScreen() && where.empty()) {
-        where = getImage().getContent();
-      }
       while (true) {
         if (isOnScreen()) {
+          long startWhere = new Date().getTime();
           where = getImage().getContent();
+          whereTime = new Date().getTime() - startWhere;
         }
         startSearch = new Date().getTime();
         matchResult = SXOpenCV.doFindMatch(where, what, mask, image, findAll);
@@ -1668,7 +1675,8 @@ public abstract class Element {
         before = new Date().getTime();
       }
       long findTime = new Date().getTime() - startFind;
-      match = Match.createFromResult(image, matchResult, findTime, searchTime);
+      long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
+      match = Match.createFromResult(image, matchResult, times);
       if (match == null) {
         Boolean response = handleFindFailed(target, image); //TODO Find Failed
         if (null == response) {

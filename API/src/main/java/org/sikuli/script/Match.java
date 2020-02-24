@@ -179,15 +179,26 @@ public class Match extends Region implements Matches, Comparable<Match> {
   }
 
   @Override
+  public String toStringShort() {
+    return doToString(true);
+  }
+
+  @Override
   public String toString() {
+    return doToString(false);
+  }
+
+  public String doToString(boolean asShort) {
     String message = "M[%d,%d %dx%d";
     String onScreen = " ";
     if (isOnScreen()) {
       onScreen = String.format(" On(%s) ", getScreen().getID());
     }
     String time = "";
-    if (lastFindTime > 0) {
-      time = String.format(" (%d, %d)", lastFindTime, lastSearchTime);
+    if (!asShort) {
+      if (lastFindTime > 0 && times.length == 4) {
+        time = String.format(" (%d, %d, %d, %d)", lastFindTime, lastSearchTime, times[2], times[3]);
+      }
     }
     return String.format(message + onScreen + "S(%.2f)%s]", x, y, w, h,
         ((float) Math.round(score() * 10000)) / 100, time);
@@ -350,6 +361,7 @@ public class Match extends Region implements Matches, Comparable<Match> {
   //<editor-fold desc="09 timing">
   private long lastSearchTime = -1;
   private long lastFindTime = -1;
+  private long[] times = new long[0];
 
   /**
    * INTERNAL USE
@@ -394,7 +406,7 @@ public class Match extends Region implements Matches, Comparable<Match> {
     this.result = result;
   }
 
-  public static Match createFromResult(Image image, Match matchResult, long findTime, long searchTime) {
+  public static Match createFromResult(Image image, Match matchResult, long[] times) {
     Match match = null;
     if (matchResult != null) {
       match = new Match();
@@ -406,8 +418,9 @@ public class Match extends Region implements Matches, Comparable<Match> {
       match.offset(image.offset());
       match.setImage(image);
       match.onScreen(image.isOnScreen());
-      match.lastFindTime = findTime;
-      match.lastSearchTime = searchTime;
+      match.lastFindTime = times[0];
+      match.lastSearchTime = times[1];
+      match.times = times;
       match.result = matchResult.result;
     }
     return match;
