@@ -10,7 +10,9 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.*;
+import org.sikuli.script.FindFailed;
+import org.sikuli.script.Image;
+import org.sikuli.script.Match;
 import org.sikuli.script.support.SXTest;
 import org.sikuli.util.Highlight;
 
@@ -71,7 +73,11 @@ public class ElementImageTest extends SXTest {
 
   @Test
   public void test120_ImageFindChanges() {
-    testIntro(testBase);
+    if (showImage) {
+      testIntro(testBase);
+    } else {
+      testIntro();
+    }
     Image original = new Image(testBase);
     Image changed = new Image(testChanged);
     List<Match> changes = original.findChanges(changed);
@@ -85,6 +91,25 @@ public class ElementImageTest extends SXTest {
     }
     testOutro("%s%s == %s changes %d", "", original, changed, changes.size());
     Assert.assertTrue("Not all changes!", changes.size() == 6);
+  }
+
+  @Test
+  public void test800_ImageMissing() {
+    testIntro();
+    if (showImage) {
+      String testMissing = makeImageFileName(testMissingName, true);
+      Image.setMissingPrompt();
+      Image missing = null;
+      try {
+        missing = new Image(testMissing);
+        testOutro("%screated: %s missing: %s", "", missing, testMissingName);
+        Assert.assertTrue("create missing not valid", missing.isValid());
+      } catch (Exception e) {
+        testOutro("not created missing: %s (%s)", testMissingName, e.getMessage());
+      }
+    } else {
+      testOutro("skipped: missing: %s", testMissingName);
+    }
   }
 
   @Test

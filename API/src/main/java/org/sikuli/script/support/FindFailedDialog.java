@@ -29,12 +29,12 @@ public class FindFailedDialog extends JDialog implements ActionListener {
   }
 
   public FindFailedDialog(Element target, boolean isCapture) {
+    super((JDialog) null, target.getName(), true);
     init(target, isCapture);
   }
 
   private void init(Element target, boolean isCapture) {
     this.isCapture = isCapture;
-    setModal(true);
     JPanel panel = new JPanel();
     panel.setLayout(new BorderLayout());
     Component targetComp = createTargetComponent(target);
@@ -84,7 +84,7 @@ public class FindFailedDialog extends JDialog implements ActionListener {
     return _response;
   }
 
-  <PatternString> Component createTargetComponent(Element img) {
+  Component createTargetComponent(Element img) {
     JLabel cause = null;
     JPanel dialog = new JPanel();
     dialog.setLayout(new BorderLayout());

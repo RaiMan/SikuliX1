@@ -149,7 +149,9 @@ public class Image extends Element {
       error = String.format("init: %s file not found or path not valid", file);
     }
     if (!error.isEmpty()) {
-      //TODO image missing
+      if (!handleImageMissing(file)) {
+        terminate(error);
+      }
     }
   }
 

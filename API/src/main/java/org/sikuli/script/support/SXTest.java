@@ -6,6 +6,7 @@ package org.sikuli.script.support;
 
 import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.Image;
@@ -34,6 +35,7 @@ public class SXTest {
   public static String testName = "house1";
   public static String testNameTrans = "houseTx";
   public static String testNameMask = "houseTm";
+  public static String testMissingName = "missing";
   public static String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
 
   public void showCV(Image image) {
@@ -145,6 +147,12 @@ public class SXTest {
 
   public boolean checkMatch(Match match, double score) {
     return match != null && match.score() > score;
+  }
+
+  public String makeImageFileName(String name, boolean delete) {
+    File file = new File(bundlePath, Element.getValidImageFilename(name));
+    if (delete) FileManager.deleteFileOrFolder(file);
+    return file.getAbsolutePath();
   }
 
   public void test900_Template() {

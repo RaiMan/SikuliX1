@@ -6,7 +6,8 @@ package org.sikuli.script;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.opencv.core.*;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
@@ -15,7 +16,6 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 
 import java.awt.*;
-import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -1013,7 +1013,7 @@ public abstract class Element {
     return !ending.isEmpty() && validEndings.contains(ending.toLowerCase());
   }
 
-  protected static String getValidImageFilename(String fname) {
+  public static String getValidImageFilename(String fname) {
     if (isValidImageFilename(fname)) {
       return fname;
     }
@@ -1395,13 +1395,61 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="016 handle image missing">
+  static FindFailedResponse missing = FindFailedResponse.ABORT;
+
+  public static void setMissingPrompt() {
+    missing = FindFailedResponse.PROMPT;
+  }
+
+  public static void setMissingAbort() {
+    missing = FindFailedResponse.ABORT;
+  }
+
   protected void setImageMissingHandler(Object handler) {
     imageMissingHandler = FindFailed.setHandler(handler, ObserveEvent.Type.MISSING);
   }
 
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
 
-  protected Boolean handleImageMissing(Element element, boolean recap) {
+  protected Boolean handleImageMissing(File imageFile) {
+    if (!(this instanceof Image)) {
+      terminate("handleImageMissing: not valid for this"); //TODO needed?
+    }
+    FindFailedResponse whatToDo = missing;
+    if (imageMissingHandler != null) {
+      ObserveEvent evt = null;
+      evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, this, this, 0);
+      ((ObserverCallBack) imageMissingHandler).missing(evt);
+      whatToDo = evt.getResponse();
+    }
+    if (FindFailedResponse.PROMPT.equals(whatToDo)) {
+      String message = "Folder: " + imageFile.getParent();
+      String title = "Image missing: " + imageFile.getName();
+      Boolean response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
+      if (response) {
+        captureImage(imageFile);
+        if (isValid()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void captureImage(File file) { //TODO: allow OK with mouse in corner (click OK steels focus)
+    SX.popup("Make the screen ready for capture." +
+        "\n\nClick OK when ready.", "Capture missing image");
+    ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
+    if (simg.isValid()) {
+      simg.getFile(file.getParent(), Element.getValidImageFilename(file.getName()));
+      Mat content = simg.getContent();
+      setSize(content);
+      url(evalURL(file));
+      Image.ImageCache.put(url(), content);
+    }
+  }
+
+  protected Boolean handleImageMissing(Element element, boolean recap) { //TODO deprecated (see handleFindFailed)
     if (!(this instanceof Image)) {
       terminate("handleImageMissing: not valid for this");
     }
@@ -1410,31 +1458,24 @@ public abstract class Element {
     ObserveEvent evt = null;
     FindFailedResponse response = findFailedResponse;
     if (!recap && imageMissingHandler != null) {
-      log(logLevel, "handleImageMissing: calling handler");
       evt = new ObserveEvent("", ObserveEvent.Type.MISSING, null, image, this, 0);
       ((ObserverCallBack) imageMissingHandler).missing(evt);
       response = evt.getResponse();
     }
     if (recap || FindFailedResponse.PROMPT.equals(response)) {
-      if (!recap) {
-        log(logLevel, "handleImageMissing: Response.PROMPT");
-      }
       response = handleFindFailedShowDialog(image, true);
     }
     if (FindFailedResponse.RETRY.equals(response)) {
-      log(logLevel, "handleImageMissing: Response.RETRY: %s", (recap ? "recapture " : "capture missing "));
       getRobotForElement().delay(500);
       ScreenImage simg = getScreen().userCapture((recap ? "recapture " : "capture missing ") + image.getName());
       if (simg != null) {
         String path = ImagePath.getBundlePath();
         if (path == null) {
-          log(-1, "handleImageMissing: no bundle path - aborting");
           return null;
         }
         simg.getFile(path, image.getName());
         image.reloadContent();
         if (image.isValid()) {
-          log(logLevel, "handleImageMissing: %scaptured: %s", (recap ? "re" : ""), image);
           Image.setIDEshouldReload(image);
           return true;
         }
@@ -1536,14 +1577,12 @@ public abstract class Element {
   }
 
   protected FindFailedResponse handleFindFailedShowDialog(Element image, boolean shouldCapture) {
-    log(logLevel, "handleFindFailedShowDialog: requested %s", (shouldCapture ? "(with capture)" : ""));
     FindFailedResponse response;
     FindFailedDialog fd = new FindFailedDialog(image, shouldCapture);
     fd.setVisible(true);
     response = fd.getResponse();
     fd.dispose();
     wait(0.5);
-    log(logLevel, "handleFindFailedShowDialog: answer is %s", response);
     return response;
   }
   //</editor-fold>
