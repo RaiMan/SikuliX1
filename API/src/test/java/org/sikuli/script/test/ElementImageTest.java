@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.FindFailed;
+import org.sikuli.script.FindFailedResponse;
 import org.sikuli.script.Image;
 import org.sikuli.script.Match;
 import org.sikuli.script.support.SXTest;
@@ -94,7 +95,7 @@ public class ElementImageTest extends SXTest {
   }
 
   @Test
-  public void test800_ImageMissing() {
+  public void test800_ImageMissingPrompt() {
     testIntro();
     if (showImage) {
       String testMissing = makeImageFileName(testMissingName, true);
@@ -109,6 +110,26 @@ public class ElementImageTest extends SXTest {
       }
     } else {
       testOutro("skipped: missing: %s", testMissingName);
+    }
+  }
+
+  @Test
+  public void test800_FindFailedPrompt() {
+    testIntro();
+    if (showImage) {
+      Image where = new Image(testBase);
+      where.setFindFailedResponse(FindFailedResponse.PROMPT);
+      String testFailed = copyImageFileName(testNameMask, "testFailed");
+      Image what = new Image(testFailed);
+      try {
+        Match match = where.find(what);
+//        testOutro("%screated: %s missing: %s", "", missing, testMissingName);
+//        Assert.assertTrue("create missing not valid", missing.isValid());
+      } catch (Exception e) {
+        testOutro("not created failing: %s (%s)", testFailed, e.getMessage());
+      }
+    } else {
+      testOutro("skipped: FindFailed prompting");
     }
   }
 

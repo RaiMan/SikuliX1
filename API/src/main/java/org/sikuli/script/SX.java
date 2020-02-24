@@ -126,13 +126,13 @@ public class SX {
    * @param args (message, title, preset, hidden = false, timeout = forever)
    * @return
    */
-  public static Boolean popGeneric(Object... args) {
+  public static Integer popGeneric(Object... args) {
     if (isHeadless()) {
       log.error("running headless: popGeneric");
     } else {
-      return (Boolean) doPop(PopType.POPGENERIC, args);
+      return (Integer) doPop(PopType.POPGENERIC, args);
     }
-    return false;
+    return -1;
   }
 
   /**
@@ -272,13 +272,13 @@ public class SX {
           File fileChoosen = new SikulixFileChooser(frame).open(title);
           returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
         } else if (PopType.POPGENERIC.equals(popType)) { //TODO allow the other button options
-          returnValue = Boolean.FALSE;
+          returnValue = 0;
           if (options instanceof String[]) {
             String[] realOptions = (String[]) options;
             int response = JOptionPane.showOptionDialog(frame, message, title,
                 JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                 realOptions, preset);
-            returnValue = response == 0 ? Boolean.TRUE : Boolean.FALSE;
+            returnValue = response;
           }
         }
 

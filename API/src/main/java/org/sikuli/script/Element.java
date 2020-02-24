@@ -1425,8 +1425,8 @@ public abstract class Element {
     if (FindFailedResponse.PROMPT.equals(whatToDo)) {
       String message = "Folder: " + imageFile.getParent();
       String title = "Image missing: " + imageFile.getName();
-      Boolean response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
-      if (response) {
+      Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
+      if (response == 0) {
         captureImage(imageFile);
         if (isValid()) {
           return true;
@@ -1449,6 +1449,7 @@ public abstract class Element {
     }
   }
 
+  @Deprecated
   protected Boolean handleImageMissing(Element element, boolean recap) { //TODO deprecated (see handleFindFailed)
     if (!(this instanceof Image)) {
       terminate("handleImageMissing: not valid for this");
@@ -1492,6 +1493,34 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="017 handle FindFailed">
+  protected FindFailedResponse handleFindFailed(Element what) {
+    FindFailedResponse whatToDo = findFailedResponse;
+    if (FindFailedResponse.HANDLE.equals(whatToDo)) {
+      ObserveEvent evt = null;
+      ObserveEvent.Type type = ObserveEvent.Type.FINDFAILED;
+      if (findFailedHandler != null && ((ObserverCallBack) findFailedHandler).getType().equals(type)) {
+        log(logLevel, "handleFindFailed: Response.HANDLE: calling handler");
+        evt = new ObserveEvent("", type, what, this); //TODO handler parameter
+        ((ObserverCallBack) findFailedHandler).findfailed(evt);
+        whatToDo = evt.getResponse();
+      }
+    }
+    if (FindFailedResponse.PROMPT.equals(whatToDo)) {
+      //response = handleFindFailedShowDialog(what, false);
+      String message = "Folder: " + what.file().getParent() + "" +
+          "\nWhere: " + this;
+      String title = "Find failed for: " + what.file().getName();
+      Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
+      if (response == 0) { //Prompt
+        whatToDo = FindFailedResponse.PROMPT; //TODO ReCapture
+      }
+      whatToDo = (new FindFailedResponse[]
+          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+    }
+    return whatToDo;
+  }
+
+  @Deprecated
   protected <PSI> Boolean handleFindFailed(PSI target, Image img) {
     log(logLevel, "handleFindFailed: %s", target);
     Boolean state = null;
@@ -1539,6 +1568,16 @@ public abstract class Element {
     return state;
   }
 
+  protected FindFailedResponse handleFindFailedShowDialog(Element image, boolean shouldCapture) {
+    FindFailedResponse response;
+    FindFailedDialog fd = new FindFailedDialog(image, shouldCapture);
+    fd.setVisible(true);
+    response = fd.getResponse();
+    fd.dispose();
+    wait(0.5);
+    return response;
+  }
+
   private String hasBackup = "";
 
   boolean backup() {
@@ -1574,16 +1613,6 @@ public abstract class Element {
   void delete() {
     //TODO File fImg = remove();
     //if (null != fImg) FileManager.deleteFileOrFolder(fImg);
-  }
-
-  protected FindFailedResponse handleFindFailedShowDialog(Element image, boolean shouldCapture) {
-    FindFailedResponse response;
-    FindFailedDialog fd = new FindFailedDialog(image, shouldCapture);
-    fd.setVisible(true);
-    response = fd.getResponse();
-    fd.dispose();
-    wait(0.5);
-    return response;
   }
   //</editor-fold>
 
@@ -1717,10 +1746,10 @@ public abstract class Element {
       long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
       match = Match.createFromResult(image, matchResult, times);
       if (match == null) {
-        Boolean response = handleFindFailed(target, image); //TODO Find Failed
-        if (null == response) {
+        FindFailedResponse response = handleFindFailed((Image) target); //TODO Find Failed
+        if (FindFailedResponse.ABORT.equals(response)) {
           shouldAbort = FindFailed.createErrorMessage(this, image);
-        } else if (response) {
+        } else if (FindFailedResponse.RETRY.equals(response)) {
           //TODO Find Failed: RepeatFind(target, img)
           if (image.isRecaptured()) {
           }

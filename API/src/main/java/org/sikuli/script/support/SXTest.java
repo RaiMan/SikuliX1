@@ -155,6 +155,13 @@ public class SXTest {
     return file.getAbsolutePath();
   }
 
+  public String copyImageFileName(String from, String to) {
+    File fileFrom = new File(bundlePath, Element.getValidImageFilename(from));
+    File fileto = new File(bundlePath, Element.getValidImageFilename(to));
+    FileManager.xcopy(fileFrom, fileto);
+    return Element.getValidImageFilename(to);
+  }
+
   public void test900_Template() {
     Settings.NewAPI = true;
     Image image = new Image("some image");

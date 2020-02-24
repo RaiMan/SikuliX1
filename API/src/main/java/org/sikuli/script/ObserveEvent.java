@@ -39,6 +39,17 @@ public class ObserveEvent {
    * INTERNAL: creates an observed event
    * @param name name
    * @param type type
+   * @param what to search
+   * @param where to search
+   */
+  public ObserveEvent(String name, Type type, Element what, Element where) { //TODO handler parameter
+    init(name, type, what, where, null, 0);
+  }
+
+  /**
+   * INTERNAL: creates an observed event
+   * @param name name
+   * @param type type
    * @param v1 value 1
    * @param v2 value 2
    * @param v3 value 3
