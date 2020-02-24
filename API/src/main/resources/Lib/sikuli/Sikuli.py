@@ -439,7 +439,7 @@ def select(msg="", title="Sikuli Selection", options=(), default=None):
   optionString = "";
   for option in options:
     optionString += str(len(option) + 1000) + option
-  return Do.popSelect(msg, title, default, None, None, None, optionString)
+  return Do.popSelect(msg, title, default, optionString)
 
 def popFile(title = "Select File or Folder"):
   #return Sikulix.popFile(title)
