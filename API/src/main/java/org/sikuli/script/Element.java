@@ -1020,7 +1020,7 @@ public abstract class Element {
     return fname + ".png";
   }
 
-  protected Location getLocationFromTarget(Object target) throws FindFailed {
+  protected Location getLocationFromTarget(Object target) throws FindFailed { //TODO allow AWT elements: Rectangle, Point, ...
     if (!(target instanceof ArrayList)) {
       if (target instanceof Element && ((Element) target).isOnScreen()) {
         return ((Element) target).getTarget();
@@ -1037,7 +1037,6 @@ public abstract class Element {
         }
         return null;
       }
-      //TODO allow AWT elements: Rectangle, Point, ...
     } else {
       ArrayList parms = (ArrayList) target;
       if (parms.size() == 1) {
@@ -1427,26 +1426,37 @@ public abstract class Element {
       String title = "Image missing: " + imageFile.getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
-        captureImage(imageFile);
-        if (isValid()) {
-          return true;
-        }
+        return captureImage(imageFile);
       }
     }
     return false;
   }
 
-  private void captureImage(File file) { //TODO: allow OK with mouse in corner (click OK steels focus)
+  private boolean captureImage() {
+    return captureImage(null);
+  }
+
+  private boolean captureImage(File file) { //TODO: allow OK with mouse in corner (click OK steels focus)
+    URL url;
+    if (null == file) {
+      url = url();
+      file = file();
+    } else {
+      url = evalURL(file);
+    }
     SX.popup("Make the screen ready for capture." +
         "\n\nClick OK when ready.", "Capture missing image");
+    RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
       simg.getFile(file.getParent(), Element.getValidImageFilename(file.getName()));
       Mat content = simg.getContent();
       setSize(content);
-      url(evalURL(file));
+      url(url);
       Image.ImageCache.put(url(), content);
+      return true;
     }
+    return false;
   }
 
   @Deprecated
@@ -1506,13 +1516,20 @@ public abstract class Element {
       }
     }
     if (FindFailedResponse.PROMPT.equals(whatToDo)) {
-      //response = handleFindFailedShowDialog(what, false);
+      int capture = 0;
+      int retry = 1;
+      int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
           "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
-      if (response == 0) { //Prompt
-        whatToDo = FindFailedResponse.PROMPT; //TODO ReCapture
+      if (response < 0) {
+        response = abort;
+      } else if (response == capture) { //TODO get IDE informed about recapture
+        response = abort;
+        if (what.captureImage()) {
+          response = retry;
+        }
       }
       whatToDo = (new FindFailedResponse[]
           {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
@@ -1568,6 +1585,7 @@ public abstract class Element {
     return state;
   }
 
+  @Deprecated
   protected FindFailedResponse handleFindFailedShowDialog(Element image, boolean shouldCapture) {
     FindFailedResponse response;
     FindFailedDialog fd = new FindFailedDialog(image, shouldCapture);
@@ -1694,7 +1712,6 @@ public abstract class Element {
     while (true) {
       long startSearch, searchTime, startWhat;
       Match matchResult;
-      String shouldAbort = "";
       startWhat = new Date().getTime();
       Image image = new Image(target);
       if (!image.isValid()) {
@@ -1747,17 +1764,14 @@ public abstract class Element {
       match = Match.createFromResult(image, matchResult, times);
       if (match == null) {
         FindFailedResponse response = handleFindFailed((Image) target); //TODO Find Failed
-        if (FindFailedResponse.ABORT.equals(response)) {
-          shouldAbort = FindFailed.createErrorMessage(this, image);
-        } else if (FindFailedResponse.RETRY.equals(response)) {
-          //TODO Find Failed: RepeatFind(target, img)
-          if (image.isRecaptured()) {
-          }
+        if (FindFailedResponse.RETRY.equals(response)) {
+          SX.popAsk("Make the screen ready for find retry." +
+              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }
-        if (!shouldAbort.isEmpty()) {
-          throw new FindFailed(shouldAbort);
+        if (FindFailedResponse.ABORT.equals(response)) {
+          throw new FindFailed(FindFailed.createErrorMessage(this, image));
         }
       }
       break;

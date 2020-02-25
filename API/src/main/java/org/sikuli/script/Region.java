@@ -150,6 +150,10 @@ public class Region extends Element {
     rows = 0;
   }
 
+  public Region(Dimension size) {
+    this(0, 0, size.width, size.height);
+  }
+
   /**
    * internal use only, used for new Screen objects to get the Region behavior
    */

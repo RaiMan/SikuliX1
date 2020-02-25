@@ -28,6 +28,7 @@ public class SXTest {
   public static JFrame defaultFrame = null;
   public static String defaultFrameImage = "";
   public static long waitBefore = 0;
+  public static Dimension defaultFrameSize = null;
 
   public static String testBase = "house_shot";
   public static String testChanged = "house_shot_changed";
@@ -37,6 +38,18 @@ public class SXTest {
   public static String testNameMask = "houseTm";
   public static String testMissingName = "missing";
   public static String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
+
+  public Region defaultRegion = new Screen();
+  public static boolean useScreen = true;
+
+  public Region getDefaultRegion() {
+    if (useScreen) {
+      defaultRegion = new Screen();
+    } else {
+      defaultRegion = new Region(defaultFrameSize);
+    }
+    return defaultRegion;
+  }
 
   public void showCV(Image image) {
     showCV(methodName, image);
@@ -64,6 +77,7 @@ public class SXTest {
     frame.setUndecorated(true);
     ImageIcon image = new ImageIcon(new File(bundlePath, imageName + ".png").getAbsolutePath());
     Dimension size = new Dimension(image.getIconWidth(), image.getIconHeight());
+    defaultFrameSize = size;
     frame.setPreferredSize(size);
     frame.add(new JLabel(image));
     frame.pack();
@@ -115,6 +129,7 @@ public class SXTest {
         }
         defaultFrameImage = (String) args[0];
         defaultFrame = createFrame(defaultFrame, defaultFrameImage);
+        defaultRegion = new Region(defaultFrameSize);
         pause = 2;
       }
       new Thread(new Runnable() {

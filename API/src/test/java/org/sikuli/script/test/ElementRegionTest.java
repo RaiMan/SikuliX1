@@ -29,13 +29,14 @@ public class ElementRegionTest extends SXTest {
   @Test
   public void test000_StartUp() {
     startUpBase();
+    useScreen = false;
   }
 
   @Test
   public void test200_RegionFindOld() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       match = reg.find(testName);
@@ -54,7 +55,7 @@ public class ElementRegionTest extends SXTest {
   public void test210_RegionFindTransOld() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       match = reg.find(testNameTrans);
@@ -73,7 +74,7 @@ public class ElementRegionTest extends SXTest {
   public void test211_RegionFindMaskOld() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       Image imageMasked = new Image(testName).mask(testNameMask);
@@ -93,7 +94,7 @@ public class ElementRegionTest extends SXTest {
   public void test220_RegionFindAllOld() {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Iterator<Match> matches = null;
     try {
       matches = reg.findAll(testName);
@@ -120,7 +121,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       match = reg.find(testName);
@@ -136,36 +137,12 @@ public class ElementRegionTest extends SXTest {
   }
 
   @Test
-  public void test251_RegionFindFailed() {
-    testIntro();
-    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
-    Settings.NewAPI = true;
-    Region reg = new Screen();
-    Match match = null;
-    String error = "";
-    try {
-      match = reg.find(testName);
-    } catch (FindFailed findFailed) {
-      error = findFailed.getMessage();
-    }
-    if (null != match) {
-      if (showImage) {
-        match.highlight(2);
-      }
-      testOutro("%s in %s is %s", testName, reg, match);
-    } else {
-      testOutro("Not Found: %s in %s", testName, reg);
-    }
-    Assert.assertFalse("Should not be fond!", error.isEmpty());
-  }
-
-  @Test
   public void test252_RegionWait() {
     waitBefore = 2;
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       match = reg.wait(testName, 5);
@@ -185,7 +162,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Iterator<Match> matches = null;
     int matchCount = 0;
     try {
@@ -212,7 +189,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     List<Match>  matches = null;
     int matchCount = 0;
     try {
@@ -235,7 +212,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       match = reg.find(testNameTrans);
@@ -255,7 +232,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       Image imageMasked = new Image(testName).mask(testNameMask);
@@ -276,7 +253,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Settings.NewAPI = true;
-    Region reg = new Screen();
+    Region reg = getDefaultRegion();
     Match match = null;
     try {
       Image imageMasked = new Image(testNameMask).mask();
@@ -290,6 +267,55 @@ public class ElementRegionTest extends SXTest {
     }
     testOutro("%s in %s is %s", testName, reg, match);
     Assert.assertTrue("Not found!", checkMatch(match, 0.95));
+  }
+
+  @Test
+  public void test300_FindFailedPrompt() {
+    if (showImage) {
+      testIntro(testBase);
+      Settings.NewAPI = true;
+      Region reg = defaultRegion;
+      reg.setFindFailedResponse(FindFailedResponse.PROMPT);
+      String testFailed = copyImageFileName(testNameMask, "testFailed");
+      Image what = new Image(testFailed);
+      try {
+        Match match = reg.find(what);
+        if (null == match) {
+          testOutro("skipping after prompt: %s in %s", testFailed, reg);
+        } else {
+          match.highlight(2);
+          testOutro("success after prompt: %s in %s is %s", testFailed, reg, match);
+        }
+      } catch (Exception e) {
+        testOutro("failing after prompt: %s (%s)", testFailed, e.getMessage());
+      }
+    } else {
+      testOutro("skipped: FindFailed prompting");
+    }
+  }
+
+  @Ignore
+  public void test800_RegionFindFailed() {
+    testIntro();
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.NewAPI = true;
+    Region reg = getDefaultRegion();
+    Match match = null;
+    String error = "";
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+      error = findFailed.getMessage();
+    }
+    if (null != match) {
+      if (showImage) {
+        match.highlight(2);
+      }
+      testOutro("%s in %s is %s", testName, reg, match);
+    } else {
+      testOutro("Not Found: %s in %s", testName, reg);
+    }
+    Assert.assertFalse("Should not be fond!", error.isEmpty());
   }
 
   @Test

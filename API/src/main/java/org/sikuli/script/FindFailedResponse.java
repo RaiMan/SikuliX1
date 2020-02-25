@@ -9,6 +9,7 @@ package org.sikuli.script;
 public enum FindFailedResponse{
    ABORT,
    PROMPT,
+   CAPTURED,
    SKIP,
    RETRY,
    HANDLE
