@@ -3,21 +3,21 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.Image;
 import org.sikuli.script.support.RunTime;
-//import org.sikuli.script.RunTime;
 
 import java.io.File;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.Date;
 
+//import org.sikuli.script.RunTime;
+
 /**
  * This is the container for all
  */
 public class Settings {
 
-  public static boolean NewAPI = false;
+  public static boolean NewAPI = true; //TODO remove/revise Region/Location methods
 
   public static synchronized void init(RunTime givenRunTime) {
     runTime = givenRunTime;
@@ -60,20 +60,6 @@ public class Settings {
   public static float CheckLastSeenSimilar = 0.95f;
 
   public static org.sikuli.script.ImageCallback ImageCallback = null;
-
-  //private static int ImageCache = 64;
-  private static int ImageCache = 64;
-
-  public static void setImageCache(int max) {
-    if (ImageCache > max) {
-      Image.resetCache();
-    }
-    ImageCache = max;
-  }
-
-  public static int getImageCache() {
-    return ImageCache;
-  }
 
   public static double DelayValue = 0.3;
   public static double DelayBeforeMouseDown = DelayValue;

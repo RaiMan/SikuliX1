@@ -90,15 +90,16 @@ public class SXTest {
       public void findfailed(ObserveEvent event) {
         event.setResponse(FindFailedResponse.ABORT);
       }
+
       @Override
-      public void missing (ObserveEvent event) {
+      public void missing(ObserveEvent event) {
         event.setResponse(FindFailedResponse.ABORT);
       }
     };
   }
 
   public void setUpBase() {
-    Settings.NewAPI = false;
+    Settings.NewAPI = true;
     Settings.AlwaysResize = 1;
     if (null == bundlePath) {
       setUpTime = new Date().getTime();
@@ -113,7 +114,8 @@ public class SXTest {
     if (!RunTime.isHeadless()) {
       Region region = new Region(100, 200, 300, 400);
       Image image = new Image(region);
-     }
+    }
+    useScreen = false;
     showImage = false;
     Settings.ProfileLogs = false;
   }
@@ -175,13 +177,5 @@ public class SXTest {
     File fileto = new File(bundlePath, Element.getValidImageFilename(to));
     FileManager.xcopy(fileFrom, fileto);
     return Element.getValidImageFilename(to);
-  }
-
-  public void test900_Template() {
-    Settings.NewAPI = true;
-    Image image = new Image("some image");
-    //image is shown if first parm and single test
-    testOutro("%s", image);
-    //assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 }

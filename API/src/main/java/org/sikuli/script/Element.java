@@ -349,7 +349,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
-  protected void possibleImageResizeOrCallback(Image image) {
+  protected void possibleImageResizeOrCallback(Image image) { //TODO reset to normal
     float factor = 1;
     if (Settings.ImageCallback != null) {
       Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
@@ -493,7 +493,7 @@ public abstract class Element {
       }
     }
     if (!error.isEmpty()) {
-      Boolean response = handleImageMissing(this, false); //TODO
+      Boolean response = handleImageMissing(this, false); //TODO switch to text
       if (response == null) {
         if (Settings.SwitchToText) {
           log(logLevel, "image missing: switching to text search (deprecated - use text methods)");

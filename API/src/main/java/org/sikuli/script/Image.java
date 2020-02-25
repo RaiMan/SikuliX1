@@ -31,12 +31,7 @@ import java.util.*;
  */
 public class Image extends Element {
 
-  void log() {
-    //TODO ****************** debug stop
-    log(-1, "DebugStop");
-  }
-
-  //<editor-fold desc="000  instance">
+ //<editor-fold desc="000  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
   }
@@ -226,10 +221,6 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="001 caching new">
-  static boolean isCaching() {
-    return Settings.getImageCache() > 0;
-  }
-
   public static void resetCache() {
     ImageCache.reset();
   }
@@ -243,8 +234,6 @@ public class Image extends Element {
   }
 
   static class ImageCache {
-    private static double currentSize = 0;
-
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
     static Mat put(URL url, Mat mat) {
