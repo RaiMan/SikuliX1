@@ -3,12 +3,9 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.OS;
-import org.sikuli.natives.OSUtil;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.SysUtil;
 
 /**
  * features moved to other classes, details below with the methods
@@ -66,15 +63,7 @@ public class Env {
    */
   @Deprecated
   public static OS getOS() {
-		if (Settings.isWindows()) {
-			return OS.WINDOWS;
-		} else if (Settings.isMac()) {
-			return OS.MAC;
-		} else if (Settings.isLinux()) {
-			return OS.LINUX;
-		} else {
-			return OS.NOT_SUPPORTED;
-		}
+    return Settings.getOS();
 	}
 
   /**
