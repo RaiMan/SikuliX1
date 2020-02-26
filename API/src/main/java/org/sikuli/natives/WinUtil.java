@@ -4,17 +4,19 @@
 package org.sikuli.natives;
 
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.*;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.Tlhelp32;
+import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
+import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
 import org.sikuli.script.runners.ProcessRunner;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 import java.io.File;
@@ -51,7 +53,7 @@ public class WinUtil implements OSUtil {
     List<ProcessInfo> processes = allProcesses();
 
     for (ProcessInfo p : processes) {
-      if (p.getImageName().contains(name)) {
+      if (p.getImageName().toLowerCase().contains(name.toLowerCase())) {
         String winTitle = getTopWindowTitle(p.getPid());
         if (winTitle == null) continue;
         App theApp = new App();
@@ -309,7 +311,7 @@ public class WinUtil implements OSUtil {
       List<ProcessInfo> processes = allProcesses();
 
       for (ProcessInfo p : processes) {
-        if (p.getImageName() != null && p.getImageName().equals(appName)) {
+        if (p.getImageName() != null && p.getImageName().toLowerCase().equals(appName.toLowerCase())) {
           app.setPID(p.getPid());
           app.setWindow(getTopWindowTitle(p.getPid()));
           return app;
