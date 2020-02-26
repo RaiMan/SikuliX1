@@ -336,7 +336,7 @@ public abstract class Element {
     return this;
   }
 
-  private float resizeDone = 1;
+  private float resizeDone = -1;
 
   public float resizeDone() {
     return resizeDone;
@@ -349,7 +349,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
-  protected void possibleImageResizeOrCallback(Image image) { //TODO reset to normal
+  protected void possibleImageResizeOrCallback(Image image) {
     float factor = 1;
     if (Settings.ImageCallback != null) {
       Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
@@ -358,7 +358,15 @@ public abstract class Element {
       }
     } else {
       factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
+      if (factor == 1 && resizeDone() > 0.1 && resizeDone() != 1) {
+        reload();
+        image.resizeDone(1);
+        return;
+      }
       if (factor > 0.1 && factor != 1 && factor != resizeDone()) {
+        if (resizeDone() > 0.1 && factor != resizeDone()) {
+          reload();
+        }
         SXOpenCV.cvResize(image.getContent(), factor, Image.Interpolation.CUBIC);
         image.resizeDone(factor);
       }
@@ -457,6 +465,14 @@ public abstract class Element {
   static final String OK = "";
 
   protected String createContent(URL url) {
+    return createContent(url, false);
+  }
+
+  protected String reCreateContent() {
+    return createContent(url(), true);
+  }
+
+  private String createContent(URL url, boolean isReLoad) {
     String error = "";
     if ("file".equals(url.getProtocol())) {
       try {
@@ -471,8 +487,10 @@ public abstract class Element {
         InputStream inputStream = url.openStream();
         imageURL = url;
         if (!isFakeImage() && Image.ImageCache.isValid(url)) {
-          setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
-          return OK;
+          if (!isReLoad) {
+            setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
+            return OK;
+          }
         }
         bytes = inputStream.readAllBytes();
       } catch (IOException e) {
@@ -506,6 +524,13 @@ public abstract class Element {
       Image image = new Image();
       image.asFakeImage(); //TODO revise FakeImage hack
       return image.createContent(url);
+    }
+    return OK;
+  }
+
+  public String reload() {
+    if (url() != null) {
+      reCreateContent();
     }
     return OK;
   }
@@ -1489,7 +1514,7 @@ public abstract class Element {
           return null;
         }
         simg.getFile(path, image.getName());
-        image.reloadContent();
+        image.reload();
         if (image.isValid()) {
           Image.setIDEshouldReload(image);
           return true;
@@ -1683,7 +1708,9 @@ public abstract class Element {
     List<Match> changes = new ArrayList<>();
     if (SX.isNotNull(image)) {
       Image changedImage = new Image(image);
+      long start = new Date().getTime();
       changes = SXOpenCV.doFindChanges((Image) this, changedImage);
+      if (changes.size() > 0) changes.get(0).setTimes(new Date().getTime() -start, 0);
     }
     return changes;
   }

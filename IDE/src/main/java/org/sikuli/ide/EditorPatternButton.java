@@ -225,7 +225,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   }
 
   public void reloadImage() {
-    _image.reloadContent();
+    _image.reload();
     setImage(_imgFilename);
   }
 

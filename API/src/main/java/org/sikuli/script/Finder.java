@@ -833,28 +833,39 @@ public class Finder implements Matches {
       Mat previousGray = SXOpenCV.newMat();
       Mat nextGray = SXOpenCV.newMat();
       Mat mDiffAbs = SXOpenCV.newMat();
-      Mat mDiffTresh = SXOpenCV.newMat();
+      Mat mDiffThresh = SXOpenCV.newMat();
 
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
       Core.absdiff(previousGray, nextGray, mDiffAbs);
-      Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
+      Imgproc.threshold(mDiffAbs, mDiffThresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
 
       List<Region> rectangles = new ArrayList<>();
-      if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
+      if (Core.countNonZero(mDiffThresh) > IMAGE_DIFF_THRESHOLD) {
         Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
         Imgproc.dilate(mDiffAbs, mDiffAbs, SXOpenCV.newMat());
         Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
         Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
-
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat mHierarchy = SXOpenCV.newMat();
         Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        rectangles = contoursToRectangle(contours);
-
-        //Core.subtract(mDiffAbs, mDiffAbs, mChanges);
-        //Imgproc.drawContours(mChanges, contours, -1, new Scalar(255));
-        //logShow(mDiffAbs);
+        for (MatOfPoint contour : contours) {
+          int x1 = 99999;
+          int y1 = 99999;
+          int x2 = 0;
+          int y2 = 0;
+          List<org.opencv.core.Point> points = contour.toList();
+          for (Point point : points) {
+            int x = (int) point.x;
+            int y = (int) point.y;
+            if (x < x1) x1 = x;
+            if (x > x2) x2 = x;
+            if (y < y1) y1 = y;
+            if (y > y2) y2 = y;
+          }
+          Region rect = new Region(x1, y1, x2 - x1, y2 - y1);
+          rectangles.add(rect);
+        }
       }
       return rectangles;
     }

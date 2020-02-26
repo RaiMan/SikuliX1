@@ -202,12 +202,6 @@ public class Image extends Element {
     terminate("init: " + message, item);
   }
 
-  public void reloadContent() {
-    if (url() != null) {
-      init(url());
-    }
-  }
-
   /**
    * @return the image's absolute filename or null if jar, http or in memory
    * image

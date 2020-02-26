@@ -31,7 +31,7 @@ public class ElementImageTest extends SXTest {
   }
 
   @Test
-  public void test090_ImageFindResize() {
+  public void test090_ImageFindResize() { //TODO resize 0.5, resize to normal (1)
     testIntro();
     Image shot = new Image(testBaseX2);
     Assert.assertTrue("", shot.isValid());
@@ -79,6 +79,10 @@ public class ElementImageTest extends SXTest {
     Image original = new Image(testBase);
     Image changed = new Image(testChanged);
     List<Match> changes = original.findChanges(changed);
+    long time = -1;
+    if (changes.size() > 0) {
+      time = changes.get(0).getTime();
+    }
     for (Match change : changes) {
       if (showImage) {
         change.highlight();
@@ -87,7 +91,7 @@ public class ElementImageTest extends SXTest {
     if (showImage) {
       Highlight.closeAll(3);
     }
-    testOutro("%s%s == %s changes %d", "", original, changed, changes.size());
+    testOutro("%s%s == %s changes %d (%d)", "", original, changed, changes.size(), time);
     Assert.assertTrue("Not all changes!", changes.size() == 6);
   }
 
