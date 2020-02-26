@@ -76,6 +76,7 @@ public class Image extends Element {
     if (what instanceof Pattern) {
       init((Pattern) what);
     } else if (what instanceof String) {
+      setName((String) what);
       init((String) what);
     } else if (what instanceof File) {
       init((File) what);
@@ -144,15 +145,15 @@ public class Image extends Element {
       error = String.format("init: %s file not found or path not valid", file);
     }
     if (!error.isEmpty()) {
-      if (!handleImageMissing(file)) {
+      if (!handleImageMissing(new File(getName()))) {
         terminate(error);
       }
     }
   }
 
   private void init(URL url) {
-    if (!createContent(url).isEmpty()) {
-      //TODO image missing
+    if (!createContent(url).isEmpty()) { //TODO image missing
+
     };
   }
 
@@ -177,8 +178,8 @@ public class Image extends Element {
     }
     if (resource == null) {
       error = String.format("uri not valid: %s", uri);
-    } else if (!createContent(resource).isEmpty()) {
-      //TODO image missing
+    } else if (!createContent(resource).isEmpty()) { //TODO image missing
+
     };
   }
 

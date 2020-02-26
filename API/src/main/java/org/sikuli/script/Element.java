@@ -493,16 +493,8 @@ public abstract class Element {
       }
     }
     if (!error.isEmpty()) {
-      Boolean response = handleImageMissing(this, false); //TODO switch to text
-      if (response == null) {
-        if (Settings.SwitchToText) {
-          log(logLevel, "image missing: switching to text search (deprecated - use text methods)");
-//          response = true;
-//          img.setIsText(true);
-//          rf.setTarget("\t" + target + "\t");
-        } else {
-          throw new RuntimeException(String.format("createContent: ImageMissing:"));
-        }
+      if (!handleImageMissing(url)) {
+        terminate(error);
       }
     }
     return OK;
@@ -512,8 +504,8 @@ public abstract class Element {
     URL url = evalURL(new File(fpImage));
     if (url != null) {
       Image image = new Image();
-      image.asFakeImage();
-      return image.createContent(url); //TODO revise FakeImage hack
+      image.asFakeImage(); //TODO revise FakeImage hack
+      return image.createContent(url);
     }
     return OK;
   }
@@ -1410,9 +1402,15 @@ public abstract class Element {
 
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
 
-  protected Boolean handleImageMissing(File imageFile) {
-    if (!(this instanceof Image)) {
-      terminate("handleImageMissing: not valid for this"); //TODO needed?
+  protected Boolean handleImageMissing(Object what) {
+    if (!(what instanceof File) && !(what instanceof URL) && !(this instanceof Image)) {
+      terminate("handleImageMissing: not valid for this %s and that %s", this, what);
+    }
+    File imageFile = null;
+    if (what instanceof File) {
+      imageFile = (File) what;
+    } else if (what instanceof URL) { //TODO image missing URL
+
     }
     FindFailedResponse whatToDo = missing;
     if (imageMissingHandler != null) {
@@ -1426,8 +1424,14 @@ public abstract class Element {
       String title = "Image missing: " + imageFile.getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
-        return captureImage(imageFile);
+        if (captureImage(imageFile)) {
+          return true;
+        }
       }
+    }
+    if (Settings.SwitchToText) {
+      asText(true);
+      return true;
     }
     return false;
   }
@@ -1445,7 +1449,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-        "\n\nClick OK when ready.", "Capture missing image");
+            "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1520,7 +1524,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-          "\nWhere: " + this;
+              "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1532,7 +1536,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -1766,7 +1770,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed((Image) target); //TODO Find Failed
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }
