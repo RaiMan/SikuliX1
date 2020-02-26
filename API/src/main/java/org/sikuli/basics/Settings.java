@@ -155,18 +155,17 @@ public class Settings {
     return RunTime.get().fSikulixAppFolder.getAbsolutePath();
   }
 
-  public static final int ISWINDOWS = 0;
-  public static final int ISMAC = 1;
-  public static final int ISLINUX = 2;
-  public static int getOS() {
-    if (isMac()) {
-      return ISMAC;
-    } else if (isWindows()) {
-      return ISWINDOWS;
+  public static OS getOS() {
+    if (isWindows()) {
+      return OS.WINDOWS;
+    } else if (isMac()) {
+      return OS.MAC;
+    } else if (isLinux()) {
+      return OS.LINUX;
+    } else {
+      return OS.NOT_SUPPORTED;
     }
-    return ISLINUX;
   }
-
   public static boolean isWindows() {
     return RunTime.get().runningWindows;
   }
