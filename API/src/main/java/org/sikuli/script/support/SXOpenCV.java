@@ -240,11 +240,11 @@ public class SXOpenCV {
   }
 
   // resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()
-  public static void resize(Mat mat, float factor) {
+  public static void resize(Mat mat, double factor) {
     resize(mat, factor, Image.Interpolation.CUBIC);
   }
 
-  public static void resize(Mat mat, float factor, Image.Interpolation interpolation) {
+  public static void resize(Mat mat, double factor, Image.Interpolation interpolation) {
     cvResize(mat, factor, interpolation);
   }
 

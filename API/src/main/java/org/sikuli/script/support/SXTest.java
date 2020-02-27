@@ -34,6 +34,7 @@ public class SXTest {
   public static String testChanged = "house_shot_changed";
   public static String testBaseX2 = "house_shot_mac";
   public static String testName = "house1";
+  public static String testNameX2 = "house1_mac";
   public static String testNameTrans = "houseTx";
   public static String testNameMask = "houseTm";
   public static String testMissingName = "missing";

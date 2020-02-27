@@ -336,13 +336,13 @@ public abstract class Element {
     return this;
   }
 
-  private float resizeDone = -1;
+  private double resizeDone = -1;
 
-  public float resizeDone() {
+  public double resizeDone() {
     return resizeDone;
   }
 
-  public Element resizeDone(float factor) {
+  public Element resizeDone(double factor) {
     resizeDone = factor;
     return this;
   }
@@ -350,7 +350,7 @@ public abstract class Element {
 
   //<editor-fold desc="003 Fields pixel content">
   protected void possibleImageResizeOrCallback(Image image) {
-    float factor = 1;
+    double factor = 1;
     if (Settings.ImageCallback != null) {
       Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
       if (!contentResized.empty()) {
@@ -1794,7 +1794,7 @@ public abstract class Element {
       long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
       match = Match.createFromResult(image, matchResult, times);
       if (match == null) {
-        FindFailedResponse response = handleFindFailed((Image) target); //TODO Find Failed
+        FindFailedResponse response = handleFindFailed(image); //TODO Find Failed
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
                   "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");

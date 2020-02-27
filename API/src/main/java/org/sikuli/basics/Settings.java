@@ -52,7 +52,7 @@ public class Settings {
   public static int ObserveMinChangedPixels = 50; // in pixels
   public static int RepeatWaitTime = 1; // wait 1 second for visual to vanish after action
   public static double MinSimilarity = 0.7;
-  public static float AlwaysResize = 0;
+  public static double AlwaysResize = 0;
   public static int DefaultPadding = 50;
   public static boolean AutoDetectKeyboardLayout = true;  
 

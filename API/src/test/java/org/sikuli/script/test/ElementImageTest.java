@@ -31,7 +31,7 @@ public class ElementImageTest extends SXTest {
   }
 
   @Test
-  public void test090_ImageFindResize() { //TODO resize 0.5, resize to normal (1)
+  public void test090_ImageFindResizeUp() {
     testIntro();
     Image shot = new Image(testBaseX2);
     Assert.assertTrue("", shot.isValid());
@@ -41,8 +41,40 @@ public class ElementImageTest extends SXTest {
       match = shot.find(testName);
     } catch (FindFailed findFailed) {
     }
+//    Image.resetCache();
+    testOutro("%s in %s is %s", testName, shot, match);
+    Assert.assertNotNull(testName + " not found in " + testBaseX2, match);
+  }
+
+  @Test
+  public void test091_ImageFindResizeOff() {
+    testIntro();
+    Image shot = new Image(testBase);
+    Assert.assertTrue("", shot.isValid());
+    Match match = null;
+    Settings.AlwaysResize = 1;
+    try {
+      match = shot.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    testOutro("%s in %s is %s", testName, shot, match);
+    Assert.assertNotNull(testName + " not found", match);
+  }
+
+  @Test
+  public void test092_ImageFindResizeDown() { //TODO resize 0.5, resize to normal (1)
+    testIntro();
+    Image shot = new Image(testBase);
+    Assert.assertTrue("", shot.isValid());
+    Match match = null;
+    Settings.AlwaysResize = 0.5;
+    try {
+      match = shot.find(testNameX2);
+    } catch (FindFailed findFailed) {
+    }
     Image.resetCache();
     testOutro("%s in %s is %s", testName, shot, match);
+    Assert.assertNotNull(testNameX2 + " not found", match);
   }
 
   @Test
@@ -55,6 +87,7 @@ public class ElementImageTest extends SXTest {
     } catch (FindFailed findFailed) {
     }
     testOutro("%s in %s is %s", testName, shot, match);
+    Assert.assertNotNull(testName + " not found", match);
   }
 
   @Ignore

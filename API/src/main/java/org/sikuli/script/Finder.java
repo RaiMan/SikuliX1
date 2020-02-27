@@ -135,7 +135,7 @@ public class Finder implements Matches {
   }
 
   private Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
-    float factor = oneTimeResize;
+    double factor = oneTimeResize;
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
