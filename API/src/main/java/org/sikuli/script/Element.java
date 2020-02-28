@@ -336,15 +336,17 @@ public abstract class Element {
     return this;
   }
 
-  private double resizeDone = -1;
-
   public double resizeDone() {
-    return resizeDone;
+    if (hasURL()) {
+      return Image.ImageCache.getResize(imageURL);
+    }
+    return -1;
   }
 
-  public Element resizeDone(double factor) {
-    resizeDone = factor;
-    return this;
+  public void resizeDone(double factor) {
+    if (hasURL()) {
+      Image.ImageCache.setResize(imageURL, factor);
+    }
   }
   //</editor-fold>
 
@@ -358,13 +360,14 @@ public abstract class Element {
       }
     } else {
       factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
-      if (factor == 1 && resizeDone() > 0.1 && resizeDone() != 1) {
+      double done = resizeDone();
+      if (factor == 1.0 && done > 0.1 && done != 1.0) {
         reload();
         image.resizeDone(1);
         return;
       }
-      if (factor > 0.1 && factor != 1 && factor != resizeDone()) {
-        if (resizeDone() > 0.1 && factor != resizeDone()) {
+      if (factor > 0.1 && factor != 1 && factor != done) {
+        if (done > 0.1 && factor != done) {
           reload();
         }
         SXOpenCV.cvResize(image.getContent(), factor, Image.Interpolation.CUBIC);
@@ -431,7 +434,7 @@ public abstract class Element {
     if (null == imageURL) {
       content = mat;
     } else {
-      Image.ImageCache.put(imageURL, mat);
+      Image.ImageCache.put(imageURL, mat); // update content
     }
   }
 
@@ -507,7 +510,7 @@ public abstract class Element {
         if (!isFakeImage()) {
           setSize(content);
         }
-        Image.ImageCache.put(url, content);
+        Image.ImageCache.put(url, content); // create content
       }
     }
     if (!error.isEmpty()) {
@@ -1482,7 +1485,7 @@ public abstract class Element {
       Mat content = simg.getContent();
       setSize(content);
       url(url);
-      Image.ImageCache.put(url(), content);
+      Image.ImageCache.put(url(), content); // capture
       return true;
     }
     return false;

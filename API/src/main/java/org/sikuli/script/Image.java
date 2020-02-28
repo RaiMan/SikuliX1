@@ -229,13 +229,20 @@ public class Image extends Element {
   }
 
   static class ImageCache {
+
+    static int ITEM_MAT = 0;
+    static int ITEM_COUNT = 1;
+    static int ITEM_LASTMOD = 2;
+    static int ITEM_RESIZE = 3;
+
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
     static Mat put(URL url, Mat mat) {
       ArrayList<Object> items = new ArrayList<>();
       items.add(mat);
-      items.add(0.0);
-      items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1);
+      items.add(0.0); //reuse count
+      items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1); //to detect external change
+      items.add(0.0); //resize factor applied
       cache.put(url, items);
       return mat;
     }
@@ -245,14 +252,30 @@ public class Image extends Element {
       if (items == null) {
         return new Mat();
       }
-      Object content = items.get(0);
+      Object content = items.get(ITEM_MAT);
       if (null == content) {
         return new Mat();
       }
-      Double count = (Double) items.get(1) + 1;
+      Double count = (Double) items.get(ITEM_COUNT) + 1;
       if (count < Double.MAX_VALUE)
-      items.set(1, count);
+      items.set(ITEM_COUNT, count);
       return (Mat) content;
+    }
+
+    static double getResize(URL key) {
+      List<Object> items = cache.get(key);
+      if (items == null) {
+        return 1.0;
+      }
+      return (Double) items.get(ITEM_RESIZE);
+    }
+
+    static void setResize(URL key, double value) {
+      List<Object> items = cache.get(key);
+      if (items != null) {
+        items.set(ITEM_RESIZE, value);
+      }
+      cache.put(key, items);
     }
 
     static void reset() {
