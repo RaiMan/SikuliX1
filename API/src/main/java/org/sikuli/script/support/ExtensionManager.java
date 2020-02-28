@@ -113,7 +113,7 @@ public class ExtensionManager {
       }
       if (!jythonReady && !jrubyReady) {
         // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
-        String helpURL = "https://7i.fi/IDE-Jython";
+        String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
         String message = "Neither Jython nor JRuby available" +
                 "\nPlease consult the docs for a solution.\n" +
                 "\nIDE might not be useable with JavaScript only";
