@@ -790,18 +790,27 @@ public class OCR {
 
     private String logVariablesConfigs() {
       String logConfigs = "";
+      for (String config : configsStore) {
+        if (!logConfigs.isEmpty()) {
+          logConfigs += ", ";
+        }
+        logConfigs += config;
+      }
       if (!logConfigs.isEmpty()) {
         logConfigs = "configs: " + logConfigs;
       }
       String logVariables = "";
       for (String key : variablesStore.keySet()) {
         if (!logVariables.isEmpty()) {
-          logVariables += ",";
+          logVariables += ", ";
         }
         logVariables += key + ":" + variablesStore.get(key);
       }
       if (!logVariables.isEmpty()) {
         logVariables = "variables: " + logVariables;
+      }
+      if (!logConfigs.isEmpty()) {
+        logVariables = "\n" + logVariables;
       }
       return (logConfigs + logVariables).trim();
     }
