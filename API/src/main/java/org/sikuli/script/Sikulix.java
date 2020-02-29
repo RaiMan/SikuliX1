@@ -116,7 +116,7 @@ public class Sikulix {
 //    if (anchor != null) {
 //      anchor.dispose();
 //    }
-    SX.popup();
+    SX.popup(message, title);
   }
   //</editor-fold>
 
