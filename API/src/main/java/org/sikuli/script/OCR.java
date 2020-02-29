@@ -620,7 +620,7 @@ public class OCR {
 
     private String logVariablesConfigs() {
       String logConfigs = "";
-      for (String config : configsStore) {
+      for (String config : configs) {
         if (!logConfigs.isEmpty()) {
           logConfigs += ", ";
         }
