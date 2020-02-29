@@ -3,15 +3,19 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.util.SikulixFileChooser;
 import org.sikuli.vnc.VNCScreen;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 
 public class Sikulix {
@@ -109,7 +113,7 @@ public class Sikulix {
 //    if (anchor != null) {
 //      anchor.dispose();
 //    }
-    SX.popup();
+    SX.popup(message, title);
   }
   //</editor-fold>
 
