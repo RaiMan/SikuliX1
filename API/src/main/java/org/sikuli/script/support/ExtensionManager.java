@@ -24,13 +24,22 @@ public class ExtensionManager {
 
   private static File sxExtensions = new File(RunTime.getAppPath(), "Extensions");
 
+  private static String outerClassPath = System.getProperty("java.class.path");
+  private static String separator = File.pathSeparator;
+  private static String extensionClassPath = "";
+
   public static String makeClassPath(File jarFile) {
-    RunTime.startLog(1, "starting");
+    RunTime.startLog(1, "starting with classpath: %s", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
-    if (!classPath.isEmpty()) {
-      classPath += File.pathSeparator;
+
+    if (!outerClassPath.isEmpty()) {
+      outerClassPath = outerClassPath.replace(jarPath, "");
+      outerClassPath = outerClassPath.replace(separator + separator, separator);
+      if (outerClassPath.startsWith(separator)) {
+        outerClassPath = outerClassPath.substring(1);
+      }
     }
-    classPath += jarPath;
+    extensionClassPath = jarPath;
 
     File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
       @Override
@@ -86,8 +95,8 @@ public class ExtensionManager {
       for (File fExtension : fExtensions) {
         String pExtension = fExtension.getAbsolutePath();
         if (pExtension.endsWith(".jar")) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
+          if (!extensionClassPath.isEmpty()) {
+            extensionClassPath += separator;
           }
           if (pExtension.contains("jython") && pExtension.contains("standalone")) {
             if (jythonReady) {
@@ -107,21 +116,31 @@ public class ExtensionManager {
           } else {
             continue;
           }
-          classPath += pExtension;
+          extensionClassPath += pExtension;
           RunTime.startLog(1, "adding extension: %s", fExtension);
         }
       }
-      if (!jythonReady && !jrubyReady) {
+    }
+    String finalClassPath = outerClassPath;
+    if (!extensionClassPath.isEmpty()) {
+      if (!outerClassPath.isEmpty()) {
+        finalClassPath = extensionClassPath + separator + outerClassPath;
+      } else {
+        finalClassPath = extensionClassPath;
+      }
+    }
+    if (!jythonReady && !jrubyReady) {
+      if (!finalClassPath.toLowerCase().contains("jython") && !finalClassPath.toLowerCase().contains("jruby")) {
         // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
         String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
         String message = "Neither Jython nor JRuby available" +
-                "\nPlease consult the docs for a solution.\n" +
-                "\nIDE might not be useable with JavaScript only";
+            "\nPlease consult the docs for a solution.\n" +
+            "\nIDE might not be useable with JavaScript only";
         if (RunTime.isIDE()) {
-            JOptionPane.showMessageDialog(null,
-                    message + "\n\nClick OK to get more help in a browser window",
-                    "IDE startup problem",
-                    JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(null,
+              message + "\n\nClick OK to get more help in a browser window",
+              "IDE startup problem",
+              JOptionPane.ERROR_MESSAGE);
           try {
             Desktop.getDesktop().browse(new URI(helpURL));
           } catch (IOException ex) {
@@ -130,10 +149,8 @@ public class ExtensionManager {
         }
       }
     }
-    return classPath;
+    return finalClassPath;
   }
-
-  private static String classPath = "";
 
   public static void readExtensions(boolean afterStart) {
     sxExtensionsFileContent = new ArrayList<>();
@@ -199,10 +216,10 @@ public class ExtensionManager {
           continue;
         }
         if (!afterStart) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
+          if (!extensionClassPath.isEmpty()) {
+            extensionClassPath += File.pathSeparator;
           }
-          classPath += extPath;
+          extensionClassPath += extPath;
           RunTime.startLog(1, "adding extension: %s", extPath);
         }
       }

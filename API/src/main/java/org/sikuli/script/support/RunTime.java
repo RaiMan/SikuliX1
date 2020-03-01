@@ -100,12 +100,10 @@ public class RunTime {
     RunTime.startLog(1, "AppData: %s", fAppData);
 
     String classPath = "";
-    if (!jarName.endsWith(".jar")) {
-      classPath = System.getProperty("java.class.path");
-      return;
-    } else {
+    if (jarName.endsWith(".jar")) {
       classPath = ExtensionManager.makeClassPath(runningJar);
-      //RunTime.startLog(1, "Classpath: %s", classPath);
+    } else {
+      return;
     }
 
     List<String> cmd = new ArrayList<>();
