@@ -65,7 +65,7 @@ public class Sikulix {
     if (Screen.isHeadless()) {
       return null;
     }
-    Rectangle rect = Screen.getMonitorBounds();
+    Rectangle rect = new Screen(0).getRect();
     if (RunTime.isRunningIDE) {
       //TODO should be IDE window
     }

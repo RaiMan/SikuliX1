@@ -134,7 +134,6 @@ public class SX {
     }
     return -1;
   }
-
   /**
    * optionally timed popup (self-vanishing)
    *
@@ -475,8 +474,8 @@ public class SX {
         }
         int argParm = -1;
         for (Object arg : args) {
-          argParm = findNextParameter(arg, argParm);
-          if (argParm < 0) {
+            argParm = findNextParameter(arg, argParm);
+          if (argParm < 0 ) {
             break;
           } else {
             params.put(parameterNames[argParm], arg);
