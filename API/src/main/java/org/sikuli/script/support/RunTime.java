@@ -57,6 +57,7 @@ public class RunTime {
   public static void start(RunTime.Type type, String[] args) {
 
     Debug.init();
+    File runningJar = getRunningJar(type);
 
     if (Type.API.equals(type)) {
       startAsIDE = false;
@@ -88,11 +89,22 @@ public class RunTime {
         }
         System.exit(0);
       }
+
+      if (args.length == 1 && "extensions".equals(args[0])) {
+        RunTime runTime = RunTime.get();
+        RunTime.setVerbose();
+        String classpath = ExtensionManager.makeClassPath(runningJar);
+        for (String path : classpath.split(File.pathSeparator)) {
+          if (!path.contains("\\.")) {
+            System.out.println(path);
+          }
+        }
+        System.exit(0);
+      }
     }
 
     List<String> finalArgs = evalArgsStart(args);
 
-    File runningJar = getRunningJar(type);
     String jarName = runningJar.getName();
     RunTime.startLog(1, "Running: %s", runningJar);
 
