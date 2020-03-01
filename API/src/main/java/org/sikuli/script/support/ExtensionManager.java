@@ -190,9 +190,17 @@ public class ExtensionManager {
         extPath = lineParts[1].trim();
       }
       File extFile = new File(extPath);
-      if (extFile.isAbsolute() && !extFile.exists()) {
-        RunTime.startLog(-1, "extension path not valid: %s", line);
-        continue;
+      if (extFile.isAbsolute()) {
+        if(!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+          RunTime.startLog(-1, "extension path not valid: %s", line);
+          continue;
+        }
+      } else {
+        extFile = new File(sxExtensions, extFile.getPath());
+        if(!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+          RunTime.startLog(-1, "extension path not valid: %s", line);
+          continue;
+        }
       }
       if (!token.isEmpty()) {
         if ("JYTHON".equals(token)) {
