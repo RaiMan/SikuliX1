@@ -27,14 +27,22 @@ public class ExtensionManager {
 
   private static File sxExtensions = new File(RunTime.getAppDataFolder(), "Extensions");
 
-  //<editor-fold desc="10 basic handling">
+  private static String outerClassPath = System.getProperty("java.class.path");
+  private static String separator = File.pathSeparator;
+  private static String extensionClassPath = "";
+
   public static String makeClassPath(File jarFile) {
-    RunTime.startLog(1, "starting");
+    RunTime.startLog(1, "starting with classpath: %s", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
-    if (!classPath.isEmpty()) {
-      classPath += File.pathSeparator;
+
+    if (!outerClassPath.isEmpty()) {
+      outerClassPath = outerClassPath.replace(jarPath, "");
+      outerClassPath = outerClassPath.replace(separator + separator, separator);
+      if (outerClassPath.startsWith(separator)) {
+        outerClassPath = outerClassPath.substring(1);
+      }
     }
-    classPath += jarPath;
+    extensionClassPath = jarPath;
 
     File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
       @Override
@@ -66,7 +74,7 @@ public class ExtensionManager {
       for (File fExtension : fExtensions) {
         String name = fExtension.getName();
         if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
-                (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
+            (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
           fExtension.delete();
         }
       }
@@ -87,8 +95,8 @@ public class ExtensionManager {
     for (File fExtension : fExtensions) {
       String pExtension = fExtension.getAbsolutePath();
       if (pExtension.endsWith(".jar")) {
-        if (!classPath.isEmpty()) {
-          classPath += File.pathSeparator;
+        if (!extensionClassPath.isEmpty()) {
+          extensionClassPath += separator;
         }
         if (pExtension.contains("jython") && pExtension.contains("standalone")) {
           if (jythonReady) {
@@ -109,32 +117,40 @@ public class ExtensionManager {
         } else {
           continue;
         }
-        classPath += pExtension;
+        extensionClassPath += pExtension;
         RunTime.startLog(1, "adding extension: %s", fExtension);
       }
     }
+    String finalClassPath = outerClassPath;
+    if (!extensionClassPath.isEmpty()) {
+      if (!outerClassPath.isEmpty()) {
+        finalClassPath = extensionClassPath + separator + outerClassPath;
+      } else {
+        finalClassPath = extensionClassPath;
+      }
+    }
     if (!jythonReady && !jrubyReady) {
-      // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
-      String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
-      String message = "Neither Jython nor JRuby available" +
-              "\nPlease consult the docs for a solution.\n" +
-              "\nIDE might not be useable with JavaScript only";
-      if (RunTime.isIDE()) {
-        JOptionPane.showMessageDialog(null,
-                message + "\n\nClick OK to get more help in a browser window",
-                "IDE startup problem",
-                JOptionPane.ERROR_MESSAGE);
-        try {
-          Desktop.getDesktop().browse(new URI(helpURL));
-        } catch (IOException ex) {
-        } catch (URISyntaxException ex) {
+      if (!finalClassPath.toLowerCase().contains("jython") && !finalClassPath.toLowerCase().contains("jruby")) {
+        // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
+        String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
+        String message = "Neither Jython nor JRuby available" +
+            "\nPlease consult the docs for a solution.\n" +
+            "\nIDE might not be useable with JavaScript only";
+        if (RunTime.isIDE()) {
+          JOptionPane.showMessageDialog(null,
+              message + "\n\nClick OK to get more help in a browser window",
+              "IDE startup problem",
+              JOptionPane.ERROR_MESSAGE);
+          try {
+            Desktop.getDesktop().browse(new URI(helpURL));
+          } catch (IOException ex) {
+          } catch (URISyntaxException ex) {
+          }
         }
       }
     }
-    return classPath;
+    return finalClassPath;
   }
-
-  private static String classPath = "";
 
   public static void readExtensions(boolean afterStart) {
     sxExtensionsFileContent = new ArrayList<>();
@@ -203,10 +219,10 @@ public class ExtensionManager {
           continue;
         }
         if (!afterStart) {
-          if (!classPath.isEmpty()) {
-            classPath += File.pathSeparator;
+          if (!extensionClassPath.isEmpty()) {
+            extensionClassPath += File.pathSeparator;
           }
-          classPath += extPath;
+          extensionClassPath += extPath;
           RunTime.startLog(1, "adding extension: %s", extPath);
         }
       }
@@ -227,18 +243,18 @@ public class ExtensionManager {
 
   public static String getExtensionsFileDefault() {
     return "# add absolute paths one per line, that point to other jars,\n" +
-            "# that need to be available on Java's classpath at runtime\n" +
-            "# They will be added automatically at startup in the given sequence\n" +
-            "\n" +
-            "# empty lines and lines beginning with # or // are ignored\n" +
-            "# delete the leading # to activate a prepared keyword line\n" +
-            "\n" +
-            "# pointer to a Jython install outside SikuliX\n" +
-            "# jython = c:/jython2.7.1/jython.jar\n" +
-            "\n" +
-            "# the Python executable as used on a commandline\n" +
-            "# activating will enable the support for real Python\n" +
-            "# python = python\n";
+        "# that need to be available on Java's classpath at runtime\n" +
+        "# They will be added automatically at startup in the given sequence\n" +
+        "\n" +
+        "# empty lines and lines beginning with # or // are ignored\n" +
+        "# delete the leading # to activate a prepared keyword line\n" +
+        "\n" +
+        "# pointer to a Jython install outside SikuliX\n" +
+        "# jython = c:/jython2.7.1/jython.jar\n" +
+        "\n" +
+        "# the Python executable as used on a commandline\n" +
+        "# activating will enable the support for real Python\n" +
+        "# python = python\n";
   }
 
   public static boolean hasShebang(String type, String scriptFile) {
@@ -252,7 +268,7 @@ public class ExtensionManager {
       }
     } catch (Exception ex) {
       if (scriptFile.length() >= type.length()
-              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
+          && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
         return true;
       }
     }
@@ -264,8 +280,8 @@ public class ExtensionManager {
     int WARNING_ACCEPTED = 1;
     int WARNING_DO_NOTHING = 0;
     String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + sxExtensions +
-            "\n\nCurrent content:";
+        "\nExtensions folder: \n" + sxExtensions +
+        "\n\nCurrent content:";
     List<String> extensionNames = getExtensionNames();
     for (String extension : extensionNames) {
       warn += "\n" + extension;
@@ -283,7 +299,7 @@ public class ExtensionManager {
     options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
     int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+        0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
     }
@@ -350,10 +366,10 @@ public class ExtensionManager {
 
   public static String getSitesTxtDefault() {
     return "# add absolute paths one per line, that point to other directories/jars,\n" +
-            "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-            "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-            "\n" +
-            "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+        "\n" +
+        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
   }
 
   public static boolean shouldCheckContent(String type, String identifier) {
@@ -418,10 +434,10 @@ public class ExtensionManager {
     String title = "Android Support - !!EXPERIMENTAL!!";
     if (message.isEmpty()) {
       String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
-              "click Check: a short test is run with the device\n" +
-              "click Default...: set device as default screen for capture\n" +
-              "click Cancel: capture is reset to local screen\n" +
-              "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
+          "click Check: a short test is run with the device\n" +
+          "click Default...: set device as default screen for capture\n" +
+          "click Cancel: capture is reset to local screen\n" +
+          "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
       String[] options = new String[3];
       options[WARNING_DO_NOTHING] = "Check";
       options[WARNING_ACCEPTED] = "Default Android";

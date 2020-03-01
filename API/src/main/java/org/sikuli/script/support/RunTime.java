@@ -2795,14 +2795,27 @@ java.desktop/sun.awt=ALL-UNNAMED
     filter = filter.toUpperCase();
     int n = 0;
     for (String sEntry : classPathList) {
-      if (!filter.isEmpty()) {
-        if (!sEntry.toUpperCase().contains(filter)) {
-          n++;
-          continue;
+      if (filter.equals("SIKULIX")) { //TODO dumpClassPath
+        if (!filter.isEmpty()) {
+          if (!sEntry.toUpperCase().contains(filter) &&
+              !sEntry.toUpperCase().contains("JYTHON") &&
+              !sEntry.toUpperCase().contains("JRUBY")) {
+            n++;
+            continue;
+          }
         }
+        logp("%3d: %s", n, sEntry);
+        n++;
+      } else {
+        if (!filter.isEmpty()) {
+          if (!sEntry.toUpperCase().contains(filter)) {
+            n++;
+            continue;
+          }
+        }
+        logp("%3d: %s", n, sEntry);
+        n++;
       }
-      logp("%3d: %s", n, sEntry);
-      n++;
     }
     logp("*** classpath dump end");
   }
