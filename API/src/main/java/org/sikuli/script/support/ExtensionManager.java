@@ -32,7 +32,7 @@ public class ExtensionManager {
   private static String extensionClassPath = "";
 
   public static String makeClassPath(File jarFile) {
-    RunTime.startLog(1, "starting with classpath: %s", outerClassPath);
+    RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
 
     if (!outerClassPath.isEmpty()) {
@@ -95,9 +95,6 @@ public class ExtensionManager {
     for (File fExtension : fExtensions) {
       String pExtension = fExtension.getAbsolutePath();
       if (pExtension.endsWith(".jar")) {
-        if (!extensionClassPath.isEmpty()) {
-          extensionClassPath += separator;
-        }
         if (pExtension.contains("jython") && pExtension.contains("standalone")) {
           if (jythonReady) {
             continue;
@@ -113,14 +110,21 @@ public class ExtensionManager {
             jrubyReady = true;
           }
         } else if (pExtension.contains("py4j")) {
-
-        } else {
+          RunTime.get().startLog(-1, "Extension: py4j: not supported");
           continue;
+        } else {
+          if (extensionClassPath.contains(pExtension)) {
+            continue;
+          }
+        }
+        if (!extensionClassPath.isEmpty()) {
+          extensionClassPath += separator;
         }
         extensionClassPath += pExtension;
-        RunTime.startLog(1, "adding extension: %s", fExtension);
+        RunTime.startLog(1, "adding extension file: %s", fExtension);
       }
     }
+
     String finalClassPath = outerClassPath;
     if (!extensionClassPath.isEmpty()) {
       if (!outerClassPath.isEmpty()) {
@@ -158,15 +162,19 @@ public class ExtensionManager {
     String txtExtensions = FileManager.readFileToString(sxExtensionsFile).trim();
     if (!txtExtensions.isEmpty()) {
       String[] lines = txtExtensions.split("\\n");
+      String extlines = "";
       for (String line : lines) {
         line = line.trim();
         if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
           continue;
         }
+        extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
+      if (sxExtensionsFileContent.size() > 0) {
+        RunTime.startLog(1, "extensions.txt\n%s", extlines.trim());
+      }
     }
-
     if (sxExtensionsFileContent.size() == 0) {
       if (!afterStart) {
         RunTime.startLog(1, "no extensions.txt nor valid content");
@@ -174,31 +182,49 @@ public class ExtensionManager {
       return;
     }
 
-    if (!afterStart) {
-      RunTime.startLog(1, "*** Extensions:");
-    }
     for (String line : sxExtensionsFileContent) {
-      if (!afterStart) {
-        RunTime.startLog(1, "%s", line);
-      }
       String token = "";
       String extPath = line;
       String[] lineParts = line.split("=");
       if (lineParts.length > 1) {
-        token = lineParts[0].trim();
+        token = lineParts[0].trim().toUpperCase();
         extPath = lineParts[1].trim();
       }
       File extFile = new File(extPath);
-      if (extFile.isAbsolute() && !extFile.exists()) {
-        continue;
+      if (extFile.isAbsolute()) {
+        if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+          RunTime.startLog(-1, "extension path not valid: %s", line);
+          continue;
+        }
+      } else {
+        extFile = new File(sxExtensions, extFile.getPath());
+        if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+          RunTime.startLog(-1, "extension path not valid: %s", line);
+          continue;
+        }
       }
       if (!token.isEmpty()) {
-        if ("jython".equals(token)) {
+        if ("JYTHON".equals(token)) {
           if (afterStart) {
+            continue;
+          }
+          if (!extFile.getName().endsWith(".jar")) {
+            RunTime.startLog(-1, "Jython: extension is not jar: %s", line); //TODO search jar
             continue;
           }
           jythonReady = true;
           setJythonExtern(true);
+        }
+        if ("JRUBY".equals(token)) {
+          if (afterStart) {
+            continue;
+          }
+          if (!extFile.getName().endsWith(".jar")) {
+            RunTime.startLog(-1, "JRuby: extension is not jar: %s", line); //TODO search jar
+            continue;
+          }
+          jrubyReady = true;
+          setJrubyExtern(true);
         }
         if ("python".equals(token)) {
           if (!afterStart) {
@@ -218,13 +244,13 @@ public class ExtensionManager {
           }
           continue;
         }
-        if (!afterStart) {
-          if (!extensionClassPath.isEmpty()) {
-            extensionClassPath += File.pathSeparator;
-          }
-          extensionClassPath += extPath;
-          RunTime.startLog(1, "adding extension: %s", extPath);
+      }
+      if (!afterStart) {
+        if (!extensionClassPath.isEmpty()) {
+          extensionClassPath += File.pathSeparator;
         }
+        extensionClassPath += new File(extPath).getAbsolutePath();
+        RunTime.startLog(1, "adding extension entry: %s", extPath);
       }
     }
   }
@@ -731,6 +757,6 @@ public class ExtensionManager {
       version = version_;
     }
   }
-  //</editor-fold>
+//</editor-fold>
 }
 
