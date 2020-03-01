@@ -37,7 +37,7 @@ public class SX {
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
-    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE
+    POPUP, POPASK, POPERROR, POPINPUT, POPSELECT, POPFILE, POPGENERIC
   }
 
   private static boolean isHeadless() {
@@ -120,6 +120,20 @@ public class SX {
     return false;
   }
 
+  /**
+   * optionally timed popup (self-vanishing)
+   *
+   * @param args (message, title, preset, hidden = false, timeout = forever)
+   * @return
+   */
+  public static Integer popGeneric(Object... args) {
+    if (isHeadless()) {
+      log.error("running headless: popGeneric");
+    } else {
+      return (Integer) doPop(PopType.POPGENERIC, args);
+    }
+    return -1;
+  }
   /**
    * optionally timed popup (self-vanishing)
    *
@@ -256,6 +270,15 @@ public class SX {
         } else if (PopType.POPFILE.equals(popType)) {
           File fileChoosen = new SikulixFileChooser(frame).open(title);
           returnValue = fileChoosen == null ? "" : fileChoosen.getAbsolutePath();
+        } else if (PopType.POPGENERIC.equals(popType)) { //TODO allow the other button options
+          returnValue = 0;
+          if (options instanceof String[]) {
+            String[] realOptions = (String[]) options;
+            int response = JOptionPane.showOptionDialog(frame, message, title,
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                realOptions, preset);
+            returnValue = response;
+          }
         }
 
         synchronized (this) {
@@ -428,6 +451,9 @@ public class SX {
       parmIndex++;
       Object value = null;
       while (parmIndex < parameterNames.length) {
+        if (null == possibleValue) {
+          return parmIndex;
+        }
         value = getParameter(possibleValue, parameterNames[parmIndex]);
         if (value == null) {
           parmIndex++;
@@ -448,8 +474,8 @@ public class SX {
         }
         int argParm = -1;
         for (Object arg : args) {
-          argParm = findNextParameter(arg, argParm);
-          if (argParm < 0) {
+            argParm = findNextParameter(arg, argParm);
+          if (argParm < 0 ) {
             break;
           } else {
             params.put(parameterNames[argParm], arg);
