@@ -630,7 +630,7 @@ public class ImagePath {
    * starting from entry 0, the first found existence is taken<br>
    * absolute file names are checked for existence
    *
-   * @param imageFileName relative or absolute filename
+   * @param imageFile relative or absolute file
    * @return a valid URL or null if not found/exists
    */
   public static URL find(File imageFile) {
