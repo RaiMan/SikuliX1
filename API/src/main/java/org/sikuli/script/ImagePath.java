@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
@@ -140,6 +139,7 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="02 init path entry">
+
   /**
    * represents an imagepath entry
    */
@@ -322,6 +322,7 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="03 handle path entry">
+
   /**
    * create a new PathEntry from the given absolute path name and add it to the
    * end of the current image path<br>
@@ -623,6 +624,7 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
+
   /**
    * try to find the given relative image file name on the image path<br>
    * starting from entry 0, the first found existence is taken<br>
@@ -636,15 +638,7 @@ public class ImagePath {
     String proto = "";
     File imageFile = new File(imageFileName);
     if (imageFile.isAbsolute() || imageFileName.startsWith("\\")) {
-      if (imageFile.exists()) {
-        try {
-          fURL = imageFile.toURI().toURL();
-        } catch (MalformedURLException e) {
-        }
-      } else {
-        log(-1, "find: File does not exist: %s", imageFileName);
-      }
-      return fURL;
+      fURL = Element.createURL(imageFile);
     } else {
       for (PathEntry path : getPaths()) {
         if (path == null) {
@@ -654,14 +648,9 @@ public class ImagePath {
         if ("file".equals(proto)) {
           imageFile = new File(path.pathURL.getPath(), imageFileName);
           if (imageFile.exists()) {
-            try {
-              fURL = imageFile.toURI().toURL();
-              break;
-            } catch (MalformedURLException e) {
-              break;
-            }
+            fURL = Element.createURL(imageFile);
           }
-        } else if ("jar".equals(proto) || proto.startsWith("http")) {
+        } else if ("jar".equals(proto) || proto.startsWith("http")) { //TODO imagepath jar and net
           fURL = FileManager.getURLForContentFromURL(path.pathURL, imageFileName);
           if (fURL != null) {
             break;
@@ -672,8 +661,25 @@ public class ImagePath {
         log(-1, "find: %s file not found", imageFileName);
         dump(lvl);
       }
-      return fURL;
     }
+    return fURL;
+  }
+
+  private static URL normalize(URL url) {
+    String path = url.getPath();
+    if ("file".equals(url.getProtocol())) {
+      if (path.contains("%")) {
+        path = path.replace("%20", " ");
+        if (path.contains("%")) {
+        }
+      }
+      try {
+        new File(path).getCanonicalFile();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return null;
   }
 
   /**

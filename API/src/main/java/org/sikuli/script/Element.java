@@ -21,9 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -479,7 +476,7 @@ public abstract class Element {
     String error = "";
     if ("file".equals(url.getProtocol())) {
       try {
-        url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
+        url = new URL("file", null, -1, new File(url.getPath()).getCanonicalFile().getAbsolutePath());
       } catch (IOException e) {
         error = String.format("content: io error: %s", url);
       }
@@ -522,7 +519,7 @@ public abstract class Element {
   }
 
   protected static String reload(String fpImage) {
-    URL url = evalURL(new File(fpImage));
+    URL url = evalURL(fpImage);
     if (url != null) {
       Image image = new Image();
       image.asFakeImage(); //TODO revise FakeImage hack
@@ -608,107 +605,85 @@ public abstract class Element {
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
 
-  public static URL makeURL(Object item) {
-    return makeURL(item, RunTime.get().fWorkDir);
-  }
-
-  public static URL makeURL(Object item, Object base) {
-    URL url = null;
-    File file = null;
+  public static URL createURL(Object item, Object base) {
+    File itemFile = null;
     if (item instanceof String) {
-      String itemName = (String) item;
-      try {
-        URI uri = new URI(itemName);
-        if (uri.getScheme() != null && !"file".equals(uri.getScheme())) {
-          try {
-            return uri.toURL();
-          } catch (MalformedURLException e) {
-          }
-        }
-      } catch (URISyntaxException e) {
-      }
-      file = new File(itemName);
+      itemFile = new File((String) item);
     } else if (item instanceof File) {
-      file = (File) item;
+      itemFile = (File) item;
     }
-    if (file == null) {
+    if (itemFile == null) {
       return null;
     }
-    if (!file.isAbsolute() && !file.getPath().startsWith("\\") && base != null) {
-      String itemName = file.getPath();
+    if (base != null) {
+      String itemName = itemFile.getPath();
+      if (itemFile.isAbsolute()) {
+        itemName = itemFile.getName();
+      }
       if (base instanceof URL) {
         URL baseURL = (URL) base;
         if ("file".equals(baseURL.getProtocol())) {
-          file = new File(new File(baseURL.getPath()), itemName);
+          itemFile = new File(new File(baseURL.getPath()), itemName);
         } else
-          terminate("makeURL: not supported for non-File base: %s", base);
-      }
-      if (base instanceof String) {
-        file = new File((String) base, itemName);
+          terminate("createURL: not supported for non-File base: %s", base);
+      } else if (base instanceof String) {
+        itemFile = new File((String) base, itemName);
       }
       if (base instanceof File) {
-        file = new File((File) base, itemName);
+        itemFile = new File((File) base, itemName);
+      }
+    }
+    return createURL(itemFile);
+  }
+
+  public static URL createURL(String fileName) {
+    return createURL(new File(fileName));
+  }
+
+  public static URL createURL(File file) {
+    String urlPath = file.getPath();
+    if (file.isAbsolute() || file.getPath().startsWith("\\")) {
+      try {
+        urlPath = file.getCanonicalFile().getAbsolutePath();
+      } catch (IOException e) {
+        urlPath = file.getAbsolutePath();
       }
     }
     try {
-      url = file.toURI().toURL();
-    } catch (MalformedURLException e) {
+      return new URL("file", null, -1, urlPath);
+    } catch (IOException e) {
     }
-    return url;
-  }
-
-  public URL url() {
-    return imageURL;
+    return null;
   }
 
   public void url(URL url) {
     if (url.getProtocol().equals("file")) {
-      try {
-        url = new File(url.getPath()).getCanonicalFile().toURI().toURL();
-      } catch (IOException e) {
-        terminate("url: problem with file: %s", e.getMessage());
-      }
+      this.imageURL = createURL(url.getPath());
     }
     this.imageURL = url;
   }
 
   public void url(String fileName) {
-    String problem = null;
-    try {
-      fileName = new File(fileName).getCanonicalPath();
-    } catch (IOException e) {
-      problem = e.getMessage();
-    }
-    try {
-      imageURL = new File(fileName).toURI().toURL();
-    } catch (MalformedURLException e) {
-      problem = e.getMessage();
-    }
-    if (null != problem) {
-      terminate("url: problem with file: %s (%s)", fileName, problem);
-    }
+    imageURL = createURL(fileName);
   }
 
   public boolean hasURL() {
     return null != imageURL;
   }
 
+  public URL url() {
+    return imageURL;
+  }
+
   private URL imageURL = null;
 
-  protected static URL evalURL(File imagefile) {
-    URL url = null;
-    if (imagefile.isAbsolute() || imagefile.getPath().startsWith("\\")) {
-      try {
-        url = imagefile.toURI().toURL();
-      } catch (MalformedURLException e) {
-      }
-    } else {
-      url = ImagePath.find(imagefile.getPath());
-    }
-    if (url == null || !new File(url.getPath()).exists()) {
-      return null;
-    }
+  protected static URL evalURL(String imagefileName) {
+    URL url = ImagePath.find(imagefileName);
     return url;
+  }
+
+  protected static URL evalURL(File imagefile) {
+    return evalURL(imagefile.getPath());
   }
 
   public String fileName() {
@@ -1477,7 +1452,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-            "\n\nClick OK when ready.", "Capture missing image");
+        "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1552,7 +1527,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-              "\nWhere: " + this;
+          "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1564,7 +1539,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -1713,7 +1688,7 @@ public abstract class Element {
       Image changedImage = new Image(image);
       long start = new Date().getTime();
       changes = SXOpenCV.doFindChanges((Image) this, changedImage);
-      if (changes.size() > 0) changes.get(0).setTimes(new Date().getTime() -start, 0);
+      if (changes.size() > 0) changes.get(0).setTimes(new Date().getTime() - start, 0);
     }
     return changes;
   }
@@ -1800,7 +1775,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed(image); //TODO Find Failed
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }

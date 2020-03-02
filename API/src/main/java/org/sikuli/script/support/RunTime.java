@@ -2307,7 +2307,7 @@ java.desktop/sun.awt=ALL-UNNAMED
       return doResourceListWithList(folder, files, filter);
     }
     try {
-      fFolder = new File(uFolder.toURI());
+      fFolder = new File(uFolder.toURI()); //TODO prevent space problem
       log(lvl, "resourceList: having folder: %s", fFolder);
       files.add(fFolder.getPath());
       files = doResourceListFolder(fFolder, files, filter);
