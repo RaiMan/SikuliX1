@@ -336,45 +336,23 @@ public abstract class Element {
     resizeFactor = Math.max(factor, 0.1f);
     return this;
   }
-
-  public double resizeDone() {
-    if (hasURL()) {
-      return Image.ImageCache.getResize(imageURL);
-    }
-    return -1;
-  }
-
-  public void resizeDone(double factor) {
-    if (hasURL()) {
-      Image.ImageCache.setResize(imageURL, factor);
-    }
-  }
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
-  protected void possibleImageResizeOrCallback(Image image) {
-    double factor = 1;
+  protected Mat possibleImageResizeOrCallback(Image image, Mat what) {
+    Mat originalContent = what;
     if (Settings.ImageCallback != null) {
       Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
       if (!contentResized.empty()) {
-        image.updateContent(contentResized);
+        return contentResized;
       }
     } else {
-      factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
-      double done = resizeDone();
-      if (factor == 1.0 && done > 0.1 && done != 1.0) {
-        reload();
-        image.resizeDone(1);
-        return;
-      }
-      if (factor > 0.1 && factor != 1 && factor != done) {
-        if (done > 0.1 && factor != done) {
-          reload();
-        }
-        SXOpenCV.cvResize(image.getContent(), factor, Image.Interpolation.CUBIC);
-        image.resizeDone(factor);
+      double factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
+      if (factor > 0.1 && factor != 1) {
+        return SXOpenCV.cvResize(originalContent.clone(), factor, Image.Interpolation.CUBIC);
       }
     }
+    return originalContent;
   }
 
   public static <SUFEBM> Image getImage(SUFEBM target) {
@@ -1752,11 +1730,11 @@ public abstract class Element {
       if (!image.isValid()) {
         return null;
       }
+      Mat what = image.getContent();
       if (image.hasURL()) {
-        possibleImageResizeOrCallback(image);
+        what = possibleImageResizeOrCallback(image, what);
       }
       Mat mask = new Mat();
-      Mat what = image.getContent();
       if (image.isMasked()) {
         List<Mat> mats = SXOpenCV.extractMask(what, false);
         what = mats.get(0);

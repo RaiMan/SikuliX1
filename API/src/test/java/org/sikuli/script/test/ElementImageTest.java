@@ -62,14 +62,17 @@ public class ElementImageTest extends SXTest {
   }
 
   @Test
-  public void test092_ImageFindResizeDown() { //TODO resize 0.5, resize to normal (1)
+  public void test092_ImageFindResizeDown() {
     testIntro();
     Image shot = new Image(testBase);
     Assert.assertTrue("", shot.isValid());
     Match match = null;
     Settings.AlwaysResize = 0.5;
+    Image image = new Image(testNameX2);
+    image.similarity(0.6);
     try {
-      match = shot.find(testNameX2);
+      match = shot.find(image);
+//      match = shot.find(testNameX2);
     } catch (FindFailed findFailed) {
     }
     Image.resetCache();

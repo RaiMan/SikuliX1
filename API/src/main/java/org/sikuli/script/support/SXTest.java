@@ -4,12 +4,13 @@
 
 package org.sikuli.script.support;
 
+import org.opencv.core.Mat;
 import org.opencv.highgui.HighGui;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.*;
 import org.sikuli.script.Image;
+import org.sikuli.script.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,6 +67,17 @@ public class SXTest {
     int y = (screen.h - image.h) / 2;
     HighGui.moveWindow(title, x, y);
     HighGui.imshow(title, image.getContent());
+    HighGui.waitKey(3000);
+  }
+
+  public static void showCV(Mat image) {
+    String title = "show Mat";
+    HighGui.namedWindow(title);
+    Screen screen = Screen.getPrimaryScreen();
+    int x = (screen.w - image.width()) / 2;
+    int y = (screen.h - image.height()) / 2;
+    HighGui.moveWindow(title, x, y);
+    HighGui.imshow(title, image);
     HighGui.waitKey(3000);
   }
 
