@@ -114,7 +114,8 @@ public class Image extends Element {
   }
 
   private void init(Pattern pattern) {
-
+    init(pattern.getImage());
+    copyPatternAttributes(pattern);
   }
 
   private void init(String filename) {
@@ -134,53 +135,43 @@ public class Image extends Element {
   }
 
   private void init(File file) {
-    String error = OK;
     if (null == file) {
       initTerminate("%s", "file is null");
     }
-    URL imageURL = evalURL(file);
-    if (imageURL != null) {
-      error = createContent(imageURL);
-    } else {
-      error = String.format("init: %s file not found or path not valid", file);
-    }
-    if (!error.isEmpty()) {
-      if (!handleImageMissing(new File(getName()))) {
-        terminate(error);
-      }
-    }
+    createContent(evalURL(file));
   }
 
   private void init(URL url) {
-    if (!createContent(url).isEmpty()) { //TODO image missing
-
-    };
+    createContent(url);
   }
 
   private void init(URI uri) {
-    String error = OK;
     URL resource = null;
-    try {
-      resource = uri.toURL();
-    } catch (MalformedURLException e) {
-    }
-    if (uri.getScheme().equals("class")) {
-      Class clazz = null;
-      try {
-        clazz = Class.forName(uri.getAuthority());
-      } catch (ClassNotFoundException e) {
-        error = String.format("class not found: %s", uri);
-      }
-      resource = clazz.getResource(uri.getPath());
-      if (resource == null) {
-        error = String.format("not found: %s", uri);
+    if (uri != null) {
+      if (uri.getScheme().equals("class")) {
+        Class clazz = null;
+        try {
+          clazz = Class.forName(uri.getAuthority());
+        } catch (ClassNotFoundException e) {
+          initTerminate("class not found: %s", uri);
+        }
+        if (clazz != null) {
+          resource = clazz.getResource(uri.getPath());
+        }
+        if (resource == null) {
+          initTerminate("resource not found: %s", uri);
+        }
+      } else {
+        try {
+          resource = uri.toURL();
+        } catch (MalformedURLException e) {
+        }
       }
     }
     if (resource == null) {
-      error = String.format("uri not valid: %s", uri);
-    } else if (!createContent(resource).isEmpty()) { //TODO image missing
-
-    };
+      initTerminate("uri not valid: %s", uri);
+    }
+    createContent(resource);
   }
 
   private void init(Element element) {
@@ -198,15 +189,11 @@ public class Image extends Element {
     h = mat.rows();
   }
 
-  private void initTerminate(String message, Object item) {
-    terminate("init: " + message, item);
-  }
-
   /**
    * @return the image's absolute filename or null if jar, http or in memory
    * image
    */
-  public String getFilename() {
+  public String getFilename() { //TODO revise to obsolete -> file()
     if (url() != null && "file".equals(url().getProtocol())) {
       return new File(url().getPath()).getAbsolutePath();
     } else {

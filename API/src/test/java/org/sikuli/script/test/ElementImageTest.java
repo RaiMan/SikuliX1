@@ -136,8 +136,8 @@ public class ElementImageTest extends SXTest {
       Image.setMissingPrompt();
       Image missing = null;
       try {
-        missing = new Image(testMissing);
-        testOutro("%screated: %s missing: %s", "", missing, testMissingName);
+        missing = new Image(testMissingName);
+        testOutro("created: %s as: %s", missing, missing.url());
         Assert.assertTrue("create missing not valid", missing.isValid());
       } catch (Exception e) {
         testOutro("not created missing: %s (%s)", testMissingName, e.getMessage());

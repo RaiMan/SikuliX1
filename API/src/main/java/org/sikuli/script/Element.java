@@ -40,18 +40,22 @@ import java.util.List;
  */
 public abstract class Element {
 
-  protected static final int logLevel = 3;
+  static final int logLevel = 3;
 
-  protected static void log(int level, String message, Object... args) {
+  static void log(int level, String message, Object... args) {
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
     String caller = className.substring(className.lastIndexOf(".") + 1);
     Debug.logx(level, caller + ": " + message, args);
   }
 
-  protected static void terminate(String message, Object... args) {
+  static void terminate(String message, Object... args) {
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
     String caller = className.substring(className.lastIndexOf(".") + 1);
     throw new SikuliXception(caller + ": " + String.format(message, args));
+  }
+
+  static void initTerminate(String message, Object item) {
+    terminate("init: " + message, item);
   }
 
   public String toString() {
@@ -462,26 +466,32 @@ public abstract class Element {
   }
 
   private static final String MASK_IMAGE = "Internal-Mask-Image";
-  static final String OK = "";
+  //static final String OK = "";
 
-  protected String createContent(URL url) {
-    return createContent(url, false);
+  protected void createContent(URL url) {
+    createContent(url, false);
   }
 
-  protected String reCreateContent() {
-    return createContent(url(), true);
+  protected void reCreateContent() {
+    createContent(url(), true);
   }
 
-  private String createContent(URL url, boolean isReLoad) {
-    String error = "";
-    if ("file".equals(url.getProtocol())) {
+  private void createContent(URL url, boolean isReLoad) {
+    boolean success = true;
+    if (null == url) {
+      if (getName().isEmpty()) {
+        return;
+      }
+      success = false;
+    }
+    if (success && "file".equals(url.getProtocol())) {
       try {
         url = new URL("file", null, -1, new File(url.getPath()).getCanonicalFile().getAbsolutePath());
       } catch (IOException e) {
-        error = String.format("content: io error: %s", url);
+        success = false;
       }
     }
-    if (error.isEmpty()) {
+    if (success) {
       byte[] bytes = null;
       try {
         InputStream inputStream = url.openStream();
@@ -489,12 +499,12 @@ public abstract class Element {
         if (!isFakeImage() && Image.ImageCache.isValid(url)) {
           if (!isReLoad) {
             setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
-            return OK;
+            return;
           }
         }
         bytes = inputStream.readAllBytes();
       } catch (IOException e) {
-        error = String.format("content: io error: %s", url);
+        success = false;
       }
       if (bytes != null) {
         MatOfByte matOfByte = new MatOfByte();
@@ -510,29 +520,27 @@ public abstract class Element {
         Image.ImageCache.put(url, content); // create content
       }
     }
-    if (!error.isEmpty()) {
-      if (!handleImageMissing(url)) {
-        terminate(error);
+    if (!success) {
+      Object target = url == null ? getName() : url;
+      if (!handleImageMissing(target)) {
+        initTerminate("Image finally not loaded: %s", url);
       }
     }
-    return OK;
   }
 
-  protected static String reload(String fpImage) {
+  protected static void reload(String fpImage) {
     URL url = evalURL(fpImage);
     if (url != null) {
       Image image = new Image();
       image.asFakeImage(); //TODO revise FakeImage hack
-      return image.createContent(url);
+      image.createContent(url); //TODO reload
     }
-    return OK;
   }
 
-  public String reload() {
+  public void reload() {
     if (url() != null) {
       reCreateContent();
     }
-    return OK;
   }
 
   private Mat content = SXOpenCV.newMat();
@@ -678,12 +686,11 @@ public abstract class Element {
   private URL imageURL = null;
 
   protected static URL evalURL(String imagefileName) {
-    URL url = ImagePath.find(imagefileName);
-    return url;
+    return ImagePath.find(imagefileName);
   }
 
   protected static URL evalURL(File imagefile) {
-    return evalURL(imagefile.getPath());
+    return ImagePath.find(imagefile);
   }
 
   public String fileName() {
@@ -1406,14 +1413,18 @@ public abstract class Element {
   protected Object imageMissingHandler = FindFailed.getImageMissingHandler();
 
   protected Boolean handleImageMissing(Object what) {
-    if (!(what instanceof File) && !(what instanceof URL) && !(this instanceof Image)) {
+    if (!(this instanceof Image)) {
       terminate("handleImageMissing: not valid for this %s and that %s", this, what);
     }
     File imageFile = null;
     if (what instanceof File) {
       imageFile = (File) what;
     } else if (what instanceof URL) { //TODO image missing URL
-
+      terminate("handleImageMissing: not implemented for URL: %s", what);
+    } else if (what instanceof String) {
+      imageFile = new File((String) what);
+    } else {
+      terminate("handleImageMissing: not implemented for %s (%s)", what, what.getClass());
     }
     FindFailedResponse whatToDo = missing;
     if (imageMissingHandler != null) {
@@ -1423,10 +1434,26 @@ public abstract class Element {
       whatToDo = evt.getResponse();
     }
     if (FindFailedResponse.PROMPT.equals(whatToDo)) {
-      String message = "Folder: " + imageFile.getParent();
-      String title = "Image missing: " + imageFile.getName();
+      String folder = imageFile.getParent();
+      String imageName = getValidImageFilename(imageFile.getName());
+      String message = "Folder: " +  ( folder == null ? "not yet selected" : folder);
+      String title = "Image missing: " + imageName;
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
+        response = SX.popGeneric("Decide where to save the shot.", "Capture: " + title, "Save in Bundle",
+            new String[]{"Save in Bundle", "Select folder", "Abort"});
+        if (response == 0) {
+          imageFile = new File(ImagePath.getBundlePath(), imageName);
+        } else if (response == 1) {
+          String imageFolder = SX.popFile("Decide where to save the shot.", "Capture: " + title);
+          imageFile = new File(imageFolder);
+          if (!imageFile.isDirectory()) {
+            imageFile = imageFile.getParentFile();
+          }
+          imageFile = new File(imageFile, imageName);
+        } else {
+          return false;
+        }
         if (captureImage(imageFile)) {
           return true;
         }
@@ -1545,7 +1572,7 @@ public abstract class Element {
   }
 
   @Deprecated
-  protected <PSI> Boolean handleFindFailed(PSI target, Image img) {
+  protected <PSI> Boolean handleFindFailed(PSI target, Image img) { //TODO make obsolete
     log(logLevel, "handleFindFailed: %s", target);
     Boolean state = null;
     ObserveEvent evt = null;
@@ -1574,7 +1601,6 @@ public abstract class Element {
     if (FindFailedResponse.ABORT.equals(response)) {
       state = null;
     } else if (FindFailedResponse.SKIP.equals(response)) {
-      // TODO HACK to allow recapture on FindFailed PROMPT
       if (img.backup()) {
         img.delete();
         state = handleImageMissing(img, true); //hack: FindFailed-ReCapture

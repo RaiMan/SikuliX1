@@ -633,10 +633,10 @@ public class ImagePath {
    * @param imageFileName relative or absolute filename
    * @return a valid URL or null if not found/exists
    */
-  public static URL find(String imageFileName) {
+  public static URL find(File imageFile) {
     URL fURL = null;
     String proto = "";
-    File imageFile = new File(imageFileName);
+    String imageFileName = imageFile.getPath();
     if (imageFile.isAbsolute() || imageFileName.startsWith("\\")) {
       fURL = Element.createURL(imageFile);
     } else {
@@ -649,12 +649,13 @@ public class ImagePath {
           imageFile = new File(path.pathURL.getPath(), imageFileName);
           if (imageFile.exists()) {
             fURL = Element.createURL(imageFile);
+            break;
           }
         } else if ("jar".equals(proto) || proto.startsWith("http")) { //TODO imagepath jar and net
           fURL = FileManager.getURLForContentFromURL(path.pathURL, imageFileName);
-          if (fURL != null) {
-            break;
-          }
+        }
+        if (fURL != null) {
+          break;
         }
       }
       if (fURL == null) {
@@ -663,6 +664,10 @@ public class ImagePath {
       }
     }
     return fURL;
+  }
+
+  public static URL find(String imageFileName) {
+    return find(new File(imageFileName));
   }
 
   private static URL normalize(URL url) {
