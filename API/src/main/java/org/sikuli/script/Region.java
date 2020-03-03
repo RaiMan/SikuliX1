@@ -121,26 +121,6 @@ public class Region extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="004 housekeeping private">
-  protected static Region getFakeRegion() {
-    if (fakeRegion == null) {
-      fakeRegion = new Region(0, 0, 5, 5);
-    }
-    return fakeRegion;
-  }
-
-  private static Region fakeRegion;
-
-  public Image getImage() {
-    ScreenImage image = getScreen().capture(x, y, w, h);
-    return image;
-  }
-
-  public Mat getContent() {
-    return getImage().getContent();
-  }
-  //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="002 Constructors">
 
   /**
@@ -460,156 +440,6 @@ public class Region extends Element {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="008 handle coordinates">
-
-  /**
-   * @return top left corner Location
-   */
-  public Location getTopLeft() {
-    return checkAndSetRemote(new Location(x, y));
-  }
-
-  /**
-   * Moves the region to the area, whose top left corner is the given location
-   *
-   * @param loc the location which is the new top left point of the region
-   * @return the region itself
-   */
-  public Region setTopLeft(Location loc) {
-    return setLocation(loc);
-  }
-
-  /**
-   * @return top right corner Location
-   */
-  public Location getTopRight() {
-    return checkAndSetRemote(new Location(x + w - 1, y));
-  }
-
-  /**
-   * Moves the region to the area, whose top right corner is the given location
-   *
-   * @param loc the location which is the new top right point of the region
-   * @return the region itself
-   */
-  public Region setTopRight(Location loc) {
-    Location c = getTopRight();
-    x = x - c.x + loc.x;
-    y = y - c.y + loc.y;
-    initScreen(null);
-    return this;
-  }
-
-  /**
-   * @return bottom left corner Location
-   */
-  public Location getBottomLeft() {
-    return checkAndSetRemote(new Location(x, y + h - 1));
-  }
-
-  /**
-   * Moves the region to the area, whose bottom left corner is the given location
-   *
-   * @param loc the location which is the new bottom left point of the region
-   * @return the region itself
-   */
-  public Region setBottomLeft(Location loc) {
-    Location c = getBottomLeft();
-    x = x - c.x + loc.x;
-    y = y - c.y + loc.y;
-    initScreen(null);
-    return this;
-  }
-
-  /**
-   * @return bottom right corner Location
-   */
-  public Location getBottomRight() {
-    return checkAndSetRemote(new Location(x + w - 1, y + h - 1));
-  }
-
-  /**
-   * Moves the region to the area, whose bottom right corner is the given location
-   *
-   * @param loc the location which is the new bottom right point of the region
-   * @return the region itself
-   */
-  public Region setBottomRight(Location loc) {
-    Location c = getBottomRight();
-    x = x - c.x + loc.x;
-    y = y - c.y + loc.y;
-    initScreen(null);
-    return this;
-  }
-  /**
-   * @return current location of mouse pointer
-   * @deprecated use {@link Mouse#at()} instead
-   */
-  @Deprecated
-  public static Location atMouse() {
-    return Mouse.at();
-  }
-
-  /**
-   * check if current region contains given point
-   *
-   * @param point Point
-   * @return true/false
-   */
-  public boolean contains(Location point) {
-    return getRect().contains(point.x, point.y);
-  }
-
-  /**
-   * check if mouse pointer is inside current region
-   *
-   * @return true/false
-   */
-  public boolean containsMouse() {
-    return contains(Mouse.at());
-  }
-
-  /**
-   * new region with same offset to current screen's top left on given screen
-   *
-   * @param scrID number of screen
-   * @return new region
-   */
-  public Region copyTo(int scrID) {
-    return copyTo(Screen.getScreen(scrID));
-  }
-
-  /**
-   * new region with same offset to current screen's top left on given screen
-   *
-   * @param screen new parent screen
-   * @return new region
-   */
-  public Region copyTo(IScreen screen) {
-    Location o = new Location(getScreen().getBounds().getLocation());
-    Location n = new Location(screen.getBounds().getLocation());
-    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h, screen);
-  }
-
-  /**
-   * create a Location object, that can be used as an offset taking the width and hight of this Region
-   *
-   * @return a new Location object with width and height as x and y
-   */
-  public Location asOffset() {
-    return new Location(w, h);
-  }
-
-//TODO  obsolete??
-/*
-  protected Match toGlobalCoord(Match m) {
-    m.x += x;
-    m.y += y;
-    return m;
-  }
-*/
-  //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="003 getters setters modificators">
 
   /**
@@ -812,384 +642,23 @@ public class Region extends Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="050 save capture to file">
-  public String saveCapture(Object... args) {
-    return ((Screen) getScreen()).cmdCapture(args).getStoredAt();
-  }
-
-  /**
-   * get the last image taken on this regions screen
-   *
-   * @return the stored ScreenImage
-   */
-  public ScreenImage getLastScreenImage() {
-    return getScreen().getLastScreenImageFromScreen();
-  }
-
-  /**
-   * stores the lastScreenImage in the current bundle path with a created unique name
-   *
-   * @return the absolute file name
-   * @throws java.io.IOException if not possible
-   */
-  public String getLastScreenImageFile() throws IOException {
-    return getScreen().getLastScreenImageFile(ImagePath.getBundlePath(), null);
-  }
-
-  /**
-   * stores the lastScreenImage in the current bundle path with the given name
-   *
-   * @param name file name (.png is added if not there)
-   * @return the absolute file name
-   * @throws java.io.IOException if not possible
-   */
-  public String getLastScreenImageFile(String name) throws IOException {
-    return getScreen().getLastScreenImageFromScreen().getFile(ImagePath.getBundlePath(), name);
-  }
-
-  /**
-   * stores the lastScreenImage in the given path with the given name
-   *
-   * @param path path to use
-   * @param name file name (.png is added if not there)
-   * @return the absolute file name
-   * @throws java.io.IOException if not possible
-   */
-  public String getLastScreenImageFile(String path, String name) throws IOException {
-    if (null == getScreen().getLastScreenImageFromScreen() || path == null) {
-      return null;
+  //<editor-fold desc="004 housekeeping private">
+  protected static Region getFakeRegion() {
+    if (fakeRegion == null) {
+      fakeRegion = new Region(0, 0, 5, 5);
     }
-    return getScreen().getLastScreenImageFromScreen().getFile(path, name);
+    return fakeRegion;
   }
 
-  public void saveLastScreenImage() {
-    ScreenImage simg = getScreen().getLastScreenImageFromScreen();
-    if (simg != null) {
-      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
-    }
-  }
-  //</editor-fold>
+  private static Region fakeRegion;
 
-  //<editor-fold defaultstate="collapsed" desc="007 new regions relative to this region">
-
-  /**
-   * check if current region contains given region
-   *
-   * @param region the other Region
-   * @return true/false
-   */
-  public boolean contains(Region region) {
-    return getRect().contains(region.getRect());
+  public Image getImage() {
+    ScreenImage image = getScreen().capture(x, y, w, h);
+    return image;
   }
 
-  /**
-   * create region with same size at top left corner offset
-   *
-   * @param whatever offset taken from Region, Match, Image, Location or Offset
-   * @return the new region
-   */
-  public Region offset(Object whatever) {
-    Offset offset = new Offset(whatever);
-    return Region.create(x + offset.x, y + offset.y, w, h, getScreen());
-  }
-
-  /**
-   * create region with same size at top left corner offset
-   *
-   * @param x horizontal offset
-   * @param y vertical offset
-   * @return the new region
-   */
-  public Region offset(int x, int y) {
-    return Region.create(this.x + x, this.y + y, w, h, getScreen());
-  }
-
-  /**
-   * create a region enlarged Settings.DefaultPadding pixels on each side
-   *
-   * @return the new region
-   * @deprecated to be like AWT Rectangle API use grow() instead
-   */
-  @Deprecated
-  public Region nearby() {
-    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
-  }
-
-  /**
-   * create a region enlarged range pixels on each side
-   *
-   * @param range the margin to be added around
-   * @return the new region
-   * @deprecated to be like AWT Rectangle API use grow() instaed
-   */
-  @Deprecated
-  public Region nearby(int range) {
-    return grow(range, range);
-  }
-
-  /**
-   * create a region enlarged n pixels on each side (n = Settings.DefaultPadding = 50 default)
-   *
-   * @return the new region
-   */
-  public Region grow() {
-    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
-  }
-
-  /**
-   * create a region enlarged range pixels on each side
-   *
-   * @param range the margin to be added around
-   * @return the new region
-   */
-  public Region grow(int range) {
-    return grow(range, range);
-  }
-
-  /**
-   * create a region enlarged w pixels on left and right side and h pixels at top and bottom
-   *
-   * @param w pixels horizontally
-   * @param h pixels vertically
-   * @return the new region
-   */
-  public Region grow(int w, int h) {
-    Rectangle r = getRect();
-    r.grow(w, h);
-    return Region.create(r.x, r.y, r.width, r.height, getScreen());
-  }
-
-  /**
-   * create a region enlarged l pixels on left and r pixels right side and t pixels at top side and b pixels a bottom
-   * side. negative values go inside (shrink)
-   *
-   * @param l add to the left
-   * @param r add to right
-   * @param t add above
-   * @param b add beneath
-   * @return the new region
-   */
-  public Region grow(int l, int r, int t, int b) {
-    return Region.create(x - l, y - t, w + l + r, h + t + b, getScreen());
-  }
-
-  /**
-   * create a region right of the right side with same height. the new region extends to the right screen border.
-   * <br> use grow() to include the current region
-   *
-   * @return the new region
-   */
-  public Region right() {
-    int distToRightScreenBorder = getScreen().getX() + getScreen().getW() - (getX() + getW());
-    return right(distToRightScreenBorder);
-  }
-
-  /**
-   * create a region right of the right side with same height and given width.
-   * <br>negative width creates the right part
-   * with width inside the region
-   * <br>use grow() to include the current region
-   *
-   * @param width pixels
-   * @return the new region
-   */
-  public Region right(int width) {
-    int _x;
-    if (width < 0) {
-      _x = x + w + width;
-    } else {
-      _x = x + w;
-    }
-    return Region.create(_x, y, Math.abs(width), h, getScreen());
-  }
-
-  /**
-   * create a region left of the left side with same height.
-   * <br> the new region extends to the left screen border
-   * <br> use grow() to include the current region
-   *
-   * @return the new region
-   */
-  public Region left() {
-    int distToLeftScreenBorder = getX() - getScreen().getX();
-    return left(distToLeftScreenBorder);
-  }
-
-  /**
-   * create a region left of the left side with same height and given width.
-   * <br> negative width creates the left part with width inside the region use grow() to include the current region
-   *
-   * @param width pixels
-   * @return the new region
-   */
-  public Region left(int width) {
-    int _x;
-    if (width < 0) {
-      _x = x;
-    } else {
-      _x = x - width;
-    }
-    return Region.create(getScreen().getBounds().intersection(new Rectangle(_x, y, Math.abs(width), h)), getScreen());
-  }
-
-  /**
-   * create a region above the top side with same width.
-   * <br> the new region extends to the top screen border
-   * <br> use grow() to include the current region
-   *
-   * @return the new region
-   */
-  public Region above() {
-    int distToAboveScreenBorder = getY() - getScreen().getY();
-    return above(distToAboveScreenBorder);
-  }
-
-  /**
-   * create a region above the top side with same width and given height
-   * <br> negative height creates the top part with height inside the region use grow() to include the current region
-   *
-   * @param height pixels
-   * @return the new region
-   */
-  public Region above(int height) {
-    int _y;
-    if (height < 0) {
-      _y = y;
-    } else {
-      _y = y - height;
-    }
-    return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), getScreen());
-  }
-
-  /**
-   * create a region below the bottom side with same width.
-   * <br> the new region extends to the bottom screen border
-   * <br> use grow() to include the current region
-   *
-   * @return the new region
-   */
-  public Region below() {
-    int distToBelowScreenBorder = getScreen().getY() + getScreen().getH() - (getY() + getH());
-    return below(distToBelowScreenBorder);
-  }
-
-  /**
-   * create a region below the bottom side with same width and given height.
-   * <br>negative height creates the bottom part with height inside the region use grow() to include the current region
-   *
-   * @param height pixels
-   * @return the new region
-   */
-  public Region below(int height) {
-    int _y;
-    if (height < 0) {
-      _y = y + h + height;
-    } else {
-      _y = y + h;
-    }
-    return Region.create(x, _y, w, Math.abs(height), getScreen());
-  }
-
-  /**
-   * create a new region containing both regions
-   *
-   * @param ur region to unite with
-   * @return the new region
-   */
-  public Region union(Region ur) {
-    Rectangle r = getRect().union(ur.getRect());
-    return Region.create(r.x, r.y, r.width, r.height, getScreen());
-  }
-
-  /**
-   * create a region that is the intersection of the given regions
-   *
-   * @param ir the region to intersect with like AWT Rectangle API
-   * @return the new region
-   */
-  public Region intersection(Region ir) {
-    Rectangle r = getRect().intersection(ir.getRect());
-    return Region.create(r.x, r.y, r.width, r.height, getScreen());
-  }
-
-  public Region getInset(Region inset) {
-    return new Region(x + inset.x, y + inset.y, inset.w, inset.h);
-  }
-
-  //</editor-fold>
-
-  //<editor-fold desc="009 points relative to the region">
-  /**
-   * point middle on right edge
-   *
-   * @return point middle on right edge
-   */
-  public Location rightAt() {
-    return rightAt(0);
-  }
-
-  /**
-   * positive offset goes to the right. might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset horizontally to middle point on right edge
-   */
-  public Location rightAt(int offset) {
-    return checkAndSetRemote(new Location(x + w + offset, y + h / 2));
-  }
-
-  /**
-   * @return point middle on left edge
-   */
-  public Location leftAt() {
-    return leftAt(0);
-  }
-
-  /**
-   * negative offset goes to the left.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset horizontally to middle point on left edge
-   */
-  public Location leftAt(int offset) {
-    return checkAndSetRemote(new Location(x - offset, y + h / 2));
-  }
-
-  /**
-   * @return point middle on top edge
-   */
-  public Location aboveAt() {
-    return aboveAt(0);
-  }
-
-  /**
-   * negative offset goes towards top of screen.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset vertically to middle point on top edge
-   */
-  public Location aboveAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y - offset));
-  }
-
-  /**
-   * @return point middle on bottom edge
-   */
-  public Location belowAt() {
-    return belowAt(0);
-  }
-
-  /**
-   * positive offset goes towards bottom of screen.
-   * <br>might be off current screen
-   *
-   * @param offset pixels
-   * @return point with given offset vertically to middle point on bottom edge
-   */
-  public Location belowAt(int offset) {
-    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
+  public Mat getContent() {
+    return getImage().getContent();
   }
   //</editor-fold>
 
@@ -1516,167 +985,457 @@ public class Region extends Element {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="028 highlight">
+  //<editor-fold defaultstate="collapsed" desc="007 new regions relative to this region">
 
   /**
-   * INTERNAL: highlight (for Python support):
-   * <pre>
-   * all act on the related Region
-   * () - on/off,
-   * (int) - int seconds
-   * (String) - on/off with given color
-   * (int,String) - int seconds with given color
-   * (float), (float,String) - same as int
-   * </pre>
-   * @param args values as above
-   * @return this
-   */
-  public Region highlight4py(ArrayList args) {
-    if (args.size() > 0) {
-      log(3, "highlight: %s", args);
-      if (args.get(0) instanceof String) {
-        highlight((String) args.get(0));
-      } else if (args.get(0) instanceof Number) {
-        int highlightTime = ((Number) args.get(0)).intValue();
-        if (args.size() == 1) {
-          highlight(highlightTime);
-        } else {
-          highlight(highlightTime, (String) args.get(1));
-        }
-      }
-    }
-    return this;
-  }
-
-  /**
-   * The Highlight for this Region
-   */
-  private Highlight regionHighlight = null;
-
-  private void highlightClose() {
-    regionHighlight.close();
-    internalUseOnlyHighlightReset();
-  }
-
-  /**
-   * INTERNAL: ONLY
-   */
-  public void internalUseOnlyHighlightReset() {
-    regionHighlight = null;
-  }
-
-  /**
-   * Switch off all actual highlights
-   */
-  public static void highlightAllOff() {
-    Highlight.closeAll();
-  }
-
-  /**
-   * Switch on the regions highlight with default color
-   * @return this Region
-   */
-  public Region highlightOn() {
-    return highlightOn(null);
-  }
-
-  /**
-   * Switch on the regions highlight with given color
+   * check if current region contains given region
    *
-   * @param color Color of frame (see method highlight(color))
-   * @return this Region
+   * @param region the other Region
+   * @return true/false
    */
-  public Region highlightOn(String color) {
-    return highlight(0, color);
+  public boolean contains(Region region) {
+    return getRect().contains(region.getRect());
   }
 
   /**
-   * Switch off the regions highlight
-   * @return this Region
-   */
-  public Region highlightOff() {
-    if (regionHighlight != null) {
-      highlightClose();
-    }
-    return this;
-  }
-
-  /**
-   * show a colored frame around the region for a given time or switch on/off
-   * <p>
-   * () or (color) switch on/off with color (default red)
-   * <p>
-   * (number) or (number, color) show in color (default red) for number seconds (cut to int)
+   * create region with same size at top left corner offset
    *
-   * @return this region
-   **/
-  public Region highlight() {
-    return highlight(null);
+   * @param whatever offset taken from Region, Match, Image, Location or Offset
+   * @return the new region
+   */
+  public Region offset(Object whatever) {
+    Offset offset = new Offset(whatever);
+    return Region.create(x + offset.x, y + offset.y, w, h, getScreen());
   }
 
   /**
-   * Toggle the regions Highlight border (given color).
-   * <br>
-   * allowed color specifications for frame color: <br>
-   * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
-   * uppercase can be mixed, internally transformed to all uppercase) <br>
-   * - these colornames exactly written: lightGray, LIGHT_GRAY, darkGray and DARK_GRAY <br>
-   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)<br>
-   * - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb are integer values in range 0 - 255
-   * padded with leading zeros if needed (hence exactly 9 digits)
+   * create region with same size at top left corner offset
    *
-   * @param color Color of frame
-   * @return the region itself
+   * @param x horizontal offset
+   * @param y vertical offset
+   * @return the new region
    */
-  public Region highlight(String color) {
-    if (regionHighlight != null) {
-      highlightClose();
-      return this;
-    }
-    return highlightOn(color);
+  public Region offset(int x, int y) {
+    return Region.create(this.x + x, this.y + y, w, h, getScreen());
   }
 
   /**
-   * show the regions Highlight for the given time in seconds (red frame) if 0 - use the global Settings.SlowMotionDelay
+   * create a region enlarged Settings.DefaultPadding pixels on each side
    *
-   * @param secs time in seconds
-   * @return the region itself
+   * @return the new region
+   * @deprecated to be like AWT Rectangle API use grow() instead
    */
-  public Region highlight(double secs) {
-    return highlight(secs, null);
+  @Deprecated
+  public Region nearby() {
+    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
   }
 
   /**
-   * show the regions Highlight for the given time in seconds (frame of specified color) if 0 - use the global
-   * Settings.SlowMotionDelay
+   * create a region enlarged range pixels on each side
    *
-   * @param secs  time in seconds
-   * @param color Color of frame (see method highlight(color))
-   * @return the region itself
+   * @param range the margin to be added around
+   * @return the new region
+   * @deprecated to be like AWT Rectangle API use grow() instaed
    */
-  public Region highlight(double secs, String color) {
-    if (getScreen() == null || isOtherScreen() || isScreenUnion) {
-      Debug.error("highlight: not possible for %s", getScreen());
-      return this;
+  @Deprecated
+  public Region nearby(int range) {
+    return grow(range, range);
+  }
+
+  /**
+   * create a region enlarged n pixels on each side (n = Settings.DefaultPadding = 50 default)
+   *
+   * @return the new region
+   */
+  public Region grow() {
+    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
+  }
+
+  /**
+   * create a region enlarged range pixels on each side
+   *
+   * @param range the margin to be added around
+   * @return the new region
+   */
+  public Region grow(int range) {
+    return grow(range, range);
+  }
+
+  /**
+   * create a region enlarged w pixels on left and right side and h pixels at top and bottom
+   *
+   * @param w pixels horizontally
+   * @param h pixels vertically
+   * @return the new region
+   */
+  public Region grow(int w, int h) {
+    Rectangle r = getRect();
+    r.grow(w, h);
+    return Region.create(r.x, r.y, r.width, r.height, getScreen());
+  }
+
+  /**
+   * create a region enlarged l pixels on left and r pixels right side and t pixels at top side and b pixels a bottom
+   * side. negative values go inside (shrink)
+   *
+   * @param l add to the left
+   * @param r add to right
+   * @param t add above
+   * @param b add beneath
+   * @return the new region
+   */
+  public Region grow(int l, int r, int t, int b) {
+    return Region.create(x - l, y - t, w + l + r, h + t + b, getScreen());
+  }
+
+  /**
+   * create a region right of the right side with same height. the new region extends to the right screen border.
+   * <br> use grow() to include the current region
+   *
+   * @return the new region
+   */
+  public Region right() {
+    int distToRightScreenBorder = getScreen().getX() + getScreen().getW() - (getX() + getW());
+    return right(distToRightScreenBorder);
+  }
+
+  /**
+   * create a region right of the right side with same height and given width.
+   * <br>negative width creates the right part
+   * with width inside the region
+   * <br>use grow() to include the current region
+   *
+   * @param width pixels
+   * @return the new region
+   */
+  public Region right(int width) {
+    int _x;
+    if (width < 0) {
+      _x = x + w + width;
+    } else {
+      _x = x + w;
     }
-    if (secs < 0) {
-      secs = -secs;
-      if (lastMatch != null) {
-        return new Region(lastMatch).highlight(secs, color);
-      }
+    return Region.create(_x, y, Math.abs(width), h, getScreen());
+  }
+
+  /**
+   * create a region left of the left side with same height.
+   * <br> the new region extends to the left screen border
+   * <br> use grow() to include the current region
+   *
+   * @return the new region
+   */
+  public Region left() {
+    int distToLeftScreenBorder = getX() - getScreen().getX();
+    return left(distToLeftScreenBorder);
+  }
+
+  /**
+   * create a region left of the left side with same height and given width.
+   * <br> negative width creates the left part with width inside the region use grow() to include the current region
+   *
+   * @param width pixels
+   * @return the new region
+   */
+  public Region left(int width) {
+    int _x;
+    if (width < 0) {
+      _x = x;
+    } else {
+      _x = x - width;
     }
-    Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-        + (color != null ? " color: " + color : ""));
-    if (regionHighlight != null) {
-      highlightClose();
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(_x, y, Math.abs(width), h)), getScreen());
+  }
+
+  /**
+   * create a region above the top side with same width.
+   * <br> the new region extends to the top screen border
+   * <br> use grow() to include the current region
+   *
+   * @return the new region
+   */
+  public Region above() {
+    int distToAboveScreenBorder = getY() - getScreen().getY();
+    return above(distToAboveScreenBorder);
+  }
+
+  /**
+   * create a region above the top side with same width and given height
+   * <br> negative height creates the top part with height inside the region use grow() to include the current region
+   *
+   * @param height pixels
+   * @return the new region
+   */
+  public Region above(int height) {
+    int _y;
+    if (height < 0) {
+      _y = y;
+    } else {
+      _y = y - height;
     }
-    regionHighlight = new Highlight(this, color).doShow(secs);
-    return this;
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), getScreen());
+  }
+
+  /**
+   * create a region below the bottom side with same width.
+   * <br> the new region extends to the bottom screen border
+   * <br> use grow() to include the current region
+   *
+   * @return the new region
+   */
+  public Region below() {
+    int distToBelowScreenBorder = getScreen().getY() + getScreen().getH() - (getY() + getH());
+    return below(distToBelowScreenBorder);
+  }
+
+  /**
+   * create a region below the bottom side with same width and given height.
+   * <br>negative height creates the bottom part with height inside the region use grow() to include the current region
+   *
+   * @param height pixels
+   * @return the new region
+   */
+  public Region below(int height) {
+    int _y;
+    if (height < 0) {
+      _y = y + h + height;
+    } else {
+      _y = y + h;
+    }
+    return Region.create(x, _y, w, Math.abs(height), getScreen());
+  }
+
+  public Region getInset(Region inset) {
+    return new Region(x + inset.x, y + inset.y, inset.w, inset.h);
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="020 find image">
+  //<editor-fold defaultstate="collapsed" desc="008 handle coordinates">
 
+  /**
+   * @return top left corner Location
+   */
+  public Location getTopLeft() {
+    return checkAndSetRemote(new Location(x, y));
+  }
+
+  /**
+   * Moves the region to the area, whose top left corner is the given location
+   *
+   * @param loc the location which is the new top left point of the region
+   * @return the region itself
+   */
+  public Region setTopLeft(Location loc) {
+    return setLocation(loc);
+  }
+
+  /**
+   * @return top right corner Location
+   */
+  public Location getTopRight() {
+    return checkAndSetRemote(new Location(x + w - 1, y));
+  }
+
+  /**
+   * Moves the region to the area, whose top right corner is the given location
+   *
+   * @param loc the location which is the new top right point of the region
+   * @return the region itself
+   */
+  public Region setTopRight(Location loc) {
+    Location c = getTopRight();
+    x = x - c.x + loc.x;
+    y = y - c.y + loc.y;
+    initScreen(null);
+    return this;
+  }
+
+  /**
+   * @return bottom left corner Location
+   */
+  public Location getBottomLeft() {
+    return checkAndSetRemote(new Location(x, y + h - 1));
+  }
+
+  /**
+   * Moves the region to the area, whose bottom left corner is the given location
+   *
+   * @param loc the location which is the new bottom left point of the region
+   * @return the region itself
+   */
+  public Region setBottomLeft(Location loc) {
+    Location c = getBottomLeft();
+    x = x - c.x + loc.x;
+    y = y - c.y + loc.y;
+    initScreen(null);
+    return this;
+  }
+
+  /**
+   * @return bottom right corner Location
+   */
+  public Location getBottomRight() {
+    return checkAndSetRemote(new Location(x + w - 1, y + h - 1));
+  }
+
+  /**
+   * Moves the region to the area, whose bottom right corner is the given location
+   *
+   * @param loc the location which is the new bottom right point of the region
+   * @return the region itself
+   */
+  public Region setBottomRight(Location loc) {
+    Location c = getBottomRight();
+    x = x - c.x + loc.x;
+    y = y - c.y + loc.y;
+    initScreen(null);
+    return this;
+  }
+  /**
+   * @return current location of mouse pointer
+   * @deprecated use {@link Mouse#at()} instead
+   */
+  @Deprecated
+  public static Location atMouse() {
+    return Mouse.at();
+  }
+
+  /**
+   * check if current region contains given point
+   *
+   * @param point Point
+   * @return true/false
+   */
+  public boolean contains(Location point) {
+    return getRect().contains(point.x, point.y);
+  }
+
+  /**
+   * check if mouse pointer is inside current region
+   *
+   * @return true/false
+   */
+  public boolean containsMouse() {
+    return contains(Mouse.at());
+  }
+
+  /**
+   * new region with same offset to current screen's top left on given screen
+   *
+   * @param scrID number of screen
+   * @return new region
+   */
+  public Region copyTo(int scrID) {
+    return copyTo(Screen.getScreen(scrID));
+  }
+
+  /**
+   * new region with same offset to current screen's top left on given screen
+   *
+   * @param screen new parent screen
+   * @return new region
+   */
+  public Region copyTo(IScreen screen) {
+    Location o = new Location(getScreen().getBounds().getLocation());
+    Location n = new Location(screen.getBounds().getLocation());
+    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h, screen);
+  }
+
+  /**
+   * create a Location object, that can be used as an offset taking the width and hight of this Region
+   *
+   * @return a new Location object with width and height as x and y
+   */
+  public Location asOffset() {
+    return new Location(w, h);
+  }
+
+//TODO  obsolete??
+/*
+  protected Match toGlobalCoord(Match m) {
+    m.x += x;
+    m.y += y;
+    return m;
+  }
+*/
+  //</editor-fold>
+
+  //<editor-fold desc="009 points relative to the region">
+  /**
+   * point middle on right edge
+   *
+   * @return point middle on right edge
+   */
+  public Location rightAt() {
+    return rightAt(0);
+  }
+
+  /**
+   * positive offset goes to the right. might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset horizontally to middle point on right edge
+   */
+  public Location rightAt(int offset) {
+    return checkAndSetRemote(new Location(x + w + offset, y + h / 2));
+  }
+
+  /**
+   * @return point middle on left edge
+   */
+  public Location leftAt() {
+    return leftAt(0);
+  }
+
+  /**
+   * negative offset goes to the left.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset horizontally to middle point on left edge
+   */
+  public Location leftAt(int offset) {
+    return checkAndSetRemote(new Location(x - offset, y + h / 2));
+  }
+
+  /**
+   * @return point middle on top edge
+   */
+  public Location aboveAt() {
+    return aboveAt(0);
+  }
+
+  /**
+   * negative offset goes towards top of screen.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset vertically to middle point on top edge
+   */
+  public Location aboveAt(int offset) {
+    return checkAndSetRemote(new Location(x + w / 2, y - offset));
+  }
+
+  /**
+   * @return point middle on bottom edge
+   */
+  public Location belowAt() {
+    return belowAt(0);
+  }
+
+  /**
+   * positive offset goes towards bottom of screen.
+   * <br>might be off current screen
+   *
+   * @param offset pixels
+   * @return point with given offset vertically to middle point on bottom edge
+   */
+  public Location belowAt(int offset) {
+    return checkAndSetRemote(new Location(x + w / 2, y + h + offset));
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="020 find image 1 one">
   /**
    * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
    *
@@ -1687,7 +1446,7 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation finally failed
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
-    if (Settings.NewAPI) {
+    if (Settings.NewAPI) { // TODO wait()
       return super.wait(target, timeout);
     }
     lastMatch = null;
@@ -1743,22 +1502,6 @@ public class Region extends Element {
   }
 
   /**
-   * Waits for the Pattern, String or Image to appear until the AutoWaitTimeout value is exceeded.
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target The target to search for
-   * @return The found Match
-   * @throws FindFailed if the Find operation finally failed
-   */
-  public <PSI> Match wait(PSI target) throws FindFailed {
-    if (target instanceof Float || target instanceof Double) {
-      wait(0.0 + ((Double) target));
-      return null;
-    }
-    return wait(target, getAutoWaitTimeout());
-  }
-
-  /**
    * finds the given Pattern, String or Image in the region and returns the best match.
    *
    * @param <PSI>  Pattern, String or Image
@@ -1767,7 +1510,7 @@ public class Region extends Element {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Match find(PSI target) throws FindFailed {
-    if (Settings.NewAPI) {
+    if (Settings.NewAPI) { //TODO find()
       return super.find(target);
     }
     Image img = Element.getImage(target);
@@ -1822,6 +1565,9 @@ public class Region extends Element {
    * @return the match (null if not found or image file missing)
    */
   public <PSI> Match exists(PSI target, double timeout) {
+    if (Settings.NewAPI) { //TODO exists()
+      return super.exists(target, timeout);
+    }
     lastMatch = null;
     RepeatableFind rf = new RepeatableFind(target, null);
     Image img = rf._image;
@@ -1857,54 +1603,6 @@ public class Region extends Element {
   }
 
   /**
-   * Check if target exists (with the default autoWaitTimeout),
-   * does not raise FindFailed
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target Pattern, String or Image
-   * @return the match (null if not found or image file missing)
-   */
-  public <PSI> Match exists(PSI target) {
-    return exists(target, getAutoWaitTimeout());
-  }
-
-  /**
-   * Check if target exists.
-   * <pre>
-   * - does not raise FindFailed
-   * - like exists(target, 0) but returns true/false
-   * - which means only one search
-   * - no wait for target to appear
-   * - intended to be used in logical expressions
-   * - use getLastMatch() to get the match if found
-   * </pre>
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target Pattern, String or Image
-   * @return true if found, false otherwise
-   */
-  public <PSI> boolean has(PSI target) {
-    return null != exists(target, 0);
-  }
-
-  /**
-   * Check if target appears within the specified time
-   * <pre>
-   * - does not raise FindFailed
-   * - like exists(target, timeout) but returns true/false
-   * - intended to be used in logical expressions
-   * - use getLastMatch() to get the match if found
-   * </pre>
-   * @param <PSI>   Pattern, String or Image
-   * @param target  The target to search for
-   * @param timeout Timeout in seconds
-   * @return true if found, false otherwise
-   */
-  public <PSI> boolean has(PSI target, double timeout) {
-    return null != exists(target, timeout);
-  }
-
-  /**
    * waits until target vanishes or timeout (in seconds) is passed
    *
    * @param <PSI>   Pattern, String or Image
@@ -1913,6 +1611,9 @@ public class Region extends Element {
    * @return true if target vanishes, false otherwise and if imagefile is missing.
    */
   public <PSI> boolean waitVanish(PSI target, double timeout) {
+    if (Settings.NewAPI) { //TODO waitVanish()
+      return super.waitVanish(target, timeout);
+    }
     RepeatableVanish rv = new RepeatableVanish(target);
     Image img = rv._image;
     String targetStr = img.getName();
@@ -1931,18 +1632,9 @@ public class Region extends Element {
     }
     return false;
   }
+  //</editor-fold>
 
-  /**
-   * waits until target vanishes or timeout (in seconds) is passed (AutoWaitTimeout)
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target The target to wait for it to vanish
-   * @return true if the target vanishes, otherwise returns false.
-   */
-  public <PSI> boolean waitVanish(PSI target) {
-    return waitVanish(target, getAutoWaitTimeout());
-  }
-
+  //<editor-fold desc="020 find image 2 many">
   /**
    * finds all occurences of the given Pattern, String or Image in the region and returns an Iterator of Matches.
    *
@@ -1951,9 +1643,9 @@ public class Region extends Element {
    * @return All elements matching
    * @throws FindFailed if the Find operation failed
    */
-//  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
   public <PSI> Matches findAll(PSI target) throws FindFailed {
-    if (Settings.NewAPI) {
+//  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+    if (Settings.NewAPI) { //TODO findAll()
       return super.findAll(target);
     }
     lastMatches = null;
@@ -1990,88 +1682,8 @@ public class Region extends Element {
     return lastMatches;
   }
 
-  public <PSI> List<Match> getAll(PSI target) {
-    return findAllList(target);
-  }
-
-  public <PSI> Region unionAll(PSI target) {
-    List<Match> matches = getAll(target);
-    if (matches.size() < 2) {
-      return this;
-    }
-    Region theUnion = null;
-    for (Match match : matches) {
-      if (null == theUnion) {
-        theUnion = match;
-      } else {
-        theUnion = theUnion.union(match);
-      }
-    }
-    return theUnion;
-  }
-
   public <PSI> List<Match> findAllList(PSI target) {
-    List<Match> matches = new ArrayList<>();
-    try {
-      matches = ((Finder) findAll(target)).getList();
-    } catch (FindFailed findFailed) {
-    }
-    return matches;
-  }
-
-  public <PSI> List<Match> findAllByRow(PSI target) {
-    List<Match> mList = getAll(target);
-    if (mList.isEmpty()) {
-      return null;
-    }
-    Collections.sort(mList, new Comparator<Match>() {
-      @Override
-      public int compare(Match m1, Match m2) {
-        int xMid1 = m1.getCenter().x;
-        int yMid1 = m1.getCenter().y;
-        int yTop = yMid1 - m1.h / 2;
-        int yBottom = yMid1 + m1.h / 2;
-        int xMid2 = m2.getCenter().x;
-        int yMid2 = m2.getCenter().y;
-        if (yMid2 > yTop && yMid2 < yBottom) {
-          if (xMid1 > xMid2) {
-            return 1;
-          }
-        } else if (yMid2 < yTop) {
-          return 1;
-        }
-        return -1;
-      }
-    });
-    return mList;
-  }
-
-  public <PSI> List<Match> findAllByColumn(PSI target) {
-    Match[] matches = new Match[0];
-    List<Match> mList = getAll(target);
-    if (mList.isEmpty()) {
-      return null;
-    }
-    Collections.sort(mList, new Comparator<Match>() {
-      @Override
-      public int compare(Match m1, Match m2) {
-        int xMid1 = m1.getCenter().x;
-        int yMid1 = m1.getCenter().y;
-        int xLeft = xMid1 - m1.w / 2;
-        int xRight = xMid1 + m1.w / 2;
-        int xMid2 = m2.getCenter().x;
-        int yMid2 = m2.getCenter().y;
-        if (xMid2 > xLeft && xMid2 < xRight) {
-          if (yMid1 > yMid2) {
-            return 1;
-          }
-        } else if (xMid2 < xLeft) {
-          return 1;
-        }
-        return -1;
-      }
-    });
-    return mList;
+    return getAll(target);
   }
 
   public Match findBest(Object... args) {
@@ -2091,17 +1703,14 @@ public class Region extends Element {
     Match mResult = null;
     List<Match> mList = findAnyCollect(pList);
     if (mList.size() > 0) {
-      Collections.sort(mList, new Comparator<Match>() {
-        @Override
-        public int compare(Match m1, Match m2) {
-          double ms = m2.score() - m1.score();
-          if (ms < 0) {
-            return -1;
-          } else if (ms > 0) {
-            return 1;
-          }
-          return 0;
+      Collections.sort(mList, (m1, m2) -> {
+        double ms = m2.score() - m1.score();
+        if (ms < 0) {
+          return -1;
+        } else if (ms > 0) {
+          return 1;
         }
+        return 0;
       });
       mResult = mList.get(0);
     }
@@ -2690,6 +2299,165 @@ public class Region extends Element {
       nobj++;
     }
     return mList;
+  }
+  //</editor-fold>
+
+  //<editor-fold defaultstate="collapsed" desc="028 highlight">
+
+  /**
+   * INTERNAL: highlight (for Python support):
+   * <pre>
+   * all act on the related Region
+   * () - on/off,
+   * (int) - int seconds
+   * (String) - on/off with given color
+   * (int,String) - int seconds with given color
+   * (float), (float,String) - same as int
+   * </pre>
+   * @param args values as above
+   * @return this
+   */
+  public Region highlight4py(ArrayList args) {
+    if (args.size() > 0) {
+      log(3, "highlight: %s", args);
+      if (args.get(0) instanceof String) {
+        highlight((String) args.get(0));
+      } else if (args.get(0) instanceof Number) {
+        int highlightTime = ((Number) args.get(0)).intValue();
+        if (args.size() == 1) {
+          highlight(highlightTime);
+        } else {
+          highlight(highlightTime, (String) args.get(1));
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
+   * The Highlight for this Region
+   */
+  private Highlight regionHighlight = null;
+
+  private void highlightClose() {
+    regionHighlight.close();
+    internalUseOnlyHighlightReset();
+  }
+
+  /**
+   * INTERNAL: ONLY
+   */
+  public void internalUseOnlyHighlightReset() {
+    regionHighlight = null;
+  }
+
+  /**
+   * Switch off all actual highlights
+   */
+  public static void highlightAllOff() {
+    Highlight.closeAll();
+  }
+
+  /**
+   * Switch on the regions highlight with default color
+   * @return this Region
+   */
+  public Region highlightOn() {
+    return highlightOn(null);
+  }
+
+  /**
+   * Switch on the regions highlight with given color
+   *
+   * @param color Color of frame (see method highlight(color))
+   * @return this Region
+   */
+  public Region highlightOn(String color) {
+    return highlight(0, color);
+  }
+
+  /**
+   * Switch off the regions highlight
+   * @return this Region
+   */
+  public Region highlightOff() {
+    if (regionHighlight != null) {
+      highlightClose();
+    }
+    return this;
+  }
+
+  /**
+   * show a colored frame around the region for a given time or switch on/off
+   * <p>
+   * () or (color) switch on/off with color (default red)
+   * <p>
+   * (number) or (number, color) show in color (default red) for number seconds (cut to int)
+   *
+   * @return this region
+   **/
+  public Region highlight() {
+    return highlight(null);
+  }
+
+  /**
+   * Toggle the regions Highlight border (given color).
+   * <br>
+   * allowed color specifications for frame color: <br>
+   * - a color name out of: black, blue, cyan, gray, green, magenta, orange, pink, red, white, yellow (lowercase and
+   * uppercase can be mixed, internally transformed to all uppercase) <br>
+   * - these colornames exactly written: lightGray, LIGHT_GRAY, darkGray and DARK_GRAY <br>
+   * - a hex value like in HTML: #XXXXXX (max 6 hex digits)<br>
+   * - an RGB specification as: #rrrgggbbb where rrr, ggg, bbb are integer values in range 0 - 255
+   * padded with leading zeros if needed (hence exactly 9 digits)
+   *
+   * @param color Color of frame
+   * @return the region itself
+   */
+  public Region highlight(String color) {
+    if (regionHighlight != null) {
+      highlightClose();
+      return this;
+    }
+    return highlightOn(color);
+  }
+
+  /**
+   * show the regions Highlight for the given time in seconds (red frame) if 0 - use the global Settings.SlowMotionDelay
+   *
+   * @param secs time in seconds
+   * @return the region itself
+   */
+  public Region highlight(double secs) {
+    return highlight(secs, null);
+  }
+
+  /**
+   * show the regions Highlight for the given time in seconds (frame of specified color) if 0 - use the global
+   * Settings.SlowMotionDelay
+   *
+   * @param secs  time in seconds
+   * @param color Color of frame (see method highlight(color))
+   * @return the region itself
+   */
+  public Region highlight(double secs, String color) {
+    if (getScreen() == null || isOtherScreen() || isScreenUnion) {
+      Debug.error("highlight: not possible for %s", getScreen());
+      return this;
+    }
+    if (secs < 0) {
+      secs = -secs;
+      if (lastMatch != null) {
+        return new Region(lastMatch).highlight(secs, color);
+      }
+    }
+    Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
+        + (color != null ? " color: " + color : ""));
+    if (regionHighlight != null) {
+      highlightClose();
+    }
+    regionHighlight = new Highlight(this, color).doShow(secs);
+    return this;
   }
   //</editor-fold>
 
@@ -4087,4 +3855,61 @@ public class Region extends Element {
   }
   //</editor-fold>
 
+  //<editor-fold desc="050 save capture to file">
+  public String saveCapture(Object... args) {
+    return ((Screen) getScreen()).cmdCapture(args).getStoredAt();
+  }
+
+  /**
+   * get the last image taken on this regions screen
+   *
+   * @return the stored ScreenImage
+   */
+  public ScreenImage getLastScreenImage() {
+    return getScreen().getLastScreenImageFromScreen();
+  }
+
+  /**
+   * stores the lastScreenImage in the current bundle path with a created unique name
+   *
+   * @return the absolute file name
+   * @throws java.io.IOException if not possible
+   */
+  public String getLastScreenImageFile() throws IOException {
+    return getScreen().getLastScreenImageFile(ImagePath.getBundlePath(), null);
+  }
+
+  /**
+   * stores the lastScreenImage in the current bundle path with the given name
+   *
+   * @param name file name (.png is added if not there)
+   * @return the absolute file name
+   * @throws java.io.IOException if not possible
+   */
+  public String getLastScreenImageFile(String name) throws IOException {
+    return getScreen().getLastScreenImageFromScreen().getFile(ImagePath.getBundlePath(), name);
+  }
+
+  /**
+   * stores the lastScreenImage in the given path with the given name
+   *
+   * @param path path to use
+   * @param name file name (.png is added if not there)
+   * @return the absolute file name
+   * @throws java.io.IOException if not possible
+   */
+  public String getLastScreenImageFile(String path, String name) throws IOException {
+    if (null == getScreen().getLastScreenImageFromScreen() || path == null) {
+      return null;
+    }
+    return getScreen().getLastScreenImageFromScreen().getFile(path, name);
+  }
+
+  public void saveLastScreenImage() {
+    ScreenImage simg = getScreen().getLastScreenImageFromScreen();
+    if (simg != null) {
+      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
+    }
+  }
+  //</editor-fold>
 }

@@ -34,7 +34,7 @@ public class Match extends Region implements Matches, Comparable<Match> {
    * creates a Match on primary screen as (0, 0, 1, 1)
    */
   public Match() {
-    this(null);
+    init(0, 0, 1, 1, Screen.getPrimaryScreen());
   }
 
   /**
@@ -54,7 +54,11 @@ public class Match extends Region implements Matches, Comparable<Match> {
       init(element.x, element.y, element.w, element.h, element.getScreen());
     }
   }
-  
+
+  public Match(Rectangle rect) {
+    init(rect.x, rect.y, rect.width, rect.height, null);
+  }
+
   public Match(int x, int y, int w, int h) {
     init(x, y, w, h, null);
   }
