@@ -2050,7 +2050,7 @@ public abstract class Element {
       Match[] matches;
 
       FindSub(Element element, Object target, int nTarget, Match[] matches) {
-        this.element = element;
+        this.element = element.getImage();
         this.target = target;
         this.nTarget = nTarget;
         this.matches = matches;
@@ -2096,6 +2096,8 @@ public abstract class Element {
     return Arrays.asList(matches);
   }
 
+//TODO   private Match findInImage(ScreenImage base, Object target) throws IOException {
+  /*
   private Match findInImage(ScreenImage base, Object target) throws IOException {
     Finder finder = null;
     Match match = null;
@@ -2153,7 +2155,10 @@ public abstract class Element {
     }
     return match;
   }
+*/
 
+//TODO   private List<Match> findAnyCollect(List<Object> pList) {
+/*
   private List<Match> findAnyCollect(List<Object> pList) {
     List<Match> mList = new ArrayList<Match>();
     if (pList == null) {
@@ -2192,6 +2197,7 @@ public abstract class Element {
     }
     return mList;
   }
+*/
 
   //</editor-fold>
 
