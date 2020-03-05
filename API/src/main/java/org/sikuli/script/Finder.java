@@ -38,7 +38,8 @@ public class Finder implements Matches {
   private FindResult2 _results = null;
   private Region where = null;
 
-  private Finder() {
+  protected Finder() {
+    resetFindChanges();
   }
 
   /**
@@ -61,6 +62,7 @@ public class Finder implements Matches {
     } else {
       throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
+    resetFindChanges();
   }
 
   /**
@@ -76,7 +78,8 @@ public class Finder implements Matches {
   private void initScreenFinder(ScreenImage simg, Region region) {
     setScreenImage(simg);
     _region = region;
-  }
+    resetFindChanges();
+   }
 
   protected void setScreenImage(ScreenImage simg) {
     _findInput.setSource(SXOpenCV.makeMat(simg.getBufferedImage()));
@@ -467,7 +470,25 @@ public class Finder implements Matches {
 
 //</editor-fold>
 
-  public static class Finder2 {
+  static final int PIXEL_DIFF_THRESHOLD_DEFAULT = 3;
+  static final int IMAGE_DIFF_THRESHOLD_DEFAULT = 5;
+  static int PIXEL_DIFF_THRESHOLD = PIXEL_DIFF_THRESHOLD_DEFAULT;
+  static int IMAGE_DIFF_THRESHOLD = IMAGE_DIFF_THRESHOLD_DEFAULT;
+
+  public void resetFindChanges() {
+    PIXEL_DIFF_THRESHOLD = PIXEL_DIFF_THRESHOLD_DEFAULT;
+    IMAGE_DIFF_THRESHOLD = IMAGE_DIFF_THRESHOLD_DEFAULT;
+  }
+
+  public void setFindChangesPixelDiff(int value) {
+    PIXEL_DIFF_THRESHOLD = value;
+  }
+
+  public void setFindChangesImageDiff(int value) {
+    IMAGE_DIFF_THRESHOLD = value;
+  }
+
+  protected static class Finder2 {
 
     static {
       RunTime.loadLibrary(RunTime.libOpenCV);
@@ -828,13 +849,10 @@ public class Finder implements Matches {
 
     public static List<Region> findChanges(FindInput2 findInput) {
       findInput.setAttributes();
-      int PIXEL_DIFF_THRESHOLD = 3;
-      int IMAGE_DIFF_THRESHOLD = 5;
       Mat previousGray = SXOpenCV.newMat();
       Mat nextGray = SXOpenCV.newMat();
       Mat mDiffAbs = SXOpenCV.newMat();
       Mat mDiffThresh = SXOpenCV.newMat();
-
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
       Core.absdiff(previousGray, nextGray, mDiffAbs);
