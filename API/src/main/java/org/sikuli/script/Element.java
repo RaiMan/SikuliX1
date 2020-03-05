@@ -336,7 +336,7 @@ public abstract class Element {
   /**
    * create a new region containing both regions
    *
-   * @param ur region to unite with
+   * @param element region to unite with
    * @return the new region
    */
   public Match union(Element element) {
@@ -347,7 +347,7 @@ public abstract class Element {
   /**
    * create a region that is the intersection of the given regions
    *
-   * @param ir the region to intersect with like AWT Rectangle API
+   * @param element the region to intersect with like AWT Rectangle API
    * @return the new region
    */
   public Match intersection(Element element) {
