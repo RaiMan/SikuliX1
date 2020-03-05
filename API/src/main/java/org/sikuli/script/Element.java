@@ -336,7 +336,7 @@ public abstract class Element {
   /**
    * create a new region containing both regions
    *
-   * @param ur region to unite with
+   * @param element region to unite with
    * @return the new region
    */
   public Match union(Element element) {
@@ -347,7 +347,7 @@ public abstract class Element {
   /**
    * create a region that is the intersection of the given regions
    *
-   * @param ir the region to intersect with like AWT Rectangle API
+   * @param element the region to intersect with like AWT Rectangle API
    * @return the new region
    */
   public Match intersection(Element element) {
@@ -1927,6 +1927,16 @@ public abstract class Element {
     return theUnion;
   }
 
+  public List<Match> findAny(Object... args) {
+    Object[] targets = new Object[args.length];
+    int nTarget = 0;
+    for (Object arg : args) {
+      targets[nTarget++] = arg;
+    }
+    List<Match> mList = dofindAny(targets);
+    return mList;
+  }
+
   public <SUFEBMP> List<Match> findChanges(SUFEBMP image) {
     List<Match> changes = new ArrayList<>();
     if (SX.isNotNull(image)) {
@@ -2063,20 +2073,6 @@ public abstract class Element {
         } catch (Exception ex) {
           matches[nTarget] = null;
         }
-        hasFinished(true);
-      }
-
-      boolean finished = false;
-
-      public boolean hasFinished() {
-        return hasFinished(false);
-      }
-
-      public synchronized boolean hasFinished(boolean state) {
-        if (state) {
-          finished = true;
-        }
-        return finished;
       }
     }
 
