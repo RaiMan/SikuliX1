@@ -99,7 +99,7 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region reg = getDefaultRegion();
-    List<Match>  matches = null;
+    List<Match> matches = null;
     int matchCount = 0;
     try {
       matches = reg.findAll(testName).asList();
@@ -175,6 +175,27 @@ public class ElementRegionTest extends SXTest {
     }
     testOutro("%s in %s is %s", testName, reg, match);
     Assert.assertTrue("Not found!", checkMatch(match, 0.95));
+  }
+
+  @Test
+  public void test270_RegionFindAny() {
+    testIntro(testBase);
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Region reg = getDefaultRegion();
+    List<Match> matches = null;
+    int matchCount = 0;
+    matches = reg.findAny(testName, testName, testName);
+    if (matches != null) {
+      matchCount = matches.size();
+    }
+    if (showImage) {
+      for (Match match : matches) {
+        match.highlight();
+      }
+      Highlight.closeAll(3);
+    }
+    testOutro("%s in %s found %d times", testName, reg, matchCount);
+    Assert.assertTrue("Not Found!", matchCount == 3);
   }
 
   @Test

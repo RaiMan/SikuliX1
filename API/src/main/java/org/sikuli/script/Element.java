@@ -1927,6 +1927,16 @@ public abstract class Element {
     return theUnion;
   }
 
+  public List<Match> findAny(Object... args) {
+    Object[] targets = new Object[args.length];
+    int nTarget = 0;
+    for (Object arg : args) {
+      targets[nTarget++] = arg;
+    }
+    List<Match> mList = dofindAny(targets);
+    return mList;
+  }
+
   public <SUFEBMP> List<Match> findChanges(SUFEBMP image) {
     List<Match> changes = new ArrayList<>();
     if (SX.isNotNull(image)) {
@@ -2063,20 +2073,6 @@ public abstract class Element {
         } catch (Exception ex) {
           matches[nTarget] = null;
         }
-        hasFinished(true);
-      }
-
-      boolean finished = false;
-
-      public boolean hasFinished() {
-        return hasFinished(false);
-      }
-
-      public synchronized boolean hasFinished(boolean state) {
-        if (state) {
-          finished = true;
-        }
-        return finished;
       }
     }
 
@@ -2096,6 +2092,7 @@ public abstract class Element {
     return Arrays.asList(matches);
   }
 
+/*
   private Match findInImage(ScreenImage base, Object target) throws IOException {
     Finder finder = null;
     Match match = null;
@@ -2192,6 +2189,7 @@ public abstract class Element {
     }
     return mList;
   }
+*/
 
   //</editor-fold>
 

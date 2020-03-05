@@ -1718,6 +1718,9 @@ public class Region extends Element {
   }
 
   public List<Match> findAny(Object... args) {
+    if (Settings.NewAPI) {
+      super.findAny(args);
+    }
     if (args.length == 0) {
       return new ArrayList<Match>();
     }
