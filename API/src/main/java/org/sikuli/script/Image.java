@@ -814,7 +814,9 @@ public class Image extends Element {
     if (path == null) {
       return;
     }
-    purge(path.pathURL);
+    if (isCaching()) {
+      purge(path.pathURL);
+    }
   }
 
   private static synchronized void purge(URL pathURL) {
@@ -880,6 +882,9 @@ public class Image extends Element {
    * @param lvl debug level used here
    */
   public static void dump(int lvl) {
+    if (!isCaching()) {
+      return;
+    }
     log(logLevel, "--- start of Image dump ---");
     ImagePath.dump(lvl);
     log(logLevel, "ImageFiles entries: %d", imageFiles.size());
@@ -1000,7 +1005,7 @@ public class Image extends Element {
           imageURL = ImagePath.find(imageFileName);
         }
       }
-      if (imageURL != null) {
+      if (imageURL != null && Image.isCaching()) {
         image = imageFiles.get(imageURL);
         if (image != null && null == imageNames.get(image.getName())) {
           imageNames.put(image.getName(), imageURL);
@@ -1036,8 +1041,10 @@ public class Image extends Element {
         return null;
       }
       if (getName() != null) {
-        imageFiles.put(fileURL, this);
-        imageNames.put(getName(), fileURL);
+        if (isCaching()) {
+          imageFiles.put(fileURL, this);
+          imageNames.put(getName(), fileURL);
+        }
         w = bImage.getWidth();
         h = bImage.getHeight();
         bsize = bImage.getData().getDataBuffer().getSize();
@@ -1068,11 +1075,15 @@ public class Image extends Element {
       } catch (Exception e) {
         log(-1, "loadAgain: failed: %s", fileURL);
         bHasIOException = true;
-        imageFiles.remove(fileURL);
+        if(Image.isCaching()) {
+          imageFiles.remove(fileURL);
+        }
         return null;
       }
-      imageFiles.put(fileURL, this);
-      imageNames.put(getName(), fileURL);
+      if (isCaching()) {
+        imageFiles.put(fileURL, this);
+        imageNames.put(getName(), fileURL);
+      }
       w = bImage.getWidth();
       h = bImage.getHeight();
       bsize = bImage.getData().getDataBuffer().getSize();
