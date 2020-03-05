@@ -2931,9 +2931,17 @@ public class Region extends Element {
         }
         long after_find = (new Date()).getTime();
         if (after_find - before_find < MaxTimePerScan) {
-          getRobotForRegion().delay((int) (MaxTimePerScan - (after_find - before_find)));
+          try {
+            Thread.sleep(MaxTimePerScan - (after_find - before_find));
+          } catch (InterruptedException e) {
+            return false;
+          }
         } else {
-          getRobotForRegion().delay(10);
+          try {
+            Thread.sleep(10);
+          } catch (InterruptedException e) {
+            return false;
+          }
         }
       } while (begin_t + timeout * 1000 > (new Date()).getTime());
       return false;
