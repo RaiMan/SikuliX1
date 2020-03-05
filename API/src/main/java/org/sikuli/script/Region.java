@@ -2054,7 +2054,7 @@ public class Region extends Element {
    * @return this Region
    */
   public Region highlightOn(String color) {
-    return highlight(0, color);
+    return doHighlight(-1, color);
   }
 
   /**
@@ -2128,8 +2128,15 @@ public class Region extends Element {
     if (secs < 0) {
       secs = -secs;
       if (lastMatch != null) {
-        return lastMatch.highlight(secs, color);
+        return lastMatch.doHighlight(secs, color);
       }
+    }
+    return doHighlight(secs, color);
+  }
+
+  protected Region doHighlight(double secs, String color) {
+    if (Math.abs(secs) < 0.1) {
+      return this;
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
         + (color != null ? " color: " + color : ""));
