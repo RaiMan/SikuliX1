@@ -1718,8 +1718,8 @@ public class Region extends Element {
   }
 
   public List<Match> findAny(Object... args) {
-    if (Settings.NewAPI) {
-      super.findAny(args);
+    if (Settings.NewAPI) { //TODO findAny(Object...)
+      return super.findAny(args);
     }
     if (args.length == 0) {
       return new ArrayList<Match>();
@@ -1730,6 +1730,9 @@ public class Region extends Element {
   }
 
   public List<Match> findAnyList(List<Object> pList) {
+    if (Settings.NewAPI) { //TODO findAny(List)
+      return super.findAnyList(pList);
+    }
     Debug.log(logLevel, "findAny: enter");
     if (pList == null || pList.size() == 0) {
       return new ArrayList<Match>();

@@ -6,6 +6,7 @@ package org.sikuli.script.test;
 
 import org.junit.*;
 import org.junit.runners.MethodSorters;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.FindFailed;
 import org.sikuli.script.Image;
@@ -14,6 +15,8 @@ import org.sikuli.script.support.SXTest;
 import org.sikuli.util.Highlight;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -126,6 +129,41 @@ public class ElementImageTest extends SXTest {
     }
     testOutro("%s%s == %s changes %d (%d)", "", original, changed, changes.size(), time);
     Assert.assertTrue("Not all changes!", changes.size() == 6);
+  }
+
+  @Test
+  public void test270_ImageFindAny() {
+    testIntro();
+    Image image = new Image(testBase);
+    List<Match> matches = new ArrayList<>();
+    int matchCount = 0;
+    int targetCount = 6;
+    List<Object> images = new ArrayList<>();
+    for (int i = 1; i < targetCount + 1; i++) {
+      images.add("any" + i);
+    }
+    long start = new Date().getTime();
+    for (Object target : images) {
+      Match match;
+      try {
+        match = image.find(target);
+      } catch (FindFailed findFailed) {
+        match = null;
+      }
+      matches.add(match);
+    }
+    long elapsed = new Date().getTime() - start;
+    start = new Date().getTime();
+    matches = image.findAnyList(images);
+    long elapsed1 = new Date().getTime() - start;
+    for (Match match : matches) {
+      if (match != null) {
+        Debug.logp("%s", match);
+        matchCount++;
+      }
+    }
+    testOutro("%s in %s found %d times (%d, %d)", testName, image, matchCount, elapsed, elapsed1);
+    Assert.assertTrue("Not Found!", matchCount == targetCount);
   }
 
   @Test

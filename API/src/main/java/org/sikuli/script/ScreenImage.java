@@ -43,6 +43,7 @@ public class ScreenImage extends Image {
     y = (int) roi.getY();
     w = _img.getWidth();
     h = _img.getHeight();
+    onScreen(false);
   }
 
   /**

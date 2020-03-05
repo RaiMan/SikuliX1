@@ -1907,8 +1907,9 @@ public abstract class Element {
 
   /**
    * like {@link #getAll(Object)} - but returns the smallest rectangle containing all found matches
+   *
    * @param target Pattern, String or Image
-   * @param <PSI> A search criteria
+   * @param <PSI>  A search criteria
    * @return the resulting area or the search area if nothing is found
    */
   public <PSI> Match unionAll(PSI target) {
@@ -1937,13 +1938,22 @@ public abstract class Element {
     return mList;
   }
 
+  public List<Match> findAnyList(List<Object> args) {
+    Object[] targets = new Object[args.size()];
+    int nTarget = 0;
+    for (Object arg : args) {
+      targets[nTarget++] = arg;
+    }
+    List<Match> mList = dofindAny(targets);
+    return mList;
+  }
+
   public <SUFEBMP> List<Match> findChanges(SUFEBMP image) {
     List<Match> changes = new ArrayList<>();
     if (SX.isNotNull(image)) {
       Image changedImage = new Image(image);
       long start = new Date().getTime();
       changes = SXOpenCV.doFindChanges((Image) this, changedImage);
-      if (changes.size() > 0) changes.get(0).setTimes(new Date().getTime() - start, 0);
     }
     return changes;
   }
@@ -2050,14 +2060,12 @@ public abstract class Element {
   }
 
   private List<Match> dofindAny(Object[] targets) {
-    Match[] matches = new Match[targets.length];
-
     class FindSub implements Runnable {
-
       Element element;
       Object target;
       int nTarget;
       Match[] matches;
+      Boolean finished = false;
 
       FindSub(Element element, Object target, int nTarget, Match[] matches) {
         this.element = element.getImage();
@@ -2066,27 +2074,42 @@ public abstract class Element {
         this.matches = matches;
       }
 
+      public boolean hasFinished() {
+        return hasFinished(false);
+      }
+
+      public synchronized boolean hasFinished(boolean state) {
+        if (state) {
+          finished = true;
+        }
+        return finished;
+      }
+
       @Override
       public void run() {
         try {
-          matches[nTarget] = element.find(target);
+          Match match = element.find(target);
+          matches[nTarget] = match;
+          matches[nTarget].setIndex(nTarget);
         } catch (Exception ex) {
-          matches[nTarget] = null;
         }
+        hasFinished(true);
       }
     }
 
-    Thread[] subs = new Thread[targets.length];
+    Match[] matches = new Match[targets.length];
+    FindSub[] subs = new FindSub[targets.length];
     int nTarget = 0;
+    Image screenImage = this.getImage();
     for (Object target : targets) {
-      subs[nTarget] = new Thread(new FindSub(this, target, nTarget, matches));
-      subs[nTarget++].start();
+      subs[nTarget] = new FindSub(screenImage, target, nTarget, matches);
+      new Thread(subs[nTarget++]).start();
     }
     boolean all = false;
     while (!all) {
       all = true;
-      for (Thread sub : subs) {
-        all &= !sub.isAlive();
+      for (FindSub sub : subs) {
+        all &= sub.hasFinished();
       }
     }
     return Arrays.asList(matches);

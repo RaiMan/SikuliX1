@@ -6,15 +6,14 @@ package org.sikuli.script.test;
 
 import org.junit.*;
 import org.junit.runners.MethodSorters;
+import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SXTest;
 import org.sikuli.util.Highlight;
 
 import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ElementRegionTest extends SXTest {
@@ -182,20 +181,39 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region reg = getDefaultRegion();
-    List<Match> matches = null;
+    List<Match> matches = new ArrayList<>();
     int matchCount = 0;
-    matches = reg.findAny(testName, testName, testName);
+    int targetCount = 6;
+    List<Object> images = new ArrayList<>();
+    for (int i = 1; i < targetCount + 1; i++) {
+      images.add("any" + i);
+    }
+    long start = new Date().getTime();
+    for (Object image : images) {
+      Match match;
+      try {
+        match = reg.find(image);
+      } catch (FindFailed findFailed) {
+        match = null;
+      }
+      matches.add(match);
+    }
+    long elapsed = new Date().getTime() - start;
+    start = new Date().getTime();
+    matches = reg.findAnyList(images);
+    long elapsed1 = new Date().getTime() - start;
     if (matches != null) {
       matchCount = matches.size();
     }
     if (showImage) {
       for (Match match : matches) {
         match.highlight();
+        Debug.logp("%s", match);
       }
       Highlight.closeAll(3);
     }
-    testOutro("%s in %s found %d times", testName, reg, matchCount);
-    Assert.assertTrue("Not Found!", matchCount == 3);
+    testOutro("%s in %s found %d times (%d, %d)", testName, reg, matchCount, elapsed, elapsed1);
+    Assert.assertTrue("Not Found!", matchCount == targetCount);
   }
 
   @Test

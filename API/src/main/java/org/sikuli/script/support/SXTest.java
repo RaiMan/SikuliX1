@@ -41,6 +41,10 @@ public class SXTest {
   public static String testMissingName = "missing";
   public static String httpURI = "https://sikulix-2014.readthedocs.io/en/latest/_images/popup.png";
 
+  static {
+    Settings.ActionLogs = false;
+  }
+
   public Region defaultRegion = new Screen();
   public static boolean useScreen = true;
 
