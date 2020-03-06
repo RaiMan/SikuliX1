@@ -401,22 +401,22 @@ public abstract class Element {
    */
   public boolean isValid() {
     if (isOnScreen() || null == imageURL) {
-      if (content.empty() && this instanceof ScreenImage) {
-        content = ((ScreenImage) this).makeMat();
+      if (imageContent.empty() && this instanceof ScreenImage) {
+        imageContent = ((ScreenImage) this).makeMat();
       }
-      return !content.empty();
+      return !imageContent.empty();
     }
     return Image.ImageCache.isValid(imageURL);
   }
 
   public Mat getContent() {
     if (isOnScreen() || null == imageURL) {
-      if (content.empty() && this instanceof ScreenImage) {
-        content = ((ScreenImage) this).makeMat();
+      if (imageContent.empty() && this instanceof ScreenImage) {
+        imageContent = ((ScreenImage) this).makeMat();
       }
-      return content;
+      return imageContent;
     }
-    return Image.ImageCache.get(imageURL);
+    return Image.ImageCache.get(this);
   }
 
   public Mat cloneContent() {
@@ -424,12 +424,12 @@ public abstract class Element {
   }
 
   public void setContent(Mat mat) {
-    content = mat;
+    imageContent = mat;
   }
 
   public void updateContent(Mat mat) {
     if (null == imageURL) {
-      content = mat;
+      imageContent = mat;
     } else {
       Image.ImageCache.put(imageURL, mat); // update content
     }
@@ -462,7 +462,6 @@ public abstract class Element {
   }
 
   private static final String MASK_IMAGE = "Internal-Mask-Image";
-  //static final String OK = "";
 
   protected void createContent(URL url) {
     createContent(url, false);
@@ -488,32 +487,21 @@ public abstract class Element {
       }
     }
     if (success) {
-      byte[] bytes = null;
-      try {
-        InputStream inputStream = url.openStream();
-        imageURL = url;
-        if (!isFakeImage() && Image.ImageCache.isValid(url)) {
-          if (!isReLoad) {
-            setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
-            return;
-          }
+      if (!isFakeImage() && Image.ImageCache.isValid(url)) {
+        if (!isReLoad) {
+          setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
+          return;
         }
-        bytes = inputStream.readAllBytes();
-      } catch (IOException e) {
-        success = false;
       }
-      if (bytes != null) {
-        MatOfByte matOfByte = new MatOfByte();
-        matOfByte.fromArray(bytes);
-        Mat content = Imgcodecs.imdecode(matOfByte, -1);
-        if (isMaskImage()) {
-          List<Mat> mats = SXOpenCV.extractMask(content, false);
-          content = mats.get(1);
-        }
+      Mat content = getMatFromURL(url, isMaskImage());
+      if (!content.empty()) {
+        imageURL = url;
         if (!isFakeImage()) {
           setSize(content);
         }
         Image.ImageCache.put(url, content); // create content
+      } else {
+        success = false;
       }
     }
     if (!success) {
@@ -522,6 +510,34 @@ public abstract class Element {
         initTerminate("Image finally not loaded: %s", url);
       }
     }
+  }
+
+  private static Mat getMatFromURL(URL url, boolean isMaskImage) {
+    byte[] bytes = null;
+    Mat content = new Mat();
+    try {
+      InputStream inputStream = url.openStream();
+      bytes = inputStream.readAllBytes();
+    } catch (IOException e) {
+    }
+    if (bytes != null) {
+      MatOfByte matOfByte = new MatOfByte();
+      matOfByte.fromArray(bytes);
+      content = Imgcodecs.imdecode(matOfByte, -1);
+      if (isMaskImage) {
+        List<Mat> mats = SXOpenCV.extractMask(content, false);
+        content = mats.get(1);
+      }
+    }
+    return content;
+  }
+
+  public static Mat reload(URL url) {
+    Mat content = new Mat();
+    if (url != null) {
+      content = getMatFromURL(url, false);
+    }
+    return content;
   }
 
   protected static void reload(String fpImage) {
@@ -539,7 +555,7 @@ public abstract class Element {
     }
   }
 
-  private Mat content = SXOpenCV.newMat();
+  private Mat imageContent = SXOpenCV.newMat();
   //</editor-fold>
 
   //<editor-fold desc="004 Fields CV-attributes">
@@ -703,6 +719,12 @@ public abstract class Element {
 
   static boolean isFile(URL url) {
     return url != null && url.getProtocol().equals("file");
+  }
+
+  boolean reloaded = false;
+
+  protected void wasReloaded() {
+    reloaded = true;
   }
   //</editor-fold>
 
@@ -1439,7 +1461,7 @@ public abstract class Element {
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
         response = SX.popGeneric("Decide where to save the shot.", "Capture: " + title, "Save in Bundle",
-            new String[]{"Save in Bundle", "Select folder", "Abort"});
+                new String[]{"Save in Bundle", "Select folder", "Abort"});
         if (response == 0) {
           imageFile = new File(ImagePath.getBundlePath(), imageName);
         } else if (response == 1) {
@@ -1477,7 +1499,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-        "\n\nClick OK when ready.", "Capture missing image");
+            "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1552,7 +1574,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-          "\nWhere: " + this;
+              "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1564,7 +1586,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -2046,7 +2068,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed(image);
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }

@@ -232,8 +232,16 @@ public class Image extends Element {
       return mat;
     }
 
-    static Mat get(URL key) {
-      List<Object> items = cache.get(key);
+    static Mat get(Element element) {
+      return get(element.url(), element);
+    }
+
+    static Mat get(URL url) {
+      return get(url, null);
+    }
+
+    private static Mat get(URL url, Element element) {
+      List<Object> items = cache.get(url);
       if (items == null) {
         return new Mat();
       }
@@ -241,9 +249,25 @@ public class Image extends Element {
       if (null == content) {
         return new Mat();
       }
-      Double count = (Double) items.get(ITEM_COUNT) + 1;
-      if (count < Double.MAX_VALUE)
-      items.set(ITEM_COUNT, count);
+      if (null != element && isFile(url)) {
+        long modified = new File(url.getPath()).lastModified();
+        long lastMod = (long) items.get(ITEM_LASTMOD);
+        if (modified > lastMod) {
+          Mat newContent = Element.reload(url);
+          if (!newContent.empty()) {
+            content = newContent;
+            items.set(ITEM_MAT, newContent);
+            items.set(ITEM_COUNT, 0);
+            items.set(ITEM_LASTMOD, modified);
+            element.wasReloaded();
+          }
+        }
+      } else {
+        Double count = (Double) items.get(ITEM_COUNT) + 1;
+        if (count < Double.MAX_VALUE) {
+          items.set(ITEM_COUNT, count);
+        }
+      }
       return (Mat) content;
     }
 
