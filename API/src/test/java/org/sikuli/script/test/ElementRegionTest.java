@@ -30,8 +30,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test250_RegionFind() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     Match match = null;
     try {
@@ -49,9 +49,9 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test252_RegionWait() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     waitBefore = 2;
     testIntro(testBase);
-    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
     Region reg = getDefaultRegion();
     Match match = null;
     try {
@@ -68,9 +68,23 @@ public class ElementRegionTest extends SXTest {
   }
 
   @Test
-  public void test253_RegionFindAllIterator() {
-    testIntro(testBase);
+  public void test253_RegionWaitVanish() {
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    waitAfter = 3;
+    testIntro(testBase);
+    boolean vanished = false;
+    Region reg = getDefaultRegion();
+    if (reg.has(testName)) {
+      vanished = reg.waitVanish(testName);
+    }
+    testOutro("%s in %s vanished %s", testName, reg, vanished);
+    Assert.assertTrue("Not vanished!", vanished);
+  }
+
+  @Test
+  public void test255_RegionFindAllIterator() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     Iterator<Match> matches = null;
     int matchCount = 0;
@@ -95,8 +109,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test258_RegionFindAllList() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     List<Match> matches = null;
     int matchCount = 0;
@@ -119,8 +133,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test260_RegionFindTrans() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     Match match = null;
     try {
@@ -138,8 +152,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test261_RegionFindMask() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     Match match = null;
     try {
@@ -158,8 +172,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test262_RegionFindIsMasked() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     Match match = null;
     try {
@@ -178,8 +192,8 @@ public class ElementRegionTest extends SXTest {
 
   @Test
   public void test270_RegionFindAny() {
-    testIntro(testBase);
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro(testBase);
     Region reg = getDefaultRegion();
     List<Match> matches = new ArrayList<>();
     int matchCount = 0;
@@ -242,8 +256,8 @@ public class ElementRegionTest extends SXTest {
 
   @Ignore
   public void test800_RegionFindFailed() {
-    testIntro();
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    testIntro();
     Region reg = getDefaultRegion();
     Match match = null;
     String error = "";

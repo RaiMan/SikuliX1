@@ -29,6 +29,7 @@ public class SXTest {
   public static JFrame defaultFrame = null;
   public static String defaultFrameImage = "";
   public static long waitBefore = 0;
+  public static long waitAfter = 0;
   public static Dimension defaultFrameSize = null;
 
   public static String testBase = "house_shot";
@@ -158,6 +159,10 @@ public class SXTest {
           if (null != defaultFrame) {
             defaultFrame.setVisible(true);
           }
+          if (waitAfter > 0) {
+            RunTime.pause(waitAfter);
+            defaultFrame.setVisible(false);
+          }
         }
       }).start();
       RunTime.pause(pause);
@@ -172,6 +177,7 @@ public class SXTest {
       RunTime.pause(1);
     }
     waitBefore = 0;
+    waitAfter = 0;
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
     if (args.length > 0 && args[0] instanceof Image) {
       showCV((Image) args[0]);

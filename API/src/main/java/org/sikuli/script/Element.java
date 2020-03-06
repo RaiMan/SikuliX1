@@ -1766,36 +1766,6 @@ public abstract class Element {
   }
 
   /**
-   * waits until target vanishes or timeout (in seconds) is passed
-   *
-   * @param <PSI>   Pattern, String or Image
-   * @param target  Pattern, String or Image
-   * @param timeout time in seconds
-   * @return true if target vanishes, false otherwise and if imagefile is missing.
-   */
-  public <PSI> boolean waitVanish(PSI target, double timeout) {
-/*
-    Region.RepeatableVanish rv = new Region.RepeatableVanish(target);
-    Image img = rv._image;
-    String targetStr = img.getName();
-    Boolean response = true;
-    if (!img.isValid()) {
-      response = handleImageMissing(img, false);//waitVanish
-    }
-    if (null != response && response) {
-      log(logLevel, "waiting for " + targetStr + " to vanish within %.1f secs", timeout);
-      if (rv.repeat(timeout)) {
-        log(logLevel, "%s vanished", targetStr);
-        return true;
-      }
-      log(logLevel, "%s did not vanish before timeout", targetStr);
-      return false;
-    }
-*/
-    return false;
-  }
-
-  /**
    * waits until target vanishes or timeout (in seconds) is passed (AutoWaitTimeout)
    *
    * @param <PSI>  Pattern, String or Image
@@ -1804,6 +1774,35 @@ public abstract class Element {
    */
   public <PSI> boolean waitVanish(PSI target) {
     return waitVanish(target, getAutoWaitTimeout());
+  }
+
+  /**
+   * waits until target vanishes or timeout (in seconds) is passed
+   *
+   * @param <PSI>   Pattern, String or Image
+   * @param target  Pattern, String or Image
+   * @param timeout time in seconds
+   * @return true if target vanishes, false otherwise and if imagefile is missing.
+   */
+  public <PSI> boolean waitVanish(PSI target, double timeout) {
+    long before = new Date().getTime();
+    try {
+      doFind(target, 0);
+    } catch (FindFailed findFailed) {
+      return true;
+    }
+    waitAfterScan(before, before + (int) (timeout * 1000));
+    long elapsed = new Date().getTime() - before;
+    timeout = timeout - elapsed / 1000.0;
+    if (timeout < 0) {
+      return false;
+    }
+    Match match = null;
+    try {
+      match = doFind(target, -timeout);
+    } catch (FindFailed findFailed) {
+    }
+    return match == null;
   }
   //</editor-fold>
 
@@ -1968,6 +1967,11 @@ public abstract class Element {
     if (!isValid()) {
       return null;
     }
+    boolean isVanish = false;
+    if (timeout < 0) {
+      isVanish = true;
+      timeout = -timeout;
+    }
     long startFind = new Date().getTime();
     Mat where = new Mat();
     if (!isOnScreen()) {
@@ -2022,10 +2026,10 @@ public abstract class Element {
         startSearch = new Date().getTime();
         matchResult = SXOpenCV.doFindMatch(where, what, mask, image, findAll);
         searchTime = new Date().getTime() - startSearch;
-        if (matchResult != null || timeout < 0.01) {
+        if (timeout < 0.01) {
           break;
         }
-        if (before > waitUntil) {
+        if ((isVanish && matchResult == null) || (!isVanish && matchResult != null) || before > waitUntil) {
           break;
         }
         waitAfterScan(before, waitUntil);
@@ -2034,6 +2038,9 @@ public abstract class Element {
       long findTime = new Date().getTime() - startFind;
       long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
       match = Match.createFromResult(image, matchResult, times);
+      if (isVanish) {
+        return match;
+      }
       if (match == null) {
         FindFailedResponse response = handleFindFailed(image);
         if (FindFailedResponse.RETRY.equals(response)) {
