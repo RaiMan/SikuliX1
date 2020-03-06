@@ -625,35 +625,12 @@ public abstract class Element {
   private final static String PNG = "png";
   private final static String dotPNG = "." + PNG;
 
-  public static URL createURL(Object item, Object base) {
-    File itemFile = null;
-    if (item instanceof String) {
-      itemFile = new File((String) item);
-    } else if (item instanceof File) {
-      itemFile = (File) item;
-    }
-    if (itemFile == null) {
-      return null;
-    }
-    if (base != null) {
-      String itemName = itemFile.getPath();
-      if (itemFile.isAbsolute()) {
-        itemName = itemFile.getName();
-      }
-      if (base instanceof URL) {
-        URL baseURL = (URL) base;
-        if ("file".equals(baseURL.getProtocol())) {
-          itemFile = new File(new File(baseURL.getPath()), itemName);
-        } else
-          terminate("createURL: not supported for non-File base: %s", base);
-      } else if (base instanceof String) {
-        itemFile = new File((String) base, itemName);
-      }
-      if (base instanceof File) {
-        itemFile = new File((File) base, itemName);
-      }
-    }
-    return createURL(itemFile);
+  protected static URL evalURL(String imagefileName) {
+    return ImagePath.find(imagefileName);
+  }
+
+  protected static URL evalURL(File imagefile) {
+    return ImagePath.find(imagefile);
   }
 
   public static URL createURL(String fileName) {
@@ -678,9 +655,9 @@ public abstract class Element {
 
   public void url(URL url) {
     if (url.getProtocol().equals("file")) {
-      this.imageURL = createURL(url.getPath());
+      imageURL = createURL(url.getPath());
     }
-    this.imageURL = url;
+    imageURL = url;
   }
 
   public void url(String fileName) {
@@ -696,14 +673,6 @@ public abstract class Element {
   }
 
   private URL imageURL = null;
-
-  protected static URL evalURL(String imagefileName) {
-    return ImagePath.find(imagefileName);
-  }
-
-  protected static URL evalURL(File imagefile) {
-    return ImagePath.find(imagefile);
-  }
 
   public String fileName() {
     File file = file();

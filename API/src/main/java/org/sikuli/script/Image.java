@@ -31,7 +31,7 @@ import java.util.*;
  */
 public class Image extends Element {
 
- //<editor-fold desc="000  instance">
+  //<editor-fold desc="000  instance">
   public static Image getDefaultInstance4py() {
     return new Image(new Screen().capture());
   }
@@ -261,13 +261,13 @@ public class Image extends Element {
             items.set(ITEM_LASTMOD, modified);
             element.wasReloaded();
             cache.put(url, items);
+            return (Mat) content;
           }
         }
-      } else {
-        Double count = (Double) items.get(ITEM_COUNT) + 1;
-        if (count < Double.MAX_VALUE) {
-          items.set(ITEM_COUNT, count);
-        }
+      }
+      Double count = (Double) items.get(ITEM_COUNT) + 1;
+      if (count < Double.MAX_VALUE) {
+        items.set(ITEM_COUNT, count);
       }
       return (Mat) content;
     }
@@ -288,7 +288,7 @@ public class Image extends Element {
       int count = cache.size();
       double size = 0;
       double used = 0;
-      for ( List<Object> items : cache.values()) {
+      for (List<Object> items : cache.values()) {
         size += ((Mat) items.get(0)).width() * ((Mat) items.get(0)).height();
         used += (Double) items.get(1);
       }
@@ -638,8 +638,8 @@ public class Image extends Element {
   //<editor-fold desc="830 load/save --- to be checked">
   public static void setIDEshouldReload(Element img) { //TODO
     ideShouldReload = true;
-    ((Image)img).wasRecaptured = true;
-    ((Image)img).lastSeen = null;
+    ((Image) img).wasRecaptured = true;
+    ((Image) img).lastSeen = null;
   }
 
   public static boolean getIDEshouldReload() {
