@@ -260,6 +260,7 @@ public class Image extends Element {
             items.set(ITEM_COUNT, 0);
             items.set(ITEM_LASTMOD, modified);
             element.wasReloaded();
+            cache.put(url, items);
           }
         }
       } else {
