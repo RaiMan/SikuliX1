@@ -489,6 +489,7 @@ public abstract class Element {
     if (success) {
       if (!isFakeImage() && Image.ImageCache.isValid(url)) {
         if (!isReLoad) {
+          imageURL = url;
           setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
           return;
         }
