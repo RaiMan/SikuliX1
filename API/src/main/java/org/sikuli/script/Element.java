@@ -1939,6 +1939,66 @@ public abstract class Element {
     return mList;
   }
 
+  public Match unionAny(Object... targets) {
+    if (targets.length < 2) {
+      return new Match(this);
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(targets));
+    return unionAnyList(pList);
+  }
+
+  public Match unionAnyList(List<Object> targets) {
+    if (targets.size() < 2) {
+      return new Match(this);
+    }
+    List<Match> matches = new ArrayList<>();
+    matches = findAnyList(targets);
+    if (matches.size() < 2) {
+      return new Match(this);
+    }
+    Match theUnion = null;
+    for (Match match : matches) {
+      if (null == theUnion) {
+        theUnion = match;
+      } else {
+        theUnion = theUnion.union(match);
+      }
+    }
+    return theUnion;
+  }
+
+  public Match findBest(Object... args) {
+    if (args.length == 0) {
+      return null;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(args));
+    return findBestList(pList);
+  }
+
+  public Match findBestList(List<Object> pList) {
+    Debug.log(logLevel, "findBest: enter");
+    if (pList == null || pList.size() == 0) {
+      return null;
+    }
+    Match mResult = null;
+    List<Match> mList = findAnyList(pList);
+    if (mList.size() > 0) {
+      Collections.sort(mList, (m1, m2) -> {
+        double ms = m2.score() - m1.score();
+        if (ms < 0) {
+          return -1;
+        } else if (ms > 0) {
+          return 1;
+        }
+        return 0;
+      });
+      mResult = mList.get(0);
+    }
+    return mResult;
+  }
+
   public <SUFEBMP> List<Match> findChanges(SUFEBMP image) {
     List<Match> changes = new ArrayList<>();
     if (SX.isNotNull(image)) {
