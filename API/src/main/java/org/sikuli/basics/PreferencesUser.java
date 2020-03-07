@@ -3,6 +3,8 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.Sikulix;
+
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
@@ -15,8 +17,6 @@ import java.util.Locale;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
-
-import org.sikuli.script.Sikulix;
 
 public class PreferencesUser {
 
@@ -105,10 +105,14 @@ public class PreferencesUser {
   public void reset() {
     removeAll("");
     setDefaults();
+    store();
+  }
+
+  public void store() {
     try {
       pref.flush();
     } catch (BackingStoreException e) {
-      Debug.error("UserPrefs: reset: did not work: ", e.getMessage());
+      Debug.error("UserPrefs: store: did not work: ", e.getMessage());
     }
   }
 

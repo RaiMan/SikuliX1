@@ -788,6 +788,7 @@ public class RunTime {
   private static Options sxOptions = null;
 
   private static boolean isTerminating = false;
+  private static boolean hasDoneCleanUpTerminating = false;
 
   public static String appDataMsg = "";
 
@@ -1034,6 +1035,7 @@ public class RunTime {
     runTime.initSikulixOptions();
 
     //<editor-fold desc="addShutdownHook">
+    hasDoneCleanUpTerminating = false;
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -1302,6 +1304,9 @@ public class RunTime {
   }
 
   public static void cleanUp() {
+    if (hasDoneCleanUpTerminating) {
+      return;
+    }
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       Highlight.closeAll();
@@ -1328,8 +1333,10 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
+    PreferencesUser.get().store();
     if (isTerminating) {
       stopPythonServer();
+      hasDoneCleanUpTerminating = true;
     }
   }
 
