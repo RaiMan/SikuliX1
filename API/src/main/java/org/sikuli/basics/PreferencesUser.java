@@ -71,7 +71,6 @@ public class PreferencesUser {
   public boolean save(String path) {
     try {
       FileOutputStream pout = new FileOutputStream(new File(path));
-      ;
       pref.exportSubtree(pout);
       pout.close();
     } catch (Exception ex) {

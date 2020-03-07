@@ -224,9 +224,12 @@ public class SikulixIDE extends JFrame {
       prefs.setIdeSession("");
       prefs.setDefaults();
     }
-
+    //TODO why is this hack needed? The defaults from fresh preferences are not returned.
     Dimension windowSize = prefs.getIdeSize();
     Point windowLocation = prefs.getIdeLocation();
+    if (windowSize.width < 500 || windowSize.height < 200) {
+      windowSize = new Dimension(1024, 640);
+    }
     setSize(windowSize);
     setLocation(windowLocation);
 
