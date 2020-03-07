@@ -299,6 +299,7 @@ public class RunTime {
     //</editor-fold>
 
     //<editor-fold desc="addShutdownHook">
+    hasDoneCleanUp = false;
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -991,6 +992,7 @@ java.desktop/sun.awt=ALL-UNNAMED
   private static Options sxOptions = null;
 
   private static boolean isTerminating = false;
+  private static boolean hasDoneCleanUp = false;
 
   public static String appDataMsg = "";
 
@@ -1354,6 +1356,9 @@ java.desktop/sun.awt=ALL-UNNAMED
   }
 
   public static void cleanUp() {
+    if (hasDoneCleanUp) {
+      return;
+    }
     if (!isTerminating) {
       runTime.log(3, "***** running cleanUp *****");
       Highlight.closeAll();
@@ -1380,7 +1385,9 @@ java.desktop/sun.awt=ALL-UNNAMED
     Mouse.reset();
     if (isTerminating) {
       stopPythonServer();
+      hasDoneCleanUp = true;
     }
+    PreferencesUser.get().store();
   }
 
   private static void runShutdownHook() {

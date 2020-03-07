@@ -3,16 +3,20 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.support.RunTime;
+
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-import java.util.prefs.*;
-
-import org.sikuli.script.support.RunTime;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.PreferenceChangeListener;
+import java.util.prefs.Preferences;
 
 public class PreferencesUser {
 
@@ -106,6 +110,10 @@ public class PreferencesUser {
   public void reset() {
     removeAll("");
     setDefaults();
+    store();
+  }
+
+  public void store() {
     try {
       pref.flush();
     } catch (BackingStoreException e) {
