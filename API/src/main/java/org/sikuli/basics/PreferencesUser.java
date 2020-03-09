@@ -60,7 +60,7 @@ public class PreferencesUser {
   }
 
   private PreferencesUser() {
-    Debug.log(3, "init user preferences");
+    //Debug.log(3, "init user preferences");
   }
 
   public boolean save(String path) {
@@ -513,7 +513,7 @@ public class PreferencesUser {
     setCheckUpdateTime();
 
 // ***** IDE general support
-    setIdeSize(new Dimension(0, 0));
+    setIdeSize(new Dimension(1024, 700));
     setIdeLocation(new Point(0, 0));
 
     setPrefMoreImages(false);
