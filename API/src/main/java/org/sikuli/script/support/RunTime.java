@@ -17,16 +17,14 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
-import java.awt.AWTException;
-import java.awt.Desktop;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
+import java.util.List;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -163,6 +161,8 @@ public class RunTime {
     cmd.addAll(finalArgs);
 
     RunTime.startLog(3, "*********************** leaving start");
+    //TODO detach IDE: for what does it make sense?
+/*
     if (shouldDetach()) {
       ProcessRunner.detach(cmd);
       System.exit(0);
@@ -170,6 +170,9 @@ public class RunTime {
       int exitCode = ProcessRunner.runBlocking(cmd);
       System.exit(exitCode);
     }
+*/
+    int exitCode = ProcessRunner.runBlocking(cmd);
+    System.exit(exitCode);
   }
 
   private static File getRunningJar(Type type) {
