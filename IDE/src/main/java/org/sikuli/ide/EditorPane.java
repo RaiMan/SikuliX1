@@ -1648,8 +1648,19 @@ public class EditorPane extends JTextPane {
     if (start == end) {
       runLines(getLineTextAtCaret().trim());
     } else {
-      runLines(getSelectedText());
+       runLines(getLinesFromSelection(start, end));
     }
+  }
+
+  private String getLinesFromSelection(int start, int end) {
+    String lines = "";
+    String[] scriptLines = getText().split("\n");
+    int startLine = getLineNumberAtCaret(start) - 1;
+    int endLine = Math.min(getLineNumberAtCaret(end), scriptLines.length);
+    for (int i = startLine; i < endLine; i++) {
+      lines += scriptLines[i] + "\n";
+    }
+    return lines;
   }
 
   public String getLines(int current, Boolean selection) {

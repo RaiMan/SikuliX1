@@ -288,6 +288,8 @@ public class SikulixIDE extends JFrame {
     }
     tabs.setSelectedIndex(0);
 
+    new Screen(); //TODO initSikuliIDE: to avoid later use of Robot from eventqueue
+
     String j9Message = "";
     if (runTime.isJava9()) {
       j9Message = "*** Running on Java 9+";
