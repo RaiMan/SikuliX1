@@ -183,7 +183,9 @@ public class SX {
         } else if (PopType.POPASK.equals(popType)) {
           int ret = JOptionPane.showConfirmDialog(frame, message, title, JOptionPane.YES_NO_OPTION);
           returnValue = Boolean.TRUE;
-          if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
+          if (ret == JOptionPane.CLOSED_OPTION) {
+            returnValue = null;
+          } else if (ret == JOptionPane.NO_OPTION) {
             returnValue = Boolean.FALSE;
           }
         } else if (PopType.POPERROR.equals(popType)) {
