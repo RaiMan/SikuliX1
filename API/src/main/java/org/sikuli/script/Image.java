@@ -220,6 +220,7 @@ public class Image extends Element {
     static int ITEM_MAT = 0;
     static int ITEM_COUNT = 1;
     static int ITEM_LASTMOD = 2;
+    static int ITEM_LASTSEEN = 3;
 
     static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
 
