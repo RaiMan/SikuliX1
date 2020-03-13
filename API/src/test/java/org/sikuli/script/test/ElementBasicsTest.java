@@ -4,6 +4,7 @@
 
 package org.sikuli.script.test;
 
+import com.sikulix.SikulixImages;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.sikuli.script.Image;
@@ -101,8 +102,26 @@ public class ElementBasicsTest extends SXTest {
   @Test
   public void test030_ImageFileResource() {
     testIntro();
-    String resName = "class:///images/" + testName;
+    String resName = "class://Image::/images/" + testName;
     Image image = new Image(org.sikuli.script.Image.class, "images/" + testName);
+    testOutro("%s (%s)", image, resName);
+    assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  @Test
+  public void test031_ImageFileJarResource() {
+    testIntro();
+    String resName = "class://SikulixImages::/provided/images/" + testName;
+    Image image = new Image(com.sikulix.SikulixImages.class, "provided/images/" + testName);
+    testOutro("%s (%s)", image, resName);
+    assertTrue("NotValid: " + image.toString(), image.isValid());
+  }
+
+  @Test
+  public void test032_ImageFileJarGetResource() {
+    testIntro();
+    String resName = "getResource::SikulixImages::/provided/images/" + testName;
+    Image image = new Image(SikulixImages.class.getResource("/provided/images/" + testName + ".png"));
     testOutro("%s (%s)", image, resName);
     assertTrue("NotValid: " + image.toString(), image.isValid());
   }

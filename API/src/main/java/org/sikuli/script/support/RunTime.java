@@ -435,6 +435,11 @@ java.desktop/sun.awt=ALL-UNNAMED
       cmd.addAll(finalArgs);
 
       RunTime.startLog(3, "*********************** leaving start");
+      int exitCode = ProcessRunner.runBlocking(cmd);
+      System.exit(exitCode);
+
+//TODO IDE detach: needed why?
+/*
       if (shouldDetach()) {
         ProcessRunner.detach(cmd);
         System.exit(0);
@@ -442,6 +447,7 @@ java.desktop/sun.awt=ALL-UNNAMED
         int exitCode = ProcessRunner.runBlocking(cmd);
         System.exit(exitCode);
       }
+*/
     }
   }
 
