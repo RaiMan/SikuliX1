@@ -71,14 +71,6 @@
 
   <dependencies>
     <dependency>
-      <!-- only for local tests in the IDE -->
-      <!-- not available in the world -->
-      <groupId>com.sikulix</groupId>
-      <artifactId>sikuliximages</artifactId>
-      <version>2.1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulix2opencv</artifactId>
       <version>4.1.1</version>
