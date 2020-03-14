@@ -2,13 +2,13 @@
 echo ------- uploading API and IDE jars
 
 apijar=`ls API/target/sikulixapi*complete.jar`
-cp $apijar pages/sikulixapi.jar
+cp $apijar pages/sikulixapi-2.1.0.jar
 
 apisrcjar=`ls API/target/sikulixapi*sources.jar`
-cp $apisrcjar pages/sikulixapi-sources.jar
+cp $apisrcjar pages/sikulixapi-2.1.0-sources.jar
 
 idejar=`ls IDE/target/sikulixide*complete.jar`
-cp $idejar pages/sikulix.jar
+cp $idejar pages/sikulix-2.1.0.jar
 
 echo ------ updating downloads page
 
