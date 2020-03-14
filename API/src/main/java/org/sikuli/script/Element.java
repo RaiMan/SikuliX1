@@ -725,6 +725,10 @@ public abstract class Element {
 
   boolean reloaded = false;
 
+  protected boolean isReloaded() {
+    return reloaded;
+  }
+
   protected void wasReloaded() {
     reloaded = true;
   }
@@ -1048,13 +1052,14 @@ public abstract class Element {
     if (Settings.ImageCaching) {
       ImageCache.put(element.url(), content);
     } else {
+      ImageCache.put(element.url());
       element.setImageContent(content);
     }
   }
 
   static Mat getFromCache(Element element) {
     if (Settings.ImageCaching) {
-      return ImageCache.get(element);
+      return ImageCache.getMat(element);
     }
     return element.getImageContent();
   }
@@ -1076,6 +1081,10 @@ public abstract class Element {
       return null != items.get(0) && !((Mat) items.get(0)).empty();
     }
 
+    static void put(URL url) {
+      put(url, null);
+    }
+
     static Mat put(URL url, Mat mat) {
       ArrayList<Object> items = new ArrayList<>();
       items.add(mat);
@@ -1085,15 +1094,8 @@ public abstract class Element {
       return mat;
     }
 
-    static Mat get(Element element) {
-      return get(element.url(), element);
-    }
-
-    static Mat get(URL url) {
-      return get(url, null);
-    }
-
-    private static Mat get(URL url, Element element) {
+    static Mat getMat(Element element) {
+      URL url = element.url();
       List<Object> items = cache.get(url);
       if (items == null) {
         return new Mat();
@@ -1102,27 +1104,37 @@ public abstract class Element {
       if (null == content) {
         return new Mat();
       }
-      if (null != element && isFile(url)) {
+      Mat newMat = possibleReload(element, url, items);
+      if (element.isReloaded()) {
+        content = newMat;
+        items.set(ITEM_MAT, content);
+      }
+      useCountUp(items);
+      return (Mat) content;
+    }
+
+    private static Mat possibleReload(Element element, URL url, List<Object> items) {
+      Mat newContent = new Mat();
+      if (isFile(url)) {
         long modified = new File(url.getPath()).lastModified();
         long lastMod = (long) items.get(ITEM_LASTMOD);
         if (modified > lastMod) {
-          Mat newContent = Element.reload(url);
+          newContent = reload(url);
           if (!newContent.empty()) {
-            content = newContent;
-            items.set(ITEM_MAT, newContent);
-            items.set(ITEM_COUNT, 0);
+            items.set(ITEM_COUNT, -1);
             items.set(ITEM_LASTMOD, modified);
             element.wasReloaded();
-            cache.put(url, items);
-            return (Mat) content;
           }
         }
       }
+      return newContent;
+    }
+
+    private static void useCountUp(List<Object> items) {
       Double count = (Double) items.get(ITEM_COUNT) + 1;
       if (count < Double.MAX_VALUE) {
         items.set(ITEM_COUNT, count);
       }
-      return (Mat) content;
     }
 
     static void reset() {
