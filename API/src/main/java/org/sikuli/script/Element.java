@@ -158,6 +158,24 @@ public abstract class Element {
     return this;
   }
 
+  public Element setLocation(Object topLeft) {
+    if (topLeft instanceof Point) {
+      set(((Point) topLeft).x, ((Point) topLeft).y);
+    } else if (topLeft instanceof Element) {
+      set(((Element) topLeft).x, ((Element) topLeft).y);
+    }
+    return this;
+  }
+
+  public Element reLocate(Object topLeft) {
+    if (topLeft instanceof Point) {
+      set(((Point) topLeft).x + x, ((Point) topLeft).y + y);
+    } else if (topLeft instanceof Element) {
+      set(((Element) topLeft).x + x, ((Element) topLeft).y + y);
+    }
+    return this;
+  }
+
   /**
    * get as AWT point
    *
@@ -165,13 +183,6 @@ public abstract class Element {
    */
   public Point getPoint() {
     return new Point(x, y);
-  }
-
-  protected void copyElementRectangle(Element element) {
-    x = element.x;
-    y = element.y;
-    w = element.w;
-    h = element.h;
   }
   //</editor-fold>
 
@@ -211,6 +222,13 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="002 Fields rectangle">
+  protected void copyElementRectangle(Element element) {
+    x = element.x;
+    y = element.y;
+    w = element.w;
+    h = element.h;
+  }
+
   protected void setSize(Mat mat) {
     w = mat.cols();
     h = mat.rows();
@@ -406,7 +424,10 @@ public abstract class Element {
       }
       return !imageContent.empty();
     }
-    return Image.ImageCache.isValid(imageURL);
+    if (Settings.ImageCaching) {
+      return isCached(url());
+    }
+    return !getImageContent().empty();
   }
 
   public Mat getContent() {
@@ -416,7 +437,15 @@ public abstract class Element {
       }
       return imageContent;
     }
-    return Image.ImageCache.get(this);
+    return getFromCache(this);
+  }
+
+  Mat getImageContent() {
+    return imageContent;
+  }
+
+  void setImageContent(Mat content) {
+    imageContent = content;
   }
 
   public Mat cloneContent() {
@@ -431,13 +460,16 @@ public abstract class Element {
     if (null == imageURL) {
       imageContent = mat;
     } else {
-      Image.ImageCache.put(imageURL, mat); // update content
+      putIntoCache(this, mat); // update content
     }
   }
 
   protected void copyElementContent(Element element) {
     if (element.url() != null) {
       url(element.url());
+      if (!Settings.ImageCaching) {
+        setImageContent(element.getImageContent());
+      }
     } else {
       setContent(element.cloneContent());
     }
@@ -487,10 +519,10 @@ public abstract class Element {
       }
     }
     if (success) {
-      if (!isFakeImage() && Image.ImageCache.isValid(url)) {
+      if (!isFakeImage() && isCached(url)) {
         if (!isReLoad) {
           imageURL = url;
-          setSize(Image.ImageCache.get(url));  //TODO revise FakeImage hack
+          setSize(getFromCache(this));  //TODO revise FakeImage hack
           return;
         }
       }
@@ -500,7 +532,7 @@ public abstract class Element {
         if (!isFakeImage()) {
           setSize(content);
         }
-        Image.ImageCache.put(url, content); // create content
+        putIntoCache(this, content); // create content
       } else {
         success = false;
       }
@@ -985,6 +1017,129 @@ public abstract class Element {
   }
 
   private Object findFailedHandler = FindFailed.getFindFailedHandler();
+  //</editor-fold>
+
+  //<editor-fold desc="009 image cache">
+  public static void resetCache() {
+    if (Settings.ImageCaching) {
+      ImageCache.reset();
+    }
+  }
+
+  public static Map<URL, List<Object>> getCache() {
+    return ImageCache.cache;
+  }
+
+  public static String cacheStats() {
+    if (Settings.ImageCaching) {
+      return ImageCache.stats();
+    }
+    return "";
+  }
+
+  static boolean isCached(URL url) {
+    if (Settings.ImageCaching) {
+      return ImageCache.isCached(url);
+    }
+    return false;
+  }
+
+  static void putIntoCache(Element element, Mat content) {
+    if (Settings.ImageCaching) {
+      ImageCache.put(element.url(), content);
+    } else {
+      element.setImageContent(content);
+    }
+  }
+
+  static Mat getFromCache(Element element) {
+    if (Settings.ImageCaching) {
+      return ImageCache.get(element);
+    }
+    return element.getImageContent();
+  }
+
+  private static class ImageCache {
+
+    static int ITEM_MAT = 0;
+    static int ITEM_COUNT = 1;
+    static int ITEM_LASTMOD = 2;
+    static int ITEM_LASTSEEN = 3;
+
+    static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
+
+    public static boolean isCached(URL url) {
+      List<Object> items = cache.get(url);
+      if (items == null) {
+        return false;
+      }
+      return null != items.get(0) && !((Mat) items.get(0)).empty();
+    }
+
+    static Mat put(URL url, Mat mat) {
+      ArrayList<Object> items = new ArrayList<>();
+      items.add(mat);
+      items.add(0.0); //reuse count
+      items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1); //to detect external change
+      cache.put(url, items);
+      return mat;
+    }
+
+    static Mat get(Element element) {
+      return get(element.url(), element);
+    }
+
+    static Mat get(URL url) {
+      return get(url, null);
+    }
+
+    private static Mat get(URL url, Element element) {
+      List<Object> items = cache.get(url);
+      if (items == null) {
+        return new Mat();
+      }
+      Object content = items.get(ITEM_MAT);
+      if (null == content) {
+        return new Mat();
+      }
+      if (null != element && isFile(url)) {
+        long modified = new File(url.getPath()).lastModified();
+        long lastMod = (long) items.get(ITEM_LASTMOD);
+        if (modified > lastMod) {
+          Mat newContent = Element.reload(url);
+          if (!newContent.empty()) {
+            content = newContent;
+            items.set(ITEM_MAT, newContent);
+            items.set(ITEM_COUNT, 0);
+            items.set(ITEM_LASTMOD, modified);
+            element.wasReloaded();
+            cache.put(url, items);
+            return (Mat) content;
+          }
+        }
+      }
+      Double count = (Double) items.get(ITEM_COUNT) + 1;
+      if (count < Double.MAX_VALUE) {
+        items.set(ITEM_COUNT, count);
+      }
+      return (Mat) content;
+    }
+
+    static void reset() {
+      cache = Collections.synchronizedMap(new HashMap<>());
+    }
+
+    public static String stats() {
+      int count = cache.size();
+      double size = 0;
+      double used = 0;
+      for (List<Object> items : cache.values()) {
+        size += ((Mat) items.get(0)).width() * ((Mat) items.get(0)).height();
+        used += (Double) items.get(1);
+      }
+      return String.format("ImageCache: urls(%d) size(%.0f KB) used(%.0f times)", count, size / 1000, used);
+    }
+  }
   //</editor-fold>
 
   //<editor-fold desc="010 global features">
@@ -1477,7 +1632,7 @@ public abstract class Element {
       Mat content = simg.getContent();
       setSize(content);
       url(url);
-      Image.ImageCache.put(url(), content); // capture
+      putIntoCache(this, content); // capture
       return true;
     }
     return false;

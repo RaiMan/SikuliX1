@@ -14,6 +14,8 @@ import org.sikuli.script.Match;
 import org.sikuli.script.support.SXTest;
 import org.sikuli.util.Highlight;
 
+import javax.swing.*;
+import java.awt.Point;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -107,8 +109,10 @@ public class ElementImageTest extends SXTest {
 
   @Test
   public void test120_ImageFindChanges() {
+    Point topLeft = null;
     if (showImage) {
-      testIntro(testBase);
+      JFrame jFrame = testIntro(testBase);
+      topLeft = jFrame.getLocationOnScreen();
     } else {
       testIntro();
     }
@@ -121,6 +125,7 @@ public class ElementImageTest extends SXTest {
     }
     for (Match change : changes) {
       if (showImage) {
+        change.reLocate(topLeft);
         change.highlight();
       }
     }

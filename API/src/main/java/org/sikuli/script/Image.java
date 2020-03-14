@@ -6,7 +6,10 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
@@ -14,8 +17,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
-import java.util.*;
 
 /**
  * This class hides the complexity behind image names given as string.
@@ -198,102 +199,6 @@ public class Image extends Element {
       return new File(url().getPath()).getAbsolutePath();
     } else {
       return getName();
-    }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="001 caching new">
-  public static void resetCache() {
-    ImageCache.reset();
-  }
-
-  public static Map<URL, List<Object>> getCache() {
-    return ImageCache.cache;
-  }
-
-  public static String cacheStats() {
-    return ImageCache.stats();
-  }
-
-  static class ImageCache {
-
-    static int ITEM_MAT = 0;
-    static int ITEM_COUNT = 1;
-    static int ITEM_LASTMOD = 2;
-    static int ITEM_LASTSEEN = 3;
-
-    static Map<URL, List<Object>> cache = Collections.synchronizedMap(new HashMap<>());
-
-    static Mat put(URL url, Mat mat) {
-      ArrayList<Object> items = new ArrayList<>();
-      items.add(mat);
-      items.add(0.0); //reuse count
-      items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1); //to detect external change
-      cache.put(url, items);
-      return mat;
-    }
-
-    static Mat get(Element element) {
-      return get(element.url(), element);
-    }
-
-    static Mat get(URL url) {
-      return get(url, null);
-    }
-
-    private static Mat get(URL url, Element element) {
-      List<Object> items = cache.get(url);
-      if (items == null) {
-        return new Mat();
-      }
-      Object content = items.get(ITEM_MAT);
-      if (null == content) {
-        return new Mat();
-      }
-      if (null != element && isFile(url)) {
-        long modified = new File(url.getPath()).lastModified();
-        long lastMod = (long) items.get(ITEM_LASTMOD);
-        if (modified > lastMod) {
-          Mat newContent = Element.reload(url);
-          if (!newContent.empty()) {
-            content = newContent;
-            items.set(ITEM_MAT, newContent);
-            items.set(ITEM_COUNT, 0);
-            items.set(ITEM_LASTMOD, modified);
-            element.wasReloaded();
-            cache.put(url, items);
-            return (Mat) content;
-          }
-        }
-      }
-      Double count = (Double) items.get(ITEM_COUNT) + 1;
-      if (count < Double.MAX_VALUE) {
-        items.set(ITEM_COUNT, count);
-      }
-      return (Mat) content;
-    }
-
-    static void reset() {
-      cache = Collections.synchronizedMap(new HashMap<>());
-    }
-
-    public static boolean isValid(URL url) {
-      List<Object> items = cache.get(url);
-      if (items == null) {
-        return false;
-      }
-      return null != items.get(0) && !((Mat) items.get(0)).empty();
-    }
-
-    public static String stats() {
-      int count = cache.size();
-      double size = 0;
-      double used = 0;
-      for (List<Object> items : cache.values()) {
-        size += ((Mat) items.get(0)).width() * ((Mat) items.get(0)).height();
-        used += (Double) items.get(1);
-      }
-      return String.format("ImageCache: urls(%d) size(%.0f KB) used(%.0f times)", count, size / 1000, used);
     }
   }
   //</editor-fold>

@@ -138,7 +138,7 @@ public class SXTest {
     Settings.ProfileLogs = false;
   }
 
-  public void testIntro(Object... args) {
+  public JFrame testIntro(Object... args) {
     methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
     if (args.length > 0 && args[0] instanceof String) {
       int pause = 1;
@@ -168,6 +168,7 @@ public class SXTest {
       RunTime.pause(pause);
     }
     start = new Date().getTime();
+    return defaultFrame;
   }
 
   public void testOutro(String message, Object... args) {

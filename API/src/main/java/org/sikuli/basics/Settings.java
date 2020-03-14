@@ -19,6 +19,8 @@ public class Settings {
 
   public static boolean NewAPI = true; //TODO remove/revise Region/Location methods
 
+  public static boolean ImageCaching = true;
+
   public static synchronized void init(RunTime givenRunTime) {
     runTime = givenRunTime;
   }

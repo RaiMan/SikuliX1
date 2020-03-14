@@ -1393,7 +1393,6 @@ java.desktop/sun.awt=ALL-UNNAMED
       stopPythonServer();
       hasDoneCleanUp = true;
     }
-    PreferencesUser.get().store();
   }
 
   private static void runShutdownHook() {
