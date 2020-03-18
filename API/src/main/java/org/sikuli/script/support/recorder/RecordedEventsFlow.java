@@ -433,7 +433,9 @@ public class RecordedEventsFlow {
   }
 
   private void saveScreenshot(Mat screenshot, File imageFile) {
-    new Image(screenshot).save(imageFile);
+    File screenshotDir = new File(ImagePath.getBundlePath(), ImagePath.SCREENSHOT_DIRECTORY);
+    File screenshotFile = new File(screenshotDir, imageFile.getName());
+    new Image(screenshot).save(screenshotFile);
   }
 
   /*
