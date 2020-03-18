@@ -437,7 +437,7 @@ public abstract class Element {
       }
       return imageContent;
     }
-    return getFromCache(this);
+    return getMat(this);
   }
 
   Mat getImageContent() {
@@ -522,7 +522,7 @@ public abstract class Element {
       if (!isFakeImage() && isCached(url)) {
         if (!isReLoad) {
           imageURL = url;
-          setSize(getFromCache(this));  //TODO revise FakeImage hack
+          setSize(getMat(this));  //TODO revise FakeImage hack
           return;
         }
       }
@@ -1057,7 +1057,7 @@ public abstract class Element {
     }
   }
 
-  static Mat getFromCache(Element element) {
+  static Mat getMat(Element element) {
     if (Settings.ImageCaching) {
       return ImageCache.getMat(element);
     }
