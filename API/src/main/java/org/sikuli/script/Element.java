@@ -745,10 +745,8 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="006 Fields name, lastMatch, text...">
-  private boolean checkLastSeen = false;
-
   protected boolean shouldCheckLastSeen() {
-    return checkLastSeen;
+    return Settings.CheckLastSeen;
   }
 
   private boolean isText = false;
@@ -1027,9 +1025,11 @@ public abstract class Element {
   private FindFailedResponse findFailedResponse = findFailedResponseDefault;
 
   public void setFindFailedHandler(Object handler) {
-    findFailedResponse = FindFailedResponse.HANDLE;
-    findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
-    log(logLevel, "Setting FindFailedHandler");
+    if (handler != null) {
+      findFailedResponse = FindFailedResponse.HANDLE;
+      findFailedHandler = FindFailed.setHandler(handler, ObserveEvent.Type.FINDFAILED);
+      log(logLevel, "Setting FindFailedHandler");
+    }
   }
 
   public Object getFindFailedHandler() {
@@ -1080,6 +1080,14 @@ public abstract class Element {
     return element.getImageContent();
   }
 
+  static Match getMatchLastSeen(Element element) {
+    return ImageCache.getLastMatched(element);
+  }
+
+  static void setMatchLastSeen(Element element, Match match) {
+    ImageCache.setLastMatched(element, match);
+  }
+
   private static class ImageCache {
 
     static int ITEM_MAT = 0;
@@ -1106,8 +1114,35 @@ public abstract class Element {
       items.add(mat);
       items.add(0.0); //reuse count
       items.add(isFile(url) ? new File(url.getPath()).lastModified() : -1); //to detect external change
+      items.add(null); //last seen match
       cache.put(url, items);
       return mat;
+    }
+
+    static Match getLastMatched(Element element) {
+      URL url = element.url();
+      if (url == null) {
+        return null;
+      }
+      List<Object> items = cache.get(url);
+      if (items == null) {
+        return null;
+      }
+      return (Match) items.get(ITEM_LASTSEEN);
+    }
+
+    static void setLastMatched(Element element, Match match) {
+      URL url = element.url();
+      if (url == null) {
+        return;
+      }
+      List<Object> items = cache.get(url);
+      if (items == null) {
+        return;
+      }
+      match.setImage(null);
+      items.set(ITEM_LASTSEEN, match);
+      cache.put(url, items);
     }
 
     static Mat getMat(Element element) {
@@ -1614,7 +1649,7 @@ public abstract class Element {
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
         response = SX.popGeneric("Decide where to save the shot.", "Capture: " + title, "Save in Bundle",
-                new String[]{"Save in Bundle", "Select folder", "Abort"});
+            new String[]{"Save in Bundle", "Select folder", "Abort"});
         if (response == 0) {
           imageFile = new File(ImagePath.getBundlePath(), imageName);
         } else if (response == 1) {
@@ -1652,7 +1687,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-            "\n\nClick OK when ready.", "Capture missing image");
+        "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1727,7 +1762,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-              "\nWhere: " + this;
+          "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1739,7 +1774,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -2228,11 +2263,12 @@ public abstract class Element {
     long whereTime = new Date().getTime() - startFind;
     long whatTime = 0;
     Match match;
+    Image image;
     while (true) {
       long startSearch, searchTime, startWhat;
       Match matchResult;
       startWhat = new Date().getTime();
-      Image image = new Image(target);
+      image = new Image(target);
       if (!image.isValid()) {
         return null;
       }
@@ -2259,15 +2295,26 @@ public abstract class Element {
       whatTime = new Date().getTime() - startWhat;
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
+      long startWhere;
       while (true) {
-        if (isOnScreen() && shouldCheckLastSeen()) {
-          Match lastSeenMatch = image.getLastSeenMatch();
+        if (isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
+          Match lastSeenMatch = getMatchLastSeen(image);
           if (lastSeenMatch != null) {
-
+            startWhere = new Date().getTime();
+            Element region = lastSeenMatch.getRegion();
+            Image regionImage = region.getImage();
+            where = regionImage.getContent();
+            whereTime = new Date().getTime() - startWhere;
+            startSearch = new Date().getTime();
+            matchResult = SXOpenCV.checkLastSeen(where, what, mask, image);
+            searchTime = new Date().getTime() - startSearch;
+            if (matchResult != null) {
+              break;
+            }
           }
         }
-        if (isOnScreen()) {
-          long startWhere = new Date().getTime();
+        if (isOnScreen() && where.empty()) {
+          startWhere = new Date().getTime();
           where = getImage().getContent();
           whereTime = new Date().getTime() - startWhere;
         }
@@ -2293,7 +2340,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed(image);
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }
@@ -2302,6 +2349,9 @@ public abstract class Element {
         }
       }
       break;
+    }
+    if (!findAll) {
+      setMatchLastSeen(image, match);
     }
     return match;
   }

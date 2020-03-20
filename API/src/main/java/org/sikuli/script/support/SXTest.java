@@ -119,6 +119,7 @@ public class SXTest {
   public void setUpBase() {
     Settings.NewAPI = true;
     Settings.AlwaysResize = 1;
+    Settings.CheckLastSeen = false;
     if (null == bundlePath) {
       setUpTime = new Date().getTime();
       File bundleFile = new File(runTime.fWorkDir, "src/main/resources/images");

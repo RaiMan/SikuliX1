@@ -58,7 +58,7 @@ public class Settings {
   public static int DefaultPadding = 50;
   public static boolean AutoDetectKeyboardLayout = true;  
 
-  public static boolean CheckLastSeen = true;
+  public static boolean CheckLastSeen = false;
   public static float CheckLastSeenSimilar = 0.95f;
 
   public static org.sikuli.script.ImageCallback ImageCallback = null;

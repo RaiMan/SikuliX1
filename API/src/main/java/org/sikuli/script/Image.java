@@ -6,10 +6,7 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Settings;
 
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
@@ -204,16 +201,6 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="003 lastSeen">
-  private Match lastSeenMatch = null;
-
-  public Match getLastSeenMatch() {
-    return lastSeenMatch;
-  }
-
-  public void setLastSeenMatch(Match lastSeenMatch) {
-    this.lastSeenMatch = lastSeenMatch;
-  }
-
   private Rectangle lastSeen = null;
   private double lastScore = 0.0;
 

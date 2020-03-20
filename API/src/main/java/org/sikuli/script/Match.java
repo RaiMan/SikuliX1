@@ -134,6 +134,10 @@ public class Match extends Region implements Matches, Comparable<Match> {
     setScreen(m.getScreen());
   }
 
+  public Region getRegion() {
+    return new Region(this);
+  }
+
   @Override
   public int compareTo(Match m) {
     if (simScore != m.simScore) {

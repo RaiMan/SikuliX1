@@ -7,6 +7,7 @@ package org.sikuli.script.test;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SXTest;
@@ -34,6 +35,38 @@ public class ElementRegionTest extends SXTest {
     testIntro(testBase);
     Region reg = getDefaultRegion();
     Match match = null;
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    if (null != match) {
+      if (showImage) {
+        match.highlight(2);
+      }
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+    Assert.assertTrue("Not found!", checkMatch(match, 0.95));
+  }
+
+  @Test
+  public void test251_RegionFindLastSeen() {
+    Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    Settings.CheckLastSeen = true;
+    testIntro(testBase);
+    Region reg = getDefaultRegion();
+    Match match = null;
+    try {
+      match = reg.find(testName);
+    } catch (FindFailed findFailed) {
+    }
+    if (null != match) {
+      if (showImage) {
+        match.highlight(2);
+      }
+    }
+    testOutro("%s in %s is %s", testName, reg, match);
+    testIntro(testBase);
+    match = null;
     try {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {
