@@ -391,6 +391,16 @@ public abstract class Element {
     return originalContent;
   }
 
+  protected Mat possibleImageResizeMask(Image image, Mat what) {
+    Mat mask = image.getMask().getContent();
+    double factor = mask.width() / what.width();
+    if (factor > 0.1 && factor != 1) {
+      mask = SXOpenCV.cvResize(mask.clone(), factor, Image.Interpolation.CUBIC);
+    }
+    List<Mat> mats = SXOpenCV.extractMask(mask, false);
+    return mats.get(1);
+  }
+
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
@@ -2236,8 +2246,7 @@ public abstract class Element {
           mask = mats.get(1);
         }
         if (image.hasMask()) {
-          List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
-          mask = mats.get(1);
+          mask = possibleImageResizeMask(image, what);
         }
       }
       SXOpenCV.setAttributes(image, what, mask);
