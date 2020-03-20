@@ -312,7 +312,7 @@ public class SXOpenCV {
   private static boolean downSize = false;
   private static final double minThreshhold = 1.0E-5;
 
-  public static Match doFindMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
+  public static Match findMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
     if (downSize) {
       //TODO downsizing
       double downSizeFactor;
@@ -321,6 +321,14 @@ public class SXOpenCV {
       double downH = ((double) what.height()) / downSizeMinSample;
       downSizeFactor = Math.max(1.0, Math.min(downW, downH));
     }
+    return doFindMatch(where, what, mask, image, findAll);
+  }
+
+  public static Match checkLastSeen(Mat where, Mat what, Mat mask, Image image) {
+    return doFindMatch(where, what, mask, image, false);
+  }
+
+  private static Match doFindMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
     Mat result = new Mat();
     Mat finalWhere = where;
     if (image.gray()) {

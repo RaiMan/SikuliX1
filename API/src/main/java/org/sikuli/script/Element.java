@@ -745,6 +745,12 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="006 Fields name, lastMatch, text...">
+  private boolean checkLastSeen = false;
+
+  protected boolean shouldCheckLastSeen() {
+    return checkLastSeen;
+  }
+
   private boolean isText = false;
 
   public boolean isText() {
@@ -2254,13 +2260,19 @@ public abstract class Element {
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
       while (true) {
+        if (isOnScreen() && shouldCheckLastSeen()) {
+          Match lastSeenMatch = image.getLastSeenMatch();
+          if (lastSeenMatch != null) {
+
+          }
+        }
         if (isOnScreen()) {
           long startWhere = new Date().getTime();
           where = getImage().getContent();
           whereTime = new Date().getTime() - startWhere;
         }
         startSearch = new Date().getTime();
-        matchResult = SXOpenCV.doFindMatch(where, what, mask, image, findAll);
+        matchResult = SXOpenCV.findMatch(where, what, mask, image, findAll);
         searchTime = new Date().getTime() - startSearch;
         if (timeout < 0.01) {
           break;
