@@ -391,6 +391,16 @@ public abstract class Element {
     return originalContent;
   }
 
+  protected Mat possibleImageResizeMask(Image image, Mat what) {
+    Mat mask = image.getMask().getContent();
+    double factor = mask.width() / what.width();
+    if (factor > 0.1 && factor != 1) {
+      mask = SXOpenCV.cvResize(mask.clone(), factor, Image.Interpolation.CUBIC);
+    }
+    List<Mat> mats = SXOpenCV.extractMask(mask, false);
+    return mats.get(1);
+  }
+
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
@@ -735,6 +745,12 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="006 Fields name, lastMatch, text...">
+  private boolean checkLastSeen = false;
+
+  protected boolean shouldCheckLastSeen() {
+    return checkLastSeen;
+  }
+
   private boolean isText = false;
 
   public boolean isText() {
@@ -2236,8 +2252,7 @@ public abstract class Element {
           mask = mats.get(1);
         }
         if (image.hasMask()) {
-          List<Mat> mats = SXOpenCV.extractMask(image.getMask().getContent(), false);
-          mask = mats.get(1);
+          mask = possibleImageResizeMask(image, what);
         }
       }
       SXOpenCV.setAttributes(image, what, mask);
@@ -2245,13 +2260,19 @@ public abstract class Element {
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
       while (true) {
+        if (isOnScreen() && shouldCheckLastSeen()) {
+          Match lastSeenMatch = image.getLastSeenMatch();
+          if (lastSeenMatch != null) {
+
+          }
+        }
         if (isOnScreen()) {
           long startWhere = new Date().getTime();
           where = getImage().getContent();
           whereTime = new Date().getTime() - startWhere;
         }
         startSearch = new Date().getTime();
-        matchResult = SXOpenCV.doFindMatch(where, what, mask, image, findAll);
+        matchResult = SXOpenCV.findMatch(where, what, mask, image, findAll);
         searchTime = new Date().getTime() - startSearch;
         if (timeout < 0.01) {
           break;

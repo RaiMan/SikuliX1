@@ -204,6 +204,16 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="003 lastSeen">
+  private Match lastSeenMatch = null;
+
+  public Match getLastSeenMatch() {
+    return lastSeenMatch;
+  }
+
+  public void setLastSeenMatch(Match lastSeenMatch) {
+    this.lastSeenMatch = lastSeenMatch;
+  }
+
   private Rectangle lastSeen = null;
   private double lastScore = 0.0;
 

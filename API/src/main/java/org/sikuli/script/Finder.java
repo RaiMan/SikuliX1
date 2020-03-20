@@ -46,13 +46,15 @@ public class Finder implements Matches {
    * Create a Finder for the given element
    *
    * @param inWhat  in what element (RIBS) to search
-   * @param <RIBSM> Region, Image, BufferedImage, ScreenImage, cvMat
+   * @param <RIBSM> Region, Image, BufferedImage, ScreenImage, image filename, cvMat
    */
   public <RIBSM> Finder(RIBSM inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
       _findInput.setSource(SXOpenCV.makeMat(((Image) inWhat).getBufferedImage()));
+    } else if (inWhat instanceof String) {
+      _findInput.setSource(SXOpenCV.makeMat(new Image(inWhat).getBufferedImage()));
     } else if (inWhat instanceof BufferedImage) {
       _findInput.setSource(SXOpenCV.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
