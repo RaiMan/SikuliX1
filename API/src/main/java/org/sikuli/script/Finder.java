@@ -55,13 +55,15 @@ public class Finder implements Iterator<Match> {
   /**
    * Create a Finder for the given element
    * @param inWhat in what element (RIBS) to search
-   * @param <RIBS> Region, Image, BufferedImage or ScreenImage
+   * @param <RIBS> Region, Image, BufferedImage, ScreenImage or image filename
    */
   public <RIBS> Finder(RIBS inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
       _findInput.setSource(Finder2.makeMat(((Image) inWhat).get()));
+    } else if (inWhat instanceof String) {
+      _findInput.setSource(Finder2.makeMat(Image.create((String) inWhat).get()));
     } else if (inWhat instanceof BufferedImage) {
       _findInput.setSource(Finder2.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
