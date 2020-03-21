@@ -372,6 +372,11 @@ public abstract class Element {
     Rectangle rect = getRect().intersection(element.getRect());
     return new Match(rect);
   }
+
+  public boolean isInside(Element element) {
+    Match intersection = intersection(element);
+    return intersection.w == w && intersection.h == h;
+  }
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
@@ -2299,11 +2304,11 @@ public abstract class Element {
       while (true) {
         if (isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
           Match lastSeenMatch = getMatchLastSeen(image);
-          if (lastSeenMatch != null) {
+          if (lastSeenMatch != null && lastSeenMatch.isInside(this)) {
             startWhere = new Date().getTime();
+            where = getImage().getContent();
             Element region = lastSeenMatch.getRegion();
             Image regionImage = region.getImage();
-            where = regionImage.getContent();
             whereTime = new Date().getTime() - startWhere;
             startSearch = new Date().getTime();
             matchResult = SXOpenCV.checkLastSeen(where, what, mask, image);
