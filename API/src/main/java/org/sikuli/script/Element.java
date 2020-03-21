@@ -792,6 +792,14 @@ public abstract class Element {
   protected Match lastMatch = null;
   protected Matches lastMatches = null;
 
+  private void resetLastMatch(boolean findAll) {
+    if(findAll) {
+      lastMatches = null;
+    } else {
+      lastMatch = null;
+    }
+  }
+
   //TODO need to be cloned?
   protected void copyMatchAttributes(Element element) {
     lastMatch = element.lastMatch;
@@ -833,6 +841,19 @@ public abstract class Element {
   public Iterator<Match> getLastMatches() {
     return lastMatches;
   }
+
+  public Iterator<Match> matches() {
+    if (null != lastMatches) {
+      return lastMatches;
+    }
+    return new Match(this);
+  }
+
+  public Match matches(Match match) {
+    lastMatch = match;
+    return match;
+  }
+
   //</editor-fold>
 
   //<editor-fold desc="007 Fields wait observe timing">
@@ -2254,6 +2275,8 @@ public abstract class Element {
     if (timeout < 0) {
       isVanish = true;
       timeout = -timeout;
+    } else {
+      resetLastMatch(findAll);
     }
     long startFind = new Date().getTime();
     Mat where = new Mat();
@@ -2359,8 +2382,15 @@ public abstract class Element {
       }
       break;
     }
-    if (!findAll && Settings.CheckLastSeen) {
-      setMatchLastSeen(image, match);
+    if (isOnScreen()) {
+      if (!findAll && Settings.CheckLastSeen) {
+        setMatchLastSeen(image, match);
+      }
+      if (!findAll) {
+        match(match);
+      } else {
+        matches(match);
+      }
     }
     return match;
   }

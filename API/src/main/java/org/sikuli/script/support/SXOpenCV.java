@@ -394,27 +394,20 @@ public class SXOpenCV {
 
     double sum = 0.0;
     double[] arr = pStdDev.toArray();
-    for (
-        int i = 0;
-        i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++) {
       sum += arr[i];
     }
-
     element.stdDev(sum);
     element.plain(sum < minThreshhold);
 
     sum = 0.0;
     arr = pMean.toArray();
     int[] cvMeanColor = new int[arr.length];
-    for (
-        int i = 0;
-        i < arr.length; i++) {
+    for (int i = 0; i < arr.length; i++) {
       cvMeanColor[i] = (int) arr[i];
       sum += arr[i];
     }
-
     element.mean(sum);
-
     element.black(sum < minThreshhold && element.plain());
 
     if (cvMeanColor.length > 1) {
