@@ -418,18 +418,18 @@ public class Match extends Region implements Matches, Comparable<Match> {
     this.result = result;
   }
 
-  public static Match createFromResult(Image image, Match matchResult, long[] times) {
+  public static Match createFromResult(Element where, Image target, Match matchResult, long[] times) {
     Match match = null;
     if (matchResult != null) {
       match = new Match();
-      match.setX(image.x + matchResult.x);
-      match.setY(image.y + matchResult.y);
-      match.setW(image.w);
-      match.setH(image.h);
+      match.setX(where.x + matchResult.x);
+      match.setY(where.y + matchResult.y);
+      match.setW(target.w);
+      match.setH(target.h);
       match.score(matchResult.score());
-      match.offset(image.offset());
-      match.setImage(image);
-      match.onScreen(image.isOnScreen());
+      match.offset(target.offset());
+      match.setImage(target);
+      match.onScreen(where.isOnScreen());
       match.lastFindTime = times[0];
       match.lastSearchTime = times[1];
       match.times = times;

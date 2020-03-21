@@ -188,6 +188,16 @@ public class SXOpenCV {
     return result;
   }
 
+  public static Mat getSubMat(Element element, Mat where, Element subElement) {
+    int x = subElement.x - element.x;
+    int y = subElement.y - element.y;
+    int w = subElement.w;
+    int h = subElement.h;
+    Rect rect = new Rect(x, y, w, h);
+    Mat subMat = where.submat(rect);
+    return subMat;
+  }
+
   private static Mat matMulti(Mat mat, int channels) {
     if (mat.type() != CvType.CV_8UC1 || mat.channels() == channels) {
       return mat;
@@ -321,11 +331,13 @@ public class SXOpenCV {
       double downH = ((double) what.height()) / downSizeMinSample;
       downSizeFactor = Math.max(1.0, Math.min(downW, downH));
     }
-    return doFindMatch(where, what, mask, image, findAll);
+    Match matchResult = doFindMatch(where, what, mask, image, findAll);
+    return matchResult;
   }
 
   public static Match checkLastSeen(Mat where, Mat what, Mat mask, Image image) {
-    return doFindMatch(where, what, mask, image, false);
+    Match matchResult = doFindMatch(where, what, mask, image, false);
+    return matchResult;
   }
 
   private static Match doFindMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {

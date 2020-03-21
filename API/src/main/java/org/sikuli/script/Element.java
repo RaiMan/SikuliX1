@@ -2301,24 +2301,27 @@ public abstract class Element {
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
       long startWhere;
+      boolean firstSearch = true;
       while (true) {
-        if (isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
+        if (firstSearch && isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
           Match lastSeenMatch = getMatchLastSeen(image);
           if (lastSeenMatch != null && lastSeenMatch.isInside(this)) {
             startWhere = new Date().getTime();
             where = getImage().getContent();
-            Element region = lastSeenMatch.getRegion();
-            Image regionImage = region.getImage();
+            Element regionLastSeen = lastSeenMatch.getRegion();
+            Mat whereLastSeen = SXOpenCV.getSubMat(this, where, regionLastSeen);
             whereTime = new Date().getTime() - startWhere;
             startSearch = new Date().getTime();
-            matchResult = SXOpenCV.checkLastSeen(where, what, mask, image);
+            matchResult = SXOpenCV.checkLastSeen(whereLastSeen, what, mask, image);
             searchTime = new Date().getTime() - startSearch;
             if (matchResult != null) {
+              matchResult.x = lastSeenMatch.x;
+              matchResult.y = lastSeenMatch.y;
               break;
             }
           }
         }
-        if (isOnScreen() && where.empty()) {
+        if (isOnScreen() && (!firstSearch || where.empty())) {
           startWhere = new Date().getTime();
           where = getImage().getContent();
           whereTime = new Date().getTime() - startWhere;
@@ -2334,10 +2337,11 @@ public abstract class Element {
         }
         waitAfterScan(before, waitUntil);
         before = new Date().getTime();
+        firstSearch = false;
       }
       long findTime = new Date().getTime() - startFind;
       long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
-      match = Match.createFromResult(image, matchResult, times);
+      match = Match.createFromResult(this, image, matchResult, times);
       if (isVanish) {
         return match;
       }
@@ -2355,7 +2359,7 @@ public abstract class Element {
       }
       break;
     }
-    if (!findAll) {
+    if (!findAll && Settings.CheckLastSeen) {
       setMatchLastSeen(image, match);
     }
     return match;
