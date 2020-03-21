@@ -131,10 +131,10 @@ public class Settings {
   public static boolean HighlightTransparent = false;
   public static double WaitAfterHighlight = 0.3;
 
-  public static boolean ActionLogs = true;
-  public static boolean InfoLogs = true;
+  public static boolean ActionLogs = false;
+  public static boolean InfoLogs = false;
   public static boolean DebugLogs = false;
-  public static boolean ProfileLogs = true;
+  public static boolean ProfileLogs = false;
   public static boolean TraceLogs = false;
   public static boolean LogTime = false;
 

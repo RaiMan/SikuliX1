@@ -2338,8 +2338,8 @@ public abstract class Element {
             matchResult = SXOpenCV.checkLastSeen(whereLastSeen, what, mask, image);
             searchTime = new Date().getTime() - startSearch;
             if (matchResult != null) {
-              matchResult.x = lastSeenMatch.x;
-              matchResult.y = lastSeenMatch.y;
+              matchResult.x = lastSeenMatch.x - this.x;
+              matchResult.y = lastSeenMatch.y - this.y;
               break;
             }
           }
