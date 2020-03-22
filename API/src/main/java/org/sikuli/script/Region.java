@@ -989,17 +989,312 @@ public class Region extends Element {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="007 new regions relative to this region">
-  public Region topLeft(int... args) {
+  private int newValue(int base, Number val) {
+    if (val.intValue() >= base) {
+      return base;
+    }
+    if (val.doubleValue() < 0.1) {
+      return base / 2;
+    }
+    if (val.doubleValue() < 1) {
+      return (int) Math.round(base * val.doubleValue());
+    }
+    return val.intValue();
+  }
+
+  /**
+   * In the top left corner a new Region is created.
+   * <ul>
+   *   <li>no parameter: width/2 and height/2</li>
+   *   <li>one number: new width and height/2</li>
+   *   <li>two numbers: new width and new height</li>
+   * </ul>
+   * <p>if the number is 0, the respective value is value/2</p>
+   * <p>if the number is a decimal between 0 and one, the respective value is value*number</p>
+   * <p>if the number is greater 1, it is the new value</p>
+   * <p>it is an error, if the value is greater than the actual width or height respectively</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region topLeft(Number... args) {
     switch (args.length) {
       case 0:
         return new Region(x, y, w / 2, h / 2);
       case 1:
-        int newW = args[0] < 1 ? w/2 : args[0];
+        int newW = newValue(w, args[0]);
         return new Region(x, y, newW, h / 2);
       case 2:
-        newW = args[0] < 1 ? w/2 : args[0];
-        int newH = args[1] < 1 ? w/2 : args[1];
+        newW = newValue(w, args[0]);
+        int newH = newValue(h, args[1]);
         return new Region(x, y, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the top right corner a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region topRight(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + w - newW, y, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + w - newW, y, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x + w - newW, y, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * At the top a new Region with same width is created.
+   * <p>about the parameter see: {@link #topLeft}</p>
+   * @param val number for the new height (omitted means 0)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region top(Number... val) {
+    switch (val.length) {
+      case 0:
+        return topLeft(0, 0).union(topRight(0, 0));
+      case 1:
+        return topLeft(0, val[0]).union(topRight(0, val[0]));
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the top middle a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region topMiddle(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + (w - newW) / 2, y, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + (w - newW) / 2, y, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x + (w - newW) / 2, y, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the left middle a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region leftMiddle(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x, y + (h - newH) / 2, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x, y + (h - newH) / 2, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x, y + (h - newH) / 2, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * At the left side a new Region with same height is created.
+   * <p>about the parameter see: {@link #topLeft}</p>
+   * @param val number for the new width (omitted means 0)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region leftSide(Number... val) {
+    switch (val.length) {
+      case 0:
+        return topLeft().union(bottomLeft());
+      case 1:
+        return topLeft(val[0]).union(bottomLeft(val[0]));
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the right middle a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region rightMiddle(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + w - newW, y + (h - newH) / 2, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + w - newW, y + (h - newH) / 2, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x  + w - newW, y + (h - newH) / 2, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * At the right side a new Region with same height is created.
+   * <p>about the parameter see: {@link #topLeft}</p>
+   * @param val number for the new width (omitted means 0)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region rightSide(Number... val) {
+    switch (val.length) {
+      case 0:
+        return topRight().union(bottomRight());
+      case 1:
+        return topRight(val[0]).union(bottomRight(val[0]));
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the bottom left corner a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region bottomLeft(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x, y + h - newH, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x, y + h - newH, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x, y + h - newH, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the bottom right corner a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region bottomRight(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + w - newW, y + h - newH, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + w - newW, y + h - newH, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x + w - newW, y + h - newH, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * At the bottom a new Region with same width is created.
+   * <p>about the parameter see: {@link #topLeft}</p>
+   * @param val number for the new height (omitted means 0)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region bottom(Number... val) {
+    switch (val.length) {
+      case 0:
+        return bottomLeft(0, 0).union(bottomRight(0, 0));
+      case 1:
+        return bottomLeft(0, val[0]).union(bottomRight(0, val[0]));
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * In the bottom middle a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region bottomMiddle(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + (w - newW) / 2, y + h - newH, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + (w - newW) / 2, y + h - newH, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x + (w - newW) / 2, y + h - newH, newW, newH);
+      default:
+        return this;
+    }
+  }
+
+  /**
+   * Around the center a new Region is created.
+   * <p>about the parameters see: {@link #topLeft}</p>
+   * @param args 0 .. 2 numbers (more than 2 values is an error)
+   * @return a new Region or the given Region in case of error
+   */
+  public Region middle(Number... args) {
+    switch (args.length) {
+      case 0:
+        int newW = w / 2;
+        int newH = h / 2;
+        return new Region(x + (w - newW) / 2, y + (h - newH) / 2, newW, newH);
+      case 1:
+        newW = newValue(w, args[0]);
+        newH = h / 2;
+        return new Region(x + (w - newW) / 2, y + (h - newH) / 2, newW, newH);
+      case 2:
+        newW = newValue(w, args[0]);
+        newH = newValue(h, args[1]);
+        return new Region(x + (w - newW) / 2, y + (h - newH) / 2, newW, newH);
       default:
         return this;
     }

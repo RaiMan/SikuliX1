@@ -51,9 +51,12 @@ public class ElementRegionTest extends SXTest {
   @Test
   public void test251_RegionFindLastSeen() {
     Assume.assumeFalse("Running headless - ignoring test", RunTime.isHeadless());
+    //useScreen = false;
     Settings.CheckLastSeen = true;
     testIntro(testBase);
     Region reg = getDefaultRegion();
+    //reg = reg.topLeft();
+    //reg.highlight(2);
     Match match = null;
     try {
       match = reg.find(testName);
