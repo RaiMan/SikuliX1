@@ -28,6 +28,10 @@ RUNTIME = RunTime.get()
 
 import org.sikuli.basics.Settings as Settings
 
+import org.sikuli.script.Element as JElement
+class Element(JElement):
+  pass
+
 #Debug.log(3, "Jython: sikuli: Sikuli: constants")
 import org.sikuli.script.FindFailed as FindFailed
 from org.sikuli.script.FindFailedResponse import *

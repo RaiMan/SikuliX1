@@ -50,6 +50,24 @@ public abstract class Element {
     throw new SikuliXception(caller + ": " + String.format(message, args));
   }
 
+  private static boolean trace = false;
+
+  public static void traceOn() {
+    trace = true;
+  }
+
+  public static void traceOff() {
+    trace = false;
+  }
+
+  static void trace(String message, Object... args) {
+    if (trace) {
+      String className = Thread.currentThread().getStackTrace()[2].getClassName();
+      String caller = className.substring(className.lastIndexOf(".") + 1);
+      Debug.logp("TRACE: " + caller + ": " + message, args);
+    }
+  }
+
   static void initTerminate(String message, Object item) {
     terminate("init: " + message, item);
   }
@@ -793,7 +811,7 @@ public abstract class Element {
   protected Matches lastMatches = null;
 
   private void resetLastMatch(boolean findAll) {
-    if(findAll) {
+    if (findAll) {
       lastMatches = null;
     } else {
       lastMatch = null;
@@ -1675,7 +1693,7 @@ public abstract class Element {
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
         response = SX.popGeneric("Decide where to save the shot.", "Capture: " + title, "Save in Bundle",
-            new String[]{"Save in Bundle", "Select folder", "Abort"});
+                new String[]{"Save in Bundle", "Select folder", "Abort"});
         if (response == 0) {
           imageFile = new File(ImagePath.getBundlePath(), imageName);
         } else if (response == 1) {
@@ -1713,7 +1731,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-        "\n\nClick OK when ready.", "Capture missing image");
+            "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1788,7 +1806,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-          "\nWhere: " + this;
+              "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1800,7 +1818,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -2293,7 +2311,8 @@ public abstract class Element {
     Match match;
     Image image;
     while (true) {
-      long startSearch, searchTime, startWhat;
+      long startSearch, startWhat;
+      long searchTime = 0;
       Match matchResult;
       startWhat = new Date().getTime();
       image = new Image(target);
@@ -2325,24 +2344,37 @@ public abstract class Element {
       long waitUntil = before + (int) (timeout * 1000);
       long startWhere;
       boolean firstSearch = true;
+      long whereTimeLS = 0;
+      long searchTimeLS = 0;
       while (true) {
         if (firstSearch && isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
+          trace("checkLastSeen: enter");
           Match lastSeenMatch = getMatchLastSeen(image);
           if (lastSeenMatch != null && lastSeenMatch.isInside(this)) {
-            startWhere = new Date().getTime();
-            where = getImage().getContent();
-            Element regionLastSeen = lastSeenMatch.getRegion();
-            Mat whereLastSeen = SXOpenCV.getSubMat(this, where, regionLastSeen);
-            whereTime = new Date().getTime() - startWhere;
-            startSearch = new Date().getTime();
+            trace("checkLastSeen: start");
+            Mat whereLastSeen;
+            if ((w + h) < 1000) {
+              long startWhereLS = new Date().getTime();
+              where = getImage().getContent();
+              Element regionLastSeen = lastSeenMatch.getRegion();
+              whereLastSeen = SXOpenCV.getSubMat(this, where, regionLastSeen);
+              whereTimeLS = new Date().getTime() - startWhereLS;
+            } else {
+              long startWhereLS = new Date().getTime();
+              whereLastSeen = lastSeenMatch.getRegion().getImage().getContent();
+              whereTimeLS = new Date().getTime() - startWhereLS;
+            }
+            long startSearchLS = new Date().getTime();
             matchResult = SXOpenCV.checkLastSeen(whereLastSeen, what, mask, image);
-            searchTime = new Date().getTime() - startSearch;
+            searchTimeLS = new Date().getTime() - startSearchLS;
             if (matchResult != null) {
               matchResult.x = lastSeenMatch.x - this.x;
               matchResult.y = lastSeenMatch.y - this.y;
+              trace("checkLastSeen: found: %s", matchResult);
               break;
             }
           }
+          trace("checkLastSeen: exit");
         }
         if (isOnScreen() && (!firstSearch || where.empty())) {
           startWhere = new Date().getTime();
@@ -2363,7 +2395,7 @@ public abstract class Element {
         firstSearch = false;
       }
       long findTime = new Date().getTime() - startFind;
-      long[] times = new long[]{findTime, searchTime, whereTime, whatTime};
+      long[] times = new long[]{findTime, searchTime + searchTimeLS, whereTime + whereTimeLS, whatTime};
       match = Match.createFromResult(this, image, matchResult, times);
       if (isVanish) {
         return match;
@@ -2372,7 +2404,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed(image);
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }

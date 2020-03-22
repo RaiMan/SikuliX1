@@ -46,7 +46,7 @@ public class Region extends Element {
   @Override
   public String toString() {
     String scrText = getScreen() == null ? "?" :
-        "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
+            "" + (-1 == getScreen().getID() ? "Union" : "" + getScreen().getID());
     if (isOtherScreen()) {
       scrText = getScreen().getIDString();
     }
@@ -78,8 +78,10 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="001 for Python private">
+
   /**
    * INTERNAL: Get a default Region for Python
+   *
    * @return the default screen
    */
   public static Region getDefaultInstance4py() {
@@ -90,6 +92,7 @@ public class Region extends Element {
    * Create a new Region
    * <br>- Region(x, y, w, h)
    * <br>- Region(someRegion)
+   *
    * @param args
    * @return new Region
    */
@@ -986,6 +989,21 @@ public class Region extends Element {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="007 new regions relative to this region">
+  public Region topLeft(int... args) {
+    switch (args.length) {
+      case 0:
+        return new Region(x, y, w / 2, h / 2);
+      case 1:
+        int newW = args[0] < 1 ? w/2 : args[0];
+        return new Region(x, y, newW, h / 2);
+      case 2:
+        newW = args[0] < 1 ? w/2 : args[0];
+        int newH = args[1] < 1 ? w/2 : args[1];
+        return new Region(x, y, newW, newH);
+      default:
+        return this;
+    }
+  }
 
   /**
    * check if current region contains given region
@@ -1291,6 +1309,7 @@ public class Region extends Element {
     initScreen(null);
     return this;
   }
+
   /**
    * @return current location of mouse pointer
    * @deprecated use {@link Mouse#at()} instead
@@ -1361,6 +1380,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="009 points relative to the region">
+
   /**
    * point middle on right edge
    *
@@ -1436,6 +1456,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="020 find image 1 one">
+
   /**
    * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
    *
@@ -1635,6 +1656,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="020 find image 2 many">
+
   /**
    * finds all occurences of the given Pattern, String or Image in the region and returns an Iterator of Matches.
    *
@@ -1661,7 +1683,7 @@ public class Region extends Element {
     }
     while (null != response && response) {
       log(logLevel, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-          getAutoWaitTimeout(), targetStr, this.toStringShort());
+              getAutoWaitTimeout(), targetStr, this.toStringShort());
       if (getAutoWaitTimeout() > 0) {
         rf.repeat(getAutoWaitTimeout());
         lastMatches = rf.getMatches();
@@ -1801,7 +1823,7 @@ public class Region extends Element {
       //TODO finder.setRepeating();
       if (Settings.FindProfiling) {
         Debug.logp("[FindProfiling] Region.doFind repeat: %d msec",
-            new Date().getTime() - lastSearchTimeRepeat);
+                new Date().getTime() - lastSearchTimeRepeat);
       }
       lastSearchTime = (new Date()).getTime();
       finder.findRepeat();
@@ -1826,10 +1848,10 @@ public class Region extends Element {
         }
         if (findingText) {
           log(logLevel, "doFind: Switching to TextSearch");
-            finder = new Finder(this);
-            lastSearchTime = (new Date()).getTime();
-            finder.findText(someText);
-          }
+          finder = new Finder(this);
+          lastSearchTime = (new Date()).getTime();
+          finder.findText(someText);
+        }
       } else if (ptn instanceof Pattern) {
         if (img.isValid()) {
           lastSearchTime = (new Date()).getTime();
@@ -1958,9 +1980,9 @@ public class Region extends Element {
           }
         }
         if (findingText) {
-            finder = new Finder(this);
-            finder.findAllText(someText);
-          }
+          finder = new Finder(this);
+          finder.findAllText(someText);
+        }
       } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
@@ -2073,6 +2095,7 @@ public class Region extends Element {
     public <PSI> RepeatableVanish(PSI target) {
       super(target, null);
     }
+
     @Override
     boolean ifSuccessful() {
       return _match == null;
@@ -2172,10 +2195,10 @@ public class Region extends Element {
         }
       }
       if (findingText) {
-          log(logLevel, "findInImage: Switching to TextSearch");
-          finder = new Finder(getScreen().capture(x, y, w, h), this);
-          finder.findText((String) target);
-        }
+        log(logLevel, "findInImage: Switching to TextSearch");
+        finder = new Finder(getScreen().capture(x, y, w, h), this);
+        finder.findText((String) target);
+      }
     } else if (target instanceof Pattern) {
       if (((Pattern) target).isValid()) {
         img = ((Pattern) target).getImage();
@@ -2260,6 +2283,7 @@ public class Region extends Element {
    * (int,String) - int seconds with given color
    * (float), (float,String) - same as int
    * </pre>
+   *
    * @param args values as above
    * @return this
    */
@@ -2306,6 +2330,7 @@ public class Region extends Element {
 
   /**
    * Switch on the regions highlight with default color
+   *
    * @return this Region
    */
   public Region highlightOn() {
@@ -2324,6 +2349,7 @@ public class Region extends Element {
 
   /**
    * Switch off the regions highlight
+   *
    * @return this Region
    */
   public Region highlightOff() {
@@ -2398,7 +2424,7 @@ public class Region extends Element {
       }
     }
     Debug.action("highlight " + toStringShort() + " for " + secs + " secs"
-        + (color != null ? " color: " + color : ""));
+            + (color != null ? " color: " + color : ""));
     if (regionHighlight != null) {
       highlightClose();
     }
@@ -2527,7 +2553,7 @@ public class Region extends Element {
 
   private <PSIC> String onEvent(PSIC targetThreshhold, Object observer, ObserveEvent.Type obsType) {
     if (observer != null && (observer.getClass().getName().contains("org.python")
-        || observer.getClass().getName().contains("org.jruby"))) {
+            || observer.getClass().getName().contains("org.jruby"))) {
       observer = new ObserverCallBack(observer, obsType);
     }
     if (!(targetThreshhold instanceof Integer)) {
@@ -2537,13 +2563,13 @@ public class Region extends Element {
         response = handleImageMissing(img, false);//onAppear, ...
         if (response == null) {
           throw new RuntimeException(
-              String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
+                  String.format("SikuliX: Region: onEvent: %s ImageMissing: %s", obsType, targetThreshhold));
         }
       }
     }
     String name = Observing.add(this, (ObserverCallBack) observer, obsType, targetThreshhold);
     log(logLevel, "%s: observer %s %s: %s with: %s", toStringShort(), obsType,
-        (observer == null ? "" : " with callback"), name, targetThreshhold);
+            (observer == null ? "" : " with callback"), name, targetThreshhold);
     return name;
   }
 
@@ -2588,7 +2614,7 @@ public class Region extends Element {
    */
   public String onChange(Integer threshold, Object observer) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-        observer, ObserveEvent.Type.CHANGE);
+            observer, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -2602,7 +2628,7 @@ public class Region extends Element {
    */
   public String onChange(Integer threshold) {
     return onEvent((threshold > 0 ? threshold : Settings.ObserveMinChangedPixels),
-        null, ObserveEvent.Type.CHANGE);
+            null, ObserveEvent.Type.CHANGE);
   }
 
   /**
@@ -2671,7 +2697,7 @@ public class Region extends Element {
   public String onChangeDo(Integer threshold, Object observer) {
     String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
     log(logLevel, "%s: onChange%s: %s minSize: %d", toStringShort(),
-        (observer == null ? "" : " with callback"), name, threshold);
+            (observer == null ? "" : " with callback"), name, threshold);
     return name;
   }
 
@@ -2751,7 +2777,7 @@ public class Region extends Element {
     if (observing) {
       observing = false;
       log(logLevel, "observe: stopped due to timeout in "
-          + this.toStringShort() + " for " + secs + " seconds");
+              + this.toStringShort() + " for " + secs + " seconds");
     } else {
       log(logLevel, "observe: ended successfully: " + this.toStringShort());
       observeSuccess = Observing.hasEvents(this);
@@ -2824,6 +2850,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="040 Mouse - click">
+
   /**
    * double click at the region's last successful match
    * <br>use center if no lastMatch
@@ -3072,12 +3099,12 @@ public class Region extends Element {
    * Used for LEGACY handling in
    * int wheel(PFRML target, int direction, int steps, int modifiers)
    */
-  private final Set<Integer> WHEEL_MODIFIERS = new HashSet<>(Arrays.asList(new Integer[] {
-      0,
-      KeyModifier.CTRL,
-      KeyModifier.ALT,
-      KeyModifier.SHIFT,
-      KeyModifier.CMD
+  private final Set<Integer> WHEEL_MODIFIERS = new HashSet<>(Arrays.asList(new Integer[]{
+          0,
+          KeyModifier.CTRL,
+          KeyModifier.ALT,
+          KeyModifier.SHIFT,
+          KeyModifier.CMD
   }));
 
   /**
@@ -3091,7 +3118,7 @@ public class Region extends Element {
    * @return 1 in any case
    */
   public int wheel(int direction, int steps) {
-   return wheel(direction, steps, 0);
+    return wheel(direction, steps, 0);
   }
 
   /**
@@ -3157,7 +3184,7 @@ public class Region extends Element {
    */
   public int wheel(int direction, int steps, int modifiers, int stepDelay) {
     try { // needed to cut throw chain for FindFailed
-      wheel(match(),  direction, steps, modifiers, stepDelay);
+      wheel(match(), direction, steps, modifiers, stepDelay);
       return 1;
     } catch (FindFailed ex) {
       return 0;
@@ -3601,6 +3628,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="046 Keyboard - low level">
+
   /**
    * press and hold the given key use a constant from java.awt.event.KeyEvent which might be special in the current
    * machine/system environment
@@ -3651,6 +3679,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="047 paste unicode text via clipboard">
+
   /**
    * pastes the text at the current position of the focus/carret.
    * <br>using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
