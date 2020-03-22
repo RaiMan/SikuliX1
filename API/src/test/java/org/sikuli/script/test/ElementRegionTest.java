@@ -70,6 +70,7 @@ public class ElementRegionTest extends SXTest {
     testOutro("%s in %s is %s", testName, reg, match);
     testIntro(testBase);
     match = null;
+    //reg.ignoreLastSeen();
     try {
       match = reg.find(testName);
     } catch (FindFailed findFailed) {

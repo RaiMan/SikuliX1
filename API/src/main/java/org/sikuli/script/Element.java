@@ -2285,6 +2285,16 @@ public abstract class Element {
     return doFind(target, 0, true);
   }
 
+  private boolean ignoreLastSeen = false;
+
+  public void ignoreLastSeen() {
+    ignoreLastSeen = true;
+  }
+
+  private boolean isIgnoreLastSeen() {
+    return ignoreLastSeen;
+  }
+
   private Match doFind(Object target, double timeout, boolean findAll) throws FindFailed {
     if (!isValid()) {
       return null;
@@ -2367,11 +2377,15 @@ public abstract class Element {
             long startSearchLS = new Date().getTime();
             matchResult = SXOpenCV.checkLastSeen(whereLastSeen, what, mask, image);
             searchTimeLS = new Date().getTime() - startSearchLS;
-            if (matchResult != null) {
-              matchResult.x = lastSeenMatch.x - this.x;
-              matchResult.y = lastSeenMatch.y - this.y;
-              trace("checkLastSeen: found: %s", matchResult);
-              break;
+            if (!isIgnoreLastSeen()) {
+              if (matchResult != null) {
+                matchResult.x = lastSeenMatch.x - this.x;
+                matchResult.y = lastSeenMatch.y - this.y;
+                trace("checkLastSeen: found: %s", matchResult);
+                break;
+              }
+            } else {
+              where = new Mat();
             }
           }
           trace("checkLastSeen: exit");
