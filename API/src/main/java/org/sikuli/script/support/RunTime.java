@@ -8,6 +8,7 @@ import org.opencv.core.Core;
 import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
+import org.sikuli.script.Image;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.ProcessRunner;
@@ -101,15 +102,20 @@ public class RunTime {
       }
 
 //TODO place to test something in the API context
-/*
       if (args.length == 1 && "test".equals(args[0])) {
-        URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
-        resource = org.sikuli.script.Image.class.getResource("/settings/test.png");
-        RunTime.startLog(1, "test: %s", resource);
-        new org.sikuli.script.Pattern(resource);
+        //URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
+        URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
+        Image image = Image.create(resource);
+        RunTime.startLog(1, "test: %s", image);
+        //Image sub = new Image(image.createSubimage(image.get(), new Rectangle(10, 10, 100, 100)));
+        Image sub = image.getSub(10, 10, 100, 100);
+        RunTime.startLog(1, "sub: %s", sub);
+        //new org.sikuli.script.Pattern(resource);
+        Screen screen = new Screen();
+        screen.exists(image).highlight(2);
+        screen.exists(sub).highlight(2);
         System.exit(0);
       }
-*/
     }
 
     List<String> finalArgs = evalArgsStart(args);
