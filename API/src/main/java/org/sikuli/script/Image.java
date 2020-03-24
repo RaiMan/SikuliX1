@@ -607,10 +607,18 @@ public class Image extends Element {
    * @return the new image
    */
   public Image getSub(int x, int y, int w, int h) {
-    BufferedImage bi = createBufferedImage(w, h);
-    Graphics2D g = bi.createGraphics();
-    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-    g.dispose();
+    BufferedImage bi;
+    if (get().getType() == BufferedImage.TYPE_3BYTE_BGR) {
+      bi = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
+      Graphics graphics = bi.getGraphics();
+      graphics.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+      graphics.dispose();
+    } else {
+      bi = createBufferedImage(w, h);
+      Graphics2D g = bi.createGraphics();
+      g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+      g.dispose();
+    }
     return new Image(bi);
   }
 

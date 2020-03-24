@@ -1009,7 +1009,8 @@ public class Finder implements Iterator<Match> {
         Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
         aMatBGR.put(0, 0, data);
         return aMatBGR;
-      } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+      } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR
+              || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
         log.trace("makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
         List<Mat> mats = getMatList(bImg);
         Size size = mats.get(0).size();

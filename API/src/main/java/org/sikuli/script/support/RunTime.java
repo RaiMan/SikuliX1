@@ -107,13 +107,6 @@ public class RunTime {
         URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
         Image image = Image.create(resource);
         RunTime.startLog(1, "test: %s", image);
-        //Image sub = new Image(image.createSubimage(image.get(), new Rectangle(10, 10, 100, 100)));
-        Image sub = image.getSub(10, 10, 100, 100);
-        RunTime.startLog(1, "sub: %s", sub);
-        //new org.sikuli.script.Pattern(resource);
-        Screen screen = new Screen();
-        screen.exists(image).highlight(2);
-        screen.exists(sub).highlight(2);
         System.exit(0);
       }
     }
