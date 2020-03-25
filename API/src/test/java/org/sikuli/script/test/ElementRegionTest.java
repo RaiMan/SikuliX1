@@ -6,6 +6,7 @@ package org.sikuli.script.test;
 
 import org.junit.*;
 import org.junit.runners.MethodSorters;
+import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
@@ -290,6 +291,36 @@ public class ElementRegionTest extends SXTest {
       testOutro("skipped: FindFailed prompting");
     }
   }
+
+  @Ignore
+  public void test700_BasicText() {
+    Region reg = defaultRegion;
+    reg = new Region(0, 0, 300, 300);
+
+    Image txtImg;
+    Mat content;
+    String text;
+
+    testIntro();
+    txtImg = new Image("txtImg");
+    content = txtImg.getContent();
+    text = OCR.readText(content);
+    testOutro("mat text: %s", text);
+    testIntro();
+    text = OCR.readText(txtImg.getContent());
+    testOutro("mat text: %s", text);
+
+    Image.resetCache();
+
+    testIntro();
+    txtImg = new Image("txtImg");
+    text = OCR.readText(txtImg);
+    testOutro("img text: %s", text);
+    testIntro();
+    text = OCR.readText(txtImg);
+    testOutro("img text: %s", text);
+  }
+
 
   @Ignore
   public void test800_RegionFindFailed() {
