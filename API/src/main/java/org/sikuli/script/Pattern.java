@@ -34,7 +34,7 @@ public class Pattern {
   }
 
   protected void copyAllAttributes(Pattern pattern) {
-    image = new Image(pattern);
+    image = new Image(pattern.image);
     similarity = pattern.similarity;
     offset.x = pattern.offset.x;
     offset.y = pattern.offset.y;
@@ -103,7 +103,6 @@ public class Pattern {
     if (this.image.sameSize(image)) {
       maskImage = image;
     }
-    image.mask(maskImage);
     return this;
   }
 
@@ -172,7 +171,6 @@ public class Pattern {
    */
   public Pattern similar(double sim) {
     similarity = sim;
-    image.similarity(similarity);
     return this;
   }
 
@@ -183,7 +181,6 @@ public class Pattern {
    */
   public Pattern exact() {
     similarity = 0.99;
-    image.similarity(similarity);
     return this;
   }
 
@@ -207,7 +204,6 @@ public class Pattern {
   public Pattern targetOffset(int dx, int dy) {
     offset.x = dx;
     offset.y = dy;
-    image.offset(offset);
     return this;
   }
 
@@ -220,7 +216,6 @@ public class Pattern {
   public Pattern targetOffset(Location loc) {
     offset.x = loc.x;
     offset.y = loc.y;
-    image.offset(offset);
     return this;
   }
 
@@ -251,7 +246,6 @@ public class Pattern {
    */
   public Pattern waitAfter(int waitAfter) {
     this.waitAfter = waitAfter;
-    image.waitAfter(waitAfter);
     return this;
   }
   //</editor-fold>

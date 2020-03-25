@@ -1277,17 +1277,13 @@ public abstract class Element {
       if (target instanceof Element && ((Element) target).isOnScreen()) {
         return ((Element) target).getTarget();
       }
-      Image image = Image.getImage(target);
-      if (image.isValid()) {
-        Match match = wait(image);
-        if (match != null) {
-          if (isOtherScreen()) {
-            return (Location) match.getTarget().setOtherScreen(getScreen());
-          } else {
-            return match.getTarget();
-          }
+      Match match = wait(target);
+      if (match != null) {
+        if (isOtherScreen()) {
+          return (Location) match.getTarget().setOtherScreen(getScreen());
+        } else {
+          return match.getTarget();
         }
-        return null;
       }
     } else {
       ArrayList parms = (ArrayList) target;
@@ -1692,7 +1688,7 @@ public abstract class Element {
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Abort"});
       if (response == 0) {
         response = SX.popGeneric("Decide where to save the shot.", "Capture: " + title, "Save in Bundle",
-                new String[]{"Save in Bundle", "Select folder", "Abort"});
+            new String[]{"Save in Bundle", "Select folder", "Abort"});
         if (response == 0) {
           imageFile = new File(ImagePath.getBundlePath(), imageName);
         } else if (response == 1) {
@@ -1730,7 +1726,7 @@ public abstract class Element {
       url = evalURL(file);
     }
     SX.popup("Make the screen ready for capture." +
-            "\n\nClick OK when ready.", "Capture missing image");
+        "\n\nClick OK when ready.", "Capture missing image");
     RunTime.pause(1);
     ScreenImage simg = new Screen(0).userCapture("Capture missing image" + file.getName());
     if (simg.isValid()) {
@@ -1805,7 +1801,7 @@ public abstract class Element {
       int retry = 1;
       int abort = 3;
       String message = "Folder: " + what.file().getParent() + "" +
-              "\nWhere: " + this;
+          "\nWhere: " + this;
       String title = "Find failed for: " + what.file().getName();
       Integer response = SX.popGeneric(message, title, "Abort", new String[]{"Capture", "Retry", "Skip", "Abort"});
       if (response < 0) {
@@ -1817,7 +1813,7 @@ public abstract class Element {
         }
       }
       whatToDo = (new FindFailedResponse[]
-              {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
+          {null, FindFailedResponse.RETRY, FindFailedResponse.SKIP, FindFailedResponse.ABORT})[response];
     }
     return whatToDo;
   }
@@ -2417,7 +2413,7 @@ public abstract class Element {
         FindFailedResponse response = handleFindFailed(image);
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
-                  "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
+              "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
           startFind = new Date().getTime();
           continue;
         }
@@ -2426,10 +2422,6 @@ public abstract class Element {
         }
       }
       break;
-    }
-
-    if (match != null) {
-      match.setTargetOffset(image.offset());
     }
 
     if (isOnScreen()) {

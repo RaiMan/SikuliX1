@@ -427,7 +427,7 @@ public class Match extends Region implements Matches, Comparable<Match> {
       match.setW(target.w);
       match.setH(target.h);
       match.score(matchResult.score());
-      match.offset(target.offset());
+      match.setTargetOffset(target.offset());
       match.setImage(target);
       match.onScreen(where.isOnScreen());
       match.lastFindTime = times[0];
