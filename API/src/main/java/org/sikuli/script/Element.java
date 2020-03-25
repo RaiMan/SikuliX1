@@ -2427,6 +2427,11 @@ public abstract class Element {
       }
       break;
     }
+
+    if (match != null) {
+      match.setTargetOffset(image.offset());
+    }
+
     if (isOnScreen()) {
       if (!findAll && Settings.CheckLastSeen) {
         setMatchLastSeen(image, match);
