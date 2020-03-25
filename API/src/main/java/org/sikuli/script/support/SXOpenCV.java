@@ -271,8 +271,10 @@ public class SXOpenCV {
   }
 
   public static BufferedImage optimize(BufferedImage bimg, float rFactor, Image.Interpolation interpolation) {
-    Mat mimg = makeMat(bimg);
+    return Element.getBufferedImage(optimize(makeMat(bimg), rFactor, interpolation));
+  }
 
+  public static Mat optimize(Mat mimg, float rFactor, Image.Interpolation interpolation) {
     Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
 
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
@@ -289,8 +291,7 @@ public class SXOpenCV {
     if (Core.mean(mimg).val[0] < 127) {
       Core.bitwise_not(mimg, mimg);
     }
-
-    return Element.getBufferedImage(mimg);
+    return mimg;
   }
 
   /*

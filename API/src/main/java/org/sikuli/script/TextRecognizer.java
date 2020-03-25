@@ -7,6 +7,7 @@ import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
+import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.RunTime;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -307,16 +309,27 @@ public class TextRecognizer {
   }
 
   protected <SFIRBS> String doRead(SFIRBS from) {
-    String text = "";
-    BufferedImage bimg = Element.getBufferedImage(from);
     try {
-      text = getTesseractAPI().doOCR(SXOpenCV.optimize(bimg, options.factor(), options.resizeInterpolation()))
-          .trim().replace("\n\n", "\n");
+      String text = "";
+      if (from instanceof Mat) {
+        Mat img = ((Mat) from).clone();
+        if (!img.empty()) {
+          img = SXOpenCV.optimize(img, options.factor(), options.resizeInterpolation());
+          byte[] bytes = new byte[img.width() * img.height()];
+          int n = img.get(0, 0, bytes);
+          text = getTesseractAPI().doOCR(img.width(), img.height(), ByteBuffer.wrap(bytes), null, 8);
+        } else {
+          return "";
+        }
+      } else {
+        BufferedImage bimg = SXOpenCV.optimize(Element.getBufferedImage(from), options.factor(), options.resizeInterpolation());
+        text = getTesseractAPI().doOCR(bimg);
+      }
+      return text.trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
       Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       return "";
     }
-    return text;
   }
 
   protected <SFIRBS> List<Match> readTextItems(SFIRBS from, int level) {

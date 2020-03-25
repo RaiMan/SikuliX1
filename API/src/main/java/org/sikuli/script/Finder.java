@@ -392,10 +392,6 @@ public class Finder implements Matches {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
-  public static Iterator<Match> createIterator(Match doFind) {
-    return new Finder();
-  }
-
   public List<Match> getList() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {

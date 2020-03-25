@@ -24,6 +24,7 @@ public class SXTest {
   public String bundlePath = null;
   public static boolean showImage = true;
   public static long start = 0;
+  public static String duration;
 
   public static long setUpTime = 0;
   public static JFrame defaultFrame = null;
@@ -173,7 +174,7 @@ public class SXTest {
   }
 
   public void testOutro(String message, Object... args) {
-    String duration = String.format("%5d", new Date().getTime() - start);
+    duration = String.format("%5d", new Date().getTime() - start);
     if (defaultFrame != null) {
       defaultFrame.setVisible(false);
       RunTime.pause(1);

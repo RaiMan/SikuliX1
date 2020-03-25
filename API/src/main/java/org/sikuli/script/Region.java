@@ -70,10 +70,10 @@ public class Region extends Element {
    * @return true if yes, false otherwise
    */
   public boolean isValid() {
-    if (this instanceof Screen) {
+    if (this instanceof IScreen) {
       return true;
     }
-    return getScreen() != null && w != 0 && h != 0;
+    return getScreen() != null && w > 0 && h > 0;
   }
   //</editor-fold>
 

@@ -1579,7 +1579,6 @@ public abstract class Element {
     }
     if (isOnScreen()) {
       this.scr = scr;
-      isOnScreen();
     }
   }
 
@@ -2613,7 +2612,7 @@ public abstract class Element {
    * @return the text read (utf8 encoded)
    */
   public String text() {
-    return OCR.readText(this);
+    return OCR.readText(getContent());
   }
 
   /**
