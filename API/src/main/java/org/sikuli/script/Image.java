@@ -330,7 +330,8 @@ public class Image extends Element {
   /**
    * Set the value of offset
    *
-   * @param offset new value of offset
+   * @param x new value of offset
+   * @param y new value of offset
    */
   public Image offset(int x, int y) {
     this.offsetX = x;
