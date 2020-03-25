@@ -327,6 +327,17 @@ public class Image extends Element {
     return this;
   }
 
+  /**
+   * Set the value of offset
+   *
+   * @param offset new value of offset
+   */
+  public Image offset(int x, int y) {
+    this.offsetX = x;
+    this.offsetY = y;
+    return this;
+  }
+
   private int waitAfter;
 
   /**
