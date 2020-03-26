@@ -7,6 +7,7 @@ import org.sikuli.basics.Animator;
 import org.sikuli.basics.AnimatorOutQuarticEase;
 import org.sikuli.basics.AnimatorTimeBased;
 import org.sikuli.basics.Settings;
+import org.sikuli.natives.SXUser32;
 import org.sikuli.basics.Debug;
 
 import com.sun.jna.platform.win32.BaseTSD;
@@ -29,7 +30,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
   public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT |  KeyModifier.META | KeyModifier.ALTGR;
-  
+
   private static int heldButtons = 0;
   private static String heldKeys = "";
   private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
@@ -315,17 +316,8 @@ public class RobotDesktop extends Robot implements IRobot {
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key press
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-      WinUser.INPUT input = new WinUser.INPUT();
-      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-      input.input.setType("ki");
-      input.input.ki.wScan = new WinDef.WORD(0);
-      input.input.ki.time = new WinDef.DWORD(0);
-      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-      input.input.ki.wVk = new WinDef.WORD(keyCode);
-      input.input.ki.dwFlags = new WinDef.DWORD(0);
-
-      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-          (WinUser.INPUT[]) input.toArray(1), input.size());
+        int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+        SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
     }else{
       keyPress(keyCode);
     }
@@ -375,18 +367,8 @@ public class RobotDesktop extends Robot implements IRobot {
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key release
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
-      WinUser.INPUT input = new WinUser.INPUT();
-      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
-      input.input.setType("ki");
-      input.input.ki.wScan = new WinDef.WORD(0);
-      input.input.ki.time = new WinDef.DWORD(0);
-      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
-      input.input.ki.wVk = new WinDef.WORD(keyCode);
-      input.input.ki.dwFlags = new WinDef.DWORD(
-          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
-
-      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
-          (WinUser.INPUT[]) input.toArray(1), input.size());
+      int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+      SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
     }else{
       keyRelease(keyCode);
     }
