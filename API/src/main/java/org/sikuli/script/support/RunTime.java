@@ -1346,7 +1346,7 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
-    PreferencesUser.get().store();
+    //TODO cannot be done in shutdownhook: PreferencesUser.get().store();
     if (isTerminating) {
       stopPythonServer();
       hasDoneCleanUpTerminating = true;
