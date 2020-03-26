@@ -2053,7 +2053,7 @@ public class Region extends Element {
   public Match existsText(String text, double timeout) {
     Match match = null;
     try {
-      match = wait("\t" + text + "\t", timeout);
+      match = relocate(wait("\t" + text + "\t", timeout));
     } catch (FindFailed findFailed) {
     }
     return match;
