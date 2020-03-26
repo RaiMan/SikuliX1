@@ -2070,7 +2070,7 @@ public class Region extends Element {
   public List<Match> findAllText(String text) {
     List<Match> matches = new ArrayList<>();
     try {
-      matches = ((Finder) findAll("\t" + text + "\t")).getList();
+      matches = relocate(((Finder) findAll("\t" + text + "\t")).getList());
     } catch (FindFailed ff) {
     }
     return matches;
