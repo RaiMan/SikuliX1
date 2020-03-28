@@ -30,34 +30,37 @@ public class ExtensionManager {
   private static String extensionClassPath = "";
 
   public static String makeClassPath(File jarFile) {
-    RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
-    String jarPath = jarFile.getAbsolutePath();
+    File[] sxFolderList = null;
+    if (jarFile != null) {
+      RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
+      String jarPath = jarFile.getAbsolutePath();
 
-    if (!outerClassPath.isEmpty()) {
-      outerClassPath = outerClassPath.replace(jarPath, "");
-      outerClassPath = outerClassPath.replace(separator + separator, separator);
-      if (outerClassPath.startsWith(separator)) {
-        outerClassPath = outerClassPath.substring(1);
-      }
-    }
-    extensionClassPath = jarPath;
-
-    File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.endsWith(".jar")) {
-          if (name.contains("jython") && name.contains("standalone")) {
-            moveJython = true;
-            return true;
-          }
-          if (name.contains("jruby") && name.contains("complete")) {
-            moveJRuby = true;
-            return true;
-          }
+      if (!outerClassPath.isEmpty()) {
+        outerClassPath = outerClassPath.replace(jarPath, "");
+        outerClassPath = outerClassPath.replace(separator + separator, separator);
+        if (outerClassPath.startsWith(separator)) {
+          outerClassPath = outerClassPath.substring(1);
         }
-        return false;
       }
-    });
+      extensionClassPath = jarPath;
+
+      sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          if (name.endsWith(".jar")) {
+            if (name.contains("jython") && name.contains("standalone")) {
+              moveJython = true;
+              return true;
+            }
+            if (name.contains("jruby") && name.contains("complete")) {
+              moveJRuby = true;
+              return true;
+            }
+          }
+          return false;
+        }
+      });
+    }
 
     if (!sxExtensions.exists()) {
       sxExtensions.mkdir();
@@ -125,7 +128,7 @@ public class ExtensionManager {
 
     String finalClassPath = outerClassPath;
     if (!extensionClassPath.isEmpty()) {
-      if (!outerClassPath.isEmpty()) {
+      if (!outerClassPath.isEmpty() && jarFile != null) {
         finalClassPath = extensionClassPath + separator + outerClassPath;
       } else {
         finalClassPath = extensionClassPath;
@@ -184,7 +187,7 @@ public class ExtensionManager {
     }
 
     Map<Integer, String> sxExtensionsFileTokenMap = new HashMap<>();
-    List<String> sxExtensionsFilePathList = new LinkedList<>();
+    List<String> sxExtensionsFilePathList = new ArrayList<>();
 
     int lineNo = -1;
     for (String line : sxExtensionsFileContent) {
@@ -200,7 +203,7 @@ public class ExtensionManager {
         extPath = lineParts[1].trim();
         sxExtensionsFileTokenMap.put(lineNo, token);
       } else {
-        if (extPath.startsWith("dev:")) {
+        if (extPath.toUpperCase().startsWith("DEV:")) {
           extPath = extPath.substring(4).trim();
         }
       }
@@ -277,7 +280,7 @@ public class ExtensionManager {
           extensionClassPath += File.pathSeparator;
         }
         extensionClassPath += new File(extPath).getAbsolutePath();
-        RunTime.startLog(1, "adding extension entry: %s", extPath);
+        RunTime.startLog(1, "adding extension entry: %s", line);
       }
     }
   }

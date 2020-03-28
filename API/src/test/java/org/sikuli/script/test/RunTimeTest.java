@@ -33,9 +33,10 @@ public class RunTimeTest extends SXTest {
 
   @Test
   public void test010_ExtensionsFile() {
+    RunTime.setVerbose();
     testIntro();
-    ExtensionManager.readExtensions(false);
-    testOutro("");
+    String classPath = ExtensionManager.makeClassPath(null);
+    testOutro("classpath: %s", classPath);
     //assertTrue("NotValid: " + image.toString(), image.isValid());
   }
 }
