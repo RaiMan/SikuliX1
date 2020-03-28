@@ -183,10 +183,10 @@ public class ExtensionManager {
       return;
     }
 
-    Map<String, String> sxExtensionsFileTokenMap = new HashMap<>();
+    Map<Integer, String> sxExtensionsFileTokenMap = new HashMap<>();
     List<String> sxExtensionsFilePathList = new LinkedList<>();
 
-    int lineNo = 0;
+    int lineNo = -1;
     for (String line : sxExtensionsFileContent) {
       lineNo++;
       String token = "";
@@ -198,18 +198,25 @@ public class ExtensionManager {
           token = token.substring(4).trim();
         }
         extPath = lineParts[1].trim();
-        sxExtensionsFileTokenMap.put(token, extPath);
+        sxExtensionsFileTokenMap.put(lineNo, token);
       } else {
         if (extPath.startsWith("dev:")) {
           extPath = extPath.substring(4).trim();
         }
-        sxExtensionsFilePathList.add(extPath);
       }
+      sxExtensionsFilePathList.add(extPath);
     }
 
-    for (String key : sxExtensionsFileTokenMap.keySet()) {
-      String token = key;
-      String extPath = sxExtensionsFileTokenMap.get(key);
+    lineNo = -1;
+    for (String extPath : sxExtensionsFilePathList) {
+      lineNo++;
+      String token = sxExtensionsFileTokenMap.get(lineNo);
+      String line;
+      if (token == null) {
+        line = extPath;
+      } else {
+        line = token + " = " + extPath;
+      }
       File extFile = new File(extPath);
       if (extFile.isAbsolute()) {
         if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
@@ -223,7 +230,7 @@ public class ExtensionManager {
           continue;
         }
       }
-      if (!token.isEmpty()) {
+      if (token != null) {
         if ("JYTHON".equals(token)) {
           if (afterStart) {
             continue;
