@@ -215,7 +215,7 @@ public class ElementRegionTest extends SXTest {
     Region reg = getDefaultRegion();
     Match match = null;
     try {
-      Image imageMasked = new Image(testNameMask).mask();
+      Image imageMasked = new Image(testNameMask).masked();
       match = reg.find(imageMasked);
     } catch (FindFailed findFailed) {
     }

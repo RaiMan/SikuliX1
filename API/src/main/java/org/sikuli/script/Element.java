@@ -398,32 +398,6 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="003 Fields pixel content">
-  protected Mat possibleImageResizeOrCallback(Image image, Mat what) {
-    Mat originalContent = what;
-    if (Settings.ImageCallback != null) {
-      Mat contentResized = SXOpenCV.makeMat(Settings.ImageCallback.callback(image), false);
-      if (!contentResized.empty()) {
-        return contentResized;
-      }
-    } else {
-      double factor = image.resize() == 1 ? Settings.AlwaysResize : image.resize();
-      if (factor > 0.1 && factor != 1) {
-        return SXOpenCV.cvResize(originalContent.clone(), factor, Image.Interpolation.CUBIC);
-      }
-    }
-    return originalContent;
-  }
-
-  protected Mat possibleImageResizeMask(Image image, Mat what) {
-    Mat mask = image.getMask().getContent();
-    double factor = mask.width() / what.width();
-    if (factor > 0.1 && factor != 1) {
-      mask = SXOpenCV.cvResize(mask.clone(), factor, Image.Interpolation.CUBIC);
-    }
-    List<Mat> mats = SXOpenCV.extractMask(mask, false);
-    return mats.get(1);
-  }
-
   public static <SUFEBM> Image getImage(SUFEBM target) {
     if (target instanceof Image) {
       return (Image) target;
@@ -667,16 +641,6 @@ public abstract class Element {
 
   public void white(boolean state) {
     white = state;
-  }
-
-  private boolean gray = false;
-
-  public void gray(boolean state) {
-    gray = state;
-  }
-
-  public boolean gray() {
-    return gray;
   }
 
   public double diffPercentage(Image otherImage) {
@@ -2304,6 +2268,7 @@ public abstract class Element {
     long startFind = new Date().getTime();
     Mat where = new Mat();
     if (!isOnScreen()) {
+      //TODO handle masked base image
       if (getContent().channels() == 4) {
         List<Mat> mats = SXOpenCV.extractMask(getContent(), true);
         where = mats.get(0);
@@ -2314,36 +2279,13 @@ public abstract class Element {
     long whereTime = new Date().getTime() - startFind;
     long whatTime = 0;
     Match match;
-    Image image;
+    FindAttributes findAttributes;
     while (true) {
       long startSearch, startWhat;
       long searchTime = 0;
       Match matchResult;
       startWhat = new Date().getTime();
-      image = new Image(target);
-      if (!image.isValid()) {
-        return null;
-      }
-      Mat what = image.getContent();
-      if (image.hasURL()) {
-        what = possibleImageResizeOrCallback(image, what);
-      }
-      Mat mask = new Mat();
-      if (image.isMasked()) {
-        List<Mat> mats = SXOpenCV.extractMask(what, false);
-        what = mats.get(0);
-        mask = mats.get(1);
-      } else {
-        if (what.channels() == 4) {
-          List<Mat> mats = SXOpenCV.extractMask(what, true);
-          what = mats.get(0);
-          mask = mats.get(1);
-        }
-        if (image.hasMask()) {
-          mask = possibleImageResizeMask(image, what);
-        }
-      }
-      SXOpenCV.setAttributes(image, what, mask);
+      findAttributes = new FindAttributes(target);
       whatTime = new Date().getTime() - startWhat;
       long before = new Date().getTime();
       long waitUntil = before + (int) (timeout * 1000);
@@ -2354,7 +2296,7 @@ public abstract class Element {
       while (true) {
         if (firstSearch && isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
           trace("checkLastSeen: enter");
-          Match lastSeenMatch = getMatchLastSeen(image);
+          Match lastSeenMatch = getMatchLastSeen(findAttributes);
           if (lastSeenMatch != null && lastSeenMatch.isInside(this)) {
             trace("checkLastSeen: start");
             Mat whereLastSeen;
@@ -2370,7 +2312,7 @@ public abstract class Element {
               whereTimeLS = new Date().getTime() - startWhereLS;
             }
             long startSearchLS = new Date().getTime();
-            matchResult = SXOpenCV.checkLastSeen(whereLastSeen, what, mask, image);
+            matchResult = SXOpenCV.checkLastSeen(whereLastSeen, findAttributes);
             searchTimeLS = new Date().getTime() - startSearchLS;
             if (!isIgnoreLastSeen()) {
               if (matchResult != null) {
@@ -2391,7 +2333,7 @@ public abstract class Element {
           whereTime = new Date().getTime() - startWhere;
         }
         startSearch = new Date().getTime();
-        matchResult = SXOpenCV.findMatch(where, what, mask, image, findAll);
+        matchResult = SXOpenCV.findMatch(where, findAttributes, findAll);
         searchTime = new Date().getTime() - startSearch;
         if (timeout < 0.01) {
           break;
@@ -2405,12 +2347,12 @@ public abstract class Element {
       }
       long findTime = new Date().getTime() - startFind;
       long[] times = new long[]{findTime, searchTime + searchTimeLS, whereTime + whereTimeLS, whatTime};
-      match = Match.createFromResult(this, image, matchResult, times);
+      match = Match.createFromResult(this, findAttributes, matchResult, times);
       if (isVanish) {
         return match;
       }
       if (match == null) {
-        FindFailedResponse response = handleFindFailed(image);
+        FindFailedResponse response = handleFindFailed(findAttributes);
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
               "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
@@ -2418,7 +2360,7 @@ public abstract class Element {
           continue;
         }
         if (FindFailedResponse.ABORT.equals(response)) {
-          throw new FindFailed(FindFailed.createErrorMessage(this, image));
+          throw new FindFailed(FindFailed.createErrorMessage(this, findAttributes));
         }
       }
       break;
@@ -2426,7 +2368,7 @@ public abstract class Element {
 
     if (isOnScreen()) {
       if (!findAll && Settings.CheckLastSeen) {
-        setMatchLastSeen(image, match);
+        setMatchLastSeen(findAttributes, match);
       }
       if (!findAll) {
         match(match);

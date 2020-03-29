@@ -254,6 +254,14 @@ public class Image extends Element {
 
   Image maskImage = null;
 
+  public boolean hasMask() {
+    return null != maskImage;
+  }
+
+  public Image getMask() {
+    return maskImage;
+  }
+
   public <SUFEBMP> Image mask(SUFEBMP what) {   //TODO allow a color other than black
     Image mImage = new Image(what, Element.asMaskImage());
     if (mImage.getSize().equals(getSize())) {
@@ -264,23 +272,15 @@ public class Image extends Element {
     return this;
   }
 
-  public Image mask() {
+  private boolean isMasked = false;
+
+  public Image masked() {
     isMasked = true;
     return this;
   }
 
-  private boolean isMasked = false;
-
-  boolean isMasked() {
+  public boolean isMasked() {
     return isMasked;
-  }
-
-  boolean hasMask() {
-    return null != maskImage;
-  }
-
-  Image getMask() {
-    return maskImage;
   }
 
   private double similarity = Settings.MinSimilarity;
