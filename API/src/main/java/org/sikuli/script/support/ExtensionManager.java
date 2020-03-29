@@ -168,6 +168,9 @@ public class ExtensionManager {
         if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
           continue;
         }
+        if (line.toUpperCase().startsWith("DEV:")) {
+          continue;
+        }
         extlines += line + "\n";
         sxExtensionsFileContent.add(line);
       }
@@ -183,6 +186,9 @@ public class ExtensionManager {
     }
     for (String line : sxExtensionsFileContent) {
       String token = "";
+      if (line.trim().endsWith("=")) {
+        continue;
+      }
       String extPath = line;
       String[] lineParts = line.split("=");
       if (lineParts.length > 1) {
