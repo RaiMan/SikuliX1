@@ -75,7 +75,7 @@ public class ExtensionManager {
       for (File fExtension : fExtensions) {
         String name = fExtension.getName();
         if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
-                (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
+            (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
           fExtension.delete();
         }
       }
@@ -139,13 +139,13 @@ public class ExtensionManager {
         // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
         String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
         String message = "Neither Jython nor JRuby available" +
-                "\nPlease consult the docs for a solution.\n" +
-                "\nIDE might not be useable with JavaScript only";
+            "\nPlease consult the docs for a solution.\n" +
+            "\nIDE might not be useable with JavaScript only";
         if (RunTime.isIDE()) {
           JOptionPane.showMessageDialog(null,
-                  message + "\n\nClick OK to get more help in a browser window",
-                  "IDE startup problem",
-                  JOptionPane.ERROR_MESSAGE);
+              message + "\n\nClick OK to get more help in a browser window",
+              "IDE startup problem",
+              JOptionPane.ERROR_MESSAGE);
           try {
             Desktop.getDesktop().browse(new URI(helpURL));
           } catch (IOException ex) {
@@ -158,7 +158,7 @@ public class ExtensionManager {
   }
 
   public static void readExtensions(boolean afterStart) {
-    sxExtensionsFileContent = new ArrayList<>();
+    extensionsFileContent = new ArrayList<>();
     sxExtensionsFile = new File(sxExtensions, "extensions.txt");
     String txtExtensions = FileManager.readFileToString(sxExtensionsFile).trim();
     if (!txtExtensions.isEmpty()) {
@@ -169,51 +169,69 @@ public class ExtensionManager {
         if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
           continue;
         }
-        if (RunTime.get().isVersionRelease() && line.startsWith("dev:")) {
+        if (RunTime.get().isVersionRelease() && line.toUpperCase().startsWith("DEV:")) {
           continue;
         }
         extlines += line + "\n";
-        sxExtensionsFileContent.add(line);
+        extensionsFileContent.add(line);
       }
-      if (sxExtensionsFileContent.size() > 0) {
+      if (extensionsFileContent.size() > 0) {
         RunTime.startLog(1, "extensions.txt\n%s", extlines.trim());
       }
     }
-    if (sxExtensionsFileContent.size() == 0) {
+    if (extensionsFileContent.size() == 0) {
       if (!afterStart) {
         RunTime.startLog(1, "no extensions.txt nor valid content");
       }
       return;
     }
 
-    Map<Integer, String> sxExtensionsFileTokenMap = new HashMap<>();
-    List<String> sxExtensionsFilePathList = new ArrayList<>();
+    Map<Integer, String> lineTokenMap = new HashMap<>();
+    Map<String, Integer> tokenLineMap = new HashMap<>();
+    List<String> filePathList = new ArrayList<>();
 
     int lineNo = -1;
-    for (String line : sxExtensionsFileContent) {
+    for (String line : extensionsFileContent) {
       lineNo++;
       String token = "";
-      String extPath = line;
-      String[] lineParts = line.split("=");
-      if (lineParts.length > 1) {
-        token = lineParts[0].trim().toUpperCase();
-        if (token.startsWith("DEV:")) {
-          token = token.substring(4).trim();
+      String extPath = "";
+      if (line.contains("=")) {
+        String[] lineParts = line.split("=");
+        if (lineParts.length > 0) {
+          token = lineParts[0].trim().toUpperCase();
+          if (token.startsWith("DEV:")) {
+            token = token.substring(4).trim();
+          }
+          if (tokenLineMap.containsKey(token)) {
+            Integer ln = tokenLineMap.get(token);
+            tokenLineMap.put(token, lineNo);
+            lineTokenMap.remove(ln);
+            lineTokenMap.put(lineNo, token);
+            filePathList.set(ln, "");
+          } else {
+            lineTokenMap.put(lineNo, token);
+            tokenLineMap.put(token, lineNo);
+          }
+          if (lineParts.length > 1) {
+            extPath = lineParts[1].trim();
+          }
         }
-        extPath = lineParts[1].trim();
-        sxExtensionsFileTokenMap.put(lineNo, token);
       } else {
-        if (extPath.toUpperCase().startsWith("DEV:")) {
-          extPath = extPath.substring(4).trim();
+        if (line.toUpperCase().startsWith("DEV:")) {
+          line = line.substring(4).trim();
         }
+        extPath = line; 
       }
-      sxExtensionsFilePathList.add(extPath);
+      filePathList.add(extPath);
     }
 
     lineNo = -1;
-    for (String extPath : sxExtensionsFilePathList) {
+    for (String extPath : filePathList) {
       lineNo++;
-      String token = sxExtensionsFileTokenMap.get(lineNo);
+      if (extPath.isEmpty()) {
+        continue;
+      }
+      String token = lineTokenMap.get(lineNo);
       String line;
       if (token == null) {
         line = extPath;
@@ -279,13 +297,13 @@ public class ExtensionManager {
         if (!extensionClassPath.isEmpty()) {
           extensionClassPath += File.pathSeparator;
         }
-        extensionClassPath += new File(extPath).getAbsolutePath();
+        extensionClassPath += extFile.getAbsolutePath();
         RunTime.startLog(1, "adding extension entry: %s", line);
       }
     }
   }
 
-  private static List<String> sxExtensionsFileContent = new ArrayList<>();
+  private static List<String> extensionsFileContent = new ArrayList<>();
 
   public static boolean hasExtensionsFile() {
     return sxExtensionsFile != null;
@@ -299,18 +317,18 @@ public class ExtensionManager {
 
   public static String getExtensionsFileDefault() {
     return "# add absolute paths one per line, that point to other jars,\n" +
-            "# that need to be available on Java's classpath at runtime\n" +
-            "# They will be added automatically at startup in the given sequence\n" +
-            "\n" +
-            "# empty lines and lines beginning with # or // are ignored\n" +
-            "# delete the leading # to activate a prepared keyword line\n" +
-            "\n" +
-            "# pointer to a Jython install outside SikuliX\n" +
-            "# jython = c:/jython2.7.1/jython.jar\n" +
-            "\n" +
-            "# the Python executable as used on a commandline\n" +
-            "# activating will enable the support for real Python\n" +
-            "# python = python\n";
+        "# that need to be available on Java's classpath at runtime\n" +
+        "# They will be added automatically at startup in the given sequence\n" +
+        "\n" +
+        "# empty lines and lines beginning with # or // are ignored\n" +
+        "# delete the leading # to activate a prepared keyword line\n" +
+        "\n" +
+        "# pointer to a Jython install outside SikuliX\n" +
+        "# jython = c:/jython2.7.1/jython.jar\n" +
+        "\n" +
+        "# the Python executable as used on a commandline\n" +
+        "# activating will enable the support for real Python\n" +
+        "# python = python\n";
   }
 
   public static boolean hasShebang(String type, String scriptFile) {
@@ -324,7 +342,7 @@ public class ExtensionManager {
       }
     } catch (Exception ex) {
       if (scriptFile.length() >= type.length()
-              && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
+          && type.equals(scriptFile.substring(0, type.length()).toUpperCase())) {
         return true;
       }
     }
@@ -336,15 +354,15 @@ public class ExtensionManager {
     int WARNING_ACCEPTED = 1;
     int WARNING_DO_NOTHING = 0;
     String warn = "Nothing to do here currently - click what you like ;-)\n" +
-            "\nExtensions folder: \n" + sxExtensions +
-            "\n\nCurrent content:";
+        "\nExtensions folder: \n" + sxExtensions +
+        "\n\nCurrent content:";
     List<String> extensionNames = getExtensionNames();
     for (String extension : extensionNames) {
       warn += "\n" + extension;
     }
     if (hasExtensionsFile()) {
       warn += "\n\nextensions.txt content:";
-      for (String extension : sxExtensionsFileContent) {
+      for (String extension : extensionsFileContent) {
         warn += "\n" + extension;
       }
     }
@@ -355,7 +373,7 @@ public class ExtensionManager {
     options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
     int ret = JOptionPane.showOptionDialog(null, warn, title,
-            0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
+        0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;
     }
@@ -422,10 +440,10 @@ public class ExtensionManager {
 
   public static String getSitesTxtDefault() {
     return "# add absolute paths one per line, that point to other directories/jars,\n" +
-            "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-            "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-            "\n" +
-            "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+        "\n" +
+        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
   }
 
   public static boolean shouldCheckContent(String type, String identifier) {
@@ -490,10 +508,10 @@ public class ExtensionManager {
     String title = "Android Support - !!EXPERIMENTAL!!";
     if (message.isEmpty()) {
       String warn = "Device found: " + aScr.getDeviceDescription() + "\n\n" +
-              "click Check: a short test is run with the device\n" +
-              "click Default...: set device as default screen for capture\n" +
-              "click Cancel: capture is reset to local screen\n" +
-              "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
+          "click Check: a short test is run with the device\n" +
+          "click Default...: set device as default screen for capture\n" +
+          "click Cancel: capture is reset to local screen\n" +
+          "\nBE PREPARED: Feature is experimental - no guarantee ;-)";
       String[] options = new String[3];
       options[WARNING_DO_NOTHING] = "Check";
       options[WARNING_ACCEPTED] = "Default Android";
