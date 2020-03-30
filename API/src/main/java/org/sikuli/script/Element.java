@@ -2352,7 +2352,7 @@ public abstract class Element {
         return match;
       }
       if (match == null) {
-        FindFailedResponse response = handleFindFailed(findAttributes.target());
+        FindFailedResponse response = handleFindFailed(findAttributes.originalTarget());
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
               "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
@@ -2368,7 +2368,7 @@ public abstract class Element {
 
     if (isOnScreen()) {
       if (!findAll && Settings.CheckLastSeen) {
-        setMatchLastSeen(findAttributes, match);
+        setMatchLastSeen(findAttributes.originalTarget(), match);
       }
       if (!findAll) {
         match(match);

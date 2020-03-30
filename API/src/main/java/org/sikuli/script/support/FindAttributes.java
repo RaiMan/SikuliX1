@@ -30,6 +30,12 @@ public class FindAttributes {
     return target;
   }
 
+  Image originalTarget;
+
+  public Image originalTarget() {
+    return target;
+  }
+
   Mat what;
 
   public Mat what() {
@@ -42,14 +48,19 @@ public class FindAttributes {
     return mask;
   }
 
-  Pattern pattern = null;
-
   public FindAttributes(Object searchTarget) {
     if (searchTarget instanceof Pattern) {
-      pattern = (Pattern) searchTarget;
-      target = pattern.getImage();
-    } else if (searchTarget instanceof Image) {
-      target = (Image) searchTarget;
+      Pattern pattern = (Pattern) searchTarget;
+      originalTarget = pattern.getImage();
+      target = new Image(pattern.getImage());
+      target.similarity(pattern.getSimilar());
+      target.offset(pattern.getTargetOffset());
+      target.resize(pattern.getResize());
+      target.waitAfter(pattern.waitAfter());
+      target.mask(pattern.getMask());
+    } else {
+      target = new Image(searchTarget);
+      originalTarget = target;
     }
     what = target.getContent();
     if (target.hasURL()) {

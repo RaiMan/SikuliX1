@@ -239,16 +239,18 @@ public class Image extends Element {
   //<editor-fold desc="004 Fields Pattern aspects">
   private <PE> void copyPatternAttributes(PE source) {
     if (source instanceof Pattern) {
-      similarity = ((Pattern) source).getSimilar();
+      similarity(((Pattern) source).getSimilar());
       offset(((Pattern) source).getTargetOffset());
-      waitAfter = ((Pattern) source).waitAfter();
+      waitAfter(((Pattern) source).waitAfter());
       maskImage = ((Pattern) source).getMask();
+      resize(((Pattern) source).getResize());
     } else if (source instanceof Image) {
-      similarity = ((Image) source).similarity();
+      similarity(((Image) source).similarity());
       offset(((Image) source).offset());
-      waitAfter = ((Image) source).waitAfter();
+      waitAfter(((Image) source).waitAfter());
       maskImage = ((Image) source).getMask();
       isMasked = ((Image) source).isMasked();
+      resize(((Image) source).resize());
     }
   }
 

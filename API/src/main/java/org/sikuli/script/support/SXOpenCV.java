@@ -348,13 +348,12 @@ public class SXOpenCV {
     if (findAttributes.gray()) {
       Imgproc.cvtColor(where, finalWhere, Imgproc.COLOR_BGR2GRAY);
     }
-    Image image = findAttributes.target();
     Mat what = findAttributes.what();
     Mat mask = findAttributes.mask();
-    if (image.plain()) {
+    if (findAttributes.target().plain()) {
       Mat finalWherePlain = finalWhere;
       Mat finalWhatPlain = what;
-      if (image.black()) {
+      if (findAttributes.target().black()) {
         Core.bitwise_not(finalWhere, finalWherePlain);
         Core.bitwise_not(what, finalWhatPlain);
       }
@@ -371,7 +370,7 @@ public class SXOpenCV {
     }
     Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
     double maxVal = minMax.maxVal;
-    if (maxVal > image.similarity()) {
+    if (maxVal > findAttributes.target().similarity()) {
       Point point = new Point((int) minMax.maxLoc.x, (int) minMax.maxLoc.y);
       if (!findAll) {
         result = null;
