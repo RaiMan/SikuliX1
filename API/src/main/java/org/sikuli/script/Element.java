@@ -1088,7 +1088,7 @@ public abstract class Element {
     return element.getImageContent();
   }
 
-  static Match getMatchLastSeen(Element element) {
+  public static Match getMatchLastSeen(Element element) {
     return ImageCache.getLastMatched(element);
   }
 
@@ -2296,7 +2296,7 @@ public abstract class Element {
       while (true) {
         if (firstSearch && isOnScreen() && shouldCheckLastSeen() && !findAll && !isVanish) {
           trace("checkLastSeen: enter");
-          Match lastSeenMatch = getMatchLastSeen(findAttributes);
+          Match lastSeenMatch = findAttributes.getMatchLastSeen();
           if (lastSeenMatch != null && lastSeenMatch.isInside(this)) {
             trace("checkLastSeen: start");
             Mat whereLastSeen;
@@ -2352,7 +2352,7 @@ public abstract class Element {
         return match;
       }
       if (match == null) {
-        FindFailedResponse response = handleFindFailed(findAttributes);
+        FindFailedResponse response = handleFindFailed(findAttributes.target());
         if (FindFailedResponse.RETRY.equals(response)) {
           SX.popAsk("Make the screen ready for find retry." +
               "\n\nClick Yes when ready.\nClick No to abort.", "Retry after FindFailed");
@@ -2360,7 +2360,7 @@ public abstract class Element {
           continue;
         }
         if (FindFailedResponse.ABORT.equals(response)) {
-          throw new FindFailed(FindFailed.createErrorMessage(this, findAttributes));
+          throw new FindFailed(FindFailed.createErrorMessage(this, findAttributes.target()));
         }
       }
       break;

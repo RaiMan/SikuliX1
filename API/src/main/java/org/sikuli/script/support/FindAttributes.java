@@ -8,7 +8,9 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Element;
 import org.sikuli.script.Image;
+import org.sikuli.script.Match;
 import org.sikuli.script.Pattern;
 
 import java.awt.*;
@@ -40,9 +42,12 @@ public class FindAttributes {
     return mask;
   }
 
+  Pattern pattern = null;
+
   public FindAttributes(Object searchTarget) {
     if (searchTarget instanceof Pattern) {
-
+      pattern = (Pattern) searchTarget;
+      target = pattern.getImage();
     } else if (searchTarget instanceof Image) {
       target = (Image) searchTarget;
     }
@@ -118,7 +123,7 @@ public class FindAttributes {
     return originalContent;
   }
 
-  protected Mat possibleImageResizeMask(Image image, Mat what) {
+  private Mat possibleImageResizeMask(Image image, Mat what) {
     Mat mask = image.getMask().getContent();
     double factor = mask.width() / what.width();
     if (factor > 0.1 && factor != 1) {
@@ -126,5 +131,9 @@ public class FindAttributes {
     }
     List<Mat> mats = SXOpenCV.extractMask(mask, false);
     return mats.get(1);
+  }
+
+  public Match getMatchLastSeen() {
+    return Element.getMatchLastSeen(target);
   }
 }

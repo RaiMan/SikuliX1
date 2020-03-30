@@ -7,6 +7,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Range;
 import org.opencv.core.Scalar;
+import org.sikuli.script.support.FindAttributes;
 import org.sikuli.script.support.IScreen;
 
 import java.awt.*;
@@ -418,17 +419,17 @@ public class Match extends Region implements Matches, Comparable<Match> {
     this.result = result;
   }
 
-  public static Match createFromResult(Element where, Image target, Match matchResult, long[] times) {
+  public static Match createFromResult(Element where, FindAttributes findAttributes, Match matchResult, long[] times) {
     Match match = null;
     if (matchResult != null) {
       match = new Match();
       match.setX(where.x + matchResult.x);
       match.setY(where.y + matchResult.y);
-      match.setW(target.w);
-      match.setH(target.h);
+      match.setW(findAttributes.target().w);
+      match.setH(findAttributes.target().h);
       match.score(matchResult.score());
-      match.setTargetOffset(target.offset());
-      match.setImage(target);
+      match.setTargetOffset(findAttributes.target().offset());
+      match.setImage(findAttributes.target());
       match.onScreen(where.isOnScreen());
       match.lastFindTime = times[0];
       match.lastSearchTime = times[1];
