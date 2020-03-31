@@ -283,9 +283,8 @@ public class ExtensionManager {
         "# pointer to a Jython install outside SikuliX\n" +
         "# jython = c:/jython2.7.1/jython.jar\n" +
         "\n" +
-        "# the Python executable as used on a commandline\n" +
-        "# activating will enable the support for real Python\n" +
-        "# python = python\n";
+        "# pointer to a JRuby install outside SikuliX\n" +
+        "# jruby = c:/jruby/jruby.jar\n";
   }
 
   public static List<String> getExtensionNames() {
