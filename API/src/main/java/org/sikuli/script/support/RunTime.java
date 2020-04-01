@@ -53,11 +53,7 @@ public class RunTime {
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
-  public static void start(RunTime.Type type, String[] args) {
-
-    Debug.init();
-    File runningJar = getRunningJar(type);
-
+  public static void start(RunTime.Type type, String[] args)  {
     if (Type.API.equals(type)) {
       startAsIDE = false;
       if (args.length == 1 && "buildDate".equals(args[0])) {
@@ -90,9 +86,8 @@ public class RunTime {
       }
 
       if (args.length == 1 && "extensions".equals(args[0])) {
-        RunTime runTime = RunTime.get();
         RunTime.setVerbose();
-        String classpath = ExtensionManager.makeClassPath(runningJar);
+        String classpath = ExtensionManager.makeClassPath(getRunningJar(type));
         for (String path : classpath.split(File.pathSeparator)) {
           if (!path.contains("\\.")) {
             System.out.println(path);
@@ -106,6 +101,8 @@ public class RunTime {
         //URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
         URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
         Image image = Image.create(resource);
+        Screen scr = new Screen();
+        boolean ok = scr.has(image);
         RunTime.startLog(1, "test: %s", image);
         System.exit(0);
       }
@@ -113,14 +110,14 @@ public class RunTime {
 
     List<String> finalArgs = evalArgsStart(args);
 
-    String jarName = runningJar.getName();
+    File runningJar = getRunningJar(type);
     RunTime.startLog(1, "Running: %s", runningJar);
 
     File fAppData = getAppPath();
     RunTime.startLog(1, "AppData: %s", fAppData);
 
     String classPath = "";
-    if (jarName.endsWith(".jar")) {
+    if (runningJar.getName().endsWith(".jar")) {
       classPath = ExtensionManager.makeClassPath(runningJar);
     } else {
       return;
@@ -265,13 +262,6 @@ public class RunTime {
       terminate(exitCode, "");
     }
 
-    if (shouldRunPythonServer()) {
-      get().installStopHotkeyPythonServer();
-      if (Debug.getDebugLevel() == 3) {
-      }
-      startPythonServer();
-    }
-
 //TODO simplify, when SikulixServer is implemented
     if (shouldRunServer()) {
       Class cServer = null;
@@ -297,46 +287,6 @@ public class RunTime {
       terminate();
     }
   }
-
-  public void installStopHotkeyPythonServer() {
-    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
-      @Override
-      public void hotkeyPressed(HotkeyEvent e) {
-        Debug.log(3, "Stop HotKey was pressed");
-        if (RunTime.get().shouldRunPythonServer()) {
-          stopPythonServer();
-          terminate();
-        }
-      }
-    });
-  }
-
-  public static void startPythonServer() {
-    if (!isRunningPyServer()) {
-      try {
-        Class.forName("py4j.GatewayServer");
-        pythonServer = new py4j.GatewayServer();
-      } catch (ClassNotFoundException e) {
-        Debug.error("Python server: py4j not on classpath");
-        terminate();
-      }
-      pythonServer.start(false);
-    }
-  }
-
-  public static void stopPythonServer() {
-    if (isRunningPyServer()) {
-      Debug.logp("Python server: trying to stop");
-      pythonServer.shutdown();
-      pythonServer = null;
-    }
-  }
-
-  public static boolean isRunningPyServer() {
-    return null != pythonServer;
-  }
-
-  private static py4j.GatewayServer pythonServer = null;
 
   public static File asFolder(String option) {
     if (null == option) {
@@ -536,8 +486,6 @@ public class RunTime {
         shouldRunScript = true;
       } else if ("-s".equals(arg)) {
         asServer = true;
-      } else if ("-p".equals(arg)) {
-        asPyServer = true;
       }
       finalArgs.add(arg);
     }
@@ -645,12 +593,6 @@ public class RunTime {
 
   private static String serverExtra = null;
 
-  public static boolean shouldRunPythonServer() {
-    return asPyServer;
-  }
-
-  private static boolean asPyServer = false;
-
   public static void setAllowMultiple() {
     allowMultiple = true;
   }
@@ -662,7 +604,7 @@ public class RunTime {
   private static boolean allowMultiple = false;
 
   public static boolean shouldDetach() {
-    return !runningScripts() && !shouldRunServer() && !shouldRunPythonServer();
+    return !runningScripts() && !shouldRunServer();
   }
 
   public static File getAppPath() {
@@ -1348,7 +1290,6 @@ public class RunTime {
     Mouse.reset();
     //TODO cannot be done in shutdownhook: PreferencesUser.get().store();
     if (isTerminating) {
-      stopPythonServer();
       hasDoneCleanUpTerminating = true;
     }
   }

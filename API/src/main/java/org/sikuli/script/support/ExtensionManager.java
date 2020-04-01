@@ -349,25 +349,6 @@ public class ExtensionManager {
 
   private static boolean jrubyExtern = false;
 
-  public static boolean shouldCheckContent(String type, String identifier) {
-    boolean usePython = false;
-    if (type.contains("ython") && hasPython()) {
-      if (type.equals(identifier)) {
-        return true;
-      }
-      if (RunTime.shouldRunPythonServer()) {
-        usePython = true;
-      } else if (hasShebang(shebangPython, identifier)) {
-        usePython = true;
-      }
-      if (usePython) {
-        return "text/python".equals(type);
-      }
-      return "text/jython".equals(type);
-    }
-    return true;
-  }
-
   public static boolean hasShebang(String type, String scriptFile) {
     try (Reader reader = new InputStreamReader(new FileInputStream(scriptFile), "UTF-8")) {
       char[] chars = new char[type.length()];

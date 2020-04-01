@@ -24,7 +24,7 @@
       <excludes>
         <exclude>org.python:jython-standalone</exclude>
         <exclude>org.jruby:jruby-complete</exclude>
-        <exclude>net.sf.py4j:py4j</exclude>
+<!--        <exclude>net.sf.py4j:py4j</exclude>-->
         <exclude>org.apache.pdfbox:*</exclude>
       </excludes>
       <scope>runtime</scope>
