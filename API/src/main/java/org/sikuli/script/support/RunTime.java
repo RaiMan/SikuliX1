@@ -53,6 +53,16 @@ public class RunTime {
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
+  public static void startAPI(String appPath) {
+    File path = getAppPath(appPath);
+    fTempPath = new File(path, "Temp");
+    startAPI();
+  }
+
+  public static void startAPI() {
+    RunTime.get(Type.API);
+  }
+
   public static void start(RunTime.Type type, String[] args)  {
     if (Type.API.equals(type)) {
       startAsIDE = false;
@@ -98,6 +108,7 @@ public class RunTime {
 
 //TODO place to test something in the API context
       if (args.length == 1 && "test".equals(args[0])) {
+        startAPI("XXX");
         //URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
         URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
         Image image = Image.create(resource);
@@ -608,6 +619,10 @@ public class RunTime {
   }
 
   public static File getAppPath() {
+    return getAppPath(null);
+  }
+
+  public static File getAppPath(String givenAppPath) {
     if (null != sxAppPath) {
       return sxAppPath;
     }
@@ -617,22 +632,30 @@ public class RunTime {
       startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
       System.exit(-1);
     } else {
-      if ("w".equals(osNameShort)) {
-        String appPath = System.getenv("APPDATA");
-        if (appPath != null && !appPath.isEmpty()) {
-          sxAppPath = new File(new File(appPath), "Sikulix");
+      if (null == givenAppPath) {
+        if ("w".equals(osNameShort)) {
+          String appPath = System.getenv("APPDATA");
+          if (appPath != null && !appPath.isEmpty()) {
+            sxAppPath = new File(new File(appPath), "Sikulix");
+          }
+        } else if ("m".equals(osNameShort)) {
+          sxAppPath = new File(new File(fUserDir, "Library/Application Support"), "Sikulix");
+        } else {
+          sxAppPath = new File(fUserDir, ".Sikulix");
         }
-      } else if ("m".equals(osNameShort)) {
-        sxAppPath = new File(new File(fUserDir, "Library/Application Support"), "Sikulix");
+        if (sxAppPath != null && !sxAppPath.exists()) {
+          sxAppPath.mkdirs();
+        }
       } else {
-        sxAppPath = new File(fUserDir, ".Sikulix");
+        sxAppPath = new File(givenAppPath);
+        if (!sxAppPath.isAbsolute()) {
+          sxAppPath = new File(fUserDir, givenAppPath);
+          sxAppPath.mkdirs();
+        }
       }
-      if (!sxAppPath.exists()) {
-        sxAppPath.mkdirs();
-      }
-      if (!sxAppPath.exists()) {
-        startLog(-1, "JavaSystemProperty::user.home not valid: %s", userHome);
-        System.exit(-1);
+      if (sxAppPath == null || !sxAppPath.exists()) {
+        startLog(-1, "Default APPDATA path not valid: %s (using user.home/SikulixAppData)", sxAppPath);
+        sxAppPath = new File(fUserDir, "SikulixAppData");
       }
     }
     return sxAppPath;
@@ -763,7 +786,7 @@ public class RunTime {
 
   private List<URL> classPathActual = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
-  public File fTempPath = null;
+  public static File fTempPath = null;
   public File fBaseTempPath = null;
   public String fpBaseTempPath = "";
   public File fLibsFolder = null;
@@ -953,6 +976,8 @@ public class RunTime {
       throw new SikuliXception(String.format("fatal: " + "JavaSystemProperty::user.dir not valid"));
     }
 
+    //TODO APPDATA
+/*
     runTime.fSikulixAppPath = new File("SikulixAppDataNotAvailable");
     if (runTime.runningWindows) {
       appDataMsg = "init: Windows: %APPDATA% not valid (null or empty) or is not accessible: %s";
@@ -970,6 +995,8 @@ public class RunTime {
       runTime.fSikulixAppPath = new File(runTime.fAppPath, ".Sikulix");
       appDataMsg = "init: Linux: SikulxAppData does not exist or is not accessible: %s";
     }
+*/
+    runTime.fSikulixAppPath = getAppPath();
     runTime.fSikulixStore = new File(runTime.fSikulixAppPath, "SikulixStore");
     runTime.fSikulixStore.mkdirs();
     //</editor-fold>
@@ -989,7 +1016,7 @@ public class RunTime {
     Settings.init(runTime); // force Settings initialization
     runTime.initSikulixOptions();
 
-    //<editor-fold desc="addShutdownHook">
+    //TODO addShutdownHook
     hasDoneCleanUpTerminating = false;
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -1064,11 +1091,13 @@ public class RunTime {
       userName = "unknown";
     }
 
-    String tmpdir = System.getProperty("java.io.tmpdir");
-    if (tmpdir != null && !tmpdir.isEmpty()) {
-      fTempPath = new File(tmpdir);
-    } else {
-      throw new SikuliXception("init: java.io.tmpdir not valid (null or empty");
+    if (fTempPath == null) {
+      String tmpdir = System.getProperty("java.io.tmpdir");
+      if (tmpdir != null && !tmpdir.isEmpty()) {
+        fTempPath = new File(tmpdir);
+      } else {
+        throw new SikuliXception("init: java.io.tmpdir not valid (null or empty");
+      }
     }
     fBaseTempPath = new File(fTempPath, String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
@@ -1086,10 +1115,10 @@ public class RunTime {
         success = false;
       }
       if (!success) {
-        throw new SikuliXception("init: java.io.tmpdir not useable");
+        throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
       }
     } catch (Exception e) {
-      throw new SikuliXception("init: java.io.tmpdir not writable");
+      throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
     if (Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
