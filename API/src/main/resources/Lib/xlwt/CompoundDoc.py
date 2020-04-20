@@ -1,7 +1,5 @@
 # -*- coding: windows-1252 -*-
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
 import struct
         
 # This implementation writes only 'Root Entry', 'Workbook' streams

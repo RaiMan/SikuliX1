@@ -1,5 +1,3 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
 from os import path
 
 from .info import __VERSION__
