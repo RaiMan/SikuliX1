@@ -1,7 +1,5 @@
 # -*- coding: cp1252 -*-
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
 # No part of the content of this file was derived from the works of David Giffin.
 
 ##
