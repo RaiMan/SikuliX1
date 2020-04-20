@@ -1,5 +1,3 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
 # see the xlwt.license module for details of licensing.
 
 # Utilities for work with reference to cells and with sheetnames

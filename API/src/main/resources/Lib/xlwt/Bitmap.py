@@ -1,7 +1,5 @@
 # -*- coding: windows-1251 -*-
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
 from BIFFRecords import BiffRecord
 from struct import pack, unpack
 
