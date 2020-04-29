@@ -285,12 +285,17 @@ public class TextRecognizer {
     // sharpen the enlarged image again
     mimg = unsharpMask(mimg, 5);
 
-    // invert in case of mainly dark background
-    if (Core.mean(mimg).val[0] < 127) {
+    // invert if font color is said to be light
+    if (options.isLightFont()) {
       Core.bitwise_not(mimg, mimg);
     }
+    //TODO does it really make sense? invert in case of mainly dark background
+//    else if (Core.mean(mimg).val[0] < 127) {
+//      Core.bitwise_not(mimg, mimg);
+//    }
 
-    return Finder2.getBufferedImage(mimg);
+    BufferedImage optImg = Finder2.getBufferedImage(mimg);
+    return optImg;
   }
 
   /*

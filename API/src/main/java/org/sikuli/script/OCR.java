@@ -132,6 +132,7 @@ public class OCR {
       options.psm = psm;
       options.language = language;
       options.dataPath = dataPath;
+      options.isLightFont = isLightFont;
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
       options.variables = new LinkedHashMap<>(variables);
@@ -162,6 +163,7 @@ public class OCR {
       psm = PSM.AUTO.ordinal();
       language = Settings.OcrLanguage;
       dataPath = null;
+      isLightFont = false;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variables.clear();
@@ -414,6 +416,17 @@ public class OCR {
     //</editor-fold>
 
     //<editor-fold desc="14 optimization">
+    private boolean isLightFont = false;
+
+    public Options lightFont() {
+      isLightFont = true;
+      return this;
+    }
+
+    public boolean isLightFont() {
+      return isLightFont;
+    }
+
     /**
      * Convenience: Configure the Option's optimization.
      * <p>
