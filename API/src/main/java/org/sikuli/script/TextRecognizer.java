@@ -267,6 +267,46 @@ public class TextRecognizer {
     options.textHeight(height);
     return this;
   }
+
+  private BufferedImage optimize(BufferedImage bimg) {
+    Mat mimg = Finder2.makeMat(bimg);
+
+    Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
+
+    // sharpen original image to primarily get rid of sub pixel rendering artifacts
+    mimg = unsharpMask(mimg, 3);
+
+    float rFactor = options.factor();
+
+    if (rFactor > 0 && rFactor != 1) {
+      Image.resize(mimg, rFactor, options.resizeInterpolation());
+    }
+
+    // sharpen the enlarged image again
+    mimg = unsharpMask(mimg, 5);
+
+    // invert if font color is said to be light
+    if (options.isLightFont()) {
+      Core.bitwise_not(mimg, mimg);
+    }
+    //TODO does it really make sense? invert in case of mainly dark background
+//    else if (Core.mean(mimg).val[0] < 127) {
+//      Core.bitwise_not(mimg, mimg);
+//    }
+
+    BufferedImage optImg = Finder2.getBufferedImage(mimg);
+    return optImg;
+  }
+
+  /*
+   * sharpens the image using an unsharp mask
+   */
+  private Mat unsharpMask(Mat img, double sigma) {
+    Mat blurred = new Mat();
+    Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
+    Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
+    return img;
+  }
   //</editor-fold>
 
   //<editor-fold desc="20 text, lines, words - internal use">
