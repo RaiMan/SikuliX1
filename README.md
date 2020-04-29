@@ -9,7 +9,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**You need at least Java 8, but it works on Java 9 up to latest (currently 13)**
+**You need at least Java 8, but it works on Java 9 up to latest (currently 14)**
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
@@ -82,7 +82,7 @@ The dependency coordinates are:
 
 **Development environment**
 
- - Java 13 (OpenJDK release)
+ - Java 14 (OpenJDK release)
  - Java 8 (Oracle) for comatibility test
  - Source and target level for Java is version 8 as long as supported by Oracle
  - Maven project
