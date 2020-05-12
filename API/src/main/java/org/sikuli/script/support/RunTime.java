@@ -1493,8 +1493,7 @@ public class RunTime {
         Debug.error("Save your work, correct the problem and restart the IDE!");
         try {
           Desktop.getDesktop().browse(new URI(helpURL));
-        } catch (IOException ex) {
-        } catch (URISyntaxException ex) {
+        } catch (Exception ex) {
         }
       }
       Debug.error("see: " + helpURL);
