@@ -8,10 +8,9 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -135,25 +134,35 @@ public class ExtensionManager {
     }
     if (!jythonReady && !jrubyReady) {
       if (!finalClassPath.toLowerCase().contains("jython") && !finalClassPath.toLowerCase().contains("jruby")) {
-        // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
-        String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
-        String message = "Neither Jython nor JRuby available" +
-            "\nPlease consult the docs for a solution.\n" +
-            "\nIDE might not be useable with JavaScript only";
-        if (RunTime.isIDE()) {
-          JOptionPane.showMessageDialog(null,
-              message + "\n\nClick OK to get more help in a browser window",
-              "IDE startup problem",
-              JOptionPane.ERROR_MESSAGE);
-          try {
-            Desktop.getDesktop().browse(new URI(helpURL));
-          } catch (IOException ex) {
-          } catch (URISyntaxException ex) {
+        if (!isJythonBundled()) {
+          // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
+          String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
+          String message = "Neither Jython nor JRuby available" +
+              "\nPlease consult the docs for a solution.\n" +
+              "\nIDE might not be useable with JavaScript only";
+          if (RunTime.isIDE()) {
+            JOptionPane.showMessageDialog(null,
+                message + "\n\nClick OK to get more help in a browser window",
+                "IDE startup problem",
+                JOptionPane.ERROR_MESSAGE);
+            try {
+              Desktop.getDesktop().browse(new URI(helpURL));
+            } catch (Exception ex) {
+            }
           }
         }
       }
     }
     return finalClassPath;
+  }
+
+  private static boolean isJythonBundled() {
+    try {
+      Class.forName("org.python.util.jython");
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+    return true;
   }
 
   public static void readExtensions(boolean afterStart) {

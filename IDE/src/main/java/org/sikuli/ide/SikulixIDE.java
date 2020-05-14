@@ -33,6 +33,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 
@@ -1035,11 +1037,10 @@ public class SikulixIDE extends JFrame {
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
         new FileAction(FileAction.ASJAR)));
 
-//TODO export as runnable jar
-//    _fileMenu.add(createMenuItem("Export as runnable jar",
-//            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
-//                    InputEvent.SHIFT_MASK | scMask),
-//            new FileAction(FileAction.ASRUNJAR)));
+    _fileMenu.add(createMenuItem("Export as runnable jar",
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
+                    InputEvent.SHIFT_DOWN_MASK| scMask),
+            new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
@@ -1225,7 +1226,6 @@ public class SikulixIDE extends JFrame {
       }
     }
 
-    //TODO doAsRunJar: not used
     public void doAsRunJar(ActionEvent ae) {
       EditorPane codePane = getCurrentCodePane();
       String orgName = codePane.getCurrentShortFilename();
@@ -1236,9 +1236,6 @@ public class SikulixIDE extends JFrame {
         File fScript = codePane.saveAndGetCurrentFile();
         List<String> options = new ArrayList<>();
         options.add(fScript.getParentFile().getAbsolutePath());
-        Sikulix.popup("... this may take some 10 seconds\nclick ok and wait for result popup" +
-                "\nthere is no progressindication",
-            "Export as runnable jar");
         String fpJar = FileManager.makeScriptjar(options);
         if (null != fpJar) {
           Sikulix.popup(fpJar, "Export as runnable jar ...");
@@ -1685,6 +1682,10 @@ public class SikulixIDE extends JFrame {
         null,
         new ToolAction(ToolAction.EXTENSIONS)));
 
+    _toolMenu.add(createMenuItem("Pack Jar with Jython",
+        null,
+        new ToolAction(ToolAction.JARWITHJYTHON)));
+
     _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
         null,
         new ToolAction(ToolAction.ANDROID)));
@@ -1693,6 +1694,7 @@ public class SikulixIDE extends JFrame {
   class ToolAction extends MenuAction {
 
     static final String EXTENSIONS = "extensions";
+    static final String JARWITHJYTHON = "jarWithJython";
     static final String ANDROID = "android";
 
     ToolAction() {
@@ -1705,6 +1707,10 @@ public class SikulixIDE extends JFrame {
 
     public void extensions(ActionEvent ae) {
       showExtensions();
+    }
+
+    public void jarWithJython(ActionEvent ae) {
+      makeJarWithJython();
     }
 
     public void android(ActionEvent ae) {
@@ -1722,6 +1728,43 @@ public class SikulixIDE extends JFrame {
     return defaultScreen;
   }
 
+  private void makeJarWithJython() {
+    String ideJarName = getRunningJar(SikulixIDE.class);
+    if (ideJarName.isEmpty()) {
+      log(-1, "makeJarWithJython: JAR containing IDE not available");
+      return;
+    }
+    if (ideJarName.endsWith("/classes/")) {
+      //TODO only for testing in project
+      ideJarName = "C:\\SXRun\\_Latest\\2_0_5\\sikulixide-2.0.5.jar";
+    }
+    String jythonJarName = "";
+    try {
+      jythonJarName = getRunningJar(Class.forName("org.python.util.jython"));
+    } catch (ClassNotFoundException e) {
+      log(-1, "makeJarWithJython: Jar containing Jython not available");
+      return;
+    }
+    String targetJar = new File(runTime.fSikulixStore, "sikulixjython.jar").getAbsolutePath();
+    String[] jars = new String[]{ideJarName, jythonJarName};
+    FileManager.buildJar(targetJar, jars, null, null, null);
+    log(-1, "makeJarWithJython: not implemented");
+  }
+
+  private String getRunningJar(Class clazz) {
+    String jarName = "";
+    CodeSource codeSrc = clazz.getProtectionDomain().getCodeSource();
+    if (codeSrc != null && codeSrc.getLocation() != null) {
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        log(-1, "URLDecoder: not possible: " + jarName);
+        jarName = "";
+      }
+    }
+    return jarName;
+  }
 
   private void androidSupport() {
     final ADBScreen aScr = new ADBScreen();

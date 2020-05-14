@@ -130,6 +130,7 @@ public class RunTime {
     String classPath = "";
     if (runningJar.getName().endsWith(".jar")) {
       classPath = ExtensionManager.makeClassPath(runningJar);
+      FileManager.writeStringToFile(runningJar.getAbsolutePath(), new File(RunTime.getAppPath(), "SikulixStore/lastUsedJar.txt"));
     } else {
       return;
     }

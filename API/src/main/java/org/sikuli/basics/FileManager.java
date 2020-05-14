@@ -3,43 +3,24 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.Image;
+import org.sikuli.script.ImagePath;
+import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.Desktop;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.UnknownHostException;
+import java.io.*;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.security.CodeSource;
+import java.util.List;
 import java.util.*;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Sikulix;
 
 /**
  * INTERNAL USE: Support for accessing files and other ressources
@@ -595,7 +576,7 @@ public class FileManager {
     } else if (name.startsWith("#")) {
       fImage = new File(path, String.format("%s-%d.png", name.substring(1), new Date().getTime()));
     } else if (!name.isEmpty()) {
-      if(!name.contains(".")) {
+      if (!name.contains(".")) {
         fImage = new File(path, name + ".png");
       } else {
         formatName = name.substring(name.lastIndexOf(".") + 1);
@@ -1341,21 +1322,41 @@ public class FileManager {
 
     String[] jarsList = new String[]{null, null};
     if (!makingScriptjarPlain) {
-//      log(lvl, "makingScriptJar: adding sikulixapi and jython - takes some time", fpScriptJar);
-//      jarsList[0] = fSikulixjython.getAbsolutePath();
-//      jarsList[1] = fSikulixapi.getAbsolutePath();
-    } else {
 //      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
 //      fJarRunner = new File(fJarRunner, "JarRunner.class");
 //      File fJarRunnerDir = new File(fSikulixTemp, "org/python/util");
 //      fJarRunnerDir.mkdirs();
 //      FileManager.xcopy(fJarRunner, fJarRunnerDir);
-    }
 
-//    String manifest = "Manifest-Version: 1.0\nMain-Class: org.python.util.JarRunner\n";
-//    File fMetaInf = new File(fSikulixTemp, "META-INF");
-//    fMetaInf.mkdir();
-//    FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
+      String manifest = "Manifest-Version: 1.0\nMain-Class: org.sikuli.script.support.SikulixRun\n";
+      File fMetaInf = new File(fSikulixTemp, "META-INF");
+      fMetaInf.mkdir();
+      FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
+      Class<?> cSikulixRun = null;
+      try {
+        cSikulixRun = Class.forName("org.sikuli.script.support.SikulixRun");
+      } catch (ClassNotFoundException e) {
+      }
+      if (null != cSikulixRun) {
+        InputStream resourceAsStream = cSikulixRun.getResourceAsStream("SikulixRun.class");
+        File targetFile = new File(fSikulixTemp, "org/sikuli/script/support");
+        targetFile.mkdirs();
+        targetFile = new File(targetFile, "SikulixRun.class");
+        try {
+          byte[] buffer = new byte[resourceAsStream.available()];
+          resourceAsStream.read(buffer);
+          OutputStream outStream = new FileOutputStream(targetFile);
+          outStream.write(buffer);
+          outStream.close();
+        } catch (IOException e) {
+          cSikulixRun = null;
+        }
+      }
+      if (null == cSikulixRun) {
+        log(-1, "makingRunnableScriptJar: problems creating main class org.sikuli.script.support.SikulixRun");
+        return null;
+      }
+    }
 
     String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
     if (!buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
@@ -1597,11 +1598,15 @@ public class FileManager {
   }
 
   static class JarFileFilter {
-    boolean accept(ZipEntry entry, String jarname){return true;}
+    boolean accept(ZipEntry entry, String jarname) {
+      return true;
+    }
   }
 
   public static class FileFilter {
-    public boolean accept(File entry){return true;}
+    public boolean accept(File entry) {
+      return true;
+    }
   }
 
   private static synchronized void bufferedWrite(InputStream in, OutputStream out) throws IOException {

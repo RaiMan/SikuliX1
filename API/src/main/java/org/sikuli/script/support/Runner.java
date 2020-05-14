@@ -212,6 +212,13 @@ public class Runner {
   public static int runScripts(String[] runScripts, String[] args, IScriptRunner.Options options) {
     int exitCode = 0;
     if (runScripts != null && runScripts.length > 0) {
+      if (runScripts.length == 1) {
+        if (runScripts[0].startsWith("!") && runScripts[0].endsWith(".jar")) {
+          //TODO should be detected earlier
+          log(-1, "runscript: No runner for given jar: %s", runScripts[0]);
+          return FILE_NOT_FOUND;
+        }
+      }
       for (String scriptGiven : runScripts) {
         if (scriptGiven.startsWith("!")) {
           // special meaning from -r option evaluation to get a synchronous log and noop action
