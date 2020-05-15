@@ -27,42 +27,6 @@ public class SikulixRun {
       System.exit(1);
     }
 
-    String sikulixjar = "";
-    File fSikulixjar = null;
-    int indexJar = 0;
-    if (args.length > 0) {
-      if (args[0].startsWith("-v")) {
-        indexJar = 1;
-      }
-    }
-    if (args.length > indexJar) {
-      sikulixjar = args[indexJar]; //absolute path to a sikulix....jar
-      fSikulixjar = new File(sikulixjar);
-      if (!fSikulixjar.isAbsolute()) {
-        if (!(fSikulixjar = new File(fWorkDir, sikulixjar)).exists()) {
-          fSikulixjar = new File(fUserHome, sikulixjar);
-        }
-      }
-      if (!fSikulixjar.exists()) {
-        System.out.println("[Error] sikulix....jar not not found: " + fSikulixjar);
-        System.exit(1);
-      }
-    } else {
-      File appPath = getAppPath();
-      if (null != appPath) {
-        String lastUsedJar = readFileToString(new File(appPath, "SikulixStore/lastUsedJar.txt"));
-        if (lastUsedJar == null) {
-          appPath = null;
-        } else {
-          fSikulixjar = new File(lastUsedJar);
-        }
-      }
-      if (appPath == null || !fSikulixjar.exists()) {
-        System.out.println("[Error] sikulix....jar not specified and not found elsewhere");
-        System.exit(1);
-      }
-    }
-
     String jarName = "";
     CodeSource codeSrc = SikulixRun.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
@@ -75,8 +39,55 @@ public class SikulixRun {
       }
     }
 
+    int indexJar = 0;
+    boolean verbose = false;
+    if (args.length > 0) {
+      if (args[0].startsWith("-v")) {
+        verbose = true;
+        indexJar = 1;
+      }
+    }
+
+    File jarFile = new File(jarName);
+    File jarFolder = jarFile.getParentFile();
+    File sikulixJython = new File(jarFolder, "sikulixjython.jar");
+    File fSikulixjar = null;
+    if (!sikulixJython.exists()) {
+      String sikulixjar = "";
+      if (args.length > indexJar) {
+        sikulixjar = args[indexJar]; //absolute path to a sikulix....jar
+        fSikulixjar = new File(sikulixjar);
+        if (!fSikulixjar.isAbsolute()) {
+          if (!(fSikulixjar = new File(fWorkDir, sikulixjar)).exists()) {
+            fSikulixjar = new File(fUserHome, sikulixjar);
+          }
+        }
+        if (!fSikulixjar.exists()) {
+          System.out.println("[Error] given sikulix....jar not found: " + fSikulixjar);
+          System.exit(1);
+        }
+      } else {
+        File appPath = getAppPath();
+        if (null != appPath) {
+          String lastUsedJar = readFileToString(new File(appPath, "SikulixStore/lastUsedJar.txt"));
+          if (lastUsedJar == null) {
+            appPath = null;
+          } else {
+            fSikulixjar = new File(lastUsedJar);
+          }
+        }
+        if (appPath == null || !fSikulixjar.exists()) {
+          System.out.println("[Error] sikulix....jar not specified and not found elsewhere");
+          System.exit(1);
+        }
+      }
+    } else {
+      fSikulixjar = sikulixJython;
+    }
+
     List<String> finalArgs = new ArrayList<>();
-    if (indexJar > 0) {
+    if (verbose) {
+      System.out.println("Using as sikulix....jar: " + fSikulixjar);
       finalArgs.add("-v");
     }
     finalArgs.add("-r");
