@@ -1710,7 +1710,16 @@ public class SikulixIDE extends JFrame {
     }
 
     public void jarWithJython(ActionEvent ae) {
-      makeJarWithJython();
+      if (SX.popAsk("*** You should know what you are doing! ***\n\n" +
+          "This may take a while. Wait for success popup!"+
+          "\nClick Yes to start.", "Creating jar file")) {
+        (new Thread() {
+          @Override
+          public void run() {
+            makeJarWithJython();
+          }
+        }).start();
+      }
     }
 
     public void android(ActionEvent ae) {
@@ -1735,8 +1744,9 @@ public class SikulixIDE extends JFrame {
       return;
     }
     if (ideJarName.endsWith("/classes/")) {
-      //TODO only for testing in project
-      ideJarName = "C:\\SXRun\\_Latest\\2_0_5\\sikulixide-2.0.5.jar";
+      String version = runTime.getVersionShort();
+      String name = "sikulixide-" + version + "-complete.jar";
+      ideJarName = new File(new File(ideJarName).getParentFile(), name).getAbsolutePath();
     }
     String jythonJarName = "";
     try {
@@ -1747,8 +1757,17 @@ public class SikulixIDE extends JFrame {
     }
     String targetJar = new File(runTime.fSikulixStore, "sikulixjython.jar").getAbsolutePath();
     String[] jars = new String[]{ideJarName, jythonJarName};
-    FileManager.buildJar(targetJar, jars, null, null, null);
-    log(-1, "makeJarWithJython: not implemented");
+    SikulixIDE.getStatusbar().setMessage(String.format("Creating SikuliX with Jython: %s", targetJar));
+    if(FileManager.buildJar(targetJar, jars, null, null, null)) {
+      String msg = String.format("Created SikuliX with Jython: %s", targetJar);
+      log(3, msg);
+      SX.popup(msg.replace(": ", "\n"));
+    } else {
+      String msg = String.format("Create SikuliX with Jython not possible: %s", targetJar);
+      log(-1, msg);
+      SX.popError(msg.replace(": ", "\n"));
+    }
+    SikulixIDE.getStatusbar().resetMessage();
   }
 
   private String getRunningJar(Class clazz) {
