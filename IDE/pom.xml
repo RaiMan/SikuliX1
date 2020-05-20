@@ -40,7 +40,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <sikulixjythonversion>2.7.1</sikulixjythonversion>
+    <sikulixjythonversion>2.7.2</sikulixjythonversion>
     <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
   </properties>
 
@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython-standalone</artifactId>
+      <artifactId>jython-slim</artifactId>
       <version>${sikulixjythonversion}</version>
       <optional>true</optional>
     </dependency>

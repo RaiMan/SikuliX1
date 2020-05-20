@@ -50,7 +50,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikuli.jartype>plain.xml</sikuli.jartype>
-    <sikulixjythonversion>2.7.1</sikulixjythonversion>
+    <sikulixjythonversion>2.7.2</sikulixjythonversion>
     <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
@@ -61,7 +61,7 @@
   <dependencies>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython-standalone</artifactId>
+      <artifactId>jython-slim</artifactId>
       <version>${sikulixjythonversion}</version>
       <optional>true</optional>
     </dependency>

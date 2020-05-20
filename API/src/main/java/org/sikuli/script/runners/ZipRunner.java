@@ -3,6 +3,12 @@
  */
 package org.sikuli.script.runners;
 
+import org.apache.commons.io.FilenameUtils;
+import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.support.Runner;
+import org.sikuli.util.AbortableScriptRunnerWrapper;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,12 +17,6 @@ import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.apache.commons.io.FilenameUtils;
-import org.sikuli.basics.FileManager;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
-import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 /**
  * Runs a packed sikulix script

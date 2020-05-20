@@ -85,6 +85,7 @@ public class SikulixRun {
       fSikulixjar = sikulixJython;
     }
 
+    String separator = File.pathSeparator;
     List<String> finalArgs = new ArrayList<>();
     if (verbose) {
       System.out.println("Using as sikulix....jar: " + fSikulixjar);
@@ -103,7 +104,7 @@ public class SikulixRun {
     }
     cmd.add("-Dfile.encoding=UTF-8");
     cmd.add("-cp");
-    cmd.add(fSikulixjar.getAbsolutePath());
+    cmd.add(jarName + separator + fSikulixjar.getAbsolutePath());
     cmd.add("org.sikuli.script.Sikulix");
     cmd.addAll(finalArgs);
 
