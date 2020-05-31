@@ -214,7 +214,7 @@ public class FileManager {
     File fImage = new File(path, name);
     String formatName = "png";
     if (name == null) {
-      fImage = new File(path, String.format("noname-%d.png", name, new Date().getTime()));
+      fImage = new File(path, String.format("noname-%d.png", new Date().getTime()));
     } else if (name.startsWith("#")) {
       fImage = new File(path, String.format("%s-%d.png", name.substring(1), new Date().getTime()));
     } else if (!name.isEmpty()) {
