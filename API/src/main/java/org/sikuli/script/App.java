@@ -619,7 +619,7 @@ public class App {
    */
   public boolean open(int waitTime) {
     openAndWait(waitTime);
-    return isValid() & hasWindow();
+    return isValid() && hasWindow();
   }
 
   private void openAndWait(int waitTime) {
