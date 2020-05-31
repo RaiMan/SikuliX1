@@ -328,7 +328,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
           if (popFile.endsWith("/") || popFile.endsWith("\\")) {
             popFile = popFile.substring(0, popFile.length() - 1);
           }
-          popFile.replace("\\", "\\\\");
+          popFile = popFile.replace("\\", "\\\\");
           popFile = "\"" + popFile + "\"";
           SikulixIDE.get().getCurrentCodePane().insertString(popFile);
         }
