@@ -1254,7 +1254,7 @@ public abstract class Element {
       if (parms.size() == 1) {
         target = parms.get(0);
       } else if (parms.size() == 2) {
-        if (parms.get(0) instanceof Integer && parms.get(0) instanceof Integer) {
+        if (parms.get(0) instanceof Integer && parms.get(1) instanceof Integer) {
           return new Location((Integer) parms.get(0), (Integer) parms.get(1));
         }
       } else {
