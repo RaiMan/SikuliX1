@@ -40,8 +40,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <sikulixjythonversion>2.7.1</sikulixjythonversion>
-    <sikulixjrubyversion>9.2.0.0</sikulixjrubyversion>
+    <sikulixjythonversion>2.7.2</sikulixjythonversion>
+    <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
   </properties>
 
   <dependencies>
@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython-standalone</artifactId>
+      <artifactId>jython-slim</artifactId>
       <version>${sikulixjythonversion}</version>
       <optional>true</optional>
     </dependency>
@@ -62,12 +62,14 @@
       <version>${sikulixjrubyversion}</version>
       <optional>true</optional>
     </dependency>
+<!--
     <dependency>
       <groupId>net.sf.py4j</groupId>
       <artifactId>py4j</artifactId>
       <version>0.10.8.1</version>
       <optional>true</optional>
     </dependency>
+-->
     <dependency>
       <groupId>com.explodingpixels</groupId>
       <artifactId>mac_widgets</artifactId>
@@ -78,7 +80,6 @@
       <artifactId>swing-layout</artifactId>
       <version>1.0.3</version>
     </dependency>
-<!--
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
@@ -89,7 +90,6 @@
       <artifactId>jackson-databind</artifactId>
       <version>2.9.10.1</version>
     </dependency>
--->
   </dependencies>
 
   <build>
@@ -98,8 +98,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <source>9</source>
-          <target>9</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>

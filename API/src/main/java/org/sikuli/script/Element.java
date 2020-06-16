@@ -2932,37 +2932,22 @@ public abstract class Element {
     return mouseMove();
   }
 
-  /**
-   * move the mouse pointer to the given target location.
-   * <br>same as mouseMove
-   * <br> Pattern or Filename - do a find before and use the match
-   * <br> Region - position at center
-   * <br> Match - position at match's targetOffset
-   * <br> Location - position at that point
-   * <br>
-   *
-   * @param <PFRML> to search: Pattern, Filename, Text, Region, Match or Location
-   * @param target  Pattern, Filename, Text, Region, Match or Location
-   * @return 1 if possible, 0 otherwise
-   * @throws FindFailed for Pattern or Filename
-   */
-  public <PFRML> int hover(PFRML target) throws FindFailed {
-    log(logLevel, "hover: " + target);
-    return mouseMove(target);
-  }
-
-  /**
-   * left click at the region's last successful match.
-   * <br>use center if no lastMatch
-   * <br>if region is a match: click targetOffset
-   *
-   * @return 1 if possible, 0 otherwise
-   */
-  public int click() {
-    try { // needed to cut throw chain for FindFailed
-      return click(match(), 0);
-    } catch (FindFailed ex) {
-      return 0;
+  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
+    if (whatEver instanceof String) {
+      return Image.create((String) whatEver).get();
+    } else if (whatEver instanceof File) {
+      return Image.create((File) whatEver).get();
+    } else if (whatEver instanceof Match) {
+      Region theRegion = new Region((Match) whatEver);
+      return theRegion.getImage().get();
+    } else if (whatEver instanceof Region) {
+      return ((Region) whatEver).getImage().get();
+    } else if (whatEver instanceof Image) {
+      return ((Image) whatEver).get();
+    } else if (whatEver instanceof ScreenImage) {
+      return ((ScreenImage) whatEver).getImage();
+    } else if (whatEver instanceof BufferedImage) {
+      return (BufferedImage) whatEver;
     }
   }
 
