@@ -388,6 +388,9 @@ public abstract class Element {
       return Image.create((String) whatEver).get();
     } else if (whatEver instanceof File) {
       return Image.create((File) whatEver).get();
+    } else if (whatEver instanceof Match) {
+      Region theRegion = new Region((Match) whatEver);
+      return theRegion.getImage().get();
     } else if (whatEver instanceof Region) {
       return ((Region) whatEver).getImage().get();
     } else if (whatEver instanceof Image) {
