@@ -39,6 +39,9 @@ public abstract class Element {
   static final int logLevel = 3;
 
   static void log(int level, String message, Object... args) {
+    if (!Debug.is(level)) {
+      return;
+    }
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
     String caller = className.substring(className.lastIndexOf(".") + 1);
     Debug.logx(level, caller + ": " + message, args);
