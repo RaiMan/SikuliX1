@@ -319,10 +319,16 @@ public class App {
   }
 
   public App() {
+    initOSUtilIf();
+  }
+
+  protected static OSUtil initOSUtilIf() {
     if (_osUtil == null) {
+      //FIXME multithreading access issue
       _osUtil = SysUtil.getOSUtil();
       _osUtil.checkFeatureAvailability();
     }
+    return _osUtil;
   }
 
   public App(String name) {
@@ -402,18 +408,15 @@ public class App {
   //<editor-fold desc="7 app list">
 
   public static List<App> getApps() {
-    new App();
-    return _osUtil.getApps("");
+    return initOSUtilIf().getApps("");
   }
 
   public static List<App> getApps(String name) {
-    new App();
-    return _osUtil.getApps(name);
+    return initOSUtilIf().getApps(name);
   }
 
   public static void listApps() {
-    new App();
-    List<App> appList = _osUtil.getApps("");
+    List<App> appList = initOSUtilIf().getApps("");
     logOn();
     log("***** all running apps");
     for (App app : appList) {
@@ -426,8 +429,7 @@ public class App {
   }
 
   public static void listApps(String name) {
-    new App();
-    List<App> appList = _osUtil.getApps(name);
+    List<App> appList = initOSUtilIf().getApps(name);
     logOn();
     log("***** running apps matching: %s", name);
     for (App app : appList) {
@@ -848,14 +850,12 @@ public class App {
    * @return the region
    */
   public static Region focusedWindow() {
-    new App();
-    return asRegion(_osUtil.getFocusedWindow());
+    return asRegion(initOSUtilIf().getFocusedWindow());
   }
 
   public List<Region> getWindows() {
-    new App();
     List<Region> regWindows = new ArrayList<>();
-    return _osUtil.getWindows(this);
+    return initOSUtilIf().getWindows(this);
   }
 //</editor-fold>
 
