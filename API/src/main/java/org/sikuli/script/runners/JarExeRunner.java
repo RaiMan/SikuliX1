@@ -16,11 +16,11 @@ import java.util.zip.ZipFile;
  *
  */
 
-public class JarRunner extends ZipRunner {
+public class JarExeRunner extends ZipRunner {
 
-  public static final String NAME = "SikulixJar";
+  public static final String NAME = "SikulixExecutableJar";
   public static final String TYPE = "text/jar";
-  public static final String[] EXTENSIONS = new String[] {"jar"};
+  public static final String[] EXTENSIONS = new String[] {"executablejar"};
 
   @Override
   public String getName() {
@@ -37,9 +37,13 @@ public class JarRunner extends ZipRunner {
     return TYPE;
   }
 
+  public EffectiveRunner getEffectiveRunner(String zipFile) {
+    return super.getEffectiveRunner(zipFile.replace(".executablejar", ".jar"));
+  }
+
   @Override
   protected ZipFile openZipFile(String identifier) throws IOException {
-    return new JarFile(identifier);
+    return new JarFile(identifier.replace(".executablejar", ".jar"));
   }
 
   @Override

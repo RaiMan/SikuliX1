@@ -92,7 +92,7 @@ public class SikulixRun {
       finalArgs.add("-v");
     }
     finalArgs.add("-r");
-    finalArgs.add(jarName);
+    finalArgs.add(jarName.replace(".jar", ".executablejar"));
 
     List<String> cmd = new ArrayList<>();
     System.getProperty("java.home");
@@ -110,6 +110,7 @@ public class SikulixRun {
 
     runBlocking(cmd);
   }
+
 
   private static int runBlocking(List<String> cmd) {
     int exitValue = 0;

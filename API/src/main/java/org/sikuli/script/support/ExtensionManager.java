@@ -27,6 +27,14 @@ public class ExtensionManager {
   private static String separator = File.pathSeparator;
   private static String extensionClassPath = "";
 
+  private static boolean isValidJython(String name) {
+    if (name.contains("jython") &&
+        (name.contains("standalone") || name.contains("slim"))) {
+      return true;
+    }
+    return false;
+  }
+
   public static String makeClassPath(File jarFile) {
     RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
@@ -44,7 +52,7 @@ public class ExtensionManager {
       @Override
       public boolean accept(File dir, String name) {
         if (name.endsWith(".jar")) {
-          if (name.contains("jython") && name.contains("standalone")) {
+          if (isValidJython(name)) {
             moveJython = true;
             return true;
           }
@@ -72,7 +80,7 @@ public class ExtensionManager {
       if (moveJython || moveJRuby) {
         for (File fExtension : fExtensions) {
           String name = fExtension.getName();
-          if ((moveJython && name.contains("jython") && name.contains("standalone")) ||
+          if ((moveJython && isValidJython(name)) ||
               (moveJRuby && name.contains("jruby") && name.contains("complete"))) {
             fExtension.delete();
           }
@@ -94,8 +102,8 @@ public class ExtensionManager {
       for (File fExtension : fExtensions) {
         String pExtension = fExtension.getAbsolutePath();
         if (pExtension.endsWith(".jar")) {
-          if (pExtension.contains("jython") && pExtension.contains("standalone")) {
-            if (jythonReady) {
+          if (isValidJython(fExtension.getName())) {
+            if (jythonReady || isJythonBundled()) {
               continue;
             }
             if (pExtension.contains(jythonVersion)) {
@@ -132,25 +140,22 @@ public class ExtensionManager {
         finalClassPath = extensionClassPath;
       }
     }
-    if (!jythonReady && !jrubyReady) {
-      if (!finalClassPath.toLowerCase().contains("jython") && !finalClassPath.toLowerCase().contains("jruby")) {
-        if (!isJythonBundled()) {
-          // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
-          String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
-          String message = "Neither Jython nor JRuby available" +
-              "\nPlease consult the docs for a solution.\n" +
-              "\nIDE might not be useable with JavaScript only";
-          if (RunTime.isIDE()) {
-            JOptionPane.showMessageDialog(null,
-                message + "\n\nClick OK to get more help in a browser window",
-                "IDE startup problem",
-                JOptionPane.ERROR_MESSAGE);
-            try {
-              Desktop.getDesktop().browse(new URI(helpURL));
-            } catch (Exception ex) {
-            }
-          }
-        }
+    if (RunTime.isIDE() && !jythonReady && !jrubyReady &&
+        !finalClassPath.toLowerCase().contains("jython") &&
+        !finalClassPath.toLowerCase().contains("jruby") &&
+        !isJythonBundled()) {
+      // https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE
+      String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/How-to-make-Jython-ready-in-the-IDE";
+      String message = "Neither Jython nor JRuby available" +
+          "\nPlease consult the docs for a solution.\n" +
+          "\nIDE might not be useable with JavaScript only";
+      JOptionPane.showMessageDialog(null,
+          message + "\n\nClick OK to get more help in a browser window",
+          "IDE startup problem",
+          JOptionPane.ERROR_MESSAGE);
+      try {
+        Desktop.getDesktop().browse(new URI(helpURL));
+      } catch (Exception ex) {
       }
     }
     return finalClassPath;
@@ -206,20 +211,20 @@ public class ExtensionManager {
       }
       File extFile = new File(extPath);
       if (extFile.isAbsolute()) {
-        if(!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+        if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
           RunTime.startLog(-1, "extension path not valid: %s", line);
           continue;
         }
       } else {
         extFile = new File(sxExtensions, extFile.getPath());
-        if(!extFile.exists() || !extFile.getName().endsWith(".jar")) {
+        if (!extFile.exists() || !extFile.getName().endsWith(".jar")) {
           RunTime.startLog(-1, "extension path not valid: %s", line);
           continue;
         }
       }
       if (!token.isEmpty()) {
         if ("JYTHON".equals(token)) {
-          if (afterStart) {
+          if (afterStart || isJythonBundled()) {
             continue;
           }
           if (!extFile.getName().endsWith(".jar")) {
@@ -320,7 +325,7 @@ public class ExtensionManager {
     return extensions;
   }
 
-  static String jythonVersion = "2.7.1";
+  static String jythonVersion = "2.7.";
   private static boolean moveJython = false;
   private static boolean jythonReady = false;
 
@@ -344,7 +349,7 @@ public class ExtensionManager {
 
   private static String python = "";
 
-  private static String jrubyVersion = "9.2.0.0";
+  private static String jrubyVersion = "9.2.";
   private static boolean moveJRuby = false;
   private static boolean jrubyReady = false;
 

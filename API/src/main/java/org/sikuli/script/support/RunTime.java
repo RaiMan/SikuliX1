@@ -130,7 +130,8 @@ public class RunTime {
     String classPath = "";
     if (runningJar.getName().endsWith(".jar")) {
       classPath = ExtensionManager.makeClassPath(runningJar);
-      FileManager.writeStringToFile(runningJar.getAbsolutePath(), new File(RunTime.getAppPath(), "SikulixStore/lastUsedJar.txt"));
+      FileManager.writeStringToFile(runningJar.getAbsolutePath(),
+          new File(RunTime.getAppPath(),"SikulixStore/lastUsedJar.txt"));
     } else {
       return;
     }
@@ -1366,27 +1367,18 @@ public class RunTime {
   void initSikulixOptions() {
     Properties prop = new Properties();
     String svf = "sikulixversion.txt";
-//    sikulixvmaj=2
-//    sikulixvmin=0
-//    sikulixvsub=0
-//    sikulixbuild=2019-10-17_09:58
-//    sikulixbuildnumber=${env.TRAVIS_BUILD_NUMBER}
-//    sikulixvused=2.0.0
-//    sikulixvproject=2.0.0
-//    sikulixvjython=2.7.1
-//    sikulixvjruby=9.2.0.0
     try {
       InputStream is;
       is = RunTime.class.getClassLoader().getResourceAsStream("Settings/" + svf);
       if (is == null) {
         String msg = String.format("fatal: " + "initSikulixVersion: not found on classpath: %s", "Settings/" + svf);
         Debug.error(msg);
-        //runTime.endError(999);
         throw new SikuliXception(msg);
       }
       prop.load(is);
       is.close();
-//    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
+
+      //    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
       SXVersion = prop.getProperty("sikulixvproject");
       String[] version = SXVersion.replace("-SNAPSHOT", "").split("\\.");
       if (version.length != 3) {
@@ -1395,18 +1387,23 @@ public class RunTime {
       SikuliVersionMajor = Integer.decode(version[0]);
       SikuliVersionMinor = Integer.decode(version[1]);
       SikuliVersionSub = Integer.decode(version[2]);
-//    sikulixbuild=2019-10-17_09:58
+
+      //    sikulixbuild=2019-10-17_09:58
       SXBuild = prop.getProperty("sikulixbuild");
-//    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
-//    in development context undefined:
+
+      //    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
+      //    in development context undefined:
       SXBuildNumber = prop.getProperty("sikulixbuildnumber");
       if (SXBuildNumber.contains("TRAVIS_BUILD_NUMBER")) {
         SXBuildNumber = "";
       }
+
+      // currently not used (see ExtensionManager)
+      //    sikulixvjython=2.7.1
+      //    sikulixvjruby=9.2.0.0
     } catch (Exception e) {
       String msg = String.format("Settings: load version file %s did not work: %s", svf, e.getMessage());
       Debug.error(msg);
-      //Sikulix.endError(999);
       throw new SikuliXception(msg);
     }
 
