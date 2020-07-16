@@ -15,14 +15,16 @@ import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Desktop;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
-import java.util.List;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -359,6 +361,31 @@ public class RunTime {
             FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
           }
         }
+        System.exit(0);
+      }
+
+      if (args.length == 1 && "extensions".equals(args[0])) {
+        RunTime.setVerbose();
+        String classpath = ExtensionManager.makeClassPath(getRunningJar(type));
+        for (String path : classpath.split(File.pathSeparator)) {
+          if (!path.contains("\\.")) {
+            System.out.println(path);
+          }
+        }
+        System.exit(0);
+      }
+
+//TODO place to test something in the API context
+      if (args.length == 1 && "test".equals(args[0])) {
+/*
+        startAPI("XXX");
+        URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
+        URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
+        Image image = Image.create(resource);
+        Screen scr = new Screen();
+        boolean ok = scr.has(image);
+        RunTime.startLog(1, "test: %s", image);
+*/
         System.exit(0);
       }
     }
@@ -1662,12 +1689,18 @@ java.desktop/sun.awt=ALL-UNNAMED
       List<String> nativesList = getResourceList(fpJarLibs);
       for (String aFile : nativesList) {
         String copyMsg = "exported";
-        String inFile = new File(fpJarLibs, aFile).getPath();
+        String inFile;
+        if (aFile.startsWith("/")) {
+          inFile = aFile;
+          aFile = new File(aFile).getName();
+        } else {
+          inFile = new File(fpJarLibs, aFile).getPath();
+        }
         if (runningWindows) {
           inFile = inFile.replace("\\", "/");
         }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inStream = clsRef.getResourceAsStream(inFile);) {
+             InputStream inStream = clsRef.getResourceAsStream(inFile)) {
           copy(inStream, outFile);
           libsLoaded.put(aFile, false);
         } catch (Exception ex) {
