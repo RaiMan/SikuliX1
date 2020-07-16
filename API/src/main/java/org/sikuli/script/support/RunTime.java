@@ -1688,11 +1688,22 @@ java.desktop/sun.awt=ALL-UNNAMED
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
       for (String aFile : nativesList) {
-        String copyMsg = "exported";
+        String copyMsg = "";
         String inFile;
+        Class classRef = clsRef;
         if (aFile.startsWith("/")) {
-          inFile = aFile;
-          aFile = new File(aFile).getName();
+          String[] parts = aFile.split("@");
+          if (parts.length > 1) {
+            inFile = parts[0];
+            try {
+              classRef = Class.forName(parts[1]);
+            } catch (ClassNotFoundException e) {
+              copyMsg = String.format("libExport: %s: ", aFile);
+            }
+          } else {
+            inFile = aFile;
+          }
+          aFile = new File(inFile).getName();
         } else {
           inFile = new File(fpJarLibs, aFile).getPath();
         }
@@ -1700,11 +1711,11 @@ java.desktop/sun.awt=ALL-UNNAMED
           inFile = inFile.replace("\\", "/");
         }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inStream = clsRef.getResourceAsStream(inFile)) {
+             InputStream inStream = classRef.getResourceAsStream(inFile)) {
           copy(inStream, outFile);
           libsLoaded.put(aFile, false);
         } catch (Exception ex) {
-          copyMsg = String.format("failed: %s", ex.getMessage());
+          copyMsg += String.format("failed: %s", ex.getMessage());
         }
         copyMsg = String.format("libsExport: %s: %s", aFile, copyMsg);
         if (copyMsg.contains("failed")) {
