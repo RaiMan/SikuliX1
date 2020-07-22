@@ -105,7 +105,7 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna-platform</artifactId>
-      <version>5.4.0</version>
+      <version>5.6.0</version>
     </dependency>
     <dependency>
 	    <groupId>net.oneandone.reflections8</groupId>
@@ -115,7 +115,7 @@
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
-      <version>4.4.1</version>
+      <version>4.5.2</version>
       <!--License Apache 2-->
       <exclusions>
         <exclusion>
