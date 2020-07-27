@@ -1644,17 +1644,19 @@ public class RunTime {
 
     if (runningWindows) {
       addToWindowsSystemPath(fLibsFolder);
-      //TODO: Windows: Java Classloader::usr_paths needed for libs access?
-      if (!checkJavaUsrPath(fLibsFolder)) {
-        log(-1, "Problems setting up on Windows - see errors - might not work and crash later");
-      }
-      String lib = "jawt.dll";
-      File fJawtDll = new File(fLibsFolder, lib);
-      FileManager.deleteFileOrFolder(fJawtDll);
-      FileManager.xcopy(new File(javahome, "bin/" + lib), fJawtDll);
-      if (!fJawtDll.exists()) {
-        throw new SikuliXception("problem copying " + fJawtDll);
-      }
+//TODO: Windows: Java Classloader::usr_paths needed for libs access?
+//      if (!checkJavaUsrPath(fLibsFolder)) {
+//        log(-1, "Problems setting up on Windows - see errors - might not work and crash later");
+//      }
+
+//TODO: jawt.dll no longer needed
+//      String lib = "jawt.dll";
+//      File fJawtDll = new File(fLibsFolder, lib);
+//      FileManager.deleteFileOrFolder(fJawtDll);
+//      FileManager.xcopy(new File(javahome, "bin/" + lib), fJawtDll);
+//      if (!fJawtDll.exists()) {
+//        throw new SikuliXception("problem copying " + fJawtDll);
+//      }
     }
     log(lvl, "libsExport: " + libMsg + " %s (%s - %s)", fLibsFolder, getVersionShort(), sxBuildStamp);
     areLibsExported = true;
