@@ -13,7 +13,7 @@ the source code of the application or web page you want to act on. [More details
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
-**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
+**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)). **Java 14: open problems with Tesseract**
 
 **Linux:** you have to make OpenCV and Tesseract OCR available ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
@@ -83,7 +83,7 @@ The dependency coordinates are:
 
 **Development environment**
 
- - Java 14 (OpenJDK release)
+ - Java 11 (current JDK LTS release)
  - Java 8 (Oracle) for comatibility test
  - Source and target level for Java is version 8 as long as supported by Oracle
  - Maven project
