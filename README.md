@@ -28,7 +28,7 @@ New features will only be available in new major versions (currently 2.1.0, bran
 [Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
 
 **Get SikuliX ready to use**
-- [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulix-2.0.4.jar)
+- [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixide-2.0.4.jar)
   - [Jython support for the IDE](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar)
   - [JRuby support for the IDE](https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar)
   - download all needed to one folder and run sikulix-2.0.x.jar
