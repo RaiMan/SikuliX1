@@ -73,40 +73,6 @@ public class RunTime {
         System.exit(0);
       }
 
-      if (args.length == 1 && "createlibs".equals(args[0])) {
-        Debug.off();
-        CodeSource codeSource = Sikulix.class.getProtectionDomain().getCodeSource();
-        if (codeSource != null && codeSource.getLocation().toString().endsWith("classes/")) {
-          File libsSource = new File(new File(codeSource.getLocation().getFile()).getParentFile().getParentFile(), "src/main/resources");
-          for (String sys : new String[]{"mac", "windows", "linux"}) {
-            Sikulix.print("******* %s", sys);
-            String sxcontentFolder = String.format("sikulixlibs/%s/libs64", sys);
-            List<String> sikulixlibs = RunTime.get().getResourceList(sxcontentFolder);
-            String sxcontent = "";
-            for (String lib : sikulixlibs) {
-              if (lib.equals("sikulixcontent")) {
-                continue;
-              }
-              sxcontent += lib + "\n";
-            }
-            Sikulix.print("%s", sxcontent);
-            FileManager.writeStringToFile(sxcontent, new File(libsSource, sxcontentFolder + "/sikulixcontent"));
-          }
-        }
-        System.exit(0);
-      }
-
-      if (args.length == 1 && "extensions".equals(args[0])) {
-        RunTime.setVerbose();
-        String classpath = ExtensionManager.makeClassPath(getRunningJar(type));
-        for (String path : classpath.split(File.pathSeparator)) {
-          if (!path.contains("\\.")) {
-            System.out.println(path);
-          }
-        }
-        System.exit(0);
-      }
-
 //TODO place to test something in the API context
       if (args.length == 1 && "test".equals(args[0])) {
 /*
@@ -130,9 +96,8 @@ public class RunTime {
     File fAppData = getAppPath();
     RunTime.startLog(1, "AppData: %s", fAppData);
 
-    String classPath = "";
+    String classPath = ExtensionManager.makeClassPath(runningJar);
     if (runningJar.getName().endsWith(".jar")) {
-      classPath = ExtensionManager.makeClassPath(runningJar);
       FileManager.writeStringToFile(runningJar.getAbsolutePath(),
           new File(RunTime.getAppPath(),"SikulixStore/lastUsedJar.txt"));
     } else {
