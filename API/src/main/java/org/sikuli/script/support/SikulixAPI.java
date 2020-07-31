@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.OCR;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.TextRecognizer;
 import org.sikuli.script.runners.JavaScriptRunner;
@@ -43,8 +44,6 @@ public class SikulixAPI {
     }
 
     RunTime runtime = RunTime.get();
-
-    TextRecognizer.start();
 
     System.out.println("SikuliX API: nothing to do");
     RunTime.terminate();

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RunWithIDE" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.sikuli.script.Sikulix" />
+    <module name="sikulixapi" />
+    <option name="PROGRAM_PARAMETERS" value="-v -r C:\Users\rmhde\Dropbox\_SXSupport\_A_test_XJar_sikuli.jar" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

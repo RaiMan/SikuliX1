@@ -35,9 +35,44 @@ public class ExtensionManager {
     return false;
   }
 
+  private static File runningJarOrClasses = null;
+
+  private static boolean isRunningAsJar(File runningFile) {
+    runningJarOrClasses = runningFile;
+    return runningFile.getName().endsWith(".jar");
+  }
+
+  private static boolean isRunningAsJar() {
+    return runningJarOrClasses.getName().endsWith(".jar");
+  }
+
   public static String makeClassPath(File jarFile) {
     RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
+    extensionClassPath = jarPath;
+    File[] sxFolderList = new File[0];
+
+    if (isRunningAsJar(jarFile)) {
+        sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+          if (name.endsWith(".jar")) {
+            if (isValidJython(name)) {
+              moveJython = true;
+              return true;
+            }
+            if (name.contains("jruby") && name.contains("complete")) {
+              moveJRuby = true;
+              return true;
+            }
+          }
+          return false;
+        }
+      });
+    } else {
+      outerClassPath = "";
+      extensionClassPath = "";
+    }
 
     if (!outerClassPath.isEmpty()) {
       outerClassPath = outerClassPath.replace(jarPath, "");
@@ -46,24 +81,7 @@ public class ExtensionManager {
         outerClassPath = outerClassPath.substring(1);
       }
     }
-    extensionClassPath = jarPath;
 
-    File[] sxFolderList = jarFile.getParentFile().listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.endsWith(".jar")) {
-          if (isValidJython(name)) {
-            moveJython = true;
-            return true;
-          }
-          if (name.contains("jruby") && name.contains("complete")) {
-            moveJRuby = true;
-            return true;
-          }
-        }
-        return false;
-      }
-    });
     boolean extensionsOK = true;
 
     if (!sxExtensions.exists()) {
@@ -76,8 +94,10 @@ public class ExtensionManager {
 
     if (extensionsOK) {
       readExtensions(false);
-      File[] fExtensions = sxExtensions.listFiles();
+      File[] fExtensions;
+
       if (moveJython || moveJRuby) {
+        fExtensions = sxExtensions.listFiles();
         for (File fExtension : fExtensions) {
           String name = fExtension.getName();
           if ((moveJython && isValidJython(name)) ||
@@ -85,8 +105,6 @@ public class ExtensionManager {
             fExtension.delete();
           }
         }
-      }
-      if (null != sxFolderList && sxFolderList.length > 0) {
         for (File fJar : sxFolderList) {
           try {
             Files.move(fJar.toPath(), sxExtensions.toPath().resolve(fJar.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
@@ -132,6 +150,7 @@ public class ExtensionManager {
         }
       }
     }
+
     String finalClassPath = outerClassPath;
     if (!extensionClassPath.isEmpty()) {
       if (!outerClassPath.isEmpty()) {
@@ -140,6 +159,7 @@ public class ExtensionManager {
         finalClassPath = extensionClassPath;
       }
     }
+
     if (RunTime.isIDE() && !jythonReady && !jrubyReady &&
         !finalClassPath.toLowerCase().contains("jython") &&
         !finalClassPath.toLowerCase().contains("jruby") &&
@@ -156,18 +176,28 @@ public class ExtensionManager {
       try {
         Desktop.getDesktop().browse(new URI(helpURL));
       } catch (Exception ex) {
+        Debug.error("%s\nFor more help visit:\n%s", message, helpURL);
+      }
+    }
+    if (!isRunningAsJar()) {
+      for (String entry : finalClassPath.split(separator)) {
+        Debug.log(3, "cp: %s", entry);
       }
     }
     return finalClassPath;
   }
 
   private static boolean isJythonBundled() {
-    try {
-      Class.forName("org.python.util.jython");
-    } catch (ClassNotFoundException e) {
+    if (isRunningAsJar()) {
+      try {
+        Class.forName("org.python.util.jython");
+      } catch (ClassNotFoundException e) {
+        return false;
+      }
+      return true;
+    } else {
       return false;
     }
-    return true;
   }
 
   public static void readExtensions(boolean afterStart) {
@@ -245,7 +275,7 @@ public class ExtensionManager {
           jrubyReady = true;
           setJrubyExtern(true);
         }
-        if ("python".equals(token)) {
+        if ("PYTHON".equals(token)) {
           if (!afterStart) {
             continue;
           }

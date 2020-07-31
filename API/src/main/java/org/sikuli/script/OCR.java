@@ -4,6 +4,7 @@
 
 package org.sikuli.script;
 
+import org.sikuli.basics.Commons;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
@@ -662,6 +663,22 @@ public class OCR {
   //</editor-fold>
 
   //<editor-fold desc="10 global">
+  public static void validate() {
+    if (!Commons.runningWindows()) {
+      String libPath = "/usr/local/lib";
+      File libTess = new File(libPath, "libtesseract.dylib");
+      if (Commons.runningLinux()) {
+        libTess = new File(libPath, "libtesseract.so");
+      }
+      if (libTess.exists()) {
+        if (Commons.runningMac()) {
+          System.setProperty("jna.library.path", libPath);
+        }
+      } else {
+        throw new SikuliXception(String.format("OCR: validate: Tesseract library not in /usr/local/lib"));
+      }
+    }
+  }
 
   /**
    * Resets the global options to the initial defaults.
