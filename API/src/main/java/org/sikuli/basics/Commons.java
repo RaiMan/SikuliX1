@@ -1,7 +1,9 @@
 package org.sikuli.basics;
 
+import java.io.File;
+
 public class Commons {
-  private static final String osVersionSysProp = System.getProperty("os.version");
+  private static final String osVersionSysProp = System.getProperty("os.version").toLowerCase();
 
   public static boolean runningWindows() {
     return osVersionSysProp.startsWith("windows");
@@ -13,6 +15,28 @@ public class Commons {
 
   public static boolean runningLinux() {
     return !runningMac() && !runningWindows();
+  }
+
+  public static String jnaPathAdd(String sFolder) {
+    String jnaPath = System.getProperty("jna.library.path");
+    if (null == jnaPath) {
+      jnaPath = "";
+    }
+    File folder = new File(sFolder);
+    if (!folder.exists()) {
+      return jnaPath;
+    }
+    if (!jnaPath.isEmpty()) {
+      jnaPath = File.pathSeparator + jnaPath;
+    }
+    jnaPath = folder.getAbsolutePath() + jnaPath;
+    System.setProperty("jna.library.path", jnaPath);
+    return jnaPath;
+  }
+
+  public static boolean loadLib(String lib) {
+
+    return true;
   }
 
   public static int[] reverseIntArray(int[] anArray) {
