@@ -1224,20 +1224,9 @@ public class FileManager {
   private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
     boolean makingScriptjarPlain = false;
     RunTime runTime = RunTime.get();
-//    File fSikulixapi = new File(runTime.fSikulixDownloadsGeneric, runTime.sSikulixapi);
-//    File fSikulixjython = new File(runTime.fSikulixDownloadsGeneric, new File(runTime.SikuliJythonMaven).getName());
     if (options.size() > 0 && "plain".equals(options.get(0))) {
       makingScriptjarPlain = true;
       options.remove(0);
-    } else {
-//      if (!fSikulixapi.exists()) {
-//        log(-1, "makingScriptJar: sikulixapi.jar missing. run setup first!");
-//        return null;
-//      }
-//      if (!fSikulixjython.exists()) {
-//        log(-1, "makingScriptJar: jython jar missing. run setup first!");
-//        return null;
-//      }
     }
     File scriptFile = null;
     File scriptFolder = null;
