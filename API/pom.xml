@@ -81,6 +81,7 @@
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
       <version>4.3.0-2</version>
+      <!-- https://github.com/openpnp/opencv -->
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -107,7 +108,7 @@
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <!--License Apache 2-->
       <exclusions>
         <exclusion>

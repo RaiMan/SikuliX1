@@ -1,14 +1,14 @@
 package org.sikuli.basics;
 
 public class Commons {
-  private static final String osVersionSysProp = System.getProperty("os.version");
+  private static final String osName = System.getProperty("os.name").toLowerCase();
 
   public static boolean runningWindows() {
-    return osVersionSysProp.startsWith("windows");
+    return osName.startsWith("windows");
   }
 
   public static boolean runningMac() {
-    return osVersionSysProp.startsWith("mac");
+    return osName.startsWith("mac");
   }
 
   public static boolean runningLinux() {
