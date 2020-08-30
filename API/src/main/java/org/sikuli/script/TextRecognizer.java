@@ -11,7 +11,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import org.sikuli.basics.Commons;
+import org.sikuli.script.support.Commons;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;

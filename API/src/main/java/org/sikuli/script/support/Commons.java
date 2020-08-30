@@ -1,4 +1,4 @@
-package org.sikuli.basics;
+package org.sikuli.script.support;
 
 public class Commons {
   private static final String osName = System.getProperty("os.name").toLowerCase();
