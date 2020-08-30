@@ -7,7 +7,6 @@ import java.io.File;
 
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.Runner;
-import org.sikuli.util.AbortableScriptRunnerWrapper;
 
 /**
  * Runs Sikulix scripts.
