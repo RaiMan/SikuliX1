@@ -164,7 +164,7 @@ public class FindFailed extends SikuliException {
   public static String createErrorMessage(Region reg, Image img) {
     String msg = "";
     if (img.isText()) {
-      msg = String.format("%s as text", img.getName());
+      msg = String.format("%s as text", img.getNameAsText());
     } else if (img.getSize().width < 0 && img.getSize().height < 0) {
       msg = String.format("%s not loaded", img.getName());
     } else {
