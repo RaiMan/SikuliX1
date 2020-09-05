@@ -81,6 +81,7 @@
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
       <version>4.3.0-2</version>
+      <!-- https://github.com/openpnp/opencv -->
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -107,7 +108,7 @@
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
-      <version>4.5.2</version>
+      <version>4.5.3</version>
       <!--License Apache 2-->
       <exclusions>
         <exclusion>
@@ -147,6 +148,108 @@
               </archive>
               <descriptors>
                 <descriptor>makeapi.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Windows only-->
+    <profile>
+      <id>complete-win-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.script.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeapi-win.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Mac only-->
+    <profile>
+      <id>complete-mac-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.script.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeapi-mac.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Linux only-->
+    <profile>
+      <id>complete-lux-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.script.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeapi-lux.xml</descriptor>
               </descriptors>
             </configuration>
             <executions>

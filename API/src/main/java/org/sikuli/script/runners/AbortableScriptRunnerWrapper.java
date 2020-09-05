@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.util;
+package org.sikuli.script.runners;
 
 import org.sikuli.script.support.IScriptRunner;
 

@@ -37,14 +37,17 @@ public class LinuxUtil implements OSUtil {
   }
 
   private int open(String appName) {
+    //TODO Linux App.open()
     try {
-      String cmd[] = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
+      //String cmd[] = {"sh", "-c", "(" + appName + ") &\necho -n $!"};
+      String cmd[] = {"sh", "-c", "\"" + appName + "\"", "&"};
       Process p = Runtime.getRuntime().exec(cmd);
       InputStream in = p.getInputStream();
       byte pidBytes[] = new byte[64];
       int len = in.read(pidBytes);
       String pidStr = new String(pidBytes, 0, len);
-      int pid = Integer.parseInt(pidStr);
+      String[] pidStrSplit = pidStr.split("\\s");
+      int pid = Integer.parseInt(pidStrSplit[pidStrSplit.length - 1]);
       p.waitFor();
       return pid;
       //return p.exitValue();

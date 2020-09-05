@@ -11,6 +11,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.sikuli.script.support.Commons;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Finder.Finder2;
@@ -27,27 +28,30 @@ import java.util.List;
 
 /**
  * Intended to be used only internally - still public for being backward compatible
- *<p></p>
+ * <p></p>
  * <b>New projects should use class OCR</b>
- *<p></p>
+ * <p></p>
  * Implementation of the Tess4J/Tesseract API
- *
  */
 public class TextRecognizer {
 
   private TextRecognizer() {
   }
 
+  private static boolean isValid = false;
+
   private static int lvl = 3;
 
-  private static final String versionTess4J = "4.5.2";
+  private static final String versionTess4J = "4.5.3";
   private static final String versionTesseract = "4.1.x";
 
   private OCR.Options options;
 
   //<editor-fold desc="00 instance, reset">
+
   /**
    * New TextRecognizer instance using the global options.
+   *
    * @return instance
    * @deprecated no longer needed at all
    */
@@ -58,11 +62,29 @@ public class TextRecognizer {
 
   /**
    * INTERNAL
+   *
    * @param options an Options set
    * @return a new TextRecognizer instance
    */
   protected static TextRecognizer get(OCR.Options options) {
-    RunTime.loadLibrary(RunTime.libOpenCV);
+    if (!isValid) {
+      if (Commons.runningMac()) {
+        String libPath = "/usr/local/lib";
+        File libTess = new File(libPath, "libtesseract.dylib");
+        if (libTess.exists()) {
+          String jnaLibPath = System.getProperty("jna.library.path");
+          if (jnaLibPath == null) {
+            System.setProperty("jna.library.path", libPath);
+          } else {
+            System.setProperty("jna.library.path", libPath + File.pathSeparator + jnaLibPath);
+          }
+        } else {
+          throw new SikuliXception(String.format("OCR: validate: Tesseract library not in /usr/local/lib"));
+        }
+      }
+      RunTime.loadLibrary(RunTime.libOpenCV);
+      isValid = true;
+    }
 
     initDefaultDataPath();
 
@@ -76,6 +98,9 @@ public class TextRecognizer {
     textRecognizer.options = options;
 
     return textRecognizer;
+  }
+
+  public static void validate() {
   }
 
   private ITesseract getTesseractAPI() {
@@ -113,8 +138,8 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated use OCR.reset() instead
    * @see OCR#reset()
+   * @deprecated use OCR.reset() instead
    */
   @Deprecated
   public static void reset() {
@@ -122,8 +147,8 @@ public class TextRecognizer {
   }
 
   /**
-   * @deprecated use OCR.status() instead
    * @see OCR#status()
+   * @deprecated use OCR.status() instead
    */
   @Deprecated
   public static void status() {
@@ -136,8 +161,8 @@ public class TextRecognizer {
   /**
    * @param oem
    * @return instance
-   * @deprecated Use options().oem()
    * @see OCR.Options#oem(OCR.OEM)
+   * @deprecated Use options().oem()
    */
   @Deprecated
   public TextRecognizer setOEM(OCR.OEM oem) {
@@ -147,8 +172,8 @@ public class TextRecognizer {
   /**
    * @param oem
    * @return instance
-   * @deprecated use OCR.globalOptions().oem()
    * @see OCR.Options#oem(int)
+   * @deprecated use OCR.globalOptions().oem()
    */
   @Deprecated
   public TextRecognizer setOEM(int oem) {
@@ -160,8 +185,8 @@ public class TextRecognizer {
   /**
    * @param psm
    * @return instance
-   * @deprecated use OCR.globalOptions().psm()
    * @see OCR.Options#psm(OCR.PSM)
+   * @deprecated use OCR.globalOptions().psm()
    */
   @Deprecated
   public TextRecognizer setPSM(OCR.PSM psm) {
@@ -171,8 +196,8 @@ public class TextRecognizer {
   /**
    * @param psm
    * @return instance
-   * @deprecated use OCR.globalOptions().psm()
    * @see OCR.Options#psm(int)
+   * @deprecated use OCR.globalOptions().psm()
    */
   @Deprecated
   public TextRecognizer setPSM(int psm) {
@@ -186,8 +211,8 @@ public class TextRecognizer {
   /**
    * @param dataPath
    * @return instance
-   * @deprecated use OCR.globalOptions().datapath()
    * @see OCR.Options#dataPath()
+   * @deprecated use OCR.globalOptions().datapath()
    */
   @Deprecated
   public TextRecognizer setDataPath(String dataPath) {
@@ -198,8 +223,8 @@ public class TextRecognizer {
   /**
    * @param language
    * @return instance
-   * @deprecated use OCR.globalOptions().language()
    * @see OCR.Options#language(String)
+   * @deprecated use OCR.globalOptions().language()
    */
   @Deprecated
   public TextRecognizer setLanguage(String language) {
@@ -211,8 +236,8 @@ public class TextRecognizer {
    * @param key
    * @param value
    * @return instance
-   * @deprecated use OCR.globalOptions().variable(String key, String value)
    * @see OCR.Options#variable(String, String)
+   * @deprecated use OCR.globalOptions().variable(String key, String value)
    */
   @Deprecated
   public TextRecognizer setVariable(String key, String value) {
@@ -223,8 +248,8 @@ public class TextRecognizer {
   /**
    * @param configs
    * @return instance
-   * @deprecated Use OCR.globalOptions.configs(String... configs)
    * @see OCR.Options#configs(String...)
+   * @deprecated Use OCR.globalOptions.configs(String... configs)
    */
   @Deprecated
   public TextRecognizer setConfigs(String... configs) {
@@ -235,8 +260,8 @@ public class TextRecognizer {
   /**
    * @param configs
    * @return
-   * @deprecated Use options.configs
    * @see OCR.Options#configs(List)
+   * @deprecated Use options.configs
    */
   @Deprecated
   public TextRecognizer setConfigs(List<String> configs) {
@@ -246,10 +271,11 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="10 image optimization">
+
   /**
    * @param size expected font size in pt
-   * @deprecated use OCR.globalOptions().fontSize(int size)
    * @see OCR.Options#fontSize(int)
+   * @deprecated use OCR.globalOptions().fontSize(int size)
    */
   @Deprecated
   public TextRecognizer setFontSize(int size) {
@@ -259,8 +285,8 @@ public class TextRecognizer {
 
   /**
    * @param height of an uppercase X in px
-   * @deprecated use OCR.globalOptions().textHeight(int height)
    * @see OCR.Options#textHeight(float)
+   * @deprecated use OCR.globalOptions().textHeight(int height)
    */
   @Deprecated
   public TextRecognizer setTextHeight(int height) {
@@ -370,10 +396,10 @@ public class TextRecognizer {
     for (Word textItem : textItems) {
       Rectangle boundingBox = textItem.getBoundingBox();
       Rectangle realBox = new Rectangle(
-          (int) (boundingBox.x * wFactor) - 1,
-          (int) (boundingBox.y * hFactor) - 1,
-          1 + (int) (boundingBox.width * wFactor) + 2,
-          1 + (int) (boundingBox.height * hFactor) + 2);
+              (int) (boundingBox.x * wFactor) - 1,
+              (int) (boundingBox.y * hFactor) - 1,
+              1 + (int) (boundingBox.width * wFactor) + 2,
+              1 + (int) (boundingBox.height * hFactor) + 2);
       lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
     }
     return lines;
@@ -381,6 +407,7 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="99 obsolete">
+
   /**
    * @return the current screen resolution in dots per inch
    * @deprecated Will be removed in future versions<br>
@@ -394,8 +421,8 @@ public class TextRecognizer {
   /**
    * @param simg
    * @return the text read
-   * @deprecated use OCR.readText() instead
    * @see OCR#readText(Object)
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String doOCR(ScreenImage simg) {
@@ -405,8 +432,8 @@ public class TextRecognizer {
   /**
    * @param bimg
    * @return the text read
-   * @deprecated use OCR.readText() instead
    * @see OCR#readText(Object)
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String doOCR(BufferedImage bimg) {
@@ -416,8 +443,8 @@ public class TextRecognizer {
   /**
    * @param simg
    * @return text
-   * @deprecated use OCR.readText() instead
    * @see OCR#readText(Object)
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String recognize(ScreenImage simg) {
@@ -428,8 +455,8 @@ public class TextRecognizer {
   /**
    * @param bimg
    * @return text
-   * @deprecated use OCR.readText() instead
    * @see OCR#readText(Object)
+   * @deprecated use OCR.readText() instead
    */
   @Deprecated
   public String recognize(BufferedImage bimg) {

@@ -18,7 +18,7 @@
           <option name="pomFileName" />
           <option name="profilesMap">
             <map>
-              <entry key="complete-jar" value="true" />
+              <entry key="complete-mac-jar" value="true" />
             </map>
           </option>
           <option name="resolveToWorkspace" value="false" />

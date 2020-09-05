@@ -1,16 +1,17 @@
-package org.sikuli.basics;
+package org.sikuli.script.support;
 
 import java.io.File;
 
 public class Commons {
+  private static final String osName = System.getProperty("os.name").toLowerCase();
   private static final String osVersionSysProp = System.getProperty("os.version").toLowerCase();
 
   public static boolean runningWindows() {
-    return osVersionSysProp.startsWith("windows");
+    return osName.startsWith("windows");
   }
 
   public static boolean runningMac() {
-    return osVersionSysProp.startsWith("mac");
+    return osName.startsWith("mac");
   }
 
   public static boolean runningLinux() {
