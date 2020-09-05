@@ -84,6 +84,145 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <!-- complete-jar-->
+    <profile>
+      <id>complete-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeide.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Windows only-->
+    <profile>
+      <id>complete-win-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeide-win.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Mac only-->
+    <profile>
+      <id>complete-mac-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeide-mac.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- complete-jar Linux only-->
+    <profile>
+      <id>complete-lux-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeide-lux.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -93,29 +232,6 @@
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>org.sikuli.ide.Sikulix</mainClass>
-            </manifest>
-          </archive>
-          <descriptors>
-            <descriptor>makeide.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
