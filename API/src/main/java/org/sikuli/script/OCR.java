@@ -700,6 +700,9 @@ public class OCR {
    * @return text
    */
   public static <SFIRBS> String readText(SFIRBS from, Options options) {
+    if (options.psm() == PSM.AUTO.ordinal()) {
+      options.psm(PSM.SINGLE_BLOCK);
+    }
     return TextRecognizer.get(options).readText(from);
   }
   //</editor-fold>

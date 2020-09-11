@@ -101,10 +101,10 @@
       <version>5.6.0</version>
     </dependency>
     <dependency>
-	    <groupId>net.oneandone.reflections8</groupId>
-	    <artifactId>reflections8</artifactId>
-	    <version>0.11.6</version>
-	</dependency>
+      <groupId>net.oneandone.reflections8</groupId>
+      <artifactId>reflections8</artifactId>
+      <version>0.11.6</version>
+    </dependency>
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
@@ -335,9 +335,9 @@
               <excludePackageNames>
                 org.opencv:jxgrabkey:com.tulskiy.keymaster:se.vidstige.jadb
               </excludePackageNames>
-<!--          needed when run inside Intellij IDEA
-              <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
--->
+              <!--          needed when run inside Intellij IDEA
+                            <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+              -->
             </configuration>
             <executions>
               <execution>
