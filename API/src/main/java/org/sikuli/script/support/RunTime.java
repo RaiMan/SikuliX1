@@ -1443,12 +1443,12 @@ public class RunTime {
       }
     }
     try {
+      //TODO Linux libs handling
       if (runningLinux && libName.startsWith("libopen")) {
-        libName = "opencv_java";
-        System.loadLibrary(libName);
-      } else {
-        System.load(fLib.getAbsolutePath());
+        //libName = "opencv_java";
+        //System.loadLibrary(libName);
       }
+      System.load(fLib.getAbsolutePath());
     } catch (Exception e) {
       log(-1, "not usable: %s", e.getMessage());
       terminate(999, "problem with native library: " + libName);
