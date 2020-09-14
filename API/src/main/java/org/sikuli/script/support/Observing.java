@@ -74,7 +74,7 @@ public class Observing {
     lastName = now;
     name = "" + now;
     observers.put(name, reg);
-    reg.getObserver().addObserver(target, (ObserverCallBack) obs, name, type);
+    name = reg.getObserver().addObserver(target, (ObserverCallBack) obs, name, type);
     return name;
   }
 

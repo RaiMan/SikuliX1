@@ -3564,14 +3564,14 @@ public class Region extends Element {
 //						observer, ObserveEvent.Type.CHANGE);
 //	}
 //
+//
+//  public String onChangeDo(Integer threshold, Object observer) {
+//    String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
+//    log(logLevel, "%s: onChange%s: %s minSize: %d", toStringShort(),
+//        (observer == null ? "" : " with callback"), name, threshold);
+//    return name;
+//  }
 //</editor-fold>
-
-  public String onChangeDo(Integer threshold, Object observer) {
-    String name = Observing.add(this, (ObserverCallBack) observer, ObserveEvent.Type.CHANGE, threshold);
-    log(logLevel, "%s: onChange%s: %s minSize: %d", toStringShort(),
-        (observer == null ? "" : " with callback"), name, threshold);
-    return name;
-  }
 
   /**
    * start an observer in this region that runs forever (use stopObserving() in handler) for details about the observe
