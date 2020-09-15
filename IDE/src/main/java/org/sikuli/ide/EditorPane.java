@@ -1132,7 +1132,6 @@ public class EditorPane extends JTextPane {
     for (Token t : tokens) {
       current = t.getValue();
       if (current.endsWith("\n")) {
-        lineNumber++;
         if (inString) {
           SX.popError(
               String.format("Orphan string delimiter (\" or ')\n" +
@@ -1145,6 +1144,7 @@ public class EditorPane extends JTextPane {
           images.put(uncompleteStringError, null);
           break;
         }
+        lineNumber++;
       }
       if (t.getType() == TokenType.Comment) {
         //log(3, "parseforImagesWalk::Comment");
