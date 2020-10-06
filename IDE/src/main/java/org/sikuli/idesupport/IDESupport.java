@@ -43,7 +43,7 @@ public class IDESupport {
 			JythonRunner.class,
 			PythonRunner.class,
 			JRubyRunner.class,
-			JavaScriptRunner.class,
+//			JavaScriptRunner.class,
 			TextRunner.class};
 
 	private static final List<IScriptRunner> IDE_RUNNERS = new ArrayList<>();

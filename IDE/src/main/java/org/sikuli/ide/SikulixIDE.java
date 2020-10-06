@@ -12,7 +12,6 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
@@ -2044,16 +2043,20 @@ public class SikulixIDE extends JFrame {
     JButton btnSubregion = new ButtonSubregion().init();
     JButton btnLocation = new ButtonLocation().init();
     JButton btnOffset = new ButtonOffset().init();
+/*
     JButton btnShow = new ButtonShow().init();
     JButton btnShowIn = new ButtonShowIn().init();
+*/
     _btnCapture = new ButtonCapture();
     toolbar.add(_btnCapture);
     toolbar.add(btnInsertImage);
     toolbar.add(btnSubregion);
     toolbar.add(btnLocation);
     toolbar.add(btnOffset);
+/*
     toolbar.add(btnShow);
     toolbar.add(btnShowIn);
+*/
     toolbar.add(Box.createHorizontalGlue());
     _btnRun = new ButtonRun();
     toolbar.add(_btnRun);
@@ -2232,6 +2235,7 @@ public class SikulixIDE extends JFrame {
     }
   }
 
+/*
   class ButtonShow extends ButtonOnToolbar implements ActionListener {
 
     String buttonText;
@@ -2299,7 +2303,9 @@ public class SikulixIDE extends JFrame {
           "\n- a Pattern with an image file name");
     }
   }
+*/
 
+/*
   class ButtonShowIn extends ButtonSubregion {
 
     String item = "";
@@ -2358,6 +2364,7 @@ public class SikulixIDE extends JFrame {
       }
     }
   }
+*/
 
   //</editor-fold>
 
