@@ -47,9 +47,9 @@ public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner
 				return false;
 			}
 
-			return super.canHandle(identifier);
-		}
+      return super.canHandle(identifier);
+    }
 
-		return false;
-	}
+    return false;
+  }
 }

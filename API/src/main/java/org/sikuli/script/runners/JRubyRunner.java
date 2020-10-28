@@ -102,6 +102,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
         script = FileUtils.readFileToString(rubyFile, "UTF-8");
       } catch (IOException ex) {
         log(-1, "reading script: %s", ex.getMessage());
+        resetFileLocation();
         return Runner.FILE_NOT_FOUND;
       }
 
@@ -123,6 +124,8 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
             options.setErrorLine(errorExit);
           }
         }
+      } finally {
+      	resetFileLocation();
       }
       return exitCode;
     }
