@@ -97,16 +97,15 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
               rubyFile.getParentFile().getAbsolutePath(),
               rubyFile.getParentFile().getParentFile().getAbsolutePath());
 
-      prepareFileLocation(rubyFile, options);
-
       String script;
       try {
         script = FileUtils.readFileToString(rubyFile, "UTF-8");
       } catch (IOException ex) {
         log(-1, "reading script: %s", ex.getMessage());
-        resetFileLocation();
         return Runner.FILE_NOT_FOUND;
       }
+      
+      AbstractLocalFileScriptRunner.prepareFileLocation(rubyFile, options);
 
       script = injectAbortWatcher(script);
 
@@ -127,7 +126,7 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
           }
         }
       } finally {
-      	resetFileLocation();
+    	 AbstractLocalFileScriptRunner.resetFileLocation();
       }
       return exitCode;
     }

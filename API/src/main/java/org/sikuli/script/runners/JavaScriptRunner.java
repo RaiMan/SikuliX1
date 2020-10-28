@@ -60,7 +60,7 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     log(lvl, "runJavaScript: running statements");
 
-    prepareFileLocation(new File(scriptFile), options);
+    AbstractLocalFileScriptRunner.prepareFileLocation(new File(scriptFile), options);
 
     try {
       engine.eval(new FileReader(new File(scriptFile)));
@@ -79,7 +79,7 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
         return -1;
       }
     } finally {
-    	resetFileLocation();
+    	AbstractLocalFileScriptRunner.resetFileLocation();
     }
     return 0;
   }
