@@ -183,6 +183,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
           }
         }
       } finally {
+    	resetFileLocation();
         jythonSupport.interpreterCleanup();
       }
 

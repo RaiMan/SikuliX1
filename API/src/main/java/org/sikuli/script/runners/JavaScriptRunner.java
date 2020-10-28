@@ -78,6 +78,8 @@ public class JavaScriptRunner extends AbstractLocalFileScriptRunner {
 
         return -1;
       }
+    } finally {
+    	resetFileLocation();
     }
     return 0;
   }
