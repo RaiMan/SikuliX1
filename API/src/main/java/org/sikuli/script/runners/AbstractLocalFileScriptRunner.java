@@ -5,25 +5,29 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 
 public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner {
 
-	private String previousBundlePath = null;
+	private Deque<String> previousBundlePaths = new ArrayDeque<>();
 
 	protected void prepareFileLocation(File scriptFile, IScriptRunner.Options options) {		
 		if (!options.isRunningInIDE() && scriptFile.exists()) {
-			previousBundlePath = ImagePath.getBundlePath();
+			previousBundlePaths.push(ImagePath.getBundlePath());
 			ImagePath.setBundleFolder(scriptFile.getParentFile());
 		}
 	}
 	
-	public void resetFileLocation() {
-		if (previousBundlePath != null) {
-			ImagePath.setBundlePath(previousBundlePath);
-			previousBundlePath = null;
+	public void resetFileLocation() {		
+		if (!previousBundlePaths.isEmpty()) {
+			ImagePath.setBundlePath(previousBundlePaths.pop());
 		}
 	}
 
