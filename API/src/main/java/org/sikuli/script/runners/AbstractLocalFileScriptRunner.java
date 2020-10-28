@@ -5,33 +5,29 @@
 package org.sikuli.script.runners;
 
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
 
 public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner {
 
-	private static final Deque<String> PREVIOUS_BUNDLE_PATHS = new ConcurrentLinkedDeque<>();
+	private Deque<String> previousBundlePaths = new ArrayDeque<>();
 
-	@Override
-	protected void adjustBundlePath(String script, IScriptRunner.Options options) {
-		File file = new File(script);
-
-		if (file.exists()) {
-			String currentBundlePath = ImagePath.getBundlePath();
-			if(currentBundlePath != null) {
-			  PREVIOUS_BUNDLE_PATHS.push(currentBundlePath);
-			}
-			ImagePath.setBundleFolder(file.getParentFile());
+	protected void prepareFileLocation(File scriptFile, IScriptRunner.Options options) {		
+		if (!options.isRunningInIDE() && scriptFile.exists()) {
+			previousBundlePaths.push(ImagePath.getBundlePath());
+			ImagePath.setBundleFolder(scriptFile.getParentFile());
 		}
 	}
-
-	@Override
-	protected void resetBundlePath(String script, IScriptRunner.Options options) {
-		if (new File(script).exists() && !PREVIOUS_BUNDLE_PATHS.isEmpty()) {
-		    ImagePath.setBundlePath(PREVIOUS_BUNDLE_PATHS.pop());
+	
+	public void resetFileLocation() {
+		if (!previousBundlePaths.isEmpty()) {
+			ImagePath.setBundlePath(previousBundlePaths.pop());
 		}
 	}
 
