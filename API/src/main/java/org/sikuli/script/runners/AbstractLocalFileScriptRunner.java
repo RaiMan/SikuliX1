@@ -15,16 +15,20 @@ public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner
 
 	private static final Deque<String> PREVIOUS_BUNDLE_PATHS = new ConcurrentLinkedDeque<>();
 
-	protected static void prepareFileLocation(File scriptFile, IScriptRunner.Options options) {		
-		if (!options.isRunningInIDE() && scriptFile.exists()) {
+	@Override
+	protected void adjustBundlePath(String script, IScriptRunner.Options options) {
+		File file = new File(script);
+
+		if (file.exists()) {
 			PREVIOUS_BUNDLE_PATHS.push(ImagePath.getBundlePath());
-			ImagePath.setBundleFolder(scriptFile.getParentFile());
+			ImagePath.setBundleFolder(file.getParentFile());
 		}
 	}
-	
-	protected static void resetFileLocation() {		
-		if (!PREVIOUS_BUNDLE_PATHS.isEmpty()) {
-			ImagePath.setBundlePath(PREVIOUS_BUNDLE_PATHS.pop());
+
+	@Override
+	protected void resetBundlePath(String script, IScriptRunner.Options options) {
+		if (new File(script).exists() && !PREVIOUS_BUNDLE_PATHS.isEmpty()) {
+		    ImagePath.setBundlePath(PREVIOUS_BUNDLE_PATHS.pop());
 		}
 	}
 
