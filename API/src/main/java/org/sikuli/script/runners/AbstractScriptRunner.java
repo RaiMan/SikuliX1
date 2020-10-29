@@ -170,7 +170,19 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
         Debug.off();
       }
 
-      int exitCode = doRunScript(script, scriptArgs, options);
+      int exitCode = -1;
+
+      if(script != null) {
+         adjustBundlePath(script, options);
+      }
+
+      try {
+         exitCode = doRunScript(script, scriptArgs, options);
+      } finally {
+    	  if (script != null) {
+    	     resetBundlePath(script, options);
+    	  }
+      }
 
       Debug.setDebugLevel(savedLevel);
       return exitCode;
@@ -386,5 +398,13 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
       endings[i] = "." + extensions[i];
     }
     return endings;
+  }
+
+  protected void adjustBundlePath(String script, IScriptRunner.Options options) {
+	  // NOOP
+  }
+
+  protected void resetBundlePath(String script, IScriptRunner.Options options) {
+	  // NOOP
   }
 }
