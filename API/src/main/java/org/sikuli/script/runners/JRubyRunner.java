@@ -104,8 +104,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
         log(-1, "reading script: %s", ex.getMessage());
         return Runner.FILE_NOT_FOUND;
       }
-      
-      AbstractLocalFileScriptRunner.prepareFileLocation(rubyFile, options);
 
       script = injectAbortWatcher(script);
 
@@ -125,8 +123,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
             options.setErrorLine(errorExit);
           }
         }
-      } finally {
-    	 AbstractLocalFileScriptRunner.resetFileLocation();
       }
       return exitCode;
     }

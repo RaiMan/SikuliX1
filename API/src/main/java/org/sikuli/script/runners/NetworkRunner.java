@@ -32,15 +32,9 @@ public class NetworkRunner extends AbstractScriptRunner {
         dir = Files.createTempDirectory("sikulix").toFile();
         String localFile = FileManager.downloadURL(scriptUrl, dir.getAbsolutePath());
         if (localFile != null) {
-
-          String identifierParent = scriptUrl.substring(0, scriptUrl.lastIndexOf("/"));
-
-          ImagePath.addHTTP(identifierParent);
-
           IScriptRunner runner = Runner.getRunner(localFile);
           wrapper.setRunner(runner);
           int retval = runner.runScript(localFile, scriptArgs, options);
-          ImagePath.removeHTTP(identifierParent);
 
           return retval;
         }
@@ -160,4 +154,16 @@ public class NetworkRunner extends AbstractScriptRunner {
   protected void doAbort() {
     wrapper.doAbort();
   }
+
+  @Override
+	protected void adjustBundlePath(String script, IScriptRunner.Options options) {
+	   String identifierParent = script.substring(0, script.lastIndexOf("/"));
+	   ImagePath.addHTTP(identifierParent);
+	}
+
+	@Override
+	protected void resetBundlePath(String script, IScriptRunner.Options options) {
+	   String identifierParent = script.substring(0, script.lastIndexOf("/"));
+	   ImagePath.removeHTTP(identifierParent);
+	}
 }
