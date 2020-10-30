@@ -1037,9 +1037,9 @@ public class SikulixIDE extends JFrame {
         new FileAction(FileAction.ASJAR)));
 
     _fileMenu.add(createMenuItem("Export as runnable jar",
-            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
-                    InputEvent.SHIFT_DOWN_MASK| scMask),
-            new FileAction(FileAction.ASRUNJAR)));
+        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
+            InputEvent.SHIFT_DOWN_MASK | scMask),
+        new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
@@ -1710,7 +1710,7 @@ public class SikulixIDE extends JFrame {
 
     public void jarWithJython(ActionEvent ae) {
       if (SX.popAsk("*** You should know what you are doing! ***\n\n" +
-          "This may take a while. Wait for success popup!"+
+          "This may take a while. Wait for success popup!" +
           "\nClick Yes to start.", "Creating jar file")) {
         (new Thread() {
           @Override
@@ -1757,7 +1757,7 @@ public class SikulixIDE extends JFrame {
     String targetJar = new File(runTime.fSikulixStore, "sikulixjython.jar").getAbsolutePath();
     String[] jars = new String[]{ideJarName, jythonJarName};
     SikulixIDE.getStatusbar().setMessage(String.format("Creating SikuliX with Jython: %s", targetJar));
-    if(FileManager.buildJar(targetJar, jars, null, null, null)) {
+    if (FileManager.buildJar(targetJar, jars, null, null, null)) {
       String msg = String.format("Created SikuliX with Jython: %s", targetJar);
       log(3, msg);
       SX.popup(msg.replace(": ", "\n"));
@@ -2043,6 +2043,7 @@ public class SikulixIDE extends JFrame {
     JButton btnSubregion = new ButtonSubregion().init();
     JButton btnLocation = new ButtonLocation().init();
     JButton btnOffset = new ButtonOffset().init();
+//TODO ButtonShow/ButtonShowIn
 /*
     JButton btnShow = new ButtonShow().init();
     JButton btnShowIn = new ButtonShowIn().init();
@@ -2235,7 +2236,6 @@ public class SikulixIDE extends JFrame {
     }
   }
 
-/*
   class ButtonShow extends ButtonOnToolbar implements ActionListener {
 
     String buttonText;
@@ -2264,48 +2264,43 @@ public class SikulixIDE extends JFrame {
       String line = "";
       EditorPane codePane = getCurrentCodePane();
       line = codePane.getLineTextAtCaret();
-      String item = codePane.parseLineText(line);
+      final String item = codePane.parseLineText(line);
       if (!item.isEmpty()) {
-        String eval = "";
-        item = item.replaceAll("\"", "\\\"");
-        if (item.startsWith("Region")) {
-          if (item.contains(".asOffset()")) {
-            item = item.replace(".asOffset()", "");
-          }
-          eval = "Region.create" + item.substring(6) + ".highlight(2);";
-        } else if (item.startsWith("Location")) {
-          eval = "new " + item + ".grow(10).highlight(2);";
-        } else if (item.startsWith("Pattern")) {
-          eval = "m = Screen.all().exists(new " + item
-              + ", 0); if (m != null) m.highlight(2);";
-        } else if (item.startsWith("\"")) {
-          eval = "m = Screen.all().exists(" + item
-              + ", 0); if (m != null) m.highlight(2);";
-        }
-        if (!eval.isEmpty()) {
-          final String evalText = eval;
-          IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
-          SikulixIDE.hideIDE();
-          new Thread(new Runnable() {
-            @Override
-            public void run() {
-              runner.evalScript("#" + evalText, null);
-              SikulixIDE.showIDE();
+//TODO ButtonShow action performed
+        SikulixIDE.hideIDE();
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            String eval = "";
+            eval = item.replaceAll("\"", "\\\"");
+            if (item.startsWith("Region")) {
+              if (item.contains(".asOffset()")) {
+                eval = item.replace(".asOffset()", "");
+              }
+              eval = "Region.create" + eval.substring(6) + ".highlight(2);";
+            } else if (item.startsWith("Location")) {
+              eval = "new " + item + ".grow(10).highlight(2);";
+            } else if (item.startsWith("Pattern")) {
+              eval = "m = Screen.all().exists(new " + item + ", 0);";
+              eval += "if (m != null) m.highlight(2);";
+            } else if (item.startsWith("\"")) {
+              eval = "m = Screen.all().exists(" + item + ", 0); ";
+              eval += "if (m != null) m.highlight(2);";
             }
-          }).start();
-          return;
-        }
+            log(3, "ButtonShow:\n%s", eval);
+            SikulixIDE.showIDE();
+          }
+        }).start();
+        return;
       }
-      Sikulix.popup("Nothing to show!" +
+      Sikulix.popup("ButtonShow: Nothing to show!" +
           "\nThe line with the cursor should contain:" +
           "\n- an absolute Region or Location" +
           "\n- an image file name or" +
           "\n- a Pattern with an image file name");
     }
   }
-*/
 
-/*
   class ButtonShowIn extends ButtonSubregion {
 
     String item = "";
@@ -2340,7 +2335,10 @@ public class SikulixIDE extends JFrame {
 
     @Override
     void nothingTodo() {
-      Sikulix.popup("Nothing to show");
+      Sikulix.popup("ButtonShowIn: Nothing to show!" +
+          "\nThe line with the cursor should contain:" +
+          "\n- an image file name or" +
+          "\n- a Pattern with an image file name");
     }
 
     @Override
@@ -2350,11 +2348,11 @@ public class SikulixIDE extends JFrame {
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
         final String evalText = item;
-        IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
         new Thread(new Runnable() {
           @Override
           public void run() {
-            runner.evalScript("#" + evalText, null);
+            log(3, "ButtonShowIn:\n%s", evalText);
+            //TODO ButtonShowIn perform show
           }
         }).start();
         RunTime.pause(2);
@@ -2364,7 +2362,6 @@ public class SikulixIDE extends JFrame {
       }
     }
   }
-*/
 
   //</editor-fold>
 
