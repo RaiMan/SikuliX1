@@ -155,8 +155,6 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       jythonSupport.interpreterFillSysArgv(pyFile, argv);
       jythonSupport.executeScriptHeader(codeBefore);
 
-      prepareFileLocation(pyFile, options);
-
       int exitCode = 0;
 
       try {

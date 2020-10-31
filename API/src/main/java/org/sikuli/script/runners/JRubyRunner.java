@@ -97,8 +97,6 @@ public class JRubyRunner extends AbstractLocalFileScriptRunner {
               rubyFile.getParentFile().getAbsolutePath(),
               rubyFile.getParentFile().getParentFile().getAbsolutePath());
 
-      prepareFileLocation(rubyFile, options);
-
       String script;
       try {
         script = FileUtils.readFileToString(rubyFile, "UTF-8");
