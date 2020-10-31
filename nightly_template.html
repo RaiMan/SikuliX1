@@ -1,0 +1,94 @@
+<!--
+  ~ Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>
+        SikuliX Nightly Builds
+    </title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" ></head>
+<body>
+<h1>SikuliX Nightly Builds</h1>
+<hr>
+<a href="https://raiman.github.io/SikuliX1">[home]</a>&nbsp;&nbsp;&nbsp;
+<a href="http://sikulix.com", target="_blank">[sikulix.com]</a>&nbsp;&nbsp;&nbsp;
+<a href="https://github.com/RaiMan", target="_blank">[RaiMan@GitHub]</a>&nbsp;&nbsp;&nbsp;
+<a href="downloads.html">[Downloads]</a>&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="http://www.sikulix.com/disclaimer/", target="_blank">[Disclaimer]</a>
+<hr>
+<h3>Version 2.1.0-SNAPSHOT (nightly builds - snapshot versions)</h3>
+
+<h3>Currently (June 1st) not useable until further notice</h3>
+
+This version was built at ##sikulixapiide## (Build ##TRAVIS_BUILD_NUMBER##)
+<br><br>
+<strong>For information about fixes, changes and other news see below.</strong>
+<br><br>
+<hr>
+<h3>Edit and run scripts with the SikuliX IDE</h3>
+<hr>
+<h4><a href="https://raiman.github.io/SikuliX1/sikulix-2.1.0.jar">Download the ready to use sikulix.jar (SikuliX IDE)</a></h4>
+Just download, move it to a folder of your choice and doubleclick to run it.<br>
+An alternative to run it is from commandline using
+<pre>java -jar path-to/sikulix.jar</pre>
+<br>If you have any problems, run this from a commandline and analyse the log output
+<pre>java -jar path-to/sikulix.jar -v -c</pre>
+<hr>
+<h4>Needed for scripting support in the IDE and running scripts from commandline</h4>
+<h4><a href="https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar">The Jython interpreter 2.7.1 for python scripting (the default)</a></h4>
+<h4><a href="https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar">The JRuby interpreter 9.x for ruby scripting</a></h4>
+Download what you prefer or both to the same folder as you have your sikulix.jar.
+<br>They will be recognized by SikuliX at the next start and moved to the SikuliX's extension folder.
+<br>So preferably download before using the IDE the first time.
+
+<hr>
+<h3>Use the SikuliX features in Java programming or Java aware environments</h3>
+<hr>
+<br>
+<strong><a href="">Look here</a></strong> if you want to use the <strong>sikulixapi-SNAPSHOT in a Maven context</strong>
+<h4><a href="https://raiman.github.io/SikuliX1/sikulixapi-2.1.0.jar">Download the ready to use sikulixapi.jar</a></h4>
+This artefact is for use on a Java classpath or for Java programming in mature IDEs as library jar.<br>
+<h4><a href="https://raiman.github.io/SikuliX1/sikulixapi-2.1.0-sources.jar">Download sikulixapi-sources.jar</a></h4>
+This artefact might be useful for Java programming in mature IDEs as reference.<br>
+<h4><a href="https://raiman.github.io/SikuliX1/javadocs/index.html">read the javadocs online</a></h4>
+<hr>
+<h3>Fixes, changes and notes (##sikulixapiide##)</h3>
+<hr>
+<!--
+<a href="", target="_blank>"</a>
+<br>FIXED (2.0.1):
+(<a href="https://github.com/RaiMan/SikuliX1/pull/", target="_blank">#</a>)
+-->
+<br>-------- 2019-12-04 ----------------
+<br>FIXED: API in Java project: -Dsikuli.Debug=x is now recognized (issue #215)
+<br>ADDED: Highlight: allow to show with frame only (transparent): Settings.HighlightTransparent = true (default: false)
+<br>FIXED: Popup dialogs using autoclose did not close
+<br>-------- 2019-11-18 ----------------
+<br>FIXED: multimonitor with hiDPI/Retina: each Screen has its own Robot again (ScreenUnion not yet useable)
+<br>FIXED (2.0.1): Add some delay after setting IDE to invisible to give it some time to vanish
+(<a href="https://github.com/RaiMan/SikuliX1/pull/233", target="_blank">#233</a>)
+<br>FIXED (2.0.1): Correctly synchronize UI and other threads when opening a SX popup
+(<a href="https://github.com/RaiMan/SikuliX1/pull/230", target="_blank">#230</a>)
+<br>FIXED (2.0.1): Handle the occasionally occurring ClassNotFoundException during cleanUp
+(<a href="https://github.com/RaiMan/SikuliX1/pull/228", target="_blank">#228</a>)
+<br><br>-------- 2019-11-06 ----------------
+<br>CHANGE: IDE: temporarily removed RFW support (will come back as extension)
+<br>CHANGE: IDE: handling Jython and JRuby missing: more helpful advice
+<br><br>-------- 2019-10-26 ----------------
+<br>ADDED: API: new Feature: ServerRunner (experimental: run scripts remotely)
+<br>ADDED: IDE: new Feature: Recorder (experimental)
+<br><br>-------- 2019-10-21 ----------------
+<br>CHANGE: IDE: temporary switched of menu tools :: Android (preparing support as Extension)
+<br><br>-------- 2019-10-21 ----------------
+<br>CHANGE: now using latest OpenCV version 4.1.x
+<br>CHANGE: macOS: OpenCV libs have to be provided (no longer bundled)
+<a href="https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4", target="_blank">more information</a>
+<br>CHANGE: moved OpenCV stuff to extra package: com::sikulix::sikulix2opencv::4.1.1
+<br>FIXED: possible NPE in multimonitor environments
+<br>CHANGE: running in headless mode should always terminate
+
+</body>
