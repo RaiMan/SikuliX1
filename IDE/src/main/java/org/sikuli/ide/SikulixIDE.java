@@ -9,7 +9,6 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runners.JavaScriptRunner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.generators.ICodeGenerator;
@@ -2142,6 +2141,7 @@ public class SikulixIDE extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+      //TODO ButtonShow
       String line = "";
       EditorPane codePane = getCurrentCodePane();
       line = codePane.getLineTextAtCaret();
@@ -2165,10 +2165,8 @@ public class SikulixIDE extends JFrame {
         }
         if (!eval.isEmpty()) {
           final String evalText = eval;
-          IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
           SikulixIDE.hideIDE();
           new Thread(() -> {
-            runner.evalScript("#" + evalText, null);
             EventQueue.invokeLater(() -> {
               SikulixIDE.showIDE();
             });
@@ -2223,16 +2221,15 @@ public class SikulixIDE extends JFrame {
 
     @Override
     public void captureComplete(ScreenImage simg) {
+      //TODO ButtonShowIn
       if (simg != null) {
         Region reg = new Region(simg.getROI());
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
         final String evalText = item;
-        IScriptRunner runner = Runner.getRunner(JavaScriptRunner.class);
         new Thread(new Runnable() {
           @Override
           public void run() {
-            runner.evalScript("#" + evalText, null);
           }
         }).start();
         RunTime.pause(2);
