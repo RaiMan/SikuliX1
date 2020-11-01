@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -70,9 +71,9 @@ class SuiteConfigurer(SuiteVisitor):
 
     def _get_test_selector_msgs(self):
         parts = []
-        for explanation, selector in [('with tags', self.include_tags),
-                                      ('without tags', self.exclude_tags),
-                                      ('named', self.include_tests)]:
+        for explanation, selector in [('matching tags', self.include_tags),
+                                      ('not matching tags', self.exclude_tags),
+                                      ('matching name', self.include_tests)]:
             if selector:
                 parts.append(self._format_selector_msg(explanation, selector))
         return seq2str(parts, quote='')

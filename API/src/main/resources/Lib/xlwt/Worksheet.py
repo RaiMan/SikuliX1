@@ -1,46 +1,55 @@
 # -*- coding: windows-1252 -*-
-'''
-            BOF
-            UNCALCED
-            INDEX
-            Calculation Settings Block
-            PRINTHEADERS
-            PRINTGRIDLINES
-            GRIDSET
-            GUTS
-            DEFAULTROWHEIGHT
-            WSBOOL
-            Page Settings Block
-            Worksheet Protection Block
-            DEFCOLWIDTH
-            COLINFO
-            SORT
-            DIMENSIONS
-            Row Blocks
-            WINDOW2
-            SCL
-            PANE
-            SELECTION
-            STANDARDWIDTH
-            MERGEDCELLS
-            LABELRANGES
-            PHONETIC
-            Conditional Formatting Table
-            Hyperlink Table
-            Data Validity Table
-            SHEETLAYOUT (BIFF8X only)
-            SHEETPROTECTION (BIFF8X only)
-            RANGEPROTECTION (BIFF8X only)
-            EOF
-'''
+#             BOF
+#             UNCALCED
+#             INDEX
+#             Calculation Settings Block
+#             PRINTHEADERS
+#             PRINTGRIDLINES
+#             GRIDSET
+#             GUTS
+#             DEFAULTROWHEIGHT
+#             WSBOOL
+#             Page Settings Block
+#             Worksheet Protection Block
+#             DEFCOLWIDTH
+#             COLINFO
+#             SORT
+#             DIMENSIONS
+#             Row Blocks
+#             WINDOW2
+#             SCL
+#             PANE
+#             SELECTION
+#             STANDARDWIDTH
+#             MERGEDCELLS
+#             LABELRANGES
+#             PHONETIC
+#             Conditional Formatting Table
+#             Hyperlink Table
+#             Data Validity Table
+#             SHEETLAYOUT (BIFF8X only)
+#             SHEETPROTECTION (BIFF8X only)
+#             RANGEPROTECTION (BIFF8X only)
+#             EOF
 
-import BIFFRecords
-import Bitmap
-import Style
+from . import BIFFRecords
+from . import Bitmap
+from . import Style
+from .Row import Row
+from .Column import Column
+from .compat import unicode, itervalues
 import tempfile
 
 class Worksheet(object):
+    """
+    This is a class
+    representing the contents of a sheet in a workbook.
 
+    .. warning::
+
+      You don't normally create instances of this class yourself.
+      They are returned from calls to :meth:`~xlwt.Workbook.Workbook.add_sheet`.
+    """
     # a safe default value, 3 is always valid!
     active_pane = 3
     
@@ -48,11 +57,8 @@ class Worksheet(object):
     ## Constructor
     #################################################################
     def __init__(self, sheetname, parent_book, cell_overwrite_ok=False):
-        import Row
-        self.Row = Row.Row
-
-        import Column
-        self.Column = Column.Column
+        self.Row = Row
+        self.Column = Column
 
         self.__name = sheetname
         self.__parent = parent_book
@@ -61,7 +67,7 @@ class Worksheet(object):
         self.__rows = {}
         self.__cols = {}
         self.__merged_ranges = []
-        self.__bmp_rec = ''
+        self.__bmp_rec = b''
 
         self.__show_formulas = 0
         self.__show_grid = 1
@@ -1027,6 +1033,58 @@ class Worksheet(object):
         return self.__parent
 
     def write(self, r, c, label="", style=Style.default_style):
+        """
+        This method is used to write a cell to a :class:`Worksheet`.
+
+        :param r:
+
+           The zero-relative number of the row in the worksheet to which
+           the cell should be written.
+
+        :param c:
+
+           The zero-relative number of the column in the worksheet to which
+           the cell should be written.
+
+        :param label:
+
+           The data value to be written.
+
+           An :class:`int`, :class:`long`, or
+           :class:`~decimal.Decimal` instance is converted to :class:`float`.
+
+           A :class:`unicode` instance is written as is. A :class:`bytes`
+           instance is converted to :class:`unicode` using the
+           encoding, which defaults to ``ascii``, specified when the
+           :class:`Workbook` instance was created.
+
+           A :class:`~datetime.datetime`, :class:`~datetime.date` or
+           :class:`~datetime.time` instance is converted into Excel date format
+           (a float representing the number of days since (typically)
+           ``1899-12-31T00:00:00``, under the pretence that
+           1900 was a leap year).
+
+           A :class:`bool` instance will show up as ``TRUE`` or ``FALSE`` in
+           Excel.
+
+           ``None`` causes the cell to be blank: no data, only formatting.
+
+           An :class:`xlwt.Formula` instance causes an Excel formula to be
+           written.
+
+        :param style:
+
+           A style, also known as an XF (extended format), is an
+           :class:`~xlwt.Style.XFStyle` object, which encapsulates the
+           formatting applied to the cell and its contents.
+
+           :class:`~xlwt.Style.XFStyle` objects are best set up using the
+           :func:`~xlwt.Style.easyxf` function. They may also be set up by
+           setting attributes in :class:`Alignment`, :class:`Borders`,
+           :class:`Pattern`, :class:`Font` and :class:`Protection` objects then
+           setting those objects and a format string as attributes of an
+           :class:`~xlwt.Style.XFStyle` object.
+        """
         self.row(r).write(c, label, style)
 
     def write_rich_text(self, r, c, rich_text_list, style=Style.default_style):
@@ -1062,6 +1120,12 @@ class Worksheet(object):
 
     def insert_bitmap(self, filename, row, col, x = 0, y = 0, scale_x = 1, scale_y = 1):
         bmp = Bitmap.ImDataBmpRecord(filename)
+        obj = Bitmap.ObjBmpRecord(row, col, self, bmp, x, y, scale_x, scale_y)
+
+        self.__bmp_rec += obj.get() + bmp.get()
+
+    def insert_bitmap_data(self, data, row, col, x = 0, y = 0, scale_x = 1, scale_y = 1):
+        bmp = Bitmap.ImRawDataBmpRecord(data)
         obj = Bitmap.ObjBmpRecord(row, col, self, bmp, x, y, scale_x, scale_y)
 
         self.__bmp_rec += obj.get() + bmp.get()
@@ -1104,14 +1168,14 @@ class Worksheet(object):
 
     def __update_row_visible_levels(self):
         if self.__rows:
-            temp = max([self.__rows[r].level for r in self.__rows]) + 1
+            temp = max(self.__rows[r].level for r in self.__rows) + 1
             self.__row_visible_levels = max(temp, self.__row_visible_levels)
 
     def __guts_rec(self):
         self.__update_row_visible_levels()
         col_visible_levels = 0
         if len(self.__cols) != 0:
-            col_visible_levels = max([self.__cols[c].level for c in self.__cols]) + 1
+            col_visible_levels = max(self.__cols[c].level for c in self.__cols) + 1
         return BIFFRecords.GutsRecord(
             self.__row_gut_width, self.__col_gut_height, self.__row_visible_levels, col_visible_levels).get()
 
@@ -1143,7 +1207,7 @@ class Worksheet(object):
         return BIFFRecords.EOFRecord().get()
 
     def __colinfo_rec(self):
-        result = ''
+        result = b''
         for col in self.__cols:
             result += self.__cols[col].get_biff_record()
         return result
@@ -1194,7 +1258,7 @@ class Worksheet(object):
 
     def __panes_rec(self):
         if self.__vert_split_pos is None and self.__horz_split_pos is None:
-            return ""
+            return b""
 
         if self.__vert_split_pos is None:
             self.__vert_split_pos = 0
@@ -1243,10 +1307,10 @@ class Worksheet(object):
 
     def __row_blocks_rec(self):
         result = []
-        for row in self.__rows.itervalues():
+        for row in itervalues(self.__rows):
             result.append(row.get_row_biff_data())
             result.append(row.get_cells_biff_data())
-        return ''.join(result)
+        return b''.join(result)
 
     def __merged_rec(self):
         return BIFFRecords.MergedCellsRecord(self.__merged_ranges).get()
@@ -1255,7 +1319,7 @@ class Worksheet(object):
         return self.__bmp_rec
 
     def __calc_settings_rec(self):
-        result = ''
+        result = b''
         result += BIFFRecords.CalcModeRecord(self.__calc_mode & 0x01).get()
         result += BIFFRecords.CalcCountRecord(self.__calc_count & 0xFFFF).get()
         result += BIFFRecords.RefModeRecord(self.__RC_ref_mode & 0x01).get()
@@ -1265,7 +1329,7 @@ class Worksheet(object):
         return result
 
     def __print_settings_rec(self):
-        result = ''
+        result = b''
         result += BIFFRecords.PrintHeadersRecord(self.__print_headers).get()
         result += BIFFRecords.PrintGridLinesRecord(self.__print_grid).get()
         result += BIFFRecords.GridSetRecord(self.__grid_set).get()
@@ -1305,7 +1369,7 @@ class Worksheet(object):
         return result
 
     def __protection_rec(self):
-        result = ''
+        result = b''
         result += BIFFRecords.ProtectRecord(self.__protect).get()
         result += BIFFRecords.ScenProtectRecord(self.__scen_protect).get()
         result += BIFFRecords.WindowProtectRecord(self.__wnd_protect).get()
@@ -1333,7 +1397,7 @@ class Worksheet(object):
             # Above seek() is necessary to avoid a spurious IOError
             # with Errno 0 if the caller continues on writing rows
             # and flushing row data after the save().
-            # See http://bugs.python.org/issue3207
+            # See https://bugs.python.org/issue3207
         result.extend([
             self.__row_blocks_rec(),
             self.__merged_rec(),
@@ -1342,7 +1406,7 @@ class Worksheet(object):
             self.__panes_rec(),
             self.__eof_rec(),
             ])
-        return ''.join(result)
+        return b''.join(result)
 
     def flush_row_data(self):
         if self.row_tempfile is None:

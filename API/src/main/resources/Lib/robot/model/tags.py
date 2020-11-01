@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,8 +13,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from robot.utils import (Matcher, NormalizedDict, is_string, py2to3, setter,
-                         unic)
+from robot.utils import (Matcher, normalize, NormalizedDict, is_string, py2to3,
+                         setter, unic)
 
 
 @py2to3
@@ -28,9 +29,9 @@ class Tags(object):
             return ()
         if is_string(tags):
             tags = (tags,)
-        return self._normalize(tags)
+        return self._deduplicate_normalized(tags)
 
-    def _normalize(self, tags):
+    def _deduplicate_normalized(self, tags):
         normalized = NormalizedDict(((unic(t), 1) for t in tags), ignore='_')
         for removed in '', 'NONE':
             if removed in normalized:
@@ -61,6 +62,17 @@ class Tags(object):
 
     def __repr__(self):
         return repr(list(self))
+
+    def __eq__(self, other):
+        if not isinstance(other, Tags):
+            return False
+        self_normalized = [normalize(tag, ignore='_') for tag in self]
+        other_normalized = [normalize(tag, ignore='_') for tag in other]
+        return sorted(self_normalized) == sorted(other_normalized)
+
+    def __ne__(self, other):
+        # Not necessary for Python3 (https://stackoverflow.com/a/30676267/2309247)
+        return not self == other
 
     def __getitem__(self, index):
         item = self._tags[index]

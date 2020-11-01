@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 from robot.errors import DataError
 from robot.utils import plural_or_not, seq2str
-from robot.variables import is_list_var
+from robot.variables import is_list_variable
 
 
 class ArgumentValidator(object):
@@ -24,7 +25,7 @@ class ArgumentValidator(object):
         self._argspec = argspec
 
     def validate(self, positional, named, dryrun=False):
-        if dryrun and any(is_list_var(arg) for arg in positional):
+        if dryrun and any(is_list_variable(arg) for arg in positional):
             return
         named = set(name for name, value in named)
         self._validate_no_multiple_values(positional, named, self._argspec)

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -35,6 +36,7 @@ class EmbeddedArguments(object):
 class EmbeddedArgumentParser(object):
     _regexp_extension = re.compile(r'(?<!\\)\(\?.+\)')
     _regexp_group_start = re.compile(r'(?<!\\)\((.*?)\)')
+    _escaped_curly = re.compile(r'(\\+)([{}])')
     _regexp_group_escape = r'(?:\1)'
     _default_pattern = '.*?'
     _variable_pattern = r'\$\{[^\}]+\}'
@@ -59,7 +61,7 @@ class EmbeddedArgumentParser(object):
     def _format_custom_regexp(self, pattern):
         for formatter in (self._regexp_extensions_are_not_allowed,
                           self._make_groups_non_capturing,
-                          self._unescape_closing_curly,
+                          self._unescape_curly_braces,
                           self._add_automatic_variable_pattern):
             pattern = formatter(pattern)
         return pattern
@@ -73,8 +75,11 @@ class EmbeddedArgumentParser(object):
     def _make_groups_non_capturing(self, pattern):
         return self._regexp_group_start.sub(self._regexp_group_escape, pattern)
 
-    def _unescape_closing_curly(self, pattern):
-        return pattern.replace('\\}', '}')
+    def _unescape_curly_braces(self, pattern):
+        def unescaper(match):
+            backslashes = len(match.group(1))
+            return '\\' * (backslashes // 2 * 2) + match.group(2)
+        return self._escaped_curly.sub(unescaper, pattern)
 
     def _add_automatic_variable_pattern(self, pattern):
         return '%s|%s' % (pattern, self._variable_pattern)

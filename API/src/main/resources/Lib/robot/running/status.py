@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -132,14 +133,14 @@ class SuiteStatus(_ExecutionStatus):
 
 class TestStatus(_ExecutionStatus):
 
-    def __init__(self, parent, critical):
+    def __init__(self, parent, test):
         _ExecutionStatus.__init__(self, parent)
         self.exit = parent.exit
-        self._critical = critical
+        self._test = test
 
     def test_failed(self, failure):
         self.failure.test = unic(failure)
-        self.exit.failure_occurred(failure, self._critical)
+        self.exit.failure_occurred(failure, self._test.critical)
 
     def _my_message(self):
         return TestMessage(self).message

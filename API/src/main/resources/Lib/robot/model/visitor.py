@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -57,7 +58,8 @@ The following example visitor modifies the test suite structure it visits.
 It could be used, for example, with Robot Framework's ``--prerunmodifier``
 option to modify test data before execution.
 
-.. literalinclude:: /../../doc/api/code_examples/select_every_xth_test.py
+.. literalinclude:: ../../../doc/api/code_examples/SelectEveryXthTest.py
+   :language: python
 
 For more examples it is possible to look at the source code of visitors used
 internally by Robot Framework itself. Some good examples are

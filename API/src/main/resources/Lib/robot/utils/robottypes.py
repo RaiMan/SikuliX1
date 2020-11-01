@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,12 +18,14 @@ from .platform import PY2
 
 if PY2:
     from .robottypes2 import (is_bytes, is_dict_like, is_integer, is_list_like,
-                              is_number, is_string, is_unicode, type_name)
+                              is_number, is_pathlike, is_string,
+                              is_unicode, type_name, Mapping, MutableMapping)
     unicode = unicode
 
 else:
     from .robottypes3 import (is_bytes, is_dict_like, is_integer, is_list_like,
-                              is_number, is_string, is_unicode, type_name)
+                              is_number, is_pathlike, is_string,
+                              is_unicode, type_name, Mapping, MutableMapping)
     unicode = str
 
 

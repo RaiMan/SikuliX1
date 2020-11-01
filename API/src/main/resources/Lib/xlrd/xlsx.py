@@ -1,43 +1,54 @@
 ##
+# Portions copyright (c) 2008-2012 Stephen John Machin, Lingfo Pty Ltd
+# This module is part of the xlrd package, which is released under a BSD-style licence.
 ##
 
 from __future__ import print_function, unicode_literals
 
+import re
+import sys
+from os.path import join, normpath
+
+from .biffh import (
+    XL_CELL_BLANK, XL_CELL_BOOLEAN, XL_CELL_ERROR, XL_CELL_TEXT, XLRDError,
+    error_text_from_code,
+)
+from .book import Book, Name
+from .formatting import XF, Format, is_date_format_string
+from .sheet import Sheet
+from .timemachine import *
+
 DEBUG = 0
 
-import sys
-import re
-from .timemachine import *
-from .book import Book, Name
-from .biffh import error_text_from_code, XLRDError, XL_CELL_BLANK, XL_CELL_TEXT, XL_CELL_BOOLEAN, XL_CELL_ERROR
-from .formatting import is_date_format_string, Format, XF
-from .sheet import Sheet
 
 DLF = sys.stdout # Default Log File
 
 ET = None
 ET_has_iterparse = False
+Element_has_iter = False
 
 def ensure_elementtree_imported(verbosity, logfile):
-    global ET, ET_has_iterparse
+    global ET, ET_has_iterparse, Element_has_iter
     if ET is not None:
         return
     if "IronPython" in sys.version:
         import xml.etree.ElementTree as ET
-        #### 2.7.2.1: fails later with 
+        #### 2.7.2.1: fails later with
         #### NotImplementedError: iterparse is not supported on IronPython. (CP #31923)
     else:
-        try: import xml.etree.cElementTree as ET
+        try: import defusedxml.cElementTree as ET
         except ImportError:
-            try: import cElementTree as ET
+            try: import xml.etree.cElementTree as ET
             except ImportError:
-                try: import lxml.etree as ET
+                try: import cElementTree as ET
                 except ImportError:
-                    try: import xml.etree.ElementTree as ET
+                    try: import lxml.etree as ET
                     except ImportError:
-                        try: import elementtree.ElementTree as ET
+                        try: import xml.etree.ElementTree as ET
                         except ImportError:
-                            raise Exception("Failed to import an ElementTree implementation")
+                            try: import elementtree.ElementTree as ET
+                            except ImportError:
+                                raise Exception("Failed to import an ElementTree implementation")
     if hasattr(ET, 'iterparse'):
         _dummy_stream = BYTES_IO(b'')
         try:
@@ -45,14 +56,15 @@ def ensure_elementtree_imported(verbosity, logfile):
             ET_has_iterparse = True
         except NotImplementedError:
             pass
+    Element_has_iter = hasattr(ET, 'ElementTree') and hasattr(ET.ElementTree, 'iter')
     if verbosity:
         etree_version = repr([
             (item, getattr(ET, item))
             for item in ET.__dict__.keys()
             if item.lower().replace('_', '') == 'version'
-            ])
+        ])
         print(ET.__file__, ET.__name__, etree_version, ET_has_iterparse, file=logfile)
-        
+
 def split_tag(tag):
     pos = tag.rfind('}') + 1
     if pos >= 2:
@@ -71,7 +83,8 @@ for _x in "123456789":
     _UPPERCASE_1_REL_INDEX[_x] = 0
 del _x
 
-def cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX):
+def cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX,
+        allow_no_col=False):
     # Extract column index from cell name
     # A<row number> => 0, Z =>25, AA => 26, XFD => 16383
     colx = 0
@@ -83,9 +96,18 @@ def cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX):
             if lv:
                 colx = colx * 26 + lv
             else: # start of row number; can't be '0'
-                colx = colx - 1
-                assert 0 <= colx < X12_MAX_COLS
-                break
+                if charx == 0:
+                    # there was no col marker
+                    if allow_no_col:
+                        colx = None
+                        break
+                    else:
+                        raise Exception(
+                                'Missing col in cell name %r', cell_name)
+                else:
+                    colx = colx - 1
+                    assert 0 <= colx < X12_MAX_COLS
+                    break
     except KeyError:
         raise Exception('Unexpected character %r in cell name %r' % (c, cell_name))
     rowx = int(cell_name[charx:]) - 1
@@ -112,9 +134,8 @@ F_TAG = U_SSML12 + 'f' # cell child: formula
 IS_TAG = U_SSML12 + 'is' # cell child: inline string
 
 def unescape(s,
-    subber=re.compile(r'_x[0-9A-Fa-f]{4,4}_', re.UNICODE).sub,
-    repl=lambda mobj: unichr(int(mobj.group(0)[2:6], 16)),
-    ):
+             subber=re.compile(r'_x[0-9A-Fa-f]{4,4}_', re.UNICODE).sub,
+             repl=lambda mobj: unichr(int(mobj.group(0)[2:6], 16))):
     if "_" in s:
         return subber(repl, s)
     return s
@@ -205,7 +226,7 @@ _defined_name_attribute_map = (
     ("",                    "option_flags", 0,               ),
     ("",                    "result",       None,            ),
     ("",                    "stack",        None,            ),
-    )
+)
 
 def make_name_access_maps(bk):
     name_and_scope_map = {} # (name.lower(), scope): Name_object
@@ -223,14 +244,15 @@ def make_name_access_maps(bk):
                 if bk.verbosity:
                     print(msg, file=bk.logfile)
         name_and_scope_map[key] = nobj
+        sort_data = (nobj.scope, namex, nobj)
         if name_lcase in name_map:
-            name_map[name_lcase].append((nobj.scope, nobj))
+            name_map[name_lcase].append(sort_data)
         else:
-            name_map[name_lcase] = [(nobj.scope, nobj)]
+            name_map[name_lcase] = [sort_data]
     for key in name_map.keys():
         alist = name_map[key]
         alist.sort()
-        name_map[key] = [x[1] for x in alist]
+        name_map[key] = [x[2] for x in alist]
     bk.name_and_scope_map = name_and_scope_map
     bk.name_map = name_map
 
@@ -241,7 +263,7 @@ class X12General(object):
             fprintf(self.logfile, "\n=== %s ===\n", heading)
         self.tree = ET.parse(stream)
         getmethod = self.tag2meth.get
-        for elem in self.tree.getiterator():
+        for elem in self.tree.iter() if Element_has_iter else self.tree.getiterator():
             if self.verbosity >= 3:
                 self.dump_elem(elem)
             meth = getmethod(elem.tag)
@@ -279,7 +301,7 @@ class X12Book(X12General):
         U_DC+"creator": ("creator", cnv_ST_Xstring),
         U_DCTERMS+"modified": ("modified", cnv_ST_Xstring),
         U_DCTERMS+"created": ("created", cnv_ST_Xstring),
-        }
+    }
 
     def process_coreprops(self, stream):
         if self.verbosity >= 2:
@@ -287,7 +309,7 @@ class X12Book(X12General):
         self.tree = ET.parse(stream)
         getmenu = self.core_props_menu.get
         props = {}
-        for elem in self.tree.getiterator():
+        for elem in self.tree.iter() if Element_has_iter else self.tree.getiterator():
             if self.verbosity >= 3:
                 self.dump_elem(elem)
             menu = getmenu(elem.tag)
@@ -301,6 +323,10 @@ class X12Book(X12General):
             fprintf(self.logfile, "props: %r\n", props)
         self.finish_off()
 
+    @staticmethod
+    def convert_filename(name):
+        return name.replace('\\', '/').lower()
+
     def process_rels(self, stream):
         if self.verbosity >= 2:
             fprintf(self.logfile, "\n=== Relationships ===\n")
@@ -308,7 +334,7 @@ class X12Book(X12General):
         r_tag = U_PKGREL + 'Relationship'
         for elem in tree.findall(r_tag):
             rid = elem.get('Id')
-            target = elem.get('Target')
+            target = X12Book.convert_filename(elem.get('Target'))
             reltype = elem.get('Type').split('/')[-1]
             if self.verbosity >= 2:
                 self.dumpout('Id=%r Type=%r Target=%r', rid, reltype, target)
@@ -366,8 +392,8 @@ class X12Book(X12General):
             None: 0,
             'visible': 0,
             'hidden': 1,
-            'veryHidden': 2
-            }
+            'veryHidden': 2,
+        }
         bk._sheet_visibility.append(visibility_map[state])
         sheet = Sheet(bk, position=None, name=name, number=sheetx)
         sheet.utter_max_rows = X12_MAX_ROWS
@@ -389,7 +415,7 @@ class X12Book(X12General):
         'definedNames':  do_defined_names,
         'workbookPr':   do_workbookpr,
         'sheet':        do_sheet,
-        }
+    }
     augment_keys(tag2meth, U_SSML12)
 
 class X12SST(X12General):
@@ -402,7 +428,7 @@ class X12SST(X12General):
             self.process_stream = self.process_stream_iterparse
         else:
             self.process_stream = self.process_stream_findall
-            
+
     def process_stream_iterparse(self, stream, heading=None):
         if self.verbosity >= 2 and heading is not None:
             fprintf(self.logfile, "\n=== %s ===\n", heading)
@@ -416,7 +442,7 @@ class X12SST(X12General):
                 fprintf(self.logfile, "element #%d\n", elemno)
                 self.dump_elem(elem)
             result = get_text_from_si_or_is(self, elem)
-            sst.append(result)                
+            sst.append(result)
             elem.clear() # destroy all child elements
         if self.verbosity >= 2:
             self.dumpout('Entries in SST: %d', len(sst))
@@ -486,10 +512,7 @@ class X12Styles(X12General):
         is_date = self.fmt_is_date.get(numFmtId, 0)
         self.bk._xf_index_to_xl_type_map[xfx] = is_date + 2
         if self.verbosity >= 3:
-            self.dumpout(
-                'xfx=%d numFmtId=%d',
-                xfx, numFmtId,
-                )
+            self.dumpout('xfx=%d numFmtId=%d', xfx, numFmtId)
             self.dumpout(repr(self.bk._xf_index_to_xl_type_map))
 
     tag2meth = {
@@ -497,7 +520,7 @@ class X12Styles(X12General):
         'cellXfs':      do_cellxfs,
         'numFmt':       do_numfmt,
         'xf':           do_xf,
-        }
+    }
     augment_keys(tag2meth, U_SSML12)
 
 class X12Sheet(X12General):
@@ -509,6 +532,8 @@ class X12Sheet(X12General):
         self.rowx = -1 # We may need to count them.
         self.bk = sheet.book
         self.sst = self.bk._sharedstrings
+        self.relid2path = {}
+        self.relid2reltype = {}
         self.merged_cells = sheet.merged_cells
         self.warned_no_cell_name = 0
         self.warned_no_row_num = 0
@@ -518,7 +543,6 @@ class X12Sheet(X12General):
     def own_process_stream(self, stream, heading=None):
         if self.verbosity >= 2 and heading is not None:
             fprintf(self.logfile, "\n=== %s ===\n", heading)
-        getmethod = self.tag2meth.get
         row_tag = U_SSML12 + "row"
         self_do_row = self.do_row
         for event, elem in ET.iterparse(stream):
@@ -530,6 +554,20 @@ class X12Sheet(X12General):
             elif elem.tag == U_SSML12 + "mergeCell":
                 self.do_merge_cell(elem)
         self.finish_off()
+
+    def process_rels(self, stream):
+        if self.verbosity >= 2:
+            fprintf(self.logfile, "\n=== Sheet Relationships ===\n")
+        tree = ET.parse(stream)
+        r_tag = U_PKGREL + 'Relationship'
+        for elem in tree.findall(r_tag):
+            rid = elem.get('Id')
+            target = elem.get('Target')
+            reltype = elem.get('Type').split('/')[-1]
+            if self.verbosity >= 2:
+                self.dumpout('Id=%r Type=%r Target=%r', rid, reltype, target)
+            self.relid2reltype[rid] = reltype
+            self.relid2path[rid] = normpath(join('xl/worksheets', target))
 
     def process_comments_stream(self, stream):
         root = ET.parse(stream).getroot()
@@ -560,25 +598,32 @@ class X12Sheet(X12General):
         if ref:
             # print >> self.logfile, "dimension: ref=%r" % ref
             last_cell_ref = ref.split(':')[-1] # example: "Z99"
-            rowx, colx = cell_name_to_rowx_colx(last_cell_ref)
+            rowx, colx = cell_name_to_rowx_colx(
+                    last_cell_ref, allow_no_col=True)
             self.sheet._dimnrows = rowx + 1
-            self.sheet._dimncols = colx + 1
+            if colx is not None:
+                self.sheet._dimncols = colx + 1
 
     def do_merge_cell(self, elem):
         # The ref attribute should be a cell range like "B1:D5".
         ref = elem.get('ref')
         if ref:
-            first_cell_ref, last_cell_ref = ref.split(':')
+            try:
+                first_cell_ref, last_cell_ref = ref.split(':')
+            except ValueError:
+                # encountered a single cell merge, e.g. "B3"
+                first_cell_ref = ref
+                last_cell_ref = ref
             first_rowx, first_colx = cell_name_to_rowx_colx(first_cell_ref)
             last_rowx, last_colx = cell_name_to_rowx_colx(last_cell_ref)
             self.merged_cells.append((first_rowx, last_rowx + 1,
                                       first_colx, last_colx + 1))
 
     def do_row(self, row_elem):
-    
+
         def bad_child_tag(child_tag):
-             raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
- 
+            raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
+
         row_number = row_elem.get('r')
         if row_number is None: # Yes, it's optional.
             self.rowx += 1
@@ -627,7 +672,6 @@ class X12Sheet(X12General):
             xf_index = int(cell_elem.get('s', '0'))
             cell_type = cell_elem.get('t', 'n')
             tvalue = None
-            formula = None
             if cell_type == 'n':
                 # n = number. Most frequent type.
                 # <v> child contains plain text which can go straight into float()
@@ -637,7 +681,8 @@ class X12Sheet(X12General):
                     if child_tag == V_TAG:
                         tvalue = child.text
                     elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
+                        # formula
+                        pass
                     else:
                         raise Exception('unexpected tag %r' % child_tag)
                 if not tvalue:
@@ -654,7 +699,7 @@ class X12Sheet(X12General):
                         tvalue = child.text
                     elif child_tag == F_TAG:
                         # formula not expected here, but gnumeric does it.
-                        formula = child.text
+                        pass
                     else:
                         bad_child_tag(child_tag)
                 if not tvalue:
@@ -673,7 +718,8 @@ class X12Sheet(X12General):
                     if child_tag == V_TAG:
                         tvalue = cooked_text(self, child)
                     elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
+                        # formula
+                        pass
                     else:
                         bad_child_tag(child_tag)
                 # assert tvalue is not None and formula is not None
@@ -682,61 +728,67 @@ class X12Sheet(X12General):
             elif cell_type == "b":
                 # b = boolean
                 # <v> child contains "0" or "1"
-                # Maybe the data should be converted with cnv_xsd_boolean;
-                # ECMA standard is silent; Excel 2007 writes 0 or 1
                 for child in cell_elem:
                     child_tag = child.tag
                     if child_tag == V_TAG:
                         tvalue = child.text
                     elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
+                        # formula
+                        pass
                     else:
                         bad_child_tag(child_tag)
-                self.sheet.put_cell(rowx, colx, XL_CELL_BOOLEAN, int(tvalue), xf_index)
+                self.sheet.put_cell(rowx, colx, XL_CELL_BOOLEAN, cnv_xsd_boolean(tvalue), xf_index)
             elif cell_type == "e":
                 # e = error
                 # <v> child contains e.g. "#REF!"
+                tvalue = '#N/A'
                 for child in cell_elem:
                     child_tag = child.tag
                     if child_tag == V_TAG:
                         tvalue = child.text
                     elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
+                        # formula
+                        pass
                     else:
                         bad_child_tag(child_tag)
                 value = error_code_from_text[tvalue]
                 self.sheet.put_cell(rowx, colx, XL_CELL_ERROR, value, xf_index)
             elif cell_type == "inlineStr":
                 # Not expected in files produced by Excel.
-                # Only possible child is <is>.
                 # It's a way of allowing 3rd party s/w to write text (including rich text) cells
                 # without having to build a shared string table
                 for child in cell_elem:
                     child_tag = child.tag
                     if child_tag == IS_TAG:
                         tvalue = get_text_from_si_or_is(self, child)
+                    elif child_tag == V_TAG:
+                        tvalue = child.text
+                    elif child_tag == F_TAG:
+                        # formula
+                        pass
                     else:
                         bad_child_tag(child_tag)
-                assert tvalue is not None
-                self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
+                if not tvalue:
+                    if self.bk.formatting_info:
+                        self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
+                else:
+                    self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
             else:
                 raise Exception("Unknown cell type %r in rowx=%d colx=%d" % (cell_type, rowx, colx))
 
     tag2meth = {
         'row':          do_row,
-        }
+    }
     augment_keys(tag2meth, U_SSML12)
 
-def open_workbook_2007_xml(
-    zf,
-    component_names,
-    logfile=sys.stdout,
-    verbosity=0,
-    use_mmap=0,
-    formatting_info=0,
-    on_demand=0,
-    ragged_rows=0,
-    ):
+def open_workbook_2007_xml(zf,
+                           component_names,
+                           logfile=sys.stdout,
+                           verbosity=0,
+                           use_mmap=0,
+                           formatting_info=0,
+                           on_demand=0,
+                           ragged_rows=0):
     ensure_elementtree_imported(verbosity, logfile)
     bk = Book()
     bk.logfile = logfile
@@ -753,52 +805,55 @@ def open_workbook_2007_xml(
     bk.ragged_rows = ragged_rows
 
     x12book = X12Book(bk, logfile, verbosity)
-    zflo = zf.open('xl/_rels/workbook.xml.rels')
+    zflo = zf.open(component_names['xl/_rels/workbook.xml.rels'])
     x12book.process_rels(zflo)
-    zflo.close()
     del zflo
-    zflo = zf.open('xl/workbook.xml')
+    zflo = zf.open(component_names['xl/workbook.xml'])
     x12book.process_stream(zflo, 'Workbook')
-    zflo.close()
     del zflo
-    props_name = 'docProps/core.xml'
+    props_name = 'docprops/core.xml'
     if props_name in component_names:
-        zflo = zf.open(props_name)
+        zflo = zf.open(component_names[props_name])
         x12book.process_coreprops(zflo)
 
     x12sty = X12Styles(bk, logfile, verbosity)
     if 'xl/styles.xml' in component_names:
-        zflo = zf.open('xl/styles.xml')
+        zflo = zf.open(component_names['xl/styles.xml'])
         x12sty.process_stream(zflo, 'styles')
-        zflo.close()
         del zflo
     else:
         # seen in MS sample file MergedCells.xlsx
         pass
 
-    sst_fname = 'xl/sharedStrings.xml'
+    sst_fname = 'xl/sharedstrings.xml'
     x12sst = X12SST(bk, logfile, verbosity)
     if sst_fname in component_names:
-        zflo = zf.open(sst_fname)
+        zflo = zf.open(component_names[sst_fname])
         x12sst.process_stream(zflo, 'SST')
-        zflo.close()
         del zflo
 
     for sheetx in range(bk.nsheets):
         fname = x12book.sheet_targets[sheetx]
-        zflo = zf.open(fname)
+        zflo = zf.open(component_names[fname])
         sheet = bk._sheet_list[sheetx]
         x12sheet = X12Sheet(sheet, logfile, verbosity)
         heading = "Sheet %r (sheetx=%d) from %r" % (sheet.name, sheetx, fname)
         x12sheet.process_stream(zflo, heading)
-        zflo.close()
         del zflo
-        comments_fname = 'xl/comments%d.xml' % (sheetx + 1)
-        if comments_fname in component_names:
-            comments_stream = zf.open(comments_fname)
-            x12sheet.process_comments_stream(comments_stream)
-            comments_stream.close()
-            del comments_stream
+
+        rels_fname = 'xl/worksheets/_rels/%s.rels' % fname.rsplit('/', 1)[-1]
+        if rels_fname in component_names:
+            zfrels = zf.open(rels_fname)
+            x12sheet.process_rels(zfrels)
+            del zfrels
+
+        for relid, reltype in x12sheet.relid2reltype.items():
+            if reltype == 'comments':
+                comments_fname = x12sheet.relid2path.get(relid)
+                if comments_fname and comments_fname in component_names:
+                    comments_stream = zf.open(comments_fname)
+                    x12sheet.process_comments_stream(comments_stream)
+                    del comments_stream
 
         sheet.tidy_dimensions()
 

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,6 +12,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+import warnings
 
 from .compat import py2to3
 from .normalizing import NormalizedDict
@@ -97,10 +100,9 @@ class ConnectionCache(object):
                 self.current.raise_error()
             return self.current
         try:
-            index = self._resolve_alias_or_index(alias_or_index)
-        except ValueError:
-            raise RuntimeError("Non-existing index or alias '%s'."
-                               % alias_or_index)
+            index = self.resolve_alias_or_index(alias_or_index)
+        except ValueError as err:
+            raise RuntimeError(err.args[0])
         return self._connections[index-1]
 
     __getitem__ = get_connection
@@ -135,18 +137,25 @@ class ConnectionCache(object):
     def __nonzero__(self):
         return self.current is not self._no_current
 
+    def resolve_alias_or_index(self, alias_or_index):
+        for resolver in self._resolve_alias, self._resolve_index:
+            try:
+                return resolver(alias_or_index)
+            except ValueError:
+                pass
+        raise ValueError("Non-existing index or alias '%s'." % alias_or_index)
+
     def _resolve_alias_or_index(self, alias_or_index):
-        try:
-            return self._resolve_alias(alias_or_index)
-        except ValueError:
-            return self._resolve_index(alias_or_index)
+        # TODO: Remove this function for good in RF 3.3.
+        # See https://github.com/robotframework/robotframework/issues/3125
+        warnings.warn("'ConnectionCache._resolve_alias_or_index' is "
+                      "deprecated. Use 'resolve_alias_or_index' instead.",
+                      UserWarning)
+        return self.resolve_alias_or_index(alias_or_index)
 
     def _resolve_alias(self, alias):
-        if is_string(alias):
-            try:
-                return self._aliases[alias]
-            except KeyError:
-                pass
+        if is_string(alias) and alias in self._aliases:
+            return self._aliases[alias]
         raise ValueError
 
     def _resolve_index(self, index):

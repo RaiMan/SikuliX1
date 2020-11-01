@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -96,6 +97,7 @@ class DocFormatter(object):
             'importing': 'Importing',
             'library importing': 'Importing',
             'shortcuts': 'Shortcuts',
+            'tags': 'Tags',
             'keywords': 'Keywords'
         }
         for kw in keywords:
@@ -108,7 +110,7 @@ class DocFormatter(object):
     def _yield_header_targets(self, introduction):
         headers = HeaderFormatter()
         for line in introduction.splitlines():
-            match = headers.match(line)
+            match = headers.match(line.strip())
             if match:
                 yield match.group(2)
 

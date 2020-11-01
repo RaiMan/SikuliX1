@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from robot.errors import DataError
 from robot.utils import file_writer
 
 from .loggerhelper import AbstractLogger
@@ -25,10 +25,7 @@ class FileLogger(AbstractLogger):
         self._writer = self._get_writer(path)  # unit test hook
 
     def _get_writer(self, path):
-        try:
-            return file_writer(path)
-        except EnvironmentError as err:
-            raise DataError(err.strerror)
+        return file_writer(path, usage='syslog')
 
     def message(self, msg):
         if self._is_logged(msg.level) and not self._writer.closed:

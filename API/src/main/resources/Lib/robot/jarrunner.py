@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,6 +12,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+import os
+import sys
 
 from org.robotframework import RobotPythonRunner
 
@@ -66,3 +70,9 @@ class JarRunner(RobotPythonRunner):
         if args[0] in self._commands:
             return self._commands[args[0]], args[1:]
         return run_cli, args
+
+
+def process_jythonpath():
+    for path in os.getenv('JYTHONPATH', '').split(os.pathsep):
+        if path:
+            sys.path.append(path)

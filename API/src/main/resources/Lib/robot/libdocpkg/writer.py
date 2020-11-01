@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -24,4 +25,7 @@ def LibdocWriter(format=None):
         return LibdocHtmlWriter()
     if format == 'XML':
         return LibdocXmlWriter()
-    raise DataError("Format must be either 'HTML' or 'XML', got '%s'." % format)
+    if format == 'XML:HTML':
+        return LibdocXmlWriter(force_html_doc=True)
+    raise DataError("Format must be either 'HTML', 'XML' or 'XML:HTML', "
+                    "got '%s'." % format)

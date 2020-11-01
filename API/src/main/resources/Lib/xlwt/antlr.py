@@ -1,4 +1,7 @@
+from __future__ import print_function
 ## This file is part of PyANTLR. See LICENSE.txt for license
+## details..........Copyright (C) Wolfgang Haefelinger, 2004.
+
 ## This file was copied for use with xlwt from the 2.7.7 ANTLR distribution. Yes, it
 ## says 2.7.5 below. The 2.7.5 distribution version didn't have a
 ## version in it.
@@ -41,11 +44,7 @@
 ## get sys module
 import sys
 
-version = sys.version.split()[0]
-if version < '2.2.1':
-    False = 0
-if version < '2.3':
-    True = not False
+from .compat import long, basestring, int_types, xrange
 
 ###xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx###
 ###                     global symbols                             ###
@@ -82,7 +81,7 @@ def version():
 
 def error(fmt,*args):
     if fmt:
-        print "error: ", fmt % tuple(args)
+        print("error: ", fmt % tuple(args))
 
 def ifelse(cond,_then,_else):
     if cond :
@@ -303,11 +302,11 @@ class MismatchedCharException(RecognitionException):
             if self.mismatchType == MismatchedCharException.NOT_RANGE:
                 sb.append("NOT ")
             sb.append("in range: ")
-            appendCharName(sb, self.expecting)
+            self.appendCharName(sb, self.expecting)
             sb.append("..")
-            appendCharName(sb, self.upper)
+            self.appendCharName(sb, self.upper)
             sb.append(", found ")
-            appendCharName(sb, self.foundChar)
+            self.appendCharName(sb, self.foundChar)
         elif self.mismatchType in [MismatchedCharException.SET, MismatchedCharException.NOT_SET]:
             sb.append("expecting ")
             if self.mismatchType == MismatchedCharException.NOT_SET:
@@ -420,9 +419,9 @@ class MismatchedTokenException(RecognitionException):
             if self.mismatchType == MismatchedTokenException.NOT_RANGE:
                 sb.append("NOT ")
             sb.append("in range: ")
-            appendTokenName(sb, self.expecting)
+            self.appendTokenName(sb, self.expecting)
             sb.append("..")
-            appendTokenName(sb, self.upper)
+            self.appendTokenName(sb, self.upper)
             sb.append(", found " + self.tokenText)
         elif self.mismatchType in [MismatchedTokenException.SET, MismatchedTokenException.NOT_SET]:
             sb.append("expecting ")
@@ -588,9 +587,9 @@ class Token(object):
 Token.badToken = Token( type=INVALID_TYPE, text="<no text>")
 
 if __name__ == "__main__":
-    print "testing .."
+    print("testing ..")
     T = Token.badToken
-    print T
+    print(T)
 
 ###xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx###
 ###                       CommonToken                              ###
@@ -661,16 +660,16 @@ class CommonToken(Token):
 
 if __name__ == '__main__' :
     T = CommonToken()
-    print T
+    print(T)
     T = CommonToken(col=15,line=1,text="some text", type=5)
-    print T
+    print(T)
     T = CommonToken()
     T.setLine(1).setColumn(15).setText("some text").setType(5)
-    print T
-    print T.getLine()
-    print T.getColumn()
-    print T.getText()
-    print T.getType()
+    print(T)
+    print(T.getLine())
+    print(T.getColumn())
+    print(T.getText())
+    print(T.getType())
 
 ###xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx###
 ###                    CommonHiddenStreamToken                     ###
@@ -850,7 +849,7 @@ class CharBuffer(InputBuffer):
 
                 ### use unicode chars instead of ASCII ..
                 self.queue.append(c)
-        except Exception,e:
+        except Exception as e:
             raise CharStreamIOException(e)
         ##except: # (mk) Cannot happen ...
             ##error ("unexpected exception caught ..")
@@ -940,7 +939,7 @@ class TokenStreamSelector(TokenStream):
         while 1:
             try:
                 return self._input.nextToken()
-            except TokenStreamRetryException,r:
+            except TokenStreamRetryException:
                 ### just retry "forever"
                 pass
 
@@ -1381,23 +1380,20 @@ class CharScanner(TokenStream):
         self.setColumn(nc)
 
     def panic(self,s='') :
-        print "CharScanner: panic: " + s
+        print("CharScanner: panic: " + s)
         sys.exit(1)
-
-    def reportError(self,ex) :
-        print ex
 
     def reportError(self,s) :
         if not self.getFilename():
-            print "error: " + str(s)
+            print("error: " + str(s))
         else:
-            print self.getFilename() + ": error: " + str(s)
+            print(self.getFilename() + ": error: " + str(s))
 
     def reportWarning(self,s) :
         if not self.getFilename():
-            print "warning: " + str(s)
+            print("warning: " + str(s))
         else:
-            print self.getFilename() + ": warning: " + str(s)
+            print(self.getFilename() + ": warning: " + str(s))
 
     def resetText(self) :
         self.text.setLength(0)
@@ -1457,16 +1453,16 @@ class CharScanner(TokenStream):
         return c.__class__.lower()
 
     def traceIndent(self):
-        print ' ' * self.traceDepth
+        print(' ' * self.traceDepth)
 
     def traceIn(self,rname):
         self.traceDepth += 1
         self.traceIndent()
-        print "> lexer %s c== %s" % (rname,self.LA(1))
+        print("> lexer %s c== %s" % (rname,self.LA(1)))
 
     def traceOut(self,rname):
         self.traceIndent()
-        print "< lexer %s c== %s" % (rname,self.LA(1))
+        print("< lexer %s c== %s" % (rname,self.LA(1)))
         self.traceDepth -= 1
 
     def uponEOF(self):
@@ -1529,9 +1525,8 @@ class CharScanner(TokenStream):
             self.commit();
             try:
                 func=args[0]
-                args=args[1:]
-                apply(func,args)
-            except RecognitionException, e:
+                func(*args[1:])
+            except RecognitionException as e:
                 ## catastrophic failure
                 self.reportError(e);
                 self.consume();
@@ -1599,7 +1594,7 @@ class BitSet(object):
             raise TypeError("BitSet requires integer, long, or " +
                             "list argument")
         for x in data:
-            if not isinstance(x,long):
+            if not isinstance(x, int_types):
                 raise TypeError(self,"List argument item is " +
                                 "not a long: %s" % (x))
         self.data = data
@@ -1646,7 +1641,7 @@ class BitSet(object):
 
     def bitMask(self,bit):
         pos = bit & BitSet.MOD_MASK  ## bit mod BITS
-        return (1L << pos)
+        return (1 << pos)
 
     def set(self,bit,on=True):
         # grow bitset as required (use with care!)
@@ -1655,7 +1650,7 @@ class BitSet(object):
         if i>=len(self.data):
             d = i - len(self.data) + 1
             for x in xrange(0,d):
-                self.data.append(0L)
+                self.data.append(0)
             assert len(self.data) == i+1
         if on:
             self.data[i] |=  mask
@@ -1685,7 +1680,7 @@ def illegalarg_ex(func):
        (func.func_name))
 
 def runtime_ex(func):
-    raise RuntimeException(
+    raise RuntimeError(
        "%s is only valid if parser is built for debugging" %
        (func.func_name))
 
@@ -1800,31 +1795,31 @@ class Parser(object):
 
     def addMessageListener(self, l):
         if not self.ignoreInvalidDebugCalls:
-            illegalarg_ex(addMessageListener)
+            illegalarg_ex(self.addMessageListener)
 
     def addParserListener(self,l) :
         if (not self.ignoreInvalidDebugCalls) :
-            illegalarg_ex(addParserListener)
+            illegalarg_ex(self.addParserListener)
 
     def addParserMatchListener(self, l) :
         if (not self.ignoreInvalidDebugCalls) :
-            illegalarg_ex(addParserMatchListener)
+            illegalarg_ex(self.addParserMatchListener)
 
     def addParserTokenListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            illegalarg_ex(addParserTokenListener)
+            illegalarg_ex(self.addParserTokenListener)
 
     def addSemanticPredicateListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            illegalarg_ex(addSemanticPredicateListener)
+            illegalarg_ex(self.addSemanticPredicateListener)
 
     def addSyntacticPredicateListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            illegalarg_ex(addSyntacticPredicateListener)
+            illegalarg_ex(self.addSyntacticPredicateListener)
 
     def addTraceListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            illegalarg_ex(addTraceListener)
+            illegalarg_ex(self.addTraceListener)
 
     def consume(self):
         raise NotImplementedError()
@@ -1905,37 +1900,37 @@ class Parser(object):
     def matchNot(self,t):
         if self.LA(1) == t:
             raise MismatchedTokenException(
-               tokenNames, self.LT(1), t, True, self.getFilename())
+               self.tokenNames, self.LT(1), t, True, self.getFilename())
         else:
             self.consume()
 
     def removeMessageListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeMessageListener)
+            runtime_ex(self.removeMessageListener)
 
     def removeParserListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeParserListener)
+            runtime_ex(self.removeParserListener)
 
     def removeParserMatchListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeParserMatchListener)
+            runtime_ex(self.removeParserMatchListener)
 
     def removeParserTokenListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeParserTokenListener)
+            runtime_ex(self.removeParserTokenListener)
 
     def removeSemanticPredicateListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeSemanticPredicateListener)
+            runtime_ex(self.removeSemanticPredicateListener)
 
     def removeSyntacticPredicateListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeSyntacticPredicateListener)
+            runtime_ex(self.removeSyntacticPredicateListener)
 
     def removeTraceListener(self, l) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(removeTraceListener)
+            runtime_ex(self.removeTraceListener)
 
     def reportError(self,x) :
         fmt = "syntax error:"
@@ -1947,16 +1942,16 @@ class Parser(object):
             col  = x.getLine()
             text = x.getText()
             fmt  = fmt + 'unexpected symbol at line %s (column %s) : "%s"'
-            print >>sys.stderr, fmt % (line,col,text)
+            print(fmt % (line,col,text), file=sys.stderr)
         else:
-            print >>sys.stderr, fmt,str(x)
+            print(fmt,str(x), file=sys.stderr)
 
     def reportWarning(self,s):
         f = self.getFilename()
         if f:
-            print "%s:warning: %s" % (f,str(x))
+            print("%s:warning: %s" % (f,str(s)))
         else:
-            print "warning: %s" % (str(x))
+            print("warning: %s" % (str(s)))
 
     def rewind(self, pos) :
         self.inputState.input.rewind(pos)
@@ -1972,7 +1967,7 @@ class Parser(object):
 
     def setDebugMode(self, debugMode) :
         if (not self.ignoreInvalidDebugCalls):
-            runtime_ex(setDebugMode)
+            runtime_ex(self.setDebugMode)
 
     def setFilename(self, f) :
         self.inputState.filename = f
@@ -1984,7 +1979,7 @@ class Parser(object):
         self.inputState.input = t
 
     def traceIndent(self):
-        print " " * self.traceDepth
+        print(" " * self.traceDepth)
 
     def traceIn(self,rname):
         self.traceDepth += 1
@@ -2073,12 +2068,12 @@ class LLkParser(Parser):
             self.k = 1
 
     def trace(self,ee,rname):
-        print type(self)
+        print(type(self))
         self.traceIndent()
         guess = ""
         if self.inputState.guessing > 0:
             guess = " [guessing]"
-        print(ee + rname + guess)
+        print((ee + rname + guess))
         for i in xrange(1,self.k+1):
             if i != 1:
                 print(", ")
@@ -2086,7 +2081,7 @@ class LLkParser(Parser):
                 v = self.LT(i).getText()
             else:
                 v = "null"
-            print "LA(%s) == %s" % (i,v)
+            print("LA(%s) == %s" % (i,v))
         print("\n")
 
     def traceIn(self,rname):
@@ -2144,13 +2139,13 @@ class TreeParser(object):
 
     def matchNot(self,t, ttype) :
         if not t or (t == ASTNULL) or (t.getType() == ttype):
-            raise MismatchedTokenException(getTokenNames(), t, ttype, True)
+            raise MismatchedTokenException(self.getTokenNames(), t, ttype, True)
 
     def reportError(self,ex):
-        print >>sys.stderr,"error:",ex
+        print("error:",ex, file=sys.stderr)
 
     def  reportWarning(self, s):
-        print "warning:",s
+        print("warning:",s)
 
     def setASTFactory(self,f):
         self.astFactory = f
@@ -2162,20 +2157,20 @@ class TreeParser(object):
         self.astFactory.setASTNodeType(nodeType)
 
     def traceIndent(self):
-        print " " * self.traceDepth
+        print(" " * self.traceDepth)
 
     def traceIn(self,rname,t):
         self.traceDepth += 1
         self.traceIndent()
-        print("> " + rname + "(" +
+        print(("> " + rname + "(" +
               ifelse(t,str(t),"null") + ")" +
-              ifelse(self.inputState.guessing>0,"[guessing]",""))
+              ifelse(self.inputState.guessing>0,"[guessing]","")))
 
     def traceOut(self,rname,t):
         self.traceIndent()
-        print("< " + rname + "(" +
+        print(("< " + rname + "(" +
               ifelse(t,str(t),"null") + ")" +
-              ifelse(self.inputState.guessing>0,"[guessing]",""))
+              ifelse(self.inputState.guessing>0,"[guessing]","")))
         self.traceDepth -= 1
 
     ### wh: moved from ASTFactory to TreeParser
@@ -2280,9 +2275,6 @@ class AST(object):
 
     def getNumberOfChildren(self):
         return 0
-
-    def initialize(self, t, txt):
-        pass
 
     def initialize(self, t):
         pass
@@ -2722,7 +2714,7 @@ class ASTFactory(object):
 
     def error(self, e):
         import sys
-        print >> sys.stderr, e
+        print(e, file=sys.stderr)
 
     def setTokenTypeASTNodeType(self, tokenType, className):
         """
@@ -2771,13 +2763,13 @@ class ASTFactory(object):
     ### methods that have been moved to file scope - just listed
     ### here to be somewhat consistent with original API
     def dup(self,t):
-        return antlr.dup(t,self)
+        return dup(t,self)
 
     def dupList(self,t):
-        return antlr.dupList(t,self)
+        return dupList(t,self)
 
     def dupTree(self,t):
-        return antlr.dupTree(t,self)
+        return dupTree(t,self)
 
     ### methods moved to other classes
     ### 1. makeASTRoot  -> Parser

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from collections import Mapping
+from collections import Mapping, MutableMapping, Sequence
 from UserDict import UserDict
 from UserString import UserString
 from types import ClassType, NoneType
@@ -47,6 +48,10 @@ def is_unicode(item):
     return isinstance(item, unicode)
 
 
+def is_pathlike(item):
+    return False
+
+
 def is_list_like(item):
     if isinstance(item, (str, unicode, bytes, bytearray, UserString, String,
                          file)):
@@ -65,9 +70,10 @@ def is_dict_like(item):
     return isinstance(item, (Mapping, UserDict))
 
 
-def type_name(item):
+def type_name(item, capitalize=False):
     cls = item.__class__ if hasattr(item, '__class__') else type(item)
     named_types = {str: 'string', unicode: 'string', bool: 'boolean',
                    int: 'integer', long: 'integer', NoneType: 'None',
                    dict: 'dictionary', type: 'class', ClassType: 'class'}
-    return named_types.get(cls, cls.__name__)
+    name = named_types.get(cls, cls.__name__)
+    return name.capitalize() if capitalize and name.islower() else name

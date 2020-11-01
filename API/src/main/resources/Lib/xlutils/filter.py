@@ -1,6 +1,9 @@
+# Copyright (c) 2008-2009 Simplistix Ltd
+#
 # This Software is released under the MIT License:
 # http://www.opensource.org/licenses/mit-license.html
 # See license.txt for more details.
+from __future__ import print_function
 
 import logging
 import os
@@ -13,6 +16,9 @@ from tempfile import mkdtemp
 from xlutils.display import quoted_sheet_name,cell_display
 from xlutils.margins import cells_all_junk
 from xlwt.Style import default_style
+from .compat import xrange
+
+
 logger = logging.getLogger('xlutils.filter')
 
 class BaseReader:
@@ -620,7 +626,7 @@ class DirectoryWriter(BaseWriter):
         Returns a stream for the file in the configured directory
         with the specified name.
         """
-        return file(os.path.join(self.dir_path,filename),'wb')
+        return open(os.path.join(self.dir_path, filename), 'wb')
 
 class StreamWriter(BaseWriter):
     "A writer for writing exactly one workbook to the supplied stream"
@@ -694,8 +700,8 @@ class Echo(MethodFilter):
 
     def method(self,name,*args):
         if self.name:
-            print repr(self.name),
-        print "%s:%r"%(name,args)
+            print(repr(self.name), end=' ')
+        print("%s:%r" % (name, args))
         
 try:
     from guppy import hpy

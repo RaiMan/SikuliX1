@@ -1,12 +1,12 @@
 # -*- coding: windows-1252 -*-
 
-import ExcelFormulaParser, ExcelFormulaLexer
+from . import ExcelFormulaParser, ExcelFormulaLexer
 import struct
-from antlr import ANTLRException
+from .antlr import ANTLRException
 
 
 class Formula(object):
-    __slots__ = ["__init__",  "__s", "__parser", "__sheet_refs", "__xcall_refs"]
+    __slots__ = ["__s", "__parser", "__sheet_refs", "__xcall_refs"]
 
 
     def __init__(self, s):
@@ -17,9 +17,9 @@ class Formula(object):
             self.__parser.formula()
             self.__sheet_refs = self.__parser.sheet_references
             self.__xcall_refs = self.__parser.xcall_references
-        except ANTLRException, e:
+        except ANTLRException as e:
             # print e
-            raise ExcelFormulaParser.FormulaParseException, "can't parse formula " + s
+            raise ExcelFormulaParser.FormulaParseException("can't parse formula " + s)
 
     def get_references(self):
         return self.__sheet_refs, self.__xcall_refs

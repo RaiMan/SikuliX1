@@ -1,6 +1,10 @@
 # -*- coding: windows-1251 -*-
 
-from BIFFRecords import BiffRecord
+#  Portions are Copyright (C) 2005 Roman V. Kiseliov
+#  Portions are Copyright (c) 2004 Evgeny Filatov <fufff@users.sourceforge.net>
+#  Portions are Copyright (c) 2002-2004 John McNamara (Perl Spreadsheet::WriteExcel)
+
+from .BIFFRecords import BiffRecord
 from struct import pack, unpack
 
 
@@ -188,17 +192,17 @@ def _process_bitmap(bitmap):
 
     """
     # Open file and binmode the data in case the platform needs it.
-    fh = file(bitmap, "rb")
-    try:
+    with open(bitmap, "rb") as fh:
         # Slurp the file into a string.
         data = fh.read()
-    finally:
-        fh.close()
+    return _process_bitmap_data(data)
+
+def _process_bitmap_data(data):
     # Check that the file is big enough to be a bitmap.
     if len(data) <= 0x36:
         raise Exception("bitmap doesn't contain enough data.")
     # The first 2 bytes are used to identify the bitmap.
-    if (data[:2] != "BM"):
+    if (data[:2] != b"BM"):
         raise Exception("bitmap doesn't appear to to be a valid bitmap image.")
     # Remove bitmap data: ID.
     data = data[2:]
@@ -238,9 +242,27 @@ def _process_bitmap(bitmap):
     return (width, height, size, data)
 
 
-class ImDataBmpRecord(BiffRecord):
+class ImRawDataBmpRecord(BiffRecord):
     _REC_ID = 0x007F
 
+    def __init__(self, data):
+        """Insert a 24bit bitmap image in a worksheet. The main record required is
+        IMDATA but it must be proceeded by a OBJ record to define its position.
+
+        """
+        BiffRecord.__init__(self)
+
+        self.width, self.height, self.size, data = _process_bitmap_data(data)
+        self._write_imdata(data)
+
+    def _write_imdata(self, data):
+        # Write the IMDATA record to store the bitmap data
+        cf = 0x09
+        env = 0x01
+        lcb = self.size
+        self._rec_data = pack("<HHL", cf, env, lcb) + data
+
+class ImDataBmpRecord(ImRawDataBmpRecord):
     def __init__(self, filename):
         """Insert a 24bit bitmap image in a worksheet. The main record required is
         IMDATA but it must be proceeded by a OBJ record to define its position.
@@ -249,10 +271,5 @@ class ImDataBmpRecord(BiffRecord):
         BiffRecord.__init__(self)
 
         self.width, self.height, self.size, data = _process_bitmap(filename)
-        # Write the IMDATA record to store the bitmap data
-        cf = 0x09
-        env = 0x01
-        lcb = self.size
-        self._rec_data = pack("<HHL", cf, env, lcb) + data
-
+        self._write_imdata(data)
 

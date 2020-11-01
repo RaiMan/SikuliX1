@@ -1,7 +1,9 @@
+from __future__ import print_function
 # -*- coding: windows-1252 -*-
 
-import Formatting
-from BIFFRecords import NumberFormatRecord, XFRecord, StyleRecord
+from . import Formatting
+from .BIFFRecords import NumberFormatRecord, XFRecord, StyleRecord
+from .compat import basestring, xrange
 
 FIRST_USER_DEFINED_NUM_FORMAT_IDX = 164
 
@@ -128,7 +130,7 @@ class StyleCollection(object):
             xf_index = self._xf_id2x[xf]
             self.stats[3] += 1
         elif self.style_compression == 2:
-            xf_key = (font_idx, num_format_idx) + tuple([obj._search_key() for obj in gof])
+            xf_key = (font_idx, num_format_idx) + tuple(obj._search_key() for obj in gof)
             xf_index = self._xf_val2x.get(xf_key)
             if xf_index is not None:
                 self._xf_id2x[xf] = xf_index
@@ -178,7 +180,7 @@ class StyleCollection(object):
 
 
     def get_biff_data(self):
-        result = ''
+        result = b''
         result += self._all_fonts()
         result += self._all_num_formats()
         result += self._all_cell_styles()
@@ -186,18 +188,17 @@ class StyleCollection(object):
         return result
 
     def _all_fonts(self):
-        result = ''
+        result = b''
         if self.style_compression:
-            alist = self._font_x2id.items()
+            fonts = self._font_x2id.items()
         else:
-            alist = [(x, o) for o, x in self._font_id2x.items()]
-        alist.sort()
-        for font_idx, font in alist:
+            fonts = [(x, o) for o, x in self._font_id2x.items()]
+        for font_idx, font in sorted(fonts):
             result += font.get_biff_record().get()
         return result
 
     def _all_num_formats(self):
-        result = ''
+        result = b''
         alist = [
             (v, k)
             for k, v in self._num_formats.items()
@@ -209,15 +210,14 @@ class StyleCollection(object):
         return result
 
     def _all_cell_styles(self):
-        result = ''
+        result = b''
         for i in range(0, 16):
             result += XFRecord(self._default_xf, 'style').get()
         if self.style_compression == 2:
-            alist = self._xf_x2id.items()
+            styles = self._xf_x2id.items()
         else:
-            alist = [(x, o) for o, x in self._xf_id2x.items()]
-        alist.sort()
-        for xf_idx, xf in alist:
+            styles = [(x, o) for o, x in self._xf_id2x.items()]
+        for xf_idx, xf in sorted(styles):
             result += XFRecord(xf).get()
         return result
 
@@ -691,11 +691,40 @@ def _parse_strg_to_obj(strg, obj, parse_dict,
                 orig = getattr(section_obj, k)
             except AttributeError:
                 raise EasyXFAuthorError('%s.%s in dictionary but not in supplied object' % (section, k))
-            if debug: print "+++ %s.%s = %r # %s; was %r" % (section, k, value, v, orig)
+            if debug: print("+++ %s.%s = %r # %s; was %r" % (section, k, value, v, orig))
             setattr(section_obj, k, value)
 
 def easyxf(strg_to_parse="", num_format_str=None,
-    field_sep=",", line_sep=";", intro_sep=":", esc_char="\\", debug=False):
+           field_sep=",", line_sep=";", intro_sep=":", esc_char="\\", debug=False):
+    """
+    This function is used to create and configure
+    :class:`XFStyle` objects for use with (for example) the
+    :meth:`Worksheet.write` method.
+
+    It takes a string to be parsed to obtain attribute values for
+    :class:`Alignment`, :class:`Borders`, :class:`Font`, :class:`Pattern` and
+    :class:`Protection` objects.
+
+    Refer to the examples in the file `examples/xlwt_easyxf_simple_demo.py`
+    and to the `xf_dict` dictionary in :mod:`xlwt.Style`.
+
+    Various synonyms including color/colour, center/centre and gray/grey are
+    allowed. Case is irrelevant (except maybe in font names). ``-`` may be used
+    instead of ``_``.
+
+    Example: ``font: bold on; align: wrap on, vert centre, horiz center``
+
+    :param num_format_str:
+
+      To get the "number format string" of an existing
+      cell whose format you want to reproduce, select the cell and click on
+      Format/Cells/Number/Custom. Otherwise, refer to Excel help.
+
+      Examples: ``"#,##0.00"``, ``"dd/mm/yyyy"``
+
+    :return: An :class:`XFstyle` object.
+
+    """
     xfobj = XFStyle()
     if num_format_str is not None:
         xfobj.num_format_str = num_format_str

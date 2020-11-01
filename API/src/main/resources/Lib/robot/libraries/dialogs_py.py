@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -74,8 +75,9 @@ class _TkDialog(Toplevel):
         return x, y
 
     def _bring_to_front(self):
+        self.lift()
         self.attributes('-topmost', True)
-        self.attributes('-topmost', False)
+        self.after_idle(self.attributes, '-topmost', False)
 
     def _create_body(self, message, value, **extra):
         frame = Frame(self)

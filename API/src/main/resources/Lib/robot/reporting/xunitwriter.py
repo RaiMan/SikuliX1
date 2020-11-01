@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -25,7 +26,8 @@ class XUnitWriter(object):
         self._skip_noncritical = skip_noncritical
 
     def write(self, output):
-        writer = XUnitFileWriter(XmlWriter(output), self._skip_noncritical)
+        xml_writer = XmlWriter(output, usage='xunit')
+        writer = XUnitFileWriter(xml_writer, self._skip_noncritical)
         self._execution_result.visit(writer)
 
 

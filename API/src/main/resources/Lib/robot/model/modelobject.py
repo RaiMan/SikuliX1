@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 import copy
 
-from robot.utils import SetterAwareType, py2to3, with_metaclass
+from robot.utils import SetterAwareType, py2to3, unicode, with_metaclass
 
 
 @py2to3
@@ -59,7 +60,7 @@ class ModelObject(with_metaclass(SetterAwareType, object)):
         return self.name
 
     def __repr__(self):
-        return repr(str(self))
+        return repr(unicode(self))
 
     def __setstate__(self, state):
         """Customize attribute updating when using the `copy` module.

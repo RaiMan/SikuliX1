@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -27,19 +28,21 @@ if IRONPYTHON and PY_VERSION < (2, 7, 2):
 class JsExecutionResult(object):
 
     def __init__(self, suite, statistics, errors, strings, basemillis=None,
-                 split_results=None, min_level=None):
+                 split_results=None, min_level=None, expand_keywords=None):
         self.suite = suite
         self.strings = strings
         self.min_level = min_level
-        self.data = self._get_data(statistics, errors, basemillis or 0)
+        self.data = self._get_data(statistics, errors, basemillis or 0,
+                                   expand_keywords)
         self.split_results = split_results or []
 
-    def _get_data(self, statistics, errors, basemillis):
+    def _get_data(self, statistics, errors, basemillis, expand_keywords):
         return OrderedDict([
             ('stats', statistics),
             ('errors', errors),
             ('baseMillis', basemillis),
-            ('generated', int(time.time() * 1000) - basemillis)
+            ('generated', int(time.time() * 1000) - basemillis),
+            ('expand_keywords', expand_keywords)
         ])
 
     def remove_data_not_needed_in_report(self):

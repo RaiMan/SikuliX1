@@ -1,38 +1,20 @@
-# -*- coding: cp1252 -*-
-
-##
-##
-
-# 2010-04-25 SJM fix zoom factors cooking logic
-# 2010-04-15 CW  r4253 fix zoom factors cooking logic
-# 2010-04-09 CW  r4248 add a flag so xlutils knows whether or not to write a PANE record
-# 2010-03-29 SJM Fixed bug in adding new empty rows in put_cell_ragged
-# 2010-03-28 SJM Tailored put_cell method for each of ragged_rows=False (fixed speed regression) and =True (faster)
-# 2010-03-25 CW  r4236 Slight refactoring to remove method calls
-# 2010-03-25 CW  r4235 Collapse expand_cells into put_cell and enhance the raggedness. This should save even more memory!
-# 2010-03-25 CW  r4234 remove duplicate chunks for extend_cells; refactor to remove put_number_cell and put_blank_cell which essentially duplicated the code of put_cell
-# 2010-03-10 SJM r4222 Added reading of the PANE record.
-# 2010-03-10 SJM r4221 Preliminary work on "cooked" mag factors; use at own peril
-# 2010-03-01 SJM Reading SCL record
-# 2010-03-01 SJM Added ragged_rows functionality
-# 2009-08-23 SJM Reduced CPU time taken by parsing MULBLANK records.
-# 2009-08-18 SJM Used __slots__ and sharing to reduce memory consumed by Rowinfo instances
-# 2009-05-31 SJM Fixed problem with no CODEPAGE record on extremely minimal BIFF2.x 3rd-party file
-# 2009-04-27 SJM Integrated on_demand patch by Armando Serrano Lombillo
-# 2008-02-09 SJM Excel 2.0: build XFs on the fly from cell attributes
-# 2007-12-04 SJM Added support for Excel 2.x (BIFF2) files.
-# 2007-10-11 SJM Added missing entry for blank cell type to ctype_text
-# 2007-07-11 SJM Allow for BIFF2/3-style FORMAT record in BIFF4/8 file
-# 2007-04-22 SJM Remove experimental "trimming" facility.
+# -*- coding: utf-8 -*-
+# Copyright (c) 2005-2013 Stephen John Machin, Lingfo Pty Ltd
+# This module is part of the xlrd package, which is released under a
+# BSD-style licence.
 
 from __future__ import print_function
 
 from array import array
-from struct import unpack, calcsize
+from struct import calcsize, unpack
+
 from .biffh import *
+from .formatting import Format, nearest_colour_index
+from .formula import (
+    FMLA_TYPE_CELL, FMLA_TYPE_SHARED, decompile_formula, dump_formula,
+    rangename2d,
+)
 from .timemachine import *
-from .formula import dump_formula, decompile_formula, rangename2d, FMLA_TYPE_CELL, FMLA_TYPE_SHARED
-from .formatting import nearest_colour_index, Format
 
 DEBUG = 0
 OBJ_MSO_DEBUG = 0
@@ -61,242 +43,278 @@ _WINDOW2_options = (
     # The real thing is the visibility attribute from the BOUNDSHEET record.
     ("sheet_visible", 0),
     ("show_in_page_break_preview", 0),
-    )
+)
 
-##
-# <p>Contains the data for one worksheet.</p>
-#
-# <p>In the cell access functions, "rowx" is a row index, counting from zero, and "colx" is a
-# column index, counting from zero.
-# Negative values for row/column indexes and slice positions are supported in the expected fashion.</p>
-#
-# <p>For information about cell types and cell values, refer to the documentation of the {@link #Cell} class.</p>
-#
-# <p>WARNING: You don't call this class yourself. You access Sheet objects via the Book object that
-# was returned when you called xlrd.open_workbook("myfile.xls").</p>
 
 
 class Sheet(BaseObject):
-    ##
-    # Name of sheet.
+    """
+    Contains the data for one worksheet.
+
+    In the cell access functions, ``rowx`` is a row index, counting from
+    zero, and ``colx`` is a column index, counting from zero.
+    Negative values for row/column indexes and slice positions are supported in
+    the expected fashion.
+
+    For information about cell types and cell values, refer to the documentation
+    of the :class:`Cell` class.
+
+    .. warning::
+
+      You don't instantiate this class yourself. You access :class:`Sheet`
+      objects via the :class:`~xlrd.book.Book` object that
+      was returned when you called :func:`xlrd.open_workbook`.
+    """
+
+    #: Name of sheet.
     name = ''
 
-    ##
-    # A reference to the Book object to which this sheet belongs.
-    # Example usage: some_sheet.book.datemode
+    #: A reference to the :class:`~xlrd.book.Book` object to which this sheet
+    #: belongs.
+    #:
+    #: Example usage: ``some_sheet.book.datemode``
     book = None
-    
-    ##
-    # Number of rows in sheet. A row index is in range(thesheet.nrows).
+
+    #: Number of rows in sheet. A row index is in ``range(thesheet.nrows)``.
     nrows = 0
 
-    ##
-    # Nominal number of columns in sheet. It is 1 + the maximum column index
-    # found, ignoring trailing empty cells. See also open_workbook(ragged_rows=?)
-    # and Sheet.{@link #Sheet.row_len}(row_index).
+    #: Nominal number of columns in sheet. It is one more than the maximum
+    #: column index found, ignoring trailing empty cells.
+    #: See also the ``ragged_rows`` parameter to :func:`~xlrd.open_workbook`
+    #: and :meth:`~xlrd.sheet.Sheet.row_len`.
     ncols = 0
 
-    ##
-    # The map from a column index to a {@link #Colinfo} object. Often there is an entry
-    # in COLINFO records for all column indexes in range(257).
-    # Note that xlrd ignores the entry for the non-existent
-    # 257th column. On the other hand, there may be no entry for unused columns.
-    # <br /> -- New in version 0.6.1. Populated only if open_workbook(formatting_info=True).
+
+    #: The map from a column index to a :class:`Colinfo` object. Often there is
+    #: an entry in ``COLINFO`` records for all column indexes in ``range(257)``.
+    #:
+    #: .. note::
+    #:   xlrd ignores the entry for the non-existent
+    #:   257th column.
+    #:
+    #: On the other hand, there may be no entry for unused columns.
+    #:
+    #: .. versionadded:: 0.6.1
+    #:
+    #: Populated only if ``open_workbook(..., formatting_info=True)``
     colinfo_map = {}
 
-    ##
-    # The map from a row index to a {@link #Rowinfo} object. Note that it is possible
-    # to have missing entries -- at least one source of XLS files doesn't
-    # bother writing ROW records.
-    # <br /> -- New in version 0.6.1. Populated only if open_workbook(formatting_info=True).
+    #: The map from a row index to a :class:`Rowinfo` object.
+    #:
+    #: ..note::
+    #:   It is possible to have missing entries -- at least one source of
+    #:   XLS files doesn't bother writing ``ROW`` records.
+    #:
+    #: .. versionadded:: 0.6.1
+    #:
+    #: Populated only if ``open_workbook(..., formatting_info=True)``
     rowinfo_map = {}
 
-    ##
-    # List of address ranges of cells containing column labels.
-    # These are set up in Excel by Insert > Name > Labels > Columns.
-    # <br> -- New in version 0.6.0
-    # <br>How to deconstruct the list:
-    # <pre>
-    # for crange in thesheet.col_label_ranges:
-    #     rlo, rhi, clo, chi = crange
-    #     for rx in xrange(rlo, rhi):
-    #         for cx in xrange(clo, chi):
-    #             print "Column label at (rowx=%d, colx=%d) is %r" \
-    #                 (rx, cx, thesheet.cell_value(rx, cx))
-    # </pre>
+    #: List of address ranges of cells containing column labels.
+    #: These are set up in Excel by Insert > Name > Labels > Columns.
+    #:
+    #: .. versionadded:: 0.6.0
+    #:
+    #: How to deconstruct the list:
+    #:
+    #: .. code-block:: python
+    #:
+    #:   for crange in thesheet.col_label_ranges:
+    #:       rlo, rhi, clo, chi = crange
+    #:       for rx in xrange(rlo, rhi):
+    #:           for cx in xrange(clo, chi):
+    #:               print "Column label at (rowx=%d, colx=%d) is %r" \
+    #:                   (rx, cx, thesheet.cell_value(rx, cx))
     col_label_ranges = []
 
-    ##
-    # List of address ranges of cells containing row labels.
-    # For more details, see <i>col_label_ranges</i> above.
-    # <br> -- New in version 0.6.0
+    #: List of address ranges of cells containing row labels.
+    #: For more details, see :attr:`col_label_ranges`.
+    #:
+    #: .. versionadded:: 0.6.0
     row_label_ranges = []
 
-    ##
-    # List of address ranges of cells which have been merged.
-    # These are set up in Excel by Format > Cells > Alignment, then ticking
-    # the "Merge cells" box.
-    # <br> -- New in version 0.6.1. Extracted only if open_workbook(formatting_info=True).
-    # <br>How to deconstruct the list:
-    # <pre>
-    # for crange in thesheet.merged_cells:
-    #     rlo, rhi, clo, chi = crange
-    #     for rowx in xrange(rlo, rhi):
-    #         for colx in xrange(clo, chi):
-    #             # cell (rlo, clo) (the top left one) will carry the data
-    #             # and formatting info; the remainder will be recorded as
-    #             # blank cells, but a renderer will apply the formatting info
-    #             # for the top left cell (e.g. border, pattern) to all cells in
-    #             # the range.
-    # </pre>
+    #: List of address ranges of cells which have been merged.
+    #: These are set up in Excel by Format > Cells > Alignment, then ticking
+    #: the "Merge cells" box.
+    #:
+    #: .. note::
+    #:   The upper limits are exclusive: i.e. ``[2, 3, 7, 9]`` only
+    #:   spans two cells.
+    #:
+    #: .. note:: Extracted only if ``open_workbook(..., formatting_info=True)``
+    #:
+    #: .. versionadded:: 0.6.1
+    #:
+    #: How to deconstruct the list:
+    #:
+    #: .. code-block:: python
+    #:
+    #:   for crange in thesheet.merged_cells:
+    #:       rlo, rhi, clo, chi = crange
+    #:       for rowx in xrange(rlo, rhi):
+    #:           for colx in xrange(clo, chi):
+    #:               # cell (rlo, clo) (the top left one) will carry the data
+    #:               # and formatting info; the remainder will be recorded as
+    #:               # blank cells, but a renderer will apply the formatting info
+    #:               # for the top left cell (e.g. border, pattern) to all cells in
+    #:               # the range.
     merged_cells = []
-    
-    ##
-    # Mapping of (rowx, colx) to list of (offset, font_index) tuples. The offset
-    # defines where in the string the font begins to be used.
-    # Offsets are expected to be in ascending order.
-    # If the first offset is not zero, the meaning is that the cell's XF's font should
-    # be used from offset 0.
-    # <br /> This is a sparse mapping. There is no entry for cells that are not formatted with  
-    # rich text.
-    # <br>How to use:
-    # <pre>
-    # runlist = thesheet.rich_text_runlist_map.get((rowx, colx))
-    # if runlist:
-    #     for offset, font_index in runlist:
-    #         # do work here.
-    #         pass
-    # </pre>
-    # Populated only if open_workbook(formatting_info=True).
-    # <br /> -- New in version 0.7.2.
-    # <br /> &nbsp;
-    rich_text_runlist_map = {}    
 
-    ##
-    # Default column width from DEFCOLWIDTH record, else None.
-    # From the OOo docs:<br />
-    # """Column width in characters, using the width of the zero character
-    # from default font (first FONT record in the file). Excel adds some
-    # extra space to the default width, depending on the default font and
-    # default font size. The algorithm how to exactly calculate the resulting
-    # column width is not known.<br />
-    # Example: The default width of 8 set in this record results in a column
-    # width of 8.43 using Arial font with a size of 10 points."""<br />
-    # For the default hierarchy, refer to the {@link #Colinfo} class.
-    # <br /> -- New in version 0.6.1
+    #: Mapping of ``(rowx, colx)`` to list of ``(offset, font_index)`` tuples.
+    #: The offset defines where in the string the font begins to be used.
+    #: Offsets are expected to be in ascending order.
+    #: If the first offset is not zero, the meaning is that the cell's ``XF``'s
+    #: font should be used from offset 0.
+    #:
+    #: This is a sparse mapping. There is no entry for cells that are not
+    #: formatted with rich text.
+    #:
+    #: How to use:
+    #:
+    #: .. code-block:: python
+    #:
+    #:   runlist = thesheet.rich_text_runlist_map.get((rowx, colx))
+    #:   if runlist:
+    #:       for offset, font_index in runlist:
+    #:           # do work here.
+    #:           pass
+    #:
+    #: .. versionadded:: 0.7.2
+    #:
+    #: Populated only if ``open_workbook(..., formatting_info=True)``
+    rich_text_runlist_map = {}
+
+    #: Default column width from ``DEFCOLWIDTH`` record, else ``None``.
+    #: From the OOo docs:
+    #:
+    #:   Column width in characters, using the width of the zero character
+    #:   from default font (first FONT record in the file). Excel adds some
+    #:   extra space to the default width, depending on the default font and
+    #:   default font size. The algorithm how to exactly calculate the resulting
+    #:   column width is not known.
+    #:   Example: The default width of 8 set in this record results in a column
+    #:   width of 8.43 using Arial font with a size of 10 points.
+    #:
+    #: For the default hierarchy, refer to the :class:`Colinfo` class.
+    #:
+    #: .. versionadded:: 0.6.1
     defcolwidth = None
 
-    ##
-    # Default column width from STANDARDWIDTH record, else None.
-    # From the OOo docs:<br />
-    # """Default width of the columns in 1/256 of the width of the zero
-    # character, using default font (first FONT record in the file)."""<br />
-    # For the default hierarchy, refer to the {@link #Colinfo} class.
-    # <br /> -- New in version 0.6.1
+    #: Default column width from ``STANDARDWIDTH`` record, else ``None``.
+    #:
+    #: From the OOo docs:
+    #:
+    #:   Default width of the columns in 1/256 of the width of the zero
+    #:   character, using default font (first FONT record in the file).
+    #:
+    #: For the default hierarchy, refer to the :class:`Colinfo` class.
+    #:
+    #: .. versionadded:: 0.6.1
     standardwidth = None
 
-    ##
-    # Default value to be used for a row if there is
-    # no ROW record for that row.
-    # From the <i>optional</i> DEFAULTROWHEIGHT record.
+    #: Default value to be used for a row if there is
+    #: no ``ROW`` record for that row.
+    #: From the *optional* ``DEFAULTROWHEIGHT`` record.
     default_row_height = None
 
-    ##
-    # Default value to be used for a row if there is
-    # no ROW record for that row.
-    # From the <i>optional</i> DEFAULTROWHEIGHT record.
+    #: Default value to be used for a row if there is
+    #: no ``ROW`` record for that row.
+    #: From the *optional* ``DEFAULTROWHEIGHT`` record.
     default_row_height_mismatch = None
 
-    ##
-    # Default value to be used for a row if there is
-    # no ROW record for that row.
-    # From the <i>optional</i> DEFAULTROWHEIGHT record.
+    #: Default value to be used for a row if there is
+    #: no ``ROW`` record for that row.
+    #: From the *optional* ``DEFAULTROWHEIGHT`` record.
     default_row_hidden = None
 
-    ##
-    # Default value to be used for a row if there is
-    # no ROW record for that row.
-    # From the <i>optional</i> DEFAULTROWHEIGHT record.
+    #: Default value to be used for a row if there is
+    #: no ``ROW`` record for that row.
+    #: From the *optional* ``DEFAULTROWHEIGHT`` record.
     default_additional_space_above = None
 
-    ##
-    # Default value to be used for a row if there is
-    # no ROW record for that row.
-    # From the <i>optional</i> DEFAULTROWHEIGHT record.
+    #: Default value to be used for a row if there is
+    #: no ``ROW`` record for that row.
+    #: From the *optional* ``DEFAULTROWHEIGHT`` record.
     default_additional_space_below = None
 
-    ##
-    # Visibility of the sheet. 0 = visible, 1 = hidden (can be unhidden
-    # by user -- Format/Sheet/Unhide), 2 = "very hidden" (can be unhidden
-    # only by VBA macro).
+    #: Visibility of the sheet::
+    #:
+    #:   0 = visible
+    #:   1 = hidden (can be unhidden by user -- Format -> Sheet -> Unhide)
+    #:   2 = "very hidden" (can be unhidden only by VBA macro).
     visibility = 0
 
-    ##
-    # A 256-element tuple corresponding to the contents of the GCW record for this sheet.
-    # If no such record, treat as all bits zero.
-    # Applies to BIFF4-7 only. See docs of the {@link #Colinfo} class for discussion.
+    #: A 256-element tuple corresponding to the contents of the GCW record for
+    #: this sheet. If no such record, treat as all bits zero.
+    #: Applies to BIFF4-7 only. See docs of the :class:`Colinfo` class for
+    #: discussion.
     gcw = (0, ) * 256
 
-    ##
-    # <p>A list of {@link #Hyperlink} objects corresponding to HLINK records found
-    # in the worksheet.<br />-- New in version 0.7.2 </p>
+    #: A list of :class:`Hyperlink` objects corresponding to ``HLINK`` records
+    #: found in the worksheet.
+    #:
+    #: .. versionadded:: 0.7.2
     hyperlink_list = []
 
-    ##
-    # <p>A sparse mapping from (rowx, colx) to an item in {@link #Sheet.hyperlink_list}.
-    # Cells not covered by a hyperlink are not mapped.
-    # It is possible using the Excel UI to set up a hyperlink that 
-    # covers a larger-than-1x1 rectangle of cells.
-    # Hyperlink rectangles may overlap (Excel doesn't check).
-    # When a multiply-covered cell is clicked on, the hyperlink that is activated
-    # (and the one that is mapped here) is the last in hyperlink_list.
-    # <br />-- New in version 0.7.2 </p>
+    #: A sparse mapping from ``(rowx, colx)`` to an item in
+    #: :attr:`~xlrd.sheet.Sheet.hyperlink_list`.
+    #: Cells not covered by a hyperlink are not mapped.
+    #: It is possible using the Excel UI to set up a hyperlink that
+    #: covers a larger-than-1x1 rectangle of cells.
+    #: Hyperlink rectangles may overlap (Excel doesn't check).
+    #: When a multiply-covered cell is clicked on, the hyperlink that is
+    #: activated
+    #: (and the one that is mapped here) is the last in
+    #: :attr:`~xlrd.sheet.Sheet.hyperlink_list`.
+    #:
+    #: .. versionadded:: 0.7.2
     hyperlink_map = {}
 
-    ##
-    # <p>A sparse mapping from (rowx, colx) to a {@link #Note} object.
-    # Cells not containing a note ("comment") are not mapped.
-    # <br />-- New in version 0.7.2 </p>
-    cell_note_map = {}    
-    
-    ##
-    # Number of columns in left pane (frozen panes; for split panes, see comments below in code)
+    #: A sparse mapping from ``(rowx, colx)`` to a :class:`Note` object.
+    #: Cells not containing a note ("comment") are not mapped.
+    #:
+    #: .. versionadded:: 0.7.2
+    cell_note_map = {}
+
+    #: Number of columns in left pane (frozen panes; for split panes, see
+    #: comments in code)
     vert_split_pos = 0
 
-    ##
-    # Number of rows in top pane (frozen panes; for split panes, see comments below in code)
+    #: Number of rows in top pane (frozen panes; for split panes, see comments
+    #: in code)
     horz_split_pos = 0
 
-    ##
-    # Index of first visible row in bottom frozen/split pane
+    #: Index of first visible row in bottom frozen/split pane
     horz_split_first_visible = 0
 
-    ##
-    # Index of first visible column in right frozen/split pane
+    #: Index of first visible column in right frozen/split pane
     vert_split_first_visible = 0
 
-    ##
-    # Frozen panes: ignore it. Split panes: explanation and diagrams in OOo docs.
+    #: Frozen panes: ignore it. Split panes: explanation and diagrams in
+    #: OOo docs.
     split_active_pane = 0
 
-    ##
-    # Boolean specifying if a PANE record was present, ignore unless you're xlutils.copy
+    #: Boolean specifying if a ``PANE`` record was present, ignore unless you're
+    #: ``xlutils.copy``
     has_pane_record = 0
 
-    ##
-    # A list of the horizontal page breaks in this sheet.
-    # Breaks are tuples in the form (index of row after break, start col index, end col index).
-    # Populated only if open_workbook(formatting_info=True).
-    # <br /> -- New in version 0.7.2
+    #: A list of the horizontal page breaks in this sheet.
+    #: Breaks are tuples in the form
+    #: ``(index of row after break, start col index, end col index)``.
+    #:
+    #: Populated only if ``open_workbook(..., formatting_info=True)``
+    #:
+    #: .. versionadded:: 0.7.2
     horizontal_page_breaks = []
 
-    ##
-    # A list of the vertical page breaks in this sheet.
-    # Breaks are tuples in the form (index of col after break, start row index, end row index).
-    # Populated only if open_workbook(formatting_info=True).
-    # <br /> -- New in version 0.7.2
+    #: A list of the vertical page breaks in this sheet.
+    #: Breaks are tuples in the form
+    #: ``(index of col after break, start row index, end row index)``.
+    #:
+    #: Populated only if ``open_workbook(..., formatting_info=True)``
+    #:
+    #: .. versionadded:: 0.7.2
     vertical_page_breaks = []
-
 
     def __init__(self, book, position, name, number):
         self.book = book
@@ -362,15 +380,12 @@ class Sheet(BaseObject):
         self.cooked_normal_view_mag_factor = 100
 
         # Values (if any) actually stored on the XLS file
-        self.cached_page_break_preview_mag_factor = None # from WINDOW2 record
-        self.cached_normal_view_mag_factor = None # from WINDOW2 record
+        self.cached_page_break_preview_mag_factor = 0  # default (60%), from WINDOW2 record
+        self.cached_normal_view_mag_factor = 0  # default (100%), from WINDOW2 record
         self.scl_mag_factor = None # from SCL record
 
         self._ixfe = None # BIFF2 only
         self._cell_attr_to_xfx = {} # BIFF2.0 only
-
-        #### Don't initialise this here, use class attribute initialisation.
-        #### self.gcw = (0, ) * 256 ####
 
         if self.biff_version >= 80:
             self.utter_max_rows = 65536
@@ -385,10 +400,10 @@ class Sheet(BaseObject):
         # self._put_cell_rows_appended = 0
         # self._put_cell_cells_appended = 0
 
-
-    ##
-    # {@link #Cell} object in the given row and column.
     def cell(self, rowx, colx):
+        """
+        :class:`Cell` object in the given row and column.
+        """
         if self.formatting_info:
             xfx = self.cell_xf_index(rowx, colx)
         else:
@@ -397,24 +412,27 @@ class Sheet(BaseObject):
             self._cell_types[rowx][colx],
             self._cell_values[rowx][colx],
             xfx,
-            )
+        )
 
-    ##
-    # Value of the cell in the given row and column.
     def cell_value(self, rowx, colx):
+        "Value of the cell in the given row and column."
         return self._cell_values[rowx][colx]
 
-    ##
-    # Type of the cell in the given row and column.
-    # Refer to the documentation of the {@link #Cell} class.
     def cell_type(self, rowx, colx):
+        """
+        Type of the cell in the given row and column.
+
+        Refer to the documentation of the :class:`Cell` class.
+        """
         return self._cell_types[rowx][colx]
 
-    ##
-    # XF index of the cell in the given row and column.
-    # This is an index into Book.{@link #Book.xf_list}.
-    # <br /> -- New in version 0.6.1
     def cell_xf_index(self, rowx, colx):
+        """
+        XF index of the cell in the given row and column.
+        This is an index into :attr:`~xlrd.book.Book.xf_list`.
+
+        .. versionadded:: 0.6.1
+        """
         self.req_fmt_info()
         xfx = self._cell_xf_indexes[rowx][colx]
         if xfx > -1:
@@ -439,41 +457,49 @@ class Sheet(BaseObject):
             self._xf_index_stats[3] += 1
             return 15
 
-    ##
-    # Returns the effective number of cells in the given row. For use with
-    # open_workbook(ragged_rows=True) which is likely to produce rows
-    # with fewer than {@link #Sheet.ncols} cells.
-    # <br /> -- New in version 0.7.2
     def row_len(self, rowx):
+        """
+        Returns the effective number of cells in the given row. For use with
+        ``open_workbook(ragged_rows=True)`` which is likely to produce rows
+        with fewer than :attr:`~Sheet.ncols` cells.
+
+        .. versionadded:: 0.7.2
+        """
         return len(self._cell_values[rowx])
 
-    ##
-    # Returns a sequence of the {@link #Cell} objects in the given row.
     def row(self, rowx):
+        """
+        Returns a sequence of the :class:`Cell` objects in the given row.
+        """
         return [
             self.cell(rowx, colx)
             for colx in xrange(len(self._cell_values[rowx]))
-            ]
+        ]
 
-    ##
-    # Returns a slice of the types
-    # of the cells in the given row.
+    def get_rows(self):
+        "Returns a generator for iterating through each row."
+        return (self.row(index) for index in range(self.nrows))
+
     def row_types(self, rowx, start_colx=0, end_colx=None):
+        """
+        Returns a slice of the types of the cells in the given row.
+        """
         if end_colx is None:
             return self._cell_types[rowx][start_colx:]
         return self._cell_types[rowx][start_colx:end_colx]
 
-    ##
-    # Returns a slice of the values
-    # of the cells in the given row.
     def row_values(self, rowx, start_colx=0, end_colx=None):
+        """
+        Returns a slice of the values of the cells in the given row.
+        """
         if end_colx is None:
             return self._cell_values[rowx][start_colx:]
         return self._cell_values[rowx][start_colx:end_colx]
 
-    ##
-    # Returns a slice of the {@link #Cell} objects in the given row.
     def row_slice(self, rowx, start_colx=0, end_colx=None):
+        """
+        Returns a slice of the :class:`Cell` objects in the given row.
+        """
         nc = len(self._cell_values[rowx])
         if start_colx < 0:
             start_colx += nc
@@ -486,11 +512,12 @@ class Sheet(BaseObject):
         return [
             self.cell(rowx, colx)
             for colx in xrange(start_colx, end_colx)
-            ]
+        ]
 
-    ##
-    # Returns a slice of the {@link #Cell} objects in the given column.
     def col_slice(self, colx, start_rowx=0, end_rowx=None):
+        """
+        Returns a slice of the :class:`Cell` objects in the given column.
+        """
         nr = self.nrows
         if start_rowx < 0:
             start_rowx += nr
@@ -503,11 +530,12 @@ class Sheet(BaseObject):
         return [
             self.cell(rowx, colx)
             for rowx in xrange(start_rowx, end_rowx)
-            ]
+        ]
 
-    ##
-    # Returns a slice of the values of the cells in the given column.
     def col_values(self, colx, start_rowx=0, end_rowx=None):
+        """
+        Returns a slice of the values of the cells in the given column.
+        """
         nr = self.nrows
         if start_rowx < 0:
             start_rowx += nr
@@ -520,11 +548,12 @@ class Sheet(BaseObject):
         return [
             self._cell_values[rowx][colx]
             for rowx in xrange(start_rowx, end_rowx)
-            ]
+        ]
 
-    ##
-    # Returns a slice of the types of the cells in the given column.
     def col_types(self, colx, start_rowx=0, end_rowx=None):
+        """
+        Returns a slice of the types of the cells in the given column.
+        """
         nr = self.nrows
         if start_rowx < 0:
             start_rowx += nr
@@ -537,13 +566,8 @@ class Sheet(BaseObject):
         return [
             self._cell_types[rowx][colx]
             for rowx in xrange(start_rowx, end_rowx)
-            ]
+        ]
 
-    ##
-    # Returns a sequence of the {@link #Cell} objects in the given column.
-    def col(self, colx):
-        return self.col_slice(colx)
-    # Above two lines just for the docs. Here's the real McCoy:
     col = col_slice
 
     # === Following methods are used in building the worksheet.
@@ -551,18 +575,18 @@ class Sheet(BaseObject):
 
     def tidy_dimensions(self):
         if self.verbosity >= 3:
-            fprintf(self.logfile,
+            fprintf(
+                self.logfile,
                 "tidy_dimensions: nrows=%d ncols=%d \n",
                 self.nrows, self.ncols,
-                )
+            )
         if 1 and self.merged_cells:
             nr = nc = 0
             umaxrows = self.utter_max_rows
             umaxcols = self.utter_max_cols
             for crange in self.merged_cells:
                 rlo, rhi, clo, chi = crange
-                if not (0 <= rlo < rhi <= umaxrows) \
-                or not (0 <= clo < chi <= umaxcols):
+                if not (0 <= rlo < rhi <= umaxrows) or not (0 <= clo < chi <= umaxcols):
                     fprintf(self.logfile,
                         "*** WARNING: sheet #%d (%r), MERGEDCELLS bad range %r\n",
                         self.number, self.name, crange)
@@ -570,14 +594,16 @@ class Sheet(BaseObject):
                 if chi > nc: nc = chi
             if nc > self.ncols:
                 self.ncols = nc
+                self._first_full_rowx = -2
             if nr > self.nrows:
                 # we put one empty cell at (nr-1,0) to make sure
                 # we have the right number of rows. The ragged rows
                 # will sort out the rest if needed.
-                self.put_cell(nr-1, 0, XL_CELL_EMPTY, '', -1)
-        if self.verbosity >= 1 \
-        and (self.nrows != self._dimnrows or self.ncols != self._dimncols):
-            fprintf(self.logfile,
+                self.put_cell(nr-1, 0, XL_CELL_EMPTY, UNICODE_LITERAL(''), -1)
+        if (self.verbosity >= 1 and
+                (self.nrows != self._dimnrows or self.ncols != self._dimncols)):
+            fprintf(
+                self.logfile,
                 "NOTE *** sheet %d (%r): DIMENSIONS R,C = %d,%d should be %d,%d\n",
                 self.number,
                 self.name,
@@ -585,7 +611,7 @@ class Sheet(BaseObject):
                 self._dimncols,
                 self.nrows,
                 self.ncols,
-                )
+            )
         if not self.ragged_rows:
             # fix ragged rows
             ncols = self.ncols
@@ -603,7 +629,7 @@ class Sheet(BaseObject):
                 rlen = len(trow)
                 nextra = ncols - rlen
                 if nextra > 0:
-                    s_cell_values[rowx][rlen:] = [''] * nextra
+                    s_cell_values[rowx][rlen:] = [UNICODE_LITERAL('')] * nextra
                     trow[rlen:] = self.bt * nextra
                     if s_fmt_info:
                         s_cell_xf_indexes[rowx][rlen:] = self.bf * nextra
@@ -652,11 +678,11 @@ class Sheet(BaseObject):
                 num_empty += 1
                 # self._put_cell_row_widenings += 1
                 # types_row.extend(self.bt * num_empty)
-                # values_row.extend([''] * num_empty)
+                # values_row.extend([UNICODE_LITERAL('')] * num_empty)
                 # if fmt_info:
                 #     fmt_row.extend(self.bf * num_empty)
                 types_row[ltr:] = self.bt * num_empty
-                values_row[ltr:] = [''] * num_empty
+                values_row[ltr:] = [UNICODE_LITERAL('')] * num_empty
                 if fmt_info:
                     fmt_row[ltr:] = self.bf * num_empty
             types_row[colx] = ctype
@@ -710,7 +736,7 @@ class Sheet(BaseObject):
                     trow.extend(self.bt * nextra)
                     if self.formatting_info:
                         self._cell_xf_indexes[rowx].extend(self.bf * nextra)
-                    self._cell_values[rowx].extend([''] * nextra)
+                    self._cell_values[rowx].extend([UNICODE_LITERAL('')] * nextra)
             else:
                 scta = self._cell_types.append
                 scva = self._cell_values.append
@@ -722,7 +748,7 @@ class Sheet(BaseObject):
                 for _unused in xrange(self.nrows, nr):
                     # self._put_cell_rows_appended += 1
                     scta(bt * nc)
-                    scva([''] * nc)
+                    scva([UNICODE_LITERAL('')] * nc)
                     if fmt_info:
                         scxa(bf * nc)
                 self.nrows = nr
@@ -736,8 +762,8 @@ class Sheet(BaseObject):
                 print("put_cell", rowx, colx, file=self.logfile)
                 raise
         except:
-           print("put_cell", rowx, colx, file=self.logfile)
-           raise
+            print("put_cell", rowx, colx, file=self.logfile)
+            raise
 
 
     # === Methods after this line neither know nor care about how cells are stored.
@@ -754,7 +780,7 @@ class Sheet(BaseObject):
         XL_SHRFMLA_ETC_ETC = (
             XL_SHRFMLA, XL_ARRAY, XL_TABLEOP, XL_TABLEOP2,
             XL_ARRAY2, XL_TABLEOP_B2,
-            )
+        )
         self_put_cell = self.put_cell
         local_unpack = unpack
         bk_get_record_parts = bk.get_record_parts
@@ -836,8 +862,8 @@ class Sheet(BaseObject):
                 if not fmt_info: continue
                 rowx, bits1, bits2 = local_unpack('<H4xH4xi', data[0:16])
                 if not(0 <= rowx < self.utter_max_rows):
-                    print("*** NOTE: ROW record has row index %d; " \
-                        "should have 0 <= rowx < %d -- record ignored!" \
+                    print("*** NOTE: ROW record has row index %d; "
+                        "should have 0 <= rowx < %d -- record ignored!"
                         % (rowx, self.utter_max_rows), file=self.logfile)
                     continue
                 key = (bits1, bits2)
@@ -887,17 +913,11 @@ class Sheet(BaseObject):
                 # if DEBUG: print "FORMULA: rc: 0x%04x data: %r" % (rc, data)
                 if bv >= 50:
                     rowx, colx, xf_index, result_str, flags = local_unpack('<HHH8sH', data[0:16])
-                    lenlen = 2
-                    tkarr_offset = 20
                 elif bv >= 30:
                     rowx, colx, xf_index, result_str, flags = local_unpack('<HHH8sH', data[0:16])
-                    lenlen = 2
-                    tkarr_offset = 16
                 else: # BIFF2
                     rowx, colx, cell_attr,  result_str, flags = local_unpack('<HH3s8sB', data[0:16])
                     xf_index =  self.fixed_BIFF2_xfindex(cell_attr, rowx, colx)
-                    lenlen = 1
-                    tkarr_offset = 16
                 if blah_formulas: # testing formula dumper
                     #### XXXX FIXME
                     fprintf(self.logfile, "FORMULA: rowx=%d colx=%d\n", rowx, colx)
@@ -977,8 +997,8 @@ class Sheet(BaseObject):
                 if not(0 <= first_colx <= last_colx <= 256):
                     # Note: 256 instead of 255 is a common mistake.
                     # We silently ignore the non-existing 257th column in that case.
-                    print("*** NOTE: COLINFO record has first col index %d, last %d; " \
-                        "should have 0 <= first <= last <= 255 -- record ignored!" \
+                    print("*** NOTE: COLINFO record has first col index %d, last %d; "
+                        "should have 0 <= first <= last <= 255 -- record ignored!"
                         % (first_colx, last_colx), file=self.logfile)
                     del c
                     continue
@@ -989,7 +1009,7 @@ class Sheet(BaseObject):
                     # Maybe it's "locked" by analogy with XFProtection data.
                     ( 8, 0x0700, 'outline_level'),
                     (12, 0x1000, 'collapsed'),
-                    ))
+                ))
                 for colx in xrange(first_colx, last_colx+1):
                     if colx > 255: break # Excel does 0 to 256 inclusive
                     self.colinfo_map[colx] = c
@@ -1002,7 +1022,7 @@ class Sheet(BaseObject):
                         self.logfile,
                         "COLINFO sheet #%d cols %d-%d: wid=%d xf_index=%d flags=0x%04x\n",
                         self.number, first_colx, last_colx, c.width, c.xf_index, flags,
-                        )
+                    )
                     c.dump(self.logfile, header='===')
             elif rc == XL_DEFCOLWIDTH:
                 self.defcolwidth, = local_unpack("<H", data[:2])
@@ -1059,10 +1079,11 @@ class Sheet(BaseObject):
                 if bv in (21, 30, 40) and self.book.xf_list and not self.book._xf_epilogue_done:
                     self.book.xf_epilogue()
                 if blah:
-                    fprintf(self.logfile,
+                    fprintf(
+                        self.logfile,
                         "sheet %d(%r) DIMENSIONS: ncols=%d nrows=%d\n",
                         self.number, self.name, self._dimncols, self._dimnrows
-                        )
+                    )
             elif rc == XL_HLINK:
                 self.handle_hlink(data)
             elif rc == XL_QUICKTIP:
@@ -1091,7 +1112,7 @@ class Sheet(BaseObject):
             elif rc in bofcodes: ##### EMBEDDED BOF #####
                 version, boftype = local_unpack('<HH', data[0:4])
                 if boftype != 0x20: # embedded chart
-                    print("*** Unexpected embedded BOF (0x%04x) at offset %d: version=0x%04x type=0x%04x" \
+                    print("*** Unexpected embedded BOF (0x%04x) at offset %d: version=0x%04x type=0x%04x"
                         % (rc, bk._position - data_len - 4, version, boftype), file=self.logfile)
                 while 1:
                     code, data_len, data = bk.get_record_parts()
@@ -1103,11 +1124,11 @@ class Sheet(BaseObject):
             elif rc == XL_LABELRANGES:
                 pos = 0
                 pos = unpack_cell_range_address_list_update_pos(
-                        self.row_label_ranges, data, pos, bv, addr_size=8,
-                        )
+                    self.row_label_ranges, data, pos, bv, addr_size=8,
+                )
                 pos = unpack_cell_range_address_list_update_pos(
-                        self.col_label_ranges, data, pos, bv, addr_size=8,
-                        )
+                    self.col_label_ranges, data, pos, bv, addr_size=8,
+                )
                 assert pos == data_len
             elif rc == XL_ARRAY:
                 row1x, rownx, col1x, colnx, array_flags, tokslen = \
@@ -1128,25 +1149,27 @@ class Sheet(BaseObject):
                 num_CFs, needs_recalc, browx1, browx2, bcolx1, bcolx2 = \
                     unpack("<6H", data[0:12])
                 if self.verbosity >= 1:
-                    fprintf(self.logfile,
-                        "\n*** WARNING: Ignoring CONDFMT (conditional formatting) record\n" \
-                        "*** in Sheet %d (%r).\n" \
-                        "*** %d CF record(s); needs_recalc_or_redraw = %d\n" \
+                    fprintf(
+                        self.logfile,
+                        "\n*** WARNING: Ignoring CONDFMT (conditional formatting) record\n"
+                        "*** in Sheet %d (%r).\n"
+                        "*** %d CF record(s); needs_recalc_or_redraw = %d\n"
                         "*** Bounding box is %s\n",
                         self.number, self.name, num_CFs, needs_recalc,
                         rangename2d(browx1, browx2+1, bcolx1, bcolx2+1),
-                        )
+                    )
                 olist = [] # updated by the function
                 pos = unpack_cell_range_address_list_update_pos(
                     olist, data, 12, bv, addr_size=8)
                 # print >> self.logfile, repr(result), len(result)
                 if self.verbosity >= 1:
-                    fprintf(self.logfile,
-                        "*** %d individual range(s):\n" \
+                    fprintf(
+                        self.logfile,
+                        "*** %d individual range(s):\n"
                         "*** %s\n",
                         len(olist),
-                        ", ".join([rangename2d(*coords) for coords in olist]),
-                        )
+                        ", ".join(rangename2d(*coords) for coords in olist),
+                    )
             elif rc == XL_CF:
                 if not fmt_info: continue
                 cf_type, cmp_op, sz1, sz2, flags = unpack("<BBHHi", data[0:10])
@@ -1154,32 +1177,33 @@ class Sheet(BaseObject):
                 bord_block = (flags >> 28) & 1
                 patt_block = (flags >> 29) & 1
                 if self.verbosity >= 1:
-                    fprintf(self.logfile,
-                        "\n*** WARNING: Ignoring CF (conditional formatting) sub-record.\n" \
-                        "*** cf_type=%d, cmp_op=%d, sz1=%d, sz2=%d, flags=0x%08x\n" \
+                    fprintf(
+                        self.logfile,
+                        "\n*** WARNING: Ignoring CF (conditional formatting) sub-record.\n"
+                        "*** cf_type=%d, cmp_op=%d, sz1=%d, sz2=%d, flags=0x%08x\n"
                         "*** optional data blocks: font=%d, border=%d, pattern=%d\n",
                         cf_type, cmp_op, sz1, sz2, flags,
                         font_block, bord_block, patt_block,
-                        )
+                    )
                 # hex_char_dump(data, 0, data_len, fout=self.logfile)
                 pos = 12
                 if font_block:
                     (font_height, font_options, weight, escapement, underline,
-                    font_colour_index, two_bits, font_esc, font_underl) = \
-                    unpack("<64x i i H H B 3x i 4x i i i 18x", data[pos:pos+118])
+                     font_colour_index, two_bits, font_esc, font_underl) = unpack("<64x i i H H B 3x i 4x i i i 18x", data[pos:pos+118])
                     font_style = (two_bits > 1) & 1
                     posture = (font_options > 1) & 1
                     font_canc = (two_bits > 7) & 1
                     cancellation = (font_options > 7) & 1
                     if self.verbosity >= 1:
-                        fprintf(self.logfile,
-                            "*** Font info: height=%d, weight=%d, escapement=%d,\n" \
-                            "*** underline=%d, colour_index=%d, esc=%d, underl=%d,\n" \
+                        fprintf(
+                            self.logfile,
+                            "*** Font info: height=%d, weight=%d, escapement=%d,\n"
+                            "*** underline=%d, colour_index=%d, esc=%d, underl=%d,\n"
                             "*** style=%d, posture=%d, canc=%d, cancellation=%d\n",
                             font_height, weight, escapement, underline,
                             font_colour_index, font_esc, font_underl,
                             font_style, posture, font_canc, cancellation,
-                            )
+                        )
                     pos += 118
                 if bord_block:
                     pos += 8
@@ -1188,17 +1212,13 @@ class Sheet(BaseObject):
                 fmla1 = data[pos:pos+sz1]
                 pos += sz1
                 if blah and sz1:
-                    fprintf(self.logfile,
-                        "*** formula 1:\n",
-                        )
+                    fprintf(self.logfile, "*** formula 1:\n")
                     dump_formula(bk, fmla1, sz1, bv, reldelta=0, blah=1)
                 fmla2 = data[pos:pos+sz2]
                 pos += sz2
                 assert pos == data_len
                 if blah and sz2:
-                    fprintf(self.logfile,
-                        "*** formula 2:\n",
-                        )
+                    fprintf(self.logfile, "*** formula 2:\n")
                     dump_formula(bk, fmla2, sz2, bv, reldelta=0, blah=1)
             elif rc == XL_DEFAULTROWHEIGHT:
                 if data_len == 4:
@@ -1207,12 +1227,12 @@ class Sheet(BaseObject):
                     self.default_row_height, = unpack("<H", data)
                     bits = 0
                     fprintf(self.logfile,
-                        "*** WARNING: DEFAULTROWHEIGHT record len is 2, " \
+                        "*** WARNING: DEFAULTROWHEIGHT record len is 2, "
                         "should be 4; assuming BIFF2 format\n")
                 else:
                     bits = 0
                     fprintf(self.logfile,
-                        "*** WARNING: DEFAULTROWHEIGHT record len is %d, " \
+                        "*** WARNING: DEFAULTROWHEIGHT record len is %d, "
                         "should be 4; ignoring this record\n",
                         data_len)
                 self.default_row_height_mismatch = bits & 1
@@ -1230,22 +1250,22 @@ class Sheet(BaseObject):
                     "MERGEDCELLS: pos=%d data_len=%d" % (pos, data_len)
             elif rc == XL_WINDOW2:
                 if bv >= 80 and data_len >= 14:
-                    (options,
-                    self.first_visible_rowx, self.first_visible_colx,
-                    self.gridline_colour_index,
-                    self.cached_page_break_preview_mag_factor,
-                    self.cached_normal_view_mag_factor
+                    (
+                        options,
+                        self.first_visible_rowx, self.first_visible_colx,
+                        self.gridline_colour_index,
+                        self.cached_page_break_preview_mag_factor,
+                        self.cached_normal_view_mag_factor
                     ) = unpack("<HHHHxxHH", data[:14])
                 else:
                     assert bv >= 30 # BIFF3-7
-                    (options,
-                    self.first_visible_rowx, self.first_visible_colx,
+                    (
+                        options,
+                        self.first_visible_rowx, self.first_visible_colx,
                     ) = unpack("<HHH", data[:6])
                     self.gridline_colour_rgb = unpack("<BBB", data[6:9])
                     self.gridline_colour_index = nearest_colour_index(
                         self.book.colour_map, self.gridline_colour_rgb, debug=0)
-                    self.cached_page_break_preview_mag_factor = 0 # default (60%)
-                    self.cached_normal_view_mag_factor = 0 # default (100%)
                 # options -- Bit, Mask, Contents:
                 # 0 0001H 0 = Show formula results 1 = Show formulas
                 # 1 0002H 0 = Do not show grid lines 1 = Show grid lines
@@ -1270,19 +1290,20 @@ class Sheet(BaseObject):
                     result = (num * 100) // den
                 if not(10 <= result <= 400):
                     if DEBUG or self.verbosity >= 0:
-                        print((
+                        print(
                             "WARNING *** SCL rcd sheet %d: should have 0.1 <= num/den <= 4; got %d/%d"
-                            % (self.number, num, den)
-                            ), file=self.logfile)
+                            % (self.number, num, den),
+                            file=self.logfile,
+                        )
                     result = 100
                 self.scl_mag_factor = result
             elif rc == XL_PANE:
                 (
-                self.vert_split_pos,
-                self.horz_split_pos,
-                self.horz_split_first_visible,
-                self.vert_split_first_visible,
-                self.split_active_pane,
+                    self.vert_split_pos,
+                    self.horz_split_pos,
+                    self.horz_split_first_visible,
+                    self.vert_split_first_visible,
+                    self.split_active_pane,
                 ) = unpack("<HHHHB", data[:9])
                 self.has_pane_record = 1
             elif rc == XL_HORIZONTALPAGEBREAKS:
@@ -1362,16 +1383,16 @@ class Sheet(BaseObject):
                     if not fmt_info: continue
                     rowx, bits1, bits2 = local_unpack('<H4xH2xB', data[0:11])
                     if not(0 <= rowx < self.utter_max_rows):
-                        print("*** NOTE: ROW_B2 record has row index %d; " \
-                            "should have 0 <= rowx < %d -- record ignored!" \
+                        print("*** NOTE: ROW_B2 record has row index %d; "
+                            "should have 0 <= rowx < %d -- record ignored!"
                             % (rowx, self.utter_max_rows), file=self.logfile)
                         continue
                     if not (bits2 & 1):  # has_default_xf_index is false
                         xf_index = -1
                     elif data_len == 18:
                         # Seems the XF index in the cell_attr is dodgy
-                         xfx = local_unpack('<H', data[16:18])[0]
-                         xf_index = self.fixed_BIFF2_xfindex(cell_attr=None, rowx=rowx, colx=-1, true_xfx=xfx)
+                        xfx = local_unpack('<H', data[16:18])[0]
+                        xf_index = self.fixed_BIFF2_xfindex(cell_attr=None, rowx=rowx, colx=-1, true_xfx=xfx)
                     else:
                         cell_attr = data[13:16]
                         xf_index = self.fixed_BIFF2_xfindex(cell_attr, rowx, colx=-1)
@@ -1395,7 +1416,7 @@ class Sheet(BaseObject):
                             "**ROW %d %d %d\n",
                             self.number, rowx, r.xf_index)
                     if blah_rows:
-                        print('ROW_B2', rowx, bits1, has_defaults, file=self.logfile)
+                        print('ROW_B2', rowx, bits1, file=self.logfile)
                         r.dump(self.logfile,
                             header="--- sh #%d, rowx=%d ---" % (self.number, rowx))
                 elif rc == XL_COLWIDTH: # BIFF2 only
@@ -1403,8 +1424,8 @@ class Sheet(BaseObject):
                     first_colx, last_colx, width\
                         = local_unpack("<BBH", data[:4])
                     if not(first_colx <= last_colx):
-                        print("*** NOTE: COLWIDTH record has first col index %d, last %d; " \
-                            "should have first <= last -- record ignored!" \
+                        print("*** NOTE: COLWIDTH record has first col index %d, last %d; "
+                            "should have first <= last -- record ignored!"
                             % (first_colx, last_colx), file=self.logfile)
                         continue
                     for colx in xrange(first_colx, last_colx+1):
@@ -1418,8 +1439,8 @@ class Sheet(BaseObject):
                         fprintf(
                             self.logfile,
                             "COLWIDTH sheet #%d cols %d-%d: wid=%d\n",
-                            self.number, first_colx, last_colx, width
-                            )
+                            self.number, first_colx, last_colx, width,
+                        )
                 elif rc == XL_COLUMNDEFAULT: # BIFF2 only
                     if not fmt_info: continue
                     first_colx, last_colx = local_unpack("<HH", data[:4])
@@ -1428,11 +1449,11 @@ class Sheet(BaseObject):
                         fprintf(
                             self.logfile,
                             "COLUMNDEFAULT sheet #%d cols in range(%d, %d)\n",
-                            self.number, first_colx, last_colx
-                            )
+                            self.number, first_colx, last_colx,
+                        )
                     if not(0 <= first_colx < last_colx <= 256):
-                        print("*** NOTE: COLUMNDEFAULT record has first col index %d, last %d; " \
-                            "should have 0 <= first < last <= 256" \
+                        print("*** NOTE: COLUMNDEFAULT record has first col index %d, last %d; "
+                            "should have 0 <= first < last <= 256"
                             % (first_colx, last_colx), file=self.logfile)
                         last_colx = min(last_colx, 256)
                     for colx in xrange(first_colx, last_colx):
@@ -1450,25 +1471,24 @@ class Sheet(BaseObject):
                         "panes_are_frozen", "show_zero_values")
                     for attr, char in zip(attr_names, data[0:5]):
                         setattr(self, attr, int(char != b'\0'))
-                    (self.first_visible_rowx, self.first_visible_colx,
-                    self.automatic_grid_line_colour,
+                    (
+                        self.first_visible_rowx, self.first_visible_colx,
+                        self.automatic_grid_line_colour,
                     ) = unpack("<HHB", data[5:10])
                     self.gridline_colour_rgb = unpack("<BBB", data[10:13])
                     self.gridline_colour_index = nearest_colour_index(
                         self.book.colour_map, self.gridline_colour_rgb, debug=0)
-                    self.cached_page_break_preview_mag_factor = 0 # default (60%)
-                    self.cached_normal_view_mag_factor = 0 # default (100%)
             else:
                 # if DEBUG: print "SHEET.READ: Unhandled record type %02x %d bytes %r" % (rc, data_len, data)
                 pass
         if not eof_found:
-            raise XLRDError("Sheet %d (%r) missing EOF record" \
+            raise XLRDError("Sheet %d (%r) missing EOF record"
                 % (self.number, self.name))
         self.tidy_dimensions()
         self.update_cooked_mag_factors()
         bk._position = oldpos
         return 1
-    
+
     def string_record_contents(self, data):
         bv = self.biff_version
         bk = self.book
@@ -1490,7 +1510,7 @@ class Sheet(BaseObject):
             if nchars_found == nchars_expected:
                 return result
             if nchars_found > nchars_expected:
-                msg = ("STRING/CONTINUE: expected %d chars, found %d" 
+                msg = ("STRING/CONTINUE: expected %d chars, found %d"
                     % (nchars_expected, nchars_found))
                 raise XLRDError(msg)
             rc, _unused_len, data = bk.get_record_parts()
@@ -1517,10 +1537,11 @@ class Sheet(BaseObject):
             zoom = self.cached_normal_view_mag_factor
             if not (10 <= zoom <=400):
                 if blah:
-                    print((
+                    print(
                         "WARNING *** WINDOW2 rcd sheet %d: Bad cached_normal_view_mag_factor: %d"
-                        % (self.number, self.cached_normal_view_mag_factor)
-                        ), file=self.logfile)
+                        % (self.number, self.cached_normal_view_mag_factor),
+                        file=self.logfile,
+                    )
                 zoom = self.cooked_page_break_preview_mag_factor
             self.cooked_normal_view_mag_factor = zoom
         else:
@@ -1530,15 +1551,16 @@ class Sheet(BaseObject):
             else:
                 self.cooked_normal_view_mag_factor = self.scl_mag_factor
             zoom = self.cached_page_break_preview_mag_factor
-            if zoom == 0:
+            if not zoom:
                 # VALID, defaults to 60
                 zoom = 60
             elif not (10 <= zoom <= 400):
                 if blah:
-                    print((
+                    print(
                         "WARNING *** WINDOW2 rcd sheet %r: Bad cached_page_break_preview_mag_factor: %r"
-                        % (self.number, self.cached_page_break_preview_mag_factor)
-                        ), file=self.logfile)
+                        % (self.number, self.cached_page_break_preview_mag_factor),
+                        file=self.logfile,
+                    )
                 zoom = self.cooked_normal_view_mag_factor
             self.cooked_page_break_preview_mag_factor = zoom
 
@@ -1600,7 +1622,7 @@ class Sheet(BaseObject):
             FGE: XL_CELL_NUMBER,
             FDT: XL_CELL_DATE,
             FTX: XL_CELL_NUMBER, # Yes, a number can be formatted as text.
-            }
+        }
         fmt = book.format_map[xf.format_key]
         cellty = cellty_from_fmtty[fmt.type]
         self._xf_index_to_xl_type_map[xf.xf_index] = cellty
@@ -1627,7 +1649,7 @@ class Sheet(BaseObject):
         upkbits(xf.protection, prot_bits, (
             (6, 0x40, 'cell_locked'),
             (7, 0x80, 'formula_hidden'),
-            ))
+        ))
         xf.alignment.hor_align = halign_etc & 0x07
         for mask, side in ((0x08, 'left'), (0x10, 'right'), (0x20, 'top'), (0x40, 'bottom')):
             if halign_etc & mask:
@@ -1646,8 +1668,15 @@ class Sheet(BaseObject):
         xf.parent_style_index = (0x0FFF, 0)[style]
         xf.alignment.vert_align = 2 # bottom
         xf.alignment.rotation = 0
-        for attr_stem in \
-            "format font alignment border background protection".split():
+        attr_stems = [
+            'format',
+            'font',
+            'alignment',
+            'border',
+            'background',
+            'protection',
+        ]
+        for attr_stem in attr_stems:
             attr = "_" + attr_stem + "_flag"
             setattr(xf, attr, 1)
         return xf
@@ -1656,18 +1685,22 @@ class Sheet(BaseObject):
         if not self.formatting_info:
             raise XLRDError("Feature requires open_workbook(..., formatting_info=True)")
 
-    ##
-    # Determine column display width.
-    # <br /> -- New in version 0.6.1
-    # <br />
-    # @param colx Index of the queried column, range 0 to 255.
-    # Note that it is possible to find out the width that will be used to display
-    # columns with no cell information e.g. column IV (colx=255).
-    # @return The column width that will be used for displaying
-    # the given column by Excel, in units of 1/256th of the width of a
-    # standard character (the digit zero in the first font).
-
     def computed_column_width(self, colx):
+        """
+        Determine column display width.
+
+        :param colx:
+          Index of the queried column, range 0 to 255.
+          Note that it is possible to find out the width that will be used to
+          display columns with no cell information e.g. column IV (colx=255).
+
+        :return:
+          The column width that will be used for displaying
+          the given column by Excel, in units of 1/256th of the width of a
+          standard character (the digit zero in the first font).
+
+        .. versionadded:: 0.6.1
+        """
         self.req_fmt_info()
         if self.biff_version >= 80:
             colinfo = self.colinfo_map.get(colx, None)
@@ -1712,10 +1745,10 @@ class Sheet(BaseObject):
 
         if options & 0x14: # has a description
             h.desc, offset = get_nul_terminated_unicode(data, offset)
-            
+
         if options & 0x80: # has a target
             h.target, offset = get_nul_terminated_unicode(data, offset)
-            
+
         if (options & 1) and not (options & 0x100): # HasMoniker and not MonikerSavedAsString
             # an OLEMoniker structure
             clsid, = unpack('<16s', data[offset:offset + 16])
@@ -1737,12 +1770,12 @@ class Sheet(BaseObject):
                 extra_nbytes = nbytes - true_nbytes
                 extra_data = data[offset:offset + extra_nbytes]
                 offset += extra_nbytes
-                if DEBUG: 
+                if DEBUG:
                     fprintf(
                         self.logfile,
                         "url=%r\nextra=%r\nnbytes=%d true_nbytes=%d extra_nbytes=%d\n",
                         h.url_or_path, extra_data, nbytes, true_nbytes, extra_nbytes,
-                        )
+                    )
                 assert extra_nbytes in (24, 0)
             elif clsid == b"\x03\x03\x00\x00\x00\x00\x00\x00\xC0\x00\x00\x00\x00\x00\x00\x46":
                 # file moniker
@@ -1777,33 +1810,33 @@ class Sheet(BaseObject):
             h.type = UNICODE_LITERAL('workbook')
         else:
             h.type = UNICODE_LITERAL('unknown')
-            
+
         if options & 0x8: # has textmark
             h.textmark, offset = get_nul_terminated_unicode(data, offset)
 
         if DEBUG:
-            h.dump(header="... object dump ...") 
+            h.dump(header="... object dump ...")
             print("offset=%d record_size=%d" % (offset, record_size))
-            
+
         extra_nbytes = record_size - offset
         if extra_nbytes > 0:
             fprintf(
                 self.logfile,
-                "*** WARNING: hyperlink at r=%d c=%d has %d extra data bytes: %s\n",
-                h.frowx,
-                h.fcolx,
+                "*** WARNING: hyperlink at R%dC%d has %d extra data bytes: %s\n",
+                h.frowx + 1,
+                h.fcolx + 1,
                 extra_nbytes,
-                REPR(data[-extra_nbytes:])
-                )
+                REPR(data[-extra_nbytes:]),
+            )
             # Seen: b"\x00\x00" also b"A\x00", b"V\x00"
-        elif extra_nbytes < 0:        
+        elif extra_nbytes < 0:
             raise XLRDError("Bug or corrupt file, send copy of input file for debugging")
 
         self.hyperlink_list.append(h)
         for rowx in xrange(h.frowx, h.lrowx+1):
             for colx in xrange(h.fcolx, h.lcolx+1):
                 self.hyperlink_map[rowx, colx] = h
-                
+
     def handle_quicktip(self, data):
         rcx, frowx, lrowx, fcolx, lcolx = unpack('<5H', data[:10])
         assert rcx == XL_QUICKTIP
@@ -1880,7 +1913,7 @@ class Sheet(BaseObject):
                     ( 9, 0x0200, 'scrollbar_flag'), # not documented in Excel 97 dev kit
                     (13, 0x2000, 'autofill'),
                     (14, 0x4000, 'autoline'),
-                    ))
+                ))
             elif ft == 0x00:
                 if data[pos:data_len] == b'\0' * (data_len - pos):
                     # ignore "optional reserved" data at end of record
@@ -1938,7 +1971,7 @@ class Sheet(BaseObject):
             o.col_hidden = 0
             o.author = UNICODE_LITERAL('')
             o._object_id = None
-            self.cell_note_map[o.rowx, o.colx] = o        
+            self.cell_note_map[o.rowx, o.colx] = o
             return
         # Excel 8.0+
         o.rowx, o.colx, option_flags, o._object_id = unpack('<4H', data[:8])
@@ -1958,13 +1991,12 @@ class Sheet(BaseObject):
         if txo:
             o.text = txo.text
             o.rich_text_runlist = txo.rich_text_runlist
-            self.cell_note_map[o.rowx, o.colx] = o        
+            self.cell_note_map[o.rowx, o.colx] = o
 
     def handle_txo(self, data):
         if self.biff_version < 80:
             return
         o = MSTxo()
-        data_len = len(data)
         fmt = '<HH6sHHH'
         fmtsize = calcsize(fmt)
         option_flags, o.rot, controlInfo, cchText, cbRuns, o.ifntEmpty = unpack(fmt, data[:fmtsize])
@@ -1975,7 +2007,7 @@ class Sheet(BaseObject):
             ( 9, 0x0200, 'lock_text'),
             (14, 0x4000, 'just_last'),
             (15, 0x8000, 'secret_edit'),
-            ))
+        ))
         totchars = 0
         o.text = UNICODE_LITERAL('')
         while totchars < cchText:
@@ -2052,100 +2084,113 @@ class Sheet(BaseObject):
         (lt, idList, crwHeader, crwTotals, idFieldNext, cbFSData,
         rupBuild, unusedShort, listFlags, lPosStmCache, cbStmCache,
         cchStmCache, lem, rgbHashParam, cchName) = unpack('<iiiiiiHHiiiii16sH', data[35:35+66])
-        print("lt=%d  idList=%d crwHeader=%d  crwTotals=%d  idFieldNext=%d cbFSData=%d\n"\
-            "rupBuild=%d  unusedShort=%d listFlags=%04X  lPosStmCache=%d  cbStmCache=%d\n"\
+        print("lt=%d  idList=%d crwHeader=%d  crwTotals=%d  idFieldNext=%d cbFSData=%d\n"
+            "rupBuild=%d  unusedShort=%d listFlags=%04X  lPosStmCache=%d  cbStmCache=%d\n"
             "cchStmCache=%d  lem=%d  rgbHashParam=%r  cchName=%d" % (
-            lt, idList, crwHeader, crwTotals, idFieldNext, cbFSData,
-            rupBuild, unusedShort,listFlags, lPosStmCache, cbStmCache,
-            cchStmCache, lem, rgbHashParam, cchName), file=self.logfile)
+                lt, idList, crwHeader, crwTotals, idFieldNext, cbFSData,
+                rupBuild, unusedShort,listFlags, lPosStmCache, cbStmCache,
+                cchStmCache, lem, rgbHashParam, cchName), file=self.logfile)
+
 
 class MSODrawing(BaseObject):
     pass
 
+
 class MSObj(BaseObject):
     pass
+
 
 class MSTxo(BaseObject):
     pass
 
-##    
-# <p> Represents a user "comment" or "note".
-# Note objects are accessible through Sheet.{@link #Sheet.cell_note_map}.
-# <br />-- New in version 0.7.2  
-# </p>
+
 class Note(BaseObject):
-    ##
-    # Author of note
+    """
+    Represents a user "comment" or "note".
+    Note objects are accessible through :attr:`Sheet.cell_note_map`.
+
+    .. versionadded:: 0.7.2
+    """
+
+    #: Author of note
     author = UNICODE_LITERAL('')
-    ##
-    # True if the containing column is hidden
-    col_hidden = 0 
-    ##
-    # Column index
+
+    #: ``True`` if the containing column is hidden
+    col_hidden = 0
+
+    #: Column index
     colx = 0
-    ##
-    # List of (offset_in_string, font_index) tuples.
-    # Unlike Sheet.{@link #Sheet.rich_text_runlist_map}, the first offset should always be 0.
+
+    #: List of ``(offset_in_string, font_index)`` tuples.
+    #: Unlike :attr:`Sheet.rich_text_runlist_map`, the first offset should
+    #: always be 0.
     rich_text_runlist = None
-    ##
-    # True if the containing row is hidden
+
+    #: True if the containing row is hidden
     row_hidden = 0
-    ##
-    # Row index
+
+    #: Row index
     rowx = 0
-    ##
-    # True if note is always shown
+
+    #: True if note is always shown
     show = 0
-    ##
-    # Text of the note
+
+    #: Text of the note
     text = UNICODE_LITERAL('')
 
-##
-# <p>Contains the attributes of a hyperlink.
-# Hyperlink objects are accessible through Sheet.{@link #Sheet.hyperlink_list}
-# and Sheet.{@link #Sheet.hyperlink_map}.
-# <br />-- New in version 0.7.2
-# </p>   
+
 class Hyperlink(BaseObject):
-    ##
-    # Index of first row
+    """
+    Contains the attributes of a hyperlink.
+    Hyperlink objects are accessible through :attr:`Sheet.hyperlink_list`
+    and :attr:`Sheet.hyperlink_map`.
+
+    .. versionadded:: 0.7.2
+    """
+
+    #: Index of first row
     frowx = None
-    ##
-    # Index of last row
+
+    #: Index of last row
     lrowx = None
-    ##
-    # Index of first column
+
+    #: Index of first column
     fcolx = None
-    ##
-    # Index of last column
+
+    #: Index of last column
     lcolx = None
-    ##
-    # Type of hyperlink. Unicode string, one of 'url', 'unc',
-    # 'local file', 'workbook', 'unknown'
+
+    #: Type of hyperlink. Unicode string, one of 'url', 'unc',
+    #: 'local file', 'workbook', 'unknown'
     type = None
-    ##
-    # The URL or file-path, depending in the type. Unicode string, except 
-    # in the rare case of a local but non-existent file with non-ASCII
-    # characters in the name, in which case only the "8.3" filename is available,
-    # as a bytes (3.x) or str (2.x) string, <i>with unknown encoding.</i>
+
+    #: The URL or file-path, depending in the type. Unicode string, except
+    #: in the rare case of a local but non-existent file with non-ASCII
+    #: characters in the name, in which case only the "8.3" filename is
+    #: available, as a :class:`bytes` (3.x) or :class:`str` (2.x) string,
+    #: *with unknown encoding.*
     url_or_path = None
-    ##
-    # Description ... this is displayed in the cell,
-    # and should be identical to the cell value. Unicode string, or None. It seems
-    # impossible NOT to have a description created by the Excel UI.
+
+    #: Description.
+    #: This is displayed in the cell,
+    #: and should be identical to the cell value. Unicode string, or ``None``.
+    #: It seems impossible NOT to have a description created by the Excel UI.
     desc = None
-    ##
-    # Target frame. Unicode string. Note: I have not seen a case of this.
-    # It seems impossible to create one in the Excel UI.
+
+    #: Target frame. Unicode string.
+    #:
+    #: .. note::
+    #:   No cases of this have been seen in the wild.
+    #:   It seems impossible to create one in the Excel UI.
     target = None
-    ##
-    # "Textmark": the piece after the "#" in 
-    # "http://docs.python.org/library#struct_module", or the Sheet1!A1:Z99
-    # part when type is "workbook".
+
+    #: The piece after the "#" in
+    #: "http://docs.python.org/library#struct_module", or the ``Sheet1!A1:Z99``
+    #: part when type is "workbook".
     textmark = None
-    ##
-    # The text of the "quick tip" displayed when the cursor
-    # hovers over the hyperlink.
+
+    #: The text of the "quick tip" displayed when the cursor
+    #: hovers over the hyperlink.
     quicktip = None
 
 # === helpers ===
@@ -2174,7 +2219,7 @@ cellty_from_fmtty = {
     FGE: XL_CELL_NUMBER,
     FDT: XL_CELL_DATE,
     FTX: XL_CELL_NUMBER, # Yes, a number can be formatted as text.
-    }
+}
 
 ctype_text = {
     XL_CELL_EMPTY: 'empty',
@@ -2184,67 +2229,74 @@ ctype_text = {
     XL_CELL_BOOLEAN: 'bool',
     XL_CELL_ERROR: 'error',
     XL_CELL_BLANK: 'blank',
-    }
+}
 
-##
-# <p>Contains the data for one cell.</p>
-#
-# <p>WARNING: You don't call this class yourself. You access Cell objects
-# via methods of the {@link #Sheet} object(s) that you found in the {@link #Book} object that
-# was returned when you called xlrd.open_workbook("myfile.xls").</p>
-# <p> Cell objects have three attributes: <i>ctype</i> is an int, <i>value</i>
-# (which depends on <i>ctype</i>) and <i>xf_index</i>.
-# If "formatting_info" is not enabled when the workbook is opened, xf_index will be None.
-# The following table describes the types of cells and how their values
-# are represented in Python.</p>
-#
-# <table border="1" cellpadding="7">
-# <tr>
-# <th>Type symbol</th>
-# <th>Type number</th>
-# <th>Python value</th>
-# </tr>
-# <tr>
-# <td>XL_CELL_EMPTY</td>
-# <td align="center">0</td>
-# <td>empty string u''</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_TEXT</td>
-# <td align="center">1</td>
-# <td>a Unicode string</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_NUMBER</td>
-# <td align="center">2</td>
-# <td>float</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_DATE</td>
-# <td align="center">3</td>
-# <td>float</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_BOOLEAN</td>
-# <td align="center">4</td>
-# <td>int; 1 means TRUE, 0 means FALSE</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_ERROR</td>
-# <td align="center">5</td>
-# <td>int representing internal Excel codes; for a text representation,
-# refer to the supplied dictionary error_text_from_code</td>
-# </tr>
-# <tr>
-# <td>XL_CELL_BLANK</td>
-# <td align="center">6</td>
-# <td>empty string u''. Note: this type will appear only when
-# open_workbook(..., formatting_info=True) is used.</td>
-# </tr>
-# </table>
-#<p></p>
 
 class Cell(BaseObject):
+    """
+    Contains the data for one cell.
+
+    .. warning::
+      You don't call this class yourself. You access :class:`Cell` objects
+      via methods of the :class:`Sheet` object(s) that you found in the
+      :class:`~xlrd.book.Book` object that was returned when you called
+      :func:`~xlrd.open_workbook`
+
+    Cell objects have three attributes: ``ctype`` is an int, ``value``
+    (which depends on ``ctype``) and ``xf_index``.
+    If ``formatting_info`` is not enabled when the workbook is opened,
+    ``xf_index`` will be ``None``.
+
+    The following table describes the types of cells and how their values
+    are represented in Python.
+
+    .. raw:: html
+
+        <table border="1" cellpadding="7">
+        <tr>
+        <th>Type symbol</th>
+        <th>Type number</th>
+        <th>Python value</th>
+        </tr>
+        <tr>
+        <td>XL_CELL_EMPTY</td>
+        <td align="center">0</td>
+        <td>empty string ''</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_TEXT</td>
+        <td align="center">1</td>
+        <td>a Unicode string</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_NUMBER</td>
+        <td align="center">2</td>
+        <td>float</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_DATE</td>
+        <td align="center">3</td>
+        <td>float</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_BOOLEAN</td>
+        <td align="center">4</td>
+        <td>int; 1 means TRUE, 0 means FALSE</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_ERROR</td>
+        <td align="center">5</td>
+        <td>int representing internal Excel codes; for a text representation,
+        refer to the supplied dictionary error_text_from_code</td>
+        </tr>
+        <tr>
+        <td>XL_CELL_BLANK</td>
+        <td align="center">6</td>
+        <td>empty string ''. Note: this type will appear only when
+        open_workbook(..., formatting_info=True) is used.</td>
+        </tr>
+        </table>
+    """
 
     __slots__ = ['ctype', 'value', 'xf_index']
 
@@ -2259,108 +2311,80 @@ class Cell(BaseObject):
         else:
             return "%s:%r (XF:%r)" % (ctype_text[self.ctype], self.value, self.xf_index)
 
-##
-# There is one and only one instance of an empty cell -- it's a singleton. This is it.
-# You may use a test like "acell is empty_cell".
-empty_cell = Cell(XL_CELL_EMPTY, '')
+empty_cell = Cell(XL_CELL_EMPTY, UNICODE_LITERAL(''))
 
 ##### =============== Colinfo and Rowinfo ============================== #####
 
-##
-# Width and default formatting information that applies to one or
-# more columns in a sheet. Derived from COLINFO records.
-#
-# <p> Here is the default hierarchy for width, according to the OOo docs:
-#
-# <br />"""In BIFF3, if a COLINFO record is missing for a column,
-# the width specified in the record DEFCOLWIDTH is used instead.
-#
-# <br />In BIFF4-BIFF7, the width set in this [COLINFO] record is only used,
-# if the corresponding bit for this column is cleared in the GCW
-# record, otherwise the column width set in the DEFCOLWIDTH record
-# is used (the STANDARDWIDTH record is always ignored in this case [see footnote!]).
-#
-# <br />In BIFF8, if a COLINFO record is missing for a column,
-# the width specified in the record STANDARDWIDTH is used.
-# If this [STANDARDWIDTH] record is also missing,
-# the column width of the record DEFCOLWIDTH is used instead."""
-# <br />
-#
-# Footnote:  The docs on the GCW record say this:
-# """<br />
-# If a bit is set, the corresponding column uses the width set in the STANDARDWIDTH
-# record. If a bit is cleared, the corresponding column uses the width set in the
-# COLINFO record for this column.
-# <br />If a bit is set, and the worksheet does not contain the STANDARDWIDTH record, or if
-# the bit is cleared, and the worksheet does not contain the COLINFO record, the DEFCOLWIDTH
-# record of the worksheet will be used instead.
-# <br />"""<br />
-# At the moment (2007-01-17) xlrd is going with the GCW version of the story.
-# Reference to the source may be useful: see the computed_column_width(colx) method
-# of the Sheet class.
-# <br />-- New in version 0.6.1
-# </p>
 
 class Colinfo(BaseObject):
-    ##
-    # Width of the column in 1/256 of the width of the zero character,
-    # using default font (first FONT record in the file).
+    """
+    Width and default formatting information that applies to one or
+    more columns in a sheet. Derived from ``COLINFO`` records.
+
+    Here is the default hierarchy for width, according to the OOo docs:
+
+      In BIFF3, if a ``COLINFO`` record is missing for a column,
+      the width specified in the record ``DEFCOLWIDTH`` is used instead.
+
+      In BIFF4-BIFF7, the width set in this ``COLINFO`` record is only used,
+      if the corresponding bit for this column is cleared in the ``GCW``
+      record, otherwise the column width set in the ``DEFCOLWIDTH`` record
+      is used (the ``STANDARDWIDTH`` record is always ignored in this case [#f1]_).
+
+      In BIFF8, if a ``COLINFO`` record is missing for a column,
+      the width specified in the record ``STANDARDWIDTH`` is used.
+      If this ``STANDARDWIDTH`` record is also missing,
+      the column width of the record ``DEFCOLWIDTH`` is used instead.
+
+    .. [#f1] The docs on the ``GCW`` record say this:
+
+      If a bit is set, the corresponding column uses the width set in the
+      ``STANDARDWIDTH`` record. If a bit is cleared, the corresponding column
+      uses the width set in the ``COLINFO`` record for this column.
+
+      If a bit is set, and the worksheet does not contain the ``STANDARDWIDTH``
+      record, or if the bit is cleared, and the worksheet does not contain the
+      ``COLINFO`` record, the ``DEFCOLWIDTH`` record of the worksheet will be
+      used instead.
+
+    xlrd goes with the GCW version of the story.
+    Reference to the source may be useful: see
+    :meth:`Sheet.computed_column_width`.
+
+    .. versionadded:: 0.6.1
+    """
+
+    #: Width of the column in 1/256 of the width of the zero character,
+    #: using default font (first ``FONT`` record in the file).
     width = 0
-    ##
-    # XF index to be used for formatting empty cells.
+
+    #: XF index to be used for formatting empty cells.
     xf_index = -1
-    ##
-    # 1 = column is hidden
+
+    #: 1 = column is hidden
     hidden = 0
-    ##
-    # Value of a 1-bit flag whose purpose is unknown
-    # but is often seen set to 1
+
+    #: Value of a 1-bit flag whose purpose is unknown
+    #: but is often seen set to 1
     bit1_flag = 0
-    ##
-    # Outline level of the column, in range(7).
-    # (0 = no outline)
+
+    #: Outline level of the column, in ``range(7)``.
+    #: (0 = no outline)
     outline_level = 0
-    ##
-    # 1 = column is collapsed
+
+    #: 1 = column is collapsed
     collapsed = 0
 
 _USE_SLOTS = 1
 
-##
-# <p>Height and default formatting information that applies to a row in a sheet.
-# Derived from ROW records.
-# <br /> -- New in version 0.6.1</p>
-#
-# <p><b>height</b>: Height of the row, in twips. One twip == 1/20 of a point.</p>
-#
-# <p><b>has_default_height</b>: 0 = Row has custom height; 1 = Row has default height.</p>
-#
-# <p><b>outline_level</b>: Outline level of the row (0 to 7) </p>
-#
-# <p><b>outline_group_starts_ends</b>: 1 = Outline group starts or ends here (depending on where the
-# outline buttons are located, see WSBOOL record [TODO ??]),
-# <i>and</i> is collapsed </p>
-#
-# <p><b>hidden</b>: 1 = Row is hidden (manually, or by a filter or outline group) </p>
-#
-# <p><b>height_mismatch</b>: 1 = Row height and default font height do not match </p>
-#
-# <p><b>has_default_xf_index</b>: 1 = the xf_index attribute is usable; 0 = ignore it </p>
-#
-# <p><b>xf_index</b>: Index to default XF record for empty cells in this row.
-# Don't use this if has_default_xf_index == 0. </p>
-#
-# <p><b>additional_space_above</b>: This flag is set, if the upper border of at least one cell in this row
-# or if the lower border of at least one cell in the row above is
-# formatted with a thick line style. Thin and medium line styles are not
-# taken into account. </p>
-#
-# <p><b>additional_space_below</b>: This flag is set, if the lower border of at least one cell in this row
-# or if the upper border of at least one cell in the row below is
-# formatted with a medium or thick line style. Thin line styles are not
-# taken into account. </p>
 
 class Rowinfo(BaseObject):
+    """
+    Height and default formatting information that applies to a row in a sheet.
+    Derived from ``ROW`` records.
+
+    .. versionadded:: 0.6.1
+    """
 
     if _USE_SLOTS:
         __slots__ = (
@@ -2374,18 +2398,46 @@ class Rowinfo(BaseObject):
             "xf_index",
             "additional_space_above",
             "additional_space_below",
-            )
+        )
 
     def __init__(self):
+        #: Height of the row, in twips. One twip == 1/20 of a point.
         self.height = None
+
+        #: 0 = Row has custom height; 1 = Row has default height.
         self.has_default_height = None
+
+        #: Outline level of the row (0 to 7)
         self.outline_level = None
+
+        #: 1 = Outline group starts or ends here (depending on where the
+        #: outline buttons are located, see ``WSBOOL`` record, which is not
+        #: parsed by xlrd), *and* is collapsed.
         self.outline_group_starts_ends = None
+
+        #: 1 = Row is hidden (manually, or by a filter or outline group)
         self.hidden = None
+
+        #: 1 = Row height and default font height do not match.
         self.height_mismatch = None
+
+        #: 1 = the xf_index attribute is usable; 0 = ignore it.
         self.has_default_xf_index = None
+
+        #: Index to default :class:`~xlrd.formatting.XF` record for empty cells
+        #: in this row. Don't use this if ``has_default_xf_index == 0``.
         self.xf_index = None
+
+        #: This flag is set if the upper border of at least one cell in this
+        #: row or if the lower border of at least one cell in the row above is
+        #: formatted with a thick line style. Thin and medium line styles are
+        #: not taken into account.
         self.additional_space_above = None
+
+        #: This flag is set if the lower border of at least one cell in this row
+        #: or if the upper border of at least one cell in the row below is
+        #: formatted with a medium or thick line style. Thin line styles are not
+        #: taken into account.
         self.additional_space_below = None
 
     def __getstate__(self):
@@ -2400,7 +2452,7 @@ class Rowinfo(BaseObject):
             self.xf_index,
             self.additional_space_above,
             self.additional_space_below,
-            )
+        )
 
     def __setstate__(self, state):
         (
@@ -2414,4 +2466,4 @@ class Rowinfo(BaseObject):
             self.xf_index,
             self.additional_space_above,
             self.additional_space_below,
-            ) = state
+        ) = state

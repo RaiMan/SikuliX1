@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,12 +22,13 @@ from .jswriter import JsResultWriter, SplitLogWriter
 
 
 class _LogReportWriter(object):
+    usage = None
 
     def __init__(self, js_model):
         self._js_model = js_model
 
     def _write_file(self, path, config, template):
-        outfile = file_writer(path) \
+        outfile = file_writer(path, usage=self.usage) \
             if is_string(path) else path  # unit test hook
         with outfile:
             model_writer = RobotModelWriter(outfile, self._js_model, config)
@@ -35,6 +37,7 @@ class _LogReportWriter(object):
 
 
 class LogWriter(_LogReportWriter):
+    usage = 'log'
 
     def write(self, path, config):
         self._write_file(path, config, LOG)
@@ -47,12 +50,13 @@ class LogWriter(_LogReportWriter):
             self._write_split_log(index, keywords, strings, '%s-%d.js' % (base, index))
 
     def _write_split_log(self, index, keywords, strings, path):
-        with file_writer(path) as outfile:
+        with file_writer(path, usage=self.usage) as outfile:
             writer = SplitLogWriter(outfile)
             writer.write(keywords, strings, index, basename(path))
 
 
 class ReportWriter(_LogReportWriter):
+    usage = 'report'
 
     def write(self, path, config):
         self._write_file(path, config, REPORT)

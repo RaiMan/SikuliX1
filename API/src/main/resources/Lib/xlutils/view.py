@@ -1,3 +1,5 @@
+# Copyright (c) 2013 Simplistix Ltd
+#
 # This Software is released under the MIT License:
 # http://www.opensource.org/licenses/mit-license.html
 # See license.txt for more details.
@@ -5,6 +7,8 @@
 from datetime import datetime, time
 from xlrd import open_workbook, XL_CELL_DATE, xldate_as_tuple
 from xlwt.Utils import col_by_name
+
+from .compat import xrange
 
 class Index(object):
     def __init__(self, name):
@@ -137,7 +141,7 @@ class CheckSheet(SheetView):
 
         # late import in case testfixtures isn't around!
         from testfixtures import compare as _compare
-        _compare(expected, tuple(actual))
+        _compare(expected, actual=tuple(actual))
 
 class CheckerView(View):
     """

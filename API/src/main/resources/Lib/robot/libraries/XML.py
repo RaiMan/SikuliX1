@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -23,8 +24,8 @@ except ImportError:
 
 from robot.api import logger
 from robot.libraries.BuiltIn import BuiltIn
-from robot.utils import (asserts, ET, ETSource, is_falsy, is_string, is_truthy,
-                         plural_or_not as s)
+from robot.utils import (asserts, ET, ETSource, is_bytes, is_falsy, is_string,
+                         is_truthy, plural_or_not as s, PY2)
 from robot.version import get_version
 
 
@@ -53,24 +54,16 @@ class XML(object):
 
     == Table of contents ==
 
-    - `Parsing XML`
-    - `Using lxml`
-    - `Example`
-    - `Finding elements with xpath`
-    - `Element attributes`
-    - `Handling XML namespaces`
-    - `Boolean arguments`
-    - `Pattern matching`
-    - `Shortcuts`
-    - `Keywords`
+    %TOC%
 
     = Parsing XML =
 
     XML can be parsed into an element structure using `Parse XML` keyword.
-    It accepts both paths to XML files and strings that contain XML. The
-    keyword returns the root element of the structure, which then contains
-    other elements as its children and their children. Possible comments and
-    processing instructions in the source XML are removed.
+    The XML to be parsed can be specified using a path to an XML file or as
+    a string or bytes that contain XML directly. The keyword returns the root
+    element of the structure, which then contains other elements as its
+    children and their children. Possible comments and processing instructions
+    in the source XML are removed.
 
     XML is not validated during parsing even if has a schema defined. How
     possible doctype elements are handled otherwise depends on the used XML
@@ -91,6 +84,8 @@ class XML(object):
     On Windows also the backslash works, but it the test data it needs to be
     escaped by doubling it (``\\\\``). Using the built-in variable ``${/}``
     naturally works too.
+
+    Note: Support for XML as bytes is new in Robot Framework 3.2.
 
     = Using lxml =
 
@@ -583,7 +578,7 @@ class XML(object):
         | ${children} =    | Get Elements | ${XML} | first/child |
         | Should Be Empty  |  ${children} |        |             |
         """
-        if is_string(source):
+        if is_string(source) or is_bytes(source):
             source = self.parse_xml(source)
         finder = ElementFinder(self.etree, self.modern_etree, self.lxml_etree)
         return finder.find_all(source, xpath)
@@ -1207,7 +1202,8 @@ class XML(object):
         parent.remove(element)
 
     def _find_parent(self, root, element):
-        for parent in root.getiterator():
+        all_elements = root.getiterator() if PY2 else root.iter()
+        for parent in all_elements:
             for child in parent:
                 if child is element:
                     return parent

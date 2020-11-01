@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -26,7 +27,9 @@ from .xmlelementhandlers import XmlElementHandler
 def ExecutionResult(*sources, **options):
     """Factory method to constructs :class:`~.executionresult.Result` objects.
 
-    :param sources: Path(s) to the XML output file(s).
+    :param sources: XML source(s) containing execution results.
+        Can be specified as paths, opened file objects, or strings/bytes
+        containing XML directly. Support for bytes is new in RF 3.2.
     :param options: Configuration options.
         Using ``merge=True`` causes multiple results to be combined so that
         tests in the latter results replace the ones in the original.
@@ -51,7 +54,7 @@ def ExecutionResult(*sources, **options):
 
 def _merge_results(original, merged, options):
     result = ExecutionResult(original, **options)
-    merger = Merger(result)
+    merger = Merger(result, rpa=result.rpa)
     for path in merged:
         merged = ExecutionResult(path, **options)
         merger.merge(merged)

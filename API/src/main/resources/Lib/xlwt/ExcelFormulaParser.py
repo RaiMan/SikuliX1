@@ -1,18 +1,12 @@
 ### $ANTLR 2.7.7 (20060930): "xlwt/excel-formula.g" -> "ExcelFormulaParser.py"$
 ### import antlr and other modules ..
-import sys
-import antlr
+from . import antlr
 
-version = sys.version.split()[0]
-if version < '2.2.1':
-    False = 0
-if version < '2.3':
-    True = not False
 ### header action >>>
 import struct
-import Utils
-from UnicodeUtils import upack1
-from ExcelMagic import *
+from . import Utils
+from .UnicodeUtils import upack1
+from .ExcelMagic import *
 
 _RVAdelta =     {"R": 0, "V": 0x20, "A": 0x40}
 _RVAdeltaRef =  {"R": 0, "V": 0x20, "A": 0x40, "D": 0x20}
@@ -76,7 +70,7 @@ class Parser(antlr.LLkParser):
         antlr.LLkParser.__init__(self, *args, **kwargs)
         self.tokenNames = _tokenNames
         ### __init__ header action >>>
-        self.rpn = ""
+        self.rpn = b""
         self.sheet_references = []
         self.xcall_references = []
         ### __init__ header action <<<
@@ -520,7 +514,7 @@ class Parser(antlr.LLkParser):
                 arg_count=self.expr_list(arg_type_list, min_argc, max_argc)
                 self.match(RP)
                 if arg_count > max_argc or arg_count < min_argc:
-                   raise Exception, "%d parameters for function: %s" % (arg_count, func_tok.text)
+                   raise Exception("%d parameters for function: %s" % (arg_count, func_tok.text))
                 if xcall:
                    func_ptg = ptgFuncVarR + _RVAdelta[func_type]
                    self.rpn += struct.pack("<2BH", func_ptg, arg_count + 1, 255) # 255 is magic XCALL function
@@ -669,7 +663,7 @@ _tokenNames = [
 ### generate bit set
 def mk_tokenSet_0():
     ### var1
-    data = [ 37681618946L, 0L]
+    data = [ 37681618946, 0]
     return data
 _tokenSet_0 = antlr.BitSet(mk_tokenSet_0())
 

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,8 +16,7 @@
 import os
 
 from robot.errors import DataError
-from robot.parsing import TEST_EXTENSIONS
-from robot.utils import JYTHON, JAVA_VERSION
+from robot.utils import JYTHON, JAVA_VERSION, get_error_message
 
 from .robotbuilder import LibraryDocBuilder, ResourceDocBuilder
 from .specbuilder import SpecDocBuilder
@@ -30,14 +30,34 @@ else:
         raise DataError('Documenting Java test libraries requires Jython.')
 
 
-RESOURCE_EXTENSIONS = (TEST_EXTENSIONS | {'resource'})
+RESOURCE_EXTENSIONS = ('resource', 'robot', 'txt', 'tsv', 'rst', 'rest')
+SPEC_EXTENSIONS = ('xml', 'libspec')
+
+
+def LibraryDocumentation(library_or_resource, name=None, version=None,
+                         doc_format=None):
+    builder = DocumentationBuilder(library_or_resource)
+    try:
+        libdoc = builder.build(library_or_resource)
+    except DataError:
+        raise
+    except:
+        raise DataError("Building library '%s' failed: %s"
+                        % (library_or_resource, get_error_message()))
+    if name:
+        libdoc.name = name
+    if version:
+        libdoc.version = version
+    if doc_format:
+        libdoc.doc_format = doc_format
+    return libdoc
 
 
 def DocumentationBuilder(library_or_resource):
     extension = os.path.splitext(library_or_resource)[1][1:].lower()
     if extension in RESOURCE_EXTENSIONS:
         return ResourceDocBuilder()
-    if extension == 'xml':
+    if extension in SPEC_EXTENSIONS:
         return SpecDocBuilder()
     if extension == 'java':
         return JavaDocBuilder()

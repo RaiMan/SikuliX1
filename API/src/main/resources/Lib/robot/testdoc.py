@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -39,7 +40,6 @@ if 'robot' not in sys.modules and __name__ == '__main__':
 
 from robot.conf import RobotSettings
 from robot.htmldata import HtmlFileWriter, ModelWriter, JsonWriter, TESTDOC
-from robot.parsing import disable_curdir_processing
 from robot.running import TestSuiteBuilder
 from robot.utils import (abspath, Application, file_writer, get_link_path,
                          html_escape, html_format, IRONPYTHON, is_string,
@@ -109,7 +109,7 @@ Jython and IronPython). It can be executed as an installed module like
 
 Examples:
 
-  python -m robot.testdoc my_test.html testdoc.html
+  python -m robot.testdoc my_test.robot testdoc.html
   jython -m robot.testdoc -N smoke_tests -i smoke path/to/my_tests smoke.html
   ipy path/to/robot/testdoc.py first_suite.txt second_suite.txt output.html
 
@@ -130,17 +130,16 @@ class TestDoc(Application):
         self.console(outfile)
 
     def _write_test_doc(self, suite, outfile, title):
-        with file_writer(outfile) as output:
+        with file_writer(outfile, usage='Testdoc output') as output:
             model_writer = TestdocModelWriter(output, suite, title)
             HtmlFileWriter(output, model_writer).write(TESTDOC)
 
 
-@disable_curdir_processing
 def TestSuiteFactory(datasources, **options):
     settings = RobotSettings(options)
     if is_string(datasources):
         datasources = [datasources]
-    suite = TestSuiteBuilder().build(*datasources)
+    suite = TestSuiteBuilder(process_curdir=False).build(*datasources)
     suite.configure(**settings.suite_config)
     return suite
 
@@ -257,11 +256,9 @@ class JsonConverter(object):
         if timeout is None:
             return ''
         try:
-            tout = secs_to_timestr(timestr_to_secs(timeout.value))
+            tout = secs_to_timestr(timestr_to_secs(timeout))
         except ValueError:
-            tout = timeout.value
-        if timeout.message:
-            tout += ' :: ' + timeout.message
+            tout = timeout
         return tout
 
 

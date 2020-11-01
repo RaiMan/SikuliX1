@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -36,8 +37,10 @@ class UserErrorHandler(object):
         self.name = name
         self.libname = libname
         self.error = error
+        self.source = None
+        self.lineno = -1
         self.arguments = ArgumentSpec()
-        self.timeout = ''
+        self.timeout = None
         self.tags = Tags()
 
     @property

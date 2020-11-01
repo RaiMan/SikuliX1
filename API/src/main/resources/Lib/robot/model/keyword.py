@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,6 +113,10 @@ class Keyword(ModelObject):
             return 'k1'
         return '%s-k%d' % (self.parent.id, self.parent.keywords.index(self)+1)
 
+    @property
+    def source(self):
+        return self.parent.source if self.parent is not None else None
+
     def visit(self, visitor):
         """:mod:`Visitor interface <robot.model.visitor>` entry-point."""
         visitor.visit_keyword(self)
@@ -146,6 +151,9 @@ class Keywords(ItemList):
         if kw is not None:
             self.insert(0, kw)
 
+    def create_setup(self, *args, **kwargs):
+        self.setup = self._item_class(*args, type='setup', **kwargs)
+
     @property
     def teardown(self):
         """Keyword used as the teardown or ``None`` if no teardown.
@@ -163,6 +171,9 @@ class Keywords(ItemList):
             self.pop()
         if kw is not None:
             self.append(kw)
+
+    def create_teardown(self, *args, **kwargs):
+        self.teardown = self._item_class(*args, type='teardown', **kwargs)
 
     @property
     def all(self):

@@ -1,7 +1,8 @@
 # -*- coding: windows-1252 -*-
 
 from struct import unpack, pack
-import BIFFRecords
+from . import BIFFRecords
+from .compat import xrange
 
 class StrCell(object):
     __slots__ = ["rowx", "colx", "xf_idx", "sst_idx"]
@@ -223,7 +224,7 @@ def _get_cells_biff_data_mul(rowx, cell_items):
                 # MULRK record
                 nc = lastcolx - icolx + 1
                 pieces.append(pack('<4H', 0x00BD, 6 * nc + 6, rowx, icolx))
-                pieces.append(''.join([pack('<Hi', xf_idx, value) for value, xf_idx in muldata]))
+                pieces.append(b''.join(pack('<Hi', xf_idx, value) for value, xf_idx in muldata))
                 pieces.append(pack('<H', lastcolx))
         else:
             if lastcolx == icolx:
@@ -234,10 +235,10 @@ def _get_cells_biff_data_mul(rowx, cell_items):
                 # MULBLANK record
                 nc = lastcolx - icolx + 1
                 pieces.append(pack('<4H', 0x00BE, 2 * nc + 6, rowx, icolx))
-                pieces.append(''.join([pack('<H', xf_idx) for xf_idx in muldata]))
+                pieces.append(b''.join(pack('<H', xf_idx) for xf_idx in muldata))
                 pieces.append(pack('<H', lastcolx))
         if packed_record:
             pieces.append(packed_record)
         i = nexti
-    return ''.join(pieces)
+    return b''.join(pieces)
 

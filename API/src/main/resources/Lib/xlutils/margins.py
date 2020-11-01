@@ -1,6 +1,9 @@
 # -*- coding: ascii -*-
+from __future__ import print_function
 
 import sys, glob, string
+
+from .compat import xrange, unicode
 
 try:
     from xlrd import open_workbook, XL_CELL_EMPTY, XL_CELL_BLANK, XL_CELL_TEXT, XL_CELL_NUMBER, cellname
@@ -66,8 +69,8 @@ def safe_encode(ustr, encoding):
         return repr(ustr)
 
 def check_file(fname, verbose, do_punc=False, fmt_info=0, encoding='ascii', onesheet=''):
-    print
-    print fname
+    print()
+    print(fname)
     if do_punc:
         checker = ispunc
     else:
@@ -114,28 +117,32 @@ def check_file(fname, verbose, do_punc=False, fmt_info=0, encoding='ascii', ones
             for rowx in xrange(sheet.nrows):
                 cell = sheet.cell(rowx, lastcolx)
                 if cell.ctype != XL_CELL_EMPTY:
-                    print "%s (%d, %d): type %d, value %r" % (
-                        cellname(rowx, lastcolx), rowx, lastcolx, cell.ctype, cell.value)
+                    print("%s (%d, %d): type %d, value %r" % (
+                        cellname(rowx, lastcolx),
+                        rowx, lastcolx, cell.ctype, cell.value
+                    ))
         if (verbose
             or ngoodrows != sheet.nrows
             or ngoodcols != sheet.ncols
-            or (verbose >= 2 and ngoodcells and sheet_density_pct < 90.0)
+            or (verbose >= 2 and sheet_density_pct < 90.0)
             ):
             if oldncells:
                 pctwaste = (1.0 - float(newncells) / oldncells) * 100.0
             else:
                 pctwaste = 0.0
             shname_enc = safe_encode(sheet.name, encoding)
-            print "sheet #%2d: RxC %5d x %3d => %5d x %3d; %4.1f%% waste%s (%s)" \
+            print(
+                "sheet #%2d: RxC %5d x %3d => %5d x %3d; %4.1f%% waste%s (%s)"
                 % (shx, sheet.nrows, sheet.ncols,
-                    ngoodrows, ngoodcols, pctwaste, sheet_density_pct_s, shname_enc)
+                   ngoodrows, ngoodcols, pctwaste,
+                   sheet_density_pct_s, shname_enc))
         if hasattr(book, 'unload_sheet'):
             book.unload_sheet(shx)
     if totold:
         pctwaste = (1.0 - float(totnew) / totold) * 100.0
     else:
         pctwaste = 0.0
-    print "%d cells => %d cells; %4.1f%% waste" % (totold, totnew, pctwaste)
+    print("%d cells => %d cells; %4.1f%% waste" % (totold, totnew, pctwaste))
                 
 def main():
     import optparse
@@ -177,7 +184,7 @@ def main():
                     options.formatting, encoding, options.onesheet)
             except:
                 e1, e2 = sys.exc_info()[:2]
-                print "*** File %s => %s:%s" % (fname, e1.__name__, e2)
+                print("*** File %s => %s:%s" % (fname, e1.__name__, e2))
     
 if __name__ == "__main__":
     main()

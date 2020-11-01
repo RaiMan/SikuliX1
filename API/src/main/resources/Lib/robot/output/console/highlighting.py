@@ -1,5 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
-
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,7 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# Windows highlighting code adapted from color_console.py. It is copyright
+# Andre Burgaud, licensed under the MIT License, and available here:
+# http://www.burgaud.com/bring-colors-to-the-windows-console-with-python/
+
 from contextlib import contextmanager
+import errno
 import os
 import sys
 try:
@@ -52,14 +57,25 @@ class HighlightingStream(object):
         # Workaround for Windows 10 console bug:
         # https://github.com/robotframework/robotframework/issues/2709
         try:
-            self.stream.write(text)
+            with self._suppress_broken_pipe_error:
+                self.stream.write(text)
         except IOError as err:
             if not (WINDOWS and err.errno == 0 and retry > 0):
                 raise
             self._write(text, retry-1)
 
+    @property
+    @contextmanager
+    def _suppress_broken_pipe_error(self):
+        try:
+            yield
+        except IOError as err:
+            if err.errno not in (errno.EPIPE, errno.EINVAL, errno.EBADF):
+                raise
+
     def flush(self):
-        self.stream.flush()
+        with self._suppress_broken_pipe_error:
+            self.stream.flush()
 
     def highlight(self, text, status=None, flush=True):
         if self._must_flush_before_and_after_highlighting():

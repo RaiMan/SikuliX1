@@ -1,49 +1,53 @@
 # -*- coding: windows-1252 -*-
-'''
-Record Order in BIFF8
-  Workbook Globals Substream
-      BOF Type = workbook globals
-      Interface Header
-      MMS
-      Interface End
-      WRITEACCESS
-      CODEPAGE
-      DSF
-      TABID
-      FNGROUPCOUNT
-      Workbook Protection Block
-            WINDOWPROTECT
-            PROTECT
-            PASSWORD
-            PROT4REV
-            PROT4REVPASS
-      BACKUP
-      HIDEOBJ
-      WINDOW1
-      DATEMODE
-      PRECISION
-      REFRESHALL
-      BOOKBOOL
-      FONT +
-      FORMAT *
-      XF +
-      STYLE +
-    ? PALETTE
-      USESELFS
+# Record Order in BIFF8
+#   Workbook Globals Substream
+#       BOF Type = workbook globals
+#       Interface Header
+#       MMS
+#       Interface End
+#       WRITEACCESS
+#       CODEPAGE
+#       DSF
+#       TABID
+#       FNGROUPCOUNT
+#       Workbook Protection Block
+#             WINDOWPROTECT
+#             PROTECT
+#             PASSWORD
+#             PROT4REV
+#             PROT4REVPASS
+#       BACKUP
+#       HIDEOBJ
+#       WINDOW1
+#       DATEMODE
+#       PRECISION
+#       REFRESHALL
+#       BOOKBOOL
+#       FONT +
+#       FORMAT *
+#       XF +
+#       STYLE +
+#     ? PALETTE
+#       USESELFS
+#
+#       BOUNDSHEET +
+#
+#       COUNTRY
+#     ? Link Table
+#       SST
+#       ExtSST
+#       EOF
 
-      BOUNDSHEET +
-
-      COUNTRY
-    ? Link Table
-      SST
-      ExtSST
-      EOF
-'''
-
-import BIFFRecords
-import Style
+from . import BIFFRecords
+from . import Style
+from .compat import unicode_type, int_types, basestring
 
 class Workbook(object):
+    """
+    This is a class representing a workbook and all its contents. When creating
+    Excel files with xlwt, you will normally start by instantiating an
+    object of this class.
+    """
 
     #################################################################
     ## Constructor
@@ -338,8 +342,27 @@ class Workbook(object):
         return self.__sst.rt_index(rt)
 
     def add_sheet(self, sheetname, cell_overwrite_ok=False):
-        import Worksheet, Utils
-        if not isinstance(sheetname, unicode):
+        """
+        This method is used to create Worksheets in a Workbook.
+
+        :param sheetname:
+
+          The name to use for this sheet, as it will appear in the
+          tabs at the bottom of the Excel application.
+
+        :param cell_overwrite_ok:
+
+          If ``True``, cells in the added worksheet will not raise an
+          exception if written to more than once.
+
+        :return:
+
+          The :class:`~xlwt.Worksheet.Worksheet` that was added.
+
+        """
+        from . import Utils
+        from .Worksheet import Worksheet
+        if not isinstance(sheetname, unicode_type):
             sheetname = sheetname.decode(self.encoding)
         if not Utils.valid_sheet_name(sheetname):
             raise Exception("invalid worksheet name %r" % sheetname)
@@ -347,11 +370,25 @@ class Workbook(object):
         if lower_name in self.__worksheet_idx_from_name:
             raise Exception("duplicate worksheet name %r" % sheetname)
         self.__worksheet_idx_from_name[lower_name] = len(self.__worksheets)
-        self.__worksheets.append(Worksheet.Worksheet(sheetname, self, cell_overwrite_ok))
+        self.__worksheets.append(Worksheet(sheetname, self, cell_overwrite_ok))
         return self.__worksheets[-1]
 
-    def get_sheet(self, sheetnum):
-        return self.__worksheets[sheetnum]
+    def get_sheet(self, sheet):
+        if isinstance(sheet, int_types):
+            return self.__worksheets[sheet]
+        elif isinstance(sheet, basestring):
+            sheetnum = self.sheet_index(sheet)
+            return self.__worksheets[sheetnum]
+        else:
+            raise Exception("sheet must be integer or string")
+    
+    def sheet_index(self, sheetname):
+        try:
+            sheetnum = self.__worksheet_idx_from_name[sheetname.lower()] 
+        except KeyError:
+            self.raise_bad_sheetname(sheetname)
+            
+        return sheetnum       
 
     def raise_bad_sheetname(self, sheetname):
         raise Exception("Formula: unknown sheet name %s" % sheetname)
@@ -430,7 +467,7 @@ class Workbook(object):
                 self.setup_xcall()
             # print funcname, self._supbook_xref
             patches.append((offset, self._xcall_supbook_ref))
-            if not isinstance(funcname, unicode):
+            if not isinstance(funcname, unicode_type):
                 funcname = funcname.decode(self.encoding)
             if funcname in self._xcall_xref:
                 idx = self._xcall_xref[funcname]
@@ -505,7 +542,7 @@ class Workbook(object):
 
     def __country_rec(self):
         if not self.__country_code:
-            return ''
+            return b''
         return BIFFRecords.CountryRecord(self.__country_code, self.__country_code).get()
 
     def __dsf_rec(self):
@@ -534,7 +571,7 @@ class Workbook(object):
 
     def __palette_rec(self):
         if self.__custom_palette_b8 is None: 
-            return ''
+            return b''
         info = BIFFRecords.PaletteRecord(self.__custom_palette_b8).get()
         return info
 
@@ -553,12 +590,12 @@ class Workbook(object):
         boundsheets_len = 0
         for sheet in self.__worksheets:
             boundsheets_len += len(BIFFRecords.BoundSheetRecord(
-                0x00L, sheet.visibility, sheet.name, self.encoding
+                0x00, sheet.visibility, sheet.name, self.encoding
                 ).get())
 
         start = data_len_before + boundsheets_len + data_len_after
 
-        result = ''
+        result = b''
         for sheet_biff_len,  sheet in zip(sheet_biff_lens, self.__worksheets):
             result += BIFFRecords.BoundSheetRecord(
                 start, sheet.visibility, sheet.name, self.encoding
@@ -593,18 +630,18 @@ class Workbook(object):
             temp = [ref for idx, ref in temp]
             externsheet_record = BIFFRecords.ExternSheetRecord(temp).get()
             pieces.append(externsheet_record)
-        return ''.join(pieces)
+        return b''.join(pieces)
 
     def __sst_rec(self):
         return self.__sst.get_biff_record()
 
     def __ext_sst_rec(self, abs_stream_pos):
-        return ''
+        return b''
         #return BIFFRecords.ExtSSTRecord(abs_stream_pos, self.sst_record.str_placement,
         #self.sst_record.portions_len).get()
 
     def get_biff_data(self):
-        before = ''
+        before = b''
         before += self.__bof_rec()
         before += self.__intf_hdr_rec()
         before += self.__intf_mms_rec()
@@ -641,7 +678,7 @@ class Workbook(object):
         eof = self.__eof_rec()
 
         self.__worksheets[self.__active_sheet].selected = True
-        sheets = ''
+        sheets = b''
         sheet_biff_lens = []
         for sheet in self.__worksheets:
             data = sheet.get_biff_data()
@@ -655,10 +692,21 @@ class Workbook(object):
 
         return before + bundlesheets + after + ext_sst + eof + sheets
 
-    def save(self, filename):
-        import CompoundDoc
+    def save(self, filename_or_stream):
+        """
+        This method is used to save the Workbook to a file in native Excel
+        format.
+
+        :param filename_or_stream:
+          This can be a string containing a filename of
+          the file, in which case the excel file is saved to disk using the name
+          provided. It can also be a stream object with a write method, such as
+          a :class:`~io.StringIO`, in which case the data for the excel
+          file is written to the stream.
+        """
+        from . import CompoundDoc
 
         doc = CompoundDoc.XlsDoc()
-        doc.save(filename, self.get_biff_data())
+        doc.save(filename_or_stream, self.get_biff_data())
 
 

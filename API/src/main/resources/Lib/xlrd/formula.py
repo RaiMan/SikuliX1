@@ -1,18 +1,24 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
+# Copyright (c) 2005-2012 Stephen John Machin, Lingfo Pty Ltd
+# This module is part of the xlrd package, which is released under a
+# BSD-style licence.
+# No part of the content of this file was derived from the works of
+# David Giffin.
+"""
+Module for parsing/evaluating Microsoft Excel formulas.
+"""
 
-##
-# Module for parsing/evaluating Microsoft Excel formulas.
-#
-##
+from __future__ import print_function
 
-# No part of the content of this file was derived from the works of David Giffin.
-
-from __future__ import print_function 
 import copy
+import operator as opr
 from struct import unpack
+
+from .biffh import (
+    BaseObject, XLRDError, error_text_from_code, hex_char_dump,
+    unpack_string_update_pos, unpack_unicode_update_pos,
+)
 from .timemachine import *
-from .biffh import unpack_unicode_update_pos, unpack_string_update_pos, \
-    XLRDError, hex_char_dump, error_text_from_code, BaseObject
 
 __all__ = [
     'oBOOL', 'oERR', 'oNUM', 'oREF', 'oREL', 'oSTRG', 'oUNK',
@@ -27,7 +33,8 @@ __all__ = [
     'FMLA_TYPE_COND_FMT',
     'FMLA_TYPE_DATA_VAL',
     'FMLA_TYPE_NAME',
-    ]
+    'Operand', 'Ref3D',
+]
 
 FMLA_TYPE_CELL = 1
 FMLA_TYPE_SHARED = 2
@@ -45,7 +52,7 @@ FMLA_TYPEDESCR_MAP = {
     8 : 'COND-FMT',
     16: 'DATA-VAL',
     32: 'NAME',
-    }
+}
 
 _TOKEN_NOT_ALLOWED = {
     0x01:   ALL_FMLA_TYPES - FMLA_TYPE_CELL, # tExp
@@ -61,7 +68,7 @@ _TOKEN_NOT_ALLOWED = {
     0x2C:   FMLA_TYPE_CELL + FMLA_TYPE_ARRAY, # tRefN
     0x2D:   FMLA_TYPE_CELL + FMLA_TYPE_ARRAY, # tAreaN
     # plus weird stuff like tMem*
-    }.get
+}.get
 
 oBOOL = 3
 oERR =  4
@@ -81,7 +88,7 @@ okind_dict = {
     3 : "oBOOL",
     4 : "oERR",
     5 : "oMSNG",
-    }
+}
 
 listsep = ',' #### probably should depend on locale
 
@@ -105,7 +112,7 @@ szdict = {
     50 : sztab3,
     70 : sztab3,
     80 : sztab4,
-    }
+}
 
 # For debugging purposes ... the name for each opcode
 # (without the prefix "t" used on OOo docs)
@@ -373,7 +380,7 @@ func_defs = {
     377: ('ROUNDBAHTUP',      1,  1, 0x02,  1, 'V', 'V'),
     378: ('THAIYEAR',         1,  1, 0x02,  1, 'V', 'V'),
     379: ('RTD',              2,  5, 0x04,  1, 'V', 'V'),
-    }
+}
 
 tAttrNames = {
     0x00: "Skip??", # seen in SAMPLES.XLS which shipped with Excel 5.0
@@ -385,7 +392,7 @@ tAttrNames = {
     0x20: "Assign",
     0x40: "Space",
     0x41: "SpaceVolatile",
-    }
+}
 
 error_opcodes = set([0x07, 0x08, 0x0A, 0x0B, 0x1C, 0x1D, 0x2F])
 
@@ -393,10 +400,10 @@ tRangeFuncs = (min, max, min, max, min, max)
 tIsectFuncs = (max, min, max, min, max, min)
 
 def do_box_funcs(box_funcs, boxa, boxb):
-    return tuple([
+    return tuple(
         func(numa, numb)
         for func, numa, numb in zip(box_funcs, boxa.coords, boxb.coords)
-        ])
+    )
 
 def adjust_cell_addr_biff8(rowval, colval, reldelta, browx=None, bcolx=None):
     row_rel = (colval >> 15) & 1
@@ -466,7 +473,7 @@ def get_externsheet_local_range(bk, refx, blah=0):
     try:
         info = bk._externsheet_info[refx]
     except IndexError:
-        print("!!! get_externsheet_local_range: refx=%d, not in range(%d)" \
+        print("!!! get_externsheet_local_range: refx=%d, not in range(%d)"
             % (refx, len(bk._externsheet_info)), file=bk.logfile)
         return (-101, -101)
     ref_recordx, ref_first_sheetx, ref_last_sheetx = info
@@ -510,7 +517,7 @@ def get_externsheet_local_range_b57(
     nsheets = len(bk._all_sheets_map)
     if not(0 <= ref_first_sheetx <= ref_last_sheetx < nsheets):
         if blah:
-            print("/// get_externsheet_local_range_b57(%d, %d, %d) -> ???" \
+            print("/// get_externsheet_local_range_b57(%d, %d, %d) -> ???"
                 % (raw_extshtx, ref_first_sheetx, ref_last_sheetx), file=bk.logfile)
             print("--- first/last sheet not in range(%d)" % nsheets, file=bk.logfile)
         return (-103, -103) # stuffed up somewhere :-(
@@ -524,80 +531,80 @@ class FormulaError(Exception):
     pass
 
 
-##
-# Used in evaluating formulas.
-# The following table describes the kinds and how their values
-# are represented.</p>
-#
-# <table border="1" cellpadding="7">
-# <tr>
-# <th>Kind symbol</th>
-# <th>Kind number</th>
-# <th>Value representation</th>
-# </tr>
-# <tr>
-# <td>oBOOL</td>
-# <td align="center">3</td>
-# <td>integer: 0 => False; 1 => True</td>
-# </tr>
-# <tr>
-# <td>oERR</td>
-# <td align="center">4</td>
-# <td>None, or an int error code (same as XL_CELL_ERROR in the Cell class).
-# </td>
-# </tr>
-# <tr>
-# <td>oMSNG</td>
-# <td align="center">5</td>
-# <td>Used by Excel as a placeholder for a missing (not supplied) function
-# argument. Should *not* appear as a final formula result. Value is None.</td>
-# </tr>
-# <tr>
-# <td>oNUM</td>
-# <td align="center">2</td>
-# <td>A float. Note that there is no way of distinguishing dates.</td>
-# </tr>
-# <tr>
-# <td>oREF</td>
-# <td align="center">-1</td>
-# <td>The value is either None or a non-empty list of
-# absolute Ref3D instances.<br>
-# </td>
-# </tr>
-# <tr>
-# <td>oREL</td>
-# <td align="center">-2</td>
-# <td>The value is None or a non-empty list of
-# fully or partially relative Ref3D instances.
-# </td>
-# </tr>
-# <tr>
-# <td>oSTRG</td>
-# <td align="center">1</td>
-# <td>A Unicode string.</td>
-# </tr>
-# <tr>
-# <td>oUNK</td>
-# <td align="center">0</td>
-# <td>The kind is unknown or ambiguous. The value is None</td>
-# </tr>
-# </table>
-#<p></p>
-
 class Operand(object):
+    """
+    Used in evaluating formulas.
+    The following table describes the kinds and how their values
+    are represented.
 
-    ##
-    # None means that the actual value of the operand is a variable
-    # (depends on cell data), not a constant.
+    .. raw:: html
+
+        <table border="1" cellpadding="7">
+        <tr>
+        <th>Kind symbol</th>
+        <th>Kind number</th>
+        <th>Value representation</th>
+        </tr>
+        <tr>
+        <td>oBOOL</td>
+        <td align="center">3</td>
+        <td>integer: 0 => False; 1 => True</td>
+        </tr>
+        <tr>
+        <td>oERR</td>
+        <td align="center">4</td>
+        <td>None, or an int error code (same as XL_CELL_ERROR in the Cell class).
+        </td>
+        </tr>
+        <tr>
+        <td>oMSNG</td>
+        <td align="center">5</td>
+        <td>Used by Excel as a placeholder for a missing (not supplied) function
+        argument. Should *not* appear as a final formula result. Value is None.</td>
+        </tr>
+        <tr>
+        <td>oNUM</td>
+        <td align="center">2</td>
+        <td>A float. Note that there is no way of distinguishing dates.</td>
+        </tr>
+        <tr>
+        <td>oREF</td>
+        <td align="center">-1</td>
+        <td>The value is either None or a non-empty list of
+        absolute Ref3D instances.<br>
+        </td>
+        </tr>
+        <tr>
+        <td>oREL</td>
+        <td align="center">-2</td>
+        <td>The value is None or a non-empty list of
+        fully or partially relative Ref3D instances.
+        </td>
+        </tr>
+        <tr>
+        <td>oSTRG</td>
+        <td align="center">1</td>
+        <td>A Unicode string.</td>
+        </tr>
+        <tr>
+        <td>oUNK</td>
+        <td align="center">0</td>
+        <td>The kind is unknown or ambiguous. The value is None</td>
+        </tr>
+        </table>
+    """
+
+    #: None means that the actual value of the operand is a variable
+    #: (depends on cell data), not a constant.
     value = None
-    ##
-    # oUNK means that the kind of operand is not known unambiguously.
+
+    #: oUNK means that the kind of operand is not known unambiguously.
     kind = oUNK
-    ##
-    # The reconstituted text of the original formula. Function names will be
-    # in English irrespective of the original language, which doesn't seem
-    # to be recorded anywhere. The separator is ",", not ";" or whatever else
-    # might be more appropriate for the end-user's locale; patches welcome.
+
+    #: The reconstituted text of the original formula. Function names will be
+    #: in English irrespective of the original language, which doesn't seem
+    #: to be recorded anywhere. The separator is ",", not ";" or whatever else
+    #: might be more appropriate for the end-user's locale; patches welcome.
     text = '?'
 
     def __init__(self, akind=None, avalue=None, arank=0, atext='?'):
@@ -615,40 +622,55 @@ class Operand(object):
         return "Operand(kind=%s, value=%r, text=%r)" \
             % (kind_text, self.value, self.text)
 
-##
-# <p>Represents an absolute or relative 3-dimensional reference to a box
-# of one or more cells.<br />
-# -- New in version 0.6.0
-# </p>
-#
-# <p>The <i>coords</i> attribute is a tuple of the form:<br />
-# (shtxlo, shtxhi, rowxlo, rowxhi, colxlo, colxhi)<br />
-# where 0 <= thingxlo <= thingx < thingxhi.<br />
-# Note that it is quite possible to have thingx > nthings; for example
-# Print_Titles could have colxhi == 256 and/or rowxhi == 65536
-# irrespective of how many columns/rows are actually used in the worksheet.
-# The caller will need to decide how to handle this situation.
-# Keyword: IndexError :-)
-# </p>
-#
-# <p>The components of the coords attribute are also available as individual
-# attributes: shtxlo, shtxhi, rowxlo, rowxhi, colxlo, and colxhi.</p>
-#
-# <p>The <i>relflags</i> attribute is a 6-tuple of flags which indicate whether
-# the corresponding (sheet|row|col)(lo|hi) is relative (1) or absolute (0).<br>
-# Note that there is necessarily no information available as to what cell(s)
-# the reference could possibly be relative to. The caller must decide what if
-# any use to make of oREL operands. Note also that a partially relative
-# reference may well be a typo.
-# For example, define name A1Z10 as $a$1:$z10 (missing $ after z)
-# while the cursor is on cell Sheet3!A27.<br>
-# The resulting Ref3D instance will have coords = (2, 3, 0, -16, 0, 26)
-# and relflags = (0, 0, 0, 1, 0, 0).<br>
-# So far, only one possibility of a sheet-relative component in
-# a reference has been noticed: a 2D reference located in the "current sheet".
-# <br /> This will appear as coords = (0, 1, ...) and relflags = (1, 1, ...).
 
 class Ref3D(tuple):
+    """
+    Represents an absolute or relative 3-dimensional reference to a box
+    of one or more cells.
+
+    The ``coords`` attribute is a tuple of the form::
+
+      (shtxlo, shtxhi, rowxlo, rowxhi, colxlo, colxhi)
+
+    where ``0 <= thingxlo <= thingx < thingxhi``.
+
+    .. note::
+      It is quite possible to have ``thingx > nthings``; for example
+      ``Print_Titles`` could have ``colxhi == 256`` and/or ``rowxhi == 65536``
+      irrespective of how many columns/rows are actually used in the worksheet.
+      The caller will need to decide how to handle this situation.
+      Keyword: :class:`IndexError` :-)
+
+    The components of the coords attribute are also available as individual
+    attributes: ``shtxlo``, ``shtxhi``, ``rowxlo``, ``rowxhi``, ``colxlo``, and
+    ``colxhi``.
+
+    The ``relflags`` attribute is a 6-tuple of flags which indicate whether
+    the corresponding (sheet|row|col)(lo|hi) is relative (1) or absolute (0).
+
+    .. note::
+      There is necessarily no information available as to what cell(s)
+      the reference could possibly be relative to. The caller must decide what
+      if any use to make of ``oREL`` operands.
+
+    .. note:
+      A partially relative reference may well be a typo.
+      For example, define name ``A1Z10`` as ``$a$1:$z10`` (missing ``$`` after
+      ``z``) while the cursor is on cell ``Sheet3!A27``.
+
+      The resulting :class:`Ref3D` instance will have
+      ``coords = (2, 3, 0, -16, 0, 26)``
+      and ``relflags = (0, 0, 0, 1, 0, 0).<br>
+
+      So far, only one possibility of a sheet-relative component in
+      a reference has been noticed: a 2D reference located in the
+      "current sheet".
+
+      This will appear as ``coords = (0, 1, ...)`` and
+      ``relflags = (1, 1, ...)``.
+
+    .. versionadded:: 0.6.0
+    """
 
     def __init__(self, atuple):
         self.coords = atuple[0:6]
@@ -674,7 +696,6 @@ tPower = 0x07
 tConcat = 0x08
 tLT, tLE, tEQ, tGE, tGT, tNE = range(0x09, 0x0F)
 
-import operator as opr
 
 def nop(x):
     return x
@@ -689,8 +710,8 @@ def _opr_gt(x, y): return x >  y
 def _opr_ne(x, y): return x != y
 
 def num2strg(num):
-    """Attempt to emulate Excel's default conversion
-       from number to string.
+    """
+    Attempt to emulate Excel's default conversion from number to string.
     """
     s = str(num)
     if s.endswith(".0"):
@@ -714,13 +735,13 @@ binop_rules = {
     tGE:    (_cmp_argdict, oBOOL, _opr_ge,   10, '>='),
     tGT:    (_cmp_argdict, oBOOL, _opr_gt,   10, '>'),
     tNE:    (_cmp_argdict, oBOOL, _opr_ne,   10, '<>'),
-    }
+}
 
 unop_rules = {
     0x13: (lambda x: -x,        70, '-', ''), # unary minus
     0x12: (lambda x: x,         70, '+', ''), # unary plus
     0x14: (lambda x: x / 100.0, 60, '',  '%'),# percent
-    }
+}
 
 LEAF_RANK = 90
 FUNC_RANK = 90
@@ -736,7 +757,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
     bv = bk.biff_version
     reldelta = 1 # All defined name formulas use "Method B" [OOo docs]
     if blah:
-        print("::: evaluate_name_formula %r %r %d %d %r level=%d" \
+        print("::: evaluate_name_formula %r %r %d %d %r level=%d"
             % (namex, nobj.name, fmlalen, bv, data, level), file=bk.logfile)
         hex_char_dump(data, 0, fmlalen, fout=bk.logfile)
     if level > STACK_PANIC_LEVEL:
@@ -764,7 +785,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
             '('[:bop.rank < rank],
             bop.text,
             ')'[:bop.rank < rank],
-            ])
+        ])
         resop = Operand(result_kind, None, rank, otext)
         try:
             bconv = argdict[bop.kind]
@@ -794,7 +815,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
             aop.text,
             ')'[:aop.rank < rank],
             sym2,
-            ])
+        ])
         if val is not None:
             val = func(val)
         stk.append(Operand(result_kind, val, rank, otext))
@@ -818,7 +839,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
         oname = onames[opx] # + [" RVA"][optype]
         sz = sztab[opx]
         if blah:
-            print("Pos:%d Op:0x%02x Name:t%s Sz:%d opcode:%02xh optype:%02xh" \
+            print("Pos:%d Op:0x%02x Name:t%s Sz:%d opcode:%02xh optype:%02xh"
                 % (pos, op, oname, sz, opcode, optype), file=bk.logfile)
             print("Stack =", stack, file=bk.logfile)
         if sz == -2:
@@ -848,7 +869,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF)
                 res.text = otext
                 if bop.kind == oERR or aop.kind == oERR:
@@ -898,7 +919,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF, None, rank, otext)
                 if bop.kind == oERR or aop.kind == oERR:
                     res.kind = oERR
@@ -929,7 +950,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF, None, rank, otext)
                 if bop.kind == oERR or aop.kind == oERR:
                     res = oERR
@@ -993,7 +1014,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                 else:
                     sz = 4
                 if blah:
-                    print("   subop=%02xh subname=t%s sz=%d nc=%02xh" \
+                    print("   subop=%02xh subname=t%s sz=%d nc=%02xh"
                         % (subop, subname, sz, nc), file=bk.logfile)
             elif 0x1A <= opcode <= 0x1B: # tSheet, tEndSheet
                 assert bv < 50
@@ -1026,17 +1047,17 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
             funcx = unpack("<" + " BH"[nb], data[pos+1:pos+1+nb])[0]
             func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
-                print("*** formula/tFunc unknown FuncID:%d" \
+                print("*** formula/tFunc unknown FuncID:%d"
                       % funcx, file=bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, nargs = func_attrs[:2]
                 if blah:
-                    print("    FuncID=%d name=%s nargs=%d" \
+                    print("    FuncID=%d name=%s nargs=%d"
                           % (funcx, func_name, nargs), file=bk.logfile)
                 assert len(stack) >= nargs
                 if nargs:
-                    argtext = listsep.join([arg.text for arg in stack[-nargs:]])
+                    argtext = listsep.join(arg.text for arg in stack[-nargs:])
                     otext = "%s(%s)" % (func_name, argtext)
                     del stack[-nargs:]
                 else:
@@ -1049,22 +1070,22 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
             prompt, nargs = divmod(nargs, 128)
             macro, funcx = divmod(funcx, 32768)
             if blah:
-                print("   FuncID=%d nargs=%d macro=%d prompt=%d" \
+                print("   FuncID=%d nargs=%d macro=%d prompt=%d"
                       % (funcx, nargs, macro, prompt), file=bk.logfile)
             func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
-                print("*** formula/tFuncVar unknown FuncID:%d" \
+                print("*** formula/tFuncVar unknown FuncID:%d"
                       % funcx, file=bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, minargs, maxargs = func_attrs[:3]
                 if blah:
-                    print("    name: %r, min~max args: %d~%d" \
+                    print("    name: %r, min~max args: %d~%d"
                         % (func_name, minargs, maxargs), file=bk.logfile)
                 assert minargs <= nargs <= maxargs
                 assert len(stack) >= nargs
                 assert len(stack) >= nargs
-                argtext = listsep.join([arg.text for arg in stack[-nargs:]])
+                argtext = listsep.join(arg.text for arg in stack[-nargs:])
                 otext = "%s(%s)" % (func_name, argtext)
                 res = Operand(oUNK, None, FUNC_RANK, otext)
                 if funcx == 1: # IF
@@ -1107,14 +1128,13 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
             if not tgtobj.evaluated:
                 ### recursive ###
                 evaluate_name_formula(bk, tgtobj, tgtnamex, blah, level+1)
-            if tgtobj.macro or tgtobj.binary \
-            or tgtobj.any_err:
+            if tgtobj.macro or tgtobj.binary or tgtobj.any_err:
                 if blah:
                     tgtobj.dump(
                         bk.logfile,
                         header="!!! tgtobj has problems!!!",
                         footer="-----------       --------",
-                        )
+                    )
                 res = Operand(oUNK, None)
                 any_err = any_err or tgtobj.macro or tgtobj.binary or tgtobj.any_err
                 any_rel = any_rel or tgtobj.any_rel
@@ -1185,8 +1205,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                 shx1, shx2 = get_externsheet_local_range(bk, refx, blah)
             else:
                 res = get_cell_addr(data, pos+15, bv, reldelta)
-                raw_extshtx, raw_shx1, raw_shx2 = \
-                             unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
+                raw_extshtx, raw_shx1, raw_shx2 = unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if blah:
                     print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
@@ -1218,8 +1237,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                 shx1, shx2 = get_externsheet_local_range(bk, refx, blah)
             else:
                 res1, res2 = get_cell_range_addr(data, pos+15, bv, reldelta)
-                raw_extshtx, raw_shx1, raw_shx2 = \
-                             unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
+                raw_extshtx, raw_shx1, raw_shx2 = unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if blah:
                     print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
@@ -1264,7 +1282,7 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                 else:
                     dodgy = 1
             if blah:
-                print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d" \
+                print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d"
                     % (origrefx, refx, tgtnamex, dodgy), file=bk.logfile)
             if tgtnamex == namex:
                 if blah: print("!!!! Self-referential !!!!", file=bk.logfile)
@@ -1289,14 +1307,13 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
                 if not tgtobj.evaluated:
                     ### recursive ###
                     evaluate_name_formula(bk, tgtobj, tgtnamex, blah, level+1)
-                if tgtobj.macro or tgtobj.binary \
-                or tgtobj.any_err:
+                if tgtobj.macro or tgtobj.binary or tgtobj.any_err:
                     if blah:
                         tgtobj.dump(
                             bk.logfile,
                             header="!!! bad tgtobj !!!",
                             footer="------------------",
-                            )
+                        )
                     res = Operand(oUNK, None)
                     any_err = any_err or tgtobj.macro or tgtobj.binary or tgtobj.any_err
                     any_rel = any_rel or tgtobj.any_rel
@@ -1341,15 +1358,15 @@ def evaluate_name_formula(bk, nobj, namex, blah=0, level=0):
 
 #### under construction #############################################################################
 def decompile_formula(bk, fmla, fmlalen,
-    fmlatype=None, browx=None, bcolx=None,
-    blah=0, level=0, r1c1=0):
+                      fmlatype=None, browx=None, bcolx=None,
+                      blah=0, level=0, r1c1=0):
     if level > STACK_ALARM_LEVEL:
         blah = 1
     reldelta = fmlatype in (FMLA_TYPE_SHARED, FMLA_TYPE_NAME, FMLA_TYPE_COND_FMT, FMLA_TYPE_DATA_VAL)
     data = fmla
     bv = bk.biff_version
     if blah:
-        print("::: decompile_formula len=%d fmlatype=%r browx=%r bcolx=%r reldelta=%d %r level=%d" \
+        print("::: decompile_formula len=%d fmlatype=%r browx=%r bcolx=%r reldelta=%d %r level=%d"
             % (fmlalen, fmlatype, browx, bcolx, reldelta, data, level), file=bk.logfile)
         hex_char_dump(data, 0, fmlalen, fout=bk.logfile)
     if level > STACK_PANIC_LEVEL:
@@ -1359,7 +1376,6 @@ def decompile_formula(bk, fmla, fmlalen,
     stack = []
     any_rel = 0
     any_err = 0
-    any_external = 0
     unk_opnd = Operand(oUNK, None)
     error_opnd = Operand(oERR, None)
     spush = stack.append
@@ -1377,7 +1393,7 @@ def decompile_formula(bk, fmla, fmlalen,
             '('[:bop.rank < rank],
             bop.text,
             ')'[:bop.rank < rank],
-            ])
+        ])
         resop = Operand(result_kind, None, rank, otext)
         stk.append(resop)
 
@@ -1391,7 +1407,7 @@ def decompile_formula(bk, fmla, fmlalen,
             aop.text,
             ')'[:aop.rank < rank],
             sym2,
-            ])
+        ])
         stk.append(Operand(result_kind, None, rank, otext))
 
     def unexpected_opcode(op_arg, oname_arg):
@@ -1414,7 +1430,7 @@ def decompile_formula(bk, fmla, fmlalen,
         oname = onames[opx] # + [" RVA"][optype]
         sz = sztab[opx]
         if blah:
-            print("Pos:%d Op:0x%02x opname:t%s Sz:%d opcode:%02xh optype:%02xh" \
+            print("Pos:%d Op:0x%02x opname:t%s Sz:%d opcode:%02xh optype:%02xh"
                 % (pos, op, oname, sz, opcode, optype), file=bk.logfile)
             print("Stack =", stack, file=bk.logfile)
         if sz == -2:
@@ -1455,7 +1471,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF)
                 res.text = otext
                 if bop.kind == oERR or aop.kind == oERR:
@@ -1491,7 +1507,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF, None, rank, otext)
                 if bop.kind == oERR or aop.kind == oERR:
                     res.kind = oERR
@@ -1518,7 +1534,7 @@ def decompile_formula(bk, fmla, fmlalen,
                     '('[:bop.rank < rank],
                     bop.text,
                     ')'[:bop.rank < rank],
-                    ])
+                ])
                 res = Operand(oREF, None, rank, otext)
                 if bop.kind == oERR or aop.kind == oERR:
                     res = oERR
@@ -1566,7 +1582,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 else:
                     sz = 4
                 if blah:
-                    print("   subop=%02xh subname=t%s sz=%d nc=%02xh" \
+                    print("   subop=%02xh subname=t%s sz=%d nc=%02xh"
                         % (subop, subname, sz, nc), file=bk.logfile)
             elif 0x1A <= opcode <= 0x1B: # tSheet, tEndSheet
                 assert bv < 50
@@ -1604,11 +1620,11 @@ def decompile_formula(bk, fmla, fmlalen,
             else:
                 func_name, nargs = func_attrs[:2]
                 if blah:
-                    print("    FuncID=%d name=%s nargs=%d" \
+                    print("    FuncID=%d name=%s nargs=%d"
                           % (funcx, func_name, nargs), file=bk.logfile)
                 assert len(stack) >= nargs
                 if nargs:
-                    argtext = listsep.join([arg.text for arg in stack[-nargs:]])
+                    argtext = listsep.join(arg.text for arg in stack[-nargs:])
                     otext = "%s(%s)" % (func_name, argtext)
                     del stack[-nargs:]
                 else:
@@ -1621,7 +1637,7 @@ def decompile_formula(bk, fmla, fmlalen,
             prompt, nargs = divmod(nargs, 128)
             macro, funcx = divmod(funcx, 32768)
             if blah:
-                print("   FuncID=%d nargs=%d macro=%d prompt=%d" \
+                print("   FuncID=%d nargs=%d macro=%d prompt=%d"
                       % (funcx, nargs, macro, prompt), file=bk.logfile)
             #### TODO #### if funcx == 255: # call add-in function
             if funcx == 255:
@@ -1629,18 +1645,18 @@ def decompile_formula(bk, fmla, fmlalen,
             else:
                 func_attrs = func_defs.get(funcx, None)
             if not func_attrs:
-                print("*** formula/tFuncVar unknown FuncID:%d" \
+                print("*** formula/tFuncVar unknown FuncID:%d"
                       % funcx, file=bk.logfile)
                 spush(unk_opnd)
             else:
                 func_name, minargs, maxargs = func_attrs[:3]
                 if blah:
-                    print("    name: %r, min~max args: %d~%d" \
+                    print("    name: %r, min~max args: %d~%d"
                         % (func_name, minargs, maxargs), file=bk.logfile)
                 assert minargs <= nargs <= maxargs
                 assert len(stack) >= nargs
                 assert len(stack) >= nargs
-                argtext = listsep.join([arg.text for arg in stack[-nargs:]])
+                argtext = listsep.join(arg.text for arg in stack[-nargs:])
                 otext = "%s(%s)" % (func_name, argtext)
                 res = Operand(oUNK, None, FUNC_RANK, otext)
                 del stack[-nargs:]
@@ -1733,8 +1749,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 shx1, shx2 = get_externsheet_local_range(bk, refx, blah)
             else:
                 res = get_cell_addr(data, pos+15, bv, reldelta, browx, bcolx)
-                raw_extshtx, raw_shx1, raw_shx2 = \
-                             unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
+                raw_extshtx, raw_shx1, raw_shx2 = unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if blah:
                     print("tRef3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
@@ -1765,8 +1780,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 shx1, shx2 = get_externsheet_local_range(bk, refx, blah)
             else:
                 res1, res2 = get_cell_range_addr(data, pos+15, bv, reldelta)
-                raw_extshtx, raw_shx1, raw_shx2 = \
-                             unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
+                raw_extshtx, raw_shx1, raw_shx2 = unpack("<hxxxxxxxxhh", data[pos+1:pos+15])
                 if blah:
                     print("tArea3d", raw_extshtx, raw_shx1, raw_shx2, file=bk.logfile)
                 shx1, shx2 = get_externsheet_local_range_b57(
@@ -1808,7 +1822,7 @@ def decompile_formula(bk, fmla, fmlalen,
                 else:
                     dodgy = 1
             if blah:
-                print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d" \
+                print("   origrefx=%d refx=%d tgtnamex=%d dodgy=%d"
                     % (origrefx, refx, tgtnamex, dodgy), file=bk.logfile)
             # if tgtnamex == namex:
             #     if blah: print >> bk.logfile, "!!!! Self-referential !!!!"
@@ -1856,7 +1870,7 @@ def decompile_formula(bk, fmla, fmlalen,
         pos += sz
     any_rel = not not any_rel
     if blah:
-        print("End of formula. level=%d any_rel=%d any_err=%d stack=%r" % \
+        print("End of formula. level=%d any_rel=%d any_err=%d stack=%r" %
             (level, not not any_rel, any_err, stack), file=bk.logfile)
         if len(stack) >= 2:
             print("*** Stack has unprocessed args", file=bk.logfile)
@@ -1892,7 +1906,7 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, blah=0, isname=0):
 
         sz = sztab[opx]
         if blah:
-            print("Pos:%d Op:0x%02x Name:t%s Sz:%d opcode:%02xh optype:%02xh" \
+            print("Pos:%d Op:0x%02x Name:t%s Sz:%d opcode:%02xh optype:%02xh"
                 % (pos, op, oname, sz, opcode, optype), file=bk.logfile)
         if not optype:
             if 0x01 <= opcode <= 0x02: # tExp, tTbl
@@ -2020,7 +2034,7 @@ def dump_formula(bk, data, fmlalen, bv, reldelta, blah=0, isname=0):
             return
         pos += sz
     if blah:
-        print("End of formula. any_rel=%d any_err=%d stack=%r" % \
+        print("End of formula. any_rel=%d any_err=%d stack=%r" %
             (not not any_rel, any_err, stack), file=bk.logfile)
         if len(stack) >= 2:
             print("*** Stack has unprocessed args", file=bk.logfile)
@@ -2061,16 +2075,12 @@ def colnamerel(colx, colxrel, bcolx=None, r1c1=0):
         return "C"
     return colname((bcolx + colx) % 256)
 
-##
-# Utility function: (5, 7) => 'H6'
 def cellname(rowx, colx):
-    """ (5, 7) => 'H6' """
+    """Utility function: ``(5, 7)`` => ``'H6'``"""
     return "%s%d" % (colname(colx), rowx+1)
 
-##
-# Utility function: (5, 7) => '$H$6'
 def cellnameabs(rowx, colx, r1c1=0):
-    """ (5, 7) => '$H$6' or 'R8C6'"""
+    """Utility function: ``(5, 7)`` => ``'$H$6'``"""
     if r1c1:
         return "R%dC%d" % (rowx+1, colx+1)
     return "$%s$%d" % (colname(colx), rowx+1)
@@ -2087,10 +2097,8 @@ def cellnamerel(rowx, colx, rowxrel, colxrel, browx=None, bcolx=None, r1c1=0):
         return r + c
     return c + r
 
-##
-# Utility function: 7 => 'H', 27 => 'AB'
 def colname(colx):
-    """ 7 => 'H', 27 => 'AB' """
+    """Utility function: ``7`` => ``'H'``, ``27`` => ``'AB'``"""
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     if colx <= 25:
         return alphabet[colx]
@@ -2099,7 +2107,7 @@ def colname(colx):
         return alphabet[xdiv26 - 1] + alphabet[xmod26]
 
 def rangename2d(rlo, rhi, clo, chi, r1c1=0):
-    """ (5, 20, 7, 10) => '$H$6:$J$20' """
+    """ ``(5, 20, 7, 10)`` => ``'$H$6:$J$20'`` """
     if r1c1:
         return
     if rhi == rlo+1 and chi == clo+1:
@@ -2115,25 +2123,31 @@ def rangename2drel(rlo_rhi_clo_chi, rlorel_rhirel_clorel_chirel, browx=None, bco
         r1c1 = True
     return "%s:%s" % (
         cellnamerel(rlo,   clo,   rlorel, clorel, browx, bcolx, r1c1),
-        cellnamerel(rhi-1, chi-1, rhirel, chirel, browx, bcolx, r1c1)
-        )
-##
-# Utility function:
-# <br /> Ref3D((1, 4, 5, 20, 7, 10)) => 'Sheet2:Sheet3!$H$6:$J$20'
+        cellnamerel(rhi-1, chi-1, rhirel, chirel, browx, bcolx, r1c1),
+    )
+
+
 def rangename3d(book, ref3d):
-    """ Ref3D(1, 4, 5, 20, 7, 10) => 'Sheet2:Sheet3!$H$6:$J$20'
-        (assuming Excel's default sheetnames) """
+    """
+    Utility function:
+    ``Ref3D(1, 4, 5, 20, 7, 10)`` =>
+    ``'Sheet2:Sheet3!$H$6:$J$20'``
+    (assuming Excel's default sheetnames)
+    """
     coords = ref3d.coords
     return "%s!%s" % (
         sheetrange(book, *coords[:2]),
         rangename2d(*coords[2:6]))
 
-##
-# Utility function:
-# <br /> Ref3D(coords=(0, 1, -32, -22, -13, 13), relflags=(0, 0, 1, 1, 1, 1))
-# R1C1 mode => 'Sheet1!R[-32]C[-13]:R[-23]C[12]'
-# A1 mode => depends on base cell (browx, bcolx)
 def rangename3drel(book, ref3d, browx=None, bcolx=None, r1c1=0):
+    """
+    Utility function:
+    ``Ref3D(coords=(0, 1, -32, -22, -13, 13), relflags=(0, 0, 1, 1, 1, 1))``
+
+    In R1C1 mode => ``'Sheet1!R[-32]C[-13]:R[-23]C[12]'``
+
+    In A1 mode => depends on base cell ``(browx, bcolx)``
+    """
     coords = ref3d.coords
     relflags = ref3d.relflags
     shdesc = sheetrangerel(book, coords[:2], relflags[:2])
@@ -2151,7 +2165,7 @@ def quotedsheetname(shnames, shx):
             -2: "internal; deleted sheet",
             -3: "internal; macro sheet",
             -4: "<<external>>",
-            }.get(shx, "?error %d?" % shx)
+        }.get(shx, "?error %d?" % shx)
     if "'" in shname:
         return "'" + shname.replace("'", "''") + "'"
     if " " in shname:

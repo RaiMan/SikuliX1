@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,7 +18,8 @@ from robot.model import Keywords
 from robot.output import LOGGER
 from robot.result import Keyword as KeywordResult
 from robot.utils import prepr, unic
-from robot.variables import VariableAssignment, contains_var, is_list_var
+from robot.variables import (contains_variable, is_list_variable,
+                             VariableAssignment)
 
 from .steprunner import StepRunner
 from .model import Keyword
@@ -86,7 +88,7 @@ class LibraryKeywordRunner(object):
         if timeout and timeout.active:
             def runner():
                 with LOGGER.delayed_logging:
-                    context.output.debug(timeout.get_message())
+                    context.output.debug(timeout.get_message)
                     return timeout.run(handler, args=positional, kwargs=named)
             return runner
         return lambda: handler(*positional, **named)
@@ -158,7 +160,7 @@ class RunKeywordRunner(LibraryKeywordRunner):
     def _get_runnable_dry_run_keywords(self, args):
         keywords = Keywords()
         for keyword in self._get_dry_run_keywords(args):
-            if contains_var(keyword.name):
+            if contains_variable(keyword.name):
                 continue
             keywords.append(keyword)
         return keywords
@@ -188,7 +190,7 @@ class RunKeywordRunner(LibraryKeywordRunner):
             yield else_call
         elif self._validate_kw_call(given_args):
             expr, kw_call = given_args[0], given_args[1:]
-            if not is_list_var(expr):
+            if not is_list_variable(expr):
                 yield kw_call
 
     def _split_run_kw_if_args(self, given_args, control_word, required_after):
@@ -198,14 +200,14 @@ class RunKeywordRunner(LibraryKeywordRunner):
         if not (self._validate_kw_call(expr_and_call) and
                     self._validate_kw_call(remaining, required_after)):
             raise DataError("Invalid 'Run Keyword If' usage.")
-        if is_list_var(expr_and_call[0]):
+        if is_list_variable(expr_and_call[0]):
             return (), remaining
         return expr_and_call[1:], remaining
 
     def _validate_kw_call(self, kw_call, min_length=2):
         if len(kw_call) >= min_length:
             return True
-        return any(is_list_var(item) for item in kw_call)
+        return any(is_list_variable(item) for item in kw_call)
 
     def _get_run_kws_keywords(self, given_args):
         for kw_call in self._get_run_kws_calls(given_args):

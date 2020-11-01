@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -67,6 +68,10 @@ class TestCase(ModelObject):
         if not self.parent:
             return self.name
         return '%s.%s' % (self.parent.longname, self.name)
+
+    @property
+    def source(self):
+        return self.parent.source if self.parent is not None else None
 
     def visit(self, visitor):
         """:mod:`Visitor interface <robot.model.visitor>` entry-point."""

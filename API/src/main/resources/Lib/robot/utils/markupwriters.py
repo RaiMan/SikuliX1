@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,7 +20,7 @@ from .robotio import file_writer
 
 class _MarkupWriter(object):
 
-    def __init__(self, output, write_empty=True):
+    def __init__(self, output, write_empty=True, usage=None):
         """
         :param output: Either an opened, file like object, or a path to the
             desired output file. In the latter case, the file is created
@@ -27,7 +28,7 @@ class _MarkupWriter(object):
         :param write_empty: Whether to write empty elements and attributes.
         """
         if is_string(output):
-            output = file_writer(output)
+            output = file_writer(output, usage=usage)
         self.output = output
         self._write_empty = write_empty
         self._preamble()

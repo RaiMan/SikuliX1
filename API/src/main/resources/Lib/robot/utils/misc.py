@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -104,7 +105,7 @@ def _is_camel_case_boundary(prev, char, next):
 
 def plural_or_not(item):
     count = item if is_integer(item) else len(item)
-    return '' if count == 1 else 's'
+    return '' if count in (1, -1) else 's'
 
 
 def seq2str(sequence, quote="'", sep=', ', lastsep=' and '):

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -60,7 +61,8 @@ class ConsoleViewer(object):
     def _show_intro(self, lib):
         self._header(lib.name, underline='=')
         named_args = 'supported' if lib.named_args else 'not supported'
-        self._data([('Version', lib.version), ('Scope', lib.scope),
+        self._data([('Version', lib.version),
+                    ('Scope', lib.scope if lib.type == 'LIBRARY' else None),
                     ('Named arguments', named_args)])
         self._doc(lib.doc)
 

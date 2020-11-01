@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,13 +13,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from inspect import isclass
 import os
 import sys
+try:
+    from enum import Enum
+except ImportError:    # Standard in Py 3.4+ but can be separately installed
+    class Enum(object):
+        pass
 
 from robot.errors import DataError
-from robot.parsing import disable_curdir_processing
-from robot.running import TestLibrary, UserLibrary, UserErrorHandler
-from robot.utils import split_tags_from_doc, unescape
+from robot.running import (TestLibrary, UserLibrary, UserErrorHandler,
+                           ResourceFileBuilder)
+from robot.utils import split_tags_from_doc, unescape, unic
 
 from .model import LibraryDoc, KeywordDoc
 
@@ -33,7 +40,9 @@ class LibraryDocBuilder(object):
                             doc=self._get_doc(lib),
                             version=lib.version,
                             scope=str(lib.scope),
-                            doc_format=lib.doc_format)
+                            doc_format=lib.doc_format,
+                            source=lib.source,
+                            lineno=lib.lineno)
         libdoc.inits = self._get_initializers(lib)
         libdoc.keywords = KeywordDocBuilder().build_keywords(lib)
         return libdoc
@@ -64,13 +73,17 @@ class ResourceDocBuilder(object):
         res = self._import_resource(path)
         libdoc = LibraryDoc(name=res.name,
                             doc=self._get_doc(res),
-                            type='resource')
+                            type='RESOURCE',
+                            scope='GLOBAL',
+                            source=res.source,
+                            lineno=1)
         libdoc.keywords = KeywordDocBuilder(resource=True).build_keywords(res)
         return libdoc
 
-    @disable_curdir_processing
     def _import_resource(self, path):
-        return UserLibrary(self._find_resource_file(path))
+        ast = ResourceFileBuilder(process_curdir=False).build(
+            self._find_resource_file(path))
+        return UserLibrary(ast)
 
     def _find_resource_file(self, path):
         if os.path.isfile(path):
@@ -100,7 +113,9 @@ class KeywordDocBuilder(object):
         return KeywordDoc(name=kw.name,
                           args=self._get_args(kw.arguments),
                           doc=doc,
-                          tags=tags)
+                          tags=tags,
+                          source=kw.source,
+                          lineno=kw.lineno)
 
     def _get_doc_and_tags(self, kw):
         doc = self._get_doc(kw)
@@ -129,10 +144,25 @@ class KeywordDocBuilder(object):
     def _format_arg(self, arg, argspec):
         result = arg
         if argspec.types is not None and arg in argspec.types:
-            result = '%s: %s' % (result, self._format_type(argspec.types[arg]))
+            type_info = argspec.types[arg]
+            result = '%s: %s' % (result, self._format_type(type_info))
+            if isclass(type_info) and issubclass(type_info, Enum):
+                result = '%s { %s }' % (result, self._format_enum(type_info))
+            default_format = '%s = %s'
+        else:
+            default_format = '%s=%s'
         if arg in argspec.defaults:
-            result = '%s=%s' % (result, argspec.defaults[arg])
+            result = default_format % (result, unic(argspec.defaults[arg]))
         return result
 
-    def _format_type(self, type_):
-        return type_.__name__ if isinstance(type_, type) else type_
+    def _format_type(self, type_info):
+        return type_info.__name__ if isclass(type_info) else type_info
+
+    def _format_enum(self, enum):
+        try:
+            members = list(enum.__members__)
+        except AttributeError:  # old enum module
+            members = [attr for attr in dir(enum) if not attr.startswith('_')]
+        while len(members) > 3 and len(' | '.join(members)) > 42:
+            members[-2:] = ['...']
+        return ' | '.join(members)

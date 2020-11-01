@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,7 +16,8 @@
 import sys
 
 from robot.errors import DataError
-from robot.utils import get_console_length, isatty, pad_console_length
+from robot.utils import (get_console_length, getshortdoc, isatty,
+                         pad_console_length)
 
 from .highlighting import HighlightingStream
 
@@ -96,7 +98,8 @@ class VerboseWriter(object):
     def _get_info(self, name, doc, width):
         if get_console_length(name) > width:
             return pad_console_length(name, width)
-        info = name if not doc else '%s :: %s' % (name, doc.splitlines()[0])
+        doc = getshortdoc(doc, linesep=' ')
+        info = '%s :: %s' % (name, doc) if doc else name
         return pad_console_length(info, width)
 
     def suite_separator(self):

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -16,8 +17,8 @@
 
 The main public entry points of this package are of the following two classes:
 
-* :class:`~robot.running.builder.TestSuiteBuilder` for creating executable
-  test suites based on existing test case files and directories.
+* :class:`~robot.running.builder.builders.TestSuiteBuilder` for creating
+  executable test suites based on existing test case files and directories.
 
 * :class:`~robot.running.model.TestSuite` for creating an executable
   test suite structure programmatically.

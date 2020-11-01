@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,15 +113,16 @@ class EndSuiteArguments(StartSuiteArguments):
 
 
 class StartTestArguments(_ListenerArgumentsFromItem):
-    _attribute_names = ('id', 'longname', 'doc', 'tags', 'starttime')
+    _attribute_names = ('id', 'longname', 'doc', 'tags', 'lineno', 'starttime')
 
     def _get_extra_attributes(self, test):
         return {'critical': 'yes' if test.critical else 'no',
-                'template': test.template or ''}
+                'template': test.template or '',
+                'originalname': test.data.name}
 
 
 class EndTestArguments(StartTestArguments):
-    _attribute_names = ('id', 'longname', 'doc', 'tags', 'starttime',
+    _attribute_names = ('id', 'longname', 'doc', 'tags', 'lineno', 'starttime',
                         'endtime', 'elapsedtime', 'status', 'message')
 
 

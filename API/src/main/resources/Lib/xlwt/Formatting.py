@@ -1,13 +1,16 @@
-#!/usr/bin/env python
 '''
+Formatting
+==========
+
 The  XF  record is able to store explicit cell formatting attributes or the
 attributes  of  a cell style. Explicit formatting includes the reference to
 a  cell  style  XF  record. This allows to extend a defined cell style with
 some  explicit  attributes.  The  formatting  attributes  are  divided into
 6 groups:
 
+=============   ==========================================================
 Group           Attributes
--------------------------------------
+=============   ==========================================================
 Number format   Number format index (index to FORMAT record)
 Font            Font index (index to FONT record)
 Alignment       Horizontal and vertical alignment, text wrap, indentation,
@@ -15,6 +18,7 @@ Alignment       Horizontal and vertical alignment, text wrap, indentation,
 Border          Border line styles and colours
 Background      Background area style and colours
 Protection      Cell locked, formula hidden
+=============   ==========================================================
 
 For  each  group  a flag in the cell XF record specifies whether to use the
 attributes  contained  in  that  XF  record  or  in  the  referenced  style
@@ -28,7 +32,7 @@ is not set), it repeats the attributes of its style XF record.
 
 '''
 
-import BIFFRecords
+from . import BIFFRecords
 
 class Font(object):
 

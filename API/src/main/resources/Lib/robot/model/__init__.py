@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -36,5 +37,4 @@ from .namepatterns import SuiteNamePatterns, TestNamePatterns
 from .visitor import SuiteVisitor
 from .totalstatistics import TotalStatisticsBuilder
 from .statistics import Statistics
-from .imports import Imports
 from .itemlist import ItemList

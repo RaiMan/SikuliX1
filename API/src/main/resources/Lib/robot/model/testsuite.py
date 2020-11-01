@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -108,6 +109,12 @@ class TestSuite(ModelObject):
         """Number of the tests in this suite, recursively."""
         return len(self.tests) + sum(suite.test_count for suite in self.suites)
 
+    @property
+    def has_tests(self):
+        if self.tests:
+            return True
+        return any(s.has_tests for s in self.suites)
+
     def set_tags(self, add=None, remove=None, persist=False):
         """Add and/or remove specified tags to the tests in this suite.
 
@@ -158,9 +165,9 @@ class TestSuite(ModelObject):
         if options:
             self.visit(SuiteConfigurer(**options))
 
-    def remove_empty_suites(self):
+    def remove_empty_suites(self, preserve_direct_children=False):
         """Removes all child suites not containing any tests, recursively."""
-        self.visit(EmptySuiteRemover())
+        self.visit(EmptySuiteRemover(preserve_direct_children))
 
     def visit(self, visitor):
         """:mod:`Visitor interface <robot.model.visitor>` entry-point."""

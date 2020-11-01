@@ -1,9 +1,13 @@
+# Copyright (c) 2008-2012 Simplistix Ltd
+#
 # This Software is released under the MIT License:
 # http://www.opensource.org/licenses/mit-license.html
 # See license.txt for more details.
 
 import os
 from xlutils.filter import process,XLRDReader,StreamWriter
+from .compat import basestring
+
 
 def save(wb, filename_or_stream):
     "Save the supplied :class:`xlrd.Book` to the supplied stream or filename."

@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -93,13 +94,16 @@ class Message(BaseMessage):
 
     @property
     def message(self):
-        if callable(self._message):
-            self._message = self._message()
+        self.resolve_delayed_message()
         return self._message
 
     @message.setter
     def message(self, message):
         self._message = message
+
+    def resolve_delayed_message(self):
+        if callable(self._message):
+            self._message = self._message()
 
 
 class IsLogged(object):

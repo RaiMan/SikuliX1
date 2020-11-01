@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -27,7 +28,12 @@ if PY2:
             cls.__str__ = lambda self: unicode(self).encode('UTF-8')
         return cls
 
+
+    def unwrap(func):
+        return func
+
 else:
+    from inspect import unwrap
     from io import StringIO
 
 
@@ -59,7 +65,12 @@ if not IRONPYTHON:
         # first check if buffer was detached
         if hasattr(stream, 'buffer') and stream.buffer is None:
             return False
-        return hasattr(stream, 'isatty') and stream.isatty()
+        if not hasattr(stream, 'isatty'):
+            return False
+        try:
+            return stream.isatty()
+        except ValueError:    # Occurs if file is closed.
+            return False
 
 else:
 

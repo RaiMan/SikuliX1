@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -61,7 +62,7 @@ class ArgumentSpec(object):
                                     resolve_variables_until, dict_to_kwargs)
         positional, named = resolver.resolve(arguments, variables)
         if self.types or self.defaults:
-            converter = ArgumentConverter(self)
+            converter = ArgumentConverter(self, dry_run=not variables)
             positional, named = converter.convert(positional, named)
         return positional, named
 

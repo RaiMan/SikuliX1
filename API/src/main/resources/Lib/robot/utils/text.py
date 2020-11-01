@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@ import re
 
 from .charwidth import get_char_width
 from .misc import seq2str2
+from .platform import JYTHON, PY_VERSION
 from .robottypes import is_string, is_unicode
 from .unic import unic
 
@@ -165,9 +167,22 @@ def getdoc(item):
         return unic(doc)
 
 
-def getshortdoc(doc_or_item):
+def getshortdoc(doc_or_item, linesep='\n'):
     if not doc_or_item:
         return u''
     doc = doc_or_item if is_string(doc_or_item) else getdoc(doc_or_item)
     lines = takewhile(lambda line: line.strip(), doc.splitlines())
-    return '\n'.join(lines)
+    return linesep.join(lines)
+
+
+# https://bugs.jython.org/issue2772
+if JYTHON and PY_VERSION < (2, 7, 2):
+    trailing_spaces = re.compile('\s+$', re.UNICODE)
+
+    def rstrip(string):
+        return trailing_spaces.sub('', string)
+
+else:
+
+    def rstrip(string):
+        return string.rstrip()

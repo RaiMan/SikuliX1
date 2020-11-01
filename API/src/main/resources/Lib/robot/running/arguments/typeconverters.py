@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -29,7 +30,7 @@ from numbers import Integral, Real
 
 from robot.libraries.DateTime import convert_date, convert_time
 from robot.utils import (FALSE_STRINGS, IRONPYTHON, TRUE_STRINGS, PY_VERSION,
-                         PY2, seq2str, type_name, unicode)
+                         PY2, eq, seq2str, type_name, unicode)
 
 
 class TypeConverter(object):
@@ -261,9 +262,15 @@ class EnumConverter(TypeConverter):
             # wouldn't work with the old enum module.
             return getattr(self._enum, value)
         except AttributeError:
-            members = self._get_members(self._enum)
-            raise ValueError("%s does not have member '%s'. Available: %s"
-                             % (self.type_name, value, seq2str(members)))
+            members = sorted(self._get_members(self._enum))
+            matches = [m for m in members if eq(m, value, ignore='_')]
+            if not matches:
+                raise ValueError("%s does not have member '%s'. Available: %s"
+                                 % (self.type_name, value, seq2str(members)))
+            if len(matches) > 1:
+                raise ValueError("%s has multiple members matching '%s'. Available: %s"
+                                 % (self.type_name, value, seq2str(matches)))
+            return getattr(self._enum, matches[0])
 
     def _get_members(self, enum):
         try:

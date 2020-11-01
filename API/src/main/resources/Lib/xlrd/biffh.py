@@ -1,45 +1,40 @@
-# -*- coding: cp1252 -*-
-
-##
-# Support module for the xlrd package.
-#
-##
-
-# 2010-03-01 SJM Reading SCL record
-# 2010-03-01 SJM Added more record IDs for biff_dump & biff_count
-# 2008-02-10 SJM BIFF2 BLANK record
-# 2008-02-08 SJM Preparation for Excel 2.0 support
-# 2008-02-02 SJM Added suffixes (_B2, _B2_ONLY, etc) on record names for biff_dump & biff_count
-# 2007-12-04 SJM Added support for Excel 2.x (BIFF2) files.
-# 2007-09-08 SJM Avoid crash when zero-length Unicode string missing options byte.
-# 2007-04-22 SJM Remove experimental "trimming" facility.
-
+# -*- coding: utf-8 -*-
+# Portions copyright © 2005-2010 Stephen John Machin, Lingfo Pty Ltd
+# This module is part of the xlrd package, which is released under a
+# BSD-style licence.
 from __future__ import print_function
+
+import sys
+from struct import unpack
+
+from .timemachine import *
 
 DEBUG = 0
 
-from struct import unpack
-import sys
-from .timemachine import *
+
 
 class XLRDError(Exception):
-    pass
+    """
+    An exception indicating problems reading data from an Excel file.
+    """
 
-##
-# Parent of almost all other classes in the package. Defines a common "dump" method
-# for debugging.
 
 class BaseObject(object):
+    """
+    Parent of almost all other classes in the package. Defines a common
+    :meth:`dump` method for debugging.
+    """
 
     _repr_these = []
 
-    ##
-    # @param f open file object, to which the dump is written
-    # @param header text to write before the dump
-    # @param footer text to write after the dump
-    # @param indent number of leading spaces (for recursive calls)
 
     def dump(self, f=None, header=None, footer=None, indent=0):
+        """
+        :param f: open file object, to which the dump is written
+        :param header: text to write before the dump
+        :param footer: text to write after the dump
+        :param indent: number of leading spaces (for recursive calls)
+        """
         if f is None:
             f = sys.stderr
         if hasattr(self, "__slots__"):
@@ -58,9 +53,8 @@ class BaseObject(object):
                 value.dump(f,
                     header="%s%s (%s object):" % (pad, attr, value.__class__.__name__),
                     indent=indent+4)
-            elif attr not in self._repr_these and (
-                isinstance(value, list_type) or isinstance(value, dict_type)
-                ):
+            elif (attr not in self._repr_these and
+                  (isinstance(value, list_type) or isinstance(value, dict_type))):
                 print("%s%s: %s, len = %d" % (pad, attr, type(value), len(value)), file=f)
             else:
                 fprintf(f, "%s%s: %r\n", pad, attr, value)
@@ -91,21 +85,10 @@ biff_text_from_num = {
     70: "7",
     80: "8",
     85: "8X",
-    }
+}
 
-##
-# <p>This dictionary can be used to produce a text version of the internal codes
-# that Excel uses for error cells. Here are its contents:
-# <pre>
-# 0x00: '#NULL!',  # Intersection of two cell ranges is empty
-# 0x07: '#DIV/0!', # Division by zero
-# 0x0F: '#VALUE!', # Wrong type of operand
-# 0x17: '#REF!',   # Illegal or deleted cell reference
-# 0x1D: '#NAME?',  # Wrong function or range name
-# 0x24: '#NUM!',   # Value range overflow
-# 0x2A: '#N/A',    # Argument or function not available
-# </pre></p>
-
+#: This dictionary can be used to produce a text version of the internal codes
+#: that Excel uses for error cells.
 error_text_from_code = {
     0x00: '#NULL!',  # Intersection of two cell ranges is empty
     0x07: '#DIV/0!', # Division by zero
@@ -245,7 +228,7 @@ _cell_opcode_list = [
     XL_NUMBER,
     XL_RK,
     XL_RSTRING,
-    ]
+]
 _cell_opcode_dict = {}
 for _cell_opcode in _cell_opcode_list:
     _cell_opcode_dict[_cell_opcode] = 1
@@ -350,8 +333,7 @@ def unpack_unicode_update_pos(data, pos, lenlen=2, known_len=None):
         pos += sz
     return (strg, pos)
 
-def unpack_cell_range_address_list_update_pos(
-    output_list, data, pos, biff_version, addr_size=6):
+def unpack_cell_range_address_list_update_pos(output_list, data, pos, biff_version, addr_size=6):
     # output_list is updated in situ
     assert addr_size in (6, 8)
     # Used to assert size == 6 if not BIFF8, but pyWLWriter writes
@@ -551,8 +533,8 @@ def hex_char_dump(strg, ofs, dlen, base=0, fout=sys.stdout, unnumbered=False):
                 '??? hex_char_dump: ofs=%d dlen=%d base=%d -> endpos=%d pos=%d endsub=%d substrg=%r\n',
                 ofs, dlen, base, endpos, pos, endsub, substrg)
             break
-        hexd = ''.join(["%02x " % BYTES_ORD(c) for c in substrg])
-        
+        hexd = ''.join("%02x " % BYTES_ORD(c) for c in substrg)
+
         chard = ''
         for c in substrg:
             c = chr(BYTES_ORD(c))
@@ -563,7 +545,7 @@ def hex_char_dump(strg, ofs, dlen, base=0, fout=sys.stdout, unnumbered=False):
             chard += c
         if numbered:
             num_prefix = "%5d: " %  (base+pos-ofs)
-        
+
         fprintf(fout, "%s     %-48s %s\n", num_prefix, hexd, chard)
         pos = endsub
 
@@ -646,7 +628,7 @@ encoding_from_codepage = {
     10081: 'mac_turkish', # guess
     32768: 'mac_roman',
     32769: 'cp1252',
-    }
+}
 # some more guessing, for Indic scripts
 # codepage 57000 range:
 # 2 Devanagari [0]

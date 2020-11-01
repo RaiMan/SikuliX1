@@ -1,4 +1,5 @@
-#  Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,7 +18,7 @@ import re
 from robot.errors import (DataError, ExecutionStatus, HandlerExecutionFailed,
                           VariableError)
 from robot.utils import (ErrorDetails, format_assign_message, get_error_message,
-                         is_number, is_string, prepr, type_name)
+                         is_number, is_string, prepr, rstrip, type_name)
 
 
 class VariableAssignment(object):
@@ -64,8 +65,10 @@ class AssignmentValidator(object):
         if self._seen_assign_mark:
             raise DataError("Assign mark '=' can be used only with the last "
                             "variable.")
-        self._seen_assign_mark = variable.endswith('=')
-        return variable.rstrip('= ')
+        if variable.endswith('='):
+            self._seen_assign_mark = True
+            return rstrip(variable[:-1])
+        return variable
 
     def _validate_state(self, is_list, is_dict):
         if is_list and self._seen_list:
