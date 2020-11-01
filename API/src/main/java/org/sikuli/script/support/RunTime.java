@@ -128,7 +128,6 @@ public class RunTime {
       cmd.add("java.base/sun.nio.ch=ALL-UNNAMED");
       cmd.add("--add-opens");
       cmd.add("java.base/java.io=ALL-UNNAMED");
-      cmd.add("-Dnashorn.args=--no-deprecation-warning");
     }
 
     cmd.add("-Dfile.encoding=UTF-8");
