@@ -1,0 +1,13 @@
+Do not delete this file!
+/guide
+/robot
+/sikuli
+/site-packages/sites_example.txt
+/xlrd
+/xlutils
+/xlwt
+HTMLTestRunner.py
+XMLTestRunner1.py
+XMLTestRunner2.py
+zxJDBC.jar
+sikuli.rb
