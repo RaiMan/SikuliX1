@@ -75,15 +75,9 @@ public class RunTime {
 
 //TODO place to test something in the API context
       if (args.length == 1 && "test".equals(args[0])) {
-/*
-        startAPI("XXX");
-        URL resource = SikulixImages.class.getResource("/provided/images/house1.png");
-        URL resource = org.sikuli.script.Image.class.getResource("/Settings/test.png");
-        Image image = Image.create(resource);
-        Screen scr = new Screen();
-        boolean ok = scr.has(image);
-        RunTime.startLog(1, "test: %s", image);
-*/
+
+        SikulixEvaluate.testReadContent();
+
         System.exit(0);
       }
     }
