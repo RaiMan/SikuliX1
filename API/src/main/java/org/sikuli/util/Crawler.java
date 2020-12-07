@@ -113,7 +113,7 @@ public class Crawler {
     boolean isInner = false;
     Map<String, List<String>> functions;
     for (String clazz : classNames) {
-      functions = new HashMap<>();
+      functions = new HashMap<>(); 
       try {
         Class<?> aClass;
         if (className.endsWith(clazz)) {

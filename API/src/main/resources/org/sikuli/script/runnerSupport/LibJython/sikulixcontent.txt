@@ -8,4 +8,3 @@ HTMLTestRunner.py
 XMLTestRunner1.py
 XMLTestRunner2.py
 zxJDBC.jar
-sikuli.rb

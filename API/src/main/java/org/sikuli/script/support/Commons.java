@@ -95,7 +95,7 @@ public class Commons {
   }
 
   public static List<String> getContentList(String res, Class classReference) {
-    startLog("Commons.getContentList(res: %s, ref: %s", res, classReference);
+    startLog("Commons.getContentList(res: %s, ref: %s)", res, classReference);
     List<String> resList = new ArrayList<>();
     if (!parmsValid(res, classReference)) {
       return resList;
@@ -112,13 +112,14 @@ public class Commons {
     if (aIS != null) {
       content = new String(copy(aIS));
     }
-    log("getResourceList: %s (%s)", res, content);
-    aIS = null;
+    log("getResourceList: %s\n(%s)", res, content);
     try {
       if (aIS != null) {
         aIS.close();
+        aIS = null;
       }
     } catch (Exception ex) {
+      aIS = null;
     }
     if (null != content) {
       String[] names = content.split("\n");
