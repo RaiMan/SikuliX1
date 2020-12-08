@@ -76,7 +76,7 @@ public class RunTime {
 //TODO place to test something in the API context
       if (args.length == 1 && "test".equals(args[0])) {
 
-        SikulixEvaluate.testReadContent();
+        SikulixEvaluate.test();
 
         System.exit(0);
       }
