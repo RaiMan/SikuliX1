@@ -171,7 +171,7 @@ public class SikulixIDE extends JFrame {
 
   @Override
   public void setTitle(String title) {
-    super.setTitle(runTime.SXVersionIDE + " - " + title);
+    super.setTitle(Commons.getSXVersionIDE() + " - " + title);
   }
 
   static ImageIcon getIconResource(String name) {
@@ -827,16 +827,14 @@ public class SikulixIDE extends JFrame {
 
   public void showAbout() {
     //TODO full featured About
-    String info = "You are running " + runTime.SXVersionIDE
+    String info = "You are running " + Commons.getSXVersionIDE()
         + "\nUsing Java version " + runTime.jreVersion
         + "\n\nNeed help? -> start with Help Menu\n\n"
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
         + "Tom Yeh\n"
         + "Raimund Hocke aka RaiMan";
-    if (!runTime.SXBuildNumber.isEmpty()) {
-      info += String.format("\n\nBuild#: %s (%s)", runTime.SXBuildNumber, runTime.SXBuild);
-    }
+    info += String.format("\n\nBuild#: %s (%s)", Commons.getSXBuildNumber(), Commons.getSXBuild());
     JOptionPane.showMessageDialog(this, info,
         "Sikuli About", JOptionPane.PLAIN_MESSAGE);
   }
@@ -1879,7 +1877,7 @@ public class SikulixIDE extends JFrame {
       locStamp += token.length();
       String latestBuildFull = pageDownload.substring(locStamp, locStamp + 16);
       String latestBuild = latestBuildFull.replaceAll("-", "").replace("_", "").replace(":", "");
-      String actualBuild = runTime.sxBuildStamp;
+      String actualBuild = Commons.getSxBuildStamp();
       try {
         long lb = Long.parseLong(latestBuild);
         long ab = Long.parseLong(actualBuild);
@@ -1994,7 +1992,7 @@ public class SikulixIDE extends JFrame {
             _I("msgUpdate") + ": " + newBuildStamp :
             _I("msgNoUpdate")) : _I("msgUpdateError");
         JOptionPane.showMessageDialog(null, updMsg,
-            runTime.SXVersionIDE, msgType);
+            Commons.getSXVersionIDE(), msgType);
       }
     }
 

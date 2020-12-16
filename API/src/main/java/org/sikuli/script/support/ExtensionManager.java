@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class ExtensionManager {
 
-  private static File sxExtensions = new File(RunTime.getAppPath(), "Extensions");
+  private static File sxExtensions = new File(Commons.getAppDataPath(), "Extensions");
 
   private static String outerClassPath = System.getProperty("java.class.path");
   private static String separator = File.pathSeparator;
@@ -418,7 +418,7 @@ public class ExtensionManager {
     return sxSitesTxt;
   }
 
-  private static File sxSitesTxt = new File(RunTime.getAppPath(), "Lib/site-packages/sites.txt");
+  private static File sxSitesTxt = new File(Commons.getAppDataPath(), "Lib/site-packages/sites.txt");
 
   public static String getSitesTxtDefault() {
     return "# add absolute paths one per line, that point to other directories/jars,\n" +

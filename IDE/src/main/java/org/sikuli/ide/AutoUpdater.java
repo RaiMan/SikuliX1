@@ -9,8 +9,11 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 import javax.swing.event.*;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.Commons;
 
 public class AutoUpdater {
 
@@ -73,12 +76,17 @@ public class AutoUpdater {
   }
 
   public int checkUpdate() {
+    //TODO AutoUpdater: checkUpdate: beta/SNAPSHOT version
+    String[] versionParts = Commons.getSXVersion().replace("-SNAPSHOT", "").split("\\.");
+    if(versionParts.length != 3)  {
+      throw new SikuliXception(String.format("Settings: wrong version format: %s", Commons.getSXVersion()));
+    }
+    smajor = Integer.decode(versionParts[0]);
+    sminor = Integer.decode(versionParts[1]);
+    ssub = Integer.decode(versionParts[2]);
     for (String s : SikulixIDE.runTime.ServerList) {
       try {
         if (checkUpdate(s)) {
-          smajor = SikulixIDE.runTime.SikuliVersionMajor;
-          sminor = SikulixIDE.runTime.SikuliVersionMinor;
-          ssub = SikulixIDE.runTime.SikuliVersionSub;
           if (sbeta > 0) {
             if (smajor == major && sminor == minor) {
               available = FINAL;
@@ -133,7 +141,7 @@ public class AutoUpdater {
       conn = url.openConnection();
     }
     BufferedReader in = new BufferedReader(
-            new InputStreamReader(conn.getInputStream()));
+        new InputStreamReader(conn.getInputStream()));
     String line;
     if ((line = in.readLine()) != null) {
       String[] vinfo = line.trim().split(" ");
@@ -169,7 +177,7 @@ public class AutoUpdater {
         details += line;
       }
       if (beta > 0) {
-        if (! "".equals(bdetails)) {
+        if (!"".equals(bdetails)) {
           bserver = bdetails.split(" ")[1];
           bdetails = "Please download at: " + bserver + "<br>";
           bdetails += "-------------------------------------------------------------------------";
@@ -197,6 +205,7 @@ public class AutoUpdater {
     }
   }
 }
+
 class UpdateFrame extends JFrame {
   public UpdateFrame(String title, String text, String server) {
     setTitle(title);

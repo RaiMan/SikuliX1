@@ -15,6 +15,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
+
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 /**
@@ -40,7 +42,7 @@ public class SplashFrame extends JFrame {
     if (args.length > 0 && (args[0].contains("-testSetup") || args[0].startsWith("-i"))) {
       start = (new Date()).getTime();
       String[] splashArgs = new String[]{
-        "splash", "#", "#" + RunTime.get().SXVersionAPI, "", "#", "#... starting - please wait ..."};
+        "splash", "#", "#" + Commons.getSXVersionAPI(), "", "#", "#... starting - please wait ..."};
       for (String e : args) {
         splashArgs[3] += e + " ";
       }
@@ -62,7 +64,7 @@ public class SplashFrame extends JFrame {
     }
     start = (new Date()).getTime();
     String[] splashArgs = new String[]{
-      "splash", "#", "#" + RunTime.get().SXVersionIDE, "", "#", "#... setting up environement - please wait ..."};
+      "splash", "#", "#" + Commons.getSXVersionIDE(), "", "#", "#... setting up environement - please wait ..."};
     splash = new SplashFrame(splashArgs);
   }
 
@@ -78,6 +80,7 @@ public class SplashFrame extends JFrame {
   public SplashFrame(String[] args) {
     init(args);
   }
+
   private void init(String[] args) {
     setResizable(false);
     setUndecorated(true);

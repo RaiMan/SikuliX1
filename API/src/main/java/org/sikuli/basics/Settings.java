@@ -4,6 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.Image;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
@@ -184,15 +185,15 @@ public class Settings {
   }
 
   public static boolean isWindows() {
-    return RunTime.get().runningWindows;
+    return Commons.runningWindows();
   }
 
   public static boolean isLinux() {
-    return RunTime.get().runningLinux;
+    return Commons.runningLinux();
   }
 
   public static boolean isMac() {
-    return RunTime.get().runningMac;
+    return Commons.runningMac();
   }
 
   public static String getOSVersion() {
@@ -204,7 +205,7 @@ public class Settings {
   }
 
   public static String getVersion() {
-    return RunTime.get().getVersion();
+    return Commons.getSXVersion();
   }
 
   public static String getVersionBuild() {

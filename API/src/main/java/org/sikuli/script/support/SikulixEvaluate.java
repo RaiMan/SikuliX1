@@ -6,7 +6,7 @@ import java.util.List;
 
 public class SikulixEvaluate {
   public static void test() {
-    //testFolderList();
+    testFolderList();
     //testReadContent();
   }
 
@@ -14,10 +14,11 @@ public class SikulixEvaluate {
     try {
       Class<?> aClass = Class.forName("net.sourceforge.tess4j.Tesseract");
       String folder = "/tessdata";
-//      aClass = JythonSupport.class;
+      aClass = JythonSupport.class;
 //      folder = "LibJython";
 //      folder = ".";
-      List<String> fileList = Commons.getFileList(folder, aClass);
+//      List<String> fileList = Commons.getFileList(folder, aClass);
+      List<String> fileList = Commons.getFileList("<appdata>/SikulixLibs");
       fileList = null;
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
