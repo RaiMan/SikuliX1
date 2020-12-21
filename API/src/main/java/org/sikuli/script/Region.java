@@ -1915,7 +1915,9 @@ public class Region extends Element {
   }
 
   public Region getRow(int r, int n) {
-    return this;
+    Region reg = new Region(this);
+    reg.setRows(n);
+    return reg.getRow(r);
   }
 
   /**
