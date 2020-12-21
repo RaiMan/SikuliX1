@@ -64,7 +64,8 @@ public class Region extends Element {
 
   //<editor-fold desc="001 Fields x, y, w, h">
   /**
-   * @param X new x position of top left corner
+   * set the horizontal position of the top-left corner
+   * @param X new x-value of top-left corner
    * @return this Region
    */
   public Region setX(int X) {
