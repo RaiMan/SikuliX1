@@ -200,7 +200,7 @@ public class LinuxUtil implements OSUtil {
 
   @Override
   public Rectangle getWindow(App app, int num) {
-    return new Rectangle();
+    return getWindow(app.getPID(), num);
   }
 
   @Override
