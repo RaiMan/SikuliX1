@@ -96,6 +96,9 @@ public class OCR {
    * @return the global Options
    */
   public static Options globalOptions() {
+    if (!Settings.OcrLanguage.equals("eng") && !Settings.OcrLanguage.isEmpty()) {
+      options.language(Settings.OcrLanguage);
+    }
     return options;
   }
 
@@ -161,7 +164,7 @@ public class OCR {
     public Options reset() {
       oem = OEM.DEFAULT.ordinal();
       psm = PSM.AUTO.ordinal();
-      language = Settings.OcrLanguage;
+      language = "eng";
       dataPath = null;
       isLightFont = false;
       textHeight = getDefaultTextHeight();
