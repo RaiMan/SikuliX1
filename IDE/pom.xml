@@ -54,7 +54,6 @@
       <groupId>org.python</groupId>
       <artifactId>jython-slim</artifactId>
       <version>${sikulixjythonversion}</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jruby</groupId>

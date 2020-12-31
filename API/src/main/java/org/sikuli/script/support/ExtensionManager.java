@@ -188,16 +188,12 @@ public class ExtensionManager {
   }
 
   private static boolean isJythonBundled() {
-    if (isRunningAsJar()) {
       try {
         Class.forName("org.python.util.jython");
       } catch (ClassNotFoundException e) {
         return false;
       }
       return true;
-    } else {
-      return false;
-    }
   }
 
   public static void readExtensions(boolean afterStart) {
