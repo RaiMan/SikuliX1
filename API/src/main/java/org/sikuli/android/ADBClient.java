@@ -6,6 +6,7 @@ package org.sikuli.android;
 
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import se.vidstige.jadb.AdbServerLauncher;
 import se.vidstige.jadb.JadbConnection;
@@ -46,7 +47,7 @@ public class ADBClient {
             adbPath = System.getProperty("sikulixadb");
           }
           if (adbPath == null) {
-            adbPath = RunTime.get().fWorkDir.getAbsolutePath();
+            adbPath = Commons.getWorkDir().getAbsolutePath();
           }
           File adbFile = new File(adbPath, adbExec);
           if (!adbFile.exists()) {

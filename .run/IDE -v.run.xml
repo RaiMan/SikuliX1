@@ -1,9 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="IDE-v" type="Application" factoryName="Application">
+  <configuration default="false" name="Evaluate" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
-    <option name="MAIN_CLASS_NAME" value="org.sikuli.ide.Sikulix" />
+    <option name="MAIN_CLASS_NAME" value="org.sikuli.script.support.SikulixEvaluate" />
     <module name="sikulixide" />
-    <option name="PROGRAM_PARAMETERS" value="-v -c " />
     <option name="VM_PARAMETERS" value="--add-opens java.desktop/javax.swing.plaf.basic=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED -Dnashorn.args=--no-deprecation-warning" />
     <option name="WORKING_DIRECTORY" value="$MODULE_WORKING_DIR$" />
     <method v="2">

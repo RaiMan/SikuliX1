@@ -271,7 +271,7 @@ public class RunTime {
     }
     File folder = new File(option);
     if (!folder.isAbsolute()) {
-      folder = new File(get().fWorkDir, option);
+      folder = new File(Commons.getWorkDir(), option);
     }
     if (folder.isDirectory() && folder.exists()) {
       return folder;
@@ -286,7 +286,7 @@ public class RunTime {
     if (null == asFolder(option)) {
       File file = new File(option);
       if (!file.isAbsolute()) {
-        file = new File(get().fWorkDir, option);
+        file = new File(Commons.getWorkDir(), option);
       }
       if (file.exists()) {
         return file;
@@ -372,7 +372,7 @@ public class RunTime {
 
   public static String[] resolveRelativeFiles(String[] givenScripts) {
     String[] runScripts = new String[givenScripts.length];
-    String baseDir = get().fWorkDir.getPath();
+    String baseDir = Commons.getWorkDir().getPath();
     for (int i = 0; i < runScripts.length; i++) {
       String givenScript = givenScripts[i];
       String file = resolveRelativeFile(givenScript, baseDir);
@@ -436,13 +436,13 @@ public class RunTime {
       if (inBaseDir.exists()) {
         file = inBaseDir;
       } else {
-        File inWorkDir = new File(get().fWorkDir, scriptName);
+        File inWorkDir = new File(Commons.getWorkDir(), scriptName);
         if (inWorkDir.exists()) {
           file = inWorkDir;
         } else {
-          File inUserDir = new File(get().fUserDir, scriptName);
-          if (inUserDir.exists()) {
-            file = inUserDir;
+          File inUserHome = new File(Commons.getUserHome(), scriptName);
+          if (inUserHome.exists()) {
+            file = inUserHome;
           } else {
             return null;
           }
@@ -698,9 +698,6 @@ public class RunTime {
   public Type runType = Type.INIT;
 
   public String jreVersion = java.lang.System.getProperty("java.runtime.version");
-  public Preferences optionsIDE = null;
-  public ClassLoader classLoader = RunTime.class.getClassLoader();
-  public String userName = "";
 
   private Class clsRef = RunTime.class;
 
@@ -714,8 +711,8 @@ public class RunTime {
   public String fpSysLibs = null;
   boolean areLibsExported = false;
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
-  public File fUserDir = null;
-  public File fWorkDir = null;
+//  public File fUserDir = null;
+//  public File fWorkDir = null;
 
   public int getLastScriptRunReturnCode() {
     return lastScriptRunReturnCode;
@@ -753,8 +750,8 @@ public class RunTime {
   private final String osNameSysProp = System.getProperty("os.name");
   private final String osVersionSysProp = System.getProperty("os.version");
   public String javaShow = "not-set";
-  public int javaArch = 32;
-  public String osArch = "??";
+  public int javaArch = 64;
+  public String osArch = "64";
   public int javaVersion = 0;
   public File javahome = new File(System.getProperty("java.home"));
   public String osName = "NotKnown";
@@ -817,43 +814,6 @@ public class RunTime {
     runTime = new RunTime();
 
     //<editor-fold defaultstate="collapsed" desc="versions">
-    if (Debug.getDebugLevel() > 3) {
-      runTime.dumpSysProps();
-    }
-    String vJava = System.getProperty("java.specification.version");
-    String vVM = System.getProperty("java.vm.version");
-    String vClass = System.getProperty("java.class.version");
-
-    runTime.osArch = System.getProperty("os.arch");
-    String vSysArch = System.getProperty("sun.arch.data.model");
-    if (vSysArch != null) {
-      if (vSysArch.contains("64")) {
-        runTime.javaArch = 64;
-      } else {
-        vSysArch = null;
-      }
-    }
-
-    try {
-      if (vJava.startsWith("1.")) {
-        runTime.javaVersion = Integer.parseInt(vJava.substring(2, 3));
-      } else {
-        String[] parts = vJava.split("\\.");
-        runTime.javaVersion = Integer.parseInt(parts[0]);
-      }
-      runTime.javaShow = String.format("java %d version %s vm %s class %s arch %s",
-          runTime.javaVersion, vJava,  vVM, vClass, vSysArch);
-    } catch (Exception ex) {
-    }
-
-    if (runTime.javaVersion < 8) {
-      throw new SikuliXception(String.format("fatal: " + "Java version must at least be 8 (%s)", runTime.javaShow));
-    }
-
-    if (null == vSysArch) {
-      throw new SikuliXception(String.format("fatal: " + "Java arch must be 64 Bit (%s)", runTime.javaShow));
-    }
-
     runTime.osVersion = runTime.osVersionSysProp;
     String os = runTime.osNameSysProp.toLowerCase();
     if (os.startsWith("windows")) {
@@ -879,19 +839,8 @@ public class RunTime {
     runTime.fpJarLibs += runTime.sysName + "/libs" + runTime.javaArch;
     runTime.fpSysLibs = runTime.fpJarLibs.substring(1);
 
-    String aFolder = System.getProperty("user.home");
-    if (aFolder == null || aFolder.isEmpty() || !(runTime.fUserDir = new File(aFolder)).exists()) {
-      throw new SikuliXception(String.format("fatal: " + "JavaSystemProperty::user.home not valid"));
-    }
-
-    aFolder = System.getProperty("user.dir");
-    if (aFolder == null || aFolder.isEmpty() || !(runTime.fWorkDir = new File(aFolder)).exists()) {
-      throw new SikuliXception(String.format("fatal: " + "JavaSystemProperty::user.dir not valid"));
-    }
-
     runTime.fSikulixAppPath = Commons.getAppDataPath();
-    runTime.fSikulixStore = new File(runTime.fSikulixAppPath, "SikulixStore");
-    runTime.fSikulixStore.mkdirs();
+    runTime.fSikulixStore = Commons.getAppDataStore();
     //</editor-fold>
 
     sxOptions = Options.init(runTime);
@@ -972,13 +921,6 @@ public class RunTime {
       }
     }
     log(4, "global init: entering as: %s", typ);
-
-    if (System.getProperty("user.name") != null) {
-      userName = System.getProperty("user.name");
-    }
-    if (userName.isEmpty()) {
-      userName = "unknown";
-    }
 
     if (fTempPath == null) {
       String tmpdir = System.getProperty("java.io.tmpdir");
@@ -1718,7 +1660,7 @@ public class RunTime {
   }
 
   public boolean isJava9(String... args) {
-    if (javaVersion > 8) {
+    if (Commons.getJavaVersion() > 8) {
       if (args.length > 0) {
         log(-1, "*** Java 9+: %s", args[0]);
       }
@@ -1726,10 +1668,6 @@ public class RunTime {
     } else {
       return false;
     }
-  }
-
-  public boolean isJava8() {
-    return javaVersion > 7;
   }
 
   public boolean needsRobotFake() {
@@ -1744,15 +1682,12 @@ public class RunTime {
       sxOptions.dumpOptions();
     }
     logp("***** show environment for %s %s", SXVersionLong, runType);
-    logp("user.home: %s", fUserDir);
-    logp("user.dir (work dir): %s", fWorkDir);
-    logp("user.name: %s", userName);
+    logp("user.home: %s", Commons.getUserHome());
+    logp("work dir: %s", Commons.getWorkDir());
+    logp("running on %s %s", Commons.getOSInfo(), appType);
+    logp("running Java %s", Commons.getJavaInfo());
     logp("java.io.tmpdir: %s", fTempPath);
-    logp("running %dBit(%s) on %s (%s) %s", javaArch, osArch, osNameShort,
-        (linuxDistro.contains("???") ? osVersion : linuxDistro), appType);
-    logp(javaShow);
-    logp("app data folder: %s", fSikulixAppPath);
-    //logp("libs folder: %s", fLibsFolder);
+    logp("app data folder: %s", Commons.getAppDataPath());
     if (runningJar) {
       logp("executing jar: %s", fSxBaseJar);
     }
@@ -2726,46 +2661,6 @@ public class RunTime {
     return fJarFound;
   }
 //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="22 system enviroment">
-
-  /**
-   * print the current java system properties key-value pairs sorted by key
-   */
-  public void dumpSysProps() {
-    dumpSysProps(null);
-  }
-
-  /**
-   * print the current java system properties key-value pairs sorted by key but only keys containing filter
-   *
-   * @param filter the filter string
-   */
-  public void dumpSysProps(String filter) {
-    filter = filter == null ? "" : filter;
-    logp("*** system properties dump " + filter);
-    Properties sysProps = System.getProperties();
-    ArrayList<String> keysProp = new ArrayList<String>();
-    Integer nL = 0;
-    String entry;
-    for (Object e : sysProps.keySet()) {
-      entry = (String) e;
-      if (entry.length() > nL) {
-        nL = entry.length();
-      }
-      if (filter.isEmpty() || !filter.isEmpty() && entry.contains(filter)) {
-        keysProp.add(entry);
-      }
-    }
-    Collections.sort(keysProp);
-    String form = "%-" + nL.toString() + "s = %s";
-    for (Object e : keysProp) {
-      logp(form, e, sysProps.get(e));
-    }
-    logp("*** system properties dump end" + filter);
-  }
-
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="21 runcmd">
 

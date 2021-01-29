@@ -22,38 +22,40 @@ public class Commons {
   private static final String osName = System.getProperty("os.name").toLowerCase();
   private static final String osVersion = System.getProperty("os.version").toLowerCase();
 
-  private static String javaInfo;
-  private static String javaVersion;
-  private static String javaArch;
-  private static String javaJreVersion;
-  private static int javaVersionNumber;
-
   static {
-    Properties prop = new Properties();
+    if (!System.getProperty("os.arch").contains("64")) {
+      throw new SikuliXception("SikuliX fatal Error: System must be 64-Bit");
+    }
+
+    if (!"64".equals(System.getProperty("sun.arch.data.model"))) {
+      throw new SikuliXception("SikuliX fatal Error: Java must be 64-Bit");
+    }
+
+    Properties sxProps = new Properties();
     String svf = "/Settings/sikulixversion.txt";
     try {
       InputStream is;
       is = Commons.class.getResourceAsStream(svf);
       if (is == null) {
-        String msg = String.format("fatal: not found on classpath: %s", svf);
+        String msg = String.format("SikuliX fatal Error: not found on classpath: %s", svf);
         throw new SikuliXception(msg);
       }
-      prop.load(is);
+      sxProps.load(is);
       is.close();
     } catch (IOException e) {
-      String msg = String.format("fatal: load did not work: %s (%s)", svf, e.getMessage());
+      String msg = String.format("SikuliX fatal Error: load did not work: %s (%s)", svf, e.getMessage());
       throw new SikuliXception(msg);
     }
     //    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
-    sxVersion = prop.getProperty("sikulixvproject");
+    sxVersion = sxProps.getProperty("sikulixvproject");
     //    sikulixbuild=2019-10-17_09:58
-    sxBuild = prop.getProperty("sikulixbuild");
+    sxBuild = sxProps.getProperty("sikulixbuild");
     sxBuildStamp = sxBuild
         .replace("_", "").replace("-", "").replace(":", "")
         .substring(0, 12);
     //    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
     //    in development context undefined:
-    sxBuildNumber = prop.getProperty("sikulixbuildnumber");
+    sxBuildNumber = sxProps.getProperty("sikulixbuildnumber");
     if (sxBuildNumber.contains("TRAVIS_BUILD_NUMBER")) {
       sxBuildNumber = "";
     }
@@ -64,8 +66,6 @@ public class Commons {
       sxVersionLong = sxVersion + String.format("-#%s-%s", sxBuildNumber, sxBuildStamp);
     }
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
-
-    javaInfo = "Java " + javaVersion + "(" + javaArch + ") " + javaJreVersion;
   }
 
   public static void init() {};
@@ -73,8 +73,10 @@ public class Commons {
   //<editor-fold desc="00 basics">
   private static String logText;
 
-  private static void resetLog() {
+  private static String resetLog() {
+    String text = logText;
     logText = "";
+    return text;
   }
 
   private static void startLog(String msg, Object... args) {
@@ -86,7 +88,11 @@ public class Commons {
   }
 
   public static String getLog() {
-    return logText;
+    return resetLog();
+  }
+
+  public static void printLog() {
+    System.out.println(resetLog());
   }
 
   public static boolean parmsValid(Object... parms) {
@@ -103,18 +109,6 @@ public class Commons {
       return false;
     }
     return true;
-  }
-
-  public static boolean runningWindows() {
-    return osName.startsWith("windows");
-  }
-
-  public static boolean runningMac() {
-    return osName.startsWith("mac");
-  }
-
-  public static boolean runningLinux() {
-    return !runningMac() && !runningWindows();
   }
 
   public static int[] reverseIntArray(int[] anArray) {
@@ -179,7 +173,7 @@ public class Commons {
       appDataPath = new File(userHome, givenAppPath);
       appDataPath.mkdirs();
       if (!appDataPath.exists()) {
-        //TODO
+        //TODO setAppDataPath
       }
     }
     return appDataPath;
@@ -191,6 +185,14 @@ public class Commons {
   }
 
   private static File appDataPath = null;
+
+  public static File getAppDataStore() {
+    File sikulixStore = new File(getAppDataPath(), "SikulixStore");
+    if (!sikulixStore.exists()) {
+      sikulixStore.mkdirs();
+    }
+    return sikulixStore;
+  }
 
   public static File getUserHome() {
     String userHomePath = "Env not valid";
@@ -235,6 +237,18 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="02 version infos">
+  public static boolean runningWindows() {
+    return osName.startsWith("windows");
+  }
+
+  public static boolean runningMac() {
+    return osName.startsWith("mac");
+  }
+
+  public static boolean runningLinux() {
+    return !runningMac() && !runningWindows();
+  }
+
   public static String getSXVersion() {
     return sxVersion;
   }
@@ -283,25 +297,88 @@ public class Commons {
     if (runningMac()) return "macOS " + osVersion;
     return System.getProperty("os.name") + " " + osVersion;
   }
+
+  public static int getJavaVersion() {
+    String vJava = System.getProperty("java.specification.version");
+    int nJava;
+    if (vJava.startsWith("1.")) {
+      nJava = Integer.parseInt(vJava.substring(2));
+    } else {
+      nJava = Integer.parseInt(vJava);
+    }
+    return nJava;
+  }
+
+  public static String getJavaInfo() {
+    return System.getProperty("java.vendor") + " " + System.getProperty("java.runtime.version");
+  }
+
+  public static boolean isJava8() {return 8 == getJavaVersion();}
   //</editor-fold>
+
+  //<editor-fold desc="03 Java System Properties">
+  public static boolean hasSysProp(String prop) {
+    return null != System.getProperty(prop);
+  }
+
+  public static String getSysProp(String prop) {
+    if (hasSysProp(prop)) {
+      return System.getProperty(prop);
+    }
+    return "";
+  }
+
+  /**
+   * print the current java system properties key-value pairs sorted by key
+   */
+  public static void dumpSysProps() {
+    dumpSysProps(null);
+  }
+
+  /**
+   * print the current java system properties key-value pairs sorted by key but only keys containing filter
+   *
+   * @param filter the filter string
+   */
+  public static void dumpSysProps(String filter) {
+    filter = filter == null ? "" : filter;
+    Properties sysProps = System.getProperties();
+    ArrayList<String> keysProps = new ArrayList<String>();
+    Integer eLen = 0;
+    for (Object entry : sysProps.keySet()) {
+      String sEntry = (String) entry;
+      if (filter.isEmpty() || !filter.isEmpty() && sEntry.startsWith(filter)) {
+        keysProps.add(sEntry);
+        if (sEntry.length() > eLen) {
+          eLen = sEntry.length();
+        }
+      }
+    }
+    Collections.sort(keysProps);
+    String form = "%-" + eLen.toString() + "s = %s";
+    startLog("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
+    for (String prop : keysProps) {
+      log(form, prop, System.getProperty(prop));
+    }
+    printLog();
+  }
+  //</editor-fold>
+
 
   //<editor-fold desc="10 folder handling">
   public static List<String> getFileList(String resFolder) {
-    return getFileList(resFolder, Object.class);
+    return getFileList(resFolder, null);
   }
 
   public static List<String> getFileList(String resFolder, Class classReference) {
     List<String> fileList = new ArrayList<>();
-    if (!parmsValid(resFolder, classReference)) {
-      return fileList;
-    }
-    if (resFolder.equals(".")) {
-      resFolder = "/" + classReference.getPackage().getName().replace(".", "/");
-    }
     URL dirURL;
-    if (classReference == Object.class) {
+    if (classReference == null) {
       dirURL = makeURL(resFolder);
     } else {
+      if (resFolder.equals(".")) {
+        resFolder = "/" + classReference.getPackage().getName().replace(".", "/");
+      }
       dirURL = classReference.getResource(resFolder);
     }
     if (dirURL != null) {
@@ -400,7 +477,6 @@ public class Commons {
     if (runningWindows()) {
       resFile = resFile.replace("\\", "/");
     }
-    String filePath = "/" + classReference.getPackage().getName().replace(".", "/") + "/" + resFile;
     String content = copyResourceToString(resFile, classReference);
     log("getResourceList: %s\n(%s)", resFile, content);
     if (null != content) {

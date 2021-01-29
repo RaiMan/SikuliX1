@@ -5,6 +5,7 @@
 package org.sikuli.util;
 
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class Crawler {
 
   static String packg = "org.sikuli.";
   static String thisPackg = packg;
-  static File sourceBase = new File(RunTime.get().fWorkDir, "/src/main/java");
+  static File sourceBase = new File(Commons.getWorkDir(), "/src/main/java");
   //</editor-fold>
 
   public static void main(String[] args) {

@@ -3,7 +3,11 @@
  */
 package org.sikuli.script;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Date;
 

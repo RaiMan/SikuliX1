@@ -65,7 +65,7 @@ public class SikulixIDE extends JFrame {
     get();
 
     if (Debug.getDebugLevel() < 3) {
-      ideSplash = new IDESplash(runTime.SXVersion, "" + runTime.javaVersion);
+      ideSplash = new IDESplash(Commons.getSXVersion(), "" + Commons.getJavaVersion());
     }
 
     log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
@@ -1648,7 +1648,7 @@ public class SikulixIDE extends JFrame {
     private long lastWhen = -1;
 
     public void toggleShowThumbs(ActionEvent ae) {
-      if (runTime.runningMac) {
+      if (Commons.runningMac()) {
         if (lastWhen < 0) {
           lastWhen = new Date().getTime();
         } else {

@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.*;
@@ -131,7 +132,7 @@ public class Options {
         log(-1, "loadOptions: not exists: %s", fOptions);
       }
     } else {
-      for (File aFile : new File[]{runtime.fSikulixStore, runtime.fWorkDir, runtime.fUserDir}) {
+      for (File aFile : new File[]{Commons.getAppDataStore(), Commons.getWorkDir(), Commons.getUserHome()}) {
         fOptions = new File(aFile, fpOptions);
         if (fOptions.exists()) {
           break;
@@ -181,7 +182,7 @@ public class Options {
   public boolean saveOpts(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (!fOptions.isAbsolute()) {
-      fOptions = new File(runtime.fWorkDir, fpOptions);
+      fOptions = new File(Commons.getWorkDir(), fpOptions);
     }
     try {
       setOption(propOptionsFile, fOptions.getAbsolutePath());

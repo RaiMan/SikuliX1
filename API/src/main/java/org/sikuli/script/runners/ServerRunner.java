@@ -16,6 +16,7 @@ import javax.script.ScriptEngine;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 
@@ -448,7 +449,7 @@ public class ServerRunner extends AbstractScriptRunner {
       Debug.log("Original path: " + aFolder);
       if (path.toLowerCase().startsWith("/home/")) {
         path = path.substring(6);
-        aFolder = new File(RunTime.get().fUserDir, path);
+        aFolder = new File(Commons.getUserHome(), path);
       } else if (path.toLowerCase().startsWith("/net/")) {
         path = "__NET/" + path.substring(5);
         aFolder = new File(path);
