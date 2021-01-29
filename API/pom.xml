@@ -141,6 +141,14 @@
           <groupId>net.java.dev.jna</groupId>
           <artifactId>jna</artifactId>
         </exclusion>
+        <exclusion><!-- we have log4j-over-slf4j, it conflicts with real log4j -->
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion><!-- we have jcl-over-slf4j, it conflicts with real commons-logging -->
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
