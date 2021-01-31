@@ -9,23 +9,28 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**You need at least Java 8, but it works on Java 9 up to latest (currently 14)**
+**Java: recommended is Java 11 - but you need at least Java 8** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
+<br>non-LTS versions like Java 15 might create problems that should be reported
 
 **Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
 
-**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)). **Java 14: open problems with Tesseract**
+**Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
+<br>on macOS: **Java 14+: open problems with Tesseract**
 
 **Linux:** you have to make OpenCV and Tesseract OCR available ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
 <hr>
 
-**Latest stable version is 2.0.4** (branch `release_2.0.x` - [see what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes))
+**Latest stable version is 2.0.4** 
+<br>[See what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
+<br>[Here you can read about major changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+<br>[For ready to use artifacts and the sources look here](https://github.com/RaiMan/SikuliX1/releases/tag/2.0.4)
 
-**Development version 2.1.0 currently not useable until further notice**<br>
-New features will only be available in new major versions (currently 2.1.0, branches master and/or dev_...). 
-<br>Until release of a stable 2.1.0, there will be nightly builds and snapshots available (see below).
+**Next version is 2.0.5** (dev branch release_2.0.x)
+<br>final planned for February 2021
 
-[Here you can read about the changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
+**Development version 2.1.0 (branch master) currently not useable until further notice**
+<br>[Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
 
 **Get SikuliX ready to use**
 - [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixide-2.0.4.jar)
@@ -42,41 +47,6 @@ For use in **Java Maven projects** the dependency coordinates are:
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
   <version>2.0.4</version>
-</dependency>
-```
-<hr>
-
-**Current development version is 2.1.0** (branch `master` nightly builds / snapshots):<br>
-[![Build Status](https://travis-ci.org/RaiMan/SikuliX1.svg?branch=master)](https://travis-ci.org/RaiMan/SikuliX1)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FRaiMan%2FSikuliX1?ref=badge_shield)
-
-[Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
-
-**Get the nightly builds ready to use** 
-- [SikuliX IDE for editing and running scripts]()
-  - [Jython support for the IDE]()
-  - [JRuby support for the IDE]()
-  - download all needed to one folder and run sikulix-2.1.0.jar
-  <br><br>
-- [SikuliX Java API for programming in Java or Java aware languages]()
-  - for use in non-Maven projects
-
-For use in **Java Maven projects** use the SNAPSHOT dependency information:<br><br>
-The repository URL:
-```
-<repositories>
-  <repository>
-    <id>sonatype-ossrh</id>
-    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-  </repository>
-</repositories>
-```
-The dependency coordinates are:
-```
-<dependency>
-  <groupId>com.sikulix</groupId>
-  <artifactId>sikulixapi</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
 </dependency>
 ```
 <hr>
