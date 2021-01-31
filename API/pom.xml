@@ -107,8 +107,9 @@
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
-      <version>4.5.3</version>
+      <version>4.5.4</version>
       <!--License Apache 2-->
+<!--
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>
@@ -119,6 +120,7 @@
           <artifactId>jna</artifactId>
         </exclusion>
       </exclusions>
+-->
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
