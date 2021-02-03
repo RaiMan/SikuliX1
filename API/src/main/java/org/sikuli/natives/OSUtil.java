@@ -26,6 +26,12 @@ public interface OSUtil {
 		Rectangle getBounds();
 
 		boolean focus();
+
+		boolean minimize();
+
+		boolean maximize();
+
+		boolean restore();
 	}
 
 	/**
@@ -37,7 +43,7 @@ public interface OSUtil {
 	List<OsProcess> findProcesses(String name);
 
 	List<OsWindow> findWindows(String title);
-	
+
 	List<OsWindow> getWindows(OsProcess process);
 
 	List<OsProcess> getProcesses();

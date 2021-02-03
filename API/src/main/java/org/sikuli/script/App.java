@@ -3,25 +3,22 @@
  */
 package org.sikuli.script;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.lang3.StringUtils;
-import org.sikuli.basics.Debug;
-import org.sikuli.natives.OSUtil;
-import org.sikuli.natives.OSUtil.OsProcess;
-import org.sikuli.natives.OSUtil.OsWindow;
-import org.sikuli.natives.SysUtil;
-import org.sikuli.script.support.RunTime;
-
 import java.awt.Desktop;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.datatransfer.*;
-import java.io.*;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +34,23 @@ import java.util.stream.Collectors;
 //import org.apache.http.impl.client.CloseableHttpClient;
 //import org.apache.http.impl.client.HttpClients;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.lang3.StringUtils;
+import org.sikuli.basics.Debug;
+import org.sikuli.natives.OSUtil;
+import org.sikuli.natives.OSUtil.OsProcess;
+import org.sikuli.natives.OSUtil.OsWindow;
+import org.sikuli.natives.SysUtil;
+import org.sikuli.script.support.RunTime;
+
 /**
  * App implements features to manage (open, switch to, close) applications. on
  * the system we are running on and to access their assets like windows <br>
  * TAKE CARE: function behavior differs depending on the running system (cosult
  * the docs for more info)
+ *
+ * @author rhocke
+ * @author mbalmer
  */
 public class App {
 
@@ -399,30 +408,30 @@ public class App {
 		return cmd.getExecutable();
 	}
 
-//	/**
-//	 * Use setArguments() instead
-//	 */
-//	@Deprecated
-//	public App setUsing(String options) {
-//		return setArguments(options);
-//	}
-//
-//	public App setArguments(String arguments) {
-//		this.arguments = CommandLine.parse(executable + " " + arguments).getArguments();
-//		return this;
-//	}
-//
-//	/**
-//	 * Use getArguments() insead
-//	 */
-//	@Deprecated
-//	public String getOptions() {
-//		return getArguments();
-//	}
-//
-//	public String getArguments() {
-//		return String.join(" ", arguments);
-//	}
+	/**
+	 * Use setArguments() instead
+	 */
+	@Deprecated
+	public App setUsing(String options) {
+		return setArguments(options);
+	}
+
+	public App setArguments(String arguments) {
+		this.cmd = CommandLine.parse("\"" + cmd.getExecutable() + "\" " + arguments);
+		return this;
+	}
+
+	/**
+	 * Use getArguments() insead
+	 */
+	@Deprecated
+	public String getOptions() {
+		return getArguments();
+	}
+
+	public String getArguments() {
+		return String.join(" ", cmd.getArguments());
+	}
 
 	public void setName(String name) {
 		if (StringUtils.isBlank(name)) {
@@ -460,13 +469,13 @@ public class App {
 		return getWindowTitle(windowNumber);
 	}
 
-//	public boolean setWorkDir() {
-//		if (appExecPath.isEmpty()) {
-//			return false;
-//		}
-//		appWorkDir = appExecPath;
-//		return true;
-//	}
+	public boolean setWorkDir() {
+		if (cmd.getExecutable().isEmpty()) {
+			return false;
+		}
+		this.workDir = new File(cmd.getExecutable()).getParentFile().getAbsolutePath();
+		return true;
+	}
 
 	public boolean setWorkDir(String workDirPath) {
 		if (workDirPath == null || workDirPath.isEmpty()) {
@@ -565,7 +574,6 @@ public class App {
 					pause(1);
 
 					if (isRunning()) {
-						focus();
 						return true;
 					}
 
@@ -584,9 +592,8 @@ public class App {
 			log("App.open: already running: %s", this);
 			return focus();
 		}
-
 	}
-		
+
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="4 close">
@@ -601,11 +608,11 @@ public class App {
 	public static boolean close(String appName) {
 		return new App(appName).close();
 	}
-    
+
 	public boolean isClosing() {
 		return isClosing;
 	}
-	
+
 	/**
 	 * tries to close the app defined by this App instance, waits max 10 seconds for
 	 * the app to no longer be running
@@ -627,11 +634,11 @@ public class App {
 		if (!isRunning()) {
 			log("App.close: not running: %s", this);
 			return false;
-		}		
-		
+		}
+
 		isClosing = true;
 
-		try {			
+		try {
 			// try to close gracefully
 			boolean success = process.close(false);
 
@@ -737,10 +744,9 @@ public class App {
 	}
 
 	/**
-	 * tries to make it the foreground application bringing its frontmost window to
-	 * front
+	 * tries to focus this applications top window
 	 *
-	 * @return the App instance
+	 * @return true on succes, false otherwise
 	 */
 	public boolean focus() {
 		if (!isRunning(0)) {
@@ -750,13 +756,77 @@ public class App {
 
 		List<OsWindow> windows = osUtil.getWindows(process);
 
-		if (windows.isEmpty()) {
-			log("App.focus: no window for %s", toString());
-			return false;
-		} else {
+		if (!windows.isEmpty()) {
 			return windows.get(0).focus();
 		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
 	}
+
+	/**
+	 * tries to minimize this applications top window
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean minimize() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).minimize();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+
+	/**
+	 * tries to minimize this applications top window
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean maximize() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).maximize();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+
+	/**
+	 * tries to restore this applications top window.
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean restore() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).restore();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+
 //</editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="5 window">

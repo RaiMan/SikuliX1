@@ -3,332 +3,169 @@
  */
 package org.sikuli.natives;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.script.*;
-import org.sikuli.script.runners.AppleScriptRunner;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.sikuli.natives.mac.jna.CoreGraphics;
+import org.sikuli.natives.mac.jna.NSRunningApplication;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.mac.CoreFoundation;
+import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
+import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
+import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
+import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
 
 public class MacUtil extends GenericOsUtil {
+	private static final class MacWindow implements OsWindow {
+		private long number;
+		private String title;
+		private long pid;
+		private Rectangle bounds;
 
-	@Override
-	public void init() {
-		RunTime.loadLibrary("MacUtil");		
+		public MacWindow(long number, String title, long pid, Rectangle bounds) {
+			this.number = number;
+			this.title = title;
+			this.pid = pid;
+			this.bounds = bounds;
+		}
+
+		@Override
+		public OsProcess getProcess() {
+			Optional<ProcessHandle> handle = ProcessHandle.of(pid);
+			if (handle.isPresent()) {
+				return new GenericOsProcess(handle.get());
+			}
+			return null;
+		}
+
+		@Override
+		public String getTitle() {
+			return title;
+		}
+
+		@Override
+		public Rectangle getBounds() {
+			return bounds;
+		}
+
+		@Override
+		public boolean focus() {
+			NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
+
+			if (app != null) {
+				return app.activateWithOptions(NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateAllWindows | NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateIgnoringOtherApps);
+			}
+
+			return false;
+		}
+
+		@Override
+		public boolean minimize() {
+			throw new UnsupportedOperationException("minimize not implemented");
+		}
+
+		@Override
+		public boolean maximize() {
+			throw new UnsupportedOperationException("maximize not implemented");
+		}
+
+		@Override
+		public boolean restore() {
+			throw new UnsupportedOperationException("restore not implemented");
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other != null && other instanceof MacWindow && this.number == (((MacWindow) other).number);
+		}
 	}
 
 	@Override
 	public List<OsWindow> findWindows(String title) {
-		// TODO Auto-generated method stub
-		return null;
+		return allWindows().stream().filter((w) -> w.getTitle().equals(title)).collect(Collectors.toList());
 	}
 
 	@Override
 	public OsWindow getFocusedWindow() {
-		// TODO Auto-generated method stub
-		return null;
+		return allWindows().stream().filter((w) -> {
+			OsProcess process = w.getProcess();
+
+			if (process != null) {
+				NSRunningApplication app = NSRunningApplication.CLASS
+						.runningApplicationWithProcessIdentifier((int) w.getProcess().getPid());
+
+				if (app != null) {
+					if (app.isActive()) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}).findFirst().orElse(null);
 	}
 
-	
-	
+	@Override
+	public List<OsWindow> getWindows(OsProcess process) {
+		if (process != null) {
+			return allWindows().stream().filter((w) -> process.equals(w.getProcess())).collect(Collectors.toList());
+		}
+		return new ArrayList<>(0);
+	}
 
-//  private static boolean _askedToEnableAX = false;
-//
-//  @Override
-//  public void init() {
-//    RunTime.loadLibrary("MacUtil");
-//  }
-//
-//  /*
-//  tell application "System Events"
-//    set found to "NotFound"
-//    try
-//      set found to first item of (processes whose name is "#APP#")
-//      set found to first item of (processes whose unix id is equal to #PID#)
-//    end try
-//    found
-//  end tell
-//  if not found is equal to "NotFound" then
-//    set windowName to ""
-//    try
-//    set windowName to name of first window of application "#APP#"
-//    end try
-//    set found to {name of found, «class idux» of found, windowName}
-//  end if
-//  found
-//  */
-//  static String cmd = "set found to \"NotFound\"\n"
-//          + "try\n"
-//          + "tell application \"System Events\"\n"
-//          + "#LINE#\n"
-//          + "end tell\n"
-//          + "if not (found is equal to \"NotFound\") then\n"
-//          + "set windowName to \"\"\n"
-//          + "try\n"
-//          + "set windowName to name of first window of found\n"
-//          + "end try\n"
-//          + "set found to {name of found, «class idux» of found, windowName, file of found}\n"
-//          + "end if\n"
-//          + "end try\n"
-//          + "found\n";
-//  static String cmdLineApp = "set found to first item of (processes whose displayed name is \"#APP#\")";
-//  static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
-//
-//  /*
-//  set theWindows to {}
-//  repeat with win in (windows of application "#APP#" whose visible is true)
-//	  copy {name of win, bounds of win} to end of theWindows
-//  end repeat
-//  theWindows
-//  */
-//
-//  private static final IScriptRunner.Options SILENT_OPTIONS = new IScriptRunner.Options().setSilent(true);
-//
-//  String cmdGetWindows = "set theWindows to {}\n" +
-//          "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
-//          "copy {name of win, bounds of win} to end of theWindows\n" +
-//          "end repeat\n" +
-//          "theWindows\n";
-//
-//  @Override
-//  public App get(App app) {
-//    String name = app.getName();
-//    int pid = app.getPID();
-//    String theCmd = "";
-//    if (pid < 0) {
-//      if (!name.isEmpty()) {
-//        List<App> apps = getApps(name);
-//        if (apps.size() > 0) {
-//          App theApp = apps.get(0);
-//          app.setPID(theApp.getPID());
-//          app.setName(theApp.getName());
-//          app.setToken(theApp.getToken());
-//          app.setExec(theApp.getExec());
-//          app.setWindow(theApp.getWindowTitle());
-//        }
-//      }
-//      return app;
-//    } else {
-//      theCmd = cmd.replace("#LINE#", cmdLinePID);
-//      theCmd = theCmd.replaceAll("#PID#", "" + pid);
-//      int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
-//      String result = RunTime.get().getLastCommandResult().trim();
-//      if (retVal > -1) {
-//        if (!result.contains("NotFound")) {
-//          String[] parts = result.split(",");
-//          if (parts.length > 1) {
-//            app.setName(parts[0].trim());
-//            app.setPID(parts[1].trim());
-//          }
-//          if (parts.length > 2) {
-//            app.setWindow(parts[2].trim());
-//          }
-//          if (parts.length > 3) {
-//            for (int i = 3; i < parts.length; i++) {
-//              String part = parts[i].trim();
-//              if (part.startsWith("alias ")) {
-//                String[] folders = part.split(":");
-//                part = "";
-//                for (int nf = 1; nf < folders.length; nf++) {
-//                  part += "/" + folders[nf];
-//                }
-//                app.setExec(part);
-//                continue;
-//              }
-//              app.setWindow(app.getWindowTitle() + "," + parts);
-//            }
-//          }
-//        }
-//      } else {
-//        app.reset();
-//      }
-//    }
-//    return app;
-//  }
-//
-//  @Override
-//  public boolean open(App app) {
-//    String appName = app.getExec().isEmpty() ? app.getName() : app.getExec();
-//    String cmd = "open -a \"" + appName + "\"";
-//    if (!app.getOptions().isEmpty()) {
-//      cmd += " --args " + app.getOptions();
-//    }
-//    int ret = shRun(cmd);
-//    return ret == 0;
-//  }
-//
-//  @Override
-//  public boolean switchto(App app) {
-//    if (app.isValid()) {
-//      //osascript -e "tell app \"safari\" to activate"
-//      String cmd = "tell application \""
-//              + app.getName()
-//              + "\" to activate";
-//      return 0 == Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
-//    }
-//    return false;
-//  }
-//
-//  @Override
-//  public App switchto(String title, int index) {
-//    //TODO switchTo window title
-//    return new App();
-//  }
-//
-//  @Override
-//  public boolean close(App app) {
-//    int ret;
-//    if (app.getPID() > -1) {
-//      ret = close(app.getPID());
-//    } else {
-//      ret = close(app.getExec().startsWith(app.getName()) ? app.getName() : app.getExec());
-//    }
-//    if (ret == 0) {
-//      app.reset();
-//    }
-//    return ret == 0;
-//  }
-//
-//  private static int shRun(String sCmd) {
-//    String cmd[] = {"sh", "-c", sCmd};
-//    try {
-//      Process p = Runtime.getRuntime().exec(cmd);
-//      p.waitFor();
-//      return p.exitValue();
-//    } catch (Exception e) {
-//      return -1;
-//    }
-//  }
-//
-//  private int close(String appName) {
-//    String cmd = "ps aux |  grep \"" + appName + "\" | grep -v \"grep\" | awk '{print $2}' | xargs kill";
-//    return shRun(cmd);
-//  }
-//
-//  private int close(int pid) {
-//    String cmd = "kill " + pid;
-//    return shRun(cmd);
-//  }
-//
-//  @Override
-//  public Rectangle getWindow(App app) {
-//    return getWindow(app, 0);
-//  }
-//
-//  @Override
-//  public Rectangle getWindow(App app, int winNum) {
-//    int pid = getPID(app.getName());
-//    return getWindow(pid, winNum);
-//  }
-//
-//  @Override
-//  public Rectangle getWindow(String appName) {
-//    return getWindow(new App(appName), 0);
-//  }
-//
-//  private Rectangle getWindow(int pid) {
-//    return getWindow(pid, 0);
-//  }
-//
-//  private Rectangle getWindow(int pid, int winNum) {
-//    Rectangle rect = getRegion(pid, winNum);
-//    return rect;
-//  }
-//
-//  @Override
-//  public Rectangle getFocusedWindow() {
-//    Rectangle rect = getFocusedRegion();
-//    return rect;
-//  }
-//
-//  @Override
-//  public List<Region> getWindows(App app) {
-//    List<Region> windows = new ArrayList<>();
-//    String theCmd = cmdGetWindows.replace("#APP#", app.getName());
-//    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
-//    String result = RunTime.get().getLastCommandResult().trim();
-//    if (retVal > -1 && !result.isEmpty()) {
-//      Debug.trace("getWindows: %s", result);
-//      String[] parts = result.split(",");
-//      int lenResult = parts.length;
-//      if (lenResult % 5 != 0) {
-//        Debug.error("getWindow: at least one window title has a comma - giving up: %s", result);
-//        return windows;
-//      }
-//      for (int nWin = 0; nWin < lenResult; nWin += 5) {
-//        try {
-//          int x = Integer.parseInt(parts[nWin + 1].trim());
-//          int y = Integer.parseInt(parts[nWin + 2].trim());
-//          int w = Integer.parseInt(parts[nWin + 3].trim()) - x;
-//          int h = Integer.parseInt(parts[nWin + 4].trim()) - y;
-//          Region reg = new Region(x, y, w, h);
-//          reg.setName(parts[nWin]);
-//          windows.add(reg);
-//        } catch (NumberFormatException e) {
-//          Debug.error("getWindow: invalid coordinates: %s", result);
-//        }
-//      }
-//    }
-//    return windows;
-//  }
-//
-//  @Override
-//  public List<App> getApps(String name) {
-//    new App();
-//    String cmd = "tell application \"System Events\"\n" +
-//            "set plist to (processes whose background only is false)\n" +
-//            "set resultlist to {}\n" +
-//            "repeat with n from 1 to the length of plist\n" +
-//            "set proc to item n of plist\n" +
-//            "set pwin to \"\"\ntry\nset pwin to name of first window of proc\nend try\n" +
-//            "set entry to {pwin as text, \"|||\", «class idux» of proc as text," +
-//            "displayed name of proc as text, name of proc as text, get file of proc, \"###\"}\n" +
-//            "set end of resultlist to entry\n" +
-//            "end repeat\n" +
-//            "end tell\n" +
-//            "resultlist";
-//    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
-//    String result = RunTime.get().getLastCommandResult().trim();
-//    String[] processes = (", " + result).split(", ###");
-//    List<App> appList = new ArrayList<>();
-//    int pid = 0;
-//    for (String process : processes) {
-//      if (process.startsWith(", ")) {
-//        process = process.substring(2);
-//      }
-//      App theApp = new App();
-//      String[] parts = process.split(", \\|\\|\\|,");
-//      String pWin = parts[0].trim();
-//      parts = parts[1].split(",");
-//      try {
-//        pid = Integer.parseInt(parts[0].trim());
-//      } catch (NumberFormatException e) {
-//        pid--;
-//      }
-//      String dispName = parts[1].trim();
-//      String procName = parts[2].trim();
-//      String[] pAlias = parts[3].split(":");
-//      String pExec = pAlias[pAlias.length - 1];
-//      String pToken = String.format("%s|%s|%s", dispName, procName, pExec);
-//      if (name.isEmpty() || pToken.toUpperCase().contains(name.toUpperCase())) {
-//        theApp.setName(dispName);
-//        theApp.setPID(pid);
-//        theApp.setToken(pToken);
-//        theApp.setExec(pExec);
-//        theApp.setWindow(pWin);
-//        appList.add(theApp);
-//      }
-//    }
-//    return appList;
-//  }
-//
-//  public static native int getPID(String appName);
-//
-//  public static native Rectangle getRegion(int pid, int winNum);
-//
-//  public static native Rectangle getFocusedRegion();
+	private static List<OsWindow> allWindows() {
+		ArrayList<OsWindow> windows = new ArrayList<>();
+
+		CFArrayRef windowInfo = CoreGraphics.INSTANCE.CGWindowListCopyWindowInfo(
+				CoreGraphics.kCGWindowListExcludeDesktopElements | CoreGraphics.kCGWindowListOptionOnScreenOnly, 0);
+
+		try {
+			int numWindows = windowInfo.getCount();
+			for (int i = 0; i < numWindows; i++) {
+				Pointer pointer = windowInfo.getValueAtIndex(i);
+				CFDictionaryRef windowRef = new CFDictionaryRef(pointer);
+
+				Pointer numberPointer = windowRef.getValue(CoreGraphics.kCGWindowNumber);
+				long windowNumber = new CFNumberRef(numberPointer).longValue();
+
+				Pointer pidPointer = windowRef.getValue(CoreGraphics.kCGWindowOwnerPID);
+				long windowPid = new CFNumberRef(pidPointer).longValue();
+
+				String windowName = "";
+				Pointer namePointer = windowRef.getValue(CoreGraphics.kCGWindowName);
+
+				if (namePointer != null) {
+					CFStringRef nameRef = new CFStringRef(namePointer);
+
+					if (CoreFoundation.INSTANCE.CFStringGetLength(nameRef).intValue() > 0) {
+						windowName = new CFStringRef(namePointer).stringValue();
+					}
+				}
+
+				Pointer boundsPointer = windowRef.getValue(CoreGraphics.kCGWindowBounds);
+				CoreGraphics.CGRectRef rect = new CoreGraphics.CGRectRef();
+
+				boolean result = CoreGraphics.INSTANCE.CGRectMakeWithDictionaryRepresentation(boundsPointer, rect);
+
+				Rectangle javaRect = null;
+
+				if (result) {
+					int x = (int) rect.origin.x;
+					int y = (int) rect.origin.y;
+					int width = (int) rect.size.width;
+					int height = (int) rect.size.height;
+
+					javaRect = new Rectangle(x, y, width, height);
+				}
+
+				windows.add(new MacWindow(windowNumber, windowName, windowPid, javaRect));
+			}
+		} finally {
+			windowInfo.release();
+		}
+
+		return windows;
+	}
 }

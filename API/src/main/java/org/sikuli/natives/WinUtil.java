@@ -11,10 +11,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinUser;
@@ -35,13 +35,13 @@ public class WinUtil extends GenericOsUtil {
 		public OsProcess getProcess() {
 			IntByReference pid = new IntByReference();
 			user32.GetWindowThreadProcessId(hWnd, pid);
-			
+
 			Optional<ProcessHandle> handle = ProcessHandle.of(pid.getValue());
-			
+
 			if (handle.isPresent()) {
-			  return new GenericOsProcess(ProcessHandle.of(pid.getValue()).get());
+				return new GenericOsProcess(ProcessHandle.of(pid.getValue()).get());
 			}
-			
+
 			return null;
 		}
 
@@ -72,11 +72,25 @@ public class WinUtil extends GenericOsUtil {
 			boolean success = user32.SetForegroundWindow(hWnd);
 
 			if (success) {
-				user32.SetFocus(hWnd);
-				return true;
+				return (user32.SetFocus(hWnd) != null);
 			}
 
 			return false;
+		}
+
+		@Override
+		public boolean minimize() {
+			return user32.ShowWindow(hWnd, WinUser.SW_MINIMIZE);
+		}
+
+		@Override
+		public boolean maximize() {
+			return user32.ShowWindow(hWnd, WinUser.SW_MAXIMIZE);
+		}
+
+		@Override
+		public boolean restore() {
+			return user32.ShowWindow(hWnd, WinUser.SW_RESTORE);
 		}
 
 		@Override
@@ -84,7 +98,7 @@ public class WinUtil extends GenericOsUtil {
 			return other != null && other instanceof WinWindow && this.hWnd.equals(((WinWindow) other).hWnd);
 		}
 	}
-	
+
 	@Override
 	public List<OsWindow> findWindows(String title) {
 		if (StringUtils.isNotBlank(title)) {
@@ -113,9 +127,22 @@ public class WinUtil extends GenericOsUtil {
 
 		boolean result = user32.EnumWindows(new WinUser.WNDENUMPROC() {
 			public boolean callback(final HWND hWnd, final Pointer data) {
-				if (user32.IsWindowVisible(hWnd)) {
+				// Only visible and top level. Ensures that top level window is at index 0
+				if (user32.IsWindowVisible(hWnd) && user32.GetWindow(hWnd, new DWORD(WinUser.GW_OWNER)) == null) {
 					windows.add(new WinWindow(hWnd));
+
+					// get child windows as well
+					user32.EnumChildWindows(hWnd, new WinUser.WNDENUMPROC() {
+						public boolean callback(final HWND hWnd, final Pointer data) {
+							if (user32.IsWindowVisible(hWnd)) {
+								windows.add(new WinWindow(hWnd));
+							}
+
+							return true;
+						}
+					}, null);
 				}
+
 				return true;
 			}
 		}, null);

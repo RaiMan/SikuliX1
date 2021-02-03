@@ -4,18 +4,20 @@
 package org.sikuli.natives;
 
 import java.awt.Rectangle;
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.sikuli.basics.Debug;
+import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.IScriptRunner;
 
 public class LinuxUtil extends GenericOsUtil {
 
@@ -28,43 +30,80 @@ public class LinuxUtil extends GenericOsUtil {
 
 		@Override
 		public OsProcess getProcess() {
-			List<String> lines = xdotool(new String[] { "getwindowpid", Long.toString(id) });
+			try {
+				List<String> lines = xdotool(new String[] { "getwindowpid", Long.toString(id) });
 
-			if (!lines.isEmpty()) {
-				Optional<ProcessHandle> handle = ProcessHandle.of(Long.parseLong(lines.get(0)));
-				if (handle.isPresent()) {
-					return new GenericOsProcess(handle.get());
+				if (!lines.isEmpty()) {
+					Optional<ProcessHandle> handle = ProcessHandle.of(Long.parseLong(lines.get(0)));
+					if (handle.isPresent()) {
+						return new GenericOsProcess(handle.get());
+					}
 				}
+
+				return null;
+			} catch (XdotoolException e) {
+				return null;
 			}
-			return null;
 		}
 
 		@Override
 		public String getTitle() {
-			List<String> lines = xdotool(new String[] { "getwindowname", Long.toString(id) });
-			return lines.stream().findFirst().orElse("");
+			try {
+				List<String> lines = xdotool(new String[] { "getwindowname", Long.toString(id) });
+				return lines.stream().findFirst().orElse("");
+			} catch (XdotoolException e) {
+				return "";
+			}
 		}
 
 		@Override
 		public Rectangle getBounds() {
-			List<String> lines = xdotool(new String[] { "getwindowgeometry", "--shell", Long.toString(id) });
-
-			Properties props = new Properties();
 			try {
-				props.load(new StringReader(String.join("\n", lines)));
-			} catch (IOException e) {
-				e.printStackTrace();
+				List<String> lines = xdotool(new String[] { "getwindowgeometry", "--shell", Long.toString(id) });
+
+				if (!lines.isEmpty()) {
+					Properties props = new Properties();
+					try {
+						props.load(new StringReader(String.join("\n", lines)));
+					} catch (IOException e) {
+						e.printStackTrace();
+						return null;
+					}
+
+					return new Rectangle(Integer.parseInt(props.getProperty("X")),
+							Integer.parseInt(props.getProperty("Y")), Integer.parseInt(props.getProperty("WIDTH")),
+							Integer.parseInt(props.getProperty("HEIGHT")));
+				}
+
+				return null;
+			} catch (XdotoolException e) {
 				return null;
 			}
-
-			return new Rectangle(Integer.parseInt(props.getProperty("X")), Integer.parseInt(props.getProperty("Y")),
-					Integer.parseInt(props.getProperty("WIDTH")), Integer.parseInt(props.getProperty("HEIGHT")));
 		}
 
 		@Override
 		public boolean focus() {
-			xdotool(new String[] { "windowactivate", "--sync", Long.toString(id) });
-			return true;
+			try {
+				xdotool(new String[] { "windowactivate", "--sync", Long.toString(id) });
+				return true;
+			} catch (XdotoolException e) {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean minimize() {
+			throw new UnsupportedOperationException("minimize not implemented");
+		}
+
+		@Override
+		public boolean maximize() {
+			throw new UnsupportedOperationException("maximize not implemented");
+		}
+
+		@Override
+		public boolean restore() {
+			throw new UnsupportedOperationException("restore not implemented");
 		}
 
 		@Override
@@ -73,69 +112,80 @@ public class LinuxUtil extends GenericOsUtil {
 		}
 	}
 
-	private static boolean xdotoolAvailable = false;
+	private static boolean xdotoolAvailable = true;
+	private static ProcessRunner xdotoolRunner = new ProcessRunner();
 
 	static {
 		try {
-			Process p = Runtime.getRuntime().exec("xdotool -v");
-			int exitValue = p.waitFor();
-			if (exitValue != 0) {
-				throw new RuntimeException("Bad exit value: " + exitValue);
-			}
-			xdotoolAvailable = true;
+			xdotool(new String[] { "-v" });
 		} catch (Exception e) {
+			xdotoolAvailable = false;
 			Debug.error("xdotool not available.\n"
 					+ "While you can use purely process based functionallity of the App class (e.g. open(), close(), isRunning()), you need to install xdotool to use window based stuff.\n"
 					+ "Error message: %s", e.getMessage());
 		}
 	}
 
+	@SuppressWarnings("serial")
+	private static class XdotoolException extends RuntimeException {
+		public XdotoolException(String message) {
+			super(message);
+		}
+	};
+
+	private static synchronized List<String> xdotool(String[] args) {
+		if (xdotoolAvailable) {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+			xdotoolRunner.redirect(new PrintStream(out), new PrintStream(err));
+
+			int exitCode = xdotoolRunner.runScript("xdotool", args, new IScriptRunner.Options());
+
+			if (exitCode != 0) {
+				String message = String.format("xdotool failed with code %s: %s", exitCode, err);
+				Debug.trace(message);
+				throw new XdotoolException(message);
+			}
+
+			return Arrays.asList(out.toString().trim().split("\n"));
+		}
+		return new ArrayList<>(0);
+	}
+
 	@Override
 	public List<OsWindow> findWindows(String title) {
-		List<String> lines = xdotool(new String[] { "search", "--onlyvisible", "--name", title });
-		return lines.stream().map((l) -> new LinuxWindow(Long.parseLong(l))).collect(Collectors.toList());
+		try {
+			List<String> lines = xdotool(new String[] { "search", "--onlyvisible", "--name", title });
+			return lines.stream().map((l) -> new LinuxWindow(Long.parseLong(l))).collect(Collectors.toList());
+		} catch (XdotoolException e) {
+			return new ArrayList<>(0);
+		}
 	}
 
 	@Override
 	public List<OsWindow> getWindows(OsProcess process) {
-		List<String> lines = xdotool(
-				new String[] { "search", "--onlyvisible", "--pid", Long.toString(process.getPid()) });
-		return lines.stream().map((l) -> new LinuxWindow(Long.parseLong(l))).collect(Collectors.toList());
+		try {
+			List<String> lines = xdotool(
+					new String[] { "search", "--onlyvisible", "--pid", Long.toString(process.getPid()) });
+			return lines.stream().map((l) -> new LinuxWindow(Long.parseLong(l))).collect(Collectors.toList());
+		} catch (XdotoolException e) {
+			return new ArrayList<>(0);
+		}
 	}
 
 	@Override
 	public OsWindow getFocusedWindow() {
-		List<String> lines = xdotool(new String[] { "getactivewindow" });
+		try {
+			List<String> lines = xdotool(new String[] { "getactivewindow" });
 
-		if (!lines.isEmpty()) {
-			return new LinuxWindow(Long.parseLong(lines.get(0)));
-		}
-		return null;
-	}
-
-	private static List<String> xdotool(String[] args) {	
-		List<String> lines = new ArrayList<>();
-
-		if (xdotoolAvailable) {
-			String[] cmd = ArrayUtils.insert(0, args, "xdotool");
-
-			try {
-				Process p = Runtime.getRuntime().exec(cmd);
-
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-					String line;
-
-					while ((line = reader.readLine()) != null) {
-						lines.add(line);
-					}
-
-					return lines;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			if (!lines.isEmpty()) {
+				return new LinuxWindow(Long.parseLong(lines.get(0)));
 			}
+		} catch (XdotoolException e) {
+			return null;
 		}
 
-		return lines;
+		return null;
 	}
 }

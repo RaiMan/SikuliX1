@@ -1,7 +1,6 @@
 package org.sikuli.natives;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,7 +25,7 @@ public abstract class GenericOsUtil implements OSUtil {
 
 		@Override
 		public String getName() {
-			return FilenameUtils.getBaseName(process.info().command().orElse("").toLowerCase());
+			return process.info().command().orElse("");
 		}
 
 		@Override
@@ -50,7 +49,7 @@ public abstract class GenericOsUtil implements OSUtil {
 			return other != null && other instanceof OsProcess && this.getPid() == ((OsProcess) other).getPid();
 		}
 	}
-	
+
 	@Override
 	public void init() {
 		// nothing to do
@@ -58,7 +57,7 @@ public abstract class GenericOsUtil implements OSUtil {
 
 	@Override
 	public List<OsProcess> findProcesses(String name) {
-		return allProcesses().filter((p) -> p.getName().equals(FilenameUtils.getBaseName(name.toLowerCase())))
+		return allProcesses().filter((p) -> FilenameUtils.getBaseName(p.getName().toLowerCase()).equals(FilenameUtils.getBaseName(name.toLowerCase())))
 				.collect(Collectors.toList());
 	}
 
@@ -66,7 +65,7 @@ public abstract class GenericOsUtil implements OSUtil {
 	public List<OsWindow> findWindows(String title) {
 		throw new UnsupportedOperationException("findWindows not implemented");
 	}
-	
+
 	@Override
 	public List<OsWindow> getWindows(OsProcess process) {
 		throw new UnsupportedOperationException("getWindows not implemented");
