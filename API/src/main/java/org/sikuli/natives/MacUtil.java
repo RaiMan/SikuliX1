@@ -85,7 +85,7 @@ public class MacUtil extends GenericOsUtil {
 
 	@Override
 	public List<OsWindow> findWindows(String title) {
-		return allWindows().stream().filter((w) -> w.getTitle().equals(title)).collect(Collectors.toList());
+		return allWindows().stream().filter((w) -> w.getTitle().contains(title)).collect(Collectors.toList());
 	}
 
 	@Override
