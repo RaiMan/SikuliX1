@@ -4,309 +4,290 @@
 
 package org.sikuli.script.runners;
 
-import org.sikuli.script.support.RunTime;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class ProcessRunner extends AbstractScriptRunner{
+import org.apache.commons.exec.StreamPumper;
+import org.apache.commons.lang3.ArrayUtils;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.IScriptRunner;
 
-  public static final String NAME = "Process";
-  public static final String TYPE = "text/application";
-  public static final String[] EXTENSIONS = new String[0];
+public class ProcessRunner extends AbstractLocalFileScriptRunner {
 
-  @Override
-  public String getName() {
-    return NAME;
-  }
+	public static final String NAME = "Process";
+	public static final String TYPE = "text/application";
+	public static final String[] EXTENSIONS = new String[0];
 
-  @Override
-  public String[] getExtensions() {
-    return EXTENSIONS;
-  }
+	private Process process;
+	private PrintStream stdOut;
+	private PrintStream stdErr;
 
-  @Override
-  public String getType() {
-    return TYPE;
-  }
+	@Override
+	public String getName() {
+		return NAME;
+	}
 
-  private static void p(String form, Object... args) {
-    System.out.println(String.format(form, args));
-  }
+	@Override
+	public String[] getExtensions() {
+		return EXTENSIONS;
+	}
 
-  public static String runCommand(String... args) throws IOException, InterruptedException {
-    String result = "";
-    String work = null;
-    if (args.length > 0) {
-      ProcessBuilder app = new ProcessBuilder();
-      List<String> cmd = new ArrayList<String>();
-      Map<String, String> processEnv = app.environment();
-      for (String arg : args) {
-        if (arg.startsWith("work=")) {
-          work = arg.substring(5);
-          continue;
-        }
-        if (arg.startsWith("javahome=")) {
-          processEnv.put("JAVA_HOME", arg.substring(9));
-          continue;
-        }
-        if (arg.startsWith("?")) {
-          final String fName = arg.substring(1);
-          String folder = null;
-          if (null == work) {
-            folder = System.getProperty("user.dir");
-          } else {
-            folder = work;
-          }
-          String[] fList = new File(folder).list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-              if (name.startsWith(fName)) return true;
-              return false;
-            }
-          });
-          if (fList.length > 0) {
-            arg = fList[0];
-          }
-        }
-        cmd.add(arg);
-      }
-      app.directory(work == null ? null : new File(work));
-      app.redirectErrorStream(true);
-      app.command(cmd);
-      Process process = app.start();
-      InputStreamReader reader = new InputStreamReader(process.getInputStream());
-      BufferedReader processOut = new BufferedReader(reader);
-      String line = processOut.readLine();
-      while (null != line) {
-        result += line + "\n";
-        line = processOut.readLine();
-      }
-      process.waitFor();
-      int exitValue = process.exitValue();
-      if (exitValue > 0) {
-        result += "error";
-      } else {
-        result = "success\n" + result;
-      }
-    }
-    return result;
-  }
+	@Override
+	public String getType() {
+		return TYPE;
+	}
 
-  public static String run(String... args) {
-    List<String> cmd = new ArrayList<String>();
-    for (String arg : args) {
-      cmd.add(arg);
-    }
-    return run(cmd);
-  }
+	@Override
+	protected int doEvalScript(String script, IScriptRunner.Options options) {
+		String extension = "script";
+		String[] extensions = getExtensions();
 
-  public static String run(List<String> cmd) {
-    int exitValue = 0;
-    String stdout = "";
-    if (cmd.size() > 0) {
-      ProcessBuilder app = new ProcessBuilder();
-      Map<String, String> processEnv = app.environment();
-      app.command(cmd);
-      app.redirectErrorStream(true);
-      Process process = null;
-      try {
-        process = app.start();
-      } catch (Exception e) {
-        p("[Error] ProcessRunner: start: %s", e.getMessage());
-      }
-      try {
-        if (process != null) {
-          InputStreamReader reader = new InputStreamReader(process.getInputStream());
-          BufferedReader processOut = new BufferedReader(reader);
-          String line = processOut.readLine();
-          while (null != line) {
-            //System.out.println(line);
-            stdout += line;
-            line = processOut.readLine();
-          }
-        }
-      } catch (IOException e) {
-        p("[Error] ProcessRunner: read: %s", e.getMessage());
-      }
-      try {
-        if (process != null) {
-          process.waitFor();
-          exitValue = process.exitValue();
-        }
-      } catch (InterruptedException e) {
-        p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
-      }
-    }
-    return "" + exitValue + "\n" + stdout;
-  }
+		if (extensions.length > 0) {
+			extension = extensions[0];
+		}
 
-  public static void detach(String... args) {
-    List<String> cmd = new ArrayList<String>();
-    for (String arg : args) {
-      cmd.add(arg);
-    }
-    detach(cmd);
-  }
+		File file = FileManager.createTempFile(extension);
+		FileManager.writeStringToFile(script, file);
+		return runScript(file.getAbsolutePath(), null, options);
+	}
 
-  public static void detach(List<String> cmd) {
-    if (cmd.size() > 0) {
-      String line = "";
-      boolean shouldPrint = false;
-      for (String item : cmd) {
-        line += " " + item.trim();
-        if ("-v".equals(item.trim())) {
-          shouldPrint = true;
-        }
-      }
-      if (shouldPrint) {
-        System.out.println("[DEBUG] ProcessRunner::detach:");
-        System.out.println(line.trim());
-      }
-      ProcessBuilder app = new ProcessBuilder();
-      Map<String, String> processEnv = app.environment();
-      app.command(cmd);
-      app.redirectErrorStream(true);
-      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
-      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-      try {
-        app.start();
-      } catch (Exception e) {
-        p("[Error] ProcessRunner: start: %s", e.getMessage());
-      }
-    }
-  }
+	@Override
+	protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
+		String[] cmdArgs = ArrayUtils.addAll(new String[] { scriptFile }, scriptArgs);
 
-  public static int runBlocking(List<String> cmd) {
-    int exitValue = 0;
-    if (cmd.size() > 0) {
-      ProcessBuilder app = new ProcessBuilder();
-      app.command(cmd);
-      app.redirectInput(ProcessBuilder.Redirect.INHERIT);
-      app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-      Process process = null;
-      try {
-        process = app.start();
-      } catch (Exception e) {
-        p("[Error] ProcessRunner: start: %s", e.getMessage());
-      }
+		int exitCode = 0;
 
-      try {
-        if (process != null) {
-          process.waitFor();
-          exitValue = process.exitValue();
-        }
-      } catch (InterruptedException e) {
-        p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
-      }
-    }
-    return exitValue;
-  }
+		try {
+			process = Runtime.getRuntime().exec(cmdArgs);
 
-  public static boolean closeApp(String... givenCmd) {
-    List<String> cmd = new ArrayList<>();
-    cmd.addAll(Arrays.asList(givenCmd));
-    return closeApp(cmd);
-  }
+			startStreamPumper(process.getInputStream(), stdOut, options);
+			startStreamPumper(process.getErrorStream(), stdErr, options);
 
-  public static boolean closeApp(List<String> givenCmd) {
-    RunTime runTime = RunTime.get();
-    int exitValue = 0;
-    if (runTime.runningWindows) {
-      List<String> cmd = new ArrayList<>();
-      cmd.add("cmd");
-      cmd.add("/C");
-      cmd.add("taskkill");
-      cmd.add("/PID");
-      cmd.add(givenCmd.get(0));
-      cmd.add(">nul");
-      cmd.add("2>&1");
-      if (cmd.size() > 0) {
-        ProcessBuilder app = new ProcessBuilder();
-        Map<String, String> processEnv = app.environment();
-        app.command(cmd);
-        app.redirectErrorStream(true);
-        app.redirectInput(ProcessBuilder.Redirect.INHERIT);
-        app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        try {
-          app.start();
-        } catch (Exception e) {
-          p("[Error] ProcessRunner: taskkill: %s", e.getMessage());
-          return false;
-        }
-      }
-    }
-    return true;
-  }
+			exitCode = process.waitFor();
+		} catch (IOException | InterruptedException e) {
+			if (!isAborted()) {
+				Debug.error("%s failed: %s", getName(), e.getMessage());
+				exitCode = 1;
+			}
+		}
 
-  public static boolean startApp(String... givenCmd) {
-    List<String> cmd = new ArrayList<>();
-    cmd.addAll(Arrays.asList(givenCmd));
-    return startApp(cmd);
-  }
+		return exitCode;
+	}
 
-  public static boolean startApp(List<String> givenCmd) {
-    RunTime runTime = RunTime.get();
-    int exitValue = 0;
-    if (runTime.runningWindows) {
-      List<String> cmd = new ArrayList<>();
-      cmd.add("cmd");
-      cmd.add("/C");
-      cmd.add("start");
-      cmd.add("\"\"");
-      cmd.add("/B");
-      if (!givenCmd.get(1).isEmpty()) {
-        cmd.add("/D");
-        cmd.add("\"" + givenCmd.get(1) + "\"");
-      }
-      cmd.add("\"" + givenCmd.get(0) + "\"");
-      if (givenCmd.size() > 2) {
-        for (int np = 2; np < givenCmd.size(); np++) {
-          startAppParams(cmd, givenCmd.get(np));
-        }
-      }
-      cmd.add(">nul");
-      cmd.add("2>&1");
-      if (cmd.size() > 0) {
-        ProcessBuilder app = new ProcessBuilder();
-        Map<String, String> processEnv = app.environment();
-        app.command(cmd);
-        app.redirectErrorStream(true);
-        app.redirectInput(ProcessBuilder.Redirect.INHERIT);
-        app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        try {
-          app.start();
-        } catch (Exception e) {
-          p("[Error] ProcessRunner: start: %s", e.getMessage());
-          return false;
-        }
-      }
-    }
-    return true;
-  }
+	@Override
+	public boolean isAbortSupported() {
+		return true;
+	}
 
-  private static List<String> startAppParams(List<String> cmd, String param) {
-    String[] params = param.split(" ");
-    String concatParm = "";
-    for (String parm : params) {
-      if (parm.startsWith("\"")) {
-        concatParm = parm;
-        continue;
-      }
-      if (!concatParm.isEmpty()) {
-        if (!parm.endsWith("\"")) {
-          concatParm += " " + parm;
-          continue;
-        }
-        parm = concatParm + " " + parm;
-        concatParm = "";
-      }
-      cmd.add(parm.trim());
-    }
-    return cmd;
-  }
+	@Override
+	protected void doAbort() {
+		if (process != null) {
+			process.descendants().forEach((p) -> p.destroyForcibly());
+			process.destroyForcibly();
+		}
+	}
+
+	@Override
+	protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
+		this.stdOut = stdout;
+		this.stdErr = stderr;
+		return true;
+	}
+
+	private void startStreamPumper(InputStream in, OutputStream out, IScriptRunner.Options options) {
+		if (out != null && !options.isSilent()) {
+			new Thread(new StreamPumper(in, out)).start();
+		} else {
+			// Ensure that we read the input stream buffer.
+			// Process might block otherwise as soon as the buffer is full.
+			new Thread(new StreamPumper(in, OutputStream.nullOutputStream(), true)).start();
+		}
+	}
+
+	// TODO Check if rest of the file is really well placed here.
+	// Hint: Most probably not :-)
+
+	private static void p(String form, Object... args) {
+		System.out.println(String.format(form, args));
+	}
+
+	public static String runCommand(String... args) throws IOException, InterruptedException {
+		String result = "";
+		String work = null;
+		if (args.length > 0) {
+			ProcessBuilder app = new ProcessBuilder();
+			List<String> cmd = new ArrayList<String>();
+			Map<String, String> processEnv = app.environment();
+			for (String arg : args) {
+				if (arg.startsWith("work=")) {
+					work = arg.substring(5);
+					continue;
+				}
+				if (arg.startsWith("javahome=")) {
+					processEnv.put("JAVA_HOME", arg.substring(9));
+					continue;
+				}
+				if (arg.startsWith("?")) {
+					final String fName = arg.substring(1);
+					String folder = null;
+					if (null == work) {
+						folder = System.getProperty("user.dir");
+					} else {
+						folder = work;
+					}
+					String[] fList = new File(folder).list(new FilenameFilter() {
+						@Override
+						public boolean accept(File dir, String name) {
+							if (name.startsWith(fName))
+								return true;
+							return false;
+						}
+					});
+					if (fList.length > 0) {
+						arg = fList[0];
+					}
+				}
+				cmd.add(arg);
+			}
+			app.directory(work == null ? null : new File(work));
+			app.redirectErrorStream(true);
+			app.command(cmd);
+			Process process = app.start();
+			InputStreamReader reader = new InputStreamReader(process.getInputStream());
+			BufferedReader processOut = new BufferedReader(reader);
+			String line = processOut.readLine();
+			while (null != line) {
+				result += line + "\n";
+				line = processOut.readLine();
+			}
+			process.waitFor();
+			int exitValue = process.exitValue();
+			if (exitValue > 0) {
+				result += "error";
+			} else {
+				result = "success\n" + result;
+			}
+		}
+		return result;
+	}
+
+	public static String run(String... args) {
+		List<String> cmd = new ArrayList<String>();
+		for (String arg : args) {
+			cmd.add(arg);
+		}
+		return run(cmd);
+	}
+
+	public static String run(List<String> cmd) {
+		int exitValue = 0;
+		String stdout = "";
+		if (cmd.size() > 0) {
+			ProcessBuilder app = new ProcessBuilder();
+			Map<String, String> processEnv = app.environment();
+			app.command(cmd);
+			app.redirectErrorStream(true);
+			Process process = null;
+			try {
+				process = app.start();
+			} catch (Exception e) {
+				p("[Error] ProcessRunner: start: %s", e.getMessage());
+			}
+			try {
+				if (process != null) {
+					InputStreamReader reader = new InputStreamReader(process.getInputStream());
+					BufferedReader processOut = new BufferedReader(reader);
+					String line = processOut.readLine();
+					while (null != line) {
+						// System.out.println(line);
+						stdout += line;
+						line = processOut.readLine();
+					}
+				}
+			} catch (IOException e) {
+				p("[Error] ProcessRunner: read: %s", e.getMessage());
+			}
+			try {
+				if (process != null) {
+					process.waitFor();
+					exitValue = process.exitValue();
+				}
+			} catch (InterruptedException e) {
+				p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+			}
+		}
+		return "" + exitValue + "\n" + stdout;
+	}
+
+	public static void detach(String... args) {
+		List<String> cmd = new ArrayList<String>();
+		for (String arg : args) {
+			cmd.add(arg);
+		}
+		detach(cmd);
+	}
+
+	public static void detach(List<String> cmd) {
+		if (cmd.size() > 0) {
+			String line = "";
+			boolean shouldPrint = false;
+			for (String item : cmd) {
+				line += " " + item.trim();
+				if ("-v".equals(item.trim())) {
+					shouldPrint = true;
+				}
+			}
+			if (shouldPrint) {
+				System.out.println("[DEBUG] ProcessRunner::detach:");
+				System.out.println(line.trim());
+			}
+			ProcessBuilder app = new ProcessBuilder();
+			Map<String, String> processEnv = app.environment();
+			app.command(cmd);
+			app.redirectErrorStream(true);
+			app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+			app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+			try {
+				app.start();
+			} catch (Exception e) {
+				p("[Error] ProcessRunner: start: %s", e.getMessage());
+			}
+		}
+	}
+
+	public static int runBlocking(List<String> cmd) {
+		int exitValue = 0;
+		if (cmd.size() > 0) {
+			ProcessBuilder app = new ProcessBuilder();
+			app.command(cmd);
+			app.redirectInput(ProcessBuilder.Redirect.INHERIT);
+			app.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+			Process process = null;
+			try {
+				process = app.start();
+			} catch (Exception e) {
+				p("[Error] ProcessRunner: start: %s", e.getMessage());
+			}
+
+			try {
+				if (process != null) {
+					process.waitFor();
+					exitValue = process.exitValue();
+				}
+			} catch (InterruptedException e) {
+				p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
+			}
+		}
+		return exitValue;
+	}
 }
-
