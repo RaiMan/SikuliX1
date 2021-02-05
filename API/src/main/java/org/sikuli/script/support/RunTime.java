@@ -28,9 +28,6 @@ import java.lang.reflect.Method;
 import java.net.*;
 import java.security.CodeSource;
 import java.util.*;
-import java.util.prefs.Preferences;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -1314,7 +1311,7 @@ public class RunTime {
     fLibsFolder = new File(fSikulixAppPath, "SikulixLibs");
     String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
-      if (!Commons.isVersionFile(fLibsFolder)) {
+      if (!Commons.hasVersionFile(fLibsFolder)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
         log(lvl, "libsExport: folder has wrong content: %s", fLibsFolder);
       }
@@ -1569,17 +1566,36 @@ public class RunTime {
     if (isLibExported) {
       return;
     }
-    if (!fSikulixLib.exists()
-        || !new File(fSikulixLib, "sikuli").exists()) {
-      fSikulixLib.mkdir();
-      extractResourcesToFolder("Lib", fSikulixLib, null);
-    } else {
-      extractResourcesToFolder("Lib/sikuli", new File(fSikulixLib, "sikuli"), null);
+    if (fSikulixLib.exists()) {
+      if (!Commons.hasVersionFile(fSikulixLib)) {
+        FileManager.deleteFileOrFolder(fSikulixLib, new FileManager.FileFilter() {
+          @Override
+          public boolean accept(File entry) {
+            if (entry.getPath().contains("site-packages")) {
+              return false;
+            }
+            return true;
+          }
+        });
+        extractResourcesToFolder("Lib", fSikulixLib, new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            if (dir.getPath().contains("site-packages")) {
+              return false;
+            }
+            return true;
+          }
+        });
+        Commons.makeVersionFile(fSikulixLib);
+      }
     }
-    // RFW support: module robot should no longer be here (2.1.0)
-    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
-    if (fLibRobot.exists()) {
-      FileManager.deleteFileOrFolder(fLibRobot);
+    if (!fSikulixLib.exists()) {
+      fSikulixLib.mkdir();
+      if (!fSikulixLib.exists()) {
+        throw new SikuliXception("LibExport: folder not available: " + fSikulixLib.toString());
+      }
+      extractResourcesToFolder("Lib", fSikulixLib, null);
+      Commons.makeVersionFile(fSikulixLib);
     }
     isLibExported = true;
   }

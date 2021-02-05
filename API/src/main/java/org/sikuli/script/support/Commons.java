@@ -287,8 +287,8 @@ public class Commons {
     return sxBuildNumber;
   }
 
-  public static boolean isVersionFile(File fLibsFolder) {
-    String[] resourceList = fLibsFolder.list(new FilenameFilter() {
+  public static boolean hasVersionFile(File folder) {
+    String[] resourceList = folder.list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.contains("_MadeForSikuliX")) return true;
