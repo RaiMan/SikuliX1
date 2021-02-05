@@ -68,7 +68,7 @@ public class RunTime {
     RunTime.get(Type.API);
   }
 
-  public static void start(RunTime.Type type, String[] args)  {
+  public static void start(RunTime.Type type, String[] args) {
     if (Type.API.equals(type)) {
       startAsIDE = false;
       if (args.length == 1 && "buildDate".equals(args[0])) {
@@ -96,7 +96,7 @@ public class RunTime {
     String classPath = ExtensionManager.makeClassPath(runningJar);
     if (runningJar.getName().endsWith(".jar")) {
       FileManager.writeStringToFile(runningJar.getAbsolutePath(),
-          new File(Commons.getAppDataPath(),"SikulixStore/lastUsedJar.txt"));
+          new File(Commons.getAppDataPath(), "SikulixStore/lastUsedJar.txt"));
     } else {
       return;
     }
@@ -1148,7 +1148,7 @@ public class RunTime {
       cleanupRobot.keyUp();
     }
     Mouse.reset();
-    //TODO cannot be done in shutdownhook: PreferencesUser.get().store();
+    //TODO 2.0.5 cannot be done in shutdownhook: PreferencesUser.get().store();
     if (isTerminating) {
       hasDoneCleanUpTerminating = true;
     }
@@ -1249,6 +1249,7 @@ public class RunTime {
       log(-1, "not usable: %s", e.getMessage());
       terminate(999, "problem with native library: " + libName);
     } catch (UnsatisfiedLinkError e) {
+      //TODO 2.0.5 goto some webpage in case of problems
       log(-1, msg + " (failed) probably dependent libs missing:\n%s", libName, e.getMessage());
       String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4";
       if (RunTime.isIDE()) {
@@ -1273,9 +1274,7 @@ public class RunTime {
   }
 
   private void libsExport() {
-/*
-    remove obsolete libs folders in Temp
-*/
+    // remove obsolete libs folders in Temp
     String[] fpList = fTempPath.list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -1295,9 +1294,7 @@ public class RunTime {
       }
     }
 
-/*
-    remove libsfolder < 1.1.4
-*/
+    // remove libsfolder < 1.1.4
     fpList = fSikulixAppPath.list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -1314,45 +1311,20 @@ public class RunTime {
       }
     }
 
-/*
-    export
-*/
     fLibsFolder = new File(fSikulixAppPath, "SikulixLibs");
     String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
-      String[] resourceList = fLibsFolder.list(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          if (name.contains("_MadeForSikuliX")) return true;
-          return false;
-        }
-      });
-      String libVersion = "";
-      String libStamp = "";
-      if (resourceList.length > 0) {
-        Matcher matcher = Pattern.compile("(.*?)_(.*?)_MadeForSikuliX.*?txt").matcher(resourceList[0]);
-        if (matcher.find()) {
-          libVersion = matcher.group(1);
-          libStamp = matcher.group(2);
-        }
-      }
-      if (libVersion.isEmpty() || !libVersion.equals(getVersionShort()) ||
-          libStamp.length() != Commons.getSxBuildStamp().length()
-                              || 0 != libStamp.compareTo(Commons.getSxBuildStamp())) {
+      if (!Commons.isVersionFile(fLibsFolder)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
-        log(lvl, "libsExport: folder has wrong content: %s (%s - %s)", fLibsFolder, libVersion, libStamp);
+        log(lvl, "libsExport: folder has wrong content: %s", fLibsFolder);
       }
     }
-
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
         throw new SikuliXception("libsExport: folder not available: " + fLibsFolder.toString());
       }
-      String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-          getVersionShort(), Commons.getSxBuildStamp(),
-          Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
-      FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(fLibsFolder, libToken));
+      Commons.makeVersionFile(fLibsFolder);
       libMsg = "folder created:";
       List<String> nativesList = getResourceList(fpJarLibs);
       for (String aFile : nativesList) {
@@ -1712,7 +1684,7 @@ public class RunTime {
   }
 
   public String getVersionShort() {
-    return SXVersionShort;
+    return Commons.getSXVersionShort();
   }
 
   public String getSystemInfo() {

@@ -1,6 +1,7 @@
 package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.SikuliXception;
 
 import java.io.*;
@@ -8,6 +9,8 @@ import java.net.*;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Commons {
 
@@ -284,6 +287,38 @@ public class Commons {
     return sxBuildNumber;
   }
 
+  public static boolean isVersionFile(File fLibsFolder) {
+    String[] resourceList = fLibsFolder.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.contains("_MadeForSikuliX")) return true;
+        return false;
+      }
+    });
+    String libVersion = "";
+    String libStamp = "";
+    if (resourceList.length > 0) {
+      Matcher matcher = Pattern.compile("(.*?)_(.*?)_MadeForSikuliX.*?txt").matcher(resourceList[0]);
+      if (matcher.find()) {
+        libVersion = matcher.group(1);
+        libStamp = matcher.group(2);
+      }
+    }
+    if (libVersion.isEmpty() || !libVersion.equals(getSXVersionShort()) ||
+        libStamp.length() != Commons.getSxBuildStamp().length()
+        || 0 != libStamp.compareTo(Commons.getSxBuildStamp())) {
+      return  false;
+    }
+    return true;
+  }
+
+  public static void makeVersionFile(File folder) {
+    String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
+        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
+        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
+    FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
+  }
+
   public static String getOSName() {
     return osName;
   }
@@ -538,7 +573,7 @@ public class Commons {
     }
     File folder = new File(sFolder);
     if (!folder.exists()) {
-      return jnaPath;
+      return null;
     }
     if (!jnaPath.isEmpty()) {
       jnaPath = File.pathSeparator + jnaPath;

@@ -70,18 +70,14 @@ public class TextRecognizer {
    */
   protected static TextRecognizer get(OCR.Options options) {
     if (!isValid) {
+      //TODO Tess4J: macOS: tesseract library load problem
       if (Commons.runningMac()) {
         String libPath = "/usr/local/lib";
         File libTess = new File(libPath, "libtesseract.dylib");
         if (libTess.exists()) {
-          String jnaLibPath = System.getProperty("jna.library.path");
-          if (jnaLibPath == null) {
-            System.setProperty("jna.library.path", libPath);
-          } else {
-            System.setProperty("jna.library.path", libPath + File.pathSeparator + jnaLibPath);
-          }
+          Commons.jnaPathAdd(libPath);
         } else {
-          throw new SikuliXception(String.format("OCR: validate: Tesseract library not in /usr/local/lib"));
+          throw new SikuliXception(String.format("OCR: validate: tesseract library not in /usr/local/lib"));
         }
       }
       RunTime.loadLibrary(RunTime.libOpenCV);
