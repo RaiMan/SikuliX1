@@ -54,14 +54,14 @@ public class Mouse {
 
   public static void init() {
     if (mouse == null) {
-      log(3, "init start");
+//      log(3, "init start");
       mouse = new Mouse();
       mouse.device = new Device(mouse);
       mouse.device.isMouse = true;
-      Location loc = at();
-      move(loc);
+//      Location loc = at();
+//      move(loc);
       mouse.device.lastPos = null;
-      log(3, "init end");
+//      log(3, "init end");
     }
   }
 
@@ -315,7 +315,7 @@ public class Mouse {
       } else {
         robot.smoothMove(loc);
       }
-      robot.waitForIdle();
+      //robot.waitForIdle();
     }
   }
 
@@ -399,7 +399,22 @@ public class Mouse {
     return move(at().offset(xoff, yoff));
   }
 
+  public static boolean isNotUseable() {
+    return notUseable;
+  }
+
+  public static void setNotUseable() {
+    notUseable = true;
+    Debug.error("Mouse: not useable (blocked)");
+  }
+
+  private static boolean notUseable = false;
+
   protected static int move(Location loc, Region region) {
+    if (notUseable) {
+      Debug.error("Mouse.move(): Mouse not useable (blocked)");
+      return 0;
+    }
     if (get().device.isSuspended()) {
       return 0;
     }

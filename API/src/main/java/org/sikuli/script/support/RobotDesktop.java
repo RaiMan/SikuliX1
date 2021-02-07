@@ -115,29 +115,30 @@ public class RobotDesktop extends Robot implements IRobot {
     smoothMove(Mouse.at(), dest, (long) (Settings.SlowMotionDelay * 1000L));
   }
 
+  //TODO macOS: allow mouse/keyboard usage
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
     Debug.log(4, "RobotDesktop: smoothMove (%.1f): %s ---> %s", ms / 1000f, src, dest);
     if (src.equals(dest)) {
       return;
     }
+    float x = 0, y = 0;
     if (ms == 0) {
       doMouseMove(dest.x, dest.y);
-      waitForIdle();
-      checkMousePosition(dest);
-      return;
+      x = dest.x;
+      y = dest.y;
+    } else {
+      Animator aniX = new AnimatorTimeBased(
+          new AnimatorOutQuarticEase(src.x, dest.x, ms));
+      Animator aniY = new AnimatorTimeBased(
+          new AnimatorOutQuarticEase(src.y, dest.y, ms));
+      while (aniX.running()) {
+        x = aniX.step();
+        y = aniY.step();
+        doMouseMove((int) x, (int) y);
+      }
     }
-    Animator aniX = new AnimatorTimeBased(
-            new AnimatorOutQuarticEase(src.x, dest.x, ms));
-    Animator aniY = new AnimatorTimeBased(
-            new AnimatorOutQuarticEase(src.y, dest.y, ms));
-    float x = 0, y = 0;
-    while (aniX.running()) {
-      x = aniX.step();
-      y = aniY.step();
-      doMouseMove((int) x, (int) y);
-    }
-    checkMousePosition(new Location((int) x, (int) y));
+    checkMousePosition(new Location(x, y));
   }
 
   private void doMouseMove(int x, int y) {
@@ -145,6 +146,10 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void checkMousePosition(Location targetPos) {
+    if (Mouse.isNotUseable()) {
+      return;
+    }
+    waitForIdle();
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point actualPos;
     if (mp == null) {
@@ -162,6 +167,8 @@ public class RobotDesktop extends Robot implements IRobot {
                             + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
                     targetPos, new Location(actualPos));
           }
+        } else {
+          Mouse.setNotUseable();
         }
       }
     }
@@ -229,6 +236,9 @@ public class RobotDesktop extends Robot implements IRobot {
   public void mouseReset() {
     if (heldButtons != 0) {
       mouseRelease(heldButtons);
+      if (stdAutoDelay == 0) {
+        delay(stdDelay);
+      }
       heldButtons = 0;
     }
   }

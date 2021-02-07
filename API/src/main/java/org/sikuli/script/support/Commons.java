@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 public class Commons {
 
+  //<editor-fold desc="00 basics">
   private static String sxVersion;
 
   private static String sxVersionLong;
@@ -71,9 +72,9 @@ public class Commons {
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
   }
 
-  public static void init() {};
+  public static void init() {
+  }
 
-  //<editor-fold desc="00 basics">
   private static String logText;
 
   private static String resetLog() {
@@ -307,7 +308,7 @@ public class Commons {
     if (libVersion.isEmpty() || !libVersion.equals(getSXVersionShort()) ||
         libStamp.length() != Commons.getSxBuildStamp().length()
         || 0 != libStamp.compareTo(Commons.getSxBuildStamp())) {
-      return  false;
+      return false;
     }
     return true;
   }
@@ -348,7 +349,9 @@ public class Commons {
     return System.getProperty("java.vendor") + " " + System.getProperty("java.runtime.version");
   }
 
-  public static boolean isJava8() {return 8 == getJavaVersion();}
+  public static boolean isJava8() {
+    return 8 == getJavaVersion();
+  }
   //</editor-fold>
 
   //<editor-fold desc="03 Java System Properties">
@@ -376,29 +379,37 @@ public class Commons {
    * @param filter the filter string
    */
   public static void dumpSysProps(String filter) {
-    filter = filter == null ? "" : filter;
-    Properties sysProps = System.getProperties();
-    ArrayList<String> keysProps = new ArrayList<String>();
+    ArrayList<String> propsKeys = getSysProps(filter);
     Integer eLen = 0;
-    for (Object entry : sysProps.keySet()) {
-      String sEntry = (String) entry;
-      if (filter.isEmpty() || !filter.isEmpty() && sEntry.startsWith(filter)) {
-        keysProps.add(sEntry);
-        if (sEntry.length() > eLen) {
-          eLen = sEntry.length();
-        }
+    for (String prop : propsKeys) {
+      if (prop.length() > eLen) {
+        eLen = prop.length();
       }
     }
-    Collections.sort(keysProps);
     String form = "%-" + eLen.toString() + "s = %s";
     startLog("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
-    for (String prop : keysProps) {
+    for (String prop : propsKeys) {
       log(form, prop, System.getProperty(prop));
     }
     printLog();
   }
-  //</editor-fold>
 
+  public static ArrayList<String> getSysProps(String filter) {
+    filter = filter == null ? "" : filter;
+    Properties sysProps = System.getProperties();
+    ArrayList<String> keysProps = new ArrayList<String>();
+    for (Object entry : sysProps.keySet()) {
+      String sEntry = (String) entry;
+      if (filter.isEmpty() || !filter.isEmpty() && sEntry.startsWith(filter)) {
+        keysProps.add(sEntry);
+      }
+    }
+    Collections.sort(keysProps);
+    return keysProps;
+  }
+
+
+  //</editor-fold>
 
   //<editor-fold desc="10 folder handling">
   public static List<String> getFileList(String resFolder) {

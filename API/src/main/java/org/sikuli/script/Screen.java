@@ -87,7 +87,7 @@ public class Screen extends Region implements IScreen {
           }
         }
         log(logLevel, "Monitor %d: (%d, %d) %d x %d", i,
-                currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
+            currentBounds.x, currentBounds.y, currentBounds.width, currentBounds.height);
         monitorBounds[i] = currentBounds;
       }
       if (mainMonitor < 0) {
@@ -95,7 +95,7 @@ public class Screen extends Region implements IScreen {
         mainMonitor = 0;
       }
       return true;
-    } else {      
+    } else {
       throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
     }
   }
@@ -151,28 +151,32 @@ public class Screen extends Region implements IScreen {
         nMonitor++;
       }
 
+//TODO macOS: allow mouse/keyboard usage
       Mouse.init();
 
-      if (nMonitors > 1) {
-        log(logLevel, "initScreens: multi monitor mouse check");
-        Location lnow = Mouse.at();
-        float mmd = Settings.MoveMouseDelay;
-        Settings.MoveMouseDelay = 0f;
-        Location lc = null, lcn = null;
-        for (Screen s : screens) {
-          lc = s.getCenter();
-          Mouse.move(lc);
-          lcn = Mouse.at();
-          if (!lc.equals(lcn)) {
-            log(logLevel, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
-                    s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
-          } else {
-            log(logLevel, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
-          }
+      log(logLevel, "initScreens: monitor mouse check");
+      Location lnow = Mouse.at();
+      float mmd = Settings.MoveMouseDelay;
+      Settings.MoveMouseDelay = 0f;
+      Location lc = null, lcn = null;
+      for (Screen s : screens) {
+        lc = s.getCenter();
+        Mouse.move(lc);
+        if (Mouse.isNotUseable()) {
+          break;
         }
-        Mouse.move(lnow);
-        Settings.MoveMouseDelay = mmd;
+        lcn = Mouse.at();
+        if (!lc.equals(lcn)) {
+          log(logLevel, "*** multimonitor click check: %s center: (%d, %d) --- NOT OK:  (%d, %d)",
+              s.toStringShort(), lc.x, lc.y, lcn.x, lcn.y);
+        } else {
+          log(logLevel, "*** checking: %s center: (%d, %d) --- OK", s.toStringShort(), lc.x, lc.y);
+        }
       }
+      if (!Mouse.isNotUseable()) {
+        Mouse.move(lnow);
+      }
+      Settings.MoveMouseDelay = mmd;
     }
     log(logLevel, "initScreens: ending");
   }
@@ -203,7 +207,7 @@ public class Screen extends Region implements IScreen {
     }
     if (id < 0 || id >= nMonitors) {
       Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, nMonitors - 1, primaryScreen);
+          id, nMonitors - 1, primaryScreen);
       curID = primaryScreen;
     } else {
       curID = id;
@@ -241,7 +245,7 @@ public class Screen extends Region implements IScreen {
     }
     if (id < 0 || id >= nMonitors) {
       Debug.error("Screen(%d) not in valid range 0 to %d - using primary %d",
-              id, nMonitors - 1, primaryScreen);
+          id, nMonitors - 1, primaryScreen);
       return screens[0];
     } else {
       return screens[id];
@@ -640,7 +644,7 @@ public class Screen extends Region implements IScreen {
     ScreenImage simg = globalRobot.captureScreen(rect);
     if (Settings.FindProfiling) {
       Debug.logp("[FindProfiling] Screen.capture [%d x %d]: %d msec",
-              rect.width, rect.height, new Date().getTime() - lastCaptureTime);
+          rect.width, rect.height, new Date().getTime() - lastCaptureTime);
     }
     lastScreenImage = simg;
     if (Debug.getDebugLevel() > logLevel) {
@@ -677,7 +681,7 @@ public class Screen extends Region implements IScreen {
   public static void closePrompt(Screen scr) {
     for (int is = 0; is < Screen.getNumberScreens(); is++) {
       if (Screen.getScreen(is).getID() == scr.getID() ||
-              !Screen.getScreen(is).hasPrompt()) {
+          !Screen.getScreen(is).hasPrompt()) {
         continue;
       }
       Screen.getScreen(is).prompt.close();
@@ -807,7 +811,7 @@ public class Screen extends Region implements IScreen {
     }
     Rectangle r = sim.getROI();
     return Region.create((int) r.getX(), (int) r.getY(),
-            (int) r.getWidth(), (int) r.getHeight());
+        (int) r.getWidth(), (int) r.getHeight());
   }
   //</editor-fold>
 
