@@ -20,7 +20,10 @@ public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner
 		File file = new File(script);
 
 		if (file.exists()) {
-			PREVIOUS_BUNDLE_PATHS.push(ImagePath.getBundlePath());
+			String currentBundlePath = ImagePath.getBundlePath();
+			if(currentBundlePath != null) {
+			  PREVIOUS_BUNDLE_PATHS.push(currentBundlePath);
+			}
 			ImagePath.setBundleFolder(file.getParentFile());
 		}
 	}
