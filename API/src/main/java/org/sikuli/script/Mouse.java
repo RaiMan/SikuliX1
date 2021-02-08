@@ -28,6 +28,7 @@ public class Mouse {
 
   private static String me = "Mouse: ";
   private static final int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -105,7 +106,7 @@ public class Mouse {
     get().device.let(get().device.owner);
     get().device.mouseMovedResponse = get().device.MouseMovedIgnore;
     get().device.mouseMovedCallback = null;
-		get().device.callback = null;
+    get().device.callback = null;
     get().device.lastPos = null;
     resetRandom();
     Screen.getPrimaryScreen().getRobot().mouseReset();
@@ -153,7 +154,7 @@ public class Mouse {
 
   public static void setMouseMovedHighlight(boolean state) {
     get().device.MouseMovedHighlight = state;
-}
+  }
 
   /**
    * check if mouse was moved since last mouse action
@@ -171,7 +172,7 @@ public class Mouse {
   /**
    * to click (left, right, middle - single or double) at the given location using the given button
    * only useable for local screens
-   *
+   * <p>
    * timing parameters: <br>
    * - one value <br>
    * &lt; 0 wait before mouse down <br>
@@ -179,12 +180,12 @@ public class Mouse {
    * - 2 or 3 values 1st wait before mouse down <br>
    * 2nd wait after mouse up <br>
    * 3rd inner wait (milli secs, cut to 1000): pause between mouse down and up (Settings.ClickDelay)
-   *
+   * <p>
    * wait before and after: &gt; 9 taken as milli secs - 1 ... 9 are seconds
    *
-   * @param loc where to click (not null)
+   * @param loc    where to click (not null)
    * @param action L,R,M left, right, middle - D means double click
-   * @param args timing parameters
+   * @param args   timing parameters
    * @return the location
    */
   public static Location click(Location loc, String action, Integer... args) {
@@ -371,7 +372,7 @@ public class Mouse {
 
   private Location makeRandom(Location loc) {
     Location offset = new Location(doRandom.nextInt(2 * randomOffset) - randomOffset,
-                                  doRandom.nextInt(2 * randomOffset) - randomOffset);
+        doRandom.nextInt(2 * randomOffset) - randomOffset);
     loc.translate(offset.x, offset.y);
     return offset;
   }
@@ -389,12 +390,13 @@ public class Mouse {
     return move(loc, null);
   }
 
-	/**
-	 * move the mouse from the current position to the offset position given by the parameters
-	 * @param xoff horizontal offset (&lt; 0 left, &gt; 0 right)
-	 * @param yoff vertical offset (&lt; 0 up, &gt; 0 down)
+  /**
+   * move the mouse from the current position to the offset position given by the parameters
+   *
+   * @param xoff horizontal offset (&lt; 0 left, &gt; 0 right)
+   * @param yoff vertical offset (&lt; 0 up, &gt; 0 down)
    * @return 1 for success, 0 otherwise
-	 */
+   */
   public static int move(int xoff, int yoff) {
     return move(at().offset(xoff, yoff));
   }
@@ -405,7 +407,12 @@ public class Mouse {
 
   public static void setNotUseable() {
     notUseable = true;
-    Debug.error("Mouse: not useable (blocked)");
+    if (Commons.runningMac()) {
+      Debug.error("Mouse: not useable (blocked)\n" +
+          "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
+    } else {
+      Debug.error("Mouse: not useable (blocked)");
+    }
   }
 
   private static boolean notUseable = false;
@@ -454,6 +461,10 @@ public class Mouse {
   }
 
   protected static void down(int buttons, Region region) {
+    if (notUseable) {
+      Debug.error("Mouse.down(): Mouse not useable (blocked)");
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }
@@ -463,7 +474,6 @@ public class Mouse {
 
   /**
    * release all buttons
-   *
    */
   public static void up() {
     up(0, null);
@@ -479,6 +489,10 @@ public class Mouse {
   }
 
   protected static void up(int buttons, Region region) {
+    if (notUseable) {
+      Debug.error("Mouse.up(): Mouse not useable (blocked)");
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }
@@ -493,17 +507,21 @@ public class Mouse {
    * the result is system dependent
    *
    * @param direction {@link Button}
-   * @param steps value
+   * @param steps     value
    */
   public static void wheel(int direction, int steps) {
     wheel(direction, steps, null);
   }
 
   protected static void wheel(int direction, int steps, Region region) {
-    wheel(direction,steps,region, WHEEL_STEP_DELAY);
+    wheel(direction, steps, region, WHEEL_STEP_DELAY);
   }
 
   protected static void wheel(int direction, int steps, Region region, int stepDelay) {
+    if (notUseable) {
+      Debug.error("Mouse.wheel(): Mouse not useable (blocked)");
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }

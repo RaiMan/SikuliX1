@@ -178,6 +178,12 @@ public class Screen extends Region implements IScreen {
       }
       Settings.MoveMouseDelay = mmd;
     }
+    if (Mouse.isNotUseable()) {
+      RunTime runTime = RunTime.get();
+      if (runTime.runType.equals(RunTime.Type.API) && Commons.runningMac()) {
+        throw new SikuliXception("Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
+      }
+    }
     log(logLevel, "initScreens: ending");
   }
   //</editor-fold>

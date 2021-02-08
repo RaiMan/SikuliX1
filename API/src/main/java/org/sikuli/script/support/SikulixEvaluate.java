@@ -1,5 +1,6 @@
 package org.sikuli.script.support;
 
+import org.sikuli.script.Screen;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.util.List;
@@ -7,13 +8,17 @@ import java.util.List;
 public class SikulixEvaluate {
   public static void main(String[] args) {
     RunTime.get().show();
+    if (args.length == 0) {
+      Commons.printLog("SikulixEvaluate: Nothing to do!");
+      return;
+    }
     if ("test".equals(args[0])) {
       test();
     }
   }
 
   public static void test() {
-    Commons.getJavaVersion();
+    new Screen();
     //testFolderList();
     //testReadContent();
   }

@@ -99,6 +99,11 @@ public class Commons {
     System.out.println(resetLog());
   }
 
+  public static void printLog(String msg, Object... args) {
+    startLog(msg, args);
+    System.out.println(resetLog());
+  }
+
   public static boolean parmsValid(Object... parms) {
     boolean success = true;
     for (Object parm : parms) {

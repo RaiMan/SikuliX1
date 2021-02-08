@@ -1669,7 +1669,7 @@ public class RunTime {
     if (sxOptions.hasOptions()) {
       sxOptions.dumpOptions();
     }
-    logp("***** show environment for %s %s", SXVersionLong, runType);
+    logp("***** show environment for %s %s", Commons.getSXVersion(), runType);
     logp("user.home: %s", Commons.getUserHome());
     logp("work dir: %s", Commons.getWorkDir());
     logp("running on %s %s", Commons.getOSInfo(), appType);
