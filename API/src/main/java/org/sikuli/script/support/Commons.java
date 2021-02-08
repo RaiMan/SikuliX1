@@ -476,6 +476,7 @@ public class Commons {
 
   private static Map<String, List<String>> getFolderFileList(URL dirURL, String folder, Map<String, List<String>> folderList) {
     try {
+      //TODO getFolderFileList does not work with url-names containing illegal chars (space, ...)
       File fileFolder = new File(new File(dirURL.toURI()), folder);
       String[] list = fileFolder.list();
       for (String entry : list) {
@@ -492,7 +493,8 @@ public class Commons {
         }
         entry = null;
       }
-    } catch (URISyntaxException e) {
+    } catch (Exception ex) {
+      Debug.error("");
     }
     return folderList;
   }
