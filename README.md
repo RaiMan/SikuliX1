@@ -58,7 +58,7 @@ For use in **Java Maven projects** the dependency coordinates are:
  - Source and target level for Java is version 8 as long as supported by Oracle
  - Maven project
  - Windows 10 latest (Pro 64-Bit)
- - Mac 11.2 on Intel machines
+ - macOS 11.2 on Intel machines
  - Ubuntu 18.04 in WSL on Windows 10 (basic tests only, headless)
  - Ubuntu 18.04 running in Oracle VM VirtualBox 6.1 on Windows 10
  - Using IntelliJ IDEA CE in all environments
