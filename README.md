@@ -28,7 +28,7 @@ the source code of the application or web page you want to act on. [More details
 
 **Next version is 2.0.5** (dev branch release_2.0.x)
 <br>final planned for end of February 2021
-<br>[Info on bug fix work](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
+<br>[Info on bug fix work progress](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
 
 **Development version 2.1.0 (branch master) currently not useable until further notice**
 <br>[Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
