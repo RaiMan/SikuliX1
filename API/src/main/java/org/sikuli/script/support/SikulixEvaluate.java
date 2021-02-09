@@ -1,5 +1,7 @@
 package org.sikuli.script.support;
 
+import org.sikuli.basics.Settings;
+import org.sikuli.script.Pattern;
 import org.sikuli.script.Screen;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
@@ -18,9 +20,16 @@ public class SikulixEvaluate {
   }
 
   public static void test() {
-    new Screen();
-    //testFolderList();
-    //testReadContent();
+    //test macOS S&P behavior
+    // new Screen();
+
+    //sim value can be float
+    Settings.MinSimilarity = 0.6f;
+    Pattern pat = new Pattern("someImage");
+    Commons.printLog("%s", pat);
+    pat = new Pattern("someImage").similar(0.6f);
+    Commons.printLog("%s", pat);
+
   }
 
   private static void testFolderList() {

@@ -267,6 +267,10 @@ public class Pattern {
     return this;
   }
 
+  public Pattern similar(float sim) {
+    similarity = sim;
+    return this;
+  }
   /**
    * sets the minimum Similarity to 0.99 which means exact match
    *
