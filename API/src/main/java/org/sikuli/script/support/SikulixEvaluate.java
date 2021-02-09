@@ -20,16 +20,17 @@ public class SikulixEvaluate {
   }
 
   public static void test() {
-    //test macOS S&P behavior
-    // new Screen();
 
-    //sim value can be float
-    Settings.MinSimilarity = 0.6f;
-    Pattern pat = new Pattern("someImage");
-    Commons.printLog("%s", pat);
-    pat = new Pattern("someImage").similar(0.6f);
-    Commons.printLog("%s", pat);
 
+//TEST: macOS S & P behavior
+//    new Screen();
+
+//TEST: sim value can be float
+//    Settings.MinSimilarity = 0.6f;
+//    Pattern pat = new Pattern("someImage");
+//    Commons.printLog("%s", pat);
+//    pat = new Pattern("someImage").similar(0.6f);
+//    Commons.printLog("%s", pat);
   }
 
   private static void testFolderList() {
