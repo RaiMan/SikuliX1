@@ -48,7 +48,7 @@ import java.util.*;
 public class Image extends Element {
 
   private static String logName = "Image: ";
-  
+
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
   private static Map<String, URL> imageNames = Collections.synchronizedMap(new HashMap<String, URL>());
@@ -154,7 +154,7 @@ public class Image extends Element {
     w = bimg.getWidth();
     h = bimg.getHeight();
     log(logLevel, "BufferedImage: (%d, %d)%s", w, h,
-            (name == null ? "" : " with name: " + name));
+        (name == null ? "" : " with name: " + name));
   }
 
   /**
@@ -202,9 +202,9 @@ public class Image extends Element {
   @Override
   public String toString() {
     return String.format(
-            (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
-            + (lastSeen == null ? ""
-            : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
+        (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
+        + (lastSeen == null ? ""
+        : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
   //</editor-fold>
 
@@ -232,7 +232,7 @@ public class Image extends Element {
     bHasIOException = state;
   }
 
-//  /**
+  //  /**
 //   * Get the image's descriptive name
 //   *
 //   * @return the name
@@ -421,7 +421,7 @@ public class Image extends Element {
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
-   * @param bimg given image
+   * @param bimg   given image
    * @param factor resize factor
    * @return a new BufferedImage resized (width*factor, height*factor)
    */
@@ -432,7 +432,7 @@ public class Image extends Element {
   /**
    * resize the given image with factor using OpenCV ImgProc.resize()
    *
-   * @param bimg given image
+   * @param bimg          given image
    * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation
    * @return a new BufferedImage resized (width*factor, height*factor)
@@ -446,7 +446,7 @@ public class Image extends Element {
    * <p>
    * Uses CUBIC as the interpolation algorithm.
    *
-   * @param mat given image as cvMat
+   * @param mat    given image as cvMat
    * @param factor resize factor
    */
   public static void resize(Mat mat, float factor) {
@@ -456,7 +456,7 @@ public class Image extends Element {
   /**
    * resize the given image (as cvMat in place) with factor using OpenCV ImgProc.resize()<br>
    *
-   * @param mat given image as cvMat
+   * @param mat           given image as cvMat
    * @param factor        resize factor
    * @param interpolation algorithm used for pixel interpolation.
    */
@@ -607,31 +607,32 @@ public class Image extends Element {
    * @return the new image
    */
   public Image getSub(int x, int y, int w, int h) {
-    BufferedImage bi;
-    if (get().getType() == BufferedImage.TYPE_3BYTE_BGR) {
-      bi = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-      Graphics graphics = bi.getGraphics();
-      graphics.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-      graphics.dispose();
-    } else {
-      bi = createBufferedImage(w, h);
-      Graphics2D g = bi.createGraphics();
-      g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
-      g.dispose();
-    }
+//    BufferedImage bi;
+//    if (get().getType() == BufferedImage.TYPE_3BYTE_BGR) {
+//      bi = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
+//      Graphics graphics = bi.getGraphics();
+//      graphics.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+//      graphics.dispose();
+//    } else {
+//      bi = createBufferedImage(w, h);
+    BufferedImage bi = new BufferedImage(w, h, get().getType());
+    Graphics2D g = bi.createGraphics();
+    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+    g.dispose();
+//    }
     return new Image(bi);
   }
 
-  private static BufferedImage createBufferedImage(int w, int h) {
-    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    int[] nBits = {8, 8, 8, 8};
-    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-    DataBufferByte db = new DataBufferByte(w * h * 4);
-    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-    BufferedImage bm = new BufferedImage(cm, r, false, null);
-    return bm;
-  }
+//  private static BufferedImage createBufferedImage(int w, int h) {
+//    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+//    int[] nBits = {8, 8, 8, 8};
+//    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+//    SampleModel sm = cm.createCompatibleSampleModel(w, h);
+//    DataBufferByte db = new DataBufferByte(w * h * 4);
+//    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+//    BufferedImage bm = new BufferedImage(cm, r, false, null);
+//    return bm;
+//  }
 
   /**
    * create a new Image as copy of the given Image
@@ -908,14 +909,14 @@ public class Image extends Element {
     while (nit.hasNext()) {
       name = nit.next();
       log(logLevel, "%s %d KB (%s)", new File(name.getKey()).getName(),
-              imageFiles.get(name.getValue()).getKB(), name.getValue());
+          imageFiles.get(name.getValue()).getKB(), name.getValue());
     }
     if (Settings.getImageCache() == 0) {
       log(logLevel, "Cache state: switched off!");
     } else {
       log(logLevel, "Cache state: Max %d MB (entries: %d  used: %d %% %d KB)",
-              Settings.getImageCache(), images.size(),
-              (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
+          Settings.getImageCache(), images.size(),
+          (int) (100 * currentMemory / (Settings.getImageCache() * MB)), (int) (currentMemory / KB));
     }
     log(logLevel, "--- end of Image dump ---");
   }
@@ -1063,9 +1064,9 @@ public class Image extends Element {
           bimg = bImage;
           images.add(this);
           log(logLevel, "cached: %s (%d KB) (# %d KB %d -- %d %% of %d MB)",
-                  getName(), getKB(),
-                  images.size(), (int) (currentMemory / KB),
-                  (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
+              getName(), getKB(),
+              images.size(), (int) (currentMemory / KB),
+              (int) (100 * currentMemory / maxMemory), (int) (maxMemory / MB));
         }
       } else {
         log(-1, "invalid! not loaded! %s", fileURL);
@@ -1083,7 +1084,7 @@ public class Image extends Element {
       } catch (Exception e) {
         log(-1, "loadAgain: failed: %s", fileURL);
         bHasIOException = true;
-        if(Image.isCaching()) {
+        if (Image.isCaching()) {
           imageFiles.remove(fileURL);
         }
         return null;
@@ -1368,6 +1369,7 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="20 text/OCR from imagefile">
+
   /**
    * convenience method: get text from given image file
    *
