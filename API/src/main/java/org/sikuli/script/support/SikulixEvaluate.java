@@ -1,7 +1,6 @@
 package org.sikuli.script.support;
 
-import org.sikuli.basics.Settings;
-import org.sikuli.script.*;
+import org.sikuli.script.SX;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.util.List;
@@ -22,6 +21,10 @@ public class SikulixEvaluate {
 
 //    Screen scr = new Screen();
 
+//TEST: SX.pop... feature should return null, if timed out
+    Object feedback = SX.popup("test timeout", 5);
+    Commons.printLog("popup returned %s", feedback);
+
 //TEST: find(Image.getSub()) did not work always (BufferedImage problem)
 //solution: make sub same type as original
 //    Image image = new Image(scr.userCapture());
@@ -33,9 +36,6 @@ public class SikulixEvaluate {
 //      Commons.printLog("not found: %s", image);
 //    }
 
-//BREAKPOINT after test
-    Commons.printLog("***** end of testing *****");
-
 //TEST: macOS S & P behavior
 //    new Screen();
 
@@ -45,6 +45,9 @@ public class SikulixEvaluate {
 //    Commons.printLog("%s", pat);
 //    pat = new Pattern("someImage").similar(0.6f);
 //    Commons.printLog("%s", pat);
+
+//BREAKPOINT after test
+    Commons.printLog("***** end of testing *****");
   }
 
   private static void testFolderList() {

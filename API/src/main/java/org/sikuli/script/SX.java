@@ -33,7 +33,7 @@ public class SX {
 
   private static Log log = new Log();
 
-  private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+  //private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
 
   //<editor-fold desc="01 input, popup, popAsk, popError">
   private enum PopType {
@@ -134,6 +134,7 @@ public class SX {
     }
     return -1;
   }
+
   /**
    * optionally timed popup (self-vanishing)
    *
@@ -306,16 +307,14 @@ public class SX {
     }
 
     RunInput popRun = new RunInput(popType, args);
-    ScheduledFuture<?> timeoutJob = TIMEOUT_EXECUTOR.schedule((() -> {
+
+    ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
+    ScheduledFuture<?> timeoutJob = timeoutScheduler.schedule((() -> {
       popRun.dispose();
     }), popRun.getTimeout(), TimeUnit.MILLISECONDS);
 
     if (EventQueue.isDispatchThread()) {
-      try {
-        popRun.run();
-      } finally {
-        timeoutJob.cancel(false);
-      }
+      popRun.run();
     } else {
       synchronized (popRun) {
         EventQueue.invokeLater(popRun);
@@ -323,12 +322,17 @@ public class SX {
           popRun.wait();
         } catch (InterruptedException e) {
           Debug.error("Interrupted while waiting for popup close: %s", e.getMessage());
-        } finally {
-          timeoutJob.cancel(false);
         }
       }
     }
-    return popRun.getReturnValue();
+    Object returnValue = popRun.getReturnValue();
+    if (timeoutJob.isDone()) {
+      returnValue = null;
+    } else {
+      timeoutJob.cancel(false);
+    }
+    timeoutScheduler.shutdown();
+    return returnValue;
   }
 
   private static Map<String, Object> getPopParameters(Object... args) {
@@ -476,8 +480,8 @@ public class SX {
         }
         int argParm = -1;
         for (Object arg : args) {
-            argParm = findNextParameter(arg, argParm);
-          if (argParm < 0 ) {
+          argParm = findNextParameter(arg, argParm);
+          if (argParm < 0) {
             break;
           } else {
             params.put(parameterNames[argParm], arg);
