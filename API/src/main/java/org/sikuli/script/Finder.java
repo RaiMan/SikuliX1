@@ -1393,7 +1393,6 @@ public class Finder implements Iterator<Match> {
         mask = mats.get(1);
       }
 
-      //TODO plaincolor/black with masking
       if (targetBGR.channels() == 1) {
         grayColor = true;
       }
@@ -1404,14 +1403,14 @@ public class Finder implements Iterator<Match> {
       resizeFactor = Math.max(1.0, resizeFactor);
       MatOfDouble pMean = new MatOfDouble();
       MatOfDouble pStdDev = new MatOfDouble();
-      Mat check = new Mat();
 
       if (mask.empty()) {
-        check = targetBGR;
+        Core.meanStdDev(targetBGR, pMean, pStdDev);
       } else {
-        Core.multiply(targetBGR, mask, check);
+        List<Mat> maskMats = new ArrayList<>();
+        Core.split(mask, maskMats);
+        Core.meanStdDev(targetBGR, pMean, pStdDev, maskMats.get(0));
       }
-      Core.meanStdDev(check, pMean, pStdDev);
       double sum = 0.0;
       double[] arr = pStdDev.toArray();
       for (int i = 0; i < arr.length; i++) {
