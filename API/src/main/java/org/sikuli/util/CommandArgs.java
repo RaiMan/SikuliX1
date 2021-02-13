@@ -8,13 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.sikuli.basics.Debug;
 
 public class CommandArgs {
@@ -29,7 +23,7 @@ public class CommandArgs {
   }
 
   public CommandLine getCommandLine(String[] args) {
-    CommandLineParser parser = new PosixParser();
+    CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
 
     boolean isUserArg = false;
@@ -66,69 +60,33 @@ public class CommandArgs {
   @SuppressWarnings("static-access")
   private void init() {
     cmdArgs = new Options();
-    cmdArgs.addOption(CommandArgsEnum.HELP.shortname(),
-        CommandArgsEnum.HELP.longname(), false, CommandArgsEnum.HELP.description());
+    cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.DEBUG.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.DEBUG.argname())
-            .withDescription(CommandArgsEnum.DEBUG.description())
-            .create(CommandArgsEnum.DEBUG.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.MULTI));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.LOGFILE.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.LOGFILE.argname())
-            .withDescription(CommandArgsEnum.LOGFILE.description())
-            .create(CommandArgsEnum.LOGFILE.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.USERLOGFILE.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.USERLOGFILE.argname())
-            .withDescription(CommandArgsEnum.USERLOGFILE.description())
-            .create(CommandArgsEnum.USERLOGFILE.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.QUIET));
 
-    cmdArgs.addOption(CommandArgsEnum.CONSOLE.shortname(),
-        CommandArgsEnum.CONSOLE.longname(), false, CommandArgsEnum.CONSOLE.description());
+    cmdArgs.addOption(makeOption(CommandArgsEnum.DEBUG));
 
-    cmdArgs.addOption(CommandArgsEnum.VERBOSE.shortname(),
-        CommandArgsEnum.VERBOSE.longname(), false, CommandArgsEnum.VERBOSE.description());
+    cmdArgs.addOption(makeOption(CommandArgsEnum.LOGFILE));
 
-    cmdArgs.addOption(CommandArgsEnum.QUIET.shortname(),
-        CommandArgsEnum.QUIET.longname(), false, CommandArgsEnum.QUIET.description());
+    cmdArgs.addOption(makeOption(CommandArgsEnum.USERLOGFILE));
 
-    cmdArgs.addOption(CommandArgsEnum.MULTI.shortname(),
-        CommandArgsEnum.MULTI.longname(), false, CommandArgsEnum.MULTI.description());
+    cmdArgs.addOption(makeOption(CommandArgsEnum.CONSOLE));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.SERVER.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.SERVER.argname())
-            .withDescription(CommandArgsEnum.SERVER.description())
-            .create(CommandArgsEnum.SERVER.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.PYTHONSERVER.longname())
-            .hasOptionalArg()
-            .withArgName(CommandArgsEnum.PYTHONSERVER.argname())
-            .withDescription(CommandArgsEnum.PYTHONSERVER.description())
-            .create(CommandArgsEnum.PYTHONSERVER.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.LOAD.longname())
-            .withDescription(CommandArgsEnum.LOAD.description())
-            .hasOptionalArgs()
-            .withArgName(CommandArgsEnum.LOAD.argname())
-            .create(CommandArgsEnum.LOAD.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.SERVER));
 
-    cmdArgs.addOption(
-        OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
-            .withDescription(CommandArgsEnum.RUN.description())
-            .hasOptionalArgs()
-            .withArgName(CommandArgsEnum.RUN.argname())
-            .create(CommandArgsEnum.RUN.shortname().charAt(0)));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.PYTHONSERVER));
+  }
+
+  private Option makeOption(CommandArgsEnum anOption) {
+    return new Option(anOption.shortname(), anOption.longname(), anOption.hasArgs(), anOption.description());
   }
 
   /**
