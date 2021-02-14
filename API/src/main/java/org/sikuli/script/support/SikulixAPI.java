@@ -4,6 +4,12 @@
 
 package org.sikuli.script.support;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.HotkeyEvent;
+import org.sikuli.basics.HotkeyListener;
+import org.sikuli.basics.HotkeyManager;
+import py4j.GatewayServer;
+
 public class SikulixAPI {
 
   public static void main(String[] args) {
@@ -37,9 +43,29 @@ public class SikulixAPI {
     }
 */
 
-    RunTime runtime = RunTime.get();
+    //RunTime runtime = RunTime.get();
 
-    System.out.println("SikuliX API: nothing to do");
+    if (RunTime.shouldRunPythonServer()) {
+      GatewayServer pythonServer = null;
+      if (!RunTime.isRunningPythonServer()) {
+        try {
+          Class.forName("py4j.GatewayServer");
+          pythonServer = new py4j.GatewayServer();
+        } catch (ClassNotFoundException e) {
+          System.out.println("[ERROR] Python server: py4j not on classpath");
+          RunTime.terminate();
+        }
+        Debug.reset();
+        Debug.on(3);
+        RunTime.installStopHotkeyPythonServer();
+        RunTime.setPythonServer(pythonServer);
+        int port = pythonServer.getPort();
+        System.out.println("Running py4j server at port " + port);
+        RunTime.pythonServer.start(false);
+      }
+    } else {
+      System.out.println("SikuliX API: nothing to do");
+    }
     RunTime.terminate();
   }
 }

@@ -98,6 +98,7 @@
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna-platform</artifactId>
       <version>5.6.0</version>
+      <!--License LGPL, version 2.1 - Apache License v2.0-->
     </dependency>
     <dependency>
       <groupId>net.oneandone.reflections8</groupId>
@@ -114,6 +115,12 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
       <version>1.7.28</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.py4j</groupId>
+      <artifactId>py4j</artifactId>
+      <version>0.10.9.1</version>
+      <!--License The New BSD License (https://www.py4j.org) -->
     </dependency>
   </dependencies>
 

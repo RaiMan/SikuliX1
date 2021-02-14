@@ -16,6 +16,7 @@ import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
 import org.sikuli.vnc.VNCScreen;
+import py4j.GatewayServer;
 
 import java.awt.AWTException;
 import java.awt.Desktop;
@@ -55,6 +56,73 @@ public class RunTime {
   private static boolean startAsIDE = true;
 
   //<editor-fold desc="01 startup">
+  private static boolean allowMultiple = false;
+
+  public static boolean shouldRunServer() {
+    return asServer;
+  }
+
+  private static boolean asServer = false;
+
+  public static boolean shouldRunPythonServer() {
+    return asPythonServer;
+  }
+
+  public static boolean isRunningPythonServer() {
+    return pythonServer != null;
+  }
+
+  public static GatewayServer getPythonServer() {
+    return pythonServer;
+  }
+
+  public static void setPythonServer(GatewayServer pythonServer) {
+    RunTime.pythonServer = pythonServer;
+  }
+
+  public static GatewayServer pythonServer = null;
+
+  private static boolean asPythonServer = false;
+
+  public static void installStopHotkeyPythonServer() {
+    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+      @Override
+      public void hotkeyPressed(HotkeyEvent e) {
+        Debug.log(3, "Stop HotKey was pressed");
+        if (RunTime.shouldRunPythonServer()) {
+          stopPythonServer();
+          RunTime.terminate();
+        }
+      }
+    });
+  }
+
+  public static void stopPythonServer() {
+    if (isRunningPythonServer()) {
+      Debug.logp("Python server: trying to stop");
+      pythonServer.shutdown();
+      pythonServer = null;
+    }
+  }
+
+  public static String[] getServerOptions() {
+    return serverOptions;
+  }
+
+  private static String[] serverOptions = null;
+
+  public static String getServerGroups() {
+    return serverGroups;
+  }
+
+  private static String serverGroups = null;
+
+  public static String getServerExtra() {
+    return serverExtra;
+  }
+
+  private static String serverExtra = null;
+
   public static void startAPI(String appPath) {
     File path = Commons.setAppDataPath(appPath);
     fTempPath = new File(path, "Temp");
@@ -365,6 +433,18 @@ public class RunTime {
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
       runScripts = resolveRelativeFiles(cmdLine.getOptionValues(CommandArgsEnum.RUN.longname()));
     }
+
+    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.PYTHONSERVER.shortname())) {
+      asPythonServer = true;
+    }
+  }
+
+  public static void setAllowMultiple() {
+    allowMultiple = true;
+  }
+
+  public static boolean isAllowMultiple() {
+    return allowMultiple;
   }
 
   public static String[] resolveRelativeFiles(String[] givenScripts) {
@@ -460,6 +540,8 @@ public class RunTime {
         shouldRunScript = true;
       } else if ("-s".equals(arg)) {
         asServer = true;
+      } else if ("-p".equals(arg)) {
+        asPythonServer = true;
       }
       finalArgs.add(arg);
     }
@@ -542,45 +624,6 @@ public class RunTime {
   public static boolean runningScripts() {
     return shouldRunScript;
   }
-
-  public static boolean shouldRunServer() {
-    return asServer;
-  }
-
-  private static boolean asServer = false;
-
-  public static String[] getServerOptions() {
-    return serverOptions;
-  }
-
-  private static String[] serverOptions = null;
-
-  public static String getServerGroups() {
-    return serverGroups;
-  }
-
-  private static String serverGroups = null;
-
-  public static String getServerExtra() {
-    return serverExtra;
-  }
-
-  private static String serverExtra = null;
-
-  public static void setAllowMultiple() {
-    allowMultiple = true;
-  }
-
-  public static boolean isAllowMultiple() {
-    return allowMultiple;
-  }
-
-  private static boolean allowMultiple = false;
-
-  public static boolean shouldDetach() {
-    return !runningScripts() && !shouldRunServer();
-  }
-
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
