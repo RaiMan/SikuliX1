@@ -2444,12 +2444,14 @@ public class Region extends Element {
     while (null != response && response) {
       log(logLevel, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
           autoWaitTimeout, targetStr, this.toStringShort());
-      if (autoWaitTimeout > 0) {
+//      if (autoWaitTimeout == 0) {
+//        lastMatches = doFindAll(target, null);
+//      } else {
+//        rf.repeat(autoWaitTimeout);
+//        lastMatches = rf.getMatches();
+//      }
         rf.repeat(autoWaitTimeout);
         lastMatches = rf.getMatches();
-      } else {
-        lastMatches = doFindAll(target, null);
-      }
       if (lastMatches != null) {
         log(logLevel, "findAll: %s has appeared", targetStr);
         break;
@@ -2737,7 +2739,7 @@ public class Region extends Element {
             }
           } else if (img.isText()) {
             findingText = true;
-            someText = img.getNameAsText();
+            someText = img.getNameGiven();
           }
         }
         if (findingText) {
@@ -2864,13 +2866,13 @@ public class Region extends Element {
           findingText = true;
           someText = ((String) ptn).replaceAll("\\t", "");
         } else {
-          img = Image.create((String) ptn);
+          img = repeating._image;//Image.create((String) ptn);
           if (img.isValid()) {
             finder = new Finder(getScreen().capture(x, y, w, h), this);
             finder.findAll(img);
           } else if (img.isText()) {
             findingText = true;
-            someText = img.getNameAsText();
+            someText = img.getNameGiven();
           }
         }
         if (findingText) {

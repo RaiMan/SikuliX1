@@ -13,7 +13,6 @@ import org.sikuli.basics.Settings;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
@@ -493,7 +492,7 @@ public class Image extends Element {
     return this;
   }
 
-  public String getNameAsText() {
+  public String getNameGiven() {
     return imageNameGiven;
   }
 //</editor-fold>
@@ -734,13 +733,13 @@ public class Image extends Element {
     }
     if (!img.isValid()) {
       if (Settings.OcrTextSearch || Settings.SwitchToText) {
-        if (isValidImageFilename(img.getName())) {
+        if (isValidImageFilename(img.getNameGiven())) {
           img.setIsText(false);
         } else {
           img.setIsText(true);
         }
       } else {
-        log(-1, "Image not valid, but TextSearch is switched off!");
+        log(-1, "Image not valid, but Settings.OcrTextSearch is switched off! (= false)");
       }
     }
     return img;
