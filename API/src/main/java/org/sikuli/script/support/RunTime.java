@@ -64,47 +64,6 @@ public class RunTime {
 
   private static boolean asServer = false;
 
-  public static boolean shouldRunPythonServer() {
-    return asPythonServer;
-  }
-
-  public static boolean isRunningPythonServer() {
-    return pythonServer != null;
-  }
-
-  public static GatewayServer getPythonServer() {
-    return pythonServer;
-  }
-
-  public static void setPythonServer(GatewayServer pythonServer) {
-    RunTime.pythonServer = pythonServer;
-  }
-
-  public static GatewayServer pythonServer = null;
-
-  private static boolean asPythonServer = false;
-
-  public static void installStopHotkeyPythonServer() {
-    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
-      @Override
-      public void hotkeyPressed(HotkeyEvent e) {
-        Debug.log(3, "Stop HotKey was pressed");
-        if (RunTime.shouldRunPythonServer()) {
-          stopPythonServer();
-          RunTime.terminate();
-        }
-      }
-    });
-  }
-
-  public static void stopPythonServer() {
-    if (isRunningPythonServer()) {
-      Debug.logp("Python server: trying to stop");
-      pythonServer.shutdown();
-      pythonServer = null;
-    }
-  }
-
   public static String[] getServerOptions() {
     return serverOptions;
   }
@@ -129,6 +88,13 @@ public class RunTime {
     startAPI();
   }
 
+
+  private static boolean asPythonServer = false;
+
+  public static boolean shouldRunPythonServer() {
+    return asPythonServer;
+  }
+
   public static void startAPI() {
     RunTime.get(Type.API);
   }
@@ -151,6 +117,10 @@ public class RunTime {
     }
 
     List<String> finalArgs = evalArgsStart(args);
+
+    if (shouldRunPythonServer()) {
+      SikulixAPI.runPy4jServer();
+    }
 
     File runningJar = getRunningJar(type);
     RunTime.startLog(1, "Running: %s", runningJar);
