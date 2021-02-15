@@ -2442,26 +2442,25 @@ public class Region extends Element {
       }
     }
     while (null != response && response) {
-      log(logLevel, "findAll: waiting %.1f secs for (multiple) %s to appear in %s",
-          autoWaitTimeout, targetStr, this.toStringShort());
-//      if (autoWaitTimeout == 0) {
-//        lastMatches = doFindAll(target, null);
-//      } else {
-//        rf.repeat(autoWaitTimeout);
-//        lastMatches = rf.getMatches();
-//      }
-        rf.repeat(autoWaitTimeout);
+      log(logLevel, "findAll: looking for multiple %s to appear in %s",
+          targetStr, this.toStringShort());
+        rf.repeat(0.0);
         lastMatches = rf.getMatches();
       if (lastMatches != null) {
         log(logLevel, "findAll: %s has appeared", targetStr);
         break;
       } else {
         log(logLevel, "findAll: %s did not appear", targetStr);
-        response = handleFindFailed(target, img);
+        if (getFindFailedResponse() != FindFailedResponse.ABORT) {
+          response = handleFindFailed(target, img);
+          if (null == response) {
+            throw new FindFailed(FindFailed.createErrorMessage(this, img));
+          }
+        } else {
+          lastMatches = rf._finder; 
+          break;
+        }
       }
-    }
-    if (null == response) {
-      throw new FindFailed(FindFailed.createErrorMessage(this, img));
     }
     return lastMatches;
   }
