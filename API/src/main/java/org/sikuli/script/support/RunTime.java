@@ -401,7 +401,8 @@ public class RunTime {
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      runScripts = resolveRelativeFiles(cmdLine.getOptionValues(CommandArgsEnum.RUN.longname()));
+      String[] scripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
+      runScripts = resolveRelativeFiles(scripts);
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.PYTHONSERVER.shortname())) {
@@ -430,9 +431,18 @@ public class RunTime {
           continue;
         }
       } else {
-        if (i == 0 && file.endsWith(".sikuli")) {
-          baseDir = new File(file).getParent();
+//        if (i == 0 && file.endsWith(".sikuli")) {
+        if (i == 0) {
+          try {
+            baseDir = new File(file).getParentFile().getCanonicalPath();
+          } catch (IOException e) {
+            baseDir = new File(file).getParent();
+          }
         }
+      }
+      try {
+        file = new File(file).getCanonicalPath();
+      } catch (IOException e) {
       }
       EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
       IScriptRunner runner = runnerAndFile.getRunner();

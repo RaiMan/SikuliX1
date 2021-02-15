@@ -60,6 +60,7 @@ public class CommandArgs {
   @SuppressWarnings("static-access")
   private void init() {
     cmdArgs = new Options();
+
     cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.MULTI));
@@ -86,7 +87,13 @@ public class CommandArgs {
   }
 
   private Option makeOption(CommandArgsEnum anOption) {
-    return new Option(anOption.shortname(), anOption.longname(), anOption.hasArgs(), anOption.description());
+    Option.Builder builder = Option.builder(anOption.shortname())
+        .longOpt(anOption.longname())
+        .desc(anOption.description());
+    if (anOption.hasArgs()) {
+      builder.hasArgs();
+    }
+    return builder.build();
   }
 
   /**
