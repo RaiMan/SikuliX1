@@ -426,19 +426,16 @@ public class RunTime {
       String file = resolveRelativeFile(givenScript, baseDir);
       if (file == null) {
         file = resolveRelativeFile(givenScript + ".sikuli", baseDir);
-        if (file == null) {
-          runScripts[i] = "?" + givenScript;
-          continue;
-        }
-      } else {
-//        if (i == 0 && file.endsWith(".sikuli")) {
-        if (i == 0) {
-          try {
-            baseDir = new File(file).getParentFile().getCanonicalPath();
-          } catch (IOException e) {
-            baseDir = new File(file).getParent();
-          }
-        }
+      }
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".py", baseDir);
+      }
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".rb", baseDir);
+      }
+      if (file == null) {
+        runScripts[i] = "?" + givenScript;
+        continue;
       }
       try {
         file = new File(file).getCanonicalPath();
@@ -471,6 +468,11 @@ public class RunTime {
         }
       }
       runScripts[i] = fileToRun;
+      if (i == 0) {
+        if (!fileToRun.startsWith("!")) {
+          baseDir = new File(fileToRun).getParent();
+        }
+      }
     }
     return runScripts;
   }
@@ -684,7 +686,7 @@ public class RunTime {
       logp(message, args);
     }
   }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
   public enum Type {
