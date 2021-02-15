@@ -188,13 +188,14 @@ public class OCR {
      * @return a text string as before
      */
     public String toString() {
+      String light = isLightFont() ? "light" : "";
       String msg = String.format(
               "OCR.Options:" +
                       "\ndata = %s" +
-                      "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d)",
+                      "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
               dataPath(), language(), oem(), psm(),
               textHeight(), factor(),
-              Toolkit.getDefaultToolkit().getScreenResolution());
+              Toolkit.getDefaultToolkit().getScreenResolution(), light);
       if (hasVariablesOrConfigs()) {
         msg += "\n" + logVariablesConfigs();
       }
