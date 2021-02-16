@@ -4,6 +4,7 @@
 
 package org.sikuli.script.support;
 
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.SX;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
@@ -24,10 +25,11 @@ public class SikulixEvaluate {
   public static void test() {
 
 //    Screen scr = new Screen();
+    ImagePath.addJar(".", "folder");
 
 //TEST: SX.pop... feature should return null, if timed out
-    Object feedback = SX.popup("test timeout", 5);
-    Commons.printLog("popup returned %s", feedback);
+//    Object feedback = SX.popup("test timeout", 5);
+//    Commons.printLog("popup returned %s", feedback);
 
 //TEST: find(Image.getSub()) did not work always (BufferedImage problem)
 //solution: make sub same type as original
