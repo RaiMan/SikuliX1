@@ -4,10 +4,12 @@
 
 package org.sikuli.script.support;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.SX;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
+import java.io.File;
 import java.util.List;
 
 public class SikulixEvaluate {
@@ -24,8 +26,19 @@ public class SikulixEvaluate {
 
   public static void test() {
 
+
 //    Screen scr = new Screen();
-    ImagePath.addJar(".", "folder");
+    Debug.on(3);
+    File workDir = Commons.getWorkDir();
+    String classes = new File(workDir, "target/classes/images").getAbsolutePath();
+    ImagePath.setBundlePath(classes);
+    ImagePath.add(classes);
+    String jar = "target/sikulixapi-2.0.5.jar";
+    File fJar = new File(jar);
+    ImagePath.addJar(jar, "images");
+    ImagePath.add(classes);
+    ImagePath.addJar(jar, "images");
+    ImagePath.dump(0);
 
 //TEST: SX.pop... feature should return null, if timed out
 //    Object feedback = SX.popup("test timeout", 5);

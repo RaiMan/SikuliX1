@@ -912,7 +912,7 @@ public class FileManager {
       aFile = aFile.getCanonicalFile();
     } catch (Exception ex) {
     }
-    log(lvl, "normalizeAbsolute: file: %s", aFile);
+    log(lvl + 1, "normalizeAbsolute: file: %s", aFile);
     return aFile.getPath() + jarSuffix;
   }
 
