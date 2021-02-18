@@ -16,6 +16,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A Region is a rectengular area on a screen.
@@ -2304,15 +2305,26 @@ public class Region extends Element {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     lastMatch = null;
+    RepeatableFind rf = doExistsInit(target);
+    return doExists(rf, timeout);
+  }
+
+  private <PSI> RepeatableFind existsStoppableInit(PSI target) {
+    lastMatch = null;
+    RepeatableFind rf = doExistsInit(target);
+    rf.resetShouldStop();
+    return rf;
+  }
+
+  private <PSI> RepeatableFind doExistsInit(PSI target) {
     RepeatableFind rf = new RepeatableFind(target, null);
     Image img = rf._image;
-    Boolean response = true;
+    Boolean response;
     if (!img.isText() && !img.isValid() && img.hasIOException()) {
       response = handleImageMissing(img, false);//exists
       if (response == null) {
         if (Settings.SwitchToText) {
           log(logLevel, "Exists: image missing: switching to text search (deprecated - use text methods)");
-          response = true;
           img.setIsText(true);
           rf.setTarget("\t" + target + "\t");
         } else {
@@ -2320,8 +2332,15 @@ public class Region extends Element {
         }
       }
     }
+    return rf;
+  }
+
+  private Match doExists(RepeatableFind rf, double timeout) {
+    Image img = rf._image;
     String targetStr = img.getName();
-    log(logLevel, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+    if (!(timeout > 0)) {
+      log(logLevel, "exists: waiting %.1f secs for %s to appear in %s", timeout, targetStr, this.toStringShort());
+    }
     if (rf.repeat(timeout)) {
       lastMatch = rf.getMatch();
       //lastMatch.setImage(img);
@@ -2330,10 +2349,14 @@ public class Region extends Element {
       } else if (img != null) {
         img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
       }
-      log(logLevel, "exists: %s has appeared (%s)", targetStr, lastMatch);
+      if (!(timeout > 0)) {
+        log(logLevel, "exists: %s has appeared (%s)", targetStr, lastMatch);
+      }
       return lastMatch;
     }
-    log(logLevel, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+    if (!(timeout > 0)) {
+      log(logLevel, "exists: %s did not appear [%d msec]", targetStr, new Date().getTime() - lastFindTime);
+    }
     return null;
   }
 
@@ -2558,32 +2581,50 @@ public class Region extends Element {
     return findBestList(pList);
   }
 
+  public Match waitBest(double time, Object... args) {
+    if (args.length == 0) {
+      return null;
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(args));
+    return waitBestList(time, pList);
+  }
+
   public Match findBestList(List<Object> pList) {
     Debug.log(logLevel, "findBest: enter");
+    return findBestListDo(0, pList);
+  }
+
+  public Match waitBestList(double time, List<Object> pList) {
+    Debug.log(logLevel, "waitBest: enter");
+    return findBestListDo(time, pList);
+  }
+
+  private Match findBestListDo(double time, List<Object> pList) {
     if (pList == null || pList.size() == 0) {
       return null;
     }
-    Match mResult = null;
-    List<Match> mList = findAnyCollect(pList);
-    if (mList.size() > 0) {
-      Collections.sort(mList, new Comparator<Match>() {
-        @Override
-        public int compare(Match m1, Match m2) {
-          double ms = m2.getScore() - m1.getScore();
-          if (ms < 0) {
-            return -1;
-          } else if (ms > 0) {
-            return 1;
-          }
-          return 0;
+    List<Match> mList = findAnyCollect(time, pList);
+    if (mList.size() > 1) {
+      Collections.sort(mList, (m1, m2) -> {
+        double ms = m2.getScore() - m1.getScore();
+        if (ms < 0) {
+          return -1;
+        } else if (ms > 0) {
+          return 1;
         }
+        return 0;
       });
-      mResult = mList.get(0);
     }
-    return mResult;
+    if (mList.size() > 0) {
+      return mList.get(0);
+    } else {
+      return null;
+    }
   }
 
   public List<Match> findAny(Object... args) {
+    Debug.log(logLevel, "findAny: enter");
     if (args.length == 0) {
       return new ArrayList<Match>();
     }
@@ -2592,12 +2633,30 @@ public class Region extends Element {
     return findAnyList(pList);
   }
 
+  public List<Match> waitAny(double time, Object... args) {
+    if (args.length == 0) {
+      return new ArrayList<Match>();
+    }
+    List<Object> pList = new ArrayList<>();
+    pList.addAll(Arrays.asList(args));
+    return waitAnyList(time, pList);
+  }
+
   public List<Match> findAnyList(List<Object> pList) {
     Debug.log(logLevel, "findAny: enter");
+    return findAnyListDo(0, pList);
+  }
+
+  public List<Match> waitAnyList(double time, List<Object> pList) {
+    Debug.log(logLevel, "waitAny: enter");
+    return findAnyListDo(time, pList);
+  }
+
+  private List<Match> findAnyListDo(double time, List<Object> pList) {
     if (pList == null || pList.size() == 0) {
       return new ArrayList<Match>();
     }
-    List<Match> mList = findAnyCollect(pList);
+    List<Match> mList = findAnyCollect(time, pList);
     return mList;
   }
 
@@ -2614,10 +2673,13 @@ public class Region extends Element {
     if (targets.size() < 2) {
       return this;
     }
-    List<Match> matches = new ArrayList<>();
+    List<Match> matches;
     matches = findAnyList(targets);
-    if (matches.size() < 2) {
+    if (matches.size() < 1) {
       return this;
+    }
+    if (matches.size() < 2) {
+      new Region(matches.get(0));
     }
     Region theUnion = null;
     for (Match match : matches) {
@@ -2906,6 +2968,13 @@ public class Region extends Element {
 
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
+    volatile AtomicBoolean shouldStop = new AtomicBoolean();
+    public void setShouldStop() {
+      shouldStop.set(true);
+    }
+    public void resetShouldStop() {
+      shouldStop.set(false);
+    }
 
     private double findTimeout;
 
@@ -2926,6 +2995,9 @@ public class Region extends Element {
       int timeoutMilli = (int) (timeout * 1000);
       long begin_t = (new Date()).getTime();
       do {
+        if (null != shouldStop && shouldStop.get()) {
+          break;
+        }
         long before_find = (new Date()).getTime();
         run();
         if (ifSuccessful()) {
@@ -2953,9 +3025,7 @@ public class Region extends Element {
   }
 
   private class RepeatableFind extends Repeatable {
-
     Object _target;
-
     public void setTarget(String target) {
       _target = target;
     }
@@ -3041,27 +3111,36 @@ public class Region extends Element {
   private class SubFindRun implements Runnable {
 
     Match[] mArray;
+    RepeatableFind[] rfArray;
     ScreenImage base;
     Object target;
     Region reg;
+    double waitTime;
     boolean finished = false;
     int subN;
 
-    public SubFindRun(Match[] pMArray, int pSubN,
+    public SubFindRun(double pTime, Match[] pMArray, RepeatableFind[] pRfArray, int pSubN,
                       ScreenImage pBase, Object pTarget, Region pReg) {
       subN = pSubN;
       base = pBase;
       target = pTarget;
       reg = pReg;
       mArray = pMArray;
+      rfArray = pRfArray;
+      waitTime = pTime;
     }
 
     @Override
     public void run() {
-      try {
-        mArray[subN] = reg.findInImage(base, target);
-      } catch (Exception ex) {
-        log(-1, "findAnyCollect: image file not found:\n", target);
+      if (waitTime > 0) {
+        rfArray[subN] = reg.existsStoppableInit(target);
+        mArray[subN] = reg.doExists(rfArray[subN], waitTime);
+      } else {
+        try {
+          mArray[subN] = reg.findInImage(base, target);
+        } catch (Exception ex) {
+          log(-1, "findAnyCollect: image file not found:\n", target);
+        }
       }
       hasFinished(true);
     }
@@ -3076,6 +3155,72 @@ public class Region extends Element {
       }
       return finished;
     }
+
+    public void shouldStop() {
+      if (!hasFinished()) {
+        rfArray[subN].setShouldStop();
+      }
+    }
+  }
+
+  private List<Match> findAnyCollect(double time, List<Object> pList) {
+    List<Match> mList = new ArrayList<Match>();
+    if (pList == null) {
+      return mList;
+    }
+    Match[] mArray = new Match[pList.size()];
+    RepeatableFind[] rfArray = new RepeatableFind[pList.size()];
+    SubFindRun[] theSubs = new SubFindRun[pList.size()];
+    int nobj = 0;
+    ScreenImage base = getScreen().capture(this);
+    for (Object obj : pList) {
+      mArray[nobj] = null;
+
+      if (obj instanceof Pattern || obj instanceof String || obj instanceof Image) {
+        theSubs[nobj] = new SubFindRun(time, mArray, rfArray, nobj, base, obj, this);
+        new Thread(theSubs[nobj]).start();
+      }
+      nobj++;
+    }
+    Debug.log(logLevel, "findAnyCollect: waiting for SubFindRuns");
+    if (time > 0) {
+      boolean any = false;
+      while (!any) {
+        any = false;
+        for (SubFindRun sub : theSubs) {
+          if (sub.hasFinished()) {
+            any = true;
+            break;
+          }
+        }
+      }
+      for (SubFindRun sub : theSubs) {
+        sub.shouldStop();
+      }
+    }else {
+      boolean all = false;
+      while (!all) {
+        all = true;
+        for (SubFindRun sub : theSubs) {
+          all &= sub.hasFinished();
+        }
+      }
+    }
+    if (time > 0)
+      Debug.log(logLevel, "waitAnyCollect: first SubFindRun finished");
+    else {
+      Debug.log(logLevel, "findAnyCollect: all SubFindRuns finished");
+    }
+    nobj = 0;
+    for (Match match : mArray) {
+      if (match != null) {
+        match.setIndex(nobj);
+        mList.add(match);
+      } else {
+      }
+      nobj++;
+    }
+    return mList;
   }
 
   private Match findInImage(ScreenImage base, Object target) throws IOException {
@@ -3134,45 +3279,6 @@ public class Region extends Element {
       img.setLastSeen(match.getRect(), match.getScore());
     }
     return match;
-  }
-
-  private List<Match> findAnyCollect(List<Object> pList) {
-    List<Match> mList = new ArrayList<Match>();
-    if (pList == null) {
-      return mList;
-    }
-    Match[] mArray = new Match[pList.size()];
-    SubFindRun[] theSubs = new SubFindRun[pList.size()];
-    int nobj = 0;
-    ScreenImage base = getScreen().capture(this);
-    for (Object obj : pList) {
-      mArray[nobj] = null;
-      if (obj instanceof Pattern || obj instanceof String || obj instanceof Image) {
-        theSubs[nobj] = new SubFindRun(mArray, nobj, base, obj, this);
-        new Thread(theSubs[nobj]).start();
-      }
-      nobj++;
-    }
-    Debug.log(logLevel, "findAnyCollect: waiting for SubFindRuns");
-    nobj = 0;
-    boolean all = false;
-    while (!all) {
-      all = true;
-      for (SubFindRun sub : theSubs) {
-        all &= sub.hasFinished();
-      }
-    }
-    Debug.log(logLevel, "findAnyCollect: SubFindRuns finished");
-    nobj = 0;
-    for (Match match : mArray) {
-      if (match != null) {
-        match.setIndex(nobj);
-        mList.add(match);
-      } else {
-      }
-      nobj++;
-    }
-    return mList;
   }
 
   protected <PSIMRL> Location getLocationFromTarget(PSIMRL target) throws FindFailed {
