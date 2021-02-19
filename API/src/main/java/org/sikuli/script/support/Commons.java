@@ -79,34 +79,53 @@ public class Commons {
   public static void init() {
   }
 
-  private static String logText;
-
-  private static String resetLog() {
-    String text = logText;
-    logText = "";
-    return text;
+  public static String enter(String method, String parameter, Object... args) {
+    String parms = String.format(parameter, args);
+    if (isTrace()) {
+      System.out.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
+    }
+    return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
-  private static void startLog(String msg, Object... args) {
-    logText = String.format(msg, args) + "\n";
+  public static boolean isTrace() {
+    return trace;
   }
 
-  private static void log(String msg, Object... args) {
-    logText += String.format(msg, args) + "\n";
+  public static void startTrace() {
+    trace = true;
   }
 
-  public static String getLog() {
-    return resetLog();
+  public static void stopTrace() {
+    trace = false;
   }
 
-  public static void printLog() {
-    System.out.println(resetLog());
+  private static boolean trace = false;
+
+  public static void info(String msg, Object... args) {
+    System.out.println(String.format("[INFO Commons] " + msg, args));
   }
 
-  public static void printLog(String msg, Object... args) {
-    startLog(msg, args);
-    System.out.println(resetLog());
+  public static void error(String msg, Object... args) {
+    System.out.println(String.format("[ERROR Commons] " + msg, args));
   }
+
+  public static void debug(String msg, Object... args) {
+    System.out.println(String.format("[DEBUG Commons] " + msg, args));
+  }
+
+  public static boolean isDebug() {
+    return debug;
+  }
+
+  public static void startDebug() {
+    debug = true;
+  }
+
+  public static void stopDebug() {
+    debug = true;
+  }
+
+  private static boolean debug = false;
 
   public static boolean parmsValid(Object... parms) {
     boolean success = true;
@@ -118,7 +137,7 @@ public class Commons {
       }
     }
     if (!success) {
-      log("Parameters not valid!");
+      error("Parameters not valid!");
       return false;
     }
     return true;
@@ -396,11 +415,10 @@ public class Commons {
       }
     }
     String form = "%-" + eLen.toString() + "s = %s";
-    startLog("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
+    info("***** system properties (%s)", filter.isEmpty() ? "all" : filter);
     for (String prop : propsKeys) {
-      log(form, prop, System.getProperty(prop));
+      info(form, prop, System.getProperty(prop));
     }
-    printLog();
   }
 
   public static ArrayList<String> getSysProps(String filter) {
@@ -517,6 +535,73 @@ public class Commons {
     }
     return fileList;
   }
+
+  public static URL makeURL() {
+    return makeURL("", null);
+  }
+
+  public static URL makeURL(Object main) {
+    return makeURL(main, null);
+  }
+
+  public static URL makeURL(Object main, String sub) {
+    String enter = enter("makeURL", "main: %s, sub: %s", main, sub);
+    if (main == null) {
+      error("makeURL: 1st parameter main is null");
+      return null;
+    }
+    URL url = null;
+    File mainFile = null;
+    if (main instanceof File) {
+      mainFile = (File) main;
+    } else if (main instanceof String) {
+      String mainPath = (String) main;
+      mainFile = new File(mainPath);
+    }
+    if (!mainFile.isAbsolute()) {
+      mainFile = new File(getWorkDir(), mainFile.getPath());
+      debug("makeURL: mainFile relative: in current workdir: %s", getWorkDir());
+    }
+    if (sub != null) {
+      mainFile = new File(mainFile, sub);
+    }
+    try {
+      if (mainFile.getPath().contains("%")) {
+        try {
+          mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
+        } catch (Exception e) {
+          error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
+        }
+      }
+      mainFile = mainFile.getCanonicalFile();
+      url = mainFile.toURI().toURL();
+    } catch (MalformedURLException e) {
+      error(enter);
+      error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
+    } catch (IOException e) {
+      error(enter);
+      error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
+    }
+    if (!mainFile.exists()) {
+      error(enter);
+      error("makeURL: file does not exist: %s", mainFile);
+    }
+    debug("makeURL: exit: url: %s", url);
+    return url;
+  }
+
+  public static File  urlToFile(URL url) {
+    String path = url.getPath();
+    File file = new File(path);
+    if (path.contains("%")) {
+      try {
+        file = new File(URLDecoder.decode(path, "UTF-8"));
+      } catch (Exception e) {
+        error("urlToFile: not decodable(UTF-8): %s (%s)", url, e.getMessage());
+      }
+    }
+    return file;
+  }
   //</editor-fold>
 
   //<editor-fold desc="15 file handling">
@@ -525,7 +610,7 @@ public class Commons {
   }
 
   public static List<String> getContentList(String resFolder, Class classReference) {
-    startLog("Commons.getContentList(res: %s, ref: %s)", resFolder, classReference);
+    debug("getContentList(res: %s, ref: %s)", resFolder, classReference);
     List<String> resList = new ArrayList<>();
     if (!parmsValid(resFolder, classReference)) {
       return resList;
@@ -535,7 +620,7 @@ public class Commons {
       resFile = resFile.replace("\\", "/");
     }
     String content = copyResourceToString(resFile, classReference);
-    log("getResourceList: %s\n(%s)", resFile, content);
+    debug("getResourceList: %s\n(%s)", resFile, content);
     if (null != content) {
       String[] names = content.split("\n");
       for (String name : names) {

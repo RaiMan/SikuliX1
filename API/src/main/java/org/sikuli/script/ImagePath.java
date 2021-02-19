@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
@@ -309,9 +310,21 @@ public class ImagePath {
       return null;
     }
     URL pathURL = null;
-    File fPath = new File(FileManager.normalizeAbsolute(fpMainPath));
+    File fPath = null;
+//    File fPath = new File(FileManager.normalizeAbsolute(fpMainPath));
+    try {
+      fPath = new File(fpMainPath).getCanonicalFile();
+    } catch (IOException e) {
+      log(-1, "makePathEntry: problem canonicalFile: %s", fpMainPath);
+    }
     if (fPath.exists()) {
-      pathURL = FileManager.makeURL(fPath.getAbsolutePath());
+      URI uri = fPath.toURI();
+      try {
+        pathURL = uri.toURL();
+      } catch (MalformedURLException e) {
+        log(-1, "makePathEntry: problem uri-to-url: %s", uri);
+      }
+//      pathURL = FileManager.makeURL(fPath.getAbsolutePath());
     } else {
       if (fpMainPath.contains("\\")) {
         log(-1, "add: folder does not exist (%s)", fPath);

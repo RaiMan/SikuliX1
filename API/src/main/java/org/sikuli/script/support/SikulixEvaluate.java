@@ -16,7 +16,7 @@ public class SikulixEvaluate {
   public static void main(String[] args) {
     RunTime.get().show();
     if (args.length == 0) {
-      Commons.printLog("SikulixEvaluate: Nothing to do!");
+      Commons.info("SikulixEvaluate: Nothing to do!");
       return;
     }
     if ("test".equals(args[0])) {
@@ -27,7 +27,21 @@ public class SikulixEvaluate {
   public static void test() {
 
 //BREAKPOINT before test
-    Commons.printLog("***** start of testing *****");
+    //Commons.startDebug();
+    //Commons.startTrace();
+//    Commons.makeURL(null);
+//    Commons.makeURL("");
+//    Commons.makeURL("target/classes/images");
+//    Commons.makeURL("../API/target/classes/images");
+//    Commons.makeURL(Commons.getWorkDir(), "target/classes/images");
+//    Commons.makeURL("target", "classes/images");
+//    Commons.makeURL(new File("target"), "classes/images");
+    URL url = Commons.makeURL(new File("tar get"), "classes/images");
+    Commons.info("%s", Commons.urlToFile(url));
+
+    System.exit(0);
+
+    Commons.info("***** start of testing *****");
 
 //    Screen scr = new Screen();
 
@@ -54,7 +68,7 @@ public class SikulixEvaluate {
     Debug.on(3);
     File workDir = Commons.getWorkDir();
     String classes = new File(workDir, "target/classes/images").getAbsolutePath();
-    ImagePath.setBundlePath(classes);
+//    ImagePath.setBundlePath(classes);
     ImagePath.add(classes);
     String jar = "target/sikulixapi-2.0.5.jar";
     File fJar = new File(jar);
@@ -99,7 +113,7 @@ public class SikulixEvaluate {
 //    Commons.printLog("%s", pat);
 
 //BREAKPOINT after test
-    Commons.printLog("***** end of testing *****");
+    Commons.info("***** end of testing *****");
   }
 
   private static void testFolderList() {
@@ -115,10 +129,5 @@ public class SikulixEvaluate {
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
-  }
-
-  private static void testReadContent() {
-    List<String> contentList = Commons.getContentList("LibJython", JythonSupport.class);
-    String log = Commons.getLog();
   }
 }
