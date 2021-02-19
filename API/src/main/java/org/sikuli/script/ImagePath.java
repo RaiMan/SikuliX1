@@ -130,6 +130,13 @@ public class ImagePath {
     imagePaths.clear();
     imagePaths.add(bundlePath);
   }
+
+  public static void clear() {
+    reset();
+    log(lvl, "clear");
+    Image.purge();
+    imagePaths.set(0, null);
+  }
   //</editor-fold>
 
   //<editor-fold desc="02 path entry">
@@ -365,7 +372,7 @@ public class ImagePath {
       if (fpImage == null) {
         fpImage = "";
       }
-      new PathEntry("__PATH_URL__", FileManager.makeURL(fpJar + "!/" + fpImage, "jar"));
+      pathEntry = new PathEntry("__PATH_URL__", FileManager.makeURL(fpJar + "!/" + fpImage, "jar"));
     }
     return pathEntry;
   }
@@ -596,8 +603,9 @@ public class ImagePath {
       if (0 == pathEntryIndex) {
         return null;
       }
+      pathEntryIndex++;
     }
-    getPaths().add(pathEntryIndex + 1, whatEntry);
+    getPaths().add(pathEntryIndex, whatEntry);
     return whatEntry.pathURL;
   }
 
