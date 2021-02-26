@@ -9,7 +9,9 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.SikuliXception;
 
 import java.io.*;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -87,6 +89,12 @@ public class Commons {
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
+  public static void exit(String method, String returns, Object... args) {
+    if (isTrace()) {
+      System.out.printf("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
+    }
+  }
+
   public static boolean isTrace() {
     return trace;
   }
@@ -102,15 +110,23 @@ public class Commons {
   private static boolean trace = false;
 
   public static void info(String msg, Object... args) {
-    System.out.println(String.format("[INFO Commons] " + msg, args));
+    System.out.printf("[INFO Commons] " + msg + "%n", args);
   }
 
   public static void error(String msg, Object... args) {
-    System.out.println(String.format("[ERROR Commons] " + msg, args));
+    System.out.printf("[ERROR Commons] " + msg + "%n", args);
   }
 
   public static void debug(String msg, Object... args) {
-    System.out.println(String.format("[DEBUG Commons] " + msg, args));
+    if (isDebug()) {
+      System.out.printf("[DEBUG Commons] " + msg + "%n", args);
+    }
+  }
+
+  public static void trace(String msg, Object... args) {
+    if (isTrace()) {
+      System.out.printf("[TRACE Commons] " + msg + "%n", args);
+    }
   }
 
   public static boolean isDebug() {
@@ -317,13 +333,7 @@ public class Commons {
   }
 
   public static boolean hasVersionFile(File folder) {
-    String[] resourceList = folder.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("_MadeForSikuliX")) return true;
-        return false;
-      }
-    });
+    String[] resourceList = folder.list((dir, name) -> name.contains("_MadeForSikuliX"));
     String libVersion = "";
     String libStamp = "";
     if (resourceList.length > 0) {
@@ -333,12 +343,9 @@ public class Commons {
         libStamp = matcher.group(2);
       }
     }
-    if (libVersion.isEmpty() || !libVersion.equals(getSXVersionShort()) ||
-        libStamp.length() != Commons.getSxBuildStamp().length()
-        || 0 != libStamp.compareTo(Commons.getSxBuildStamp())) {
-      return false;
-    }
-    return true;
+    return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
+        libStamp.length() == Commons.getSxBuildStamp().length()
+        && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
   public static void makeVersionFile(File folder) {
@@ -528,9 +535,7 @@ public class Commons {
         fileList.add(dName);
       } else {
         fileList.add(dName);
-        for (String fName : folderList.get(dName)) {
-          fileList.add(fName);
-        }
+        fileList.addAll(folderList.get(dName));
       }
     }
     return fileList;
@@ -552,15 +557,56 @@ public class Commons {
     }
     URL url = null;
     File mainFile = null;
+    String mainPath;
+    boolean isJar = false;
     if (main instanceof File) {
       mainFile = (File) main;
     } else if (main instanceof String) {
-      String mainPath = (String) main;
+      mainPath = (String) main;
       mainFile = new File(mainPath);
+    } else if (main instanceof URL) {
+      URL mainURL = (URL) main;
+      if (sub != null) {
+        if (mainURL.getProtocol().equals("jar")) {
+          mainPath = mainURL.getPath();
+          sub = sub.replace("\\", "/");
+          if (sub.endsWith("/")) {
+            sub = sub.substring(0, sub.length() - 1);
+          }
+          if (sub.startsWith("/")) {
+            String[] parts = mainPath.split(".jar!");
+            mainPath = parts[0] + ".jar!" + sub;
+          } else {
+            if (mainPath.endsWith("/")) {
+              mainPath = mainPath + sub;
+            } else {
+              mainPath = mainPath + "/" + sub;
+            }
+          }
+          try {
+            mainURL = new URL("jar:" + mainPath);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          return mainURL;
+        } else {
+          error(enter);
+          error("makeURL: URL protocol not implemented");
+        }
+      }
+      return mainURL;
     }
     if (!mainFile.isAbsolute()) {
+      if (mainFile.getPath().startsWith("http:") || mainFile.getPath().startsWith("https:")) {
+        error(enter);
+        error("makeURL: http/https not implemented");
+        return null;
+      }
       mainFile = new File(getWorkDir(), mainFile.getPath());
       debug("makeURL: mainFile relative: in current workdir: %s", getWorkDir());
+    }
+    if (mainFile.getPath().endsWith(".jar")) {
+      isJar = true;
     }
     if (sub != null) {
       mainFile = new File(mainFile, sub);
@@ -574,7 +620,19 @@ public class Commons {
         }
       }
       mainFile = mainFile.getCanonicalFile();
-      url = mainFile.toURI().toURL();
+      if (isJar || mainFile.getPath().contains(".jar!" + File.separator)) {
+        String[] parts = mainFile.getPath().split("\\.jar");
+        String jarPart = parts[0] + ".jar";
+        String subPart = "";
+        if (parts.length > 1) {
+          subPart = parts[1].startsWith("!") ? parts[1].substring(2) : parts[1].substring(1);
+        }
+        subPart = "!/" + subPart.replace("\\", "/");
+        url = new URL("jar:file:" + jarPart + subPart);
+        mainFile = new File(jarPart);
+      } else {
+        url = mainFile.toURI().toURL();
+      }
     } catch (MalformedURLException e) {
       error(enter);
       error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
@@ -585,19 +643,28 @@ public class Commons {
     if (!mainFile.exists()) {
       error(enter);
       error("makeURL: file does not exist: %s", mainFile);
+      return null;
     }
-    debug("makeURL: exit: url: %s", url);
+    exit("makeURL", "url: %s", url);
     return url;
   }
 
   public static File  urlToFile(URL url) {
+    File file = null;
     String path = url.getPath();
-    File file = new File(path);
-    if (path.contains("%")) {
-      try {
-        file = new File(URLDecoder.decode(path, "UTF-8"));
-      } catch (Exception e) {
-        error("urlToFile: not decodable(UTF-8): %s (%s)", url, e.getMessage());
+    if (url.getProtocol().equals("jar") || url.getProtocol().equals("file")) {
+      path = path.replace("jar:", "");
+      path = path.replace("file:", "");
+      if (url.getProtocol().equals("jar")) {
+        path = path.split("!/")[0];
+      }
+      file = new File(path);
+      if (path.contains("%")) {
+        try {
+          file = new File(URLDecoder.decode(path, "UTF-8"));
+        } catch (Exception e) {
+          error("urlToFile: not decodable(UTF-8): %s (%s)", url, e.getMessage());
+        }
       }
     }
     return file;
@@ -621,7 +688,7 @@ public class Commons {
     }
     String content = copyResourceToString(resFile, classReference);
     debug("getResourceList: %s\n(%s)", resFile, content);
-    if (null != content) {
+    if (!content.isEmpty()) {
       String[] names = content.split("\n");
       for (String name : names) {
         if (name.equals("sikulixcontent")) continue;
@@ -633,15 +700,15 @@ public class Commons {
 
   public static String copyResourceToString(String res, Class classReference) {
     InputStream stream = classReference.getResourceAsStream(res);
+    String content = "";
     try {
       if (stream != null) {
+        content = new String(copy(stream));
         stream.close();
-        stream = null;
       }
     } catch (Exception ex) {
-      stream = null;
     }
-    return new String(copy(stream));
+    return content;
   }
 
   private static void copy(InputStream in, OutputStream out) throws IOException {

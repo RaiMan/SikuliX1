@@ -1340,7 +1340,7 @@ public class EditorPane extends JTextPane {
         return null;
       }
     }
-    ImagePath.remove(new File(getImagePath()));
+    ImagePath.remove(getImagePath());
     if (isTemp()) {
       FileManager.deleteTempDir(sourceFolder);
       setTemp(false);

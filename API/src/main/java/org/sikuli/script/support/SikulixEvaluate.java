@@ -6,6 +6,7 @@ package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.Screen;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.io.File;
@@ -27,26 +28,17 @@ public class SikulixEvaluate {
   public static void test() {
 
 //BREAKPOINT before test
-    //Commons.startDebug();
-    //Commons.startTrace();
-//    Commons.makeURL(null);
-//    Commons.makeURL("");
-//    Commons.makeURL("target/classes/images");
-//    Commons.makeURL("../API/target/classes/images");
-//    Commons.makeURL(Commons.getWorkDir(), "target/classes/images");
-//    Commons.makeURL("target", "classes/images");
-//    Commons.makeURL(new File("target"), "classes/images");
-    URL url = Commons.makeURL(new File("tar get"), "classes/images");
-    Commons.info("%s", Commons.urlToFile(url));
-
-    System.exit(0);
+//    Commons.startDebug();
+//    Commons.startTrace();
+    Debug.off();
+//    Debug.on(3);
 
     Commons.info("***** start of testing *****");
 
-//    Screen scr = new Screen();
+    Screen scr = new Screen();
 
-//    Debug.on(3);
-//    Image img1 = new Image(scr.userCapture());
+//TEST: waitBest/waitAny
+    //    Image img1 = new Image(scr.userCapture());
 //    Image img2 = new Image(scr.userCapture());
 //    scr.wait(5.0);
 //    Match match = scr.waitBest(5, img1, img2);
@@ -65,27 +57,48 @@ public class SikulixEvaluate {
 //    }
 
 //TEST: ImagePath revision
-    Debug.on(3);
-    File workDir = Commons.getWorkDir();
-    String classes = new File(workDir, "target/classes/images").getAbsolutePath();
-//    ImagePath.setBundlePath(classes);
-    ImagePath.add(classes);
-    String jar = "target/sikulixapi-2.0.5.jar";
-    File fJar = new File(jar);
-    ImagePath.add(jar, "images");
-    ImagePath.add(classes);
-    ImagePath.addJar(jar, "images");
-    ImagePath.dump(0);
     ImagePath.clear();
-
-    URL first = ImagePath.insert(classes);
-    first = ImagePath.addBefore(jar, "images", first);
-    ImagePath.addBefore(jar, first);
-    URL last = ImagePath.append(jar, "folder");
-    ImagePath.addAfter(jar, "folder1", last);
-    ImagePath.addAfter(jar, "folder2", first);
-    ImagePath.dump(0);
-
+//    ImagePath.dump(0);
+    URL url = null;
+    File file = null;
+//    String jar = "target/sikulixapi-2.0.5.jar";
+//    String imageName = "";
+//    Commons.makeURL(null);
+//    Commons.makeURL("");
+//    Commons.makeURL("target/classes/images");
+//    Commons.makeURL("../API/target/classes/images");
+//    Commons.makeURL(Commons.getWorkDir(), "target/classes/images");
+//    Commons.makeURL("target", "classes/images");
+//    Commons.makeURL(new File("target"), "classes/images");
+//    url = Commons.makeURL(new File("tar get"), "classes/images");
+//    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar");
+//    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar", "images");
+//    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar!/images");
+//    url = Commons.makeURL("../API/target/sikulixapi-2.0.5.jar!/images", "subImages");
+//    Commons.info("%s", Commons.urlToFile(url));
+//    url = Commons.makeURL("http://API/target/some.jar", "subImages");
+//    Commons.stopTrace();
+//    ImagePath.add(jar, "images");
+//    String classes = "target/classes/images";
+//    ImagePath.add(classes);
+//    ImagePath.dump(0);
+//    imageName = "img.png";
+//    url = ImagePath.find(imageName);
+//    Commons.info("%s url: %s", imageName, url);
+//    imageName = "img1.png";
+//    url = ImagePath.find(imageName);
+//    Commons.info("%s url: %s", imageName, url);
+//    imageName = "img2.png";
+//    url = ImagePath.find(imageName);
+//    Commons.info("%s url: %s", imageName, url);
+//
+//    URL first = ImagePath.insert(classes);
+//    first = ImagePath.addBefore(jar, "images", first);
+//    ImagePath.addBefore(jar, first);
+//    URL last = ImagePath.append(jar, "folder");
+//    ImagePath.addAfter(jar, "folder1", last);
+//    ImagePath.addAfter(jar, "folder2", first);
+//    ImagePath.dump(0);
 
 //TEST: SX.pop... feature should return null, if timed out
 //    Object feedback = SX.popup("test timeout", 5);
