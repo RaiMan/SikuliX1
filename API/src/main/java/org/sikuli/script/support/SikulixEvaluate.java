@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Screen;
 import org.sikuli.script.runnerSupport.JythonSupport;
@@ -57,10 +58,11 @@ public class SikulixEvaluate {
 //    }
 
 //TEST: ImagePath revision
-    ImagePath.clear();
+//    Commons.startTrace();
+//    ImagePath.clear();
 //    ImagePath.dump(0);
-    URL url = null;
-    File file = null;
+//    URL url = null;
+//    File file = null;
 //    String jar = "target/sikulixapi-2.0.5.jar";
 //    String imageName = "";
 //    Commons.makeURL(null);
@@ -98,7 +100,11 @@ public class SikulixEvaluate {
 //    URL last = ImagePath.append(jar, "folder");
 //    ImagePath.addAfter(jar, "folder1", last);
 //    ImagePath.addAfter(jar, "folder2", first);
+//    ImagePath.addJar(".", "images");
 //    ImagePath.dump(0);
+//    Image img1 = Image.create("img");
+//    Commons.info("%s (%s)", img1, img1.getURL());
+
 
 //TEST: SX.pop... feature should return null, if timed out
 //    Object feedback = SX.popup("test timeout", 5);
