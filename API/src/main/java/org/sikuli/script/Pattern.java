@@ -45,6 +45,7 @@ public class Pattern {
     offset.x = p.offset.x;
     offset.y = p.offset.y;
     imagePattern = image.isPattern();
+    resizeFactor = p.getResize();
   }
 
   /**
