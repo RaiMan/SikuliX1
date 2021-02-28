@@ -6,6 +6,7 @@ package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikuliXception;
 
 import java.io.*;
@@ -445,6 +446,16 @@ public class Commons {
 
   //</editor-fold>
 
+  public static boolean isBundlePathSupported() {
+    return false;
+  }
+
+  public static void bundlePathValid(ImagePath.PathEntry entry) {
+    if (!isBundlePathSupported() && !entry.isFile()) {
+      Commons.error("Not supported as BundlePath: %s", entry.getURL());
+    }
+  }
+
   //<editor-fold desc="10 folder handling">
   public static List<String> getFileList(String resFolder) {
     return getFileList(resFolder, null);
@@ -557,8 +568,9 @@ public class Commons {
     }
     URL url = null;
     File mainFile = null;
-    String mainPath;
+    String mainPath = "";
     boolean isJar = false;
+    boolean isHTTP = false;
     if (main instanceof File) {
       mainFile = (File) main;
     } else if (main instanceof String) {
@@ -597,53 +609,73 @@ public class Commons {
       return mainURL;
     }
     if (!mainFile.isAbsolute()) {
-      if (mainFile.getPath().startsWith("http:") || mainFile.getPath().startsWith("https:")) {
+      if (mainPath.startsWith("http:") || mainPath.startsWith("https:")) {
+        isHTTP = true;
+      } else {
+        mainFile = new File(getWorkDir(), mainFile.getPath());
+        debug("makeURL: mainFile relative: in current workdir: %s", getWorkDir());
+      }
+    }
+    if (isHTTP) {
+      if (sub != null) {
+        if (!mainPath.endsWith("/")) {
+          mainPath += "/";
+        }
+        if (sub.startsWith("/")) {
+          sub = sub.substring(1);
+        }
+        mainPath += sub;
+      }
+      try {
+        url = new URL(mainPath);
+      } catch (MalformedURLException e) {
         error(enter);
-        error("makeURL: http/https not implemented");
+        error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
+      }
+    }
+    if (!isHTTP) {
+      if (mainFile.getPath().endsWith(".jar") || mainFile.getPath().contains(".jar!")) {
+        isJar = true;
+      }
+      if (!isJar && sub != null) {
+        mainFile = new File(mainFile, sub);
+      }
+      try {
+        if (mainFile.getPath().contains("%")) {
+          try {
+            mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
+          } catch (Exception e) {
+            error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
+          }
+        }
+        mainFile = mainFile.getCanonicalFile();
+        if (isJar) {
+          String[] parts = mainFile.getPath().split("\\.jar");
+          String jarPart = parts[0] + ".jar";
+          String subPart = sub != null ? sub : "";
+          if (parts.length > 1 && parts[1].length() > 1) {
+            subPart = (parts[1].startsWith("!") ? parts[1].substring(2) : parts[1].substring(1));
+            if (sub != null) subPart += "/" + sub;
+          }
+          subPart = "!/" + subPart.replace("\\", "/");
+          subPart = subPart.replace("//", "/");
+          url = new URL("jar:file:" + jarPart + subPart);
+          mainFile = new File(jarPart);
+        } else {
+          url = mainFile.toURI().toURL();
+        }
+      } catch (MalformedURLException e) {
+        error(enter);
+        error("makeURL: url malformed: %s (%s)", mainFile, e.getMessage());
+      } catch (IOException e) {
+        error(enter);
+        error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
+      }
+      if (!mainFile.exists()) {
+        error(enter);
+        error("makeURL: file does not exist: %s", mainFile);
         return null;
       }
-      mainFile = new File(getWorkDir(), mainFile.getPath());
-      debug("makeURL: mainFile relative: in current workdir: %s", getWorkDir());
-    }
-    if (mainFile.getPath().endsWith(".jar")) {
-      isJar = true;
-    }
-    if (sub != null) {
-      mainFile = new File(mainFile, sub);
-    }
-    try {
-      if (mainFile.getPath().contains("%")) {
-        try {
-          mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
-        } catch (Exception e) {
-          error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
-        }
-      }
-      mainFile = mainFile.getCanonicalFile();
-      if (isJar || mainFile.getPath().contains(".jar!" + File.separator)) {
-        String[] parts = mainFile.getPath().split("\\.jar");
-        String jarPart = parts[0] + ".jar";
-        String subPart = "";
-        if (parts.length > 1) {
-          subPart = parts[1].startsWith("!") ? parts[1].substring(2) : parts[1].substring(1);
-        }
-        subPart = "!/" + subPart.replace("\\", "/");
-        url = new URL("jar:file:" + jarPart + subPart);
-        mainFile = new File(jarPart);
-      } else {
-        url = mainFile.toURI().toURL();
-      }
-    } catch (MalformedURLException e) {
-      error(enter);
-      error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
-    } catch (IOException e) {
-      error(enter);
-      error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
-    }
-    if (!mainFile.exists()) {
-      error(enter);
-      error("makeURL: file does not exist: %s", mainFile);
-      return null;
     }
     exit("makeURL", "url: %s", url);
     return url;

@@ -3,12 +3,8 @@
  */
 package org.sikuli.script;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.*;
@@ -64,12 +60,13 @@ public class ImagePath {
     return count;
   }
 
-  private static boolean remove(int entry) {
+  private static URL remove(int entry) {
     if (entry > 0 && entry < imagePaths.size()) {
-      Image.purge(imagePaths.remove(entry));
-      return true;
+      PathEntry pathEntry = imagePaths.remove(entry);
+      Image.purge(pathEntry);
+      return pathEntry.pathURL;
     }
-    return false;
+    return null;
   }
 
   /**
@@ -79,22 +76,10 @@ public class ImagePath {
    */
   public static String[] get() {
     int i = 0;
-    for (PathEntry p : imagePaths) {
-      if (p == null) {
-        continue;
-      }
-      i++;
-    }
-    String[] paths = new String[i];
+    String[] paths = new String[getPaths().size()];
     i = 0;
     for (PathEntry p : imagePaths) {
-      if (p == null) {
-        continue;
-      }
       paths[i++] = p.getPath();
-      if (p.isFile()) {
-        paths[i - 1] = new File(p.getPath()).getAbsolutePath();
-      }
     }
     return paths;
   }
@@ -162,27 +147,14 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="02 path entry">
+
   /**
    * represents an imagepath entry
    */
   public static class PathEntry {
 
-    public URL pathURL = null;
-    public String path = null;
-
-    /**
-     * create a new image path entry
-     *
-     * @param givenName    the given path relative or absolute
-     * @param eqivalentURL the evaluated URL
-     */
-    public PathEntry(String givenName, URL eqivalentURL) {
-      this(givenName, null, eqivalentURL);
-    }
-
-    public PathEntry(File folder) {
-      this(folder.getPath(), null, null);
-    }
+    private URL pathURL = null;
+    private String path = null;
 
     private PathEntry(String main, String sub, URL eqivalentURL) {
       if (main == null) {
@@ -191,62 +163,9 @@ public class ImagePath {
       if (sub == null) {
         sub = "";
       }
-      path = main + "+" + sub;
-      if (eqivalentURL != null) {
-        pathURL = eqivalentURL;
-      } else {
-        PathEntry pathEntry = createPathEntry(main, sub);
-        if (pathEntry != null) {
-          pathURL = pathEntry.pathURL;
-        }
-      }
+      path = main + (sub.isEmpty() ? sub : "+" + sub);
+      pathURL = eqivalentURL;
       log(lvl + 1, "ImagePathEntry: %s (%s)", pathURL, path);
-    }
-
-    public boolean isValid() {
-      return path != null && pathURL != null;
-    }
-
-    public String getPath() {
-      if (pathURL == null) {
-        return "-- empty --";
-      }
-      return pathURL.toExternalForm();
-    }
-
-    public boolean isFile() {
-      if (pathURL == null) {
-        return false;
-      }
-      return "file".equals(pathURL.getProtocol());
-    }
-
-    public boolean isJar() {
-      if (pathURL == null) {
-        return false;
-      }
-      return "jar".equals(pathURL.getProtocol());
-    }
-
-    public boolean isHTTP() {
-      if (pathURL == null) {
-        return false;
-      }
-      return pathURL.getProtocol().startsWith("http");
-    }
-
-    public File getFile() {
-      if (isFile()) {
-        return new File(getPath());
-      }
-      return null;
-    }
-
-    public boolean existsFile() {
-      if (pathURL == null) {
-        return false;
-      }
-      return new File(getPath()).exists();
     }
 
     @Override
@@ -272,6 +191,57 @@ public class ImagePath {
     @Override
     public String toString() {
       return getPath();
+    }
+    public boolean isValid() {
+      return pathURL != null;
+    }
+
+    public boolean isFile() {
+      if (pathURL == null) {
+        return false;
+      }
+      return "file".equals(pathURL.getProtocol());
+    }
+
+    public boolean isJar() {
+      if (pathURL == null) {
+        return false;
+      }
+      return "jar".equals(pathURL.getProtocol());
+    }
+
+    public boolean isHTTP() {
+      if (pathURL == null) {
+        return false;
+      }
+      return pathURL.getProtocol().startsWith("http");
+    }
+
+    public String getPath() {
+      String path = "--invalid--";
+      if (isValid()) {
+        path = pathURL.toExternalForm();
+        if (isFile()) {
+          path = path.substring("file:".length());
+        } else if (isJar()) {
+          path = path.substring("jar:file:".length());
+        } else {
+        }
+      }
+      return path;
+    }
+
+    public File getFile() {
+      if (isValid()) {
+        if (isFile() || isJar()) {
+          return new File(getPath());
+        }
+      }
+      return null;
+    }
+
+    public URL getURL() {
+      return pathURL;
     }
   }
 
@@ -334,8 +304,17 @@ public class ImagePath {
     if (mainPath.toLowerCase().endsWith(".jar")) {
       return createPathEntryJar(mainPath, altPathOrFolder);
     }
-    if (mainPath.toLowerCase().contains("http://") || mainPath.toLowerCase().contains("https://")) {
+    if (mainPath.toLowerCase().startsWith("http://") || mainPath.toLowerCase().startsWith("https://")) {
       return createPathEntryHttp(mainPath, altPathOrFolder);
+    }
+    if (mainPath.indexOf(":") > 4) {
+      String[] parts = mainPath.split(":");
+      mainPath = "http://" + parts[0];
+      if (parts.length > 1) {
+        return createPathEntryHttp(mainPath + "/" + parts[1], altPathOrFolder);
+      } else {
+        return createPathEntryHttp(mainPath, altPathOrFolder);
+      }
     }
     URL pathURL = Commons.makeURL(mainPath, altPathOrFolder);
     if (pathURL == null) {
@@ -392,12 +371,13 @@ public class ImagePath {
   }
 
   private static PathEntry createPathEntryHttp(String netURL, String folder) {
-    URL pathURL = null;
-    return new PathEntry(netURL, folder, pathURL);
+    URL url = Commons.makeURL(netURL, folder);
+    return new PathEntry(netURL, folder, url);
   }
   //</editor-fold>
 
   //<editor-fold desc="03 add/remove path entry --- old">
+
   /**
    * create a new PathEntry from the given path and add it to the
    * end of the current image path<br>
@@ -438,7 +418,7 @@ public class ImagePath {
   }
 
   public static boolean remove(String mainPath, String altPathOrFolder) {
-    return remove(createPathEntry(mainPath, altPathOrFolder).pathURL);
+    return null != remove((Object) mainPath, altPathOrFolder);
   }
 
   /**
@@ -452,45 +432,27 @@ public class ImagePath {
    * @return true if successful otherwise false
    */
   public static boolean addHTTP(String pathHTTP) {
+    return null != append(makeNetURL(pathHTTP));
+  }
+
+  private static URL makeNetURL(String pathHTTP) {
+    URL url = null;
     try {
       String proto = "http://";
       String protos = "https://";
-      if (pathHTTP.startsWith(proto) || pathHTTP.startsWith(protos)) {
-        proto = "";
+      if (!pathHTTP.startsWith(proto) && !pathHTTP.startsWith(protos)) {
+        pathHTTP = proto + pathHTTP;
       }
-      URL aURL = new URL(proto + pathHTTP);
-      PathEntry pathEntry = new PathEntry(pathHTTP, null, aURL);
-      if (hasPathEntry(pathEntry)) {
-        log(lvl, "duplicate not added: %s", pathEntry);
-        return false;
-      } else {
-        if (0 != FileManager.isUrlUseabel(new URL(aURL.toString() +
-            "/THIS_FILE_SHOULD_RETURN_404"))) {
-          return false;
-        }
-        log(lvl, "add: %s", pathEntry);
-        imagePaths.add(pathEntry);
-      }
-    } catch (Exception ex) {
-      log(-1, "addHTTP: not possible: %s\n%s", pathHTTP, ex);
-      return false;
+
+      url = new URL(pathHTTP);
+    } catch (MalformedURLException e) {
+      log(-1, "addHTTP: invalid: %s (%s)", pathHTTP, e);
     }
-    return true;
+    return url;
   }
 
   public static boolean removeHTTP(String pathHTTP) {
-    try {
-      String proto = "http://";
-      String protos = "https://";
-      if (pathHTTP.startsWith(proto) || pathHTTP.startsWith(protos)) {
-        proto = "";
-      }
-      pathHTTP = FileManager.slashify(pathHTTP, false);
-      return remove(new URL(proto + pathHTTP));
-    } catch (Exception ex) {
-      log(-1, "removeHTTP: not possible: %s\n%s", pathHTTP, ex);
-      return false;
-    }
+    return null != remove(makeNetURL(pathHTTP));
   }
 
   public static boolean addJar(String fpJar) {
@@ -505,14 +467,14 @@ public class ImagePath {
   }
 
   public static boolean removeJar(String fpJar) {
-    return addJar(fpJar, null);
+    return removeJar(fpJar, null);
   }
 
   public static boolean removeJar(String fpJar, String fpImage) {
     if (!fpJar.endsWith(".jar") && !fpJar.contains(".jar!")) {
       fpJar += ".jar";
     }
-    return null != append(fpJar, fpImage);
+    return remove(fpJar, null);
   }
 
   /**
@@ -523,46 +485,42 @@ public class ImagePath {
   public static boolean add(URL pURL) {
     return null != append(pURL);
   }
-
-  /**
-   * remove entry with given URL<br>
-   * bundlepath (entry 0) cannot be removed
-   * loaded images are removed from cache
-   *
-   * @param url a valid URL (not checked)
-   * @return true on success, false ozherwise
-   */
-  public static boolean remove(URL url) {
-    return remove(url, null);
-  }
   //</editor-fold>
 
   //<editor-fold desc="04 add/remove path entry --- new">
-  public static URL getURL(Object what) {
-    return getURL(what, null);
+  public static URL get(Object what) {
+    return get(what, null);
   }
 
-  public static URL getURL(Object what, String folder) {
+  public static URL get(Object what, String folder) {
     PathEntry whatEntry = getPathEntry(what, folder);
     return null != whatEntry ? whatEntry.pathURL : null;
   }
 
+  public static boolean has(Object what) {
+    return has(what, null);
+  }
+
+  public static boolean has(Object what, String folder) {
+    return hasPathEntry(getPathEntry(what, folder));
+  }
+
   public static URL insert(Object what) {
-    return addBefore(what, null, null);
+    return insert(what, null, null);
   }
 
   public static URL insert(Object what, String folder) {
-    return addBefore(what, folder, null);
+    return insert(what, folder, null);
   }
 
-  public static URL addBefore(Object what, URL where) {
-    return addBefore(what, null, where);
+  public static URL insert(Object what, URL where) {
+    return insert(what, null, where);
   }
 
-  public static URL addBefore(Object what, String folder, URL where) {
+  public static URL insert(Object what, String folder, URL where) {
     URL url = null;
     PathEntry whatEntry = getPathEntry(what, folder);
-    if (null != whatEntry) {
+    if (null != whatEntry && whatEntry.isValid()) {
       remove(isPathEntry(whatEntry));
       int pathEntryIndex = getPathEntryIndex(where);
       if (0 == pathEntryIndex) {
@@ -575,21 +533,21 @@ public class ImagePath {
   }
 
   public static URL append(Object what) {
-    return addAfter(what, null, null);
+    return append(what, null, null);
   }
 
   public static URL append(Object what, String folder) {
-    return addAfter(what, folder, null);
+    return append(what, folder, null);
   }
 
-  public static URL addAfter(Object what, URL where) {
-    return addAfter(what, null, where);
+  public static URL append(Object what, URL where) {
+    return append(what, null, where);
   }
 
-  public static URL addAfter(Object what, String folder, URL where) {
+  public static URL append(Object what, String folder, URL where) {
     URL url = null;
     PathEntry whatEntry = getPathEntry(what, folder);
-    if (null != whatEntry) {
+    if (null != whatEntry && whatEntry.isValid()) {
       remove(isPathEntry(whatEntry));
       int pathEntryIndex = getPathEntryIndex(where) + 1;
       if (1 == pathEntryIndex) {
@@ -601,34 +559,36 @@ public class ImagePath {
     return url;
   }
 
-  public static URL replace(URL what, URL where) {
-    URL whatURL = null;
-    return whatURL;
+  public static URL replace(Object what, URL where) {
+    return replace(what, null, where);
   }
 
-  public static boolean remove(Object path, String folder) {
-    return remove(isPathEntry(getPathEntry(path, folder)));
+  public static URL replace(Object what, String folder, URL where) {
+    URL url = null;
+    PathEntry whatEntry = getPathEntry(what, folder);
+    if (null != whatEntry && whatEntry.isValid()) {
+      int pathEntryIndex = getPathEntryIndex(where);
+      if (0 < pathEntryIndex) {
+        Image.purge(getPaths().get(pathEntryIndex));
+        getPaths().set(pathEntryIndex, whatEntry);
+        url = whatEntry.pathURL;
+      }
+    }
+    return url;
+  }
+
+  public static URL remove(Object what) {
+    return remove(isPathEntry(getPathEntry(what, null)));
+  }
+
+  public static URL remove(Object what, String folder) {
+    return remove(isPathEntry(getPathEntry(what, folder)));
   }
   //</editor-fold>
 
   //<editor-fold desc="05 bundle path">
-  private static boolean isBundle(PathEntry pathEntry) {
-    return getBundle() != null && getBundle().equals(pathEntry);
-  }
-
   public static boolean hasBundlePath() {
     return getBundle() != null;
-  }
-
-  private static boolean bundleEquals(Object path) {
-    if (hasBundlePath()) {
-      return getBundle().equals(path);
-    }
-    return false;
-  }
-
-  private static boolean setBundlePath() {
-    return setBundlePath(null);
   }
 
   /**
@@ -644,45 +604,14 @@ public class ImagePath {
         return false;
       }
     }
-    File newBundleFile = new File(newBundlePath);
-    if (!newBundleFile.isAbsolute()) {
-      if (hasBundlePath()) {
-        return false;
-      }
-      newBundleFile = new File(getBundlePath(), newBundlePath);
+    PathEntry entry = getPathEntry(newBundlePath, null);
+    if (entry != null && entry.isValid()) {
+      remove(isPathEntry(entry));
+      setBundle(entry);
+      Commons.bundlePathValid(entry);
+      return true;
     }
-    return null != setBundleFolder(newBundleFile);
-  }
-
-  public static File setBundleFolder(File folder) {
-    try {
-      folder = folder.getCanonicalFile();
-    } catch (IOException e) {
-      log(-1, "canonical file problem: %s", folder);
-      return null;
-    }
-    if (null == folder || bundleEquals(folder)) {
-      return folder;
-    }
-    if (folder.exists()) {
-      PathEntry oldBundle = getBundle();
-      Image.purge(oldBundle);
-      PathEntry pathEntry = new PathEntry(folder);
-      if (pathEntry.isValid()) {
-        setBundle(pathEntry);
-        log(lvl, "new BundlePath: %s", pathEntry);
-        return pathEntry.getFile();
-      }
-    }
-    return null;
-  }
-
-  static PathEntry getBundle() {
-    return imagePaths.get(0);
-  }
-
-  private static void setBundle(PathEntry pathEntry) {
-    imagePaths.set(0, pathEntry);
+    return false;
   }
 
   /**
@@ -699,6 +628,42 @@ public class ImagePath {
     return getBundle().getPath();
   }
 
+  public static File setBundleFolder(File folder) {
+    PathEntry entry = getPathEntry(folder, null);
+    if (entry != null && entry.isValid()) {
+      PathEntry oldBundle = getBundle();
+      if (entry.equals(oldBundle)) {
+        return folder;
+      }
+      Image.purge(oldBundle);
+      setBundle(entry);
+      log(lvl, "new BundlePath: %s", entry);
+    }
+    return null;
+  }
+
+  protected static PathEntry getBundle() {
+    return imagePaths.get(0);
+  }
+
+  private static boolean isBundle(PathEntry pathEntry) {
+    return getBundle() != null && getBundle().equals(pathEntry);
+  }
+
+  private static boolean bundleEquals(Object path) {
+    if (hasBundlePath()) {
+      return getBundle().equals(path);
+    }
+    return false;
+  }
+
+  private static boolean setBundlePath() {
+    return setBundlePath(null);
+  }
+
+  private static void setBundle(PathEntry pathEntry) {
+    imagePaths.set(0, pathEntry);
+  }
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
@@ -717,40 +682,38 @@ public class ImagePath {
     File imageFile = new File(imageFileName);
     if (imageFile.isAbsolute()) {
       if (imageFile.exists()) {
-        try {
-          fURL = new URL("file", null, new File(imageFileName).getPath());
-        } catch (MalformedURLException e) {
-        }
+        fURL = Commons.makeURL(imageFile);
       } else {
         log(-1, "find: File does not exist: %s", imageFileName);
       }
       return fURL;
     } else {
-      for (PathEntry path : getPaths()) {
-        if (path == null) {
+      for (PathEntry entry : getPaths()) {
+        if (entry == null || !entry.isValid()) {
           continue;
         }
-        proto = path.pathURL.getProtocol();
+        proto = entry.pathURL.getProtocol();
         if ("file".equals(proto)) {
-          if (new File(path.pathURL.getPath(), imageFileName).exists()) {
-            try {
-              fURL = new URL("file", null, new File(path.pathURL.getPath(), imageFileName).getPath());
-              break;
-            } catch (MalformedURLException e) {
-            }
+          if (new File(entry.getPath(), imageFileName).exists()) {
+            fURL = Commons.makeURL(entry.getPath(), imageFileName);
           }
         } else if ("jar".equals(proto) || proto.startsWith("http")) {
-//          fURL = FileManager.getURLForContentFromURL(path.pathURL, imageFileName);
-          URL url = Commons.makeURL(path.pathURL, imageFileName);
+          URL url = Commons.makeURL(entry.getPath(), imageFileName);
           if (url != null) {
-            int length = -1;
-            try {
-              length = url.openStream().available();
-            } catch (IOException e) {
-            }
-            if (length > 0) {
-              fURL = url;
-              break;
+            if (proto.startsWith("http")) {
+
+            } else {
+              int length = -1;
+              try {
+                int urlUseabel = FileManager.isUrlUseabel(url);
+                InputStream inputStream = url.openStream();
+                length = inputStream.available();
+              } catch (IOException e) {
+              }
+              if (length > 0) {
+                fURL = url;
+                break;
+              }
             }
           }
         }

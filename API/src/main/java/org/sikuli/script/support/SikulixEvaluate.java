@@ -63,7 +63,7 @@ public class SikulixEvaluate {
 //    ImagePath.dump(0);
 //    URL url = null;
 //    File file = null;
-//    String jar = "target/sikulixapi-2.0.5.jar";
+    String jar = "target/sikulixapi-2.0.5.jar";
 //    String imageName = "";
 //    Commons.makeURL(null);
 //    Commons.makeURL("");
@@ -104,7 +104,18 @@ public class SikulixEvaluate {
 //    ImagePath.dump(0);
 //    Image img1 = Image.create("img");
 //    Commons.info("%s (%s)", img1, img1.getURL());
-
+//    ImagePath.add("sikulix.com:images", "moreImages");
+//    boolean has = ImagePath.has("sikulix.com:images", "moreImages");
+//    URL url = ImagePath.append("target/classes/images");
+//    ImagePath.append(jar);
+//    ImagePath.setBundlePath("target/classes/images");
+//    ImagePath.setBundlePath(jar);
+//    ImagePath.setBundlePath("sikulix.com:images");
+//    String bundlePath = ImagePath.getBundlePath();
+    String net = "https://github.com/RaiMan/SikuliX1-Docs/raw/master/src/main/resources/docs/source";
+    ImagePath.append(net);
+    Image image = Image.create("buttonText");
+    ImagePath.dump(0);
 
 //TEST: SX.pop... feature should return null, if timed out
 //    Object feedback = SX.popup("test timeout", 5);

@@ -10,6 +10,7 @@ import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -94,7 +95,7 @@ public class Image extends Element {
     File imgFile = new File(img.getName());
     if (imgFile.isAbsolute()) {
       if (imgFile.exists()) {
-        fURL = FileManager.makeURL(img.getName());
+        fURL = Commons.makeURL(imgFile);
       }
     } else {
       fURL = imageNames.get(img.getName());
@@ -823,7 +824,7 @@ public class Image extends Element {
       return;
     }
     if (isCaching()) {
-      purge(path.pathURL);
+      purge(path.getURL());
     }
   }
 
@@ -1003,10 +1004,11 @@ public class Image extends Element {
       }
       File imageFile = new File(imageFileName);
       if (imageFile.isAbsolute() && imageFile.exists()) {
-        try {
-          imageURL = new URL("file", null, imageFile.getPath());
-        } catch (MalformedURLException e) {
-        }
+        imageURL = Commons.makeURL(imageFile);
+//        try {
+//          imageURL = new URL("file", null, imageFile.getPath());
+//        } catch (MalformedURLException e) {
+//        }
       } else {
         imageURL = imageNames.get(imageFileName);
         if (imageURL == null) {
