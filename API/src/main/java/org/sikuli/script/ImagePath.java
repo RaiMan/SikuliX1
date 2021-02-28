@@ -700,20 +700,19 @@ public class ImagePath {
         } else if ("jar".equals(proto) || proto.startsWith("http")) {
           URL url = Commons.makeURL(entry.getPath(), imageFileName);
           if (url != null) {
+            int check = -1;
             if (proto.startsWith("http")) {
-
+              check = FileManager.isUrlUseabel(url);
             } else {
-              int length = -1;
               try {
-                int urlUseabel = FileManager.isUrlUseabel(url);
                 InputStream inputStream = url.openStream();
-                length = inputStream.available();
+                check = inputStream.available();
               } catch (IOException e) {
               }
-              if (length > 0) {
-                fURL = url;
-                break;
-              }
+            }
+            if (check > 0) {
+              fURL = url;
+              break;
             }
           }
         }
