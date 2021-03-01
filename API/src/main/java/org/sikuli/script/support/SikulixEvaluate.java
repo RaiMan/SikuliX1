@@ -4,14 +4,18 @@
 
 package org.sikuli.script.support;
 
+import jnr.ffi.StructLayout;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.Pattern;
 import org.sikuli.script.Screen;
 import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
 public class SikulixEvaluate {
@@ -31,12 +35,12 @@ public class SikulixEvaluate {
 //BREAKPOINT before test
 //    Commons.startDebug();
 //    Commons.startTrace();
-    Debug.off();
+//    Debug.off();
 //    Debug.on(3);
 
     Commons.info("***** start of testing *****");
 
-    Screen scr = new Screen();
+//    Screen scr = new Screen();
 
 //TEST: waitBest/waitAny
     //    Image img1 = new Image(scr.userCapture());
@@ -114,7 +118,19 @@ public class SikulixEvaluate {
 //    String bundlePath = ImagePath.getBundlePath();
 //    String net = "https://github.com/RaiMan/SikuliX1-Docs/raw/master/src/main/resources/docs/source";
 //    ImagePath.append(net);
-//    Image image = Image.create("buttonText");
+//    Pattern netImg = new Pattern("buttonText").exact();
+//    String netImg = "buttonText";
+//    Image netImg = Image.create(snetImg);
+//    long time = new Date().getTime();
+//    scr.has(netImg);
+//    long lap = new Date().getTime() - time;
+//    Commons.info("%d", lap);
+//    scr.highlight(-2);
+//    time = new Date().getTime();
+//    scr.has(netImg);
+//    lap = new Date().getTime() - time;
+//    Commons.info("%d", lap);
+//    scr.highlight(-2);
 //    ImagePath.dump(0);
 //    Commons.info("%s (%s)", image, image.getURL());
 
