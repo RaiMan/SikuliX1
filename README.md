@@ -12,10 +12,9 @@ the source code of the application or web page you want to act on. [More details
 **Java: recommended is Java 11 - but you need at least Java 8** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
 <br>non-LTS versions like Java 15 might create problems that should be reported
 
-**Windows:** Works out of the box ([for exceptions look here](https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract))
+**Windows:** Works out of the box
 
 **Mac:** you have to make Tesseract OCR available ([for HowTo look here](https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR)).
-<br>on macOS: **Java 14+: open problems with Tesseract**
 
 **Linux:** you have to make OpenCV and Tesseract OCR available ([for HowTo look here](https://sikulix-2014.readthedocs.io/en/latest/newslinux.html#version-1-1-4-special-for-linux-people)).
 
