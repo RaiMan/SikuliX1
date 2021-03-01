@@ -21,7 +21,11 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.5** --- [Info about fixes/enhancements](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
+**Latest stable version is 2.0.5**
+
+[Important: Read about changes/issues/enhancements](https://github.com/RaiMan/SikuliX1/wiki/About-actual-release-version)
+
+[List of fixes](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
 
 [Get SikuliX ready to use](https://raiman.github.io/SikuliX1/downloads.html)
  
