@@ -192,6 +192,7 @@ public class ImagePath {
     public String toString() {
       return getPath();
     }
+
     public boolean isValid() {
       return pathURL != null;
     }
@@ -436,19 +437,12 @@ public class ImagePath {
   }
 
   private static URL makeNetURL(String pathHTTP) {
-    URL url = null;
-    try {
-      String proto = "http://";
-      String protos = "https://";
-      if (!pathHTTP.startsWith(proto) && !pathHTTP.startsWith(protos)) {
-        pathHTTP = proto + pathHTTP;
-      }
-
-      url = new URL(pathHTTP);
-    } catch (MalformedURLException e) {
-      log(-1, "addHTTP: invalid: %s (%s)", pathHTTP, e);
+    String proto = "http://";
+    String protos = "https://";
+    if (!pathHTTP.startsWith(proto) && !pathHTTP.startsWith(protos)) {
+      pathHTTP = proto + pathHTTP;
     }
-    return url;
+    return Commons.makeURL(pathHTTP);
   }
 
   public static boolean removeHTTP(String pathHTTP) {
@@ -456,14 +450,14 @@ public class ImagePath {
   }
 
   public static boolean addJar(String fpJar) {
-    return removeJar(fpJar, null);
+    return addJar(fpJar, null);
   }
 
   public static boolean addJar(String fpJar, String fpImage) {
     if (!fpJar.endsWith(".jar") && !fpJar.contains(".jar!")) {
       fpJar += ".jar";
     }
-    return remove(fpJar, fpImage);
+    return null != append(fpJar, fpImage);
   }
 
   public static boolean removeJar(String fpJar) {
@@ -667,13 +661,16 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
+  public static URL check(String name) {
+    return find(Image.getValidImageFilename(name));
+  }
 
   /**
    * try to find the given relative image file name on the image path<br>
    * starting from entry 0, the first found existence is taken<br>
    * absolute file names are checked for existence
    *
-   * @param imageFileName relative or absolute filename
+   * @param imageFileName relative or absolute filename with extension
    * @return a valid URL or null if not found/exists
    */
   public static URL find(String imageFileName) {
@@ -695,7 +692,7 @@ public class ImagePath {
         proto = entry.pathURL.getProtocol();
         if ("file".equals(proto)) {
           if (new File(entry.getPath(), imageFileName).exists()) {
-            fURL = Commons.makeURL(entry.getPath(), imageFileName);
+            return Commons.makeURL(entry.getPath(), imageFileName);
           }
         } else if ("jar".equals(proto) || proto.startsWith("http")) {
           URL url = Commons.makeURL(entry.getPath(), imageFileName);
@@ -711,16 +708,13 @@ public class ImagePath {
               }
             }
             if (check > 0) {
-              fURL = url;
-              break;
+              return url;
             }
           }
         }
       }
-      if (fURL == null) {
-        log(-1, "find: not there: %s", imageFileName);
-        dump(lvl);
-      }
+      log(-1, "find: not there: %s", imageFileName);
+      dump(lvl);
       return fURL;
     }
   }

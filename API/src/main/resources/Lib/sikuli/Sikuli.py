@@ -265,12 +265,8 @@ def addImagePath(*args):
     return ImagePath.append(args[0], args[1])
   return None
 
-def addHTTPImagePath(*args):
-  if (len(args) == 1):
-    return ImagePath.addHTTP(args[0])
-  elif (len(args) == 2):
-    return ImagePath.addHTTP(args[0], args[1])
-  return None
+def addHTTPImagePath(arg):
+  return ImagePath.addHTTP(arg)
 
 def addJarImagePath(*args):
   if (len(args) == 1):
@@ -289,12 +285,8 @@ def removeImagePath(*args):
     return ImagePath.remove(args[0], args[1])
   return None
 
-def removeHTTPImagePath(*args):
-  if (len(args) == 1):
-    return ImagePath.removeHTTP(args[0])
-  elif (len(args) == 2):
-    return ImagePath.removeHTTP(args[0], args[1])
-  return None
+def removeHTTPImagePath(arg):
+  return ImagePath.removeHTTP(arg)
 
 def removeJarImagePath(*args):
   if (len(args) == 1):
@@ -314,6 +306,9 @@ def getImagePath():
 #
 def resetImagePath(path=None):
   ImagePath.reset(path)
+
+def checkImage(image):
+  return ImagePath.check(image)
 
 ## ----------------------------------------------------------------------
 # Sets the path for searching images in all Sikuli Script methods. <br/>
