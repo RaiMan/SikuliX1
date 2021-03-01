@@ -256,22 +256,58 @@ def addImportPath(path):
   _addModPath(path)
 
 ##
-# append the given path image path list if not yet contained
+# append the given path (optional folder) to image path list if not yet contained
 #
-def addImagePath(path):
-  ImagePath.add(path)
+def addImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.append(args[0])
+  elif (len(args) == 2):
+    return ImagePath.append(args[0], args[1])
+  return None
+
+def addHTTPImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.addHTTP(args[0])
+  elif (len(args) == 2):
+    return ImagePath.addHTTP(args[0], args[1])
+  return None
+
+def addJarImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.addJar(args[0])
+  elif (len(args) == 2):
+    return ImagePath.addJar(args[0], args[1])
+  return None
+
+##
+# remove the given path from the image path (same parameter as with addImagePath)
+#
+def removeImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.remove(args[0])
+  elif (len(args) == 2):
+    return ImagePath.remove(args[0], args[1])
+  return None
+
+def removeHTTPImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.removeHTTP(args[0])
+  elif (len(args) == 2):
+    return ImagePath.removeHTTP(args[0], args[1])
+  return None
+
+def removeJarImagePath(*args):
+  if (len(args) == 1):
+    return ImagePath.removeJar(args[0])
+  elif (len(args) == 2):
+    return ImagePath.removeJar(args[0], args[1])
+  return None
 
 ##
 # return the current image path list
 #
 def getImagePath():
   return [e for e in ImagePath.get()]
-
-##
-# remove the given path from the image path
-#
-def removeImagePath(path):
-  ImagePath.remove(path)
 
 ##
 # reset the image path, so it only contains the bundlepath
