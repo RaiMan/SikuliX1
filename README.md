@@ -21,33 +21,17 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.4** 
-<br>[See what is fixed](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
-<br>[Here you can read about major changes/enhancements](https://sikulix-2014.readthedocs.io/en/latest/news.html)
-<br>[For ready to use artifacts and the sources look here](https://github.com/RaiMan/SikuliX1/releases/tag/2.0.4)
+**Latest stable version is 2.0.5** 
+<br>[Info about fixes/enhancements](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
 
-**Next version is 2.0.5** (dev branch release_2.0.x)
-<br>final planned for end of February 2021
-<br>[Info on bug fix work progress](https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes)
-
-**Development version 2.1.0 (branch master) currently not useable until further notice**
-<br>[Read about fixes, enhancements and new features](https://github.com/RaiMan/SikuliX1/wiki/About-fixes-and-enhancements-in-2.1.0)
-
-**Get SikuliX ready to use**
-- [SikuliX IDE for editing and running scripts](https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixide-2.0.4.jar)
-  - [Jython support for the IDE](https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar)
-  - [JRuby support for the IDE](https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar)
-  - download all needed to one folder and run sikulix-2.0.x.jar
-  <br><br>
-- [SikuliX Java API for programming in Java or Java aware languages](https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixapi-2.0.4.jar)
-  - for use in non-Maven projects
+<br>[**Get SikuliX ready to use**](https://raiman.github.io/SikuliX1/downloads.html)
  
 For use in **Java Maven projects** the dependency coordinates are:
 ```
 <dependency>
   <groupId>com.sikulix</groupId>
   <artifactId>sikulixapi</artifactId>
-  <version>2.0.4</version>
+  <version>2.0.5</version>
 </dependency>
 ```
 <hr>
