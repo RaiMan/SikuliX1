@@ -221,12 +221,13 @@ public class ImagePath {
     public String getPath() {
       String path = "--invalid--";
       if (isValid()) {
-        path = pathURL.toExternalForm();
-        if (isFile()) {
-          path = path.substring("file:".length());
-        } else if (isJar()) {
-          path = path.substring("jar:file:".length());
+        if (isHTTP()) {
+          return pathURL.toExternalForm();
         } else {
+          File file = getFile();
+          if (file != null) {
+            return file.getPath();
+          }
         }
       }
       return path;
@@ -234,9 +235,7 @@ public class ImagePath {
 
     public File getFile() {
       if (isValid()) {
-        if (isFile() || isJar()) {
-          return new File(getPath());
-        }
+        return Commons.urlToFile(pathURL);
       }
       return null;
     }
