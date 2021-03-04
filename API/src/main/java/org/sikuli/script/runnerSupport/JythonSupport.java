@@ -609,7 +609,7 @@ public class JythonSupport implements IRunnerSupport {
     }
     addSysPath(modPath);
     if (modPath.endsWith(".sikuli")) {
-      ImagePath.add(modPath);
+      ImagePath.appendFromImport(modPath);
     }
     return modName;
   }

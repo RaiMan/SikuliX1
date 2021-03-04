@@ -91,6 +91,17 @@ public class ImagePath {
    */
   public static void dump(int lvl) {
     log(lvl, "ImagePath has %d entries (valid %d)", imagePaths.size(), getCount());
+    dumpDo(0, null);
+  }
+
+  public static void dump(String msg) {
+    dumpDo(0, msg);
+  }
+
+  private static void dumpDo(int lvl, String msg) {
+    if (null != msg) {
+      log(0, "****** %s", msg);
+    }
     int i = 0;
     for (PathEntry p : imagePaths) {
       if (i == 0) {
@@ -100,8 +111,10 @@ public class ImagePath {
       }
       i++;
     }
+    if (null != msg) {
+      log(0, "****** ------------ ******");
+    }
   }
-
   /**
    * empty path list and keep bundlePath (entry 0)<br>
    * Image cache is cleared completely
@@ -112,15 +125,22 @@ public class ImagePath {
     if (imagePaths.isEmpty()) {
       return;
     }
+    List<PathEntry> toSave = new ArrayList<>();
     for (PathEntry pathEntry : imagePaths) {
       if (pathEntry == null) {
         continue;
       }
       Image.purge(pathEntry);
+      if (pathEntry.isSpecial()) {
+        toSave.add(pathEntry);
+      }
     }
     PathEntry bundlePath = getBundle();
     imagePaths.clear();
     imagePaths.add(bundlePath);
+    if (toSave.size() > 0) {
+      imagePaths.addAll(toSave);
+    }
   }
 
   /**
@@ -197,6 +217,13 @@ public class ImagePath {
       return pathURL != null;
     }
 
+    public boolean isSpecial() {
+      if (path.equals("__FROM-IMPORT__")) {
+        return true;
+      }
+      return false;
+    }
+
     public boolean isFile() {
       if (pathURL == null) {
         return false;
@@ -271,7 +298,12 @@ public class ImagePath {
 
   private static PathEntry getPathEntry(Object path, String folder) {
     PathEntry pathEntry = null;
+    String special = null;
     if (null != path) {
+      if (folder != null && folder.startsWith("__") && folder.endsWith("__")) {
+        special = folder;
+        folder = null;
+      }
       if (path instanceof String) {
         pathEntry = createPathEntry((String) path, folder);
       } else if (path instanceof File) {
@@ -288,6 +320,9 @@ public class ImagePath {
         log(-1, "getPathEntry: invalid path: %s (String, File or URL");
         return null;
       }
+    }
+    if (special != null) {
+      pathEntry.path = special;
     }
     return pathEntry;
   }
@@ -552,6 +587,10 @@ public class ImagePath {
     return url;
   }
 
+  public static void appendFromImport(Object what) {
+    append(what, "__FROM-IMPORT__");
+  }
+
   public static URL replace(Object what, URL where) {
     return replace(what, null, where);
   }
@@ -660,8 +699,8 @@ public class ImagePath {
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
-  public static URL check(String name) {
-    return find(Image.getValidImageFilename(name));
+  public static String check(String name) {
+    return "CheckImage: " + name + ": " + Commons.urlToFile(find(Image.getValidImageFilename(name))).getAbsolutePath();
   }
 
   /**
