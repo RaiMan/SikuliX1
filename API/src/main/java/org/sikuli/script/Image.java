@@ -216,7 +216,7 @@ public class Image extends Element {
    */
   public String getFilename() {
     if (fileURL != null && "file".equals(fileURL.getProtocol())) {
-      return new File(fileURL.getPath()).getAbsolutePath();
+      return Commons.urlToFile(fileURL).getAbsolutePath();
     } else {
       return getName();
     }
@@ -949,7 +949,7 @@ public class Image extends Element {
 
   public boolean backup() {
     if (isValid()) {
-      File fOrg = new File(fileURL.getPath());
+      File fOrg = Commons.urlToFile(fileURL);
       File fBack = new File(fOrg.getParentFile(), "_BACKUP_" + fOrg.getName());
       if (FileManager.xcopy(fOrg, fBack)) {
         hasBackup = fBack.getPath();
