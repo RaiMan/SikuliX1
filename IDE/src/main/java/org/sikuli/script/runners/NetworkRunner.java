@@ -14,7 +14,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 
 public class NetworkRunner extends AbstractScriptRunner {
 

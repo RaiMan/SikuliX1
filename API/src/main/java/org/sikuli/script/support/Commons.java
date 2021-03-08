@@ -10,6 +10,8 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikuliXception;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -192,7 +194,11 @@ public class Commons {
   }
   //</editor-fold>
 
-  //<editor-fold desc="01 standard directories">
+  public enum Type {
+    IDE, API, INIT
+  }
+
+  //<editor-fold desc="05 standard directories">
   public static File getAppDataPath() {
     if (null == appDataPath) {
       if (runningWindows()) {
@@ -285,7 +291,7 @@ public class Commons {
   private static File workDir = null;
   //</editor-fold>
 
-  //<editor-fold desc="02 version infos">
+  //<editor-fold desc="06 version infos">
   public static boolean runningWindows() {
     return osName.startsWith("windows");
   }
@@ -390,7 +396,7 @@ public class Commons {
   }
   //</editor-fold>
 
-  //<editor-fold desc="03 Java System Properties">
+  //<editor-fold desc="07 Java System Properties">
   public static boolean hasSysProp(String prop) {
     return null != System.getProperty(prop);
   }
@@ -701,6 +707,20 @@ public class Commons {
     }
     return file;
   }
+
+  public static File asFolder(String option) {
+    if (null == option) {
+      return null;
+    }
+    File folder = new File(option);
+    if (!folder.isAbsolute()) {
+      folder = new File(Commons.getWorkDir(), option);
+    }
+    if (folder.isDirectory() && folder.exists()) {
+      return folder;
+    }
+    return null;
+  }
   //</editor-fold>
 
   //<editor-fold desc="15 file handling">
@@ -769,6 +789,22 @@ public class Commons {
     }
     return baos.toByteArray();
   }
+
+  public static File asFile(String option) {
+    if (null == option) {
+      return null;
+    }
+    if (null == asFolder(option)) {
+      File file = new File(option);
+      if (!file.isAbsolute()) {
+        file = new File(Commons.getWorkDir(), option);
+      }
+      if (file.exists()) {
+        return file;
+      }
+    }
+    return null;
+  }
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
@@ -794,4 +830,42 @@ public class Commons {
     return true;
   }
   //</editor-fold>
+
+  public static Object runFunctionJythonSupport(String function, Object[] args) {
+    Object returnJySup = null;
+    try {
+      Class<?> classJySup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
+      returnJySup = runFunctionScriptingSupport(classJySup, function, args);
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    return returnJySup;
+  }
+
+  public static Object runFunctionJRubySupport(String function, Object[] args) {
+    Object returnJRSup = null;
+    try {
+      Class<?> classJRSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
+      returnJRSup = runFunctionScriptingSupport(classJRSup, function, args);
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    return returnJRSup;
+  }
+
+  private static Object runFunctionScriptingSupport(Class classSup, String function, Object[] args) {
+    Object returnJySup = null;
+    try {
+      Object instanceJySup = classSup.getMethod("get", null).invoke(null, null);
+      Method method = classSup.getMethod(function, Object[].class);
+      returnJySup = method.invoke(instanceJySup, args);
+    } catch (NoSuchMethodException e) {
+      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    return returnJySup;
+  }
 }

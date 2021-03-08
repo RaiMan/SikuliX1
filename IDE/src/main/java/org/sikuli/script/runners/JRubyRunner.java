@@ -7,7 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.runnerSupport.JRubySupport;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 
 import java.io.*;
 import java.util.regex.Matcher;

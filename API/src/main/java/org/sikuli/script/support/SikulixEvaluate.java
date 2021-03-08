@@ -4,18 +4,6 @@
 
 package org.sikuli.script.support;
 
-import jnr.ffi.StructLayout;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
-import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Pattern;
-import org.sikuli.script.Screen;
-import org.sikuli.script.runnerSupport.JythonSupport;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Date;
 import java.util.List;
 
 public class SikulixEvaluate {
@@ -167,7 +155,7 @@ public class SikulixEvaluate {
     try {
       Class<?> aClass = Class.forName("net.sourceforge.tess4j.Tesseract");
       String folder = "/tessdata";
-      aClass = JythonSupport.class;
+//      aClass = JythonSupport.class;
 //      folder = "LibJython";
 //      folder = ".";
 //      List<String> fileList = Commons.getFileList(folder, aClass);

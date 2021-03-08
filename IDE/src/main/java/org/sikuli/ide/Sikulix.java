@@ -4,13 +4,14 @@
 
 package org.sikuli.ide;
 
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 public class Sikulix {
 
   public static void main(String[] args) {
     System.setProperty("sikuli.IDE_should_run", "develop");
-    RunTime.start(RunTime.Type.IDE, args);
+    RunTime.start(Commons.Type.IDE, args);
     SikulixIDE.main(args);
   }
 }

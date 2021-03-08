@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.script.support;
+package org.sikuli.script.runnerSupport;
 
 import org.apache.commons.io.FilenameUtils;
 import org.reflections8.Reflections;
@@ -12,7 +12,10 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.IOException;
@@ -162,6 +165,99 @@ public class Runner {
   public static final int FILE_NOT_FOUND = 256;
   public static final int NOT_SUPPORTED = 257;
 
+  public static String[] resolveRelativeFiles(String[] givenScripts) {
+    String[] runScripts = new String[givenScripts.length];
+    String baseDir = Commons.getWorkDir().getPath();
+    for (int i = 0; i < runScripts.length; i++) {
+      String givenScript = givenScripts[i];
+      String file = resolveRelativeFile(givenScript, baseDir);
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".sikuli", baseDir);
+      }
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".py", baseDir);
+      }
+      if (file == null) {
+        file = resolveRelativeFile(givenScript + ".rb", baseDir);
+      }
+      if (file == null) {
+        runScripts[i] = "?" + givenScript;
+        continue;
+      }
+      try {
+        file = new File(file).getCanonicalPath();
+      } catch (IOException e) {
+      }
+      EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
+      IScriptRunner runner = runnerAndFile.getRunner();
+      String fileToRun = runnerAndFile.getScript();
+      File possibleDir = null;
+      if (null == fileToRun) {
+        for (String ending : new String[]{"", ".sikuli"}) {
+          possibleDir = new File(file + ending);
+          if (possibleDir.exists()) {
+            break;
+          } else {
+            possibleDir = null;
+          }
+        }
+        if (null == possibleDir) {
+          runScripts[i] = "?" + givenScript;
+          continue;
+        }
+        baseDir = possibleDir.getAbsolutePath();
+        runnerAndFile =  Runner.getEffectiveRunner(baseDir);
+        fileToRun = runnerAndFile.getScript();
+        if (fileToRun == null) {
+          fileToRun = "!" + baseDir;
+        } else {
+          fileToRun = baseDir;
+        }
+      }
+      runScripts[i] = fileToRun;
+      if (i == 0) {
+        if (!fileToRun.startsWith("!")) {
+          baseDir = new File(fileToRun).getParent();
+        }
+      }
+    }
+    return runScripts;
+  }
+
+  /**
+   * a relative path is checked for existence in the current base folder,
+   * working folder and user home folder in this sequence.
+   *
+   * @param scriptName
+   * @return absolute file or null if not found
+   */
+  public static String resolveRelativeFile(String scriptName, String baseDir) {
+    if (Commons.runningWindows() && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
+      scriptName = new File(scriptName).getAbsolutePath();
+      return scriptName;
+    }
+    File file = new File(scriptName);
+    if (!file.isAbsolute()) {
+      File inBaseDir = new File(baseDir, scriptName);
+      if (inBaseDir.exists()) {
+        file = inBaseDir;
+      } else {
+        File inWorkDir = new File(Commons.getWorkDir(), scriptName);
+        if (inWorkDir.exists()) {
+          file = inWorkDir;
+        } else {
+          File inUserHome = new File(Commons.getUserHome(), scriptName);
+          if (inUserHome.exists()) {
+            file = inUserHome;
+          } else {
+            return null;
+          }
+        }
+      }
+    }
+    return file.getAbsolutePath();
+  }
+
   public static int runScript(String script, String[] args, IScriptRunner.Options options) {
     if (script.contains("\n")) {
       String[] header = script.substring(0, Math.min(100, script.length())).trim().split("\n");
@@ -231,9 +327,9 @@ public class Runner {
         } else {
           log(3, "runscript: running script: %s", scriptGiven);
           IScriptRunner runner = getRunner(scriptGiven);
-          RunTime.get().setLastScriptRunReturnCode(0);
+          setLastScriptRunReturnCode(0);
           exitCode = runner.runScript(scriptGiven, args, options);
-          RunTime.get().setLastScriptRunReturnCode(exitCode);
+          setLastScriptRunReturnCode(exitCode);
         }
         if (exitCode != 0) {
           if (exitCode == FILE_NOT_FOUND) {
@@ -293,4 +389,15 @@ public class Runner {
     }
     return null;
   }
+
+  public static int getLastScriptRunReturnCode() {
+    return lastScriptRunReturnCode;
+  }
+
+  public static void setLastScriptRunReturnCode(int lastScriptRunReturnCode) {
+    lastScriptRunReturnCode = lastScriptRunReturnCode;
+  }
+
+  private static int lastScriptRunReturnCode = 0;
+
 }

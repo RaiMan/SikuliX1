@@ -24,7 +24,6 @@
         </excludes>
       </unpackOptions>
       <excludes>
-        <exclude>org.jruby:jruby-complete</exclude>
         <exclude>org.apache.pdfbox:*</exclude>
       </excludes>
       <scope>runtime</scope>

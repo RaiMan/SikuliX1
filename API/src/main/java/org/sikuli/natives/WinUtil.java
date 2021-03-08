@@ -16,7 +16,7 @@ import com.sun.jna.ptr.IntByReference;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.script.App;
 import org.sikuli.script.Region;
-import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.ProcessRunner;
 
 import java.awt.*;
 import java.io.File;

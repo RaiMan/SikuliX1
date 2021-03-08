@@ -6,6 +6,7 @@ package org.sikuli.basics;
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
@@ -1303,7 +1304,8 @@ public class FileManager {
       xcopy(scriptFolder, fScriptSource, skipCompiled);
     }
 
-    Sikulix.compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
+    Commons.runFunctionJythonSupport("compileJythonFolder",
+        new Object[]{fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath()});
     FileManager.xcopy(fScriptCompiled, fSikulixTemp);
     FileManager.deleteFileOrFolder(fScriptSource);
     FileManager.deleteFileOrFolder(fScriptCompiled);

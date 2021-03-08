@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.script.runners;
+package org.sikuli.script.support;
 
 import org.sikuli.script.support.RunTime;
 
@@ -12,26 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class ProcessRunner extends AbstractScriptRunner{
-
-  public static final String NAME = "Process";
-  public static final String TYPE = "text/application";
-  public static final String[] EXTENSIONS = new String[0];
-
-  @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public String[] getExtensions() {
-    return EXTENSIONS;
-  }
-
-  @Override
-  public String getType() {
-    return TYPE;
-  }
+public class ProcessRunner {
 
   private static void p(String form, Object... args) {
     System.out.println(String.format(form, args));

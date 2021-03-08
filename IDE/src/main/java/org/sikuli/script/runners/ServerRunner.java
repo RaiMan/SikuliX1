@@ -18,7 +18,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>

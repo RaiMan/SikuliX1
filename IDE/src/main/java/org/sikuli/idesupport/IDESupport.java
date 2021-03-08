@@ -8,8 +8,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runners.*;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 
 import java.io.File;
 import java.io.IOException;

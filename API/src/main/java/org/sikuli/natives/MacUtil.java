@@ -4,13 +4,12 @@
 package org.sikuli.natives;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
-import org.sikuli.script.runners.AppleScriptRunner;
-import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,19 +41,19 @@ public class MacUtil implements OSUtil {
   found
   */
   static String cmd = "set found to \"NotFound\"\n"
-          + "try\n"
-          + "tell application \"System Events\"\n"
-          + "#LINE#\n"
-          + "end tell\n"
-          + "if not (found is equal to \"NotFound\") then\n"
-          + "set windowName to \"\"\n"
-          + "try\n"
-          + "set windowName to name of first window of found\n"
-          + "end try\n"
-          + "set found to {name of found, «class idux» of found, windowName, file of found}\n"
-          + "end if\n"
-          + "end try\n"
-          + "found\n";
+      + "try\n"
+      + "tell application \"System Events\"\n"
+      + "#LINE#\n"
+      + "end tell\n"
+      + "if not (found is equal to \"NotFound\") then\n"
+      + "set windowName to \"\"\n"
+      + "try\n"
+      + "set windowName to name of first window of found\n"
+      + "end try\n"
+      + "set found to {name of found, «class idux» of found, windowName, file of found}\n"
+      + "end if\n"
+      + "end try\n"
+      + "found\n";
   static String cmdLineApp = "set found to first item of (processes whose displayed name is \"#APP#\")";
   static String cmdLinePID = "set found to first item of (processes whose unix id is equal to #PID#)";
 
@@ -66,13 +65,11 @@ public class MacUtil implements OSUtil {
   theWindows
   */
 
-  private static final IScriptRunner.Options SILENT_OPTIONS = new IScriptRunner.Options().setSilent(true);
-
   String cmdGetWindows = "set theWindows to {}\n" +
-          "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
-          "copy {name of win, bounds of win} to end of theWindows\n" +
-          "end repeat\n" +
-          "theWindows\n";
+      "repeat with win in (windows of application \"#APP#\" whose visible is true)\n" +
+      "copy {name of win, bounds of win} to end of theWindows\n" +
+      "end repeat\n" +
+      "theWindows\n";
 
   @Override
   public App get(App app) {
@@ -95,7 +92,7 @@ public class MacUtil implements OSUtil {
     } else {
       theCmd = cmd.replace("#LINE#", cmdLinePID);
       theCmd = theCmd.replaceAll("#PID#", "" + pid);
-      int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
+      int retVal = evalAppleScript(theCmd);
       String result = RunTime.get().getLastCommandResult().trim();
       if (retVal > -1) {
         if (!result.contains("NotFound")) {
@@ -146,9 +143,9 @@ public class MacUtil implements OSUtil {
     if (app.isValid()) {
       //osascript -e "tell app \"safari\" to activate"
       String cmd = "tell application \""
-              + app.getName()
-              + "\" to activate";
-      return 0 == Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
+          + app.getName()
+          + "\" to activate";
+      return 0 == evalAppleScript(cmd);
     }
     return false;
   }
@@ -229,7 +226,7 @@ public class MacUtil implements OSUtil {
   public List<Region> getWindows(App app) {
     List<Region> windows = new ArrayList<>();
     String theCmd = cmdGetWindows.replace("#APP#", app.getName());
-    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(theCmd, SILENT_OPTIONS);
+    int retVal = evalAppleScript(theCmd);
     String result = RunTime.get().getLastCommandResult().trim();
     if (retVal > -1 && !result.isEmpty()) {
       Debug.trace("getWindows: %s", result);
@@ -260,18 +257,18 @@ public class MacUtil implements OSUtil {
   public List<App> getApps(String name) {
     new App();
     String cmd = "tell application \"System Events\"\n" +
-            "set plist to (processes whose background only is false)\n" +
-            "set resultlist to {}\n" +
-            "repeat with n from 1 to the length of plist\n" +
-            "set proc to item n of plist\n" +
-            "set pwin to \"\"\ntry\nset pwin to name of first window of proc\nend try\n" +
-            "set entry to {pwin as text, \"|||\", «class idux» of proc as text," +
-            "displayed name of proc as text, name of proc as text, get file of proc, \"###\"}\n" +
-            "set end of resultlist to entry\n" +
-            "end repeat\n" +
-            "end tell\n" +
-            "resultlist";
-    int retVal = Runner.getRunner(AppleScriptRunner.class).evalScript(cmd, SILENT_OPTIONS);
+        "set plist to (processes whose background only is false)\n" +
+        "set resultlist to {}\n" +
+        "repeat with n from 1 to the length of plist\n" +
+        "set proc to item n of plist\n" +
+        "set pwin to \"\"\ntry\nset pwin to name of first window of proc\nend try\n" +
+        "set entry to {pwin as text, \"|||\", «class idux» of proc as text," +
+        "displayed name of proc as text, name of proc as text, get file of proc, \"###\"}\n" +
+        "set end of resultlist to entry\n" +
+        "end repeat\n" +
+        "end tell\n" +
+        "resultlist";
+    int retVal = evalAppleScript(cmd);
     String result = RunTime.get().getLastCommandResult().trim();
     String[] processes = (", " + result).split(", ###");
     List<App> appList = new ArrayList<>();
@@ -311,4 +308,20 @@ public class MacUtil implements OSUtil {
   public static native Rectangle getRegion(int pid, int winNum);
 
   public static native Rectangle getFocusedRegion();
+
+  private static int evalAppleScript(String script) {
+    String osascriptShebang = "#!/usr/bin/osascript\n";
+    script = osascriptShebang + script;
+    File scriptFile = FileManager.createTempFile("script");
+    scriptFile.setExecutable(true);
+    FileManager.writeStringToFile(script, scriptFile);
+    String returns = RunTime.get().runcmd(new String[]{"!" + scriptFile.getAbsolutePath()});
+    String[] parts = returns.split("\n");
+    int retcode = -1;
+    try {
+      retcode = Integer.parseInt(parts[0]);
+    } catch (Exception ex) {
+    }
+    return retcode;
+  }
 }

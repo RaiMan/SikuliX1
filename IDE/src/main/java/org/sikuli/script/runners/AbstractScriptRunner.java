@@ -16,7 +16,7 @@ import java.util.function.IntSupplier;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 
 import com.sun.jna.ptr.IntByReference;
 

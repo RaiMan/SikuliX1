@@ -26,7 +26,7 @@ import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScriptRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;

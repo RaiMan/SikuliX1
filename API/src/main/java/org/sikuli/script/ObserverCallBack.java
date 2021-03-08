@@ -6,9 +6,7 @@ package org.sikuli.script;
 import java.util.EventListener;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.runnerSupport.IRunnerSupport;
-import org.sikuli.script.runnerSupport.JRubySupport;
-import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.support.Commons;
 
 /**
  * Use this class to implement callbacks for<br>
@@ -32,8 +30,9 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 public class ObserverCallBack implements EventListener {
 
   private Object callback = null;
-  private IRunnerSupport scriptHelper = null;
   private String scriptRunnerType = null;
+  private String JRUBY = "jruby";
+  private String JYTHON = "jython";
 
   /**
    * setup a callback to be used on the Java API level
@@ -61,11 +60,9 @@ public class ObserverCallBack implements EventListener {
     this.callback = callback;
     this.obsType = obsType;
     if (callback.getClass().getName().contains("org.python")) {
-      scriptRunnerType = "jython";
-      scriptHelper = JythonSupport.get();
+      scriptRunnerType = JYTHON;
     } else if (callback.getClass().getName().contains("org.jruby")) {
-      scriptRunnerType = "jruby";
-      scriptHelper = JRubySupport.get();
+      scriptRunnerType = JRUBY;
     } else {
       Debug.error("ObserverCallBack: %s init: ScriptRunner not available for class %s", obsType,
               callback.getClass().getName());
@@ -95,7 +92,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void appeared(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.APPEAR.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.APPEAR.equals(obsType)) {
       run(event);
     }
   }
@@ -105,7 +102,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void vanished(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.VANISH.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.VANISH.equals(obsType)) {
       run(event);
     }
   }
@@ -115,7 +112,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void changed(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.CHANGE.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.CHANGE.equals(obsType)) {
       run(event);
     }
   }
@@ -125,7 +122,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void findfailed(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.FINDFAILED.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.FINDFAILED.equals(obsType)) {
       run(event);
     }
   }
@@ -135,7 +132,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void missing(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.MISSING.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.MISSING.equals(obsType)) {
       run(event);
     }
   }
@@ -145,7 +142,7 @@ public class ObserverCallBack implements EventListener {
    * @param event that happened
    */
   public void happened(ObserveEvent event) {
-    if (scriptHelper != null && ObserveEvent.Type.GENERIC.equals(obsType)) {
+    if (scriptRunnerType != null && ObserveEvent.Type.GENERIC.equals(obsType)) {
       run(event);
     }
   }
@@ -153,13 +150,22 @@ public class ObserverCallBack implements EventListener {
   private void run(ObserveEvent e) {
     boolean success = true;
     Object[] args = new Object[]{callback, e};
-    if (scriptHelper != null) {
-      success = scriptHelper.runObserveCallback(args);
+    if (scriptRunnerType != null) {
+      success = runObserveCallback(scriptRunnerType, args);
       if (!success) {
         Debug.error("ObserverCallBack: problem with scripting handler: %s\n%s",
-                scriptHelper.getClass().getName(),
-                callback.getClass().getName());
+                scriptRunnerType, callback.getClass().getName());
       }
     }
+  }
+
+  private boolean runObserveCallback(String type, Object[] args) {
+    if (JYTHON.equals(type)) {
+      return (Boolean) Commons.runFunctionJythonSupport("runObserveCallback", args);
+    }
+    if (JRUBY.equals(type)) {
+      return (Boolean) Commons.runFunctionJRubySupport("runObserveCallback", args);
+    }
+    return false;
   }
 }

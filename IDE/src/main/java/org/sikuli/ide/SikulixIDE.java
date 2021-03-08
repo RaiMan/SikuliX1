@@ -12,6 +12,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
 import org.sikuli.util.EventObserver;
@@ -53,12 +54,30 @@ public class SikulixIDE extends JFrame {
       SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
-    RunTime.afterStart(RunTime.Type.IDE, args);
+    RunTime.afterStart(Commons.Type.IDE, args);
 
-    if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
+    if (RunTime.runningScripts()) {
+      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+        @Override
+        public void hotkeyPressed(HotkeyEvent e) {
+          if (RunTime.get().runningScripts()) {
+            Runner.abortAll();
+            RunTime.terminate(254, "AbortKey was pressed: aborting all running scripts");
+          }
+        }
+      });
+      String[] scripts = Runner.resolveRelativeFiles(RunTime.getScriptsToRun());
+      int exitCode = Runner.runScripts(scripts, RunTime.getUserArgs(), new IScriptRunner.Options());
+      if (exitCode > 255) {
+        exitCode = 254;
+      }
+      RunTime.terminate(exitCode, "");
+    }
+
+    if ("m".equalsIgnoreCase(System.getProperty("os.name").substring(0, 1))) {
       prepareMacUI();
     }
-    runTime = RunTime.get(RunTime.Type.IDE);
+    runTime = RunTime.get(Commons.Type.IDE);
 
     IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
 
@@ -2551,7 +2570,7 @@ public class SikulixIDE extends JFrame {
           } finally {
             setCurrentRunner(null);
             setCurrentScript(null);
-            RunTime.get().setLastScriptRunReturnCode(exitValue);
+            Runner.setLastScriptRunReturnCode(exitValue);
           }
 
           log(4, "************** after RunScript");

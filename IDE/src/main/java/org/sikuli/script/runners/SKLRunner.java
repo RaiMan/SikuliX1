@@ -3,20 +3,6 @@
  */
 package org.sikuli.script.runners;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
-
 /**
  * Runs a packed sikulix script
  *

@@ -9,8 +9,6 @@ import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
-import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -44,16 +42,21 @@ public class RunTime {
 
   private static RunTime runTime = null;
 
-  private static final String osNameShort = System.getProperty("os.name").substring(0, 1).toLowerCase();
+  private static boolean startAsIDE = true;
 
   public static boolean isIDE() {
     return startAsIDE;
   }
 
-  private static boolean startAsIDE = true;
-
-  //<editor-fold desc="01 startup">
   private static boolean allowMultiple = false;
+
+  public static void setAllowMultiple() {
+    allowMultiple = true;
+  }
+
+  public static boolean isAllowMultiple() {
+    return allowMultiple;
+  }
 
   public static boolean shouldRunServer() {
     return asServer;
@@ -79,25 +82,25 @@ public class RunTime {
 
   private static String serverExtra = null;
 
-  public static void startAPI(String appPath) {
-    File path = Commons.setAppDataPath(appPath);
-    fTempPath = new File(path, "Temp");
-    startAPI();
-  }
-
-
   private static boolean asPythonServer = false;
 
   public static boolean shouldRunPythonServer() {
     return asPythonServer;
   }
 
+  //<editor-fold desc="01 startup">
   public static void startAPI() {
-    RunTime.get(Type.API);
+    RunTime.get(Commons.Type.API);
   }
 
-  public static void start(RunTime.Type type, String[] args) {
-    if (Type.API.equals(type)) {
+  public static void startAPI(String appPath) {
+    File path = Commons.setAppDataPath(appPath);
+    fTempPath = new File(path, "Temp");
+    startAPI();
+  }
+
+  public static void start(Commons.Type type, String[] args) {
+    if (Commons.Type.API.equals(type)) {
       startAsIDE = false;
       if (args.length == 1 && "buildDate".equals(args[0])) {
         System.out.println(Commons.getSxBuildStamp());
@@ -191,35 +194,9 @@ public class RunTime {
     System.exit(exitCode);
   }
 
-  private static File getRunningJar(Type type) {
-    File jarFile = null;
-    String jarName = "notKnown";
-    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
-    if (Type.IDE.equals(type)) {
-      try {
-        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-        codeSrc = cIDE.getProtectionDomain().getCodeSource();
-      } catch (ClassNotFoundException e) {
-        startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
-        System.exit(1);
-      }
-    }
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      try {
-        jarName = codeSrc.getLocation().getPath();
-        jarName = URLDecoder.decode(jarName, "utf8");
-      } catch (UnsupportedEncodingException e) {
-        startLog(-1, "URLDecoder: not possible: %s", jarName);
-        System.exit(1);
-      }
-      jarFile = new File(jarName);
-    }
-    return jarFile;
-  }
-
-  public static void afterStart(RunTime.Type type, String[] args) {
+  public static void afterStart(Commons.Type type, String[] args) {
     String startType = "IDE";
-    if (Type.IDE.equals(type)) {
+    if (Commons.Type.IDE.equals(type)) {
       if (null == System.getProperty("sikuli.IDE_should_run")) {
         System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
         System.exit(1);
@@ -235,6 +212,11 @@ public class RunTime {
     evalArgsStart(args);
     Debug.log(3, "Sikulix: starting " + startType);
     evalArgs(args);
+
+    if ("API".equals(startType)) {
+      return;
+    }
+
     ExtensionManager.readExtensions(true);
 
     if (isQuiet()) {
@@ -252,23 +234,6 @@ public class RunTime {
 
     if (!getUserLogFile().isEmpty()) {
       Debug.setUserLogFile(getUserLogFile());
-    }
-
-    if (runningScripts()) {
-      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
-        @Override
-        public void hotkeyPressed(HotkeyEvent e) {
-          if (RunTime.get().runningScripts()) {
-            Runner.abortAll();
-            terminate(254, "AbortKey was pressed: aborting all running scripts");
-          }
-        }
-      });
-      int exitCode = Runner.runScripts(RunTime.getRunScripts(), userArgs, new IScriptRunner.Options());
-      if (exitCode > 255) {
-        exitCode = 254;
-      }
-      terminate(exitCode, "");
     }
 
 //TODO simplify, when SikulixServer is implemented
@@ -297,34 +262,23 @@ public class RunTime {
     }
   }
 
-  public static File asFolder(String option) {
-    if (null == option) {
-      return null;
-    }
-    File folder = new File(option);
-    if (!folder.isAbsolute()) {
-      folder = new File(Commons.getWorkDir(), option);
-    }
-    if (folder.isDirectory() && folder.exists()) {
-      return folder;
-    }
-    return null;
-  }
-
-  public static File asFile(String option) {
-    if (null == option) {
-      return null;
-    }
-    if (null == asFolder(option)) {
-      File file = new File(option);
-      if (!file.isAbsolute()) {
-        file = new File(Commons.getWorkDir(), option);
+  private static List<String> evalArgsStart(String[] args) {
+    List<String> finalArgs = new ArrayList<>();
+    for (String arg : args) {
+      if ("-v".equals(arg)) {
+        setVerbose();
+      } else if ("-q".equals(arg)) {
+        setQuiet();
+      } else if ("-r".equals(arg)) {
+        shouldRunScript = true;
+      } else if ("-s".equals(arg)) {
+        asServer = true;
+      } else if ("-p".equals(arg)) {
+        asPythonServer = true;
       }
-      if (file.exists()) {
-        return file;
-      }
+      finalArgs.add(arg);
     }
-    return null;
+    return finalArgs;
   }
 
   public static void evalArgs(String[] args) {
@@ -398,133 +352,39 @@ public class RunTime {
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      String[] scripts = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
-      runScripts = resolveRelativeFiles(scripts);
+      scriptsToRun = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
     }
 
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.PYTHONSERVER.shortname())) {
       asPythonServer = true;
     }
   }
+  //</editor-fold>
 
-  public static void setAllowMultiple() {
-    allowMultiple = true;
-  }
-
-  public static boolean isAllowMultiple() {
-    return allowMultiple;
-  }
-
-  public static String[] resolveRelativeFiles(String[] givenScripts) {
-    String[] runScripts = new String[givenScripts.length];
-    String baseDir = Commons.getWorkDir().getPath();
-    for (int i = 0; i < runScripts.length; i++) {
-      String givenScript = givenScripts[i];
-      String file = resolveRelativeFile(givenScript, baseDir);
-      if (file == null) {
-        file = resolveRelativeFile(givenScript + ".sikuli", baseDir);
-      }
-      if (file == null) {
-        file = resolveRelativeFile(givenScript + ".py", baseDir);
-      }
-      if (file == null) {
-        file = resolveRelativeFile(givenScript + ".rb", baseDir);
-      }
-      if (file == null) {
-        runScripts[i] = "?" + givenScript;
-        continue;
-      }
+  private static File getRunningJar(Commons.Type type) {
+    File jarFile = null;
+    String jarName = "notKnown";
+    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
+    if (Commons.Type.IDE.equals(type)) {
       try {
-        file = new File(file).getCanonicalPath();
-      } catch (IOException e) {
-      }
-      EffectiveRunner runnerAndFile = Runner.getEffectiveRunner(file);
-      IScriptRunner runner = runnerAndFile.getRunner();
-      String fileToRun = runnerAndFile.getScript();
-      File possibleDir = null;
-      if (null == fileToRun) {
-        for (String ending : new String[]{"", ".sikuli"}) {
-          possibleDir = new File(file + ending);
-          if (possibleDir.exists()) {
-            break;
-          } else {
-            possibleDir = null;
-          }
-        }
-        if (null == possibleDir) {
-          runScripts[i] = "?" + givenScript;
-          continue;
-        }
-        baseDir = possibleDir.getAbsolutePath();
-        runnerAndFile = Runner.getEffectiveRunner(baseDir);
-        fileToRun = runnerAndFile.getScript();
-        if (fileToRun == null) {
-          fileToRun = "!" + baseDir;
-        } else {
-          fileToRun = baseDir;
-        }
-      }
-      runScripts[i] = fileToRun;
-      if (i == 0) {
-        if (!fileToRun.startsWith("!")) {
-          baseDir = new File(fileToRun).getParent();
-        }
+        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+        codeSrc = cIDE.getProtectionDomain().getCodeSource();
+      } catch (ClassNotFoundException e) {
+        startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
+        System.exit(1);
       }
     }
-    return runScripts;
-  }
-
-  /**
-   * a relative path is checked for existence in the current base folder,
-   * working folder and user home folder in this sequence.
-   *
-   * @param scriptName
-   * @return absolute file or null if not found
-   */
-  public static String resolveRelativeFile(String scriptName, String baseDir) {
-    if (get().runningWindows && (scriptName.startsWith("\\") || scriptName.startsWith("/"))) {
-      scriptName = new File(scriptName).getAbsolutePath();
-      return scriptName;
-    }
-    File file = new File(scriptName);
-    if (!file.isAbsolute()) {
-      File inBaseDir = new File(baseDir, scriptName);
-      if (inBaseDir.exists()) {
-        file = inBaseDir;
-      } else {
-        File inWorkDir = new File(Commons.getWorkDir(), scriptName);
-        if (inWorkDir.exists()) {
-          file = inWorkDir;
-        } else {
-          File inUserHome = new File(Commons.getUserHome(), scriptName);
-          if (inUserHome.exists()) {
-            file = inUserHome;
-          } else {
-            return null;
-          }
-        }
+    if (codeSrc != null && codeSrc.getLocation() != null) {
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        startLog(-1, "URLDecoder: not possible: %s", jarName);
+        System.exit(1);
       }
+      jarFile = new File(jarName);
     }
-    return file.getAbsolutePath();
-  }
-
-  private static List<String> evalArgsStart(String[] args) {
-    List<String> finalArgs = new ArrayList<>();
-    for (String arg : args) {
-      if ("-v".equals(arg)) {
-        setVerbose();
-      } else if ("-q".equals(arg)) {
-        setQuiet();
-      } else if ("-r".equals(arg)) {
-        shouldRunScript = true;
-      } else if ("-s".equals(arg)) {
-        asServer = true;
-      } else if ("-p".equals(arg)) {
-        asPythonServer = true;
-      }
-      finalArgs.add(arg);
-    }
-    return finalArgs;
+    return jarFile;
   }
 
   private static String[] userArgs = new String[0];
@@ -593,17 +453,16 @@ public class RunTime {
 
   private static String[] loadScripts = new String[0];
 
-  public static String[] getRunScripts() {
-    return runScripts;
+  public static String[] getScriptsToRun() {
+    return scriptsToRun;
   }
 
   private static boolean shouldRunScript = false;
-  private static String[] runScripts = new String[0];
+  private static String[] scriptsToRun = null;
 
   public static boolean runningScripts() {
     return shouldRunScript;
   }
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
   private int lvl = 3;
@@ -686,23 +545,11 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
-  public enum Type {
-    IDE, API, INIT
-  }
-
-  private enum theSystem {
-    WIN, MAC, LUX, FOO
-  }
-
   public enum RunType {
     JAR, CLASSES, OTHER
   }
 
   public RunType runningAs = RunType.OTHER;
-
-  public boolean runningIDE() {
-    return Type.IDE.equals(runType);
-  }
 
   private static Options sxOptions = null;
 
@@ -714,7 +561,7 @@ public class RunTime {
   public static boolean testing = false;
   public static boolean testingWinApp = false;
 
-  public Type runType = Type.INIT;
+  public Commons.Type runType = Commons.Type.INIT;
 
   public String jreVersion = java.lang.System.getProperty("java.runtime.version");
 
@@ -730,18 +577,6 @@ public class RunTime {
   public String fpSysLibs = null;
   boolean areLibsExported = false;
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
-//  public File fUserDir = null;
-//  public File fWorkDir = null;
-
-  public int getLastScriptRunReturnCode() {
-    return lastScriptRunReturnCode;
-  }
-
-  public void setLastScriptRunReturnCode(int lastScriptRunReturnCode) {
-    this.lastScriptRunReturnCode = lastScriptRunReturnCode;
-  }
-
-  private int lastScriptRunReturnCode = 0;
 
   public File fAppPath = null;
   public File fSikulixAppPath = null;
@@ -805,7 +640,7 @@ public class RunTime {
 
   public static synchronized RunTime get() {
     if (runTime == null) {
-      return get(Type.API);
+      return get(Commons.Type.API);
     }
     return runTime;
   }
@@ -826,7 +661,7 @@ public class RunTime {
     return optTesting;
   }
 
-  public static synchronized RunTime get(Type typ) {
+  public static synchronized RunTime get(Commons.Type typ) {
     if (runTime != null) {
       return runTime;
     }
@@ -886,7 +721,7 @@ public class RunTime {
     });
 
     runTime.init(typ);
-    if (Type.IDE.equals(typ)) {
+    if (Commons.Type.IDE.equals(typ)) {
       runTime.initIDEbefore();
       runTime.initAPI();
       runTime.initIDEafter();
@@ -929,7 +764,7 @@ public class RunTime {
   FileOutputStream isRunningFile = null;
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
-  private void init(Type typ) {
+  private void init(Commons.Type typ) {
     if ("winapp".equals(sxOptions.getOption("testing"))) {
       log(lvl, "***** for testing: simulating WinApp");
       testingWinApp = true;
@@ -971,7 +806,7 @@ public class RunTime {
       throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
-    if (Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
+    if (Commons.Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
       isRunning = new File(fTempPath, isRunningFilename);
       boolean shouldTerminate = false;
       try {
@@ -1707,7 +1542,7 @@ public class RunTime {
       if (isJythonReady) {
         int saveLvl = Debug.getDebugLevel();
         Debug.setDebugLevel(lvl);
-        JythonSupport.get().showSysPath();
+        Commons.runFunctionJythonSupport("showSysPath", null);
         Screen.showMonitors();
         Debug.setDebugLevel(saveLvl);
       }

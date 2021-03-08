@@ -3,8 +3,8 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -214,20 +214,6 @@ public class Debug {
 		privateLoggerPrefixAll = false;
 	}
 
-	private static boolean doSetLogger(Object logger) {
-		String className = logger.getClass().getName();
-		isJython = className.contains("org.python");
-		isJRuby = className.contains("org.jruby");
-		if ( isJRuby ) {
-			logx(3, "Debug: setLogger: given instance's class: %s", className);
-			error("setLogger: not yet supported in JRuby script");
-			loggerRedirectSupported=false;
-			return false;
-		}
-		privateLogger = logger;
-		return true;
-	}
-
 	/**
 	 * sets the redirection for all message types user, info, action, error and debug
 	 * must be the name of an instance method of the previously defined logger and<br>
@@ -248,61 +234,6 @@ public class Debug {
 			success &= setLoggerError(mAll);
 			success &= setLoggerDebug(mAll);
 			return success;
-		}
-		return false;
-	}
-
-	private static boolean doSetLoggerCallback(String mName, CallbackType type) {
-		if (privateLogger == null) {
-			error("Debug: setLogger: no logger specified yet");
-			return false;
-		}
-		if (!loggerRedirectSupported) {
-			logx(3, "Debug: setLogger: %s (%s) logger redirect not supported", mName, type);
-		}
-		if (isJython) {
-			Object[] args = new Object[]{privateLogger, mName, type.toString()};
-			if (!JythonSupport.get().checkCallback(args)) {
-				logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
-				return false;
-			}
-		}
-		try {
-			if (type == CallbackType.INFO) {
-				if ( !isJython && !isJRuby ) {
-					privateLoggerInfo = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-				}
-				privateLoggerInfoName = mName;
-				return true;
-			} else if (type == CallbackType.ACTION) {
-				if ( !isJython && !isJRuby ) {
-					privateLoggerAction = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-				}
-				privateLoggerActionName = mName;
-				return true;
-			} else if (type == CallbackType.ERROR) {
-				if ( !isJython && !isJRuby ) {
-					privateLoggerError = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-				}
-				privateLoggerErrorName = mName;
-				return true;
-			} else if (type == CallbackType.DEBUG) {
-				if ( !isJython && !isJRuby ) {
-					privateLoggerDebug = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-				}
-				privateLoggerDebugName = mName;
-				return true;
-			} else if (type == CallbackType.USER) {
-				if ( !isJython && !isJRuby ) {
-					privateLoggerUser = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-				}
-				privateLoggerUserName = mName;
-				return true;
-			} else {
-				return false;
-			}
-		} catch (Exception e) {
-			error("Debug: setLoggerInfo: redirecting to %s failed: \n%s", mName, e.getMessage());
 		}
 		return false;
 	}
@@ -385,6 +316,147 @@ public class Debug {
 			return true;
 		}
 		return doSetLoggerCallback(mDebug, CallbackType.DEBUG);
+	}
+
+	private static boolean doSetLogger(Object logger) {
+		String className = logger.getClass().getName();
+		isJython = className.contains("org.python");
+		isJRuby = className.contains("org.jruby");
+		if ( isJRuby ) {
+			logx(3, "Debug: setLogger: given instance's class: %s", className);
+			error("setLogger: not yet supported in JRuby script");
+			loggerRedirectSupported=false;
+			return false;
+		}
+		privateLogger = logger;
+		return true;
+	}
+
+	private static boolean doSetLoggerCallback(String mName, CallbackType type) {
+		if (privateLogger == null) {
+			error("Debug: setLogger: no logger specified yet");
+			return false;
+		}
+		if (!loggerRedirectSupported) {
+			logx(3, "Debug: setLogger: %s (%s) logger redirect not supported", mName, type);
+		}
+		if (isJython) {
+			Object[] args = new Object[]{privateLogger, mName, type.toString()};
+			Object checkCallback = Commons.runFunctionJythonSupport("checkCallback", args);
+			if (checkCallback != null && !((Boolean)checkCallback)) {
+				logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
+				return false;
+			}
+		}
+		try {
+			if (type == CallbackType.INFO) {
+				if ( !isJython && !isJRuby ) {
+					privateLoggerInfo = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+				}
+				privateLoggerInfoName = mName;
+				return true;
+			} else if (type == CallbackType.ACTION) {
+				if ( !isJython && !isJRuby ) {
+					privateLoggerAction = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+				}
+				privateLoggerActionName = mName;
+				return true;
+			} else if (type == CallbackType.ERROR) {
+				if ( !isJython && !isJRuby ) {
+					privateLoggerError = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+				}
+				privateLoggerErrorName = mName;
+				return true;
+			} else if (type == CallbackType.DEBUG) {
+				if ( !isJython && !isJRuby ) {
+					privateLoggerDebug = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+				}
+				privateLoggerDebugName = mName;
+				return true;
+			} else if (type == CallbackType.USER) {
+				if ( !isJython && !isJRuby ) {
+					privateLoggerUser = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+				}
+				privateLoggerUserName = mName;
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			error("Debug: setLoggerInfo: redirecting to %s failed: \n%s", mName, e.getMessage());
+		}
+		return false;
+	}
+
+	private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
+		boolean success = false;
+		String error = "";
+		if (privateLogger != null) {
+			String prefix = "", pln = "";
+			Method plf = null;
+			if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
+				prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
+				plf = privateLoggerInfo;
+				pln = privateLoggerInfoName;
+			} else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
+				prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
+				plf = privateLoggerAction;
+				pln = privateLoggerActionName;
+			} else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
+				prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
+				plf = privateLoggerError;
+				pln = privateLoggerErrorName;
+			} else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
+				prefix = privateLoggerPrefixAll ?
+						(privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+				plf = privateLoggerDebug;
+				pln = privateLoggerDebugName;
+			} else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
+				prefix = privateLoggerPrefixAll ?
+						(privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+				plf = privateLoggerUser;
+				pln = privateLoggerUserName;
+			}
+			if (!pln.isEmpty()) {
+				String msg = null;
+				if (args == null || args.length == 0) {
+					msg = prefix + message;
+				} else {
+					msg = String.format(prefix + message, args);
+				}
+				if (isJython) {
+					Object runLoggerCallback = Commons.runFunctionJythonSupport("runLoggerCallback", new Object[]{privateLogger, pln, msg});
+					success = runLoggerCallback != null && (Boolean)runLoggerCallback;
+				} else if (isJRuby) {
+					success = false;
+				} else {
+					try {
+						plf.invoke(privateLogger,
+
+								new Object[]{msg});
+						return true;
+					} catch (Exception e) {
+						error = ": " + e.getMessage();
+						success = false;
+					}
+				}
+				if (!success) {
+					Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
+					if (type == CallbackType.INFO) {
+						privateLoggerInfoName = "";
+					} else if (type == CallbackType.ACTION) {
+						privateLoggerActionName = "";
+					} else if (type == CallbackType.ERROR) {
+						privateLoggerErrorName = "";
+					} else if (type == CallbackType.DEBUG) {
+						privateLoggerDebugName = "";
+					} else if (type == CallbackType.USER) {
+						privateLoggerUserName = "";
+					}
+				}
+			}
+		}
+		return success;
 	}
 
 	public static void saveRedirected(PrintStream rdo, PrintStream rde) {
@@ -559,74 +631,6 @@ public class Debug {
     }
   }
 
-  private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
-    boolean success = false;
-    String error = "";
-    if (privateLogger != null) {
-      String prefix = "", pln = "";
-      Method plf = null;
-      if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
-        plf = privateLoggerInfo;
-        pln = privateLoggerInfoName;
-      } else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
-        plf = privateLoggerAction;
-        pln = privateLoggerActionName;
-      } else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
-        plf = privateLoggerError;
-        pln = privateLoggerErrorName;
-      } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ?
-            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
-        plf = privateLoggerDebug;
-        pln = privateLoggerDebugName;
-      } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ?
-            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
-        plf = privateLoggerUser;
-        pln = privateLoggerUserName;
-      }
-      if (!pln.isEmpty()) {
-        String msg = null;
-        if (args == null || args.length == 0) {
-          msg = prefix + message;
-        } else {
-          msg = String.format(prefix + message, args);
-        }
-        if (isJython) {
-          success = JythonSupport.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
-        } else if (isJRuby) {
-          success = false;
-        } else {
-          try {
-            plf.invoke(privateLogger,
-                new Object[]{msg});
-            return true;
-          } catch (Exception e) {
-            error = ": " + e.getMessage();
-            success = false;
-          }
-        }
-        if (!success) {
-          Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
-          if (type == CallbackType.INFO) {
-            privateLoggerInfoName = "";
-          } else if (type == CallbackType.ACTION) {
-            privateLoggerActionName = "";
-          } else if (type == CallbackType.ERROR) {
-            privateLoggerErrorName = "";
-          } else if (type == CallbackType.DEBUG) {
-            privateLoggerDebugName = "";
-          } else if (type == CallbackType.USER) {
-            privateLoggerUserName = "";
-          }
-        }
-      }
-    }
-    return success;
-  }
 
   /**
    * Sikuli messages from actions like click, ...<br> switch on/off: Settings.ActionLogs

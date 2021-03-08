@@ -4,12 +4,11 @@
 
 package org.sikuli.script.runners;
 
-import org.apache.commons.io.FileUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.ExtensionManager;
 import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.ProcessRunner;
 
 import java.io.File;
 import java.io.PrintStream;
