@@ -128,7 +128,7 @@ public class RunTime {
     String classPath = ExtensionManager.makeClassPath(runningJar);
     if (runningJar.getName().endsWith(".jar")) {
       FileManager.writeStringToFile(runningJar.getAbsolutePath(),
-          new File(Commons.getAppDataPath(), "SikulixStore/lastUsedJar.txt"));
+          new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
     } else {
       return;
     }
@@ -1397,7 +1397,8 @@ public class RunTime {
 */
 
     if (runningWindows) {
-      addToWindowsSystemPath(fLibsFolder);
+//TODO addToWindowsSystemPath needed?
+//      addToWindowsSystemPath(fLibsFolder);
 //TODO: Windows: Java Classloader::usr_paths needed for libs access?
 //      if (!checkJavaUsrPath(fLibsFolder)) {
 //        log(-1, "Problems setting up on Windows - see errors - might not work and crash later");
@@ -2335,6 +2336,7 @@ public class RunTime {
       }
     } catch (Exception ex) {
       log(-1, "doResourceListJar: %s", ex);
+      ex.printStackTrace();
       return files;
     }
     return files;
