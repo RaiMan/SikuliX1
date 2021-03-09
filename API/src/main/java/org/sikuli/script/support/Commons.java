@@ -837,7 +837,7 @@ public class Commons {
       Class<?> classJySup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
       returnJySup = runFunctionScriptingSupport(classJySup, function, args);
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
+      RunTime.terminate();
     }
     return returnJySup;
   }
@@ -854,18 +854,16 @@ public class Commons {
   }
 
   private static Object runFunctionScriptingSupport(Class classSup, String function, Object[] args) {
-    Object returnJySup = null;
+    Object returnSup = null;
     try {
-      Object instanceJySup = classSup.getMethod("get", null).invoke(null, null);
-      Method method = classSup.getMethod(function, Object[].class);
-      returnJySup = method.invoke(instanceJySup, args);
+      Object instanceSup = classSup.getMethod("get", null).invoke(null, null);
+      Method method = classSup.getMethod(function, new Class[] { Object[].class });
+      returnSup = method.invoke(instanceSup, (Object)args);
     } catch (NoSuchMethodException e) {
-      e.printStackTrace();
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
     } catch (InvocationTargetException e) {
-      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
     }
-    return returnJySup;
+    return returnSup;
   }
 }
