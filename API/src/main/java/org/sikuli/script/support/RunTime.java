@@ -1542,7 +1542,7 @@ public class RunTime {
       if (isJythonReady) {
         int saveLvl = Debug.getDebugLevel();
         Debug.setDebugLevel(lvl);
-        Commons.runFunctionJythonSupport("showSysPath", null);
+        Commons.runFunctionScriptingSupport("showSysPath", null);
         Screen.showMonitors();
         Debug.setDebugLevel(saveLvl);
       }

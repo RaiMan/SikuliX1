@@ -31,8 +31,6 @@ public class ObserverCallBack implements EventListener {
 
   private Object callback = null;
   private String scriptRunnerType = null;
-  private String JRUBY = "jruby";
-  private String JYTHON = "jython";
 
   /**
    * setup a callback to be used on the Java API level
@@ -59,14 +57,7 @@ public class ObserverCallBack implements EventListener {
   public ObserverCallBack(Object callback, ObserveEvent.Type obsType) {
     this.callback = callback;
     this.obsType = obsType;
-    if (callback.getClass().getName().contains("org.python")) {
-      scriptRunnerType = JYTHON;
-    } else if (callback.getClass().getName().contains("org.jruby")) {
-      scriptRunnerType = JRUBY;
-    } else {
-      Debug.error("ObserverCallBack: %s init: ScriptRunner not available for class %s", obsType,
-              callback.getClass().getName());
-    }
+    scriptRunnerType = callback.getClass().getName();
   }
 
   /**
@@ -148,24 +139,12 @@ public class ObserverCallBack implements EventListener {
   }
 
   private void run(ObserveEvent e) {
-    boolean success = true;
     Object[] args = new Object[]{callback, e};
     if (scriptRunnerType != null) {
-      success = runObserveCallback(scriptRunnerType, args);
-      if (!success) {
+      if (!(Boolean) Commons.runFunctionScriptingSupport(scriptRunnerType, "runObserveCallback", args)) {
         Debug.error("ObserverCallBack: problem with scripting handler: %s\n%s",
                 scriptRunnerType, callback.getClass().getName());
       }
     }
-  }
-
-  private boolean runObserveCallback(String type, Object[] args) {
-    if (JYTHON.equals(type)) {
-      return (Boolean) Commons.runFunctionJythonSupport("runObserveCallback", args);
-    }
-    if (JRUBY.equals(type)) {
-      return (Boolean) Commons.runFunctionJRubySupport("runObserveCallback", args);
-    }
-    return false;
   }
 }

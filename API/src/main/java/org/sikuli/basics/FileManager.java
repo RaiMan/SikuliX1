@@ -1304,7 +1304,7 @@ public class FileManager {
       xcopy(scriptFolder, fScriptSource, skipCompiled);
     }
 
-    Commons.runFunctionJythonSupport("compileJythonFolder",
+    Commons.runFunctionScriptingSupport("compileJythonFolder",
         new Object[]{fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath()});
     FileManager.xcopy(fScriptCompiled, fSikulixTemp);
     FileManager.deleteFileOrFolder(fScriptSource);

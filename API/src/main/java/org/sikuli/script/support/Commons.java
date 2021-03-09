@@ -831,16 +831,8 @@ public class Commons {
   }
   //</editor-fold>
 
-  public static Object runFunctionJythonSupport(String function, Object[] args) {
-    Object returnJySup = null;
-    try {
-      Class<?> classJySup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
-      returnJySup = runFunctionScriptingSupport(classJySup, function, args);
-    } catch (ClassNotFoundException e) {
-      RunTime.terminate(999, "JythonSupport: runFunctionJythonSupport(%s, args): %s",
-              function, e.getMessage());
-    }
-    return returnJySup;
+  public static Object runFunctionScriptingSupport(String function, Object[] args) {
+    return runFunctionScriptingSupport(null, function, args);
   }
 
   public static Object runFunctionJRubySupport(String function, Object[] args) {
@@ -849,22 +841,47 @@ public class Commons {
       Class<?> classJRSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
       returnJRSup = runFunctionScriptingSupport(classJRSup, function, args);
     } catch (ClassNotFoundException e) {
-      RunTime.terminate(999, "JRubySupport: runFunctionJythonSupport(%s, args): %s",
+      RunTime.terminate(999, "JRubySupport: runFunctionJRubySupport(%s, args): %s",
               function, e.getMessage());
     }
     return returnJRSup;
   }
 
-  private static Object runFunctionScriptingSupport(Class classSup, String function, Object[] args) {
+  public static Object runFunctionScriptingSupport(Object reference, String function, Object[] args) {
+    Class<?> classSup = null;
+    if (reference == null || (reference instanceof String && ((String) reference).contains("org.python"))) {
+      try {
+        classSup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
+      } catch (ClassNotFoundException e) {
+        RunTime.terminate(999, "Commons: JythonSupport: %s", e.getMessage());
+      }
+    } else if (reference instanceof String && ((String) reference).contains("org.jruby")){
+      try {
+        classSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
+      } catch (ClassNotFoundException e) {
+        RunTime.terminate(999, "Commons: JRubySupport: %s", e.getMessage());
+      }
+    } else {
+      RunTime.terminate(999, "Commons: ScriptingSupport: not supported: %s", reference);
+    }
     Object returnSup = null;
+    String error = "returns null";
     try {
       Object instanceSup = classSup.getMethod("get", null).invoke(null, null);
       Method method = classSup.getMethod(function, new Class[] { Object[].class });
       returnSup = method.invoke(instanceSup, (Object)args);
     } catch (NoSuchMethodException e) {
+      error = e.toString();
     } catch (IllegalAccessException e) {
+      error = e.toString();
     } catch (InvocationTargetException e) {
+      error = e.toString();
     } catch (IllegalArgumentException e) {
+      error = e.toString();
+    }
+    if (null == returnSup) {
+      RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, args): %s",
+          reference, function, error);
     }
     return returnSup;
   }

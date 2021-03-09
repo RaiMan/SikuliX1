@@ -342,7 +342,7 @@ public class Debug {
 		}
 		if (isJython) {
 			Object[] args = new Object[]{privateLogger, mName, type.toString()};
-			Object checkCallback = Commons.runFunctionJythonSupport("checkCallback", args);
+			Object checkCallback = Commons.runFunctionScriptingSupport("checkCallback", args);
 			if (checkCallback == null || !((Boolean)checkCallback)) {
 				logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
 				return false;
@@ -425,7 +425,8 @@ public class Debug {
 					msg = String.format(prefix + message, args);
 				}
 				if (isJython) {
-					Object runLoggerCallback = Commons.runFunctionJythonSupport("runLoggerCallback", new Object[]{privateLogger, pln, msg});
+					Object runLoggerCallback = Commons.runFunctionScriptingSupport("runLoggerCallback",
+							new Object[]{privateLogger, pln, msg});
 					success = runLoggerCallback != null && (Boolean)runLoggerCallback;
 				} else if (isJRuby) {
 					success = false;
