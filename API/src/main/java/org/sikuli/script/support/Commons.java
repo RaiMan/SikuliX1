@@ -837,7 +837,8 @@ public class Commons {
       Class<?> classJySup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
       returnJySup = runFunctionScriptingSupport(classJySup, function, args);
     } catch (ClassNotFoundException e) {
-      RunTime.terminate();
+      RunTime.terminate(999, "JythonSupport: runFunctionJythonSupport(%s, args): %s",
+              function, e.getMessage());
     }
     return returnJySup;
   }
@@ -848,7 +849,8 @@ public class Commons {
       Class<?> classJRSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
       returnJRSup = runFunctionScriptingSupport(classJRSup, function, args);
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
+      RunTime.terminate(999, "JRubySupport: runFunctionJythonSupport(%s, args): %s",
+              function, e.getMessage());
     }
     return returnJRSup;
   }

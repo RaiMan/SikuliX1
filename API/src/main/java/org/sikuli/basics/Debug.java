@@ -343,7 +343,7 @@ public class Debug {
 		if (isJython) {
 			Object[] args = new Object[]{privateLogger, mName, type.toString()};
 			Object checkCallback = Commons.runFunctionJythonSupport("checkCallback", args);
-			if (checkCallback != null && !((Boolean)checkCallback)) {
+			if (checkCallback == null || !((Boolean)checkCallback)) {
 				logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
 				return false;
 			}
