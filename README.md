@@ -1,4 +1,5 @@
-[![RaiMan's Stuff](https://raw.github.com/RaiMan/SikuliX-2014-Docs/master/src/main/resources/docs/source/RaiManStuff64.png)](http://sikulix.com) SikuliX
+
+
 ============
 
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
