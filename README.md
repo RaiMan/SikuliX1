@@ -1,4 +1,6 @@
-<img src="https://github.com/RaiMan/SikuliX1/blob/master/sikulix-red.png" alt="SikuliX" width="400">
+<img src="https://github.com/RaiMan/SikuliX1/blob/master/sikulix-red.png" alt="SikuliX" width="500">
+
+Great thanks for the new logo [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
 ---
 
