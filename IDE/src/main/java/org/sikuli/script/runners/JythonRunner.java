@@ -104,9 +104,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   }
 
   private void initAbort() {
-    jythonSupport.interpreterExecString("runner = Runner.getRunner(\"" + NAME + "\")\n"
+    jythonSupport.interpreterExecString("sx_runner_sx = Runner.getRunner(\"" + NAME + "\")\n"
                                       + "def trace_calls_for_abort(frame, evt, arg):\n"
-                                      + "  if runner.isAborted():\n"
+                                      + "  if sx_runner_sx.isAborted():\n"
                                       + "    raise RuntimeError(\"Aborted\")\n"
                                       + "  return trace_calls_for_abort\n"
                                       + "sys.settrace(trace_calls_for_abort)");
