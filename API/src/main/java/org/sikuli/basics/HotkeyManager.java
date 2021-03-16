@@ -5,6 +5,7 @@ package org.sikuli.basics;
 
 import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.event.KeyEvent;
@@ -32,7 +33,7 @@ public abstract class HotkeyManager {
   public static HotkeyManager getInstance() {
     if (_instance == null) {
       runTime = RunTime.get();
-      if (runTime.runningWindows || runTime.runningMac) {
+      if (Commons.runningWindows() || Commons.runningMac()) {
         _instance = new GenericHotkeyManager();
       } else {
         String cls = getOSHotkeyManagerClass();

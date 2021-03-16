@@ -7,6 +7,7 @@ package org.sikuli.script.support;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.Options;
 import org.sikuli.script.SikuliXception;
 
 import java.io.*;
@@ -14,7 +15,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.security.CodeSource;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -192,6 +195,32 @@ public class Commons {
     }
     return dirURL;
   }
+
+  public static File getRunningJar(Type type) {
+    File jarFile = null;
+    String jarName = "notKnown";
+    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
+    if (Type.IDE.equals(type)) {
+      try {
+        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+        codeSrc = cIDE.getProtectionDomain().getCodeSource();
+      } catch (ClassNotFoundException e) {
+        RunTime.startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
+        System.exit(1);
+      }
+    }
+    if (codeSrc != null && codeSrc.getLocation() != null) {
+      try {
+        jarName = codeSrc.getLocation().getPath();
+        jarName = URLDecoder.decode(jarName, "utf8");
+      } catch (UnsupportedEncodingException e) {
+        RunTime.startLog(-1, "URLDecoder: not possible: %s", jarName);
+        System.exit(1);
+      }
+      jarFile = new File(jarName);
+    }
+    return jarFile;
+  }
   //</editor-fold>
 
   public enum Type {
@@ -292,12 +321,19 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="06 version infos">
+  private static String SYSWIN = "windows";
+  private static String SYSMAC = "mac";
+  private static String SYSLUX = "linux";
+
+  public static String getSysName() {
+    return runningWindows() ? SYSWIN : (runningMac() ? SYSMAC : SYSLUX);
+  }
   public static boolean runningWindows() {
-    return osName.startsWith("windows");
+    return osName.startsWith(SYSWIN);
   }
 
   public static boolean runningMac() {
-    return osName.startsWith("mac");
+    return osName.startsWith(SYSMAC);
   }
 
   public static boolean runningLinux() {
@@ -393,6 +429,27 @@ public class Commons {
 
   public static boolean isJava8() {
     return 8 == getJavaVersion();
+  }
+
+  public static String getSystemInfo() {
+    return String.format("%s/%s/Java %s", getSXVersionLong(), getOSInfo(), Commons.getJavaVersion());
+  }
+
+  public void getStatus() {
+    System.out.println("***** System Information Dump *****");
+    System.out.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
+    System.getProperties().list(System.out);
+    System.out.println("*** System Environment");
+    for (String key : System.getenv().keySet()) {
+      System.out.println(String.format("%s = %s", key, System.getenv(key)));
+    }
+    System.out.println("*** Java Class Path");
+    URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+    URL[] urls = sysLoader.getURLs();
+    for (int i = 0; i < urls.length; i++) {
+      System.out.println(String.format("%d: %s", i, urls[i]));
+    }
+    System.out.println("***** System Information Dump ***** end *****");
   }
   //</editor-fold>
 
@@ -831,20 +888,21 @@ public class Commons {
   }
   //</editor-fold>
 
-  public static Object runFunctionScriptingSupport(String function, Object[] args) {
-    return runFunctionScriptingSupport(null, function, args);
+  //<editor-fold desc="30 Options handling">
+  public static Options getOptions() {
+    return sxOptions;
   }
 
-  public static Object runFunctionJRubySupport(String function, Object[] args) {
-    Object returnJRSup = null;
-    try {
-      Class<?> classJRSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
-      returnJRSup = runFunctionScriptingSupport(classJRSup, function, args);
-    } catch (ClassNotFoundException e) {
-      RunTime.terminate(999, "JRubySupport: runFunctionJRubySupport(%s, args): %s",
-              function, e.getMessage());
-    }
-    return returnJRSup;
+  public static void setOptions(Options options) {
+    sxOptions = options;
+  }
+
+  private static Options sxOptions = null;
+  //</editor-fold>
+
+
+  public static Object runFunctionScriptingSupport(String function, Object[] args) {
+    return runFunctionScriptingSupport(null, function, args);
   }
 
   public static Object runFunctionScriptingSupport(Object reference, String function, Object[] args) {

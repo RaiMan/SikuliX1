@@ -6,8 +6,10 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
+import org.sikuli.script.support.SikulixEvaluate;
 import org.sikuli.vnc.VNCScreen;
 
 import javax.swing.*;
@@ -21,6 +23,18 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
     System.setProperty("sikuli.API_should_run", "develop");
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      System.out.println(Commons.getSxBuildStamp());
+      System.exit(0);
+    }
+
+//TODO place to test something in the API context
+    if (args.length == 1 && "test".equals(args[0])) {
+
+      SikulixEvaluate.test();
+
+      System.exit(0);
+    }
     SikulixAPI.main(args);
   }
 

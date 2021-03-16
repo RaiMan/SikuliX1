@@ -55,7 +55,12 @@ public enum CommandArgsEnum {
 	/**
 	 * allow multiple IDE
 	 */
-	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed");
+	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed"),
+
+	/**
+	 * allow multiple IDE
+	 */
+	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", true);
 
 	/**
 	 * Longname of the parameter

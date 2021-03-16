@@ -9,7 +9,6 @@ import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.*;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.*;
-import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
@@ -84,185 +83,12 @@ public class RunTime {
 
   private static boolean asPythonServer = false;
 
-  public static boolean shouldRunPythonServer() {
+  protected static boolean shouldRunPythonServer() {
     return asPythonServer;
   }
 
   //<editor-fold desc="01 startup">
-  public static void startAPI() {
-    RunTime.get(Commons.Type.API);
-  }
-
-  public static void startAPI(String appPath) {
-    File path = Commons.setAppDataPath(appPath);
-    fTempPath = new File(path, "Temp");
-    startAPI();
-  }
-
-  public static void start(Commons.Type type, String[] args) {
-    if (Commons.Type.API.equals(type)) {
-      startAsIDE = false;
-      if (args.length == 1 && "buildDate".equals(args[0])) {
-        System.out.println(Commons.getSxBuildStamp());
-        System.exit(0);
-      }
-
-//TODO place to test something in the API context
-      if (args.length == 1 && "test".equals(args[0])) {
-
-        SikulixEvaluate.test();
-
-        System.exit(0);
-      }
-    }
-
-    List<String> finalArgs = evalArgsStart(args);
-
-    if (shouldRunPythonServer()) {
-      SikulixAPI.runPy4jServer();
-    }
-
-    File runningJar = getRunningJar(type);
-    RunTime.startLog(1, "Running: %s", runningJar);
-
-    File fAppData = Commons.getAppDataPath();
-    RunTime.startLog(1, "AppData: %s", fAppData);
-
-    String classPath = ExtensionManager.makeClassPath(runningJar);
-    if (runningJar.getName().endsWith(".jar")) {
-      FileManager.writeStringToFile(runningJar.getAbsolutePath(),
-          new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
-    } else {
-      return;
-    }
-
-    List<String> cmd = new ArrayList<>();
-    System.getProperty("java.home");
-    if (get().runningWindows) {
-      cmd.add(System.getProperty("java.home") + "\\bin\\java.exe");
-    } else {
-      cmd.add(System.getProperty("java.home") + "/bin/java");
-    }
-    if (get().isJava9()) {
-      /*
-      Suppress Java 9+ warnings
-      --add-opens
-      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
-      --add-opens
-      java.base/sun.nio.ch=ALL-UNNAMED
-      --add-opens
-      java.base/java.io=ALL-UNNAMED
-      -Dnashorn.args=--no-deprecation-warning
-      */
-      cmd.add("--add-opens");
-      cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
-      cmd.add("--add-opens");
-      cmd.add("java.base/sun.nio.ch=ALL-UNNAMED");
-      cmd.add("--add-opens");
-      cmd.add("java.base/java.io=ALL-UNNAMED");
-    }
-
-    cmd.add("-Dfile.encoding=UTF-8");
-    if (startAsIDE) {
-      cmd.add("-Dsikuli.IDE_should_run");
-    } else {
-      cmd.add("-Dsikuli.API_should_run");
-    }
-    if (!classPath.isEmpty()) {
-      cmd.add("-cp");
-      cmd.add(classPath);
-    }
-    if (startAsIDE) {
-      cmd.add("org.sikuli.ide.SikulixIDE");
-    } else {
-      cmd.add("org.sikuli.script.support.SikulixAPI");
-    }
-    cmd.addAll(finalArgs);
-
-    RunTime.startLog(3, "*********************** leaving start");
-    //TODO detach IDE: for what does it make sense?
-/*
-    if (shouldDetach()) {
-      ProcessRunner.detach(cmd);
-      System.exit(0);
-    } else {
-      int exitCode = ProcessRunner.runBlocking(cmd);
-      System.exit(exitCode);
-    }
-*/
-    int exitCode = ProcessRunner.runBlocking(cmd);
-    System.exit(exitCode);
-  }
-
-  public static void afterStart(Commons.Type type, String[] args) {
-    String startType = "IDE";
-    if (Commons.Type.IDE.equals(type)) {
-      if (null == System.getProperty("sikuli.IDE_should_run")) {
-        System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
-        System.exit(1);
-      }
-    } else {
-      if (null == System.getProperty("sikuli.API_should_run")) {
-        System.out.println("[ERROR] org.sikuli.script.SikulixAPI: unauthorized use. Use: org.sikuli.script.Sikulix");
-        System.exit(1);
-      }
-      startType = "API";
-    }
-
-    evalArgsStart(args);
-    Debug.log(3, "Sikulix: starting " + startType);
-    evalArgs(args);
-
-    if ("API".equals(startType)) {
-      return;
-    }
-
-    ExtensionManager.readExtensions(true);
-
-    if (isQuiet()) {
-      Debug.quietOn();
-    } else if (isVerbose()) {
-      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
-      Debug.setGlobalDebug(3);
-      Debug.globalTraceOn();
-      Debug.setStartWithTrace();
-    }
-
-    if (!getLogFile().isEmpty()) {
-      Debug.setLogFile(getLogFile());
-    }
-
-    if (!getUserLogFile().isEmpty()) {
-      Debug.setUserLogFile(getUserLogFile());
-    }
-
-//TODO simplify, when SikulixServer is implemented
-    if (shouldRunServer()) {
-      Class cServer = null;
-      try {
-        cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
-        cServer.getMethod("run").invoke(null);
-        terminate();
-      } catch (ClassNotFoundException e) {
-      } catch (NoSuchMethodException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      }
-      try {
-        cServer = Class.forName("org.sikuli.script.support.SikulixServer");
-        if (!(Boolean) cServer.getMethod("run").invoke(null)) {
-          terminate(1, "SikulixServer: terminated with errors");
-        }
-      } catch (ClassNotFoundException e) {
-      } catch (IllegalAccessException e) {
-      } catch (InvocationTargetException e) {
-      } catch (NoSuchMethodException e) {
-      }
-      terminate();
-    }
-  }
-
-  private static List<String> evalArgsStart(String[] args) {
+  public static List<String> evalArgsStart(String[] args) {
     List<String> finalArgs = new ArrayList<>();
     for (String arg : args) {
       if ("-v".equals(arg)) {
@@ -273,8 +99,6 @@ public class RunTime {
         shouldRunScript = true;
       } else if ("-s".equals(arg)) {
         asServer = true;
-      } else if ("-p".equals(arg)) {
-        asPythonServer = true;
       }
       finalArgs.add(arg);
     }
@@ -360,32 +184,6 @@ public class RunTime {
     }
   }
   //</editor-fold>
-
-  private static File getRunningJar(Commons.Type type) {
-    File jarFile = null;
-    String jarName = "notKnown";
-    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
-    if (Commons.Type.IDE.equals(type)) {
-      try {
-        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-        codeSrc = cIDE.getProtectionDomain().getCodeSource();
-      } catch (ClassNotFoundException e) {
-        startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
-        System.exit(1);
-      }
-    }
-    if (codeSrc != null && codeSrc.getLocation() != null) {
-      try {
-        jarName = codeSrc.getLocation().getPath();
-        jarName = URLDecoder.decode(jarName, "utf8");
-      } catch (UnsupportedEncodingException e) {
-        startLog(-1, "URLDecoder: not possible: %s", jarName);
-        System.exit(1);
-      }
-      jarFile = new File(jarName);
-    }
-    return jarFile;
-  }
 
   private static String[] userArgs = new String[0];
   private static String[] sxArgs = new String[0];
@@ -551,19 +349,14 @@ public class RunTime {
 
   public RunType runningAs = RunType.OTHER;
 
-  private static Options sxOptions = null;
-
   private static boolean isTerminating = false;
   private static boolean hasDoneCleanUpTerminating = false;
 
   public static String appDataMsg = "";
 
   public static boolean testing = false;
-  public static boolean testingWinApp = false;
 
   public Commons.Type runType = Commons.Type.INIT;
-
-  public String jreVersion = java.lang.System.getProperty("java.runtime.version");
 
   private Class clsRef = RunTime.class;
 
@@ -578,14 +371,11 @@ public class RunTime {
   boolean areLibsExported = false;
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
 
-  public File fAppPath = null;
   public File fSikulixAppPath = null;
   public File fSikulixExtensions = null;
-  public String[] standardExtensions = new String[]{"selenium4sikulix"};
   public File fSikulixLib = null;
   public File fSikulixStore;
   public File fSikulixDownloadsGeneric = null;
-  public File fSikulixDownloadsBuild = null;
   public File fSikulixSetup;
 
   public File fSxBase = null;
@@ -600,28 +390,15 @@ public class RunTime {
   public boolean runningWindows = false;
   public boolean runningMac = false;
   public boolean runningLinux = false;
-  //private theSystem runningOn = theSystem.FOO;
   private final String osNameSysProp = System.getProperty("os.name");
   private final String osVersionSysProp = System.getProperty("os.version");
-  public String javaShow = "not-set";
   public int javaArch = 64;
-  public String osArch = "64";
-  public int javaVersion = 0;
-  public File javahome = new File(System.getProperty("java.home"));
-  public String osName = "NotKnown";
-  public String sysName = "NotKnown";
   public String osVersion = "";
   private String appType = null;
   public String linuxDistro = "???LINUX???";
 
   public String SXVersion = "";
   public String SXVersionLong;
-  public String SXVersionShort;
-
-  public String SXSystemVersion;
-  public String SXJavaVersion;
-
-  public String[] ServerList = {};
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
@@ -655,12 +432,6 @@ public class RunTime {
     return refTime < obsolete;
   }
 
-  static boolean optTesting = false;
-
-  public boolean isTesting() {
-    return optTesting;
-  }
-
   public static synchronized RunTime get(Commons.Type typ) {
     if (runTime != null) {
       return runTime;
@@ -669,35 +440,22 @@ public class RunTime {
 
     //<editor-fold defaultstate="collapsed" desc="versions">
     runTime.osVersion = runTime.osVersionSysProp;
-    String os = runTime.osNameSysProp.toLowerCase();
-    if (os.startsWith("windows")) {
-      runTime.sysName = "windows";
-      runTime.osName = "Windows";
-      runTime.runningWindows = true;
+
+    if (Commons.runningWindows()) {
       runTime.NL = "\r\n";
-    } else if (os.startsWith("mac")) {
-      runTime.sysName = "mac";
-      runTime.osName = "Mac OSX";
-      runTime.runningMac = true;
-    } else if (os.startsWith("linux")) {
-      runTime.sysName = "linux";
-      runTime.osName = "Linux";
-      runTime.runningLinux = true;
-    } else {
-      // Presume Unix -- pretend to be Linux
-      runTime.sysName = os;
-      runTime.osName = runTime.osNameSysProp;
-      runTime.runningLinux = true;
-      runTime.linuxDistro = runTime.osNameSysProp;
     }
-    runTime.fpJarLibs += runTime.sysName + "/libs" + runTime.javaArch;
+
+    runTime.fpJarLibs += Commons.getSysName() + "/libs";
     runTime.fpSysLibs = runTime.fpJarLibs.substring(1);
 
     runTime.fSikulixAppPath = Commons.getAppDataPath();
     runTime.fSikulixStore = Commons.getAppDataStore();
     //</editor-fold>
 
-    sxOptions = Options.init(runTime);
+    Commons.setOptions(Options.init(runTime));
+
+//TODO Options: testing ??
+/*
     optTesting = sxOptions.isOption("testing", false);
     if (optTesting) {
       Debug.info("Options: testing = on");
@@ -708,6 +466,7 @@ public class RunTime {
       Debug.info("Options: Debug.level = %d", optDebugLevel);
       Debug.on(optDebugLevel);
     }
+*/
 
     Settings.init(runTime); // force Settings initialization
 
@@ -765,10 +524,6 @@ public class RunTime {
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
   private void init(Commons.Type typ) {
-    if ("winapp".equals(sxOptions.getOption("testing"))) {
-      log(lvl, "***** for testing: simulating WinApp");
-      testingWinApp = true;
-    }
     for (String line : preLogMessages.split(";")) {
       if (!line.isEmpty()) {
         log(lvl, line);
@@ -1046,16 +801,6 @@ public class RunTime {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="13 Sikulix options handling">
-  public String getOption(String oName) {
-    return sxOptions.getOption(oName);
-  }
-
-  public Options options() {
-    return sxOptions;
-  }
-  //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="11 libs export">
   private boolean libsLoad(String libName) {
     log(lvl, "loadlib: trying %s", libName);
@@ -1067,7 +812,7 @@ public class RunTime {
       throw new SikuliXception("loadLib: deferred exporting of libs did not work");
     }
     File fLibsFolderUsed = fLibsFolder;
-    if (runningWindows) {
+    if (Commons.runningWindows()) {
       libName += ".dll";
     } else if (runningMac) {
       libName = "lib" + libName + ".dylib";
@@ -1201,7 +946,7 @@ public class RunTime {
         } else {
           inFile = new File(fpJarLibs, aFile).getPath();
         }
-        if (runningWindows) {
+        if (Commons.runningWindows()) {
           inFile = inFile.replace("\\", "/");
         }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
@@ -1231,7 +976,7 @@ public class RunTime {
       }
 */
 
-    if (runningWindows) {
+    if (Commons.runningWindows()) {
 //TODO addToWindowsSystemPath needed?
 //      addToWindowsSystemPath(fLibsFolder);
 //TODO: Windows: Java Classloader::usr_paths needed for libs access?
@@ -1524,8 +1269,8 @@ public class RunTime {
    * print out some basic information about the current runtime environment
    */
   public void show() {
-    if (sxOptions.hasOptions()) {
-      sxOptions.dumpOptions();
+    if (Commons.getOptions().hasOptions()) {
+      Commons.getOptions().dumpOptions();
     }
     logp("***** show environment for %s %s", Commons.getSXVersion(), runType);
     logp("user.home: %s", Commons.getUserHome());
@@ -1561,10 +1306,6 @@ public class RunTime {
     return Commons.getSXVersionShort();
   }
 
-  public String getSystemInfo() {
-    return String.format("%s/%s/%s", SXVersionLong, SXSystemVersion, SXJavaVersion);
-  }
-
   public boolean isVersionRelease() {
     return !SXVersion.endsWith("-SNAPSHOT");
   }
@@ -1572,24 +1313,7 @@ public class RunTime {
   public String getVersion() {
     return SXVersion;
   }
-
-  public void getStatus() {
-    System.out.println("***** System Information Dump *****");
-    System.out.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
-    System.getProperties().list(System.out);
-    System.out.println("*** System Environment");
-    for (String key : System.getenv().keySet()) {
-      System.out.println(String.format("%s = %s", key, System.getenv(key)));
-    }
-    System.out.println("*** Java Class Path");
-    URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-    URL[] urls = sysLoader.getURLs();
-    for (int i = 0; i < urls.length; i++) {
-      System.out.println(String.format("%d: %s", i, urls[i]));
-    }
-    System.out.println("***** System Information Dump ***** end *****");
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold desc="16 get resources NEW">
   public List<String> getResourceList(String res) {
@@ -1605,7 +1329,7 @@ public class RunTime {
     InputStream aIS = null;
     String content = null;
     res = new File(res, "sikulixcontent").getPath();
-    if (runningWindows) {
+    if (Commons.runningWindows()) {
       res = res.replace("\\", "/");
     }
     if (!res.startsWith("/")) {
@@ -1769,7 +1493,7 @@ public class RunTime {
     FileOutputStream aFileOS;
     String content = inPrefix + "/" + inFile;
     try {
-      content = runningWindows ? content.replace("\\", "/") : content;
+      content = Commons.runningWindows() ? content.replace("\\", "/") : content;
       if (!content.startsWith("/")) {
         content = "/" + content;
       }
@@ -1812,7 +1536,7 @@ public class RunTime {
       content = "/" + content;
     }
     try {
-      content = runningWindows ? content.replace("\\", "/") : content;
+      content = Commons.runningWindows() ? content.replace("\\", "/") : content;
       aIS = (InputStream) clsRef.getResourceAsStream(content);
       if (aIS == null) {
         throw new IOException("resource not accessible");

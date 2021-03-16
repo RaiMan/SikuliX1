@@ -11,6 +11,7 @@ import org.sikuli.idesupport.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
@@ -31,6 +32,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -48,13 +50,65 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-  static RunTime runTime;
+//  static RunTime runTime;
 
   static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
       SikulixIDE.class.getResource("/icons/sikulix.png"));
 
   public static void main(String[] args) {
-    RunTime.afterStart(Commons.Type.IDE, args);
+    if (null == System.getProperty("sikuli.IDE_should_run")) {
+      System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
+      System.exit(1);
+    }
+
+//    runTime = RunTime.get(Commons.Type.IDE);
+    RunTime.evalArgsStart(args);
+    Debug.log(3, "Sikulix: starting IDE");
+    RunTime.evalArgs(args);
+
+    ExtensionManager.readExtensions(true);
+
+    if (RunTime.isQuiet()) {
+      Debug.quietOn();
+    } else if (RunTime.isVerbose()) {
+      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
+      Debug.setGlobalDebug(3);
+      Debug.globalTraceOn();
+      Debug.setStartWithTrace();
+    }
+
+    if (!RunTime.getLogFile().isEmpty()) {
+      Debug.setLogFile(RunTime.getLogFile());
+    }
+
+    if (!RunTime.getUserLogFile().isEmpty()) {
+      Debug.setUserLogFile(RunTime.getUserLogFile());
+    }
+
+//TODO simplify, when SikulixServer is implemented
+    if (RunTime.shouldRunServer()) {
+      Class cServer = null;
+      try {
+        cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
+        cServer.getMethod("run").invoke(null);
+        RunTime.terminate();
+      } catch (ClassNotFoundException e) {
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      }
+      try {
+        cServer = Class.forName("org.sikuli.script.support.SikulixServer");
+        if (!(Boolean) cServer.getMethod("run").invoke(null)) {
+          RunTime.terminate(1, "SikulixServer: terminated with errors");
+        }
+      } catch (ClassNotFoundException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (NoSuchMethodException e) {
+      }
+      RunTime.terminate();
+    }
 
     if (RunTime.runningScripts()) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
@@ -77,7 +131,6 @@ public class SikulixIDE extends JFrame {
     if ("m".equalsIgnoreCase(System.getProperty("os.name").substring(0, 1))) {
       prepareMacUI();
     }
-    runTime = RunTime.get(Commons.Type.IDE);
 
     IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
 
@@ -274,9 +327,6 @@ public class SikulixIDE extends JFrame {
     Debug.log(3, "IDE: creating tabbed editor");
     initTabs();
     Debug.log(3, "IDE: creating message area");
-    if (runTime.isTesting()) {
-      System.setProperty("sikuli.console", "false");
-    }
     initMessageArea();
     Debug.log(3, "IDE: creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
@@ -341,7 +391,7 @@ public class SikulixIDE extends JFrame {
     }
 
     String j9Message = "";
-    if (runTime.isJava9()) {
+    if (!Commons.isJava8()) {
       j9Message = "*** Running on Java 9+";
     }
     Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0, j9Message);
@@ -862,7 +912,7 @@ public class SikulixIDE extends JFrame {
   public void showAbout() {
     //TODO full featured About
     String info = "You are running " + Commons.getSXVersionIDE()
-        + "\nUsing Java version " + runTime.jreVersion
+        + "\nUsing Java version " + Commons.getJavaVersion()
         + "\n\nNeed help? -> start with Help Menu\n\n"
         + "*** Have fun ;-)\n\n"
         + "Tsung-Hsiang Chang aka vgod\n"
@@ -883,7 +933,7 @@ public class SikulixIDE extends JFrame {
   void openSpecial() {
     log(lvl, "Open Special requested");
     Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Global Options", runTime.options().getOptionsFile());
+    specialFiles.put("1 SikuliX Global Options", Commons.getOptions().getOptionsFile());
     File extensionsFile = ExtensionManager.getExtensionsFile();
     specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
     File sitesTxt = ExtensionManager.getSitesTxt();
@@ -1775,7 +1825,7 @@ public class SikulixIDE extends JFrame {
       return;
     }
     if (ideJarName.endsWith("/classes/")) {
-      String version = runTime.getVersionShort();
+      String version = Commons.getSXVersionShort();
       String name = "sikulixide-" + version + "-complete.jar";
       ideJarName = new File(new File(ideJarName).getParentFile(), name).getAbsolutePath();
     }
@@ -1786,7 +1836,7 @@ public class SikulixIDE extends JFrame {
       log(-1, "makeJarWithJython: Jar containing Jython not available");
       return;
     }
-    String targetJar = new File(runTime.fSikulixStore, "sikulixjython.jar").getAbsolutePath();
+    String targetJar = new File(Commons.getAppDataStore(), "sikulixjython.jar").getAbsolutePath();
     String[] jars = new String[]{ideJarName, jythonJarName};
     SikulixIDE.getStatusbar().setMessage(String.format("Creating SikuliX with Jython: %s", targetJar));
     if (FileManager.buildJar(targetJar, jars, null, null, null)) {
@@ -1995,7 +2045,7 @@ public class SikulixIDE extends JFrame {
     }
 
     private void askBugOrAnswer(String msg, String title, String url) {
-      String si = runTime.getSystemInfo();
+      String si = Commons.getSystemInfo();
       System.out.println(si);
       msg = String.format(msg, si);
       if (Sikulix.popAsk(msg, title)) {
