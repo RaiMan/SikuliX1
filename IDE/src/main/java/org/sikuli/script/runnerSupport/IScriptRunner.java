@@ -1,11 +1,10 @@
 /*
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.script.support;
+package org.sikuli.script.runnerSupport;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.net.URI;
 
 import org.sikuli.script.SikuliXception;
 

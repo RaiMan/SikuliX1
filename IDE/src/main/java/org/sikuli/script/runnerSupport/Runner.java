@@ -13,8 +13,7 @@ import org.sikuli.script.ImagePath;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;

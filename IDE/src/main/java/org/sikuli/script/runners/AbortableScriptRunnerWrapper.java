@@ -4,7 +4,7 @@
 
 package org.sikuli.script.runners;
 
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 
 public class AbortableScriptRunnerWrapper {
   private Object runnerLock = new Object();

@@ -9,7 +9,7 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 
 public abstract class AbstractLocalFileScriptRunner extends AbstractScriptRunner {
 

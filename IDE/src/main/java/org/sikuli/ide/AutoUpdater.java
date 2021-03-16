@@ -34,6 +34,8 @@ public class AutoUpdater {
   private boolean notAvailable = false;
   public String whatUpdate;
 
+  private String[] serverList = {};
+
   public String getServer() {
     return server;
   }
@@ -84,7 +86,7 @@ public class AutoUpdater {
     smajor = Integer.decode(versionParts[0]);
     sminor = Integer.decode(versionParts[1]);
     ssub = Integer.decode(versionParts[2]);
-    for (String s : SikulixIDE.runTime.ServerList) {
+    for (String s : serverList) {
       try {
         if (checkUpdate(s)) {
           if (sbeta > 0) {

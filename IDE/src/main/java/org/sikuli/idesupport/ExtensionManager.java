@@ -1,11 +1,13 @@
 /*
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.script.support;
+package org.sikuli.idesupport;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.ProcessRunner;
+import org.sikuli.script.support.RunTime;
 
 import javax.swing.*;
 import java.awt.*;

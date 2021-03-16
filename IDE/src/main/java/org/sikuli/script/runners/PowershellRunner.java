@@ -6,7 +6,7 @@ package org.sikuli.script.runners;
 import java.io.File;
 
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
 public class PowershellRunner extends AbstractLocalFileScriptRunner {

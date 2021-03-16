@@ -9,7 +9,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.RunTime;
 
 public class RobotRunner extends JythonRunner {

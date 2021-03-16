@@ -36,7 +36,7 @@ import org.sikuli.basics.Debug;
 //
 // RJHM van den Bergh , rvdb@comweb.nl
 import org.sikuli.basics.PreferencesUser;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 
 public class EditorConsolePane extends JPanel implements Runnable {

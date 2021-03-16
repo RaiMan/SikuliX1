@@ -5,7 +5,7 @@
 package org.sikuli.script.runners;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 
 import java.io.File;
