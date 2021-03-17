@@ -173,47 +173,52 @@ def show():
 # public for options handling (property file)
 ##
 
+import org.sikuli.script.Options as SXOpts
+
 def makeOpts():
-  return RUNTIME.makeOpts()
+  return SXOpts.makeOpts()
 
 def loadOpts(filePath):
-  return RUNTIME.loadOpts(filePath)
+  return SXOpts.loadOpts(filePath)
 
 def getOpts(props):
-  return RUNTIME.getOpts(props)
+  return SXOpts.getOpts(props)
 
 def hasOpts(props):
-  return RUNTIME.hasOpts(props)
+  return SXOpts.hasOpts(props)
 
 def setOpts(props, adict):
-  return RUNTIME.setOpts(props, adict)
+  return SXOpts.setOpts(props, adict)
 
 def delOpts(props):
-  return RUNTIME.delOpts(props)
+  return SXOpts.delOpts(props)
 
 def saveOpts(props, filePath = None):
   if not filePath:
-    return RUNTIME.saveOpts(props)
+    return SXOpts.saveOpts(props)
   else:
-    return RUNTIME.saveOpts(props, filePath)
+    return SXOpts.saveOpts(props, filePath)
 
 def hasOpt(props, key):
-  return RUNTIME.hasOpt(props, key)
+  return SXOpts.hasOpts(props, key)
 
 def getOpt(props, key, deflt = ""):
-  return RUNTIME.getOpt(props, key, deflt)
+  return SXOpts.getOpt(props, key, deflt)
 
 def getOptNum(props, key, deflt = 0):
-  return RUNTIME.getOptNum(props, key, deflt)
+  return SXOpts.getOptNum(props, key, deflt)
+
+def getOptInt(props, key, deflt = 0):
+  return SXOpts.getOptInt(props, key, deflt)
 
 def setOpt(props, key, value):
-  return RUNTIME.setOpt(props, key, value)
+  return SXOpts.setOpt(props, key, value)
 
 def setOptNum(props, key, value):
-  return RUNTIME.setOptNum(props, key, value)
+  return SXOpts.setOptNum(props, key, value)
 
 def delOpt(props, key):
-  return RUNTIME.delOpt(props, key)
+  return SXOpts.delOpt(props, key)
 
 ##
 # some support for handling unicode and strings

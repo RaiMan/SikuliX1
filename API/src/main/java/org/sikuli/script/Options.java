@@ -8,6 +8,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
+import javax.swing.text.html.Option;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Enumeration;
@@ -64,6 +65,12 @@ public class Options {
       sxOptions.loadOptions();
     }
     return sxOptions;
+  }
+
+  private static Options create() {
+    Options options = new Options();
+    options.options = new Properties();
+    return options;
   }
 
   void loadOptions() {
@@ -179,7 +186,7 @@ public class Options {
    * @param fpOptions path to a file
    * @return success
    */
-  public boolean saveOpts(String fpOptions) {
+  public boolean saveOptions(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (!fOptions.isAbsolute()) {
       fOptions = new File(Commons.getWorkDir(), fpOptions);
@@ -196,6 +203,11 @@ public class Options {
     }
     log(lvl, "saveOptions: saved: %s", fpOptions);
     return true;
+  }
+
+  @Deprecated // use saveOptions instead
+  public boolean saveOpts(String fpOptions) {
+    return saveOptions(fpOptions);
   }
 
   /**
@@ -444,4 +456,113 @@ public class Options {
       logp("*** options dump end");
     }
   }
+
+  //region static for Jython
+  //  def makeOpts():
+  //      return SXOpts.makeOpts()
+  //
+  public static Options makeOpts() {
+    return create();
+  }
+
+  //  def loadOpts(filePath):
+  //      return SXOpts.loadOpts(filePath)
+  public static Options loadOpts(String file) {
+    Options options = makeOpts();
+    options.loadOptions(file);
+    return options;
+  }
+
+  //  def saveOpts(props, filePath = None):
+  //      if not filePath:
+  //      return SXOpts.saveOpts(props)
+  //      else:
+  //      return SXOpts.saveOpts(props, filePath)
+  public static String saveOpts(Options opts) {
+    return saveOpts(opts, opts.getOption("OptionsFile", "optionsfile"));
+  }
+
+  public static String saveOpts(Options opts, String file) {
+    opts.saveOptions(file);
+    return opts.options.getProperty("OptionsFile", "no filename");
+  }
+
+  //  def getOpts(props):
+  //      return SXOpts.getOpts(props)
+  public static Map<String, String> getOpts(Options opts) {
+    return opts.getOptions();
+  }
+
+  //  def hasOpts(props):
+  //      return SXOpts.hasOpts(props)
+  public static boolean hasOpts(Options opts) {
+    return opts.hasOptions();
+  }
+
+  //  def setOpts(props, adict):
+  //      return SXOpts.setOpts(props, adict)
+  public static void setOpts(Options opts, Map<String, String> entries) {
+    for (String key : entries.keySet()) {
+      opts.options.setProperty(key, entries.get(key));
+    }
+  }
+
+  //  def delOpts(props):
+  //      return SXOpts.delOpts(props)
+  public static void delOpts(Options opts) {
+    String optsFile = opts.getOption("OptionsFile", "optionsfile");
+    opts.options.clear();
+    opts.options.setProperty("OptionsFile", optsFile);
+  }
+
+  //  def hasOpt(props, key):
+  //      return SXOpts.hasOpts(props, key)
+  public static boolean hasOpt(Options opts, String key) {
+    return opts.options.containsKey(key);
+  }
+
+  //  def getOpt(props, key, deflt = ""):
+  //      return SXOpts.getOpt(props, key, deflt)
+  public static String getOpt(Options opts, String key, String theDefault) {
+    return opts.options.getProperty(key, theDefault);
+  }
+
+  //  def getOptNum(props, key, deflt = 0):
+  //      return SXOpts.getOptNum(props, key, deflt)
+  public static Double getOptNum(Options opts, String key, Object theDefault) {
+    try {
+      return Double.parseDouble(opts.options.getProperty(key, "" + theDefault));
+    } catch (NumberFormatException e) {
+      return 0.0;
+    }
+  }
+
+  public static Integer getOptInt(Options opts, String key, Integer theDefault) {
+    Double value = 0.0;
+    try {
+      value = Double.parseDouble(opts.options.getProperty(key, "" + theDefault));
+    } catch (NumberFormatException e) {
+    }
+    return value.intValue();
+  }
+
+  //  def setOpt(props, key, value):
+  //      return SXOpts.setOpt(props, key, value)
+  public static void setOpt(Options opts, String key, String value) {
+    opts.options.setProperty(key, value);
+  }
+
+  //  def setOptNum(props, key, value):
+  //      return SXOpts.setOptNum(props, key, value)
+  public static void setOptNum(Options opts, String key, Object value) {
+    opts.options.setProperty(key, "" + value);
+  }
+
+  //  def delOpt(props, key):
+  //      return SXOpts.delOpt(props, key)
+  public static void delOpt(Options opts, String key) {
+    opts.options.remove(key);
+  }
+
+  //endregion
 }
