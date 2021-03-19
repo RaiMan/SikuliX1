@@ -1,4 +1,4 @@
-<img src="https://github.com/RaiMan/SikuliX1/blob/master/sikulix-red.png" alt="SikuliX" width="430">
+[<img src="https://github.com/RaiMan/SikuliX1/blob/master/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
 
 Great thanks for the new logo [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
