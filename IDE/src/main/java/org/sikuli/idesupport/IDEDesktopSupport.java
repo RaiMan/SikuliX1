@@ -29,6 +29,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 /**
@@ -91,7 +92,7 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
 //    }
 
     try {
-      if (RunTime.get().isJava9()) {
+      if (!Commons.isJava8()) {
         Class<?> clDesktop = Class.forName("java.awt.Desktop");
 
         if (Boolean.TRUE.equals(clDesktop.getMethod("isDesktopSupported").invoke(clDesktop))) {

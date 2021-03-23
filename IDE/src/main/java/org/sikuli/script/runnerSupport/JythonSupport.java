@@ -15,6 +15,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikulixForJython;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class JythonSupport implements IRunnerSupport {
 
   private static PythonInterpreter interpreter = null;
 
-  private static RunTime runTime;
+//  private static RunTime runTime;
 
   private JythonSupport() {
   }
@@ -87,8 +88,8 @@ public class JythonSupport implements IRunnerSupport {
       Debug.log("Jython: not found on classpath");
       return;
     }
-    runTime = RunTime.get();
-    runTime.exportLib();
+    //TODO RunTime.get().exportLib()
+    RunTime.get().exportLib();
     try {
       interpreter = new PythonInterpreter();
       cPyException = Class.forName("org.python.core.PyException");
@@ -101,7 +102,7 @@ public class JythonSupport implements IRunnerSupport {
       interpreter = null;
     }
     //instance.log(lvl, "init: success");
-    runTime.isJythonReady = true;
+    RunTime.isJythonReady = true;
   }
 
   /**
@@ -509,7 +510,7 @@ public class JythonSupport implements IRunnerSupport {
 
   public void addSitePackages() {
     synchronized (sysPath) {
-      File fLibFolder = runTime.fSikulixLib;
+      File fLibFolder = Commons.getLibFolder();
       File fSitePackages = new File(fLibFolder, "site-packages");
       if (fSitePackages.exists()) {
         addSysPath(fSitePackages);
@@ -709,14 +710,15 @@ public class JythonSupport implements IRunnerSupport {
 
   //<editor-fold desc="18 RobotFramework support">
   public boolean prepareRobot() {
-    if (runTime.isRunningFromJar()) {
-      File fLibRobot = new File(runTime.fSikulixLib, "robot");
+    if (Commons.isRunningFromJar()) {
+      final File libFolder = Commons.getLibFolder();
+      File fLibRobot = new File(libFolder, "robot");
       if (!fLibRobot.exists()) {
         log(-1, "prepareRobot: not available: %s", fLibRobot);
         return false;
       }
-      if (!hasSysPath(runTime.fSikulixLib.getAbsolutePath())) {
-        insertSysPath(runTime.fSikulixLib);
+      if (!hasSysPath(libFolder.getAbsolutePath())) {
+        insertSysPath(libFolder);
       }
     }
     if (!hasSysPath(new File(Settings.BundlePath).getParent())) {
@@ -915,7 +917,7 @@ public class JythonSupport implements IRunnerSupport {
 
   private String findErrorSourceWalkTrace(Matcher m, String filename) {
     Pattern pModule;
-    if (runTime.runningWindows) {
+    if (Commons.runningWindows()) {
       pModule = Pattern.compile(".*\\\\(.*?)\\.py");
     } else {
       pModule = Pattern.compile(".*/(.*?)\\.py");
@@ -1002,9 +1004,9 @@ public class JythonSupport implements IRunnerSupport {
 
       }
       if (fJar == null) {
-        fJar = new File(runTime.fSikulixExtensions, fpJar);
+        fJar = new File(Commons.getExtensionsFolder(), fpJar);
         if (!fJar.exists()) { // in extensions
-          fJar = new File(runTime.fSikulixLib, fpJar);
+          fJar = new File(Commons.getLibFolder(), fpJar);
           if (!fJar.exists()) { // in Lib folder
             fJar = null;
           }

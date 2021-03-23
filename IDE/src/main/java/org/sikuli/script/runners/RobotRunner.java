@@ -10,6 +10,7 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.App;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 public class RobotRunner extends JythonRunner {
@@ -17,8 +18,6 @@ public class RobotRunner extends JythonRunner {
   public static final String NAME = "Robot";
   public static final String TYPE = "text/robot";
   public static final String[] EXTENSIONS = new String[] {"robot"};
-
-  private static final RunTime RUN_TIME = RunTime.get();
 
   @Override
   protected int doEvalScript(String code, IScriptRunner.Options options) {
@@ -89,7 +88,7 @@ public class RobotRunner extends JythonRunner {
 
   @Override
   public boolean isSupported() {
-    File fLibRobot = new File(RunTime.get().fSikulixLib, "robot");
+    File fLibRobot = new File(Commons.getLibFolder(), "robot");
     return fLibRobot.exists();
   }
 

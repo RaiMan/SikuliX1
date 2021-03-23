@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 public class IDETaskbarSupport {
@@ -40,7 +41,7 @@ public class IDETaskbarSupport {
 //    }
 
     try {
-      if (RunTime.get().isJava9()) {
+      if (!Commons.isJava8()) {
         Class<?> clTaskbar = Class.forName("java.awt.Taskbar");
         Method isTaskbarSupported = clTaskbar.getMethod("isTaskbarSupported");
         Method getTaskbar = clTaskbar.getMethod("getTaskbar");

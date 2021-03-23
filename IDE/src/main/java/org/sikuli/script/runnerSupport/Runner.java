@@ -25,7 +25,6 @@ public class Runner {
 
   static final String me = "Runner: ";
   static final int lvl = 3;
-  static final RunTime runTime = RunTime.get();
 
   // <editor-fold desc="00 runner handling">
   private static List<IScriptRunner> runners = new LinkedList<>();

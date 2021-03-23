@@ -196,19 +196,10 @@ public class Commons {
     return dirURL;
   }
 
-  public static File getRunningJar(Type type) {
+  public static File getRunningJar() {
     File jarFile = null;
     String jarName = "notKnown";
-    CodeSource codeSrc = RunTime.class.getProtectionDomain().getCodeSource();
-    if (Type.IDE.equals(type)) {
-      try {
-        Class cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-        codeSrc = cIDE.getProtectionDomain().getCodeSource();
-      } catch (ClassNotFoundException e) {
-        RunTime.startLog(-1, "IDE startup: not possible for: %s", e.getMessage());
-        System.exit(1);
-      }
-    }
+    CodeSource codeSrc = Commons.class.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
       try {
         jarName = codeSrc.getLocation().getPath();
@@ -221,11 +212,11 @@ public class Commons {
     }
     return jarFile;
   }
-  //</editor-fold>
 
-  public enum Type {
-    IDE, API, INIT
+  public static boolean isRunningFromJar() {
+    return false;
   }
+  //</editor-fold>
 
   //<editor-fold desc="05 standard directories">
   public static File getAppDataPath() {
@@ -318,6 +309,22 @@ public class Commons {
   }
 
   private static File workDir = null;
+
+  public static String getJarLibsPath() {
+    return "/sikulixlibs/" + Commons.getSysName() + "/libs";
+  }
+
+  public static File getLibsFolder() {
+    return new File(getAppDataPath(), "SikulixLibs");
+  }
+
+  public static File getLibFolder() {
+    return new File(getAppDataPath(), "Lib");
+  }
+
+  public static File getExtensionsFolder() {
+    return new File(getAppDataPath(), "Extensions");
+  }
   //</editor-fold>
 
   //<editor-fold desc="06 version infos">
@@ -899,7 +906,6 @@ public class Commons {
 
   private static Options sxOptions = null;
   //</editor-fold>
-
 
   public static Object runFunctionScriptingSupport(String function, Object[] args) {
     return runFunctionScriptingSupport(null, function, args);

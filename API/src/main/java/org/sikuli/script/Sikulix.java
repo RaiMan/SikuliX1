@@ -78,9 +78,7 @@ public class Sikulix {
       return null;
     }
     Rectangle rect = new Screen(0).getRect();
-    if (RunTime.isRunningIDE) {
-      //TODO should be IDE window
-    }
+    //TODO should be IDE window
     return new Point((int) rect.getCenterX(), (int) rect.getCenterY());
   }
 

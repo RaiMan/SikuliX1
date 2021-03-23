@@ -39,6 +39,20 @@ public class RunTime {
     Commons.init();
   }
 
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, "RunTime:" + message, args);
+  }
+
+  private static void logp(String message, Object... args) {
+    Debug.logx(-3, message, args);
+  }
+
+  private static void logp(int level, String message, Object... args) {
+    if (level <= Debug.getDebugLevel()) {
+      logp(message, args);
+    }
+  }
+
   private static RunTime runTime = null;
 
   private static boolean startAsIDE = true;
@@ -263,7 +277,7 @@ public class RunTime {
   }
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
-  private int lvl = 3;
+  private static int lvl = 3;
   private int minLvl = lvl;
   private static String preLogMessages = "";
 
@@ -326,21 +340,7 @@ public class RunTime {
     }
     return ret;
   }
-
-  private void log(int level, String message, Object... args) {
-    Debug.logx(level, "RunTime:" + message, args);
-  }
-
-  private void logp(String message, Object... args) {
-    Debug.logx(-3, message, args);
-  }
-
-  private void logp(int level, String message, Object... args) {
-    if (level <= Debug.getDebugLevel()) {
-      logp(message, args);
-    }
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
   public enum RunType {
@@ -356,7 +356,7 @@ public class RunTime {
 
   public static boolean testing = false;
 
-  public Commons.Type runType = Commons.Type.INIT;
+//  public Commons.Type runType = Commons.Type.INIT;
 
   private Class clsRef = RunTime.class;
 
@@ -365,9 +365,6 @@ public class RunTime {
   public static File fTempPath = null;
   public File fBaseTempPath = null;
   public String fpBaseTempPath = "";
-  public File fLibsFolder = null;
-  public String fpJarLibs = "/sikulixlibs/";
-  public String fpSysLibs = null;
   boolean areLibsExported = false;
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
 
@@ -375,8 +372,6 @@ public class RunTime {
   public File fSikulixExtensions = null;
   public File fSikulixLib = null;
   public File fSikulixStore;
-  public File fSikulixDownloadsGeneric = null;
-  public File fSikulixSetup;
 
   public File fSxBase = null;
   public File fSxBaseJar = null;
@@ -390,36 +385,22 @@ public class RunTime {
   public boolean runningWindows = false;
   public boolean runningMac = false;
   public boolean runningLinux = false;
-  private final String osNameSysProp = System.getProperty("os.name");
   private final String osVersionSysProp = System.getProperty("os.version");
-  public int javaArch = 64;
-  public String osVersion = "";
   private String appType = null;
-  public String linuxDistro = "???LINUX???";
 
   public String SXVersion = "";
   public String SXVersionLong;
 
   public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   public final static String runCmdError = "*****error*****";
-  public static String NL = "\n";
   public File fLibsProvided;
   public File fLibsLocal;
   public boolean useLibsProvided = false;
-  private String lastResult = "";
-  public boolean isJythonReady = false;
 
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="04 instance">
   private RunTime() {
-  }
-
-  public static synchronized RunTime get() {
-    if (runTime == null) {
-      return get(Commons.Type.API);
-    }
-    return runTime;
   }
 
   static final long started = new Date().getTime();
@@ -432,24 +413,24 @@ public class RunTime {
     return refTime < obsolete;
   }
 
-  public static synchronized RunTime get(Commons.Type typ) {
+  //TODO RunTime variables -> Commons
+  public static String NL = "\n";
+  public static boolean isJythonReady = false;
+
+  public static synchronized RunTime get() {
     if (runTime != null) {
       return runTime;
     }
     runTime = new RunTime();
 
     //<editor-fold defaultstate="collapsed" desc="versions">
-    runTime.osVersion = runTime.osVersionSysProp;
-
     if (Commons.runningWindows()) {
-      runTime.NL = "\r\n";
+      NL = "\r\n";
     }
-
-    runTime.fpJarLibs += Commons.getSysName() + "/libs";
-    runTime.fpSysLibs = runTime.fpJarLibs.substring(1);
 
     runTime.fSikulixAppPath = Commons.getAppDataPath();
     runTime.fSikulixStore = Commons.getAppDataStore();
+    runTime.fSikulixLib = Commons.getLibFolder();
     //</editor-fold>
 
     Commons.setOptions(Options.init(runTime));
@@ -479,31 +460,16 @@ public class RunTime {
       }
     });
 
-    runTime.init(typ);
-    if (Commons.Type.IDE.equals(typ)) {
-      runTime.initIDEbefore();
-      runTime.initAPI();
-      runTime.initIDEafter();
-    } else {
-      runTime.initAPI();
+    runTime.init();
+    try {
+      cleanupRobot = new RobotDesktop();
+    } catch (AWTException e) {
     }
     return runTime;
   }
 
-//TODO reset() needed?
-/*
-  public static synchronized RunTime reset(Type typ) {
-    if (runTime != null) {
-      preLogMessages += "RunTime: resetting RunTime instance;";
-      runTime = null;
-    }
-    return get(typ);
-  }
-
-  public static synchronized RunTime reset() {
-    return reset(Type.API);
-  }
-*/
+  //TODO cleanupRobot needed?
+  private static RobotDesktop cleanupRobot = null;
   //</editor-fold>
 
   public Rectangle getMonitor(int n) {
@@ -523,13 +489,13 @@ public class RunTime {
   FileOutputStream isRunningFile = null;
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
-  private void init(Commons.Type typ) {
+  private void init() {
     for (String line : preLogMessages.split(";")) {
       if (!line.isEmpty()) {
         log(lvl, line);
       }
     }
-    log(4, "global init: entering as: %s", typ);
+    log(4, "global init: entering");
 
     if (fTempPath == null) {
       String tmpdir = System.getProperty("java.io.tmpdir");
@@ -561,7 +527,7 @@ public class RunTime {
       throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
-    if (Commons.Type.IDE.equals(typ) && !runningScripts() && !isAllowMultiple()) {
+    if (!runningScripts() && !isAllowMultiple()) {
       isRunning = new File(fTempPath, isRunningFilename);
       boolean shouldTerminate = false;
       try {
@@ -588,29 +554,6 @@ public class RunTime {
           || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
         FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
       }
-    }
-
-    try {
-      if (!fSikulixAppPath.exists()) {
-        fSikulixAppPath.mkdirs();
-      }
-      if (!fSikulixAppPath.exists()) {
-        throw new SikuliXception(String.format(appDataMsg, fSikulixAppPath));
-      }
-      fSikulixExtensions = new File(fSikulixAppPath, "Extensions");
-      if (!fSikulixExtensions.exists()) {
-        fSikulixExtensions.mkdir();
-      }
-      fSikulixDownloadsGeneric = new File(fSikulixAppPath, "SikulixDownloads");
-      if (!fSikulixDownloadsGeneric.exists()) {
-        fSikulixDownloadsGeneric.mkdir();
-      }
-      fSikulixLib = new File(fSikulixAppPath, "Lib");
-      fSikulixSetup = new File(fSikulixAppPath, "SikulixSetup");
-      fLibsProvided = new File(fSikulixAppPath, fpSysLibs);
-      fLibsLocal = fLibsProvided.getParentFile().getParentFile();
-    } catch (Exception ex) {
-      throw new SikuliXception(String.format(appDataMsg + ex.toString(), fSikulixAppPath));
     }
 
     clsRef = RunTime.class;
@@ -701,7 +644,6 @@ public class RunTime {
       }
     }
 */
-    runType = typ;
     if (Debug.getDebugLevel() == minLvl) {
       show();
     }
@@ -811,7 +753,6 @@ public class RunTime {
     if (!areLibsExported) {
       throw new SikuliXception("loadLib: deferred exporting of libs did not work");
     }
-    File fLibsFolderUsed = fLibsFolder;
     if (Commons.runningWindows()) {
       libName += ".dll";
     } else if (runningMac) {
@@ -819,7 +760,7 @@ public class RunTime {
     } else if (runningLinux) {
       libName = "lib" + libName + ".so";
     }
-    File fLib = new File(fLibsFolder, libName);
+    File fLib = new File(Commons.getLibsFolder(), libName);
     int level = lvl;
     if (!runningLinux) {
       Boolean vLib = libsLoaded.get(libName);
@@ -873,6 +814,8 @@ public class RunTime {
   }
 
   private void libsExport() {
+    String fpJarLibs = Commons.getJarLibsPath();
+
     // remove obsolete libs folders in Temp
     String[] fpList = fTempPath.list(new FilenameFilter() {
       @Override
@@ -910,7 +853,7 @@ public class RunTime {
       }
     }
 
-    fLibsFolder = new File(fSikulixAppPath, "SikulixLibs");
+    File fLibsFolder = Commons.getLibsFolder();
     String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
       if (!Commons.hasVersionFile(fLibsFolder)) {
@@ -1101,68 +1044,7 @@ public class RunTime {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="07 init for IDE">
-  public static boolean isRunningIDE = false;
-
-  private void initIDEbefore() {
-    log(4, "initIDEbefore: entering");
-    isRunningIDE = true;
-    log(4, "initIDEbefore: leaving");
-  }
-
-  private void initIDEafter() {
-    log(4, "initIDEafter: entering");
-    try {
-      cIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-      mHide = cIDE.getMethod("hideIDE", new Class[0]);
-      mShow = cIDE.getMethod("showIDE", new Class[0]);
-    } catch (Exception ex) {
-      log(-1, "SikulixIDE: reflection: %s", ex.getMessage());
-    }
-    log(4, "initIDEafter: leaving");
-  }
-
-  Class<?> cIDE = null;
-  Method mHide = null;
-  Method mShow = null;
-
-  public void hideIDE() {
-    if (null != cIDE) {
-      try {
-        mHide.invoke(null, new Object[0]);
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  public void showIDE() {
-    if (null != cIDE) {
-      try {
-        mShow.invoke(null, new Object[0]);
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-//</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="06 init for API">
-  private static RobotDesktop cleanupRobot = null;
-
-  private void initAPI() {
-    log(4, "initAPI: entering");
-    try {
-      cleanupRobot = new RobotDesktop();
-    } catch (AWTException e) {
-    }
-    log(4, "initAPI: leaving");
-  }
-
   private static boolean isLibExported = false;
 
   public void exportLib() {
@@ -1272,7 +1154,7 @@ public class RunTime {
     if (Commons.getOptions().hasOptions()) {
       Commons.getOptions().dumpOptions();
     }
-    logp("***** show environment for %s %s", Commons.getSXVersion(), runType);
+    logp("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
     logp("user.home: %s", Commons.getUserHome());
     logp("work dir: %s", Commons.getWorkDir());
     logp("running on %s %s", Commons.getOSInfo(), appType);
@@ -2254,7 +2136,7 @@ public class RunTime {
    * @return the output produced by the command (sysout [+ "*** error ***" + syserr] if the syserr part is present, the
    * command might have failed
    */
-  public String runcmd(String args[]) {
+  public static String runcmd(String args[]) {
     if (args.length == 0) {
       return "";
     }
@@ -2346,7 +2228,9 @@ public class RunTime {
     return String.format("%d%s%s", retVal, NL, result);
   }
 
-  public String getLastCommandResult() {
+  private static String lastResult = "";
+
+  public static String getLastCommandResult() {
     return lastResult;
   }
 //</editor-fold>

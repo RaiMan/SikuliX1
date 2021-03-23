@@ -7,6 +7,7 @@ package org.sikuli.ide;
 import org.apache.commons.cli.CommandLine;
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.ExtensionManager;
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.ProcessRunner;
 import org.sikuli.script.support.RunTime;
@@ -21,6 +22,8 @@ public class Sikulix {
 
   public static void main(String[] args) {
     System.setProperty("sikuli.IDE_should_run", "develop");
+
+    RunTime.get();
     List<String> finalArgs = RunTime.evalArgsStart(args);
 
     CommandArgs cmdArgs = new CommandArgs();
@@ -32,16 +35,17 @@ public class Sikulix {
       RunTime.fTempPath = new File(path, "Temp");
     }
 
-    File runningJar = Commons.getRunningJar(Commons.Type.IDE);
+    File runningJar = Commons.getRunningJar();
     RunTime.startLog(1, "Running: %s", runningJar);
 
-    File fAppData = Commons.getAppDataPath();
-    RunTime.startLog(1, "AppData: %s", fAppData);
+    RunTime.startLog(1, "AppData: %s", Commons.getAppDataPath());
 
     String classPath = ExtensionManager.makeClassPath(runningJar);
     if (!runningJar.getName().endsWith(".jar") || classPath.split(File.pathSeparator).length < 2) {
       SikulixIDE.main(args);
     } else {
+      //TODO start IDE in subprocess?
+      RunTime.terminate(999, "//TODO start IDE in subprocess?");
       FileManager.writeStringToFile(runningJar.getAbsolutePath(),
           new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
       List<String> cmd = new ArrayList<>();

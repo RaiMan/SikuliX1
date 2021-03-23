@@ -7,6 +7,7 @@ import java.io.File;
 import java.net.URL;
 
 import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 /**
@@ -27,19 +28,16 @@ public class SikulixForJython {
   static void staticInit() {
     JythonSupport helper = JythonSupport.get();
     helper.log(lvl, "SikulixForJython: init: starting");
-    RunTime runTime = RunTime.get();
     String sikuliStuff = "sikuli/Sikuli";
     File fSikuliStuff = helper.existsSysPathModule(sikuliStuff);
     String libSikuli = "/Lib/" + sikuliStuff + ".py";
     String fpSikuliStuff;
     if (null == fSikuliStuff) {
-      URL uSikuliStuff = runTime.resourceLocation(libSikuli);
+      URL uSikuliStuff = RunTime.get().resourceLocation(libSikuli);
       if (uSikuliStuff == null) {
-        runTime.dumpClassPath();
-        //helper.terminate(999, "no suitable sikulix...jar on classpath");
         throw new SikuliXception(String.format("fatal: " + "Jython: " + "no suitable sikulix...jar on classpath"));
       }
-      fpSikuliStuff = runTime.fSikulixLib.getAbsolutePath();
+      fpSikuliStuff = Commons.getLibFolder().getAbsolutePath();
       if (!helper.hasSysPath(fpSikuliStuff)) {
         helper.log(lvl, "sikuli/*.py not found on current Jython::sys.path");
         helper.addSysPath(fpSikuliStuff);
