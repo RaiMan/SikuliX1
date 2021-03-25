@@ -80,7 +80,7 @@ public class TextRecognizer {
           throw new SikuliXception(String.format("OCR: validate: libtesseract.dylib not in /usr/local/lib"));
         }
       }
-      RunTime.loadLibrary(RunTime.libOpenCV);
+      RunTime.loadOpenCV();
       isValid = true;
     }
 

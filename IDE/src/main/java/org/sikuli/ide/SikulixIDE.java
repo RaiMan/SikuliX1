@@ -61,8 +61,6 @@ public class SikulixIDE extends JFrame {
       System.exit(1);
     }
 
-//    runTime = RunTime.get(Commons.Type.IDE);
-    RunTime.evalArgsStart(args);
     Debug.log(3, "Sikulix: starting IDE");
     RunTime.evalArgs(args);
 

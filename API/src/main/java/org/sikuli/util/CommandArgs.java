@@ -84,6 +84,8 @@ public class CommandArgs {
     cmdArgs.addOption(makeOption(CommandArgsEnum.SERVER));
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.PYTHONSERVER));
+
+    cmdArgs.addOption(makeOption(CommandArgsEnum.APPDATA));
   }
 
   private Option makeOption(CommandArgsEnum anOption) {

@@ -209,6 +209,6 @@ public class Settings {
   }
 
   public static String getVersionBuild() {
-    return RunTime.get().SXVersionLong;
+    return Commons.getSXVersionLong();
   }
 }

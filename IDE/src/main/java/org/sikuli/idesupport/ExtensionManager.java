@@ -181,7 +181,7 @@ public class ExtensionManager {
         Debug.error("%s\nFor more help visit:\n%s", message, helpURL);
       }
     }
-    if (!isRunningAsJar()) {
+    if (!isRunningAsJar() && finalClassPath.length() > 0) {
       for (String entry : finalClassPath.split(separator)) {
         Debug.log(3, "cp: %s", entry);
       }

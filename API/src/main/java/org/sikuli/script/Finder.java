@@ -535,7 +535,7 @@ public class Finder implements Iterator<Match> {
   protected static class Finder2 {
 
     static {
-      RunTime.loadLibrary(RunTime.libOpenCV);
+      RunTime.loadOpenCV();
     }
 
     protected static void init() {
