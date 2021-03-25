@@ -5,120 +5,47 @@ package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
 import org.opencv.core.Core;
-import org.sikuli.android.ADBScreen;
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
-import org.sikuli.script.*;
+import org.sikuli.script.FindFailed;
+import org.sikuli.script.Mouse;
+import org.sikuli.script.OCR;
+import org.sikuli.script.Options;
+import org.sikuli.script.Screen;
+import org.sikuli.script.SikuliXception;
+import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.devices.AbstractDevice;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
-import org.sikuli.vnc.VNCScreen;
 
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * INTERNAL USE --- NOT official API<br>
- * not as is in version 2
- * <p>
- * Intended to concentrate all, that is needed at startup of sikulix or sikulixapi and may be at runtime by SikuliX or
- * any caller
- */
 public class RunTime {
 
   static {
     Commons.init();
   }
 
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, "RunTime:" + message, args);
-  }
-
-  private static void logp(String message, Object... args) {
-    Debug.logx(-3, message, args);
-  }
-
-  private static void logp(int level, String message, Object... args) {
-    if (level <= Debug.getDebugLevel()) {
-      logp(message, args);
-    }
-  }
-
   private static RunTime runTime = null;
 
-  private static boolean startAsIDE = true;
-
-  public static boolean isIDE() {
-    return startAsIDE;
-  }
-
-  private static boolean allowMultiple = false;
-
-  public static void setAllowMultiple() {
-    allowMultiple = true;
-  }
-
-  public static boolean isAllowMultiple() {
-    return allowMultiple;
-  }
-
-  public static boolean shouldRunServer() {
-    return asServer;
-  }
-
-  private static boolean asServer = false;
-
-  public static String[] getServerOptions() {
-    return serverOptions;
-  }
-
-  private static String[] serverOptions = null;
-
-  public static String getServerGroups() {
-    return serverGroups;
-  }
-
-  private static String serverGroups = null;
-
-  public static String getServerExtra() {
-    return serverExtra;
-  }
-
-  private static String serverExtra = null;
-
-  private static boolean asPythonServer = false;
-
-  protected static boolean shouldRunPythonServer() {
-    return asPythonServer;
-  }
-
   //<editor-fold desc="01 startup">
-  public static List<String> evalArgsStart(String[] args) {
-    List<String> finalArgs = new ArrayList<>();
-    for (String arg : args) {
-      if ("-v".equals(arg)) {
-        setVerbose();
-      } else if ("-q".equals(arg)) {
-        setQuiet();
-      } else if ("-r".equals(arg)) {
-        shouldRunScript = true;
-      } else if ("-s".equals(arg)) {
-        asServer = true;
-      }
-      finalArgs.add(arg);
-    }
-    return finalArgs;
-  }
-
   public static void evalArgs(String[] args) {
 
     CommandLine cmdLine;
@@ -197,7 +124,56 @@ public class RunTime {
       asPythonServer = true;
     }
   }
-  //</editor-fold>
+
+  private static boolean startAsIDE = true;
+
+  public static boolean isIDE() {
+    return startAsIDE;
+  }
+
+  private static boolean allowMultiple = false;
+
+  public static void setAllowMultiple() {
+    allowMultiple = true;
+  }
+
+  public static boolean isAllowMultiple() {
+    return allowMultiple;
+  }
+
+  public static boolean shouldRunServer() {
+    return asServer;
+  }
+
+  public static void setAsServer() {
+    asServer = true;
+  }
+
+  private static boolean asServer = false;
+
+  public static String[] getServerOptions() {
+    return serverOptions;
+  }
+
+  private static String[] serverOptions = null;
+
+  public static String getServerGroups() {
+    return serverGroups;
+  }
+
+  private static String serverGroups = null;
+
+  public static String getServerExtra() {
+    return serverExtra;
+  }
+
+  private static String serverExtra = null;
+
+  private static boolean asPythonServer = false;
+
+  protected static boolean shouldRunPythonServer() {
+    return asPythonServer;
+  }
 
   private static String[] userArgs = new String[0];
   private static String[] sxArgs = new String[0];
@@ -241,12 +217,6 @@ public class RunTime {
     }
   }
 
-  public static long getElapsedStart() {
-    return elapsedStart;
-  }
-
-  private static long elapsedStart = new Date().getTime();
-
   public static String getLogFile() {
     return logFile;
   }
@@ -269,17 +239,27 @@ public class RunTime {
     return scriptsToRun;
   }
 
+  public static void setShouldRunScript() {
+    shouldRunScript = true;
+  }
+
   private static boolean shouldRunScript = false;
   private static String[] scriptsToRun = null;
 
   public static boolean runningScripts() {
     return shouldRunScript;
   }
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
   private static int lvl = 3;
   private int minLvl = lvl;
-  private static String preLogMessages = "";
+
+  public static long getElapsedStart() {
+    return elapsedStart;
+  }
+
+  private static final long elapsedStart = new Date().getTime();
 
   public static boolean isVerbose() {
     return verbose || Debug.getDebugLevel() > 2;
@@ -340,6 +320,20 @@ public class RunTime {
     }
     return ret;
   }
+
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, "RunTime:" + message, args);
+  }
+
+  private static void logp(String message, Object... args) {
+    Debug.logx(-3, message, args);
+  }
+
+  private static void logp(int level, String message, Object... args) {
+    if (level <= Debug.getDebugLevel()) {
+      logp(message, args);
+    }
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="03 variables">
@@ -356,15 +350,14 @@ public class RunTime {
 
   public static boolean testing = false;
 
-//  public Commons.Type runType = Commons.Type.INIT;
-
   private Class clsRef = RunTime.class;
 
   private List<URL> classPathActual = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
-  public static File fTempPath = null;
+
   public File fBaseTempPath = null;
   public String fpBaseTempPath = "";
+
   boolean areLibsExported = false;
   private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
 
@@ -385,18 +378,7 @@ public class RunTime {
   public boolean runningWindows = false;
   public boolean runningMac = false;
   public boolean runningLinux = false;
-  private final String osVersionSysProp = System.getProperty("os.version");
   private String appType = null;
-
-  public String SXVersion = "";
-  public String SXVersionLong;
-
-  public static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-  public final static String runCmdError = "*****error*****";
-  public File fLibsProvided;
-  public File fLibsLocal;
-  public boolean useLibsProvided = false;
-
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="04 instance">
@@ -472,40 +454,15 @@ public class RunTime {
   private static RobotDesktop cleanupRobot = null;
   //</editor-fold>
 
-  public Rectangle getMonitor(int n) {
-    if (Screen.isHeadless()) {
-      return new Rectangle();
-    }
-    return Screen.getMonitor(n);
-  }
-
-  public Rectangle hasPoint(Point aPoint) {
-    return Screen.hasPoint(aPoint);
-  }
-
-
   //<editor-fold defaultstate="collapsed" desc="05 global init">
   File isRunning = null;
   FileOutputStream isRunningFile = null;
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
   private void init() {
-    for (String line : preLogMessages.split(";")) {
-      if (!line.isEmpty()) {
-        log(lvl, line);
-      }
-    }
-    log(4, "global init: entering");
+    log(3, "global init: entering");
 
-    if (fTempPath == null) {
-      String tmpdir = System.getProperty("java.io.tmpdir");
-      if (tmpdir != null && !tmpdir.isEmpty()) {
-        fTempPath = new File(tmpdir);
-      } else {
-        throw new SikuliXception("init: java.io.tmpdir not valid (null or empty");
-      }
-    }
-    fBaseTempPath = new File(fTempPath, String.format("Sikulix_%d", FileManager.getRandomInt()));
+    fBaseTempPath = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
     fBaseTempPath.mkdirs();
     try {
@@ -521,14 +478,14 @@ public class RunTime {
         success = false;
       }
       if (!success) {
-        throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
+        throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
       }
     } catch (Exception e) {
-      throw new SikuliXception(String.format("init: temp folder not useable: %s", fTempPath));
+      throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
     if (!runningScripts() && !isAllowMultiple()) {
-      isRunning = new File(fTempPath, isRunningFilename);
+      isRunning = new File(Commons.getTempFolder(), isRunningFilename);
       boolean shouldTerminate = false;
       try {
         isRunning.createNewFile();
@@ -549,10 +506,10 @@ public class RunTime {
       }
     }
 
-    for (String aFile : fTempPath.list()) {
+    for (String aFile : Commons.getTempFolder().list()) {
       if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
           || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
-        FileManager.deleteFileOrFolder(new File(fTempPath, aFile));
+        FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
       }
     }
 
@@ -686,12 +643,8 @@ public class RunTime {
       Settings.OcrDataPath = null;
     }
 
-    try {
-      VNCScreen.stopAll();
-      ADBScreen.stop();
-    } catch (Exception e) {
-      Debug.info("Error while stopping VNCScreen: %s", e.getMessage());
-    }
+    HelpDevice.stop(AbstractDevice.Device.VNC);
+    HelpDevice.stop(AbstractDevice.Device.ANDROID);
 
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);
@@ -722,7 +675,7 @@ public class RunTime {
       runTime.isRunning.delete();
     }
 
-    for (File f : runTime.fTempPath.listFiles(new FilenameFilter() {
+    for (File f : Commons.getTempFolder().listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.toLowerCase().contains("sikuli")) {
@@ -817,7 +770,7 @@ public class RunTime {
     String fpJarLibs = Commons.getJarLibsPath();
 
     // remove obsolete libs folders in Temp
-    String[] fpList = fTempPath.list(new FilenameFilter() {
+    String[] fpList = Commons.getTempFolder().list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.contains("SikulixLibs")) {
@@ -832,7 +785,7 @@ public class RunTime {
         if (entry.endsWith(Commons.getSxBuildStamp())) {
           continue;
         }
-        FileManager.deleteFileOrFolder(new File(fTempPath, entry));
+        FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), entry));
       }
     }
 
@@ -936,18 +889,18 @@ public class RunTime {
 //        throw new SikuliXception("problem copying " + fJawtDll);
 //      }
     }
-    log(lvl, "libsExport: " + libMsg + " %s (%s - %s)", fLibsFolder, getVersionShort(), Commons.getSxBuildStamp());
+    log(lvl, "libsExport: " + libMsg + " %s (%s)", fLibsFolder, Commons.getSXVersionLong());
     areLibsExported = true;
   }
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
+  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
 
-  /**
-   * INTERNAL USE: load a native library from the libs folder
-   *
-   * @param libname name of library without prefix/suffix/ending
-   */
+  public static boolean loadOpenCV() {
+    return loadLibrary(libOpenCV);
+  }
+
   public static boolean loadLibrary(String libname) {
     if (isTerminating) {
       return false;
@@ -955,19 +908,9 @@ public class RunTime {
     return RunTime.get().libsLoad(libname);
   }
 
-  /**
-   * INTERNAL USE: load a native library from the libs folder
-   *
-   * @param libname name of library without prefix/suffix/ending
-   */
-  public static boolean loadLibrary(String libname, boolean useLibsProvided) {
-    RunTime runTime = RunTime.get();
-    runTime.useLibsProvided = useLibsProvided;
-    return loadLibrary(libname);
-  }
-
+  //TODO
   private void addToWindowsSystemPath(File fLibsFolder) {
-    for (File bridjFile : runTime.fTempPath.listFiles(new FilenameFilter() {
+    for (File bridjFile : Commons.getTempFolder().listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.contains("BridJExtractedLibraries")) {
@@ -1044,7 +987,7 @@ public class RunTime {
   }
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="06 init for API">
+  //<editor-fold defaultstate="collapsed" desc="06 export LIB">
   private static boolean isLibExported = false;
 
   public void exportLib() {
@@ -1159,7 +1102,7 @@ public class RunTime {
     logp("work dir: %s", Commons.getWorkDir());
     logp("running on %s %s", Commons.getOSInfo(), appType);
     logp("running Java %s", Commons.getJavaInfo());
-    logp("java.io.tmpdir: %s", fTempPath);
+    logp("java.io.tmpdir: %s", Commons.getTempFolder());
     logp("app data folder: %s", Commons.getAppDataPath());
     if (runningJar) {
       logp("executing jar: %s", fSxBaseJar);
@@ -1175,25 +1118,6 @@ public class RunTime {
       }
     }
     logp("***** show environment end");
-  }
-
-  public boolean testSwitch() {
-    if (0 == (new Date().getTime() / 10000) % 2) {
-      return true;
-    }
-    return false;
-  }
-
-  public String getVersionShort() {
-    return Commons.getSXVersionShort();
-  }
-
-  public boolean isVersionRelease() {
-    return !SXVersion.endsWith("-SNAPSHOT");
-  }
-
-  public String getVersion() {
-    return SXVersion;
   }
   //</editor-fold>
 
@@ -2116,6 +2040,7 @@ public class RunTime {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="21 runcmd">
+  public final static String runCmdError = "*****error*****";
 
   /**
    * run a system command finally using Java::Runtime.getRuntime().exec(args) and waiting for completion

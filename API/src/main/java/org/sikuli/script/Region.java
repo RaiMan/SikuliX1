@@ -3,12 +3,11 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.android.ADBDevice;
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Observer;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.Highlight;
 
 import java.awt.Rectangle;
@@ -64,8 +63,10 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="001 Fields x, y, w, h">
+
   /**
    * set the horizontal position of the top-left corner
+   *
    * @param X new x-value of top-left corner
    * @return this Region
    */
@@ -84,6 +85,7 @@ public class Region extends Element {
     initScreen(null);
     return this;
   }
+
   /**
    * @param W new width
    * @return this Region
@@ -93,6 +95,7 @@ public class Region extends Element {
     initScreen(null);
     return this;
   }
+
   /**
    * @param H new height
    * @return this Region
@@ -147,6 +150,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="2 findFailedResponse">
+
   /**
    * FindFailedResponse.<br>
    * ABORT - abort script on FindFailed <br>
@@ -1999,6 +2003,7 @@ public class Region extends Element {
    * (int,String) - int seconds with given color
    * (float), (float,String) - same as int
    * </pre>
+   *
    * @param args valuaes as above
    * @return this
    */
@@ -2045,6 +2050,7 @@ public class Region extends Element {
 
   /**
    * Switch on the regions highlight with default color
+   *
    * @return this Region
    */
   public Region highlightOn() {
@@ -2063,6 +2069,7 @@ public class Region extends Element {
 
   /**
    * Switch off the regions highlight
+   *
    * @return this Region
    */
   public Region highlightOff() {
@@ -2467,8 +2474,8 @@ public class Region extends Element {
     while (null != response && response) {
       log(logLevel, "findAll: looking for multiple %s to appear in %s",
           targetStr, this.toStringShort());
-        rf.repeat(0.0);
-        lastMatches = rf.getMatches();
+      rf.repeat(0.0);
+      lastMatches = rf.getMatches();
       if (lastMatches != null) {
         log(logLevel, "findAll: %s has appeared", targetStr);
         break;
@@ -2480,7 +2487,7 @@ public class Region extends Element {
             throw new FindFailed(FindFailed.createErrorMessage(this, img));
           }
         } else {
-          lastMatches = rf._finder; 
+          lastMatches = rf._finder;
           break;
         }
       }
@@ -2758,6 +2765,7 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="022 find internal methods">
+
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best match without
    * waiting.
@@ -2969,9 +2977,11 @@ public class Region extends Element {
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
     volatile AtomicBoolean shouldStop = new AtomicBoolean();
+
     public void setShouldStop() {
       shouldStop.set(true);
     }
+
     public void resetShouldStop() {
       shouldStop.set(false);
     }
@@ -3026,6 +3036,7 @@ public class Region extends Element {
 
   private class RepeatableFind extends Repeatable {
     Object _target;
+
     public void setTarget(String target) {
       _target = target;
     }
@@ -3197,7 +3208,7 @@ public class Region extends Element {
       for (SubFindRun sub : theSubs) {
         sub.shouldStop();
       }
-    }else {
+    } else {
       boolean all = false;
       while (!all) {
         all = true;
@@ -4687,17 +4698,9 @@ public class Region extends Element {
   //</editor-fold>
 
   //<editor-fold desc="048 Mobile actions (Android)">
-  private ADBDevice adbDevice = null;
-  private ADBScreen adbScreen = null;
-
   private boolean isAndroid() {
-    if (isOtherScreen()) {
-      IScreen scr = getScreen();
-      if (scr instanceof ADBScreen) {
-        adbScreen = (ADBScreen) scr;
-        adbDevice = adbScreen.getDevice();
-        return true;
-      }
+    if (isOtherScreen() && HelpDevice.isAndroid(getScreen())) {
+      return true;
     }
     return false;
   }
@@ -4710,14 +4713,13 @@ public class Region extends Element {
    * @param target  PFRML
    * @throws FindFailed image not found
    */
-
-
   public <PFRML> void aTap(PFRML target) throws FindFailed {
-    if (isAndroid() && adbDevice != null) {
+    if (isAndroid()) {
       Location loc = getLocationFromTarget(target);
       if (loc != null) {
-        adbDevice.tap(loc.x, loc.y);
-        RunTime.pause(adbScreen.waitAfterAction);
+        IScreen adbScreen = getScreen();
+        adbScreen.action("tap", loc.x, loc.y);
+        adbScreen.waitAfterAction();
       }
     }
   }
@@ -4728,11 +4730,9 @@ public class Region extends Element {
    *
    * @param text text
    */
-
-
   public void aInput(String text) {
-    if (isAndroid() && adbDevice != null) {
-      adbDevice.input(text);
+    if (isAndroid()) {
+      getScreen().action("input", text);
     }
   }
 
@@ -4742,11 +4742,9 @@ public class Region extends Element {
    *
    * @param key key
    */
-
-
   public void aKey(int key) {
-    if (isAndroid() && adbDevice != null) {
-      adbDevice.inputKeyEvent(key);
+    if (isAndroid()) {
+      getScreen().action("inputKeyEvent", key);
     }
   }
 
@@ -4759,15 +4757,14 @@ public class Region extends Element {
    * @param to      PFRML
    * @throws FindFailed image not found
    */
-
-
   public <PFRML> void aSwipe(PFRML from, PFRML to) throws FindFailed {
-    if (isAndroid() && adbDevice != null) {
+    if (isAndroid()) {
       Location locFrom = getLocationFromTarget(from);
       Location locTo = getLocationFromTarget(to);
       if (locFrom != null && locTo != null) {
-        adbDevice.swipe(locFrom.x, locFrom.y, locTo.x, locTo.y);
-        RunTime.pause(adbScreen.waitAfterAction);
+        IScreen adbScreen = getScreen();
+        adbScreen.action("swipe", locFrom.x, locFrom.y, locTo.x, locTo.y);
+        adbScreen.waitAfterAction();
       }
     }
   }
@@ -4776,8 +4773,6 @@ public class Region extends Element {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeUp() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4791,8 +4786,6 @@ public class Region extends Element {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeDown() {
     int midX = (int) (w / 2);
     int swipeStep = (int) (h / 5);
@@ -4806,8 +4799,6 @@ public class Region extends Element {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeLeft() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);
@@ -4821,8 +4812,6 @@ public class Region extends Element {
    *
    * EXPERIMENTAL: for Android over ADB
    */
-
-
   public void aSwipeRight() {
     int midY = (int) (h / 2);
     int swipeStep = (int) (w / 5);

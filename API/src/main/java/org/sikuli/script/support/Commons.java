@@ -4,11 +4,14 @@
 
 package org.sikuli.script.support;
 
+import org.apache.commons.cli.CommandLine;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Options;
 import org.sikuli.script.SikuliXception;
+import org.sikuli.util.CommandArgs;
+import org.sikuli.util.CommandArgsEnum;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +40,9 @@ public class Commons {
 
   private static final String osName = System.getProperty("os.name").toLowerCase();
   private static final String osVersion = System.getProperty("os.version").toLowerCase();
+
+  private static final String sxTempDir = System.getProperty("java.io.tmpdir");
+  private static File sxTempFolder = null;
 
   static {
     if (!System.getProperty("os.arch").contains("64")) {
@@ -218,7 +224,41 @@ public class Commons {
   }
   //</editor-fold>
 
+  private static String[] startArgs = null;
+  private static CommandLine cmdLine = null;
+
+  public static void setStartArgs(String[] args) {
+    startArgs = args;
+    CommandArgs cmdArgs = new CommandArgs();
+    cmdLine = cmdArgs.getCommandLine(args);
+  }
+
+  public static boolean hasArg(String arg) {
+    return cmdLine.hasOption(arg);
+  }
+
+  public static String getArg(String arg) {
+    return cmdLine.getOptionValue(arg);
+  }
+
   //<editor-fold desc="05 standard directories">
+  public static File setTempFolder() {
+    if (null == sxTempFolder) {
+      sxTempFolder = new File(sxTempDir);
+    }
+    return sxTempFolder;
+  }
+
+  public static File setTempFolder(File folder) {
+    sxTempFolder = folder;
+    sxTempFolder.mkdirs();
+    return sxTempFolder;
+  }
+
+  public static File getTempFolder() {
+    return sxTempFolder;
+  }
+
   public static File getAppDataPath() {
     if (null == appDataPath) {
       if (runningWindows()) {
@@ -245,10 +285,10 @@ public class Commons {
   public static File setAppDataPath(String givenAppPath) {
     appDataPath = new File(givenAppPath);
     if (!appDataPath.isAbsolute()) {
-      appDataPath = new File(userHome, givenAppPath);
+      appDataPath = new File(getUserHome(), givenAppPath);
       appDataPath.mkdirs();
       if (!appDataPath.exists()) {
-        //TODO setAppDataPath
+        RunTime.terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
       }
     }
     return appDataPath;
@@ -335,6 +375,7 @@ public class Commons {
   public static String getSysName() {
     return runningWindows() ? SYSWIN : (runningMac() ? SYSMAC : SYSLUX);
   }
+
   public static boolean runningWindows() {
     return osName.startsWith(SYSWIN);
   }
@@ -751,7 +792,7 @@ public class Commons {
     return url;
   }
 
-  public static File  urlToFile(URL url) {
+  public static File urlToFile(URL url) {
     File file = null;
     String path = url.getPath();
     if (url.getProtocol().equals("jar") || url.getProtocol().equals("file")) {
@@ -919,7 +960,7 @@ public class Commons {
       } catch (ClassNotFoundException e) {
         RunTime.terminate(999, "Commons: JythonSupport: %s", e.getMessage());
       }
-    } else if (reference instanceof String && ((String) reference).contains("org.jruby")){
+    } else if (reference instanceof String && ((String) reference).contains("org.jruby")) {
       try {
         classSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
       } catch (ClassNotFoundException e) {
@@ -932,8 +973,8 @@ public class Commons {
     String error = "returns null";
     try {
       Object instanceSup = classSup.getMethod("get", null).invoke(null, null);
-      Method method = classSup.getMethod(function, new Class[] { Object[].class });
-      returnSup = method.invoke(instanceSup, (Object)args);
+      Method method = classSup.getMethod(function, new Class[]{Object[].class});
+      returnSup = method.invoke(instanceSup, (Object) args);
     } catch (NoSuchMethodException e) {
       error = e.toString();
     } catch (IllegalAccessException e) {
