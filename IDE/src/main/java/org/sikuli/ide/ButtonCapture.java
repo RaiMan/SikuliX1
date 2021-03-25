@@ -3,7 +3,6 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.android.ADBScreen;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
@@ -14,6 +13,7 @@ import org.sikuli.script.ScreenImage;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
@@ -110,14 +110,11 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     if (defaultScreen == null) {
       Screen.doPrompt("Select an image", this);
     } else {
-      if (Sikulix.popAsk("Android capture")) {
+      if (HelpDevice.isAndroid(defaultScreen) && Sikulix.popAsk("Android capture")) {
         new Thread() {
           @Override
           public void run() {
-            ADBScreen aScr = (ADBScreen) defaultScreen;
-            aScr.wakeUp(2);
-            aScr.wait(1.0);
-            sImgNonLocal = aScr.userCapture("");
+            sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
             ButtonCapture.this.update((EventSubject) null);
           }
         }.start();

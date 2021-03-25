@@ -61,4 +61,8 @@ public interface IScreen {
   Region newRegion(int x, int y, int w, int h);
   Region newRegion(Location loc, int w, int h);
   Region newRegion(Region reg);
+
+  void waitAfterAction();
+
+  Object action(String action, Object... args);
 }

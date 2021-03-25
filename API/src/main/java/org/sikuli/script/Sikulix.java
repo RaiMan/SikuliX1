@@ -10,7 +10,8 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.script.support.SikulixEvaluate;
-import org.sikuli.vnc.VNCScreen;
+import org.sikuli.script.support.devices.AbstractDevice;
+import org.sikuli.script.support.devices.HelpDevice;
 
 import javax.swing.*;
 import java.awt.Dimension;
@@ -399,8 +400,9 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static VNCScreen vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
-    return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
+  public static AbstractDevice vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
+    //TODO finally implement VNCScreen as VNCDevice
+    return HelpDevice.startVNC(theIP, thePort, password, cTimeout, timeout);
   }
 
   /**
@@ -413,8 +415,9 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static VNCScreen vncStart(String theIP, int thePort, int cTimeout, int timeout) {
-    return VNCScreen.start(theIP, thePort, cTimeout, timeout);
+  public static AbstractDevice vncStart(String theIP, int thePort, int cTimeout, int timeout) {
+    //TODO finally implement VNCScreen as VNCDevice
+    return HelpDevice.startVNC(theIP, thePort, cTimeout, timeout);
   }
   //</editor-fold>
 

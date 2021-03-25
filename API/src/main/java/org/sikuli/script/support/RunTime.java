@@ -17,15 +17,15 @@ import org.sikuli.script.Options;
 import org.sikuli.script.Screen;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.Sikulix;
+import org.sikuli.script.support.devices.AbstractDevice;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 import org.sikuli.util.Highlight;
-import org.sikuli.vnc.VNCScreen;
 
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -643,59 +643,8 @@ public class RunTime {
       Settings.OcrDataPath = null;
     }
 
-    Class cVNC = null;
-    Method cVNCstop = null;
-    try {
-      cVNC = Class.forName("org.sikuli.vnc.VNCScreen");
-      VNCScreen.stopAll();
-    } catch (ClassNotFoundException e) {
-    }
-    if (null != cVNC) {
-      try {
-        cVNCstop = cVNC.getMethod("stopAll", null);
-      } catch (NoSuchMethodException e) {
-      }
-    }
-    if (null != cVNCstop) {
-      String error = "";
-      try {
-        cVNCstop.invoke(null, null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
-        error = e.getMessage();
-      }
-      if (!error.isEmpty()) {
-        Debug.info("Error while stopping VNCScreen: %s", error);
-      }
-    }
-
-    Class cADB = null;
-    Method cADBstop = null;
-    try {
-      cADB = Class.forName("org.sikuli.vnc.VNCScreen");
-      VNCScreen.stopAll();
-    } catch (ClassNotFoundException e) {
-    }
-    if (null != cADB) {
-      try {
-        cADBstop = cADB.getMethod("stopAll", null);
-      } catch (NoSuchMethodException e) {
-      }
-    }
-    if (null != cADBstop) {
-      String error = "";
-      try {
-        cADBstop.invoke(null, null);
-      } catch (IllegalAccessException e) {
-        error = e.getMessage();
-      } catch (InvocationTargetException e) {
-        error = e.getMessage();
-      }
-      if (!error.isEmpty()) {
-        Debug.info("Error while stopping ADBScreen: %s", error);
-      }
-    }
+    HelpDevice.stop(AbstractDevice.Device.VNC);
+    HelpDevice.stop(AbstractDevice.Device.ANDROID);
 
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);

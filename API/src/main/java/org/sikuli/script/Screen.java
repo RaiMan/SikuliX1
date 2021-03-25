@@ -834,4 +834,13 @@ public class Screen extends Region implements IScreen {
   public Location newLocation(int x, int y) {
     return new Location(x, y).setOtherScreen(this);
   }
+
+  @Override
+  public void waitAfterAction() {
+
+  }
+  @Override
+  public Object action(String action, Object... args) {
+    return null;
+  }
 }
