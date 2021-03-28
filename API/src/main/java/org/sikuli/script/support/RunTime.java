@@ -17,7 +17,7 @@ import org.sikuli.script.Options;
 import org.sikuli.script.Screen;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.Sikulix;
-import org.sikuli.script.support.devices.AbstractDevice;
+import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
@@ -643,8 +643,8 @@ public class RunTime {
       Settings.OcrDataPath = null;
     }
 
-    HelpDevice.stop(AbstractDevice.Device.VNC);
-    HelpDevice.stop(AbstractDevice.Device.ANDROID);
+    HelpDevice.stop(Devices.TYPE.VNC);
+    HelpDevice.stop(Devices.TYPE.ANDROID);
 
     Observing.cleanUp();
     HotkeyManager.reset(isTerminating);

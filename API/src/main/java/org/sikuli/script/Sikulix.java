@@ -10,8 +10,9 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.script.support.SikulixEvaluate;
-import org.sikuli.script.support.devices.AbstractDevice;
+import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
 
 import javax.swing.*;
 import java.awt.Dimension;
@@ -75,10 +76,7 @@ public class Sikulix {
   }
 
   private static Point getLocPopAt() {
-    if (Screen.isHeadless()) {
-      return null;
-    }
-    Rectangle rect = new Screen(0).getRect();
+    Rectangle rect = ScreenDevice.get(0).asRectangle();
     //TODO should be IDE window
     return new Point((int) rect.getCenterX(), (int) rect.getCenterY());
   }
@@ -400,7 +398,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static AbstractDevice vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  public static Devices vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, password, cTimeout, timeout);
   }
@@ -415,7 +413,7 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static AbstractDevice vncStart(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Devices vncStart(String theIP, int thePort, int cTimeout, int timeout) {
     //TODO finally implement VNCScreen as VNCDevice
     return HelpDevice.startVNC(theIP, thePort, cTimeout, timeout);
   }

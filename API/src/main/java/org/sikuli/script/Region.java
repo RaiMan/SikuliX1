@@ -416,6 +416,11 @@ public class Region extends Element {
     }
   }
 
+  public void resetScreen() {
+    Screen scr = (Screen) getScreen();
+    scr.reset();
+  }
+
   private Location checkAndSetRemote(Location loc) {
     if (!isOtherScreen()) {
       return loc;
@@ -942,14 +947,6 @@ public class Region extends Element {
   public void showScreens() {
     Screen.showMonitors();
   }
-
-  /**
-   * synonym for resetMonitors
-   */
-  public void resetScreens() {
-    Screen.resetMonitors();
-  }
-
   // ************************************************
 
   /**

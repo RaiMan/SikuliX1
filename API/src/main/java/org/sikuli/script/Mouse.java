@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.util.Highlight;
 
 import java.awt.event.InputEvent;
@@ -55,14 +56,11 @@ public class Mouse {
 
   public static void init() {
     if (mouse == null) {
-//      log(3, "init start");
       mouse = new Mouse();
       mouse.device = new Device(mouse);
       mouse.device.isMouse = true;
-//      Location loc = at();
-//      move(loc);
       mouse.device.lastPos = null;
-//      log(3, "init end");
+      MouseDevice.start();
     }
   }
 
@@ -316,7 +314,7 @@ public class Mouse {
       } else {
         robot.smoothMove(loc);
       }
-      //robot.waitForIdle();
+      log(4, "moved to: %d, %d", loc.x, loc.y);
     }
   }
 

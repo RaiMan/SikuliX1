@@ -149,7 +149,7 @@ public class RobotDesktop extends Robot implements IRobot {
     if (Mouse.isNotUseable()) {
       return;
     }
-    waitForIdle();
+//    waitForIdle();
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point actualPos;
     if (mp == null) {

@@ -2,46 +2,50 @@ package org.sikuli.script.support.devices;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.FindFailed;
-import org.sikuli.script.Location;
-import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class HelpDevice extends AbstractDevice {
+public class HelpDevice extends Devices {
 
-  public static void stop(Device type, AbstractDevice device) {
+  public static void stop(TYPE type) {
     if (type != null) {
-      if (type.equals(Device.VNC)) {
+      if (type.equals(TYPE.VNC)) {
         stopVNC();
         return;
       }
-      if (type.equals(Device.ANDROID)) {
+      if (type.equals(TYPE.ANDROID)) {
         stopAndroid();
         return;
       }
     }
   }
 
-  private static void stopVNC() {
-    Class cVNC = null;
-    Method cVNCstop = null;
+  //<editor-fold desc="10 VNC support">
+  private static Class getClazz(String className) {
+    Class clazz = null;
     try {
-      cVNC = Class.forName("org.sikuli.vnc.VNCScreen");
+      clazz = Class.forName(className);
     } catch (ClassNotFoundException e) {
     }
-    if (null != cVNC) {
+    return clazz;
+  }
+
+  private static Object invokeMethod(Class clazz, String methodName) {
+    Method method = null;
+    Object result = null;
+    if (null != clazz) {
       try {
-        cVNCstop = cVNC.getMethod("stopAll", null);
+        method = clazz.getMethod(methodName, null);
       } catch (NoSuchMethodException e) {
       }
     }
-    if (null != cVNCstop) {
+    if (null != method) {
       String error = "";
       try {
-        cVNCstop.invoke(null, null);
+        result = method.invoke(null, null);
       } catch (IllegalAccessException e) {
         error = e.getMessage();
       } catch (InvocationTargetException e) {
@@ -51,16 +55,25 @@ public class HelpDevice extends AbstractDevice {
         Debug.info("Error while stopping VNCScreen: %s", error);
       }
     }
+    return result;
   }
 
-  public static AbstractDevice startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
+  static final String classNameVNC = "org.sikuli.vnc.VNCScreen";
+
+  private static void stopVNC() {
+    invokeMethod(getClazz(classNameVNC), "stopAll");
+  }
+
+  public static Devices startVNC(String theIP, int thePort, String password, int cTimeout, int timeout) {
     return null;
   }
 
-  public static AbstractDevice startVNC(String theIP, int thePort, int cTimeout, int timeout) {
+  public static Devices startVNC(String theIP, int thePort, int cTimeout, int timeout) {
     return null;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="20 Mobile actions (Android)">
   private static void stopAndroid() {
     Class cADB = null;
     Method cADBstop = null;
@@ -89,14 +102,6 @@ public class HelpDevice extends AbstractDevice {
     }
   }
 
-  //<editor-fold desc="048 Mobile actions (Android)">
-
-//              ADBScreen aScr = (ADBScreen) defaultScreen;
-//              aScr.wakeUp(2);
-//              aScr.wait(1.0);
-//              aScr.userCapture("");
-//  sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
-
   public static boolean isAndroid(IScreen screen) {
     try {
       screen.getClass().equals(Class.forName("org.sikuli.android.ADBScreen"));
@@ -107,6 +112,12 @@ public class HelpDevice extends AbstractDevice {
     }
     return false;
   }
+
+//              ADBScreen aScr = (ADBScreen) defaultScreen;
+//              aScr.wakeUp(2);
+//              aScr.wait(1.0);
+//              aScr.userCapture("");
+//  sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
 
   public <PFRML> void aTap(PFRML target) throws FindFailed {
 //    adbScreen.action("tap", loc.x, loc.y);

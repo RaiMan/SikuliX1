@@ -325,6 +325,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public void executeScriptHeader(List<String> codeBefore) {
+//    Debug.on(4);
     for (String line : SCRIPT_HEADER) {
       log(lvl + 1, "executeScriptHeader: %s", line);
       interpreterExecString(line);
@@ -341,9 +342,11 @@ public class JythonSupport implements IRunnerSupport {
    */
   private static String[] SCRIPT_HEADER = new String[]{
           "# -*- coding: utf-8 -*- ",
+          "import time; start = time.time()",
           "import org.sikuli.script.SikulixForJython",
           "from sikuli import *",
-          "use() #resetROI()"
+          "resetBeforeScriptStart()",
+          "Debug.log(3, 'BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
   };
   //</editor-fold>
 
