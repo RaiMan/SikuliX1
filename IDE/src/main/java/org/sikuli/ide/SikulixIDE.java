@@ -49,9 +49,6 @@ public class SikulixIDE extends JFrame {
 
 //  static RunTime runTime;
 
-  static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
-      SikulixIDE.class.getResource("/icons/sikulix.png"));
-
   public static void main(String[] args) {
     if (null == System.getProperty("sikuli.IDE_should_run")) {
       System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
@@ -127,9 +124,9 @@ public class SikulixIDE extends JFrame {
       prepareMacUI();
     }
 
-    IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
-
     get();
+
+    IDETaskbarSupport.setTaskBarIcon();
 
     if (Debug.getDebugLevel() < 3) {
       ideSplash = new IDESplash(Commons.getSXVersion(), "" + Commons.getJavaVersion());
@@ -220,7 +217,7 @@ public class SikulixIDE extends JFrame {
 
   private SikulixIDE() {
     super("SikulixIDE");
-    this.setIconImage(ICON_IMAGE);
+//    this.setIconImage(ICON_IMAGE);
   }
 
   public static synchronized SikulixIDE get() {

@@ -4,11 +4,12 @@
 
 package org.sikuli.idesupport;
 
-import java.awt.Image;
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.sikuli.basics.Settings;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
@@ -20,10 +21,12 @@ public class IDETaskbarSupport {
    * This class contains some reflective code that can be removed
    * as soon as we ditch Java 8 support.
    *
-   * @param img the task image to set.
    */
 
-  public static void setTaksIcon(Image img) {
+  static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
+      SikulixIDE.class.getResource("/icons/sikulix-icon.png"));
+
+  public static void setTaskBarIcon() {
     /*
      * Java 9 provides java.awt.Taskbar which is a nice abstraction to do this on multiple platforms.
      * But because we have to be Java 8 backwards compatible we have to use some reflection here to
@@ -56,7 +59,10 @@ public class IDETaskbarSupport {
           Object iconImageEnum = Enum.valueOf(clDesktopFeature, "ICON_IMAGE");
           if(Boolean.TRUE.equals(clTaskbar.getMethod("isSupported", clDesktopFeature).invoke(taskbar, iconImageEnum))) {
             Method setIconImage = clTaskbar.getMethod("setIconImage", new Class[]{java.awt.Image.class});
-            setIconImage.invoke(taskbar, img);
+            setIconImage.invoke(taskbar, ICON_IMAGE);
+            //setIconBadge(String badge) --- Feature.ICON_BADGE_TEXT
+            Method setIconBadge = clTaskbar.getMethod("setIconBadge", new Class[]{String.class});
+            setIconBadge.invoke(taskbar, "_6");
           }
         }
       } else if (Settings.isMac()) { // special handling for MacOS if we are on Java 8
@@ -64,10 +70,12 @@ public class IDETaskbarSupport {
         Method getApplication = appClass.getMethod("getApplication");
         Object application = getApplication.invoke(appClass);
         Method setDockIconImage = appClass.getMethod("setDockIconImage", new Class[]{java.awt.Image.class});
-        setDockIconImage.invoke(application, img);
+        setDockIconImage.invoke(application, ICON_IMAGE);
+      } else {
+        SikulixIDE.get().setIconImage(ICON_IMAGE);
       }
     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException | SecurityException e) {
-      // Just ignore this if not supported
+      RunTime.terminate(999, "IDETaskbarSupport");
     }
   }
 }
