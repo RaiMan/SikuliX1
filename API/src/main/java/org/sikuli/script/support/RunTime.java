@@ -623,7 +623,7 @@ public class RunTime {
       cleanUp();
       System.exit(retval);
     }
-    throw new SikuliXception(String.format("fatal: " + outMsg));
+    throw new SikuliXception(String.format("FATAL: " + outMsg));
   }
 
   public static void cleanUp() {
@@ -708,9 +708,9 @@ public class RunTime {
     }
     if (Commons.runningWindows()) {
       libName += ".dll";
-    } else if (runningMac) {
+    } else if (Commons.runningMac()) {
       libName = "lib" + libName + ".dylib";
-    } else if (runningLinux) {
+    } else if (Commons.runningLinux()) {
       libName = "lib" + libName + ".so";
     }
     File fLib = new File(Commons.getLibsFolder(), libName);
@@ -719,7 +719,7 @@ public class RunTime {
       Boolean vLib = libsLoaded.get(libName);
       if (vLib == null || !fLib.exists()) {
         if (!fLib.exists()) {
-          throw new SikuliXception(String.format("loadlib: %s not in any libs folder", libName));
+          RunTime.terminate(999, "FATAL: loadlib: %s not in any libs folder", libName);
         } else {
           vLib = false;
         }
@@ -896,6 +896,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+  private static boolean libOpenCVloaded = false;
 
   public static boolean loadOpenCV() {
     return loadLibrary(libOpenCV);
