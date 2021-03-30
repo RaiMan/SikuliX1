@@ -21,11 +21,18 @@ public class SikulixForJython {
   private static SikulixForJython instance = null;
   private static final int lvl = 3;
 
-  static {
-    staticInit();
+  private SikulixForJython() {
+    init();
   }
 
-  static void staticInit() {
+  public static SikulixForJython get() {
+    if (null == instance) {
+      instance = new SikulixForJython();
+    }
+    return instance;
+  }
+
+  void init() {
     JythonSupport helper = JythonSupport.get();
     helper.log(lvl, "SikulixForJython: init: starting");
     String sikuliStuff = "sikuli/Sikuli";
@@ -62,15 +69,5 @@ public class SikulixForJython {
     }
 */
     helper.log(lvl, "SikulixForJython: init: success");
-  }
-
-  SikulixForJython() {
-  }
-
-  public static SikulixForJython get() {
-    if (null == instance) {
-      instance = new SikulixForJython();
-    }
-    return instance;
   }
 }

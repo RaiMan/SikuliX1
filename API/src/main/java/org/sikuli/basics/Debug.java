@@ -32,8 +32,6 @@ import java.util.Date;
  */
 public class Debug {
 
-	private static boolean initOK = false;
-	private static int TRACE_LEVEL = 0;
   private static int DEBUG_LEVEL = 0;
 	private static boolean loggerRedirectSupported = true;
 	public static boolean shouldLogJython = false;
@@ -69,12 +67,13 @@ public class Debug {
 	private static String privateLoggerDebugPrefix = "";
 	private static boolean isJython;
 	private static boolean isJRuby;
-  private static Object scriptRunner = null;
 
   private static boolean searchHighlight = false;
 
 	private static PrintStream redirectedOut = null, redirectedErr = null;
 
+
+	private static boolean initOK = false;
 
 	public static void init() {
 		if (initOK) {
@@ -97,11 +96,6 @@ public class Debug {
 				}
 			}
 		}
-    if (DEBUG_LEVEL == 9) {
-      setDebugLevel(3);
-      setWithTimeElapsed(0);
-      globalTraceOn();
-    }
 		setLogFile(null);
     setUserLogFile(null);
     if (DEBUG_LEVEL > 0) {
@@ -153,46 +147,8 @@ public class Debug {
 
 	private static boolean beQuiet = false;
 
-	public static boolean isStartWithTrace() {
-		return startWithTrace;
-	}
-
-	public static void setStartWithTrace() {
-		startWithTrace = true;
-	}
-
-	private static boolean startWithTrace = false;
-
-  public static void globalTraceOn() {
-  	TRACE_LEVEL = 1;
-  	traceLast = -1;
-	}
-
-	public static void globalTraceOff() {
-		TRACE_LEVEL = 0;
-	}
-
-	public static boolean isGlobalTrace() {
-  	return TRACE_LEVEL > 0;
-	}
-
 	public static void reset() {
-  	globalTraceOff();
   	setDebugLevel(0);
-	}
-
-	static boolean withTimeElapsed = false;
-
-	public static void setWithTimeElapsed() {
-		withTimeElapsed = true;
-	}
-
-	public static void setWithTimeElapsed(long start) {
-		withTimeElapsed = true;
-	}
-
-	public static void unsetWithTimeElapsed() {
-		withTimeElapsed = false;
 	}
 
 	/**
@@ -773,13 +729,6 @@ public class Debug {
     }
   }
 
-  public static void logt(String message) {
-    if (!withTimeElapsed) {
-      return;
-    }
-    log(3, message);
-  }
-
   /**
 	 * INTERNAL USE: special debug messages
 	 * @param level value
@@ -815,16 +764,6 @@ public class Debug {
     return out;
   }
 
-	public static synchronized String trace(String message, Object... args) {
-	  if (isGlobalTrace()) {
-      return log(-999, "TRACE", message, args);
-    } else {
-      return "";
-    }
-	}
-
-	private static long traceLast = -1;
-
   private static synchronized String log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
 		if (beQuiet) {
@@ -833,29 +772,6 @@ public class Debug {
     String sout = "";
     String stime = "";
     if (level <= DEBUG_LEVEL) {
-      if (level == 3 || level == -999) {
-        if (message.startsWith("TRACE: ")) {
-          if (!Settings.TraceLogs) {
-            return "";
-          }
-        }
-        if(withTimeElapsed || level == -999) {
-					long traceElapsed = 0;
-        	long actual = new Date().getTime();
-        	if (withTimeElapsed) {
-        		traceElapsed = actual - RunTime.getElapsedStart();
-					}
-					if (level == -999) {
-						if (traceLast < 0) {
-							traceElapsed = 0;
-						} else {
-							traceElapsed = actual - traceLast;
-						}
-						traceLast = actual;
-					}
-					prefix = String.format("%d %s", traceElapsed, prefix);
-				}
-      }
       if (Settings.LogTime && level != -99) {
         stime = String.format(" (%s)", df.format(new Date()));
       }

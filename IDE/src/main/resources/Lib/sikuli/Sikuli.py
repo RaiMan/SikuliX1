@@ -812,4 +812,4 @@ def _setSCREEN(scr, theGlobals):
 
 ############### set SCREEN as primary screen at startup ################
 ALL = JScreen.all().getRegion()
-Debug.log(3, "Jython: sikuli: Sikuli: ending init")
+Debug.log(3, "Jython: ending init")

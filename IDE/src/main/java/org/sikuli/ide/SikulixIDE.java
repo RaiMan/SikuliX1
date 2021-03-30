@@ -63,10 +63,7 @@ public class SikulixIDE extends JFrame {
     if (RunTime.isQuiet()) {
       Debug.quietOn();
     } else if (RunTime.isVerbose()) {
-      Debug.setWithTimeElapsed(RunTime.getElapsedStart());
       Debug.setGlobalDebug(3);
-      Debug.globalTraceOn();
-      Debug.setStartWithTrace();
     }
 
     if (!RunTime.getLogFile().isEmpty()) {
@@ -369,8 +366,7 @@ public class SikulixIDE extends JFrame {
     if (!Commons.isJava8()) {
       j9Message = "*** Running on Java 9+";
     }
-    Debug.log(lvl, "IDE startup: %4.1f seconds %s", (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0, j9Message);
-    Debug.unsetWithTimeElapsed();
+    Debug.log(lvl, "IDE startup: %4.1f sec %s", (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0, j9Message);
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }

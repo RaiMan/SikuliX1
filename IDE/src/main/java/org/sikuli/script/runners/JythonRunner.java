@@ -13,6 +13,7 @@ import org.sikuli.script.support.RunTime;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Matcher;
 
 /**
@@ -85,9 +86,9 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
       jythonSupport = JythonSupport.get();
       jythonSupport.getSysPath();
-      String fpAPILib = Commons.getLibFolder().getAbsolutePath();
-      jythonSupport.putSysPath(fpAPILib, 0);
-      jythonSupport.setSysPath();
+      if (!Commons.isRunningFromJar()) {
+        jythonSupport.putSysPath(new File(Commons.getMainClassPath(), "LIB").getAbsolutePath(), 0);
+      }
       jythonSupport.addSitePackages();
       jythonSupport.showSysPath();
       jythonSupport.interpreterExecString("import sys");
@@ -96,9 +97,8 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       if (interpreterVersion.isEmpty()) {
         interpreterVersion = "could not be evaluated";
       }
-      Debug.setWithTimeElapsed();
-      log(lvl, "ready: version %s", interpreterVersion);
-      Debug.unsetWithTimeElapsed();
+      log(lvl, "ready: version %s (%4.1f sec)", interpreterVersion,
+          (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0);
     }
   }
 

@@ -49,6 +49,12 @@ public class Sikulix {
     //TODO Extensions??
     String classPath = ExtensionManager.makeClassPath(runningJar);
 
+    //TODO prep for export to jar
+    if (!Commons.isRunningFromJar()) {
+      FileManager.writeStringToFile(Commons.getRunningJar().getAbsolutePath(),
+          new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
+    }
+
     if (!runningJar.getName().endsWith(".jar") || classPath.split(File.pathSeparator).length < 2) {
       SikulixIDE.main(args);
     } else {
@@ -57,8 +63,6 @@ public class Sikulix {
       //region hidden
       if (false) {
         RunTime.terminate(999, "//TODO start IDE in subprocess?");
-        FileManager.writeStringToFile(runningJar.getAbsolutePath(),
-            new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
         List<String> cmd = new ArrayList<>();
         System.getProperty("java.home");
         if (Commons.runningWindows()) {

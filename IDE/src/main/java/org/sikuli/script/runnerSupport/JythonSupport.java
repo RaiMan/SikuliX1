@@ -14,11 +14,13 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.SikulixForJython;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -89,7 +91,7 @@ public class JythonSupport implements IRunnerSupport {
       return;
     }
     //TODO RunTime.get().exportLib()
-    RunTime.get().exportLib();
+    //RunTime.get().exportLib();
     try {
       interpreter = new PythonInterpreter();
       cPyException = Class.forName("org.python.core.PyException");
@@ -145,6 +147,34 @@ public class JythonSupport implements IRunnerSupport {
     return true;
   }
   //</editor-fold>
+
+  public void exportLib() {
+    File fLib = Commons.getLibFolder();
+    FilenameFilter filterSitePackages = null;
+    if (fLib.exists()) {
+      FileManager.deleteFileOrFolder(fLib, new FileManager.FileFilter() {
+        @Override
+        public boolean accept(File entry) {
+          if (entry.getPath().contains("site-packages")) {
+            return false;
+          }
+          return true;
+        }
+      });
+    } else {
+        fLib.mkdirs();
+        if (!fLib.exists()) {
+          throw new SikuliXception("LibExport: folder not available: " + fLib.toString());
+        }
+      filterSitePackages = (dir, name) -> {
+        if (dir.getPath().contains("site-packages")) {
+          return false;
+        }
+        return true;
+      };
+    }
+    RunTime.get().extractResourcesToFolder("Lib", Commons.getLibFolder(), filterSitePackages);
+  }
 
   //<editor-fold desc="05 Jython reflection">
   static Class cPyMethod = null;
@@ -343,10 +373,9 @@ public class JythonSupport implements IRunnerSupport {
   private static String[] SCRIPT_HEADER = new String[]{
           "# -*- coding: utf-8 -*- ",
           "import time; start = time.time()",
-          "import org.sikuli.script.SikulixForJython",
           "from sikuli import *",
           "resetBeforeScriptStart()",
-          "Debug.log(3, 'BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
+          "Debug.log(3, 'Jython: BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
   };
   //</editor-fold>
 

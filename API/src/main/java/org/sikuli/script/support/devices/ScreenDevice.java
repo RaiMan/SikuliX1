@@ -119,14 +119,8 @@ public class ScreenDevice extends Devices {
     return get(mainMonitor);
   }
 
-  private static Screen primaryScreen = null;
-
   public static Screen getPrimaryScreen() {
-    if (primaryScreen == null) {
-      start();
-      primaryScreen = makeScreen(mainMonitor);
-    }
-    return primaryScreen;
+    return makeScreen(mainMonitor);
   }
 
   public static ScreenDevice[] get() {

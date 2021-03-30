@@ -229,7 +229,6 @@ public class MacUtil implements OSUtil {
     int retVal = evalAppleScript(theCmd);
     String result = RunTime.get().getLastCommandResult().trim();
     if (retVal > -1 && !result.isEmpty()) {
-      Debug.trace("getWindows: %s", result);
       String[] parts = result.split(",");
       int lenResult = parts.length;
       if (lenResult % 5 != 0) {

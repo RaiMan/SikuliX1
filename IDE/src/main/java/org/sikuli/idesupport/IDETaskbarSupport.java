@@ -62,7 +62,7 @@ public class IDETaskbarSupport {
             setIconImage.invoke(taskbar, ICON_IMAGE);
             //setIconBadge(String badge) --- Feature.ICON_BADGE_TEXT
             Method setIconBadge = clTaskbar.getMethod("setIconBadge", new Class[]{String.class});
-            setIconBadge.invoke(taskbar, "_6");
+            setIconBadge.invoke(taskbar, ".6");
           }
         }
       } else if (Settings.isMac()) { // special handling for MacOS if we are on Java 8

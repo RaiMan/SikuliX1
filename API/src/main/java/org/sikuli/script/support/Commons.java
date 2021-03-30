@@ -220,7 +220,12 @@ public class Commons {
   }
 
   public static boolean isRunningFromJar() {
-    return false;
+    return getRunningJar().getAbsolutePath().endsWith(".jar");
+  }
+
+  public static String getMainClassPath() {
+    String cp = System.getProperty("java.class.path");
+    return cp.split(File.pathSeparator)[0];
   }
   //</editor-fold>
 
@@ -868,6 +873,25 @@ public class Commons {
     return content;
   }
 
+  public static boolean copyResourceToFile(String res, Class classReference, File file) {
+    InputStream stream = classReference.getResourceAsStream(res);
+    OutputStream out;
+    try {
+      out = new FileOutputStream(file);
+    } catch (FileNotFoundException e) {
+      return false;
+    }
+    try {
+      if (stream != null) {
+        copy(stream, out);
+        stream.close();
+      }
+    } catch (Exception ex) {
+      return false;
+    }
+    return true;
+  }
+
   private static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;
@@ -970,11 +994,18 @@ public class Commons {
       RunTime.terminate(999, "Commons: ScriptingSupport: not supported: %s", reference);
     }
     Object returnSup = null;
-    String error = "returns null";
+    String error = "";
+    Object instanceSup = null;
+    Method method = null;
     try {
-      Object instanceSup = classSup.getMethod("get", null).invoke(null, null);
-      Method method = classSup.getMethod(function, new Class[]{Object[].class});
-      returnSup = method.invoke(instanceSup, (Object) args);
+      instanceSup = classSup.getMethod("get", null).invoke(null, null);
+      if (args == null) {
+        method = classSup.getMethod(function, null);
+        returnSup = method.invoke(instanceSup);
+      } else {
+        method = classSup.getMethod(function, new Class[]{Object[].class});
+        returnSup = method.invoke(instanceSup, args);
+      }
     } catch (NoSuchMethodException e) {
       error = e.toString();
     } catch (IllegalAccessException e) {
@@ -984,9 +1015,9 @@ public class Commons {
     } catch (IllegalArgumentException e) {
       error = e.toString();
     }
-    if (null == returnSup) {
-      RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, args): %s",
-          reference, function, error);
+    if (!error.isEmpty()) {
+      RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
+          instanceSup, method, args, error);
     }
     return returnSup;
   }

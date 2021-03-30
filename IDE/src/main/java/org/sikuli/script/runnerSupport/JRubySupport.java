@@ -19,6 +19,7 @@ import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.ScriptingContainer;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 public class JRubySupport implements IRunnerSupport {
@@ -36,7 +37,9 @@ public class JRubySupport implements IRunnerSupport {
   public static JRubySupport get() {
     if (null == instance) {
       instance = new JRubySupport();
-      RunTime.get().exportLib();
+      //RunTime.get().exportLib();
+      Commons.getLibFolder().mkdirs();
+      Commons.copyResourceToFile("/Lib/sikulix.rb", Commons.class, Commons.getLibFolder());
       instance.interpreterInitialization();
     }
     return instance;

@@ -268,10 +268,7 @@ public class RunTime {
   public static void setVerbose() {
     RunTime.verbose = true;
     Debug.setDebugLevel(3);
-    Debug.setWithTimeElapsed(RunTime.getElapsedStart());
     Debug.setGlobalDebug(3);
-    Debug.globalTraceOn();
-    Debug.setStartWithTrace();
   }
 
   private static boolean verbose = false;
@@ -322,7 +319,7 @@ public class RunTime {
   }
 
   private static void log(int level, String message, Object... args) {
-    Debug.logx(level, "RunTime:" + message, args);
+    Debug.logx(level, "RunTime: " + message, args);
   }
 
   private static void logp(String message, Object... args) {
@@ -460,7 +457,7 @@ public class RunTime {
   String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
 
   private void init() {
-    log(3, "global init: entering");
+    log(3, "init: entering");
 
     fBaseTempPath = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
     fpBaseTempPath = fBaseTempPath.getAbsolutePath();
@@ -538,7 +535,6 @@ public class RunTime {
       String baseJarName = fSxBaseJar.getName();
       fSxBase = fSxBaseJar.getParentFile();
       log(4, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
-      Debug.setWithTimeElapsed();
       if (baseJarName.contains("classes")) {
         runningJar = false;
         fSxProject = fSxBase.getParentFile().getParentFile();
@@ -604,7 +600,7 @@ public class RunTime {
     if (Debug.getDebugLevel() == minLvl) {
       show();
     }
-    log(4, "global init: leaving");
+    log(3, "init: leaving");
   }
   //</editor-fold>
 
@@ -660,10 +656,6 @@ public class RunTime {
 
   private static void runShutdownHook() {
     isTerminating = true;
-    if (Debug.isStartWithTrace()) {
-      Debug.on(3);
-      Debug.globalTraceOn();
-    }
     runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
     cleanUp();
 
@@ -986,49 +978,7 @@ public class RunTime {
     }
     return false;
   }
-//</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="06 export LIB">
-  private static boolean isLibExported = false;
-
-  public void exportLib() {
-    if (isLibExported) {
-      return;
-    }
-    if (fSikulixLib.exists()) {
-      if (!Commons.hasVersionFile(fSikulixLib)) {
-        FileManager.deleteFileOrFolder(fSikulixLib, new FileManager.FileFilter() {
-          @Override
-          public boolean accept(File entry) {
-            if (entry.getPath().contains("site-packages")) {
-              return false;
-            }
-            return true;
-          }
-        });
-        extractResourcesToFolder("Lib", fSikulixLib, new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            if (dir.getPath().contains("site-packages")) {
-              return false;
-            }
-            return true;
-          }
-        });
-        Commons.makeVersionFile(fSikulixLib);
-      }
-    }
-    if (!fSikulixLib.exists()) {
-      fSikulixLib.mkdir();
-      if (!fSikulixLib.exists()) {
-        throw new SikuliXception("LibExport: folder not available: " + fSikulixLib.toString());
-      }
-      extractResourcesToFolder("Lib", fSikulixLib, null);
-      Commons.makeVersionFile(fSikulixLib);
-    }
-    isLibExported = true;
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
   public void crash() {
@@ -1692,6 +1642,10 @@ public class RunTime {
               fSubFolder = fFolder;
               files.add("/");
             }
+          }
+          //TODO exportLib: NPE????
+          if (fSubFolder == null) {
+            RunTime.terminate(999, "exportLib: NPE???? %s (%s)", zefName, fpResource);
           }
           if (filter != null && !filter.accept(fSubFolder, zefName)) {
             continue;

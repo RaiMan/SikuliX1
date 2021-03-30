@@ -53,10 +53,7 @@ public class PythonRunner extends AbstractLocalFileScriptRunner {
     if (!isSupported()) {
       return -1;
     }
-    if (Debug.isGlobalTrace()) {
-      Debug.setDebugLevel(3);
-    }
-//    RunTime.startPythonServer();
+//TODO    RunTime.startPythonServer();
     String scriptContent = FileManager.readFileToString(new File(scriptfile));
     Debug.log(3,"Python: running script: %s\n%s\n********** end", scriptfile, scriptContent);
     List<String> runArgs = new ArrayList<>();
