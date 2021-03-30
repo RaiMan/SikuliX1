@@ -26,15 +26,14 @@ public class MouseDevice extends Devices {
     Point lc, lcn;
     for (ScreenDevice scrd : ScreenDevice.get()) {
       lc = scrd.getCenter();
-      getRobot().mouseMove(lc.x, lc.y);
-      lcn = at();
+      lcn = move(lc);
       if (lc.equals(lcn)) {
-        log(deviceType,3,"click ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
+        log(deviceType,3,"ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
       } else {
-        log(deviceType,3,"click not ok: %s at: (%d, %d) but: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
+        log(deviceType,3,"not ok: %s at: (%d, %d) but: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
         usable = false;
       }
-      getRobot().mouseMove(lnow.x, lnow.y);
+      move(lnow);
     }
     Settings.MoveMouseDelay = mmd;
     if (!isUsable()) {
@@ -52,5 +51,11 @@ public class MouseDevice extends Devices {
       log(deviceType, -1, "not possible to get mouse position (PointerInfo == null)");
       return null;
     }
+  }
+
+  public static Point move(Point where) {
+    getRobot().mouseMove(where.x, where.y);
+    getRobot().waitForIdle();
+    return at();
   }
 }
