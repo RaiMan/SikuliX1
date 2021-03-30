@@ -49,7 +49,6 @@ public class ExtensionManager {
   }
 
   public static String makeClassPath(File jarFile) {
-    RunTime.startLog(1, "starting with classpath: %.100s ...", outerClassPath);
     String jarPath = jarFile.getAbsolutePath();
     extensionClassPath = jarPath;
     File[] sxFolderList = new File[0];

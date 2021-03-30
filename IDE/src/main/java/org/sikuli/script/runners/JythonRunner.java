@@ -87,7 +87,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       jythonSupport = JythonSupport.get();
       jythonSupport.getSysPath();
       if (!Commons.isRunningFromJar()) {
-        jythonSupport.putSysPath(new File(Commons.getMainClassPath(), "LIB").getAbsolutePath(), 0);
+        jythonSupport.putSysPath(new File(Commons.getMainClassLocation(), "LIB").getAbsolutePath(), 0);
       }
       jythonSupport.addSitePackages();
       jythonSupport.showSysPath();

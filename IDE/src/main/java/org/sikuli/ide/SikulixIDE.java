@@ -50,7 +50,7 @@ public class SikulixIDE extends JFrame {
 //  static RunTime runTime;
 
   public static void main(String[] args) {
-    if (null == System.getProperty("sikuli.IDE_should_run")) {
+    if (null == Commons.getStartClass()) {
       System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
       System.exit(1);
     }

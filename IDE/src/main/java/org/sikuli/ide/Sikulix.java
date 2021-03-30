@@ -17,8 +17,7 @@ import java.util.List;
 public class Sikulix {
 
   public static void main(String[] args) {
-    System.setProperty("sikuli.IDE_should_run", "develop");
-
+    Commons.setStartClass(Sikulix.class);
     Commons.setStartArgs(args);
 
     for (String arg : args) {
@@ -41,26 +40,25 @@ public class Sikulix {
       Commons.setTempFolder();
     }
 
-    File runningJar = Commons.getRunningJar();
-    RunTime.startLog(1, "Running: %s", runningJar);
+    File runningFrom = Commons.getMainClassLocation();
+    RunTime.startLog(1, "Running: %s", runningFrom);
 
     RunTime.startLog(1, "AppData: %s", Commons.getAppDataPath());
 
     //TODO Extensions??
-    String classPath = ExtensionManager.makeClassPath(runningJar);
+    //String classPath = ExtensionManager.makeClassPath(runningFrom);
 
     //TODO prep for export to jar
     if (!Commons.isRunningFromJar()) {
-      FileManager.writeStringToFile(Commons.getRunningJar().getAbsolutePath(),
+      FileManager.writeStringToFile(Commons.getMainClassLocation().getAbsolutePath(),
           new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
     }
 
-    if (!runningJar.getName().endsWith(".jar") || classPath.split(File.pathSeparator).length < 2) {
+    if (true) {
       SikulixIDE.main(args);
     } else {
-      SikulixIDE.main(args);
       //TODO start IDE in subprocess?
-      //region hidden
+      /*
       if (false) {
         RunTime.terminate(999, "//TODO start IDE in subprocess?");
         List<String> cmd = new ArrayList<>();
@@ -71,15 +69,16 @@ public class Sikulix {
           cmd.add(System.getProperty("java.home") + "/bin/java");
         }
         if (!Commons.isJava8()) {
-      /*
-      Suppress Java 9+ warnings
-      --add-opens
-      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
-      --add-opens
-      java.base/sun.nio.ch=ALL-UNNAMED
-      --add-opens
-      java.base/java.io=ALL-UNNAMED
       */
+//      Suppress Java 9+ warnings
+//      --add-opens
+//      java.desktop/javax.swing.plaf.basic=ALL-UNNAMED
+//      --add-opens
+//      java.base/sun.nio.ch=ALL-UNNAMED
+//      --add-opens
+//      java.base/java.io=ALL-UNNAMED
+/*
+
 //TODO IDE start: --add-opens supress warnings
           cmd.add("--add-opens");
           cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
@@ -102,6 +101,7 @@ public class Sikulix {
 
         RunTime.startLog(3, "*********************** leaving start");
         //TODO detach IDE: for what does it make sense?
+*/
 /*
     if (shouldDetach()) {
       ProcessRunner.detach(cmd);
@@ -111,10 +111,13 @@ public class Sikulix {
       System.exit(exitCode);
     }
 */
+/*
+
         int exitCode = ProcessRunner.runBlocking(cmd);
         System.exit(exitCode);
       }
       //endregion
+*/
     }
   }
 }

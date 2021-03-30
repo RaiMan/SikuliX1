@@ -4,7 +4,6 @@
 package org.sikuli.script;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.*;
@@ -163,6 +162,16 @@ public class ImagePath {
     log(lvl, "clear");
     Image.purge();
     imagePaths.set(0, null);
+  }
+
+  private static boolean isBundlePathSupported() {
+    return false;
+  }
+
+  private static void bundlePathValid(PathEntry entry) {
+    if (!isBundlePathSupported() && !entry.isFile()) {
+      Commons.error("Not supported as BundlePath: %s", entry.getURL());
+    }
   }
   //</editor-fold>
 
@@ -640,7 +649,7 @@ public class ImagePath {
     if (entry != null && entry.isValid()) {
       remove(isPathEntry(entry));
       setBundle(entry);
-      Commons.bundlePathValid(entry);
+      bundlePathValid(entry);
       return true;
     }
     return false;

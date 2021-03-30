@@ -7,11 +7,9 @@ package org.sikuli.script.support;
 import org.apache.commons.cli.CommandLine;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.ImagePath;
 import org.sikuli.script.Options;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.util.CommandArgs;
-import org.sikuli.util.CommandArgsEnum;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -29,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class Commons {
 
-  //<editor-fold desc="00 basics">
+  //<editor-fold desc="00 static">
   private static String sxVersion;
 
   private static String sxVersionLong;
@@ -92,7 +90,9 @@ public class Commons {
 
   public static void init() {
   }
+  //</editor-fold>
 
+  //<editor-fold desc="01 logging">
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTrace()) {
@@ -154,6 +154,7 @@ public class Commons {
   }
 
   private static boolean debug = false;
+  //</editor-fold>
 
   public static boolean parmsValid(Object... parms) {
     boolean success = true;
@@ -184,28 +185,29 @@ public class Commons {
     return number % 2 == 0;
   }
 
-  private static URL makeURL(String path) {
-    URL dirURL;
-    if (path.startsWith("<appdata>")) {
-      String path1 = getAppDataPath().getAbsolutePath();
-      path = path.replace("<appdata>", path1);
-    }
-    try {
-      File resFolderFile = new File(path);
-      if (!resFolderFile.isAbsolute()) {
-        resFolderFile = new File(resFolderFile.getAbsolutePath());
-      }
-      dirURL = new URL("file:" + (runningWindows() ? "/" : "") + resFolderFile);
-    } catch (MalformedURLException e) {
-      dirURL = null;
-    }
-    return dirURL;
+  //<editor-fold desc="02 startup">
+  private static Class startClass = null;
+
+  public static Class getStartClass() {
+    return startClass;
   }
 
-  public static File getRunningJar() {
+  public static void setStartClass(Class startClass) {
+    Commons.startClass = startClass;
+  }
+
+  public static boolean isRunningFromJar() {
+    return getMainClassLocation().getAbsolutePath().endsWith(".jar");
+  }
+
+  public static File getMainClassLocation() {
+    return getClassLocation(getStartClass());
+  }
+
+  public static File getClassLocation(Class theClass) {
     File jarFile = null;
     String jarName = "notKnown";
-    CodeSource codeSrc = Commons.class.getProtectionDomain().getCodeSource();
+    CodeSource codeSrc = theClass.getProtectionDomain().getCodeSource();
     if (codeSrc != null && codeSrc.getLocation() != null) {
       try {
         jarName = codeSrc.getLocation().getPath();
@@ -218,16 +220,6 @@ public class Commons {
     }
     return jarFile;
   }
-
-  public static boolean isRunningFromJar() {
-    return getRunningJar().getAbsolutePath().endsWith(".jar");
-  }
-
-  public static String getMainClassPath() {
-    String cp = System.getProperty("java.class.path");
-    return cp.split(File.pathSeparator)[0];
-  }
-  //</editor-fold>
 
   private static String[] startArgs = null;
   private static CommandLine cmdLine = null;
@@ -245,6 +237,7 @@ public class Commons {
   public static String getArg(String arg) {
     return cmdLine.getOptionValue(arg);
   }
+  //</editor-fold>
 
   //<editor-fold desc="05 standard directories">
   public static File setTempFolder() {
@@ -562,16 +555,6 @@ public class Commons {
 
   //</editor-fold>
 
-  public static boolean isBundlePathSupported() {
-    return false;
-  }
-
-  public static void bundlePathValid(ImagePath.PathEntry entry) {
-    if (!isBundlePathSupported() && !entry.isFile()) {
-      Commons.error("Not supported as BundlePath: %s", entry.getURL());
-    }
-  }
-
   //<editor-fold desc="10 folder handling">
   public static List<String> getFileList(String resFolder) {
     return getFileList(resFolder, null);
@@ -581,7 +564,7 @@ public class Commons {
     List<String> fileList = new ArrayList<>();
     URL dirURL;
     if (classReference == null) {
-      dirURL = makeURL(resFolder);
+      dirURL = makeURLFromPath(resFolder);
     } else {
       if (resFolder.equals(".")) {
         resFolder = "/" + classReference.getPackage().getName().replace(".", "/");
@@ -797,6 +780,24 @@ public class Commons {
     return url;
   }
 
+  private static URL makeURLFromPath(String path) {
+    URL dirURL;
+    if (path.startsWith("<appdata>")) {
+      String path1 = getAppDataPath().getAbsolutePath();
+      path = path.replace("<appdata>", path1);
+    }
+    try {
+      File resFolderFile = new File(path);
+      if (!resFolderFile.isAbsolute()) {
+        resFolderFile = new File(resFolderFile.getAbsolutePath());
+      }
+      dirURL = new URL("file:" + (runningWindows() ? "/" : "") + resFolderFile);
+    } catch (MalformedURLException e) {
+      dirURL = null;
+    }
+    return dirURL;
+  }
+
   public static File urlToFile(URL url) {
     File file = null;
     String path = url.getPath();
@@ -972,6 +973,7 @@ public class Commons {
   private static Options sxOptions = null;
   //</editor-fold>
 
+  //<editor-fold desc="40 reflections">
   public static Object runFunctionScriptingSupport(String function, Object[] args) {
     return runFunctionScriptingSupport(null, function, args);
   }
@@ -1021,4 +1023,5 @@ public class Commons {
     }
     return returnSup;
   }
+  //</editor-fold>
 }
