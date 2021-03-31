@@ -57,12 +57,15 @@ public class IDETaskbarSupport {
 
           @SuppressWarnings("unchecked")
           Object iconImageEnum = Enum.valueOf(clDesktopFeature, "ICON_IMAGE");
-          if(Boolean.TRUE.equals(clTaskbar.getMethod("isSupported", clDesktopFeature).invoke(taskbar, iconImageEnum))) {
+          Object iconBadgeTextEnum = Enum.valueOf(clDesktopFeature, "ICON_BADGE_TEXT");
+          Method isSupported = clTaskbar.getMethod("isSupported", clDesktopFeature);
+          if(Boolean.TRUE.equals(isSupported.invoke(taskbar, iconImageEnum))) {
             Method setIconImage = clTaskbar.getMethod("setIconImage", new Class[]{java.awt.Image.class});
             setIconImage.invoke(taskbar, ICON_IMAGE);
-            //setIconBadge(String badge) --- Feature.ICON_BADGE_TEXT
-            Method setIconBadge = clTaskbar.getMethod("setIconBadge", new Class[]{String.class});
-            setIconBadge.invoke(taskbar, ".6");
+            if(Boolean.TRUE.equals(isSupported.invoke(taskbar, iconBadgeTextEnum))) {
+              Method setIconBadge = clTaskbar.getMethod("setIconBadge", new Class[]{String.class});
+              setIconBadge.invoke(taskbar, ".6");
+            }
           }
         }
       } else if (Settings.isMac()) { // special handling for MacOS if we are on Java 8
