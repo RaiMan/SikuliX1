@@ -5,14 +5,10 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.FileManager;
-import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.ProcessRunner;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Sikulix {
 
@@ -49,15 +45,15 @@ public class Sikulix {
     //String classPath = ExtensionManager.makeClassPath(runningFrom);
 
     //TODO prep for export to jar
-    if (!Commons.isRunningFromJar()) {
+    if (Commons.isRunningFromJar()) {
       FileManager.writeStringToFile(Commons.getMainClassLocation().getAbsolutePath(),
           new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
     }
 
+    //TODO start IDE in subprocess?
     if (true) {
       SikulixIDE.main(args);
     } else {
-      //TODO start IDE in subprocess?
       /*
       if (false) {
         RunTime.terminate(999, "//TODO start IDE in subprocess?");

@@ -71,8 +71,8 @@ public class Commons {
     //    sikulixbuild=2019-10-17_09:58
     sxBuild = sxProps.getProperty("sikulixbuild");
     sxBuildStamp = sxBuild
-        .replace("_", "").replace("-", "").replace(":", "")
-        .substring(0, 12);
+            .replace("_", "").replace("-", "").replace(":", "")
+            .substring(0, 12);
     //    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
     //    in development context undefined:
     sxBuildNumber = sxProps.getProperty("sikulixbuildnumber");
@@ -193,7 +193,13 @@ public class Commons {
   }
 
   public static void setStartClass(Class startClass) {
-    Commons.startClass = startClass;
+    String caller = Thread.currentThread().getStackTrace()[2].getClassName();
+    if (caller.startsWith("org.sikuli.ide.Sikulix")) {
+      Commons.startClass = startClass;
+    } else {
+      error("FATAL: setStartClass: not allowed from: %s", caller);
+      System.exit(-1);
+    }
   }
 
   public static boolean isRunningFromJar() {
@@ -433,14 +439,14 @@ public class Commons {
       }
     }
     return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
-        libStamp.length() == Commons.getSxBuildStamp().length()
-        && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
+            libStamp.length() == Commons.getSxBuildStamp().length()
+            && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
   public static void makeVersionFile(File folder) {
     String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
-        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
+            Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
+            Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
   }
 
@@ -1019,7 +1025,7 @@ public class Commons {
     }
     if (!error.isEmpty()) {
       RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
-          instanceSup, method, args, error);
+              instanceSup, method, args, error);
     }
     return returnSup;
   }
