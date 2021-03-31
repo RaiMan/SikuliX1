@@ -121,6 +121,20 @@ public class Commons {
 
   private static boolean trace = false;
 
+  public static boolean isDebug() {
+    return debug;
+  }
+
+  public static void startDebug() {
+    debug = true;
+  }
+
+  public static void stopDebug() {
+    debug = true;
+  }
+
+  private static boolean debug = false;
+
   public static void info(String msg, Object... args) {
     System.out.printf("[INFO Commons] " + msg + "%n", args);
   }
@@ -140,20 +154,6 @@ public class Commons {
       System.out.printf("[TRACE Commons] " + msg + "%n", args);
     }
   }
-
-  public static boolean isDebug() {
-    return debug;
-  }
-
-  public static void startDebug() {
-    debug = true;
-  }
-
-  public static void stopDebug() {
-    debug = true;
-  }
-
-  private static boolean debug = false;
   //</editor-fold>
 
   public static boolean parmsValid(Object... parms) {
