@@ -7,17 +7,19 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
 import java.util.Date;
+
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
 
 /**
  * EXPERIMENTAL --- INTERNAL USE ONLY<br>
- *   is not official API --- will not be in version 2
+ * is not official API --- will not be in version 2
  */
 public class Device {
 
   private static String me = "Device: ";
   private static final int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -41,13 +43,13 @@ public class Device {
   public boolean MouseMovedHighlight = true;
   public ObserverCallBack mouseMovedCallback = null;
   public ObserverCallBack callback = null;
-  private  boolean shouldRunCallback = false;
-	static boolean shouldTerminate = false;
+  private boolean shouldRunCallback = false;
+  static boolean shouldTerminate = false;
 
-	public static void setShouldTerminate() {
-		shouldTerminate = true;
-		log(lvl, "setShouldTerminate: request issued");
-	}
+  public static void setShouldTerminate() {
+    shouldTerminate = true;
+    log(lvl, "setShouldTerminate: request issued");
+  }
 
   public boolean isShouldRunCallback() {
     return shouldRunCallback;
@@ -79,8 +81,8 @@ public class Device {
     return blocked;
   }
 
-	public boolean isNotLocal(Object owner) {
-		if (owner instanceof Region) {
+  public boolean isNotLocal(Object owner) {
+    if (owner instanceof Region) {
       if (((Region) owner).isOtherScreen()) {
         return true;
       }
@@ -89,8 +91,8 @@ public class Device {
         return true;
       }
     }
-		return false;
-	}
+    return false;
+  }
 
   /**
    * to block the device globally <br>
@@ -133,19 +135,19 @@ public class Device {
    * @param ownerGiven Object
    * @return success (false means: not blocked currently for this owner)
    */
-	public boolean unblock(Object ownerGiven) {
-		if (ownerGiven == null) {
-			ownerGiven = device;
-		} else if (isNotLocal(ownerGiven)) {
-			return false;
-		}
-		if (blocked && owner == ownerGiven) {
-			blocked = false;
-			let(ownerGiven);
-			return true;
-		}
-		return false;
-	}
+  public boolean unblock(Object ownerGiven) {
+    if (ownerGiven == null) {
+      ownerGiven = device;
+    } else if (isNotLocal(ownerGiven)) {
+      return false;
+    }
+    if (blocked && owner == ownerGiven) {
+      blocked = false;
+      let(ownerGiven);
+      return true;
+    }
+    return false;
+  }
 
   public boolean use() {
     return use(null);
@@ -154,9 +156,9 @@ public class Device {
   public synchronized boolean use(Object owner) {
     if (owner == null) {
       owner = this;
-		} else if (isNotLocal(owner)) {
-			return false;
-		}
+    } else if (isNotLocal(owner)) {
+      return false;
+    }
     if ((blocked || inUse) && this.owner == owner) {
       return true;
     }
@@ -170,12 +172,13 @@ public class Device {
       inUse = true;
       try {
         checkLastPos();
-      } catch (Exception ex) {}
+      } catch (Exception ex) {
+      }
       checkShouldRunCallback();
-			if (shouldTerminate) {
-				shouldTerminate = false;
-				throw new AssertionError("aborted by unknown source");
-			}
+      if (shouldTerminate) {
+        shouldTerminate = false;
+        throw new AssertionError("aborted by unknown source");
+      }
       keep = false;
       this.owner = owner;
       log(lvl + 1, "%s: use start: %s", devName, owner);
@@ -188,9 +191,9 @@ public class Device {
   public synchronized boolean keep(Object ownerGiven) {
     if (ownerGiven == null) {
       ownerGiven = this;
-		} else if (isNotLocal(ownerGiven)) {
-			return false;
-		}
+    } else if (isNotLocal(ownerGiven)) {
+      return false;
+    }
     if (inUse && owner == ownerGiven) {
       keep = true;
       log(lvl + 1, "%s: use keep: %s", devName, ownerGiven);
@@ -206,9 +209,9 @@ public class Device {
   public synchronized boolean let(Object owner) {
     if (owner == null) {
       owner = this;
-		} else if (isNotLocal(owner)) {
-			return false;
-		}
+    } else if (isNotLocal(owner)) {
+      return false;
+    }
     if (inUse && this.owner == owner) {
       if (keep) {
         keep = false;
@@ -250,16 +253,16 @@ public class Device {
         }
       }
       if (mouseMovedResponse == MouseMovedPause) {
-				while (pos.x > 0 && pos.y > 0) {
-					delay(500);
-					pos = getLocation();
+        while (pos.x > 0 && pos.y > 0) {
+          delay(500);
+          pos = getLocation();
           if (MouseMovedHighlight) {
-    				showMousePos(pos.getPoint());
+            showMousePos(pos.getPoint());
           }
-				}
-				if (pos.x < 1) {
-					return;
-				}
+        }
+        if (pos.x < 1) {
+          return;
+        }
         throw new UnsupportedOperationException("Terminating in MouseMovedResponse = Pause");
 
       }
@@ -268,10 +271,10 @@ public class Device {
         if (mouseMovedCallback != null) {
           mouseMovedCallback.happened(new ObserveEvent("MouseMoved", ObserveEvent.Type.GENERIC,
                   lastPos, new Location(pos), null, (new Date()).getTime()));
-					if (shouldTerminate) {
-						shouldTerminate = false;
-						throw new AssertionError("aborted by Sikulix.MouseMovedCallBack");
-					}
+          if (shouldTerminate) {
+            shouldTerminate = false;
+            throw new AssertionError("aborted by Sikulix.MouseMovedCallBack");
+          }
         }
       }
     }
@@ -281,10 +284,10 @@ public class Device {
     if (shouldRunCallback && callback != null) {
       callback.happened(new ObserveEvent("DeviceGeneric", ObserveEvent.Type.GENERIC,
               null, null, null, (new Date()).getTime()));
-			if (shouldTerminate) {
-				shouldTerminate = false;
-				throw new AssertionError("aborted by Sikulix.GenericDeviceCallBack");
-			}
+      if (shouldTerminate) {
+        shouldTerminate = false;
+        throw new AssertionError("aborted by Sikulix.GenericDeviceCallBack");
+      }
     }
   }
 
