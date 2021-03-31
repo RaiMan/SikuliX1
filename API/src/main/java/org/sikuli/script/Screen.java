@@ -4,8 +4,6 @@
 package org.sikuli.script;
 
 import java.awt.AWTException;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,6 +12,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.OverlayCapturePrompt;
@@ -106,7 +105,7 @@ public class Screen extends Region implements IScreen {
     super();
     if (primaryScreen < 0) {
       initScreens();
-      if (RunTime.isIDE() && Mouse.isNotUseable() && Commons.runningMac()) {
+      if (RunTime.isIDE() && MouseDevice.isNotUseable() && Commons.runningMac()) {
         String link = "https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS";
         SX.popup("In order for SikuliX to use the mouse on macOS" +
                 "\nand to make screenshots, you have to allow this" +

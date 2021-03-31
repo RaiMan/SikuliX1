@@ -11,10 +11,10 @@ import org.sikuli.natives.SXUser32;
 import org.sikuli.basics.Debug;
 
 import com.sun.jna.platform.win32.BaseTSD;
-import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.script.*;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.util.Highlight;
 
 import java.awt.AWTException;
@@ -45,7 +45,6 @@ public class RobotDesktop extends Robot implements IRobot {
   public static int stdMaxElapsed = 1000;
   private Screen scr = null;
   private long start;
-  private static boolean isMouseInitialized = false;
 
   private void logRobot(int delay, String msg) {
     start = new Date().getTime();
@@ -146,10 +145,9 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void checkMousePosition(Location targetPos) {
-    if (Mouse.isNotUseable()) {
+    if (MouseDevice.isNotUseable()) {
       return;
     }
-//    waitForIdle();
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point actualPos;
     if (mp == null) {
@@ -159,7 +157,7 @@ public class RobotDesktop extends Robot implements IRobot {
       boolean xOff = actualPos.x < (targetPos.x - 1) || actualPos.x > (targetPos.x + 1);
       boolean yOff = actualPos.y < (targetPos.y - 1) || actualPos.y > (targetPos.y + 1);
       if (xOff || yOff) {
-        if (isMouseInitialized) {
+        if (MouseDevice.isUsable()) {
           if (Settings.checkMousePosition) {
             Debug.error("RobotDesktop: checkMousePosition: should be %s - but is not!"
                             + "\nPossible cause in case you did not touch the mouse while script was running:\n"
@@ -167,13 +165,8 @@ public class RobotDesktop extends Robot implements IRobot {
                             + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
                     targetPos, new Location(actualPos));
           }
-        } else {
-          Mouse.setNotUseable();
         }
       }
-    }
-    if (!isMouseInitialized) {
-      isMouseInitialized = true;
     }
   }
 

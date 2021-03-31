@@ -38,8 +38,6 @@ public abstract class Devices {
     return globalRobot;
   }
 
-
-
   public static void start(TYPE type, Map<String, Object> options) {
     if (type.equals(TYPE.SCREEN)) {
       ScreenDevice.start();

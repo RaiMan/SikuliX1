@@ -1,12 +1,11 @@
 package org.sikuli.script.support.devices;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
 
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
+import java.awt.*;
 
 public class MouseDevice extends Devices {
 
@@ -17,6 +16,30 @@ public class MouseDevice extends Devices {
   public static boolean isUsable() {
     return usable;
   }
+
+  public static boolean isNotUseable(String function) {
+    String fText = function.isEmpty() ? "" : "." + function + "()";
+    if (notUseable) {
+      Debug.error("Mouse%s: not usable (blocked)", fText);
+    }
+    return notUseable;
+  }
+
+  public static boolean isNotUseable() {
+    return isNotUseable("");
+  }
+
+  public static void setNotUseable() {
+    notUseable = true;
+    if (Commons.runningMac()) {
+      Debug.error("Mouse: not useable (blocked)\n" +
+              "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
+    } else {
+      Debug.error("Mouse: not useable (blocked)");
+    }
+  }
+
+  private static boolean notUseable = false;
 
   public static void start() {
     log(deviceType, 3, "checking usability");
@@ -38,7 +61,7 @@ public class MouseDevice extends Devices {
     Settings.MoveMouseDelay = mmd;
     if (!isUsable()) {
       if (Commons.runningMac()) {
-        throw new SikuliXception("Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
+        RunTime.terminate(999, "Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
       }
     }
   }

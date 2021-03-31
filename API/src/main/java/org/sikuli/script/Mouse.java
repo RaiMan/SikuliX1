@@ -399,25 +399,8 @@ public class Mouse {
     return move(at().offset(xoff, yoff));
   }
 
-  public static boolean isNotUseable() {
-    return notUseable;
-  }
-
-  public static void setNotUseable() {
-    notUseable = true;
-    if (Commons.runningMac()) {
-      Debug.error("Mouse: not useable (blocked)\n" +
-          "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
-    } else {
-      Debug.error("Mouse: not useable (blocked)");
-    }
-  }
-
-  private static boolean notUseable = false;
-
   protected static int move(Location loc, Region region) {
-    if (notUseable) {
-      Debug.error("Mouse.move(): Mouse not useable (blocked)");
+    if (MouseDevice.isNotUseable("move")) {
       return 0;
     }
     if (get().device.isSuspended()) {
@@ -459,8 +442,7 @@ public class Mouse {
   }
 
   protected static void down(int buttons, Region region) {
-    if (notUseable) {
-      Debug.error("Mouse.down(): Mouse not useable (blocked)");
+    if (MouseDevice.isNotUseable("down")) {
       return;
     }
     if (get().device.isSuspended()) {
@@ -487,8 +469,7 @@ public class Mouse {
   }
 
   protected static void up(int buttons, Region region) {
-    if (notUseable) {
-      Debug.error("Mouse.up(): Mouse not useable (blocked)");
+    if (MouseDevice.isNotUseable("up")) {
       return;
     }
     if (get().device.isSuspended()) {
@@ -516,8 +497,7 @@ public class Mouse {
   }
 
   protected static void wheel(int direction, int steps, Region region, int stepDelay) {
-    if (notUseable) {
-      Debug.error("Mouse.wheel(): Mouse not useable (blocked)");
+    if (MouseDevice.isNotUseable("wheel")) {
       return;
     }
     if (get().device.isSuspended()) {
