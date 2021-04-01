@@ -102,8 +102,6 @@ public class Commons {
 
   //<editor-fold desc="01 logging">
   public static void setVerbose() {
-    Debug.setDebugLevel(3);
-    Debug.setGlobalDebug(3);
   }
 
   public static String enter(String method, String parameter, Object... args) {

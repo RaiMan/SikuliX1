@@ -4,6 +4,7 @@
 
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
@@ -17,9 +18,8 @@ public class Sikulix {
     Commons.setStartArgs(args);
 
     if (Commons.hasArg("v")) {
-      Commons.setVerbose();
-    } else if (Commons.hasArg("r")) {
-      RunTime.setShouldRunScript();
+      Debug.setDebugLevel(3);
+      Debug.setGlobalDebug(3);
     }
 
     if (Commons.hasArg("a")) {

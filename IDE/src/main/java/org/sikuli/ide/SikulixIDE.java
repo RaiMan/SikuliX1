@@ -47,8 +47,6 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-//  static RunTime runTime;
-
   public static void main(String[] args) {
     if (null == Commons.getStartClass()) {
       System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
@@ -99,11 +97,11 @@ public class SikulixIDE extends JFrame {
       RunTime.terminate();
     }
 
-    if (RunTime.runningScripts()) {
+    if (RunTime.shouldRunScripts()) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
         public void hotkeyPressed(HotkeyEvent e) {
-          if (RunTime.get().runningScripts()) {
+          if (RunTime.get().shouldRunScripts()) {
             Runner.abortAll();
             RunTime.terminate(254, "AbortKey was pressed: aborting all running scripts");
           }
@@ -117,7 +115,7 @@ public class SikulixIDE extends JFrame {
       RunTime.terminate(exitCode, "");
     }
 
-    if ("m".equalsIgnoreCase(System.getProperty("os.name").substring(0, 1))) {
+    if (Commons.runningMac()) {
       prepareMacUI();
     }
 

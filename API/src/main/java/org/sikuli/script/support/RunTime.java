@@ -96,10 +96,6 @@ public class RunTime {
       serverOptions = cmdLine.getOptionValues("s");
     }
 
-    if (cmdLineValid && cmdLine.hasOption("m")) {
-      setAllowMultiple();
-    }
-
     if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
       logFile = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
     }
@@ -129,16 +125,6 @@ public class RunTime {
 
   public static boolean isIDE() {
     return startAsIDE;
-  }
-
-  private static boolean allowMultiple = false;
-
-  public static void setAllowMultiple() {
-    allowMultiple = true;
-  }
-
-  public static boolean isAllowMultiple() {
-    return allowMultiple;
   }
 
   public static String[] getServerOptions() {
@@ -224,31 +210,22 @@ public class RunTime {
   }
 
   private static String[] loadScripts = new String[0];
-
-  public static String[] getScriptsToRun() {
-    return scriptsToRun;
-  }
-
-  public static void setShouldRunScript() {
-    shouldRunScript = true;
-  }
-
-  private static boolean shouldRunScript = false;
-  private static String[] scriptsToRun = null;
-
-  public static boolean runningScripts() {
-    return shouldRunScript;
-  }
   //</editor-fold>
 
-  //TODO isVerbose -> Commons
   public static boolean isVerbose() {
     return Commons.hasArg("v") || Debug.getDebugLevel() > 2;
   }
 
-  //TODO isQuiet -> Commons
   public static boolean isQuiet() {
     return Commons.hasArg("q");
+  }
+
+  public static boolean isAllowMultiple() {
+    return Commons.hasArg("m");
+  }
+
+  public static boolean shouldRunScripts() {
+    return Commons.hasArg("r");
   }
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
@@ -400,7 +377,7 @@ public class RunTime {
     }
 */
 
-    Settings.init(runTime); // force Settings initialization
+    Settings.init(); // force Settings initialization
 
     //TODO addShutdownHook
     hasDoneCleanUpTerminating = false;
@@ -453,7 +430,7 @@ public class RunTime {
       throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
-    if (!runningScripts() && !Commons.hasArg("m")) {
+    if (!shouldRunScripts() && !Commons.hasArg("m")) {
       isRunning = new File(Commons.getTempFolder(), isRunningFilename);
       boolean shouldTerminate = false;
       try {

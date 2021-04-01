@@ -19,12 +19,8 @@ import java.util.Date;
  */
 public class Settings {
 
-
-  public static synchronized void init(RunTime givenRunTime) {
-    runTime = givenRunTime;
+  public static synchronized void init() {
   }
-
-  private static RunTime runTime = null;
 
   public static boolean experimental = false;
 
@@ -33,8 +29,6 @@ public class Settings {
   public static boolean InputFontMono = false;
   public static int InputFontSize = 14;
 
-  public static final float FOREVER = Float.POSITIVE_INFINITY;
-
   //TODO Proxy as command line options
   public static String proxyName = "";
   public static String proxyIP = "";
@@ -42,9 +36,6 @@ public class Settings {
   public static String proxyPort = "";
   public static boolean proxyChecked = false;
   public static Proxy proxy = null;
-
-  //TODO Mac Application
-  public static boolean isMacApp = false;
 
   public static boolean ThrowException = true; // throw FindFailed exception
   public static float AutoWaitTimeout = 3f; // in seconds

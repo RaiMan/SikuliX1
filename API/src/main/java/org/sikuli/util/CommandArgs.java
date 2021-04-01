@@ -3,13 +3,12 @@
  */
 package org.sikuli.util;
 
+import org.apache.commons.cli.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.cli.*;
-import org.sikuli.basics.Debug;
 
 public class CommandArgs {
 
@@ -41,7 +40,6 @@ public class CommandArgs {
     try {
       cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
     } catch (ParseException exp) {
-      Debug.error(exp.getMessage());
     }
     return cmd;
   }
