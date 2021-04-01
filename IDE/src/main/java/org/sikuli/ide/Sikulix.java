@@ -16,16 +16,10 @@ public class Sikulix {
     Commons.setStartClass(Sikulix.class);
     Commons.setStartArgs(args);
 
-    for (String arg : args) {
-      if ("-v".equals(arg)) {
-        RunTime.setVerbose();
-      } else if ("-q".equals(arg)) {
-        RunTime.setQuiet();
-      } else if ("-r".equals(arg)) {
-        RunTime.setShouldRunScript();
-      } else if ("-s".equals(arg)) {
-        RunTime.setAsServer();
-      }
+    if (Commons.hasArg("v")) {
+      Commons.setVerbose();
+    } else if (Commons.hasArg("r")) {
+      RunTime.setShouldRunScript();
     }
 
     if (Commons.hasArg("a")) {
@@ -36,8 +30,9 @@ public class Sikulix {
       Commons.setTempFolder();
     }
 
+
     File runningFrom = Commons.getMainClassLocation();
-    RunTime.startLog(1, "Running: %s", runningFrom);
+    RunTime.startLog(1, "Running: %s :: %s", runningFrom, Sikulix.class.getCanonicalName());
 
     RunTime.startLog(1, "AppData: %s", Commons.getAppDataPath());
 

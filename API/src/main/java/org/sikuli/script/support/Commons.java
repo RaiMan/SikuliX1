@@ -42,7 +42,11 @@ public class Commons {
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
 
+  public static long startMoment;
+
   static {
+    startMoment = new Date().getTime();
+
     if (!System.getProperty("os.arch").contains("64")) {
       throw new SikuliXception("SikuliX fatal Error: System must be 64-Bit");
     }
@@ -90,9 +94,18 @@ public class Commons {
 
   public static void init() {
   }
+
+  public static double getSinceStart() {
+    return (new Date().getTime() - startMoment) / 1000.0;
+  }
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
+  public static void setVerbose() {
+    Debug.setDebugLevel(3);
+    Debug.setGlobalDebug(3);
+  }
+
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTrace()) {

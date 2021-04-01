@@ -97,8 +97,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       if (interpreterVersion.isEmpty()) {
         interpreterVersion = "could not be evaluated";
       }
-      log(lvl, "ready: version %s (%4.1f sec)", interpreterVersion,
-          (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0);
+      log(lvl, "ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
     }
   }
 

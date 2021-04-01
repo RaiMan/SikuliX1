@@ -141,16 +141,6 @@ public class RunTime {
     return allowMultiple;
   }
 
-  public static boolean shouldRunServer() {
-    return asServer;
-  }
-
-  public static void setAsServer() {
-    asServer = true;
-  }
-
-  private static boolean asServer = false;
-
   public static String[] getServerOptions() {
     return serverOptions;
   }
@@ -251,37 +241,19 @@ public class RunTime {
   }
   //</editor-fold>
 
+  //TODO isVerbose -> Commons
+  public static boolean isVerbose() {
+    return Commons.hasArg("v") || Debug.getDebugLevel() > 2;
+  }
+
+  //TODO isQuiet -> Commons
+  public static boolean isQuiet() {
+    return Commons.hasArg("q");
+  }
+
   //<editor-fold defaultstate="collapsed" desc="02 logging">
   private static int lvl = 3;
   private int minLvl = lvl;
-
-  public static long getElapsedStart() {
-    return elapsedStart;
-  }
-
-  private static final long elapsedStart = new Date().getTime();
-
-  public static boolean isVerbose() {
-    return verbose || Debug.getDebugLevel() > 2;
-  }
-
-  public static void setVerbose() {
-    RunTime.verbose = true;
-    Debug.setDebugLevel(3);
-    Debug.setGlobalDebug(3);
-  }
-
-  private static boolean verbose = false;
-
-  public static boolean isQuiet() {
-    return quiet;
-  }
-
-  public static void setQuiet() {
-    RunTime.quiet = true;
-  }
-
-  private static boolean quiet = false;
 
   public static void startLog(int level, String msg, Object... args) {
     String typ = startAsIDE ? "IDE" : "API";
@@ -481,7 +453,7 @@ public class RunTime {
       throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
     }
     log(3, "temp folder ok: %s", fpBaseTempPath);
-    if (!runningScripts() && !isAllowMultiple()) {
+    if (!runningScripts() && !Commons.hasArg("m")) {
       isRunning = new File(Commons.getTempFolder(), isRunningFilename);
       boolean shouldTerminate = false;
       try {

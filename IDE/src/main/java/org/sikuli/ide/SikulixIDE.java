@@ -75,7 +75,7 @@ public class SikulixIDE extends JFrame {
     }
 
 //TODO simplify, when SikulixServer is implemented
-    if (RunTime.shouldRunServer()) {
+    if (Commons.hasArg("s")) {
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
@@ -366,7 +366,7 @@ public class SikulixIDE extends JFrame {
     if (!Commons.isJava8()) {
       j9Message = "*** Running on Java 9+";
     }
-    Debug.log(lvl, "IDE startup: %4.1f sec %s", (new Date().getTime() - RunTime.getElapsedStart()) / 1000.0, j9Message);
+    Debug.log(lvl, "IDE startup: %4.1f sec %s", Commons.getSinceStart(), j9Message);
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
