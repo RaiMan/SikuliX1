@@ -19,7 +19,7 @@ public class MacUtil implements OSUtil {
 
   @Override
   public void checkFeatureAvailability() {
-    RunTime.get().loadLibrary("MacUtil");
+    RunTime.loadLibrary("MacUtil");
   }
 
   /*
@@ -93,7 +93,7 @@ public class MacUtil implements OSUtil {
       theCmd = cmd.replace("#LINE#", cmdLinePID);
       theCmd = theCmd.replaceAll("#PID#", "" + pid);
       int retVal = evalAppleScript(theCmd);
-      String result = RunTime.get().getLastCommandResult().trim();
+      String result = RunTime.getLastCommandResult().trim();
       if (retVal > -1) {
         if (!result.contains("NotFound")) {
           String[] parts = result.split(",");
@@ -227,7 +227,7 @@ public class MacUtil implements OSUtil {
     List<Region> windows = new ArrayList<>();
     String theCmd = cmdGetWindows.replace("#APP#", app.getName());
     int retVal = evalAppleScript(theCmd);
-    String result = RunTime.get().getLastCommandResult().trim();
+    String result = RunTime.getLastCommandResult().trim();
     if (retVal > -1 && !result.isEmpty()) {
       String[] parts = result.split(",");
       int lenResult = parts.length;
@@ -268,7 +268,7 @@ public class MacUtil implements OSUtil {
         "end tell\n" +
         "resultlist";
     int retVal = evalAppleScript(cmd);
-    String result = RunTime.get().getLastCommandResult().trim();
+    String result = RunTime.getLastCommandResult().trim();
     String[] processes = (", " + result).split(", ###");
     List<App> appList = new ArrayList<>();
     int pid = 0;
@@ -314,7 +314,7 @@ public class MacUtil implements OSUtil {
     File scriptFile = FileManager.createTempFile("script");
     scriptFile.setExecutable(true);
     FileManager.writeStringToFile(script, scriptFile);
-    String returns = RunTime.get().runcmd(new String[]{"!" + scriptFile.getAbsolutePath()});
+    String returns = RunTime.runcmd(new String[]{"!" + scriptFile.getAbsolutePath()});
     String[] parts = returns.split("\n");
     int retcode = -1;
     try {

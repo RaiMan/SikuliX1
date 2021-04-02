@@ -7,6 +7,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.util.CommandArgsEnum;
 
 import javax.swing.text.html.Option;
 import java.io.*;
@@ -54,11 +55,6 @@ public class Options {
     return getOption(propOptionsFile);
   }
 
-  public static Options init(RunTime pRunTime) {
-    runtime = pRunTime;
-    return init();
-  }
-
   private static Options init() {
     if (sxOptions == null) {
       sxOptions = new Options();
@@ -67,7 +63,7 @@ public class Options {
     return sxOptions;
   }
 
-  private static Options create() {
+  public static Options create() {
     Options options = new Options();
     options.options = new Properties();
     return options;
@@ -162,7 +158,7 @@ public class Options {
         options = null;
       }
     } else {
-      setOption(propOptionsFile, new File(runtime.fSikulixStore, fpOptions).getAbsolutePath());
+      setOption(propOptionsFile, new File(Commons.getAppDataStore(), fpOptions).getAbsolutePath());
     }
   }
 
@@ -210,6 +206,13 @@ public class Options {
     return saveOptions(fpOptions);
   }
 
+  public boolean hasOption(String pName) {
+    if (options == null) {
+      return false;
+    }
+    return null == options.getProperty(pName) ? false : true;
+  }
+
   /**
    * if no option file is found, the option is taken as not existing<br>
    * side-effect: if no options file is there, an options store will be created in memory<br>
@@ -243,6 +246,10 @@ public class Options {
     return getOption(pName, "");
   }
 
+  public String getOption(CommandArgsEnum arg) {
+    return getOption("ARG_" + arg.name(), "");
+  }
+
   /**
    * {link getOption}
    *
@@ -250,7 +257,9 @@ public class Options {
    * @param sValue the value to be set
    */
   public void setOption(String pName, String sValue) {
-    init();
+    if (options == null) {
+      init();
+    }
     options.setProperty(pName, sValue);
   }
 
@@ -291,7 +300,9 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionInteger(String pName, int nValue) {
-    init();
+    if (options == null) {
+      init();
+    }
     options.setProperty(pName, "" + nValue);
   }
 
@@ -331,7 +342,9 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionFloat(String pName, float nValue) {
-    init();
+    if (options == null) {
+      init();
+    }
     options.setProperty(pName, "" + nValue);
   }
 
@@ -371,7 +384,9 @@ public class Options {
    * @param nValue the value to be set
    */
   public void setOptionDouble(String pName, double nValue) {
-    init();
+    if (options == null) {
+      init();
+    }
     options.setProperty(pName, "" + nValue);
   }
 
@@ -412,7 +427,9 @@ public class Options {
    * @param bValue the value to be set
    */
   public void setOptionBool(String pName, boolean bValue) {
-    init();
+    if (options == null) {
+      init();
+    }
     options.setProperty(pName, isOption(pName, bValue) ? "true" : "false");
   }
 

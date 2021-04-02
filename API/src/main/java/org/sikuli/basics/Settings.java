@@ -19,9 +19,6 @@ import java.util.Date;
  */
 public class Settings {
 
-  public static synchronized void init() {
-  }
-
   public static boolean experimental = false;
 
   public static boolean FindProfiling = false;
@@ -157,7 +154,7 @@ public class Settings {
   }
 
   public static String getDataPath() {
-    return RunTime.get().fSikulixAppPath.getAbsolutePath();
+    return Commons.getAppDataPath().getAbsolutePath();
   }
 
   public static final int ISWINDOWS = 0;

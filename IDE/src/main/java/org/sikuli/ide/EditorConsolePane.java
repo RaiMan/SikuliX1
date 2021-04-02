@@ -38,18 +38,13 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
+import org.sikuli.script.support.Commons;
+import org.sikuli.util.CommandArgsEnum;
 
 public class EditorConsolePane extends JPanel implements Runnable {
 
   private static final String me = "EditorConsolePane: ";
-  static boolean ENABLE_IO_REDIRECT = true;
-
-  static {
-    String flag = System.getProperty("sikuli.console");
-    if (flag != null && flag.equals("false")) {
-      ENABLE_IO_REDIRECT = false;
-    }
-  }
+  static boolean ENABLE_IO_REDIRECT = !Commons.hasOption(CommandArgsEnum.CONSOLE);
 
   private int NUM_PIPES;
   private JTextPane textArea;

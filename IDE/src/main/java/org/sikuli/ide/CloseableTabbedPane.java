@@ -3,6 +3,8 @@
  */
 package org.sikuli.ide;
 
+import org.sikuli.idesupport.IDESupport;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FontMetrics;
@@ -27,9 +29,9 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
   //<editor-fold desc="00 init">
   private SikuliIDEPopUpMenu popMenuTab = null;
   private JViewport headerViewport = null;
-  private Icon normalCloseIcon = SikulixIDE.getIconResource("/icons/close-normal.gif");
-  private Icon hooverCloseIcon = SikulixIDE.getIconResource("/icons/close-hover.gif");
-  private Icon pressedCloseIcon = SikulixIDE.getIconResource("/icons/close-pressed.gif");
+  private Icon normalCloseIcon = IDESupport.getIconResource("/icons/close-normal.gif");
+  private Icon hooverCloseIcon = IDESupport.getIconResource("/icons/close-hover.gif");
+  private Icon pressedCloseIcon = IDESupport.getIconResource("/icons/close-pressed.gif");
 
   public CloseableTabbedPane() {
     super();

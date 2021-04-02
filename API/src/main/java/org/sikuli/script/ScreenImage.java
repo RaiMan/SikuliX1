@@ -10,6 +10,7 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Finder.Finder2;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
@@ -110,7 +111,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save() {
-    return FileManager.saveTimedImage(_img, RunTime.get().fpBaseTempPath, "#sikuliximage");
+    return FileManager.saveTimedImage(_img, Commons.getTempFolder().getAbsolutePath(), "#sikuliximage");
   }
 
 	/**

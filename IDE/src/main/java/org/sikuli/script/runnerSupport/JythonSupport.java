@@ -103,8 +103,12 @@ public class JythonSupport implements IRunnerSupport {
       instance.log(-1, "reflection problem: %s", ex.getMessage());
       interpreter = null;
     }
+    Commons.setJythonReady();
     //instance.log(lvl, "init: success");
-    RunTime.isJythonReady = true;
+  }
+
+  public static boolean isReady() {
+    return interpreter != null;
   }
 
   /**
@@ -173,7 +177,7 @@ public class JythonSupport implements IRunnerSupport {
         return true;
       };
     }
-    RunTime.get().extractResourcesToFolder("Lib", Commons.getLibFolder(), filterSitePackages);
+    RunTime.extractResourcesToFolder("Lib", Commons.getLibFolder(), filterSitePackages);
   }
 
   //<editor-fold desc="05 Jython reflection">

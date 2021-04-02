@@ -5,13 +5,16 @@ package org.sikuli.idesupport;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.*;
 import org.sikuli.script.runnerSupport.Runner;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 public class IDESupport {
@@ -115,5 +118,14 @@ public class IDESupport {
 			init();
 			return new ArrayList<IScriptRunner>(IDE_RUNNERS);
 		}
+	}
+
+	public static ImageIcon getIconResource(String name) {
+		URL url = SikulixIDE.class.getResource(name);
+		if (url == null) {
+			Debug.error("Warning: could not load \"" + name + "\" icon");
+			return null;
+		}
+		return new ImageIcon(url);
 	}
 }

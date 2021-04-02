@@ -113,8 +113,10 @@ public class TextRecognizer {
       }
       return tesseract;
     } catch (UnsatisfiedLinkError e) {
+      //TODO open website on Error
+/*
       String helpURL;
-      if (RunTime.get().runningWindows) {
+      if (Commons.runningWindows()) {
         helpURL = "https://github.com/RaiMan/SikuliX1/wiki/Windows:-Problems-with-libraries-OpenCV-or-Tesseract";
       } else {
         helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-libraries-for-Tess4J-Tesseract-4-OCR";
@@ -128,6 +130,7 @@ public class TextRecognizer {
         } catch (URISyntaxException ex) {
         }
       }
+*/
       throw new SikuliXception(String.format("OCR: start: Tesseract library problems: %s", e.getMessage()));
     }
   }
@@ -350,11 +353,11 @@ public class TextRecognizer {
   private static void initDefaultDataPath() {
     if (OCR.Options.defaultDataPath == null) {
       // export SikuliX eng.traineddata, if libs are exported as well
-      File fTessDataPath = new File(RunTime.get().fSikulixAppPath, "SikulixTesseract/tessdata");
-      boolean shouldExport = RunTime.get().shouldExport();
+      File fTessDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
+      boolean shouldExport = RunTime.shouldExport();
       boolean fExists = fTessDataPath.exists();
       if (!fExists || shouldExport) {
-        if (0 == RunTime.get().extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
+        if (0 == RunTime.extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
           throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
         }
       }

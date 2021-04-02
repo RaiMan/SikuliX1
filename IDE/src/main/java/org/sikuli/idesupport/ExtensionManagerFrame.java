@@ -4,6 +4,7 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
@@ -35,7 +36,7 @@ public class ExtensionManagerFrame extends JFrame {
 
   private ExtensionManagerFrame() {
     super();
-    fExtensions = RunTime.get().fSikulixExtensions.listFiles();
+    fExtensions = Commons.getExtensionsFolder().listFiles();
 //TODO show and select extensions
 //    init();
   }

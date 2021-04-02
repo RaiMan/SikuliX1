@@ -1,9 +1,14 @@
 package org.sikuli.script.support.devices;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.FindFailed;
+import org.sikuli.script.Mouse;
+import org.sikuli.script.OCR;
 import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.Observing;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.util.Highlight;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,6 +25,32 @@ public class HelpDevice extends Devices {
         stopAndroid();
         return;
       }
+      if (type.equals(TYPE.MOUSE)) {
+        Mouse.reset();
+        return;
+      }
+      if (type.equals(TYPE.KEYBOARD)) {
+        return;
+      }
+      if (type.equals(TYPE.SCREEN)) {
+        Highlight.closeAll();
+        Settings.DefaultHighlightColor = "RED";
+        Settings.DefaultHighlightTime = 2.0f;
+        Settings.Highlight = false;
+        Settings.setShowActions(false);
+        FindFailed.reset();
+        OCR.reset();
+        Settings.OcrLanguage = Settings.OcrLanguageDefault;
+        Settings.OcrDataPath = null;
+        Observing.cleanUp();
+        return;
+      }
+    }
+  }
+
+  public static void stopAll() {
+    for (TYPE device : TYPE.values()) {
+      stop(device);
     }
   }
 

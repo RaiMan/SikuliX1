@@ -15,6 +15,7 @@ import java.awt.image.RescaleOp;
 import javax.swing.JFrame;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
@@ -215,7 +216,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
     if (Debug.getDebugLevel() > 2) {
-      scr_img_original.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot");
+      scr_img_original.getFile(Commons.getAppDataPath().getAbsolutePath(), "lastScreenShot");
     }
     scr_img = scr_img_original.getImage();
     scr_img_darker = scr_img;

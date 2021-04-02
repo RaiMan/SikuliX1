@@ -182,9 +182,8 @@ public class ProcessRunner {
   }
 
   public static boolean closeApp(List<String> givenCmd) {
-    RunTime runTime = RunTime.get();
     int exitValue = 0;
-    if (runTime.runningWindows) {
+    if (Commons.runningWindows()) {
       List<String> cmd = new ArrayList<>();
       cmd.add("cmd");
       cmd.add("/C");
@@ -218,9 +217,8 @@ public class ProcessRunner {
   }
 
   public static boolean startApp(List<String> givenCmd) {
-    RunTime runTime = RunTime.get();
     int exitValue = 0;
-    if (runTime.runningWindows) {
+    if (Commons.runningWindows()) {
       List<String> cmd = new ArrayList<>();
       cmd.add("cmd");
       cmd.add("/C");

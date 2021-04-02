@@ -40,7 +40,7 @@ public class SikulixForJython {
     String libSikuli = "/Lib/" + sikuliStuff + ".py";
     String fpSikuliStuff;
     if (null == fSikuliStuff) {
-      URL uSikuliStuff = RunTime.get().resourceLocation(libSikuli);
+      URL uSikuliStuff = RunTime.resourceLocation(libSikuli);
       if (uSikuliStuff == null) {
         throw new SikuliXception(String.format("fatal: " + "Jython: " + "no suitable sikulix...jar on classpath"));
       }

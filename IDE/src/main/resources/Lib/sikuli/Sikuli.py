@@ -28,7 +28,7 @@ class RunTime(JRunTime):
     pass
 
 
-RUNTIME = RunTime.get()
+RUNTIME = JRunTime
 
 import org.sikuli.basics.Settings as Settings
 
@@ -202,7 +202,8 @@ def prepareRobot():
 
 
 def show():
-    RUNTIME.show()
+    import org.sikuli.script.support.Commons as SC
+    SC.show()
 
 
 ##

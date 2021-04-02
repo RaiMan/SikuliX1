@@ -4,6 +4,7 @@
 package org.sikuli.util;
 
 import org.apache.commons.cli.*;
+import org.sikuli.script.support.Commons;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,16 +41,13 @@ public class CommandArgs {
     try {
       cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
     } catch (ParseException exp) {
+      Commons.error("%s", exp.getMessage());
     }
     return cmd;
   }
 
   public String[] getUserArgs() {
     return userArgs.toArray(new String[0]);
-  }
-
-  public String[] getSXArgs() {
-    return sikuliArgs.toArray(new String[0]);
   }
 
   /**

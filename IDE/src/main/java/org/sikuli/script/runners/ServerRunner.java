@@ -72,7 +72,7 @@ public class ServerRunner extends AbstractScriptRunner {
 
   public static boolean run() {
     String userArgs = "";
-    for (String userArg : RunTime.getUserArgs()) {
+    for (String userArg : Commons.getUserArgs()) {
       userArgs += userArg + " ";
     }
     if (!userArgs.isEmpty()) {
@@ -94,7 +94,7 @@ public class ServerRunner extends AbstractScriptRunner {
       }
       String theIP = InetAddress.getLocalHost().getHostAddress();
       String theServer = String.format("%s %d", theIP, port);
-      isRunning = new File(RunTime.get().fSikulixStore, "RunServer.txt");
+      isRunning = new File(Commons.getAppDataStore(), "RunServer.txt");
       try {
         isRunning.createNewFile();
         isRunningFile = new FileOutputStream(isRunning);
@@ -453,7 +453,7 @@ public class ServerRunner extends AbstractScriptRunner {
       } else if (path.toLowerCase().startsWith("/net/")) {
         path = "__NET/" + path.substring(5);
         aFolder = new File(path);
-      } else if (RunTime.get().runningWindows) {
+      } else if (Commons.runningWindows()) {
           Matcher matcher = java.util.regex.Pattern.compile("(?ix: ^ (?: / ([a-z]) [:]? /) (.*) $)").matcher(path);
           // Assume specified drive exists or fallback on the default/required drive
           String newPath = matcher.matches() ? matcher.replaceAll("$1:/$2") : ("c:" + path);

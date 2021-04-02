@@ -1339,7 +1339,7 @@ public class Region extends Element {
   public void saveLastScreenImage() {
     ScreenImage simg = getScreen().getLastScreenImageFromScreen();
     if (simg != null) {
-      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
+      simg.saveLastScreenImage(Commons.getAppDataStore());
     }
   }
   //</editor-fold>

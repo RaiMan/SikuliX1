@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.natives.OSUtil;
 import org.sikuli.natives.SysUtil;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.Desktop;
@@ -174,7 +175,7 @@ public class App {
     Region win;
     try {
       if (Type.EDITOR.equals(appType)) {
-        if (RunTime.get().runningMac) {
+        if (Commons.runningMac()) {
           app = new App(appsMac.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -192,7 +193,7 @@ public class App {
             return win;
           }
         }
-        if (RunTime.get().runningWindows) {
+        if (Commons.runningWindows()) {
           app = new App(appsWindows.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -211,7 +212,7 @@ public class App {
           }
         }
       } else if (Type.BROWSER.equals(appType)) {
-        if (RunTime.get().runningWindows) {
+        if (Commons.runningWindows()) {
           app = new App(appsWindows.get(appType));
           if (app.window() != null) {
             app.focus();
@@ -367,13 +368,13 @@ public class App {
     if (!appExec.isEmpty()) {
       appName = fExec.getName();
     } else {
-      if (RunTime.get().runningWindows || possibleAppExec.startsWith("?")) {
+      if (Commons.runningWindows() || possibleAppExec.startsWith("?")) {
         appName = appNameGiven;
         setGivenAsWindowTitle();
         if (appName.startsWith("?")) {
           appName = appName.substring(1);
         }
-      } else if (!RunTime.get().runningWindows) {
+      } else if (!Commons.runningWindows()) {
         appExec = possibleAppExec;
         appName = possibleAppExec;
       }
@@ -721,9 +722,9 @@ public class App {
     }
     focus();
     RunTime.pause(1);
-    if (RunTime.get().runningWindows) {
+    if (Commons.runningWindows()) {
       window().type(Key.F4, Key.ALT);
-    } else if (RunTime.get().runningMac) {
+    } else if (Commons.runningMac()) {
       window().type("q", Key.CMD);
     } else {
       window().type("q", Key.CTRL);
@@ -878,8 +879,8 @@ public class App {
    * @return the final returncode of the command execution
    */
   public static int run(String cmd) {
-    lastRunResult = RunTime.get().runcmd(cmd);
-    String NL = RunTime.get().runningWindows ? "\r\n" : "\n";
+    lastRunResult = RunTime.runcmd(cmd);
+    String NL = System.lineSeparator();
     String[] res = lastRunResult.split(NL);
     try {
       lastRunReturnCode = Integer.parseInt(res[0].trim());
@@ -893,7 +894,7 @@ public class App {
         lastRunStderr += res[n] + NL;
         continue;
       }
-      if (RunTime.get().runCmdError.equals(res[n])) {
+      if (RunTime.runCmdError.equals(res[n])) {
         isError = true;
         continue;
       }

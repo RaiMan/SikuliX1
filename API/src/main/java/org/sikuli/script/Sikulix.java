@@ -380,7 +380,7 @@ public class Sikulix {
   }
 
   public static String run(String[] cmd) {
-    return RunTime.get().runcmd(cmd);
+    return RunTime.runcmd(cmd);
   }
   //</editor-fold>
 

@@ -241,7 +241,7 @@ public class IDEDesktopSupport implements InvocationHandler { //, AboutHandler, 
     } else if ("handleQuitRequestWith".equals(mName)) {
       try {
         Class<?> comMacQuitResponse;
-        if (RunTime.get().isJava9()) {
+        if (Commons.getJavaVersion() > 8) {
           comMacQuitResponse = Class.forName("java.awt.desktop.QuitResponse");
         } else {
           comMacQuitResponse = Class.forName("com.apple.eawt.QuitResponse");

@@ -7,9 +7,14 @@ package org.sikuli.script.support;
 import org.apache.commons.cli.CommandLine;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.script.Options;
-import org.sikuli.script.SikuliXception;
+import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.Settings;
+import org.sikuli.script.*;
+import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
+import org.sikuli.util.CommandArgsEnum;
+import org.sikuli.util.Highlight;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +29,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Commons {
 
@@ -42,7 +49,28 @@ public class Commons {
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
 
-  public static long startMoment;
+  private static long startMoment;
+
+  private static File isRunning = null;
+  private static FileOutputStream isRunningFile;
+
+  private static void runShutdownHook() {
+    debug("***** final cleanup at System.exit() *****");
+    //TODO runShutdownHook cleanUp();
+
+    if (isRunning != null) {
+      try {
+        isRunningFile.close();
+      } catch (IOException ex) {
+      }
+      isRunning.delete();
+    }
+  }
+
+  public static void setIsRunning(File token, FileOutputStream tokenStream) {
+    isRunning = token;
+    isRunningFile = tokenStream;
+  }
 
   static {
     startMoment = new Date().getTime();
@@ -75,8 +103,8 @@ public class Commons {
     //    sikulixbuild=2019-10-17_09:58
     sxBuild = sxProps.getProperty("sikulixbuild");
     sxBuildStamp = sxBuild
-            .replace("_", "").replace("-", "").replace(":", "")
-            .substring(0, 12);
+        .replace("_", "").replace("-", "").replace(":", "")
+        .substring(0, 12);
     //    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
     //    in development context undefined:
     sxBuildNumber = sxProps.getProperty("sikulixbuildnumber");
@@ -90,6 +118,13 @@ public class Commons {
       sxVersionLong = sxVersion + String.format("-#%s-%s", sxBuildNumber, sxBuildStamp);
     }
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
+
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        runShutdownHook();
+      }
+    });
   }
 
   public static void init() {
@@ -147,7 +182,9 @@ public class Commons {
   private static boolean debug = false;
 
   public static void info(String msg, Object... args) {
-    System.out.printf("[INFO Commons] " + msg + "%n", args);
+    if (hasOption(VERBOSE)) {
+      System.out.printf("[INFO Commons] " + msg + "%n", args);
+    }
   }
 
   public static void error(String msg, Object... args) {
@@ -155,7 +192,7 @@ public class Commons {
   }
 
   public static void debug(String msg, Object... args) {
-    if (isDebug()) {
+    if (isDebug() || Debug.isGlobalDebug()) {
       System.out.printf("[DEBUG Commons] " + msg + "%n", args);
     }
   }
@@ -164,6 +201,18 @@ public class Commons {
     if (isTrace()) {
       System.out.printf("[TRACE Commons] " + msg + "%n", args);
     }
+  }
+
+  public static void startLog(int level, String msg, Object... args) {
+    if (level < 3) {
+      if (!hasOption(VERBOSE)) {
+        return;
+      }
+      if (hasOption(QUIET)) {
+        return;
+      }
+    }
+    System.out.println(String.format("[DEBUG STARTUP] " + msg, args));
   }
   //</editor-fold>
 
@@ -196,7 +245,7 @@ public class Commons {
     return number % 2 == 0;
   }
 
-  //<editor-fold desc="02 startup">
+  //<editor-fold desc="02 startup / terminate">
   private static Class startClass = null;
 
   public static Class getStartClass() {
@@ -230,7 +279,7 @@ public class Commons {
         jarName = codeSrc.getLocation().getPath();
         jarName = URLDecoder.decode(jarName, "utf8");
       } catch (UnsupportedEncodingException e) {
-        RunTime.startLog(-1, "URLDecoder: not possible: %s", jarName);
+        error("URLDecoder: not possible: %s", jarName);
         System.exit(1);
       }
       jarFile = new File(jarName);
@@ -240,19 +289,45 @@ public class Commons {
 
   private static String[] startArgs = null;
   private static CommandLine cmdLine = null;
+  private static CommandArgs cmdArgs = null;
+  private static String[] userArgs = new String[0];
 
   public static void setStartArgs(String[] args) {
     startArgs = args;
-    CommandArgs cmdArgs = new CommandArgs();
+    cmdArgs = new CommandArgs();
+    userArgs = cmdArgs.getUserArgs();
     cmdLine = cmdArgs.getCommandLine(args);
   }
 
+  public static String[] getUserArgs() {
+    return userArgs;
+  }
+
+  public static void printHelp() {
+    cmdArgs.printHelp();
+  }
+
   public static boolean hasArg(String arg) {
-    return cmdLine.hasOption(arg);
+    return cmdLine == null ? true : cmdLine.hasOption(arg);
   }
 
   public static String getArg(String arg) {
     return cmdLine.getOptionValue(arg);
+  }
+
+  public static String[] getArgs(String arg) {
+    String[] args = cmdLine.getOptionValues(arg);
+    return args;
+  }
+
+  static boolean jythonReady = false;
+
+  public static boolean isJythonReady() {
+    return jythonReady;
+  }
+
+  public static void setJythonReady() {
+    Commons.jythonReady = true;
   }
   //</editor-fold>
 
@@ -273,6 +348,16 @@ public class Commons {
   public static File getTempFolder() {
     return sxTempFolder;
   }
+
+  public static File getIDETemp() {
+    return fIDETemp;
+  }
+
+  public static void setIDETemp(File ideTemp) {
+    Commons.fIDETemp = ideTemp;
+  }
+
+  private static File fIDETemp = null;
 
   public static File getAppDataPath() {
     if (null == appDataPath) {
@@ -450,14 +535,14 @@ public class Commons {
       }
     }
     return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
-            libStamp.length() == Commons.getSxBuildStamp().length()
-            && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
+        libStamp.length() == Commons.getSxBuildStamp().length()
+        && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
   public static void makeVersionFile(File folder) {
     String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
-            Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
-            Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
+        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
+        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
   }
 
@@ -979,6 +1064,116 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling">
+  public static void show() {
+    info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
+    info("running as: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
+    info("running on: %s", Commons.getOSInfo());
+    info("running Java: %s", Commons.getJavaInfo());
+    info("java.io.tmpdir: %s", Commons.getTempFolder());
+    info("app data folder: %s", Commons.getAppDataPath());
+    info("work dir: %s", Commons.getWorkDir());
+    info("user.home: %s", Commons.getUserHome());
+    info("active locale: %s", globalOptions.getOption("SX_LOCALE"));
+    if (hasOption(CommandArgsEnum.VERBOSE) || isJythonReady()) {
+//      dumpClassPath("sikulix");
+      if (isJythonReady()) {
+        int saveLvl = Debug.getDebugLevel();
+        Debug.setDebugLevel(3);
+        Commons.runFunctionScriptingSupport("showSysPath", null);
+        Screen.showMonitors();
+        Debug.setDebugLevel(saveLvl);
+      }
+    }
+    info("***** show environment end");
+  }
+
+  private static Options globalOptions = null;
+
+  public static Options globals() {
+    return globalOptions;
+  }
+
+  public static void showOptions() {
+    showOptions("");
+  }
+
+  public static void showOptions(String prefix) {
+    Map<String, String> options = globals().getOptions();
+    TreeMap<String, String> sortedOptions = new TreeMap<>();
+    sortedOptions.putAll(options);
+    int len = 0;
+    for (String key : sortedOptions.keySet()) {
+      if (!key.startsWith(prefix)) {
+        continue;
+      }
+      if (key.length() < len) {
+        continue;
+      }
+      len = key.length();
+    }
+    String formKey = "%-" + len + "s";
+    String formVal = " = %s";
+    for (String key : sortedOptions.keySet()) {
+      if (!key.startsWith(prefix)) {
+        continue;
+      }
+      String val = sortedOptions.get(key);
+      if (val.isEmpty()) {
+        info(formKey, key);
+      } else {
+        info(formKey + formVal, key, val);
+      }
+    }
+  }
+
+  public static void initOptions() {
+    if (globalOptions == null) {
+      Options options = Options.create();
+      // *************** add commandline args
+      for (CommandArgsEnum arg : CommandArgsEnum.values()) {
+        String val = "";
+        if (hasArg(arg.shortname())) {
+          if (arg.hasArgs()) {
+            String[] args = getArgs(arg.shortname());
+            if (args.length > 1) {
+              for (int n = 0; n < args.length; n++) {
+                val += "|" + args[n];
+              }
+            } else {
+              val = args[0];
+            }
+          }
+          options.setOption("ARG_" + arg.toString(), (val == null ? "" : val));
+        }
+      }
+      options.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
+      String prop = System.getProperty("sikuli.Debug");
+      if (prop != null) {
+        options.setOption("SX_DEBUG_LEVEL", prop);
+      }
+      prop = System.getProperty("sikuli.console");
+      if (prop != null) {
+        if (prop.equals("false")) {
+          if (!hasOption(CONSOLE)) {
+            options.setOption("ARG_" + CONSOLE.name(), "");
+          }
+        }
+      }
+      globalOptions = options;
+    }
+  }
+
+  public static boolean hasOption(CommandArgsEnum option) {
+    return hasOption("ARG_" + option.name());
+  }
+
+  public static boolean hasOption(String option) {
+    if (globalOptions == null) {
+      return false;
+    }
+    return globalOptions.hasOption(option);
+  }
+
   public static Options getOptions() {
     return sxOptions;
   }
@@ -1036,7 +1231,7 @@ public class Commons {
     }
     if (!error.isEmpty()) {
       RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
-              instanceSup, method, args, error);
+          instanceSup, method, args, error);
     }
     return returnSup;
   }

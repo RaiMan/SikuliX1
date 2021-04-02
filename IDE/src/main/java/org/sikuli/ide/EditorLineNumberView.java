@@ -12,10 +12,11 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.idesupport.IDESupport;
 
 public class EditorLineNumberView extends JComponent implements MouseListener {
 
-  private static ImageIcon ERROR_ICON = SikulixIDE.getIconResource("/icons/error_icon.gif");
+  private static ImageIcon ERROR_ICON = IDESupport.getIconResource("/icons/error_icon.gif");
   // This is for the border to the right of the line numbers.
   // There's probably a UIDefaults value that could be used for this.
   private static final Color BORDER_COLOR = new Color(155, 155, 155);

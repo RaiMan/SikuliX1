@@ -25,6 +25,7 @@ import org.sikuli.script.runners.TextRunner;
 import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.util.SikulixFileChooser;
@@ -484,7 +485,7 @@ public class EditorPane extends JTextPane {
       String path = matcher.group(1);
       log(3, "checkSource: found setBundlePath: %s", path);
       File newBundleFolder = new File(path.replace("\\\\", "\\"));
-      if (RunTime.get().runningWindows && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
+      if (Commons.runningWindows() && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
         try {
           newBundleFolder = new File(new File("\\").getCanonicalPath(), newBundleFolder.getPath().substring(1));
         } catch (IOException e) {
@@ -643,7 +644,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void setEditorPaneIDESupport(String type) {
-    editorPaneIDESupport = SikulixIDE.getIDESupport(type);
+    editorPaneIDESupport = IDESupport.ideSupporter.get(type);
   }
 
   private IIDESupport editorPaneIDESupport = null;
@@ -1568,9 +1569,15 @@ public class EditorPane extends JTextPane {
       return COPY_OR_MOVE;
     }
 
+    private Map<String, String> getCopiedImgs() {
+      return copiedImgs;
+    }
+
+    private Map<String, String> copiedImgs = new HashMap<String, String>();
+
     @Override
     protected Transferable createTransferable(JComponent c) {
-      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
+      Map<String, String> _copiedImgs = getCopiedImgs();
       JTextPane aTextPane = (JTextPane) c;
 
       SikuliEditorKit kit = ((SikuliEditorKit) aTextPane.getEditorKit());
@@ -1603,7 +1610,7 @@ public class EditorPane extends JTextPane {
 
     @Override
     public boolean importData(JComponent comp, Transferable t) {
-      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
+      Map<String, String> _copiedImgs = getCopiedImgs();
       DataFlavor htmlFlavor = DataFlavor.stringFlavor;
       if (canImport(comp, t.getTransferDataFlavors())) {
         try {

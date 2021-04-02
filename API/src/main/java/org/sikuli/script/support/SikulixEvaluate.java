@@ -8,7 +8,6 @@ import java.util.List;
 
 public class SikulixEvaluate {
   public static void main(String[] args) {
-    RunTime.get().show();
     if (args.length == 0) {
       Commons.info("SikulixEvaluate: Nothing to do!");
       return;

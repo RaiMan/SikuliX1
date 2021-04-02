@@ -8,12 +8,10 @@ import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.regex.Matcher;
 
 /**
@@ -82,7 +80,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doInit(String[] param) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
-      log(lvl, "starting initialization");
+      Commons.startLog(1, "JythonRunner: starting initialization (%4.1f sec)", Commons.getSinceStart());
 
       jythonSupport = JythonSupport.get();
       jythonSupport.getSysPath();
@@ -97,7 +95,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       if (interpreterVersion.isEmpty()) {
         interpreterVersion = "could not be evaluated";
       }
-      log(lvl, "ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
+      Commons.startLog(3, "Jython ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
     }
   }
 

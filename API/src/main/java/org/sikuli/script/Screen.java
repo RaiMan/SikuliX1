@@ -105,6 +105,8 @@ public class Screen extends Region implements IScreen {
     super();
     if (primaryScreen < 0) {
       initScreens();
+      //TODO open some website: mouse is blocked
+/*
       if (RunTime.isIDE() && MouseDevice.isNotUseable() && Commons.runningMac()) {
         String link = "https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS";
         SX.popup("In order for SikuliX to use the mouse on macOS" +
@@ -120,6 +122,7 @@ public class Screen extends Region implements IScreen {
             "Mouse usage is blocked");
         App.setClipboard(link);
       }
+*/
     }
     curID = primaryScreen;
     initScreen();
@@ -548,7 +551,7 @@ public class Screen extends Region implements IScreen {
     }
     lastScreenImage = simg;
     if (Debug.getDebugLevel() > logLevel) {
-      simg.saveLastScreenImage(RunTime.get().fSikulixStore);
+      simg.saveLastScreenImage(Commons.getAppDataStore());
     }
     return simg;
   }

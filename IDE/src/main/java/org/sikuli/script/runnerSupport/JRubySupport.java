@@ -61,7 +61,7 @@ public class JRubySupport implements IRunnerSupport {
   public void interpreterInitialization() {
     //TODO create a specific RubyPath (sys.path)
     if (interpreter == null) {
-      RunTime.get().fSikulixLib.getAbsolutePath();
+      Commons.getLibFolder().getAbsolutePath();
       //TODO needed?
       //ScriptingContainer.initialize(System.getProperties(), null, sysargv.toArray(new String[0]));
       try {
@@ -114,7 +114,7 @@ public class JRubySupport implements IRunnerSupport {
     if (null == path) {
       return;
     }
-    String sikuliLibPath = RunTime.get().fSikulixLib.getAbsolutePath();
+    String sikuliLibPath = Commons.getLibFolder().getAbsolutePath();
     if (path.size() == 0 || !FileManager.pathEquals(path.get(0), sikuliLibPath)) {
       log(lvl, "executeScriptHeader: adding SikuliX Lib path to sys.path\n" + sikuliLibPath);
       int pathLength = path.size();

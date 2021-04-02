@@ -389,8 +389,9 @@ public class FileManager {
     return true;
   }
 
+/*
   public static File createTempDir(String path) {
-    File fTempDir = new File(RunTime.get().fpBaseTempPath, path);
+    File fTempDir = new File(Commons.getIDETemp(), path);
     log(lvl, "createTempDir:\n%s", fTempDir);
     if (!fTempDir.exists()) {
       fTempDir.mkdirs();
@@ -411,6 +412,7 @@ public class FileManager {
     }
     return fTempDir;
   }
+*/
 
   public static int getRandomInt() {
     int rand = 1 + new Random().nextInt();
@@ -523,7 +525,7 @@ public class FileManager {
   public static File createTempFile(String suffix, String path) {
     String fPrefix = "sikulitemp-";
     String fSuffix = "." + suffix;
-    File fpath = new File(RunTime.get().fpBaseTempPath);
+    File fpath = Commons.getIDETemp();
     if (path != null) {
       fpath = new File(path);
     }
@@ -1215,7 +1217,7 @@ public class FileManager {
   }
 
   public static String makeScriptjar(List<String> options) {
-    File fSikulixTemp = new File(RunTime.get().fSikulixStore, "SikulixTemp");
+    File fSikulixTemp = new File(Commons.getAppDataStore(), "SikulixTemp");
     FileManager.resetFolder(fSikulixTemp);
     String target = doMakeScriptjar(options, fSikulixTemp);
     deleteFileOrFolder(fSikulixTemp);
@@ -1224,7 +1226,6 @@ public class FileManager {
 
   private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
     boolean makingScriptjarPlain = false;
-    RunTime runTime = RunTime.get();
     if (options.size() > 0 && "plain".equals(options.get(0))) {
       makingScriptjarPlain = true;
       options.remove(0);
@@ -1569,6 +1570,7 @@ public class FileManager {
     in.close();
   }
 
+/*
   public static String unzipSKL(String fpSkl) {
     File fSkl = new File(fpSkl);
     if (!fSkl.exists()) {
@@ -1587,6 +1589,7 @@ public class FileManager {
     }
     return fSikuliDir.getAbsolutePath();
   }
+*/
 
   static class JarFileFilter {
     boolean accept(ZipEntry entry, String jarname) {

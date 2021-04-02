@@ -4,12 +4,19 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.basics.*;
+import org.sikuli.script.SikuliXception;
+import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
@@ -17,38 +24,140 @@ public class Sikulix {
     Commons.setStartClass(Sikulix.class);
     Commons.setStartArgs(args);
 
-    if (Commons.hasArg("v")) {
-      Debug.setDebugLevel(3);
-      Debug.setGlobalDebug(3);
+    if (Commons.hasArg("h")) {
+      Commons.printHelp();
+      System.exit(0);
     }
 
-    if (Commons.hasArg("a")) {
-      String argValue = Commons.getArg("a");
+    Commons.initOptions();
+
+    Commons.globals().setOption("SX_LOCALE", SikuliIDEI18N.getLocaleShow());
+
+    if (Commons.hasOption(APPDATA)) {
+      String argValue = Commons.globals().getOption(APPDATA);
       File path = Commons.setAppDataPath(argValue);
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
       Commons.setTempFolder();
     }
 
-
-    File runningFrom = Commons.getMainClassLocation();
-    RunTime.startLog(1, "Running: %s :: %s", runningFrom, Sikulix.class.getCanonicalName());
-
-    RunTime.startLog(1, "AppData: %s", Commons.getAppDataPath());
-
-    //TODO Extensions??
-    //String classPath = ExtensionManager.makeClassPath(runningFrom);
-
-    //TODO prep for export to jar
-    if (Commons.isRunningFromJar()) {
-      FileManager.writeStringToFile(Commons.getMainClassLocation().getAbsolutePath(),
-          new File(Commons.getAppDataStore(), "lastUsedJar.txt"));
+    if (Commons.hasOption(VERBOSE)) {
+      Commons.show();
+      Debug.setDebugLevel(3);
+      Debug.setGlobalDebug(3);
     }
 
+    if (Commons.hasOption(DEBUG)) {
+      Commons.globals().getOptionInteger("ARG_DEBUG", 3);
+      Debug.setDebugLevel(3);
+    }
+
+    Commons.showOptions("ARG_");
+
+    if (Commons.hasOption(RUN)) {
+      HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+        @Override
+        public void hotkeyPressed(HotkeyEvent e) {
+          if (Commons.hasOption(RUN)) {
+            Runner.abortAll();
+            RunTime.terminate(254, "AbortKey was pressed: aborting all running scripts");
+          }
+        }
+      });
+      String[] scripts = Runner.resolveRelativeFiles(Commons.getArgs("r"));
+      int exitCode = Runner.runScripts(scripts, Commons.getUserArgs(), new IScriptRunner.Options());
+      if (exitCode > 255) {
+        exitCode = 254;
+      }
+      RunTime.terminate(exitCode, "");
+    }
+
+    if (Commons.hasOption(SERVER)) {
+      Class cServer = null;
+      try {
+        cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
+        cServer.getMethod("run").invoke(null);
+        RunTime.terminate();
+      } catch (ClassNotFoundException e) {
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      }
+      try {
+        cServer = Class.forName("org.sikuli.script.support.SikulixServer");
+        if (!(Boolean) cServer.getMethod("run").invoke(null)) {
+          RunTime.terminate(1, "SikulixServer: terminated with errors");
+        }
+      } catch (ClassNotFoundException e) {
+      } catch (IllegalAccessException e) {
+      } catch (InvocationTargetException e) {
+      } catch (NoSuchMethodException e) {
+      }
+      RunTime.terminate();
+    }
+
+    if (!Commons.hasOption(MULTI)) {
+      File isRunning;
+      FileOutputStream isRunningFile;
+      String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
+      isRunning = new File(Commons.getTempFolder(), isRunningFilename);
+      boolean shouldTerminate = false;
+      try {
+        isRunning.createNewFile();
+        isRunningFile = new FileOutputStream(isRunning);
+        if (null == isRunningFile.getChannel().tryLock()) {
+          Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
+          Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
+          stopSplash.invoke(null, new Object[0]);
+          org.sikuli.script.Sikulix.popError("Terminating: IDE already running");
+          shouldTerminate = true;
+        } else {
+          Commons.setIsRunning(isRunning, isRunningFile);
+        }
+      } catch (Exception ex) {
+        org.sikuli.script.Sikulix.popError("Terminating on FatalError: cannot access IDE lock for/n" + isRunning);
+        shouldTerminate = true;
+      }
+      if (shouldTerminate) {
+        System.exit(1);
+      }
+      for (String aFile : Commons.getTempFolder().list()) {
+        if ((aFile.startsWith("Sikulix"))
+            || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
+          FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
+        }
+      }
+    }
+
+    //region IDE temp folder
+    File ideTemp = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
+    ideTemp.mkdirs();
+    try {
+      File tempTest = new File(ideTemp, "tempTest.txt");
+      FileManager.writeStringToFile("temp test", tempTest);
+      boolean success = true;
+      if (tempTest.exists()) {
+        tempTest.delete();
+        if (tempTest.exists()) {
+          success = false;
+        }
+      } else {
+        success = false;
+      }
+      if (!success) {
+        throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
+      }
+    } catch (Exception e) {
+      throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
+    }
+    Commons.setIDETemp(ideTemp);
+    //endregion
+
+    SikulixIDE.main(args);
+
     //TODO start IDE in subprocess?
-    if (true) {
-      SikulixIDE.main(args);
-    } else {
+    //region IDE subprocess
+    if (false) {
       /*
       if (false) {
         RunTime.terminate(999, "//TODO start IDE in subprocess?");
@@ -110,5 +219,6 @@ public class Sikulix {
       //endregion
 */
     }
+    //endregion
   }
 }

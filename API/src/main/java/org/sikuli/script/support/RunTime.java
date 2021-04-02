@@ -3,36 +3,21 @@
  */
 package org.sikuli.script.support;
 
-import org.apache.commons.cli.CommandLine;
 import org.opencv.core.Core;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
-import org.sikuli.script.FindFailed;
-import org.sikuli.script.Mouse;
-import org.sikuli.script.OCR;
-import org.sikuli.script.Options;
-import org.sikuli.script.Screen;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.Sikulix;
-import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
-import org.sikuli.util.CommandArgs;
-import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.util.Highlight;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
-import java.util.List;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -43,218 +28,14 @@ public class RunTime {
     Commons.init();
   }
 
-  private static RunTime runTime = null;
-
-  //<editor-fold desc="01 startup">
-  public static void evalArgs(String[] args) {
-
-    CommandLine cmdLine;
-    String cmdValue;
-
-    CommandArgs cmdArgs = new CommandArgs();
-    cmdLine = cmdArgs.getCommandLine(args);
-
-    boolean cmdLineValid = true;
-    if (cmdLine == null) {
-      startLog(-1, "Did not find any valid option on command line!");
-      cmdLineValid = false;
-    } else {
-      setArgs(cmdArgs.getUserArgs(), cmdArgs.getSXArgs());
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("h")) {
-      cmdArgs.printHelp();
-      System.exit(0);
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.DEBUG.shortname())) {
-      cmdValue = cmdLine.getOptionValue(CommandArgsEnum.DEBUG.longname());
-      if (cmdValue != null) {
-        Debug.setDebugLevel(cmdValue);
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("g")) {
-      if (cmdLine.hasOption("s")) {
-        serverGroups = cmdLine.getOptionValue("g");
-        startLog(3, "groups (-g): %s", serverGroups);
-      } else {
-        startLog(-1, "groups (-g): currently only accepted with -s");
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("x")) {
-      if (cmdLine.hasOption("s")) {
-        serverExtra = cmdLine.getOptionValue("x");
-        startLog(3, "extra (-x): %s", serverExtra);
-      } else {
-        startLog(-1, "extra (-x): currently only accepted with -s");
-      }
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("s")) {
-      serverOptions = cmdLine.getOptionValues("s");
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOGFILE.shortname())) {
-      logFile = cmdLine.getOptionValue(CommandArgsEnum.LOGFILE.longname());
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.USERLOGFILE.shortname())) {
-      userLogFile = cmdLine.getOptionValue(CommandArgsEnum.USERLOGFILE.longname());
-    }
-
-    if (cmdLineValid && cmdLine.hasOption("c")) {
-      System.setProperty("sikuli.console", "false");
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.LOAD.shortname())) {
-      loadScripts = cmdLine.getOptionValues(CommandArgsEnum.LOAD.longname());
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
-      scriptsToRun = cmdLine.getOptionValues(CommandArgsEnum.RUN.longname());
-    }
-
-    if (cmdLineValid && cmdLine.hasOption(CommandArgsEnum.PYTHONSERVER.shortname())) {
-      asPythonServer = true;
-    }
+  //<editor-fold defaultstate="collapsed" desc="04 instance">
+  private RunTime() {
   }
-
-  private static boolean startAsIDE = true;
-
-  public static boolean isIDE() {
-    return startAsIDE;
-  }
-
-  public static String[] getServerOptions() {
-    return serverOptions;
-  }
-
-  private static String[] serverOptions = null;
-
-  public static String getServerGroups() {
-    return serverGroups;
-  }
-
-  private static String serverGroups = null;
-
-  public static String getServerExtra() {
-    return serverExtra;
-  }
-
-  private static String serverExtra = null;
-
-  private static boolean asPythonServer = false;
-
-  protected static boolean shouldRunPythonServer() {
-    return asPythonServer;
-  }
-
-  private static String[] userArgs = new String[0];
-  private static String[] sxArgs = new String[0];
-
-  private static void setArgs(String[] args, String[] sargs) {
-    userArgs = args;
-    sxArgs = sargs;
-  }
-
-  public static String[] getSXArgs() {
-    return sxArgs;
-  }
-
-  public static void setUserArgs(String[] args) {
-    userArgs = new String[args.length];
-    int n = 0;
-    for (String arg : args) {
-      userArgs[n] = arg;
-      n++;
-    }
-  }
-
-  public static String[] getUserArgs() {
-    return userArgs;
-  }
-
-  public static void printArgs() {
-    String[] xargs = getSXArgs();
-    if (xargs.length > 0) {
-      startLog(1, "--- Sikuli parameters ---");
-      for (int i = 0; i < xargs.length; i++) {
-        startLog(1, "%d: %s", i + 1, xargs[i]);
-      }
-    }
-    xargs = getUserArgs();
-    if (xargs.length > 0) {
-      startLog(1, "--- User parameters ---");
-      for (int i = 0; i < xargs.length; i++) {
-        startLog(1, "%d: %s", i + 1, xargs[i]);
-      }
-    }
-  }
-
-  public static String getLogFile() {
-    return logFile;
-  }
-
-  private static String logFile = "";
-
-  public static String getUserLogFile() {
-    return userLogFile;
-  }
-
-  private static String userLogFile = "";
-
-  public static String[] getLoadScripts() {
-    return loadScripts;
-  }
-
-  private static String[] loadScripts = new String[0];
   //</editor-fold>
-
-  public static boolean isVerbose() {
-    return Commons.hasArg("v") || Debug.getDebugLevel() > 2;
-  }
-
-  public static boolean isQuiet() {
-    return Commons.hasArg("q");
-  }
-
-  public static boolean isAllowMultiple() {
-    return Commons.hasArg("m");
-  }
-
-  public static boolean shouldRunScripts() {
-    return Commons.hasArg("r");
-  }
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
   private static int lvl = 3;
   private int minLvl = lvl;
-
-  public static void startLog(int level, String msg, Object... args) {
-    String typ = startAsIDE ? "IDE" : "API";
-    String msgShow = String.format("startUp: %s: ", typ);
-    if (!isVerbose()) {
-      return;
-    }
-    if (level < 0) {
-      msgShow = "[ERROR]" + msgShow + msg;
-      System.out.println(String.format(msgShow, args));
-      return;
-    }
-    if (isQuiet()) {
-      return;
-    }
-    if (isVerbose()) {
-      if (level > 0) {
-        msgShow = "[DEBUG]" + msgShow + msg;
-      } else {
-        msgShow = "[INFO]" + msgShow + msg;
-      }
-      System.out.println(String.format(msgShow, args));
-    }
-  }
 
   public static String arrayToQuotedString(String[] args) {
     String ret = "";
@@ -287,270 +68,23 @@ public class RunTime {
     JAR, CLASSES, OTHER
   }
 
-  public RunType runningAs = RunType.OTHER;
-
-  private static boolean isTerminating = false;
-  private static boolean hasDoneCleanUpTerminating = false;
-
-  public static String appDataMsg = "";
-
   public static boolean testing = false;
 
-  private Class clsRef = RunTime.class;
+  private static Class clsRef = RunTime.class;
 
   private List<URL> classPathActual = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
 
-  public File fBaseTempPath = null;
-  public String fpBaseTempPath = "";
+  private static boolean areLibsExported = false;
+  private static Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
 
-  boolean areLibsExported = false;
-  private Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
-
-  public File fSikulixAppPath = null;
-  public File fSikulixExtensions = null;
-  public File fSikulixLib = null;
-  public File fSikulixStore;
-
-  public File fSxBase = null;
   public File fSxBaseJar = null;
-  public File fSxProject = null;
-  public File fSxProjectTestScriptsJS = null;
-  public File fSxProjectTestScripts = null;
-  public String fpContent = "sikulixcontent";
+  public static String fpContent = "sikulixcontent";
 
   public boolean runningJar = true;
-  public boolean runningInProject = false;
   public boolean runningWindows = false;
   public boolean runningMac = false;
   public boolean runningLinux = false;
-  private String appType = null;
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="04 instance">
-  private RunTime() {
-  }
-
-  static final long started = new Date().getTime();
-  static final long obsolete = started - 2 * 24 * 60 * 60 * 1000;
-
-  static boolean isObsolete(long refTime) {
-    if (refTime == 0) {
-      return false;
-    }
-    return refTime < obsolete;
-  }
-
-  //TODO RunTime variables -> Commons
-  public static String NL = "\n";
-  public static boolean isJythonReady = false;
-
-  public static synchronized RunTime get() {
-    if (runTime != null) {
-      return runTime;
-    }
-    runTime = new RunTime();
-
-    //<editor-fold defaultstate="collapsed" desc="versions">
-    if (Commons.runningWindows()) {
-      NL = "\r\n";
-    }
-
-    runTime.fSikulixAppPath = Commons.getAppDataPath();
-    runTime.fSikulixStore = Commons.getAppDataStore();
-    runTime.fSikulixLib = Commons.getLibFolder();
-    //</editor-fold>
-
-    Commons.setOptions(Options.init(runTime));
-
-//TODO Options: testing ??
-/*
-    optTesting = sxOptions.isOption("testing", false);
-    if (optTesting) {
-      Debug.info("Options: testing = on");
-    }
-
-    int optDebugLevel = optTesting ? Debug.getDebugLevel() : sxOptions.getOptionInteger("Debug.level", -1);
-    if (optDebugLevel > Debug.getDebugLevel()) {
-      Debug.info("Options: Debug.level = %d", optDebugLevel);
-      Debug.on(optDebugLevel);
-    }
-*/
-
-    Settings.init(); // force Settings initialization
-
-    //TODO addShutdownHook
-    hasDoneCleanUpTerminating = false;
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        runShutdownHook();
-      }
-    });
-
-    runTime.init();
-    try {
-      cleanupRobot = new RobotDesktop();
-    } catch (AWTException e) {
-    }
-    return runTime;
-  }
-
-  //TODO cleanupRobot needed?
-  private static RobotDesktop cleanupRobot = null;
-  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="05 global init">
-  File isRunning = null;
-  FileOutputStream isRunningFile = null;
-  String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
-
-  private void init() {
-    log(3, "init: entering");
-
-    fBaseTempPath = new File(Commons.getTempFolder(), String.format("Sikulix_%d", FileManager.getRandomInt()));
-    fpBaseTempPath = fBaseTempPath.getAbsolutePath();
-    fBaseTempPath.mkdirs();
-    try {
-      File tempTest = new File(fBaseTempPath, "tempTest.txt");
-      FileManager.writeStringToFile("temp test", tempTest);
-      boolean success = true;
-      if (tempTest.exists()) {
-        tempTest.delete();
-        if (tempTest.exists()) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-      if (!success) {
-        throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
-      }
-    } catch (Exception e) {
-      throw new SikuliXception(String.format("init: temp folder not useable: %s", Commons.getTempFolder()));
-    }
-    log(3, "temp folder ok: %s", fpBaseTempPath);
-    if (!shouldRunScripts() && !Commons.hasArg("m")) {
-      isRunning = new File(Commons.getTempFolder(), isRunningFilename);
-      boolean shouldTerminate = false;
-      try {
-        isRunning.createNewFile();
-        isRunningFile = new FileOutputStream(isRunning);
-        if (null == isRunningFile.getChannel().tryLock()) {
-          Class<?> classIDE = Class.forName("org.sikuli.ide.SikulixIDE");
-          Method stopSplash = classIDE.getMethod("stopSplash", new Class[0]);
-          stopSplash.invoke(null, new Object[0]);
-          Sikulix.popError("Terminating: IDE already running");
-          shouldTerminate = true;
-        }
-      } catch (Exception ex) {
-        Sikulix.popError("Terminating on FatalError: cannot access IDE lock for/n" + isRunning);
-        shouldTerminate = true;
-      }
-      if (shouldTerminate) {
-        System.exit(1);
-      }
-    }
-
-    for (String aFile : Commons.getTempFolder().list()) {
-      if ((aFile.startsWith("Sikulix") && (new File(aFile).isFile()))
-          || (aFile.startsWith("jffi") && aFile.endsWith(".tmp"))) {
-        FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), aFile));
-      }
-    }
-
-    clsRef = RunTime.class;
-    CodeSource codeSrc = clsRef.getProtectionDomain().getCodeSource();
-    fSxBaseJar = null;
-    URL urlCodeSrc = null;
-    String urlCodeSrcProto = "not-set";
-    if (codeSrc != null) {
-      urlCodeSrc = codeSrc.getLocation();
-      urlCodeSrcProto = urlCodeSrc.getProtocol();
-      if (null != codeSrc) {
-        fSxBaseJar = new File(codeSrc.getLocation().getPath());
-        if (urlCodeSrcProto == "file") {
-          runningAs = RunType.CLASSES;
-          if (urlCodeSrc.getPath().endsWith(".jar")) {
-            runningAs = RunType.JAR;
-          }
-        } else {
-          runningAs = RunType.OTHER;
-        }
-      }
-    }
-    appType = "from a jar";
-    if (fSxBaseJar != null) {
-      String baseJarName = fSxBaseJar.getName();
-      fSxBase = fSxBaseJar.getParentFile();
-      log(4, "runningAs: %s (%s) in: %s", runningAs, baseJarName, fSxBase.getAbsolutePath());
-      if (baseJarName.contains("classes")) {
-        runningJar = false;
-        fSxProject = fSxBase.getParentFile().getParentFile();
-        log(4, "not jar - supposing Maven project: %s", fSxProject);
-        appType = "in Maven project from classes";
-        runningInProject = true;
-      } else if ("target".equals(fSxBase.getName())) {
-        fSxProject = fSxBase.getParentFile().getParentFile();
-        log(4, "folder target detected - supposing Maven project: %s", fSxProject);
-        appType = "in Maven project from some jar";
-        runningInProject = true;
-      } else {
-        //TODO what???
-      }
-    } else {
-      dumpClassPath();
-      throw new SikuliXception(String.format("no valid Java context (%s)", clsRef));
-    }
-    if (runningInProject) {
-      fSxProjectTestScriptsJS = new File(fSxProject, "StuffContainer/testScripts/testJavaScript");
-      fSxProjectTestScripts = new File(fSxProject, "StuffContainer/testScripts");
-    }
-
-//TODO RunTime: extensions / Jython
-/*
-    List<String> items = new ArrayList<String>();
-    if (Type.API.equals(typ)) {
-      String optJython = sxOptions.getOption("jython");
-      if (!optJython.isEmpty()) {
-        items.add(optJython);
-      }
-    }
-
-    if (!Type.SETUP.equals(typ)) {
-      String optClasspath = sxOptions.getOption("classpath");
-      if (!optClasspath.isEmpty()) {
-        items.addAll(Arrays.asList(optClasspath.split(System.getProperty("path.separator"))));
-      }
-      items.addAll(Arrays.asList(standardExtensions));
-      if (items.size() > 0) {
-        String[] fList = fSikulixExtensions.list();
-        for (String item : items) {
-          item = item.trim();
-          if (new File(item).isAbsolute()) {
-            addToClasspath(item, "RunTime: init from options " + typ);
-          } else {
-            for (String fpFile : fList) {
-              File fFile = new File(fSikulixExtensions, fpFile);
-              if (fFile.length() > 0) {
-                if (fpFile.startsWith(item)) {
-                  addToClasspath(fFile.getAbsolutePath(), "RunTime: init from options " + typ);
-                  break;
-                }
-              } else {
-                fFile.delete();
-              }
-            }
-          }
-        }
-      }
-    }
-*/
-    if (Debug.getDebugLevel() == minLvl) {
-      show();
-    }
-    log(3, "init: leaving");
-  }
   //</editor-fold>
 
   //<editor-fold desc="99 cleanUp">
@@ -564,7 +98,6 @@ public class RunTime {
       System.out.println("TERMINATING: " + outMsg);
     }
     if (retval < 999) {
-      isTerminating = true;
       cleanUp();
       System.exit(retval);
     }
@@ -572,73 +105,18 @@ public class RunTime {
   }
 
   public static void cleanUp() {
-    if (hasDoneCleanUpTerminating) {
-      return;
-    }
-    if (!isTerminating) {
-      runTime.log(3, "***** running cleanUp *****");
-      Highlight.closeAll();
-      Settings.DefaultHighlightColor = "RED";
-      Settings.DefaultHighlightTime = 2.0f;
-      Settings.Highlight = false;
-      Settings.setShowActions(false);
-      FindFailed.reset();
-      OCR.reset();
-      Settings.OcrLanguage = Settings.OcrLanguageDefault;
-      Settings.OcrDataPath = null;
-    }
-
-    HelpDevice.stop(Devices.TYPE.VNC);
-    HelpDevice.stop(Devices.TYPE.ANDROID);
-
-    Observing.cleanUp();
-    HotkeyManager.reset(isTerminating);
-    if (null != cleanupRobot) {
-      cleanupRobot.keyUp();
-    }
-    Mouse.reset();
-    //TODO 2.0.5 cannot be done in shutdownhook: PreferencesUser.get().store();
-    if (isTerminating) {
-      hasDoneCleanUpTerminating = true;
-    }
+    HotkeyManager.reset(true);
+    HelpDevice.stopAll();
   }
 
-  private static void runShutdownHook() {
-    isTerminating = true;
-    runTime.log(runTime.lvl, "***** final cleanup at System.exit() *****");
-    cleanUp();
-
-    if (runTime.isRunning != null) {
-      try {
-        runTime.isRunningFile.close();
-      } catch (IOException ex) {
-      }
-      runTime.isRunning.delete();
-    }
-
-    for (File f : Commons.getTempFolder().listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.toLowerCase().contains("sikuli")) {
-          if (name.contains("Sikulix_")) {
-            if (isObsolete(new File(dir, name).lastModified()) || name.equals(runTime.fBaseTempPath.getName())) {
-              return true;
-            }
-          } else {
-            return true;
-          }
-        }
-        return false;
-      }
-    })) {
-      runTime.log(4, "cleanTemp: " + f.getName());
-      FileManager.deleteFileOrFolder(f.getAbsolutePath());
-    }
+  public static void cleanUpAfterScript() {
+    HotkeyManager.reset(true);
+    HelpDevice.stopAll();
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="11 libs export">
-  private boolean libsLoad(String libName) {
+  private static boolean libsLoad(String libName) {
     log(lvl, "loadlib: trying %s", libName);
     String msg = "loadLib: %s";
     if (!areLibsExported) {
@@ -656,7 +134,7 @@ public class RunTime {
     }
     File fLib = new File(Commons.getLibsFolder(), libName);
     int level = lvl;
-    if (!runningLinux) {
+    if (!Commons.runningLinux()) {
       Boolean vLib = libsLoaded.get(libName);
       if (vLib == null || !fLib.exists()) {
         if (!fLib.exists()) {
@@ -674,7 +152,7 @@ public class RunTime {
     }
     try {
       //TODO Linux libs handling
-      if (runningLinux && libName.startsWith("libopen")) {
+      if (Commons.runningLinux() && libName.startsWith("libopen")) {
         //libName = "opencv_java";
         //System.loadLibrary(libName);
       }
@@ -683,8 +161,9 @@ public class RunTime {
       log(-1, "not usable: %s", e.getMessage());
       terminate(999, "problem with native library: " + libName);
     } catch (UnsatisfiedLinkError e) {
-      //TODO 2.0.5 goto some webpage in case of problems
       log(-1, msg + " (failed) probably dependent libs missing:\n%s", libName, e.getMessage());
+      //TODO 2.0.5 goto some webpage in case of problems
+/*
       String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4";
       if (RunTime.isIDE()) {
         Debug.error("Save your work, correct the problem and restart the IDE!");
@@ -694,6 +173,7 @@ public class RunTime {
         }
       }
       Debug.error("see: " + helpURL);
+*/
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
@@ -701,13 +181,13 @@ public class RunTime {
     return true;
   }
 
-  private boolean didExport = false;
+  private static boolean didExport = false;
 
-  public boolean shouldExport() {
+  public static boolean shouldExport() {
     return didExport;
   }
 
-  private void libsExport() {
+  private static void libsExport() {
     String fpJarLibs = Commons.getJarLibsPath();
 
     // remove obsolete libs folders in Temp
@@ -731,7 +211,7 @@ public class RunTime {
     }
 
     // remove libsfolder < 1.1.4
-    fpList = fSikulixAppPath.list(new FilenameFilter() {
+    fpList = Commons.getAppDataPath().list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
         if (name.contains("SikulixLibs_")) {
@@ -743,7 +223,7 @@ public class RunTime {
     if (fpList.length > 0) {
       log(lvl, "libsExport: deleting obsolete libs folders in AppPath");
       for (String entry : fpList) {
-        FileManager.deleteFileOrFolder(new File(fSikulixAppPath, entry));
+        FileManager.deleteFileOrFolder(new File(Commons.getAppDataPath(), entry));
       }
     }
 
@@ -844,14 +324,11 @@ public class RunTime {
   }
 
   public static boolean loadLibrary(String libname) {
-    if (isTerminating) {
-      return false;
-    }
-    return RunTime.get().libsLoad(libname);
+    return libsLoad(libname);
   }
 
   //TODO
-  private void addToWindowsSystemPath(File fLibsFolder) {
+  private static void addToWindowsSystemPath(File fLibsFolder) {
     for (File bridjFile : Commons.getTempFolder().listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
@@ -861,7 +338,6 @@ public class RunTime {
         return false;
       }
     })) {
-      runTime.log(4, "cleanTemp: " + bridjFile.getName());
       FileManager.deleteFileOrFolder(bridjFile);
     }
     //TODO String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
@@ -883,9 +359,9 @@ public class RunTime {
     }
   }
 
-  private boolean checkJavaUsrPath(File fLibsFolder) {
+  private static boolean checkJavaUsrPath(File fLibsFolder) {
     //TODO Java 9: Windows: Java Classloader::usr_paths needed for libs access?
-    if (isJava9()) {
+    if (Commons.getJavaVersion() > 8) {
       return true;
     }
     String fpLibsFolder = fLibsFolder.getAbsolutePath();
@@ -985,48 +461,14 @@ public class RunTime {
       return false;
     }
   }
-
-  public boolean needsRobotFake() {
-    return runningMac && Settings.ClickTypeHack;
-  }
-
-  /**
-   * print out some basic information about the current runtime environment
-   */
-  public void show() {
-    if (Commons.getOptions().hasOptions()) {
-      Commons.getOptions().dumpOptions();
-    }
-    logp("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
-    logp("user.home: %s", Commons.getUserHome());
-    logp("work dir: %s", Commons.getWorkDir());
-    logp("running on %s %s", Commons.getOSInfo(), appType);
-    logp("running Java %s", Commons.getJavaInfo());
-    logp("java.io.tmpdir: %s", Commons.getTempFolder());
-    logp("app data folder: %s", Commons.getAppDataPath());
-    if (runningJar) {
-      logp("executing jar: %s", fSxBaseJar);
-    }
-    if (Debug.getDebugLevel() > minLvl - 1 || isJythonReady) {
-      dumpClassPath("sikulix");
-      if (isJythonReady) {
-        int saveLvl = Debug.getDebugLevel();
-        Debug.setDebugLevel(lvl);
-        Commons.runFunctionScriptingSupport("showSysPath", null);
-        Screen.showMonitors();
-        Debug.setDebugLevel(saveLvl);
-      }
-    }
-    logp("***** show environment end");
-  }
   //</editor-fold>
 
   //<editor-fold desc="16 get resources NEW">
-  public List<String> getResourceList(String res) {
+  public static List<String> getResourceList(String res) {
     return getResourceList(res, clsRef);
   }
 
-  public List<String> getResourceList(String res, Class classReference) {
+  public static List<String> getResourceList(String res, Class classReference) {
     List<String> resList = new ArrayList<>();
     CodeSource codeSource = classReference.getProtectionDomain().getCodeSource();
     if (codeSource == null) {
@@ -1081,7 +523,7 @@ public class RunTime {
    * @return the filtered list of files (compact sikulixcontent format)
    */
 
-  public List<String> extractResourcesToFolder(String fpRessources, File fFolder, FilenameFilter filter) {
+  public static List<String> extractResourcesToFolder(String fpRessources, File fFolder, FilenameFilter filter) {
     List<String> content;
     content = resourceList(fpRessources, filter);
     if (content == null) {
@@ -1093,7 +535,7 @@ public class RunTime {
     return doExtractToFolderWithList(fpRessources, fFolder, content);
   }
 
-  public List<String> doExtractToFolderWithList(String fpRessources, File fFolder, List<String> content) {
+  private static List<String> doExtractToFolderWithList(String fpRessources, File fFolder, List<String> content) {
     int count = 0;
     int ecount = 0;
     String subFolder = "";
@@ -1181,7 +623,7 @@ public class RunTime {
    * @param outDir   a folder where to export
    * @return success
    */
-  public boolean extractResourceToFile(String inPrefix, String inFile, File outDir) {
+  public static boolean extractResourceToFile(String inPrefix, String inFile, File outDir) {
     return extractResourceToFile(inPrefix, inFile, outDir, "");
   }
 
@@ -1194,7 +636,7 @@ public class RunTime {
    * @param outFile  the filename for export
    * @return success
    */
-  public boolean extractResourceToFile(String inPrefix, String inFile, File outDir, String outFile) {
+  public static boolean extractResourceToFile(String inPrefix, String inFile, File outDir, String outFile) {
     InputStream aIS;
     FileOutputStream aFileOS;
     String content = inPrefix + "/" + inFile;
@@ -1234,7 +676,7 @@ public class RunTime {
    * @param encoding
    * @return file content
    */
-  public String extractResourceToString(String inPrefix, String inFile, String encoding) {
+  public static String extractResourceToString(String inPrefix, String inFile, String encoding) {
     InputStream aIS = null;
     String out = null;
     String content = inPrefix + "/" + inFile;
@@ -1269,7 +711,7 @@ public class RunTime {
     return out;
   }
 
-  public URL resourceLocation(String folderOrFile) {
+  public static URL resourceLocation(String folderOrFile) {
     log(lvl, "resourceLocation: (%s) %s", clsRef, folderOrFile);
     if (!folderOrFile.startsWith("/")) {
       folderOrFile = "/" + folderOrFile;
@@ -1277,7 +719,7 @@ public class RunTime {
     return clsRef.getResource(folderOrFile);
   }
 
-  private List<String> resourceList(String folder, FilenameFilter filter) {
+  private static List<String> resourceList(String folder, FilenameFilter filter) {
     List<String> files = new ArrayList<String>();
     if (!folder.startsWith("/")) {
       folder = "/" + folder;
@@ -1491,7 +933,7 @@ public class RunTime {
     return out;
   }
 
-  private List<String> doResourceListFolder(File fFolder, List<String> files, FilenameFilter filter) {
+  private static List<String> doResourceListFolder(File fFolder, List<String> files, FilenameFilter filter) {
     int localLevel = testing ? lvl : lvl + 1;
     String subFolder = "";
     if (fFolder.isDirectory()) {
@@ -1524,7 +966,7 @@ public class RunTime {
     return files;
   }
 
-  public List<String> doResourceListWithList(String folder, List<String> files, FilenameFilter filter) {
+  private static List<String> doResourceListWithList(String folder, List<String> files, FilenameFilter filter) {
     String content = extractResourceToString(folder, fpContent, "");
     String[] contentList = content.split(content.indexOf("\r") != -1 ? "\r\n" : "\n");
     if (filter == null) {
@@ -1539,7 +981,7 @@ public class RunTime {
     return files;
   }
 
-  private List<String> doResourceListJar(URL uJar, String fpResource, List<String> files, FilenameFilter filter) {
+  private static List<String> doResourceListJar(URL uJar, String fpResource, List<String> files, FilenameFilter filter) {
     ZipInputStream zJar;
     String fpJar = uJar.getPath().split("!")[0];
     int localLevel = testing ? lvl : lvl + 1;
@@ -1729,7 +1171,7 @@ public class RunTime {
     out.flush();
   }
 
-  private byte[] copy(InputStream inputStream) throws IOException {
+  private static byte[] copy(InputStream inputStream) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     byte[] buffer = new byte[1024];
     int length = 0;
@@ -1921,14 +1363,15 @@ public class RunTime {
     return false;
   }
 
+/*
   public File asExtension(String fpJar) {
     File fJarFound = new File(FileManager.normalizeAbsolute(fpJar));
     if (!fJarFound.exists()) {
       String fpCPEntry = runTime.isOnClasspath(fJarFound.getName());
       if (fpCPEntry == null) {
-        fJarFound = new File(runTime.fSikulixExtensions, fpJar);
+        fJarFound = new File(Commons.getExtensionsFolder(), fpJar);
         if (!fJarFound.exists()) {
-          fJarFound = new File(runTime.fSikulixLib, fpJar);
+          fJarFound = new File(Commons.getLibFolder(), fpJar);
           if (!fJarFound.exists()) {
             fJarFound = null;
           }
@@ -1941,6 +1384,7 @@ public class RunTime {
     }
     return fJarFound;
   }
+*/
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="21 runcmd">
@@ -1953,7 +1397,7 @@ public class RunTime {
    * @return the output produced by the command (sysout [+ "*** error ***" + syserr] if the syserr part is present, the
    * command might have failed
    */
-  public String runcmd(String cmd) {
+  public static String runcmd(String cmd) {
     return runcmd(new String[]{cmd});
   }
 
@@ -1969,6 +1413,7 @@ public class RunTime {
     if (args.length == 0) {
       return "";
     }
+    String NL = System.lineSeparator();
     boolean silent = false;
     if (args.length == 1) {
       String separator = "\"";

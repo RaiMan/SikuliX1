@@ -9,7 +9,7 @@ import java.util.Map;
 
 public abstract class Devices {
 
-  public enum TYPE {VNC, ANDROID, SCREEN, MOUSE}
+  public enum TYPE {VNC, ANDROID, SCREEN, MOUSE, KEYBOARD}
 
   private static TYPE deviceType = null;
 
@@ -58,4 +58,6 @@ public abstract class Devices {
     //TODO must be overwritten
     Debug.error("stop: not implemented for %s", deviceType);
   }
+
+
 }

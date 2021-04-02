@@ -370,7 +370,7 @@ public class ImagePath {
   private static PathEntry createPathEntryJar(String jar, String folder) {
     PathEntry pathEntry;
     if (".".equals(jar)) {
-      jar = RunTime.get().fSxBaseJar.getAbsolutePath();
+      jar = Commons.getMainClassLocation().getAbsolutePath();
     }
     URL url = Commons.makeURL(jar, folder);
     pathEntry = new PathEntry(jar, folder, url);

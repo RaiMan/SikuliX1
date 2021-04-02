@@ -13,6 +13,7 @@ import java.util.TreeMap;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.KeyboardLayout;
 import org.sikuli.script.support.RunTime;
 
@@ -630,7 +631,7 @@ public class Key {
 //        return tk.getLockingKeyState(KeyEvent.VK_SCROLL_LOCK);
 //        return tk.getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
 //        return tk.getLockingKeyState(KeyEvent.VK_NUM_LOCK);
-    if (!RunTime.get().runningWindows) {
+    if (!Commons.runningWindows()) {
       return false;
     }
     int state = 0;

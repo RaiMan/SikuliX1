@@ -184,9 +184,13 @@ public class RobotDesktop extends Robot implements IRobot {
     doMouseDown(heldButtons);
   }
 
+  private boolean needsRobotFake() {
+    return Commons.runningMac() && Settings.ClickTypeHack;
+  }
+
   private void doMouseDown(int buttons) {
     Highlight fakeHighlight = null;
-    if (RunTime.get().needsRobotFake()) {
+    if (needsRobotFake()) {
       fakeHighlight = Highlight.fakeHighlight();
     }
     logRobot(stdAutoDelay, "MouseDown: WaitForIdle: %s - Delay: %d");
@@ -311,7 +315,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   private void doKeyPress(int keyCode) {
     Highlight fakeHighlight = null;
-    if (RunTime.get().needsRobotFake()) {
+    if (needsRobotFake()) {
       fakeHighlight = Highlight.fakeHighlight();
     }
     logRobot(stdAutoDelay, "KeyPress: WaitForIdle: %s - Delay: %d");
