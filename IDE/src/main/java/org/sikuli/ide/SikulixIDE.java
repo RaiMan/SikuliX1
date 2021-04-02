@@ -205,6 +205,9 @@ public class SikulixIDE extends JFrame {
 
     Debug.log(4, "IDE: Adding components to window");
     initMenuBars(this);
+
+    setVisible(true);
+
     final Container ideContainer = getContentPane();
     ideContainer.setLayout(new BorderLayout());
     Debug.log(4, "IDE: creating tabbed editor");
@@ -262,7 +265,7 @@ public class SikulixIDE extends JFrame {
     }
 
     stopSplash();
-    setVisible(true);
+    //setVisible(true);
     mainPane.setDividerLocation(0.6);
     _inited = true;
     try {
