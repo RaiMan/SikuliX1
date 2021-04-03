@@ -5,18 +5,17 @@
 package org.sikuli.idesupport;
 
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Container;
+import java.awt.*;
 
 public class IDESplash extends JFrame {
   JLabel action;
   JLabel step;
 
-  public IDESplash(String version, String jversion) {
-    init(version, jversion);
+  public IDESplash(String version, String jversion, Object[] ideWindow) {
+    init(version, jversion, ideWindow);
   }
 
-  void init(String version, String jversion) {
+  void init(String version, String jversion, Object[] ideWindow) {
     setResizable(false);
     setUndecorated(true);
     Container pane = getContentPane();
@@ -30,8 +29,8 @@ public class IDESplash extends JFrame {
     pane.add(new JLabel(" "));
     pane.add(new JLabel(" "));
     pack();
-    setSize(500, 100);
-    setLocationRelativeTo(null);
+    setSize((Dimension)ideWindow[0]);
+    setLocation((Point)ideWindow[1]);
     setAlwaysOnTop(true);
     setVisible(true);
   }

@@ -43,12 +43,17 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
+  static IDESplash ideSplash = null;
+  static PreferencesUser prefs;
+  static Object[] ideWindow = null;
+
   public static void main(String[] args) {
     if (null == Commons.getStartClass()) {
       System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
       System.exit(1);
     }
-
+    ideWindow = getIDEWindow();
+    ideSplash = new IDESplash("SikuliX IDE --- ", "on Java", ideWindow);
     Commons.startLog(1, "starting (%4.1f)", Commons.getSinceStart());
 
     if (Commons.runningMac()) {
@@ -168,10 +173,8 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
-  private void initSikuliIDE() {
-    log(3, "IDE: starting GUI");
+  private static Object[] getIDEWindow() {
     prefs = PreferencesUser.get();
-    //prefs.exportPrefs(new File(runTime.fUserDir, "SikulixIDEprefs.txt").getAbsolutePath());
     if (prefs.getUserType() < 0) {
       prefs.setIdeSession("");
       prefs.setDefaults();
@@ -185,6 +188,11 @@ public class SikulixIDE extends JFrame {
     if (windowSize.height < 400) {
       windowSize.height = 700;
     }
+    return new Object[]{windowSize, windowLocation};
+  }
+
+  private void initSikuliIDE() {
+    log(3, "IDE: starting GUI");
     //TODO IDE window location: eval against current monitor setup? needed?
 /*
     Rectangle monitor = runTime.hasPoint(windowLocation);
@@ -200,8 +208,8 @@ public class SikulixIDE extends JFrame {
     Rectangle win = monitor.intersection(new Rectangle(windowLocation, windowSize));
     setSize(win.getSize());
 */
-    setSize(windowSize);
-    setLocation(windowLocation);
+    setSize((Dimension) ideWindow[0]);
+    setLocation((Point) ideWindow[1]);
 
     Debug.log(4, "IDE: Adding components to window");
     initMenuBars(this);
@@ -275,7 +283,6 @@ public class SikulixIDE extends JFrame {
   }
 
   private JSplitPane mainPane;
-  static IDESplash ideSplash = null;
   private boolean _inited = false;
 
   public static void stopSplash() {
@@ -380,7 +387,6 @@ public class SikulixIDE extends JFrame {
   final static int WARNING_DO_NOTHING = 0;
   final static int DO_SAVE_ALL = 3;
   final static int DO_NOT_SAVE = 0;
-  private PreferencesUser prefs;
   private static String[] loadScripts = null;
 
   private boolean saveSession(int action, boolean quitting) {
