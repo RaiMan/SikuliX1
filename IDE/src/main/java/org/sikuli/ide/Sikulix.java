@@ -113,7 +113,7 @@ public class Sikulix {
 
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
 
-    ideSplash = new IDESplash("SikuliX IDE --- ", "on Java", SikulixIDE.getWindow());
+    ideSplash = new IDESplash(SikulixIDE.getWindow());
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

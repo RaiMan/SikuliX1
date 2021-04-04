@@ -11,18 +11,17 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Point;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 public class IDESplash extends JFrame {
 
-  public IDESplash(String version, String jversion, Object[] ideWindow) {
-    init(version, jversion, ideWindow);
+  public IDESplash(Object[] ideWindow) {
+    initForIDE(ideWindow);
   }
 
-  void init(String version, String jversion, Object[] ideWindow) {
+  void initForIDE(Object[] ideWindow) {
+    final Dimension size = (Dimension) ideWindow[0];
     setResizable(false);
     setUndecorated(true);
     Container pane = getContentPane();
@@ -30,14 +29,25 @@ public class IDESplash extends JFrame {
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     pane.add(new JLabel(" "));
     pane.add(new JLabel(" "));
-    JLabel title = new JLabel(String .format("SikuliX-IDE %s is starting on Java %s", version, jversion));
+    final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
+        Commons.getSXVersion(), Commons.getJavaVersion());
+    JLabel title = new JLabel(titleText);
+    int fontsize = 20;
+    Font titleFont = new Font(Font.MONOSPACED, Font.BOLD, fontsize);
+    FontMetrics metrics = title.getFontMetrics(titleFont);
+    Rectangle2D textLen = metrics.getStringBounds(titleText, getGraphics());
+    if (textLen.getWidth() > size.width) {
+      fontsize = (int) (fontsize * size.width / textLen.getWidth());
+      titleFont = new Font(Font.MONOSPACED, Font.BOLD, fontsize);
+    }
+    title.setFont(titleFont);
     title.setAlignmentX(CENTER_ALIGNMENT);
     pane.add(title);
     pane.add(new JLabel(" "));
     pane.add(new JLabel(" "));
     pack();
-    setSize((Dimension)ideWindow[0]);
-    setLocation((Point)ideWindow[1]);
+    setSize(size);
+    setLocation((Point) ideWindow[1]);
     setAlwaysOnTop(true);
     setVisible(true);
   }
