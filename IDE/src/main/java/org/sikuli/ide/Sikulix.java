@@ -4,7 +4,12 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.*;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyEvent;
+import org.sikuli.basics.HotkeyListener;
+import org.sikuli.basics.HotkeyManager;
+import org.sikuli.idesupport.IDESplash;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -19,6 +24,16 @@ import java.lang.reflect.Method;
 import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
+
+  private static IDESplash ideSplash;
+
+  public static void stopSplash() {
+    if (ideSplash != null) {
+      ideSplash.setVisible(false);
+      ideSplash.dispose();
+      ideSplash = null;
+    }
+  }
 
   public static void main(String[] args) {
     Commons.setStartClass(Sikulix.class);
@@ -96,6 +111,10 @@ public class Sikulix {
       RunTime.terminate();
     }
 
+    Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
+
+    ideSplash = new IDESplash("SikuliX IDE --- ", "on Java", SikulixIDE.getWindow());
+
     if (!Commons.hasOption(MULTI)) {
       File isRunning;
       FileOutputStream isRunningFile;
@@ -153,7 +172,14 @@ public class Sikulix {
     Commons.setIDETemp(ideTemp);
     //endregion
 
-    SikulixIDE.main(args);
+    if (Commons.runningMac()) {
+      try {
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+      } catch (Exception e) {
+      }
+    }
+
+    SikulixIDE.start(args);
 
     //TODO start IDE in subprocess?
     //region IDE subprocess

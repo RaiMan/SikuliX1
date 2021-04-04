@@ -4,6 +4,7 @@
 package org.sikuli.script.runners;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -96,6 +97,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
         interpreterVersion = "could not be evaluated";
       }
       Commons.startLog(3, "Jython ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
+      SikulixIDE.showAfterStart();
     }
   }
 

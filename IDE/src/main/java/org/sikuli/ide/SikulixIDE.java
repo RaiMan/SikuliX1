@@ -44,31 +44,34 @@ public class SikulixIDE extends JFrame {
   }
 
   static IDESplash ideSplash = null;
+
+  protected static void setIDESplash(IDESplash splash) {
+    ideSplash = splash;
+  }
   static PreferencesUser prefs;
   static Object[] ideWindow = null;
 
-  public static void main(String[] args) {
-    if (null == Commons.getStartClass()) {
-      System.out.println("[ERROR] org.sikuli.ide.SikulixIDE: unauthorized use. Use: org.sikuli.ide.Sikulix");
-      System.exit(1);
+  private static final SikulixIDE sikulixIDE = new SikulixIDE();
+
+  private SikulixIDE() {
+  }
+
+  public static SikulixIDE get() {
+    if (sikulixIDE == null) {
+      throw new SikuliXception("SikulixIDE:get(): instance should not be null");
     }
-    ideWindow = getIDEWindow();
-    ideSplash = new IDESplash("SikuliX IDE --- ", "on Java", ideWindow);
-    Commons.startLog(1, "starting (%4.1f)", Commons.getSinceStart());
+    return sikulixIDE;
+  }
 
-    if (Commons.runningMac()) {
-      prepareMacUI();
-    }
+  protected static void start(String[] args) {
 
-    IDETaskbarSupport.setTaskBarIcon();
+    ideWindow = getWindow();
 
-    IDEDesktopSupport.init(sikulixIDE);
-
-    sikulixIDE.initHotkeys();
+    IDEDesktopSupport.init();
 
     IDESupport.init();
-    IDESupport.initIDESupport();
-    sikulixIDE.initSikuliIDE();
+
+    sikulixIDE.startGUI();
   }
 
   public boolean quit() {
@@ -128,17 +131,6 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="01 IDE instance">
-  private static SikulixIDE sikulixIDE = new SikulixIDE();
-
-  private SikulixIDE() {
-  }
-
-  public static SikulixIDE get() {
-    if (sikulixIDE == null) {
-      throw new SikuliXception("SikulixIDE:get(): instance should not be null");
-    }
-    return sikulixIDE;
-  }
   public void setIDETitle(String title) {
     super.setTitle(Commons.getSXVersionIDE() + " - " + title);
   }
@@ -162,6 +154,22 @@ public class SikulixIDE extends JFrame {
     codePane.requestFocusInWindow();
   }
 
+  //TODO showAfterStart to be revised
+  public static void showAfterStart() {
+    org.sikuli.ide.Sikulix.stopSplash();
+    get().setVisible(true);
+    get().mainPane.setDividerLocation(0.6);
+    try {
+      EditorPane editorPane = get().getCurrentCodePane();
+      if (editorPane.isText()) {
+        get().collapseMessageArea();
+      }
+      editorPane.requestFocusInWindow();
+    } catch (Exception e) {
+    }
+    get()._inited = true;
+  }
+
   static String _I(String key, Object... args) {
     try {
       return SikuliIDEI18N._I(key, args);
@@ -173,7 +181,7 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
-  private static Object[] getIDEWindow() {
+  protected static Object[] getWindow() {
     prefs = PreferencesUser.get();
     if (prefs.getUserType() < 0) {
       prefs.setIdeSession("");
@@ -191,23 +199,12 @@ public class SikulixIDE extends JFrame {
     return new Object[]{windowSize, windowLocation};
   }
 
-  private void initSikuliIDE() {
+  private void startGUI() {
     log(3, "IDE: starting GUI");
-    //TODO IDE window location: eval against current monitor setup? needed?
-/*
-    Rectangle monitor = runTime.hasPoint(windowLocation);
-    if (monitor == null) {
-      log(-1, "Remembered window not valid. Going to primary screen");
-      monitor = runTime.getMonitor(-1);
-      windowSize.width = 0;
-    }
-    if (windowSize.width == 0) {
-      windowSize = new Dimension(1024, 700);
-      windowLocation = new Point(100, 50);
-    }
-    Rectangle win = monitor.intersection(new Rectangle(windowLocation, windowSize));
-    setSize(win.getSize());
-*/
+
+    installCaptureHotkey();
+    installStopHotkey();
+
     setSize((Dimension) ideWindow[0]);
     setLocation((Point) ideWindow[1]);
 
@@ -267,31 +264,12 @@ public class SikulixIDE extends JFrame {
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
-
-    stopSplash();
-    setVisible(true);
-    mainPane.setDividerLocation(0.6);
-    _inited = true;
-    try {
-      EditorPane editorPane = getCurrentCodePane();
-      if (editorPane.isText()) {
-        collapseMessageArea();
-      }
-      editorPane.requestFocusInWindow();
-    } catch (Exception e) {
-    }
   }
+
+
 
   private JSplitPane mainPane;
   private boolean _inited = false;
-
-  public static void stopSplash() {
-    if (ideSplash != null) {
-      ideSplash.setVisible(false);
-      ideSplash.dispose();
-      ideSplash = null;
-    }
-  }
 
   private void initTabs() {
     tabs = new CloseableTabbedPane();
@@ -357,27 +335,6 @@ public class SikulixIDE extends JFrame {
 
   //<editor-fold desc="03 init for Mac">
   private static void prepareMacUI() {
-    try {
-      // set the brushed metal look and feel, if desired
-      System.setProperty("apple.awt.brushMetalLook", "true");
-
-      // use the mac system menu bar
-      System.setProperty("apple.laf.useScreenMenuBar", "true");
-
-      // set the "About" menu item name
-      System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiStar");
-
-      // use smoother fonts
-      System.setProperty("apple.awt.textantialiasing", "true");
-
-      // ref: http://developer.apple.com/releasenotes/Java/Java142RNTiger/1_NewFeatures/chapter_2_section_3.html
-      System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
-
-      // use the system look and feel
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    } catch (Exception e) {
-      // put your debug code here ...
-    }
   }
   //</editor-fold>
 
@@ -464,8 +421,8 @@ public class SikulixIDE extends JFrame {
     String session_str = prefs.getIdeSession();
     int filesLoaded = 0;
     List<File> filesToLoad = new ArrayList<File>();
-    if (IDEDesktopSupport.macOpenFiles != null && IDEDesktopSupport.macOpenFiles.size() > 0) {
-      for (File f : IDEDesktopSupport.macOpenFiles) {
+    if (IDEDesktopSupport.filesToOpen != null && IDEDesktopSupport.filesToOpen.size() > 0) {
+      for (File f : IDEDesktopSupport.filesToOpen) {
         filesToLoad.add(f);
         if (restoreScriptFromSession(f)) filesLoaded++;
       }
@@ -2744,11 +2701,6 @@ public class SikulixIDE extends JFrame {
   void onStopRunning() {
     log(3, "AbortKey was pressed: aborting all running scripts");
     Runner.abortAll();
-  }
-
-  private void initHotkeys() {
-    installCaptureHotkey();
-    installStopHotkey();
   }
   //</editor-fold>
 }

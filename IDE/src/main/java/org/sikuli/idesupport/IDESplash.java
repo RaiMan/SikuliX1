@@ -4,12 +4,19 @@
 
 package org.sikuli.idesupport;
 
-import javax.swing.*;
-import java.awt.*;
+import org.sikuli.script.support.Commons;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
 
 public class IDESplash extends JFrame {
-  JLabel action;
-  JLabel step;
 
   public IDESplash(String version, String jversion, Object[] ideWindow) {
     init(version, jversion, ideWindow);
