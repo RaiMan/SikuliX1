@@ -181,7 +181,7 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
-  protected static Object[] getWindow() {
+  public static Object[] getWindow() {
     prefs = PreferencesUser.get();
     if (prefs.getUserType() < 0) {
       prefs.setIdeSession("");
