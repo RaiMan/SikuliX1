@@ -190,11 +190,11 @@ public class SikulixIDE extends JFrame {
 
     Dimension windowSize = prefs.getIdeSize();
     Point windowLocation = prefs.getIdeLocation();
-    if (windowSize.width < 500) {
-      windowSize.width = 1000;
+    if (windowSize.width < 700) {
+      windowSize.width = 800;
     }
-    if (windowSize.height < 400) {
-      windowSize.height = 700;
+    if (windowSize.height < 500) {
+      windowSize.height = 600;
     }
     return new Object[]{windowSize, windowLocation};
   }
