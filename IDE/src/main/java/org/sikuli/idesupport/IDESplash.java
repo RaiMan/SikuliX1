@@ -5,7 +5,6 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.ide.SikulixIDE;
-import org.sikuli.script.Image;
 import org.sikuli.script.support.Commons;
 
 import javax.imageio.ImageIO;
@@ -19,20 +18,22 @@ import java.io.IOException;
 
 public class IDESplash extends JFrame {
 
-  IDESplash instance = null;
+  static IDESplash instance = null;
 
   public IDESplash(Object[] ideWindow) {
+    destroy();
     instance = this;
     initForIDE(ideWindow);
   }
 
-  void initForIDE(Object[] ideWindow) {
-    final Dimension size = (Dimension) ideWindow[0];
-    setResizable(false);
-    setUndecorated(true);
-    Container pane = getContentPane();
-    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(new Color(0x9D, 0x42, 0x30, 208), 3));
-    pane.setLayout(null); //new BorderLayout(10,10));
+  public static void destroy() {
+    if (instance != null) {
+      instance.dispose();
+      instance = null;
+    }
+  }
+
+  private void keyListener() {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -40,23 +41,19 @@ public class IDESplash extends JFrame {
         SikulixIDE.get().setVisible(true);
       }
     });
-    JLabel bar = new JLabel(" "); bar.setFont(new Font(Font.MONOSPACED, Font.BOLD, 72));
+  }
 
-    BufferedImage logo = null;
-    JLabel lblLogo = new JLabel();
-    int nextPos = 0;
-    int pad = 20;
-    try {
-      logo = ImageIO.read(SikulixIDE.class.getResource("/icons/sikulix-red-x.png"));
-      lblLogo.setIcon(new ImageIcon(logo));
-      int wLogo = logo.getWidth();
-      int hLogo = logo.getHeight();
-      int posX = (size.width - wLogo) / 2;
-      int posY = (size.height - hLogo) / 2;
-      lblLogo.setBounds(posX, -posY + pad, size.width, size.height);
-      nextPos = pad + hLogo;
-    } catch (IOException e) {
-    }
+  private Dimension size = new Dimension(500, 400);
+  int nextPos = 0;
+  int pad = 20;
+
+  void initForIDE(Object[] ideWindow) {
+    size = (Dimension) ideWindow[0];
+    setResizable(false);
+    setUndecorated(true);
+    Container pane = getContentPane();
+    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(new Color(0x9D, 0x42, 0x30, 208), 3));
+    pane.setLayout(null);
 
     final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
         Commons.getSXVersion(), Commons.getJavaVersion());
@@ -74,14 +71,35 @@ public class IDESplash extends JFrame {
     int posX = (size.width - (int) textLen.getWidth()) / 2;
     title.setBounds(posX, nextPos + pad * 2, (int) textLen.getWidth(), (int) textLen.getHeight());
 
-    pane.add(lblLogo);
-    pane.add(title);
+    pane.add(makeLogo());
+//    pane.add(title);
 
     pack();
     setSize(size);
     setLocation((Point) ideWindow[1]);
     setAlwaysOnTop(true);
     setVisible(true);
+  }
+
+  private void addItem(Container pane, Component item) {
+    pane.add(item);
+    Rectangle bounds = item.getBounds();
+    nextPos = bounds.y;
+  }
+
+  private JLabel makeLogo() {
+    JLabel lblLogo = new JLabel();
+    try {
+      BufferedImage logo = ImageIO.read(SikulixIDE.class.getResource("/icons/sikulix-red-x.png"));
+      lblLogo.setIcon(new ImageIcon(logo));
+      int wLogo = logo.getWidth();
+      int hLogo = logo.getHeight();
+      int posX = (size.width - wLogo) / 2;
+      lblLogo.setBounds(posX, pad, wLogo, hLogo);
+      nextPos = nextPos + pad + hLogo;
+    } catch (IOException e) {
+    }
+    return lblLogo;
   }
 
   public void showAction(String actionText) {
