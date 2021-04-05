@@ -4,25 +4,16 @@
 package org.sikuli.script;
 
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -61,11 +52,11 @@ public class Finder implements Iterator<Match> {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
-      _findInput.setSource(Finder2.makeMat(((Image) inWhat).get()));
+      _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
-      _findInput.setSource(Finder2.makeMat(Image.create((String) inWhat).get()));
+      _findInput.setSource(Commons.makeMat(Image.create((String) inWhat).get()));
     } else if (inWhat instanceof BufferedImage) {
-      _findInput.setSource(Finder2.makeMat(((BufferedImage) inWhat)));
+      _findInput.setSource(Commons.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
       initScreenFinder(((ScreenImage) inWhat), null);
     } else {
@@ -91,7 +82,7 @@ public class Finder implements Iterator<Match> {
    }
 
   protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(Finder2.makeMat(simg.getImage()));
+    _findInput.setSource(Commons.makeMat(simg.getImage()));
   }
 //</editor-fold>
 
@@ -156,16 +147,16 @@ public class Finder implements Iterator<Match> {
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
-    Mat mat = Finder2.makeMat(img.get(), false);
+    Mat mat = Commons.makeMat(img.get(), false);
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
       if (!mat.empty()) {
-        Image.resize(mat, factor);
+        Commons.resize(mat, factor);
       }
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       BufferedImage newBimg = Settings.ImageCallback.callback(img);
-      mat = Finder2.makeMat(newBimg, false);
+      mat = Commons.makeMat(newBimg, false);
     }
     if (mat.empty()) {
       log(-1, "%s: conversion error --- find will fail", img);
@@ -560,8 +551,8 @@ public class Finder implements Iterator<Match> {
 
     private static Log log = new Log("Finder2");
 
-    private Mat mBase = getNewMat();
-    private Mat mResult = getNewMat();
+    private Mat mBase = Commons.getNewMat();
+    private Mat mResult = Commons.getNewMat();
 
     private enum FindType {
       ONE, ALL
@@ -639,8 +630,8 @@ public class Finder implements Iterator<Match> {
       boolean downSizeFound = false;
       double downSizeScore = -1;
       double downSizeWantedScore = 0;
-      Mat findWhere = getNewMat();
-      Mat findWhat = getNewMat();
+      Mat findWhere = Commons.getNewMat();
+      Mat findWhat = Commons.getNewMat();
 
       boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
       //TODO search downsized?
@@ -719,7 +710,7 @@ public class Finder implements Iterator<Match> {
     }
 
     private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-      Mat mResult = getNewMat();
+      Mat mResult = Commons.getNewMat();
       if (what.empty()) {
         log.error("doFindMatch: image conversion to cvMat did not work");
       } else {
@@ -892,10 +883,10 @@ public class Finder implements Iterator<Match> {
 
     public static List<Region> findChanges(FindInput2 findInput) {
       findInput.setAttributes();
-      Mat previousGray = getNewMat();
-      Mat nextGray = getNewMat();
-      Mat mDiffAbs = getNewMat();
-      Mat mDiffTresh = getNewMat();
+      Mat previousGray = Commons.getNewMat();
+      Mat nextGray = Commons.getNewMat();
+      Mat mDiffAbs = Commons.getNewMat();
+      Mat mDiffTresh = Commons.getNewMat();
 
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
@@ -905,12 +896,12 @@ public class Finder implements Iterator<Match> {
       List<Region> rectangles = new ArrayList<>();
       if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
         Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
-        Imgproc.dilate(mDiffAbs, mDiffAbs, getNewMat());
+        Imgproc.dilate(mDiffAbs, mDiffAbs, Commons.getNewMat());
         Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
         Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat mHierarchy = getNewMat();
+        Mat mHierarchy = Commons.getNewMat();
         Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         rectangles = contoursToRectangle(contours);
 
@@ -949,7 +940,7 @@ public class Finder implements Iterator<Match> {
     //<editor-fold desc="OpenCV Mat">
     public static boolean isOpaque(BufferedImage bImg) {
       if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-        List<Mat> mats = getMatList(bImg);
+        List<Mat> mats = Commons.getMatList(bImg);
         Mat transMat = mats.get(0);
         int allPixel = (int) transMat.size().area();
         int nonZeroPixel = Core.countNonZero(transMat);
@@ -960,130 +951,6 @@ public class Finder implements Iterator<Match> {
       return true;
     }
 
-    private static List<Mat> getMatList(BufferedImage bImg) {
-      byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-      Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
-      aMat.put(0, 0, data);
-      List<Mat> mats = new ArrayList<Mat>();
-      Core.split(aMat, mats);
-      return mats;
-    }
-
-    public static Mat makeMat(BufferedImage bImg) {
-      return makeMat(bImg, true);
-    }
-
-    public static Mat makeMat(BufferedImage bImg, boolean asBGR) {
-      if (bImg.getType() == BufferedImage.TYPE_INT_RGB) {
-        log.trace("makeMat: INT_RGB (%dx%d)", bImg.getWidth(), bImg.getHeight());
-        int[] data = ((DataBufferInt) bImg.getRaster().getDataBuffer()).getData();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(data.length * 4);
-        IntBuffer intBuffer = byteBuffer.asIntBuffer();
-        intBuffer.put(data);
-        Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC4);
-        aMat.put(0, 0, byteBuffer.array());
-        Mat oMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-        Mat oMatA = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
-        List<Mat> mixIn = new ArrayList<Mat>(Arrays.asList(new Mat[]{aMat}));
-        List<Mat> mixOut = new ArrayList<Mat>(Arrays.asList(new Mat[]{oMatA, oMatBGR}));
-        //A 0 - R 1 - G 2 - B 3 -> A 0 - B 1 - G 2 - R 3
-        Core.mixChannels(mixIn, mixOut, new MatOfInt(0, 0, 1, 3, 2, 2, 3, 1));
-        return oMatBGR;
-      } else if (bImg.getType() == BufferedImage.TYPE_3BYTE_BGR) {
-        log.trace("makeMat: 3BYTE_BGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
-        byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-        Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-        aMatBGR.put(0, 0, data);
-        return aMatBGR;
-      } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-          || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
-        String bImgType = "BYTE_BINARY";
-        if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-          bImgType = "BYTE_INDEXED";
-        }
-        log.trace("makeMat: %s (%dx%d)", bImgType, bImg.getWidth(), bImg.getHeight());
-        BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-        Graphics graphics = bimg3b.getGraphics();
-        graphics.drawImage(bImg, 0, 0, null);
-        byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
-        Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-        aMatBGR.put(0, 0, data);
-        return aMatBGR;
-      } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR
-              || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
-        log.trace("makeMat: TYPE_4BYTE_ABGR (%dx%d)", bImg.getWidth(), bImg.getHeight());
-        List<Mat> mats = getMatList(bImg);
-        Size size = mats.get(0).size();
-        if (asBGR) {
-          Mat mBGR = getNewMat(size, 3, -1);
-          mats.remove(0);
-          Core.merge(mats, mBGR);
-          return mBGR;
-        } else {
-          Mat mBGRA = getNewMat(size, 4, -1);
-          mats.add(mats.remove(0));
-          Core.merge(mats, mBGRA);
-          return mBGRA;
-        }
-      } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
-        log.trace("makeMat: BYTE_GRAY (%dx%d)", bImg.getWidth(), bImg.getHeight());
-        byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();
-        Mat aMat = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC1);
-        aMat.put(0, 0, data);
-        return aMat;
-      } else if (bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
-        log.trace("makeMat: BYTE_BINARY (%dx%d)", bImg.getWidth(), bImg.getHeight());
-        BufferedImage bimg3b = new BufferedImage(bImg.getWidth(), bImg.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-        Graphics graphics = bimg3b.getGraphics();
-        graphics.drawImage(bImg, 0, 0, null);
-        byte[] data = ((DataBufferByte) bimg3b.getRaster().getDataBuffer()).getData();
-        Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
-        aMatBGR.put(0, 0, data);
-        return aMatBGR;
-      } else {
-        log.error("makeMat: BufferedImage: type not supported: %d --- please report this problem", bImg.getType());
-      }
-      return getNewMat();
-    }
-
-    public static Mat makeMat() {
-      return getNewMat();
-    }
-
-    public static Mat makeMat(Size size, int type, int fill) {
-      return getNewMat(size, type, fill);
-    }
-
-    protected static Mat getNewMat() {
-      return new Mat();
-    }
-
-    protected static Mat getNewMat(Size size, int type, int fill) {
-      switch (type) {
-        case 1:
-          type = CvType.CV_8UC1;
-          break;
-        case 3:
-          type = CvType.CV_8UC3;
-          break;
-        case 4:
-          type = CvType.CV_8UC4;
-          break;
-        default:
-          type = -1;
-      }
-      if (type < 0) {
-        return new Mat();
-      }
-      Mat result;
-      if (fill < 0) {
-        result = new Mat(size, type);
-      } else {
-        result = new Mat(size, type, new Scalar(fill));
-      }
-      return result;
-    }
-
     protected static Mat matMulti(Mat mat, int channels) {
       if (mat.type() != CvType.CV_8UC1 || mat.channels() == channels) {
         return mat;
@@ -1092,7 +959,7 @@ public class Finder implements Iterator<Match> {
       for (int n = 0; n < channels; n++) {
         listMat.add(mat);
       }
-      Mat mResult = getNewMat();
+      Mat mResult = Commons.getNewMat();
       Core.merge(listMat, mResult);
       return mResult;
     }
@@ -1134,30 +1001,6 @@ public class Finder implements Iterator<Match> {
       extracted.add(mask);
       return extracted;
     }
-
-    protected final static String PNG = "png";
-    protected final static String dotPNG = "." + PNG;
-
-    public static BufferedImage getBufferedImage(Mat mat) {
-      return getBufferedImage(mat, dotPNG);
-    }
-
-    public static BufferedImage getBufferedImage(Mat mat, String type) {
-      BufferedImage bImg = null;
-      MatOfByte bytemat = new MatOfByte();
-      if (SX.isNull(mat)) {
-        mat = getNewMat();
-      }
-      Imgcodecs.imencode(type, mat, bytemat);
-      byte[] bytes = bytemat.toArray();
-      InputStream in = new ByteArrayInputStream(bytes);
-      try {
-        bImg = ImageIO.read(in);
-      } catch (IOException ex) {
-        log.error("getBufferedImage: %s error(%s)", mat, ex.getMessage());
-      }
-      return bImg;
-    }
     //</editor-fold>
   }
 
@@ -1197,7 +1040,7 @@ public class Finder implements Iterator<Match> {
       if (where != null) {
         return where.getScreen().capture(where).getImage();
       } else if (source != null) {
-        return Finder.Finder2.getBufferedImage(source);
+        return Commons.getBufferedImage(source);
       } else if (image != null) {
         return image.get();
       }

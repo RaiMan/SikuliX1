@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.image.BufferedImage;
@@ -125,7 +126,7 @@ public class Pattern {
     return image.isValid() || imagePattern;
   }
 
-  private Mat patternMask = Finder.Finder2.getNewMat();
+  private Mat patternMask = Commons.getNewMat();
 
   public Mat getMask() {
     return patternMask;
@@ -136,7 +137,7 @@ public class Pattern {
   }
 
   private Mat extractMask() {
-    List<Mat> mats = Finder.Finder2.extractMask(Finder.Finder2.makeMat(image.get(), false), false);
+    List<Mat> mats = Finder.Finder2.extractMask(Commons.makeMat(image.get(), false), false);
     return mats.get(1);
   }
 
@@ -176,7 +177,7 @@ public class Pattern {
 
   public Pattern withMask(Pattern pMask) {
     if (isValid()) {
-      Mat mask = Finder.Finder2.getNewMat();
+      Mat mask = Commons.getNewMat();
       if (pMask.isValid()) {
         if (pMask.hasMask()) {
           mask = pMask.getMask();
@@ -188,7 +189,7 @@ public class Pattern {
               || image.getSize().getWidth() != mask.width()
               || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
-        mask = Finder.Finder2.getNewMat();
+        mask = Commons.getNewMat();
       } else {
         Debug.log(3, "Pattern: %s withMask: %s", image, pMask.image);
       }

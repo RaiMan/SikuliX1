@@ -9,9 +9,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 import java.awt.image.*;
@@ -249,8 +247,8 @@ public class ScreenImage {
     Mat otherGray = new Mat();
     Mat mDiffAbs = new Mat();
 
-    Imgproc.cvtColor(Finder2.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
-    Imgproc.cvtColor(Finder2.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Commons.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(Commons.makeMat(((ScreenImage) other).getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(thisGray, otherGray, mDiffAbs);
     return Core.countNonZero(mDiffAbs) == 0;
   }

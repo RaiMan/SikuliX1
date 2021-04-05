@@ -13,16 +13,12 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Finder.Finder2;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -293,7 +289,7 @@ public class TextRecognizer {
   }
 
   private BufferedImage optimize(BufferedImage bimg) {
-    Mat mimg = Finder2.makeMat(bimg);
+    Mat mimg = Commons.makeMat(bimg);
 
     Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
 
@@ -303,7 +299,7 @@ public class TextRecognizer {
     float rFactor = options.factor();
 
     if (rFactor > 0 && rFactor != 1) {
-      Image.resize(mimg, rFactor, options.resizeInterpolation());
+      Commons.resize(mimg, rFactor, options.resizeInterpolation());
     }
 
     // sharpen the enlarged image again
@@ -318,7 +314,7 @@ public class TextRecognizer {
 //      Core.bitwise_not(mimg, mimg);
 //    }
 
-    BufferedImage optImg = Finder2.getBufferedImage(mimg);
+    BufferedImage optImg = Commons.getBufferedImage(mimg);
     return optImg;
   }
 

@@ -6,6 +6,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -168,7 +169,7 @@ public class OCR {
       dataPath = null;
       isLightFont = false;
       textHeight = getDefaultTextHeight();
-      resizeInterpolation = Image.Interpolation.LINEAR;
+      resizeInterpolation = Commons.Interpolation.LINEAR;
       variables.clear();
       configs.clear();
       bestDPI = null;
@@ -500,19 +501,19 @@ public class OCR {
       }
     }
 
-    private Image.Interpolation resizeInterpolation;
+    private Commons.Interpolation resizeInterpolation;
 
-    protected Image.Interpolation resizeInterpolation() {
+    protected Commons.Interpolation resizeInterpolation() {
       return resizeInterpolation;
     }
 
     /**
      * INTERNAL (under investigation).
      * <p>should not be used - not supported
-     * @param method {@link Image.Interpolation}
+     * @param method {@link Commons.Interpolation}
      * @return this Options
      */
-    public Options resizeInterpolation(Image.Interpolation method) {
+    public Options resizeInterpolation(Commons.Interpolation method) {
       resizeInterpolation = method;
       return this;
     }
