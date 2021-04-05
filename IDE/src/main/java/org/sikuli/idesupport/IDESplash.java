@@ -6,6 +6,7 @@ package org.sikuli.idesupport;
 
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -68,11 +69,11 @@ public class IDESplash extends JFrame {
     ((JComponent) pane).setBorder(BorderFactory.createLineBorder(new Color(0x9D, 0x42, 0x30, 208), 3));
     pane.setLayout(null);
 
-    ImageItem image = new ImageItem(SikulixIDE.class.getResource("/icons/sikulix-red-x.png"));
-    appendY(image.align(ALIGN.CENTER));
+    URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
+    appendY(new ImageItem(image).align(ALIGN.CENTER));
     appendY(new TextItem(titleText).padT(50));
     appendY(new TextItem(titleText).fontSize(16).padT(100).align(ALIGN.CENTER));
-    appendY(image.align(ALIGN.CENTER).padT(50).resize(200));
+    appendY(new ImageItem(image).align(ALIGN.CENTER).padT(50).resize(200));
 
     Dimension finalSize = packLines(pane, lines);
 
@@ -153,6 +154,7 @@ public class IDESplash extends JFrame {
       if (img == null || !(factor > 0)) {
         return this;
       }
+      RunTime.loadOpenCV();
       img = Commons.resize(img, (float) factor);
       return this;
     }
