@@ -46,7 +46,7 @@ public class IDESplash extends JFrame {
   private void keyListener() {
     addKeyListener(new KeyAdapter() {
       @Override
-      public void keyPressed(KeyEvent e) {
+      public void keyReleased(KeyEvent e) {
         instance.setVisible(false);
         SikulixIDE.get().setVisible(true);
       }
@@ -56,7 +56,7 @@ public class IDESplash extends JFrame {
   private Dimension size = new Dimension(500, 400);
 
   final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
-      Commons.getSXVersion(), Commons.getJavaVersion());
+          Commons.getSXVersion(), Commons.getJavaVersion());
 
   Padding margin = new Padding(10);
 
@@ -68,17 +68,18 @@ public class IDESplash extends JFrame {
     ((JComponent) pane).setBorder(BorderFactory.createLineBorder(new Color(0x9D, 0x42, 0x30, 208), 3));
     pane.setLayout(null);
 
-    appendY(new ImageItem(SikulixIDE.class.getResource("/icons/sikulix-red-x.png")));
+    ImageItem image = new ImageItem(SikulixIDE.class.getResource("/icons/sikulix-red-x.png"));
+    appendY(image.align(ALIGN.CENTER));
     appendY(new TextItem(titleText).padT(50));
-    appendY(new TextItem(titleText).fontSize(16).padT(100));
+    appendY(new TextItem(titleText).fontSize(16).padT(100).align(ALIGN.CENTER));
+    appendY(image.align(ALIGN.CENTER).padT(50).resize(200));
 
     Dimension finalSize = packLines(pane, lines);
 
     pack();
-
     setSize(finalSize);
-
     setLocation((Point) ideWindow[1]);
+
     setAlwaysOnTop(true);
     setVisible(true);
   }
@@ -92,7 +93,6 @@ public class IDESplash extends JFrame {
   Dimension packLines(Container pane, List<BasicItem> items) {
     int nextPos = margin.top;
     int maxW = 0;
-
     for (BasicItem item : items) {
       Component comp = item.create();
       Rectangle bounds = comp.getBounds();
@@ -103,11 +103,23 @@ public class IDESplash extends JFrame {
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
       nextPos = bounds.y + bounds.height;
     }
+    Dimension paneSize = new Dimension(maxW, nextPos + margin.bottom);
     for (BasicItem item : lines) {
       Component comp = item.comp();
+      if (item.isCenter()) {
+        Rectangle bounds = comp.getBounds();
+        int off = (paneSize.width - margin.left() - margin.right() - bounds.width) / 2;
+        bounds.x += off;
+        comp.setBounds(bounds);
+      } else if (item.isRight()) {
+        Rectangle bounds = comp.getBounds();
+        int off = paneSize.width - margin.left() - margin.right() - bounds.width;
+        bounds.x += off;
+        comp.setBounds(bounds);
+      }
       pane.add(comp);
     }
-    return new Dimension(maxW, nextPos + margin.bottom);
+    return paneSize;
   }
 
   private class ImageItem extends BasicItem {
@@ -120,6 +132,31 @@ public class IDESplash extends JFrame {
         Commons.error("ImageItem: %s", url);
       }
     }
+
+    public ImageItem resize(int width) {
+      return resize(width, 0);
+    }
+
+    public ImageItem resize(int width, int height) {
+      if (img == null || (width < 1 && height < 1)) {
+        return this;
+      }
+      if (width > 0) {
+        return resize((double) width / img.getWidth());
+      } else if (height > 0) {
+        return resize((double) height / img.getHeight());
+      }
+      return this;
+    }
+
+    public ImageItem resize(double factor) {
+      if (img == null || !(factor > 0)) {
+        return this;
+      }
+      img = Commons.resize(img, (float) factor);
+      return this;
+    }
+
 
     JLabel create() {
       JLabel lblimg = new JLabel();
@@ -189,8 +226,33 @@ public class IDESplash extends JFrame {
       return this;
     }
 
+    ALIGN alignment = ALIGN.LEFT;
+
+    public BasicItem align(ALIGN type) {
+      alignment = type;
+      return this;
+    }
+
+    public boolean isCenter() {
+      return alignment.equals(ALIGN.CENTER);
+    }
+
+    public boolean isLeft() {
+      return alignment.equals(ALIGN.LEFT);
+    }
+
+    public boolean isRight() {
+      return alignment.equals(ALIGN.RIGHT);
+    }
+
     abstract Component create();
+
+    BasicItem resize(int width) {
+      return this;
+    }
   }
+
+  enum ALIGN {LEFT, CENTER, RIGHT}
 
   private class Padding {
 
