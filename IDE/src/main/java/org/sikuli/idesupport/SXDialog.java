@@ -4,21 +4,17 @@
 
 package org.sikuli.idesupport;
 
-import org.sikuli.ide.SikulixIDE;
+//import org.sikuli.ide.SikulixIDE;
+
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -26,15 +22,19 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IDESplash extends JFrame {
+public class SXDialog extends JFrame {
 
-  static IDESplash instance = null;
+  static SXDialog instance = null;
+  Container pane;
 
-  public IDESplash(Object[] ideWindow) {
+  public SXDialog() {
     destroy();
-    instance = this;
+    globalInit();
     keyListener();
-    initForIDE(ideWindow);
+  }
+
+  public void asSingleton() {
+    instance = this;
   }
 
   public static void destroy() {
@@ -49,81 +49,165 @@ public class IDESplash extends JFrame {
       @Override
       public void keyReleased(KeyEvent e) {
         instance.setVisible(false);
-        SikulixIDE.get().setVisible(true);
+        keyHandler();
       }
     });
   }
 
-  private Dimension size = new Dimension(500, 400);
+  void keyHandler() {
+  }
 
-  final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
-          Commons.getSXVersion(), Commons.getJavaVersion());
+  Padding margin = null;
 
-  Padding margin = new Padding(10);
+  void setMargin(int val) {
+    margin = new Padding(val);
+  }
 
-  void initForIDE(Object[] ideWindow) {
-    size = (Dimension) ideWindow[0];
+  Dimension finalSize = null;
+
+  Dimension getDialogSize() {
+    return finalSize;
+  }
+
+  public Color SXRED = new Color(0x9D, 0x42, 0x30, 208);
+
+  void globalInit() {
     setResizable(false);
     setUndecorated(true);
-    Container pane = getContentPane();
-    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(new Color(0x9D, 0x42, 0x30, 208), 3));
+    pane = getContentPane();
+    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(SXRED, 3));
     pane.setLayout(null);
-
-    URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
-    appendY(new ImageItem(image).align(ALIGN.CENTER));
-    appendY(new TextItem(titleText).padT(50));
-    appendY(new TextItem(titleText).fontSize(16).padT(100).align(ALIGN.CENTER));
-    appendY(new ImageItem(image).align(ALIGN.CENTER).padT(50).resize(200));
-
-    Dimension finalSize = packLines(pane, lines);
-
-    pack();
-    setSize(finalSize);
-    setLocation((Point) ideWindow[1]);
-
-    setAlwaysOnTop(true);
-    setVisible(true);
+    setMargin(10);
   }
 
   List<BasicItem> lines = new ArrayList<>();
 
-  private void appendY(BasicItem item) {
+  void appendY(BasicItem item) {
     lines.add(item);
   }
 
-  Dimension packLines(Container pane, List<BasicItem> items) {
+  void packLines(Container pane, List<BasicItem> items) {
     int nextPos = margin.top;
     int maxW = 0;
+    Rectangle bounds;
     for (BasicItem item : items) {
       Component comp = item.create();
-      Rectangle bounds = comp.getBounds();
-      bounds.y = nextPos + item.getPadding().top;
-      bounds.x += margin.left;
-      comp.setBounds(bounds);
-      item.comp(comp);
+      if ( comp != null) {
+        bounds = comp.getBounds();
+        bounds.y = nextPos + item.getPadding().top;
+        bounds.x += margin.left;
+        comp.setBounds(bounds);
+        item.comp(comp);
+        nextPos = bounds.y + bounds.height;
+      } else {
+        item.setPos(margin.left, nextPos);
+        bounds = item.getBounds();
+        nextPos += item.getHeight();
+      }
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
-      nextPos = bounds.y + bounds.height;
     }
     Dimension paneSize = new Dimension(maxW, nextPos + margin.bottom);
     for (BasicItem item : lines) {
       Component comp = item.comp();
-      if (item.isCenter()) {
-        Rectangle bounds = comp.getBounds();
-        int off = (paneSize.width - margin.left() - margin.right() - bounds.width) / 2;
-        bounds.x += off;
-        comp.setBounds(bounds);
-      } else if (item.isRight()) {
-        Rectangle bounds = comp.getBounds();
-        int off = paneSize.width - margin.left() - margin.right() - bounds.width;
-        bounds.x += off;
-        comp.setBounds(bounds);
+      bounds = item.getBounds();
+      int off = 0;
+      if (comp != null) {
+        bounds = comp.getBounds();
       }
-      pane.add(comp);
+      if (item.isCenter()) {
+        off = (paneSize.width - margin.left() - margin.right() - bounds.width) / 2;
+      } else if (item.isRight()) {
+        off = paneSize.width - margin.left() - margin.right() - bounds.width;
+      }
+      bounds.x += off;
+      if (comp != null) {
+        comp.setBounds(bounds);
+        pane.add(comp);
+      } else {
+        item.setBounds(bounds);
+        Component vComp = item.make();
+        pane.add(vComp);
+      }
     }
-    return paneSize;
+    finalSize = paneSize;
   }
 
-  private class ImageItem extends BasicItem {
+  void popup() {
+    popup(null);
+  }
+
+  void popup(Point where) {
+    pack();
+    setSize(finalSize);
+    if (where != null) {
+      setLocation(where);
+    }
+    setAlwaysOnTop(true);
+    setVisible(true);
+  }
+
+  class LineItem extends BasicItem {
+
+    LineItem(int len) {
+      this.len = len;
+    }
+
+    LineItem(int len, int stroke) {
+      this.len = len;
+      this.stroke = stroke;
+    }
+
+    LineItem(int len, Color color) {
+      this.len = len;
+      this.color = color;
+    }
+
+    LineItem(int len, int stroke, Color color) {
+      this.len = len;
+      this.stroke = stroke;
+    }
+
+    int len = 0;
+    int stroke = 5;
+    Color color = SXRED;
+
+    class Line extends JComponent {
+      Line(int x, int y, int len, int stroke, Color color) {
+        this.x = x;
+        this.y = y;
+        this.len = len;
+        this.stroke = stroke;
+        this.color = color;
+      }
+
+      int x;
+      int y;
+      int len;
+      int stroke;
+      Color color;
+
+      public void paint(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setStroke(new BasicStroke(stroke));
+        g2.setColor(color);
+        g2.draw(new Line2D.Float(x, y, x + len, y));
+      }
+    }
+
+    int getHeight() {
+      return stroke + getPadding().top();
+    }
+
+    Rectangle getBounds() {
+      return new Rectangle(posX, posY, len, stroke);
+    }
+
+    Line make() {
+      return new Line(bounds.x, posY, len, stroke, color);
+    }
+  }
+
+  class ImageItem extends BasicItem {
     BufferedImage img = null;
 
     ImageItem(URL url) {
@@ -159,7 +243,6 @@ public class IDESplash extends JFrame {
       return this;
     }
 
-
     JLabel create() {
       JLabel lblimg = new JLabel();
       if (img != null) {
@@ -172,15 +255,28 @@ public class IDESplash extends JFrame {
     }
   }
 
+  //region TextItem
   private int stdFontSize = 20;
-  private int maxWidth = 800;
 
-  private class TextItem extends BasicItem {
+  void setFontSize(int val) {
+    stdFontSize = val;
+  }
+
+  int lineSpace = -1;
+
+  void setLineSpace(int val) {
+    lineSpace = val;
+  }
+
+  class TextItem extends BasicItem {
 
     String aText = "";
 
     TextItem(String aText) {
       this.aText = aText;
+      if (lineSpace > -1) {
+        padT(lineSpace);
+      }
     }
 
     TextItem fontSize(int size) {
@@ -194,8 +290,8 @@ public class IDESplash extends JFrame {
       JLabel lblText = new JLabel(aText);
       Font titleFont = new Font(Font.MONOSPACED, Font.BOLD, fontSize);
       Rectangle2D textLen = lblText.getFontMetrics(titleFont).getStringBounds(aText, getGraphics());
-      if (textLen.getWidth() > maxWidth) {
-        fontSize = (int) (fontSize * maxWidth / textLen.getWidth());
+      if (textLen.getWidth() > maxW) {
+        fontSize = (int) (fontSize * maxW / textLen.getWidth());
         titleFont = new Font(Font.MONOSPACED, Font.BOLD, fontSize);
         textLen = lblText.getFontMetrics(titleFont).getStringBounds(aText, getGraphics());
       }
@@ -204,9 +300,19 @@ public class IDESplash extends JFrame {
       return lblText;
     }
   }
+  //endregion
 
-  private abstract class BasicItem {
+  private int maxW = 800;
+  private int maxH = 800;
 
+  void setDialogSize(int w, int h) {
+    maxW = w;
+    maxH = h;
+  }
+
+  abstract class BasicItem {
+
+    //region Component
     private Component comp = null;
 
     void comp(Component comp) {
@@ -216,7 +322,9 @@ public class IDESplash extends JFrame {
     Component comp() {
       return comp;
     }
+    //endregion
 
+    //region Padding
     private Padding padding = new Padding(0);
 
     Padding getPadding() {
@@ -227,7 +335,9 @@ public class IDESplash extends JFrame {
       padding.top(val);
       return this;
     }
+    //endregion
 
+    //region Alignment
     ALIGN alignment = ALIGN.LEFT;
 
     public BasicItem align(ALIGN type) {
@@ -236,7 +346,7 @@ public class IDESplash extends JFrame {
     }
 
     public boolean isCenter() {
-      return alignment.equals(ALIGN.CENTER);
+      return alignment.equals(ALIGN.CENTER) || stdAlign.equals(ALIGN.CENTER);
     }
 
     public boolean isLeft() {
@@ -246,17 +356,52 @@ public class IDESplash extends JFrame {
     public boolean isRight() {
       return alignment.equals(ALIGN.RIGHT);
     }
+    //endregion
 
-    abstract Component create();
+    Component create() {
+      return null;
+    }
+
+    Component make() {
+      return null;
+    }
 
     BasicItem resize(int width) {
       return this;
+    }
+
+    int getHeight() {
+      return 0;
+    }
+
+    int posX = 0;
+    int posY = 0;
+
+    void setPos(int posX, int posY) {
+      this.posX = posX;
+      this.posY = posY;
+    }
+
+    Rectangle bounds = null;
+
+    void setBounds(Rectangle bounds) {
+      this.bounds = bounds;
+    }
+
+    Rectangle getBounds() {
+      return new Rectangle();
     }
   }
 
   enum ALIGN {LEFT, CENTER, RIGHT}
 
-  private class Padding {
+  ALIGN stdAlign = ALIGN.LEFT;
+
+  void setAlign(ALIGN type) {
+    stdAlign = type;
+  }
+
+  class Padding {
 
     private int left = 0;
     private int top = 0;

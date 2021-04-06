@@ -9,7 +9,8 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
-import org.sikuli.idesupport.IDESplash;
+import org.sikuli.idesupport.IDEDialogStartUp;
+import org.sikuli.idesupport.SXDialog;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -25,7 +26,7 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  private static IDESplash ideSplash;
+  private static SXDialog ideSplash;
 
   public static void stopSplash() {
     if (ideSplash != null) {
@@ -113,7 +114,7 @@ public class Sikulix {
 
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
 
-    ideSplash = new IDESplash(SikulixIDE.getWindow());
+    ideSplash = new IDEDialogStartUp(SikulixIDE.getWindowRect());
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

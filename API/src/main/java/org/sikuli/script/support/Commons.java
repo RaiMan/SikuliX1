@@ -1328,16 +1328,16 @@ public class Commons {
         || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
       List<Mat> mats = getMatList(bImg);
       Size size = mats.get(0).size();
-      if (asBGR) {
-        Mat mBGR = getNewMat(size, 3, -1);
-        mats.remove(0);
-        Core.merge(mats, mBGR);
-        return mBGR;
-      } else {
+      if (!asBGR || bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
         Mat mBGRA = getNewMat(size, 4, -1);
         mats.add(mats.remove(0));
         Core.merge(mats, mBGRA);
         return mBGRA;
+      } else {
+        Mat mBGR = getNewMat(size, 3, -1);
+        mats.remove(0);
+        Core.merge(mats, mBGR);
+        return mBGR;
       }
     } else if (bImg.getType() == BufferedImage.TYPE_BYTE_GRAY) {
       byte[] data = ((DataBufferByte) bImg.getRaster().getDataBuffer()).getData();

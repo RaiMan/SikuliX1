@@ -33,7 +33,7 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 
-public class SikulixIDE extends JFrame {
+public class SikulixIDE { //extends JFrame {
 
   //<editor-fold desc="00 startup / quit">
   private static String me = "IDE: ";
@@ -43,18 +43,16 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-  static IDESplash ideSplash = null;
+  static SXDialog ideSplash = null;
 
-  protected static void setIDESplash(IDESplash splash) {
+  protected static void setIDESplash(SXDialog splash) {
     ideSplash = splash;
   }
-  static PreferencesUser prefs;
-  static Object[] ideWindow = null;
-
-  private static final SikulixIDE sikulixIDE = new SikulixIDE();
 
   private SikulixIDE() {
   }
+
+  private static final SikulixIDE sikulixIDE = new SikulixIDE();
 
   public static SikulixIDE get() {
     if (sikulixIDE == null) {
@@ -63,9 +61,42 @@ public class SikulixIDE extends JFrame {
     return sikulixIDE;
   }
 
+  static JFrame ideWindow = null;
+
+  public static JFrame getWindow() {
+    if (ideWindow == null) {
+      ideWindow = new JFrame();
+    }
+    return ideWindow;
+  }
+
+  static PreferencesUser prefs;
+  static Rectangle ideWindowRect = null;
+  public static Rectangle getWindowRect() {
+    prefs = PreferencesUser.get();
+    if (prefs.getUserType() < 0) {
+      prefs.setIdeSession("");
+      prefs.setDefaults();
+    }
+
+    Dimension windowSize = prefs.getIdeSize();
+    Point windowLocation = prefs.getIdeLocation();
+    if (windowSize.width < 700) {
+      windowSize.width = 800;
+    }
+    if (windowSize.height < 500) {
+      windowSize.height = 600;
+    }
+    return new Rectangle(windowLocation, windowSize);
+  }
+
+  public static Point getWindowCenter() {
+    return new Point((int) getWindowRect().getCenterX(), (int) getWindowRect().getCenterY());
+  }
+
   protected static void start(String[] args) {
 
-    ideWindow = getWindow();
+    ideWindowRect = getWindowRect();
 
     IDEDesktopSupport.init();
 
@@ -116,12 +147,11 @@ public class SikulixIDE extends JFrame {
     String title = SikuliIDEI18N._I("dlgAskCloseTab");
     String[] options;
     int ret = -1;
-    SikulixIDE parent = this;
     options = new String[3];
     options[WARNING_DO_NOTHING] = typ + " immediately";
     options[WARNING_ACCEPTED] = "Save all and " + typ;
     options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
-    ret = JOptionPane.showOptionDialog(parent, warn, title, 0, JOptionPane.WARNING_MESSAGE,
+    ret = JOptionPane.showOptionDialog(ideWindow, warn, title, 0, JOptionPane.WARNING_MESSAGE,
         null, options, options[options.length - 1]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return -1;
@@ -132,7 +162,7 @@ public class SikulixIDE extends JFrame {
 
   //<editor-fold desc="01 IDE instance">
   public void setIDETitle(String title) {
-    super.setTitle(Commons.getSXVersionIDE() + " - " + title);
+    ideWindow.setTitle(Commons.getSXVersionIDE() + " - " + title);
   }
 
   public static void showIDE() {
@@ -140,7 +170,7 @@ public class SikulixIDE extends JFrame {
   }
 
   public static void hideIDE() {
-    sikulixIDE.setVisible(false);
+    ideWindow.setVisible(false);
     RunTime.pause(0.5f);
   }
 
@@ -150,14 +180,14 @@ public class SikulixIDE extends JFrame {
       sikulixIDE.newTabEmpty();
       codePane = sikulixIDE.getCurrentCodePane();
     }
-    sikulixIDE.setVisible(true);
+    ideWindow.setVisible(true);
     codePane.requestFocusInWindow();
   }
 
   //TODO showAfterStart to be revised
   public static void showAfterStart() {
     org.sikuli.ide.Sikulix.stopSplash();
-    get().setVisible(true);
+    ideWindow.setVisible(true);
     get().mainPane.setDividerLocation(0.6);
     try {
       EditorPane editorPane = get().getCurrentCodePane();
@@ -181,36 +211,19 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
-  public static Object[] getWindow() {
-    prefs = PreferencesUser.get();
-    if (prefs.getUserType() < 0) {
-      prefs.setIdeSession("");
-      prefs.setDefaults();
-    }
-
-    Dimension windowSize = prefs.getIdeSize();
-    Point windowLocation = prefs.getIdeLocation();
-    if (windowSize.width < 700) {
-      windowSize.width = 800;
-    }
-    if (windowSize.height < 500) {
-      windowSize.height = 600;
-    }
-    return new Object[]{windowSize, windowLocation};
-  }
-
   private void startGUI() {
     log(3, "IDE: starting GUI");
+    getWindow();
 
     installCaptureHotkey();
     installStopHotkey();
 
-    setSize((Dimension) ideWindow[0]);
-    setLocation((Point) ideWindow[1]);
+    ideWindow.setSize(ideWindowRect.getSize());
+    ideWindow.setLocation(ideWindowRect.getLocation());
 
     Debug.log(4, "IDE: Adding components to window");
-    initMenuBars(this);
-    final Container ideContainer = getContentPane();
+    initMenuBars(ideWindow);
+    final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
     Debug.log(4, "IDE: creating tabbed editor");
     initTabs();
@@ -242,7 +255,7 @@ public class SikulixIDE extends JFrame {
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
     Debug.log(4, "IDE: Putting all together - before layout");
     ideContainer.doLayout();
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     Debug.log(4, "IDE: Putting all together - after layout");
     initShortcutKeys();
@@ -734,22 +747,13 @@ public class SikulixIDE extends JFrame {
 
   public void showAbout() {
     //TODO full featured About
-    String info = "You are running " + Commons.getSXVersionIDE()
-        + "\nUsing Java version " + Commons.getJavaVersion()
-        + "\n\nNeed help? -> start with Help Menu\n\n"
-        + "*** Have fun ;-)\n\n"
-        + "Tsung-Hsiang Chang aka vgod\n"
-        + "Tom Yeh\n"
-        + "Raimund Hocke aka RaiMan";
-    info += String.format("\n\nBuild#: %s (%s)", Commons.getSXBuildNumber(), Commons.getSXBuild());
-    JOptionPane.showMessageDialog(this, info,
-        "Sikuli About", JOptionPane.PLAIN_MESSAGE);
+    new IDEAbout();
   }
 
   public void showPreferencesWindow() {
     PreferencesWin pwin = new PreferencesWin();
     pwin.setAlwaysOnTop(true);
-    pwin.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    pwin.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     pwin.setVisible(true);
   }
 
@@ -1994,7 +1998,7 @@ public class SikulixIDE extends JFrame {
     @Override
     public void actionPerformed(ActionEvent ae) {
       EditorPane codePane = getCurrentCodePane();
-      File file = new SikulixFileChooser(sikulixIDE).loadImage();
+      File file = new SikulixFileChooser(ideWindow).loadImage();
       if (file == null) {
         return;
       }
@@ -2039,7 +2043,7 @@ public class SikulixIDE extends JFrame {
     @Override
     public void actionPerformed(ActionEvent ae) {
       if (shouldRun()) {
-        sikulixIDE.setVisible(false);
+        ideWindow.setVisible(false);
         RunTime.pause(0.5f);
         Screen.doPrompt(promptText, this);
       } else {
@@ -2074,7 +2078,7 @@ public class SikulixIDE extends JFrame {
         y = (int) roi.getY();
         w = (int) roi.getWidth();
         h = (int) roi.getHeight();
-        sikulixIDE.setVisible(false);
+        ideWindow.setVisible(false);
         if (codePane.showThumbs) {
           if (prefs.getPrefMoreImageThumbs()) {
             codePane.insertComponent(new EditorRegionButton(codePane, x, y, w, h));
@@ -2578,22 +2582,22 @@ public class SikulixIDE extends JFrame {
   private SikuliIDEStatusBar _status = null;
 
   private void initWindowListener() {
-    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    addWindowListener(new WindowAdapter() {
+    ideWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+    ideWindow.addWindowListener(new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
         SikulixIDE.this.quit();
       }
     });
-    addComponentListener(new ComponentAdapter() {
+    ideWindow.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        PreferencesUser.get().setIdeSize(SikulixIDE.this.getSize());
+        PreferencesUser.get().setIdeSize(ideWindow.getSize());
       }
 
       @Override
       public void componentMoved(ComponentEvent e) {
-        PreferencesUser.get().setIdeLocation(SikulixIDE.this.getLocation());
+        PreferencesUser.get().setIdeLocation(ideWindow.getLocation());
       }
     });
   }
