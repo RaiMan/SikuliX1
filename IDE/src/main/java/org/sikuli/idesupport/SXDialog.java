@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class SXDialog extends JFrame {
 
@@ -211,9 +212,51 @@ public class SXDialog extends JFrame {
   //region 20 top-down line items
   void textToItems(String text) {
     String[] lines = text.split("\n");
+    boolean first = true;
     for (String line : lines) {
       line = line.strip();
+      if (line.isEmpty()) {
+        continue;
+      }
+      final String[] options = line.split(";");
+      if (first && line.startsWith("#global")) {
+        if (options.length > 1) {
+          Commons.info("--- options");
+          for (String option : options) {
+            if (option.startsWith("#")) {
+              continue;
+            }
+            option = option.strip();
+            String[] parms= option.split(" ");
+            Commons.info(option);
+            String global = parms[0].toLowerCase();
+            if (global.contains("size") && parms.length > 2) {
+              setDialogSize(Integer.parseInt(parms[1]), Integer.parseInt(parms[2]));
+            } else if (global.contains("margin") && parms.length > 1) {
+              setMargin(Integer.parseInt(parms[1]));
+            } else if (global.contains("center")) {
+              setAlign(ALIGN.CENTER);
+            } else if (global.contains("fontsize")) {
+              setFontSize(Integer.parseInt(parms[1]));
+            } else if (global.contains("before")) {
+              setSpaceBefore(Integer.parseInt(parms[1]));
+            } 
+          }
+          Commons.info("---");
+        }
+        first = false;
+        continue;
+      } else {
+        first = false;
+      }
       Commons.info(line);
+      if (line.equals("---")) {
+        appendY(new LineItem());
+        continue;
+      }
+      if (!line.startsWith("#")) {
+        appendY(new TextItem(line));
+      }
     }
     Commons.info("");
   }

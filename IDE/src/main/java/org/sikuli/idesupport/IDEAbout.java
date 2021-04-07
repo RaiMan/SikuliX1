@@ -15,6 +15,10 @@ public class IDEAbout extends SXDialog {
 
   public IDEAbout(String res) {
     super(res, SikulixIDE.class);
+    asSingleton();
+
+    packLines(pane, lines);
+    popup(SikulixIDE.getWindowCenter());
   }
 
   public IDEAbout() {
