@@ -17,13 +17,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class SXDialog extends JFrame {
 
@@ -197,6 +194,7 @@ public class SXDialog extends JFrame {
     setAlwaysOnTop(true);
     setVisible(true);
   }
+
   public static void destroy() {
     if (singleton != null) {
       singleton.dispose();
@@ -226,21 +224,7 @@ public class SXDialog extends JFrame {
             if (option.startsWith("#")) {
               continue;
             }
-            option = option.strip();
-            String[] parms= option.split(" ");
-            Commons.info(option);
-            String global = parms[0].toLowerCase();
-            if (global.contains("size") && parms.length > 2) {
-              setDialogSize(Integer.parseInt(parms[1]), Integer.parseInt(parms[2]));
-            } else if (global.contains("margin") && parms.length > 1) {
-              setMargin(Integer.parseInt(parms[1]));
-            } else if (global.contains("center")) {
-              setAlign(ALIGN.CENTER);
-            } else if (global.contains("fontsize")) {
-              setFontSize(Integer.parseInt(parms[1]));
-            } else if (global.contains("before")) {
-              setSpaceBefore(Integer.parseInt(parms[1]));
-            } 
+            applyOption(option);
           }
           Commons.info("---");
         }
@@ -250,23 +234,112 @@ public class SXDialog extends JFrame {
         first = false;
       }
       Commons.info(line);
+      line = replaceVariables(line);
       if (line.equals("---")) {
         appendY(new LineItem());
         continue;
       }
-      if (!line.startsWith("#")) {
+      if (line.startsWith("#")) {
+        BasicItem item = null;
+        int start = 2;
+        if (line.startsWith("#link")) {
+          String[] parts = options[1].split("\\|");
+          String url = parts[0].strip();
+          String urlText = url;
+          if (parts.length > 1) {
+            urlText = parts[0].strip();
+            url = parts[1].strip();
+          }
+          item = new LinkItem(urlText, url);
+        } else if (line.startsWith("#image")) {
+          item = new ImageItem(this.getClass().getResource(options[1].strip()));
+        } else if (line.startsWith("#close")) {
+          item = new TextItem(options[1]);
+          item.setActive();
+        } else {
+          Commons.error("SXDialog: unknown feature %s", line);
+          continue;
+        }
+        applyOptions(item, options, start);
+        appendY(item);
+        continue;
+      }
+      if (options.length > 1) {
+        TextItem item = new TextItem(options[0]);
+        applyOptions(item, options, 1);
+        appendY(item);
+      } else {
         appendY(new TextItem(line));
       }
     }
     Commons.info("");
   }
 
+  String replaceVariables(String text) {
+    while (text.contains("{")) {
+      int start = text.indexOf("{");
+      int end = text.indexOf("}");
+      if (start > -1 && end > start) {
+        String before = text.substring(0, start);
+        String after = text.substring(end + 1);
+        int len = end - start;
+        String var = text.substring(start + 1, start + len);
+        text = before + getVariable(var) + after;
+      }
+    }
+    return text;
+  }
+
+  String getVariable(String var) {
+    if (var.equals("sxversion")) {
+      return Commons.getSXVersion();
+    }
+    if (var.equals("javaversion")) {
+      return "" + Commons.getJavaVersion();
+    }
+    return "";
+  }
+
+  void applyOption(String option) {
+    option = option.strip();
+    String[] parms= option.split(" ");
+    String feature = parms[0].toLowerCase();
+    if (feature.contains("size") && parms.length > 2) {
+      setDialogSize(Integer.parseInt(parms[1]), Integer.parseInt(parms[2]));
+    } else if (feature.contains("margin") && parms.length > 1) {
+      setMargin(Integer.parseInt(parms[1]));
+    } else if (feature.contains("center")) {
+      setAlign(ALIGN.CENTER);
+    } else if (feature.contains("fontsize")) {
+      setFontSize(Integer.parseInt(parms[1]));
+    } else if (feature.contains("before")) {
+      setSpaceBefore(Integer.parseInt(parms[1]));
+    }
+  }
+
+  void applyOptions(BasicItem item, String[] options, int start) {
+    for (int n = start; n < options.length; n++) {
+      String option = options[n].strip();
+      String[] parms = option.split(" ");
+      String feature = parms[0].toLowerCase();
+      if (feature.contains("resize") && parms.length > 1) {
+        item.resize(Integer.parseInt(parms[1]));
+      } else if (feature.contains("fontsize")) {
+        item.fontSize(Integer.parseInt(parms[1]));
+      } else if (feature.contains("top")) {
+        item.padT(Integer.parseInt(parms[1]));
+      }
+    }
+  }
+
   List<BasicItem> lines = new ArrayList<>();
 
   void appendY(BasicItem item) {
-    if (item.getPadding().top() == 0)
-      item.padT(spaceBefore);
-    lines.add(item);
+    if (item != null) {
+      if (item.getPadding().top() == 0)
+        item.padT(spaceBefore);
+      lines.add(item);
+    }
   }
 
   void packLines(Container pane, List<BasicItem> items) {
@@ -310,7 +383,7 @@ public class SXDialog extends JFrame {
         pane.add(comp);
       } else {
         item.setBounds(bounds);
-        Component vComp = item.make(availableW);
+         Component vComp = item.make(availableW);
         pane.add(vComp);
       }
       addListeners(item);
@@ -461,6 +534,10 @@ public class SXDialog extends JFrame {
 
     BasicItem underline() {
       underline = true;
+      return this;
+    }
+
+    BasicItem fontSize(int size) {
       return this;
     }
     //endregion

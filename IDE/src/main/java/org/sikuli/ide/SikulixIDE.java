@@ -749,7 +749,6 @@ public class SikulixIDE extends JFrame {
   }
 
   public void showAbout() {
-    //TODO full featured About
     new IDEAbout();
   }
 
