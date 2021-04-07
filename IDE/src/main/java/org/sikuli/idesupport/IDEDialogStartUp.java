@@ -20,9 +20,10 @@ public class IDEDialogStartUp extends SXDialog {
     final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
         Commons.getSXVersion(), Commons.getJavaVersion());
     URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
-    appendY(new LineItem(300));
-//    appendY(new ImageItem(image).align(ALIGN.CENTER).padT((100)));
-//    appendY(new TextItem(titleText).padT(50));
+
+    appendY(new ImageItem(image).align(ALIGN.CENTER));
+    appendY(new LineItem().padT(50));
+    appendY(new TextItem(titleText).padT(50));
 
     packLines(pane, lines);
     popup(ideWindow.getLocation());

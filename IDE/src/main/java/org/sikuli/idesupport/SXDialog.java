@@ -102,11 +102,13 @@ public class SXDialog extends JFrame {
       } else {
         item.setPos(margin.left, nextPos);
         bounds = item.getBounds();
-        nextPos += item.getHeight();
+        int height = item.getHeight();
+        nextPos += height;
       }
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
     }
     Dimension paneSize = new Dimension(maxW, nextPos + margin.bottom);
+    int availableW = paneSize.width - margin.left() - margin.right();
     for (BasicItem item : lines) {
       Component comp = item.comp();
       bounds = item.getBounds();
@@ -115,9 +117,9 @@ public class SXDialog extends JFrame {
         bounds = comp.getBounds();
       }
       if (item.isCenter()) {
-        off = (paneSize.width - margin.left() - margin.right() - bounds.width) / 2;
+        off = (availableW - bounds.width) / 2;
       } else if (item.isRight()) {
-        off = paneSize.width - margin.left() - margin.right() - bounds.width;
+        off = availableW - bounds.width;
       }
       bounds.x += off;
       if (comp != null) {
@@ -125,7 +127,7 @@ public class SXDialog extends JFrame {
         pane.add(comp);
       } else {
         item.setBounds(bounds);
-        Component vComp = item.make();
+        Component vComp = item.make(availableW);
         pane.add(vComp);
       }
     }
@@ -148,6 +150,8 @@ public class SXDialog extends JFrame {
 
   class LineItem extends BasicItem {
 
+    LineItem() {}
+
     LineItem(int len) {
       this.len = len;
     }
@@ -167,30 +171,26 @@ public class SXDialog extends JFrame {
       this.stroke = stroke;
     }
 
+    LineItem setStroke(int stroke) {
+      this.stroke = stroke;
+      return this;
+    }
+
+    LineItem setColor(Color color) {
+      this.color = color;
+      return this;
+    }
+
     int len = 0;
     int stroke = 5;
     Color color = SXRED;
 
     class Line extends JComponent {
-      Line(int x, int y, int len, int stroke, Color color) {
-        this.x = x;
-        this.y = y;
-        this.len = len;
-        this.stroke = stroke;
-        this.color = color;
-      }
-
-      int x;
-      int y;
-      int len;
-      int stroke;
-      Color color;
-
       public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(stroke));
         g2.setColor(color);
-        g2.draw(new Line2D.Float(x, y, x + len, y));
+        g2.draw(new Line2D.Float(0, 0, len, 0));
       }
     }
 
@@ -202,8 +202,15 @@ public class SXDialog extends JFrame {
       return new Rectangle(posX, posY, len, stroke);
     }
 
-    Line make() {
-      return new Line(bounds.x, posY, len, stroke, color);
+    Line make(int w) {
+      if (len == 0) {
+        len = w;
+        bounds.width = w;
+      }
+      bounds.height = getHeight();
+      Line line = new Line();
+      line.setBounds(bounds);
+      return line;
     }
   }
 
@@ -362,7 +369,7 @@ public class SXDialog extends JFrame {
       return null;
     }
 
-    Component make() {
+    Component make(int w) {
       return null;
     }
 
@@ -379,7 +386,7 @@ public class SXDialog extends JFrame {
 
     void setPos(int posX, int posY) {
       this.posX = posX;
-      this.posY = posY;
+      this.posY = posY + getPadding().top;
     }
 
     Rectangle bounds = null;
