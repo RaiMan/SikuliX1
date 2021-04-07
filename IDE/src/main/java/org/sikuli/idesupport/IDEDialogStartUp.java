@@ -16,23 +16,20 @@ public class IDEDialogStartUp extends SXDialog {
     super();
     if (asSingleton()) {
       setMargin(50);
+      setAlign(ALIGN.CENTER);
 
       final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
           Commons.getSXVersion(), Commons.getJavaVersion());
       URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
 
-      appendY(new ImageItem(image).align(ALIGN.CENTER));
+      appendY(new ImageItem(image));
       appendY(new LineItem());
-      appendY(new TextItem(titleText).setActive());
+      appendY(new TextItem(titleText));
       appendY(new LineItem());
       appendY(new TextItem("Press any key to continue"));
 
       packLines(pane, lines);
       popup(ideWindow.getLocation());
     }
-  }
-
-  void keyHandler() {
-    SikulixIDE.doShow();
   }
 }

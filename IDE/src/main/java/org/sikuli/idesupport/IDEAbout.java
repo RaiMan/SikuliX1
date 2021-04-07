@@ -7,9 +7,15 @@ package org.sikuli.idesupport;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 
+import java.net.URL;
+
 //import java.net.URL;
 
 public class IDEAbout extends SXDialog {
+
+  public IDEAbout(String res) {
+    super(res, SikulixIDE.class);
+  }
 
   public IDEAbout() {
     super();

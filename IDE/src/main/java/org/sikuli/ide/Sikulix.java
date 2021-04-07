@@ -19,14 +19,23 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  private static SXDialog ideSplash;
+  static SXDialog ideSplash;
+  static int waitStart = 0;
 
   public static void stopSplash() {
+    if (waitStart > 0) {
+      try {
+        Thread.sleep(waitStart * 1000);
+      } catch (InterruptedException e) {
+      }
+    }
+
     if (ideSplash != null) {
       ideSplash.setVisible(false);
       ideSplash.dispose();
@@ -117,15 +126,17 @@ public class Sikulix {
         PreferencesUser.get().getIdeSize());
     //endregion
 
-    ideSplash = new IDEDialogStartUp(ideWindow);
+    ideSplash = new IDEAbout("/Settings/sikulixabout.txt"); //IDEDialogStartUp(ideWindow);
 
-//    while (ideSplash.isVisible()) {
-//      try {
-//        Thread.sleep(1000);
-//      } catch (InterruptedException e) {
-//      }
-//    }
-//    System.exit(1);
+    if (!(ideSplash instanceof IDEDialogStartUp)) {
+      while (ideSplash.isVisible()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+      }
+      System.exit(1);
+    }
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

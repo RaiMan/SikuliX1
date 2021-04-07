@@ -17,6 +17,8 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,14 +37,31 @@ public class SXDialog extends JFrame {
     keyListener();
   }
 
+  public SXDialog(String res, Class classReference) {
+    this();
+    textToItems(Commons.copyResourceToString(res, classReference));
+  }
+
   //region 04 global handler
-  private void keyListener() {
+  void keyListener() {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(KeyEvent e) {
         singleton.setVisible(false);
       }
     });
+  }
+
+  void addListeners(BasicItem item) {
+    if (item.active) {
+      item.mouseListener(item);
+      if (item.comp() instanceof JLabel) {
+        if (item instanceof TextItem) {
+          ((JLabel) item.comp).setOpaque(true);
+          item.comp.setBackground(SXLBLBUTTON);
+        }
+      }
+    }
   }
   //endregion
 
@@ -190,6 +209,15 @@ public class SXDialog extends JFrame {
   //endregion
 
   //region 20 top-down line items
+  void textToItems(String text) {
+    String[] lines = text.split("\n");
+    for (String line : lines) {
+      line = line.strip();
+      Commons.info(line);
+    }
+    Commons.info("");
+  }
+
   List<BasicItem> lines = new ArrayList<>();
 
   void appendY(BasicItem item) {
@@ -242,6 +270,7 @@ public class SXDialog extends JFrame {
         Component vComp = item.make(availableW);
         pane.add(vComp);
       }
+      addListeners(item);
     }
     finalSize = paneSize;
   }
@@ -345,18 +374,8 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    void addListeners(Component comp) {
-      if (active) {
-        mouseListener(comp);
-        if (comp instanceof JLabel) {
-          ((JLabel) comp).setOpaque(true);
-          comp.setBackground(SXLBLBUTTON);
-        }
-      }
-    }
-
-    void mouseListener(Component comp) {
-      comp.addMouseListener(new MouseAdapter() {
+    void mouseListener(BasicItem item) {
+      item.comp().addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
           clicked();
@@ -364,12 +383,20 @@ public class SXDialog extends JFrame {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-          comp.setBackground(SXLBLSELECTED);
+          if (item instanceof ImageItem) {
+            ((JLabel) item.comp()).setBorder(BorderFactory.createLineBorder(SXRED, 3));
+          } else {
+            item.comp().setBackground(SXLBLSELECTED);
+          }
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-          comp.setBackground(SXLBLBUTTON);
+          if (item instanceof ImageItem) {
+            ((JLabel) item.comp()).setBorder(null);
+          } else {
+            item.comp().setBackground(SXLBLBUTTON);
+          }
         }
       });
     }
@@ -510,7 +537,6 @@ public class SXDialog extends JFrame {
       }
       lblText.setFont(titleFont);
       lblText.setBounds(new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight()));
-      addListeners(lblText);
       return lblText;
     }
 
@@ -557,6 +583,10 @@ public class SXDialog extends JFrame {
   class ImageItem extends BasicItem {
     BufferedImage img = null;
 
+    ImageItem() {
+      Commons.error("ImageItem: no image given");
+    }
+
     ImageItem(URL url) {
       try {
         img = ImageIO.read(url);
@@ -599,6 +629,31 @@ public class SXDialog extends JFrame {
         lblimg.setBounds(0, 0, wimg, himg);
       }
       return lblimg;
+    }
+  }
+  //endregion
+
+  //region 531 ImageLink
+  class ImageLink extends ImageItem {
+    String aLink = "https://sikulix.github.io";
+
+    ClickAction clickAction = new ClickAction() {
+      @Override
+      public void run() {
+        close();
+        Commons.browse(aLink);
+      }
+    };
+
+    ImageLink(URL url) {
+      super(url);
+      setActive();
+      super.clickAction = clickAction;
+    }
+
+    ImageLink(URL url, String link) {
+      this(url);
+      aLink = link;
     }
   }
   //endregion
