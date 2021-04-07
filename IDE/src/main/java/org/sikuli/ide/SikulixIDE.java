@@ -33,7 +33,7 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 
-public class SikulixIDE { //extends JFrame {
+public class SikulixIDE extends JFrame {
 
   //<editor-fold desc="00 startup / quit">
   private static String me = "IDE: ";
@@ -53,22 +53,6 @@ public class SikulixIDE { //extends JFrame {
   }
 
   private static final SikulixIDE sikulixIDE = new SikulixIDE();
-
-  public static SikulixIDE get() {
-    if (sikulixIDE == null) {
-      throw new SikuliXception("SikulixIDE:get(): instance should not be null");
-    }
-    return sikulixIDE;
-  }
-
-  static JFrame ideWindow = null;
-
-  public static JFrame getWindow() {
-    if (ideWindow == null) {
-      ideWindow = new JFrame();
-    }
-    return ideWindow;
-  }
 
   static PreferencesUser prefs;
   static Rectangle ideWindowRect = null;
@@ -161,15 +145,34 @@ public class SikulixIDE { //extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="01 IDE instance">
+  public static SikulixIDE get() {
+    if (sikulixIDE == null) {
+      throw new SikuliXception("SikulixIDE:get(): instance should not be null");
+    }
+    return sikulixIDE;
+  }
+
+  static JFrame ideWindow = null;
+
+  public static void setWindow() {
+    if (ideWindow == null) {
+      ideWindow = get();
+    }
+  }
+
   public void setIDETitle(String title) {
     ideWindow.setTitle(Commons.getSXVersionIDE() + " - " + title);
   }
 
-  public static void showIDE() {
+  public static void doShow() {
     showAgain();
   }
 
-  public static void hideIDE() {
+  public static boolean notHidden() {
+    return ideWindow.isVisible();
+  }
+
+  public static void doHide() {
     ideWindow.setVisible(false);
     RunTime.pause(0.5f);
   }
@@ -213,7 +216,7 @@ public class SikulixIDE { //extends JFrame {
   //<editor-fold desc="02 init IDE">
   private void startGUI() {
     log(3, "IDE: starting GUI");
-    getWindow();
+    setWindow();
 
     installCaptureHotkey();
     installStopHotkey();
@@ -1734,7 +1737,7 @@ public class SikulixIDE { //extends JFrame {
   private void androidSupportTest(IScreen aScr) {
 //    ADBTest.ideTest(aScr);
 //    ADBScreen.stop();
-    SikulixIDE.showIDE();
+    SikulixIDE.doShow();
   }
   //</editor-fold>
 
@@ -2176,7 +2179,7 @@ public class SikulixIDE { //extends JFrame {
       final String item = codePane.parseLineText(line);
       if (!item.isEmpty()) {
 //TODO ButtonShow action performed
-        SikulixIDE.hideIDE();
+        SikulixIDE.doHide();
         new Thread(new Runnable() {
           @Override
           public void run() {
@@ -2197,7 +2200,7 @@ public class SikulixIDE { //extends JFrame {
               eval += "if (m != null) m.highlight(2);";
             }
             log(3, "ButtonShow:\n%s", eval);
-            SikulixIDE.showIDE();
+            SikulixIDE.doShow();
           }
         }).start();
         return;
@@ -2422,7 +2425,7 @@ public class SikulixIDE { //extends JFrame {
           }
 
           SikulixIDE.getStatusbar().resetMessage();
-          SikulixIDE.hideIDE();
+          SikulixIDE.doHide();
           RunTime.pause(0.1f);
           messages.clear();
           resetErrorMark();

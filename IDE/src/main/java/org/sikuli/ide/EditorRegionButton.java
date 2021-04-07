@@ -37,7 +37,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
 
   @Override
   public void actionPerformed(ActionEvent ae) {
-    SikulixIDE.getWindow().setVisible(false);
+    SikulixIDE.doHide();
     RunTime.pause(0.5f);
     Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this);
   }

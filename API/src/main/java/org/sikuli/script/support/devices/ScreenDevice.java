@@ -128,6 +128,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static ScreenDevice get(int n) {
+    if (devices == null) {
+      initDevices();
+    }
     ScreenDevice device = devices[0];
     if (n > 0 && n < nDevices) {
       device = devices[n];

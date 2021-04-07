@@ -27,10 +27,7 @@ import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.security.CodeSource;
@@ -1436,6 +1433,16 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="99 stuff">
+  public static void browse(String url) {
+    if (Desktop.isDesktopSupported()) {
+      try {
+        Desktop.getDesktop().browse(new URI(url));
+      } catch (IOException e) {
+      } catch (URISyntaxException e) {
+      }
+    }
+  }
+
   public static boolean parmsValid(Object... parms) {
     boolean success = true;
     for (Object parm : parms) {

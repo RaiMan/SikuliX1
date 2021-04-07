@@ -4,11 +4,8 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyEvent;
-import org.sikuli.basics.HotkeyListener;
-import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.*;
+import org.sikuli.idesupport.IDEAbout;
 import org.sikuli.idesupport.IDEDialogStartUp;
 import org.sikuli.idesupport.SXDialog;
 import org.sikuli.script.SikuliXception;
@@ -17,6 +14,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +35,7 @@ public class Sikulix {
   }
 
   public static void main(String[] args) {
+    //region startup
     Commons.setStartClass(Sikulix.class);
     Commons.setStartArgs(args);
 
@@ -114,7 +113,19 @@ public class Sikulix {
 
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
 
-    ideSplash = new IDEDialogStartUp(SikulixIDE.getWindowRect());
+    Rectangle ideWindow = new Rectangle(PreferencesUser.get().getIdeLocation(),
+        PreferencesUser.get().getIdeSize());
+    //endregion
+
+    ideSplash = new IDEDialogStartUp(ideWindow);
+
+//    while (ideSplash.isVisible()) {
+//      try {
+//        Thread.sleep(1000);
+//      } catch (InterruptedException e) {
+//      }
+//    }
+//    System.exit(1);
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

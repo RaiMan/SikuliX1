@@ -67,8 +67,7 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
 
   @Override
   public void handleAbout(AboutEvent e) {
-    SikulixIDE.get().showAbout();
-    //new IDESplash(SikulixIDE.getWindow());
+    new IDEAbout();
   }
 
   @Override

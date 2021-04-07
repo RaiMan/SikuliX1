@@ -14,22 +14,25 @@ public class IDEDialogStartUp extends SXDialog {
 
   public IDEDialogStartUp(Rectangle ideWindow) {
     super();
-    asSingleton();
-    setMargin(50);
+    if (asSingleton()) {
+      setMargin(50);
 
-    final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
-        Commons.getSXVersion(), Commons.getJavaVersion());
-    URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
+      final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
+          Commons.getSXVersion(), Commons.getJavaVersion());
+      URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
 
-    appendY(new ImageItem(image).align(ALIGN.CENTER));
-    appendY(new LineItem().padT(50));
-    appendY(new TextItem(titleText).padT(50));
+      appendY(new ImageItem(image).align(ALIGN.CENTER));
+      appendY(new LineItem());
+      appendY(new TextItem(titleText).setActive());
+      appendY(new LineItem());
+      appendY(new TextItem("Press any key to continue"));
 
-    packLines(pane, lines);
-    popup(ideWindow.getLocation());
+      packLines(pane, lines);
+      popup(ideWindow.getLocation());
+    }
   }
 
   void keyHandler() {
-    SikulixIDE.getWindow().setVisible(true);
+    SikulixIDE.doShow();
   }
 }

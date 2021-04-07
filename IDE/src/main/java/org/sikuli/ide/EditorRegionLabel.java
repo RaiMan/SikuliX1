@@ -104,7 +104,7 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
       wasPopup = false;
       return;
     }
-    SikulixIDE.getWindow().setVisible(false);
+    SikulixIDE.doHide();
     setForeground(fc);
     setBorder(bfinal);
     RunTime.pause(0.5f);

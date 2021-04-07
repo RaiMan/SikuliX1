@@ -119,7 +119,7 @@ public class PatternWindow extends JFrame {
 	}
 
 	void takeScreenshot() {
-		SikulixIDE.getWindow().setVisible(false);
+		SikulixIDE.doHide();
 		try {
 			Thread.sleep(500);
 		} catch (Exception e) {

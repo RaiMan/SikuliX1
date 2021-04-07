@@ -237,7 +237,7 @@ public class EditorPane extends JTextPane {
   }
 
   public File selectFile() {
-    File fileSelected = new SikulixFileChooser(SikulixIDE.getWindow()).open();
+    File fileSelected = new SikulixFileChooser(SikulixIDE.get()).open();
     if (fileSelected == null) {
       return null;
     }
@@ -1297,7 +1297,7 @@ public class EditorPane extends JTextPane {
   }
 
   public String saveAsSelect() {
-    SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.getWindow());
+    SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get());
     File file = fileChooser.saveAs(getRunner().getDefaultExtension(), isBundle());
     if (file == null) {
       return null;
@@ -1411,7 +1411,7 @@ public class EditorPane extends JTextPane {
   }
 
   public String exportAsZip() {
-    SikulixFileChooser chooser = new SikulixFileChooser(SikulixIDE.getWindow());
+    SikulixFileChooser chooser = new SikulixFileChooser(SikulixIDE.get());
     File file = chooser.export();
     if (file == null) {
       return null;
@@ -1797,7 +1797,7 @@ public class EditorPane extends JTextPane {
   public void runLines(String lines) {
     if (lines.startsWith(" ") || lines.startsWith("\t ")) {
     }
-    SikulixIDE.getWindow().setVisible(false);
+    SikulixIDE.doHide();
     new Thread(new Runnable() {
       @Override
       public void run() {

@@ -1,0 +1,13 @@
+# size 300 500, margin 10, center, FontSize 16, before 10
+
+# image /icons/sikulix-red-x.png, resize 200
+---
+SikuliX IDE
+{sxversion}
+{javaversion}
+---
+# link sikulix.com https://sikulix.github.io
+---
+# fontsize 12
+# click close
+Press any key or Click

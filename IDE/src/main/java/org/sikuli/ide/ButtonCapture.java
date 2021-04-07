@@ -91,13 +91,13 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   public void capture(int delay) {
     String line = "";
     SikulixIDE ide = SikulixIDE.get();
-    if (SikulixIDE.getWindow().isVisible()) {
+    if (SikulixIDE.notHidden()) {
       // Set minimum delay if IDE is visible to give
       // the IDE some time to vanish before taking the
       // screenshot. IDE might already be hidden in
       // in case of capture hot key.
       delay = Math.max(delay, 500);
-      SikulixIDE.getWindow().setVisible(false);
+      SikulixIDE.doHide();
     }
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
