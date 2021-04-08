@@ -287,7 +287,7 @@ public class SXDialog extends JFrame {
     return text;
   }
 
-  String getVariable(String var) {
+  String  getVariable(String var) {
     if (var.equals("sxversion")) {
       return Commons.getSXVersion();
     }
