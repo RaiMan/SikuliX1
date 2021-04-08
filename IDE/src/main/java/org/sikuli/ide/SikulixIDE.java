@@ -78,6 +78,13 @@ public class SikulixIDE extends JFrame {
     return new Point((int) getWindowRect().getCenterX(), (int) getWindowRect().getCenterY());
   }
 
+  public static Point getWindowTop() {
+    Rectangle rect = getWindowRect();
+    int x = rect.x + rect.width / 2;
+    int y = rect.y + 30;
+    return new Point(x, y);
+  }
+
   protected static void start(String[] args) {
 
     ideWindowRect = getWindowRect();
@@ -189,7 +196,7 @@ public class SikulixIDE extends JFrame {
 
   //TODO showAfterStart to be revised
   public static void showAfterStart() {
-    org.sikuli.ide.Sikulix.stopSplash();
+    org.sikuli.ide.Sikulix. stopSplash();
     ideWindow.setVisible(true);
     get().mainPane.setDividerLocation(0.6);
     try {
@@ -749,8 +756,6 @@ public class SikulixIDE extends JFrame {
   }
 
   public void showAbout() {
-    //TODO full featured About
-    new IDEAbout();
   }
 
   public void showPreferencesWindow() {
@@ -1161,7 +1166,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doAbout(ActionEvent ae) {
-      showAbout();
+      new IDEAbout();
     }
 
     public void doPreferences(ActionEvent ae) {

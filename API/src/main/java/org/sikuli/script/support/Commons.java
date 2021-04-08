@@ -562,7 +562,6 @@ public class Commons {
     return String.format("%s/%s/Java %s", getSXVersionLong(), getOSInfo(), Commons.getJavaVersion());
   }
 
-
   public void getStatus() {
     System.out.println("***** System Information Dump *****");
     System.out.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
@@ -1020,6 +1019,10 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
+  public static void loadOpenCV() {
+    RunTime.loadOpenCV();
+  }
+
   public static String jnaPathAdd(String sFolder) {
     String jnaPath = System.getProperty("jna.library.path");
     if (null == jnaPath) {
