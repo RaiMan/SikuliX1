@@ -127,7 +127,7 @@ public class Sikulix {
     //endregion
 
 //    ideSplash = new IDEAbout("/Settings/sikulixabout.txt");
-    ideSplash = new IDEDialogStartUp(ideWindow);
+    ideSplash = new IDEDialogStartUp();
 
     if (!(ideSplash instanceof IDEDialogStartUp)) {
       while (ideSplash.isVisible()) {

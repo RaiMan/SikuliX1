@@ -1,0 +1,8 @@
+#globals; margin 50; center
+
+#image; /icons/sikulix-red-x.png
+---
+SikuliX-IDE  ---  {sxversion}  ---  starting on Java {javaversion}
+---
+Press any key to continue
+

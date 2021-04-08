@@ -5,31 +5,10 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.ide.SikulixIDE;
-import org.sikuli.script.support.Commons;
-
-import java.awt.*;
-import java.net.URL;
 
 public class IDEDialogStartUp extends SXDialog {
 
-  public IDEDialogStartUp(Rectangle ideWindow) {
-    super();
-    if (asSingleton()) {
-      setMargin(50);
-      setAlign(ALIGN.CENTER);
-
-      final String titleText = String.format("---  SikuliX-IDE  ---  %s  ---  starting on Java %s  ---",
-          Commons.getSXVersion(), Commons.getJavaVersion());
-      URL image = SikulixIDE.class.getResource("/icons/sikulix-red-x.png");
-
-      appendY(new ImageItem(image));
-      appendY(new LineItem());
-      appendY(new TextItem(titleText));
-      appendY(new LineItem());
-      appendY(new TextItem("Press any key to continue"));
-
-      packLines(pane, lines);
-      popup(ideWindow.getLocation());
-    }
+  public IDEDialogStartUp() {
+    super("/Settings/sikulixstartup.txt", getIDEWindowTop(), POSITION.CENTERED);
   }
 }

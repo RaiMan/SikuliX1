@@ -4,8 +4,9 @@
 
 package org.sikuli.idesupport;
 
+//import org.sikuli.ide.SikulixIDE;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,20 +25,29 @@ import java.util.List;
 
 public class SXDialog extends JFrame {
 
-  static SXDialog singleton = null;
+  enum POSITION {CENTERED, TOPLEFT}
+
   SXDialog dialog = null;
   Container pane;
 
   public SXDialog() {
-    destroy();
     dialog = this;
     globalInit();
     keyListener();
   }
 
-  public SXDialog(String res, Class classReference) {
+  public SXDialog(String res, Point where) {
+    this(res, where, POSITION.TOPLEFT);
+  }
+
+  public SXDialog(String res, Point where, POSITION pos) {
     this();
-    textToItems(Commons.copyResourceToString(res, classReference));
+    textToItems(Commons.copyResourceToString(res, SXDialog.class));
+    packLines(pane, lines);
+    if (pos.equals(POSITION.CENTERED)) {
+      where.x -= finalSize.width/2;
+    }
+    popup(where);
   }
 
   //region 04 global handler
@@ -45,7 +55,7 @@ public class SXDialog extends JFrame {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(KeyEvent e) {
-        singleton.setVisible(false);
+        setVisible(false);
       }
     });
   }
@@ -67,14 +77,6 @@ public class SXDialog extends JFrame {
   public Color SXRED = new Color(0x9D, 0x42, 0x30, 208);
   public Color SXLBLBUTTON = new Color(241, 230, 206);
   public Color SXLBLSELECTED = new Color(167, 192, 220);
-
-  public boolean asSingleton() {
-    if (singleton == null) {
-      singleton = this;
-      return true;
-    }
-    return false;
-  }
 
   void globalInit() {
     setResizable(false);
@@ -179,6 +181,10 @@ public class SXDialog extends JFrame {
       close();
     }
   }
+
+  static Point getIDEWindowTop() {
+    return SikulixIDE.getWindowTop();
+  }
   //endregion
 
   //region 10 show/hide/destroy
@@ -187,19 +193,13 @@ public class SXDialog extends JFrame {
   }
 
   void popup(Point where) {
+    pane.setBackground(Color.WHITE);
     setSize(finalSize);
     if (where != null) {
       setLocation(where);
     }
     setAlwaysOnTop(true);
     setVisible(true);
-  }
-
-  public static void destroy() {
-    if (singleton != null) {
-      singleton.dispose();
-      singleton = null;
-    }
   }
 
   void close() {
@@ -219,21 +219,21 @@ public class SXDialog extends JFrame {
       final String[] options = line.split(";");
       if (first && line.startsWith("#global")) {
         if (options.length > 1) {
-          Commons.info("--- options");
+          Commons.debug("--- options");
           for (String option : options) {
             if (option.startsWith("#")) {
               continue;
             }
             applyOption(option);
           }
-          Commons.info("---");
+          Commons.debug("---");
         }
         first = false;
         continue;
       } else {
         first = false;
       }
-      Commons.info(line);
+      Commons.debug(line);
       line = replaceVariables(line);
       if (line.equals("---")) {
         appendY(new LineItem());
@@ -272,7 +272,6 @@ public class SXDialog extends JFrame {
         appendY(new TextItem(line));
       }
     }
-    Commons.info("");
   }
 
   String replaceVariables(String text) {
@@ -735,7 +734,8 @@ public class SXDialog extends JFrame {
       if (img == null || !(factor > 0)) {
         return this;
       }
-      RunTime.loadOpenCV();
+      //TODO resize BufferedImage
+      Commons.loadOpenCV();
       img = Commons.resize(img, (float) factor);
       return this;
     }
