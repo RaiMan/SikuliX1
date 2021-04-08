@@ -5,6 +5,7 @@
 package org.sikuli.idesupport;
 
 //import org.sikuli.ide.SikulixIDE;
+
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 
@@ -27,11 +28,9 @@ public class SXDialog extends JFrame {
 
   enum POSITION {CENTERED, TOPLEFT}
 
-  SXDialog dialog = null;
   Container pane;
 
   public SXDialog() {
-    dialog = this;
     globalInit();
     keyListener();
   }
@@ -45,7 +44,7 @@ public class SXDialog extends JFrame {
     textToItems(Commons.copyResourceToString(res, SXDialog.class));
     packLines(pane, lines);
     if (pos.equals(POSITION.CENTERED)) {
-      where.x -= finalSize.width/2;
+      where.x -= finalSize.width / 2;
     }
     popup(where);
   }
@@ -203,7 +202,7 @@ public class SXDialog extends JFrame {
   }
 
   void close() {
-    dialog.setVisible(false);
+    setVisible(false);
   }
   //endregion
 
@@ -216,7 +215,7 @@ public class SXDialog extends JFrame {
       if (line.isEmpty()) {
         continue;
       }
-      final String[] options = line.split(";");
+      String[] options = line.split(";");
       if (first && line.startsWith("#global")) {
         if (options.length > 1) {
           Commons.debug("--- options");
@@ -234,7 +233,10 @@ public class SXDialog extends JFrame {
         first = false;
       }
       Commons.debug(line);
-      line = replaceVariables(line);
+      if (text.contains("{")) {
+        line = replaceVariables(line);
+        options = line.split(";");
+      }
       if (line.equals("---")) {
         appendY(new LineItem());
         continue;
@@ -301,7 +303,7 @@ public class SXDialog extends JFrame {
 
   void applyOption(String option) {
     option = option.strip();
-    String[] parms= option.split(" ");
+    String[] parms = option.split(" ");
     String feature = parms[0].toLowerCase();
     if (feature.contains("size") && parms.length > 2) {
       setDialogSize(Integer.parseInt(parms[1]), Integer.parseInt(parms[2]));
@@ -327,6 +329,8 @@ public class SXDialog extends JFrame {
         item.fontSize(Integer.parseInt(parms[1]));
       } else if (feature.contains("top")) {
         item.padT(Integer.parseInt(parms[1]));
+      } else if (feature.contains("bold")) {
+        item.bold();
       }
     }
   }
@@ -347,7 +351,7 @@ public class SXDialog extends JFrame {
     Rectangle bounds;
     for (BasicItem item : items) {
       Component comp = item.create();
-      if ( comp != null) {
+      if (comp != null) {
         bounds = comp.getBounds();
         bounds.y = nextPos + item.getPadding().top;
         bounds.x += margin.left;
@@ -382,7 +386,7 @@ public class SXDialog extends JFrame {
         pane.add(comp);
       } else {
         item.setBounds(bounds);
-         Component vComp = item.make(availableW);
+        Component vComp = item.make(availableW);
         pane.add(vComp);
       }
       addListeners(item);
@@ -537,8 +541,18 @@ public class SXDialog extends JFrame {
     }
 
     BasicItem fontSize(int size) {
+      fontSize = size;
       return this;
     }
+
+    int fontSize = stdFontSize;
+
+    BasicItem bold() {
+      fontBold = Font.BOLD;
+      return this;
+    }
+
+    int fontBold = 0;
     //endregion
 
   }
@@ -547,7 +561,8 @@ public class SXDialog extends JFrame {
   //region 51 LineItem
   class LineItem extends BasicItem {
 
-    LineItem() {}
+    LineItem() {
+    }
 
     LineItem(int len) {
       this.len = len;
@@ -628,19 +643,6 @@ public class SXDialog extends JFrame {
     TextItem(String aText) {
       this.aText = aText;
     }
-
-    TextItem fontSize(int size) {
-      fontSize = size;
-      return this;
-    }
-
-    int fontSize = stdFontSize;
-
-    TextItem bold() {
-      fontBold = Font.BOLD;
-      return this;
-    }
-    int fontBold = 0;
 
     JLabel create() {
       JLabel lblText = new JLabel(aText);

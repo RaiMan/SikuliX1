@@ -2,7 +2,7 @@
 
 #image; /icons/sikulix-red-x.png
 ---
-SikuliX-IDE  ---  {sxversion}  ---  starting on Java {javaversion}
+SikuliX-IDE  ---  {sxversion}  ---  starting on Java {javaversion}; bold
 ---
 Press any key to continue
 

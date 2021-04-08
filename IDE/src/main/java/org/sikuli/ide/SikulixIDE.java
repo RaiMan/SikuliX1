@@ -196,7 +196,7 @@ public class SikulixIDE extends JFrame {
 
   //TODO showAfterStart to be revised
   public static void showAfterStart() {
-    org.sikuli.ide.Sikulix. stopSplash();
+    org.sikuli.ide.Sikulix.stopSplash();
     ideWindow.setVisible(true);
     get().mainPane.setDividerLocation(0.6);
     try {

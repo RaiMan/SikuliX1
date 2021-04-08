@@ -2,9 +2,9 @@
 
 #image; /icons/sikulix-red-x.png; resize 200
 ---
-SikuliX IDE; fontsize 20
-{sxversion}
-Java {javaversion}
+SikuliX IDE; fontsize 20; bold
+{sxversion}; bold
+Java {javaversion}; bold
 ---
 #link; sikulix.com | https://sikulix.github.io
 ---
