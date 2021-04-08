@@ -13,6 +13,7 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.*;
 
 import javax.swing.*;

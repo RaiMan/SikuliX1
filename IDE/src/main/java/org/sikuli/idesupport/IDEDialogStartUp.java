@@ -5,10 +5,11 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.ide.SikulixIDE;
+import org.sikuli.script.support.gui.SXDialog;
 
 public class IDEDialogStartUp extends SXDialog {
 
   public IDEDialogStartUp() {
-    super("/Settings/sikulixstartup.txt", getIDEWindowTop(), POSITION.CENTERED);
+    super("/Settings/sikulixstartup.txt", SikulixIDE.getWindowTop(), POSITION.CENTERED);
   }
 }

@@ -2,11 +2,11 @@
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.idesupport;
+package org.sikuli.script.support.gui;
 
 //import org.sikuli.ide.SikulixIDE;
 
-import org.sikuli.ide.SikulixIDE;
+//import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 
 import javax.imageio.ImageIO;
@@ -26,7 +26,7 @@ import java.util.List;
 
 public class SXDialog extends JFrame {
 
-  enum POSITION {CENTERED, TOPLEFT}
+  public enum POSITION {CENTERED, TOPLEFT}
 
   Container pane;
 
@@ -179,10 +179,6 @@ public class SXDialog extends JFrame {
     public void run() {
       close();
     }
-  }
-
-  static Point getIDEWindowTop() {
-    return SikulixIDE.getWindowTop();
   }
   //endregion
 

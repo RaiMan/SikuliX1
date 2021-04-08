@@ -5,6 +5,7 @@
 package org.sikuli.idesupport;
 
 import org.sikuli.ide.SikulixIDE;
+import org.sikuli.script.support.gui.SXDialog;
 
 public class IDEAbout extends SXDialog {
 

@@ -5,9 +5,8 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.*;
-import org.sikuli.idesupport.IDEAbout;
 import org.sikuli.idesupport.IDEDialogStartUp;
-import org.sikuli.idesupport.SXDialog;
+import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -19,7 +18,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
