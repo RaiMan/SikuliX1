@@ -1002,7 +1002,7 @@ public class SXDialog extends JFrame {
     ClickAction clickAction = new ClickAction() {
       @Override
       public void run() {
-        SX.popup(aAction, "clicked", 1);
+        close();
       }
     };
 
