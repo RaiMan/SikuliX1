@@ -424,7 +424,7 @@ public class SikuliEditorKit extends StyledEditorKit {
         Debug.error("EditorPane: CompletionAction: BadLocationException %s", e.getMessage());
         return;
       }
-      new SXDialog("/Settings/sxmenu.txt", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+      new SXDialog("sxmenu", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
       Debug.log(3, "EditorPane: CompletionAction: [%d] |%s| (%d)", line + 1, segLine, dot);
     }
   }

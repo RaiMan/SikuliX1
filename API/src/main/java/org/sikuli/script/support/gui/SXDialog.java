@@ -831,7 +831,7 @@ public class SXDialog extends JFrame {
       this.aText = aText;
     }
 
-    JLabel create() {
+    JComponent create() {
       JLabel lblText = new JLabel(aText);
       Font font = new Font(fontName, fontBold, fontSize);
       Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
@@ -985,9 +985,9 @@ public class SXDialog extends JFrame {
       setClickAction(clickAction);
     }
 
-    JLabel create() {
-      final JLabel lbl = super.create();
-      setStartState(lbl);
+    JComponent create() {
+      final JComponent lbl = super.create();
+      setStartState((JLabel) lbl);
       return lbl;
     }
   }
@@ -1021,11 +1021,18 @@ public class SXDialog extends JFrame {
     };
 
     ButtonItem(String text, String action) {
-      aText = "(" + text + ")";
+      aText = text;
       aAction = action;
       setActive();
       bold();
       setClickAction(clickAction);
+    }
+
+    JComponent create() {
+      JButton button = new JButton(aText);
+      Dimension size = button.getPreferredSize();
+      button.setSize(size);
+      return button;
     }
   }
   //endregion
