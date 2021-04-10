@@ -1167,7 +1167,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doAbout(ActionEvent ae) {
-      new IDEAbout();
+      new SXDialog("ideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
     }
 
     public void doPreferences(ActionEvent ae) {

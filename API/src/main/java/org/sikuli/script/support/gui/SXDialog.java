@@ -4,10 +4,9 @@
 
 package org.sikuli.script.support.gui;
 
-//import org.sikuli.ide.SikulixIDE;
-
-//import org.sikuli.ide.SikulixIDE;
+import org.sikuli.script.SX;
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.devices.ScreenDevice;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,21 +17,29 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SXDialog extends JFrame {
 
-  public enum POSITION {CENTERED, TOPLEFT}
+  public enum POSITION {TOP, TOPLEFT, TOPRIGHT, CENTER}
+
+  enum STATE {ON, OFF}
 
   Container pane;
 
-  public SXDialog() {
+  private SXDialog() {
     globalInit();
-    keyListener();
+    keyListenerClose();
+  }
+
+  public SXDialog(String res) {
+    this(res, ScreenDevice.primary().getCenter(), POSITION.CENTER);
   }
 
   public SXDialog(String res, Point where) {
@@ -41,31 +48,60 @@ public class SXDialog extends JFrame {
 
   public SXDialog(String res, Point where, POSITION pos) {
     this();
+    if (!res.contains(".") && !res.endsWith(".txt")) {
+      res += ".txt";
+    }
+    if (!res.startsWith("/")) {
+      res = "/Settings/" + res;
+    }
     textToItems(Commons.copyResourceToString(res, SXDialog.class));
     packLines(pane, lines);
-    if (pos.equals(POSITION.CENTERED)) {
+    if (pos.equals(POSITION.TOP)) {
       where.x -= finalSize.width / 2;
+    } else if (pos.equals(POSITION.CENTER)) {
+      where.x -= finalSize.width / 2;
+      where.y -= finalSize.height / 2;
     }
     popup(where);
   }
 
   //region 04 global handler
-  void keyListener() {
+  public enum KEYS {ESC, ANY}
+
+  void keyListenerClose(KEYS key) {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(KeyEvent e) {
-        setVisible(false);
+        if (key.equals(KEYS.ANY) || checkKey(e, key)) {
+          setVisible(false);
+        }
       }
     });
   }
 
+  void keyListenerClose() {
+    keyListenerClose(KEYS.ESC);
+  }
+
+  boolean checkKey(KeyEvent e, KEYS key) {
+    final int actualKey = e.getKeyCode();
+    if (key.equals(KEYS.ESC)) {
+      return actualKey == (KeyEvent.VK_ESCAPE);
+    }
+    return false;
+  }
+
   void addListeners(BasicItem item) {
-    if (item.active) {
+    if (item.active()) {
       item.mouseListener(item);
       if (item.comp() instanceof JLabel) {
-        if (item instanceof TextItem) {
+        if (item instanceof ActionItem || item instanceof LinkItem) {
           ((JLabel) item.comp).setOpaque(true);
-          item.comp.setBackground(SXLBLBUTTON);
+          item.comp.setBackground(BACKGROUNDCOLOR);
+        } else if (item instanceof TextItem) {
+          ((JLabel) item.comp).setOpaque(true);
+          item.setBackground(SXLBLBUTTON);
+          item.comp.setBackground(item.getBackground());
         }
       }
     }
@@ -76,14 +112,45 @@ public class SXDialog extends JFrame {
   public Color SXRED = new Color(0x9D, 0x42, 0x30, 208);
   public Color SXLBLBUTTON = new Color(241, 230, 206);
   public Color SXLBLSELECTED = new Color(167, 192, 220);
+  public Color BACKGROUNDCOLOR = Color.WHITE;
+
+  public String fontName = Font.SANS_SERIF;
 
   void globalInit() {
     setResizable(false);
     setUndecorated(true);
     pane = getContentPane();
-    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(SXRED, 3));
     pane.setLayout(null);
     setMargin(10);
+  }
+
+  Color borderColor = SXRED;
+  int border = 3;
+
+  void setBorder(int dim) {
+    border = dim;
+  }
+
+  void setBorder(Color color) {
+    borderColor = color;
+  }
+
+  void setBorder(int dim, Color color) {
+    border = dim;
+    borderColor = color;
+  }
+
+  private void setBorderColor(String parm) {
+    final Field[] fields = Color.class.getDeclaredFields();
+    for (Field field : fields) {
+      if (parm.equalsIgnoreCase(field.getName())) {
+        try {
+          setBorder((Color) field.get(null));
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
   Dimension finalSize = null;
@@ -188,7 +255,8 @@ public class SXDialog extends JFrame {
   }
 
   void popup(Point where) {
-    pane.setBackground(Color.WHITE);
+    pane.setBackground(BACKGROUNDCOLOR);
+    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(borderColor, border));
     setSize(finalSize);
     if (where != null) {
       setLocation(where);
@@ -202,7 +270,7 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
-  //region 20 top-down line items
+  //region 30 text to items
   void textToItems(String text) {
     String[] lines = text.split("\n");
     boolean first = true;
@@ -233,15 +301,24 @@ public class SXDialog extends JFrame {
         line = replaceVariables(line);
         options = line.split(";");
       }
-      if (line.equals("---")) {
-        appendY(new LineItem());
+      if (line.startsWith("---")) {
+        if (line.length() > 3) {
+          final Integer number = getNumber(line.substring(3).strip());
+          if (number != null) {
+            append(new LineItem(-number));
+            continue;
+          }
+        }
+        append(new LineItem());
         continue;
       }
       if (line.startsWith("#")) {
-        BasicItem item = null;
+        BasicItem item;
         int start = 2;
-        if (line.startsWith("#link")) {
-          String[] parts = options[1].split("\\|");
+        String feature = options[0].strip().toLowerCase();
+        String title = options[1].strip();
+        if (feature.startsWith("#link")) {
+          String[] parts = title.split("\\|");
           String url = parts[0].strip();
           String urlText = url;
           if (parts.length > 1) {
@@ -249,25 +326,37 @@ public class SXDialog extends JFrame {
             url = parts[1].strip();
           }
           item = new LinkItem(urlText, url);
-        } else if (line.startsWith("#image")) {
-          item = new ImageItem(this.getClass().getResource(options[1].strip()));
-        } else if (line.startsWith("#close")) {
-          item = new TextItem(options[1]);
+        } else if (feature.startsWith("#image")) {
+          item = new ImageItem(this.getClass().getResource(title));
+        } else if (feature.startsWith("#close")) {
+          item = new TextItem(title);
           item.setActive();
+        } else if (feature.startsWith("#action")) {
+          String action = options.length > 2 ? options[2] : "";
+          item = new ActionItem(title, action);
+        } else if (feature.startsWith("#option")) {
+          String action = options.length > 2 ? options[2] : "";
+          STATE state = options.length > 3 ? (options[2].toLowerCase().contains("on") ? STATE.ON : STATE.OFF) : STATE.OFF;
+          item = new OptionItem(title, action, state);
+        } else if (feature.startsWith("#buttons")) {
+          new ButtonItems(title, options);
+          continue;
         } else {
-          Commons.error("SXDialog: unknown feature %s", line);
+          Commons.error("SXDialog: unknown feature %s", feature);
+          item = new TextItem("? " + title + " ?");
+          append(item);
           continue;
         }
         applyOptions(item, options, start);
-        appendY(item);
+        append(item);
         continue;
       }
       if (options.length > 1) {
         TextItem item = new TextItem(options[0]);
         applyOptions(item, options, 1);
-        appendY(item);
+        append(item);
       } else {
-        appendY(new TextItem(line));
+        append(new TextItem(line));
       }
     }
   }
@@ -287,7 +376,7 @@ public class SXDialog extends JFrame {
     return text;
   }
 
-  String  getVariable(String var) {
+  String getVariable(String var) {
     if (var.equals("sxversion")) {
       return Commons.getSXVersion();
     }
@@ -307,10 +396,28 @@ public class SXDialog extends JFrame {
       setMargin(Integer.parseInt(parms[1]));
     } else if (feature.contains("center")) {
       setAlign(ALIGN.CENTER);
-    } else if (feature.contains("fontsize")) {
+    } else if (feature.contains("font")) {
       setFontSize(Integer.parseInt(parms[1]));
     } else if (feature.contains("before")) {
       setSpaceBefore(Integer.parseInt(parms[1]));
+    } else if (feature.contains("border") && parms.length > 1) {
+      for (int n = 1; n < parms.length; n++) {
+        String parm = parms[n];
+        Integer num = getNumber(parm);
+        if (num == null) {
+          setBorderColor(parm);
+        } else {
+          setBorder(num);
+        }
+      }
+    }
+  }
+
+  Integer getNumber(String text) {
+    try {
+      return Integer.parseInt(text);
+    } catch (NumberFormatException e) {
+      return null;
     }
   }
 
@@ -327,65 +434,118 @@ public class SXDialog extends JFrame {
         item.padT(Integer.parseInt(parms[1]));
       } else if (feature.contains("bold")) {
         item.bold();
+      } else if (feature.contains("center")) {
+        item.align(ALIGN.CENTER);
       }
     }
   }
+  //endregion
 
-  List<BasicItem> lines = new ArrayList<>();
+  //region 20 top-down line items
+  List<BasicItem[]> lines = new ArrayList<>();
 
-  void appendY(BasicItem item) {
+  void append(BasicItem item) {
     if (item != null) {
       if (item.getPadding().top() == 0)
         item.padT(spaceBefore);
-      lines.add(item);
+      lines.add(new BasicItem[]{item});
     }
   }
 
-  void packLines(Container pane, List<BasicItem> items) {
-    int nextPos = margin.top;
+  void append(BasicItem[] items) {
+    for (BasicItem item : items) {
+      if (item.getPadding().top() == 0)
+        item.padT(spaceBefore);
+      if (item.getPadding().left() == 0)
+        item.padL(spaceBefore);
+    }
+    lines.add(items);
+  }
+
+  void packLines(Container pane, List<BasicItem[]> lines) {
+    int nextPosY = margin.top;
+    int currentPosY;
     int maxW = 0;
     Rectangle bounds;
-    for (BasicItem item : items) {
+    boolean first = true;
+    for (BasicItem[] items : lines) {
+      BasicItem item = items[0];
+      currentPosY = nextPosY;
       Component comp = item.create();
       if (comp != null) {
         bounds = comp.getBounds();
-        bounds.y = nextPos + item.getPadding().top;
+        bounds.y = nextPosY;
+        if (!first) {
+          bounds.y += item.getPadding().top;
+        }
         bounds.x += margin.left;
         comp.setBounds(bounds);
         item.comp(comp);
-        nextPos = bounds.y + bounds.height;
+        nextPosY = bounds.y + bounds.height;
       } else {
-        item.setPos(margin.left, nextPos);
+        item.setPos(margin.left, nextPosY);
         bounds = item.getBounds();
-        int height = item.getHeight();
-        nextPos += height;
+        nextPosY += item.getHeight();
       }
+      int nextPosX = bounds.x + bounds.width;
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
+      if (items.length > 1) {
+        for (int n = 1; n < items.length; n++) {
+          item = items[n];
+          comp = item.create();
+          if (comp != null) {
+            bounds = comp.getBounds();
+            bounds.y = currentPosY;
+            if (!first) {
+              bounds.y += item.getPadding().top;
+            }
+            bounds.x = nextPosX + item.getPadding().left;
+            comp.setBounds(bounds);
+            item.comp(comp);
+            nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
+            nextPosX = bounds.x + bounds.width;
+          } else {
+            item.setPos(nextPosX, currentPosY);
+            nextPosY = Math.max(nextPosY, nextPosY + item.getHeight());
+            nextPosX += item.getWidth();
+          }
+          maxW = Math.max(maxW, nextPosX + margin.right);
+        }
+      }
+      first = false;
     }
-    Dimension paneSize = new Dimension(maxW, nextPos + margin.bottom);
+    Dimension paneSize = new Dimension(maxW, nextPosY + margin.bottom);
     int availableW = paneSize.width - margin.left() - margin.right();
-    for (BasicItem item : lines) {
-      Component comp = item.comp();
-      bounds = item.getBounds();
-      int off = 0;
-      if (comp != null) {
-        bounds = comp.getBounds();
-      }
-      if (item.isCenter()) {
-        off = (availableW - bounds.width) / 2;
-      } else if (item.isRight()) {
-        off = availableW - bounds.width;
-      }
-      bounds.x += off;
-      if (comp != null) {
-        comp.setBounds(bounds);
-        pane.add(comp);
+    for (BasicItem[] items : this.lines) {
+      if (items.length == 1) {
+        BasicItem item = items[0];
+        Component comp = item.comp();
+        bounds = item.getBounds();
+        int off = 0;
+        if (comp != null) {
+          bounds = comp.getBounds();
+        }
+        if (item.isCenter()) {
+          off = (availableW - bounds.width) / 2;
+        } else if (item.isRight()) {
+          off = availableW - bounds.width;
+        }
+        bounds.x += off;
+        if (comp != null) {
+          comp.setBounds(bounds);
+          pane.add(comp);
+        } else {
+          item.setBounds(bounds);
+          Component vComp = item.make(availableW);
+          pane.add(vComp);
+        }
+        addListeners(item);
       } else {
-        item.setBounds(bounds);
-        Component vComp = item.make(availableW);
-        pane.add(vComp);
+        for (BasicItem item : items) {
+          pane.add(item.comp());
+          addListeners(item);
+        }
       }
-      addListeners(item);
     }
     finalSize = paneSize;
   }
@@ -425,6 +585,11 @@ public class SXDialog extends JFrame {
       padding.top(val);
       return this;
     }
+
+    BasicItem padL(int val) {
+      padding.left(val);
+      return this;
+    }
     //endregion
 
     //region Alignment
@@ -462,6 +627,10 @@ public class SXDialog extends JFrame {
       return 0;
     }
 
+    int getWidth() {
+      return 0;
+    }
+
     int posX = 0;
     int posY = 0;
 
@@ -483,6 +652,10 @@ public class SXDialog extends JFrame {
 
     //region Listener
     private boolean active = false;
+
+    boolean active() {
+      return active;
+    }
 
     BasicItem setActive() {
       active = true;
@@ -510,7 +683,7 @@ public class SXDialog extends JFrame {
           if (item instanceof ImageItem) {
             ((JLabel) item.comp()).setBorder(null);
           } else {
-            item.comp().setBackground(SXLBLBUTTON);
+            item.comp().setBackground(item.getBackground());
           }
         }
       });
@@ -529,6 +702,16 @@ public class SXDialog extends JFrame {
     //endregion
 
     //region Decoration
+    Color background = BACKGROUNDCOLOR;
+
+    public Color getBackground() {
+      return background;
+    }
+
+    void setBackground(Color color) {
+      background = color;
+    }
+
     boolean underline = false;
 
     BasicItem underline() {
@@ -561,7 +744,11 @@ public class SXDialog extends JFrame {
     }
 
     LineItem(int len) {
-      this.len = len;
+      if (len < 0) {
+        stroke = -len;
+      } else {
+        this.len = len;
+      }
     }
 
     LineItem(int len, int stroke) {
@@ -571,12 +758,12 @@ public class SXDialog extends JFrame {
 
     LineItem(int len, Color color) {
       this.len = len;
-      this.color = color;
     }
 
     LineItem(int len, int stroke, Color color) {
       this.len = len;
       this.stroke = stroke;
+      this.color = color;
     }
 
     LineItem setStroke(int stroke) {
@@ -605,6 +792,10 @@ public class SXDialog extends JFrame {
       return stroke + getPadding().top();
     }
 
+    int getWidth() {
+      return stroke + getPadding().left();
+    }
+
     Rectangle getBounds() {
       return new Rectangle(posX, posY, len, stroke);
     }
@@ -623,7 +814,7 @@ public class SXDialog extends JFrame {
   //endregion
 
   //region 52 TextItem
-  private int stdFontSize = 20;
+  private int stdFontSize = 14;
 
   void setFontSize(int val) {
     stdFontSize = val;
@@ -642,33 +833,36 @@ public class SXDialog extends JFrame {
 
     JLabel create() {
       JLabel lblText = new JLabel(aText);
-      Font titleFont = new Font(Font.MONOSPACED, fontBold, fontSize);
-      Rectangle2D textLen = lblText.getFontMetrics(titleFont).getStringBounds(aText, getGraphics());
+      Font font = new Font(fontName, fontBold, fontSize);
+      Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
       if (textLen.getWidth() > maxW) {
         fontSize = (int) (fontSize * maxW / textLen.getWidth());
-        titleFont = new Font(Font.MONOSPACED, fontBold, fontSize);
-        textLen = lblText.getFontMetrics(titleFont).getStringBounds(aText, getGraphics());
+        font = new Font(fontName, fontBold, fontSize);
+        textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
       }
       if (underline) {
-        lblText = new UnderlinedLabel(aText);
+        lblText = new UnderlinedLabel(aText, font);
       }
-      lblText.setFont(titleFont);
+      lblText.setFont(font);
       lblText.setBounds(new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight()));
       return lblText;
     }
 
     class UnderlinedLabel extends JLabel {
-      public UnderlinedLabel(String text) {
+      public UnderlinedLabel(String text, Font textFont) {
         super(text);
+        setFont(textFont);
       }
 
       public void paint(Graphics g) {
         Rectangle r;
         super.paint(g);
-        r = g.getClipBounds();
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setStroke(new BasicStroke(1));
+        r = g2d.getClipBounds();
         int height = r.height - getFontMetrics(getFont()).getDescent() + 3;
         int width = getFontMetrics(getFont()).stringWidth(getText());
-        g.drawLine(0, height, width, height);
+        g2d.drawLine(0, height, width, height);
       }
     }
   }
@@ -688,10 +882,136 @@ public class SXDialog extends JFrame {
 
     LinkItem(String text, String link) {
       aText = text;
-      aLink = link;
+      if (!text.equals(link)) {
+        aLink = link.strip();
+      }
       underline();
       setActive();
       super.clickAction = clickAction;
+    }
+  }
+  //endregion
+
+  //region 522 ActionItem
+  class ActionItem extends TextItem {
+    String aAction = "";
+    String command = null;
+    String what = "";
+
+    ClickAction clickAction = new ClickAction() {
+      @Override
+      public void run() {
+        if (command != null) {
+          if (command.equals("show")) {
+            new SXDialog(what);
+          }
+        }
+      }
+    };
+
+
+
+    ActionItem() {
+    }
+
+    ActionItem(String text, String action) {
+      aText = text.strip();
+      aAction = action.strip();
+      setActive();
+      bold();
+      setBackground(BACKGROUNDCOLOR);
+      getAction();
+      setClickAction(clickAction);
+    }
+
+    void getAction() {
+      if (aAction.strip().isEmpty()) {
+        return;
+      }
+      final String[] parts = aAction.split(" ");
+      command = parts[0].strip();
+      if (command.startsWith("show")) {
+        if (parts.length > 1) {
+          what = parts[1].strip();
+        } else {
+          Commons.error("ActionItem: show: no dialog");
+        }
+      } else {
+        Commons.error("ActionItem: not implemented: %s", aAction);
+      }
+    }
+  }
+  //endregion
+
+  //region 523 OptionItem
+  class OptionItem extends ActionItem {
+    String aOption = "";
+    STATE state;
+    String title;
+
+    ClickAction clickAction = new ClickAction() {
+      @Override
+      public void run() {
+        if (state.equals(STATE.ON)) {
+          ((JLabel) comp()).setText("( ) " + title);
+          state = STATE.OFF;
+        } else {
+          ((JLabel) comp()).setText("(X) " + title);
+          state = STATE.ON;
+        }
+      }
+    };
+
+    OptionItem(String text, String option, STATE state) {
+      this.state = state;
+      title = text;
+      if (state.equals(STATE.ON)) {
+        aText = "(X) " + text;
+      } else {
+        aText = "( ) " + text;
+      }
+      aOption = option;
+      setActive();
+      bold();
+      setBackground(BACKGROUNDCOLOR);
+      setClickAction(clickAction);
+    }
+  }
+  //endregion
+
+  //region 524 ButtonItem
+  class ButtonItems {
+    String title;
+
+    ButtonItems(String text, String[] options) {
+      String[] parts = text.split("\\|");
+      ButtonItem[] buttonItems = new ButtonItem[parts.length];
+      int ix = 0;
+      for (String part : parts) {
+        part = part.strip();
+        buttonItems[ix] = new ButtonItem(part, "action" + part);
+        ix++;
+      }
+      append(buttonItems);
+    }
+  }
+
+  class ButtonItem extends ActionItem {
+    String aAction = "";
+
+    ClickAction clickAction = new ClickAction() {
+      @Override
+      public void run() {
+        SX.popup(aAction, "clicked", 1);
+      }
+    };
+
+    ButtonItem(String text, String action) {
+      aText = "(" + text + ")";
+      aAction = action;
+      setActive();
+      bold();
+      setClickAction(clickAction);
     }
   }
   //endregion

@@ -5,7 +5,6 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.*;
-import org.sikuli.idesupport.IDEDialogStartUp;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -124,11 +123,14 @@ public class Sikulix {
         PreferencesUser.get().getIdeSize());
     //endregion
 
-//    ideSplash = new IDEAbout("/Settings/sikulixabout.txt");
-    ideSplash = new IDEDialogStartUp();
 
-    if (!(ideSplash instanceof IDEDialogStartUp)) {
-      while (ideSplash.isVisible()) {
+    ideSplash = null;
+    SXDialog dialog = null;
+    ideSplash = new SXDialog("idestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+    //dialog = new SXDialog("sxmenu");
+
+    if (ideSplash == null) {
+      while (dialog.isVisible()) {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {

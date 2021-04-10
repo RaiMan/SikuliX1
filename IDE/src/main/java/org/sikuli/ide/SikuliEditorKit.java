@@ -14,6 +14,7 @@ import javax.swing.text.*;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.idesupport.IIndentationLogic;
+import org.sikuli.script.support.gui.SXDialog;
 
 public class SikuliEditorKit extends StyledEditorKit {
 
@@ -423,10 +424,8 @@ public class SikuliEditorKit extends StyledEditorKit {
         Debug.error("EditorPane: CompletionAction: BadLocationException %s", e.getMessage());
         return;
       }
+      new SXDialog("/Settings/sxmenu.txt", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
       Debug.log(3, "EditorPane: CompletionAction: [%d] |%s| (%d)", line + 1, segLine, dot);
-      if (popCompletion != null) {
-        popCompletion.show(pane, 100, 100);
-      }
     }
   }
 
@@ -559,7 +558,6 @@ public class SikuliEditorKit extends StyledEditorKit {
 
     }
   }
-  
 
   private static class NextVisualLineAction extends TextAction {
 

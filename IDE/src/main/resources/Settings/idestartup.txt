@@ -1,8 +1,6 @@
-#globals; margin 50; center
+#globals; margin 50; center; fontsize 20
 
 #image; /icons/sikulix-red-x.png
 ---
 SikuliX-IDE  ---  {sxversion}  ---  starting on Java {javaversion}; bold
----
-Press any key to continue
 
