@@ -909,8 +909,6 @@ public class SXDialog extends JFrame {
       }
     };
 
-
-
     ActionItem() {
     }
 
@@ -947,7 +945,18 @@ public class SXDialog extends JFrame {
   class OptionItem extends ActionItem {
     String aOption = "";
     STATE state;
+    STATE startState = STATE.OFF;
     String title;
+
+    void setStartState(JLabel lbl) {
+      if (startState.equals(STATE.OFF)) {
+        lbl.setText("( ) " + title);
+        state = STATE.OFF;
+      } else {
+        lbl.setText("(X) " + title);
+        state = STATE.ON;
+      }
+    }
 
     ClickAction clickAction = new ClickAction() {
       @Override
@@ -965,16 +974,21 @@ public class SXDialog extends JFrame {
     OptionItem(String text, String option, STATE state) {
       this.state = state;
       title = text;
+      aText = "(X) " + text;
       if (state.equals(STATE.ON)) {
-        aText = "(X) " + text;
-      } else {
-        aText = "( ) " + text;
+        startState = STATE.ON;
       }
       aOption = option;
       setActive();
       bold();
       setBackground(BACKGROUNDCOLOR);
       setClickAction(clickAction);
+    }
+
+    JLabel create() {
+      final JLabel lbl = super.create();
+      setStartState(lbl);
+      return lbl;
     }
   }
   //endregion
