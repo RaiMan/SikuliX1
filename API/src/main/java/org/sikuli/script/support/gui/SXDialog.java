@@ -4,7 +4,6 @@
 
 package org.sikuli.script.support.gui;
 
-import org.sikuli.script.SX;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.devices.ScreenDevice;
 
@@ -17,7 +16,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -305,7 +303,7 @@ public class SXDialog extends JFrame {
         if (line.length() > 3) {
           final Integer number = getNumber(line.substring(3).strip());
           if (number != null) {
-            append(new LineItem(-number));
+            append(new LineItem().stroke(number));
             continue;
           }
         }
@@ -316,7 +314,10 @@ public class SXDialog extends JFrame {
         BasicItem item;
         int start = 2;
         String feature = options[0].strip().toLowerCase();
-        String title = options[1].strip();
+        String title = "#default";
+        if (options.length > 1) {
+          title = options[1].strip();
+        }
         if (feature.startsWith("#link")) {
           String[] parts = title.split("\\|");
           String url = parts[0].strip();
@@ -428,7 +429,7 @@ public class SXDialog extends JFrame {
       String feature = parms[0].toLowerCase();
       if (feature.contains("resize") && parms.length > 1) {
         item.resize(Integer.parseInt(parms[1]));
-      } else if (feature.contains("fontsize")) {
+      } else if (feature.startsWith("f")) {
         item.fontSize(Integer.parseInt(parms[1]));
       } else if (feature.contains("top")) {
         item.padT(Integer.parseInt(parms[1]));
@@ -470,44 +471,35 @@ public class SXDialog extends JFrame {
     boolean first = true;
     for (BasicItem[] items : lines) {
       BasicItem item = items[0];
+      item.create();
       currentPosY = nextPosY;
-      Component comp = item.create();
-      if (comp != null) {
-        bounds = comp.getBounds();
+      bounds = item.getBounds();
+      if (item.isValid()) {
         bounds.y = nextPosY;
         if (!first) {
           bounds.y += item.getPadding().top;
         }
         bounds.x += margin.left;
-        comp.setBounds(bounds);
-        item.comp(comp);
+        item.setBounds(bounds);
         nextPosY = bounds.y + bounds.height;
       } else {
-        item.setPos(margin.left, nextPosY);
-        bounds = item.getBounds();
-        nextPosY += item.getHeight();
+        Commons.error("SXDialog: packLines: comp == null: %s", item);
       }
       int nextPosX = bounds.x + bounds.width;
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
       if (items.length > 1) {
         for (int n = 1; n < items.length; n++) {
           item = items[n];
-          comp = item.create();
-          if (comp != null) {
-            bounds = comp.getBounds();
+          item.create();
+          if (item.isValid()) {
+            bounds = item.getBounds();
             bounds.y = currentPosY;
             if (!first) {
               bounds.y += item.getPadding().top;
             }
             bounds.x = nextPosX + item.getPadding().left;
-            comp.setBounds(bounds);
-            item.comp(comp);
             nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
             nextPosX = bounds.x + bounds.width;
-          } else {
-            item.setPos(nextPosX, currentPosY);
-            nextPosY = Math.max(nextPosY, nextPosY + item.getHeight());
-            nextPosX += item.getWidth();
           }
           maxW = Math.max(maxW, nextPosX + margin.right);
         }
@@ -519,11 +511,11 @@ public class SXDialog extends JFrame {
     for (BasicItem[] items : this.lines) {
       if (items.length == 1) {
         BasicItem item = items[0];
-        Component comp = item.comp();
-        bounds = item.getBounds();
         int off = 0;
-        if (comp != null) {
-          bounds = comp.getBounds();
+        bounds = item.getBounds();
+        if (bounds.width == 0) {
+          item.fill(availableW);
+          bounds.setSize(item.getSize());
         }
         if (item.isCenter()) {
           off = (availableW - bounds.width) / 2;
@@ -531,18 +523,15 @@ public class SXDialog extends JFrame {
           off = availableW - bounds.width;
         }
         bounds.x += off;
-        if (comp != null) {
+        if (item.isValid()) {
+          final JComponent comp = item.finalComp();
           comp.setBounds(bounds);
           pane.add(comp);
-        } else {
-          item.setBounds(bounds);
-          Component vComp = item.make(availableW);
-          pane.add(vComp);
+          addListeners(item);
         }
-        addListeners(item);
       } else {
         for (BasicItem item : items) {
-          pane.add(item.comp());
+          pane.add(item.finalComp());
           addListeners(item);
         }
       }
@@ -555,23 +544,39 @@ public class SXDialog extends JFrame {
   abstract class BasicItem {
 
     //region Component
-    private Component comp = null;
+    String title = this.getClass().getSimpleName();
 
-    void comp(Component comp) {
-      this.comp = comp;
+    String getTitle() {
+      return title;
     }
 
-    Component comp() {
+    boolean isValid() {
+      return comp != null;
+    }
+
+    private JComponent comp = null;
+
+    JComponent comp(JComponent comp) {
+      this.comp = comp;
       return comp;
     }
 
-    Component create() {
-      return null;
+    JComponent comp() {
+      return comp;
     }
 
-    Component make(int w) {
-      return null;
+    void create() {
     }
+
+    void fill(int w) {
+    }
+
+    JComponent finalComp() {
+      comp.setBounds(getBounds());
+      return comp;
+    }
+
+    JComponent panel = null;
     //endregion
 
     //region Padding
@@ -601,7 +606,7 @@ public class SXDialog extends JFrame {
     }
 
     public boolean isCenter() {
-      if (comp == null && len == 0) {
+      if (comp == null) {
         return false;
       }
       return alignment.equals(ALIGN.CENTER) || stdAlign.equals(ALIGN.CENTER);
@@ -621,32 +626,49 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    int len = 0;
+    int X = 0;
+    int Y = 0;
 
-    int getHeight() {
-      return 0;
+    void setPos(Point where) {
+      this.X = where.x;
+      this.Y = where.y;
     }
 
-    int getWidth() {
-      return 0;
+    int width = 0;
+    int height = 0;
+
+    int getH() {
+      return height;
     }
 
-    int posX = 0;
-    int posY = 0;
-
-    void setPos(int posX, int posY) {
-      this.posX = posX;
-      this.posY = posY + getPadding().top;
+    void setH(int val) {
+      height = val;
     }
 
-    Rectangle bounds = null;
+    int getW() {
+      return width;
+    }
+
+    void setW(int val) {
+      width = val;
+    }
+
+    Dimension getSize() {
+      return new Dimension(getW(), getH());
+    }
+
+    void setSize(Dimension size) {
+      width = size.width;
+      height = size.height;
+    }
 
     void setBounds(Rectangle bounds) {
-      this.bounds = bounds;
+      setPos(bounds.getLocation());
+      setSize(bounds.getSize());
     }
 
     Rectangle getBounds() {
-      return new Rectangle();
+      return new Rectangle(X, Y, width, height);
     }
     //endregion
 
@@ -673,6 +695,8 @@ public class SXDialog extends JFrame {
         public void mouseEntered(MouseEvent e) {
           if (item instanceof ImageItem) {
             ((JLabel) item.comp()).setBorder(BorderFactory.createLineBorder(SXRED, 3));
+          } else if (item instanceof ButtonItem) {
+            return;
           } else {
             item.comp().setBackground(SXLBLSELECTED);
           }
@@ -682,6 +706,8 @@ public class SXDialog extends JFrame {
         public void mouseExited(MouseEvent e) {
           if (item instanceof ImageItem) {
             ((JLabel) item.comp()).setBorder(null);
+          } else if (item instanceof ButtonItem) {
+            return;
           } else {
             item.comp().setBackground(item.getBackground());
           }
@@ -741,37 +767,21 @@ public class SXDialog extends JFrame {
   class LineItem extends BasicItem {
 
     LineItem() {
+      setH(stroke);
     }
 
     LineItem(int len) {
-      if (len < 0) {
-        stroke = -len;
-      } else {
-        this.len = len;
-      }
+      this();
+      setW(len);
     }
 
-    LineItem(int len, int stroke) {
-      this.len = len;
+    LineItem stroke(int stroke) {
       this.stroke = stroke;
-    }
-
-    LineItem(int len, Color color) {
-      this.len = len;
-    }
-
-    LineItem(int len, int stroke, Color color) {
-      this.len = len;
-      this.stroke = stroke;
-      this.color = color;
-    }
-
-    LineItem setStroke(int stroke) {
-      this.stroke = stroke;
+      setH(stroke);
       return this;
     }
 
-    LineItem setColor(Color color) {
+    LineItem color(Color color) {
       this.color = color;
       return this;
     }
@@ -780,35 +790,24 @@ public class SXDialog extends JFrame {
     Color color = SXRED;
 
     class Line extends JComponent {
+
       public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(stroke));
         g2.setColor(color);
-        g2.draw(new Line2D.Float(0, 0, len, 0));
+        g2.draw(new Line2D.Float(0, 0, getW(), 0));
       }
     }
 
-    int getHeight() {
-      return stroke + getPadding().top();
+    void fill(int len) {
+      setW(len);
+      create();
     }
 
-    int getWidth() {
-      return stroke + getPadding().left();
-    }
-
-    Rectangle getBounds() {
-      return new Rectangle(posX, posY, len, stroke);
-    }
-
-    Line make(int w) {
-      if (len == 0) {
-        len = w;
-        bounds.width = w;
-      }
-      bounds.height = getHeight();
+    void create() {
       Line line = new Line();
-      line.setBounds(bounds);
-      return line;
+      line.setPreferredSize(getSize());
+      comp(line); //Line
     }
   }
   //endregion
@@ -824,6 +823,10 @@ public class SXDialog extends JFrame {
 
     String aText = "";
 
+    String getTitle() {
+      return aText;
+    }
+
     TextItem() {
     }
 
@@ -831,7 +834,7 @@ public class SXDialog extends JFrame {
       this.aText = aText;
     }
 
-    JComponent create() {
+    void create() {
       JLabel lblText = new JLabel(aText);
       Font font = new Font(fontName, fontBold, fontSize);
       Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
@@ -845,7 +848,8 @@ public class SXDialog extends JFrame {
       }
       lblText.setFont(font);
       lblText.setBounds(new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight()));
-      return lblText;
+      setSize(lblText.getSize());
+      comp(lblText); //Text
     }
 
     class UnderlinedLabel extends JLabel {
@@ -985,18 +989,15 @@ public class SXDialog extends JFrame {
       setClickAction(clickAction);
     }
 
-    JComponent create() {
-      final JComponent lbl = super.create();
-      setStartState((JLabel) lbl);
-      return lbl;
+    void create() {
+      super.create();
+      setStartState((JLabel) comp());
     }
   }
   //endregion
 
   //region 524 ButtonItem
   class ButtonItems {
-    String title;
-
     ButtonItems(String text, String[] options) {
       String[] parts = text.split("\\|");
       ButtonItem[] buttonItems = new ButtonItem[parts.length];
@@ -1011,7 +1012,11 @@ public class SXDialog extends JFrame {
   }
 
   class ButtonItem extends ActionItem {
-    String aAction = "";
+    String aAction;
+
+    String getTitle() {
+      return "Button: " + aAction;
+    }
 
     ClickAction clickAction = new ClickAction() {
       @Override
@@ -1028,11 +1033,10 @@ public class SXDialog extends JFrame {
       setClickAction(clickAction);
     }
 
-    JComponent create() {
+    void create() {
       JButton button = new JButton(aText);
-      Dimension size = button.getPreferredSize();
-      button.setSize(size);
-      return button;
+      setSize(button.getPreferredSize());
+      comp(button); //Button
     }
   }
   //endregion
@@ -1079,15 +1083,13 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    JLabel create() {
+    void create() {
       JLabel lblimg = new JLabel();
       if (img != null) {
         lblimg.setIcon(new ImageIcon(img));
-        int wimg = img.getWidth();
-        int himg = img.getHeight();
-        lblimg.setBounds(0, 0, wimg, himg);
+        setSize(new Dimension(img.getWidth(), img.getHeight()));
       }
-      return lblimg;
+      comp(lblimg); //Image
     }
   }
   //endregion
