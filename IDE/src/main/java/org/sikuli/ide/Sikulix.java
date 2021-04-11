@@ -126,8 +126,8 @@ public class Sikulix {
 
     ideSplash = null;
     SXDialog dialog = null;
-    //ideSplash = new SXDialog("idestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-    dialog = new SXDialog("sxmenu");
+    ideSplash = new SXDialog("idestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+    //dialog = new SXDialog("sxmenu");
 
     if (ideSplash == null) {
       while (dialog.isVisible()) {

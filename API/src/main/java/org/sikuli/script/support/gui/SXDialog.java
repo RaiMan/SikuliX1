@@ -269,6 +269,8 @@ public class SXDialog extends JFrame {
   //endregion
 
   //region 30 text to items
+  enum TEXT {TEXT, HTML}
+
   void textToItems(String text) {
     String[] lines = text.split("\n");
     boolean first = true;
@@ -310,8 +312,9 @@ public class SXDialog extends JFrame {
         append(new LineItem());
         continue;
       }
+      TEXT isText = null;
       if (line.startsWith("#")) {
-        BasicItem item;
+        BasicItem item = null;
         int start = 2;
         String feature = options[0].strip().toLowerCase();
         String title = "#default";
@@ -342,19 +345,31 @@ public class SXDialog extends JFrame {
         } else if (feature.startsWith("#buttons")) {
           new ButtonItems(title, options);
           continue;
+        } else if (feature.startsWith("#html")) {
+          isText = TEXT.HTML;
         } else {
           Commons.error("SXDialog: unknown feature %s", feature);
           item = new TextItem("? " + title + " ?");
           append(item);
           continue;
         }
-        applyOptions(item, options, start);
-        append(item);
-        continue;
+        if (isText == null) {
+          applyOptions(item, options, start);
+          append(item);
+          continue;
+        }
       }
+      isText = isText == null ? TEXT.TEXT : isText;
       if (options.length > 1) {
-        TextItem item = new TextItem(options[0]);
-        applyOptions(item, options, 1);
+        TextItem item;
+        int start = 1;
+        if (isText.equals(TEXT.HTML)) {
+          item = new HtmlItem(options[1]);
+          start = 2;
+        } else {
+          item = new TextItem(options[0]);
+        }
+        applyOptions(item, options, start);
         append(item);
       } else {
         append(new TextItem(line));
@@ -500,6 +515,7 @@ public class SXDialog extends JFrame {
             bounds.x = nextPosX + item.getPadding().left;
             nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
             nextPosX = bounds.x + bounds.width;
+            item.setBounds(bounds);
           }
           maxW = Math.max(maxW, nextPosX + margin.right);
         }
@@ -696,7 +712,9 @@ public class SXDialog extends JFrame {
           if (item instanceof ImageItem) {
             ((JLabel) item.comp()).setBorder(BorderFactory.createLineBorder(SXRED, 3));
           } else if (item instanceof ButtonItem) {
-            return;
+            JButton button = (JButton) item.comp();
+            button.setForeground(Color.WHITE);
+            button.setSelected(true);
           } else {
             item.comp().setBackground(SXLBLSELECTED);
           }
@@ -707,7 +725,9 @@ public class SXDialog extends JFrame {
           if (item instanceof ImageItem) {
             ((JLabel) item.comp()).setBorder(null);
           } else if (item instanceof ButtonItem) {
-            return;
+            JButton button = (JButton) item.comp();
+            button.setForeground(SXRED);
+            button.setSelected(false);
           } else {
             item.comp().setBackground(item.getBackground());
           }
@@ -847,9 +867,10 @@ public class SXDialog extends JFrame {
         lblText = new UnderlinedLabel(aText, font);
       }
       lblText.setFont(font);
-      lblText.setBounds(new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight()));
-      setSize(lblText.getSize());
-      comp(lblText); //Text
+      Rectangle r = new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight());
+      lblText.setBounds(r);
+      setSize(r.getSize());
+      comp(lblText);
     }
 
     class UnderlinedLabel extends JLabel {
@@ -868,6 +889,22 @@ public class SXDialog extends JFrame {
         int width = getFontMetrics(getFont()).stringWidth(getText());
         g2d.drawLine(0, height, width, height);
       }
+    }
+  }
+
+  class HtmlItem extends TextItem {
+
+    HtmlItem(String text) {
+      super(text);
+    }
+
+    void create() {
+      super.create();
+      JLabel lblHtml = (JLabel) comp();
+      Dimension size = getSize();
+      aText = "<html>" + aText.replace("|", "<br>");
+      lblHtml.setText(aText);
+      setSize(lblHtml.getPreferredSize());
     }
   }
   //endregion
@@ -999,7 +1036,12 @@ public class SXDialog extends JFrame {
   //region 524 ButtonItem
   class ButtonItems {
     ButtonItems(String text, String[] options) {
-      String[] parts = text.split("\\|");
+      String[] parts = null;
+      if (text.startsWith("#default")) {
+        parts = new String[]{"CANCEL", "APPLY", "OK"};
+      } else {
+        parts = text.split("\\|");
+      }
       ButtonItem[] buttonItems = new ButtonItem[parts.length];
       int ix = 0;
       for (String part : parts) {
@@ -1035,6 +1077,7 @@ public class SXDialog extends JFrame {
 
     void create() {
       JButton button = new JButton(aText);
+      button.setForeground(SXRED);
       setSize(button.getPreferredSize());
       comp(button); //Button
     }

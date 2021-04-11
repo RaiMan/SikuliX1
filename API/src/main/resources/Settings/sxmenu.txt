@@ -8,6 +8,8 @@ mouse action; center; bold; fontsize 16
 --- 1
 #action; SikuliX; show idestartup; center
 --- 1
+#html; some text | more text | and more text
+--- 1
 #option; some option; someOption;
 --- 1
 #buttons;
