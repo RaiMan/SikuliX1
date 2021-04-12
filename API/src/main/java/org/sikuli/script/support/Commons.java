@@ -199,6 +199,10 @@ public class Commons {
     System.out.printf("[ERROR Commons] " + msg + "%n", args);
   }
 
+  public static void hereError(String msg, Object... args) {
+    System.out.printf("[ERROR Commons] " + msg + "%n", args);
+  }
+
   public static void debug(String msg, Object... args) {
     if (isDebug() || Debug.isGlobalDebug()) {
       System.out.printf("[DEBUG Commons] " + msg + "%n", args);

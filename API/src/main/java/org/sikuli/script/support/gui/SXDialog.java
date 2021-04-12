@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SXDialog extends JFrame {
 
@@ -29,11 +31,23 @@ public class SXDialog extends JFrame {
 
   enum STATE {ON, OFF}
 
+  JFrame frame;
   Container pane;
 
   private SXDialog() {
-    globalInit();
-    keyListenerClose();
+    frame = this;
+    setResizable(false);
+    setUndecorated(true);
+    pane = getContentPane();
+    pane.setLayout(null);
+    setMargin(10);
+    addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        Commons.debug("global key listener fired - closing window without saving state");
+        close();
+      }
+    });
   }
 
   public SXDialog(String res) {
@@ -46,14 +60,22 @@ public class SXDialog extends JFrame {
 
   public SXDialog(String res, Point where, POSITION pos) {
     this();
+
     if (!res.contains(".") && !res.endsWith(".txt")) {
       res += ".txt";
     }
+    Class clazz = SXDialog.class;
     if (!res.startsWith("/")) {
+      if (res.startsWith("ide")) {
+        try {
+          clazz = Class.forName("org.sikuli.ide.SikulixIDE");
+        } catch (ClassNotFoundException e) {
+        }
+      }
       res = "/Settings/" + res;
     }
-    textToItems(Commons.copyResourceToString(res, SXDialog.class));
-    packLines(pane, lines);
+    textToItems(Commons.copyResourceToString(res, clazz));
+    packLines(pane, dialogLines);
     if (pos.equals(POSITION.TOP)) {
       where.x -= finalSize.width / 2;
     } else if (pos.equals(POSITION.CENTER)) {
@@ -64,45 +86,91 @@ public class SXDialog extends JFrame {
   }
 
   //region 04 global handler
-  public enum KEYS {ESC, ANY}
+  String globalPrefix = "";
 
-  void keyListenerClose(KEYS key) {
-    addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        if (key.equals(KEYS.ANY) || checkKey(e, key)) {
-          setVisible(false);
-        }
-      }
-    });
-  }
+  public enum KEYS {ESC, ENTER, SPACE, ANY}
 
-  void keyListenerClose() {
-    keyListenerClose(KEYS.ESC);
+  static Map<KEYS, Integer> keyMap = new HashMap<>();
+
+  static {
+    keyMap.put(KEYS.ESC, KeyEvent.VK_ESCAPE);
+    keyMap.put(KEYS.ENTER, KeyEvent.VK_ENTER);
+    keyMap.put(KEYS.SPACE, KeyEvent.VK_SPACE);
+    keyMap.put(KEYS.ANY, -1);
   }
 
   boolean checkKey(KeyEvent e, KEYS key) {
     final int actualKey = e.getKeyCode();
-    if (key.equals(KEYS.ESC)) {
-      return actualKey == (KeyEvent.VK_ESCAPE);
+    if (key.equals(KEYS.ANY)) {
+      return true;
     }
-    return false;
+    return actualKey == keyMap.get(key);
   }
 
-  void addListeners(BasicItem item) {
-    if (item.active()) {
-      item.mouseListener(item);
-      if (item.comp() instanceof JLabel) {
-        if (item instanceof ActionItem || item instanceof LinkItem) {
-          ((JLabel) item.comp).setOpaque(true);
-          item.comp.setBackground(BACKGROUNDCOLOR);
-        } else if (item instanceof TextItem) {
-          ((JLabel) item.comp).setOpaque(true);
-          item.setBackground(SXLBLBUTTON);
-          item.comp.setBackground(item.getBackground());
+  class ItemAction implements Runnable {
+    String actionName = "standard_click_action";
+    Object options;
+    BasicItem item;
+
+    public ItemAction(BasicItem item, Object... options) {
+      this.item = item;
+      if (options.length > 0) {
+        if (options[0] instanceof String) {
+          actionName = (String) options[0];
+        }
+        if (options.length > 1) {
+          this.options = options[1];
         }
       }
     }
+
+    @Override
+    public void run() {
+    }
+  }
+
+  ItemAction standardItemAction(BasicItem item) {
+    return new ItemAction(item) {
+      @Override
+      public void run() {
+        String title = item.getTitle();
+        if (item instanceof ButtonItem) {
+          switch (title) {
+            case "OK":
+              closeOk();
+              return;
+            case "APPLY":
+              apply();
+              return;
+            case "CANCEL":
+              closeCancel();
+              return;
+          }
+        }
+        Commons.debug("Button: %s: running action: %s", title, actionName);
+      }
+    };
+  }
+
+  ButtonItem OK_BUTTON = null;
+  ButtonItem APPLY_BUTTON = null;
+  ButtonItem CANCEL_BUTTON = null;
+
+
+  void globalButtons(ButtonItem button) {
+    switch (button.getTitle()) {
+      case "OK":
+        OK_BUTTON = button;
+        return;
+      case "APPLY":
+        APPLY_BUTTON = button;
+        return;
+      case "CANCEL":
+        CANCEL_BUTTON = button;
+        return;
+    }
+
+
   }
   //endregion
 
@@ -113,14 +181,6 @@ public class SXDialog extends JFrame {
   public Color BACKGROUNDCOLOR = Color.WHITE;
 
   public String fontName = Font.SANS_SERIF;
-
-  void globalInit() {
-    setResizable(false);
-    setUndecorated(true);
-    pane = getContentPane();
-    pane.setLayout(null);
-    setMargin(10);
-  }
 
   Color borderColor = SXRED;
   int border = 3;
@@ -238,13 +298,6 @@ public class SXDialog extends JFrame {
   void setAlign(ALIGN type) {
     stdAlign = type;
   }
-
-  class ClickAction implements Runnable {
-    @Override
-    public void run() {
-      close();
-    }
-  }
   //endregion
 
   //region 10 show/hide/destroy
@@ -261,20 +314,42 @@ public class SXDialog extends JFrame {
     }
     setAlwaysOnTop(true);
     setVisible(true);
+    if (APPLY_BUTTON != null) {
+      APPLY_BUTTON.comp().requestFocusInWindow();
+    }
   }
 
   void close() {
     setVisible(false);
   }
+
+  void closeCancel() {
+    Commons.debug("ESC or Button CANCEL: closing dialog without saving anything");
+    close();
+  }
+
+  void closeOk() {
+    apply();
+    Commons.debug("ENTER or Button OK: closing dialog");
+    close();
+  }
+
+  void apply() {
+    Commons.debug("SPACE or Button APPLY: saving changed state");
+  }
   //endregion
 
   //region 30 text to items
-  enum TEXT {TEXT, HTML}
+  enum TEXT {TEXT, HTML, TEXT_IN_LINE}
+  String lineTypeStd = "#";
+  String lineTypeLeft = "+";
+  String lineTypeRight = "-";
 
   void textToItems(String text) {
     String[] lines = text.split("\n");
     boolean first = true;
     for (String line : lines) {
+      String lineType = lineTypeStd;
       line = line.strip();
       if (line.isEmpty()) {
         continue;
@@ -282,14 +357,13 @@ public class SXDialog extends JFrame {
       String[] options = line.split(";");
       if (first && line.startsWith("#global")) {
         if (options.length > 1) {
-          Commons.debug("--- options");
+          Commons.debug("--- %s", line);
           for (String option : options) {
-            if (option.startsWith("#")) {
+            if (option.startsWith(lineTypeStd)) {
               continue;
             }
             applyOption(option);
           }
-          Commons.debug("---");
         }
         first = false;
         continue;
@@ -305,23 +379,24 @@ public class SXDialog extends JFrame {
         if (line.length() > 3) {
           final Integer number = getNumber(line.substring(3).strip());
           if (number != null) {
-            append(new LineItem().stroke(number));
+            append(new LineItem().stroke(number), lineType);
             continue;
           }
         }
-        append(new LineItem());
+        append(new LineItem(), lineType);
         continue;
       }
       TEXT isText = null;
-      if (line.startsWith("#")) {
+      lineType = line.substring(0, 1);
+      if ("#+-".contains(lineType)) {
         BasicItem item = null;
         int start = 2;
-        String feature = options[0].strip().toLowerCase();
-        String title = "#default";
+        String feature = options[0].strip().toLowerCase().substring(1);
+        String title = "";
         if (options.length > 1) {
           title = options[1].strip();
         }
-        if (feature.startsWith("#link")) {
+        if (feature.startsWith("link")) {
           String[] parts = title.split("\\|");
           String url = parts[0].strip();
           String urlText = url;
@@ -330,32 +405,43 @@ public class SXDialog extends JFrame {
             url = parts[1].strip();
           }
           item = new LinkItem(urlText, url);
-        } else if (feature.startsWith("#image")) {
+        } else if (feature.startsWith("image")) {
           item = new ImageItem(this.getClass().getResource(title));
-        } else if (feature.startsWith("#close")) {
+        } else if (feature.startsWith("close")) {
           item = new TextItem(title);
           item.setActive();
-        } else if (feature.startsWith("#action")) {
+        } else if (feature.startsWith("action")) {
           String action = options.length > 2 ? options[2] : "";
           item = new ActionItem(title, action);
-        } else if (feature.startsWith("#option")) {
+        } else if (feature.startsWith("option")) {
           String action = options.length > 2 ? options[2] : "";
           STATE state = options.length > 3 ? (options[2].toLowerCase().contains("on") ? STATE.ON : STATE.OFF) : STATE.OFF;
           item = new OptionItem(title, action, state);
-        } else if (feature.startsWith("#buttons")) {
-          new ButtonItems(title, options);
+        } else if (feature.startsWith("buttons")) {
+          if (title.isEmpty()) {
+            new ButtonItems("CANCEL | APPLY | OK", options, lineType);
+          } else {
+            new ButtonItems(title, options, lineType);
+          }
           continue;
-        } else if (feature.startsWith("#html")) {
+        } else if (feature.startsWith("button")) {
+          item = new ButtonItem(title);
+        } else if (feature.startsWith("html")) {
           isText = TEXT.HTML;
+        } else if (feature.isEmpty()) {
+          isText = TEXT.TEXT_IN_LINE;
+        } else if (feature.startsWith("prefix")) {
+          globalPrefix = title;
+          continue;
         } else {
           Commons.error("SXDialog: unknown feature %s", feature);
           item = new TextItem("? " + title + " ?");
-          append(item);
+          append(item, lineTypeStd);
           continue;
         }
         if (isText == null) {
           applyOptions(item, options, start);
-          append(item);
+          append(item, lineType);
           continue;
         }
       }
@@ -366,15 +452,21 @@ public class SXDialog extends JFrame {
         if (isText.equals(TEXT.HTML)) {
           item = new HtmlItem(options[1]);
           start = 2;
+        } else if (isText.equals(TEXT.TEXT_IN_LINE)) {
+          item = new TextItem(options[1]);
+          start = 2;
         } else {
+          lineType = lineTypeStd;
           item = new TextItem(options[0]);
         }
         applyOptions(item, options, start);
-        append(item);
+        append(item, lineType);
       } else {
-        append(new TextItem(line));
+        lineType = lineTypeStd;
+        append(new TextItem(line), lineType);
       }
     }
+    appendLine(lineTypeStd);
   }
 
   String replaceVariables(String text) {
@@ -458,24 +550,48 @@ public class SXDialog extends JFrame {
   //endregion
 
   //region 20 top-down line items
-  List<BasicItem[]> lines = new ArrayList<>();
+  List<BasicItem[]> dialogLines = new ArrayList<>();
+  List<BasicItem> dialogLineLeft = new ArrayList<>();
+  List<BasicItem> dialogLineRight = new ArrayList<>();
 
-  void append(BasicItem item) {
+  void append(BasicItem item, String lineType) {
     if (item != null) {
-      if (item.getPadding().top() == 0)
+      if (item.getPadding().top() == 0) {
         item.padT(spaceBefore);
-      lines.add(new BasicItem[]{item});
+      }
+      if (lineType.equals(lineTypeStd)) {
+        appendLine(lineType);
+        dialogLines.add(new BasicItem[]{item});
+      } else if (lineType.equals(lineTypeLeft)) {
+        appendLine(lineType);
+        dialogLineLeft.add(item);
+      } else {
+        appendLine(lineType);
+        dialogLineRight.add(item);
+      }
     }
   }
 
-  void append(BasicItem[] items) {
+  void appendLine(String lineType) {
+    if (!lineType.equals(lineTypeLeft) && dialogLineLeft.size() > 0) {
+      dialogLines.add(dialogLineLeft.toArray(new BasicItem[0]));
+      dialogLineLeft.clear();
+    }
+    if (!lineType.equals(lineTypeRight) && dialogLineRight.size() > 0) {
+      dialogLines.add(dialogLineRight.toArray(new BasicItem[0]));
+      dialogLineRight.clear();
+    }
+  }
+
+  void append(BasicItem[] items, String lineType) {
     for (BasicItem item : items) {
       if (item.getPadding().top() == 0)
         item.padT(spaceBefore);
       if (item.getPadding().left() == 0)
         item.padL(spaceBefore);
     }
-    lines.add(items);
+    appendLine(lineType);
+    dialogLines.add(items);
   }
 
   void packLines(Container pane, List<BasicItem[]> lines) {
@@ -524,7 +640,7 @@ public class SXDialog extends JFrame {
     }
     Dimension paneSize = new Dimension(maxW, nextPosY + margin.bottom);
     int availableW = paneSize.width - margin.left() - margin.right();
-    for (BasicItem[] items : this.lines) {
+    for (BasicItem[] items : this.dialogLines) {
       if (items.length == 1) {
         BasicItem item = items[0];
         int off = 0;
@@ -543,12 +659,12 @@ public class SXDialog extends JFrame {
           final JComponent comp = item.finalComp();
           comp.setBounds(bounds);
           pane.add(comp);
-          addListeners(item);
+          item.addListeners();
         }
       } else {
         for (BasicItem item : items) {
           pane.add(item.finalComp());
-          addListeners(item);
+          item.addListeners();
         }
       }
     }
@@ -558,6 +674,9 @@ public class SXDialog extends JFrame {
 
   //region 50 BasicItem
   abstract class BasicItem {
+
+    BasicItem() {
+    }
 
     //region Component
     String title = this.getClass().getSimpleName();
@@ -700,50 +819,87 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    void mouseListener(BasicItem item) {
-      item.comp().addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-          clicked();
-        }
+    ItemAction itemAction = null;
 
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          if (item instanceof ImageItem) {
-            ((JLabel) item.comp()).setBorder(BorderFactory.createLineBorder(SXRED, 3));
-          } else if (item instanceof ButtonItem) {
-            JButton button = (JButton) item.comp();
-            button.setForeground(Color.WHITE);
-            button.setSelected(true);
-          } else {
-            item.comp().setBackground(SXLBLSELECTED);
-          }
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          if (item instanceof ImageItem) {
-            ((JLabel) item.comp()).setBorder(null);
-          } else if (item instanceof ButtonItem) {
-            JButton button = (JButton) item.comp();
-            button.setForeground(SXRED);
-            button.setSelected(false);
-          } else {
-            item.comp().setBackground(item.getBackground());
-          }
-        }
-      });
+    void itemAction(ItemAction action) {
+      itemAction = action;
     }
 
-    ClickAction clickAction = new ClickAction();
-
-    void clicked() {
-      clickAction.run();
+    void addListeners() {
+      if (active()) {
+        if (comp instanceof JLabel) {
+          if (this instanceof ActionItem || this instanceof LinkItem) {
+            comp.setOpaque(true);
+            comp.setBackground(BACKGROUNDCOLOR);
+          } else if (this instanceof TextItem) {
+            comp.setOpaque(true);
+            setBackground(SXLBLBUTTON);
+            comp.setBackground(getBackground());
+          }
+        }
+        comp.addMouseListener(new ItemMouseAdapter(this));
+        comp.addKeyListener(new ItemKeyAdapter(this));
+      }
     }
 
-    BasicItem setClickAction(ClickAction action) {
-      clickAction = action;
-      return this;
+    class ItemMouseAdapter extends MouseAdapter {
+      BasicItem item;
+
+      ItemMouseAdapter(BasicItem item) {
+        this.item = item;
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        item.mouseClick(e);
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        item.mouseEnter(e);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        item.mouseExit(e);
+      }
+    }
+
+    void mouseClick(MouseEvent e) {
+      if (itemAction != null) {
+        itemAction.run();
+      }
+    }
+
+    void mouseEnter(MouseEvent e) {
+      comp().setBackground(getSelected());
+    }
+
+    void mouseExit(MouseEvent e) {
+      comp().setBackground(getBackground());
+    }
+
+    class ItemKeyAdapter extends KeyAdapter {
+      BasicItem item;
+
+      ItemKeyAdapter(BasicItem item) {
+        this.item = item;
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        keyRelease(e);
+      }
+    }
+
+    void keyRelease(KeyEvent e) {
+      if (checkKey(e, KEYS.ESC)) {
+        closeCancel();
+      } else if (checkKey(e, KEYS.ENTER)) {
+        closeOk();
+      } else if (checkKey(e, KEYS.SPACE)) {
+        apply();
+      }
     }
     //endregion
 
@@ -756,6 +912,16 @@ public class SXDialog extends JFrame {
 
     void setBackground(Color color) {
       background = color;
+    }
+
+    Color selected = SXLBLSELECTED;
+
+    public Color getSelected() {
+      return selected;
+    }
+
+    void setSelected(Color color) {
+      selected = color;
     }
 
     boolean underline = false;
@@ -913,14 +1079,6 @@ public class SXDialog extends JFrame {
   class LinkItem extends TextItem {
     String aLink = "https://sikulix.github.io";
 
-    ClickAction clickAction = new ClickAction() {
-      @Override
-      public void run() {
-        close();
-        Commons.browse(aLink);
-      }
-    };
-
     LinkItem(String text, String link) {
       aText = text;
       if (!text.equals(link)) {
@@ -928,9 +1086,14 @@ public class SXDialog extends JFrame {
       }
       underline();
       setActive();
-      super.clickAction = clickAction;
+    }
+
+    void mouseClick(MouseEvent e) {
+      close();
+      Commons.browse(aLink);
     }
   }
+
   //endregion
 
   //region 522 ActionItem
@@ -938,17 +1101,6 @@ public class SXDialog extends JFrame {
     String aAction = "";
     String command = null;
     String what = "";
-
-    ClickAction clickAction = new ClickAction() {
-      @Override
-      public void run() {
-        if (command != null) {
-          if (command.equals("show")) {
-            new SXDialog(what);
-          }
-        }
-      }
-    };
 
     ActionItem() {
     }
@@ -960,7 +1112,6 @@ public class SXDialog extends JFrame {
       bold();
       setBackground(BACKGROUNDCOLOR);
       getAction();
-      setClickAction(clickAction);
     }
 
     void getAction() {
@@ -977,6 +1128,15 @@ public class SXDialog extends JFrame {
         }
       } else {
         Commons.error("ActionItem: not implemented: %s", aAction);
+      }
+    }
+
+    @Override
+    void mouseClick(MouseEvent e) {
+      if (command != null) {
+        if (command.equals("show")) {
+          new SXDialog(what);
+        }
       }
     }
   }
@@ -999,19 +1159,6 @@ public class SXDialog extends JFrame {
       }
     }
 
-    ClickAction clickAction = new ClickAction() {
-      @Override
-      public void run() {
-        if (state.equals(STATE.ON)) {
-          ((JLabel) comp()).setText("( ) " + title);
-          state = STATE.OFF;
-        } else {
-          ((JLabel) comp()).setText("(X) " + title);
-          state = STATE.ON;
-        }
-      }
-    };
-
     OptionItem(String text, String option, STATE state) {
       this.state = state;
       title = text;
@@ -1023,63 +1170,78 @@ public class SXDialog extends JFrame {
       setActive();
       bold();
       setBackground(BACKGROUNDCOLOR);
-      setClickAction(clickAction);
     }
 
     void create() {
       super.create();
       setStartState((JLabel) comp());
     }
+
+    @Override
+    void mouseClick(MouseEvent e) {
+      if (state.equals(STATE.ON)) {
+        ((JLabel) comp()).setText("( ) " + title);
+        state = STATE.OFF;
+      } else {
+        ((JLabel) comp()).setText("(X) " + title);
+        state = STATE.ON;
+      }
+    }
   }
   //endregion
 
   //region 524 ButtonItem
-  class ButtonItems {
-    ButtonItems(String text, String[] options) {
-      String[] parts = null;
-      if (text.startsWith("#default")) {
-        parts = new String[]{"CANCEL", "APPLY", "OK"};
-      } else {
-        parts = text.split("\\|");
-      }
-      ButtonItem[] buttonItems = new ButtonItem[parts.length];
-      int ix = 0;
-      for (String part : parts) {
-        part = part.strip();
-        buttonItems[ix] = new ButtonItem(part, "action" + part);
-        ix++;
-      }
-      append(buttonItems);
-    }
-  }
-
-  class ButtonItem extends ActionItem {
-    String aAction;
-
-    String getTitle() {
-      return "Button: " + aAction;
+  class ButtonItem extends BasicItem {
+    ButtonItem(String text) {
+      this(text, null);
     }
 
-    ClickAction clickAction = new ClickAction() {
-      @Override
-      public void run() {
-        close();
-      }
-    };
-
-    ButtonItem(String text, String action) {
-      aText = text;
-      aAction = action;
+    ButtonItem(String text, ItemAction itemAction) {
+      title = text;
+      this.itemAction(itemAction);
       setActive();
       bold();
-      setClickAction(clickAction);
     }
 
     void create() {
-      JButton button = new JButton(aText);
+      if (itemAction == null) {
+        itemAction = standardItemAction(this);
+      }
+      JButton button = new JButton(getTitle());
       button.setForeground(SXRED);
       setSize(button.getPreferredSize());
       comp(button); //Button
+    }
+
+    void mouseEnter(MouseEvent e) {
+      JButton button = (JButton) comp();
+      if (frame.isActive()) {
+        button.setForeground(Color.WHITE);
+        button.setSelected(true);
+      }
+    }
+
+    void mouseExit(MouseEvent e) {
+      JButton button = (JButton) comp();
+      button.setForeground(SXRED);
+      button.setSelected(false);
+    }
+  }
+
+  class ButtonItems {
+    ButtonItems(String text, String[] options, String lineType) {
+      String[] parts = null;
+      parts = text.split("\\|");
+      ButtonItem[] buttonItems = new ButtonItem[parts.length];
+      int ix = 0;
+      for (String part : parts) {
+        String buttonTyp = part.strip();
+        ButtonItem buttonItem = new ButtonItem(buttonTyp);
+        globalButtons(buttonItem);
+        buttonItems[ix] = buttonItem;
+        ix++;
+      }
+      append(buttonItems, lineType);
     }
   }
   //endregion
@@ -1134,6 +1296,15 @@ public class SXDialog extends JFrame {
       }
       comp(lblimg); //Image
     }
+
+    void mouseEnter(MouseEvent e) {
+      comp().setBorder(BorderFactory.createLineBorder(SXRED, 3));
+    }
+
+    void mouseExit(MouseEvent e) {
+      comp().setBorder(null);
+    }
+
   }
   //endregion
 
@@ -1141,23 +1312,20 @@ public class SXDialog extends JFrame {
   class ImageLink extends ImageItem {
     String aLink = "https://sikulix.github.io";
 
-    ClickAction clickAction = new ClickAction() {
-      @Override
-      public void run() {
-        close();
-        Commons.browse(aLink);
-      }
-    };
-
     ImageLink(URL url) {
       super(url);
       setActive();
-      super.clickAction = clickAction;
     }
 
     ImageLink(URL url, String link) {
       this(url);
       aLink = link;
+    }
+
+    @Override
+    void mouseClick(MouseEvent e) {
+      close();
+      Commons.browse(aLink);
     }
   }
   //endregion
