@@ -27,12 +27,20 @@ import java.util.Map;
 
 public class SXDialog extends JFrame {
 
+  JFrame frame;
+  Container pane;
+
   public enum POSITION {TOP, TOPLEFT, TOPRIGHT, CENTER}
 
   enum STATE {ON, OFF}
 
-  JFrame frame;
-  Container pane;
+  enum FEAT {CLOSE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT}
+
+  enum TEXT {TEXT, HTML}
+
+  enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER}
+
+  enum BOXTYPE {SINGLE, LEFT, RIGHT, CENTER, TOP, SUB}
 
   private SXDialog() {
     frame = this;
@@ -133,7 +141,7 @@ public class SXDialog extends JFrame {
     return new ItemAction(item) {
       @Override
       public void run() {
-        String title = item.getTitle();
+        String title = item.title();
         if (item instanceof ButtonItem) {
           switch (title) {
             case "OK":
@@ -158,7 +166,7 @@ public class SXDialog extends JFrame {
 
 
   void globalButtons(ButtonItem button) {
-    switch (button.getTitle()) {
+    switch (button.title()) {
       case "OK":
         OK_BUTTON = button;
         return;
@@ -186,7 +194,9 @@ public class SXDialog extends JFrame {
   int border = 3;
 
   void setBorder(int dim) {
-    border = dim;
+    if (dim > -1) {
+      border = dim;
+    }
   }
 
   void setBorder(Color color) {
@@ -217,8 +227,12 @@ public class SXDialog extends JFrame {
   private int maxH = 800;
 
   void setDialogSize(int w, int h) {
-    maxW = w;
-    maxH = h;
+    if (maxW > -1) {
+      maxW = w;
+    }
+    if (maxH > -1) {
+      maxH = h;
+    }
   }
 
   Dimension getDialogSize() {
@@ -228,13 +242,17 @@ public class SXDialog extends JFrame {
   Padding margin = null;
 
   void setMargin(int val) {
-    margin = new Padding(val);
+    if (val > -1) {
+      margin = new Padding(val);
+    }
   }
 
   int spaceBefore = 20;
 
   void setSpaceBefore(int val) {
-    spaceBefore = val;
+    if (val > -1) {
+      spaceBefore = val;
+    }
   }
 
   class Padding {
@@ -340,64 +358,79 @@ public class SXDialog extends JFrame {
   //endregion
 
   //region 30 text to items
-  enum TEXT {TEXT, HTML, TEXT_IN_LINE}
+  String lineTypeLeft = "#";
+  String lineTypeRight = "+";
+  String lineTypeTop = "|";
+  String lineTypeCenter = "-";
+  String lineTypeSub = ".";
+  String lineTypeNext = "/";
+  String lineTypes = "#+|-./";
+  String itemSep = ";";
 
-  String lineTypeStd = "#";
-  String lineTypeLeft = "+";
-  String lineTypeRight = "-";
+  List<String> textLines = new ArrayList<>();
 
   void textToItems(String text) {
     String[] lines = text.split("\n");
-    boolean first = true;
-    for (String line : lines) {
-      String lineType = lineTypeStd;
-      line = line.strip();
-      if (line.isEmpty()) {
+
+    boolean lineContinue = false;
+    String finalTextLine = "";
+    BasicItem lastItem = null;
+    for (String textLine : lines) {
+      textLine = textLine.strip();
+      if (textLine.isEmpty() || textLine.startsWith("//")) {
         continue;
       }
-      String[] options = line.split(";");
-      if (first && line.startsWith("#global")) {
-        if (options.length > 1) {
-          Commons.debug("--- %s", line);
-          for (String option : options) {
-            if (option.startsWith(lineTypeStd)) {
-              continue;
-            }
-            applyOption(option);
-          }
+      if (!lineContinue) {
+        String token = textLine.substring(0, 1);
+        if (!lineTypes.contains(token)) {
+          finalTextLine = "#text" + itemSep + textLine;
+        } else {
+          finalTextLine = textLine;
         }
-        first = false;
-        continue;
       } else {
-        first = false;
+        finalTextLine += textLine;
       }
+      if (finalTextLine.endsWith(lineTypeNext)) {
+        lineContinue = true;
+        finalTextLine = textLine.substring(0, textLine.length() - 1).strip();
+        continue;
+      }
+      textLines.add(finalTextLine);
+    }
+
+    if (textLines.get(0).startsWith("#global")) {
+      getGlobals(textLines.get(0));
+      textLines.remove(0);
+    }
+
+    for (String line : textLines) {
       Commons.debug(line);
+
       if (text.contains("{")) {
         line = replaceVariables(line);
-        options = line.split(";");
       }
-      if (line.startsWith("---")) {
-        if (line.length() > 3) {
-          final Integer number = getNumber(line.substring(3).strip());
-          if (number != null) {
-            append(new LineItem().stroke(number), lineType);
-            continue;
-          }
-        }
-        append(new LineItem(), lineType);
-        continue;
-      }
-      TEXT isText = null;
-      lineType = line.substring(0, 1);
-      if ("#+-".contains(lineType)) {
+
+      String lineType = line.substring(0, 1);
+      if (lineTypes.contains(lineType)) {
+        TEXT isText = null;
         BasicItem item = null;
-        int start = 2;
+        String[] options = line.split(itemSep);
         String feature = options[0].strip().toLowerCase().substring(1);
         String title = "";
         if (options.length > 1) {
           title = options[1].strip();
         }
-        if (feature.startsWith("link")) {
+        ButtonItem[] buttonItems = null;
+        if (line.startsWith("---")) {
+          if (line.length() > 3) {
+            final Integer number = getNumber(line.substring(3).strip());
+            if (number != null) {
+              item = new LineItem().stroke(number);
+            }
+          } else {
+            item = new LineItem();
+          }
+        } else if (isFeat(feature, FEAT.LINK)) {
           String[] parts = title.split("\\|");
           String url = parts[0].strip();
           String urlText = url;
@@ -406,68 +439,121 @@ public class SXDialog extends JFrame {
             url = parts[1].strip();
           }
           item = new LinkItem(urlText, url);
-        } else if (feature.startsWith("image")) {
+        } else if (isFeat(feature, FEAT.IMAGE)) {
           item = new ImageItem(this.getClass().getResource(title));
-        } else if (feature.startsWith("close")) {
+        } else if (isFeat(feature, FEAT.CLOSE)) {
           item = new TextItem(title);
           item.setActive();
-        } else if (feature.startsWith("action")) {
+        } else if (isFeat(feature, FEAT.ACTION)) {
           String action = options.length > 2 ? options[2] : "";
           item = new ActionItem(title, action);
-        } else if (feature.startsWith("option")) {
+        } else if (isFeat(feature, FEAT.OPTION)) {
           String action = options.length > 2 ? options[2] : "";
           STATE state = options.length > 3 ? (options[2].toLowerCase().contains("on") ? STATE.ON : STATE.OFF) : STATE.OFF;
           item = new OptionItem(title, action, state);
-        } else if (feature.startsWith("buttons")) {
+        } else if (isFeat(feature, FEAT.BUTTON)) {
           if (title.isEmpty()) {
-            new ButtonItems("CANCEL | APPLY | OK", options, lineType);
+            buttonItems = buttonItems("CANCEL | APPLY | OK", options);
           } else {
-            new ButtonItems(title, options, lineType);
+            buttonItems = buttonItems(title, options);
           }
-          continue;
-        } else if (feature.startsWith("button")) {
-          item = new ButtonItem(title);
-        } else if (feature.startsWith("html")) {
+        } else if (isFeat(feature, FEAT.HTML)) {
           isText = TEXT.HTML;
-        } else if (feature.isEmpty()) {
-          isText = TEXT.TEXT_IN_LINE;
-        } else if (feature.startsWith("prefix")) {
+        } else if (isFeat(feature, FEAT.TEXT)) {
+          isText = TEXT.TEXT;
+        } else if (isFeat(feature, FEAT.PREFIX)) {
           globalPrefix = title;
           continue;
         } else {
-          Commons.error("SXDialog: unknown feature %s", feature);
-          item = new TextItem("? " + title + " ?");
-          append(item, lineTypeStd);
-          continue;
+          item = new TextItem(feature);
+          if (options.length > 1) {
+            options[0] = "";
+            applyOptions(item, options);
+          }
+          options = null;
         }
-        if (isText == null) {
-          applyOptions(item, options, start);
-          append(item, lineType);
-          continue;
+        if (isText != null) {
+          if (isText.equals(TEXT.HTML)) {
+            item = new HtmlItem(options[1]);
+          } else if (isText.equals(TEXT.TEXT)) {
+            item = new TextItem(options[1]);
+          }
         }
-      }
-      isText = isText == null ? TEXT.TEXT : isText;
-      if (options.length > 1) {
-        TextItem item;
-        int start = 1;
-        if (isText.equals(TEXT.HTML)) {
-          item = new HtmlItem(options[1]);
-          start = 2;
-        } else if (isText.equals(TEXT.TEXT_IN_LINE)) {
-          item = new TextItem(options[1]);
-          start = 2;
+        if (options != null && options.length > 2) {
+          applyOptions(item, options);
+        }
+        if (buttonItems != null) {
+          for (ButtonItem buttonItem : buttonItems) {
+            lastItem = append(lastItem, buttonItem, lineType);
+          }
         } else {
-          lineType = lineTypeStd;
-          item = new TextItem(options[0]);
+          lastItem = append(lastItem, item, lineType);
         }
-        applyOptions(item, options, start);
-        append(item, lineType);
-      } else {
-        lineType = lineTypeStd;
-        append(new TextItem(line), lineType);
       }
     }
-    appendLine(lineTypeStd);
+  }
+
+  BasicItem append(BasicItem lastItem, BasicItem item, String lineType) {
+    if (item != null) {
+      BOXTYPE boxType = BOXTYPE.LEFT;
+      if (lineType.equals(lineTypeCenter)) {
+        boxType = BOXTYPE.CENTER;
+      } else if (lineType.equals(lineTypeRight)) {
+        boxType = BOXTYPE.RIGHT;
+      } else if (lineType.equals(lineTypeTop)) {
+        boxType = BOXTYPE.TOP;
+      } else if (lineType.equals(lineTypeSub)) {
+        if (lastItem != null) {
+          boxType = BOXTYPE.SUB;
+        }
+      }
+      if (lastItem != null) {
+        if (!boxType.equals(BOXTYPE.SUB) && !lastItem.boxType().equals(BOXTYPE.SUB)) {
+          lastItem.boxType(BOXTYPE.SINGLE);
+        }
+      }
+      item.boxType(boxType);
+    }
+    if (lastItem != null) {
+      lastItem.adjustPadding();
+      dialogLines.add(lastItem);
+    }
+    return item;
+  }
+
+  void getGlobals(String line) {
+    String[] options = line.split(itemSep);
+    if (!options[0].equals("#globals") || options.length == 1) {
+      Commons.debug("#globals; empty or invalid: %s", line);
+      return;
+    }
+    for (int n = 1; n < options.length; n++) {
+      String[] parms = options[n].strip().split(" ");
+      String option = parms[0].toLowerCase();
+      int parm1 = getNumber(parms, 1);
+      int parm2 = getNumber(parms, 2);
+      if (isOption(option, OPT.SIZE)) {
+        setDialogSize(parm1, parm2);
+      } else if (isOption(option, OPT.MARGIN)) {
+        setMargin(parm1);
+      } else if (isOption(option, OPT.PADDING)) {
+        setSpaceBefore(parm1);
+      } else if (isOption(option, OPT.CENTER)) {
+        setAlign(ALIGN.CENTER);
+      } else if (isOption(option, OPT.FONT)) {
+        setFontSize(parm1);
+      } else if (isOption(option, OPT.BORDER)) {
+        for (int pn = 1; pn < parms.length; pn++) {
+          String parm = parms[pn];
+          Integer num = getNumber(parm);
+          if (num == null) {
+            setBorderColor(parm);
+          } else {
+            setBorder(num);
+          }
+        }
+      }
+    }
   }
 
   String replaceVariables(String text) {
@@ -495,31 +581,12 @@ public class SXDialog extends JFrame {
     return "";
   }
 
-  void applyOption(String option) {
-    option = option.strip();
-    String[] parms = option.split(" ");
-    String feature = parms[0].toLowerCase();
-    if (feature.contains("size") && parms.length > 2) {
-      setDialogSize(Integer.parseInt(parms[1]), Integer.parseInt(parms[2]));
-    } else if (feature.contains("margin") && parms.length > 1) {
-      setMargin(Integer.parseInt(parms[1]));
-    } else if (feature.contains("center")) {
-      setAlign(ALIGN.CENTER);
-    } else if (feature.contains("font")) {
-      setFontSize(Integer.parseInt(parms[1]));
-    } else if (feature.contains("before")) {
-      setSpaceBefore(Integer.parseInt(parms[1]));
-    } else if (feature.contains("border") && parms.length > 1) {
-      for (int n = 1; n < parms.length; n++) {
-        String parm = parms[n];
-        Integer num = getNumber(parm);
-        if (num == null) {
-          setBorderColor(parm);
-        } else {
-          setBorder(num);
-        }
-      }
-    }
+  boolean isOption(String option, OPT token) {
+    return option.substring(0, 1).equals(token.toString().substring(0, 1).toLowerCase());
+  }
+
+  boolean isFeat(String option, FEAT token) {
+    return option.substring(0, 1).equals(token.toString().substring(0, 1).toLowerCase());
   }
 
   Integer getNumber(String text) {
@@ -530,133 +597,131 @@ public class SXDialog extends JFrame {
     }
   }
 
-  void applyOptions(BasicItem item, String[] options, int start) {
-    for (int n = start; n < options.length; n++) {
-      String option = options[n].strip();
-      String[] parms = option.split(" ");
-      String feature = parms[0].toLowerCase();
-      if (feature.contains("resize") && parms.length > 1) {
-        item.resize(Integer.parseInt(parms[1]));
-      } else if (feature.startsWith("f")) {
-        item.fontSize(Integer.parseInt(parms[1]));
-      } else if (feature.contains("top")) {
-        item.padT(Integer.parseInt(parms[1]));
-      } else if (feature.contains("bold")) {
-        item.bold();
-      } else if (feature.contains("center")) {
-        item.align(ALIGN.CENTER);
+  Integer getNumber(String[] parms, int ix) {
+    if (ix < parms.length) {
+      Integer num = getNumber(parms[ix]);
+      if (num != null) {
+        return num;
+      }
+    }
+    return -1;
+  }
+
+  void applyOptions(BasicItem item, String[] options) {
+    if (item != null && options.length > 2) {
+      for (int n = 2; n < options.length; n++) {
+        String[] parms = options[n].strip().split(" ");
+        String option = parms[0].strip().toLowerCase();
+        int parm1 = getNumber(parms, 1);
+        if (option.startsWith("r") && parms.length > 1) {
+          item.resize(parm1);
+        } else if (option.startsWith("f")) {
+          item.fontSize(parm1);
+        } else if (option.startsWith("t")) {
+          item.padT(parm1);
+        } else if (option.startsWith("b")) {
+          item.bold();
+        } else if (option.startsWith("c")) {
+          item.align(ALIGN.CENTER);
+        }
       }
     }
   }
   //endregion
 
   //region 20 top-down line items
-  List<BasicItem[]> dialogLines = new ArrayList<>();
-  List<BasicItem> dialogLineLeft = new ArrayList<>();
-  List<BasicItem> dialogLineRight = new ArrayList<>();
+  List<BasicItem> dialogLines = new ArrayList<>();
 
-  void append(BasicItem item, String lineType) {
-    if (item != null) {
-      if (item.getPadding().top() == 0) {
-        item.padT(spaceBefore);
-      }
-      if (lineType.equals(lineTypeStd)) {
-        appendLine(lineType);
-        dialogLines.add(new BasicItem[]{item});
-      } else if (lineType.equals(lineTypeLeft)) {
-        appendLine(lineType);
-        dialogLineLeft.add(item);
-      } else {
-        appendLine(lineType);
-        item.align(ALIGN.RIGHT);
-        dialogLineRight.add(item);
-      }
-    }
-  }
-
-  void appendLine(String lineType) {
-    if (!lineType.equals(lineTypeLeft) && dialogLineLeft.size() > 0) {
-      dialogLines.add(dialogLineLeft.toArray(new BasicItem[0]));
-      dialogLineLeft.clear();
-    }
-    int size = dialogLineRight.size();
-    if (!lineType.equals(lineTypeRight) && size > 0) {
-      dialogLines.add(dialogLineRight.toArray(new BasicItem[0]));
-      dialogLineRight.clear();
-    }
-  }
-
-  public static BasicItem[] reverseArray(BasicItem[] anArray) {
-    for (int i = 0; i < anArray.length / 2; i++) {
-      BasicItem temp = anArray[i];
-      anArray[i] = anArray[anArray.length - i - 1];
-      anArray[anArray.length - i - 1] = temp;
-    }
-    return anArray;
-  }
-
-  void append(BasicItem[] items, String lineType) {
-    for (BasicItem item : items) {
-      if (item.getPadding().top() == 0)
-        item.padT(spaceBefore);
-      if (item.getPadding().left() == 0)
-        item.padL(spaceBefore);
-    }
-    appendLine(lineType);
-    dialogLines.add(items);
-  }
-
-  void packLines(Container pane, List<BasicItem[]> lines) {
-    int nextPosY = margin.top;
+  void packLines(Container pane, List<BasicItem> boxes) {
+    int nextPosY = 0;
     int currentPosY;
+    int nextPosX = 0;
+    int currentPosX;
     int maxW = 0;
     Rectangle bounds;
     boolean first = true;
-    for (BasicItem[] items : lines) {
-      BasicItem item = items[0];
-      item.create();
+    BOXTYPE groupBoxType = BOXTYPE.SINGLE;
+
+    for (BasicItem item : boxes) {
       currentPosY = nextPosY;
-      int nextPosX;
+      currentPosX = nextPosX;
+
+      item.create();
       bounds = item.getBounds();
+
       bounds.y = nextPosY;
-      if (!first) {
-        bounds.y += item.getPadding().top;
-      }
-      nextPosY = bounds.y + bounds.height;
-      bounds.x += margin.left;
-      maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
-      nextPosX = bounds.x + bounds.width;
-      item.setBounds(bounds);
-      if (items.length > 1) {
-        for (int n = 1; n < items.length; n++) {
-          item = items[n];
-          item.create();
-          bounds = item.getBounds();
-          bounds.y = currentPosY;
-          if (!first) {
-            bounds.y += item.getPadding().top;
-          }
-          nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
-          bounds.x = nextPosX + item.getPadding().left;
+      bounds.x = nextPosX;
+
+      if (!item.boxType().equals(BOXTYPE.SUB)) {
+        nextPosY = bounds.y + bounds.height;
+        if (item.boxType().equals(BOXTYPE.SINGLE)) {
+          nextPosX = 0;
+        } else {
           nextPosX = bounds.x + bounds.width;
-          maxW = Math.max(maxW, nextPosX + margin.right);
-          item.setBounds(bounds);
+        }
+        maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
+        groupBoxType = item.boxType();
+      } else {
+        if (groupBoxType.equals(BOXTYPE.TOP)) {
+          nextPosY = bounds.y + bounds.height;
+
+        } else {
+          nextPosX = bounds.x + bounds.width;
+
         }
       }
-      first = false;
+
+      item.setBounds(bounds);
+
+      //TODO ********************
+      if (false) {
+        item.create();
+        bounds = item.getBounds();
+        bounds.y = currentPosY;
+        if (!first) {
+          bounds.y = bounds.y + item.getPadding().top;
+        }
+        nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
+        bounds.x = nextPosX + item.getPadding().left;
+        nextPosX = bounds.x + bounds.width;
+        maxW = Math.max(maxW, nextPosX + margin.right);
+        item.setBounds(bounds);
+      }
     }
+
     Dimension paneSize = new Dimension(maxW, nextPosY + margin.bottom);
     int availableW = paneSize.width - margin.left() - margin.right();
-    for (BasicItem[] items : this.dialogLines) {
-      int length = items.length;
-      if (items[0].isCenter() && length > 1) {
-        bounds = items[length - 1].getBounds();
+
+    for (BasicItem item : boxes) {
+      bounds = item.getBounds();
+      if (bounds.width == 0) {
+        bounds.width = availableW;
+        item.setBounds(bounds);
       }
-      if (!items[0].isLeft()) {
-        int nextPosX = paneSize.width - margin.right;
+    }
+
+    //TODO ********************
+    for (BasicItem basicItem : boxes) {
+      pane.add(basicItem.finalComp());
+      basicItem.addListeners();
+    }
+
+    for (BasicItem item : this.dialogLines) {
+      if (1 == 1) break;
+      if (!item.isLeft()) {
+        boolean isRight = item.isRight();
+        //bounds = items[length - 1].getBounds();
+        //TODO ********************
+        bounds = null;
+        if (isRight) {
+          nextPosX = paneSize.width - margin.right;
+        } else {
+          nextPosX = bounds.x + bounds.width + ((availableW + margin.left) - (bounds.x + bounds.width)) / 2;
+        }
         first = true;
-        for (int n = items.length - 1; n > -1; n--) {
-          BasicItem item = items[n];
+        for (int n = 100 - 1; n > -1; n--) {
+          //TODO       for (int n = items.length - 1; n > -1; n--) {
+          //         item = items[n];
           bounds = item.getBounds();
           bounds.x = nextPosX - bounds.width;
           if (!first) {
@@ -668,8 +733,8 @@ public class SXDialog extends JFrame {
           nextPosX = bounds.x;
         }
       }
-      if (items.length == 1) {
-        BasicItem item = items[0];
+      if (1 == 1) {
+        //TODO item = items[0];
         int off = 0;
         bounds = item.getBounds();
         if (bounds.width == 0) {
@@ -687,15 +752,16 @@ public class SXDialog extends JFrame {
           item.addListeners();
         }
       } else {
-        for (BasicItem item : items) {
-          pane.add(item.finalComp());
-          item.addListeners();
-        }
+//        for (BasicItem basicItem : items) {
+//          pane.add(basicItem.finalComp());
+//          basicItem.addListeners();
+//        }
       }
     }
+
     finalSize = paneSize;
   }
-  //endregion
+//endregion
 
   //region 50 BasicItem
   abstract class BasicItem {
@@ -703,11 +769,30 @@ public class SXDialog extends JFrame {
     BasicItem() {
     }
 
+    public String toString() {
+      String type = this.getClass().getSimpleName();
+      return String.format("%s[\"%s\", %s]", type, title(), BOXTYPE.valueOf(boxType.toString()));
+    }
+
+    BOXTYPE boxType = BOXTYPE.LEFT;
+
+    public BOXTYPE boxType() {
+      return boxType;
+    }
+
+    public void boxType(BOXTYPE boxType) {
+      this.boxType = boxType;
+    }
+
     //region Component
     String title = this.getClass().getSimpleName();
 
-    String getTitle() {
+    String title() {
       return title;
+    }
+
+    void title(String text) {
+      title = text;
     }
 
     boolean isValid() {
@@ -746,13 +831,29 @@ public class SXDialog extends JFrame {
       return padding;
     }
 
+    void adjustPadding() {
+      if (padding.top < 1) {
+        padding.top = spaceBefore;
+      }
+      if (padding.left < 1) {
+        padding.left = spaceBefore;
+      }
+      if (padding.right < 1) {
+        padding.right = spaceBefore;
+      }
+    }
+
     BasicItem padT(int val) {
-      padding.top(val);
+      if (val > -1) {
+        padding.top(val);
+      }
       return this;
     }
 
     BasicItem padL(int val) {
-      padding.left(val);
+      if (val > -1) {
+        padding.left(val);
+      }
       return this;
     }
     //endregion
@@ -957,7 +1058,9 @@ public class SXDialog extends JFrame {
     }
 
     BasicItem fontSize(int size) {
-      fontSize = size;
+      if (size > -1) {
+        fontSize = size;
+      }
       return this;
     }
 
@@ -972,7 +1075,7 @@ public class SXDialog extends JFrame {
     //endregion
 
   }
-  //endregion
+//endregion
 
   //region 51 LineItem
   class LineItem extends BasicItem {
@@ -1027,35 +1130,31 @@ public class SXDialog extends JFrame {
   private int stdFontSize = 14;
 
   void setFontSize(int val) {
-    stdFontSize = val;
+    if (val > -1) {
+      stdFontSize = val;
+    }
   }
 
   class TextItem extends BasicItem {
-
-    String aText = "";
-
-    String getTitle() {
-      return aText;
-    }
 
     TextItem() {
     }
 
     TextItem(String aText) {
-      this.aText = aText;
+      title(aText);
     }
 
     void create() {
-      JLabel lblText = new JLabel(aText);
+      JLabel lblText = new JLabel(title());
       Font font = new Font(fontName, fontBold, fontSize);
-      Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
+      Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(title(), getGraphics());
       if (textLen.getWidth() > maxW) {
         fontSize = (int) (fontSize * maxW / textLen.getWidth());
         font = new Font(fontName, fontBold, fontSize);
-        textLen = lblText.getFontMetrics(font).getStringBounds(aText, getGraphics());
+        textLen = lblText.getFontMetrics(font).getStringBounds(title(), getGraphics());
       }
       if (underline) {
-        lblText = new UnderlinedLabel(aText, font);
+        lblText = new UnderlinedLabel(title(), font);
       }
       lblText.setFont(font);
       Rectangle r = new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight());
@@ -1093,19 +1192,19 @@ public class SXDialog extends JFrame {
       super.create();
       JLabel lblHtml = (JLabel) comp();
       Dimension size = getSize();
-      aText = "<html>" + aText.replace("|", "<br>");
-      lblHtml.setText(aText);
+      title("<html>" + title().replace("|", "<br>"));
+      lblHtml.setText(title());
       setSize(lblHtml.getPreferredSize());
     }
   }
-  //endregion
+//endregion
 
   //region 521 Linkitem
   class LinkItem extends TextItem {
     String aLink = "https://sikulix.github.io";
 
     LinkItem(String text, String link) {
-      aText = text;
+      title(text);
       if (!text.equals(link)) {
         aLink = link.strip();
       }
@@ -1119,7 +1218,7 @@ public class SXDialog extends JFrame {
     }
   }
 
-  //endregion
+//endregion
 
   //region 522 ActionItem
   class ActionItem extends TextItem {
@@ -1131,7 +1230,7 @@ public class SXDialog extends JFrame {
     }
 
     ActionItem(String text, String action) {
-      aText = text.strip();
+      title(text.strip());
       aAction = action.strip();
       setActive();
       bold();
@@ -1165,7 +1264,7 @@ public class SXDialog extends JFrame {
       }
     }
   }
-  //endregion
+//endregion
 
   //region 523 OptionItem
   class OptionItem extends ActionItem {
@@ -1187,7 +1286,7 @@ public class SXDialog extends JFrame {
     OptionItem(String text, String option, STATE state) {
       this.state = state;
       title = text;
-      aText = "(X) " + text;
+      title("(X) " + text);
       if (state.equals(STATE.ON)) {
         startState = STATE.ON;
       }
@@ -1213,7 +1312,7 @@ public class SXDialog extends JFrame {
       }
     }
   }
-  //endregion
+//endregion
 
   //region 524 ButtonItem
   class ButtonItem extends BasicItem {
@@ -1232,7 +1331,7 @@ public class SXDialog extends JFrame {
       if (itemAction == null) {
         itemAction = standardItemAction(this);
       }
-      JButton button = new JButton(getTitle());
+      JButton button = new JButton(title());
       button.setForeground(SXRED);
       setSize(button.getPreferredSize());
       comp(button); //Button
@@ -1253,26 +1352,21 @@ public class SXDialog extends JFrame {
     }
   }
 
-  class ButtonItems {
-    ButtonItems(String text, String[] options, String lineType) {
-      String[] parts = null;
-      parts = text.split("\\|");
-      ButtonItem[] buttonItems = new ButtonItem[parts.length];
-      int ix = 0;
-      for (String part : parts) {
-        String buttonTyp = part.strip();
-        ButtonItem buttonItem = new ButtonItem(buttonTyp);
-        if (lineType.equals(lineTypeRight)) {
-          buttonItem.align(ALIGN.RIGHT);
-        }
-        globalButtons(buttonItem);
-        buttonItems[ix] = buttonItem;
-        ix++;
-      }
-      append(buttonItems, lineType);
+  ButtonItem[] buttonItems(String text, String[] options) {
+    String[] parts = null;
+    parts = text.split("\\|");
+    ButtonItem[] buttonItems = new ButtonItem[parts.length];
+    int ix = 0;
+    for (String part : parts) {
+      String buttonTyp = part.strip();
+      ButtonItem buttonItem = new ButtonItem(buttonTyp);
+      globalButtons(buttonItem);
+      buttonItems[ix] = buttonItem;
+      ix++;
     }
+    return buttonItems;
   }
-  //endregion
+//endregion
 
   //region 53 ImageItem
   class ImageItem extends BasicItem {
@@ -1334,7 +1428,7 @@ public class SXDialog extends JFrame {
     }
 
   }
-  //endregion
+//endregion
 
   //region 531 ImageLink
   class ImageLink extends ImageItem {
@@ -1356,5 +1450,5 @@ public class SXDialog extends JFrame {
       Commons.browse(aLink);
     }
   }
-  //endregion
+//endregion
 }
