@@ -341,6 +341,7 @@ public class SXDialog extends JFrame {
 
   //region 30 text to items
   enum TEXT {TEXT, HTML, TEXT_IN_LINE}
+
   String lineTypeStd = "#";
   String lineTypeLeft = "+";
   String lineTypeRight = "-";
@@ -567,6 +568,7 @@ public class SXDialog extends JFrame {
         dialogLineLeft.add(item);
       } else {
         appendLine(lineType);
+        item.align(ALIGN.RIGHT);
         dialogLineRight.add(item);
       }
     }
@@ -577,10 +579,20 @@ public class SXDialog extends JFrame {
       dialogLines.add(dialogLineLeft.toArray(new BasicItem[0]));
       dialogLineLeft.clear();
     }
-    if (!lineType.equals(lineTypeRight) && dialogLineRight.size() > 0) {
+    int size = dialogLineRight.size();
+    if (!lineType.equals(lineTypeRight) && size > 0) {
       dialogLines.add(dialogLineRight.toArray(new BasicItem[0]));
       dialogLineRight.clear();
     }
+  }
+
+  public static BasicItem[] reverseArray(BasicItem[] anArray) {
+    for (int i = 0; i < anArray.length / 2; i++) {
+      BasicItem temp = anArray[i];
+      anArray[i] = anArray[anArray.length - i - 1];
+      anArray[anArray.length - i - 1] = temp;
+    }
+    return anArray;
   }
 
   void append(BasicItem[] items, String lineType) {
@@ -604,36 +616,31 @@ public class SXDialog extends JFrame {
       BasicItem item = items[0];
       item.create();
       currentPosY = nextPosY;
+      int nextPosX;
       bounds = item.getBounds();
-      if (item.isValid()) {
-        bounds.y = nextPosY;
-        if (!first) {
-          bounds.y += item.getPadding().top;
-        }
-        bounds.x += margin.left;
-        item.setBounds(bounds);
-        nextPosY = bounds.y + bounds.height;
-      } else {
-        Commons.error("SXDialog: packLines: comp == null: %s", item);
+      bounds.y = nextPosY;
+      if (!first) {
+        bounds.y += item.getPadding().top;
       }
-      int nextPosX = bounds.x + bounds.width;
+      nextPosY = bounds.y + bounds.height;
+      bounds.x += margin.left;
       maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
+      nextPosX = bounds.x + bounds.width;
+      item.setBounds(bounds);
       if (items.length > 1) {
         for (int n = 1; n < items.length; n++) {
           item = items[n];
           item.create();
-          if (item.isValid()) {
-            bounds = item.getBounds();
-            bounds.y = currentPosY;
-            if (!first) {
-              bounds.y += item.getPadding().top;
-            }
-            bounds.x = nextPosX + item.getPadding().left;
-            nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
-            nextPosX = bounds.x + bounds.width;
-            item.setBounds(bounds);
+          bounds = item.getBounds();
+          bounds.y = currentPosY;
+          if (!first) {
+            bounds.y += item.getPadding().top;
           }
+          nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
+          bounds.x = nextPosX + item.getPadding().left;
+          nextPosX = bounds.x + bounds.width;
           maxW = Math.max(maxW, nextPosX + margin.right);
+          item.setBounds(bounds);
         }
       }
       first = false;
@@ -641,6 +648,26 @@ public class SXDialog extends JFrame {
     Dimension paneSize = new Dimension(maxW, nextPosY + margin.bottom);
     int availableW = paneSize.width - margin.left() - margin.right();
     for (BasicItem[] items : this.dialogLines) {
+      int length = items.length;
+      if (items[0].isCenter() && length > 1) {
+        bounds = items[length - 1].getBounds();
+      }
+      if (!items[0].isLeft()) {
+        int nextPosX = paneSize.width - margin.right;
+        first = true;
+        for (int n = items.length - 1; n > -1; n--) {
+          BasicItem item = items[n];
+          bounds = item.getBounds();
+          bounds.x = nextPosX - bounds.width;
+          if (!first) {
+            bounds.x -= item.getPadding().right;
+          } else {
+            first = false;
+          }
+          item.setBounds(bounds);
+          nextPosX = bounds.x;
+        }
+      }
       if (items.length == 1) {
         BasicItem item = items[0];
         int off = 0;
@@ -651,8 +678,6 @@ public class SXDialog extends JFrame {
         }
         if (item.isCenter()) {
           off = (availableW - bounds.width) / 2;
-        } else if (item.isRight()) {
-          off = availableW - bounds.width;
         }
         bounds.x += off;
         if (item.isValid()) {
@@ -1237,6 +1262,9 @@ public class SXDialog extends JFrame {
       for (String part : parts) {
         String buttonTyp = part.strip();
         ButtonItem buttonItem = new ButtonItem(buttonTyp);
+        if (lineType.equals(lineTypeRight)) {
+          buttonItem.align(ALIGN.RIGHT);
+        }
         globalButtons(buttonItem);
         buttonItems[ix] = buttonItem;
         ix++;

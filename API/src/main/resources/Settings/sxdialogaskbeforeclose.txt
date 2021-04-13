@@ -1,11 +1,13 @@
 #globals; margin 5; Font 14; before 5; border 1;
 #prefix dialogbasics
 
-Asking before closing Dialog; center
+Asking before closing Dialog Asking before closing Dialog; center
 --- 3
-+button; GO BACK
-+; some text
-+button; OK
-final text
+#html; bottom text more text to read|... and g y even more
 --- 3
-bottom text
+-button; OK
+--- 3
+-button; CANCEL
+-button; OK
+--- 3
+-buttons;
