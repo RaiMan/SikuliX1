@@ -7,8 +7,19 @@ Asking before closing Dialog Asking before closing Dialog; center
 --- 3
 +button; OK
 --- 3
--button; CANCEL
-.button; OK
-.some text
+| text centered
+
+#
+button; CANCEL
+-button; OK
+|some text
++button: APPLY
+
+#box;
+#button; CANCEL
+-button; OK
+|some text
++button: APPLY
+
 --- 3
 #button;

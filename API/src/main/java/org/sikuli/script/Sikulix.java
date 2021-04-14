@@ -13,6 +13,7 @@ import org.sikuli.script.support.SikulixEvaluate;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
 import java.awt.Dimension;
@@ -33,7 +34,16 @@ public class Sikulix {
 //TODO place to test something in the API context
     if (args.length == 1 && "test".equals(args[0])) {
 
-      SikulixEvaluate.test();
+      //SikulixEvaluate.test();
+
+      SXDialog dialog = new SXDialog("sxdialogaskbeforeclose");
+
+      while (dialog.isVisible()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+      }
 
       System.exit(0);
     }
@@ -243,7 +253,7 @@ public class Sikulix {
         title = "Sikuli input request";
       }
       ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-              JOptionPane.PLAIN_MESSAGE, null, null, preset);
+          JOptionPane.PLAIN_MESSAGE, null, null, preset);
     } else {
       preset = "";
       JTextArea tm = new JTextArea(msg);
@@ -451,7 +461,7 @@ public class Sikulix {
       }
     }
     return FileManager.buildJar(targetJar, new String[]{null},
-            new String[]{sourceFolder}, new String[]{prefix}, null);
+        new String[]{sourceFolder}, new String[]{prefix}, null);
   }
   //</editor-fold>
 }

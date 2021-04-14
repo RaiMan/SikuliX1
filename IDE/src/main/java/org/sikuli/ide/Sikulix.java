@@ -118,26 +118,11 @@ public class Sikulix {
     }
 
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
-
-    Rectangle ideWindow = new Rectangle(PreferencesUser.get().getIdeLocation(),
-        PreferencesUser.get().getIdeSize());
     //endregion
 
 
     ideSplash = null;
-    SXDialog dialog = null;
-    //ideSplash = new SXDialog("idestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-    dialog = new SXDialog("sxdialogaskbeforeclose");
-
-    if (ideSplash == null) {
-      while (dialog.isVisible()) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-        }
-      }
-      System.exit(1);
-    }
+    ideSplash = new SXDialog("idestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;
