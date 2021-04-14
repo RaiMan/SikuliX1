@@ -63,7 +63,7 @@ public class SXDialog extends JFrame {
       }
       if (feature.length() <= FEATURE_MAXLEN) {
         if (!FEATURES.contains(feature)) {
-          Commons.hereError("invalid feature", line);
+          Commons.trace("invalid feature", line);
           return FEATURE_ERROR;
         }
       } else {
@@ -96,7 +96,7 @@ public class SXDialog extends JFrame {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(KeyEvent e) {
-        Commons.debug("global key listener fired - closing window without saving state");
+        Commons.trace("global key listener fired - closing window without saving state");
         close();
       }
     });
@@ -199,7 +199,7 @@ public class SXDialog extends JFrame {
               return;
           }
         }
-        Commons.debug("Button: %s: running action: %s", title, actionName);
+        Commons.trace("Button: %s: running action: %s", title, actionName);
       }
     };
   }
@@ -267,8 +267,8 @@ public class SXDialog extends JFrame {
 
   Dimension finalSize = null;
 
-  private int maxW = 800;
-  private int maxH = 800;
+  private int maxW = (int) (1024 * 0.8);
+  private int maxH = maxW/4 * 3;
 
   void setDialogSize(int w, int h) {
     if (maxW > -1) {
@@ -386,18 +386,18 @@ public class SXDialog extends JFrame {
   }
 
   void closeCancel() {
-    Commons.debug("ESC or Button CANCEL: closing dialog without saving anything");
+    Commons.trace("ESC or Button CANCEL: closing dialog without saving anything");
     close();
   }
 
   void closeOk() {
     apply();
-    Commons.debug("ENTER or Button OK: closing dialog");
+    Commons.trace("ENTER or Button OK: closing dialog");
     close();
   }
 
   void apply() {
-    Commons.debug("SPACE or Button APPLY: saving changed state");
+    Commons.trace("SPACE or Button APPLY: saving changed state");
   }
   //endregion
 
@@ -454,7 +454,7 @@ public class SXDialog extends JFrame {
       String feature = "";
       String lineType = "-";
 
-      Commons.debug(line);
+      Commons.trace(line);
       if (text.contains("{")) {
         line = replaceVariables(line);
       }
@@ -542,18 +542,8 @@ public class SXDialog extends JFrame {
           } else if (isFeat(feature, FEATURE.PREFIX)) {
             globalPrefix = title;
             continue;
-
           }
         }
-//      else {
-//          item = new TextItem(feature);
-//          if (options.length > 1) {
-//            options[0] = "";
-//            applyOptions(item, options);
-//          }
-//          options = null;
-//        }
-
         if (isText != null) {
           if (isText.equals(TEXT.HTML)) {
             item = new HtmlItem(options[1]);
@@ -561,6 +551,7 @@ public class SXDialog extends JFrame {
             item = new TextItem(options[1]);
           }
         }
+
         if (options != null && options.length > 2) {
           applyOptions(item, options);
         }
@@ -577,6 +568,7 @@ public class SXDialog extends JFrame {
     if (lastItem != null) {
       dialogLines.add(lastItem);
     }
+    Commons.trace("test");
   }
 
   BasicItem append(BasicItem lastItem, BasicItem item, String lineType) {
@@ -589,9 +581,6 @@ public class SXDialog extends JFrame {
       } else if (lineType.equals(lineTypeCenter)) {
         itemtype = ITEMTYPE.CENTER;
       }
-      if (lastItem != null) {
-        if (lastItem.itemType().equals(itemtype)) ;
-      }
       item.itemType(itemtype);
     }
     if (lastItem != null) {
@@ -603,7 +592,7 @@ public class SXDialog extends JFrame {
   void getGlobals(String line) {
     String[] options = line.split(itemSep);
     if (!options[0].equals("#globals") || options.length == 1) {
-      Commons.debug("#globals; empty or invalid: %s", line);
+      Commons.trace("#globals; empty or invalid: %s", line);
       return;
     }
     for (int n = 1; n < options.length; n++) {
@@ -707,32 +696,30 @@ public class SXDialog extends JFrame {
   //region 20 top-down line items
   List<BasicItem> dialogLines = new ArrayList<>();
 
-  ITEMTYPE boxT = null;
-
-  Point applyBounds(BasicItem item, Point pos) {
-    Rectangle b = new Rectangle(item.getBounds());
-    boxT = item.itemType();
-
-    b.x = pos.y;
-    maxW = Math.max(b.x + b.width + margin.left() + margin.right(), maxW);
-
-    //adjustPadding(item, lineType);
-    return pos;
-  }
+  Point lastX = new Point(0, 0);
+  Point lastY = new Point(0, 0);
 
   void packLines(Container pane, List<BasicItem> boxes) {
-    Point nextPos = new Point(0, 0);
-    int maxW = 0;
-    Rectangle bounds;
-    boolean first = true;
 
     for (BasicItem item : boxes) {
       item.create();
-      applyBounds(item, nextPos);
+
+      ITEMTYPE itemType = item.itemType();
+      Rectangle rect = new Rectangle(item.getBounds());
+
+      rect.x = lastX.x + (lastX.x == 0 ? margin.left() : item.getPadding().left());
+      lastX.x = rect.x + rect.width;
+      lastRect.width = Math.max(lastX.x + margin.right(), lastRect.width);
+      rect.y = lastRect.y + (lastRect.y == 0 ? margin.top() : item.getPadding().top());
+      lastRect.height = Math.max(rect.y + rect.height + margin.bottom(), lastRect.height);
+
+      item.setPos(lastRect.getLocation());
     }
 
-    Dimension paneSize = new Dimension(maxW, nextPos.y + margin.bottom);
+    Dimension paneSize = new Dimension(maxW, lastRect.y + margin.bottom);
     int availableW = paneSize.width - margin.left() - margin.right();
+
+    Rectangle bounds;
 
     for (BasicItem item : boxes) {
       bounds = item.getBounds();
@@ -761,17 +748,12 @@ public class SXDialog extends JFrame {
         } else {
           nextPosX = bounds.x + bounds.width + ((availableW + margin.left) - (bounds.x + bounds.width)) / 2;
         }
-        first = true;
         for (int n = 100 - 1; n > -1; n--) {
           //TODO       for (int n = items.length - 1; n > -1; n--) {
           //         item = items[n];
           bounds = item.getBounds();
           bounds.x = nextPosX - bounds.width;
-          if (!first) {
             bounds.x -= item.getPadding().right;
-          } else {
-            first = false;
-          }
           item.setBounds(bounds);
           nextPosX = bounds.x;
         }
@@ -816,7 +798,8 @@ public class SXDialog extends JFrame {
       String clazz = this.getClass().getSimpleName();
       String title = title();
       title = title.length() > 10 ? title.substring(0, 10) + "..." : title;
-      return String.format("%s[\"%s\" %s]", clazz, title, itemType());
+      return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType(),
+              getX(), getY(), getW(), getH());
     }
 
     ITEMTYPE itemtype = ITEMTYPE.LEFT;

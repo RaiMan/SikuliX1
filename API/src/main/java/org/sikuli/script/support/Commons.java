@@ -144,20 +144,33 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
-  public static void setVerbose() {
-  }
-
-  public static String enter(String method, String parameter, Object... args) {
-    String parms = String.format(parameter, args);
-    if (isTrace()) {
-      System.out.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
+  public static void info(String msg, Object... args) {
+    if (hasOption(VERBOSE)) {
+      System.out.printf("[SXINFO] " + msg + "%n", args);
     }
-    return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
-  public static void exit(String method, String returns, Object... args) {
-    if (isTrace()) {
-      System.out.printf("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
+  public static void error(String msg, Object... args) {
+    System.out.printf("[SXERROR] " + msg + "%n", args);
+  }
+
+  public static boolean isDebug() {
+    return debug;
+  }
+
+  public static void startDebug() {
+    debug = true;
+  }
+
+  public static void stopDebug() {
+    debug = true;
+  }
+
+  private static boolean debug = false;
+
+  public static void debug(String msg, Object... args) {
+    if (isDebug() || Debug.isGlobalDebug()) {
+      System.out.printf("[SXDEBUG] " + msg + "%n", args);
     }
   }
 
@@ -175,43 +188,28 @@ public class Commons {
 
   private static boolean trace = false;
 
-  public static boolean isDebug() {
-    return debug;
-  }
-
-  public static void startDebug() {
-    debug = true;
-  }
-
-  public static void stopDebug() {
-    debug = true;
-  }
-
-  private static boolean debug = false;
-
-  public static void info(String msg, Object... args) {
-    if (hasOption(VERBOSE)) {
-      System.out.printf("[INFO Commons] " + msg + "%n", args);
-    }
-  }
-
-  public static void error(String msg, Object... args) {
-    System.out.printf("[ERROR Commons] " + msg + "%n", args);
-  }
-
-  public static void hereError(String msg, Object... args) {
-    System.out.printf("[ERROR Commons] " + msg + "%n", args);
-  }
-
-  public static void debug(String msg, Object... args) {
-    if (isDebug() || Debug.isGlobalDebug()) {
-      System.out.printf("[DEBUG Commons] " + msg + "%n", args);
-    }
-  }
-
   public static void trace(String msg, Object... args) {
     if (isTrace()) {
-      System.out.printf("[TRACE Commons] " + msg + "%n", args);
+      StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[2];
+      String className = stackTrace.getFileName().replace(".java", "");
+      String methodName = stackTrace.getMethodName();
+      int lineNumber = stackTrace.getLineNumber();
+      String where = String.format("%d->%s::%s", lineNumber, className, methodName);
+      System.out.printf("[SXTRACE] %s <|> " + msg + "%n", where, args);
+    }
+  }
+
+  public static String enter(String method, String parameter, Object... args) {
+    String parms = String.format(parameter, args);
+    if (isTrace()) {
+      System.out.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
+    }
+    return "parameter(" + parms.replace("%", "%%") + ")";
+  }
+
+  public static void exit(String method, String returns, Object... args) {
+    if (isTrace()) {
+      System.out.printf("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
     }
   }
 
