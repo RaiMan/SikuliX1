@@ -634,18 +634,14 @@ public class SXDialog extends JFrame {
 
   void packLines(Container pane, List<BasicItem> boxes) {
     int nextPosY = 0;
-    int currentPosY;
     int nextPosX = 0;
-    int currentPosX;
     int maxW = 0;
     Rectangle bounds;
     boolean first = true;
     BOXTYPE groupBoxType = BOXTYPE.SINGLE;
+    BasicItem lastItem = null;
 
     for (BasicItem item : boxes) {
-      currentPosY = nextPosY;
-      currentPosX = nextPosX;
-
       item.create();
       bounds = item.getBounds();
 
@@ -653,40 +649,22 @@ public class SXDialog extends JFrame {
       bounds.x = nextPosX;
 
       if (!item.boxType().equals(BOXTYPE.SUB)) {
+        bounds.y = nextPosY;
         nextPosY = bounds.y + bounds.height;
-        if (item.boxType().equals(BOXTYPE.SINGLE)) {
-          nextPosX = 0;
-        } else {
-          nextPosX = bounds.x + bounds.width;
-        }
+        nextPosX = 0;
         maxW = Math.max(bounds.x + bounds.width + margin.right, maxW);
         groupBoxType = item.boxType();
       } else {
         if (groupBoxType.equals(BOXTYPE.TOP)) {
+          bounds.x = nextPosX;
           nextPosY = bounds.y + bounds.height;
-
         } else {
           nextPosX = bounds.x + bounds.width;
-
+          nextPosY = 0;
         }
       }
 
       item.setBounds(bounds);
-
-      //TODO ********************
-      if (false) {
-        item.create();
-        bounds = item.getBounds();
-        bounds.y = currentPosY;
-        if (!first) {
-          bounds.y = bounds.y + item.getPadding().top;
-        }
-        nextPosY = Math.max(nextPosY, bounds.y + bounds.height);
-        bounds.x = nextPosX + item.getPadding().left;
-        nextPosX = bounds.x + bounds.width;
-        maxW = Math.max(maxW, nextPosX + margin.right);
-        item.setBounds(bounds);
-      }
     }
 
     Dimension paneSize = new Dimension(maxW, nextPosY + margin.bottom);
@@ -761,7 +739,7 @@ public class SXDialog extends JFrame {
 
     finalSize = paneSize;
   }
-//endregion
+  //endregion
 
   //region 50 BasicItem
   abstract class BasicItem {
