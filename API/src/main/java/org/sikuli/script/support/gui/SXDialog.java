@@ -1080,7 +1080,6 @@ public class SXDialog extends JFrame {
 
     int xnow = 0;
     int ynow = 0;
-    int ytop = 0;
     int marginR = 0;
     int marginB = 0;
     int maxW = 0;
@@ -1101,8 +1100,8 @@ public class SXDialog extends JFrame {
       int itemx;
       int itemy;
       if (items.size() == 0) {
-        ynow += item.pad();
-        xnow += item.pad();
+        ynow = y;
+        xnow = x;
       }
       if (item.isBox() && item.itemType().equals(ITEMTYPE.RIGHT)) {
         itemx = xnow = maxW + item.pad();
