@@ -1,25 +1,30 @@
-#globals; margin 5; Font 14; before 5; border 1;
+#globals; m 5; f 14; p 5; b 1;
 #prefix; dialogbasics
 
 Asking before closing Dialog Asking before closing Dialog; center
 --- 3
-#html; bottom text more text to read|... and g y even more
---- 3
++boxv; default;
+-button; CANCEL
+|some text
 +button; OK
+#
++boxv; default;
+-button; CANCEL
+|some text
++button; OK
+#
+##
 --- 3
+#html; bottom text more text to read|... and g y even more
+---
++button;
+---
 | text centered
 
-#
-button; CANCEL
--button; OK
-|some text
-+button: APPLY
-
-#box;
+---
 #button; CANCEL
 -button; OK
 |some text
-+button: APPLY
-
---- 3
++button; APPLY
+---
 #button;

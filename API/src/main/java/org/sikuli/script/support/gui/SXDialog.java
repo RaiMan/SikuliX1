@@ -25,67 +25,6 @@ import java.util.List;
 
 public class SXDialog extends JFrame {
 
-  JFrame frame;
-  Container pane;
-
-  public enum POSITION {TOP, TOPLEFT, TOPRIGHT, CENTER}
-
-  enum STATE {ON, OFF}
-
-  enum FEATURE {ERROR, CLOSE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT, BOX}
-
-  final static String FEATURE_ERROR = "#error";
-  final static String FEATURE_PLAIN = "#plain";
-  final static String FEATURE_TEXT = "#text";
-
-  static String FEATURES = "";
-  static int FEATURE_MAXLEN = 0;
-  static int FEATURE_MINLEN = Integer.MAX_VALUE;
-
-  static {
-    for (FEATURE feat : FEATURE.values()) {
-      FEATURE_MAXLEN = Math.max(FEATURE_MAXLEN, feat.toString().length());
-      FEATURE_MINLEN = Math.min(FEATURE_MINLEN, feat.toString().length());
-      FEATURES += (feat + ";").toLowerCase();
-    }
-  }
-
-  static String getFeature(String line) {
-    String feature;
-    int posItemSep = line.indexOf(itemSep);
-    if (posItemSep >= FEATURE_MINLEN) {
-      feature = line.substring(0, posItemSep);
-      String lineType = feature.substring(0, 1);
-      if (lineTypes.contains(lineType)) {
-        feature = feature.substring(1);
-      } else {
-        lineType = lineTypeSingle;
-      }
-      if (feature.length() <= FEATURE_MAXLEN) {
-        if (!FEATURES.contains(feature)) {
-          Commons.trace("invalid feature", line);
-          return FEATURE_ERROR;
-        }
-      } else {
-        return FEATURE_PLAIN;
-      }
-      return lineType + feature;
-    }
-    return FEATURE_PLAIN;
-  }
-
-  static boolean isFeat(String option, FEATURE token) {
-    option = option.toUpperCase();
-    String tok = token.toString();
-    return option.equals(tok);
-  }
-
-  enum TEXT {TEXT, HTML}
-
-  enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER}
-
-  enum ITEMTYPE {SINGLE, LEFT, RIGHT, CENTER, TOP, BOTTOM, BOX}
-
   private SXDialog() {
     frame = this;
     setResizable(false);
@@ -127,15 +66,79 @@ public class SXDialog extends JFrame {
       res = "/Settings/" + res;
     }
     textToItems(Commons.copyResourceToString(res, clazz));
-    packLines(pane, dialogLines);
+    packBoxes(pane, dialogLines);
     if (pos.equals(POSITION.TOP)) {
       where.x -= finalSize.width / 2;
     } else if (pos.equals(POSITION.CENTER)) {
       where.x -= finalSize.width / 2;
       where.y -= finalSize.height / 2;
     }
-    popup(where);
+    //popup(where);
   }
+
+  //region 03 global constants
+  JFrame frame;
+  Container pane;
+
+  public enum POSITION {TOP, TOPLEFT, TOPRIGHT, CENTER}
+
+  enum STATE {ON, OFF}
+
+  enum FEATURE {ERROR, CLOSE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT, BOX, BOXV}
+
+  final static String FEATURE_ERROR = "#error";
+  final static String FEATURE_PLAIN = "#plain";
+  final static String FEATURE_TEXT = "#text";
+
+  static String FEATURES = "";
+  static int FEATURE_MAXLEN = 0;
+  static int FEATURE_MINLEN = Integer.MAX_VALUE;
+
+  static {
+    for (FEATURE feat : FEATURE.values()) {
+      FEATURE_MAXLEN = Math.max(FEATURE_MAXLEN, feat.toString().length());
+      FEATURE_MINLEN = Math.min(FEATURE_MINLEN, feat.toString().length());
+      FEATURES += (feat + ";").toLowerCase();
+    }
+  }
+
+  static String getFeature(String line) {
+    String feature;
+    int posItemSep = line.indexOf(itemSep);
+    if (posItemSep >= FEATURE_MINLEN) {
+      feature = line.substring(0, posItemSep);
+      String lineType = feature.substring(0, 1);
+      if (lineTypes.contains(lineType)) {
+        feature = feature.substring(1);
+      } else {
+        lineType = lineTypeSingle;
+      }
+      if (feature.length() <= FEATURE_MAXLEN) {
+        feature = feature.toLowerCase();
+        if (!FEATURES.contains(feature)) {
+          Commons.trace("invalid feature", line);
+          return FEATURE_ERROR;
+        }
+      } else {
+        return FEATURE_PLAIN;
+      }
+      return lineType + feature;
+    }
+    return FEATURE_PLAIN;
+  }
+
+  static boolean isFeat(String option, FEATURE token) {
+    option = option.toUpperCase();
+    String tok = token.toString();
+    return option.equals(tok);
+  }
+
+  enum TEXT {TEXT, HTML}
+
+  enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER}
+
+  enum ITEMTYPE {SINGLE, LEFT, RIGHT, CENTER, TOP, BOTTOM}
+  //endregion
 
   //region 04 global handler
   String globalPrefix = "";
@@ -181,6 +184,10 @@ public class SXDialog extends JFrame {
     }
   }
 
+  ButtonItem OK_BUTTON = null;
+  ButtonItem APPLY_BUTTON = null;
+  ButtonItem CANCEL_BUTTON = null;
+
   ItemAction standardItemAction(BasicItem item) {
     return new ItemAction(item) {
       @Override
@@ -203,11 +210,6 @@ public class SXDialog extends JFrame {
       }
     };
   }
-
-  ButtonItem OK_BUTTON = null;
-  ButtonItem APPLY_BUTTON = null;
-  ButtonItem CANCEL_BUTTON = null;
-
 
   void globalButtons(ButtonItem button) {
     switch (button.title()) {
@@ -268,7 +270,7 @@ public class SXDialog extends JFrame {
   Dimension finalSize = null;
 
   private int maxW = (int) (1024 * 0.8);
-  private int maxH = maxW/4 * 3;
+  private int maxH = maxW / 4 * 3;
 
   void setDialogSize(int w, int h) {
     if (maxW > -1) {
@@ -283,12 +285,10 @@ public class SXDialog extends JFrame {
     return new Dimension(maxW, maxH);
   }
 
-  Padding margin = null;
+  Rectangle margin = new Rectangle(0, 0, 0, 0);
 
   void setMargin(int val) {
-    if (val > -1) {
-      margin = new Padding(val);
-    }
+    margin = new Rectangle(val, val, val, val);
   }
 
   int spaceBefore = 20;
@@ -296,60 +296,6 @@ public class SXDialog extends JFrame {
   void setSpaceBefore(int val) {
     if (val > -1) {
       spaceBefore = val;
-    }
-  }
-
-  class Padding {
-
-    private int left = 0;
-    private int top = 0;
-    private int bottom = 0;
-    private int right = 0;
-
-    Padding(int all) {
-      top(all);
-      bottom(all);
-      left(all);
-      right(all);
-    }
-
-    Padding(int top, int bottom, int left, int right) {
-      top(top);
-      bottom(bottom);
-      left(left);
-      right(right);
-    }
-
-    public void left(int left) {
-      this.left = left;
-    }
-
-    public void top(int top) {
-      this.top = top;
-    }
-
-    public void bottom(int bottom) {
-      this.bottom = bottom;
-    }
-
-    public void right(int right) {
-      this.right = right;
-    }
-
-    public int left() {
-      return left;
-    }
-
-    public int top() {
-      return top;
-    }
-
-    public int bottom() {
-      return bottom;
-    }
-
-    public int right() {
-      return right;
     }
   }
 
@@ -368,16 +314,20 @@ public class SXDialog extends JFrame {
   }
 
   void popup(Point where) {
-    pane.setBackground(BACKGROUNDCOLOR);
-    ((JComponent) pane).setBorder(BorderFactory.createLineBorder(borderColor, border));
-    setSize(finalSize);
-    if (where != null) {
-      setLocation(where);
-    }
-    setAlwaysOnTop(true);
-    setVisible(true);
-    if (APPLY_BUTTON != null) {
-      APPLY_BUTTON.comp().requestFocusInWindow();
+    if (finalSize.width > 0) {
+      pane.setBackground(BACKGROUNDCOLOR);
+      ((JComponent) pane).setBorder(BorderFactory.createLineBorder(borderColor, border));
+      setSize(finalSize);
+      if (where != null) {
+        setLocation(where);
+      }
+      setAlwaysOnTop(true);
+      setVisible(true);
+      if (APPLY_BUTTON != null) {
+        APPLY_BUTTON.comp().requestFocusInWindow();
+      }
+    } else {
+      Commons.trace("pane empty");
     }
   }
 
@@ -421,7 +371,6 @@ public class SXDialog extends JFrame {
 
     boolean lineContinue = false;
     String finalTextLine = "";
-    BasicItem lastItem = null;
 
     for (String textLine : text.split("\n")) {
       textLine = textLine.strip();
@@ -447,10 +396,10 @@ public class SXDialog extends JFrame {
     }
 
     for (String line : textLines) {
+      String orgLine = line;
       TEXT isText = null;
       BasicItem item = null;
       String[] options = null;
-      ButtonItem[] buttonItems = null;
       String feature = "";
       String lineType = "-";
 
@@ -466,7 +415,7 @@ public class SXDialog extends JFrame {
         }
         if (feature.equals(FEATURE_PLAIN)) {
           feature = FEATURE_TEXT;
-          String first = line.substring(0,1);
+          String first = line.substring(0, 1);
           if (lineTypes.contains(first)) {
             if (line.length() == 1) {
               line = " ";
@@ -482,6 +431,7 @@ public class SXDialog extends JFrame {
         feature = feature.substring(1);
       }
 
+      String title = "";
       if (lineTypes.contains(lineType)) {
 
         if (isLineItem(line)) { // FEAT.LINE
@@ -496,12 +446,21 @@ public class SXDialog extends JFrame {
         } else {
           options = line.split(itemSep);
 
-          String title = "";
           if (options.length > 1) {
             title = options[1].strip();
           }
+          String[] itemOptions = new String[0];
+          if (options.length > 2) {
+            itemOptions = new String[options.length - 2];
+            for (int n = 2; n < options.length; n++) {
+              itemOptions[n - 2] = options[n];
+            }
+          }
 
-          if (isFeat(feature, FEATURE.LINK)) {
+          if (isFeat(feature, FEATURE.BOX) || isFeat(feature, FEATURE.BOXV)) {
+            item = new BoxItem(feature, title);
+
+          } else if (isFeat(feature, FEATURE.LINK)) {
             String[] parts = title.split("\\|");
             String url = parts[0].strip();
             String urlText = url;
@@ -511,28 +470,31 @@ public class SXDialog extends JFrame {
             }
             item = new LinkItem(urlText, url);
 
-          } else if (isFeat(feature, FEATURE.IMAGE)) {
+          } else if (isFeat(feature, FEATURE.IMAGE) && !title.isEmpty()) {
             item = new ImageItem(this.getClass().getResource(title));
 
           } else if (isFeat(feature, FEATURE.CLOSE)) {
+            if (title.isEmpty()) {
+              title = "CANCEL: ESC or click";
+            }
             item = new TextItem(title);
             item.setActive();
 
           } else if (isFeat(feature, FEATURE.ACTION)) {
-            String action = options.length > 2 ? options[2] : "";
-            item = new ActionItem(title, action);
+            if (itemOptions.length > 0) {
+              item = new ActionItem(title, itemOptions);
+            }
 
           } else if (isFeat(feature, FEATURE.OPTION)) {
-            String action = options.length > 2 ? options[2] : "";
-            STATE state = options.length > 3 ? (options[2].toLowerCase().contains("on") ? STATE.ON : STATE.OFF) : STATE.OFF;
-            item = new OptionItem(title, action, state);
+            if (itemOptions.length > 0) {
+              item = new OptionItem(title, itemOptions);
+            }
 
           } else if (isFeat(feature, FEATURE.BUTTON)) {
             if (title.isEmpty()) {
-              buttonItems = buttonItems("CANCEL | APPLY | OK", options);
-            } else {
-              buttonItems = buttonItems(title, options);
+              title = "CANCEL | APPLY | OK";
             }
+            item = new ButtonItem(title, itemOptions);
 
           } else if (isFeat(feature, FEATURE.HTML)) {
             isText = TEXT.HTML;
@@ -548,7 +510,13 @@ public class SXDialog extends JFrame {
           if (isText.equals(TEXT.HTML)) {
             item = new HtmlItem(options[1]);
           } else if (isText.equals(TEXT.TEXT)) {
-            item = new TextItem(options[1]);
+            if (orgLine.equals("#")) {
+              item = new TextItem("##boxend##");
+            } else if (orgLine.equals("##")) {
+              break;
+            } else {
+              item = new TextItem(options[1]);
+            }
           }
         }
 
@@ -556,22 +524,12 @@ public class SXDialog extends JFrame {
           applyOptions(item, options);
         }
 
-        if (buttonItems != null) {
-          for (ButtonItem buttonItem : buttonItems) {
-            lastItem = append(lastItem, buttonItem, lineType);
-          }
-        } else {
-          lastItem = append(lastItem, item, lineType);
-        }
+        append(item, lineType);
       }
     }
-    if (lastItem != null) {
-      dialogLines.add(lastItem);
-    }
-    Commons.trace("test");
   }
 
-  BasicItem append(BasicItem lastItem, BasicItem item, String lineType) {
+  void append(BasicItem item, String lineType) {
     if (item != null) {
       ITEMTYPE itemtype = ITEMTYPE.SINGLE;
       if (lineType.equals(lineTypeLeft)) {
@@ -582,11 +540,8 @@ public class SXDialog extends JFrame {
         itemtype = ITEMTYPE.CENTER;
       }
       item.itemType(itemtype);
+      dialogLines.add(item);
     }
-    if (lastItem != null) {
-      dialogLines.add(lastItem);
-    }
-    return item;
   }
 
   void getGlobals(String line) {
@@ -681,8 +636,6 @@ public class SXDialog extends JFrame {
           item.resize(parm1);
         } else if (option.startsWith("f")) {
           item.fontSize(parm1);
-        } else if (option.startsWith("t")) {
-          item.padT(parm1);
         } else if (option.startsWith("b")) {
           item.bold();
         } else if (option.startsWith("c")) {
@@ -693,98 +646,47 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
-  //region 20 top-down line items
+  //region 20 top-down pack items
   List<BasicItem> dialogLines = new ArrayList<>();
 
-  Point lastX = new Point(0, 0);
-  Point lastY = new Point(0, 0);
+  BoxItem paneBox = new BoxItem("boxv", "sxpanebox");
+  BoxItem currentBox = paneBox;
+  List<BoxItem> boxStack = new ArrayList<>();
 
-  void packLines(Container pane, List<BasicItem> boxes) {
+  void packBoxes(Container pane, List<BasicItem> boxes) {
+
+    paneBox.setTopLeft(margin);
 
     for (BasicItem item : boxes) {
+
+      if (item.isBoxEnd()) {
+        if (boxStack.size() > 0) {
+          currentBox = boxStack.remove(0);
+        }
+        continue;
+      }
+
       item.create();
 
-      ITEMTYPE itemType = item.itemType();
-      Rectangle rect = new Rectangle(item.getBounds());
-
-      rect.x = lastX.x + (lastX.x == 0 ? margin.left() : item.getPadding().left());
-      lastX.x = rect.x + rect.width;
-      lastRect.width = Math.max(lastX.x + margin.right(), lastRect.width);
-      rect.y = lastRect.y + (lastRect.y == 0 ? margin.top() : item.getPadding().top());
-      lastRect.height = Math.max(rect.y + rect.height + margin.bottom(), lastRect.height);
-
-      item.setPos(lastRect.getLocation());
-    }
-
-    Dimension paneSize = new Dimension(maxW, lastRect.y + margin.bottom);
-    int availableW = paneSize.width - margin.left() - margin.right();
-
-    Rectangle bounds;
-
-    for (BasicItem item : boxes) {
-      bounds = item.getBounds();
-      if (bounds.width == 0) {
-        bounds.width = availableW;
-        item.setBounds(bounds);
+      if (item.isBox()) {
+        currentBox.add(item);
+        boxStack.add(0, currentBox);
+        currentBox = (BoxItem) item;
+        continue;
       }
+
+      currentBox.add(item);
     }
 
-    //TODO ********************
+    Commons.trace("%s", paneBox.toString());
+
+    //TODO ******************** create pane
     for (BasicItem basicItem : boxes) {
-      pane.add(basicItem.finalComp());
-      basicItem.addListeners();
+      //pane.add(basicItem.finalComp());
+      //basicItem.addListeners();
     }
 
-    for (BasicItem item : this.dialogLines) {
-      int nextPosX = 0;
-      if (1 == 1) break;
-      if (!item.isLeft()) {
-        boolean isRight = item.isRight();
-        //bounds = items[length - 1].getBounds();
-        //TODO ********************
-        bounds = null;
-        if (isRight) {
-          nextPosX = paneSize.width - margin.right;
-        } else {
-          nextPosX = bounds.x + bounds.width + ((availableW + margin.left) - (bounds.x + bounds.width)) / 2;
-        }
-        for (int n = 100 - 1; n > -1; n--) {
-          //TODO       for (int n = items.length - 1; n > -1; n--) {
-          //         item = items[n];
-          bounds = item.getBounds();
-          bounds.x = nextPosX - bounds.width;
-            bounds.x -= item.getPadding().right;
-          item.setBounds(bounds);
-          nextPosX = bounds.x;
-        }
-      }
-      if (1 == 1) {
-        //TODO item = items[0];
-        int off = 0;
-        bounds = item.getBounds();
-        if (bounds.width == 0) {
-          item.fill(availableW);
-          bounds.setSize(item.getSize());
-        }
-        if (item.isCenter()) {
-          off = (availableW - bounds.width) / 2;
-        }
-        bounds.x += off;
-        if (item.isValid()) {
-          final JComponent comp = item.finalComp();
-          comp.setBounds(bounds);
-          pane.add(comp);
-          item.addListeners();
-        }
-      } else {
-//        for (BasicItem basicItem : items) {
-//          pane.add(basicItem.finalComp());
-//          basicItem.addListeners();
-//        }
-      }
-    }
-
-    finalSize = paneSize;
+    finalSize = paneBox.dim();
   }
   //endregion
 
@@ -797,19 +699,27 @@ public class SXDialog extends JFrame {
     public String toString() {
       String clazz = this.getClass().getSimpleName();
       String title = title();
-      title = title.length() > 10 ? title.substring(0, 10) + "..." : title;
+      title = title.length() > 20 ? title.substring(0, 20) + "..." : title;
       return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType(),
-              getX(), getY(), getW(), getH());
+          x, y, width, height);
     }
 
-    ITEMTYPE itemtype = ITEMTYPE.LEFT;
+    ITEMTYPE itemType = ITEMTYPE.LEFT;
 
     public ITEMTYPE itemType() {
-      return itemtype;
+      return itemType;
     }
 
     public void itemType(ITEMTYPE itemtype) {
-      this.itemtype = itemtype;
+      this.itemType = itemtype;
+    }
+
+    public boolean isBox() {
+      return this instanceof BoxItem;
+    }
+
+    public boolean isBoxEnd() {
+      return title.equals("##boxend##");
     }
 
     //region Component
@@ -838,55 +748,35 @@ public class SXDialog extends JFrame {
       return comp;
     }
 
-    void create() {
+    BasicItem create() {
+      return this;
     }
 
     void fill(int w) {
     }
 
     JComponent finalComp() {
-      comp.setBounds(getBounds());
+      comp.setBounds(rect());
       return comp;
     }
 
     JComponent panel = null;
     //endregion
 
-    //region Padding
-    private Padding padding = new Padding(0);
+    //region Alignment
+    int padding = -1;
 
-    Padding getPadding() {
+    int pad() {
+      if (padding < 0) {
+        return spaceBefore;
+      }
       return padding;
     }
 
-    void adjustPadding() {
-      if (padding.top < 1) {
-        padding.top = spaceBefore;
-      }
-      if (padding.left < 1) {
-        padding.left = spaceBefore;
-      }
-      if (padding.right < 1) {
-        padding.right = spaceBefore;
-      }
+    void pad(int val) {
+      padding = val;
     }
 
-    BasicItem padT(int val) {
-      if (val > -1) {
-        padding.top(val);
-      }
-      return this;
-    }
-
-    BasicItem padL(int val) {
-      if (val > -1) {
-        padding.left(val);
-      }
-      return this;
-    }
-    //endregion
-
-    //region Alignment
     ALIGN alignment = ALIGN.LEFT;
 
     public BasicItem align(ALIGN type) {
@@ -915,49 +805,60 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    int X = 0;
-    int Y = 0;
+    int x = 0;
+    int y = 0;
 
-    void setPos(Point where) {
-      this.X = where.x;
-      this.Y = where.y;
+    void pos(int x, int y) {
+      this.x = x;
+      this.y = y;
+    }
+
+    void pos(Point where) {
+      x = where.x;
+      y = where.y;
+    }
+
+    Point pos() {
+      return new Point(x, y);
     }
 
     int width = 0;
     int height = 0;
 
-    int getH() {
-      return height;
-    }
-
     void setH(int val) {
       height = val;
-    }
-
-    int getW() {
-      return width;
     }
 
     void setW(int val) {
       width = val;
     }
 
-    Dimension getSize() {
-      return new Dimension(getW(), getH());
+    Dimension dim() {
+      return new Dimension(width, height);
     }
 
-    void setSize(Dimension size) {
+    void dim(int width, int height) {
+      this.width = width;
+      this.height = height;
+    }
+
+    void dim(Dimension size) {
       width = size.width;
       height = size.height;
     }
 
-    void setBounds(Rectangle bounds) {
-      setPos(bounds.getLocation());
-      setSize(bounds.getSize());
+    void rect(Rectangle bounds) {
+      pos(bounds.getLocation());
+      dim(bounds.getSize());
     }
 
-    Rectangle getBounds() {
-      return new Rectangle(X, Y, width, height);
+    void rect(Point where, Dimension dim) {
+      pos(where);
+      dim(dim);
+    }
+
+    Rectangle rect() {
+      return new Rectangle(x, y, width, height);
     }
     //endregion
 
@@ -1108,37 +1009,71 @@ public class SXDialog extends JFrame {
   //region 501 BoxItem
   class BoxItem extends BasicItem {
 
-    List<BasicItem> itemsLeftTop = new ArrayList<>();
-    List<BasicItem> itemsCenter = new ArrayList<>();
-    List<BasicItem> itemsRightBottom = new ArrayList<>();
+    public String toString() {
+      String before = super.toString();
+      before += col ? " COL" : " ROW";
+      String out = "\n";
+      if (items.size() > 0) {
+        for (BasicItem item : items) {
+          out += " - " + item + "\n";
+        }
+      }
+      if (out.isEmpty()) {
+        out = " *** empty ***";
+      }
+      out = before + out;
+      return out;
+    }
+
+    BoxItem(String type, String title) {
+      this.title = title;
+      if (type.equals("boxv")) {
+        col = true;
+      }
+    }
+
+    boolean col = false;
+
+    int xnow = 0;
+    int ynow = 0;
+    int xright = 0;
+    int marginR = 0;
+    int marginB = 0;
+
+    void setTopLeft(Rectangle margins) {
+      x = margins.x;
+      y = margins.y;
+      xnow = x;
+      ynow = y;
+      marginR = margins.width;
+      marginB = margins.height;
+    }
+
+    List<BasicItem> items = new ArrayList<>();
 
     void add(BasicItem item) {
-      if (itemType().equals(ITEMTYPE.LEFT) || itemType().equals(ITEMTYPE.TOP)) {
-        itemsLeftTop.add(item);
-      } else if (itemType().equals(ITEMTYPE.RIGHT) || itemType().equals(ITEMTYPE.BOTTOM)) {
-        itemsRightBottom.add(item);
-      } else if (itemType().equals(ITEMTYPE.CENTER)) {
-        itemsCenter.add(item);
+      if (col) {
+        ynow = ynow > 0 ? ynow + item.pad() : ynow;
+        item.pos(0, ynow);
+        ynow += item.height;
+      } else {
+        xnow = xnow > 0 ? xnow + item.pad() : x;
+        item.pos(xnow, 0);
+        xnow += item.width;
       }
+      if (item.isBox() && item.itemType().equals(ITEMTYPE.RIGHT)) {
+
+        Commons.debug("");
+      }
+      xright = xnow + item.width;
+      items.add(item);
     }
 
     BasicItem get(int ix) {
       if (ix >= 0) {
-        int range = itemsLeftTop.size();
+        int range = items.size();
         if (ix < range) {
-          return itemsLeftTop.get(ix);
-        } else {
-          ix -= range;
-          range = itemsCenter.size();
-          if (ix < range) {
-            return itemsCenter.get(ix);
-          } else {
-            ix -= range;
-            int last = itemsCenter.size();
-            if (ix < last) {
-              return itemsCenter.get(ix);
-            }
-          }
+          return items.get(ix);
         }
       }
       return new NullItem();
@@ -1157,17 +1092,17 @@ public class SXDialog extends JFrame {
 
     LineItem() {
       title("");
-      setH(stroke);
+      height = stroke;
     }
 
     LineItem(int len) {
       this();
-      setW(len);
+      width = len;
     }
 
     LineItem stroke(int stroke) {
       this.stroke = stroke;
-      setH(stroke);
+      height = stroke;
       return this;
     }
 
@@ -1185,19 +1120,20 @@ public class SXDialog extends JFrame {
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(stroke));
         g2.setColor(color);
-        g2.draw(new Line2D.Float(0, 0, getW(), 0));
+        g2.draw(new Line2D.Float(0, 0, width, 0));
       }
     }
 
     void fill(int len) {
-      setW(len);
+      width = len;
       create();
     }
 
-    void create() {
+    BasicItem create() {
       Line line = new Line();
-      line.setPreferredSize(getSize());
+      line.setPreferredSize(dim());
       comp(line); //Line
+      return this;
     }
   }
   //endregion
@@ -1220,7 +1156,7 @@ public class SXDialog extends JFrame {
       title(aText);
     }
 
-    void create() {
+    BasicItem create() {
       JLabel lblText = new JLabel(title());
       Font font = new Font(fontName, fontBold, fontSize);
       Rectangle2D textLen = lblText.getFontMetrics(font).getStringBounds(title(), getGraphics());
@@ -1235,8 +1171,9 @@ public class SXDialog extends JFrame {
       lblText.setFont(font);
       Rectangle r = new Rectangle(0, 0, (int) textLen.getWidth(), (int) textLen.getHeight());
       lblText.setBounds(r);
-      setSize(r.getSize());
+      dim(r.getSize());
       comp(lblText);
+      return this;
     }
 
     class UnderlinedLabel extends JLabel {
@@ -1264,13 +1201,14 @@ public class SXDialog extends JFrame {
       super(text);
     }
 
-    void create() {
+    BasicItem create() {
       super.create();
       JLabel lblHtml = (JLabel) comp();
-      Dimension size = getSize();
+      Dimension size = dim();
       title("<html>" + title().replace("|", "<br>"));
       lblHtml.setText(title());
-      setSize(lblHtml.getPreferredSize());
+      dim(lblHtml.getPreferredSize());
+      return this;
     }
   }
 //endregion
@@ -1305,9 +1243,9 @@ public class SXDialog extends JFrame {
     ActionItem() {
     }
 
-    ActionItem(String text, String action) {
+    ActionItem(String text, String[] options) {
       title(text.strip());
-      aAction = action.strip();
+      aAction = options[0].strip();
       setActive();
       bold();
       setBackground(BACKGROUNDCOLOR);
@@ -1359,22 +1297,26 @@ public class SXDialog extends JFrame {
       }
     }
 
-    OptionItem(String text, String option, STATE state) {
-      this.state = state;
+    OptionItem(String text, String[] options) {
+      //TODO OptionItem
+//      String action = options.length > 2 ? options[2] : "";
+//      STATE state = options.length > 3 ? (options[2].toLowerCase().contains("on") ? STATE.ON : STATE.OFF) : STATE.OFF;
+//      this.state = state;
+//      aOption = option;
       title = text;
       title("(X) " + text);
       if (state.equals(STATE.ON)) {
         startState = STATE.ON;
       }
-      aOption = option;
       setActive();
       bold();
       setBackground(BACKGROUNDCOLOR);
     }
 
-    void create() {
+    BasicItem create() {
       super.create();
       setStartState((JLabel) comp());
+      return this;
     }
 
     @Override
@@ -1393,24 +1335,26 @@ public class SXDialog extends JFrame {
   //region 524 ButtonItem
   class ButtonItem extends BasicItem {
     ButtonItem(String text) {
-      this(text, null);
+      this(text, new String[0]);
     }
 
-    ButtonItem(String text, ItemAction itemAction) {
+    ButtonItem(String text, String[] options) {
       title = text;
-      this.itemAction(itemAction);
+      if (options.length > 0)
+        this.itemAction(new ItemAction(this, options[0].strip()));
       setActive();
       bold();
     }
 
-    void create() {
+    BasicItem create() {
       if (itemAction == null) {
         itemAction = standardItemAction(this);
       }
       JButton button = new JButton(title());
       button.setForeground(SXRED);
-      setSize(button.getPreferredSize());
+      dim(button.getPreferredSize());
       comp(button); //Button
+      return this;
     }
 
     void mouseEnter(MouseEvent e) {
@@ -1428,7 +1372,7 @@ public class SXDialog extends JFrame {
     }
   }
 
-  ButtonItem[] buttonItems(String text, String[] options) {
+  BasicItem[] buttonItems(String text, String[] options) {
     String[] parts = null;
     parts = text.split("\\|");
     ButtonItem[] buttonItems = new ButtonItem[parts.length];
@@ -1486,13 +1430,14 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    void create() {
+    BasicItem create() {
       JLabel lblimg = new JLabel();
       if (img != null) {
         lblimg.setIcon(new ImageIcon(img));
-        setSize(new Dimension(img.getWidth(), img.getHeight()));
+        dim(new Dimension(img.getWidth(), img.getHeight()));
       }
       comp(lblimg); //Image
+      return this;
     }
 
     void mouseEnter(MouseEvent e) {

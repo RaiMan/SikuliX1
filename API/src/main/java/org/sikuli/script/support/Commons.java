@@ -194,8 +194,8 @@ public class Commons {
       String className = stackTrace.getFileName().replace(".java", "");
       String methodName = stackTrace.getMethodName();
       int lineNumber = stackTrace.getLineNumber();
-      String where = String.format("%d->%s::%s", lineNumber, className, methodName);
-      System.out.printf("[SXTRACE] %s <|> " + msg + "%n", where, args);
+      System.out.print(String.format("[SXTRACE %d->%s::%s] ", lineNumber, className, methodName));
+      System.out.println(String.format(msg, args));
     }
   }
 
