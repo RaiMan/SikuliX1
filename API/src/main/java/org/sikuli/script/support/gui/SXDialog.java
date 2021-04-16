@@ -299,7 +299,7 @@ public class SXDialog extends JFrame {
     }
   }
 
-  enum ALIGN {LEFT, CENTER, RIGHT}
+  enum ALIGN {LEFT, CENTER, RIGHT, TOP, BOTTOM}
 
   ALIGN stdAlign = ALIGN.LEFT;
 
@@ -661,6 +661,7 @@ public class SXDialog extends JFrame {
 
       if (item.isBoxEnd()) {
         if (boxStack.size() > 0) {
+          currentBox.adjust();
           currentBox = boxStack.remove(0);
         }
         continue;
@@ -701,7 +702,7 @@ public class SXDialog extends JFrame {
       String title = title();
       title = title.length() > 20 ? title.substring(0, 20) + "..." : title;
       return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType(),
-          x, y, width, height);
+              x, y, width, height);
     }
 
     ITEMTYPE itemType = ITEMTYPE.LEFT;
@@ -721,6 +722,44 @@ public class SXDialog extends JFrame {
     public boolean isBoxEnd() {
       return title.equals("##boxend##");
     }
+
+    boolean isLine() {
+      return this instanceof LineItem;
+    }
+
+    public void adjust(boolean col, int maxW, int maxH) {
+      int off = 0;
+      if (isLine()) {
+        fill(col, maxW);
+        return;
+      }
+      if (col) {
+        if (isCenter()) {
+          off = (maxW - width) / 2;
+        } else if (isRight()) {
+          off = maxW - width;
+        }
+        x += off;
+      } else {
+        if (isCenter()) {
+          off = (maxH - height) / 2;
+        } else if (isRight()) {
+          off = maxH - height;
+        }
+        y += off;
+      }
+    }
+
+    public BasicItem parent() {
+      return parent;
+    }
+
+    public BasicItem parent(BasicItem parent) {
+      this.parent = parent;
+      return this;
+    }
+
+    BasicItem parent = null;
 
     //region Component
     String title = this.getClass().getSimpleName();
@@ -752,7 +791,7 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    void fill(int w) {
+    void fill(boolean direction, int w) {
     }
 
     JComponent finalComp() {
@@ -788,15 +827,20 @@ public class SXDialog extends JFrame {
       if (comp == null) {
         return false;
       }
+      if (itemType.equals(ITEMTYPE.CENTER)) {
+        return true;
+      }
       return alignment.equals(ALIGN.CENTER) || stdAlign.equals(ALIGN.CENTER);
     }
 
-    public boolean isLeft() {
-      return alignment.equals(ALIGN.LEFT);
-    }
-
     public boolean isRight() {
-      return alignment.equals(ALIGN.RIGHT);
+      if (comp == null) {
+        return false;
+      }
+      if (itemType.equals(ITEMTYPE.RIGHT) || itemType.equals(ITEMTYPE.BOTTOM)) {
+        return true;
+      }
+      return alignment.equals(ALIGN.RIGHT) || alignment.equals(ALIGN.BOTTOM);
     }
     //endregion
 
@@ -1036,9 +1080,11 @@ public class SXDialog extends JFrame {
 
     int xnow = 0;
     int ynow = 0;
-    int xright = 0;
+    int ytop = 0;
     int marginR = 0;
     int marginB = 0;
+    int maxW = 0;
+    int maxH = 0;
 
     void setTopLeft(Rectangle margins) {
       x = margins.x;
@@ -1052,21 +1098,37 @@ public class SXDialog extends JFrame {
     List<BasicItem> items = new ArrayList<>();
 
     void add(BasicItem item) {
-      if (col) {
-        ynow = ynow > 0 ? ynow + item.pad() : ynow;
-        item.pos(0, ynow);
-        ynow += item.height;
-      } else {
-        xnow = xnow > 0 ? xnow + item.pad() : x;
-        item.pos(xnow, 0);
-        xnow += item.width;
+      int itemx;
+      int itemy;
+      if (items.size() == 0) {
+        ynow += item.pad();
+        xnow += item.pad();
       }
       if (item.isBox() && item.itemType().equals(ITEMTYPE.RIGHT)) {
-
-        Commons.debug("");
+        itemx = xnow = maxW + item.pad();
+        itemy = ynow = y + item.pad();
+      } else {
+        itemx = xnow;
+        itemy = ynow;
+        if (col) {
+          ynow += item.height;
+          maxW = Math.max(maxW, item.width);
+          maxH = ynow;
+        } else {
+          xnow += item.width;
+          maxW = xnow;
+          maxH = Math.max(maxH, item.height);
+        }
       }
-      xright = xnow + item.width;
+      item.pos(itemx, itemy);
+      item.parent(this);
       items.add(item);
+    }
+
+    void adjust() {
+      for (BasicItem item : items) {
+        item.adjust(col, maxW, maxH);
+      }
     }
 
     BasicItem get(int ix) {
@@ -1124,8 +1186,12 @@ public class SXDialog extends JFrame {
       }
     }
 
-    void fill(int len) {
-      width = len;
+    void fill(boolean horizontal, int len) {
+      if (horizontal) {
+        width = len;
+      } else {
+        Commons.trace("not implemented");
+      }
       create();
     }
 

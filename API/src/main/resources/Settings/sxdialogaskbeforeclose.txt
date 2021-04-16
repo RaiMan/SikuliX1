@@ -3,7 +3,7 @@
 
 Asking before closing Dialog Asking before closing Dialog; center
 --- 3
-+boxv; default;
+#boxv; default;
 -button; CANCEL
 |some text
 +button; OK
