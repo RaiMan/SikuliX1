@@ -403,7 +403,7 @@ public class SXDialog extends JFrame {
       String feature = "";
       String lineType = "-";
 
-      Commons.trace(line);
+      //TODO Commons.trace(line);
       if (text.contains("{")) {
         line = replaceVariables(line);
       }
@@ -652,14 +652,27 @@ public class SXDialog extends JFrame {
   BoxItem paneBox = new BoxItem("boxv", "sxpanebox");
   BoxItem currentBox = paneBox;
   List<BoxItem> boxStack = new ArrayList<>();
+  BasicItem item;
+
+  String cb() {
+    return currentBox.toString();
+  }
+
+  String pb() {
+    return paneBox.toString();
+  }
+
+  String it() {
+    return item.toString();
+  }
 
   void packBoxes(Container pane, List<BasicItem> boxes) {
 
-    paneBox.setTopLeft(margin);
+    paneBox.asPane();
 
-    for (BasicItem item : boxes) {
-
-      if (item.isBoxEnd()) {
+    for (BasicItem itm : boxes) {
+      item = itm;
+      if (itm.isBoxEnd()) {
         if (boxStack.size() > 0) {
           currentBox.adjust();
           currentBox = boxStack.remove(0);
@@ -667,17 +680,18 @@ public class SXDialog extends JFrame {
         continue;
       }
 
-      item.create();
+      itm.create();
 
-      if (item.isBox()) {
-        currentBox.add(item);
+      if (itm.isBox()) {
+        currentBox.add(itm);
         boxStack.add(0, currentBox);
-        currentBox = (BoxItem) item;
+        currentBox = (BoxItem) itm;
         continue;
       }
 
-      currentBox.add(item);
+      currentBox.add(itm);
     }
+    currentBox.adjust();
 
     Commons.trace("%s", paneBox.toString());
 
@@ -701,8 +715,8 @@ public class SXDialog extends JFrame {
       String clazz = this.getClass().getSimpleName();
       String title = title();
       title = title.length() > 20 ? title.substring(0, 20) + "..." : title;
-      return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType(),
-              x, y, width, height);
+      return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType().toString().substring(0, 1),
+          x, y, width, height);
     }
 
     ITEMTYPE itemType = ITEMTYPE.LEFT;
@@ -904,6 +918,26 @@ public class SXDialog extends JFrame {
     Rectangle rect() {
       return new Rectangle(x, y, width, height);
     }
+
+    Point nowBelow = new Point();
+
+    public Point nowBelow() {
+      return nowBelow;
+    }
+
+    public void nowBelow(Point nowBelow) {
+      this.nowBelow = nowBelow;
+    }
+
+    Point nowRight = new Point();
+
+    public Point nowRight() {
+      return nowRight;
+    }
+
+    public void nowRight(Point nowRight) {
+      this.nowRight = nowRight;
+    }
     //endregion
 
     //region Listener
@@ -1054,12 +1088,13 @@ public class SXDialog extends JFrame {
   class BoxItem extends BasicItem {
 
     public String toString() {
-      String before = super.toString();
+      String before = "\n" + super.toString();
       before += col ? " COL" : " ROW";
+      String prefix = isPane() ? "" : " - ";
       String out = "\n";
       if (items.size() > 0) {
         for (BasicItem item : items) {
-          out += " - " + item + "\n";
+          out += prefix + item + "\n";
         }
       }
       if (out.isEmpty()) {
@@ -1074,24 +1109,21 @@ public class SXDialog extends JFrame {
       if (type.equals("boxv")) {
         col = true;
       }
+      pad(0);
     }
 
     boolean col = false;
 
-    int xnow = 0;
-    int ynow = 0;
-    int marginR = 0;
-    int marginB = 0;
-    int maxW = 0;
-    int maxH = 0;
+    boolean pane = false;
 
-    void setTopLeft(Rectangle margins) {
-      x = margins.x;
-      y = margins.y;
-      xnow = x;
-      ynow = y;
-      marginR = margins.width;
-      marginB = margins.height;
+    boolean isPane() {
+      return pane;
+    }
+
+    void asPane() {
+      x = margin.x;
+      y = margin.y;
+      pane = true;
     }
 
     List<BasicItem> items = new ArrayList<>();
@@ -1100,33 +1132,43 @@ public class SXDialog extends JFrame {
       int itemx;
       int itemy;
       if (items.size() == 0) {
-        ynow = y;
-        xnow = x;
+        nowBelow.y = y;
+        nowBelow.x = x;
       }
+      itemx = nowBelow.x;
+      itemy = nowBelow.y;
       if (item.isBox() && item.itemType().equals(ITEMTYPE.RIGHT)) {
-        itemx = xnow = maxW + item.pad();
-        itemy = ynow = y + item.pad();
+        itemx = nowRight.x;
+        itemy = nowRight.y;
+      }
+      if (item.isBox()) {
+
       } else {
-        itemx = xnow;
-        itemy = ynow;
         if (col) {
-          ynow += item.height;
-          maxW = Math.max(maxW, item.width);
-          maxH = ynow;
+          if (items.size() > 0) {
+            itemy += item.pad();
+          }
+          nowBelow.y = itemy + item.height;
+          width = Math.max(width, item.width);
+          height = nowBelow.y;
         } else {
-          xnow += item.width;
-          maxW = xnow;
-          maxH = Math.max(maxH, item.height);
+          if (items.size() > 0) {
+            itemx += item.pad();
+          }
+          nowBelow.x = itemx + item.width;
+          width = nowBelow.x;
+          height = Math.max(height, item.height);
         }
+        nowRight = new Point(itemx + item.width, itemy);
       }
       item.pos(itemx, itemy);
-      item.parent(this);
       items.add(item);
+      item.parent(this);
     }
 
     void adjust() {
       for (BasicItem item : items) {
-        item.adjust(col, maxW, maxH);
+        item.adjust(col, width, height);
       }
     }
 

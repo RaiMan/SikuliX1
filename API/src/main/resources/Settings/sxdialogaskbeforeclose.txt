@@ -1,8 +1,21 @@
 #globals; m 5; f 14; p 5; b 1;
 #prefix; dialogbasics
 
-Asking before closing Dialog Asking before closing Dialog; center
+TITLE
 --- 3
+#boxv; boxV1;
+|sometext V1
+#
++boxv; BoxV2;
+|some text V2
+#
++boxv; BoxV3;
+|some text V3
+#
+---
+FOOTER
+
+##
 #boxv; default;
 -button; CANCEL
 |some text
@@ -13,7 +26,6 @@ Asking before closing Dialog Asking before closing Dialog; center
 |some text
 +button; OK
 #
-##
 --- 3
 #html; bottom text more text to read|... and g y even more
 ---
