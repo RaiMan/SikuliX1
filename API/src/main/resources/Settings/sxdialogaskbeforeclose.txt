@@ -2,14 +2,17 @@
 #prefix; dialogbasics
 
 TITLE
---- 3
-#boxv; boxV1;
-|sometext V1
-#
-+boxv; BoxV2;
+---
+button;
+##
+---
+##
+#box; BoxV2;
 |some text V2
 #
-+boxv; BoxV3;
+
+---
+box; BoxV3;
 |some text V3
 #
 ---
