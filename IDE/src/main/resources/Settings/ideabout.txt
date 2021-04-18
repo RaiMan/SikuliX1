@@ -1,4 +1,4 @@
-#globals; size 300 500; margin 10; center; FontSize 16; before 10
+#globals; size 300 500; margin 20; center; FontSize 16
 
 #image; /icons/sikulix-red-x.png; resize 200
 ---

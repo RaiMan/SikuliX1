@@ -291,13 +291,13 @@ public class SXDialog extends JFrame {
     margin = new Rectangle(val, val, val, val);
   }
 
-//  int spaceAfter = 10;
-//
-//  void setSpaceAfter(int val) {
-//    if (val > -1) {
-//      spaceAfter = val;
-//    }
-//  }
+  int spaceAfter = 10;
+
+  void setSpaceAfter(int val) {
+    if (val > -1) {
+      spaceAfter = val;
+    }
+  }
 
   enum ALIGN {LEFT, CENTER, RIGHT, TOP, BOTTOM}
 
@@ -582,7 +582,7 @@ public class SXDialog extends JFrame {
       } else if (isOption(option, OPT.MARGIN)) {
         setMargin(parm1);
       } else if (isOption(option, OPT.PADDING)) {
-        //TODO setSpaceAfter(parm1);
+        setSpaceAfter(parm1);
       } else if (isOption(option, OPT.CENTER)) {
         setAlign(ALIGN.CENTER);
       } else if (isOption(option, OPT.FONT)) {
@@ -724,7 +724,6 @@ public class SXDialog extends JFrame {
 
     Commons.trace("%s", paneBox.toString());
 
-    //TODO ******************** create pane
     for (BasicItem item : boxes) {
       if (!item.isBox() && !item.isBoxEnd()) {
         pane.add(item.finalComp());
@@ -1146,11 +1145,11 @@ public class SXDialog extends JFrame {
       int itemy = nextPos.y;
       if (!item.isBox()) {
         if (col) {
-          nextPos.y = itemy + item.height; //TODO + spaceAfter;
+          nextPos.y = itemy + item.height + spaceAfter;
           width = Math.max(width, item.width);
           height += item.height;
         } else {
-          nextPos.x = itemx + item.width; //TODO + spaceAfter;
+          nextPos.x = itemx + item.width + spaceAfter;
           width = nextPos.x;
           height = Math.max(height, item.height);
         }
@@ -1167,8 +1166,8 @@ public class SXDialog extends JFrame {
       if (parent != null) {
         parent.nextPos(nextPos.x, nextPos.y);
       }
-      int boxMaxW = width; //TODO - spaceAfter;
-      int boxMaxH = height; //TODO - spaceAfter;
+      int boxMaxW = width - spaceAfter;
+      int boxMaxH = height - spaceAfter;
       int boxH = margin.y + margin.height;
       int boxW = margin.x + margin.width;
       if (isPane()) {
@@ -1177,15 +1176,15 @@ public class SXDialog extends JFrame {
           final Dimension dim = item.dim();
           if (col) {
             boxMaxW = Math.max(boxMaxW, dim.width);
-            boxH += dim.height; //TODO + spaceAfter;
+            boxH += dim.height + spaceAfter;
           } else {
             boxMaxH = Math.max(boxMaxH, dim.height);
-            boxW += dim.width; //TODO + spaceAfter;
+            boxW += dim.width + spaceAfter;
           }
         }
         if (col) {
           width = boxMaxW;// + margin.x + margin.width;
-          height = boxH; //TODO - spaceAfter;
+          height = boxH - spaceAfter;
         }
       }
       for (BasicItem item : items) {

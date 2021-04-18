@@ -1,16 +1,16 @@
 #globals; m 5; f 14; p 5; b 1;
 #prefix; dialogbasics
 
-TITLE
+|TITLE
 ---
 button;
-##
+
 ---
-##
+
 #box; BoxV2;
 |some text V2
 #
-
+##
 ---
 box; BoxV3;
 |some text V3
