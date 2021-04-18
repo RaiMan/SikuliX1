@@ -65,7 +65,8 @@ public class SXDialog extends JFrame {
       }
       res = "/Settings/" + res;
     }
-    textToItems(Commons.copyResourceToString(res, clazz));
+    final String text = Commons.copyResourceToString(res, clazz);
+    textToItems(text);
     packBoxes(pane, dialogLines);
     if (pos.equals(POSITION.TOP)) {
       where.x -= finalSize.width / 2;
@@ -88,7 +89,7 @@ public class SXDialog extends JFrame {
 
   final static String FEATURE_ERROR = "#error";
   final static String FEATURE_PLAIN = "#plain";
-  final static String FEATURE_TEXT = "#text";
+  final static String FEATURE_TEXT = "*text";
 
   static String FEATURES = "";
   static int FEATURE_MAXLEN = 0;
@@ -502,8 +503,8 @@ public class SXDialog extends JFrame {
             if (title.isEmpty()) {
               append(new BoxItem(FEATURE.ROW.name(), "stdbuttons"), lineType);
               append(new ButtonItem("CANCEL"), lineTypeSingle);
-              append(new ButtonItem("APPLY"));
-              append(new ButtonItem("OK"));
+              append(new ButtonItem("APPLY"), lineTypeRight);
+              append(new ButtonItem("OK"), lineTypeRight);
               append(new TextItem("##boxend##"));
               continue;
             }
@@ -548,7 +549,7 @@ public class SXDialog extends JFrame {
 
   void append(BasicItem item, String lineType) {
     if (item != null) {
-      ITEMTYPE itemType = ITEMTYPE.SINGLE;
+      ITEMTYPE itemType = ITEMTYPE.SAME;
       if (lineType.equals(lineTypeLeft)) {
         itemType = ITEMTYPE.LEFT;
       } else if (lineType.equals(lineTypeRight)) {
@@ -557,8 +558,6 @@ public class SXDialog extends JFrame {
         itemType = ITEMTYPE.CENTER;
       } else if (lineType.equals(lineTypeSingle)) {
         itemType = ITEMTYPE.SINGLE;
-      } else if (lineType.equals(lineTypeSame)) {
-        itemType = lastItemType;
       }
       lastItemType = itemType;
       item.itemType(itemType);
@@ -688,8 +687,6 @@ public class SXDialog extends JFrame {
     return item.toString();
   }
 
-  boolean firstItem = true;
-
   void packBoxes(Container pane, List<BasicItem> boxes) {
 
     paneBox.asPane();
@@ -714,13 +711,14 @@ public class SXDialog extends JFrame {
       }
 
       currentBox.add(itm);
-      firstItem = false;
     }
+
     paneBox.adjust();
-    final Dimension dim = paneBox.dim();
-    dim.width += margin.x + margin.width;
-    //dim.height += margin.y; //TODO  + margin.height;
-    paneBox.dim(dim);
+    finalSize = paneBox.dim();
+
+    finalSize.width += margin.width - paneBox.hasCols();
+    finalSize.height += margin.height - paneBox.hasRows();
+    paneBox.dim(finalSize);
 
     Commons.trace("%s", paneBox.toString());
 
@@ -731,7 +729,6 @@ public class SXDialog extends JFrame {
       }
     }
 
-    finalSize = paneBox.dim();
     pane.setSize(finalSize);
   }
   //endregion
@@ -772,23 +769,31 @@ public class SXDialog extends JFrame {
       return this instanceof LineItem;
     }
 
+    boolean inPane() {
+      return ((BoxItem) parent).isPane();
+    }
+
     public void adjust(boolean col, int maxW, int maxH) {
       int off = 0;
       if (isLine()) {
-        fill(col, maxW);
+        int cutRight = 0;
+        if (inPane()) {
+          cutRight = margin.width;
+        }
+        fill(col, maxW - cutRight);
         return;
       }
       if (col) {
-        if (isCenter()) {
+        if (alignCenter()) {
           off = (maxW - width) / 2;
-        } else if (isRight()) {
+        } else if (alignRight()) {
           off = maxW - width;
         }
         x += off;
       } else {
-        if (isCenter()) {
+        if (alignCenter()) {
           off = (maxH - height) / 2;
-        } else if (isRight()) {
+        } else if (alignRight()) {
           off = maxH - height;
         }
         y += off;
@@ -855,7 +860,7 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    public boolean isCenter() {
+    public boolean alignCenter() {
       if (comp == null) {
         return false;
       }
@@ -865,7 +870,7 @@ public class SXDialog extends JFrame {
       return alignment.equals(ALIGN.CENTER) || stdAlign.equals(ALIGN.CENTER);
     }
 
-    public boolean isRight() {
+    public boolean alignRight() {
       if (comp == null) {
         return false;
       }
@@ -873,6 +878,14 @@ public class SXDialog extends JFrame {
         return true;
       }
       return alignment.equals(ALIGN.RIGHT) || alignment.equals(ALIGN.BOTTOM);
+    }
+
+    boolean isLeft() {
+      return itemType.equals(ITEMTYPE.SINGLE) || itemType.equals(ITEMTYPE.LEFT);
+    }
+
+    boolean isRight() {
+      return this instanceof BoxItem && (itemType.equals(ITEMTYPE.RIGHT) || itemType.equals(ITEMTYPE.BOTTOM));
     }
     //endregion
 
@@ -1136,25 +1149,18 @@ public class SXDialog extends JFrame {
 
     List<BasicItem> items = new ArrayList<>();
 
+    boolean rowsOrCols = false;
+
     void add(BasicItem item) {
-      if (items.size() == 0) {
-        nextPos.y = y;
-        nextPos.x = x;
-      }
-      int itemx = nextPos.x;
-      int itemy = nextPos.y;
-      if (!item.isBox()) {
-        if (col) {
-          nextPos.y = itemy + item.height + spaceAfter;
-          width = Math.max(width, item.width);
-          height += item.height;
-        } else {
-          nextPos.x = itemx + item.width + spaceAfter;
-          width = nextPos.x;
-          height = Math.max(height, item.height);
+      Point pos = new Point(x, y);
+      if (items.size() > 0) {
+        pos = evalPos(item);
+        if (item.isRight()) {
+          rowsOrCols = true;
         }
       }
-      item.pos(itemx, itemy);
+      item.pos(pos);
+      dim(evalSize(item));
       items.add(item);
       item.parent(this);
     }
@@ -1163,35 +1169,73 @@ public class SXDialog extends JFrame {
       if (items.size() == 0) {
         return;
       }
-      if (parent != null) {
-        parent.nextPos(nextPos.x, nextPos.y);
-      }
-      int boxMaxW = width - spaceAfter;
-      int boxMaxH = height - spaceAfter;
-      int boxH = margin.y + margin.height;
-      int boxW = margin.x + margin.width;
+      final Dimension pDim = dim();
       if (isPane()) {
-        boxMaxW = boxMaxH = 0;
         for (BasicItem item : items) {
-          final Dimension dim = item.dim();
-          if (col) {
-            boxMaxW = Math.max(boxMaxW, dim.width);
-            boxH += dim.height + spaceAfter;
+          final Dimension iDim = item.dim();
+          final Point iPos = item.pos();
+          if (item.isRight()) {
+            pDim.width = iPos.x + iDim.width;
+            pDim.height = Math.max(pDim.height, iPos.y + iDim.height);
           } else {
-            boxMaxH = Math.max(boxMaxH, dim.height);
-            boxW += dim.width + spaceAfter;
+            pDim.width = Math.max(pDim.width, iPos.x + iDim.width);
+            pDim.height = iPos.y + iDim.height;
           }
         }
-        if (col) {
-          width = boxMaxW;// + margin.x + margin.width;
-          height = boxH - spaceAfter;
-        }
+        dim(pDim);
       }
       for (BasicItem item : items) {
         if (!item.isBox() && !item.isBoxEnd()) {
-          item.adjust(col, boxMaxW, boxMaxH);
+          item.adjust(col, pDim.width, pDim.height);
         }
       }
+      if (parent != null) {
+        ((BoxItem) parent).evalNextPos(this);
+      } else {
+        pDim.height += margin.height;
+      }
+    }
+
+    Point evalPos(BasicItem item) {
+      final BasicItem last = items.get(items.size() - 1);
+      final Point lastPos = last.pos();
+      final Dimension lastDim = last.dim();
+      int x, y;
+      x = lastPos.x;
+      y = lastPos.y + lastDim.height + spaceAfter;
+      if ((item.isBox() && item.isRight()) || !col) {
+        x = lastPos.x + lastDim.width + spaceAfter;
+        y = lastPos.y;
+      }
+      if (item.isLine()) {
+        item.setW(lastDim.width);
+      }
+      return new Point(x, y);
+    }
+
+    Dimension evalSize(BasicItem item) {
+      final Dimension newDim = new Dimension();
+      final Dimension bDim = dim();
+      final Dimension iDim = item.dim();
+      if ((item.isBox() && item.isRight()) || !col) {
+        newDim.width = bDim.width + iDim.width + spaceAfter;
+        newDim.height = Math.max(bDim.height, iDim.height);
+      } else {
+        newDim.width = Math.max(bDim.width, iDim.width);
+        newDim.height = bDim.height + iDim.height + spaceAfter;
+      }
+      return newDim;
+    }
+
+    void evalNextPos(BasicItem item) {
+      nextPos(0, 0);
+      int x = item.x;
+      int y = item.y + item.height + spaceAfter;
+      if ((item.isBox() && item.isRight()) || !col) {
+        x = item.x + item.width + spaceAfter;
+        y = item.y;
+      }
+      nextPos(x, y);
     }
 
     BasicItem get(int ix) {
