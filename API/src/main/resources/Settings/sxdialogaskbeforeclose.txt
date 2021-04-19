@@ -1,13 +1,19 @@
-#globals; m 10; f 14; p 5; b 1;
+#globals; m 10; f 14; p 0; b 1;
 #prefix; dialogbasics
 
 TITLE
 ---
 
-boxv; BoxV2;
-button; boxV1
+button;
+//box;
+//button; CANCEL
+//+button; OK
+//#
+
 ---
-#
+
+|FOOTERxxxxx
+
 ##
 
 +box; BoxV3;
