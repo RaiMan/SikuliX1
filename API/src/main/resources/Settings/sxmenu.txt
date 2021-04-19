@@ -2,14 +2,14 @@
 
 mouse action; center; bold; fontsize 16
 --- 1
-#link; sikulix.com; center
+link; sikulix.com; center
 --- 1
-#action; About SikuliX; show ideabout; center
+action; About SikuliX; show ideabout; center
 --- 1
-#action; SikuliX; show idestartup; center
+action; SikuliX; show idestartup; center
 --- 1
-#html; some text | more text | and more text
+html; some text | more text | and more text
 --- 1
-#option; some option; someOption;
+//option; some option; someOption;
 --- 1
-#buttons;
+//button;

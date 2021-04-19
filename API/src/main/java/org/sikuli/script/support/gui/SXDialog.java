@@ -35,8 +35,10 @@ public class SXDialog extends JFrame {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(KeyEvent e) {
-        Commons.trace("global key listener fired - closing window without saving state");
-        close();
+        if (checkKey(e, KEYS.ESC)) {
+          Commons.trace("global key listener fired - closing window without saving state");
+          close();
+        }
       }
     });
   }
@@ -138,7 +140,7 @@ public class SXDialog extends JFrame {
 
   enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER}
 
-  enum ITEMTYPE {SINGLE, LEFT, RIGHT, CENTER, TOP, BOTTOM, SAME}
+  enum ITEMTYPE {SINGLE, LEFT, RIGHT, CENTER, OUT, BOTTOM, SAME}
   //endregion
 
   //region 04 global handler
@@ -300,16 +302,16 @@ public class SXDialog extends JFrame {
     }
   }
 
-  enum ALIGN {LEFT, CENTER, RIGHT, TOP, BOTTOM}
+  enum ALIGN {NOTSET, LEFT, CENTER, RIGHT, TOP, BOTTOM}
 
-  ALIGN stdAlign = ALIGN.LEFT;
+  ALIGN stdAlign = ALIGN.NOTSET;
 
   void setAlign(ALIGN type) {
     stdAlign = type;
   }
   //endregion
 
-  //region 10 show/hide/destroy
+  //region 14 show/hide/destroy
   void popup() {
     popup(null);
   }
@@ -352,7 +354,7 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
-  //region 30 text to items
+  //region 10 text to items
   static String lineTypeSingle = "#";
   static String lineTypeLeft = "-";
   static String lineTypeCenter = "|";
@@ -369,11 +371,11 @@ public class SXDialog extends JFrame {
 
   List<String> textLines = new ArrayList<>();
 
-  ITEMTYPE lastItemType = ITEMTYPE.SINGLE;
+  ITEMTYPE lastItemType = ITEMTYPE.LEFT;
 
   void textToItems(String text) {
 
-    lastItemType = ITEMTYPE.SINGLE;
+    lastItemType = ITEMTYPE.LEFT;
 
     boolean lineContinue = false;
     String finalTextLine = "";
@@ -502,9 +504,9 @@ public class SXDialog extends JFrame {
           } else if (isFeat(feature, FEATURE.BUTTON)) {
             if (title.isEmpty()) {
               append(new BoxItem(FEATURE.ROW.name(), "stdbuttons"), lineType);
-              append(new ButtonItem("CANCEL"), lineTypeSingle);
-              append(new ButtonItem("APPLY"), lineTypeRight);
-              append(new ButtonItem("OK"), lineTypeRight);
+              append(new ButtonItem("CANCEL"));
+              append(new ButtonItem("APPLY"));
+              append(new ButtonItem("OK"));
               append(new TextItem("##boxend##"));
               continue;
             }
@@ -557,7 +559,14 @@ public class SXDialog extends JFrame {
       } else if (lineType.equals(lineTypeCenter)) {
         itemType = ITEMTYPE.CENTER;
       } else if (lineType.equals(lineTypeSingle)) {
-        itemType = ITEMTYPE.SINGLE;
+        if (item.isBox()) {
+          itemType = ITEMTYPE.OUT;
+        } else {
+          itemType = ITEMTYPE.LEFT;
+        }
+      }
+      if (itemType.equals(ITEMTYPE.SAME)) {
+        itemType = lastItemType;
       }
       lastItemType = itemType;
       item.itemType(itemType);
@@ -667,7 +676,7 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
-  //region 20 top-down pack items
+  //region 12 top-down pack items
   List<BasicItem> dialogLines = new ArrayList<>();
 
   BoxItem paneBox = new BoxItem("boxv", "sxpanebox");
@@ -688,6 +697,10 @@ public class SXDialog extends JFrame {
   }
 
   void packBoxes(Container pane, List<BasicItem> boxes) {
+
+    for (BasicItem itm : boxes) {
+      Commons.trace("%s", itm);
+    }
 
     paneBox.asPane();
 
@@ -714,7 +727,14 @@ public class SXDialog extends JFrame {
     }
 
     finalSize = paneBox.makeReady();
-    Commons.trace("%s", paneBox.toString());
+    Commons.trace("%s", paneBox.toStringAll());
+    if (margin.x > 0 || margin.y > 0) {
+      for (BasicItem itm : boxes) {
+        itm.addMargin(margin.getLocation());
+      }
+    }
+    finalSize.width += margin.x + margin.width;
+    finalSize.height += margin.y + margin.height;
 
     for (BasicItem item : boxes) {
       if (!item.isBox() && !item.isBoxEnd()) {
@@ -722,7 +742,6 @@ public class SXDialog extends JFrame {
         item.addListeners();
       }
     }
-
     pane.setSize(finalSize);
   }
   //endregion
@@ -731,6 +750,7 @@ public class SXDialog extends JFrame {
   abstract class BasicItem {
 
     BasicItem() {
+      alignment = stdAlign;
     }
 
     public String toString() {
@@ -767,28 +787,24 @@ public class SXDialog extends JFrame {
       return ((BoxItem) parent).isPane();
     }
 
-    public void adjust(boolean col, int maxW, int maxH) {
+    public void adjust(boolean col, int boxW, int boxH) {
       int off = 0;
       if (isLine()) {
-        int cutRight = 0;
-        if (inPane()) {
-          cutRight = margin.width;
-        }
-        fill(col, maxW - cutRight);
+        fill(col, boxW);
         return;
       }
       if (col) {
         if (alignCenter()) {
-          off = (maxW - width) / 2;
-        } else if (alignRight()) {
-          off = maxW - width;
+          off = (boxW - width) / 2;
+        } else if (alignRightBottom()) {
+          off = boxW - width;
         }
         x += off;
       } else {
         if (alignCenter()) {
-          off = (maxH - height) / 2;
-        } else if (alignRight()) {
-          off = maxH - height;
+          off = (boxH - height) / 2;
+        } else if (alignRightBottom()) {
+          off = boxH - height;
         }
         y += off;
       }
@@ -847,7 +863,7 @@ public class SXDialog extends JFrame {
     //endregion
 
     //region Alignment
-    ALIGN alignment = ALIGN.LEFT;
+    ALIGN alignment;
 
     public BasicItem align(ALIGN type) {
       alignment = type;
@@ -861,25 +877,27 @@ public class SXDialog extends JFrame {
       if (itemType.equals(ITEMTYPE.CENTER)) {
         return true;
       }
-      return alignment.equals(ALIGN.CENTER) || stdAlign.equals(ALIGN.CENTER);
+      if (alignment.equals(ALIGN.NOTSET)) {
+        alignment = stdAlign;
+      }
+      return alignment.equals(ALIGN.CENTER);
     }
 
-    public boolean alignRight() {
+    public boolean alignRightBottom() {
       if (comp == null) {
         return false;
       }
       if (itemType.equals(ITEMTYPE.RIGHT) || itemType.equals(ITEMTYPE.BOTTOM)) {
         return true;
       }
+      if (alignment.equals(ALIGN.NOTSET)) {
+        alignment = stdAlign;
+      }
       return alignment.equals(ALIGN.RIGHT) || alignment.equals(ALIGN.BOTTOM);
     }
 
-    boolean isLeft() {
-      return itemType.equals(ITEMTYPE.SINGLE) || itemType.equals(ITEMTYPE.LEFT);
-    }
-
-    boolean isRight() {
-      return this instanceof BoxItem && (itemType.equals(ITEMTYPE.RIGHT) || itemType.equals(ITEMTYPE.BOTTOM));
+    boolean isOut() {
+      return this instanceof BoxItem && itemType.equals(ITEMTYPE.OUT);
     }
     //endregion
 
@@ -903,6 +921,11 @@ public class SXDialog extends JFrame {
 
     Point pos() {
       return new Point(x, y);
+    }
+
+    void addMargin(Point margin) {
+      x += margin.x;
+      y += margin.y;
     }
 
     int width = 0;
@@ -1103,14 +1126,14 @@ public class SXDialog extends JFrame {
   //region 501 BoxItem
   class BoxItem extends BasicItem {
 
-    public String toString() {
+    public String toStringAll() {
       String before = "\n" + super.toString();
       before += col ? " COL" : " ROW";
       String prefix = isPane() ? "" : " - ";
       String out = "\n";
       if (items.size() > 0) {
         for (BasicItem item : items) {
-          out += prefix + item + "\n";
+          out += prefix + (item.isBox() ? ((BoxItem) item).toStringAll() : item) + "\n";
         }
       }
       if (out.isEmpty()) {
@@ -1136,8 +1159,6 @@ public class SXDialog extends JFrame {
     }
 
     void asPane() {
-      x = margin.x;
-      y = margin.y;
       pane = true;
     }
 
@@ -1149,7 +1170,7 @@ public class SXDialog extends JFrame {
       Point pos = new Point(x, y);
       if (items.size() > 0) {
         pos = evalPos(item);
-        if (item.isRight()) {
+        if (item.isOut()) {
           rowsOrCols = true;
         }
       }
@@ -1188,7 +1209,7 @@ public class SXDialog extends JFrame {
       int x, y;
       x = lastPos.x;
       y = lastPos.y + lastDim.height + spaceAfter;
-      if ((item.isBox() && item.isRight()) || !col) {
+      if (item.isOut() || !col) { //TODO
         x = lastPos.x + lastDim.width + spaceAfter;
         y = lastPos.y;
       }
@@ -1202,7 +1223,7 @@ public class SXDialog extends JFrame {
       final Dimension newDim = new Dimension();
       final Dimension bDim = dim();
       final Dimension iDim = item.dim();
-      if ((item.isBox() && item.isRight()) || !col) {
+      if (item.isOut() || !col) { //TODO
         newDim.width = bDim.width + iDim.width + spaceAfter;
         newDim.height = Math.max(bDim.height, iDim.height);
       } else {
@@ -1216,7 +1237,7 @@ public class SXDialog extends JFrame {
       nextPos(0, 0);
       int x = item.x;
       int y = item.y + item.height + spaceAfter;
-      if ((item.isBox() && item.isRight()) || !col) {
+      if (item.isOut() || !col) { //TODO
         x = item.x + item.width + spaceAfter;
         y = item.y;
       }
@@ -1229,7 +1250,7 @@ public class SXDialog extends JFrame {
         for (BasicItem item : items) {
           final Dimension iDim = item.dim();
           final Point iPos = item.pos();
-          if (item.isRight()) {
+          if (item.isOut()) { //TODO
             pDim.width = iPos.x + iDim.width;
             pDim.height = Math.max(pDim.height, iPos.y + iDim.height);
           } else {
@@ -1247,7 +1268,7 @@ public class SXDialog extends JFrame {
         int off = 0;
         if (item.alignCenter()) {
           off = (pDim.width - item.width) / 2;
-        } else if (item.alignRight()) {
+        } else if (item.alignRightBottom()) {
           off = pDim.width - item.width;
         }
         item.x += off;
@@ -1255,8 +1276,6 @@ public class SXDialog extends JFrame {
           ((BoxItem) item).adjustPos(off);
         }
       }
-      pDim.width += margin.x + margin.width;
-      pDim.height += margin.height;
       dim(pDim);
       return pDim;
     }
