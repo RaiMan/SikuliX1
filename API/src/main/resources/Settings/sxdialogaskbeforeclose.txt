@@ -1,4 +1,4 @@
-#globals; m 20; f 14; p 0; b 1;
+#globals; m 20; f 14; p 10; b 1;
 #prefix; dialogbasics
 
 text
@@ -15,9 +15,10 @@ text
     ---
     |OK2
   #
+//  ---5
 #
 texttext
-##
+
 #boxv;
   boxv; box1
     button; OK
@@ -25,17 +26,6 @@ texttext
     |OK1
   #
 #
-##
-  ---3
-
-  boxv; box2
-    button; OK
-    ---
-    |OK2
-  #
-#
-##
--to the left
 
 #boxv;
   boxv; box1
@@ -51,6 +41,19 @@ texttext
     |OK2
   #
 #
+
+##
+  ---3
+
+  boxv; box2
+    button; OK
+    ---
+    |OK2
+  #
+#
+##
+-to the left
+
 
 ##
 ---
