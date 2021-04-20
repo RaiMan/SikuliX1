@@ -372,6 +372,7 @@ public class SXDialog extends JFrame {
   List<String> textLines = new ArrayList<>();
 
   ITEMTYPE lastItemType = ITEMTYPE.LEFT;
+  BasicItem lastItem = null;
 
   void textToItems(String text) {
 
@@ -566,7 +567,11 @@ public class SXDialog extends JFrame {
         }
       }
       if (itemType.equals(ITEMTYPE.SAME)) {
-        itemType = lastItemType;
+        if (lastItem == null || lastItem.isBoxEnd()) {
+          itemType = ITEMTYPE.LEFT;
+        } else {
+          itemType = lastItemType;
+        }
       }
       lastItemType = itemType;
       item.itemType(itemType);
@@ -696,18 +701,17 @@ public class SXDialog extends JFrame {
     return item.toString();
   }
 
-  void packBoxes(Container pane, List<BasicItem> boxes) {
+  void packBoxes(Container pane, List<BasicItem> allBoxesAndItems) {
 
-    for (BasicItem itm : boxes) {
+    for (BasicItem itm : allBoxesAndItems) {
       Commons.trace("%s", itm);
     }
 
     paneBox = new BoxItem("boxv", "sxpanebox");
     paneBox.asPane();
     currentBox = paneBox;
-//    boxStack.add(0, currentBox);
 
-    for (BasicItem itm : boxes) {
+    for (BasicItem itm : allBoxesAndItems) {
       item = itm;
       if (itm.isBoxEnd()) {
         if (boxStack.size() > 0) {
@@ -732,16 +736,17 @@ public class SXDialog extends JFrame {
     }
 
     finalSize = paneBox.makeReady();
-    Commons.trace("%s", paneBox.toStringAll());
+    finalSize = paneBox.dim();
     if (margin.x > 0 || margin.y > 0) {
-      for (BasicItem itm : boxes) {
+      for (BasicItem itm : allBoxesAndItems) {
         itm.addMargin(margin.getLocation());
       }
     }
+    Commons.trace("%s", paneBox.toStringAll());
     finalSize.width += margin.x + margin.width;
     finalSize.height += margin.y + margin.height;
 
-    for (BasicItem item : boxes) {
+    for (BasicItem item : allBoxesAndItems) {
       if (!item.isBox() && !item.isBoxEnd()) {
         pane.add(item.finalComp());
         item.addListeners();
@@ -1123,89 +1128,84 @@ public class SXDialog extends JFrame {
     //region 10 adjust
     void add(BasicItem item) {
       item.parent(this);
-      Point pos = new Point(x, y);
-      if (items.size() > 0) {
-        pos = evalPos(item);
-      }
-      item.pos(pos);
-      dim(evalSize(item));
+      evalItem(item);
       items.add(item);
     }
 
-    Point evalPos(BasicItem item) {
-      final BasicItem last = items.get(items.size() - 1);
-      final Point lastPos = last.pos();
-      final Dimension lastDim = last.dim();
+    void evalItem(BasicItem item) {
+      if (items.size() == 0) {
+        item.pos(pos());
+        dim(item.dim());
+        return;
+      }
       int x, y;
       if (item.isOut()) {
         if (col) {
-          x = item.parent().dim().width + spaceAfter;
-          y = item.parent().pos().y;
+          x = dim().width + spaceAfter;
+          y = pos().y;
         } else {
-          x = parent.pos().x;
-          y = parent.dim().height + spaceAfter;
+          x = pos().x;
+          y = dim().height + spaceAfter;
         }
       } else {
+        final Dimension newDim = new Dimension();
+        final Dimension bDim = dim();
+        final Dimension iDim = item.dim();
         if (col) {
-          x = lastPos.x;
-          y = lastPos.y + lastDim.height + spaceAfter;
+          x = pos().x;
+          y = pos().y + dim().height + spaceAfter;
+          newDim.width = Math.max(bDim.width, iDim.width);
+          newDim.height = bDim.height + iDim.height + spaceAfter;
         } else {
-          x = lastPos.x + lastDim.width + spaceAfter;
-          y = lastPos.y;
+          x = pos().x + dim().width + spaceAfter;
+          y = pos().y;
+          newDim.width = bDim.width + iDim.width + spaceAfter;
+          newDim.height = Math.max(bDim.height, iDim.height);
         }
+        dim(newDim);
       }
       if (item.isLine()) {
-        item.setW(lastDim.width);
+        item.setW(dim().width);
       }
-      return new Point(x, y);
+      item.pos(x, y);
     }
 
     void adjust() {
       if (items.size() == 0) {
         return;
       }
-      final Dimension pDim = dim();
       for (BasicItem item : items) {
         if (!item.isBoxEnd()) {
-          item.adjust(col, pDim.width, pDim.height);
+          item.adjust(col, dim().width, dim().height);
         }
       }
-      pDim.width -= spaceAfter;
-      pDim.height -= spaceAfter;
-      dim(pDim);
     }
 
     void adjustSize() {
       if (items.size() == 0) {
         return;
       }
-      int maxW = 0;
-      int maxH = 0;
+      int boxW = 0;
+      int boxH = 0;
       for (BasicItem item : items) {
         if (!item.isBoxEnd()) {
-          maxW = Math.max(maxW, item.pos().x + item.dim().width);
-          maxH = Math.max(maxH, item.pos().y + item.dim().height);
+          if (col) {
+            boxW = Math.max(boxW, item.dim().width);
+            boxH += item.dim().height + spaceAfter;
+          } else {
+            boxW += item.dim().width + spaceAfter;
+            boxH = Math.max(boxH, item.dim().height);
+          }
         }
       }
-      dim(maxW, maxH);
+      if (col) {
+        dim(boxW, boxH - spaceAfter);
+      } else
+        dim(boxW - spaceAfter, boxH);
     }
 
     void adjustPos(int off) {
 
-    }
-
-    Dimension evalSize(BasicItem item) {
-      final Dimension newDim = new Dimension();
-      final Dimension bDim = dim();
-      final Dimension iDim = item.dim();
-      if (item.isOut() || !col) { //TODO
-        newDim.width = bDim.width + iDim.width + spaceAfter;
-        newDim.height = Math.max(bDim.height, iDim.height);
-      } else {
-        newDim.width = Math.max(bDim.width, iDim.width);
-        newDim.height = bDim.height + iDim.height + spaceAfter;
-      }
-      return newDim;
     }
 
     Dimension makeReady() {

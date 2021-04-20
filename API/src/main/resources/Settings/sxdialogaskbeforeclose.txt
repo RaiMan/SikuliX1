@@ -1,19 +1,79 @@
-#globals; m 10; f 14; p 0; b 1;
+#globals; m 20; f 14; p 0; b 1;
 #prefix; dialogbasics
 
-boxv; box1
-button; NEW1
+text
+#boxv; out
+  boxv; box1
+   button; OK
+   ---
+   |OK1
+  #
+  ---3
+
+  boxv; box2
+    button; OK
+    ---
+    |OK2
+  #
+#
+texttext
+##
+#boxv;
+  boxv; box1
+    button; OK
+    ---
+    |OK1
+  #
+#
+##
+  ---3
+
+  boxv; box2
+    button; OK
+    ---
+    |OK2
+  #
+#
+##
+-to the left
+
+#boxv;
+  boxv; box1
+   button; OK
+   ---
+   |OK1
+#
+  ---3
+
+  boxv; box2
+    button; OK
+    ---
+    |OK2
+  #
 #
 
-#boxv; box2
-button; NEW2
+##
+---
+
+boxv; box31
+button; OK
+---
+|OK31
 #
 
--boxv; box31
-button; NEW31
+#boxv;
+
+boxv; box32
+button; OK
+---
+|OK32
 #
 
-#boxv; box32
-button; NEW32
+boxv; box33
+button; OK
+---
+|OK33
+#
+
 #
 ##
