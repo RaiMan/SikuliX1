@@ -971,17 +971,6 @@ public class SXDialog extends JFrame {
     Rectangle rect() {
       return new Rectangle(x, y, width, height);
     }
-
-    Point nextPos = new Point();
-
-    public Point nextPos() {
-      return nextPos;
-    }
-
-    public void nextPos(int x, int y) {
-      nextPos.x = x;
-      nextPos.y = y;
-    }
     //endregion
 
     //region Listener
@@ -1131,54 +1120,12 @@ public class SXDialog extends JFrame {
   //region 501 BoxItem
   class BoxItem extends BasicItem {
 
-    public String toStringAll() {
-      String before = "\n" + super.toString();
-      before += col ? " COL" : " ROW";
-      String prefix = isPane() ? "" : " - ";
-      String out = "\n";
-      if (items.size() > 0) {
-        for (BasicItem item : items) {
-          out += prefix + (item.isBox() ? ((BoxItem) item).toStringAll() : item) + "\n";
-        }
-      }
-      if (out.isEmpty()) {
-        out = " *** empty ***";
-      }
-      out = before + out;
-      return out;
-    }
-
-    BoxItem(String type, String title) {
-      this.title = title;
-      if (type.equals("boxv")) {
-        col = true;
-      }
-    }
-
-    boolean col = false;
-
-    boolean pane = false;
-
-    boolean isPane() {
-      return pane;
-    }
-
-    void asPane() {
-      pane = true;
-    }
-
-    List<BasicItem> items = new ArrayList<>();
-
-    boolean rowsOrCols = false;
-
+    //region 10 adjust
     void add(BasicItem item) {
       item.parent(this);
       Point pos = new Point(x, y);
       if (items.size() > 0) {
         pos = evalPos(item);
-        if (item.isOut()) {
-          rowsOrCols = true;
-        }
       }
       item.pos(pos);
       dim(evalSize(item));
@@ -1226,9 +1173,6 @@ public class SXDialog extends JFrame {
       pDim.width -= spaceAfter;
       pDim.height -= spaceAfter;
       dim(pDim);
-      if (parent != null) {
-        ((BoxItem) parent).evalNextPos(this);
-      }
     }
 
     void adjustSize() {
@@ -1262,17 +1206,6 @@ public class SXDialog extends JFrame {
         newDim.height = bDim.height + iDim.height + spaceAfter;
       }
       return newDim;
-    }
-
-    void evalNextPos(BasicItem item) {
-      nextPos(0, 0);
-      int x = item.x;
-      int y = item.y + item.height + spaceAfter;
-      if (item.isOut() || !col) { //TODO
-        x = item.x + item.width + spaceAfter;
-        y = item.y;
-      }
-      nextPos(x, y);
     }
 
     Dimension makeReady() {
@@ -1310,6 +1243,47 @@ public class SXDialog extends JFrame {
       dim(pDim);
       return pDim;
     }
+    //endregion
+
+    //region 20 other
+    public String toStringAll() {
+      String before = "\n" + super.toString();
+      before += col ? " COL" : " ROW";
+      before += " (" + items.size() + ")";
+      String prefix = isPane() ? "" : " - ";
+      String out = "\n";
+      if (items.size() > 0) {
+        for (BasicItem item : items) {
+          out += prefix + (item.isBox() ? ((BoxItem) item).toStringAll() : item) + "\n";
+        }
+      }
+      if (out.isEmpty()) {
+        out = " *** empty ***";
+      }
+      out = before + out;
+      return out;
+    }
+
+    BoxItem(String type, String title) {
+      this.title = title;
+      if (type.equals("boxv")) {
+        col = true;
+      }
+    }
+
+    boolean col = false;
+
+    boolean pane = false;
+
+    boolean isPane() {
+      return pane;
+    }
+
+    void asPane() {
+      pane = true;
+    }
+
+    List<BasicItem> items = new ArrayList<>();
 
     BasicItem get(int ix) {
       if (ix >= 0) {
@@ -1320,7 +1294,9 @@ public class SXDialog extends JFrame {
       }
       return new NullItem();
     }
+    //endregion
   }
+
   //endregion
 
   //region 502 NullItem

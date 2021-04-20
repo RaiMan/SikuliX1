@@ -1,71 +1,19 @@
 #globals; m 10; f 14; p 0; b 1;
 #prefix; dialogbasics
 
-boxv;
-|TITLE1
----
-|button; NEW
----
-|-- FOOTER --
+boxv; box1
+button; NEW1
 #
 
-#boxv;
-|TITLE2
----
-|button; NEW
----
-|++ FOOTER ++
+#boxv; box2
+button; NEW2
 #
 
-box;
-boxv;
-|TITLE3
----
-|button; NEW
----
-|-- FOOTER --
+-boxv; box31
+button; NEW31
 #
 
-boxv;
-|TITLE4
----
-|button; NEW
----
-|++ FOOTER ++
-#
+#boxv; box32
+button; NEW32
 #
 ##
-
-+box; BoxV3;
-button; boxV3
----
-#
-
----
-|FOOTER
-
-##
-#boxv; default;
--button; CANCEL
-|some text
-+button; OK
-#
-+boxv; default;
--button; CANCEL
-|some text
-+button; OK
-#
---- 3
-#html; bottom text more text to read|... and g y even more
----
-+button;
----
-| text centered
-
----
-#button; CANCEL
--button; OK
-|some text
-+button; APPLY
----
-#button;
