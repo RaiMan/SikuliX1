@@ -530,6 +530,8 @@ public class SXDialog extends JFrame {
             if (orgLine.equals("#")) {
               item = new TextItem("##boxend##");
             } else if (orgLine.equals("##")) {
+              item = new TextItem("##boxbreak##");
+            } else if (orgLine.equals("###")) {
               break;
             } else {
               item = new TextItem(options[1]);
@@ -567,7 +569,7 @@ public class SXDialog extends JFrame {
         }
       }
       if (itemType.equals(ITEMTYPE.SAME)) {
-        if (lastItem == null || lastItem.isBoxEnd()) {
+        if (lastItem == null || lastItem.isBoxEnd() || lastItem.isBoxBreak()) {
           itemType = ITEMTYPE.LEFT;
         } else {
           itemType = lastItemType;
@@ -747,7 +749,7 @@ public class SXDialog extends JFrame {
     finalSize.height += margin.y + margin.height;
 
     for (BasicItem item : allBoxesAndItems) {
-      if (!item.isBox() && !item.isBoxEnd()) {
+      if (item.hasComp()) {
         pane.add(item.finalComp());
         item.addListeners();
       }
@@ -787,6 +789,14 @@ public class SXDialog extends JFrame {
 
     public boolean isBoxEnd() {
       return title.equals("##boxend##");
+    }
+
+    public boolean isBoxBreak() {
+      return title.equals("##boxbreak##");
+    }
+
+    public boolean hasComp() {
+      return !isBox() && !isBoxEnd() && !isBoxBreak();
     }
 
     boolean isLine() {
@@ -911,7 +921,7 @@ public class SXDialog extends JFrame {
     }
     //endregion
 
-    //region Location size
+    //region Location Size
     BasicItem resize(int width) {
       return this;
     }
@@ -940,6 +950,8 @@ public class SXDialog extends JFrame {
 
     int width = 0;
     int height = 0;
+    int outPosX = -spaceAfter;
+    int outPosY = -spaceAfter;
 
     void setH(int val) {
       height = val;
@@ -1127,6 +1139,11 @@ public class SXDialog extends JFrame {
 
     //region 10 adjust
     void add(BasicItem item) {
+      if (item.isBoxBreak()) {
+        outPosY = dim().height;
+        outPosX = dim().width;
+        return;
+      }
       item.parent(this);
       evalItem(item);
       items.add(item);
@@ -1142,9 +1159,9 @@ public class SXDialog extends JFrame {
       if (item.isOut()) {
         if (col) {
           x = dim().width + spaceAfter;
-          y = pos().y;
+          y = outPosY + spaceAfter;
         } else {
-          x = pos().x;
+          x = outPosX + spaceAfter;
           y = dim().height + spaceAfter;
         }
       } else {
@@ -1175,7 +1192,7 @@ public class SXDialog extends JFrame {
         return;
       }
       for (BasicItem item : items) {
-        if (!item.isBoxEnd()) {
+        if (!item.isBoxEnd() && !item.isBoxBreak()) {
           item.adjust(col, dim().width, dim().height);
         }
       }
@@ -1185,16 +1202,27 @@ public class SXDialog extends JFrame {
       if (items.size() == 0) {
         return;
       }
-      int boxW = 0;
-      int boxH = 0;
+      int boxW = 0, boxH = 0;
       for (BasicItem item : items) {
-        if (!item.isBoxEnd()) {
+        if (!item.isBoxEnd() && !item.isBoxBreak()) {
+          int outX = item.pos().x;
+          int outY = item.pos().y;
           if (col) {
-            boxW = Math.max(boxW, item.dim().width);
-            boxH += item.dim().height + spaceAfter;
+            if (item.isOut()) {
+              boxW = Math.max(boxW, outX + item.dim().width);
+              boxH = Math.max(boxH, item.dim().height + spaceAfter);
+            } else {
+              boxW = Math.max(boxW, item.dim().width);
+              boxH += item.dim().height + spaceAfter;
+            }
           } else {
-            boxW += item.dim().width + spaceAfter;
-            boxH = Math.max(boxH, item.dim().height);
+            if (item.isOut()) {
+              boxW = Math.max(boxW, item.dim().width);
+              boxH = Math.max(boxH, outY + item.dim().height + spaceAfter);
+            } else {
+              boxW += item.dim().width + spaceAfter;
+              boxH = Math.max(boxH, item.dim().height);
+            }
           }
         }
       }

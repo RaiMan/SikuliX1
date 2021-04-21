@@ -1,8 +1,8 @@
 #globals; m 20; f 14; p 10; b 1;
 #prefix; dialogbasics
 
-text
-#boxv; out
+
+boxv; out-verti
   boxv; box1
    button; OK
    ---
@@ -15,46 +15,39 @@ text
     ---
     |OK2
   #
-//  ---5
+  ---3
 #
+
+#box; out-hori
+  boxv; box1
+   button; OK
+   ---
+   |OK1
+   ---3
+  #
+
+  boxv; box2
+    button; CANCEL
+    ---
+    |OK2
+    ---3
+  #
+#
+##
+---5
+|text
+---5
+###
+
+---5
+
 texttext
 
-#boxv;
-  boxv; box1
-    button; OK
-    ---
-    |OK1
-  #
-#
 
-#boxv;
-  boxv; box1
-   button; OK
-   ---
-   |OK1
-#
-  ---3
-
-  boxv; box2
-    button; OK
-    ---
-    |OK2
-  #
-#
-
-##
-  ---3
-
-  boxv; box2
-    button; OK
-    ---
-    |OK2
-  #
-#
-##
--to the left
-
-
+---5
+|button;
+---5
+to the left
 ##
 ---
 
