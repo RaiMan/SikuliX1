@@ -1,4 +1,4 @@
-#globals; margin 20; center; fontsize 20
+#globals; m 20; c; f 20
 
 #image; /icons/sikulix-red-x.png
 ---

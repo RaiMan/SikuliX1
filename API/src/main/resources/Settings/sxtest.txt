@@ -1,12 +1,22 @@
-#globals; m 20; f 14; p 10; b 1;
+#globals; m 10; f 14; p 5; b 1; c
 #prefix; dialogbasics
 
-
+---5
+|text
+---5
+  boxv; box1
+   button; APPLY
+   ---
+   |apply;=apply
+  #
+---5
+close; Press any key or Click; f 12
+===5
 boxv; out-verti
   boxv; box1
-   button; OK
+   button; APPLY
    ---
-   |OK1
+   |apply;=apply1
   #
   ---3
 
@@ -33,7 +43,8 @@ boxv; out-verti
     ---3
   #
 #
-##
+//##
+//===5
 ---5
 |text
 ---5

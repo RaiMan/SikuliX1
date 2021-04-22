@@ -1,4 +1,4 @@
-#globals; margin 5; Font 14; before 7; border 1;
+#globals; m 5; f 14; b 1;
 
 mouse action; center; bold; fontsize 16
 --- 1

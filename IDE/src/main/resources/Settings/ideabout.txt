@@ -1,6 +1,6 @@
-#globals; size 300 500; margin 20; center; FontSize 16
+#globals; s 300 500; m 20; c; f 16
 
-#image; /icons/sikulix-red-x.png; resize 200
+#image; /icons/sikulix-red-x.png; r 200
 ---
 SikuliX IDE; fontsize 20; bold
 {sxversion}; bold
@@ -12,4 +12,4 @@ Copyright (c) 2010-2021; fontsize 14
 sikuli.org --- sikulix.com; fontsize 12
 #link; MIT License | http://www.sikulix.com/disclaimer/; fontsize 14
 ---
-#close; Press any key or Click; fontsize 12
+#close; Press any key or Click; f 12

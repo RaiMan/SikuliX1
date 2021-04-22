@@ -14,8 +14,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -59,24 +61,47 @@ public class SXDialog extends JFrame {
     }
     Class clazz = SXDialog.class;
     if (!res.startsWith("/")) {
-      if (res.startsWith("ide")) {
-        try {
-          clazz = Class.forName("org.sikuli.ide.SikulixIDE");
-        } catch (ClassNotFoundException e) {
+      if (res.startsWith("sx")) {
+        if (res.startsWith("sxide")) {
+          try {
+            clazz = Class.forName("org.sikuli.ide.SikulixIDE");
+          } catch (ClassNotFoundException e) {
+          }
         }
+        res = "/Settings/" + res;
       }
-      res = "/Settings/" + res;
+    } else {
+      Commons.trace("not implemented: res = %s", res);
     }
     final String text = Commons.copyResourceToString(res, clazz);
-    textToItems(text);
-    packBoxes(pane, dialogLines);
-    if (pos.equals(POSITION.TOP)) {
-      where.x -= finalSize.width / 2;
-    } else if (pos.equals(POSITION.CENTER)) {
-      where.x -= finalSize.width / 2;
-      where.y -= finalSize.height / 2;
+    if (!text.isEmpty()) {
+      valid = true;
+      this.pos = pos;
+      this.where = where;
+      textToItems(text);
+      packBoxes(pane, dialogLines);
     }
-    popup(where);
+  }
+
+  private boolean valid = false;
+
+  boolean isOK() {
+    return valid;
+  }
+
+  private Point where;
+  private POSITION pos;
+
+  public void run() {
+    if (isOK()) {
+      if (pos.equals(POSITION.TOP)) {
+        where.x -= finalSize.width / 2;
+      } else if (pos.equals(POSITION.CENTER)) {
+        where.x -= finalSize.width / 2;
+        where.y -= finalSize.height / 2;
+      }
+      popup(where);
+    }
   }
 
   //region 03 global constants
@@ -89,9 +114,11 @@ public class SXDialog extends JFrame {
 
   enum FEATURE {ERROR, CLOSE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT, BOX, BOXH, BOXV, ROW, COL}
 
-  final static String FEATURE_ERROR = "#error";
   final static String FEATURE_PLAIN = "#plain";
   final static String FEATURE_TEXT = "*text";
+  final static String FEATURE_BOXEND = "##boxend##";
+  final static String FEATURE_BOXBREAK = "##boxbreak##";
+
 
   static String FEATURES = "";
   static int FEATURE_MAXLEN = 0;
@@ -119,8 +146,8 @@ public class SXDialog extends JFrame {
       if (feature.length() <= FEATURE_MAXLEN) {
         feature = feature.toLowerCase();
         if (!FEATURES.contains(feature)) {
-          Commons.trace("invalid feature", line);
-          return FEATURE_ERROR;
+          Commons.trace("possible invalid feature - taken as text: %s", line);
+          return FEATURE_PLAIN;
         }
       } else {
         return FEATURE_PLAIN;
@@ -363,10 +390,15 @@ public class SXDialog extends JFrame {
   static String lineTypes = "*#+|-./";
   static String lineTypeNext = "/";
   static String lineTypeLine = "---";
+  static String lineTypeBreakLine = "===";
   static String itemSep = ";";
 
   boolean isLineItem(String line) {
-    return line.startsWith(lineTypeLine);
+    return line.startsWith(lineTypeLine) || isBreakLine(line);
+  }
+
+  boolean isBreakLine(String line) {
+    return line.startsWith(lineTypeBreakLine);
   }
 
   List<String> textLines = new ArrayList<>();
@@ -453,6 +485,9 @@ public class SXDialog extends JFrame {
           } else {
             item = new LineItem();
           }
+          if (isBreakLine(line)) {
+            item.title(FEATURE_BOXBREAK);
+          }
         } else {
           options = line.split(itemSep);
 
@@ -508,7 +543,7 @@ public class SXDialog extends JFrame {
               append(new ButtonItem("CANCEL"));
               append(new ButtonItem("APPLY"));
               append(new ButtonItem("OK"));
-              append(new TextItem("##boxend##"));
+              append(new TextItem(FEATURE_BOXEND));
               continue;
             }
             item = new ButtonItem(title, itemOptions);
@@ -528,9 +563,9 @@ public class SXDialog extends JFrame {
             item = new HtmlItem(options[1]);
           } else if (isText.equals(TEXT.TEXT)) {
             if (orgLine.equals("#")) {
-              item = new TextItem("##boxend##");
+              item = new TextItem(FEATURE_BOXEND);
             } else if (orgLine.equals("##")) {
-              item = new TextItem("##boxbreak##");
+              item = new TextItem(FEATURE_BOXBREAK);
             } else if (orgLine.equals("###")) {
               break;
             } else {
@@ -575,9 +610,19 @@ public class SXDialog extends JFrame {
           itemType = lastItemType;
         }
       }
+      BasicItem breakItem = null;
+      if (item.isLine()) {
+        if (item.isBoxBreak()) {
+          breakItem = new TextItem(FEATURE_BOXBREAK);
+          item.title("");
+        }
+      }
       lastItemType = itemType;
       item.itemType(itemType);
       dialogLines.add(item);
+      if (breakItem != null) {
+        dialogLines.add(breakItem);
+      }
     }
   }
 
@@ -669,8 +714,9 @@ public class SXDialog extends JFrame {
         String[] parms = options[n].strip().split(" ");
         String option = parms[0].strip().toLowerCase();
         int parm1 = getNumber(parms, 1);
+        int parm2 = getNumber(parms, 2);
         if (option.startsWith("r") && parms.length > 1) {
-          item.resize(parm1);
+          item.resize(parm1, parm2);
         } else if (option.startsWith("f")) {
           item.fontSize(parm1);
         } else if (option.startsWith("b")) {
@@ -737,7 +783,9 @@ public class SXDialog extends JFrame {
       }
     }
 
-    finalSize = paneBox.makeReady();
+    paneBox.adjust();
+    paneBox.adjustSize();
+    //finalSize = paneBox.makeReady();
     finalSize = paneBox.dim();
     if (margin.x > 0 || margin.y > 0) {
       for (BasicItem itm : allBoxesAndItems) {
@@ -788,11 +836,11 @@ public class SXDialog extends JFrame {
     }
 
     public boolean isBoxEnd() {
-      return title.equals("##boxend##");
+      return title.equals(FEATURE_BOXEND);
     }
 
     public boolean isBoxBreak() {
-      return title.equals("##boxbreak##");
+      return title.equals(FEATURE_BOXBREAK);
     }
 
     public boolean hasComp() {
@@ -926,6 +974,13 @@ public class SXDialog extends JFrame {
       return this;
     }
 
+    BasicItem resize(int width, int height) {
+      if (height < 0) {
+        resize(width);
+      }
+      return this;
+    }
+
     int x = 0;
     int y = 0;
 
@@ -1051,6 +1106,8 @@ public class SXDialog extends JFrame {
     void mouseClick(MouseEvent e) {
       if (itemAction != null) {
         itemAction.run();
+      } else {
+        closeCancel();
       }
     }
 
@@ -1140,8 +1197,12 @@ public class SXDialog extends JFrame {
     //region 10 adjust
     void add(BasicItem item) {
       if (item.isBoxBreak()) {
-        outPosY = dim().height;
-        outPosX = dim().width;
+        if (col) {
+          outPosX = -spaceAfter;
+          outPosY = dim().height;
+        } else {
+          Commons.trace("boxBreak in row: not implemented");
+        }
         return;
       }
       item.parent(this);
@@ -1225,6 +1286,7 @@ public class SXDialog extends JFrame {
             }
           }
         }
+        if (item.isBoxBreak())
       }
       if (col) {
         dim(boxW, boxH - spaceAfter);
@@ -1242,7 +1304,7 @@ public class SXDialog extends JFrame {
         for (BasicItem item : items) {
           final Dimension iDim = item.dim();
           final Point iPos = item.pos();
-          if (item.isOut()) { //TODO
+          if (item.isOut()) {
             pDim.width = iPos.x + iDim.width;
             pDim.height = Math.max(pDim.height, iPos.y + iDim.height);
           } else {
@@ -1654,18 +1716,30 @@ public class SXDialog extends JFrame {
       }
     }
 
+    //TODO Image resize
     public ImageItem resize(int width) {
-      return resize(width, 0);
+      double factor = width / (double) img.getWidth();
+      int height = (int) (img.getHeight() * factor);
+      img = resizeImage(img, width, height);
+      return this;
     }
 
     public ImageItem resize(int width, int height) {
       if (img == null || (width < 1 && height < 1)) {
         return this;
       }
-      if (width > 0) {
-        return resize((double) width / img.getWidth());
+      if (height < 0) {
+        return resize(width);
+      }
+      if (width > 0 && height > 0) {
+        img = resizeImage(img, width, height);
+        return this;
+      } else if (width > 0) {
+        img = resizeImage(img, width, img.getHeight());
+        return this;
       } else if (height > 0) {
-        return resize((double) height / img.getHeight());
+        img = resizeImage(img, img.getWidth(), height);
+        return this;
       }
       return this;
     }
@@ -1674,10 +1748,12 @@ public class SXDialog extends JFrame {
       if (img == null || !(factor > 0)) {
         return this;
       }
-      //TODO resize BufferedImage
-      Commons.loadOpenCV();
-      img = Commons.resize(img, (float) factor);
+      img = resizeImage(img, (int) (img.getWidth() * factor), (int) (img.getWidth() * factor));
       return this;
+    }
+
+    private BufferedImage resizeImage(BufferedImage img, int width, int height) {
+      return Commons.resizeImage(img, width, height);
     }
 
     BasicItem create() {

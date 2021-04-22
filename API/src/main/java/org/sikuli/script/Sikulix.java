@@ -37,7 +37,8 @@ public class Sikulix {
       //SikulixEvaluate.test();
       Commons.startTrace();
 
-      SXDialog dialog = new SXDialog("sxdialogaskbeforeclose");
+      SXDialog dialog = new SXDialog("sxtest");
+      dialog.run();
 
       while (dialog.isVisible()) {
         try {

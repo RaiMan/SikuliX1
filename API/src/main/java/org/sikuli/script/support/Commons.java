@@ -21,6 +21,8 @@ import org.sikuli.util.Highlight;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
@@ -954,8 +956,11 @@ public class Commons {
       if (stream != null) {
         content = new String(copy(stream));
         stream.close();
+      } else {
+        Commons.trace("not found: %s", res);
       }
     } catch (Exception ex) {
+      Commons.trace("not found: %s", res);
     }
     return content;
   }
@@ -1174,6 +1179,19 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="80 image handling">
+
+  public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+    final AffineTransform af = new AffineTransform();
+    af.scale((double) width / originalImage.getWidth(),
+        (double) height / originalImage.getHeight());
+    final AffineTransformOp operation = new AffineTransformOp(
+        af, AffineTransformOp.TYPE_BILINEAR);
+    BufferedImage rescaledImage = new BufferedImage(width, height,
+        BufferedImage.TYPE_INT_ARGB);
+    rescaledImage = operation.filter(originalImage, rescaledImage);
+    return rescaledImage;
+  }
+
   /**
    * Available resize interpolation algorithms
    */
