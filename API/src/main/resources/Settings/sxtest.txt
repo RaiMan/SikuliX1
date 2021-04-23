@@ -4,13 +4,15 @@
 ---5
 |text
 ---5
+[v[v[line11;][line12;]][[line21;][line22;]]]
+---5
+close; Press ESC or Click; f 12
+##
   boxv; box1
    button; APPLY
    ---
    |apply;=apply
   #
----5
-close; Press any key or Click; f 12
 ===5
 boxv; out-verti
   boxv; box1

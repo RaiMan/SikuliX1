@@ -14,16 +14,16 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SXDialog extends JFrame {
 
@@ -117,8 +117,6 @@ public class SXDialog extends JFrame {
   final static String FEATURE_PLAIN = "#plain";
   final static String FEATURE_TEXT = "*text";
   final static String FEATURE_BOXEND = "##boxend##";
-  final static String FEATURE_BOXBREAK = "##boxbreak##";
-
 
   static String FEATURES = "";
   static int FEATURE_MAXLEN = 0;
@@ -394,7 +392,7 @@ public class SXDialog extends JFrame {
   static String itemSep = ";";
 
   boolean isLineItem(String line) {
-    return line.startsWith(lineTypeLine) || isBreakLine(line);
+    return line.startsWith(lineTypeLine);
   }
 
   boolean isBreakLine(String line) {
@@ -405,6 +403,56 @@ public class SXDialog extends JFrame {
 
   ITEMTYPE lastItemType = ITEMTYPE.LEFT;
   BasicItem lastItem = null;
+
+  String evalBoxes(String textline) {
+    String check1 = textline.substring(0, 1);
+    String check2 = (textline + " ").substring(1, 2);
+    if (!("[]".contains(check1) || "[]".contains(check2))) {
+      return textline;
+    }
+    String line = " " + textline + " ";
+    String[] parts = line.split("\\[");
+    int lenp = parts.length;
+    if (lenp < 2) {
+      return textline;
+    }
+    String post;
+    String col;
+    String pres = "-|+";
+    String pre = parts[0].strip();
+    for (int n = 1; n < lenp; n++) {
+      if (!pre.isEmpty()) {
+        pre = pre.substring(0, 1);
+        if (!pres.contains(pre)) {
+          pre = " ";
+        }
+      }
+      col = "";
+      String contentLine = "";
+      post = parts[n].strip();
+      if (post.length() > 0 && post.substring(0, 1).equalsIgnoreCase("v")) {
+        col = "v";
+        contentLine = (post + " ").substring(1).strip();
+      } else {
+        contentLine = post;
+      }
+      String boxLine = pre + "box" + col + ";";
+      textLines.add(boxLine);
+      if (!contentLine.isEmpty()) {
+        String[] partsEnd = (contentLine + " ").split("\\]");
+        if (partsEnd.length > 0) {
+          for (int ne = 0; ne < partsEnd.length - 1; ne++) {
+            textLines.add(partsEnd[ne]);
+            textLines.add("#");
+          }
+          if (!partsEnd[partsEnd.length - 1].strip().isEmpty()) {
+            pre = partsEnd[partsEnd.length - 1].strip();
+          }
+        }
+      }
+    }
+    return "";
+  }
 
   void textToItems(String text) {
 
@@ -429,7 +477,13 @@ public class SXDialog extends JFrame {
         finalTextLine = textLine.substring(0, textLine.length() - 1).strip();
         continue;
       }
-      textLines.add(finalTextLine);
+      finalTextLine = evalBoxes(finalTextLine);
+      if (finalTextLine.startsWith("##")) {
+        break;
+      }
+      if (!finalTextLine.isEmpty()) {
+        textLines.add(finalTextLine);
+      }
     }
 
     if (textLines.get(0).startsWith("#global")) {
@@ -438,6 +492,9 @@ public class SXDialog extends JFrame {
     }
 
     for (String line : textLines) {
+      if (line.isEmpty()) {
+        continue;
+      }
       String orgLine = line;
       TEXT isText = null;
       BasicItem item = null;
@@ -484,9 +541,6 @@ public class SXDialog extends JFrame {
             }
           } else {
             item = new LineItem();
-          }
-          if (isBreakLine(line)) {
-            item.title(FEATURE_BOXBREAK);
           }
         } else {
           options = line.split(itemSep);
@@ -564,10 +618,6 @@ public class SXDialog extends JFrame {
           } else if (isText.equals(TEXT.TEXT)) {
             if (orgLine.equals("#")) {
               item = new TextItem(FEATURE_BOXEND);
-            } else if (orgLine.equals("##")) {
-              item = new TextItem(FEATURE_BOXBREAK);
-            } else if (orgLine.equals("###")) {
-              break;
             } else {
               item = new TextItem(options[1]);
             }
@@ -610,19 +660,9 @@ public class SXDialog extends JFrame {
           itemType = lastItemType;
         }
       }
-      BasicItem breakItem = null;
-      if (item.isLine()) {
-        if (item.isBoxBreak()) {
-          breakItem = new TextItem(FEATURE_BOXBREAK);
-          item.title("");
-        }
-      }
       lastItemType = itemType;
       item.itemType(itemType);
       dialogLines.add(item);
-      if (breakItem != null) {
-        dialogLines.add(breakItem);
-      }
     }
   }
 
@@ -839,8 +879,9 @@ public class SXDialog extends JFrame {
       return title.equals(FEATURE_BOXEND);
     }
 
-    public boolean isBoxBreak() {
-      return title.equals(FEATURE_BOXBREAK);
+    public boolean isBoxBreak() { //TODO
+      return false;
+      //return title.equals(FEATURE_BOXBREAK);
     }
 
     public boolean hasComp() {
@@ -964,8 +1005,9 @@ public class SXDialog extends JFrame {
       return alignment.equals(ALIGN.RIGHT) || alignment.equals(ALIGN.BOTTOM);
     }
 
-    boolean isOut() {
-      return this instanceof BoxItem && itemType.equals(ITEMTYPE.OUT);
+    boolean isOut() { //TODO
+      return false;
+      //return this instanceof BoxItem && itemType.equals(ITEMTYPE.OUT);
     }
     //endregion
 
@@ -1005,8 +1047,6 @@ public class SXDialog extends JFrame {
 
     int width = 0;
     int height = 0;
-    int outPosX = -spaceAfter;
-    int outPosY = -spaceAfter;
 
     void setH(int val) {
       height = val;
@@ -1196,15 +1236,6 @@ public class SXDialog extends JFrame {
 
     //region 10 adjust
     void add(BasicItem item) {
-      if (item.isBoxBreak()) {
-        if (col) {
-          outPosX = -spaceAfter;
-          outPosY = dim().height;
-        } else {
-          Commons.trace("boxBreak in row: not implemented");
-        }
-        return;
-      }
       item.parent(this);
       evalItem(item);
       items.add(item);
@@ -1217,31 +1248,21 @@ public class SXDialog extends JFrame {
         return;
       }
       int x, y;
-      if (item.isOut()) {
-        if (col) {
-          x = dim().width + spaceAfter;
-          y = outPosY + spaceAfter;
-        } else {
-          x = outPosX + spaceAfter;
-          y = dim().height + spaceAfter;
-        }
+      final Dimension newDim = new Dimension();
+      final Dimension bDim = dim();
+      final Dimension iDim = item.dim();
+      if (col) {
+        x = pos().x;
+        y = pos().y + dim().height + spaceAfter;
+        newDim.width = Math.max(bDim.width, iDim.width);
+        newDim.height = bDim.height + iDim.height + spaceAfter;
       } else {
-        final Dimension newDim = new Dimension();
-        final Dimension bDim = dim();
-        final Dimension iDim = item.dim();
-        if (col) {
-          x = pos().x;
-          y = pos().y + dim().height + spaceAfter;
-          newDim.width = Math.max(bDim.width, iDim.width);
-          newDim.height = bDim.height + iDim.height + spaceAfter;
-        } else {
-          x = pos().x + dim().width + spaceAfter;
-          y = pos().y;
-          newDim.width = bDim.width + iDim.width + spaceAfter;
-          newDim.height = Math.max(bDim.height, iDim.height);
-        }
-        dim(newDim);
+        x = pos().x + dim().width + spaceAfter;
+        y = pos().y;
+        newDim.width = bDim.width + iDim.width + spaceAfter;
+        newDim.height = Math.max(bDim.height, iDim.height);
       }
+      dim(newDim);
       if (item.isLine()) {
         item.setW(dim().width);
       }
@@ -1286,7 +1307,6 @@ public class SXDialog extends JFrame {
             }
           }
         }
-        if (item.isBoxBreak())
       }
       if (col) {
         dim(boxW, boxH - spaceAfter);
@@ -1298,7 +1318,7 @@ public class SXDialog extends JFrame {
 
     }
 
-    Dimension makeReady() {
+    Dimension makeReady() { //TODO needed?
       Dimension pDim = new Dimension(dim());
       if (isPane()) {
         for (BasicItem item : items) {
