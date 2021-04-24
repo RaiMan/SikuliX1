@@ -439,19 +439,25 @@ public class SXDialog extends JFrame {
       String boxLine = pre + "box" + col + ";";
       textLines.add(boxLine);
       if (!contentLine.isEmpty()) {
-        String[] partsEnd = (contentLine + " ").split("\\]");
-        if (partsEnd.length > 0) {
-          for (int ne = 0; ne < partsEnd.length - 1; ne++) {
-            textLines.add(partsEnd[ne]);
-            textLines.add("#");
-          }
-          if (!partsEnd[partsEnd.length - 1].strip().isEmpty()) {
-            pre = partsEnd[partsEnd.length - 1].strip();
-          }
-        }
+        pre = evalBoxesEnd(contentLine);
       }
     }
     return "";
+  }
+
+  String evalBoxesEnd(String line) {
+    String pre = "";
+    String[] partsEnd = (line + " ").split("\\]");
+    if (partsEnd.length > 0) {
+      for (int ne = 0; ne < partsEnd.length - 1; ne++) {
+        textLines.add(partsEnd[ne]);
+        textLines.add("#");
+      }
+      if (!partsEnd[partsEnd.length - 1].strip().isEmpty()) {
+        pre = partsEnd[partsEnd.length - 1].strip();
+      }
+    }
+    return pre;
   }
 
   void textToItems(String text) {
@@ -857,7 +863,11 @@ public class SXDialog extends JFrame {
       String clazz = this.getClass().getSimpleName();
       String title = title();
       title = title.length() > 20 ? title.substring(0, 20) + "..." : title;
-      return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, itemType().toString().substring(0, 1),
+      String str3 = itemType().toString().substring(0, 1);
+      if (this instanceof BoxItem) {
+        str3 += ((BoxItem) this).col ? "V" : "";
+      }
+      return String.format("%s[\"%s\" %s [%d,%d %dx%d]]", clazz, title, str3,
           x, y, width, height);
     }
 
