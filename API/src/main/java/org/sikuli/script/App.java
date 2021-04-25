@@ -3,24 +3,26 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Debug;
-import org.sikuli.natives.OSUtil;
-import org.sikuli.natives.SysUtil;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-
 import java.awt.Desktop;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.datatransfer.*;
-import java.io.*;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
 //import org.apache.http.StatusLine;
@@ -32,29 +34,43 @@ import java.util.Map;
 //import org.apache.http.impl.client.CloseableHttpClient;
 //import org.apache.http.impl.client.HttpClients;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.lang3.StringUtils;
+import org.sikuli.basics.Debug;
+import org.sikuli.natives.OSUtil;
+import org.sikuli.natives.OSUtil.OsProcess;
+import org.sikuli.natives.OSUtil.OsWindow;
+import org.sikuli.natives.SysUtil;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
+
 /**
- * App implements features to manage (open, switch to, close) applications. on the system we are running on and to
- * access their assets like windows
- * <br>
- * TAKE CARE: function behavior differs depending on the running system (cosult the docs for more info)
+ * App implements features to manage (open, switch to, close) applications. on
+ * the system we are running on and to access their assets like windows <br>
+ * TAKE CARE: function behavior differs depending on the running system (cosult
+ * the docs for more info)
+ *
+ * @author rhocke
+ * @author mbalmer
  */
 public class App {
 
-  private static OSUtil _osUtil = null;
-  private static final Map<Type, String> appsWindows;
-  private static final Map<Type, String> appsMac;
-  private static final Region aRegion = new Region();
+	// <editor-fold defaultstate="collapsed" desc="00 housekeeping">
+	private static OSUtil osUtil = SysUtil.getOSUtil();
+	private static final Map<Type, String> appsWindows;
+	private static final Map<Type, String> appsMac;
+	private static final Region aRegion = new Region();
 
-  static {
-    appsWindows = new HashMap<Type, String>();
-    appsWindows.put(Type.EDITOR, "Notepad");
-    appsWindows.put(Type.BROWSER, "Google Chrome");
-    appsWindows.put(Type.VIEWER, "");
-    appsMac = new HashMap<Type, String>();
-    appsMac.put(Type.EDITOR, "TextEdit");
-    appsMac.put(Type.BROWSER, "Safari");
-    appsMac.put(Type.VIEWER, "Preview");
-  }
+	static {
+		appsWindows = new HashMap<Type, String>();
+		appsWindows.put(Type.EDITOR, "Notepad");
+		appsWindows.put(Type.BROWSER, "Google Chrome");
+		appsWindows.put(Type.VIEWER, "");
+		appsMac = new HashMap<Type, String>();
+		appsMac.put(Type.EDITOR, "TextEdit");
+		appsMac.put(Type.BROWSER, "Safari");
+		appsMac.put(Type.VIEWER, "Preview");
+	}
 
 	private static boolean shouldLog = false;
 
@@ -64,790 +80,851 @@ public class App {
 		}
 	}
 
-  public static void logOn() {
-    shouldLog = true;
-  }
+	public static void logOn() {
+		shouldLog = true;
+	}
 
-  public static void logOff() {
-    shouldLog = false;
-  }
+	public static void logOff() {
+		shouldLog = false;
+	}
+	// </editor-fold>
 
-  public void reset() {
-    appPID = -1;
-    appWindow = "";
-  }
+	//<editor-fold desc="01 instance">
+	private static class NullProcess implements OsProcess {
+		@Override
+		public long getPid() {
+			return -1;
+		}
 
-  public App() {
-    if (_osUtil == null) {
-      _osUtil = SysUtil.getOSUtil();
-      _osUtil.checkFeatureAvailability();
-    }
-  }
+		@Override
+		public String getName() {
+			return "";
+		}
 
-  public App(String name) {
-    this();
-    init(name);
-  }
+		@Override
+		public boolean isRunning() {
+			return false;
+		}
 
-  private void init(String name) {
-    if (name.isEmpty()) {
-      return;
-    }
-    appNameGiven = name.trim();
-    String[] parts;
-    //C:\Program Files\Mozilla Firefox\firefox.exe -- options
-    parts = appNameGiven.split(" -- ");
-    String possibleAppExec = "";
-    if (parts.length > 1) {
-      appOptions = parts[1].trim();
-      possibleAppExec = parts[0].replace("\"", "").trim();
-    } else {
-      if (appNameGiven.startsWith("\"")) {
-        parts = appNameGiven.substring(1).split("\"");
-        if (parts.length > 1) {
-          appOptions = appNameGiven.substring(parts[0].length() + 2).trim();
-          possibleAppExec = parts[0];
-        } else {
-          possibleAppExec = appNameGiven.replace("\"", "");
-        }
-      } else {
-        possibleAppExec = appNameGiven;
-      }
-    }
-    File fExec = new File(possibleAppExec);
-    if (fExec.isAbsolute()) {
-      if (!fExec.exists()) {
-        log("App: init: does not exist or not valid: %s", fExec);
-      } else {
-        appExec = fExec.getAbsolutePath();
-        appExecPath = fExec.getParent();
-      }
-    }
-    if (!appExec.isEmpty()) {
-      appName = fExec.getName();
-    } else {
-      if (Commons.runningWindows() || possibleAppExec.startsWith("?")) {
-        appName = appNameGiven;
-        setGivenAsWindowTitle();
-        if (appName.startsWith("?")) {
-          appName = appName.substring(1);
-        }
-      } else if (!Commons.runningWindows()) {
-        appExec = possibleAppExec;
-        appName = possibleAppExec;
-      }
-    }
-    log("App.create: %s", toString());
-  }
+		@Override
+		public boolean close(boolean force) {
+			return false;
+		}
+	}
 
-  @Override
-  public String toString() {
-    if (isWindow()) {
-      return String.format("[%d:?%s (%s)] %s", appPID, appName, appWindow, appNameGiven);
-    } else {
-      return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
-    }
-  }
+	private OsProcess process = null;
+	private CommandLine cmd = null;
 
-  public String toStringShort() {
-    if (isWindow()) {
-      return String.format("[%d:?%s]", appPID, appName);
-    } else {
-      return String.format("[%d:%s]", appPID, appName);
-    }
-  }
-  //</editor-fold>
+	public void reset() {
+		process = new NullProcess();
+	}
 
-  //<editor-fold desc="7 app list">
+	public App() {
+		process = new NullProcess();
+	}
 
-  public static List<App> getApps() {
-    new App();
-    return _osUtil.getApps("");
-  }
+	public App(String name) {
+		this();
+		setName(name);
+	}
 
-  public static List<App> getApps(String name) {
-    new App();
-    return _osUtil.getApps(name);
-  }
+	private App(OsProcess process) {
+		this.process = process;
+	}
 
-  public static void listApps() {
-    new App();
-    List<App> appList = _osUtil.getApps("");
-    logOn();
-    log("***** all running apps");
-    for (App app : appList) {
-      if (app.getPID() > 0) {
-        log("%s", app);
-      }
-    }
-    log("***** end of list (%d)", appList.size());
-    logOff();
-  }
+	private String workDir = "";
 
-  public static void listApps(String name) {
-    new App();
-    List<App> appList = _osUtil.getApps(name);
-    logOn();
-    log("***** running apps matching: %s", name);
-    for (App app : appList) {
-      log("%s", app);
-    }
-    log("***** end of list (%d)", appList.size());
-    logOff();
-  }
-  //</editor-fold>
+	public boolean setWorkDir() {
+		if (cmd.getExecutable().isEmpty()) {
+			return false;
+		}
+		this.workDir = new File(cmd.getExecutable()).getParentFile().getAbsolutePath();
+		return true;
+	}
 
-  //<editor-fold defaultstate="collapsed" desc="6 getter/setter">
-  public String getToken() {
-    return appToken;
-  }
+	public boolean setWorkDir(String workDirPath) {
+		if (workDirPath == null || workDirPath.isEmpty()) {
+			return false;
+		}
+		File fWorkDir = new File(workDirPath);
+		if (fWorkDir.isAbsolute() && fWorkDir.isDirectory()) {
+			this.workDir = fWorkDir.getAbsolutePath();
+		}
+		return false;
+	}
 
-  public void setToken(String appToken) {
-    this.appToken = appToken;
-  }
+	public String getWorkDir() {
+		return workDir;
+	}
 
-  public App setUsing(String options) {
-    if (options != null) {
-      appOptions = options;
-    } else {
-      appOptions = "";
-    }
-    return this;
-  }
+	@Override
+	public String toString() {
+		return "";
+//		if (isWindow()) {
+//			return String.format("[%d:?%s (%s)] %s", pid, name, appWindow, appNameGiven);
+//		} else {
+//			return String.format("[%d:%s (%s)] %s %s", appPID, appName, appWindow, appExec, appOptions);
+//		}
+	}
 
-  public void setNameGiven(String nameGiven) {
-    appNameGiven = nameGiven;
-  }
+	public String toStringShort() {
+		return "";
+//		if (isWindow()) {
+//			return String.format("[%d:?%s]", appPID, appName);
+//		} else {
+//			return String.format("[%d:%s]", appPID, appName);
+//		}
+	}
+	//</editor-fold>
 
-  public String getNameGiven() {
-    return appNameGiven;
-  }
+	// <editor-fold desc="02 running/valid">
+	public boolean isValid() {
+		return process.getPid() > 0;
+	}
 
-  public String getOptions() {
-    return appOptions;
-  }
+	public boolean isRunning() {
+		return isRunning(0);
+	}
 
-  public String getName() {
-    return appName;
-  }
+	public boolean isRunning(int maxTime) {
+		do {
+			if (process.isRunning()) {
+				return true;
+			}
+			pause(1);
+			maxTime--;
+		} while (maxTime > 0);
 
-  public void setName(String name) {
-    appName = name;
-  }
+		return false;
+	}
 
-  public String getExec() {
-    return appExec;
-  }
+	public boolean hasWindow() {
+		return !osUtil.getWindows(process).isEmpty();
+	}
+	// </editor-fold>
 
-  public void setExec(String exec) {
-    appExec = exec;
-  }
+	// <editor-fold desc="10 app list">
 
-  public String getTitle() {
-    return getWindowTitle();
-  }
+	public static List<App> getApps() {
+		return osUtil.getProcesses().stream().map((p) -> new App(p)).collect(Collectors.toList());
+	}
 
-  public String getTitle(int windowNumber) {
-    return getWindowTitle();
-  }
+	public static List<App> getApps(String name) {
+		return osUtil.findProcesses(name).stream().map((p) -> new App(p)).collect(Collectors.toList());
+	}
 
-  public String getWindowTitle() {
-    return appWindow == null ? "" : appWindow;
-  }
+	public static void listApps() {
+		new App();
+		List<App> appList = getApps();
+		logOn();
+		log("***** all running apps");
+		for (App app : appList) {
+			log("%s", app);
+		}
+		log("***** end of list (%d)", appList.size());
+		logOff();
+	}
 
-  public void setWindow(String appWindow) {
-    this.appWindow = appWindow;
-  }
+	public static void listApps(String name) {
+		new App();
+		List<App> appList = getApps(name);
+		logOn();
+		log("***** running apps matching: %s", name);
+		for (App app : appList) {
+			log("%s", app);
+		}
+		log("***** end of list (%d)", appList.size());
+		logOff();
+	}
 
-  public void setPID(int appPID) {
-    this.appPID = appPID;
-  }
+	public String getExecutable() {
+		return cmd.getExecutable();
+	}
 
-  public void setPID(String appPID) {
-    try {
-      this.appPID = Integer.parseInt(appPID);
-    } catch (NumberFormatException e) {
-      reset();
-    }
-  }
+	/**
+	 * Use setArguments() instead
+	 */
+	@Deprecated
+	public App setUsing(String options) {
+		return setArguments(options);
+	}
 
-  public int getPID() {
-    return appPID;
-  }
+	public App setArguments(String arguments) {
+		this.cmd = CommandLine.parse("\"" + cmd.getExecutable() + "\" " + arguments);
+		return this;
+	}
 
-  public boolean setWorkDir() {
-    if (appExecPath.isEmpty()) {
-      return false;
-    }
-    appWorkDir = appExecPath;
-    return true;
-  }
+	/**
+	 * Use getArguments() insead
+	 */
+	@Deprecated
+	public String getOptions() {
+		return getArguments();
+	}
 
-  public boolean setWorkDir(String workDirPath) {
-    if (workDirPath == null || workDirPath.isEmpty()) {
-      return false;
-    }
-    File fWorkDir = new File(workDirPath);
-    if (!fWorkDir.isAbsolute() || !fWorkDir.isDirectory() || !fWorkDir.exists()) {
-      return false;
-    }
-    appWorkDir = fWorkDir.getAbsolutePath();
-    return true;
-  }
+	public String getArguments() {
+		return String.join(" ", cmd.getArguments());
+	}
 
-  public String getWorkDir() {
-    return appWorkDir;
-  }
-  //</editor-fold>
+	public void setName(String name) {
+		if (StringUtils.isBlank(name)) {
+			return;
+		}
 
-  //<editor-fold desc="2 running/valid">
-  public boolean isValid() {
-    return appPID > 0;
-  }
+		// Use apache.commons.exec.CommandLine to correctly tokenize given command.
+		cmd = CommandLine.parse(name);
 
-  public boolean isRunning() {
-    return isRunning(0);
-  }
+		process = osUtil.findProcesses(cmd.getExecutable()).stream().findFirst().orElse(new NullProcess());
+	}
 
-  public boolean isRunning(int maxTime) {
-    _osUtil.get(this);
-    if (maxTime == 0 && !isValid()) {
-      return false;
-    }
-    while (!isValid() && maxTime > 0) {
-      maxTime -= 1;
-      pause(1);
-      _osUtil.get(this);
-    }
-    return isValid();
-  }
+	public String getName() {
+		return process.getName();
+	}
 
-  public boolean hasWindow() {
-    if (!isValid()) {
-      return false;
-    }
-    return !getWindowTitle().isEmpty();
-  }
-  //</editor-fold>
+	public long getPID() {
+		return process.getPid();
+	}
 
-  //<editor-fold defaultstate="collapsed" desc="1 open">
-  boolean isOpen = false;
+	public String getWindowTitle() {
+		return getWindowTitle(0);
+	}
 
-  /**
-   * tries to open an app using the given name and waits waitTime for being ready
-   * If the app is already open, it is brought to foreground
-   *
-   * @param appName  name - something that could be used on commandline to start the app
-   * @param waitTime to wait for app to open (secs)
-   * @return the App instance
-   */
-  public static App open(String appName, int waitTime) {
-    App app = new App(appName);
-    app.openAndWait(waitTime);
-    return app;
-  }
+	public String getWindowTitle(int windowNumber) {
+		List<OsWindow> windows = osUtil.getWindows(process);
+		return windows.size() > windowNumber ? windows.get(windowNumber).getTitle() : "";
+	}
 
-  /**
-   * tries to open an app using the given name and waits 1 sec for being ready
-   * If the app is already open, it is brought to foreground
-   *
-   * @param appName name - something that could be used on commandline to start the app
-   * @return the App instance
-   */
-  public static App open(String appName) {
-    return open(appName, 1);
-  }
+	public String getTitle() {
+		return getWindowTitle();
+	}
 
-  /**
-   * tries to open the app defined by this App instance<br>
-   * do not wait for the app to get running
-   *
-   * @return this or null on failure
-   */
-  public boolean open() {
-    openAndWait(5);
-    return isValid();
-  }
+	public String getTitle(int windowNumber) {
+		return getWindowTitle(windowNumber);
+	}
+	// </editor-fold>
 
-  /**
-   * tries to open the app defined by this App instance<br>
-   * and waits until app is running
-   *
-   * @param waitTime max waittime until running
-   * @return this or null on failure
-   */
-  public boolean open(int waitTime) {
-    openAndWait(waitTime);
-    return isValid() & hasWindow();
-  }
+	//<editor-fold desc="20 open">
+	/**
+	 * tries to open an app using the given name and waits waitTime for being ready
+	 * If the app is already open, it is brought to foreground
+	 *
+	 * @param name     - something that could be used on commandline to start the
+	 *                 app
+	 * @param waitTime to wait for app to open (secs)
+	 * @return the App instance
+	 */
+	public static App open(String name, int waitTime) {
+		App app = new App(name);
+		app.openAndWait(waitTime);
+		return app;
+	}
 
-  private void openAndWait(int waitTime) {
-    isOpen = false;
-    if (!isRunning(0)) {
-      boolean isOpen = _osUtil.open(this);
-      if (isOpen) {
-        if (!isRunning(waitTime)) {
-          log("App.open: not running after %d secs (%s)", waitTime, appNameGiven);
-        } else {
-          log("App.open: %s", this);
-          if (!focus()) {
-            while (!hasWindow() && waitTime > 0) {
-              waitTime -= 1;
-              pause(1);
-              focus();
-            }
-          }
-        }
-      } else {
-        log("App.open: %s: did not work - app not valid", appNameGiven);
-      }
-    } else {
-      log("App.open: already running: %s", this);
-      isOpen = true;
-      focus();
-    }
-  }
-  //</editor-fold>
+	/**
+	 * tries to open an app using the given name and waits 1 sec for being ready If
+	 * the app is already open, it is brought to foreground
+	 *
+	 * @param name - something that could be used on commandline to start the app
+	 * @return the App instance
+	 */
+	public static App open(String name) {
+		return open(name, 1);
+	}
 
-  //<editor-fold defaultstate="collapsed" desc="4 close">
+	/**
+	 * tries to open the app defined by this App instance<br>
+	 * do not wait for the app to get running
+	 *
+	 * @return this or null on failure
+	 */
+	public boolean open() {
+		return openAndWait(5);
+	}
 
-  /**
-   * tries to identify a running app with the given name and then tries to close it
-   *
-   * @param appName name
-   * @return 0 for success -1 otherwise
-   */
-  public static boolean close(String appName) {
-    return new App(appName).close();
-  }
+	/**
+	 * tries to open the app defined by this App instance<br>
+	 * and waits until app is running
+	 *
+	 * @param waitTime max waittime until running
+	 * @return this or null on failure
+	 */
+	public boolean open(int waitTime) {
+		return openAndWait(waitTime);
+	}
 
-  public boolean isClosing() {
-    return isClosing;
-  }
+	private boolean openAndWait(int waitTime) {
+		if (!isRunning(0)) {
+			process = osUtil.open(cmd.toStrings(), workDir);
 
-  private boolean isClosing = false;
+			if (process != null) {
+				do {
+					pause(1);
 
-  /**
-   * tries to close the app defined by this App instance, waits max 10 seconds for the app to no longer be running
-   *
-   * @return this or null on failure
-   */
-  public boolean close() {
-    return close(5);
-  }
+					if (isRunning()) {
+						return true;
+					}
 
-  /**
-   * tries to close the app defined by this App instance, waits max given seconds for the app to no longer be running
-   *
-   * @param waitTime to wait for app to close (secs)
-   * @return this or null on failure
-   */
-  public boolean close(int waitTime) {
-    if (!isRunning()) {
-      log("App.close: not running: %s", this);
-      return false;
-    }
-    boolean success = _osUtil.close(this);
-    if (success) {
-      isClosing = true;
-      int timeTowait = maxWait;
-      if (waitTime > 0) {
-        timeTowait = waitTime;
-      }
-      while (isRunning(0) && timeTowait > 0) {
-        pause(1);
-        timeTowait--;
-      }
-    }
-    isClosing = false;
-    if (isValid() || !success) {
-      log("App.close: did not work: %s", this);
-      return false;
-    }
-    log("App.close: %s", this);
-    reset();
-    return true;
-  }
+					waitTime--;
+				} while (waitTime > 0);
 
-  public int closeByKey() {
-    return closeByKey(0);
-  }
+				log("App.open: not running after %d secs (%s)", waitTime, process.getName());
+				return false;
 
-  public int closeByKey(int waitTime) {
-    if (!isRunning()) {
-      log("App.closeByKey: not running: %s", this);
-      return 1;
-    }
-    focus();
-    RunTime.pause(1);
-    if (Commons.runningWindows()) {
-      window().type(Key.F4, Key.ALT);
-    } else if (Commons.runningMac()) {
-      window().type("q", Key.CMD);
-    } else {
-      window().type("q", Key.CTRL);
-    }
-    int timeTowait = maxWait;
-    if (waitTime > 0) {
-      timeTowait = waitTime;
-    }
-    while (isRunning(0) && timeTowait > 0) {
-      timeTowait--;
-    }
-    if (!isValid()) {
-      log("App.closeByKey: %s", this);
-    } else {
-      log("App.closeByKey: did not work: %s", this);
-      return 1;
-    }
-    return 0;
-  }
-  //</editor-fold>
+			} else {
+				process = new NullProcess();
+			}
 
-  //<editor-fold defaultstate="collapsed" desc="3 focus">
-  private boolean isFocused = false;
+			return false;
+		} else {
+			log("App.open: already running: %s", this);
+			return focus();
+		}
+	}
+	//</editor-fold>
 
-  public void setFocused(boolean state) {
-    isFocused = state;
-  }
+	// <editor-fold defaultstate="collapsed" desc="23 close">
+	private int maxWait = 10;
+	private boolean isClosing = false;;
 
-  public boolean hasFocus() {
-    return isFocused;
-  }
+	/**
+	 * tries to identify a running app with the given name and then tries to close
+	 * it
+	 *
+	 * @param appName name
+	 * @return 0 for success -1 otherwise
+	 */
+	public static boolean close(String appName) {
+		return new App(appName).close();
+	}
 
-  /**
-   * tries to identify a running app with name or (part of) window title
-   * bringing its topmost window to front
-   *
-   * @param title name
-   * @return an App instance - is invalid and not useable if not found as running
-   */
-  public static App focus(String title) {
-    return focus(title, 0);
-  }
+	public boolean isClosing() {
+		return isClosing;
+	}
 
-  /**
-   * tries to identify a running app with name or (part of) window title
-   * bringing its window with given index to front
-   *
-   * @param index of the window among the found windows
-   * @param title name
-   * @return an App instance - is invalid and not useable if not found as running
-   */
-  public static App focus(String title, int index) {
-    App app = new App(title);
-    app.focus();
-    return app;
-  }
+	/**
+	 * tries to close the app defined by this App instance, waits max 10 seconds for
+	 * the app to no longer be running
+	 *
+	 * @return this or null on failure
+	 */
+	public boolean close() {
+		return close(5);
+	}
 
-  /**
-   * tries to make it the foreground application bringing its frontmost window to front
-   *
-   * @return the App instance
-   */
-  public boolean focus() {
-    isFocused = false;
-    if (!isOpen && !isRunning(0)) {
-      log("App.focus: not running: %s", toString());
-      return false;
-    }
-    isOpen = false;
-    if (!_osUtil.switchto(this)) {
-      log("App.focus: no window for %s", toString());
-      return false;
-    } else {
-      isFocused = true;
-      if (isWindow()) {
-        resetGivenAsWindowTitle();
-      }
-      log("App.focus: %s", this);
-    }
-    return true;
-  }
+	/**
+	 * tries to close the app defined by this App instance, waits max given seconds
+	 * for the app to no longer be running
+	 *
+	 * @param waitTime to wait for app to close (secs)
+	 * @return this or null on failure
+	 */
+	public boolean close(int waitTime) {
+		if (!isRunning()) {
+			log("App.close: not running: %s", this);
+			return false;
+		}
+
+		isClosing = true;
+
+		try {
+			// try to close gracefully
+			boolean success = process.close(false);
+
+			// Close request was successful.
+			// Wait for the app to die
+			if (success) {
+				do {
+					pause(1);
+
+					if (!isRunning()) {
+						log("App.close: Closed gracefully: %s", this);
+						return true;
+					}
+					waitTime--;
+				} while (waitTime > 0);
+			}
+
+			log("App.close: Closing app gracefully failed. Trying to close forcefully: %s", this);
+			process.close(true);
+
+			if (!isRunning()) {
+				log("App.close: Closed forcefully: %s", this);
+				return true;
+			}
+
+			log("App.close: did not work: %s", this);
+			return false;
+		} finally {
+			isClosing = false;
+		}
+
+	}
+
+	public int closeByKey() {
+		return closeByKey(0);
+	}
+
+	public int closeByKey(int waitTime) {
+		if (!isRunning()) {
+			log("App.closeByKey: not running: %s", this);
+			return 1;
+		}
+		focus();
+		RunTime.pause(1);
+		if (Commons.runningWindows()) {
+			window().type(Key.F4, Key.ALT);
+		} else if (Commons.runningMac()) {
+			window().type("q", Key.CMD);
+		} else {
+			window().type("q", Key.CTRL);
+		}
+		int timeTowait = maxWait;
+		if (waitTime > 0) {
+			timeTowait = waitTime;
+		}
+		while (isRunning(0) && timeTowait > 0) {
+			timeTowait--;
+		}
+		if (!isValid()) {
+			log("App.closeByKey: %s", this);
+		} else {
+			log("App.closeByKey: did not work: %s", this);
+			return 1;
+		}
+		return 0;
+	}
+	// </editor-fold>
+
+	//<editor-fold desc="26 focus">
+	/**
+	 * tries to identify a running app with name or (part of) window title bringing
+	 * its topmost window to front
+	 *
+	 * @param title name
+	 * @return an App instance - is invalid and not useable if not found as running
+	 */
+	public static App focus(String title) {
+		return focus(title, 0);
+	}
+
+	/**
+	 * tries to identify a running app with name or (part of) window title bringing
+	 * its window with given index to front
+	 *
+	 * @param index of the window among the found windows
+	 * @param title name
+	 * @return an App instance - is invalid and not useable if not found as running
+	 */
+	public static App focus(String title, int index) {
+		List<OsWindow> windows = osUtil.findWindows(title);
+
+		if (windows.size() > index) {
+			App app = new App(windows.get(index).getProcess());
+			app.focus();
+			return app;
+		}
+
+		return new App();
+	}
+
+	public boolean hasFocus() {
+		OsWindow focusedWindow = osUtil.getFocusedWindow();
+		return osUtil.getWindows(process).stream().anyMatch((w) -> w.equals(focusedWindow));
+	}
+
+	/**
+	 * tries to focus this applications top window
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean focus() {
+		if (!isRunning(0)) {
+			log("App.focus: not running: %s", toString());
+			return false;
+		}
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).focus();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+	//</editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="30 window">
+	/**
+	 * evaluates the region currently occupied by the topmost window of this App
+	 * instance. The region might not be fully visible, not visible at all or
+	 * invalid with respect to the current monitor configuration (outside any
+	 * screen)
+	 *
+	 * @return the region
+	 */
+	public Region window() {
+		return window(0);
+	}
+
+	/**
+	 * evaluates the region currently occupied by the window with the given number
+	 * of this App instance. The region might not be fully visible, not visible at
+	 * all or invalid with respect to the current monitor configuration (outside any
+	 * screen)
+	 *
+	 * @param winNum window
+	 * @return the region
+	 */
+	public Region window(int winNum) {
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		Region windowRegion = null;
+
+		Rectangle windowRect = windows.get(winNum).getBounds();
+		if (null != windowRect) {
+			windowRegion = asRegion(windowRect);
+			if (winNum == 0) {
+				windowRegion.setName(getTitle());
+			} else {
+
+			}
+		}
+		return windowRegion;
+	}
+
+	/**
+	 * evaluates the region currently occupied by the systemwide frontmost window
+	 * (usually the one that has focus for mouse and keyboard actions)
+	 *
+	 * @return the region
+	 */
+	public static Region focusedWindow() {
+		OsWindow window = osUtil.getFocusedWindow();
+
+		if (window != null) {
+			return asRegion(osUtil.getFocusedWindow().getBounds());
+		} else {
+			return new Region();
+		}
+	}
+
+	public List<Region> getWindows() {
+		return osUtil.getWindows(process).stream().map((w) -> asRegion(w.getBounds())).collect(Collectors.toList());
+	}
+
+	private static Region asRegion(Rectangle r) {
+		if (r != null) {
+			return Region.create(r);
+		} else {
+			return null;
+		}
+	}
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="5 window">
+	//<editor-fold desc="35 minimize/maximize/restore">
+	/**
+	 * tries to minimize this applications top window
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean minimize() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
 
-  /**
-   * evaluates the region currently occupied by the topmost window of this App instance. The region might not be fully
-   * visible, not visible at all or invalid with respect to the current monitor configuration (outside any screen)
-   *
-   * @return the region
-   */
-  public Region window() {
-    return window(0);
-  }
+		List<OsWindow> windows = osUtil.getWindows(process);
 
-  /**
-   * evaluates the region currently occupied by the window with the given number of this App instance. The region might
-   * not be fully visible, not visible at all or invalid with respect to the current monitor configuration (outside any
-   * screen)
-   *
-   * @param winNum window
-   * @return the region
-   */
-  public Region window(int winNum) {
-    Region windowRegion = null;
-    Rectangle windowRect = _osUtil.getWindow(this, winNum);
-    if (null != windowRect) {
-      windowRegion = asRegion(windowRect);
-      if (winNum == 0) {
-        windowRegion.setName(getTitle());
-      } else {
+		if (!windows.isEmpty()) {
+			return windows.get(0).minimize();
+		}
 
-      }
-    }
-    return windowRegion;
-  }
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
 
-  /**
-   * evaluates the region currently occupied by the systemwide frontmost window (usually the one that has focus for
-   * mouse and keyboard actions)
-   *
-   * @return the region
-   */
-  public static Region focusedWindow() {
-    new App();
-    return asRegion(_osUtil.getFocusedWindow());
-  }
+	/**
+	 * tries to minimize this applications top window
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean maximize() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
 
-  public List<Region> getWindows() {
-    new App();
-    List<Region> regWindows = new ArrayList<>();
-    return _osUtil.getWindows(this);
-  }
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).maximize();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+
+	/**
+	 * tries to restore this applications top window.
+	 *
+	 * @return true on succes, false otherwise
+	 */
+	public boolean restore() {
+		if (!isRunning(0)) {
+			log("App.minimize: not running: %s", toString());
+			return false;
+		}
+
+		List<OsWindow> windows = osUtil.getWindows(process);
+
+		if (!windows.isEmpty()) {
+			return windows.get(0).restore();
+		}
+
+		log("App.focus: no window for %s", toString());
+		return false;
+	}
+	//</editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="70 run">
+	public static int lastRunReturnCode = -1;
+	public static String lastRunStdout = "";
+	public static String lastRunStderr = "";
+	public static String lastRunResult = "";
+
+	/**
+	 * the given text is parsed into a String[] suitable for issuing a
+	 * Runtime.getRuntime().exec(args). quoting is preserved/obeyed. the first item
+	 * must be an executable valid for the running system.<br>
+	 * After completion, the following information is available: <br>
+	 * App.lastRunResult: a string containing the complete result according to the
+	 * docs of the run() command<br>
+	 * App.lastRunStdout: a string containing only the output lines that went to
+	 * stdout<br>
+	 * App.lastRunStderr: a string containing only the output lines that went to
+	 * stderr<br>
+	 * App.lastRunReturnCode: the value, that is returnd as returncode
+	 *
+	 * @param cmd the command to run starting with an executable item
+	 * @return the final returncode of the command execution
+	 */
+	public static int run(String cmd) {
+		lastRunResult = RunTime.runcmd(cmd);
+		String NL = Commons.runningWindows() ? "\r\n" : "\n";
+		String[] res = lastRunResult.split(NL);
+		try {
+			lastRunReturnCode = Integer.parseInt(res[0].trim());
+		} catch (Exception ex) {
+		}
+		lastRunStdout = "";
+		lastRunStderr = "";
+		boolean isError = false;
+		for (int n = 1; n < res.length; n++) {
+			if (isError) {
+				lastRunStderr += res[n] + NL;
+				continue;
+			}
+			if (RunTime.runCmdError.equals(res[n])) {
+				isError = true;
+				continue;
+			}
+			lastRunStdout += res[n] + NL;
+		}
+		return lastRunReturnCode;
+	}
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="run">
-  public static int lastRunReturnCode = -1;
-  public static String lastRunStdout = "";
-  public static String lastRunStderr = "";
-  public static String lastRunResult = "";
+	// <editor-fold defaultstate="collapsed" desc="80 clipboard">
 
-  /**
-   * the given text is parsed into a String[] suitable for issuing a Runtime.getRuntime().exec(args). quoting is
-   * preserved/obeyed. the first item must be an executable valid for the running system.<br>
-   * After completion, the following information is available: <br>
-   * App.lastRunResult: a string containing the complete result according to the docs of the run() command<br>
-   * App.lastRunStdout: a string containing only the output lines that went to stdout<br>
-   * App.lastRunStderr: a string containing only the output lines that went to stderr<br>
-   * App.lastRunReturnCode: the value, that is returnd as returncode
-   *
-   * @param cmd the command to run starting with an executable item
-   * @return the final returncode of the command execution
-   */
-  public static int run(String cmd) {
-    lastRunResult = RunTime.runcmd(cmd);
-    String NL = System.lineSeparator();
-    String[] res = lastRunResult.split(NL);
-    try {
-      lastRunReturnCode = Integer.parseInt(res[0].trim());
-    } catch (Exception ex) {
-    }
-    lastRunStdout = "";
-    lastRunStderr = "";
-    boolean isError = false;
-    for (int n = 1; n < res.length; n++) {
-      if (isError) {
-        lastRunStderr += res[n] + NL;
-        continue;
-      }
-      if (RunTime.runCmdError.equals(res[n])) {
-        isError = true;
-        continue;
-      }
-      lastRunStdout += res[n] + NL;
-    }
-    return lastRunReturnCode;
-  }
-//</editor-fold>
+	/**
+	 * evaluates the current textual content of the system clipboard
+	 *
+	 * @return the textual content or empty string if not possible
+	 */
+	public static String getClipboard() {
+		Transferable content = null;
+		try {
+			content = Clipboard.getSystemClipboard().getContents(null);
+		} catch (Exception ex) {
+			Debug.error("Env.getClipboard: %s", ex.getMessage());
+		}
+		if (content != null) {
+			try {
+				if (content.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+					return (String) content.getTransferData(DataFlavor.stringFlavor);
+				}
+			} catch (UnsupportedFlavorException ex) {
+				Debug.error("Env.getClipboard: UnsupportedFlavorException: " + content);
+			} catch (IOException ex) {
+				Debug.error("Env.getClipboard: %s", ex.getMessage());
+			}
+		}
+		return "";
+	}
 
-  //<editor-fold defaultstate="collapsed" desc="clipboard">
+	/**
+	 * sets the current textual content of the system clipboard to the given text
+	 *
+	 * @param text text
+	 */
+	public static void setClipboard(String text) {
+		try {
+			Clipboard.putText(Clipboard.PLAIN, Clipboard.UTF8, Clipboard.CHAR_BUFFER, text);
+		} catch (Exception ex) {
+			Debug.error("Env.setClipboard: %s", ex.getMessage());
+		}
+	}
 
-  /**
-   * evaluates the current textual content of the system clipboard
-   *
-   * @return the textual content or empty string if not possible
-   */
-  public static String getClipboard() {
-    Transferable content = null;
-    try {
-      content = Clipboard.getSystemClipboard().getContents(null);
-    } catch (Exception ex) {
-      Debug.error("Env.getClipboard: %s", ex.getMessage());
-    }
-    if (content != null) {
-      try {
-        if (content.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-          return (String) content.getTransferData(DataFlavor.stringFlavor);
-        }
-      } catch (UnsupportedFlavorException ex) {
-        Debug.error("Env.getClipboard: UnsupportedFlavorException: " + content);
-      } catch (IOException ex) {
-        Debug.error("Env.getClipboard: %s", ex.getMessage());
-      }
-    }
-    return "";
-  }
+	private static class Clipboard {
 
-  /**
-   * sets the current textual content of the system clipboard to the given text
-   *
-   * @param text text
-   */
-  public static void setClipboard(String text) {
-    try {
-      Clipboard.putText(Clipboard.PLAIN, Clipboard.UTF8, Clipboard.CHAR_BUFFER, text);
-    } catch (Exception ex) {
-      Debug.error("Env.setClipboard: %s", ex.getMessage());
-    }
-  }
+		public static final TextType HTML = new TextType("text/html");
+		public static final TextType PLAIN = new TextType("text/plain");
 
-  private static class Clipboard {
+		public static final Charset UTF8 = new Charset("UTF-8");
+		public static final Charset UTF16 = new Charset("UTF-16");
+		public static final Charset UNICODE = new Charset("unicode");
+		public static final Charset US_ASCII = new Charset("US-ASCII");
 
-    public static final TextType HTML = new TextType("text/html");
-    public static final TextType PLAIN = new TextType("text/plain");
+		public static final TransferType READER = new TransferType(Reader.class);
+		public static final TransferType INPUT_STREAM = new TransferType(InputStream.class);
+		public static final TransferType CHAR_BUFFER = new TransferType(CharBuffer.class);
+		public static final TransferType BYTE_BUFFER = new TransferType(ByteBuffer.class);
 
-    public static final Charset UTF8 = new Charset("UTF-8");
-    public static final Charset UTF16 = new Charset("UTF-16");
-    public static final Charset UNICODE = new Charset("unicode");
-    public static final Charset US_ASCII = new Charset("US-ASCII");
+		private static java.awt.datatransfer.Clipboard systemClipboard = null;
 
-    public static final TransferType READER = new TransferType(Reader.class);
-    public static final TransferType INPUT_STREAM = new TransferType(InputStream.class);
-    public static final TransferType CHAR_BUFFER = new TransferType(CharBuffer.class);
-    public static final TransferType BYTE_BUFFER = new TransferType(ByteBuffer.class);
+		private Clipboard() {
+		}
 
-    private static java.awt.datatransfer.Clipboard systemClipboard = null;
+		/**
+		 * Dumps a given text (either String or StringBuffer) into the Clipboard, with a
+		 * default MIME type
+		 */
+		public static void putText(CharSequence data) throws Exception {
+			StringSelection copy = new StringSelection(data.toString());
+			getSystemClipboard().setContents(copy, copy);
+		}
 
-    private Clipboard() {
-    }
+		/**
+		 * Dumps a given text (either String or StringBuffer) into the Clipboard with a
+		 * specified MIME type
+		 */
+		public static void putText(TextType type, Charset charset, TransferType transferType, CharSequence data)
+				throws Exception {
+			String mimeType = type + "; charset=" + charset + "; class=" + transferType;
+			TextTransferable transferable = new TextTransferable(mimeType, data.toString());
+			getSystemClipboard().setContents(transferable, transferable);
+		}
 
-    /**
-     * Dumps a given text (either String or StringBuffer) into the Clipboard, with a default MIME type
-     */
-    public static void putText(CharSequence data) throws Exception {
-      StringSelection copy = new StringSelection(data.toString());
-      getSystemClipboard().setContents(copy, copy);
-    }
+		public static java.awt.datatransfer.Clipboard getSystemClipboard() throws Exception {
+			if (systemClipboard == null) {
+				systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				if (systemClipboard == null) {
+					throw new Exception("Clipboard: Toolkit.getDefaultToolkit().getSystemClipboard() returns null");
+				}
+			}
+			return systemClipboard;
+		}
 
-    /**
-     * Dumps a given text (either String or StringBuffer) into the Clipboard with a specified MIME type
-     */
-    public static void putText(TextType type, Charset charset, TransferType transferType, CharSequence data) throws Exception {
-      String mimeType = type + "; charset=" + charset + "; class=" + transferType;
-      TextTransferable transferable = new TextTransferable(mimeType, data.toString());
-      getSystemClipboard().setContents(transferable, transferable);
-    }
+		private static class TextTransferable implements Transferable, ClipboardOwner {
 
-    public static java.awt.datatransfer.Clipboard getSystemClipboard() throws Exception {
-      if (systemClipboard == null) {
-        systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        if (systemClipboard == null) {
-          throw new Exception("Clipboard: Toolkit.getDefaultToolkit().getSystemClipboard() returns null");
-        }
-      }
-      return systemClipboard;
-    }
+			private String data;
+			private DataFlavor flavor;
 
-    private static class TextTransferable implements Transferable, ClipboardOwner {
+			public TextTransferable(String mimeType, String data) {
+				flavor = new DataFlavor(mimeType, "Text");
+				this.data = data;
+			}
 
-      private String data;
-      private DataFlavor flavor;
+			@Override
+			public DataFlavor[] getTransferDataFlavors() {
+				return new DataFlavor[] { flavor, DataFlavor.stringFlavor };
+			}
 
-      public TextTransferable(String mimeType, String data) {
-        flavor = new DataFlavor(mimeType, "Text");
-        this.data = data;
-      }
+			@Override
+			public boolean isDataFlavorSupported(DataFlavor flavor) {
+				boolean b = this.flavor.getPrimaryType().equals(flavor.getPrimaryType());
+				return b || flavor.equals(DataFlavor.stringFlavor);
+			}
 
-      @Override
-      public DataFlavor[] getTransferDataFlavors() {
-        return new DataFlavor[]{flavor, DataFlavor.stringFlavor};
-      }
+			@Override
+			public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+				if (flavor.isRepresentationClassInputStream()) {
+					return new StringReader(data);
+				} else if (flavor.isRepresentationClassReader()) {
+					return new StringReader(data);
+				} else if (flavor.isRepresentationClassCharBuffer()) {
+					return CharBuffer.wrap(data);
+				} else if (flavor.isRepresentationClassByteBuffer()) {
+					return ByteBuffer.wrap(data.getBytes());
+				} else if (flavor.equals(DataFlavor.stringFlavor)) {
+					return data;
+				}
+				throw new UnsupportedFlavorException(flavor);
+			}
 
-      @Override
-      public boolean isDataFlavorSupported(DataFlavor flavor) {
-        boolean b = this.flavor.getPrimaryType().equals(flavor.getPrimaryType());
-        return b || flavor.equals(DataFlavor.stringFlavor);
-      }
+			@Override
+			public void lostOwnership(java.awt.datatransfer.Clipboard clipboard, Transferable contents) {
+			}
+		}
 
-      @Override
-      public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-        if (flavor.isRepresentationClassInputStream()) {
-          return new StringReader(data);
-        } else if (flavor.isRepresentationClassReader()) {
-          return new StringReader(data);
-        } else if (flavor.isRepresentationClassCharBuffer()) {
-          return CharBuffer.wrap(data);
-        } else if (flavor.isRepresentationClassByteBuffer()) {
-          return ByteBuffer.wrap(data.getBytes());
-        } else if (flavor.equals(DataFlavor.stringFlavor)) {
-          return data;
-        }
-        throw new UnsupportedFlavorException(flavor);
-      }
+		/**
+		 * Enumeration for the text type property in MIME types
+		 */
+		public static class TextType {
 
-      @Override
-      public void lostOwnership(java.awt.datatransfer.Clipboard clipboard, Transferable contents) {
-      }
-    }
+			private String type;
 
-    /**
-     * Enumeration for the text type property in MIME types
-     */
-    public static class TextType {
+			private TextType(String type) {
+				this.type = type;
+			}
 
-      private String type;
+			@Override
+			public String toString() {
+				return type;
+			}
+		}
 
-      private TextType(String type) {
-        this.type = type;
-      }
+		/**
+		 * Enumeration for the charset property in MIME types (UTF-8, UTF-16, etc.)
+		 */
+		public static class Charset {
 
-      @Override
-      public String toString() {
-        return type;
-      }
-    }
+			private String name;
 
-    /**
-     * Enumeration for the charset property in MIME types (UTF-8, UTF-16, etc.)
-     */
-    public static class Charset {
+			private Charset(String name) {
+				this.name = name;
+			}
 
-      private String name;
+			@Override
+			public String toString() {
+				return name;
+			}
+		}
 
-      private Charset(String name) {
-        this.name = name;
-      }
+		/**
+		 * Enumeration for the transferScriptt type property in MIME types (InputStream,
+		 * CharBuffer, etc.)
+		 */
+		public static class TransferType {
 
-      @Override
-      public String toString() {
-        return name;
-      }
-    }
+			private Class dataClass;
 
-    /**
-     * Enumeration for the transferScriptt type property in MIME types (InputStream, CharBuffer, etc.)
-     */
-    public static class TransferType {
+			private TransferType(Class streamClass) {
+				this.dataClass = streamClass;
+			}
 
-      private Class dataClass;
+			public Class getDataClass() {
+				return dataClass;
+			}
 
-      private TransferType(Class streamClass) {
-        this.dataClass = streamClass;
-      }
+			@Override
+			public String toString() {
+				return dataClass.getName();
+			}
+		}
 
-      public Class getDataClass() {
-        return dataClass;
-      }
-
-      @Override
-      public String toString() {
-        return dataClass.getName();
-      }
-    }
-
-  }
+	}
 //</editor-fold>
 
 	//<editor-fold defaultstate="collapsed" desc="90 features based on httpclient">
