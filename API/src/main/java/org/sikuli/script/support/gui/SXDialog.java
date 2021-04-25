@@ -388,6 +388,7 @@ public class SXDialog extends JFrame {
   static String lineTypes = "*#+|-./";
   static String lineTypeNext = "/";
   static String lineTypeLine = "---";
+  static String lineTypeRect = "###";
   static String lineTypeBreakLine = "===";
   static String itemSep = ";";
 
@@ -395,8 +396,16 @@ public class SXDialog extends JFrame {
     return line.startsWith(lineTypeLine);
   }
 
+  boolean isRectItem(String line) {
+    return line.startsWith(lineTypeRect);
+  }
+
   boolean isBreakLine(String line) {
     return line.startsWith(lineTypeBreakLine);
+  }
+
+  boolean notLineItem(String line) {
+    return !isLineItem(line) && !isRectItem(line) && !isBreakLine(line);
   }
 
   List<String> textLines = new ArrayList<>();
@@ -405,42 +414,54 @@ public class SXDialog extends JFrame {
   BasicItem lastItem = null;
 
   String evalBoxes(String textline) {
-    String check1 = textline.substring(0, 1);
-    String check2 = (textline + " ").substring(1, 2);
-    if (!("[]".contains(check1) || "[]".contains(check2))) {
+    String checkStart = (textline + " ").substring(0, 2);
+    String checkEnd = (textline).substring(textline.length() - 1);
+    boolean startsWith = false;
+    boolean endsWith = false;
+    if (checkStart.contains("[")) {
+      startsWith = true;
+    }
+    if (checkEnd.contains("]")) {
+      endsWith = true;
+    }
+    if (!startsWith && !endsWith) {
       return textline;
     }
     String line = " " + textline + " ";
     String[] parts = line.split("\\[");
     int lenp = parts.length;
-    if (lenp < 2) {
+    if (lenp < 2 && !endsWith) {
       return textline;
     }
-    String post;
-    String col;
-    String pres = "-|+";
-    String pre = parts[0].strip();
-    for (int n = 1; n < lenp; n++) {
-      if (!pre.isEmpty()) {
-        pre = pre.substring(0, 1);
-        if (!pres.contains(pre)) {
-          pre = " ";
+    if (startsWith) {
+      String post;
+      String col;
+      String pres = "-|+";
+      String pre = parts[0].strip();
+      for (int n = 1; n < lenp; n++) {
+        if (!pre.isEmpty()) {
+          pre = pre.substring(0, 1);
+          if (!pres.contains(pre)) {
+            pre = " ";
+          }
+        }
+        col = "";
+        String contentLine = "";
+        post = parts[n].strip();
+        if (post.length() > 0 && post.substring(0, 1).equalsIgnoreCase("v")) {
+          col = "v";
+          contentLine = (post + " ").substring(1).strip();
+        } else {
+          contentLine = post;
+        }
+        String boxLine = pre + "box" + col + ";";
+        textLines.add(boxLine);
+        if (!contentLine.isEmpty()) {
+          pre = evalBoxesEnd(contentLine);
         }
       }
-      col = "";
-      String contentLine = "";
-      post = parts[n].strip();
-      if (post.length() > 0 && post.substring(0, 1).equalsIgnoreCase("v")) {
-        col = "v";
-        contentLine = (post + " ").substring(1).strip();
-      } else {
-        contentLine = post;
-      }
-      String boxLine = pre + "box" + col + ";";
-      textLines.add(boxLine);
-      if (!contentLine.isEmpty()) {
-        pre = evalBoxesEnd(contentLine);
-      }
+    } else {
+      evalBoxesEnd(textline);
     }
     return "";
   }
@@ -484,7 +505,7 @@ public class SXDialog extends JFrame {
         continue;
       }
       finalTextLine = evalBoxes(finalTextLine);
-      if (finalTextLine.startsWith("##")) {
+      if (finalTextLine.equals("##")) {
         break;
       }
       if (!finalTextLine.isEmpty()) {
@@ -513,7 +534,7 @@ public class SXDialog extends JFrame {
         line = replaceVariables(line);
       }
 
-      if (!isLineItem(line)) {
+      if (notLineItem(line)) {
         feature = getFeature(line);
         if (isFeat(feature, FEATURE.ERROR)) {
           continue;
@@ -539,14 +560,23 @@ public class SXDialog extends JFrame {
       String title = "";
       if (lineTypes.contains(lineType)) {
 
-        if (isLineItem(line)) { // FEAT.LINE
+        if (!notLineItem(line)) {
+          Integer number = null;
           if (line.length() > 3) {
-            final Integer number = getNumber(line.substring(3).strip());
+            number = getNumber(line.substring(3).strip());
+          }
+          if (isLineItem(line)) { // FEAT.LINE
             if (number != null) {
               item = new LineItem().stroke(number);
+            } else {
+              item = new LineItem();
             }
-          } else {
-            item = new LineItem();
+          } else if (isRectItem(line)) {
+            if (number != null) {
+              item = new RectItem().stroke(number);
+            } else {
+              item = new RectItem();
+            }
           }
         } else {
           options = line.split(itemSep);
@@ -816,7 +846,11 @@ public class SXDialog extends JFrame {
         continue;
       }
 
-      itm.create();
+      if (itm instanceof RectItem) {
+        itm.create(currentBox);
+      } else {
+        itm.create();
+      }
 
       if (itm.isOut()) {
         currentBox.adjustSize();
@@ -902,6 +936,10 @@ public class SXDialog extends JFrame {
       return this instanceof LineItem;
     }
 
+    boolean isRect() {
+      return this instanceof RectItem;
+    }
+
     boolean inPane() {
       return ((BoxItem) parent).isPane();
     }
@@ -909,7 +947,11 @@ public class SXDialog extends JFrame {
     public void adjust(boolean col, int boxW, int boxH) {
       int off = 0;
       if (isLine()) {
-        fill(col, boxW);
+        fill(col, boxW, boxH);
+        return;
+      }
+      if (isRect()) {
+        fill(boxW, boxH);
         return;
       }
       if (col) {
@@ -970,7 +1012,14 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    void fill(boolean direction, int w) {
+    BasicItem create(BoxItem box) {
+      return this;
+    }
+
+    void fill(boolean direction, int w, int h) {
+    }
+
+    void fill(int w, int h) {
     }
 
     JComponent finalComp() {
@@ -1244,11 +1293,17 @@ public class SXDialog extends JFrame {
   //region 501 BoxItem
   class BoxItem extends BasicItem {
 
+    RectItem rect = null;
+
     //region 10 adjust
     void add(BasicItem item) {
       item.parent(this);
-      evalItem(item);
-      items.add(item);
+      if (!item.isRect()) {
+        evalItem(item);
+        items.add(item);
+      } else {
+        rect = (RectItem) item;
+      }
     }
 
     void evalItem(BasicItem item) {
@@ -1282,6 +1337,9 @@ public class SXDialog extends JFrame {
     void adjust() {
       if (items.size() == 0) {
         return;
+      }
+      if (rect != null) {
+        items.add(rect);
       }
       for (BasicItem item : items) {
         if (!item.isBoxEnd() && !item.isBoxBreak()) {
@@ -1320,48 +1378,9 @@ public class SXDialog extends JFrame {
       }
       if (col) {
         dim(boxW, boxH - spaceAfter);
-      } else
+      } else {
         dim(boxW - spaceAfter, boxH);
-    }
-
-    void adjustPos(int off) {
-
-    }
-
-    Dimension makeReady() { //TODO needed?
-      Dimension pDim = new Dimension(dim());
-      if (isPane()) {
-        for (BasicItem item : items) {
-          final Dimension iDim = item.dim();
-          final Point iPos = item.pos();
-          if (item.isOut()) {
-            pDim.width = iPos.x + iDim.width;
-            pDim.height = Math.max(pDim.height, iPos.y + iDim.height);
-          } else {
-            pDim.width = Math.max(pDim.width, iPos.x + iDim.width);
-            pDim.height = iPos.y + iDim.height;
-          }
-        }
       }
-      dim(pDim);
-      for (BasicItem item : items) {
-        if (item.isLine()) {
-          item.fill(col, pDim.width);
-          continue;
-        }
-        int off = 0;
-        if (item.alignCenter()) {
-          off = (pDim.width - item.width) / 2;
-        } else if (item.alignRightBottom()) {
-          off = pDim.width - item.width;
-        }
-        item.x += off;
-        if (item.isBox()) {
-          ((BoxItem) item).adjustPos(off);
-        }
-      }
-      dim(pDim);
-      return pDim;
     }
     //endregion
 
@@ -1430,17 +1449,10 @@ public class SXDialog extends JFrame {
 
     LineItem() {
       title("");
-      height = stroke;
-    }
-
-    LineItem(int len) {
-      this();
-      width = len;
     }
 
     LineItem stroke(int stroke) {
       this.stroke = stroke;
-      height = stroke;
       return this;
     }
 
@@ -1449,32 +1461,107 @@ public class SXDialog extends JFrame {
       return this;
     }
 
-    int stroke = 1;
+    int stdStroke = 1;
+    int stroke = 0;
     Color color = SXRED;
 
     class Line extends JComponent {
+
+      boolean hori;
+
+      Line(boolean col) {
+        hori = col;
+      }
 
       public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(stroke));
         g2.setColor(color);
-        g2.draw(new Line2D.Float(0, 0, width, 0));
+        if (hori) {
+          g2.draw(new Line2D.Float(0, 0, width, 0));
+        } else
+          g2.draw(new Line2D.Float(0, 0, 0, height));
       }
     }
 
-    void fill(boolean horizontal, int len) {
+    void fill(boolean horizontal, int lenW, int lenH) {
       if (horizontal) {
-        width = len;
+        width = lenW;
+        height = stroke;
       } else {
-        Commons.trace("not implemented");
+        width = stroke;
+        height = lenH;
       }
-      create();
+      Line line = new Line(horizontal);
+      line.setPreferredSize(dim());
+      comp(line); //Line
     }
 
     BasicItem create() {
-      Line line = new Line();
-      line.setPreferredSize(dim());
-      comp(line); //Line
+      if (stroke == 0) {
+        stroke = stdStroke;
+      }
+      height = stroke;
+      width = stroke;
+      return this;
+    }
+  }
+  //endregion
+
+  //region 511 Rectangle
+  class RectItem extends BasicItem {
+
+    RectItem() {
+      title("");
+    }
+
+    RectItem stroke(int stroke) {
+      this.stroke = stroke;
+      return this;
+    }
+
+    RectItem color(Color color) {
+      this.color = color;
+      return this;
+    }
+
+    int stdStroke = 1;
+    int stroke = 0;
+    Color color = SXRED;
+
+    class Rect extends JComponent {
+
+      Rectangle rect;
+
+      Rect(Rectangle rect) {
+        this.rect = rect;
+      }
+
+      public void paint(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setStroke(new BasicStroke(stroke));
+        g2.setColor(color);
+        g2.draw(new Rectangle2D.Float(rect.x, rect.y, rect.width, rect.height));
+      }
+    }
+
+    void fill(int w, int h) {
+      if (box != null) {
+        pos(box.pos());
+        dim(box.dim());
+        Rect rect = new Rect(new Rectangle(box.rect()));
+        rect.setPreferredSize(box.dim());
+        comp(rect); //Rect
+      }
+    }
+
+    BoxItem box = null;
+
+    BasicItem create(BoxItem box) {
+      if (stroke == 0) {
+        stroke = stdStroke;
+      }
+      this.box = box;
       return this;
     }
   }

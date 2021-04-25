@@ -4,17 +4,18 @@
 ---5
 |text
 ---5
-[v
-[v
 [
-line11;]
-[line12;]]
-[
-[line21;]
-[line22;]]]
+---
+[v
+###
+button; OK
+]
+---
+]
 ---5
 close; Press ESC or Click; f 12
 ##
+
   boxv; box1
    button; APPLY
    ---
