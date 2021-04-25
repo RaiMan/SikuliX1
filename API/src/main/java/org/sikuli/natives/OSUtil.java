@@ -3,43 +3,52 @@
  */
 package org.sikuli.natives;
 
-import org.sikuli.script.App;
-import org.sikuli.script.Region;
-
 import java.awt.Rectangle;
-import java.awt.Window;
 import java.util.List;
-import java.util.Map;
 
 public interface OSUtil {
-  // Windows: returns PID, 0 if fails
-  // Others: return 0 if succeeds, -1 if fails
 
-  /**
-   * check if needed command libraries or packages are installed and working<br>
-   * if not ok, respective features will do nothing but issue error messages
-   */
-  void checkFeatureAvailability();
+	public interface OsProcess {
+		long getPid();
 
-  App get(App app);
+		String getName();
 
-  List<App> getApps(String name);
+		boolean isRunning();
 
-	boolean open(App app);
+		boolean close(boolean force);
+	}
 
-  boolean switchto(App app);
+	public interface OsWindow {
+		OsProcess getProcess();
 
-  App switchto(String title, int index);
+		String getTitle();
 
-  boolean close(App app);
+		Rectangle getBounds();
 
-  Rectangle getWindow(String titel);
+		boolean focus();
 
-  Rectangle getWindow(App app);
+		boolean minimize();
 
-  Rectangle getWindow(App app, int winNum);
+		boolean maximize();
 
-  Rectangle getFocusedWindow();
+		boolean restore();
+	}
 
-  List<Region> getWindows(App app);
+	/**
+	 * check if needed command libraries or packages are installed and working<br>
+	 * if not ok, respective features will do nothing but issue error messages
+	 */
+	void init();
+
+	List<OsProcess> findProcesses(String name);
+
+	List<OsWindow> findWindows(String title);
+
+	List<OsWindow> getWindows(OsProcess process);
+
+	List<OsProcess> getProcesses();
+
+	OsProcess open(String[] cmd, String workDir);
+
+	OsWindow getFocusedWindow();
 }

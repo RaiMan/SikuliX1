@@ -33,9 +33,10 @@ public class SysUtil {
   public static OSUtil getOSUtil() {
     if (osUtil == null) {
       try {
-        Class c = Class.forName(SysUtil.getOSUtilClass());
-        Constructor constr = c.getConstructor();
+        Class<?> c = Class.forName(SysUtil.getOSUtilClass());
+        Constructor<?> constr = c.getConstructor();
         osUtil = (OSUtil) constr.newInstance();
+        osUtil.init();
       } catch (Exception e) {
         throw new RuntimeException(String.format("SikuliX: fatal: getOSUtil:" + e.getMessage()));
       }
