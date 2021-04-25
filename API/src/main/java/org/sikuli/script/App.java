@@ -56,255 +56,13 @@ public class App {
     appsMac.put(Type.VIEWER, "Preview");
   }
 
-  private boolean isGivenAsWindowTitle = false;
-  public boolean isWindow() {
-    return isGivenAsWindowTitle;
-  }
+	private static boolean shouldLog = false;
 
-  private void setGivenAsWindowTitle() {
-    isGivenAsWindowTitle = true;
-  }
-
-  private void resetGivenAsWindowTitle() {
-    isGivenAsWindowTitle = false;
-  }
-
-  //  //<editor-fold defaultstate="collapsed" desc="9 features based on org.apache.httpcomponents.httpclient">
-//  private static CloseableHttpClient httpclient = null;
-//
-//  /**
-//   * create a HTTP Client (for use of wwGet, ... multiple times as session)
-//   * @return true on success, false otherwise
-//   */
-//  public static boolean wwwStart() {
-//    if (httpclient != null) {
-//      return true;
-//    }
-//    httpclient = HttpClients.createDefault();
-//    if (httpclient != null) {
-//      return true;
-//    }
-//    return false;
-//  }
-//
-//  /**
-//   * stop a started HTTP Client
-//   */
-//  public static void wwwStop() {
-//    if (httpclient != null) {
-//      try {
-//        httpclient.close();
-//      } catch (IOException ex) {
-//      }
-//      httpclient = null;
-//    }
-//  }
-//
-//  /**
-//   * issue a http(s) request
-//   * @param url a valid url as used in a browser
-//   * @return textual content of the response or empty (UTF-8)
-//   * @throws IOException
-//   */
-//  public static String wwwGet(String url) throws IOException {
-//    HttpGet httpget = new HttpGet(url);
-//    CloseableHttpResponse response = null;
-//    ResponseHandler rh = new ResponseHandler() {
-//      @Override
-//      public String handleResponse(final HttpResponse response) throws IOException {
-//        StatusLine statusLine = response.getStatusLine();
-//        HttpEntity entity = response.getEntity();
-//        if (statusLine.getStatusCode() >= 300) {
-//          throw new HttpResponseException(
-//                  statusLine.getStatusCode(),
-//                  statusLine.getReasonPhrase());
-//        }
-//        if (entity == null) {
-//          throw new ClientProtocolException("Response has no content");
-//        }
-//        InputStream is = entity.getContent();
-//        ByteArrayOutputStream result = new ByteArrayOutputStream();
-//        byte[] buffer = new byte[1024];
-//        int length;
-//        while ((length = is.read(buffer)) != -1) {
-//          result.write(buffer, 0, length);
-//        }
-//        return result.toString("UTF-8");
-//      }
-//    };
-//    boolean oneTime = false;
-//    if (httpclient == null) {
-//      wwwStart();
-//      oneTime = true;
-//    }
-//    Object content = httpclient.execute(httpget, rh);
-//    if (oneTime) {
-//      wwwStop();
-//    }
-//    return (String) content;
-//  }
-//
-//  /**
-//   * same as wwwGet(), but the content is also saved to a file
-//   * @param url a valid url as used in a browser
-//   * @param pOut absolute path to output file (overwritten) (if null: bundlePath/wwwSave.txt is taken)
-//   * @return textual content of the response or empty (UTF-8)
-//   * @throws IOException
-//   */
-//  public static String wwwSave(String url, String pOut) throws IOException {
-//    String content = wwwGet(url);
-//    File out = null;
-//    if (pOut == null) {
-//      out = new File(ImagePath.getBundleFolder(), "wwwSave.txt");
-//    } else {
-//      out = new File(pOut);
-//    }
-//    FileManager.writeStringToFile(content, out);
-//    return content;
-//  }
-//  //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="8 special app features">
-  public static enum Type {
-
-    EDITOR, BROWSER, VIEWER
-  }
-
-  public static Region start(Type appType) {
-    App app = null;
-    Region win;
-    try {
-      if (Type.EDITOR.equals(appType)) {
-        if (Commons.runningMac()) {
-          app = new App(appsMac.get(appType));
-          if (app.window() != null) {
-            app.focus();
-            aRegion.wait(0.5);
-            win = app.window();
-            aRegion.click(win);
-            aRegion.write("#M.a#B.");
-            return win;
-          } else {
-            app.open();
-            win = app.waitForWindow();
-            app.focus();
-            aRegion.wait(0.5);
-            aRegion.click(win);
-            return win;
-          }
-        }
-        if (Commons.runningWindows()) {
-          app = new App(appsWindows.get(appType));
-          if (app.window() != null) {
-            app.focus();
-            aRegion.wait(0.5);
-            win = app.window();
-            aRegion.click(win);
-            aRegion.write("#C.a#B.");
-            return win;
-          } else {
-            app.open();
-            win = app.waitForWindow();
-            app.focus();
-            aRegion.wait(0.5);
-            aRegion.click(win);
-            return win;
-          }
-        }
-      } else if (Type.BROWSER.equals(appType)) {
-        if (Commons.runningWindows()) {
-          app = new App(appsWindows.get(appType));
-          if (app.window() != null) {
-            app.focus();
-            aRegion.wait(0.5);
-            win = app.window();
-            aRegion.click(win);
-//            aRegion.write("#C.a#B.");
-            return win;
-          } else {
-            app.open();
-            win = app.waitForWindow();
-            app.focus();
-            aRegion.wait(0.5);
-            aRegion.click(win);
-            return win;
-          }
-        }
-        return null;
-      } else if (Type.VIEWER.equals(appType)) {
-        return null;
-      }
-    } catch (Exception ex) {
-    }
-    return null;
-  }
-
-  public Region waitForWindow() {
-    return waitForWindow(5);
-  }
-
-  public Region waitForWindow(int seconds) {
-    Region win = null;
-    while ((win = window()) == null && seconds > 0) {
-      aRegion.wait(0.5);
-      seconds -= 0.5;
-    }
-    return win;
-  }
-
-  public static boolean openLink(String url) {
-    if (!Desktop.isDesktopSupported()) {
-      return false;
-    }
-    try {
-      Desktop.getDesktop().browse(new URL(url).toURI());
-    } catch (Exception ex) {
-      return false;
-    }
-    return true;
-  }
-
-  private static Region asRegion(Rectangle r) {
-    if (r != null) {
-      return Region.create(r);
-    } else {
-      return null;
-    }
-  }
-
-  public static void pause(int time) {
-    try {
-      Thread.sleep(time * 1000);
-    } catch (InterruptedException ex) {
-    }
-  }
-
-  public static void pause(float time) {
-    try {
-      Thread.sleep((int) (time * 1000));
-    } catch (InterruptedException ex) {
-    }
-  }
-//</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="0 housekeeping">
-  private static boolean shouldLog = false;
-  private String appNameGiven = "";
-  private String appName = "";
-  private String appToken = "";
-  private String appExec = "";
-  private String appExecPath = "";
-  private String appWorkDir = "";
-  private String appOptions = "";
-  private String appWindow = "";
-  private int appPID = -1;
-  private int maxWait = 10;
-
-  public static void log(String msg, Object... args) {
-    if (shouldLog) {
-      Debug.logp("[AppLog] " + msg, args);
-    }
-  }
+	public static void log(String msg, Object... args) {
+		if (shouldLog) {
+			Debug.logp("[AppLog] " + msg, args);
+		}
+	}
 
   public static void logOn() {
     shouldLog = true;
@@ -1090,5 +848,215 @@ public class App {
     }
 
   }
+//</editor-fold>
+
+	//<editor-fold defaultstate="collapsed" desc="90 features based on httpclient">
+//  private static CloseableHttpClient httpclient = null;
+//
+//  /**
+//   * create a HTTP Client (for use of wwGet, ... multiple times as session)
+//   * @return true on success, false otherwise
+//   */
+//  public static boolean wwwStart() {
+//    if (httpclient != null) {
+//      return true;
+//    }
+//    httpclient = HttpClients.createDefault();
+//    if (httpclient != null) {
+//      return true;
+//    }
+//    return false;
+//  }
+//
+//  /**
+//   * stop a started HTTP Client
+//   */
+//  public static void wwwStop() {
+//    if (httpclient != null) {
+//      try {
+//        httpclient.close();
+//      } catch (IOException ex) {
+//      }
+//      httpclient = null;
+//    }
+//  }
+//
+//  /**
+//   * issue a http(s) request
+//   * @param url a valid url as used in a browser
+//   * @return textual content of the response or empty (UTF-8)
+//   * @throws IOException
+//   */
+//  public static String wwwGet(String url) throws IOException {
+//    HttpGet httpget = new HttpGet(url);
+//    CloseableHttpResponse response = null;
+//    ResponseHandler rh = new ResponseHandler() {
+//      @Override
+//      public String handleResponse(final HttpResponse response) throws IOException {
+//        StatusLine statusLine = response.getStatusLine();
+//        HttpEntity entity = response.getEntity();
+//        if (statusLine.getStatusCode() >= 300) {
+//          throw new HttpResponseException(
+//                  statusLine.getStatusCode(),
+//                  statusLine.getReasonPhrase());
+//        }
+//        if (entity == null) {
+//          throw new ClientProtocolException("Response has no content");
+//        }
+//        InputStream is = entity.getContent();
+//        ByteArrayOutputStream result = new ByteArrayOutputStream();
+//        byte[] buffer = new byte[1024];
+//        int length;
+//        while ((length = is.read(buffer)) != -1) {
+//          result.write(buffer, 0, length);
+//        }
+//        return result.toString("UTF-8");
+//      }
+//    };
+//    boolean oneTime = false;
+//    if (httpclient == null) {
+//      wwwStart();
+//      oneTime = true;
+//    }
+//    Object content = httpclient.execute(httpget, rh);
+//    if (oneTime) {
+//      wwwStop();
+//    }
+//    return (String) content;
+//  }
+//
+//  /**
+//   * same as wwwGet(), but the content is also saved to a file
+//   * @param url a valid url as used in a browser
+//   * @param pOut absolute path to output file (overwritten) (if null: bundlePath/wwwSave.txt is taken)
+//   * @return textual content of the response or empty (UTF-8)
+//   * @throws IOException
+//   */
+//  public static String wwwSave(String url, String pOut) throws IOException {
+//    String content = wwwGet(url);
+//    File out = null;
+//    if (pOut == null) {
+//      out = new File(ImagePath.getBundleFolder(), "wwwSave.txt");
+//    } else {
+//      out = new File(pOut);
+//    }
+//    FileManager.writeStringToFile(content, out);
+//    return content;
+//  }
+//</editor-fold>">
+
+	// <editor-fold defaultstate="collapsed" desc="95 special app features">
+	public static enum Type {
+
+		EDITOR, BROWSER, VIEWER
+	}
+
+	public static Region start(Type appType) {
+		App app = null;
+		Region win;
+		try {
+			if (Type.EDITOR.equals(appType)) {
+				if (Commons.runningMac()) {
+					app = new App(appsMac.get(appType));
+					if (app.window() != null) {
+						app.focus();
+						aRegion.wait(0.5);
+						win = app.window();
+						aRegion.click(win);
+						aRegion.write("#M.a#B.");
+						return win;
+					} else {
+						app.open();
+						win = app.waitForWindow();
+						app.focus();
+						aRegion.wait(0.5);
+						aRegion.click(win);
+						return win;
+					}
+				}
+				if (Commons.runningWindows()) {
+					app = new App(appsWindows.get(appType));
+					if (app.window() != null) {
+						app.focus();
+						aRegion.wait(0.5);
+						win = app.window();
+						aRegion.click(win);
+						aRegion.write("#C.a#B.");
+						return win;
+					} else {
+						app.open();
+						win = app.waitForWindow();
+						app.focus();
+						aRegion.wait(0.5);
+						aRegion.click(win);
+						return win;
+					}
+				}
+			} else if (Type.BROWSER.equals(appType)) {
+				if (Commons.runningWindows()) {
+					app = new App(appsWindows.get(appType));
+					if (app.window() != null) {
+						app.focus();
+						aRegion.wait(0.5);
+						win = app.window();
+						aRegion.click(win);
+//            aRegion.write("#C.a#B.");
+						return win;
+					} else {
+						app.open();
+						win = app.waitForWindow();
+						app.focus();
+						aRegion.wait(0.5);
+						aRegion.click(win);
+						return win;
+					}
+				}
+				return null;
+			} else if (Type.VIEWER.equals(appType)) {
+				return null;
+			}
+		} catch (Exception ex) {
+		}
+		return null;
+	}
+
+	public Region waitForWindow() {
+		return waitForWindow(5);
+	}
+
+	public Region waitForWindow(int seconds) {
+		Region win = null;
+		while ((win = window()) == null && seconds > 0) {
+			aRegion.wait(0.5);
+			seconds -= 0.5;
+		}
+		return win;
+	}
+
+	public static boolean openLink(String url) {
+		if (!Desktop.isDesktopSupported()) {
+			return false;
+		}
+		try {
+			Desktop.getDesktop().browse(new URL(url).toURI());
+		} catch (Exception ex) {
+			return false;
+		}
+		return true;
+	}
+
+	public static void pause(int seconds) {
+		try {
+			Thread.sleep(seconds * 1000);
+		} catch (InterruptedException ex) {
+		}
+	}
+
+	public static void pause(float seconds) {
+		try {
+			Thread.sleep((int) (seconds * 1000));
+		} catch (InterruptedException ex) {
+		}
+	}
 //</editor-fold>
 }

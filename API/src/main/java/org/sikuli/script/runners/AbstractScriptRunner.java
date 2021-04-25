@@ -16,7 +16,6 @@ import java.util.function.IntSupplier;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.Runner;
 
 import com.sun.jna.ptr.IntByReference;
 
@@ -193,9 +192,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return new EffectiveRunner(this, script, false);
   }
 
+  public static final int NOT_SUPPORTED = 257;
+
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runScript");
-    return Runner.NOT_SUPPORTED;
+    return NOT_SUPPORTED;
   }
 
   @Override

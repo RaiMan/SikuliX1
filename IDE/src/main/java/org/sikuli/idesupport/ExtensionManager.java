@@ -6,8 +6,7 @@ package org.sikuli.idesupport;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.ProcessRunner;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.runners.ProcessRunner;
 
 import javax.swing.*;
 import java.io.*;
