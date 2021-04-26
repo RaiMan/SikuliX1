@@ -4,6 +4,8 @@
 
 package org.sikuli.script.support;
 
+import org.sikuli.script.App;
+
 import java.util.List;
 
 public class SikulixEvaluate {
@@ -15,8 +17,27 @@ public class SikulixEvaluate {
     if ("test".equals(args[0])) {
       test();
     }
+
+    if ("app".equals(args[0])) {
+      testApp();
+    }
   }
 
+  static void testApp() {
+    Commons.startDebug();
+    if (false) {
+      App app = new App();
+      Commons.debug("%s", app);
+    } else {
+      List<App> apps = App.getApps();
+      for (App app : apps) {
+        boolean userProcess = app.isUserProcess();
+      }
+      Commons.debug(" ");
+    }
+  }
+
+  //region test
   public static void test() {
 
 //BREAKPOINT before test
@@ -164,4 +185,5 @@ public class SikulixEvaluate {
       e.printStackTrace();
     }
   }
+  //endregion
 }

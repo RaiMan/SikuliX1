@@ -9,6 +9,7 @@ import java.util.List;
 public interface OSUtil {
 
 	public interface OsProcess {
+
 		long getPid();
 
 		String getName();
@@ -39,6 +40,8 @@ public interface OSUtil {
 	 * if not ok, respective features will do nothing but issue error messages
 	 */
 	void init();
+
+	boolean isUserProcess(OsProcess process);
 
 	List<OsProcess> findProcesses(String name);
 

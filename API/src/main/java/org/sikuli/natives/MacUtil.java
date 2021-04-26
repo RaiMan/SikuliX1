@@ -17,8 +17,24 @@ import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
+import org.sikuli.script.support.Commons;
 
 public class MacUtil extends GenericOsUtil {
+
+	@Override
+	public boolean isUserProcess(OsProcess process) {
+		if (process == null) {
+			return false;
+		} else {
+			if (process.getPid() > 0) {
+				String name = process.getName();
+				Commons.debug("");
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static final class MacWindow implements OsWindow {
 		private long number;
 		private String title;

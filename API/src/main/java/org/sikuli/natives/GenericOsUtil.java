@@ -6,6 +6,7 @@ package org.sikuli.natives;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +30,8 @@ public abstract class GenericOsUtil implements OSUtil {
 
 		@Override
 		public String getName() {
-			return process.info().command().orElse("");
+			Optional<String> command = process.info().command();
+			return command.orElse("");
 		}
 
 		@Override
@@ -57,6 +59,11 @@ public abstract class GenericOsUtil implements OSUtil {
 	@Override
 	public void init() {
 		// nothing to do
+	}
+
+	@Override
+	public boolean isUserProcess(OsProcess process) {
+		return true;
 	}
 
 	@Override

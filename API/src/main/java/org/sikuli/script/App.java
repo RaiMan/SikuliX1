@@ -57,19 +57,19 @@ public class App {
 
   // <editor-fold defaultstate="collapsed" desc="00 housekeeping">
   private static OSUtil osUtil = SysUtil.getOSUtil();
-  private static final Map<Type, String> appsWindows;
-  private static final Map<Type, String> appsMac;
-  private static final Region aRegion = new Region();
+//  private static final Map<Type, String> appsWindows;
+//  private static final Map<Type, String> appsMac;
+//  private static final Region aRegion = new Region();
 
   static {
-    appsWindows = new HashMap<Type, String>();
-    appsWindows.put(Type.EDITOR, "Notepad");
-    appsWindows.put(Type.BROWSER, "Google Chrome");
-    appsWindows.put(Type.VIEWER, "");
-    appsMac = new HashMap<Type, String>();
-    appsMac.put(Type.EDITOR, "TextEdit");
-    appsMac.put(Type.BROWSER, "Safari");
-    appsMac.put(Type.VIEWER, "Preview");
+//    appsWindows = new HashMap<Type, String>();
+//    appsWindows.put(Type.EDITOR, "Notepad");
+//    appsWindows.put(Type.BROWSER, "Google Chrome");
+//    appsWindows.put(Type.VIEWER, "");
+//    appsMac = new HashMap<Type, String>();
+//    appsMac.put(Type.EDITOR, "TextEdit");
+//    appsMac.put(Type.BROWSER, "Safari");
+//    appsMac.put(Type.VIEWER, "Preview");
   }
 
   private static boolean shouldLog = false;
@@ -91,6 +91,7 @@ public class App {
 
   //<editor-fold desc="01 instance">
   private static class NullProcess implements OsProcess {
+
     @Override
     public long getPid() {
       return -1;
@@ -159,17 +160,11 @@ public class App {
 
   @Override
   public String toString() {
-    final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
-    return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, getExecutable(), getArguments());
-  }
-
-  public String toStringShort() {
-    return "";
-//		if (isWindow()) {
-//			return String.format("[%d:?%s]", appPID, appName);
-//		} else {
-//			return String.format("[%d:%s]", appPID, appName);
-//		}
+    if (isUserProcess()) {
+      final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
+      return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, getExecutable(), getArguments());
+    }
+    return String.format("App:SystemProcess(pid:%d)", getPID());
   }
   //</editor-fold>
 
@@ -200,7 +195,11 @@ public class App {
 
   //<editor-fold desc="05 arguments, name, executable, pid">
   public String getExecutable() {
-    return cmd.getExecutable();
+    if (cmd != null) {
+      return cmd.getExecutable();
+    } else {
+      return "Executable:NotSet";
+    }
   }
 
   /**
@@ -225,7 +224,11 @@ public class App {
   }
 
   public String getArguments() {
-    return String.join(" ", cmd.getArguments());
+    if (cmd != null) {
+      return String.join(" ", cmd.getArguments());
+    } else {
+      return "Arguments:NotSet";
+    }
   }
 
   public void setName(String name) {
@@ -245,6 +248,10 @@ public class App {
 
   public long getPID() {
     return process.getPid();
+  }
+
+  public boolean isUserProcess() {
+    return osUtil.isUserProcess(process);
   }
   //</editor-fold>
 
@@ -1022,7 +1029,22 @@ public class App {
 //  }
 //</editor-fold>">
 
+  public static void pause(int seconds) {
+    try {
+      Thread.sleep(seconds * 1000);
+    } catch (InterruptedException ex) {
+    }
+  }
+
+  public static void pause(float seconds) {
+    try {
+      Thread.sleep((int) (seconds * 1000));
+    } catch (InterruptedException ex) {
+    }
+  }
+
   // <editor-fold defaultstate="collapsed" desc="95 special app features">
+/*
   public static enum Type {
 
     EDITOR, BROWSER, VIEWER
@@ -1121,19 +1143,6 @@ public class App {
     }
     return true;
   }
-
-  public static void pause(int seconds) {
-    try {
-      Thread.sleep(seconds * 1000);
-    } catch (InterruptedException ex) {
-    }
-  }
-
-  public static void pause(float seconds) {
-    try {
-      Thread.sleep((int) (seconds * 1000));
-    } catch (InterruptedException ex) {
-    }
-  }
+ */
 //</editor-fold>
 }
