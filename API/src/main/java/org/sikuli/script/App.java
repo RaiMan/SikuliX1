@@ -162,15 +162,6 @@ public class App {
     final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
     return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, getExecutable(), getArguments());
   }
-
-  public String toStringShort() {
-    return "";
-//		if (isWindow()) {
-//			return String.format("[%d:?%s]", appPID, appName);
-//		} else {
-//			return String.format("[%d:%s]", appPID, appName);
-//		}
-  }
   //</editor-fold>
 
   // <editor-fold desc="02 running/valid">
