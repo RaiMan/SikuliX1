@@ -194,7 +194,6 @@ public class App {
 			pause(1);
 			maxTime--;
 		} while (maxTime > 0);
-
 		return false;
 	}
 
@@ -203,40 +202,7 @@ public class App {
 	}
 	// </editor-fold>
 
-	// <editor-fold desc="10 app list">
-
-	public static List<App> getApps() {
-		return osUtil.getProcesses().stream().map((p) -> new App(p)).collect(Collectors.toList());
-	}
-
-	public static List<App> getApps(String name) {
-		return osUtil.findProcesses(name).stream().map((p) -> new App(p)).collect(Collectors.toList());
-	}
-
-	public static void listApps() {
-		new App();
-		List<App> appList = getApps();
-		logOn();
-		log("***** all running apps");
-		for (App app : appList) {
-			log("%s", app);
-		}
-		log("***** end of list (%d)", appList.size());
-		logOff();
-	}
-
-	public static void listApps(String name) {
-		new App();
-		List<App> appList = getApps(name);
-		logOn();
-		log("***** running apps matching: %s", name);
-		for (App app : appList) {
-			log("%s", app);
-		}
-		log("***** end of list (%d)", appList.size());
-		logOff();
-	}
-
+	//<editor-fold desc="05 arguments, name, executable, pid">
 	public String getExecutable() {
 		return cmd.getExecutable();
 	}
@@ -284,22 +250,40 @@ public class App {
 	public long getPID() {
 		return process.getPid();
 	}
+	//</editor-fold>
 
-	public String getWindowTitle() {
-		return getWindowTitle(0);
+	// <editor-fold desc="10 app list">
+
+	public static List<App> getApps() {
+		return osUtil.getProcesses().stream().map((p) -> new App(p)).collect(Collectors.toList());
 	}
 
-	public String getWindowTitle(int windowNumber) {
-		List<OsWindow> windows = osUtil.getWindows(process);
-		return windows.size() > windowNumber ? windows.get(windowNumber).getTitle() : "";
+	public static List<App> getApps(String name) {
+		return osUtil.findProcesses(name).stream().map((p) -> new App(p)).collect(Collectors.toList());
 	}
 
-	public String getTitle() {
-		return getWindowTitle();
+	public static void listApps() {
+		new App();
+		List<App> appList = getApps();
+		logOn();
+		log("***** all running apps");
+		for (App app : appList) {
+			log("%s", app);
+		}
+		log("***** end of list (%d)", appList.size());
+		logOff();
 	}
 
-	public String getTitle(int windowNumber) {
-		return getWindowTitle(windowNumber);
+	public static void listApps(String name) {
+		new App();
+		List<App> appList = getApps(name);
+		logOn();
+		log("***** running apps matching: %s", name);
+		for (App app : appList) {
+			log("%s", app);
+		}
+		log("***** end of list (%d)", appList.size());
+		logOff();
 	}
 	// </editor-fold>
 
@@ -619,6 +603,23 @@ public class App {
 		} else {
 			return null;
 		}
+	}
+
+	public String getWindowTitle() {
+		return getWindowTitle(0);
+	}
+
+	public String getWindowTitle(int windowNumber) {
+		List<OsWindow> windows = osUtil.getWindows(process);
+		return windows.size() > windowNumber ? windows.get(windowNumber).getTitle() : "";
+	}
+
+	public String getTitle() {
+		return getWindowTitle();
+	}
+
+	public String getTitle(int windowNumber) {
+		return getWindowTitle(windowNumber);
 	}
 //</editor-fold>
 
