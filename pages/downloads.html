@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+  ~ Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
   -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
@@ -21,45 +21,72 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="http://www.sikulix.com/disclaimer/" , target="_blank">[Disclaimer]</a>
 <hr>
-<h3>Version 2.0.4 (latest stable version)</h3>
-
-<a href="https://sikulix-2014.readthedocs.io/en/latest/news.html" , target="_blank">Mandatory for Linux users -
-    recommended for all: Be sure you had a look at the more detailed information here</a>
+<h2>Version 2.0.5 (latest stable version)</h2>
+<strong>Recommended for all --- </strong><a href="https://github.com/RaiMan/SikuliX1/wiki/About-actual-release-version" , target="_blank">
+    Be sure you had a look at this information about major changes/issues/recommendations</a>
 <br><br>
 <strong>Things that have been fixed</strong>
 <a href="https://github.com/RaiMan/SikuliX1/wiki/ZZZ-Bug-Fixes" , target="_blank"><strong>in version 2.0.x+</strong></a>
 <hr>
-<h3>Edit and run scripts with the SikuliX IDE</h3>
+<h3>SikuliX IDE: Edit and run Jython/Python/Ruby scripts on all systems</h3>
 <hr>
-<h4><a href="https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixide-2.0.4.jar">Download the ready to use
-    sikulix.jar (SikuliX IDE)</a></h4>
+<strong><a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixide-2.0.5.jar">Download the ready to use
+    sikulixide-2.0.5.jar (SikuliX IDE for all systems)</a></strong><br><br>
+<strong>This artefact runs on Windows, macOS and Linux. For systemspecific slightly smaller packs see below.</strong>
+<br><br>
 Just download, move it to a folder of your choice and doubleclick to run it.<br>
 An alternative to run it is from commandline using
-<pre>java -jar path-to/sikulix.jar</pre>
-<br>If you have any problems, run this from a commandline and analyse the log output
-<pre>java -jar path-to/sikulix.jar -v -c</pre>
+<pre>java -jar path-to/sikulixide-2.0.5.jar</pre>
+If you have any problems, run this from a commandline and analyse the log output
+<pre>java -jar path-to/sikulixide-2.0.5.jar -v -c</pre>
+<strong>Be aware: Jython support/interpreter</strong> is now included in the package - no need for an extra download/install
+<br>
 <hr>
-<h4>Needed for scripting support in the IDE and running scripts from commandline</h4>
-<h4><a href="https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.1/jython-standalone-2.7.1.jar">The Jython
-    interpreter 2.7.1 for python scripting (the default)</a></h4>
-<h4><a href="https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar">The JRuby
-    interpreter 9.x for ruby scripting</a></h4>
-Download what you prefer or both to the same folder as you have your sikulix.jar.
-<br>They will be recognized by SikuliX at the next start and moved to the SikuliX's extension folder.
+<h4>Needed for Ruby scripting support in the IDE and running Ruby scripts from commandline</h4>
+<strong><a href="https://repo1.maven.org/maven2/org/jruby/jruby-complete/9.2.0.0/jruby-complete-9.2.0.0.jar">The JRuby
+    interpreter 9.x for ruby scripting</a></strong><br><br>
+Download to the same folder as you have your sikulix.jar.
+<br>It will be recognized by SikuliX at the next start and moved to the SikuliX's extension folder.
 <br>So preferably download before using the IDE the first time.
-
+<br><br>
 <hr>
-<h3>Use the SikuliX features in Java programming or Java aware environments</h3>
+<h3>Systemspecific versions of the SikuliX IDE</h3>
+<hr>
+<strong>Windows:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixide-2.0.5-win.jar">Download the ready to use
+    sikulixide-2.0.5-win.jar (SikuliX IDE for Windows)</a><br><br>
+<strong>macOS:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixide-2.0.5-mac.jar">Download the ready to use
+    sikulixide-2.0.5-mac.jar (SikuliX IDE for macOS)</a><br><br>
+<strong>Linux:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixide-2.0.5-lux.jar">Download the ready to use
+    sikulixide-2.0.5-lux.jar (SikuliX IDE for Linux)</a><br><br>
+<hr>
+<h3>SikuliX API: Use the SikuliX features in Java programming or Java aware environments</h3>
 <hr>
 <br>
-<strong><a href="https://github.com/RaiMan/SikuliX1/blob/master/README.md">Look here</a></strong> if you want to use the <strong>sikulixapi in a Maven context</strong>
-<h4><a href="https://launchpad.net/sikuli/sikulix/2.0.4/+download/sikulixapi-2.0.4.jar">Download the ready to use
-    sikulixapi.jar</a></h4>
-This artefact is for use on a Java classpath or for Java programming in mature IDEs as library jar.<br>
-<h4><a href="https://repo1.maven.org/maven2/com/sikulix/sikulixapi/2.0.4/sikulixapi-2.0.4-sources.jar">Download
-    sikulixapi-sources.jar</a></h4>
-This artefact might be useful for Java programming in mature IDEs as reference.<br>
-<h4><a href="https://raiman.github.io/SikuliX1/javadocs/index.html">read the javadocs online</a></h4>
-Be aware: The online javadocs are created from the latest nightly builds.
+<strong>Download the ready to use sikulixapi-2.0.5.jar</strong><br>
+These artefacts are for use on a Java classpath or for Java programming in mature IDEs as library jar.<br><br>
+<strong>All systems:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixapi-2.0.5.jar">Download the ready to use
+    sikulixapi-2.0.5.jar (SikuliX IDE for Windows)</a><br>
+<strong>Windows:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixapi-2.0.5-win.jar">Download the ready to use
+    sikulixapi-2.0.5-win.jar (SikuliX IDE for Windows)</a><br>
+<strong>macOS:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixapi-2.0.5-mac.jar">Download the ready to use
+    sikulixapi-2.0.5-mac.jar (SikuliX IDE for macOS)</a><br>
+<strong>Linux:</strong> <a href="https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixapi-2.0.5-lux.jar">Download the ready to use
+    sikulixapi-2.0.5-lux.jar (SikuliX IDE for Linux)</a><br>
+<br>
+<strong>Maven coordinates for use in Maven aware contexts:</strong>
+<pre>
+    &ltdependency>
+        &ltgroupId>com.sikulix&lt/groupId>
+        &ltartifactId>sikulixapi&lt/artifactId>
+        &ltversion>2.0.5&lt/version>
+    &lt/dependency>
+</pre>
+<hr>
+<strong><a href="https://repo1.maven.org/maven2/com/sikulix/sikulixapi/2.0.5/sikulixapi-2.0.5-sources.jar">Download
+    sikulixapi-sources.jar</a></strong>
+Might be useful for Java programming in mature IDEs as reference.<br><br>
+<strong><a href="https://raiman.github.io/SikuliX1/javadocs/index.html">read the javadocs online</a></strong>
+Be aware: might not be up-to-date.
+<br>
 <hr>
 </body>
