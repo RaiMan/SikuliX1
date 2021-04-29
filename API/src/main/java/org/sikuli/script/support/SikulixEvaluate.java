@@ -25,16 +25,9 @@ public class SikulixEvaluate {
 
   static void testApp() {
     Commons.startDebug();
-    if (false) {
-      App app = new App();
-      Commons.debug("%s", app);
-    } else {
-      List<App> apps = App.getApps();
-      for (App app : apps) {
-        boolean userProcess = app.isUserProcess();
-      }
-      Commons.debug(" ");
-    }
+    App app = new App();
+    App.listApps("java");
+    Commons.debug("%s", app);
   }
 
   //region test

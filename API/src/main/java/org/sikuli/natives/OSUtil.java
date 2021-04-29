@@ -49,7 +49,11 @@ public interface OSUtil {
 
 	List<OsWindow> getWindows(OsProcess process);
 
+	List<OsWindow> getWindows();
+
 	List<OsProcess> getProcesses();
+
+	OsProcess getProcess();
 
 	OsProcess open(String[] cmd, String workDir);
 

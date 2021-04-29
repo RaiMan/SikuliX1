@@ -21,167 +21,179 @@ import org.sikuli.script.support.Commons;
 
 public class MacUtil extends GenericOsUtil {
 
-	@Override
-	public boolean isUserProcess(OsProcess process) {
-		if (process == null) {
-			return false;
-		} else {
-			if (process.getPid() > 0) {
-				String name = process.getName();
-				Commons.debug("");
-				return true;
-			}
-		}
-		return false;
-	}
+  @Override
+  public boolean isUserProcess(OsProcess process) {
+    if (process == null) {
+      return false;
+    } else {
+      if (process.getPid() > 0) {
+        String name = process.getName();
+        if (name.isEmpty()) {
+          return false;
+        }
+        if (!name.startsWith("/Applications/")
+            && !name.startsWith("/System/Applications/")
+            && !name.startsWith("/Library/Java/JavaVirtualMachines/")) {
+          return false;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
 
-	private static final class MacWindow implements OsWindow {
-		private long number;
-		private String title;
-		private long pid;
-		private Rectangle bounds;
+  private static final class MacWindow implements OsWindow {
+    private long number;
+    private String title;
+    private long pid;
+    private Rectangle bounds;
 
-		public MacWindow(long number, String title, long pid, Rectangle bounds) {
-			this.number = number;
-			this.title = title;
-			this.pid = pid;
-			this.bounds = bounds;
-		}
+    public MacWindow(long number, String title, long pid, Rectangle bounds) {
+      this.number = number;
+      this.title = title;
+      this.pid = pid;
+      this.bounds = bounds;
+    }
 
-		@Override
-		public OsProcess getProcess() {
-			Optional<ProcessHandle> handle = ProcessHandle.of(pid);
-			if (handle.isPresent()) {
-				return new GenericOsProcess(handle.get());
-			}
-			return null;
-		}
+    @Override
+    public OsProcess getProcess() {
+      Optional<ProcessHandle> handle = ProcessHandle.of(pid);
+      if (handle.isPresent()) {
+        return new GenericOsProcess(handle.get());
+      }
+      return null;
+    }
 
-		@Override
-		public String getTitle() {
-			return title;
-		}
+    @Override
+    public String getTitle() {
+      return title;
+    }
 
-		@Override
-		public Rectangle getBounds() {
-			return bounds;
-		}
+    @Override
+    public Rectangle getBounds() {
+      return bounds;
+    }
 
-		@Override
-		public boolean focus() {
-			NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
+    @Override
+    public boolean focus() {
+      NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
 
-			if (app != null) {
-				return app.activateWithOptions(NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateAllWindows | NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateIgnoringOtherApps);
-			}
+      if (app != null) {
+        return app.activateWithOptions(NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateAllWindows | NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateIgnoringOtherApps);
+      }
 
-			return false;
-		}
+      return false;
+    }
 
-		@Override
-		public boolean minimize() {
-			throw new UnsupportedOperationException("minimize not implemented");
-		}
+    @Override
+    public boolean minimize() {
+      throw new UnsupportedOperationException("minimize not implemented");
+    }
 
-		@Override
-		public boolean maximize() {
-			throw new UnsupportedOperationException("maximize not implemented");
-		}
+    @Override
+    public boolean maximize() {
+      throw new UnsupportedOperationException("maximize not implemented");
+    }
 
-		@Override
-		public boolean restore() {
-			throw new UnsupportedOperationException("restore not implemented");
-		}
+    @Override
+    public boolean restore() {
+      throw new UnsupportedOperationException("restore not implemented");
+    }
 
-		@Override
-		public boolean equals(Object other) {
-			return other != null && other instanceof MacWindow && this.number == (((MacWindow) other).number);
-		}
-	}
+    @Override
+    public boolean equals(Object other) {
+      return other != null && other instanceof MacWindow && this.number == (((MacWindow) other).number);
+    }
+  }
 
-	@Override
-	public List<OsWindow> findWindows(String title) {
-		return allWindows().stream().filter((w) -> w.getTitle().contains(title)).collect(Collectors.toList());
-	}
+  @Override
+  public List<OsWindow> findWindows(String title) {
+    return allWindows().stream().filter((w) -> w.getTitle().contains(title)).collect(Collectors.toList());
+  }
 
-	@Override
-	public OsWindow getFocusedWindow() {
-		return allWindows().stream().filter((w) -> {
-			OsProcess process = w.getProcess();
+  @Override
+  public OsWindow getFocusedWindow() {
+    return allWindows().stream().filter((w) -> {
+      OsProcess process = w.getProcess();
 
-			if (process != null) {
-				NSRunningApplication app = NSRunningApplication.CLASS
-						.runningApplicationWithProcessIdentifier((int) w.getProcess().getPid());
+      if (process != null) {
+        NSRunningApplication app = NSRunningApplication.CLASS
+            .runningApplicationWithProcessIdentifier((int) w.getProcess().getPid());
 
-				if (app != null) {
-					if (app.isActive()) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}).findFirst().orElse(null);
-	}
+        if (app != null) {
+          if (app.isActive()) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }).findFirst().orElse(null);
+  }
 
-	@Override
-	public List<OsWindow> getWindows(OsProcess process) {
-		if (process != null) {
-			return allWindows().stream().filter((w) -> process.equals(w.getProcess())).collect(Collectors.toList());
-		}
-		return new ArrayList<>(0);
-	}
+  @Override
+  public List<OsWindow> getWindows(OsProcess process) {
+    if (process != null) {
+      return allWindows().stream().filter((w) -> process.equals(w.getProcess())).collect(Collectors.toList());
+    }
+    return new ArrayList<>(0);
+  }
 
-	private static List<OsWindow> allWindows() {
-		ArrayList<OsWindow> windows = new ArrayList<>();
+  @Override
+  public List<OsWindow> getWindows() {
+    return allWindows();
+  }
 
-		CFArrayRef windowInfo = CoreGraphics.INSTANCE.CGWindowListCopyWindowInfo(
-				CoreGraphics.kCGWindowListExcludeDesktopElements | CoreGraphics.kCGWindowListOptionOnScreenOnly, 0);
+  private static List<OsWindow> allWindows() {
+    ArrayList<OsWindow> windows = new ArrayList<>();
 
-		try {
-			int numWindows = windowInfo.getCount();
-			for (int i = 0; i < numWindows; i++) {
-				Pointer pointer = windowInfo.getValueAtIndex(i);
-				CFDictionaryRef windowRef = new CFDictionaryRef(pointer);
+    CFArrayRef windowInfo = CoreGraphics.INSTANCE.CGWindowListCopyWindowInfo(
+        CoreGraphics.kCGWindowListExcludeDesktopElements | CoreGraphics.kCGWindowListOptionOnScreenOnly, 0);
 
-				Pointer numberPointer = windowRef.getValue(CoreGraphics.kCGWindowNumber);
-				long windowNumber = new CFNumberRef(numberPointer).longValue();
+    try {
+      int numWindows = windowInfo.getCount();
+      for (int i = 0; i < numWindows; i++) {
+        Pointer pointer = windowInfo.getValueAtIndex(i);
+        CFDictionaryRef windowRef = new CFDictionaryRef(pointer);
 
-				Pointer pidPointer = windowRef.getValue(CoreGraphics.kCGWindowOwnerPID);
-				long windowPid = new CFNumberRef(pidPointer).longValue();
+        Pointer numberPointer = windowRef.getValue(CoreGraphics.kCGWindowNumber);
+        long windowNumber = new CFNumberRef(numberPointer).longValue();
 
-				String windowName = "";
-				Pointer namePointer = windowRef.getValue(CoreGraphics.kCGWindowName);
+        Pointer pidPointer = windowRef.getValue(CoreGraphics.kCGWindowOwnerPID);
+        long windowPid = new CFNumberRef(pidPointer).longValue();
 
-				if (namePointer != null) {
-					CFStringRef nameRef = new CFStringRef(namePointer);
+        String windowName = "";
+        Pointer namePointer = windowRef.getValue(CoreGraphics.kCGWindowName);
 
-					if (CoreFoundation.INSTANCE.CFStringGetLength(nameRef).intValue() > 0) {
-						windowName = new CFStringRef(namePointer).stringValue();
-					}
-				}
+        if (namePointer != null) {
+          CFStringRef nameRef = new CFStringRef(namePointer);
 
-				Pointer boundsPointer = windowRef.getValue(CoreGraphics.kCGWindowBounds);
-				CoreGraphics.CGRectRef rect = new CoreGraphics.CGRectRef();
+          if (CoreFoundation.INSTANCE.CFStringGetLength(nameRef).intValue() > 0) {
+            windowName = new CFStringRef(namePointer).stringValue();
+          }
+        }
 
-				boolean result = CoreGraphics.INSTANCE.CGRectMakeWithDictionaryRepresentation(boundsPointer, rect);
+        Pointer boundsPointer = windowRef.getValue(CoreGraphics.kCGWindowBounds);
+        CoreGraphics.CGRectRef rect = new CoreGraphics.CGRectRef();
 
-				Rectangle javaRect = null;
+        boolean result = CoreGraphics.INSTANCE.CGRectMakeWithDictionaryRepresentation(boundsPointer, rect);
 
-				if (result) {
-					int x = (int) rect.origin.x;
-					int y = (int) rect.origin.y;
-					int width = (int) rect.size.width;
-					int height = (int) rect.size.height;
+        Rectangle javaRect = null;
 
-					javaRect = new Rectangle(x, y, width, height);
-				}
+        if (result) {
+          int x = (int) rect.origin.x;
+          int y = (int) rect.origin.y;
+          int width = (int) rect.size.width;
+          int height = (int) rect.size.height;
 
-				windows.add(new MacWindow(windowNumber, windowName, windowPid, javaRect));
-			}
-		} finally {
-			windowInfo.release();
-		}
+          javaRect = new Rectangle(x, y, width, height);
+        }
 
-		return windows;
-	}
+        windows.add(new MacWindow(windowNumber, windowName, windowPid, javaRect));
+      }
+    } finally {
+      windowInfo.release();
+    }
+
+    return windows;
+  }
 }

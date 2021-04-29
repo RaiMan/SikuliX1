@@ -162,7 +162,9 @@ public class App {
   public String toString() {
     if (isUserProcess()) {
       final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
-      return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, getExecutable(), getArguments());
+      String executable = getExecutable().isEmpty() ? "" : getExecutable();
+      String arguments = getArguments().isEmpty() ? "" : getArguments();
+      return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, executable, arguments);
     }
     return String.format("App:SystemProcess(pid:%d)", getPID());
   }
@@ -198,7 +200,7 @@ public class App {
     if (cmd != null) {
       return cmd.getExecutable();
     } else {
-      return "Executable:NotSet";
+      return "";
     }
   }
 
@@ -227,7 +229,7 @@ public class App {
     if (cmd != null) {
       return String.join(" ", cmd.getArguments());
     } else {
-      return "Arguments:NotSet";
+      return "";
     }
   }
 
@@ -256,6 +258,9 @@ public class App {
   //</editor-fold>
 
   // <editor-fold desc="10 app list">
+  public static App getApp() {
+    return new App(osUtil.getProcess());
+  }
 
   public static List<App> getApps() {
     return osUtil.getProcesses().stream().map((p) -> new App(p)).collect(Collectors.toList());
@@ -269,11 +274,15 @@ public class App {
     new App();
     List<App> appList = getApps();
     logOn();
-    log("***** all running apps");
+    log("***** running apps with windows");
+    int n = 0;
     for (App app : appList) {
-      log("%s", app);
+      if (app.isUserProcess() && app.hasWindow()) {
+        log("%s", app);
+        n++;
+      }
     }
-    log("***** end of list (%d)", appList.size());
+    log("***** end of list (%d)", n);
     logOff();
   }
 
@@ -282,10 +291,14 @@ public class App {
     List<App> appList = getApps(name);
     logOn();
     log("***** running apps matching: %s", name);
+    int n = 0;
     for (App app : appList) {
-      log("%s", app);
+      if (app.isUserProcess() && app.hasWindow()) {
+        log("%s", app);
+        n++;
+      }
     }
-    log("***** end of list (%d)", appList.size());
+    log("***** end of list (%d)", n);
     logOff();
   }
   // </editor-fold>
@@ -581,6 +594,10 @@ public class App {
       windowRegion = asRegion(windowRect, windows.get(winNum).getTitle());
     }
     return windowRegion;
+  }
+
+  List<OsWindow> windows() {
+    return osUtil.getWindows();
   }
 
   public String getTitle(int windowNumber) {

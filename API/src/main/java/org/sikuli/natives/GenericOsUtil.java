@@ -4,14 +4,13 @@
 
 package org.sikuli.natives;
 
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class GenericOsUtil implements OSUtil {
 
@@ -30,8 +29,7 @@ public abstract class GenericOsUtil implements OSUtil {
 
 		@Override
 		public String getName() {
-			Optional<String> command = process.info().command();
-			return command.orElse("");
+			return process.info().command().orElse("");
 		}
 
 		@Override
@@ -83,8 +81,17 @@ public abstract class GenericOsUtil implements OSUtil {
 	}
 
 	@Override
+	public List<OsWindow> getWindows() {
+		throw new UnsupportedOperationException("getWindows not implemented");
+	}
+
+	@Override
 	public List<OsProcess> getProcesses() {
 		return allProcesses().collect(Collectors.toList());
+	}
+
+	public OsProcess getProcess() {
+		return thisProcess();
 	}
 
 	@Override
@@ -115,4 +122,7 @@ public abstract class GenericOsUtil implements OSUtil {
 		return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
 	}
 
+	protected static OsProcess thisProcess() {
+		return new GenericOsProcess(ProcessHandle.current());
+	}
 }
