@@ -441,9 +441,9 @@ public abstract class Element {
     return (Image) this;
   }
 
-  public BufferedImage getBufferedImage() {
-    return SXOpenCV.makeBufferedImage(getImage().getContent());
-  }
+//  public BufferedImage getBufferedImage() {
+//    return SXOpenCV.makeBufferedImage(getImage().getContent());
+//  }
 
   /**
    * check whether image has pixel content<br>
