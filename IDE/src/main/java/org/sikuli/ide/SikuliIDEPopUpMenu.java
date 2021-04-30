@@ -9,7 +9,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.RobotDesktop;
 
 import javax.swing.*;

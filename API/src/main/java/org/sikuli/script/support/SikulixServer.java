@@ -48,6 +48,7 @@ import io.undertow.util.Headers;
 import io.undertow.util.Methods;
 import io.undertow.util.StatusCodes;
 import io.undertow.util.URLUtils;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>

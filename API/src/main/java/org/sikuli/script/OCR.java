@@ -312,6 +312,7 @@ public class OCR {
       options.psm = psm;
       options.language = language;
       options.dataPath = dataPath;
+      options.isLightFont = isLightFont;
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
       options.variablesStore = new LinkedHashMap<>(variablesStore);
@@ -332,6 +333,7 @@ public class OCR {
       psm = PSM.AUTO.ordinal();
       language = Settings.OcrLanguage;
       dataPath = null;
+      isLightFont = false;
       textHeight = getDefaultTextHeight();
       resizeInterpolation = Image.Interpolation.LINEAR;
       variablesStore.clear();
@@ -583,6 +585,18 @@ public class OCR {
     }
     //</editor-fold>
 
+    //<editor-fold desc="14 optimization">
+    private boolean isLightFont = false;
+
+    public Options lightFont() {
+      isLightFont = true;
+      return this;
+    }
+
+    public boolean isLightFont() {
+      return isLightFont;
+    }
+
     //<editor-fold desc="14 Handle the pre-OCR image optimization (OCR.Options.optimization)">
     /**
      * Convenience: Configure the Option's optimization.
@@ -790,7 +804,7 @@ public class OCR {
 
     private String logVariablesConfigs() {
       String logConfigs = "";
-      for (String config : configsStore) {
+      for (String config : configs) {
         if (!logConfigs.isEmpty()) {
           logConfigs += ", ";
         }

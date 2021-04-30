@@ -3,23 +3,20 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.Image;
 import org.sikuli.script.support.RunTime;
+//import org.sikuli.script.RunTime;
 
 import java.io.File;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.Date;
 
-//import org.sikuli.script.RunTime;
-
 /**
  * This is the container for all
  */
 public class Settings {
 
-  public static boolean NewAPI = true; //TODO remove/revise Region/Location methods
-
-  public static boolean ImageCaching = true;
 
   public static synchronized void init(RunTime givenRunTime) {
     runTime = givenRunTime;
@@ -54,14 +51,16 @@ public class Settings {
   public static int ObserveMinChangedPixels = 50; // in pixels
   public static int RepeatWaitTime = 1; // wait 1 second for visual to vanish after action
   public static double MinSimilarity = 0.7;
-  public static double AlwaysResize = 0;
+  public static float AlwaysResize = 0;
   public static int DefaultPadding = 50;
   public static boolean AutoDetectKeyboardLayout = true;  
 
-  public static boolean CheckLastSeen = false;
+  public static boolean CheckLastSeen = true;
   public static float CheckLastSeenSimilar = 0.95f;
 
   public static org.sikuli.script.ImageCallback ImageCallback = null;
+
+  private static int ImageCache = 64;
 
   public static double DelayValue = 0.3;
   public static double DelayBeforeMouseDown = DelayValue;
@@ -131,8 +130,8 @@ public class Settings {
   public static boolean HighlightTransparent = false;
   public static double WaitAfterHighlight = 0.3;
 
-  public static boolean ActionLogs = false;
-  public static boolean InfoLogs = false;
+  public static boolean ActionLogs = true;
+  public static boolean InfoLogs = true;
   public static boolean DebugLogs = false;
   public static boolean ProfileLogs = false;
   public static boolean TraceLogs = false;
@@ -157,6 +156,9 @@ public class Settings {
     return RunTime.get().fSikulixAppFolder.getAbsolutePath();
   }
 
+  public static final int ISWINDOWS = 0;
+  public static final int ISMAC = 1;
+  public static final int ISLINUX = 2;
   public static OS getOS() {
     if (isWindows()) {
       return OS.WINDOWS;

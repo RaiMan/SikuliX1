@@ -2053,7 +2053,7 @@ public class Region extends Element {
   public Match existsText(String text, double timeout) {
     Match match = null;
     try {
-      match = wait("\t" + text + "\t", timeout);
+      match = relocate(wait("\t" + text + "\t", timeout));
     } catch (FindFailed findFailed) {
     }
     return match;
@@ -2070,7 +2070,7 @@ public class Region extends Element {
   public List<Match> findAllText(String text) {
     List<Match> matches = new ArrayList<>();
     try {
-      matches = ((Finder) findAll("\t" + text + "\t")).getList();
+      matches = relocate(((Finder) findAll("\t" + text + "\t")).getList());
     } catch (FindFailed ff) {
     }
     return matches;

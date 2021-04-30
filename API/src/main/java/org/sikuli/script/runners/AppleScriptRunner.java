@@ -1,19 +1,21 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
 package org.sikuli.script.runners;
 
 import java.io.File;
 
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.support.Commons;
 
 public class AppleScriptRunner extends ProcessRunner {
 
   public static final String NAME = "AppleScript";
   public static final String TYPE = "text/applescript";
   public static final String[] EXTENSIONS = new String[] {"scpt", "scptd", "applescript"};
+
+  private static final int LVL = 3;
 
   @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
@@ -28,7 +30,7 @@ public class AppleScriptRunner extends ProcessRunner {
 
   @Override
   public boolean isSupported() {
-    return RunTime.get().runningMac;
+    return Commons.runningMac();
   }
 
   @Override

@@ -1,0 +1,96 @@
+#globals; m 10; f 14; p 5; b 1; c
+#prefix; dialogbasics
+
+---5
+|text
+---5
+[
+---
+[v
+###
+button; OK
+]
+---
+]
+---5
+close; Press ESC or Click; f 12
+##
+
+  boxv; box1
+   button; APPLY
+   ---
+   |apply;=apply
+  #
+===5
+boxv; out-verti
+  boxv; box1
+   button; APPLY
+   ---
+   |apply;=apply1
+  #
+  ---3
+
+  boxv; box2
+    button; OK
+    ---
+    |OK2
+  #
+  ---3
+#
+
+#box; out-hori
+  boxv; box1
+   button; OK
+   ---
+   |OK1
+   ---3
+  #
+
+  boxv; box2
+    button; CANCEL
+    ---
+    |OK2
+    ---3
+  #
+#
+//##
+//===5
+---5
+|text
+---5
+###
+
+---5
+
+texttext
+
+
+---5
+|button;
+---5
+to the left
+##
+---
+
+boxv; box31
+button; OK
+---
+|OK31
+#
+
+#boxv;
+
+boxv; box32
+button; OK
+---
+|OK32
+#
+
+boxv; box33
+button; OK
+---
+|OK33
+#
+
+#
+##

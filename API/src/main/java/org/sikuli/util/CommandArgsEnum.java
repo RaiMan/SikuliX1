@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.util;
 
@@ -15,19 +15,19 @@ public enum CommandArgsEnum {
 	/**
 	 * set debug level
 	 */
-	DEBUG("debug", "d", "debug level", "positive integer (1)"),
+	DEBUG("debug", "d", "debug level", "positive integer (1)", true),
 	/**
 	 * outputfile for Sikuli logging messages
 	 */
-	LOGFILE("logfile", "f", "Sikuli logfile", "a valid filename (WorkingDir/SikuliLog.txt)"),
+	LOGFILE("logfile", "f", "Sikuli logfile", "a valid filename (WorkingDir/SikuliLog.txt)", true),
 	/**
 	 * outputfile for user logging messages
 	 */
-	USERLOGFILE("userlog", "u", "User logfile", "a valid filename (WorkingDir/UserLog.txt)"),
+	USERLOGFILE("userlog", "u", "User logfile", "a valid filename (WorkingDir/UserLog.txt)", true),
 	/**
 	 * Runs the script
 	 */
-	RUN("run", "r", "foobar.sikuli", "run script"),
+	RUN("run", "r", "foobar.sikuli", "run script", true),
 	/**
 	 * Prints all errormessages to stdout
 	 */
@@ -43,19 +43,11 @@ public enum CommandArgsEnum {
 	/**
 	 * Preloads script in IDE
 	 */
-	LOAD("load", "l", "one or more foobar.sikuli", "preload scripts in IDE"),
+	LOAD("load", "l", "one or more foobar.sikuli", "preload scripts in IDE", true),
 	/**
 	 * run as server
 	 */
-	SERVER("server", "s", "ip:port | ip port", "run as server, listen on ip, port"),
-	/**
-	 * define group shortcuts
-	 */
-	GROUPS("groups", "g", "groups", "define group -> folder"),
-	/**
-	 * run as server
-	 */
-	XTRA("xtra", "x", "extra", "some extra options"),
+	SERVER("server", "s", "[port (50001)]", "run as server on optional port", true),
 	/**
 	 * run the server for Python
 	 */
@@ -63,62 +55,51 @@ public enum CommandArgsEnum {
 	/**
 	 * allow multiple IDE
 	 */
-	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed");
+	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed"),
+
+	/**
+	 * allow multiple IDE
+	 */
+	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", true);
 
 	/**
 	 * Longname of the parameter
 	 */
 	private String longname;
-
-	/**
-	 * Shortname of the parameter
-	 */
-	private String shortname;
-
-	/**
-	 * The param name
-	 */
-	private String argname;
-
-	/**
-	 * The description
-	 */
-	private String description;
-
-	/**
-	 * Returns the long name
-	 *
-	 * @return Longname of the parameter
-	 */
 	public String longname() {
 		return longname;
 	}
 
 	/**
-	 * Returns the short name
-	 *
-	 * @return Shortname of the parameter
+	 * Shortname of the parameter
 	 */
+	private String shortname;
 	public String shortname() {
 		return shortname;
 	}
 
 	/**
-	 * Returns the argname
-	 *
-	 * @return The argname
+	 * The param name
 	 */
+	private String argname;
 	public String argname() {
 		return argname;
 	}
 
 	/**
-	 * Description for the param
-	 *
-	 * @return the description
+	 * The description
 	 */
+	private String description;
 	public String description() {
 		return description;
+	}
+
+	/**
+	 * has args
+	 */
+	private boolean hasArgs;
+	public boolean hasArgs() {
+		return hasArgs;
 	}
 
 	/**
@@ -129,10 +110,20 @@ public enum CommandArgsEnum {
 	 * @param argname The argname
 	 * @param description The description for the Command Args
 	 */
+	private CommandArgsEnum(String longname, String shortname, String argname, String description, boolean hasArgs) {
+		this.longname = longname;
+		this.shortname = shortname;
+		this.argname = argname;
+		this.description = description;
+		this.hasArgs = hasArgs;
+	}
+
+	// variant having no args
 	private CommandArgsEnum(String longname, String shortname, String argname, String description) {
 		this.longname = longname;
 		this.shortname = shortname;
 		this.argname = argname;
 		this.description = description;
+		this.hasArgs = false;
 	}
 }

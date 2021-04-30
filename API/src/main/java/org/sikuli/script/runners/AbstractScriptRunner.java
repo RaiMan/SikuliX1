@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
 package org.sikuli.script.runners;
@@ -15,8 +15,7 @@ import java.util.function.IntSupplier;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 
 import com.sun.jna.ptr.IntByReference;
 
@@ -193,9 +192,11 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
     return new EffectiveRunner(this, script, false);
   }
 
+  public static final int NOT_SUPPORTED = 257;
+
   protected int doRunScript(String scriptfile, String[] scriptArgs, IScriptRunner.Options options) {
     logNotSupported("runScript");
-    return Runner.NOT_SUPPORTED;
+    return NOT_SUPPORTED;
   }
 
   @Override

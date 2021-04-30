@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.runnerSupport.JythonSupport;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -32,13 +32,10 @@ import java.util.Date;
  */
 public class Debug {
 
-  private static boolean initOK = false;
-  private static int TRACE_LEVEL = 0;
   private static int DEBUG_LEVEL = 0;
   private static boolean loggerRedirectSupported = true;
   public static boolean shouldLogJython = false;
   private long _beginTime = 0;
-  private long _lapTime = 0;
   private String _message;
   private String _title = null;
   private static PrintStream printout = null;
@@ -70,12 +67,13 @@ public class Debug {
   private static String privateLoggerDebugPrefix = "";
   private static boolean isJython;
   private static boolean isJRuby;
-  private static Object scriptRunner = null;
 
   private static boolean searchHighlight = false;
 
   private static PrintStream redirectedOut = null, redirectedErr = null;
 
+
+  private static boolean initOK = false;
 
   public static void init() {
     if (initOK) {
@@ -97,11 +95,6 @@ public class Debug {
         } catch (NumberFormatException numberFormatException) {
         }
       }
-    }
-    if (DEBUG_LEVEL == 9) {
-      setDebugLevel(3);
-      setWithTimeElapsed(0);
-      globalTraceOn();
     }
     setLogFile(null);
     setUserLogFile(null);
@@ -154,46 +147,8 @@ public class Debug {
 
   private static boolean beQuiet = false;
 
-  public static boolean isStartWithTrace() {
-    return startWithTrace;
-  }
-
-  public static void setStartWithTrace() {
-    startWithTrace = true;
-  }
-
-  private static boolean startWithTrace = false;
-
-  public static void globalTraceOn() {
-    TRACE_LEVEL = 1;
-    traceLast = -1;
-  }
-
-  public static void globalTraceOff() {
-    TRACE_LEVEL = 0;
-  }
-
-  public static boolean isGlobalTrace() {
-    return TRACE_LEVEL > 0;
-  }
-
   public static void reset() {
-    globalTraceOff();
     setDebugLevel(0);
-  }
-
-  static boolean withTimeElapsed = false;
-
-  public static void setWithTimeElapsed() {
-    withTimeElapsed = true;
-  }
-
-  public static void setWithTimeElapsed(long start) {
-    withTimeElapsed = true;
-  }
-
-  public static void unsetWithTimeElapsed() {
-    withTimeElapsed = false;
   }
 
   /**
@@ -215,20 +170,6 @@ public class Debug {
   public static void setLoggerNoPrefix(Object logger) {
     if (!doSetLogger(logger)) return;
     privateLoggerPrefixAll = false;
-  }
-
-  private static boolean doSetLogger(Object logger) {
-    String className = logger.getClass().getName();
-    isJython = className.contains("org.python");
-    isJRuby = className.contains("org.jruby");
-    if (isJRuby) {
-      logx(3, "Debug: setLogger: given instance's class: %s", className);
-      error("setLogger: not yet supported in JRuby script");
-      loggerRedirectSupported = false;
-      return false;
-    }
-    privateLogger = logger;
-    return true;
   }
 
   /**
@@ -253,61 +194,6 @@ public class Debug {
       success &= setLoggerError(mAll);
       success &= setLoggerDebug(mAll);
       return success;
-    }
-    return false;
-  }
-
-  private static boolean doSetLoggerCallback(String mName, CallbackType type) {
-    if (privateLogger == null) {
-      error("Debug: setLogger: no logger specified yet");
-      return false;
-    }
-    if (!loggerRedirectSupported) {
-      logx(3, "Debug: setLogger: %s (%s) logger redirect not supported", mName, type);
-    }
-    if (isJython) {
-      Object[] args = new Object[]{privateLogger, mName, type.toString()};
-      if (!JythonSupport.get().checkCallback(args)) {
-        logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
-        return false;
-      }
-    }
-    try {
-      if (type == CallbackType.INFO) {
-        if (!isJython && !isJRuby) {
-          privateLoggerInfo = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-        }
-        privateLoggerInfoName = mName;
-        return true;
-      } else if (type == CallbackType.ACTION) {
-        if (!isJython && !isJRuby) {
-          privateLoggerAction = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-        }
-        privateLoggerActionName = mName;
-        return true;
-      } else if (type == CallbackType.ERROR) {
-        if (!isJython && !isJRuby) {
-          privateLoggerError = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-        }
-        privateLoggerErrorName = mName;
-        return true;
-      } else if (type == CallbackType.DEBUG) {
-        if (!isJython && !isJRuby) {
-          privateLoggerDebug = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-        }
-        privateLoggerDebugName = mName;
-        return true;
-      } else if (type == CallbackType.USER) {
-        if (!isJython && !isJRuby) {
-          privateLoggerUser = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
-        }
-        privateLoggerUserName = mName;
-        return true;
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      error("Debug: setLoggerInfo: redirecting to %s failed: \n%s", mName, e.getMessage());
     }
     return false;
   }
@@ -397,6 +283,148 @@ public class Debug {
     return doSetLoggerCallback(mDebug, CallbackType.DEBUG);
   }
 
+  private static boolean doSetLogger(Object logger) {
+    String className = logger.getClass().getName();
+    isJython = className.contains("org.python");
+    isJRuby = className.contains("org.jruby");
+    if (isJRuby) {
+      logx(3, "Debug: setLogger: given instance's class: %s", className);
+      error("setLogger: not yet supported in JRuby script");
+      loggerRedirectSupported = false;
+      return false;
+    }
+    privateLogger = logger;
+    return true;
+  }
+
+  private static boolean doSetLoggerCallback(String mName, CallbackType type) {
+    if (privateLogger == null) {
+      error("Debug: setLogger: no logger specified yet");
+      return false;
+    }
+    if (!loggerRedirectSupported) {
+      logx(3, "Debug: setLogger: %s (%s) logger redirect not supported", mName, type);
+    }
+    if (isJython) {
+      Object[] args = new Object[]{privateLogger, mName, type.toString()};
+      Object checkCallback = Commons.runFunctionScriptingSupport("checkCallback", args);
+      if (checkCallback == null || !((Boolean) checkCallback)) {
+        logx(3, "Debug: setLogger: Jython: checkCallback returned: %s", args[0]);
+        return false;
+      }
+    }
+    try {
+      if (type == CallbackType.INFO) {
+        if (!isJython && !isJRuby) {
+          privateLoggerInfo = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+        }
+        privateLoggerInfoName = mName;
+        return true;
+      } else if (type == CallbackType.ACTION) {
+        if (!isJython && !isJRuby) {
+          privateLoggerAction = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+        }
+        privateLoggerActionName = mName;
+        return true;
+      } else if (type == CallbackType.ERROR) {
+        if (!isJython && !isJRuby) {
+          privateLoggerError = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+        }
+        privateLoggerErrorName = mName;
+        return true;
+      } else if (type == CallbackType.DEBUG) {
+        if (!isJython && !isJRuby) {
+          privateLoggerDebug = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+        }
+        privateLoggerDebugName = mName;
+        return true;
+      } else if (type == CallbackType.USER) {
+        if (!isJython && !isJRuby) {
+          privateLoggerUser = privateLogger.getClass().getMethod(mName, new Class[]{String.class});
+        }
+        privateLoggerUserName = mName;
+        return true;
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      error("Debug: setLoggerInfo: redirecting to %s failed: \n%s", mName, e.getMessage());
+    }
+    return false;
+  }
+
+  private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
+    boolean success = false;
+    String error = "";
+    if (privateLogger != null) {
+      String prefix = "", pln = "";
+      Method plf = null;
+      if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
+        plf = privateLoggerInfo;
+        pln = privateLoggerInfoName;
+      } else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
+        plf = privateLoggerAction;
+        pln = privateLoggerActionName;
+      } else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
+        plf = privateLoggerError;
+        pln = privateLoggerErrorName;
+      } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ?
+            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+        plf = privateLoggerDebug;
+        pln = privateLoggerDebugName;
+      } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
+        prefix = privateLoggerPrefixAll ?
+            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+        plf = privateLoggerUser;
+        pln = privateLoggerUserName;
+      }
+      if (!pln.isEmpty()) {
+        String msg = null;
+        if (args == null || args.length == 0) {
+          msg = prefix + message;
+        } else {
+          msg = String.format(prefix + message, args);
+        }
+        if (isJython) {
+          Object runLoggerCallback = Commons.runFunctionScriptingSupport("runLoggerCallback",
+              new Object[]{privateLogger, pln, msg});
+          success = runLoggerCallback != null && (Boolean) runLoggerCallback;
+        } else if (isJRuby) {
+          success = false;
+        } else {
+          try {
+            plf.invoke(privateLogger,
+
+                new Object[]{msg});
+            return true;
+          } catch (Exception e) {
+            error = ": " + e.getMessage();
+            success = false;
+          }
+        }
+        if (!success) {
+          Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
+          if (type == CallbackType.INFO) {
+            privateLoggerInfoName = "";
+          } else if (type == CallbackType.ACTION) {
+            privateLoggerActionName = "";
+          } else if (type == CallbackType.ERROR) {
+            privateLoggerErrorName = "";
+          } else if (type == CallbackType.DEBUG) {
+            privateLoggerDebugName = "";
+          } else if (type == CallbackType.USER) {
+            privateLoggerUserName = "";
+          }
+        }
+      }
+    }
+    return success;
+  }
+
   public static void saveRedirected(PrintStream rdo, PrintStream rde) {
     redirectedOut = rdo;
     redirectedErr = rde;
@@ -425,11 +453,7 @@ public class Debug {
     }
     if (fileName != null) {
       if ("".equals(fileName)) {
-        if (Settings.isMacApp) {
-          fileName = "SikulixLog.txt";
-        } else {
-          fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "SikulixLog.txt";
-        }
+        fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "SikulixLog.txt";
       }
       try {
         logfile = fileName;
@@ -472,11 +496,7 @@ public class Debug {
     }
     if (fileName != null) {
       if ("".equals(fileName)) {
-        if (Settings.isMacApp) {
-          fileName = "UserLog.txt";
-        } else {
-          fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "UserLog.txt";
-        }
+        fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "UserLog.txt";
       }
       try {
         if (printoutuser != null) {
@@ -572,74 +592,6 @@ public class Debug {
     }
   }
 
-  private static boolean doRedirect(CallbackType type, String pre, String message, Object... args) {
-    boolean success = false;
-    String error = "";
-    if (privateLogger != null) {
-      String prefix = "", pln = "";
-      Method plf = null;
-      if (type == CallbackType.INFO && !privateLoggerInfoName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerInfoPrefix : "";
-        plf = privateLoggerInfo;
-        pln = privateLoggerInfoName;
-      } else if (type == CallbackType.ACTION && !privateLoggerActionName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerActionPrefix : "";
-        plf = privateLoggerAction;
-        pln = privateLoggerActionName;
-      } else if (type == CallbackType.ERROR && !privateLoggerErrorName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ? privateLoggerErrorPrefix : "";
-        plf = privateLoggerError;
-        pln = privateLoggerErrorName;
-      } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ?
-            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
-        plf = privateLoggerDebug;
-        pln = privateLoggerDebugName;
-      } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
-        prefix = privateLoggerPrefixAll ?
-            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
-        plf = privateLoggerUser;
-        pln = privateLoggerUserName;
-      }
-      if (!pln.isEmpty()) {
-        String msg = null;
-        if (args == null || args.length == 0) {
-          msg = prefix + message;
-        } else {
-          msg = String.format(prefix + message, args);
-        }
-        if (isJython) {
-          success = JythonSupport.get().runLoggerCallback(new Object[]{privateLogger, pln, msg});
-        } else if (isJRuby) {
-          success = false;
-        } else {
-          try {
-            plf.invoke(privateLogger,
-                new Object[]{msg});
-            return true;
-          } catch (Exception e) {
-            error = ": " + e.getMessage();
-            success = false;
-          }
-        }
-        if (!success) {
-          Debug.error("calling (%s) logger.%s failed - resetting to default%s", type, pln, error);
-          if (type == CallbackType.INFO) {
-            privateLoggerInfoName = "";
-          } else if (type == CallbackType.ACTION) {
-            privateLoggerActionName = "";
-          } else if (type == CallbackType.ERROR) {
-            privateLoggerErrorName = "";
-          } else if (type == CallbackType.DEBUG) {
-            privateLoggerDebugName = "";
-          } else if (type == CallbackType.USER) {
-            privateLoggerUserName = "";
-          }
-        }
-      }
-    }
-    return success;
-  }
 
   /**
    * Sikuli messages from actions like click, ...<br> switch on/off: Settings.ActionLogs
@@ -782,27 +734,6 @@ public class Debug {
     }
   }
 
-  public static void logt(String message) {
-    if (!withTimeElapsed) {
-      return;
-    }
-    log(3, message);
-  }
-
-  public static void logCallStack(int level, String message) {
-    if (RunTime.isDevelop()) {
-      System.out.println("--------------------------------CallStack---------------------------------> " + message);
-      StackTraceElement[] elements = new Exception().getStackTrace();
-      int count = 0;
-      for (StackTraceElement element : elements) {
-        count++;
-        if (count > level)
-          System.out.println(element.toString());
-      }
-			System.out.println("--------------------------------CallStack--------------------------------->");
-    }
-  }
-
   /**
    * INTERNAL USE: special debug messages
    *
@@ -828,7 +759,7 @@ public class Debug {
 
   public static String logp(String msg, Object... args) {
     String out;
-    if(args != null && args.length > 0) {
+    if (args != null && args.length > 0) {
       out = String.format(msg, args);
     } else {
       out = msg;
@@ -839,16 +770,6 @@ public class Debug {
     return out;
   }
 
-  public static synchronized String trace(String message, Object... args) {
-    if (isGlobalTrace()) {
-      return log(-999, "TRACE", message, args);
-    } else {
-      return "";
-    }
-  }
-
-  private static long traceLast = -1;
-
   private static synchronized String log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
     if (beQuiet) {
@@ -857,36 +778,13 @@ public class Debug {
     String sout = "";
     String stime = "";
     if (level <= DEBUG_LEVEL) {
-      if (level == 3 || level == -999) {
-        if (message.startsWith("TRACE: ")) {
-          if (!Settings.TraceLogs) {
-            return "";
-          }
-        }
-        if (withTimeElapsed || level == -999) {
-          long traceElapsed = 0;
-          long actual = new Date().getTime();
-          if (withTimeElapsed) {
-            traceElapsed = actual - RunTime.getElapsedStart();
-          }
-          if (level == -999) {
-            if (traceLast < 0) {
-              traceElapsed = 0;
-            } else {
-              traceElapsed = actual - traceLast;
-            }
-            traceLast = actual;
-          }
-          prefix = String.format("%d %s", traceElapsed, prefix);
-        }
-      }
       if (Settings.LogTime && level != -99) {
         stime = String.format(" (%s)", df.format(new Date()));
       }
       if (!prefix.isEmpty()) {
         prefix = "[" + prefix + stime + "] ";
       }
-      if(args != null && args.length > 0) {
+      if (args != null && args.length > 0) {
         sout = String.format(message, args);
       } else {
         sout = message;
@@ -1016,7 +914,6 @@ public class Debug {
       profile("TStart: " + _message, args);
     }
     _beginTime = (new Date()).getTime();
-    _lapTime = _beginTime;
   }
 
   private long endTiming(String message, boolean isLap, Object... args) {
@@ -1024,20 +921,16 @@ public class Debug {
       profile("TError: timer not started (%s)", message);
       return -1;
     }
-    long now = (new Date()).getTime();
-    long delta;
-    if (isLap) {
-      delta = now - _lapTime;
-      _lapTime = now;
-    } else {
-      delta = now - _beginTime;
-      _beginTime = now;
+    long t = (new Date()).getTime();
+    long dt = t - _beginTime;
+    if (!isLap) {
+      _beginTime = 0;
     }
     if (!"".equals(message)) {
-      profile(String.format((isLap ? "TLap:" : "TEnd:") +
-          " (%.3f sec): ", (float) delta / 1000) + message, args);
+      profile(String.format((isLap ? "TLap:" : "TEnd") +
+          " (%.3f sec): ", (float) dt / 1000) + message, args);
     }
-    return delta;
+    return dt;
   }
 
   private static enum CallbackType {

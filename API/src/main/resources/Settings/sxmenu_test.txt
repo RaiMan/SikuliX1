@@ -1,0 +1,15 @@
+#globals; m 5; f 14; b 1;
+
+mouse action; center; bold; fontsize 16
+--- 1
+#link; sikulix.com; center
+--- 1
+#action; About SikuliX; show ideabout; center
+--- 1
+#option; some option; someOption;
+--- 1
+#radio; schwarz | rot | gold; someRadio
+--- 1
+#close; Press ESC; center
+--- 1
+#buttons; CANCEL | APPLY | OK;

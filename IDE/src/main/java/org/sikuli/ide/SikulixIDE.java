@@ -8,6 +8,7 @@ import org.sikuli.idesupport.*;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
@@ -287,6 +288,8 @@ public class SikulixIDE extends JFrame {
       newTabEmpty();
     }
     tabs.setSelectedIndex(0);
+
+    new Screen(); //TODO initSikuliIDE: to avoid later use of Robot from eventqueue
 
     String j9Message = "";
     if (runTime.isJava9()) {

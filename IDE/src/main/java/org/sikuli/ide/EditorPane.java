@@ -19,8 +19,8 @@ import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.ExtensionManager;
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.Runner;
 import org.sikuli.script.support.generators.ICodeGenerator;
@@ -1648,8 +1648,19 @@ public class EditorPane extends JTextPane {
     if (start == end) {
       runLines(getLineTextAtCaret().trim());
     } else {
-      runLines(getSelectedText());
+       runLines(getLinesFromSelection(start, end));
     }
+  }
+
+  private String getLinesFromSelection(int start, int end) {
+    String lines = "";
+    String[] scriptLines = getText().split("\n");
+    int startLine = getLineNumberAtCaret(start) - 1;
+    int endLine = Math.min(getLineNumberAtCaret(end), scriptLines.length);
+    for (int i = startLine; i < endLine; i++) {
+      lines += scriptLines[i] + "\n";
+    }
+    return lines;
   }
 
   public String getLines(int current, Boolean selection) {

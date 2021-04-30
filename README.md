@@ -1,4 +1,4 @@
-[<img src="https://github.com/RaiMan/SikuliX1/blob/master/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
+[<img src="https://github.com/RaiMan/SikuliX1/blob/master/Support/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
 
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
@@ -12,8 +12,8 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Java: recommended is Java 11 - but you need at least Java 8** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
-<br>non-LTS versions like Java 15 might create problems that should be reported
+**Java: must be Java 11 or later (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
+<br>non-LTS versions like Java 15/16 might create problems that should be reported
 
 **Windows:** Works out of the box
 
@@ -23,7 +23,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Latest stable version is 2.0.5**
+**Latest stable version is 2.0.5** (still runs with Java 8)
 
 [Important: Read about changes/issues/enhancements](https://github.com/RaiMan/SikuliX1/wiki/About-actual-release-version)
 
@@ -44,13 +44,11 @@ For use in **Java Maven projects** the dependency coordinates are:
 **Development environment**
 
  - Java 11 (current JDK LTS release)
- - Java 8 (Oracle) for comatibility test
- - Source and target level for Java is version 8 as long as supported by Oracle
+ - Source and target level for Java is version 11
  - Maven project
  - Windows 10 latest (Pro 64-Bit)
  - macOS 11.2 on Intel machines
- - Ubuntu 18.04 in WSL on Windows 10 (basic tests only, headless)
- - Ubuntu 18.04 running in Oracle VM VirtualBox 6.1 on Windows 10
+ - Ubuntu latest running in Oracle VM VirtualBox on Windows 10
  - Using IntelliJ IDEA CE in all environments
 
 <hr>

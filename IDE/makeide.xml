@@ -17,7 +17,7 @@
       <excludes>
         <exclude>org.python:jython-standalone</exclude>
         <exclude>org.jruby:jruby-complete</exclude>
-        <exclude>net.sf.py4j:py4j</exclude>
+<!--        <exclude>net.sf.py4j:py4j</exclude>-->
         <exclude>org.apache.pdfbox:*</exclude>
       </excludes>
       <unpack>true</unpack>
@@ -25,6 +25,8 @@
         <excludes>
           <exclude>**/win32-x86/**</exclude>
           <exclude>**/tessdata/**</exclude>
+          <exclude>/nu/pattern/opencv/linux/x86_32/**</exclude>
+          <exclude>/nu/pattern/opencv/windows/x86_32/**</exclude>
         </excludes>
       </unpackOptions>
       <scope>runtime</scope>

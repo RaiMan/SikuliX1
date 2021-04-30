@@ -17,7 +17,13 @@ import com.sun.jna.platform.win32.WinUser;
 import org.sikuli.script.*;
 import org.sikuli.util.Highlight;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.Color;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -30,7 +36,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
   public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT |  KeyModifier.META | KeyModifier.ALTGR;
-
+  
   private static int heldButtons = 0;
   private static String heldKeys = "";
   private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
@@ -62,11 +68,6 @@ public class RobotDesktop extends Robot implements IRobot {
     setAutoDelay(stdAutoDelay);
   }
 
-  public RobotDesktop(GraphicsDevice gdev) throws AWTException {
-    super(gdev);
-    setAutoDelay(stdAutoDelay);
-  }
-
   @Override
   public void delay(int ms) {
     if (ms < 0) {
@@ -81,8 +82,12 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public ScreenImage captureScreen(Rectangle rect) {
+//    Rectangle s = scr.getBounds();
     Rectangle cRect = new Rectangle(rect);
+//    cRect.translate(-s.x, -s.y);
     BufferedImage img = createScreenCapture(rect);
+    Debug.log(4, "RobotDesktop: captureScreen: [%d,%d, %dx%d]",
+        rect.x, rect.y, rect.width, rect.height);
     return new ScreenImage(rect, img);
   }
 
@@ -139,21 +144,23 @@ public class RobotDesktop extends Robot implements IRobot {
     mouseMove(x, y);
   }
 
-  private void checkMousePosition(Location p) {
+  private void checkMousePosition(Location targetPos) {
     PointerInfo mp = MouseInfo.getPointerInfo();
-    Point pc;
+    Point actualPos;
     if (mp == null) {
-      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid\nafter move to %s", p);
+      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid\nafter move to %s", targetPos);
     } else {
-      pc = mp.getLocation();
-      if (pc.x != p.x || pc.y != p.y) {
+      actualPos = mp.getLocation();
+      boolean xOff = actualPos.x < (targetPos.x - 1) || actualPos.x > (targetPos.x + 1);
+      boolean yOff = actualPos.y < (targetPos.y - 1) || actualPos.y > (targetPos.y + 1);
+      if (xOff || yOff) {
         if (isMouseInitialized) {
           if (Settings.checkMousePosition) {
-            Debug.error("RobotDesktop: checkMousePosition: should be %s\nbut after move is %s"
+            Debug.error("RobotDesktop: checkMousePosition: should be %s - but is not!"
                             + "\nPossible cause in case you did not touch the mouse while script was running:\n"
                             + " Mouse actions are blocked generally or by the frontmost application."
                             + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
-                    p, new Location(pc));
+                    targetPos, new Location(actualPos));
           }
         }
       }
@@ -316,6 +323,17 @@ public class RobotDesktop extends Robot implements IRobot {
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key press
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+//      WinUser.INPUT input = new WinUser.INPUT();
+//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+//      input.input.setType("ki");
+//      input.input.ki.wScan = new WinDef.WORD(0);
+//      input.input.ki.time = new WinDef.DWORD(0);
+//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+//      input.input.ki.wVk = new WinDef.WORD(keyCode);
+//      input.input.ki.dwFlags = new WinDef.DWORD(0);
+//
+//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+//          (WinUser.INPUT[]) input.toArray(1), input.size());
         int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
         SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
     }else{
@@ -367,6 +385,18 @@ public class RobotDesktop extends Robot implements IRobot {
     // Since this layout is not compatible to AWT Robot, we have to use
     // the User32 API to simulate the key release
     if (Settings.AutoDetectKeyboardLayout && Settings.isWindows()) {
+//      WinUser.INPUT input = new WinUser.INPUT();
+//      input.type = new WinDef.DWORD(WinUser.INPUT.INPUT_KEYBOARD);
+//      input.input.setType("ki");
+//      input.input.ki.wScan = new WinDef.WORD(0);
+//      input.input.ki.time = new WinDef.DWORD(0);
+//      input.input.ki.dwExtraInfo = new BaseTSD.ULONG_PTR(0);
+//      input.input.ki.wVk = new WinDef.WORD(keyCode);
+//      input.input.ki.dwFlags = new WinDef.DWORD(
+//          WinUser.KEYBDINPUT.KEYEVENTF_KEYUP);
+//
+//      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
+//          (WinUser.INPUT[]) input.toArray(1), input.size());
       int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
       SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
     }else{

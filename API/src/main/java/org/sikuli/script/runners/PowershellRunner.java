@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.runners;
 
-import java.io.File;
+import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.support.Commons;
 
-import org.sikuli.script.support.IScriptRunner;
-import org.sikuli.script.support.RunTime;
+import java.io.File;
 
 public class PowershellRunner extends ProcessRunner {
 
@@ -34,7 +34,7 @@ public class PowershellRunner extends ProcessRunner {
 
   @Override
   public boolean isSupported() {
-    return RunTime.get().runningWindows;
+    return Commons.runningWindows();
   }
 
   @Override
