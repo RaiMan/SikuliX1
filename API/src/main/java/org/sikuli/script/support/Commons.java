@@ -281,12 +281,16 @@ public class Commons {
   public static void setStartArgs(String[] args) {
     startArgs = args;
     cmdArgs = new CommandArgs();
-    userArgs = cmdArgs.getUserArgs();
     cmdLine = cmdArgs.getCommandLine(args);
+    userArgs = cmdArgs.getUserArgs();
   }
 
   public static String[] getUserArgs() {
     return userArgs;
+  }
+
+  public static void setUserArgs(String[] args) {
+    userArgs = args;
   }
 
   public static void printHelp() {
@@ -294,7 +298,7 @@ public class Commons {
   }
 
   public static boolean hasArg(String arg) {
-    return cmdLine == null ? true : cmdLine.hasOption(arg);
+    return cmdLine == null ? false : cmdLine.hasOption(arg);
   }
 
   public static String getArg(String arg) {

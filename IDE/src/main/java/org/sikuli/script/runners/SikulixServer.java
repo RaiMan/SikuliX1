@@ -52,6 +52,7 @@ import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.util.CommandArgsEnum;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>
@@ -97,7 +98,10 @@ public class SikulixServer {
   private static String serverOption2 = "";
 
   private static void evalServerOptions(String[] listenAt) {
-    if (null != listenAt && listenAt.length > 0) {
+    if (null == listenAt) {
+      listenAt = Commons.getArgs(CommandArgsEnum.SERVER.shortname());
+    }
+    if (listenAt.length > 0) {
       serverOption1 = listenAt[0];
       serverOption2 = "";
       if (listenAt.length == 1) {
@@ -213,7 +217,7 @@ public class SikulixServer {
 
   public static boolean run() {
     // evaluate startup option -s
-    evalServerOptions(RunTime.getServerOptions());
+    evalServerOptions(null);
     if (null != Commons.asFile(serverIP)) {
       Commons.debug("SikulixServer: (-s): %s is a file", serverIP);
       String[] serverOptions = FileManager.readFileToString(Commons.asFile(serverIP)).split("\n");
@@ -233,12 +237,12 @@ public class SikulixServer {
     String theIP = serverIP;
 
     // evaluate startup option -g
-    String groupsOption = RunTime.getServerGroups();
+    String groupsOption = Commons.getArg(CommandArgsEnum.GROUPS.shortname());
     makeGroups(groupsOption);
     dolog(3, "DEFAULT_GROUP: %s", groups.get(DEFAULT_GROUP));
 
     // evaluate startup option -x
-    String extraOption = RunTime.getServerExtra();
+    String extraOption = Commons.getArg(CommandArgsEnum.XTRAS.shortname());
     makeAllowedIPs(extraOption);
 
     // start the server
@@ -948,7 +952,7 @@ public class SikulixServer {
     public void runScript() {
       Commons.setWorkDir(groups.get(groupName));
       String[] scripts = Runner.resolveRelativeFiles(new String[]{scriptName});
-      RunTime.setUserArgs(scriptArgs);
+      Commons.setUserArgs(scriptArgs);
       startDate = new Date();
       exitCode = Runner.runScripts(scripts, scriptArgs, new IScriptRunner.Options());
       endDate = new Date();
