@@ -8,7 +8,6 @@ package org.sikuli.idesupport;
  * TODO Uncomment as soon as we ditch Java 8 support
  */
 import org.sikuli.ide.SikulixIDE;
-import org.sikuli.script.support.gui.SXDialog;
 
 import java.awt.*;
 import java.awt.desktop.AboutEvent;
@@ -68,7 +67,8 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
 
   @Override
   public void handleAbout(AboutEvent e) {
-    new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
+    //TODO about dialog
+//    new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
   }
 
   @Override
