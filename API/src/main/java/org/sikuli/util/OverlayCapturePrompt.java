@@ -7,6 +7,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.script.Location;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 
@@ -222,7 +223,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
     if (Debug.getDebugLevel() > 2) {
-      scr_img_original.getFile(RunTime.get().fSikulixStore.getAbsolutePath(), "lastScreenShot");
+      scr_img_original.getFile(Commons.getAppDataStore().getAbsolutePath(), "lastScreenShot");
     }
     scr_img = scr_img_original.getBufferedImage();
     scr_img_darker = scr_img;
