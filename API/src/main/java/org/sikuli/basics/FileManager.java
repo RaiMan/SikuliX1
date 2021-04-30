@@ -5,7 +5,6 @@ package org.sikuli.basics;
 
 import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.Sikulix;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
@@ -1192,13 +1191,27 @@ public class FileManager {
 
   public static String readFileToString(File fPath) {
     try {
-      return doRreadFileToString(fPath);
+      return doReadFileToString(fPath);
     } catch (Exception ex) {
       return "";
     }
   }
 
-  private static String doRreadFileToString(File fPath) throws IOException {
+  public static String[] readFileToStringArray(File fPath) {
+    String[] array = new String[0];
+    final String content = readFileToString(fPath);
+    if (!content.strip().isEmpty()) {
+      array = content.strip().split("\n");
+      if (array.length > 0) {
+        for (int n = 0; n < array.length; n++) {
+          array[n] = array[n].strip();
+        }
+      }
+    }
+    return array;
+  }
+
+  private static String doReadFileToString(File fPath) throws IOException {
     StringBuilder result = new StringBuilder();
     BufferedReader reader = null;
     try {
