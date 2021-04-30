@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.runners.ProcessRunner;
-import org.sikuli.script.support.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 
 public class LinuxUtil extends GenericOsUtil {
 
