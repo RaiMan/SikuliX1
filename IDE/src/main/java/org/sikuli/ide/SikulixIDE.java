@@ -13,6 +13,7 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -41,6 +42,12 @@ public class SikulixIDE extends JFrame {
 
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
+  }
+
+  static SXDialog ideSplash = null;
+
+  protected static void setIDESplash(SXDialog splash) {
+    ideSplash = splash;
   }
 
   private SikulixIDE() {
