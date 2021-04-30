@@ -1,0 +1,15 @@
+#globals; s 300 500; m 20; c; f 16
+
+#image; /icons/sikulix-red-x.png; r 200
+---
+SikuliX IDE; fontsize 20; bold
+{sxversion}; bold
+Java {javaversion}; bold
+---
+#link; sikulix.com | https://sikulix.github.io
+---
+Copyright (c) 2010-2021; fontsize 14
+sikuli.org --- sikulix.com; fontsize 12
+#link; MIT License | http://www.sikulix.com/disclaimer/; fontsize 14
+---
+#close; Press ESC or Click; f 12
