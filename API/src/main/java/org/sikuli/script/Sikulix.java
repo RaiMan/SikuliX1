@@ -1,15 +1,19 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.runnerSupport.JythonSupport;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.vnc.VNCScreen;
+import org.sikuli.script.support.SikulixEvaluate;
+import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
 import java.awt.Dimension;
@@ -22,7 +26,29 @@ public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
     System.setProperty("sikuli.API_should_run", "develop");
-    RunTime.start(RunTime.Type.API, args);
+    if (args.length == 1 && "buildDate".equals(args[0])) {
+      System.out.println(Commons.getSxBuildStamp());
+      System.exit(0);
+    }
+
+//TODO place to test something in the API context
+    if (args.length == 1 && "test".equals(args[0])) {
+
+      //SikulixEvaluate.test();
+      Commons.startTrace();
+
+      SXDialog dialog = new SXDialog("sxtest");
+      dialog.run();
+
+      while (dialog.isVisible()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+      }
+
+      System.exit(0);
+    }
     SikulixAPI.main(args);
   }
 
@@ -62,13 +88,8 @@ public class Sikulix {
   }
 
   private static Point getLocPopAt() {
-    if (Screen.isHeadless()) {
-      return null;
-    }
-    Rectangle rect = new Screen(0).getRect();
-    if (RunTime.isRunningIDE) {
-      //TODO should be IDE window
-    }
+    Rectangle rect = ScreenDevice.get(0).asRectangle();
+    //TODO should be IDE window
     return new Point((int) rect.getCenterX(), (int) rect.getCenterY());
   }
 
@@ -234,7 +255,7 @@ public class Sikulix {
         title = "Sikuli input request";
       }
       ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-              JOptionPane.PLAIN_MESSAGE, null, null, preset);
+          JOptionPane.PLAIN_MESSAGE, null, null, preset);
     } else {
       preset = "";
       JTextArea tm = new JTextArea(msg);
@@ -371,7 +392,7 @@ public class Sikulix {
   }
 
   public static String run(String[] cmd) {
-    return RunTime.get().runcmd(cmd);
+    return RunTime.runcmd(cmd);
   }
   //</editor-fold>
 
@@ -389,8 +410,9 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static VNCScreen vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
-    return VNCScreen.start(theIP, thePort, password, cTimeout, timeout);
+  public static Devices vncStart(String theIP, int thePort, String password, int cTimeout, int timeout) {
+    //TODO finally implement VNCScreen as VNCDevice
+    return HelpDevice.startVNC(theIP, thePort, password, cTimeout, timeout);
   }
 
   /**
@@ -403,8 +425,9 @@ public class Sikulix {
    * @param timeout  value in milli-seconds during normal operation
    * @return a VNCScreen object
    */
-  public static VNCScreen vncStart(String theIP, int thePort, int cTimeout, int timeout) {
-    return VNCScreen.start(theIP, thePort, cTimeout, timeout);
+  public static Devices vncStart(String theIP, int thePort, int cTimeout, int timeout) {
+    //TODO finally implement VNCScreen as VNCDevice
+    return HelpDevice.startVNC(theIP, thePort, cTimeout, timeout);
   }
   //</editor-fold>
 
@@ -440,80 +463,7 @@ public class Sikulix {
       }
     }
     return FileManager.buildJar(targetJar, new String[]{null},
-            new String[]{sourceFolder}, new String[]{prefix}, null);
-  }
-
-  /**
-   * the foo.py files in the given source folder are compiled to JVM-ByteCode-classfiles foo$py.class
-   * and stored in the target folder (thus securing your code against changes).<br>
-   * A folder structure is preserved. All files not ending as .py will be copied also.
-   * The target folder might then be packed to a jar using buildJarFromFolder.<br>
-   * Be aware: you will get no feedback about any compile problems,
-   * so make sure your code compiles error free. Currently there is no support for running such a jar,
-   * it can only be used with load()/import, but you might provide a simple script that does load()/import
-   * and then runs something based on available functions in the jar code.
-   *
-   * @param fpSource absolute path to a folder/folder-tree containing the stuff to be copied/compiled
-   * @param fpTarget the folder that will contain the copied/compiled stuff (folder is first deleted)
-   * @return false if anything goes wrong, true means should have worked
-   */
-  public static boolean compileJythonFolder(String fpSource, String fpTarget) {
-    JythonSupport jython = JythonSupport.get();
-    if (jython != null) {
-      File fTarget = new File(fpTarget);
-      FileManager.deleteFileOrFolder(fTarget);
-      fTarget.mkdirs();
-      if (!fTarget.exists()) {
-        log(-1, "compileJythonFolder: target folder not available\n%", fTarget);
-        return false;
-      }
-      File fSource = new File(fpSource);
-      if (!fSource.exists()) {
-        log(-1, "compileJythonFolder: source folder not available\n", fSource);
-        return false;
-      }
-      if (fTarget.equals(fSource)) {
-        log(-1, "compileJythonFolder: target folder cannot be the same as the source folder");
-        return false;
-      }
-      FileManager.xcopy(fSource, fTarget);
-      if (!jython.interpreterExecString("import compileall")) {
-        return false;
-      }
-      jython = doCompileJythonFolder(jython, fTarget);
-      FileManager.traverseFolder(fTarget, new CompileJythonFilter(jython));
-    }
-    return false;
-  }
-
-  private static class CompileJythonFilter extends FileManager.FileFilter{
-
-    JythonSupport jython = null;
-
-    CompileJythonFilter(JythonSupport jython) {
-      this.jython = jython;
-    }
-
-    public boolean accept(File entry) {
-      if (jython != null && entry.isDirectory()) {
-        jython = doCompileJythonFolder(jython, entry);
-      }
-      return false;
-    }
-  }
-
-  private static JythonSupport doCompileJythonFolder(JythonSupport jython, File fSource) {
-    String fpSource = FileManager.slashify(fSource.getAbsolutePath(), false);
-    if (!jython.interpreterExecString(String.format("compileall.compile_dir(\"%s\","
-            + "maxlevels = 0, quiet = 1)", fpSource))) {
-      return null;
-    }
-    for (File aFile : fSource.listFiles()) {
-      if (aFile.getName().endsWith(".py")) {
-        aFile.delete();
-      }
-    }
-    return jython;
+        new String[]{sourceFolder}, new String[]{prefix}, null);
   }
   //</editor-fold>
 }
