@@ -1,0 +1,15 @@
+#globals; margin 5; Font 14; before 5; border 1;
+
+mouse action; center; bold; fontsize 16
+--- 1
+link; sikulix.com; center
+--- 1
+action; About SikuliX; show ideabout; center
+--- 1
+action; SikuliX; show idestartup; center
+--- 1
+html; some text | more text | and more text
+--- 1
+//option; some option; someOption;
+--- 1
+//button;
