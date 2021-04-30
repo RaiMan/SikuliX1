@@ -12,7 +12,7 @@ the source code of the application or web page you want to act on. [More details
 
 <hr>
 
-**Java: must be Java 11 or later (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
+**Java: must be Java 11 or later** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
 <br>non-LTS versions like Java 15/16 might create problems that should be reported
 
 **Windows:** Works out of the box
