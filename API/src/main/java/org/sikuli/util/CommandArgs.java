@@ -78,6 +78,8 @@ public class CommandArgs {
     cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.SERVER));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.GROUPS));
+    cmdArgs.addOption(makeOption(CommandArgsEnum.XTRAS));
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.PYTHONSERVER));
 
