@@ -9,46 +9,22 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.script.support.SikulixEvaluate;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
-import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.File;
 
 public class Sikulix {
 
   public static void main(String[] args) throws FindFailed {
-    System.setProperty("sikuli.API_should_run", "develop");
     if (args.length == 1 && "buildDate".equals(args[0])) {
       System.out.println(Commons.getSxBuildStamp());
       System.exit(0);
     }
 
-//TODO place to test something in the API context
-    if (args.length == 1 && "test".equals(args[0])) {
-
-      //SikulixEvaluate.test();
-      Commons.startTrace();
-
-      SXDialog dialog = new SXDialog("sxtest");
-      dialog.run();
-
-      while (dialog.isVisible()) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-        }
-      }
-
-      System.exit(0);
-    }
     SikulixAPI.main(args);
   }
 
