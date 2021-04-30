@@ -321,36 +321,39 @@ public class SXOpenCV {
   }
 
   private static boolean downSize = false;
-  private static final double minThreshhold = 1.0E-5;
+  public static final double MIN_THRESHHOLD = 1.0E-5;
 
-  public static Match findMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
+  public static Match findMatch(Mat where, FindAttributes findAttributes, boolean findAll) {
     if (downSize) {
       //TODO downsizing
       double downSizeFactor;
+      Mat what = findAttributes.what();
       final int downSizeMinSample = 12;
       double downW = ((double) what.width()) / downSizeMinSample;
       double downH = ((double) what.height()) / downSizeMinSample;
       downSizeFactor = Math.max(1.0, Math.min(downW, downH));
     }
-    Match matchResult = doFindMatch(where, what, mask, image, findAll);
+    Match matchResult = doFindMatch(where, findAttributes, findAll);
     return matchResult;
   }
 
-  public static Match checkLastSeen(Mat where, Mat what, Mat mask, Image image) {
-    Match matchResult = doFindMatch(where, what, mask, image, false);
+  public static Match checkLastSeen(Mat where, FindAttributes findAttributes) {
+    Match matchResult = doFindMatch(where, findAttributes, false);
     return matchResult;
   }
 
-  private static Match doFindMatch(Mat where, Mat what, Mat mask, Image image, boolean findAll) {
+  private static Match doFindMatch(Mat where, FindAttributes findAttributes, boolean findAll) {
     Mat result = new Mat();
     Mat finalWhere = where;
-    if (image.gray()) {
+    if (findAttributes.gray()) {
       Imgproc.cvtColor(where, finalWhere, Imgproc.COLOR_BGR2GRAY);
     }
-    if (image.plain()) {
+    Mat what = findAttributes.what();
+    Mat mask = findAttributes.mask();
+    if (findAttributes.target().plain()) {
       Mat finalWherePlain = finalWhere;
       Mat finalWhatPlain = what;
-      if (image.black()) {
+      if (findAttributes.target().black()) {
         Core.bitwise_not(finalWhere, finalWherePlain);
         Core.bitwise_not(what, finalWhatPlain);
       }
@@ -367,7 +370,7 @@ public class SXOpenCV {
     }
     Core.MinMaxLocResult minMax = Core.minMaxLoc(result);
     double maxVal = minMax.maxVal;
-    if (maxVal > image.similarity()) {
+    if (maxVal > findAttributes.target().similarity()) {
       Point point = new Point((int) minMax.maxLoc.x, (int) minMax.maxLoc.y);
       if (!findAll) {
         result = null;
@@ -377,52 +380,12 @@ public class SXOpenCV {
     return null;
   }
 
-  public static void setAttributes(Element element, Mat content, Mat mask) {
-    if (content.channels() == 1) {
-      element.gray(true);
-    }
-
-    Mat finalContent = newMat();
-    if (mask.empty()) {
-      finalContent = content;
-    } else {
-      Core.multiply(content, mask, finalContent);
-    }
-
-    MatOfDouble pMean = new MatOfDouble();
-    MatOfDouble pStdDev = new MatOfDouble();
-    Core.meanStdDev(finalContent, pMean, pStdDev);
-
-    double sum = 0.0;
-    double[] arr = pStdDev.toArray();
-    for (int i = 0; i < arr.length; i++) {
-      sum += arr[i];
-    }
-    element.stdDev(sum);
-    element.plain(sum < minThreshhold);
-
-    sum = 0.0;
-    arr = pMean.toArray();
-    int[] cvMeanColor = new int[arr.length];
-    for (int i = 0; i < arr.length; i++) {
-      cvMeanColor[i] = (int) arr[i];
-      sum += arr[i];
-    }
-    element.mean(sum);
-    element.black(sum < minThreshhold && element.plain());
-
-    if (cvMeanColor.length > 1) {
-      element.white(isColorEqual(cvMeanColor, Color.WHITE));
-      element.meanColor(new Color(cvMeanColor[2], cvMeanColor[1], cvMeanColor[0]));
-    }
-  }
-
-  private static boolean isColorEqual(int[] cvColor, Color otherColor) {
+  public static boolean isColorEqual(int[] cvColor, Color otherColor) {
     Color col = new Color(cvColor[2], cvColor[1], cvColor[0]);
     int r = (col.getRed() - otherColor.getRed()) * (col.getRed() - otherColor.getRed());
     int g = (col.getGreen() - otherColor.getGreen()) * (col.getGreen() - otherColor.getGreen());
     int b = (col.getBlue() - otherColor.getBlue()) * (col.getBlue() - otherColor.getBlue());
-    return Math.sqrt(r + g + b) < minThreshhold;
+    return Math.sqrt(r + g + b) < MIN_THRESHHOLD;
   }
 
   private static int toGray = Imgproc.COLOR_BGR2GRAY;

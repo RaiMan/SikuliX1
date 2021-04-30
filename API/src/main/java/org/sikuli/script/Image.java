@@ -239,20 +239,30 @@ public class Image extends Element {
   //<editor-fold desc="004 Fields Pattern aspects">
   private <PE> void copyPatternAttributes(PE source) {
     if (source instanceof Pattern) {
-      similarity = ((Pattern) source).getSimilar();
+      similarity(((Pattern) source).getSimilar());
       offset(((Pattern) source).getTargetOffset());
-      waitAfter = ((Pattern) source).waitAfter();
+      waitAfter(((Pattern) source).waitAfter());
       maskImage = ((Pattern) source).getMask();
+      resize(((Pattern) source).getResize());
     } else if (source instanceof Image) {
-      similarity = ((Image) source).similarity();
+      similarity(((Image) source).similarity());
       offset(((Image) source).offset());
-      waitAfter = ((Image) source).waitAfter();
+      waitAfter(((Image) source).waitAfter());
       maskImage = ((Image) source).getMask();
       isMasked = ((Image) source).isMasked();
+      resize(((Image) source).resize());
     }
   }
 
   Image maskImage = null;
+
+  public boolean hasMask() {
+    return null != maskImage;
+  }
+
+  public Image getMask() {
+    return maskImage;
+  }
 
   public <SUFEBMP> Image mask(SUFEBMP what) {   //TODO allow a color other than black
     Image mImage = new Image(what, Element.asMaskImage());
@@ -264,23 +274,15 @@ public class Image extends Element {
     return this;
   }
 
-  public Image mask() {
+  private boolean isMasked = false;
+
+  public Image masked() {
     isMasked = true;
     return this;
   }
 
-  private boolean isMasked = false;
-
-  boolean isMasked() {
+  public boolean isMasked() {
     return isMasked;
-  }
-
-  boolean hasMask() {
-    return null != maskImage;
-  }
-
-  Image getMask() {
-    return maskImage;
   }
 
   private double similarity = Settings.MinSimilarity;
