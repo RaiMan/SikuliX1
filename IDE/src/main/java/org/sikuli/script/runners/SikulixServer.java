@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.script.support;
+package org.sikuli.script.runners;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,6 +49,9 @@ import io.undertow.util.Methods;
 import io.undertow.util.StatusCodes;
 import io.undertow.util.URLUtils;
 import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.runnerSupport.Runner;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
 
 /**
  * EXPERIMENTAL --- NOT official API<br>
@@ -137,13 +140,13 @@ public class SikulixServer {
 
   private static void makeGroups(String option) {
     File folder;
-    groups.put(DEFAULT_GROUP, RunTime.get().fWorkDir);
-    if (null != (folder = RunTime.asFolder(option))) {
+    groups.put(DEFAULT_GROUP, Commons.getWorkDir());
+    if (null != (folder = Commons.asFolder(option))) {
       groups.put(DEFAULT_GROUP, folder);
       return;
     }
     File folders;
-    if (null != (folders = RunTime.asFile(option))) {
+    if (null != (folders = Commons.asFile(option))) {
       if (FilenameUtils.getExtension(folders.getPath()).isEmpty() ||
               FilenameUtils.getExtension(folders.getPath()).equals("txt")) {
         dolog(3, "option -g txt-file: %s", folders);
@@ -168,14 +171,14 @@ public class SikulixServer {
             fldr = item;
             grp = DEFAULT_GROUP;
           }
-          if (null != RunTime.asFolder(fldr)) {
+          if (null != Commons.asFolder(fldr)) {
             if (isFirst) {
-              groups.put(DEFAULT_GROUP, RunTime.asFolder(fldr));
+              groups.put(DEFAULT_GROUP, Commons.asFolder(fldr));
               isFirst = false;
             }
             if (!groups.containsKey(grp)) {
-              groups.put(grp, RunTime.asFolder(fldr));
-              dolog(3, "group: %s folder: %s", grp, RunTime.asFolder(fldr));
+              groups.put(grp, Commons.asFolder(fldr));
+              dolog(3, "group: %s folder: %s", grp, Commons.asFolder(fldr));
             }
           }
         }
@@ -192,7 +195,7 @@ public class SikulixServer {
   private static void makeAllowedIPs(String option) {
     allowedIPs.add(DEFAULT_ALLOWED_IP);
     File allowedIPsFile;
-    if (null != (allowedIPsFile = RunTime.asFile(option))) {
+    if (null != (allowedIPsFile = Commons.asFile(option))) {
       if (FilenameUtils.getExtension(allowedIPsFile.getPath()).isEmpty() ||
               FilenameUtils.getExtension(allowedIPsFile.getPath()).equals("txt")) {
         dolog(3, "option -x txt-file: %s", allowedIPsFile);
@@ -211,9 +214,9 @@ public class SikulixServer {
   public static boolean run() {
     // evaluate startup option -s
     evalServerOptions(RunTime.getServerOptions());
-    if (null != RunTime.asFile(serverIP)) {
-      RunTime.startLog(3, "server (-s): %s is a file", serverIP);
-      String[] serverOptions = FileManager.readFileToString(RunTime.asFile(serverIP)).split("\n");
+    if (null != Commons.asFile(serverIP)) {
+      Commons.debug("SikulixServer: (-s): %s is a file", serverIP);
+      String[] serverOptions = FileManager.readFileToString(Commons.asFile(serverIP)).split("\n");
       serverIP = serverIPdefault;
       for (String line : serverOptions) {
         serverIP = serverIPdefault;
@@ -221,10 +224,10 @@ public class SikulixServer {
         line = line.trim();
         evalServerOptions(new String[]{line});
         serverListenAt.add(Pair.of(serverIP, serverPort));
-        RunTime.startLog(3, "server (-s): from file: %s:%d", serverIP, serverPort);
+        Commons.debug("SikulixServer: (-s): from file: %s:%d", serverIP, serverPort);
       }
     } else {
-      RunTime.startLog(3, "server (-s): %s:%s -> %s:%d", serverOption1, serverOption2, serverIP, serverPort);
+      Commons.debug("SikulixServer: (-s): %s:%s -> %s:%d", serverOption1, serverOption2, serverIP, serverPort);
     }
     int port = serverPort;
     String theIP = serverIP;
@@ -240,7 +243,7 @@ public class SikulixServer {
 
     // start the server
     String theServer = String.format("%s %d", theIP, port);
-    isRunning = new File(RunTime.get().fSikulixStore, "SikulixServer.txt");
+    isRunning = new File(Commons.getAppDataStore(), "SikulixServer.txt");
     try {
       try {
         isRunning.createNewFile();
@@ -557,7 +560,7 @@ public class SikulixServer {
     }
 
     private Optional<ObjectNode> getScriptInfo(String groupName, String scriptName) {
-      RunTime.get().fWorkDir = groups.get(groupName);
+      Commons.setWorkDir(groups.get(groupName));
       String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
       if (!scripts[0].startsWith("?")) {
         ObjectNode result = getObjectMapper().createObjectNode();
@@ -943,7 +946,7 @@ public class SikulixServer {
     }
 
     public void runScript() {
-      RunTime.get().fWorkDir = groups.get(groupName);
+      Commons.setWorkDir(groups.get(groupName));
       String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
       RunTime.setUserArgs(scriptArgs);
       startDate = new Date();

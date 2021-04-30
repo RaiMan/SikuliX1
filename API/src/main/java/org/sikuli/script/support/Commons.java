@@ -434,6 +434,23 @@ public class Commons {
     return workDir;
   }
 
+  public static File setWorkDir(Object path) {
+    File file = getWorkDir();
+    if (path instanceof String) {
+      file = new File((String) path);
+      if (!file.exists()) {
+        file = new File(getWorkDir(), (String) path);
+      }
+    } else if (path instanceof File) {
+      file = (File) path;
+    }
+    if (!file.exists()) {
+      file = getWorkDir();
+    }
+    workDir = file;
+    return workDir;
+  }
+
   private static File workDir = null;
 
   public static String getJarLibsPath() {
