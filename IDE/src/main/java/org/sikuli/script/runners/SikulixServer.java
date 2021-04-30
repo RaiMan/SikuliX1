@@ -561,7 +561,7 @@ public class SikulixServer {
 
     private Optional<ObjectNode> getScriptInfo(String groupName, String scriptName) {
       Commons.setWorkDir(groups.get(groupName));
-      String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
+      String[] scripts = Runner.resolveRelativeFiles(new String[]{scriptName});
       if (!scripts[0].startsWith("?")) {
         ObjectNode result = getObjectMapper().createObjectNode();
         result.put("name", scriptName)
@@ -947,7 +947,7 @@ public class SikulixServer {
 
     public void runScript() {
       Commons.setWorkDir(groups.get(groupName));
-      String[] scripts = RunTime.resolveRelativeFiles(new String[]{scriptName});
+      String[] scripts = Runner.resolveRelativeFiles(new String[]{scriptName});
       RunTime.setUserArgs(scriptArgs);
       startDate = new Date();
       exitCode = Runner.runScripts(scripts, scriptArgs, new IScriptRunner.Options());
