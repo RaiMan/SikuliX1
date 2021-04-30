@@ -10,9 +10,10 @@ import org.reflections8.scanners.SubTypesScanner;
 import org.reflections8.util.ClasspathHelper;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AbstractScriptRunner;
 import org.sikuli.script.runners.InvalidRunner;
-import org.sikuli.script.support.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
 
 import java.io.File;
 import java.io.IOException;
