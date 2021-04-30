@@ -46,49 +46,51 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-  static RunTime runTime;
+  private SikulixIDE() {
+  }
 
-  static final java.awt.Image ICON_IMAGE = Toolkit.getDefaultToolkit().createImage(
-      SikulixIDE.class.getResource("/icons/sikulix.png"));
+  private static final SikulixIDE sikulixIDE = new SikulixIDE();
 
-  public static void main(String[] args) {
-
-    RunTime.afterStart(RunTime.Type.IDE, args);
-
-    if ("m".equals(System.getProperty("os.name").substring(0, 1).toLowerCase())) {
-      prepareMacUI();
-    }
-    runTime = RunTime.get(RunTime.Type.IDE);
-
-    IDETaskbarSupport.setTaksIcon(ICON_IMAGE);
-
-    get();
-
-    if (Debug.getDebugLevel() < 3) {
-      ideSplash = new IDESplash(runTime.SXVersion, "" + runTime.javaVersion);
+  static PreferencesUser prefs;
+  static Rectangle ideWindowRect = null;
+  public static Rectangle getWindowRect() {
+    prefs = PreferencesUser.get();
+    if (prefs.getUserType() < 0) {
+      prefs.setIdeSession("");
+      prefs.setDefaults();
     }
 
-    log(3, "running with Locale: %s", SikuliIDEI18N.getLocaleShow());
-
-    if (Settings.isMac() && System.getProperty("sikulix.asapp") != null) {
-      Settings.isMacApp = true;
+    Dimension windowSize = prefs.getIdeSize();
+    Point windowLocation = prefs.getIdeLocation();
+    if (windowSize.width < 700) {
+      windowSize.width = 800;
     }
-
-    IDEDesktopSupport.init(sikulixIDE);
-
-    if (Debug.getDebugLevel() > 2) {
-      RunTime.printArgs();
+    if (windowSize.height < 500) {
+      windowSize.height = 600;
     }
+    return new Rectangle(windowLocation, windowSize);
+  }
 
-    sikulixIDE.initHotkeys();
-    Debug.log(3, "IDE: Init ScriptingSupport");
+  public static Point getWindowCenter() {
+    return new Point((int) getWindowRect().getCenterX(), (int) getWindowRect().getCenterY());
+  }
+
+  public static Point getWindowTop() {
+    Rectangle rect = getWindowRect();
+    int x = rect.x + rect.width / 2;
+    int y = rect.y + 30;
+    return new Point(x, y);
+  }
+
+  protected static void start(String[] args) {
+
+    ideWindowRect = getWindowRect();
+
+    IDEDesktopSupport.init();
 
     IDESupport.init();
-    IDESupport.initIDESupport();
 
-    EventQueue.invokeLater(() -> {
-      sikulixIDE.initSikuliIDE();
-    });
+    sikulixIDE.startGUI();
   }
 
   public boolean quit() {
