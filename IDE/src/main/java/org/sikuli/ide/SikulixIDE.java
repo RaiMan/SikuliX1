@@ -13,7 +13,9 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
-//import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.script.support.generators.ICodeGenerator;
+import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.script.support.recorder.actions.IRecordedAction;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -33,6 +35,7 @@ import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SikulixIDE extends JFrame {
 
@@ -44,10 +47,10 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-//  static SXDialog ideSplash = null;
-//  protected static void setIDESplash(SXDialog splash) {
-//    ideSplash = splash;
-//  }
+  static SXDialog ideSplash = null;
+  protected static void setIDESplash(SXDialog splash) {
+    ideSplash = splash;
+  }
 
   private SikulixIDE() {
   }
@@ -196,7 +199,7 @@ public class SikulixIDE extends JFrame {
 
   //TODO showAfterStart to be revised
   public static void showAfterStart() {
-    //org.sikuli.ide.Sikulix.stopSplash();
+    org.sikuli.ide.Sikulix.stopSplash();
     ideWindow.setVisible(true);
     get().mainPane.setDividerLocation(0.6);
     try {
@@ -1166,7 +1169,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doAbout(ActionEvent ae) {
-      //new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
+      new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
     }
 
     public void doPreferences(ActionEvent ae) {
@@ -1644,7 +1647,7 @@ public class SikulixIDE extends JFrame {
   }
 
   private void showExtensions() {
-    //ExtensionManager.show();
+    ExtensionManager.show();
   }
 
   private static IScreen defaultScreen = null;
@@ -1949,6 +1952,7 @@ public class SikulixIDE extends JFrame {
   //<editor-fold defaultstate="collapsed" desc="20 Init ToolBar Buttons">
   private ButtonCapture _btnCapture;
   private ButtonRun _btnRun = null, _btnRunViz = null;
+  private ButtonRecord _btnRecord;
 
   private JToolBar initToolbar() {
 //    if (ENABLE_UNIFIED_TOOLBAR) {
@@ -1988,6 +1992,10 @@ public class SikulixIDE extends JFrame {
     toolbar.add(Box.createRigidArea(new Dimension(7, 0)));
     toolbar.setFloatable(false);
     //toolbar.setMargin(new Insets(0, 0, 0, 5));
+
+    _btnRecord = new ButtonRecord();
+    toolbar.add(_btnRecord);
+
     return toolbar;
   }
 
@@ -2504,6 +2512,69 @@ public class SikulixIDE extends JFrame {
   }
   //</editor-fold>
 
+  class ButtonRecord extends ButtonOnToolbar implements ActionListener {
+
+    private Recorder recorder = new Recorder();
+
+    ButtonRecord() {
+      super();
+
+      URL imageURL = SikulixIDE.class.getResource("/icons/record.png");
+      setIcon(new ImageIcon(imageURL));
+      initTooltip();
+      addActionListener(this);
+      setText(_I("btnRecordLabel"));
+      // setMaximumSize(new Dimension(45,45));
+    }
+
+    private void initTooltip() {
+      PreferencesUser pref = PreferencesUser.get();
+      String strHotkey = Key.convertKeyToText(pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+      String stopHint = _I("btnRecordStopHint", strHotkey);
+      setToolTipText(_I("btnRecord", stopHint));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+      ideWindow.setVisible(false);
+      recorder.start();
+    }
+
+    public void stopRecord() {
+      SikulixIDE.showAgain();
+
+      if (isRunning()) {
+        EditorPane pane = getCurrentCodePane();
+        ICodeGenerator generator = pane.getCodeGenerator();
+
+        ProgressMonitor progress = new ProgressMonitor(pane, _I("processingWorkflow"), "", 0, 0);
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+
+        new Thread(() -> {
+          try {
+            List<IRecordedAction> actions = recorder.stop(progress);
+
+            if(!actions.isEmpty()) {
+              List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+
+              EventQueue.invokeLater(() -> {
+                pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
+                pane.doReparse();
+              });
+            }
+          } finally {
+            progress.close();
+          }
+        }).start();
+      }
+    }
+
+    public boolean isRunning() {
+      return recorder.isRunning();
+    }
+  }
+
   //<editor-fold desc="30 MsgArea, Statusbar">
   private void initMessageArea() {
     messageArea = new JTabbedPane();
@@ -2713,6 +2784,9 @@ public class SikulixIDE extends JFrame {
   void onStopRunning() {
     log(3, "AbortKey was pressed: aborting all running scripts");
     Runner.abortAll();
+    EventQueue.invokeLater(() -> {
+      _btnRecord.stopRecord();
+    });
   }
   //</editor-fold>
 }

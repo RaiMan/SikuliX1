@@ -11,6 +11,7 @@ import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.gui.SXDialog;
 
 import java.awt.*;
 import java.io.File;
@@ -22,24 +23,23 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  //TODO startup splash
-//  static SXDialog ideSplash;
-//  static int waitStart = 0;
-//
-//  public static void stopSplash() {
-//    if (waitStart > 0) {
-//      try {
-//        Thread.sleep(waitStart * 1000);
-//      } catch (InterruptedException e) {
-//      }
-//    }
-//
-//    if (ideSplash != null) {
-//      ideSplash.setVisible(false);
-//      ideSplash.dispose();
-//      ideSplash = null;
-//    }
-//  }
+  static SXDialog ideSplash;
+  static int waitStart = 0;
+
+  public static void stopSplash() {
+    if (waitStart > 0) {
+      try {
+        Thread.sleep(waitStart * 1000);
+      } catch (InterruptedException e) {
+      }
+    }
+
+    if (ideSplash != null) {
+      ideSplash.setVisible(false);
+      ideSplash.dispose();
+      ideSplash = null;
+    }
+  }
 
   public static void main(String[] args) {
     //region startup
@@ -102,9 +102,8 @@ public class Sikulix {
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
-    //TODO startup splash
-//    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-//    ideSplash.run();
+    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+    ideSplash.run();
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;
