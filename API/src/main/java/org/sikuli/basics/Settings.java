@@ -1,28 +1,23 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.basics;
 
 import org.sikuli.script.Image;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-//import org.sikuli.script.RunTime;
 
 import java.io.File;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.Date;
 
+//import org.sikuli.script.RunTime;
+
 /**
  * This is the container for all
  */
 public class Settings {
-
-
-  public static synchronized void init(RunTime givenRunTime) {
-    runTime = givenRunTime;
-  }
-
-  private static RunTime runTime = null;
 
   public static boolean experimental = false;
 
@@ -31,8 +26,6 @@ public class Settings {
   public static boolean InputFontMono = false;
   public static int InputFontSize = 14;
 
-  public static final float FOREVER = Float.POSITIVE_INFINITY;
-
   //TODO Proxy as command line options
   public static String proxyName = "";
   public static String proxyIP = "";
@@ -40,9 +33,6 @@ public class Settings {
   public static String proxyPort = "";
   public static boolean proxyChecked = false;
   public static Proxy proxy = null;
-
-  //TODO Mac Application
-  public static boolean isMacApp = false;
 
   public static boolean ThrowException = true; // throw FindFailed exception
   public static float AutoWaitTimeout = 3f; // in seconds
@@ -61,6 +51,17 @@ public class Settings {
   public static org.sikuli.script.ImageCallback ImageCallback = null;
 
   private static int ImageCache = 64;
+
+  public static void setImageCache(int max) {
+    if (ImageCache > max) {
+      Image.clearCache(max);
+    }
+    ImageCache = max;
+  }
+
+  public static int getImageCache() {
+    return ImageCache;
+  }
 
   public static double DelayValue = 0.3;
   public static double DelayBeforeMouseDown = DelayValue;
@@ -153,7 +154,7 @@ public class Settings {
   }
 
   public static String getDataPath() {
-    return RunTime.get().fSikulixAppFolder.getAbsolutePath();
+    return Commons.getAppDataPath().getAbsolutePath();
   }
 
   public static final int ISWINDOWS = 0;
@@ -170,16 +171,17 @@ public class Settings {
       return OS.NOT_SUPPORTED;
     }
   }
+
   public static boolean isWindows() {
-    return RunTime.get().runningWindows;
+    return Commons.runningWindows();
   }
 
   public static boolean isLinux() {
-    return RunTime.get().runningLinux;
+    return Commons.runningLinux();
   }
 
   public static boolean isMac() {
-    return RunTime.get().runningMac;
+    return Commons.runningMac();
   }
 
   public static String getOSVersion() {
@@ -191,10 +193,10 @@ public class Settings {
   }
 
   public static String getVersion() {
-    return RunTime.get().getVersion();
+    return Commons.getSXVersion();
   }
 
   public static String getVersionBuild() {
-    return RunTime.get().SXVersionLong;
+    return Commons.getSXVersionLong();
   }
 }

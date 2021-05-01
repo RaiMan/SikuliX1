@@ -61,11 +61,7 @@ public class PreferencesUser {
 
   private PreferencesUser() {
     Debug.log(3, "init user preferences");
-    if (RunTime.isSandbox()) {
-      pref = Preferences.userNodeForPackage(org.sikuli.script.Sikulix.class);
-    } else {
-      pref = Preferences.userNodeForPackage(org.sikuli.script.Sikulix.class);
-    }
+    pref = Preferences.userNodeForPackage(org.sikuli.script.Sikulix.class);
   }
 
   public boolean save(String path) {

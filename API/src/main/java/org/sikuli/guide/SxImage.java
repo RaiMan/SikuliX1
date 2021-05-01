@@ -22,7 +22,7 @@ public class SxImage extends Visual {
 
   public SxImage(String filename) {
     super();
-    init(Image.create(filename).getBufferedImage());
+    init(Image.create(filename).get());
   }
 
   public SxImage(BufferedImage image) {

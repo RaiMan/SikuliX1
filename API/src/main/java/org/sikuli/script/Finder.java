@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -7,8 +7,9 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.SXOpenCV;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -16,11 +17,18 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.regex.Matcher;
 
-public class Finder implements Matches {
+public class Finder implements Iterator<Match> {
 
-  //TODO needed? currentMatchIndex
+  private Region _region = null;
+  private Pattern _pattern = null;
+  private Image _image = null;
+  private FindInput2 _findInput = new FindInput2();
+  private FindResult2 _results = null;
+  private Region where = null;
+
   private int currentMatchIndex;
-
+  private boolean repeating = false;
+  private boolean valid = true;
   private boolean screenFinder = true;
 
   private static String me = "Finder: ";
@@ -31,36 +39,26 @@ public class Finder implements Matches {
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
-  private Region _region = null;
-  private Pattern _pattern = null;
-  private Image _image = null;
-  private FindInput2 _findInput = new FindInput2();
-  private FindResult2 _results = null;
-  private Region where = null;
-
   protected Finder() {
     resetFindChanges();
   }
 
   /**
    * Create a Finder for the given element
-   *
-   * @param inWhat  in what element (RIBS) to search
-   * @param <RIBSM> Region, Image, BufferedImage, ScreenImage, image filename, cvMat
+   * @param inWhat in what element (RIBS) to search
+   * @param <RIBS> Region, Image, BufferedImage, ScreenImage or image filename
    */
-  public <RIBSM> Finder(RIBSM inWhat) {
+  public <RIBS> Finder(RIBS inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
     } else if (inWhat instanceof Image) {
-      _findInput.setSource(SXOpenCV.makeMat(((Image) inWhat).getBufferedImage()));
+      _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
-      _findInput.setSource(SXOpenCV.makeMat(new Image(inWhat).getBufferedImage()));
+      _findInput.setSource(Commons.makeMat(Image.create((String) inWhat).get()));
     } else if (inWhat instanceof BufferedImage) {
-      _findInput.setSource(SXOpenCV.makeMat(((BufferedImage) inWhat)));
+      _findInput.setSource(Commons.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
       initScreenFinder(((ScreenImage) inWhat), null);
-    } else if (inWhat instanceof Mat) {
-      _findInput.setSource((Mat) inWhat);
     } else {
       throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
@@ -84,14 +82,15 @@ public class Finder implements Matches {
    }
 
   protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(SXOpenCV.makeMat(simg.getBufferedImage()));
+    _findInput.setSource(Commons.makeMat(simg.getImage()));
   }
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
-  //TODO needed? repeating
-  private boolean repeating = false;
 
+  /**
+   * internal use: to be able to reuse the same Finder
+   */
   protected void setRepeating() {
     repeating = true;
   }
@@ -101,7 +100,7 @@ public class Finder implements Matches {
    */
   protected void findRepeat() {
     _results = Finder2.find(_findInput);
-    //currentMatchIndex = 0;
+    currentMatchIndex = 0;
   }
 
   /**
@@ -110,7 +109,7 @@ public class Finder implements Matches {
   protected void findAllRepeat() {
     Debug timing = Debug.startTimer("Finder.findAll");
     _results = Finder2.find(_findInput);
-    //currentMatchIndex = 0;
+    currentMatchIndex = 0;
     timing.end();
   }
 //</editor-fold>
@@ -125,6 +124,10 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String find(String imageOrText) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     Image img = Image.create(imageOrText);
     if (img.isText()) {
       return findText(imageOrText);
@@ -140,20 +143,20 @@ public class Finder implements Matches {
   }
 
   private Mat possibleImageResizeOrCallback(Image img, float oneTimeResize) {
-    double factor = oneTimeResize;
+    float factor = oneTimeResize;
     if (factor == 0 && Settings.AlwaysResize > 0 && Settings.AlwaysResize != 1) {
       factor = Settings.AlwaysResize;
     }
-    Mat mat = SXOpenCV.makeMat(img.getBufferedImage(), false);
+    Mat mat = Commons.makeMat(img.get(), false);
     if (factor > 0 && factor != 1) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: resize");
       if (!mat.empty()) {
-        SXOpenCV.resize(mat, factor);
+        Commons.resize(mat, factor);
       }
     } else if (Settings.ImageCallback != null) {
       Debug.log(3, "Finder::possibleImageResizeOrCallback: callback");
       BufferedImage newBimg = Settings.ImageCallback.callback(img);
-      mat = SXOpenCV.makeMat(newBimg, false);
+      mat = Commons.makeMat(newBimg, false);
     }
     if (mat.empty()) {
       log(-1, "%s: conversion error --- find will fail", img);
@@ -169,17 +172,21 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String find(Pattern aPtn) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     if (aPtn.isValid()) {
       _pattern = aPtn;
       if (_pattern.hasMask()) {
-        _findInput.setMask(_pattern.getMask().getContent());
+        _findInput.setMask(_pattern.getMask());
       }
       _image = aPtn.getImage();
       _findInput.setTarget(possibleImageResizeOrCallback(_image, aPtn.getResize()));
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setIsPattern();
       _results = Finder2.find(_findInput);
-      //currentMatchIndex = 0;
+      currentMatchIndex = 0;
       return aPtn.getFilename();
     } else {
       return null;
@@ -194,14 +201,18 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String find(Image img) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     if (img.isValid()) {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
       _findInput.setSimilarity(Settings.MinSimilarity);
       _results = Finder2.find(_findInput);
-      //currentMatchIndex = 0;
+      currentMatchIndex = 0;
       return img.getFilename();
-    } else if (img.isValid()) {
+    } else if (img.isUseable()) {
       return find(new Pattern(img));
     } else {
       return null;
@@ -216,6 +227,10 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String find(BufferedImage img) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     return find(new Image(img));
   }
 
@@ -244,6 +259,10 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String findAll(String imageOrText) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     Image img = Image.create(imageOrText);
     _image = img;
     if (img.isText()) {
@@ -263,6 +282,10 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String findAll(Pattern aPtn) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     if (aPtn.isValid()) {
       _pattern = aPtn;
       _image = aPtn.getImage();
@@ -271,11 +294,11 @@ public class Finder implements Matches {
       _findInput.setIsPattern();
       _findInput.setFindAll();
       if (_pattern.hasMask()) {
-        _findInput.setMask(_pattern.getMask().getContent());
+        _findInput.setMask(_pattern.getMask());
       }
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
-      //currentMatchIndex = 0;
+      currentMatchIndex = 0;
       timing.end();
       return aPtn.getFilename();
     } else {
@@ -291,6 +314,10 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String findAll(Image img) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     if (img.isValid()) {
       _image = img;
       _findInput.setTarget(possibleImageResizeOrCallback(img));
@@ -298,7 +325,7 @@ public class Finder implements Matches {
       _findInput.setFindAll();
       Debug timing = Debug.startTimer("Finder.findAll");
       _results = Finder2.find(_findInput);
-      //currentMatchIndex = 0;
+      currentMatchIndex = 0;
       timing.end();
       return img.getFilename();
     } else {
@@ -317,10 +344,14 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String findText(String text) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     _findInput.setTargetText(text);
     _findInput.setWhere(where);
     _results = Finder2.find(_findInput);
-    //currentMatchIndex = 0;
+    currentMatchIndex = 0;
     return text;
   }
 
@@ -372,22 +403,12 @@ public class Finder implements Matches {
    * @return null. if find setup not possible
    */
   public String findAllText(String text) {
+    if (!valid) {
+      log(-1, "not valid");
+      return null;
+    }
     _findInput.setFindAll();
     return findText(text);
-  }
-
-  private static String markRegex = Key.ESC;
-
-  public static String asRegEx(String text) {
-    return markRegex + text;
-  }
-
-  public static boolean isRegEx(String text) {
-    return text.startsWith(markRegex);
-  }
-
-  public static java.util.regex.Pattern getRegEx(String text) {
-    return java.util.regex.Pattern.compile(text.substring(1));
   }
   //</editor-fold>
 
@@ -403,9 +424,9 @@ public class Finder implements Matches {
   public <RI> List<Match> getListFor(RI what) {
     List<Match> matches = new ArrayList<>();
     if (what instanceof Element)
-      while (hasNext()) {
-        matches.add(((Element) what).relocate(next()));
-      }
+    while (hasNext()) {
+      matches.add(((Element) what).relocate(next()));
+    }
     return matches;
   }
 
@@ -432,18 +453,45 @@ public class Finder implements Matches {
         match.x += _region.x;
         match.y += _region.y;
       }
+      IScreen parentScreen = null;
       if (screenFinder && _region != null) {
-        match.setScreen(_region.getScreen());
+        parentScreen = _region.getScreen();
+        match = Match.create(match, parentScreen);
       }
       if (_pattern != null) {
-        match.setTargetOffset(_pattern.getTargetOffset());
+        Location offset = _pattern.getTargetOffset();
+        match.setTargetOffset(offset);
       }
-      match.onScreen(screenFinder);
+      match.setOnScreen(screenFinder);
       match.setImage(_image);
     }
     return match;
   }
 
+  /*
+    public Match next() {
+      Match match = null;
+      if (hasNext()) {
+        FindResult fr = _results.get(_cur_result_i++);
+        IScreen parentScreen = null;
+        if (screenFinder && _region != null) {
+          parentScreen = _region.getScreen();
+        }
+        match = new Match(fr, parentScreen);
+        match.setOnScreen(screenFinder);
+        fr.delete();
+        if (_region != null) {
+          match = _region.toGlobalCoord(match);
+        }
+        if (_pattern != null) {
+          Location offset = _pattern.getTargetOffset();
+          match.setTargetOffset(offset);
+        }
+        match.setImage(_image);
+      }
+      return match;
+    }
+  */
 
   @Override
   public void remove() {
@@ -455,17 +503,6 @@ public class Finder implements Matches {
     _results = null;
     _pattern = null;
   }
-
-  @Override
-  public Match asMatch() {
-    return null;
-  }
-
-  @Override
-  public List<Match> asList() {
-    return null;
-  }
-
 //</editor-fold>
 
   static final int PIXEL_DIFF_THRESHOLD_DEFAULT = 3;
@@ -489,7 +526,7 @@ public class Finder implements Matches {
   protected static class Finder2 {
 
     static {
-      RunTime.loadLibrary(RunTime.libOpenCV);
+      RunTime.loadOpenCV();
     }
 
     protected static void init() {
@@ -514,8 +551,8 @@ public class Finder implements Matches {
 
     private static Log log = new Log("Finder2");
 
-    private Mat mBase = SXOpenCV.newMat();
-    private Mat mResult = SXOpenCV.newMat();
+    private Mat mBase = Commons.getNewMat();
+    private Mat mResult = Commons.getNewMat();
 
     private enum FindType {
       ONE, ALL
@@ -529,7 +566,6 @@ public class Finder implements Matches {
     }
     //</editor-fold>
 
-    //<editor-fold desc="find internal">
     private FindInput2 fInput = null;
 
     protected static FindResult2 find(FindInput2 findInput) {
@@ -594,8 +630,8 @@ public class Finder implements Matches {
       boolean downSizeFound = false;
       double downSizeScore = -1;
       double downSizeWantedScore = 0;
-      Mat findWhere = SXOpenCV.newMat();
-      Mat findWhat = SXOpenCV.newMat();
+      Mat findWhere = Commons.getNewMat();
+      Mat findWhat = Commons.getNewMat();
 
       boolean trueOrFalse = findInput.shouldSearchDownsized(resizeMinFactor);
       //TODO search downsized?
@@ -637,8 +673,8 @@ public class Finder implements Matches {
           begin_lap = new Date().getTime();
           int margin = ((int) findInput.getResizeFactor()) + 1;
           Rectangle rSub = new Rectangle(Math.max(0, maxLocX - margin), Math.max(0, maxLocY - margin),
-                  Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
-                  Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
+              Math.min(findInput.getTarget().width() + 2 * margin, findWhere.width()),
+              Math.min(findInput.getTarget().height() + 2 * margin, findWhere.height()));
           Rectangle rWhere = new Rectangle(0, 0, findWhere.cols(), findWhere.rows());
           Rectangle rSubNew = rWhere.intersection(rSub);
           Rect rectSub = new Rect(rSubNew.x, rSubNew.y, rSubNew.width, rSubNew.height);
@@ -651,7 +687,7 @@ public class Finder implements Matches {
           }
           if (SX.isNotNull(findResult)) {
             log.trace("doFindImage after down: %%%.2f(?%%%.2f) %d msec",
-                    maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
+                maxVal * 100, wantedScore * 100, new Date().getTime() - begin_lap);
           }
         }
       }
@@ -662,8 +698,8 @@ public class Finder implements Matches {
         mMinMax = Core.minMaxLoc(mResult);
         if (!isCheckLastSeen) {
           log.trace("doFindImage: in original: %%%.4f (?%.0f) %d msec %s",
-                  mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
-                  findInput.hasMask() ? " **withMask" : "");
+              mMinMax.maxVal * 100, findInput.getScore() * 100, new Date().getTime() - begin_lap,
+              findInput.hasMask() ? " **withMask" : "");
         }
         if (mMinMax.maxVal > findInput.getScore()) {
           findResult = new FindResult2(mResult, findInput);
@@ -674,7 +710,7 @@ public class Finder implements Matches {
     }
 
     private Mat doFindMatch(Mat what, Mat where, FindInput2 findInput) {
-      Mat mResult = SXOpenCV.newMat();
+      Mat mResult = Commons.getNewMat();
       if (what.empty()) {
         log.error("doFindMatch: image conversion to cvMat did not work");
       } else {
@@ -772,7 +808,7 @@ public class Finder implements Matches {
                 Rectangle rword = new Rectangle(wordInLine.getRect());
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                wordsMatch.add(new Match(rword, wordInLine.score(), wordInLine.getText(), where));
+                wordsMatch.add(new Match(rword, wordInLine.getScore(), wordInLine.getText(), where));
               }
             } else {
               int startText = -1;
@@ -796,16 +832,16 @@ public class Finder implements Matches {
               }
               if (startText > -1 && endText > -1) {
                 Rectangle rword = (new Rectangle(wordsInLine.get(startText).getRect())).
-                        union(new Rectangle(wordsInLine.get(endText).getRect()));
+                    union(new Rectangle(wordsInLine.get(endText).getRect()));
                 rword.x += wordOrLine.x;
                 rword.y += wordOrLine.y;
-                double score = (wordsInLine.get(startText).score() + wordsInLine.get(startText).score()) / 2;
+                double score = (wordsInLine.get(startText).getScore() + wordsInLine.get(startText).getScore()) / 2;
                 String foundText = wordsInLine.get(startText).getText() + " ... " + wordsInLine.get(endText);
                 wordsMatch.add(new Match(rword, score, foundText, where));
               }
             }
           } else {
-            wordsMatch.add(new Match(match.getRect(), match.score(), match.getText(), where));
+            wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
           }
         }
         if (wordsMatch.size() > 0) {
@@ -822,7 +858,7 @@ public class Finder implements Matches {
         }
         for (Match match : wordsFound) {
           Rectangle wordOrLine = match.getRect();
-          wordsMatch.add(new Match(match.getRect(), match.score(), match.getText(), where));
+          wordsMatch.add(new Match(match.getRect(), match.getScore(), match.getText(), where));
         }
         findResult = new FindResult2(wordsMatch, fInput);
       }
@@ -847,41 +883,31 @@ public class Finder implements Matches {
 
     public static List<Region> findChanges(FindInput2 findInput) {
       findInput.setAttributes();
-      Mat previousGray = SXOpenCV.newMat();
-      Mat nextGray = SXOpenCV.newMat();
-      Mat mDiffAbs = SXOpenCV.newMat();
-      Mat mDiffThresh = SXOpenCV.newMat();
+      Mat previousGray = Commons.getNewMat();
+      Mat nextGray = Commons.getNewMat();
+      Mat mDiffAbs = Commons.getNewMat();
+      Mat mDiffTresh = Commons.getNewMat();
+
       Imgproc.cvtColor(findInput.getBase(), previousGray, toGray);
       Imgproc.cvtColor(findInput.getTarget(), nextGray, toGray);
       Core.absdiff(previousGray, nextGray, mDiffAbs);
-      Imgproc.threshold(mDiffAbs, mDiffThresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
+      Imgproc.threshold(mDiffAbs, mDiffTresh, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
 
       List<Region> rectangles = new ArrayList<>();
-      if (Core.countNonZero(mDiffThresh) > IMAGE_DIFF_THRESHOLD) {
+      if (Core.countNonZero(mDiffTresh) > IMAGE_DIFF_THRESHOLD) {
         Imgproc.threshold(mDiffAbs, mDiffAbs, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
-        Imgproc.dilate(mDiffAbs, mDiffAbs, SXOpenCV.newMat());
+        Imgproc.dilate(mDiffAbs, mDiffAbs, Commons.getNewMat());
         Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
         Imgproc.morphologyEx(mDiffAbs, mDiffAbs, Imgproc.MORPH_CLOSE, se);
+
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat mHierarchy = SXOpenCV.newMat();
+        Mat mHierarchy = Commons.getNewMat();
         Imgproc.findContours(mDiffAbs, contours, mHierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        for (MatOfPoint contour : contours) {
-          int x1 = 99999;
-          int y1 = 99999;
-          int x2 = 0;
-          int y2 = 0;
-          List<org.opencv.core.Point> points = contour.toList();
-          for (Point point : points) {
-            int x = (int) point.x;
-            int y = (int) point.y;
-            if (x < x1) x1 = x;
-            if (x > x2) x2 = x;
-            if (y < y1) y1 = y;
-            if (y > y2) y2 = y;
-          }
-          Region rect = new Region(x1, y1, x2 - x1, y2 - y1);
-          rectangles.add(rect);
-        }
+        rectangles = contoursToRectangle(contours);
+
+        //Core.subtract(mDiffAbs, mDiffAbs, mChanges);
+        //Imgproc.drawContours(mChanges, contours, -1, new Scalar(255));
+        //logShow(mDiffAbs);
       }
       return rectangles;
     }
@@ -910,6 +936,72 @@ public class Finder implements Matches {
       return rects;
     }
     //</editor-fold>
+
+    //<editor-fold desc="OpenCV Mat">
+    public static boolean isOpaque(BufferedImage bImg) {
+      if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+        List<Mat> mats = Commons.getMatList(bImg);
+        Mat transMat = mats.get(0);
+        int allPixel = (int) transMat.size().area();
+        int nonZeroPixel = Core.countNonZero(transMat);
+        if (nonZeroPixel != allPixel) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    protected static Mat matMulti(Mat mat, int channels) {
+      if (mat.type() != CvType.CV_8UC1 || mat.channels() == channels) {
+        return mat;
+      }
+      List<Mat> listMat = new ArrayList<>();
+      for (int n = 0; n < channels; n++) {
+        listMat.add(mat);
+      }
+      Mat mResult = Commons.getNewMat();
+      Core.merge(listMat, mResult);
+      return mResult;
+    }
+
+    protected static List<Mat> extractMask(Mat target, boolean onlyChannel4) {
+      List<Mat> extracted = new ArrayList<>();
+      Mat mask = new Mat();
+      Mat targetBGR = new Mat();
+      int nChannels = target.channels();
+      if (nChannels == 4) {
+        List<Mat> mats = new ArrayList<Mat>();
+        Core.split(target, mats);
+        mask = mats.remove(3);
+        Core.merge(mats, targetBGR);
+        int allPixel = (int) mask.size().area();
+        int nonZeroPixel = Core.countNonZero(mask);
+        if (nonZeroPixel != allPixel) {
+          Mat maskMask = new Mat();
+          Imgproc.threshold(mask, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+          mask = Finder2.matMulti(maskMask, 3);
+        } else {
+          mask = new Mat();
+        }
+      } else {
+        targetBGR = target;
+      }
+      if (!onlyChannel4 && (mask.empty() || nChannels == 3)) {
+        Mat mGray = new Mat();
+        Imgproc.cvtColor(targetBGR, mGray, toGray);
+        int allPixel = (int) mGray.size().area();
+        int nonZeroPixel = Core.countNonZero(mGray);
+        if (nonZeroPixel != allPixel) {
+          Mat maskMask = new Mat();
+          Imgproc.threshold(mGray, maskMask, 0.0, 1.0, Imgproc.THRESH_BINARY);
+          mask = Finder2.matMulti(maskMask, 3);
+        }
+      }
+      extracted.add(targetBGR);
+      extracted.add(mask);
+      return extracted;
+    }
+    //</editor-fold>
   }
 
   private static class FindInput2 {
@@ -918,7 +1010,7 @@ public class Finder implements Matches {
       Finder2.init();
     }
 
-    private Mat mask = SXOpenCV.newMat();
+    private Mat mask = new Mat();
 
     protected boolean hasMask() {
       return !mask.empty();
@@ -932,7 +1024,7 @@ public class Finder implements Matches {
       this.mask = mask;
     }
 
-    private Mat targetBGR = SXOpenCV.newMat();
+    private Mat targetBGR = new Mat();
 
     public void setWhere(Region where) {
       this.where = where;
@@ -946,11 +1038,11 @@ public class Finder implements Matches {
 
     public BufferedImage getImage() {
       if (where != null) {
-        return where.getScreen().capture(where).getBufferedImage();
+        return where.getScreen().capture(where).getImage();
       } else if (source != null) {
-        return Element.getBufferedImage(source);
+        return Commons.getBufferedImage(source);
       } else if (image != null) {
-        return image.getBufferedImage();
+        return image.get();
       }
       return null;
     }
@@ -995,8 +1087,8 @@ public class Finder implements Matches {
         }
         if (source.width() < target.width() || source.height() < target.height()) {
           throw new SikuliXception(
-                  String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
-                          target.width(), target.height(), source.width(), source.height()));
+              String.format("image to search (%d, %d) is larger than image to search in (%d, %d)",
+                  target.width(), target.height(), source.width(), source.height()));
         }
         return true;
       }
@@ -1074,6 +1166,12 @@ public class Finder implements Matches {
       return !hasMask() && !isExact() && !isFindAll() && getResizeFactor() > resizeMinFactor;
     }
 
+    private double scoreMaxDiff = 0.05;
+
+    protected double getScoreMaxDiff() {
+      return scoreMaxDiff;
+    }
+
     protected double getScore() {
       return similarity;
     }
@@ -1082,66 +1180,80 @@ public class Finder implements Matches {
       findAll = true;
     }
 
-    private double getResizeFactor() {
+    protected boolean plainColor = false;
+    protected boolean blackColor = false;
+    protected boolean whiteColor = false;
+    protected boolean grayColor = false;
+
+    public boolean isPlainColor() {
+      return isValid() && plainColor;
+    }
+
+    public boolean isBlack() {
+      return isValid() && blackColor;
+    }
+
+    public boolean isGray() {
+      return isValid() && grayColor;
+    }
+
+    public boolean isWhite() {
+      return isValid() && blackColor;
+    }
+
+    public double getResizeFactor() {
       return isValid() ? resizeFactor : 1;
     }
 
-    private double resizeFactor;
+    protected double resizeFactor;
 
     private final int resizeMinDownSample = 12;
+    private int[] meanColor = null;
+    private double minThreshhold = 1.0E-5;
+
+    public Color getMeanColor() {
+      return new Color(meanColor[2], meanColor[1], meanColor[0]);
+    }
+
+    public boolean isMeanColorEqual(Color otherMeanColor) {
+      Color col = getMeanColor();
+      int r = (col.getRed() - otherMeanColor.getRed()) * (col.getRed() - otherMeanColor.getRed());
+      int g = (col.getGreen() - otherMeanColor.getGreen()) * (col.getGreen() - otherMeanColor.getGreen());
+      int b = (col.getBlue() - otherMeanColor.getBlue()) * (col.getBlue() - otherMeanColor.getBlue());
+      return Math.sqrt(r + g + b) < minThreshhold;
+    }
 
     double targetStdDev = -1;
     double targetMean = -1;
 
-    private int[] meanColor = null;
-    private double minThreshhold = 1.0E-5;
-
-    private boolean plainColor = false;
-    private boolean blackColor = false;
-    private boolean whiteColor = false;
-    private boolean grayColor = false;
-    private boolean isPlainColor() {
-      return isValid() && plainColor;
-    }
-    private boolean isBlack() {
-      return isValid() && blackColor;
-    }
-    private boolean isGray() {
-      return isValid() && grayColor;
-    }
-    private boolean isWhite() {
-      return isValid() && whiteColor;
-    }
-
-    private void setAttributes() {
+    public void setAttributes() {
       if (targetTypeText) {
         return;
       }
-      List<Mat> mats = SXOpenCV.extractMask(target, true);
+      List<Mat> mats = Finder2.extractMask(target, true);
       targetBGR = mats.get(0);
       if (mask.empty()) {
         mask = mats.get(1);
       }
 
-      //TODO plaincolor/black with masking
       if (targetBGR.channels() == 1) {
         grayColor = true;
       }
       plainColor = false;
       blackColor = false;
       resizeFactor = Math.min(((double) targetBGR.width()) / resizeMinDownSample,
-              ((double) targetBGR.height()) / resizeMinDownSample);
+          ((double) targetBGR.height()) / resizeMinDownSample);
       resizeFactor = Math.max(1.0, resizeFactor);
       MatOfDouble pMean = new MatOfDouble();
       MatOfDouble pStdDev = new MatOfDouble();
-      Mat check = SXOpenCV.newMat();
 
       if (mask.empty()) {
-        check = targetBGR;
+        Core.meanStdDev(targetBGR, pMean, pStdDev);
       } else {
-        Core.multiply(targetBGR, mask, check);
+        List<Mat> maskMats = new ArrayList<>();
+        Core.split(mask, maskMats);
+        Core.meanStdDev(targetBGR, pMean, pStdDev, maskMats.get(0));
       }
-      Core.meanStdDev(check, pMean, pStdDev);
       double sum = 0.0;
       double[] arr = pStdDev.toArray();
       for (int i = 0; i < arr.length; i++) {
@@ -1165,30 +1277,6 @@ public class Finder implements Matches {
       if (meanColor.length > 1) {
         whiteColor = isMeanColorEqual(Color.WHITE);
       }
-    }
-
-    private Color getMeanColor() {
-      return new Color(meanColor[2], meanColor[1], meanColor[0]);
-    }
-
-    private boolean isMeanColorEqual(Color otherMeanColor) {
-      Color col = getMeanColor();
-      int r = (col.getRed() - otherMeanColor.getRed()) * (col.getRed() - otherMeanColor.getRed());
-      int g = (col.getGreen() - otherMeanColor.getGreen()) * (col.getGreen() - otherMeanColor.getGreen());
-      int b = (col.getBlue() - otherMeanColor.getBlue()) * (col.getBlue() - otherMeanColor.getBlue());
-      return Math.sqrt(r + g + b) < minThreshhold;
-    }
-
-    public String dump() {
-      Object base = null;
-      if (where != null) {
-        base = where;
-      } else if (source != null) {
-        base = source;
-      } else if (image != null) {
-        base = image;
-      }
-      return String.format("where: %s", base);
     }
 
     public String toString() {
@@ -1326,10 +1414,10 @@ public class Finder implements Matches {
           if (SX.isNull(match)) {
             break;
           }
-          meanScore = (meanScore * matches.size() + match.score()) / (matches.size() + 1);
-          bestScore = Math.max(bestScore, match.score());
+          meanScore = (meanScore * matches.size() + match.getScore()) / (matches.size() + 1);
+          bestScore = Math.max(bestScore, match.getScore());
           matches.add(match);
-          scores.add(match.score());
+          scores.add(match.getScore());
         }
         stdDevScore = calcStdDev(scores, meanScore);
         return matches;

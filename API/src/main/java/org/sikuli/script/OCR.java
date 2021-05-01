@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -23,7 +24,7 @@ import java.util.*;
  */
 public class OCR {
 
-  //<editor-fold desc="00 Global stuff for OCR">
+  //<editor-fold desc="02 housekeeping">
 
   /**
    * OCR Engine modes.
@@ -33,7 +34,6 @@ public class OCR {
    * 2  TESSERACT_LSTM_COMBINED  LSTM + Legacy.
    * 3  DEFAULT         Default, based on what is available. (DEFAULT)
    * </pre>
-   * Usage: OCR.OEM.MODE
    */
   public enum OEM {
     TESSERACT_ONLY, // 0
@@ -60,7 +60,6 @@ public class OCR {
    * 12  SPARSE_TEXT_OSD  Sparse text with OSD.
    * 13  RAW_LINE         Raw line. Treat the image as a single text line, bypassing hacks that are Tesseract-specific.
    * </pre>
-   * Usage: OCR.PSM.MODE
    */
   public enum PSM {
     OSD_ONLY, // 0
@@ -87,215 +86,40 @@ public class OCR {
    * INTERNAL: Tesseract option.
    */
   protected static final int PAGE_ITERATOR_LEVEL_LINE = 2;
+  //</editor-fold>
 
+  //<editor-fold desc="05 options">
   private static Options options = new Options();
 
   /**
-   * access/get the current global Options as singleton.
+   * access/get the current global Options (Singleton).
    *
    * @return the global Options
    */
   public static Options globalOptions() {
+    if (!Settings.OcrLanguage.equals("eng") && !Settings.OcrLanguage.isEmpty()) {
+      options.language(Settings.OcrLanguage);
+    }
     return options;
   }
 
   /**
-   * Resets the global options to the initial defaults.
-   * <pre>
-   * oem = OcrEngineMode.DEFAULT.ordinal();
-   * psm = PageSegMode.AUTO.ordinal();
-   * language = Settings.OcrLanguage;
-   * dataPath = null; //(see comment)
-   * textHeight = getDefaultTextHeight();
-   * variables.clear();
-   * configs.clear();
-   * </pre>
-   * comment on <b>dataPath==null</b>: dataPath will be evaluated at the next use of an OCR feature
-   * to the SikuliX default or Settings.OcrDataPath (if set)
-   *
-   * @return the global Options
-   */
-  public static Options reset() {
-    return globalOptions().reset();
-  }
-
-  /**
-   * prints out the current global options.
-   */
-  public static void status() {
-    Debug.logp("Global settings " + globalOptions().toString());
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="20 Read text">
-  /**
-   * Reads text from the given source.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return text
-   */
-  public static <SFIRBS> String readText(SFIRBS from) {
-    return readText(from, globalOptions());
-  }
-
-  /**
-   * Reads text from the given source.
-   * <p>Uses the given options
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  Options to be used
-   * @return text
-   */
-  public static <SFIRBS> String readText(SFIRBS from, Options options) {
-    return TextRecognizer.get(options).readText(from);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="21 Read or get lines of text">
-  /**
-   * Reads text from the given source (line).
-   * <p>assuming the source contains a single line of text.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return text
-   */
-  public static <SFIRBS> String readLine(SFIRBS from) {
-    return readLine(from, globalOptions());
-  }
-
-  /**
-   * Reads text from the given source (line).
-   * <p>assuming the source contains a single line of text.
-   * <p>Uses the given options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  options for the used TextRecognizer
-   * @return text
-   */
-  public static <SFIRBS> String readLine(SFIRBS from, Options options) {
-    return readText(from, options.clone().asLine());
-  }
-
-  /**
-   * Treats text from the given source as lines.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return lines as a list of matches
-   */
-  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
-    return readLines(from, globalOptions());
-  }
-
-  /**
-   * Treats text from the given source as lines.
-   * <p>Uses the given options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  options for the used TextRecognizer
-   * @return lines as a list of matches
-   */
-  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
-    return TextRecognizer.get(options).readLines(from);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="22 Read or get words of text">
-  /**
-   * Reads text from the given source (word).
-   * <p>assuming the source contains a single word of text.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return text
-   */
-  public static <SFIRBS> String readWord(SFIRBS from) {
-    return readWord(from, globalOptions());
-  }
-
-  /**
-   * Reads text from the given source (word).
-   * <p>assuming the source contains a single word of text.
-   * <p>Uses the given options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  options for the used TextRecognizer
-   * @return text
-   */
-  public static <SFIRBS> String readWord(SFIRBS from, Options options) {
-    return readText(from, options.clone().asWord());
-  }
-
-  /**
-   * Treats text from the given source as words.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return words as alist of matches
-   */
-  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
-    return readWords(from, OCR.globalOptions());
-  }
-
-  /**
-   * Treats text from the given source as words.
-   * <p>Uses the given options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  options for the used TextRecognizer
-   * @return words as a list of matches
-   */
-  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
-    return TextRecognizer.get(options).readWords(from);
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="23 Assume the text is one character">
-  /**
-   * Reads text from the given source (character).
-   * <p>assuming the source contains a single character.
-   * <p>Uses the global options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @return text
-   */
-  public static <SFIRBS> String readChar(SFIRBS from) {
-    return readChar(from, globalOptions());
-  }
-
-  /**
-   * Reads text from the given source (character).
-   * <p>assuming the source contains a single character.
-   * <p>Uses the given options.
-   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
-   * @param from     source to read text from
-   * @param options  options for the used TextRecognizer
-   * @return text
-   */
-  public static <SFIRBS> String readChar(SFIRBS from, Options options) {
-    return readText(from, options.clone().asChar());
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="30 The options set for OCR (OCR.Options.class)">
-  /**
    * A container for the options relevant for using {@link OCR} on
-   * {@link Region} or {@link Image}.
-   * <p>Use {@link OCR.Options} to get a new option set</p>
-   * <p>Use {@link OCR#globalOptions} to access the global options</p>
+   * {@link Region}s or {@link Image}s.
+   * <p>Use OCR.{@link #Options()} to get a new option set</p>
+   * <p>use OCR.{@link #globalOptions()} to access the global options</p>
    * <p>
    * In case you have to consult the Tesseract docs
    * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
    */
   public static class Options implements Cloneable {
 
-    //<editor-fold desc="00 Global stuff for OCR.Options (OCR.Options.global)">
+    //<editor-fold desc="02 init, reset">
+
     /**
      * create a new Options set from the initial defaults settings.
      * <p>
-     * about the default settings see {@link OCR#reset}
+     * about the default settings see {@link #reset()}
      */
     public Options() {
       reset();
@@ -315,8 +139,8 @@ public class OCR {
       options.isLightFont = isLightFont;
       options.textHeight = textHeight;
       options.resizeInterpolation = resizeInterpolation;
-      options.variablesStore = new LinkedHashMap<>(variablesStore);
-      options.configsStore = new LinkedHashSet<>(configsStore);
+      options.variables = new LinkedHashMap<>(variables);
+      options.configs = new LinkedHashSet<>(configs);
       options.bestDPI = bestDPI;
       options.userDPI = userDPI;
       return options;
@@ -324,20 +148,30 @@ public class OCR {
 
     /**
      * resets this Options set to the initial defaults.
+     * <pre>
+     * oem = OcrEngineMode.DEFAULT.ordinal();
+     * psm = PageSegMode.AUTO.ordinal();
+     * language = Settings.OcrLanguage;
+     * dataPath = null; //(see comment)
+     * textHeight = getDefaultTextHeight();
+     * variables.clear();
+     * configs.clear();
+     * </pre>
+     * comment on <b>dataPath==null</b>: dataPath will be evaluated at the next use of an OCR feature
+     * to the SikuliX default or Settings.OcrDataPath (if set)
      *
      * @return this
-     * @see OCR#reset()
      */
     public Options reset() {
       oem = OEM.DEFAULT.ordinal();
       psm = PSM.AUTO.ordinal();
-      language = Settings.OcrLanguage;
+      language = "eng";
       dataPath = null;
       isLightFont = false;
       textHeight = getDefaultTextHeight();
-      resizeInterpolation = Image.Interpolation.LINEAR;
-      variablesStore.clear();
-      configsStore.clear();
+      resizeInterpolation = Commons.Interpolation.LINEAR;
+      variables.clear();
+      configs.clear();
       bestDPI = null;
       userDPI(TESSERACT_USER_DEFINED_DPI);
       return this;
@@ -355,13 +189,14 @@ public class OCR {
      * @return a text string as before
      */
     public String toString() {
+      String light = isLightFont() ? "light" : "";
       String msg = String.format(
-          "OCR.Options:" +
-              "\ndata = %s" +
-              "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d)",
-          dataPath(), language(), oem(), psm(),
-          textHeight(), factor(),
-          Toolkit.getDefaultToolkit().getScreenResolution());
+              "OCR.Options:" +
+                      "\ndata = %s" +
+                      "\nlanguage(%s) oem(%d) psm(%d) height(%.1f) factor(%.2f) dpi(%d) %s",
+              dataPath(), language(), oem(), psm(),
+              textHeight(), factor(),
+              Toolkit.getDefaultToolkit().getScreenResolution(), light);
       if (hasVariablesOrConfigs()) {
         msg += "\n" + logVariablesConfigs();
       }
@@ -374,12 +209,12 @@ public class OCR {
     protected void validate() {
       if (!new File(dataPath(), language() + ".traineddata").exists()) {
         throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s",
-            language(), dataPath()));
+                language(), dataPath()));
       }
     }
     //</editor-fold>
 
-    //<editor-fold desc="10 Handle OEM - OCR Engine Mode (OCR.Options.oem)">
+    //<editor-fold desc="10 oem">
     private int oem;
 
     /**
@@ -420,7 +255,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="11 Handle PSM - Page Segmentation Mode (OCR.Options.psm)">
+    //<editor-fold desc="11 psm">
     private int psm;
 
     /**
@@ -446,10 +281,10 @@ public class OCR {
       }
 
       if (psm == PSM.OSD_ONLY.ordinal() || psm == PSM.AUTO_OSD.ordinal()
-          || psm == PSM.SPARSE_TEXT_OSD.ordinal()) {
+              || psm == PSM.SPARSE_TEXT_OSD.ordinal()) {
         if (!new File(dataPath(), "osd.traineddata").exists()) {
           throw new IllegalArgumentException(String.format("OCR: setPSM(%d): needs OSD, " +
-              "but no osd.traineddata found in tessdata folder", psm));
+                  "but no osd.traineddata found in tessdata folder", psm));
         }
       }
 
@@ -510,7 +345,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="12 Handle languages (OCR.Options.language)">
+    //<editor-fold desc="12 language">
     private String language;
 
     /**
@@ -546,7 +381,7 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="13 Handle datapath (OCR.Options.dataPath)">
+    //<editor-fold desc="13 datapath">
     protected static String defaultDataPath = null;
     private String dataPath;
 
@@ -597,7 +432,6 @@ public class OCR {
       return isLightFont;
     }
 
-    //<editor-fold desc="14 Handle the pre-OCR image optimization (OCR.Options.optimization)">
     /**
      * Convenience: Configure the Option's optimization.
      * <p>
@@ -650,7 +484,7 @@ public class OCR {
     /**
      * Configure the image optimization.
      * <p>
-     * should be the (in case average) fontsize as base for internally calculating the {@link OCR.Options#textHeight()}
+     * should be the (in case average) fontsize as base for internally calculating the {@link #textHeight()}
      * <p><b>NOTE:</b> should only be tried in cases, where the defaults do not lead to acceptable results</p>
      * @param size of a font
      * @return this Options
@@ -667,20 +501,19 @@ public class OCR {
       }
     }
 
-    private Image.Interpolation resizeInterpolation;
+    private Commons.Interpolation resizeInterpolation;
 
-    protected Image.Interpolation resizeInterpolation() {
+    protected Commons.Interpolation resizeInterpolation() {
       return resizeInterpolation;
     }
 
     /**
-     * INTERNAL: (under investigation).
+     * INTERNAL (under investigation).
      * <p>should not be used - not supported
-     * <p>see {@link Image.Interpolation} for method options
-     * @param method the interpolation method
+     * @param method {@link Commons.Interpolation}
      * @return this Options
      */
-    public Options resizeInterpolation(Image.Interpolation method) {
+    public Options resizeInterpolation(Commons.Interpolation method) {
       resizeInterpolation = method;
       return this;
     }
@@ -692,7 +525,7 @@ public class OCR {
     }
 
     /**
-     * INTERNAL: (under investigation).
+     * INTERNAL (under investigation).
      * <p>should not be used - not supported
      * @param dpi the dpi value
      * @return this Options
@@ -706,7 +539,7 @@ public class OCR {
     private int userDPI;
 
     /**
-     * INTERNAL: (under investigation).
+     * INTERNAL (under investigation).
      * <p>should not be used - not supported
      * @param dpi 70 .. 2400
      * @return this Options
@@ -734,15 +567,15 @@ public class OCR {
     }
     //</editor-fold>
 
-    //<editor-fold desc="15 Handle Tesseract variables (OCR.Options.variable)">
-    private Map<String, String> variablesStore = new LinkedHashMap<>();
+    //<editor-fold desc="15 variables">
+    private Map<String, String> variables = new LinkedHashMap<>();
 
     /**
      * @return the currently stored variables
-     * @see #variable
+     * @see #variable(String, String)
      */
     public Map<String, String> variables() {
-      return variablesStore;
+      return variables;
     }
 
     /**
@@ -756,20 +589,21 @@ public class OCR {
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
      */
     public Options variable(String key, String value) {
-      variablesStore.put(key, value);
+      variables.put(key, value);
       return this;
     }
     //</editor-fold>
 
-    //<editor-fold desc="16 Handle Tesseract configs (OCR.Options.configs)">
-    private Set<String> configsStore = new LinkedHashSet<>();
+    //<editor-fold desc="16 configs">
+    private Set<String> configs = new LinkedHashSet<>();
 
     /**
      * get current configs
      * @return currently stored names of configs files
+     * @see #configs(String...)
      */
     public List<String> configs() {
-      return new ArrayList<>(configsStore);
+      return new ArrayList<>(configs);
     }
 
     /**
@@ -792,14 +626,14 @@ public class OCR {
      * @see <a href="https://github.com/tesseract-ocr/tesseract/wiki/Documentation">Tesseract docs</a>
      */
     public Options configs(List<String> configs) {
-      this.configsStore = new LinkedHashSet<>(configs);
+      this.configs = new LinkedHashSet<>(configs);
       return this;
     }
     //</editor-fold>
 
-    //<editor-fold desc="20 helpers private">
+    //<editor-fold desc="20 helpers">
     private boolean hasVariablesOrConfigs() {
-      return !configsStore.isEmpty() || !variablesStore.isEmpty();
+      return !configs.isEmpty() || !variables.isEmpty();
     }
 
     private String logVariablesConfigs() {
@@ -814,11 +648,11 @@ public class OCR {
         logConfigs = "configs: " + logConfigs;
       }
       String logVariables = "";
-      for (String key : variablesStore.keySet()) {
+      for (String key : variables.keySet()) {
         if (!logVariables.isEmpty()) {
           logVariables += ", ";
         }
-        logVariables += key + ":" + variablesStore.get(key);
+        logVariables += key + ":" + variables.get(key);
       }
       if (!logVariables.isEmpty()) {
         logVariables = "variables: " + logVariables;
@@ -829,6 +663,185 @@ public class OCR {
       return (logConfigs + logVariables).trim();
     }
     //</editor-fold>
-  } // end-class
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="10 global">
+  /**
+   * Resets the global options to the initial defaults.
+   * @see OCR.Options#reset()
+   * @return the global Options
+   */
+  public static Options reset() {
+    return globalOptions().reset();
+  }
+
+  /**
+   * prints out the current global options.
+   */
+  public static void status() {
+    Debug.logp("Global settings " + globalOptions().toString());
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="20 text">
+  /**
+   * Reads text from the given source.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readText(SFIRBS from) {
+    return readText(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source.
+   * <p>Uses the given options
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  Options to be used
+   * @return text
+   */
+  public static <SFIRBS> String readText(SFIRBS from, Options options) {
+    if (options.psm() == PSM.AUTO.ordinal()) {
+      options.psm(PSM.SINGLE_BLOCK);
+    }
+    return TextRecognizer.get(options).readText(from);
+  }
+  //</editor-fold>
+
+  /**
+   * chapter info
+   */
+  //<editor-fold desc="21 line">
+
+  /**
+   * Reads text from the given source (line).
+   * <p>assuming the source contains a single line of text.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readLine(SFIRBS from) {
+    return readLine(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source (line).
+   * <p>assuming the source contains a single line of text.
+   * <p>Uses the given options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readLine(SFIRBS from, Options options) {
+    return readText(from, options.clone().asLine());
+  }
+
+  /**
+   * Reads text from the given source as lines.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return lines as a list of matches
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from) {
+    return readLines(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source as lines.
+   * <p>Uses the given options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  options for the used TextRecognizer
+   * @return lines
+   */
+  public static <SFIRBS> List<Match> readLines(SFIRBS from, Options options) {
+    return TextRecognizer.get(options).readLines(from);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="22 word">
+
+  /**
+   * Reads text from the given source (word).
+   * <p>assuming the source contains a single word of text.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readWord(SFIRBS from) {
+    return readWord(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source (word).
+   * <p>assuming the source contains a single word of text.
+   * <p>Uses the given options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readWord(SFIRBS from, Options options) {
+    return readText(from, options.clone().asWord());
+  }
+
+  /**
+   * Reads text from the given source as words.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return words as alist of matches
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from) {
+    return readWords(from, OCR.globalOptions());
+  }
+
+  /**
+   * Reads text from the given source as words.
+   * <p>Uses the given options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  options for the used TextRecognizer
+   * @return words as a list of matches
+   */
+  public static <SFIRBS> List<Match> readWords(SFIRBS from, Options options) {
+    return TextRecognizer.get(options).readWords(from);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="23 char">
+
+  /**
+   * Reads text from the given source (character).
+   * <p>assuming the source contains a single character.
+   * <p>Uses the global options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @return text
+   */
+  public static <SFIRBS> String readChar(SFIRBS from) {
+    return readChar(from, globalOptions());
+  }
+
+  /**
+   * Reads text from the given source (character).
+   * <p>assuming the source contains a single character.
+   * <p>Uses the given options.
+   * @param <SFIRBS> File name, File, Image, Region, BufferdImage or ScreenImage
+   * @param from     source to read text from
+   * @param options  options for the used TextRecognizer
+   * @return text
+   */
+  public static <SFIRBS> String readChar(SFIRBS from, Options options) {
+    return readText(from, options.clone().asChar());
+  }
   //</editor-fold>
 }

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.util.Highlight;
 
 import java.awt.event.InputEvent;
@@ -28,6 +29,7 @@ public class Mouse {
 
   private static String me = "Mouse: ";
   private static final int lvl = 3;
+
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
@@ -54,16 +56,11 @@ public class Mouse {
 
   public static void init() {
     if (mouse == null) {
-      log(3, "init start");
       mouse = new Mouse();
       mouse.device = new Device(mouse);
       mouse.device.isMouse = true;
-      Location loc = at();
-      move(loc);
-      Location loc1 = at();
-      boolean isOk = loc1.x == loc.x && loc1.y == loc.y;
       mouse.device.lastPos = null;
-      log(3, "init end (ok = %s) at (%d,%d)", isOk, loc1.x, loc1.y);
+      MouseDevice.start();
     }
   }
 
@@ -107,7 +104,7 @@ public class Mouse {
     get().device.let(get().device.owner);
     get().device.mouseMovedResponse = get().device.MouseMovedIgnore;
     get().device.mouseMovedCallback = null;
-		get().device.callback = null;
+    get().device.callback = null;
     get().device.lastPos = null;
     resetRandom();
     Screen.getPrimaryScreen().getRobot().mouseReset();
@@ -155,7 +152,7 @@ public class Mouse {
 
   public static void setMouseMovedHighlight(boolean state) {
     get().device.MouseMovedHighlight = state;
-}
+  }
 
   /**
    * check if mouse was moved since last mouse action
@@ -173,7 +170,7 @@ public class Mouse {
   /**
    * to click (left, right, middle - single or double) at the given location using the given button
    * only useable for local screens
-   *
+   * <p>
    * timing parameters: <br>
    * - one value <br>
    * &lt; 0 wait before mouse down <br>
@@ -181,12 +178,12 @@ public class Mouse {
    * - 2 or 3 values 1st wait before mouse down <br>
    * 2nd wait after mouse up <br>
    * 3rd inner wait (milli secs, cut to 1000): pause between mouse down and up (Settings.ClickDelay)
-   *
+   * <p>
    * wait before and after: &gt; 9 taken as milli secs - 1 ... 9 are seconds
    *
-   * @param loc where to click (not null)
+   * @param loc    where to click (not null)
    * @param action L,R,M left, right, middle - D means double click
-   * @param args timing parameters
+   * @param args   timing parameters
    * @return the location
    */
   public static Location click(Location loc, String action, Integer... args) {
@@ -247,7 +244,7 @@ public class Mouse {
     }
   }
 
-  protected static int click(Location loc, int buttons, Integer modifiers, boolean dblClick, Object owner) {
+  protected static int click(Location loc, int buttons, Integer modifiers, boolean dblClick, Region region) {
     if (modifiers == null) {
       modifiers = 0;
     }
@@ -268,7 +265,7 @@ public class Mouse {
       profiler.end();
       return 0;
     }
-    get().device.use(owner);
+    get().device.use(region);
     profiler.lap("before move");
     doMove(shouldMove, screen, loc, robot);
     robot.clickStarts();
@@ -300,7 +297,7 @@ public class Mouse {
     robot.clickEnds();
     robot.waitForIdle();
     profiler.lap("before let");
-    get().device.let(owner);
+    get().device.let(region);
     long duration = profiler.end();
     Debug.action(getClickMsg(loc, buttons, modifiers, dblClick, duration));
     return 1;
@@ -317,7 +314,7 @@ public class Mouse {
       } else {
         robot.smoothMove(loc);
       }
-      robot.waitForIdle();
+      log(4, "moved to: %d, %d", loc.x, loc.y);
     }
   }
 
@@ -373,7 +370,7 @@ public class Mouse {
 
   private Location makeRandom(Location loc) {
     Location offset = new Location(doRandom.nextInt(2 * randomOffset) - randomOffset,
-                                  doRandom.nextInt(2 * randomOffset) - randomOffset);
+        doRandom.nextInt(2 * randomOffset) - randomOffset);
     loc.translate(offset.x, offset.y);
     return offset;
   }
@@ -391,17 +388,21 @@ public class Mouse {
     return move(loc, null);
   }
 
-	/**
-	 * move the mouse from the current position to the offset position given by the parameters
-	 * @param xoff horizontal offset (&lt; 0 left, &gt; 0 right)
-	 * @param yoff vertical offset (&lt; 0 up, &gt; 0 down)
+  /**
+   * move the mouse from the current position to the offset position given by the parameters
+   *
+   * @param xoff horizontal offset (&lt; 0 left, &gt; 0 right)
+   * @param yoff vertical offset (&lt; 0 up, &gt; 0 down)
    * @return 1 for success, 0 otherwise
-	 */
+   */
   public static int move(int xoff, int yoff) {
     return move(at().offset(xoff, yoff));
   }
 
-  protected static int move(Location loc, Object owner) {
+  protected static int move(Location loc, Region region) {
+    if (MouseDevice.isNotUseable("move")) {
+      return 0;
+    }
     if (get().device.isSuspended()) {
       return 0;
     }
@@ -416,7 +417,7 @@ public class Mouse {
         return 0;
       }
       if (!robot.isRemote()) {
-        get().device.use(owner);
+        get().device.use(region);
       }
       if (Mouse.hasRandom()) {
         Location offset = Mouse.get().makeRandom(loc);
@@ -424,7 +425,7 @@ public class Mouse {
       }
       doMove(true, screen, loc, robot);
       if (!robot.isRemote()) {
-        get().device.let(owner);
+        get().device.let(region);
       }
       return 1;
     }
@@ -440,17 +441,19 @@ public class Mouse {
     down(buttons, null);
   }
 
-  protected static void down(int buttons, Element element) {
+  protected static void down(int buttons, Region region) {
+    if (MouseDevice.isNotUseable("down")) {
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }
-    get().device.use(element);
-    element.getRobotForElement().mouseDown(buttons);
+    get().device.use(region);
+    Screen.getRobot(region).mouseDown(buttons);
   }
 
   /**
    * release all buttons
-   *
    */
   public static void up() {
     up(0, null);
@@ -465,13 +468,16 @@ public class Mouse {
     up(buttons, null);
   }
 
-  protected static void up(int buttons, Element element) {
+  protected static void up(int buttons, Region region) {
+    if (MouseDevice.isNotUseable("up")) {
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }
-    element.getRobotForElement().mouseUp(buttons);
-    if (element != null) {
-      get().device.let(element);
+    Screen.getRobot(region).mouseUp(buttons);
+    if (region != null) {
+      get().device.let(region);
     }
   }
 
@@ -480,29 +486,25 @@ public class Mouse {
    * the result is system dependent
    *
    * @param direction {@link Button}
-   * @param steps value
+   * @param steps     value
    */
   public static void wheel(int direction, int steps) {
-    wheel(null, direction, steps, 0);
+    wheel(direction, steps, null);
   }
 
-  protected static void wheel(Region region, int direction, int steps, int modifiers) {
-    wheel(region, direction,steps, modifiers, WHEEL_STEP_DELAY);
+  protected static void wheel(int direction, int steps, Region region) {
+    wheel(direction, steps, region, WHEEL_STEP_DELAY);
   }
 
-  protected static void wheel(Region region, int direction, int steps, int modifiers, int stepDelay) {
-    System.out.println(stepDelay);
-
+  protected static void wheel(int direction, int steps, Region region, int stepDelay) {
+    if (MouseDevice.isNotUseable("wheel")) {
+      return;
+    }
     if (get().device.isSuspended()) {
       return;
     }
     IRobot r = Screen.getRobot(region);
     get().device.use(region);
-
-    if (modifiers > 0) {
-      r.pressModifiers(modifiers);
-    }
-
     String wheelComment = (direction == WHEEL_UP ? "Content upwards" : "Content downwards");
     if (!Settings.WheelNatural) {
       wheelComment = (direction == WHEEL_UP ? "Content downwards" : "Content upwards");
@@ -513,11 +515,6 @@ public class Mouse {
       r.mouseWheel(direction);
       r.delay(stepDelay);
     }
-
-    if (modifiers > 0) {
-      r.releaseModifiers(modifiers);
-    }
-
     get().device.let(region);
   }
 }

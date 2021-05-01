@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.support;
 
@@ -62,7 +62,7 @@ public interface IScreen {
   Region newRegion(Location loc, int w, int h);
   Region newRegion(Region reg);
 
-  boolean isValid();
-	String isValidWithMessage();
-	String getDeviceDescription();
+  void waitAfterAction();
+
+  Object action(String action, Object... args);
 }

@@ -1,12 +1,16 @@
+/*
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
+ */
+
 package org.sikuli.natives;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public abstract class GenericOsUtil implements OSUtil {
 
@@ -56,6 +60,11 @@ public abstract class GenericOsUtil implements OSUtil {
 	}
 
 	@Override
+	public boolean isUserProcess(OsProcess process) {
+		return true;
+	}
+
+	@Override
 	public List<OsProcess> findProcesses(String name) {
 		return allProcesses().filter((p) -> FilenameUtils.getBaseName(p.getName().toLowerCase()).equals(FilenameUtils.getBaseName(name.toLowerCase())))
 				.collect(Collectors.toList());
@@ -72,8 +81,17 @@ public abstract class GenericOsUtil implements OSUtil {
 	}
 
 	@Override
+	public List<OsWindow> getWindows() {
+		throw new UnsupportedOperationException("getWindows not implemented");
+	}
+
+	@Override
 	public List<OsProcess> getProcesses() {
 		return allProcesses().collect(Collectors.toList());
+	}
+
+	public OsProcess getProcess() {
+		return thisProcess();
 	}
 
 	@Override
@@ -104,4 +122,7 @@ public abstract class GenericOsUtil implements OSUtil {
 		return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
 	}
 
+	protected static OsProcess thisProcess() {
+		return new GenericOsProcess(ProcessHandle.current());
+	}
 }

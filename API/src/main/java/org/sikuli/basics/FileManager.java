@@ -7,6 +7,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -36,7 +37,7 @@ public class FileManager {
   }
 
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
-  private static SplashFrame _progress = null;
+  private static SXDialog _progress = null;
   private static final String EXECUTABLE = "#executable";
 
   private static int tryGetFileSize(URL aUrl) {
@@ -225,9 +226,10 @@ public class FileManager {
       targetPath = fullpath.getAbsolutePath();
       done = 0;
       if (_progress != null) {
-        _progress.setProFile(filename);
-        _progress.setProSize(srcLengthKB);
-        _progress.setProDone(0);
+        //TODO progress popup
+//        _progress.setProFile(filename);
+//        _progress.setProSize(srcLengthKB);
+//        _progress.setProDone(0);
         _progress.setVisible(true);
       }
       InputStream reader = null;
@@ -253,7 +255,7 @@ public class FileManager {
           }
           if (((new Date()).getTime() - chunk) > 1000) {
             if (_progress != null) {
-              _progress.setProDone(done);
+              //TODO progress popup: _progress.setProDone(done);
             }
             chunk = (new Date()).getTime();
           }
@@ -279,15 +281,16 @@ public class FileManager {
         }
       }
       if (_progress != null) {
-        if (targetPath == null) {
-          _progress.setProDone(-1);
-        } else {
-          if (srcLength <= 0) {
-            _progress.setProSize((int) (totalBytesRead / 1024));
-          }
-          _progress.setProDone(100);
-        }
-        _progress.closeAfter(3);
+        //TODO progress popup
+//        if (targetPath == null) {
+//          _progress.setProDone(-1);
+//        } else {
+//          if (srcLength <= 0) {
+//            _progress.setProSize((int) (totalBytesRead / 1024));
+//          }
+//          _progress.setProDone(100);
+//        }
+//        _progress.closeAfter(3);
         _progress = null;
       }
     }
@@ -316,7 +319,7 @@ public class FileManager {
   }
 
   public static String downloadURL(String url, String localPath, JFrame progress) {
-    _progress = (SplashFrame) progress;
+    //TODO progress popup: _progress = (SplashFrame) progress;
     return downloadURL(url, localPath);
   }
 

@@ -1,23 +1,18 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
+
+import java.io.*;
+import java.net.URL;
+import java.security.CodeSource;
+import java.util.*;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.security.CodeSource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * maintain the path list of locations, where images will be searched.
@@ -66,6 +61,15 @@ public class ImagePath {
     return count;
   }
 
+  private static URL remove(int entry) {
+    if (entry > 0 && entry < imagePaths.size()) {
+      PathEntry pathEntry = imagePaths.remove(entry);
+      Image.purge(pathEntry);
+      return pathEntry.pathURL;
+    }
+    return null;
+  }
+
   /**
    * the path list as string array
    *
@@ -73,22 +77,10 @@ public class ImagePath {
    */
   public static String[] get() {
     int i = 0;
-    for (PathEntry p : imagePaths) {
-      if (p == null) {
-        continue;
-      }
-      i++;
-    }
-    String[] paths = new String[i];
+    String[] paths = new String[getPaths().size()];
     i = 0;
     for (PathEntry p : imagePaths) {
-      if (p == null) {
-        continue;
-      }
       paths[i++] = p.getPath();
-      if (p.isFile()) {
-        paths[i - 1] = new File(p.getPath()).getAbsolutePath();
-      }
     }
     return paths;
   }
@@ -100,17 +92,30 @@ public class ImagePath {
    */
   public static void dump(int lvl) {
     log(lvl, "ImagePath has %d entries (valid %d)", imagePaths.size(), getCount());
-    String bundle = "(taken as bundle path)";
-    for (PathEntry p : imagePaths) {
-      if (p == null) {
-        log(lvl, "Path: NULL %s", bundle);
-      } else {
-        log(lvl, "Path: given: %s\nis: %s", p.path, p.getPath());
-      }
-      bundle = "";
-    }
+    dumpDo(0, null);
   }
 
+  public static void dump(String msg) {
+    dumpDo(0, msg);
+  }
+
+  private static void dumpDo(int lvl, String msg) {
+    if (null != msg) {
+      log(0, "****** %s", msg);
+    }
+    int i = 0;
+    for (PathEntry p : imagePaths) {
+      if (i == 0) {
+        log(lvl, "BundlePath: %s", (p == null ? "--- not set ---" : p.getPath()));
+      } else {
+        log(lvl, "Path %d: %s", i, p.getPath());
+      }
+      i++;
+    }
+    if (null != msg) {
+      log(0, "****** ------------ ******");
+    }
+  }
   /**
    * empty path list and keep bundlePath (entry 0)<br>
    * Image cache is cleared completely
@@ -121,71 +126,113 @@ public class ImagePath {
     if (imagePaths.isEmpty()) {
       return;
     }
+    List<PathEntry> toSave = new ArrayList<>();
     for (PathEntry pathEntry : imagePaths) {
       if (pathEntry == null) {
         continue;
       }
-      imageCachePurge();
+      Image.purge(pathEntry);
+      if (pathEntry.isSpecial()) {
+        toSave.add(pathEntry);
+      }
     }
     PathEntry bundlePath = getBundle();
     imagePaths.clear();
     imagePaths.add(bundlePath);
+    if (toSave.size() > 0) {
+      imagePaths.addAll(toSave);
+    }
   }
 
-  //TODO image cache purge ???
-  private static void imageCachePurge() {
+  /**
+   * empty path list and add path as bundle path (entry 0)
+   * Image cache is cleared completely
+   *
+   * @param path absolute path
+   * @return true on success, false otherwise
+   */
+  public static boolean reset(String path) {
+    reset();
+    if (bundleEquals(path)) {
+      return true;
+    }
+    return setBundlePath(path);
   }
 
+  public static void clear() {
+    reset();
+    log(lvl, "clear");
+    Image.purge();
+    imagePaths.set(0, null);
+  }
+
+  private static boolean isBundlePathSupported() {
+    return false;
+  }
+
+  private static void bundlePathValid(PathEntry entry) {
+    if (!isBundlePathSupported() && !entry.isFile()) {
+      Commons.error("Not supported as BundlePath: %s", entry.getURL());
+    }
+  }
   //</editor-fold>
 
-  //<editor-fold desc="02 init path entry">
+  //<editor-fold desc="02 path entry">
 
   /**
    * represents an imagepath entry
    */
   public static class PathEntry {
 
-    public URL pathURL = null;
-    public String path = null;
+    private URL pathURL = null;
+    private String path = null;
 
-    /**
-     * create a new image path entry
-     *
-     * @param givenName    the given path relative or absolute
-     * @param eqivalentURL the evaluated URL
-     */
-    public PathEntry(String givenName, URL eqivalentURL) {
-      path = FileManager.normalize(givenName);
-      if (eqivalentURL != null) {
-        pathURL = eqivalentURL;
-      } else {
-        pathURL = makePathURL(path, null).pathURL;
+    private PathEntry(String main, String sub, URL eqivalentURL) {
+      if (main == null) {
+        main = "";
       }
-      log(lvl + 1, "ImagePathEntry: %s (%s)", path, pathURL);
+      if (sub == null) {
+        sub = "";
+      }
+      path = main + (sub.isEmpty() ? sub : "+" + sub);
+      pathURL = eqivalentURL;
+      log(lvl + 1, "ImagePathEntry: %s (%s)", pathURL, path);
     }
 
-    public PathEntry(File folder) {
-      try {
-        path = folder.getPath();
-        pathURL = new URL("file", null, path);
-        log(lvl + 1, "ImagePathEntry: %s (%s)", path, pathURL);
-      } catch (IOException e) {
-        log(-1, "ImagePathEntry: %s", folder);
+    @Override
+    public boolean equals(Object other) {
+      if (pathURL == null) {
+        return false;
       }
+      if (other instanceof PathEntry) {
+        return pathURL.toExternalForm().equals(((PathEntry) other).pathURL.toExternalForm());
+      } else {
+        if (other instanceof URL) {
+          return pathURL.toExternalForm().equals(((URL) other).toExternalForm());
+        } else if (other instanceof String || other instanceof File) {
+          if (isFile() || isJar()) {
+            return pathURL.toExternalForm().equals(getPathEntry(other, null).pathURL.toExternalForm());
+          }
+          return false;
+        }
+        return false;
+      }
+    }
+
+    @Override
+    public String toString() {
+      return getPath();
     }
 
     public boolean isValid() {
-      return path != null && pathURL != null;
+      return pathURL != null;
     }
 
-    public String getPath() {
-      if (pathURL == null) {
-        return "-- empty --";
+    public boolean isSpecial() {
+      if (path.equals("__FROM-IMPORT__")) {
+        return true;
       }
-      if (isFile()) {
-        return pathURL.getPath();
-      }
-      return null;
+      return false;
     }
 
     public boolean isFile() {
@@ -209,130 +256,215 @@ public class ImagePath {
       return pathURL.getProtocol().startsWith("http");
     }
 
+    public String getPath() {
+      String path = "--invalid--";
+      if (isValid()) {
+        if (isHTTP()) {
+          return pathURL.toExternalForm();
+        } else {
+          File file = getFile();
+          if (file != null) {
+            return file.getPath();
+          }
+        }
+      }
+      return path;
+    }
+
     public File getFile() {
-      if (isFile()) {
-        return new File(getPath());
+      if (isValid()) {
+        return Commons.urlToFile(pathURL);
       }
       return null;
     }
 
-    public boolean existsFile() {
-      if (pathURL == null) {
-        return false;
-      }
-      return new File(getPath()).exists();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (pathURL == null) {
-        return false;
-      }
-      if (!(other instanceof PathEntry)) {
-        if (other instanceof URL) {
-          if (pathURL.equals(other)) {
-            return true;
-          }
-        } else if (other instanceof String) {
-          if (isFile()) {
-            try {
-              return new File(pathURL.getFile()).equals(new File((String) other).getCanonicalFile());
-            } catch (IOException e) {
-              return false;
-            }
-          }
-          return false;
-        } else if (other instanceof File) {
-          if (isFile()) {
-            try {
-              return new File(pathURL.getFile()).equals(((File) other).getCanonicalFile());
-            } catch (IOException e) {
-              return false;
-            }
-          }
-          return false;
-        }
-        return false;
-      }
-      if (pathURL.equals(((PathEntry) other).pathURL)) {
-        return true;
-      }
-      return false;
-    }
-
-    @Override
-    public String toString() {
-      return getPath();
+    public URL getURL() {
+      return pathURL;
     }
   }
 
-  private static PathEntry makePathURL(String fpMainPath, String fpAltPath) {
-    if (fpMainPath == null || fpMainPath.isEmpty()) {
-      return null;
+  private static boolean hasPathEntry(PathEntry pathEntry) {
+    PathEntry bundle = getBundle();
+    if (imagePaths.size() == 1 && bundle == null) {
+      return false;
     }
-    URL pathURL = null;
-    File fPath = new File(FileManager.normalizeAbsolute(fpMainPath));
-    if (fPath.exists()) {
-      pathURL = FileManager.makeURL(fPath.getAbsolutePath());
-    } else {
-      if (fpMainPath.contains("\\")) {
-        log(-1, "add: folder does not exist (%s)", fPath);
-        return null;
+    if (isBundle(pathEntry)) {
+      return true;
+    }
+    return isPathEntry(pathEntry) == 0 ? false : true;
+  }
+
+  private static int isPathEntry(PathEntry pathEntry) {
+    if (null != pathEntry) {
+      int i = 1;
+      for (PathEntry entry : imagePaths.subList(1, imagePaths.size())) {
+        if (entry != null && entry.equals(pathEntry)) {
+          return i;
+        }
+        i++;
       }
-      Class cls = null;
-      String klassName;
-      String fpSubPath = "";
-      int n = fpMainPath.indexOf("/");
-      if (n > 0) {
-        klassName = fpMainPath.substring(0, n);
-        if (n < fpMainPath.length() - 2) {
-          fpSubPath = fpMainPath.substring(n + 1);
+    }
+    return 0;
+  }
+
+  private static PathEntry getPathEntry(Object path, String folder) {
+    PathEntry pathEntry = null;
+    String special = null;
+    if (null != path) {
+      if (folder != null && folder.startsWith("__") && folder.endsWith("__")) {
+        special = folder;
+        folder = null;
+      }
+      if (path instanceof String) {
+        pathEntry = createPathEntry((String) path, folder);
+      } else if (path instanceof File) {
+        pathEntry = createPathEntry(((File) path).getAbsolutePath(), folder);
+      } else if (path instanceof URL) {
+        if (folder == null) {
+          pathEntry = new PathEntry("__PATH_URL__", null, (URL) path);
+        } else {
+          //TODO getPathEntry: url + folder not implmented
+          log(-1, "getPathEntry: url + folder not implmented");
+          return null;
         }
       } else {
-        klassName = fpMainPath;
-      }
-      try {
-        cls = Class.forName(klassName);
-      } catch (ClassNotFoundException ex) {
-        log(-1, "add: class not found (%s) or folder does not exist (%s)", klassName, fPath);
-      }
-      if (cls != null) {
-        CodeSource codeSrc = cls.getProtectionDomain().getCodeSource();
-        if (codeSrc != null && codeSrc.getLocation() != null) {
-          URL jarURL = codeSrc.getLocation();
-          if (jarURL.getPath().endsWith(".jar")) {
-            pathURL = FileManager.makeURL(jarURL.toString() + "!/" + fpSubPath, "jar");
-          } else {
-            if (fpAltPath == null || fpAltPath.isEmpty()) {
-              fpAltPath = jarURL.getPath();
-            }
-            if (new File(FileManager.normalizeAbsolute(fpAltPath), fpSubPath).exists()) {
-              File fAltPath = new File(FileManager.normalizeAbsolute(fpAltPath), fpSubPath);
-              pathURL = FileManager.makeURL(fAltPath.getPath());
-            }
-          }
-        }
+        log(-1, "getPathEntry: invalid path: %s (String, File or URL");
+        return null;
       }
     }
-    if (pathURL != null) {
-      return new PathEntry(fpMainPath, pathURL);
+    if (special != null) {
+      pathEntry.path = special;
     }
-    return null;
+    return pathEntry;
+  }
+
+  private static int getPathEntryIndex(URL url) {
+    PathEntry whereEntry = getPathEntry(url, null);
+    return isPathEntry(whereEntry);
+  }
+
+  private static PathEntry createPathEntry(String mainPath, String altPathOrFolder) {
+    if (mainPath == null || mainPath.isEmpty()) {
+      return null;
+    }
+    if (mainPath.toLowerCase().endsWith(".jar")) {
+      return createPathEntryJar(mainPath, altPathOrFolder);
+    }
+    if (mainPath.toLowerCase().startsWith("http://") || mainPath.toLowerCase().startsWith("https://")) {
+      return createPathEntryHttp(mainPath, altPathOrFolder);
+    }
+    if (mainPath.indexOf(":") > 4) {
+      String[] parts = mainPath.split(":");
+      mainPath = "http://" + parts[0];
+      if (parts.length > 1) {
+        return createPathEntryHttp(mainPath + "/" + parts[1], altPathOrFolder);
+      } else {
+        return createPathEntryHttp(mainPath, altPathOrFolder);
+      }
+    }
+    URL pathURL = Commons.makeURL(mainPath, altPathOrFolder);
+    if (pathURL == null) {
+      return createPathEntryClass(mainPath, altPathOrFolder);
+    }
+    return new PathEntry(mainPath, altPathOrFolder, pathURL);
+  }
+
+  private static PathEntry createPathEntryJar(String jar, String folder) {
+    PathEntry pathEntry;
+    if (".".equals(jar)) {
+      jar = Commons.getMainClassLocation().getAbsolutePath();
+    }
+    URL url = Commons.makeURL(jar, folder);
+    pathEntry = new PathEntry(jar, folder, url);
+    return pathEntry;
+  }
+
+  private static PathEntry createPathEntryClass(String possibleClass, String altPath) {
+    URL pathURL = null;
+    Class cls = null;
+    String klassName;
+    String fpSubPath = "";
+    String subPath = null;
+    int n = possibleClass.indexOf("/");
+    if (n > 0) {
+      klassName = possibleClass.substring(0, n);
+      if ((n + 1) < possibleClass.length()) {
+        fpSubPath = possibleClass.substring(n + 1);
+      }
+    } else {
+      klassName = possibleClass;
+    }
+    try {
+      cls = Class.forName(klassName);
+    } catch (ClassNotFoundException ex) {
+    }
+    if (cls != null) {
+      CodeSource codeSrc = cls.getProtectionDomain().getCodeSource();
+      if (codeSrc != null && codeSrc.getLocation() != null) {
+        URL classURL = codeSrc.getLocation();
+        pathURL = Commons.makeURL(classURL, fpSubPath);
+      } else {
+        cls = null;
+      }
+      if (cls == null) {
+        log(lvl, "createPathEntryClass: class not found (%s) from path (%s)", klassName, possibleClass);
+        pathURL = Commons.makeURL(altPath, fpSubPath);
+        possibleClass = altPath;
+        subPath = fpSubPath;
+      }
+    }
+    return new PathEntry(possibleClass, subPath, pathURL);
+  }
+
+  private static PathEntry createPathEntryHttp(String netURL, String folder) {
+    URL url = Commons.makeURL(netURL, folder);
+    return new PathEntry(netURL, folder, url);
   }
   //</editor-fold>
 
-  //<editor-fold desc="03 handle path entry">
+  //<editor-fold desc="03 add/remove path entry --- old">
 
   /**
-   * create a new PathEntry from the given absolute path name and add it to the
+   * create a new PathEntry from the given path and add it to the
    * end of the current image path<br>
-   * for usage with jars see; {@link #add(String, String)}
    *
    * @param mainPath relative or absolute path
    * @return true if successful otherwise false
    */
   public static boolean add(String mainPath) {
     return add(mainPath, null);
+  }
+
+  /**
+   * create a new PathEntry from the path and add it to the
+   * end of the current image path<br>
+   * for images stored in jars:<br>
+   * Set the primary image path to the top folder level of a jar based on the
+   * given class name (must be found on class path). When not running from a jar
+   * (e.g. running in some IDE) the path will be the path to the compiled classes <br>
+   * For situations, where the images cannot be found automatically in the non-jar situation, you
+   * might give an alternative path either absolute or relative to the working folder.
+   *
+   * @param mainPath        absolute path name or a valid classname optionally followed by /subfolder...
+   * @param altPathOrFolder alternative image folder, when not running from jar
+   * @return true if successful otherwise false
+   */
+  public static boolean add(String mainPath, String altPathOrFolder) {
+    return null != append(mainPath, altPathOrFolder);
+  }
+
+  /**
+   * remove entry with given path (same as given with add)
+   *
+   * @param path relative or absolute path
+   * @return true on success, false otherwise
+   */
+  public static boolean remove(String path) {
+    return remove(path, null);
+  }
+
+  public static boolean remove(String mainPath, String altPathOrFolder) {
+    return null != remove((Object) mainPath, altPathOrFolder);
   }
 
   /**
@@ -346,120 +478,42 @@ public class ImagePath {
    * @return true if successful otherwise false
    */
   public static boolean addHTTP(String pathHTTP) {
-    try {
-      String proto = "http://";
-      String protos = "https://";
-      if (pathHTTP.startsWith(proto) || pathHTTP.startsWith(protos)) {
-        proto = "";
-      }
-      pathHTTP = FileManager.slashify(pathHTTP, false);
-      URL aURL = new URL(proto + pathHTTP);
-      if (0 != FileManager.isUrlUseabel(new URL(aURL.toString() +
-          "/THIS_FILE_SHOULD_RETURN_404"))) {
-        return false;
-      }
-      PathEntry path = new PathEntry(pathHTTP, aURL);
-      if (hasPath(path) < 0) {
-        log(lvl, "add: %s", path);
-        imagePaths.add(path);
-      } else {
-        log(lvl, "duplicate not added: %s", path);
-      }
-    } catch (Exception ex) {
-      log(-1, "addHTTP: not possible: %s\n%s", pathHTTP, ex);
-      return false;
+    return null != append(makeNetURL(pathHTTP));
+  }
+
+  private static URL makeNetURL(String pathHTTP) {
+    String proto = "http://";
+    String protos = "https://";
+    if (!pathHTTP.startsWith(proto) && !pathHTTP.startsWith(protos)) {
+      pathHTTP = proto + pathHTTP;
     }
-    return true;
+    return Commons.makeURL(pathHTTP);
   }
 
   public static boolean removeHTTP(String pathHTTP) {
-    try {
-      String proto = "http://";
-      String protos = "https://";
-      if (pathHTTP.startsWith(proto) || pathHTTP.startsWith(protos)) {
-        proto = "";
-      }
-      pathHTTP = FileManager.slashify(pathHTTP, false);
-      return remove(new URL(proto + pathHTTP));
-    } catch (Exception ex) {
-      log(-1, "removeHTTP: not possible: %s\n%s", pathHTTP, ex);
-      return false;
-    }
+    return null != remove(makeNetURL(pathHTTP));
   }
 
-  /**
-   * create a new PathEntry from the given absolute path name and add it to the
-   * end of the current image path<br>
-   * for images stored in jars:<br>
-   * Set the primary image path to the top folder level of a jar based on the
-   * given class name (must be found on class path). When not running from a jar
-   * (e.g. running in some IDE) the path will be the path to the compiled
-   * classes (for Maven based projects this is target/classes that contains all
-   * stuff copied from src/run/resources automatically)<br>
-   * For situations, where the images cannot be found automatically in the non-jar situation, you
-   * might give an alternative path either absolute or relative to the working folder.
-   *
-   * @param mainPath absolute path name or a valid classname optionally followed by /subfolder...
-   * @param altPath  alternative image folder, when not running from jar
-   * @return true if successful otherwise false
-   */
-  public static boolean add(String mainPath, String altPath) {
-    PathEntry pathEntry = null;
-    File fPath = new File(mainPath);
-    if (!fPath.isAbsolute() && mainPath.contains(":")) {
-      if (fPath.getAbsolutePath().charAt(2) != ":".charAt(0)) {
-        return addHTTP(mainPath);
-      }
-    }
-    pathEntry = makePathURL(mainPath, altPath);
-    if (pathEntry != null) {
-      if (hasPath(pathEntry) < 0) {
-        log(lvl, "add: %s", pathEntry);
-        imagePaths.add(pathEntry);
-      } else {
-        log(lvl, "duplicate not added: %s", pathEntry);
-      }
-      return true;
-    } else {
-      log(-1, "add: not valid: %s %s", mainPath,
-          (altPath == null ? "" : " / " + altPath));
-    }
-    return false;
+  public static boolean addJar(String fpJar) {
+    return addJar(fpJar, null);
   }
 
   public static boolean addJar(String fpJar, String fpImage) {
-    URL pathURL = null;
-    if (".".equals(fpJar)) {
-      fpJar = RunTime.get().fSxBaseJar.getAbsolutePath();
-      if (!fpJar.endsWith(".jar")) {
-        return false;
-      }
+    if (!fpJar.endsWith(".jar") && !fpJar.contains(".jar!")) {
+      fpJar += ".jar";
     }
-    if (new File(fpJar).exists()) {
-      if (fpImage == null) {
-        fpImage = "";
-      }
-      log(3, "addJar: %s", fpJar);
-      pathURL = FileManager.makeURL(fpJar + "!/" + fpImage, "jar");
-      add(pathURL);
-    }
-    return true;
+    return null != append(fpJar, fpImage);
   }
 
-  private static int hasPath(PathEntry path) {
-    PathEntry bundle = getBundle();
-    if (imagePaths.size() == 1 && bundle == null) {
-      return -1;
+  public static boolean removeJar(String fpJar) {
+    return removeJar(fpJar, null);
+  }
+
+  public static boolean removeJar(String fpJar, String fpImage) {
+    if (!fpJar.endsWith(".jar") && !fpJar.contains(".jar!")) {
+      fpJar += ".jar";
     }
-    if (bundle != null && bundle.equals(path)) {
-      return 0;
-    }
-    for (PathEntry pathEntry : imagePaths.subList(1, imagePaths.size())) {
-      if (pathEntry != null && pathEntry.equals(path)) {
-        return 1;
-      }
-    }
-    return -1;
+    return remove(fpJar, null);
   }
 
   /**
@@ -467,90 +521,117 @@ public class ImagePath {
    *
    * @param pURL a valid URL (not checked)
    */
-  public static void add(URL pURL) {
-    imagePaths.add(new PathEntry("__PATH_URL__", pURL));
+  public static boolean add(URL pURL) {
+    return null != append(pURL);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="04 add/remove path entry --- new">
+  public static URL get(Object what) {
+    return get(what, null);
   }
 
-  /**
-   * remove entry with given path (same as given with add)
-   *
-   * @param path relative or absolute path
-   * @return true on success, false otherwise
-   */
-  public static boolean remove(String path) {
-    File fPath = new File(path);
-    if (!fPath.isAbsolute() && (path.contains("http://") || path.contains("https://"))) {
-      return removeHTTP(path);
-    }
-    return remove(makePathURL(FileManager.normalize(path), null).pathURL);
+  public static URL get(Object what, String folder) {
+    PathEntry whatEntry = getPathEntry(what, folder);
+    return null != whatEntry ? whatEntry.pathURL : null;
   }
 
-  /**
-   * remove entry with given path (same as given with add)
-   *
-   * @param directory relative or absolute path as File
-   * @return true on success, false otherwise
-   */
-  public static boolean remove(File directory) {
-    return remove(makePathURL(directory.getAbsolutePath(), null).pathURL);
+  public static boolean has(Object what) {
+    return has(what, null);
   }
 
-  /**
-   * remove entry with given URL<br>
-   * bundlepath (entry 0) cannot be removed
-   * loaded images are removed from cache
-   *
-   * @param pURL a valid URL (not checked)
-   * @return true on success, false ozherwise
-   */
-  private static boolean remove(URL pURL) {
-    if (bundleEquals(pURL)) {
-      imageCachePurge();
-      return true;
-    }
-    Iterator<PathEntry> it = imagePaths.subList(1, imagePaths.size()).iterator();
-    PathEntry pathEntry;
-    while (it.hasNext()) {
-      pathEntry = it.next();
-      if (!pathEntry.equals(pURL)) {
-        continue;
+  public static boolean has(Object what, String folder) {
+    return hasPathEntry(getPathEntry(what, folder));
+  }
+
+  public static URL insert(Object what) {
+    return insert(what, null, null);
+  }
+
+  public static URL insert(Object what, String folder) {
+    return insert(what, folder, null);
+  }
+
+  public static URL insert(Object what, URL where) {
+    return insert(what, null, where);
+  }
+
+  public static URL insert(Object what, String folder, URL where) {
+    URL url = null;
+    PathEntry whatEntry = getPathEntry(what, folder);
+    if (null != whatEntry && whatEntry.isValid()) {
+      remove(isPathEntry(whatEntry));
+      int pathEntryIndex = getPathEntryIndex(where);
+      if (0 == pathEntryIndex) {
+        pathEntryIndex = 1;
       }
-      it.remove();
-      imageCachePurge();
+      imagePaths.add(pathEntryIndex, whatEntry);
+      url = whatEntry.pathURL;
     }
-    return true;
+    return url;
+  }
+
+  public static URL append(Object what) {
+    return append(what, null, null);
+  }
+
+  public static URL append(Object what, String folder) {
+    return append(what, folder, null);
+  }
+
+  public static URL append(Object what, URL where) {
+    return append(what, null, where);
+  }
+
+  public static URL append(Object what, String folder, URL where) {
+    URL url = null;
+    PathEntry whatEntry = getPathEntry(what, folder);
+    if (null != whatEntry && whatEntry.isValid()) {
+      remove(isPathEntry(whatEntry));
+      int pathEntryIndex = getPathEntryIndex(where) + 1;
+      if (1 == pathEntryIndex) {
+        pathEntryIndex = imagePaths.size();
+      }
+      getPaths().add(pathEntryIndex, whatEntry);
+      url = whatEntry.pathURL;
+    }
+    return url;
+  }
+
+  public static void appendFromImport(Object what) {
+    append(what, "__FROM-IMPORT__");
+  }
+
+  public static URL replace(Object what, URL where) {
+    return replace(what, null, where);
+  }
+
+  public static URL replace(Object what, String folder, URL where) {
+    URL url = null;
+    PathEntry whatEntry = getPathEntry(what, folder);
+    if (null != whatEntry && whatEntry.isValid()) {
+      int pathEntryIndex = getPathEntryIndex(where);
+      if (0 < pathEntryIndex) {
+        Image.purge(getPaths().get(pathEntryIndex));
+        getPaths().set(pathEntryIndex, whatEntry);
+        url = whatEntry.pathURL;
+      }
+    }
+    return url;
+  }
+
+  public static URL remove(Object what) {
+    return remove(isPathEntry(getPathEntry(what, null)));
+  }
+
+  public static URL remove(Object what, String folder) {
+    return remove(isPathEntry(getPathEntry(what, folder)));
   }
   //</editor-fold>
 
   //<editor-fold desc="05 bundle path">
   public static boolean hasBundlePath() {
     return getBundle() != null;
-  }
-
-  private static boolean bundleEquals(Object path) {
-    if (hasBundlePath()) {
-      return getBundle().equals(path);
-    }
-    return false;
-  }
-
-  /**
-   * empty path list and add given path as first entry
-   * Image cache is cleared completely
-   *
-   * @param path absolute path
-   * @return true on success, false otherwise
-   */
-  public static boolean reset(String path) {
-    reset();
-    if (bundleEquals(path)) {
-      return true;
-    }
-    return setBundlePath(path);
-  }
-
-  private static boolean setBundlePath() {
-    return setBundlePath(null);
   }
 
   /**
@@ -566,45 +647,14 @@ public class ImagePath {
         return false;
       }
     }
-    File newBundleFile = new File(newBundlePath);
-    if (!newBundleFile.isAbsolute()) {
-      if (hasBundlePath()) {
-        return false;
-      }
-      newBundleFile = new File(getBundlePath(), newBundlePath);
+    PathEntry entry = getPathEntry(newBundlePath, null);
+    if (entry != null && entry.isValid()) {
+      remove(isPathEntry(entry));
+      setBundle(entry);
+      bundlePathValid(entry);
+      return true;
     }
-    return null != setBundleFolder(newBundleFile);
-  }
-
-  public static File setBundleFolder(File folder) {
-    try {
-      folder = folder.getCanonicalFile();
-    } catch (IOException e) {
-      log(-1, "canonical file problem: %s", folder);
-      return null;
-    }
-    if (null == folder || bundleEquals(folder)) {
-      return folder;
-    }
-    if (folder.exists()) {
-      PathEntry oldBundle = getBundle();
-      imageCachePurge();
-      PathEntry pathEntry = new PathEntry(folder);
-      if (pathEntry.isValid()) {
-        setBundle(pathEntry);
-        log(lvl, "new BundlePath: %s", pathEntry);
-        return pathEntry.getFile();
-      }
-    }
-    return null;
-  }
-
-  static PathEntry getBundle() {
-    return imagePaths.get(0);
-  }
-
-  private static void setBundle(PathEntry pathEntry) {
-    imagePaths.set(0, pathEntry);
+    return false;
   }
 
   /**
@@ -621,70 +671,101 @@ public class ImagePath {
     return getBundle().getPath();
   }
 
+  public static File setBundleFolder(File folder) {
+    PathEntry entry = getPathEntry(folder, null);
+    if (entry != null && entry.isValid()) {
+      PathEntry oldBundle = getBundle();
+      if (entry.equals(oldBundle)) {
+        return folder;
+      }
+      Image.purge(oldBundle);
+      setBundle(entry);
+      log(lvl, "new BundlePath: %s", entry);
+    }
+    return null;
+  }
+
+  protected static PathEntry getBundle() {
+    return imagePaths.get(0);
+  }
+
+  private static boolean isBundle(PathEntry pathEntry) {
+    return getBundle() != null && getBundle().equals(pathEntry);
+  }
+
+  private static boolean bundleEquals(Object path) {
+    if (hasBundlePath()) {
+      return getBundle().equals(path);
+    }
+    return false;
+  }
+
+  private static boolean setBundlePath() {
+    return setBundlePath(null);
+  }
+
+  private static void setBundle(PathEntry pathEntry) {
+    imagePaths.set(0, pathEntry);
+  }
   //</editor-fold>
 
   //<editor-fold desc="10 find image">
+  public static String check(String name) {
+    return "CheckImage: " + name + ": " + Commons.urlToFile(find(Image.getValidImageFilename(name))).getAbsolutePath();
+  }
 
   /**
    * try to find the given relative image file name on the image path<br>
    * starting from entry 0, the first found existence is taken<br>
    * absolute file names are checked for existence
    *
-   * @param imageFile relative or absolute file
+   * @param imageFileName relative or absolute filename with extension
    * @return a valid URL or null if not found/exists
    */
-  public static URL find(File imageFile) {
+  public static URL find(String imageFileName) {
     URL fURL = null;
     String proto = "";
-    String imageFileName = imageFile.getPath();
-    if (imageFile.isAbsolute() || imageFileName.startsWith("\\")) {
-      fURL = Element.createURL(imageFile);
+    File imageFile = new File(imageFileName);
+    if (imageFile.isAbsolute()) {
+      if (imageFile.exists()) {
+        fURL = Commons.makeURL(imageFile);
+      } else {
+        log(-1, "find: File does not exist: %s", imageFileName);
+      }
+      return fURL;
     } else {
-      for (PathEntry path : getPaths()) {
-        if (path == null) {
+      for (PathEntry entry : getPaths()) {
+        if (entry == null || !entry.isValid()) {
           continue;
         }
-        proto = path.pathURL.getProtocol();
+        proto = entry.pathURL.getProtocol();
         if ("file".equals(proto)) {
-          imageFile = new File(path.pathURL.getPath(), imageFileName);
-          if (imageFile.exists()) {
-            fURL = Element.createURL(imageFile);
-            break;
+          if (new File(entry.getPath(), imageFileName).exists()) {
+            return Commons.makeURL(entry.getPath(), imageFileName);
           }
-        } else if ("jar".equals(proto) || proto.startsWith("http")) { //TODO imagepath jar and net
-          fURL = FileManager.getURLForContentFromURL(path.pathURL, imageFileName);
-        }
-        if (fURL != null) {
-          break;
+        } else if ("jar".equals(proto) || proto.startsWith("http")) {
+          URL url = Commons.makeURL(entry.getPath(), imageFileName);
+          if (url != null) {
+            int check = -1;
+            if (proto.startsWith("http")) {
+              check = FileManager.isUrlUseabel(url);
+            } else {
+              try {
+                InputStream inputStream = url.openStream();
+                check = inputStream.available();
+              } catch (IOException e) {
+              }
+            }
+            if (check > 0) {
+              return url;
+            }
+          }
         }
       }
-      if (fURL == null) {
-        log(-1, "find: %s file not found", imageFileName);
-        dump(lvl);
-      }
+      log(-1, "find: not there: %s", imageFileName);
+      dump(lvl);
+      return fURL;
     }
-    return fURL;
-  }
-
-  public static URL find(String imageFileName) {
-    return find(new File(imageFileName));
-  }
-
-  private static URL normalize(URL url) {
-    String path = url.getPath();
-    if ("file".equals(url.getProtocol())) {
-      if (path.contains("%")) {
-        path = path.replace("%20", " ");
-        if (path.contains("%")) {
-        }
-      }
-      try {
-        new File(path).getCanonicalFile();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-    return null;
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * any screen (not checked as is done with region)
  *
  */
-public class Location extends Element implements Comparable<Location>{
+public class Location implements Comparable<Location>{
 
   //<editor-fold desc="000 for Python">
   public static Location getDefaultInstance4py() {
@@ -54,15 +54,140 @@ public class Location extends Element implements Comparable<Location>{
   }
   //</editor-fold>
 
-  //<editor-fold desc="000 Fields and global features">
-  protected boolean isPoint() {
-    return true;
+  //<editor-fold desc="002 getter/setter">
+  /**
+   * sets x to the given value
+   * @param x new x
+   * @return this
+   */
+  public Location setX(int x) {
+    this.x = x;
+    return this;
   }
 
-  public Image getImage() {
-    //TODO implement Image from Location (see Recorder)
-    return new Image();
+  /**
+   * sets x to the given value
+   * @param x new x
+   * @return this
+   */
+  public Location setX(double x) {
+    this.x = (int) x;
+    return this;
   }
+
+  /**
+   *
+   * @return x value
+   */
+  public int getX() {
+    return x;
+  }
+
+  /**
+   * x coordinate
+   */
+  public int x;
+
+  /**
+   * sets y to the given value
+   * @param y new y
+   * @return this
+   */
+  public Location setY(int y) {
+    this.y = y;
+    return this;
+  }
+
+  /**
+   * sets y to the given value
+   * @param y new y
+   * @return this
+   */
+  public Location setY(double y) {
+    this.y = (int) y;
+    return this;
+  }
+
+  /**
+   *
+   * @return y value
+   */
+  public int getY() {
+    return y;
+  }
+
+  /**
+   * y coordinate
+   */
+  public int y;
+
+  /**
+   * sets the coordinates to the given values (moves it)
+   * @param x new x might be non-int
+   * @param y new y might be non-int
+   * @return this
+   */
+  public Location set(int x, int y) {
+    this.x = (int) x;
+    this.y = (int) y;
+    return this;
+  }
+
+  /**
+   * sets the coordinates to the given values (moves it)
+   * @param x new x double
+   * @param y new y double
+   * @return this
+   */
+  public Location set(double x, double y) {
+    set((int) x, (int) y);
+    return this;
+  }
+
+  /**
+   * get as AWT point
+   * @return Point
+   */
+  public Point getPoint() {
+    return new Point(x,y);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="009 otherScreen">
+  /**
+   * INTERNAL USE
+   * reveals wether the containing screen is a DeskTopScreen or not
+   * @return null if DeskTopScreen
+   */
+  public boolean isOtherScreen() {
+    return (otherScreen != null);
+  }
+
+  /**
+   * INTERNAL USE
+   * identifies the point as being on a non-desktop-screen
+   * @param scr Screen
+   * @return this
+   */
+  public Location setOtherScreen(IScreen scr) {
+    otherScreen = scr;
+    return this;
+  }
+
+  /**
+   * INTERNAL USE
+   * identifies the point as being on a non-desktop-screen
+   * if this is true for the given location
+   * @return this
+   */
+  private Location setOtherScreen(Location loc) {
+    if (loc.isOtherScreen()) {
+      setOtherScreen(loc.getScreen());
+    }
+    return this;
+  }
+
+  private IScreen otherScreen = null;
   //</editor-fold>
 
   //<editor-fold desc="001 Constructors">
@@ -100,7 +225,7 @@ public class Location extends Element implements Comparable<Location>{
     x = loc.x;
     y = loc.y;
     if (loc.isOtherScreen()) {
-      setOtherScreen(loc.getScreen());
+      otherScreen = loc.getScreen();
     }
   }
 
@@ -115,6 +240,54 @@ public class Location extends Element implements Comparable<Location>{
   //</editor-fold>
 
   //<editor-fold desc="010 screen related">
+  /**
+    * Returns null, if outside of any screen and not contained in a non-Desktop Screen instance (e.g. remote screen)<br>
+    * subsequent actions WILL crash if not tested for null return
+    *
+    * @return the screen, that contains the given point
+    */
+  public IScreen getScreen() {
+    Rectangle r;
+    if (otherScreen != null) {
+      return otherScreen;
+    }
+    for (int i = 0; i < Screen.getNumberScreens(); i++) {
+      r = Screen.getScreen(i).getBounds();
+      if (r.contains(this.x, this.y)) {
+        return Screen.getScreen(i);
+      }
+    }
+    Debug.error("Location: outside any screen (%s, %s) - subsequent actions might not work as expected", x, y);
+    return null;
+  }
+
+  /**
+    * Returns primary screen, if outside of any screen or not contained in a non-Desktop Screen instance (e.g. remote screen)<br>
+    *
+    * @return the real screen, that contains the given point
+    */
+  public Screen getMonitor() {
+    Rectangle r;
+    Screen scr = null;
+    if (otherScreen == null) {
+      for (int i = 0; i < Screen.getNumberScreens(); i++) {
+        r = Screen.getScreen(i).getBounds();
+        if (r.contains(this.x, this.y)) {
+          scr = Screen.getScreen(i);
+          break;
+        }
+      }
+    } else {
+      Debug.error("Location: getMonitor: (%s, %s) not on real screen - using primary", x, y);
+      scr = Screen.getPrimaryScreen();
+    }
+    if (scr == null) {
+      Debug.error("Location: getMonitor: (%s, %s) outside any screen - using primary", x, y);
+      scr = Screen.getPrimaryScreen();
+    }
+    return scr;
+  }
+
 // TODO Location.getColor() implement more support and make it useable
   /**
    * Get the color at the given Point for details: see java.awt.Robot and ...Color
@@ -129,7 +302,7 @@ public class Location extends Element implements Comparable<Location>{
   }
   //</editor-fold>
 
-  //<editor-fold desc="005 make Region">
+  //<editor-fold desc="005 make Regions">
   /**
    * create a region with this point as center and size Settings.DefaultPadding
    *
@@ -300,10 +473,8 @@ public class Location extends Element implements Comparable<Location>{
     Offset offset = new Offset(whatever);
     return new Location(x + offset.x, y + offset.y);
   }
-  //</editor-fold>
 
-  //<editor-fold desc="007 Point relative to top, bottom, left, right">
-  /**
+/**
    * creates a point at the given offset to the left, might be negative <br>might create a point
    * outside of any screen, not checked
    *
@@ -311,7 +482,7 @@ public class Location extends Element implements Comparable<Location>{
    * @return new location
    */
   public Location left(int dx) {
-    return (Location) new Location(x - dx, y).setOtherScreenOf(this);
+    return new Location(x - dx, y).setOtherScreen(this);
   }
 
   /**
@@ -322,7 +493,7 @@ public class Location extends Element implements Comparable<Location>{
    * @return new location
    */
   public Location right(int dx) {
-    return (Location) new Location(x + dx, y).setOtherScreenOf(this);
+    return new Location(x + dx, y).setOtherScreen(this);
   }
 
   /**
@@ -333,7 +504,7 @@ public class Location extends Element implements Comparable<Location>{
    * @return new location
    */
   public Location above(int dy) {
-    return (Location) new Location(x, y - dy).setOtherScreenOf(this);
+    return new Location(x, y - dy).setOtherScreen(this);
   }
 
   /**
@@ -344,7 +515,49 @@ public class Location extends Element implements Comparable<Location>{
    * @return new location
    */
   public Location below(int dy) {
-    return (Location) new Location(x, y + dy).setOtherScreenOf(this);
+    return new Location(x, y + dy).setOtherScreen(this);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="011 actions">
+  /**
+   * Move the mouse to this location point
+   *
+   * @return this
+   */
+  public Location hover() {
+    Mouse.move(this);
+    return this;
+  }
+
+  /**
+   * Move the mouse to this location point and click left
+   *
+   * @return this
+   */
+  public Location click() {
+    Mouse.click(this, "L");
+    return this;
+  }
+
+  /**
+   * Move the mouse to this location point and double click left
+   *
+   * @return this
+   */
+  public Location doubleClick() {
+    Mouse.click(this, "LD");
+    return this;
+  }
+
+  /**
+   * Move the mouse to this location point and click right
+   *
+   * @return this
+   */
+  public Location rightClick() {
+    Mouse.click(this, "R");
+    return this;
   }
   //</editor-fold>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script.support;
 
@@ -34,9 +34,6 @@ public class Observer {
   private Map<String, ObserveEvent.Type> eventTypes = Collections.synchronizedMap(new HashMap());
   private Map<String, Object> eventCallBacks = Collections.synchronizedMap(new HashMap());
   private Map<String, Integer> eventCounts = Collections.synchronizedMap(new HashMap());
-  private int minChanges = 0;
-  private int numChangeCallBacks = 0;
-  private int numChangeObservers = 0;
   private static boolean shouldStopOnFirstEvent = false;
 
   private Observer() {
@@ -98,18 +95,40 @@ public class Observer {
     return similarity;
   }
 
-  public <PSC> void addObserver(PSC ptn, ObserverCallBack ob, String name, ObserveEvent.Type type) {
+  private int minChanges = 0;
+  private int numChangeCallBacks = 0;
+  private String changeEventName = null;
+
+  //<editor-fold desc="obsolete">
+  private int numChangeObservers = 0;
+  private int getMinChanges() {
+    int min = Integer.MAX_VALUE;
+    int n;
+    for (String name : eventNames.keySet()) {
+      if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) continue;
+      n = (Integer) eventNames.get(name);
+      if (n < min) {
+        min = n;
+      }
+    }
+    return min;
+  }
+  //</editor-fold>
+
+  public <PSC> String addObserver(PSC ptn, ObserverCallBack ob, String name, ObserveEvent.Type type) {
+    if (type == ObserveEvent.Type.CHANGE) {
+      if (changeEventName == null) {
+        changeEventName = name;
+      } else {
+        name = changeEventName;
+      }
+      minChanges = (int) ptn;
+    }
     eventCallBacks.put(name, ob);
     eventStates.put(name, State.FIRST);
     eventNames.put(name, ptn);
     eventTypes.put(name, type);
-    if (type == ObserveEvent.Type.CHANGE) {
-      minChanges = getMinChanges();
-      numChangeObservers++;
-      if (eventCallBacks.get(name) != null) {
-        numChangeCallBacks++;
-      }
-    }
+    return name;
   }
 
   public void removeObserver(String name) {
@@ -175,8 +194,8 @@ public class Observer {
         continue;
       }
       Object ptn = eventNames.get(name);
-      Image img = Element.getImage(ptn);
-      if (img == null || !img.isValid()) {
+      Image img = Element.getImageFromTarget(ptn);
+      if (img == null || !img.isUseable()) {
         Debug.error("EventMgr: checkPatterns: Image not valid", ptn);
         eventStates.put(name, State.MISSING);
         continue;
@@ -218,9 +237,9 @@ public class Observer {
         if (finder.hasNext()) {
           match = finder.next();
           match.setTimes(0, now - lastSearchTime);
-          if (match.score() >= getSimiliarity(ptn)) {
+          if (match.getScore() >= getSimiliarity(ptn)) {
             hasMatch = true;
-            img.setLastSeen(match.getRect(), match.score());
+            img.setLastSeen(match.getRect(), match.getScore());
           }
         }
       }
@@ -276,57 +295,44 @@ public class Observer {
     log(lvl, "repeat (%s): %s after %d seconds", eventTypes.get(name), name, secs);
   }
 
-  private int getMinChanges() {
-    int min = Integer.MAX_VALUE;
-    int n;
-    for (String name : eventNames.keySet()) {
-      if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) continue;
-      n = (Integer) eventNames.get(name);
-      if (n < min) {
-        min = n;
-      }
-    }
-    return min;
-  }
-
   private ScreenImage lastImage = null;
 
   private boolean checkChanges(ScreenImage img) {
-    if (numChangeObservers == 0) {
+    if (changeEventName == null) {
       return false;
     }
-    boolean leftToDo = false;
+    //boolean leftToDo = false;
     if (lastImage == null) {
       lastImage = img;
       return true;
     }
-    for (String name : eventNames.keySet()) {
-      if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) {
-        continue;
+//    for (String name : eventNames.keySet()) {
+//      if (eventTypes.get(name) != ObserveEvent.Type.CHANGE) {
+//        continue;
+//      }
+//      if (eventStates.get(name) == State.REPEAT) {
+//        if ((new Date()).getTime() < eventRepeatWaitTimes.get(name)) {
+//          continue;
+//        }
+//      }
+//      leftToDo = true;
+//    }
+    if (eventStates.get(changeEventName) == State.REPEAT) {
+      if ((new Date()).getTime() < eventRepeatWaitTimes.get(changeEventName)) {
+        return true;
       }
-      if (eventStates.get(name) == State.REPEAT) {
-        if ((new Date()).getTime() < eventRepeatWaitTimes.get(name)) {
-          continue;
-        }
-      }
-      leftToDo = true;
     }
-    if (leftToDo) {
-      leftToDo = false;
-      log(lvl + 1, "update: checking changes");
-      Finder finder = new Finder(lastImage);
-      List<Region> result = finder.findChanges(img);
-      if (result.size() > 0) {
-        callChangeObserver(result);
-        if (shouldStopOnFirstEvent) {
-          observedRegion.stopObserver();
-        }
-      } else {
-        leftToDo = true;
+    log(lvl + 1, "update: checking changes");
+    Finder finder = new Finder(lastImage);
+    List<Region> result = finder.findChanges(img);
+    if (result.size() > 0) {
+      callChangeObserver(result);
+      if (shouldStopOnFirstEvent) {
+        observedRegion.stopObserver();
       }
-      lastImage = img;
     }
-    return leftToDo |= numChangeCallBacks > 0;
+    lastImage = img;
+    return true;
   }
 
   private void callChangeObserver(List<Region> results) {

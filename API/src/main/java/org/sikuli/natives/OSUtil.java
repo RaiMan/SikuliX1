@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.natives;
 
@@ -9,6 +9,7 @@ import java.util.List;
 public interface OSUtil {
 
 	public interface OsProcess {
+
 		long getPid();
 
 		String getName();
@@ -40,13 +41,19 @@ public interface OSUtil {
 	 */
 	void init();
 
+	boolean isUserProcess(OsProcess process);
+
 	List<OsProcess> findProcesses(String name);
 
 	List<OsWindow> findWindows(String title);
 
 	List<OsWindow> getWindows(OsProcess process);
 
+	List<OsWindow> getWindows();
+
 	List<OsProcess> getProcesses();
+
+	OsProcess getProcess();
 
 	OsProcess open(String[] cmd, String workDir);
 

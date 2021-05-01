@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.natives;
 
@@ -144,7 +144,6 @@ public class LinuxUtil extends GenericOsUtil {
 
 			if (exitCode != 0) {
 				String message = String.format("xdotool failed with code %s: %s", exitCode, err);
-				Debug.trace(message);
 				throw new XdotoolException(message);
 			}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.script;
 
@@ -9,7 +9,6 @@ package org.sikuli.script;
 public enum FindFailedResponse{
    ABORT,
    PROMPT,
-   CAPTURED,
    SKIP,
    RETRY,
    HANDLE

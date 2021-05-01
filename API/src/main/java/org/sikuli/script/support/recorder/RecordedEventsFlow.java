@@ -319,18 +319,18 @@ public class RecordedEventsFlow {
       File dropFile = new File(ImagePath.getBundlePath(), time + ".png");
 
       try {
-        ImageIO.write(dragImage.getBufferedImage(), "PNG", dragFile);
-        ImageIO.write(dropImage.getBufferedImage(), "PNG", dropFile);
+        ImageIO.write(dragImage.get(), "PNG", dragFile);
+        ImageIO.write(dropImage.get(), "PNG", dropFile);
 
         saveScreenshot(screenshot, dragFile);
         saveScreenshot(screenshot, dropFile);
 
         Pattern dragPattern = new Pattern(dragFile.getAbsolutePath());
-        dragPattern.targetOffset(dragImage.offset());
-        dragPattern.similar(dragImage.similarity());
+        dragPattern.targetOffset(dragImage.getOffset());
+        dragPattern.similar(dragImage.getSimilarity());
         Pattern dropPattern = new Pattern(dropFile.getAbsolutePath());
-        dropPattern.targetOffset(dropImage.offset());
-        dropPattern.similar(dropImage.similarity());
+        dropPattern.targetOffset(dropImage.getOffset());
+        dropPattern.similar(dropImage.getSimilarity());
 
         actions.add(new DragDropAction(dragPattern, dropPattern));
       } catch (IOException e) {
@@ -353,15 +353,15 @@ public class RecordedEventsFlow {
       File file = new File(ImagePath.getBundlePath(),"" + time + ".png");
 
       try {
-        ImageIO.write(image.getBufferedImage(), "PNG", file);
+        ImageIO.write(image.get(), "PNG", file);
         saveScreenshot(screenshot, file);
       } catch (IOException e) {
         e.printStackTrace();
       }
 
       Pattern pattern = new Pattern(file.getAbsolutePath());
-      pattern.targetOffset(image.offset());
-      pattern.similar(image.similarity());
+      pattern.targetOffset(image.getOffset());
+      pattern.similar(image.getSimilarity());
 
       ClickAction clickAction = null;
 
@@ -408,15 +408,15 @@ public class RecordedEventsFlow {
         File file = new File(ImagePath.getBundlePath(), "" + time + ".png");
 
         try {
-          ImageIO.write(image.getBufferedImage(), "PNG", file);
+          ImageIO.write(image.get(), "PNG", file);
           saveScreenshot(screenshot, file);
         } catch (IOException e) {
           e.printStackTrace();
         }
 
         Pattern pattern = new Pattern(file.getAbsolutePath());
-        pattern.targetOffset(image.offset());
-        pattern.similar(image.similarity());
+        pattern.targetOffset(image.getOffset());
+        pattern.similar(image.getSimilarity());
 
         long stepDelay = (time - wheelStartTime) / wheelSteps;
 
@@ -450,13 +450,13 @@ public class RecordedEventsFlow {
     }
 
     Mat lastNonMouseMoveScreenshot = readFloorScreenshot(lastNonMouseMoveEventTime);
-    Finder finder = new Finder(Element.getBufferedImage(lastNonMouseMoveScreenshot));
+    Finder finder = new Finder(new Image(lastNonMouseMoveScreenshot));
 
     finder.find(image);
 
     List<Match> matches = finder.getList();
 
-    boolean wasHereBeforeMouseMove = matches.stream().anyMatch((m) -> m.score() > 0.9);
+    boolean wasHereBeforeMouseMove = matches.stream().anyMatch((m) -> m.getScore() > 0.9);
 
     if (!wasHereBeforeMouseMove) {
       Pattern pattern = action.getPattern();
@@ -608,7 +608,7 @@ public class RecordedEventsFlow {
    * restores the original event location on the image
    */
   private void adjustOffset(Image image, Rect roi, NativeMouseEvent event) {
-    image.offset(new Location(event.getX() - roi.x - roi.width / 2, event.getY() - roi.y - roi.height / 2));
+    image.setOffset(new Location(event.getX() - roi.x - roi.width / 2, event.getY() - roi.y - roi.height / 2));
   }
 
   /*
@@ -623,8 +623,8 @@ public class RecordedEventsFlow {
     if (matches.size() > 1) {
       // matches are sorted best first, take second match
       // as reference for adjustment
-      double nextScore = Math.ceil(matches.get(1).score() * 10) / 10;
-      image.similarity(nextScore);
+      double nextScore = Math.ceil(matches.get(1).getScore() * 10) / 10;
+      image.setSimilarity(nextScore);
     }
   }
 
