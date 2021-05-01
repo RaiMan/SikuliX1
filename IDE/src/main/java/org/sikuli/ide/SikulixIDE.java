@@ -13,7 +13,7 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
-import org.sikuli.script.support.gui.SXDialog;
+//import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -44,11 +44,10 @@ public class SikulixIDE extends JFrame {
     Debug.logx(level, me + message, args);
   }
 
-  static SXDialog ideSplash = null;
-
-  protected static void setIDESplash(SXDialog splash) {
-    ideSplash = splash;
-  }
+//  static SXDialog ideSplash = null;
+//  protected static void setIDESplash(SXDialog splash) {
+//    ideSplash = splash;
+//  }
 
   private SikulixIDE() {
   }
@@ -197,7 +196,7 @@ public class SikulixIDE extends JFrame {
 
   //TODO showAfterStart to be revised
   public static void showAfterStart() {
-    org.sikuli.ide.Sikulix.stopSplash();
+    //org.sikuli.ide.Sikulix.stopSplash();
     ideWindow.setVisible(true);
     get().mainPane.setDividerLocation(0.6);
     try {
@@ -768,40 +767,40 @@ public class SikulixIDE extends JFrame {
 
   void openSpecial() {
     log(lvl, "Open Special requested");
-    Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Global Options", Commons.getOptions().getOptionsFile());
-    File extensionsFile = ExtensionManager.getExtensionsFile();
-    specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
-    File sitesTxt = ExtensionManager.getSitesTxt();
-    specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
-    String[] defaults = new String[specialFiles.size()];
-    defaults[0] = Options.getOptionsFileDefault();
-    defaults[1] = ExtensionManager.getExtensionsFileDefault();
-    defaults[2] = ExtensionManager.getSitesTxtDefault();
-    String msg = "";
-    int num = 1;
-    String[] files = new String[specialFiles.size()];
-    for (String specialFile : specialFiles.keySet()) {
-      files[num - 1] = specialFiles.get(specialFile).trim();
-      msg += specialFile + "\n";
-      num++;
-    }
-    msg += "\n" + "Enter a number to select a file";
-    String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
-    if (null != answer && !answer.isEmpty()) {
-      try {
-        num = Integer.parseInt(answer.substring(0, 1));
-        if (num > 0 && num <= specialFiles.size()) {
-          String file = files[num - 1];
-          if (!new File(file).exists()) {
-            FileManager.writeStringToFile(defaults[num - 1], file);
-          }
-          log(lvl, "Open Special: should load: %s", file);
-          newTabWithContent(file);
-        }
-      } catch (NumberFormatException e) {
-      }
-    }
+//    Map<String, String> specialFiles = new Hashtable<>();
+//    specialFiles.put("1 SikuliX Global Options", Commons.getOptions().getOptionsFile());
+//    File extensionsFile = ExtensionManager.getExtensionsFile();
+//    specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
+//    File sitesTxt = ExtensionManager.getSitesTxt();
+//    specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
+//    String[] defaults = new String[specialFiles.size()];
+//    defaults[0] = Options.getOptionsFileDefault();
+//    defaults[1] = ExtensionManager.getExtensionsFileDefault();
+//    defaults[2] = ExtensionManager.getSitesTxtDefault();
+//    String msg = "";
+//    int num = 1;
+//    String[] files = new String[specialFiles.size()];
+//    for (String specialFile : specialFiles.keySet()) {
+//      files[num - 1] = specialFiles.get(specialFile).trim();
+//      msg += specialFile + "\n";
+//      num++;
+//    }
+//    msg += "\n" + "Enter a number to select a file";
+//    String answer = SX.input(msg, "Edit a special SikuliX file", false, 10);
+//    if (null != answer && !answer.isEmpty()) {
+//      try {
+//        num = Integer.parseInt(answer.substring(0, 1));
+//        if (num > 0 && num <= specialFiles.size()) {
+//          String file = files[num - 1];
+//          if (!new File(file).exists()) {
+//            FileManager.writeStringToFile(defaults[num - 1], file);
+//          }
+//          log(lvl, "Open Special: should load: %s", file);
+//          newTabWithContent(file);
+//        }
+//      } catch (NumberFormatException e) {
+//      }
+//    }
   }
   //</editor-fold>
 
@@ -1167,7 +1166,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doAbout(ActionEvent ae) {
-      new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
+      //new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
     }
 
     public void doPreferences(ActionEvent ae) {
@@ -1645,7 +1644,7 @@ public class SikulixIDE extends JFrame {
   }
 
   private void showExtensions() {
-    ExtensionManager.show();
+    //ExtensionManager.show();
   }
 
   private static IScreen defaultScreen = null;
