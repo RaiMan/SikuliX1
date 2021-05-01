@@ -580,7 +580,7 @@ public abstract class Element {
     return content;
   }
 
-  protected static void reload(String fpImage) {
+  public static void reload(String fpImage) {
     URL url = evalURL(fpImage);
     if (url != null) {
       Image image = new Image();

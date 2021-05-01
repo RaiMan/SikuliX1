@@ -19,6 +19,7 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -1150,6 +1151,24 @@ public class FileManager {
     }
   }
 
+  //TODO consolidate with FileManager and Settings
+  public static void deleteNotUsedScreenshots(String bundle, Set<String> usedImages) {
+    File scriptFolder = new File(bundle);
+    if (!scriptFolder.isDirectory()) {
+      return;
+    }
+
+    File screenshotsDir = new File(bundle, ImagePath.SCREENSHOT_DIRECTORY);
+
+    if(screenshotsDir.exists()) {
+      for(File screenshot : screenshotsDir.listFiles()) {
+        if(!usedImages.contains(screenshot.getName())) {
+          Debug.log(3, "FileManager: delete not used screenshot: %s", screenshot.getName());
+          screenshot.delete();
+        }
+      }
+    }
+  }
   public static boolean isBundle(String dir) {
     return dir.endsWith(".sikuli");
   }
