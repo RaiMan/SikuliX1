@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
+ * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.ide;
 
@@ -11,6 +11,11 @@ import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
+import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
+import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
+import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Location;
 import org.sikuli.script.SX;
@@ -18,11 +23,12 @@ import org.sikuli.script.ScreenImage;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.script.support.ExtensionManager;
+import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.Runner;
+import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
@@ -42,8 +48,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
+import java.util.*;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
@@ -350,8 +356,7 @@ public class EditorPane extends JTextPane {
       if (!isBundle()) {
         checkSource();
       }
-      //TODO parse content
-      parseText();
+      doParse();
       restoreCaretPosition();
       setDirty(false);
     }
@@ -381,6 +386,7 @@ public class EditorPane extends JTextPane {
       // TODO Needs better implementation
       codeGenerator = new JythonCodeGenerator();
     }
+
     if (editorPaneType != null) {
       editorKit = new SikuliEditorKit();
       setEditorKit(editorKit);
@@ -396,42 +402,42 @@ public class EditorPane extends JTextPane {
           }
         });
       }
+    }
 
-      if (transferHandler == null) {
-        transferHandler = new MyTransferHandler();
-      }
-      setTransferHandler(transferHandler);
+    if (transferHandler == null) {
+      transferHandler = new MyTransferHandler();
+    }
+    setTransferHandler(transferHandler);
 
-      if (lineHighlighter == null) {
-        lineHighlighter = new EditorCurrentLineHighlighter(this);
-        addCaretListener(lineHighlighter);
-        initKeyMap();
-        //addKeyListener(this);
-        //addCaretListener(this);
-      }
+    if (lineHighlighter == null) {
+      lineHighlighter = new EditorCurrentLineHighlighter(this);
+      addCaretListener(lineHighlighter);
+      initKeyMap();
+      //addKeyListener(this);
+      //addCaretListener(this);
+    }
 
-      popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-      if (!popMenuImage.isValidMenu()) {
-        popMenuImage = null;
-      }
+    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+    if (!popMenuImage.isValidMenu()) {
+      popMenuImage = null;
+    }
 
-      popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-      if (!popMenuCompletion.isValidMenu()) {
-        popMenuCompletion = null;
-      }
+    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+    if (!popMenuCompletion.isValidMenu()) {
+      popMenuCompletion = null;
+    }
 
-      setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
-      setMargin(new Insets(3, 3, 3, 3));
-      setBackground(Color.WHITE);
-      if (!Settings.isMac()) {
-        setSelectionColor(new Color(170, 200, 255));
-      }
+    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
+    setMargin(new Insets(3, 3, 3, 3));
+    setBackground(Color.WHITE);
+    if (!Settings.isMac()) {
+      setSelectionColor(new Color(170, 200, 255));
+    }
 
 //      updateDocumentListeners("initBeforeLoad");
 
-      SikulixIDE.getStatusbar().setType(editorPaneType);
-      log(lvl, "InitTab: (%s)", editorPaneType);
-    }
+    SikulixIDE.getStatusbar().setType(editorPaneType);
+    log(lvl, "InitTab: (%s)", editorPaneType);
   }
 
   private boolean readContent(File scriptFile) {
@@ -493,7 +499,7 @@ public class EditorPane extends JTextPane {
       String path = matcher.group(1);
       log(3, "checkSource: found setBundlePath: %s", path);
       File newBundleFolder = new File(path.replace("\\\\", "\\"));
-      if (RunTime.get().runningWindows && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
+      if (Commons.runningWindows() && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
         try {
           newBundleFolder = new File(new File("\\").getCanonicalPath(), newBundleFolder.getPath().substring(1));
         } catch (IOException e) {
@@ -563,7 +569,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -672,7 +678,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void setEditorPaneIDESupport(String type) {
-    editorPaneIDESupport = SikulixIDE.getIDESupport(type);
+    editorPaneIDESupport = IDESupport.ideSupporter.get(type);
   }
 
   private IIDESupport editorPaneIDESupport = null;
@@ -934,7 +940,7 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  //TODO not used: appendString
+  //TODO not used
   public void appendString(String str) {
     Document doc = getDocument();
     try {
@@ -946,35 +952,72 @@ public class EditorPane extends JTextPane {
       log(-1, "appendString: Problem while trying to append\n%s", e.getMessage());
     }
   }
+
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
-  public void parseText() {
+  public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
+    if (fileOverWritten) {
+      Image.unCache(newName);
+    }
+    Map<String, List<Integer>> images = parseforImages();
+    oldName = new File(oldName).getName();
+    List<Integer> poss = images.get(oldName);
+    if (images.containsKey(oldName) && poss.size() > 0) {
+      Collections.sort(poss, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+          if (o1 > o2) return -1;
+          return 1;
+        }
+      });
+      reparseRenameImages(poss, oldName, new File(newName).getName());
+    }
+    doReparse();
+  }
+
+  private boolean reparseRenameImages(List<Integer> poss, String oldName, String newName) {
+    StringBuilder text = new StringBuilder(getText());
+    int lenOld = oldName.length();
+    for (int pos : poss) {
+      text.replace(pos - lenOld, pos, newName);
+    }
+    setText(text.toString());
+    return true;
+  }
+
+  public void doReparse() {
+    saveCaretPosition();
+    readContent(getText());
+    updateDocumentListeners("reparse");
+    doParse();
+    restoreCaretPosition();
+  }
+
+  public void doParse() {
     Document doc = getDocument();
     Element root = doc.getDefaultRootElement();
     parse(root);
   }
 
-  public void parseTextAgain() {
-    saveCaretPosition();
-    readContent(getText());
-    updateDocumentListeners("reparse");
-    parseText();
-    restoreCaretPosition();
-  }
-
-  public void parseTextAgainOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
-    if (fileOverWritten) {
-      //TODO ImageCache action?
+  private void parse(Element node) {
+    if (!showThumbs) {
+      // do not show any thumbnails
+      return;
     }
-    String text = getText();
-    Pattern oldPattern = Pattern.compile("[\"']" + Pattern.quote(oldName) + "[\"']");
-    text = oldPattern.matcher(text).replaceAll(newName);
-    setText(text);
-    parseTextAgain();
+    int count = node.getElementCount();
+    for (int i = 0; i < count; i++) {
+      Element elm = node.getElement(i);
+      log(lvl + 1, elm.toString());
+      if (elm.isLeaf()) {
+        parseRange(elm.getStartOffset(), elm.getEndOffset());
+      } else {
+        parse(elm);
+      }
+    }
   }
 
-  public String parseLine(String line) {
+  public String parseLineText(String line) {
     if (line.startsWith("#")) {
       Pattern aName = Pattern.compile("^#[A-Za-z0-9_]+ =$");
       Matcher mN = aName.matcher(line);
@@ -1006,23 +1049,6 @@ public class EditorPane extends JTextPane {
       return line.substring(mI.start(), mI.end());
     }
     return "";
-  }
-
-  private void parse(Element node) {
-    if (!showThumbs) {
-      // do not show any thumbnails
-      return;
-    }
-    int count = node.getElementCount();
-    for (int i = 0; i < count; i++) {
-      Element elm = node.getElement(i);
-      log(lvl + 1, elm.toString());
-      if (elm.isLeaf()) {
-        parseRange(elm.getStartOffset(), elm.getEndOffset());
-      } else {
-        parse(elm);
-      }
-    }
   }
 
   private int parseRange(int start, int end) {
@@ -1095,15 +1121,172 @@ public class EditorPane extends JTextPane {
     return false;
   }
 
+  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor, String mask) {
+//TODO ifn really needed??
+    if (ifn == null) {
+      return "\"" + EditorPatternLabel.CAPTURE + "\"";
+    }
+    String imgName = new File(ifn).getName();
+    if (img != null) {
+      imgName = new File(img.getName()).getName();
+    }
+    String pat = "Pattern(\"" + imgName + "\")";
+    String patternString = "";
+    if (resizeFactor > 0 && resizeFactor != 1) {
+      patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
+    }
+    if (sim > 0) {
+      if (sim >= 0.99F) {
+        patternString += ".exact()";
+      } else if (sim != 0.7F) {
+        patternString += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
+      }
+    }
+    if (off != null && (off.x != 0 || off.y != 0)) {
+      patternString += ".targetOffset(" + off.x + "," + off.y + ")";
+    }
+    if (null != mask && !mask.isEmpty()) {
+      patternString += "." + mask + ")";
+    }
+    if (!patternString.equals("")) {
+      patternString = pat + patternString;
+    } else {
+      patternString = "\"" + imgName + "\"";
+    }
+    return patternString;
+  }
+
+  private Map<String, List<Integer>> parseforImages() {
+    String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
+    log(3, "parseforImages: in %s", pbundle);
+    String scriptText = getText();
+    Lexer lexer = getLexer();
+    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
+    lineNumber = 0;
+    parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
+    log(3, "parseforImages finished");
+    return images;
+  }
+
+  int lineNumber = 0;
+  String uncompleteStringError = "uncomplete_string_error";
+
+  private void parseforImagesWalk(String pbundle, Lexer lexer,
+                                  String text, int pos, Map<String, List<Integer>> images) {
+    //log(3, "parseforImagesWalk");
+    Iterable<Token> tokens = lexer.getTokens(text);
+    boolean inString = false;
+    String current;
+    String innerText;
+    String[] possibleImage = new String[]{""};
+    String[] stringType = new String[]{""};
+    for (Token t : tokens) {
+      current = t.getValue();
+      if (current.endsWith("\n")) {
+        if (inString) {
+          SX.popError(
+              String.format("Orphan string delimiter (\" or ')\n" +
+                  "in line %d\n" +
+                  "No images will be deleted!\n" +
+                  "Correct the problem before next save!", lineNumber),
+               "Delete images on save");
+          log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+          images.clear();
+          images.put(uncompleteStringError, null);
+          break;
+        }
+        lineNumber++;
+      }
+      if (t.getType() == TokenType.Comment) {
+        //log(3, "parseforImagesWalk::Comment");
+        innerText = t.getValue().substring(1);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
+        continue;
+      }
+      if (t.getType() == TokenType.String_Doc) {
+        //log(3, "parseforImagesWalk::String_Doc");
+        innerText = t.getValue().substring(3, t.getValue().length() - 3);
+        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
+        continue;
+      }
+      if (!inString) {
+        inString = parseforImagesGetName(current, inString, possibleImage, stringType);
+        continue;
+      }
+      if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
+        inString = false;
+        parseforImagesCollect(pbundle, possibleImage[0], pos + t.getPos(), images);
+        continue;
+      }
+    }
+  }
+
+  private boolean parseforImagesGetName(String current, boolean inString,
+                                        String[] possibleImage, String[] stringType) {
+    //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
+    if (!inString) {
+      if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
+        possibleImage[0] = "";
+        stringType[0] = current.substring(current.length() - 1, current.length());
+        return true;
+      }
+    }
+    if (!current.isEmpty() && "'\"".contains(current) && stringType[0].equals(current)) {
+      return false;
+    }
+    if (inString) {
+      possibleImage[0] += current;
+    }
+    return inString;
+  }
+
+  private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
+    String fimg;
+    //log(3, "parseforImagesCollect");
+    if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
+      fimg = FileManager.slashify(img, false);
+      if (fimg.contains("/")) {
+        if (!fimg.contains(pbundle)) {
+          return;
+        }
+        img = new File(fimg).getName();
+      }
+      if (images.containsKey(img)) {
+        images.get(img).add(pos);
+      } else {
+        List<Integer> poss = new ArrayList<Integer>();
+        poss.add(pos);
+        images.put(img, poss);
+      }
+    }
+  }
+
+  private Lexer getLexer() {
+//TODO this only works for cleanbundle to find the image strings
+    String scriptType = "python";
+    if (null != lexers.get(scriptType)) {
+      return lexers.get(scriptType);
+    }
+    try {
+      Lexer lexer = Lexer.getByName(scriptType);
+      lexers.put(scriptType, lexer);
+      return lexer;
+    } catch (ResolutionException ex) {
+      return null;
+    }
+  }
+
+  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
+
   public boolean showThumbs;
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1174,14 +1357,14 @@ public class EditorPane extends JTextPane {
     int tabAlreadyOpen = alreadyOpen(filename, currentTab);
     if (-1 != tabAlreadyOpen) {
       SX.popError(String.format("Target is open in IDE\n%s\n" +
-                      "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
+              "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
               "SaveAs: file is opened");
       return null;
     }
     if (FileManager.exists(filename)) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", filename),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", filename),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1208,7 +1391,7 @@ public class EditorPane extends JTextPane {
         return null;
       }
     }
-    ImagePath.remove(new File(getImagePath()));
+    ImagePath.remove(getImagePath());
     if (isTemp()) {
       FileManager.deleteTempDir(sourceFolder);
       setTemp(false);
@@ -1240,10 +1423,38 @@ public class EditorPane extends JTextPane {
     log(lvl, "writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
+          new FileOutputStream(editorPaneFile.getAbsolutePath()),
+          "UTF8")));
     } catch (IOException e) {
       return false;
+    }
+    if (isBundle()) {
+      boolean shouldDeleteHTML = true;
+      if (PreferencesUser.get().getAtSaveMakeHTML()) {
+        try {
+          convertSrcToHtml(getSrcBundle());
+          shouldDeleteHTML = false;
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+        }
+      }
+      if (shouldDeleteHTML) {
+        String snameDir = editorPaneFile.getParent();
+        if (snameDir.endsWith(".sikuli")) {
+          String sname = snameDir.replace(".sikuli", "") + ".html";
+          (new File(snameDir, sname)).delete();
+        }
+      }
+      if (PreferencesUser.get().getAtSaveCleanBundle()) {
+        if (!editorPaneType.equals(JythonRunner.TYPE)) {
+          log(lvl, "delete-not-used-images for %s using Python string syntax", editorPaneType);
+        }
+        try {
+          cleanBundle();
+        } catch (Exception ex) {
+          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+        }
+      }
     }
     setDirty(false);
     return true;
@@ -1267,8 +1478,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", zipPath),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+          null, SikuliIDEI18N._I("msgFileExists", zipPath),
+          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1330,43 +1541,21 @@ public class EditorPane extends JTextPane {
 //    }
   }
 
-  protected void cleanBundle() {
-    log(lvl + 1, "cleanBundle: %s", getCurrentScriptname());
-    String scriptText = getText();
-
-    FilenameFilter filter = new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
-          if (!name.startsWith("_")) {
-            return true;
-          }
-        }
-        return false;
-      }
-    };
-
-    for (File imageFile : new File(getBundlePath()).listFiles(filter)) {
-      String name = imageFile.getName();
-      //keep if imagename with extension (png, jpg, jpeg) is mentioned in script
-      if (scriptText.contains(name)) {
-        continue;
-      }
-      //keep if imagename without extension is mentioned as string ("imagename" or 'imagename') in the script
-      String regEx = "['\"]" + Pattern.quote(FilenameUtils.getBaseName(name)) + "['\"]";
-      Matcher matcher = Pattern.compile(regEx).matcher(scriptText);
-      if (matcher.find() && matcher.group().endsWith(matcher.group().substring(0, 1))) {
-        continue;
-      }
-      log(lvl + 1, "*** deleted %s", name);
-      imageFile.delete();
+  private void cleanBundle() {
+    log(3, "cleanBundle");
+    Set<String> foundImages = parseforImages().keySet();
+    if (foundImages.contains(uncompleteStringError)) {
+      log(-1, "cleanBundle aborted (%s)", uncompleteStringError);
+    } else {
+      FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
+      log(lvl, "cleanBundle finished");
     }
 
     FileManager.deleteNotUsedScreenshots(getBundlePath(), new File(getBundlePath()).listFiles(filter));
     log(lvl + 1, "cleanBundle finished: %s", getCurrentScriptname());
   }
 
-  public boolean close() {
+  public boolean close() throws IOException {
     if (!isTemp()) {
       log(lvl, "Tab close: %s", getCurrentShortFilename());
     }
@@ -1376,12 +1565,12 @@ public class EditorPane extends JTextPane {
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
-              SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-              SikuliIDEI18N._I("dlgAskCloseTab"),
-              JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.WARNING_MESSAGE,
-              null,
-              options, options[0]);
+          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
+          SikuliIDEI18N._I("dlgAskCloseTab"),
+          JOptionPane.YES_NO_CANCEL_OPTION,
+          JOptionPane.WARNING_MESSAGE,
+          null,
+          options, options[0]);
       if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
         return false;
       } else if (ans == JOptionPane.YES_OPTION) {
@@ -1395,34 +1584,6 @@ public class EditorPane extends JTextPane {
         SikulixIDE.get().setCurrentFileTabTitle(fileSaved);
       } else {
         setDirty(false);
-      }
-    }
-    if (isBundle()) {
-      boolean shouldDeleteHTML = true;
-      if (PreferencesUser.get().getAtSaveMakeHTML()) {
-        try {
-          convertSrcToHtml(getSrcBundle());
-          shouldDeleteHTML = false;
-        } catch (Exception ex) {
-          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
-        }
-      }
-      if (shouldDeleteHTML) {
-        String snameDir = editorPaneFile.getParent();
-        if (snameDir.endsWith(".sikuli")) {
-          String sname = snameDir.replace(".sikuli", "") + ".html";
-          (new File(snameDir, sname)).delete();
-        }
-      }
-      if (PreferencesUser.get().getAtSaveCleanBundle()) {
-        if (!editorPaneType.equals(JythonRunner.TYPE)) {
-          log(lvl, "delete-not-used-images for %s using Python string syntax", editorPaneType);
-        }
-        try {
-          cleanBundle();
-        } catch (Exception ex) {
-          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
-        }
       }
     }
     return true;
@@ -1461,9 +1622,15 @@ public class EditorPane extends JTextPane {
       return COPY_OR_MOVE;
     }
 
+    private Map<String, String> getCopiedImgs() {
+      return copiedImgs;
+    }
+
+    private Map<String, String> copiedImgs = new HashMap<String, String>();
+
     @Override
     protected Transferable createTransferable(JComponent c) {
-      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
+      Map<String, String> _copiedImgs = getCopiedImgs();
       JTextPane aTextPane = (JTextPane) c;
 
       SikuliEditorKit kit = ((SikuliEditorKit) aTextPane.getEditorKit());
@@ -1496,7 +1663,7 @@ public class EditorPane extends JTextPane {
 
     @Override
     public boolean importData(JComponent comp, Transferable t) {
-      Map<String, String> _copiedImgs = SikulixIDE.get().getCopiedImgs();
+      Map<String, String> _copiedImgs = getCopiedImgs();
       DataFlavor htmlFlavor = DataFlavor.stringFlavor;
       if (canImport(comp, t.getTransferDataFlavors())) {
         try {
@@ -1533,7 +1700,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
+            filename, e.getMessage());
         return f;
       }
     }
@@ -1681,33 +1848,34 @@ public class EditorPane extends JTextPane {
   }
 
   public void runLines(String lines) {
-    SikulixIDE ide = SikulixIDE.get();
+    if (lines.startsWith(" ") || lines.startsWith("\t ")) {
+    }
+    SikulixIDE.doHide();
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        SikulixIDE ide = SikulixIDE.get();
 
-    ide.synchronizeScriptStart(() -> {
-      ide.setVisible(false);
-      ide.setCurrentRunner(editorPane.editorPaneRunner);
-      ide.setCurrentScript(editorPane.getCurrentFile());
-      ide.setIsRunningScript(true);
-      ide.clearMessageArea();
-      ide.resetErrorMark();
-
-      new Thread(() -> {
         try {
+          ide.setCurrentRunner(editorPane.editorPaneRunner);
+          ide.setCurrentScript(editorPane.getCurrentFile());
+          ide.setIsRunningScript(true);
+          ide.clearMessageArea();
+          ide.resetErrorMark();
+
           if (hasIDESupport()) {
             editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
           } else {
             editorPane.editorPaneRunner.runLines(lines, null);
           }
         } finally {
-          EventQueue.invokeLater(() -> {
-            SikulixIDE.showAgain();
-            ide.setCurrentRunner(null);
-            ide.setCurrentScript(null);
-          });
+          SikulixIDE.showAgain();
+          ide.setCurrentRunner(null);
+          ide.setCurrentScript(null);
           ide.setIsRunningScript(false);
         }
-      }).start();
-    });
+      }
+    }).start();
   }
   //</editor-fold>
 
