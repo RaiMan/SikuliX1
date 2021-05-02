@@ -13,6 +13,7 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import org.jnativehook.mouse.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Location;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.SikuliXception;
@@ -42,7 +43,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private static final long MOUSE_MOVE_SCREENSHOT_DELAY = 100;
   private static final long KEY_SCREENSHOT_DELAY = 500;
 
-  private static final int MOUSE_MOVE_THRESHOLD = 10;
+  private static final int MOUSE_MOVE_THRESHOLD = 20;
 
   private RecordedEventsFlow eventsFlow = new RecordedEventsFlow();
   private File screenshotDir;
@@ -54,6 +55,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
 
   private long currentMouseX = 0;
   private long currentMouseY = 0;
+  private Location currentMousePos = null;
 
   private boolean capturing = false;
   private final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
@@ -107,13 +109,19 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
           try {
             synchronized (screenshotDir) {
               if (screenshotDir.exists()) {
-                ScreenImage img = Screen.getPrimaryScreen().capture();
+                final Screen screen = getRelevantScreen();
+                ScreenImage img = screen.capture();
                 // Dedupe screenshots
                 if (img.diffPercentage(currentImage) > 0.0001) {
                   currentImage = img;
                   currentImageFilePath = currentImage.saveInto(screenshotDir);
                 }
-                eventsFlow.addScreenshot(currentImageFilePath);
+                final int screenID = screen.getID();
+                if (screenID > 9) {
+                  RunTime.terminate(999, "Recorder: screen id > 9 --- not implemented");
+                }
+                String pathToSave = screenID + currentImageFilePath;
+                eventsFlow.addScreenshot(pathToSave);
               }
             }
           } finally {
@@ -124,6 +132,10 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
         }), delayMillis, TimeUnit.MILLISECONDS);
       }
     }
+  }
+
+  private Screen getRelevantScreen() {
+    return currentMousePos.getMonitor();
   }
 
   private void add(NativeInputEvent e, long screenshotDelayMillis) {
@@ -168,7 +180,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       screenshot(0);
 
       Recorder.registerNativeHook();
-      GlobalScreen.addNativeKeyListener(this);
+      //GlobalScreen.addNativeKeyListener(this);
       GlobalScreen.addNativeMouseListener(this);
       GlobalScreen.addNativeMouseMotionListener(this);
       GlobalScreen.addNativeMouseWheelListener(this);
@@ -188,7 +200,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
       GlobalScreen.removeNativeMouseWheelListener(this);
       GlobalScreen.removeNativeMouseMotionListener(this);
       GlobalScreen.removeNativeMouseListener(this);
-      GlobalScreen.removeNativeKeyListener(this);
+//      GlobalScreen.removeNativeKeyListener(this);
       Recorder.unregisterNativeHook();
 
       synchronized (screenshotDir) {
@@ -240,6 +252,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
   private void saveMousePosition(NativeMouseEvent e) {
     currentMouseX = e.getX();
     currentMouseY = e.getY();
+    currentMousePos = new Location(currentMouseX, currentMouseY);
   }
 
   private void addMouseIfRelevantMove(NativeMouseEvent e) {

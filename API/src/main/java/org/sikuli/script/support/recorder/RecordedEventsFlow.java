@@ -8,10 +8,7 @@ import org.jnativehook.NativeInputEvent;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseWheelEvent;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Rect;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.script.*;
@@ -309,10 +306,12 @@ public class RecordedEventsFlow {
   private List<IRecordedAction> handleDragDrop(Long time, NativeMouseEvent event) {
     List<IRecordedAction> actions = new ArrayList<>();
 
-    Mat screenshot = readFloorScreenshot(dragStartTime);
+    Object[] result = readFloorScreenshot(dragStartTime);
+    Mat screenshot = (Mat) result[0];
+    int screenID = (Integer) result[1];
 
-    Image dragImage = this.findRelevantImage(screenshot, dragStartEvent);
-    Image dropImage = this.findRelevantImage(screenshot, event);
+    Image dragImage = this.findRelevantImage(screenshot, dragStartEvent, screenID);
+    Image dropImage = this.findRelevantImage(screenshot, event, screenID);
 
     if (dragImage != null && dropImage != null) {
       File dragFile = new File(ImagePath.getBundlePath(), dragStartTime + ".png");
@@ -345,9 +344,10 @@ public class RecordedEventsFlow {
     List<IRecordedAction> actions = new ArrayList<>();
 
     Long firstMouseMoveEventTime = findFirstMouseMoveTime(pressedTime);
-    Mat screenshot = readCeilingScreenshot(firstMouseMoveEventTime);
-
-    Image image = findRelevantImage(screenshot, event);
+    Object[] result = readCeilingScreenshot(firstMouseMoveEventTime);
+    Mat screenshot = (Mat) result[0];
+    int screenID = (Integer) result[1];
+    Image image = findRelevantImage(screenshot, event, screenID);
 
     if (image != null) {
       File file = new File(ImagePath.getBundlePath(),"" + time + ".png");
@@ -400,9 +400,10 @@ public class RecordedEventsFlow {
     if (nextWheelEvent == null) {
       Long firstMouseMoveEventTime = findFirstMouseMoveTime(wheelStartTime);
 
-      Mat screenshot = readCeilingScreenshot(firstMouseMoveEventTime);
-
-      Image image = findRelevantImage(screenshot, event);
+      Object[] result = readCeilingScreenshot(firstMouseMoveEventTime);
+      Mat screenshot = (Mat) result[0];
+      int screenID = (Integer) result[1];
+      Image image = findRelevantImage(screenshot, event, screenID);
 
       if (image != null) {
         File file = new File(ImagePath.getBundlePath(), "" + time + ".png");
@@ -434,8 +435,10 @@ public class RecordedEventsFlow {
 
   private void saveScreenshot(Mat screenshot, File imageFile) {
     File screenshotDir = new File(ImagePath.getBundlePath(), ImagePath.SCREENSHOT_DIRECTORY);
+    screenshotDir.mkdirs();
     File screenshotFile = new File(screenshotDir, imageFile.getName());
-    new Image(screenshot).save(screenshotFile);
+    Image img = new Image(screenshot);
+    img.save(screenshotFile);
   }
 
   /*
@@ -449,7 +452,8 @@ public class RecordedEventsFlow {
       lastNonMouseMoveEventTime = events.firstKey();
     }
 
-    Mat lastNonMouseMoveScreenshot = readFloorScreenshot(lastNonMouseMoveEventTime);
+    Object[] result = readFloorScreenshot(lastNonMouseMoveEventTime);
+    Mat lastNonMouseMoveScreenshot = (Mat) result[0];
     Finder finder = new Finder(new Image(lastNonMouseMoveScreenshot));
 
     finder.find(image);
@@ -482,23 +486,40 @@ public class RecordedEventsFlow {
     return events.firstKey();
   }
 
-  private Mat readFloorScreenshot(Long time) {
+  private Object[] readFloorScreenshot(Long time) {
     time = Math.min(Math.max(time, screenshots.firstKey()), screenshots.lastKey());
-    return Imgcodecs.imread(screenshots.floorEntry(time).getValue());
+    String shot = screenshots.floorEntry(time).getValue();
+    int screenID = Integer.parseInt(shot.substring(0, 1));
+    shot = shot.substring(1);
+    final Mat matShot = Imgcodecs.imread(shot);
+    return new Object[] {matShot, screenID};
   }
 
-  private Mat readCeilingScreenshot(Long time) {
+  private Object[] readCeilingScreenshot(Long time) {
     time = Math.min(Math.max(time, screenshots.firstKey()), screenshots.lastKey());
-    return Imgcodecs.imread(screenshots.ceilingEntry(time).getValue());
+    String shot = screenshots.ceilingEntry(time).getValue();
+    int screenID = Integer.parseInt(shot.substring(0, 1));
+    shot = shot.substring(1);
+    final Mat matShot = Imgcodecs.imread(shot);
+    return new Object[] {matShot, screenID};
   }
 
   /*
    * Tries to find the interesting area around a click point. Uses OpenCV to find
    * good features.
    */
-  private Image findRelevantImage(Mat screenshot, NativeMouseEvent event) {
+  private Image findRelevantImage(Mat screenshot, NativeMouseEvent event, int screenID) {
     int eventX = event.getX();
     int eventY = event.getY();
+
+    Screen screen = null;
+    if (screenID > 0) {
+      screen = Screen.getScreen(screenID);
+      int scrX = screen.x;
+      int scrY = screen.y;
+      eventX -= scrX;
+      eventY -= scrY;
+    }
 
     // Use the Canny algorithm to detect edges.
     // Edges are better for Imgproc.goodFeaturesToTrack()
@@ -636,7 +657,12 @@ public class RecordedEventsFlow {
     right = Math.min(img.cols() - 1, right);
     bottom = Math.min(img.rows() - 1, bottom);
     left = Math.max(0, left);
-    Mat sub = new Mat(img, new Rect(left, top, right - left, bottom - top));
+    Mat sub = null;
+    try {
+      sub = new Mat(img, new Rect(left, top, right - left, bottom - top));
+    } catch (CvException e) {
+      e.printStackTrace();
+    }
 
     MatOfPoint features = new MatOfPoint();
     Imgproc.goodFeaturesToTrack(sub, features, 0, 0.001, 1.0);
