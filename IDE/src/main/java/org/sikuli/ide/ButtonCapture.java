@@ -8,9 +8,11 @@ import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
-import org.sikuli.script.support.ExtensionManager;
+import org.sikuli.idesupport.ExtensionManager;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
@@ -39,7 +41,8 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public ButtonCapture() {
     super();
-    URL imageURL = SikulixIDE.class.getResource("/icons/camera-icon.png");
+    //"/icons/camera-icon.png"
+    URL imageURL = SikulixIDE.class.getResource("/icons/sxcapture-x.png");
     setIcon(new ImageIcon(imageURL));
     PreferencesUser pref = PreferencesUser.get();
     String strHotkey = Key.convertKeyToText(
@@ -90,30 +93,30 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   public void capture(int delay) {
     String line = "";
     SikulixIDE ide = SikulixIDE.get();
-    if (ide.isVisible()) {
+    if (SikulixIDE.notHidden()) {
       // Set minimum delay if IDE is visible to give
       // the IDE some time to vanish before taking the
       // screenshot. IDE might already be hidden in
       // in case of capture hot key.
       delay = Math.max(delay, 500);
-      ide.setVisible(false);
+      SikulixIDE.doHide();
     }
     EditorPane codePane = ide.getCurrentCodePane();
     line = codePane.getLineTextAtCaret();
-    givenName = codePane.parseLine("#" + line.trim());
+    givenName = codePane.parseLineText("#" + line.trim());
     if (!givenName.isEmpty()) {
       Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
     }
-    RunTime.pause(((float) delay)/1000);
+    RunTime.pause(delay);
     defaultScreen = SikulixIDE.getDefaultScreen();
     if (defaultScreen == null) {
       Screen.doPrompt("Select an image", this);
     } else {
-      if (Sikulix.popAsk("Android capture")) {
+      if (HelpDevice.isAndroid(defaultScreen) && Sikulix.popAsk("Android capture")) {
         new Thread() {
           @Override
           public void run() {
-            sImgNonLocal = (ScreenImage) ExtensionManager.invoke("ADBScreen.userCapture", defaultScreen, "");
+            sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
             ButtonCapture.this.update((EventSubject) null);
           }
         }.start();
@@ -129,10 +132,10 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     Image capturedImage = null;
     OverlayCapturePrompt ocp = null;
     if (null == event) {
-      capturedImage = sImgNonLocal;
+      capturedImage = new Image(sImgNonLocal);
     } else {
       ocp = (OverlayCapturePrompt) event;
-      capturedImage = ocp.getSelection();
+      capturedImage = new Image(ocp.getSelection());
       Screen.closePrompt();
     }
     String filename = null;
@@ -147,14 +150,14 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
         if (naming == PreferencesUser.AUTO_NAMING_TIMESTAMP) {
           filename = Settings.getTimestamp();
         } else if (naming == PreferencesUser.AUTO_NAMING_OCR) {
-          filename = PatternPaneNaming.getFilenameFromImage(capturedImage.getBufferedImage());
+          filename = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
           if (filename == null || filename.length() == 0) {
             filename = Settings.getTimestamp();
           }
         } else {
           String nameOCR = "";
           try {
-            nameOCR = PatternPaneNaming.getFilenameFromImage(capturedImage.getBufferedImage());
+            nameOCR = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
           } catch (Exception e) {
           }
           filename = getFilenameFromUser(nameOCR);
@@ -163,7 +166,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
       if (filename != null) {
         fullpath = capturedImage.save(filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
-        capturedImage.url(fullpath);
+        capturedImage.setFileURL(Commons.makeURL(fullpath));
         ocp.getOriginal().save(filename, SikulixIDE.get().getCurrentCodePane().getScreenshotFolder());
       }
     }

@@ -386,7 +386,7 @@ public abstract class Element {
     }
   }
 
-  protected static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
+  public static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver).get();
     } else if (whatEver instanceof File) {
@@ -417,6 +417,16 @@ public abstract class Element {
   protected Match relocate(Match match) {
     return match;
   }
+
+  public String fileName() {
+    File file = file();
+    return (file == null ? null : file.getAbsolutePath());
+  }
+
+  public File file() {
+    return null;
+  }
+
   //</editor-fold>
 
   //<editor-fold desc="25 lastMatch">

@@ -3,6 +3,7 @@
  */
 package org.sikuli.script;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.FileManager;
 import org.opencv.core.Core;
@@ -14,6 +15,7 @@ import org.sikuli.script.support.Commons;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
+import java.util.Date;
 import javax.imageio.ImageIO;
 
 /**
@@ -64,6 +66,20 @@ public class ScreenImage {
 		y = (int) roi.getY();
 		w = _img.getWidth();
 		h = _img.getHeight();
+	}
+
+	/**
+	 * create ScreenImage from given
+	 *
+	 * @param shotFile previously saved screenshot
+	 */
+	public ScreenImage(File shotFile) {
+		_img = Image.getBufferedImage(shotFile);
+		x = 0;
+		y = 0;
+		w = _img.getWidth();
+		h = _img.getHeight();
+		_roi = new Rectangle(x, y, w, h);
 	}
 
   public ScreenImage getSub(Rectangle sub) {
@@ -253,11 +269,46 @@ public class ScreenImage {
     return Core.countNonZero(mDiffAbs) == 0;
   }
 
-	public double diffPercentage(ScreenImage scrImg) {
-		return 0;
+  public double diffPercentage(ScreenImage scrImg) {
+		if (scrImg == null || this.w != scrImg.w || this.h != scrImg.h) {
+			return 1;
+		}
+		return (double) diffPixel(scrImg) / (w * h);
 	}
 
-	public String saveInto(File folder) {
-		return "";
+	private int diffPixel(ScreenImage scrImg) {
+		Mat thisGray = new Mat();
+		Mat otherGray = new Mat();
+		Mat mDiffAbs = new Mat();
+
+		Imgproc.cvtColor(Commons.makeMat(this.getImage()), thisGray, Imgproc.COLOR_BGR2GRAY);
+		Imgproc.cvtColor(Commons.makeMat(scrImg.getImage()), otherGray, Imgproc.COLOR_BGR2GRAY);
+		Core.absdiff(thisGray, otherGray, mDiffAbs);
+		final int countNonZero = Core.countNonZero(mDiffAbs);
+		return countNonZero;
 	}
+
+	/**
+	 * stores the image as PNG file in the given path
+	 * with a created filename (sikuliximage-timestamp.png)
+	 *
+	 * @param path valid path string
+	 * @return absolute path to stored file
+	 */
+	public String saveInto(String path) {
+		return saveInto(new File(path));
+	}
+
+	public String saveInto(File path) {
+		File fImage = new File(path, String.format("%s-%d.png", "sikuliximage", new Date().getTime()));
+		try {
+			ImageIO.write(_img, FilenameUtils.getExtension(fImage.getName()), fImage);
+			Debug.log(3, "ScreenImage::saveImage: %s", fImage);
+		} catch (Exception ex) {
+			Debug.error("ScreenImage::saveInto: did not work: %s (%s)", fImage, ex.getMessage());
+			return null;
+		}
+		return fImage.getAbsolutePath();
+	}
+
 }

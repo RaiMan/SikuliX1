@@ -139,7 +139,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 						&& FileManager.isFilenameDotted(givenName)) {
 			return;
 		}
-		Image img = new Image(givenName);
+		Image img = Image.createSilent(givenName);
 		if (img.isValid()) {
 			if (isFromCapture || !img.isAbsolute() || img.isBundled()) {
 				image = img;
@@ -158,7 +158,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
   public void showPopup(boolean show) {
     if (show) {
       if (imgpop == null) {
-        BufferedImage img = image.getBufferedImage();
+        BufferedImage img = image.get();
         if (img == null) {
           Debug.log(4, "EditorPatternLabel: mouseEntered: not found " + this.imgName);
           return;
@@ -207,7 +207,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 
   public void resetLabel(String givenFileName, double sim, Location off, float resizeFactor) {
     imgName = (new File(givenFileName)).getName();
-    image = new Image(imgName);
+    image = Image.createSilent(imgName);
     imgFile = image.getFilename();
     imgNameShort = imgName.replaceFirst(".png", "").replaceFirst(".jpg", "");
     this.sim = sim;

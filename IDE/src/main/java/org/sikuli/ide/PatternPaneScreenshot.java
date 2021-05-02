@@ -248,7 +248,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
 
       synchronized(_fullMatches) {
         for (Match m : _fullMatches) {
-          if (m.score() >= similarity) {
+          if (m.getScore() >= similarity) {
             _showMatches.add(m);
             if (++count >= numMatches) {
               break;
@@ -289,7 +289,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       int y = (int) (m.y * _scale);
       int w = (int) (m.w * _scale);
       int h = (int) (m.h * _scale);
-      Color c = PatternSimilaritySlider.getScoreColor(m.score());
+      Color c = PatternSimilaritySlider.getScoreColor(m.getScore());
       g2d.setColor(c);
       g2d.fillRect(x, y, w, h);
       g2d.drawRect(x, y, w - 1, h - 1);
@@ -318,7 +318,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
 
   private void initScreenImage(ScreenImage simg, Dimension pDim) {
     _simg = simg;
-    _screen = simg.getBufferedImage();
+    _screen = simg.getImage();
     _ratio = (double)simg.w / simg.h;
     _height = pDim.height - BOTTOM_MARGIN;
     _scale = (double) _height / simg.h;

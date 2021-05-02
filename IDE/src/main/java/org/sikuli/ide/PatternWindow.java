@@ -336,7 +336,7 @@ public class PatternWindow extends JFrame {
 
 		  File file = new File(paneNaming.getAbsolutePath());
 
-		  BufferedImage changedImg = _simg.getBufferedImage().getSubimage(changedBounds.x,changedBounds.y, changedBounds.width, changedBounds.height);
+		  BufferedImage changedImg = _simg.getImage().getSubimage(changedBounds.x,changedBounds.y, changedBounds.width, changedBounds.height);
 
 		  try {
         ImageIO.write(changedImg, "png", file);
@@ -413,7 +413,7 @@ public class PatternWindow extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
 			if (fileRenameOld != null) {
-				currentPane.parseTextAgainOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
+				currentPane.reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
 			}
 			_imgBtn.getWindow().close();
 			_parent.dispose();

@@ -12,7 +12,7 @@ import javax.swing.event.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 
-public class AutoUpdater {
+public class AutoUpdater { //TODO
 
   private String details, bdetails;
   private String server = "";
@@ -73,50 +73,50 @@ public class AutoUpdater {
   }
 
   public int checkUpdate() {
-    for (String s : SikulixIDE.runTime.ServerList) {
-      try {
-        if (checkUpdate(s)) {
-          smajor = SikulixIDE.runTime.SikuliVersionMajor;
-          sminor = SikulixIDE.runTime.SikuliVersionMinor;
-          ssub = SikulixIDE.runTime.SikuliVersionSub;
-          if (sbeta > 0) {
-            if (smajor == major && sminor == minor) {
-              available = FINAL;
-              whatUpdate = "The final version is available: " + getVersion();
-              Debug.info(whatUpdate);
-            } else if (smajor == bmajor && sminor == bminor && beta > sbeta) {
-              available = BETA;
-              whatUpdate = "A new beta version is available: " + getVersion();
-              Debug.info(whatUpdate);
-            }
-          } else {
-            if (major > smajor) {
-              available = MAJOR;
-              whatUpdate = "A new major version is available: " + getVersion();
-              Debug.info(whatUpdate);
-            } else if (major == smajor && minor > sminor) {
-              available = MINOR;
-              whatUpdate = "A new minor version is available: " + getVersion();
-              Debug.info(whatUpdate);
-            } else if (major == smajor && minor == sminor && sub > ssub) {
-              available = SUB;
-              whatUpdate = "A new service update is available: " + getVersion();
-              Debug.info(whatUpdate);
-            }
-          }
-          if (beta > 0 && (bmajor > smajor || (bmajor == smajor && bminor > sminor))) {
-            available += SOMEBETA;
-            Debug.info("A beta version is available: " + getVersion());
-          }
-        }
-      } catch (Exception e) {
-        notAvailable = true;
-      }
-      if (notAvailable) {
-        Debug.log(2, "No version info available at " + s);
-        return 0;
-      }
-    }
+//    for (String s : SikulixIDE.runTime.ServerList) {
+//      try {
+//        if (checkUpdate(s)) {
+//          smajor = SikulixIDE.runTime.SikuliVersionMajor;
+//          sminor = SikulixIDE.runTime.SikuliVersionMinor;
+//          ssub = SikulixIDE.runTime.SikuliVersionSub;
+//          if (sbeta > 0) {
+//            if (smajor == major && sminor == minor) {
+//              available = FINAL;
+//              whatUpdate = "The final version is available: " + getVersion();
+//              Debug.info(whatUpdate);
+//            } else if (smajor == bmajor && sminor == bminor && beta > sbeta) {
+//              available = BETA;
+//              whatUpdate = "A new beta version is available: " + getVersion();
+//              Debug.info(whatUpdate);
+//            }
+//          } else {
+//            if (major > smajor) {
+//              available = MAJOR;
+//              whatUpdate = "A new major version is available: " + getVersion();
+//              Debug.info(whatUpdate);
+//            } else if (major == smajor && minor > sminor) {
+//              available = MINOR;
+//              whatUpdate = "A new minor version is available: " + getVersion();
+//              Debug.info(whatUpdate);
+//            } else if (major == smajor && minor == sminor && sub > ssub) {
+//              available = SUB;
+//              whatUpdate = "A new service update is available: " + getVersion();
+//              Debug.info(whatUpdate);
+//            }
+//          }
+//          if (beta > 0 && (bmajor > smajor || (bmajor == smajor && bminor > sminor))) {
+//            available += SOMEBETA;
+//            Debug.info("A beta version is available: " + getVersion());
+//          }
+//        }
+//      } catch (Exception e) {
+//        notAvailable = true;
+//      }
+//      if (notAvailable) {
+//        Debug.log(2, "No version info available at " + s);
+//        return 0;
+//      }
+//    }
     return available;
   }
 

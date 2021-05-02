@@ -5,7 +5,7 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-  <id>complete</id>
+  <id>complete-mac</id>
   <formats>
     <format>jar</format>
   </formats>
@@ -14,19 +14,19 @@
     <dependencySet>
       <outputDirectory>/</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
-      <excludes>
-        <exclude>org.jruby:jruby-complete</exclude>
-        <exclude>org.apache.pdfbox:*</exclude>
-      </excludes>
       <unpack>true</unpack>
       <unpackOptions>
         <excludes>
           <exclude>**/win32-x86/**</exclude>
           <exclude>**/tessdata/**</exclude>
-          <exclude>/nu/pattern/opencv/linux/x86_32/**</exclude>
-          <exclude>/nu/pattern/opencv/windows/x86_32/**</exclude>
+          <exclude>/nu/pattern/opencv/linux/**</exclude>
+          <exclude>/nu/pattern/opencv/windows/**</exclude>
         </excludes>
       </unpackOptions>
+      <excludes>
+        <exclude>org.jruby:jruby-complete</exclude>
+        <exclude>org.apache.pdfbox:*</exclude>
+      </excludes>
       <scope>runtime</scope>
     </dependencySet>
   </dependencySets>

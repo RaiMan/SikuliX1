@@ -69,6 +69,10 @@ public class Sikulix {
       Debug.setGlobalDebug(3);
     }
 
+    if (Commons.hasOption(CONSOLE)) {
+      System.setProperty("sikuli.console", "false");
+    }
+
     if (Commons.hasOption(DEBUG)) {
       Commons.globals().getOptionInteger("ARG_DEBUG", 3);
       Debug.setDebugLevel(3);

@@ -78,7 +78,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
     BufferedImage screen = new BufferedImage(scr_w, scr_h, BufferedImage.TYPE_INT_RGB);
     Graphics2D screen_g2d = screen.createGraphics();
     try {
-      screen_g2d.drawImage(simg.getBufferedImage(), 0, 0, scr_w, scr_h, null);
+      screen_g2d.drawImage(simg.getImage(), 0, 0, scr_w, scr_h, null);
       int sx = (int) ((x - simg.x) * scale), sy = (int) ((y - simg.y) * scale),
               sw = (int) (w * scale), sh = (int) (h * scale);
       screen_g2d.setColor(new Color(255, 0, 0, 150));

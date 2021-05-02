@@ -183,8 +183,12 @@ public class SikulixIDE extends JFrame {
   }
 
   public static void doHide() {
+    doHide(500);
+  }
+
+  public static void doHide(int waitTime) {
     ideWindow.setVisible(false);
-    RunTime.pause(0.5f);
+    RunTime.pause(waitTime);
   }
 
   static void showAgain() {
@@ -220,6 +224,15 @@ public class SikulixIDE extends JFrame {
       log(4, "[I18N] " + key);
       return key;
     }
+  }
+
+  static ImageIcon getIconResource(String name) {
+    URL url = SikulixIDE.class.getResource(name);
+    if (url == null) {
+      Debug.error("Warning: could not load \"" + name + "\" icon");
+      return null;
+    }
+    return new ImageIcon(url);
   }
   //</editor-fold>
 

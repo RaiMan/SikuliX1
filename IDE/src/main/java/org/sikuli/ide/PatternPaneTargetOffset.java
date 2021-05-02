@@ -245,7 +245,7 @@ class PatternPaneTargetOffset extends JPanel implements
     int subY = _viewY < 0 ? 0 : _viewY;
 		int subW = _viewW - (subX - _viewX);
     int subH = _viewH - (subY - _viewY);
-		BufferedImage img = _simg.getBufferedImage();
+		BufferedImage img = _simg.getImage();
 		if (subX + subW >= img.getWidth()) {
 			subW = img.getWidth() - subX;
 		}
@@ -267,7 +267,7 @@ class PatternPaneTargetOffset extends JPanel implements
 		int x = getWidth() / 2 - w / 2;
     int y = getHeight() / 2 - h / 2;
 
-    Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.score()));
+    Color c = PatternSimilaritySlider.getScoreColor((_match == null ? 1.0 : _match.getScore()));
 
     // setup the resizable rectangle in case of a match, just paint a border otherwise
     if (_match != null) {
@@ -275,7 +275,7 @@ class PatternPaneTargetOffset extends JPanel implements
         resizableRect.setVisible(true);
 
         Point point = this.convertScreenToView(new Location(0, 0));
-        resizableRect.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getBufferedImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getBufferedImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
+        resizableRect.setMaxBounds(new Rectangle(point.x - STROKE_WIDTH, point.y - STROKE_WIDTH, (int)(_simg.getImage().getWidth() * _zoomRatio) + STROKE_WIDTH * 2, (int)(_simg.getImage().getHeight() * _zoomRatio) + STROKE_WIDTH * 2));
 
         // take changed bounds if already changes, the original match bounds otherwise.
         if (changedBounds != null) {

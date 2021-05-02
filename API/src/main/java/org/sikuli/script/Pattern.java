@@ -28,6 +28,15 @@ public class Pattern {
   private boolean imagePattern = false;
   private float resizeFactor = 0;
 
+  public static Pattern make(Image img, double sim, Location off, float rFactor, String mask) {
+    org.sikuli.script.Pattern pattern = new org.sikuli.script.Pattern(img);
+    pattern.similar(sim);
+    pattern.targetOffset(off);
+    pattern.resize(rFactor);
+    pattern.setMaskFromString(mask);
+    return pattern;
+  }
+
   /**
    * creates empty Pattern object at least setFilename() or setBImage() must be used before the
    * Pattern object is ready for anything
@@ -203,6 +212,10 @@ public class Pattern {
 
   public Pattern withMask() {
     return mask();
+  }
+
+  public void setMaskFromString(String mask) {
+    //TODO mask from string
   }
 
   /**

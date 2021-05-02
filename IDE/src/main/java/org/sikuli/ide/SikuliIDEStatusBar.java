@@ -7,6 +7,7 @@ import java.awt.*;
 import javax.swing.*;
 
 import com.explodingpixels.macwidgets.plaf.EmphasizedLabelUI;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
 import java.util.Date;
@@ -70,17 +71,8 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    String buildNumber = SikulixIDE.runTime.SXBuildNumber;
-    String message = SikulixIDE.runTime.SXVersionIDE;
-    if (!buildNumber.isEmpty()) {
-      message += String.format(" build#: %s (%s)", buildNumber, SikulixIDE.runTime.SXBuild);
-    }
-    if (RunTime.isSandbox()) {
-      message += " (Sandbox)";
-    }
-    if (RunTime.isDevelop()) {
-      message += " (dev)";
-    }
+    String message = Commons.getSXVersionIDE();
+    message += " --- Java " + Commons.getJavaVersion();
     setMessage(message);
     starting = 0;
   }

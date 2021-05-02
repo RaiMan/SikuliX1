@@ -61,7 +61,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     super();
     _lbl = lbl;
     _imgFilename = _lbl.getFile();
-    _image = new Image(_imgFilename);
+    _image = Image.createSilent(_imgFilename);
     _exact = false;
     _similarity = _lbl.getSimilarity();
     _resizeFactor = _lbl.getResizeFactor();
@@ -99,7 +99,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   public static EditorPatternButton createFromString(EditorPane parentPane, String str, EditorPatternLabel lbl) {
     if (!str.startsWith("Pattern")) {
       String possibleFileName = str.substring(1, str.length() - 1);
-      Image img = new Image(possibleFileName);
+      Image img = Image.createSilent(possibleFileName);
       if (img.isValid()) {
         return new EditorPatternButton(parentPane, img);
       }
@@ -114,7 +114,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
       } else if (tok.startsWith("Pattern")) {
         String filename = FileManager.slashify(tok.substring(
                 tok.indexOf("\"") + 1, tok.lastIndexOf("\"")), false);
-        Image img = new Image(filename);
+        Image img = Image.createSilent(filename);
         if (img.isValid()) {
           btn.setImage(img);
         } else {
@@ -211,7 +211,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   }
 
   public void setImage(String fileName) {
-    _image = new Image(fileName);
+    _image = Image.createSilent(fileName);
     _imgFilename = _image.getFilename();
     setIcon(new ImageIcon(createThumbnailImage(_image, PreferencesUser.get().getDefaultThumbHeight())));
     setButtonText();
@@ -225,7 +225,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   }
 
   public void reloadImage() {
-    _image.reload();
+    Image.reload(_image.getFilename());
     setImage(_imgFilename);
   }
 
@@ -241,7 +241,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 */
 
   private BufferedImage createThumbnailImage(Image image, int maxHeight) {
-    BufferedImage img = image.getBufferedImage();
+    BufferedImage img = image.get();
     int w = img.getWidth(null), h = img.getHeight(null);
     _imgW = w;
     _imgH = h;

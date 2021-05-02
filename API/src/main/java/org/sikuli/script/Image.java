@@ -589,6 +589,16 @@ public class Image extends Element {
     return createImageValidate(img);
   }
 
+  private static boolean silent = false;
+
+  public static Image createSilent(String fName) {
+    silent = true;
+    Image img = get(fName);
+    final Image image = createImageValidate(img);
+    silent = false;
+    return image;
+  }
+
   /**
    * create a new image from the given file <br>
    * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>
@@ -667,7 +677,9 @@ public class Image extends Element {
           img.setIsText(true);
         }
       } else {
-        log(-1, "Image not valid, but Settings.OcrTextSearch is switched off! (= false)");
+        if (!silent) {
+          log(-1, "Image not valid, but Settings.OcrTextSearch is switched off! (= false)");
+        }
       }
     }
     return img;
@@ -927,7 +939,9 @@ public class Image extends Element {
       URL imageURL = null;
       String imageFileName = getValidImageFilename(fName);
       if (imageFileName.isEmpty()) {
-        log(-1, "not a valid image type: " + fName);
+        if (!silent) {
+          log(-1, "not a valid image type: " + fName);
+        }
         imageFileName = fName;
       }
       File imageFile = new File(imageFileName);
@@ -954,7 +968,9 @@ public class Image extends Element {
         image.setIsAbsolute(imageFile.isAbsolute());
       } else {
         if (image.bimg != null) {
-          log(3, "reused: %s (%s)", image.getName(), image.fileURL);
+          if (!silent) {
+            log(3, "reused: %s (%s)", image.getName(), image.fileURL);
+          }
         } else {
           if (Settings.getImageCache() > 0) {
             image.load();
@@ -1065,11 +1081,11 @@ public class Image extends Element {
 
   public boolean wasRecaptured = false;
 
-  public void save(String name) {
-    save(name, ImagePath.getBundlePath());
+  public String save(String name) {
+    return save(name, ImagePath.getBundlePath());
   }
 
-  public void save(String name, String path) {
+  public String save(String name, String path) {
     File fImg = new File(path, name);
     try {
       ImageIO.write(get(), "png", fImg);
@@ -1077,6 +1093,7 @@ public class Image extends Element {
     } catch (IOException e) {
       Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
     }
+    return fImg.getAbsolutePath();
   }
 
   public void save(File imgFile) {
@@ -1086,6 +1103,13 @@ public class Image extends Element {
     } catch (IOException e) {
       Debug.error("Image(%s)::save: %s did not work (%s)", getName(), imgFile, e.getMessage());
     }
+  }
+
+  public File file() {
+    if (isFile()) {
+      return new File(getURL().getFile());
+    }
+    return null;
   }
   //</editor-fold>
 

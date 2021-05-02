@@ -446,7 +446,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
       cp.setBundleFolder();
       cp.checkSource(); // reset
-      cp.parseTextAgain();
+      cp.doReparse(); // TODO parseTextAgain();
       cp.getRunner().reset();
     }
   }
