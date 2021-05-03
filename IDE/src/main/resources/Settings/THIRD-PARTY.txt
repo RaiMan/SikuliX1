@@ -1,6 +1,7 @@
 
-Lists of 81 third-party dependencies.
+Lists of 85 third-party dependencies.
      (ASF 2.0) cglib (cglib:cglib:3.3.0 - https://github.com/cglib/cglib/cglib)
+     (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.1stleg:jnativehook:2.1.0 - https://github.com/kwhat/jnativehook)
      (The Apache Software License, Version 2.0) java-sizeof (com.carrotsearch:java-sizeof:0.0.5 - http://nexus.sonatype.org/oss-repository-hosting.html/java-sizeof)
      (GNU Lesser General Public License) mac_widgets (com.explodingpixels:mac_widgets:0.9.5 - http://code.google.com/p/macwidgets/)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.10 - http://github.com/FasterXML/jackson)
@@ -26,7 +27,7 @@ Lists of 81 third-party dependencies.
      (Mozilla Public License) iText, a Free Java-PDF library (com.lowagie:itext:2.1.7 - http://www.lowagie.com/iText/)
      (MIT License) sikulix2android (com.sikulix:sikulix2android:2.0.5 - http://www.sikulix.com)
      (GNU General Public License v2.0) sikulix2tigervnc (com.sikulix:sikulix2tigervnc:2.0.5 - http://www.sikulix.com)
-     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-SNAPSHOT - http://www.sikulix.com)
+     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.1.0-SNAPSHOT - http://www.sikulix.com)
      (The Apache Software License, Version 2.0) Apache Commons BeanUtils (commons-beanutils:commons-beanutils:1.9.2 - http://commons.apache.org/proper/commons-beanutils/)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (The Apache Software License, Version 2.0) Commons Collections (commons-collections:commons-collections:3.2.1 - http://commons.apache.org/collections/)
@@ -38,6 +39,7 @@ Lists of 81 third-party dependencies.
      (Apache License, Version 2.0) Netty/Handler (io.netty:netty-handler:4.1.45.Final - https://netty.io/netty-handler/)
      (Apache License, Version 2.0) Netty/Resolver (io.netty:netty-resolver:4.1.45.Final - https://netty.io/netty-resolver/)
      (Apache License, Version 2.0) Netty/Transport (io.netty:netty-transport:4.1.45.Final - https://netty.io/netty-transport/)
+     (Apache License Version 2.0) Undertow Core (io.undertow:undertow-core:2.0.27.Final - http://www.jboss.org/undertow-parent/undertow-core)
      (CDDL + GPLv2 with classpath exception) Java Servlet API (javax.servlet:javax.servlet-api:3.1.0 - http://servlet-spec.java.net)
      (The BSD License) JLine (jline:jline:2.14.5 - http://nexus.sonatype.org/oss-repository-hosting.html/jline)
      (The Apache Software License, Version 2.0) Apache Log4j (log4j:log4j:1.2.17 - http://logging.apache.org/log4j/1.2/)
@@ -68,7 +70,9 @@ Lists of 81 third-party dependencies.
      (GNU LESSER GENERAL PUBLIC LICENSE) Ghost4J (org.ghost4j:ghost4j:1.0.1 - http://www.ghost4j.org)
      (Apache License 2.0) (LGPL 2.1) (MPL 1.1) Javassist (org.javassist:javassist:3.22.0-GA - http://www.javassist.org/)
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.15.Final - http://www.jboss.org)
-     (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
+     (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.4.0.Final - http://www.jboss.org)
+     (Public Domain) XNIO API (org.jboss.xnio:xnio-api:3.3.8.Final - http://www.jboss.org/xnio)
+     (Public Domain) XNIO NIO Implementation (org.jboss.xnio:xnio-nio:3.3.8.Final - http://www.jboss.org/xnio-all/xnio-nio)
      (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.2.11.1 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
      (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.3.0-3 - http://github.com/openpnp/opencv)
      (BSD) asm (org.ow2.asm:asm:7.1 - http://asm.ow2.org/)

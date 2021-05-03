@@ -91,45 +91,6 @@ public class CloseableModernTabbedPaneUI extends BasicTabbedPaneUI {
     TAB_WIDTH = width;
   }
 
-/*
-  @Override
-  public void installUI(JComponent c) {
-    JTabbedPane tabPane = (JTabbedPane) c;
-    tabPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-
-    // TODO Test on Windows, this is a Mac OS X workaround
-    Constructor<?> constructor = null;
-    try {
-      Class<?> aClass = Class.forName(
-              "javax.swing.plaf.basic.BasicTabbedPaneUI$Actions");
-      constructor = aClass.getDeclaredConstructor(String.class);
-      constructor.setAccessible(true);
-    } catch (ClassNotFoundException e) {
-      getLogger().warning("Cannot access tabbed pane UI actions");
-    } catch (NoSuchMethodException e) {
-      getLogger().warning("Constructor does not exist");
-    }
-
-    if (constructor != null) {
-      ActionMap map = tabPane.getActionMap();
-      try {
-        map.put("scrollTabsBackwardAction",
-                (Action) constructor.newInstance("scrollTabsBackwardAction"));
-        map.put("scrollTabsForwardAction",
-                (Action) constructor.newInstance("scrollTabsForwardAction"));
-      } catch (InstantiationException e) {
-        getLogger().warning("Cannot instantiate action");
-      } catch (IllegalAccessException e) {
-        getLogger().warning("Action cannot be accessed");
-      } catch (InvocationTargetException e) {
-        getLogger().warning("Cannot instantiate action");
-      }
-    }
-
-    super.installUI(c);
-  }
-*/
-
   @Override
   protected void installDefaults() {
     UIManager.put("TabbedPane.tabAreaInsets", new Insets(0, 0, 0, 0));
