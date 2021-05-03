@@ -10,8 +10,8 @@ import org.sikuli.basics.Debug;
 
 public class SikuliIDEI18N {
    static ResourceBundle i18nRB = null;
-   static ResourceBundle i18nRB_en = null;
-   static Locale curLocale = null;
+   static ResourceBundle i18nRB_en;
+   static Locale curLocale;
 
    static {
       Locale locale_en = new Locale("en","US");

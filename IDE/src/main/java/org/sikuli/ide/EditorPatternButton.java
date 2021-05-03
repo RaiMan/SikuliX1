@@ -36,7 +36,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   private int _imgW, _imgH;
   private float _scale = 1f;
   private static PatternWindow pwin = null;
-  private static Font textFont = new Font("arial", Font.BOLD, 12);
+  private static final Font textFont = new Font("arial", Font.BOLD, 12);
   private EditorPatternLabel _lbl;
 
   protected EditorPatternButton(EditorPane pane) {

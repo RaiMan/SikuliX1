@@ -11,30 +11,17 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 
 public class EditorPaneUndoRedo implements UndoableEditListener {
 
-  private static final KeyStroke undoKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK);
-  KeyStroke redoKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+  private final UndoManager undoManager;
+  private final UndoAction undoAction;
+  private final RedoAction redoAction;
 
-  private UndoManager undoManager = null;
-  private UndoAction undoAction = null;
-  private RedoAction redoAction = null;
-  private EditorPane editorPane = null;
-
-  public EditorPaneUndoRedo(EditorPane pane) {
+  public EditorPaneUndoRedo() {
     undoManager = new UndoManager();
     undoAction = new UndoAction();
     redoAction = new RedoAction();
-    editorPane = pane;
-
-//    editorPane.getInputMap().put(undoKeystroke, "undoKeystroke");
-//    editorPane.getActionMap().put("undoKeystroke", undoAction);
-//
-//    editorPane.getInputMap().put(redoKeystroke, "redoKeystroke");
-//    editorPane.getActionMap().put("redoKeystroke", redoAction);
   }
 
   public UndoManager getUndoManager() {
@@ -46,10 +33,6 @@ public class EditorPaneUndoRedo implements UndoableEditListener {
     undoAction.update();
     redoAction.update();
     SikulixIDE.get().updateUndoRedoStates();
-  }
-
-  public UndoAction getUndoAction() {
-    return undoAction;
   }
 
   class UndoAction extends AbstractAction {
@@ -78,10 +61,6 @@ public class EditorPaneUndoRedo implements UndoableEditListener {
         putValue(Action.NAME, "Undo");
       }
     }
-  }
-
-  public RedoAction getRedoAction() {
-    return redoAction;
   }
 
   class RedoAction extends AbstractAction {

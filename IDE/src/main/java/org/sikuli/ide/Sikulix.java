@@ -169,7 +169,7 @@ public class Sikulix {
       }
     }
 
-    SikulixIDE.start(args);
+    SikulixIDE.start();
 
     //TODO start IDE in subprocess?
     //region IDE subprocess

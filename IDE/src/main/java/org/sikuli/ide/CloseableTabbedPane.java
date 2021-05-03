@@ -3,33 +3,24 @@
  */
 package org.sikuli.ide;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Rectangle;
+import javax.swing.*;
+import javax.swing.event.EventListenerList;
+import javax.swing.plaf.metal.MetalTabbedPaneUI;
+import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JTabbedPane;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.event.EventListenerList;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import javax.swing.plaf.metal.MetalTabbedPaneUI;
 
 public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     MouseMotionListener {
 
   //<editor-fold desc="00 init">
-  private SikuliIDEPopUpMenu popMenuTab = null;
+  private SikuliIDEPopUpMenu popMenuTab;
   private JViewport headerViewport = null;
-  private Icon normalCloseIcon = SikulixIDE.getIconResource("/icons/close-normal.gif");
-  private Icon hooverCloseIcon = SikulixIDE.getIconResource("/icons/close-hover.gif");
-  private Icon pressedCloseIcon = SikulixIDE.getIconResource("/icons/close-pressed.gif");
+  private final Icon normalCloseIcon = SikulixIDE.getIconResource("/icons/close-normal.gif");
+  private final Icon hooverCloseIcon = SikulixIDE.getIconResource("/icons/close-hover.gif");
+  private final Icon pressedCloseIcon = SikulixIDE.getIconResource("/icons/close-pressed.gif");
 
   public CloseableTabbedPane() {
     super();
@@ -58,15 +49,15 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     /**
      * the width the icon
      */
-    private int width;
+    private final int width;
     /**
      * the height the icon
      */
-    private int height;
+    private final int height;
     /**
      * the additional fileicon
      */
-    private Icon fileIcon;
+    private final Icon fileIcon;
     /**
      * true whether the mouse is over this icon, false otherwise
      */
@@ -104,8 +95,8 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
         JTabbedPane tabbedpane = (JTabbedPane) c;
         int tabNumber = tabbedpane.getUI().tabForCoordinate(tabbedpane, x, y);
         JComponent curPanel = (JComponent) tabbedpane.getComponentAt(tabNumber);
-        Object prop = null;
-        if ((prop = curPanel.getClientProperty("isClosable")) != null) {
+        Object prop = curPanel.getClientProperty("isClosable");
+        if (prop != null) {
           doPaintCloseIcon = (Boolean) prop;
         }
       } catch (Exception ignored) {/*Could probably be a ClassCastException*/
@@ -187,19 +178,12 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     }
   }
 
-  class CloseableMetalTabbedPaneUI extends MetalTabbedPaneUI {
+  static class CloseableMetalTabbedPaneUI extends MetalTabbedPaneUI {
 
     /**
      * the horizontal position of the text
      */
-    private int horizontalTextPosition = SwingUtilities.LEFT;
-
-    /**
-     * Creates a new instance of
-     * <code>CloseableMetalTabbedPaneUI</code>
-     */
-    public CloseableMetalTabbedPaneUI() {
-    }
+    private final int horizontalTextPosition;
 
     /**
      * Creates a new instance of
@@ -238,12 +222,12 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
         tabPane.putClientProperty("html", v);
       }
 
-      SwingUtilities.layoutCompoundLabel((JComponent) tabPane,
+      SwingUtilities.layoutCompoundLabel(
+          tabPane,
           metrics, title, icon,
           SwingUtilities.CENTER,
           SwingUtilities.CENTER,
           SwingUtilities.CENTER,
-          //SwingUtilities.TRAILING,
           horizontalTextPosition,
           tabRect,
           iconRect,
@@ -263,21 +247,15 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
   //</editor-fold>
 
   //<editor-fold desc="02 add tab">
-  @Override
-  public void addTab(String title, Component component) {
-    addTab(title, component, null, -1);
+  public void addNewTab(String title, Component component) {
+    addNewTab(title, component, -1);
   }
 
-  public void addTab(String title, Component component, int position) {
-    addTab(title, component, null, position);
-  }
-
-  private void addTab(String title, Component component, Icon extraIcon, int position) {
+  public void addNewTab(String title, Component component, int position) {
     boolean doPaintCloseIcon = true;
     try {
-      Object prop = null;
-      if ((prop = ((JComponent) component).
-          getClientProperty("isClosable")) != null) {
+      Object prop = ((JComponent) component).getClientProperty("isClosable");
+      if (prop != null) {
         doPaintCloseIcon = (Boolean) prop;
       }
     } catch (Exception ignored) {/*Could probably be a ClassCastException*/
@@ -286,11 +264,11 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
 
     if (position < 0) {
       super.addTab(title,
-          doPaintCloseIcon ? new CloseTabIcon(extraIcon) : null,
+          doPaintCloseIcon ? new CloseTabIcon(null) : null,
           component, "RightClick for actions");
     } else {
       super.insertTab(title,
-          doPaintCloseIcon ? new CloseTabIcon(extraIcon) : null,
+          doPaintCloseIcon ? new CloseTabIcon(null) : null,
           component, "RightClick for actions", position);
     }
 
@@ -376,7 +354,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
             }
           } else {
             icon.mouseover = true;
-            icon.mousepressed = event.getModifiers() == event.BUTTON1_MASK;
+            icon.mousepressed = event.getModifiersEx() == InputEvent.BUTTON1_DOWN_MASK;
           }
         } else {
           icon.mouseover = false;

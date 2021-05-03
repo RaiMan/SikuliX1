@@ -53,7 +53,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
         }
       } else {
         if (p.startsWith("_")) {
-          item += "<u>" + p.substring(1, 2) + "</u>" + p.substring(2);
+          item += "<u>" + p.charAt(1) + "</u>" + p.substring(2);
         } else {
           item += p;
         }
@@ -63,34 +63,34 @@ public class ButtonGenCommand extends JButton implements ActionListener,
   }
 
   static String getRichRepresentation(String style, String cmd, String desc, String[] params, boolean showOptParam) {
-    String ret = "<html><table><tr><td valign=\"middle\">"
-            + "<span style=\"" + style + "\">" + cmd + "(";
+    StringBuilder ret = new StringBuilder("<html><table><tr><td valign=\"middle\">"
+        + "<span style=\"" + style + "\">" + cmd + "(");
     int count = 0;
     for (String p : params) {
       String item = getParamHTML(p, count == 0, showOptParam);
       if (!item.equals("")) {
-        ret += "<td valign=\"middle\" style=\"" + style + "\">" + item;
+        ret.append("<td valign=\"middle\" style=\"").append(style).append("\">").append(item);
       }
       count++;
     }
-    ret += "<td>)</table>";
+    ret.append("<td>)</table>");
     if (showOptParam) {
-      ret += "<p> " + desc;
+      ret.append("<p> ").append(desc);
     }
-    return ret;
+    return ret.toString();
   }
 
   static String getTextRepresentation(String cmd, String[] params) {
-    String ret = "" + cmd + "(";
+    StringBuilder ret = new StringBuilder("" + cmd + "(");
     int count = 0;
     for (String p : params) {
-      ret += p;
+      ret.append(p);
       if (++count < params.length) {
-        ret += ", ";
+        ret.append(", ");
       }
     }
-    ret += ")";
-    return ret;
+    ret.append(")");
+    return ret.toString();
   }
 
   @Override
@@ -103,12 +103,7 @@ public class ButtonGenCommand extends JButton implements ActionListener,
     SikulixIDE ide = SikulixIDE.get();
     pane = ide.getCurrentCodePane();
     pref = PreferencesUser.get();
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        insertCommand();
-      }
-    });
+    SwingUtilities.invokeLater(this::insertCommand);
   }
 
   public void insertCommand() {

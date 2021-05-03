@@ -14,8 +14,7 @@ public class EditorCurrentLineHighlighter implements CaretListener {
 
   private static final String me = "EditorCurrentLineHighlighter: ";
   static final Color DEFAULT_COLOR = new Color(230, 230, 210);
-  static final Color ERROR_COLOR = new Color(255, 105, 105);
-  private Highlighter.HighlightPainter painter;
+  private final Highlighter.HighlightPainter painter;
   private Object highlight = null;
 
   public EditorCurrentLineHighlighter(JTextPane textPane) {
@@ -93,7 +92,7 @@ class MyHighlighter extends DefaultHighlighter {
     if (len == 0) {
       return;
     }
-    if (highlights[0].getClass().getName().indexOf("LayeredHighlightInfo") > -1) {
+    if (highlights[0].getClass().getName().contains("LayeredHighlightInfo")) {
       Debug.log(6, "LineHighlight: painting enter for " + len);
       a = this.component.getBounds();
       final Insets insets = this.component.getInsets();
@@ -103,7 +102,7 @@ class MyHighlighter extends DefaultHighlighter {
                 highlights[0].getStartOffset(), highlights[0].getEndOffset(), a, this.component);
     }
     for (int i = 1; i < len; i++) {
-      if (highlights[i].getClass().getName().indexOf("LayeredHighlightInfo") > -1) {
+      if (highlights[i].getClass().getName().contains("LayeredHighlightInfo")) {
         Debug.log(6, "LineHighlight: painting " + i);
         highlights[i].getPainter().paint(g,
                 highlights[i].getStartOffset(), highlights[i].getEndOffset(), a, this.component);

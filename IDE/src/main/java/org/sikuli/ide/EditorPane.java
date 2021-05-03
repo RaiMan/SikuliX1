@@ -8,6 +8,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
+import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
@@ -16,19 +17,14 @@ import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
 import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
 import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.Image;
-import org.sikuli.script.ImagePath;
-import org.sikuli.script.Location;
-import org.sikuli.script.SX;
-import org.sikuli.script.ScreenImage;
+import org.sikuli.script.*;
+import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
+import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.idesupport.ExtensionManager;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
@@ -37,6 +33,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.text.Element;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -68,7 +65,7 @@ public class EditorPane extends JTextPane {
   }
 
   //for debugging watches
-  EditorPane editorPane = null;
+  EditorPane editorPane;
 
   EditorPane() {
     showThumbs = !PreferencesUser.get().getPrefMorePlainText();
@@ -76,12 +73,7 @@ public class EditorPane extends JTextPane {
       @Override
       public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON3) {
-          new Thread(new Runnable() {
-            @Override
-            public void run() {
-              handlePopup();
-            }
-          }).start();
+          new Thread(() -> handlePopup()).start();
         }
         super.mouseClicked(e);
       }
@@ -96,9 +88,8 @@ public class EditorPane extends JTextPane {
     return scrollPane;
   }
 
-  JScrollPane scrollPane = null;
+  JScrollPane scrollPane;
 
-  private SikuliEditorKit editorKit;
   private EditorCurrentLineHighlighter lineHighlighter = null;
   private TransferHandler transferHandler = null;
 
@@ -128,7 +119,7 @@ public class EditorPane extends JTextPane {
 
   EditorPaneUndoRedo getUndoRedo(EditorPane pane) {
     if (undoRedo == null) {
-      undoRedo = new EditorPaneUndoRedo(pane);
+      undoRedo = new EditorPaneUndoRedo();
     }
     return undoRedo;
   }
@@ -380,7 +371,7 @@ public class EditorPane extends JTextPane {
     }
 
     if (editorPaneType != null) {
-      editorKit = new SikuliEditorKit();
+      SikuliEditorKit editorKit = new SikuliEditorKit();
       setEditorKit(editorKit);
       setContentType(editorPaneType);
 
