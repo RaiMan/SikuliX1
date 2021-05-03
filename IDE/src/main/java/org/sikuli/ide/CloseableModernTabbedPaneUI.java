@@ -91,6 +91,7 @@ public class CloseableModernTabbedPaneUI extends BasicTabbedPaneUI {
     TAB_WIDTH = width;
   }
 
+/*
   @Override
   public void installUI(JComponent c) {
     JTabbedPane tabPane = (JTabbedPane) c;
@@ -127,6 +128,7 @@ public class CloseableModernTabbedPaneUI extends BasicTabbedPaneUI {
 
     super.installUI(c);
   }
+*/
 
   @Override
   protected void installDefaults() {
