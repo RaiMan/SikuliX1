@@ -13,10 +13,8 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.gui.SXDialog;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.sikuli.util.CommandArgsEnum.*;
@@ -65,8 +63,8 @@ public class Sikulix {
 
     if (Commons.hasOption(VERBOSE)) {
       Commons.show();
-      Debug.setDebugLevel(3);
-      Debug.setGlobalDebug(3);
+      Commons.showOptions("ARG_");
+      Debug.globalDebugOn();
     }
 
     if (Commons.hasOption(CONSOLE)) {
@@ -77,8 +75,6 @@ public class Sikulix {
       Commons.globals().getOptionInteger("ARG_DEBUG", 3);
       Debug.setDebugLevel(3);
     }
-
-    Commons.showOptions("ARG_");
 
     if (Commons.hasOption(RUN)) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {

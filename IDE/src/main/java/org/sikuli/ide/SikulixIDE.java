@@ -93,8 +93,10 @@ public class SikulixIDE extends JFrame {
     ideWindowRect = getWindowRect();
 
     IDEDesktopSupport.init();
+    Commons.startLog(1, "IDEDesktopSupport ready (%4.1f)", Commons.getSinceStart());
 
     IDESupport.init();
+    Commons.startLog(1, "IDESupport ready --- GUI start (%4.1f)", Commons.getSinceStart());
 
     sikulixIDE.startGUI();
   }
@@ -238,7 +240,6 @@ public class SikulixIDE extends JFrame {
 
   //<editor-fold desc="02 init IDE">
   private void startGUI() {
-    log(3, "IDE: starting GUI");
     setWindow();
 
     installCaptureHotkey();
@@ -300,9 +301,6 @@ public class SikulixIDE extends JFrame {
     tabs.setSelectedIndex(0);
 
     Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
-    if (Debug.getDebugLevel() < 3) {
-      Debug.reset();
-    }
   }
 
 

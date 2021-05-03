@@ -98,9 +98,6 @@ public class Debug {
     }
     setLogFile(null);
     setUserLogFile(null);
-    if (DEBUG_LEVEL > 0) {
-      setGlobalDebug(DEBUG_LEVEL);
-    }
     initOK = true;
   }
 
@@ -108,13 +105,14 @@ public class Debug {
     return globalDebug > 0;
   }
 
-  public static void setGlobalDebug(int level) {
-    globalDebug = level;
-    setDebugLevel(level);
+  public static void globalDebugOn() {
+    globalDebug = 3;
+    setDebugLevel(3);
   }
 
-  public static void resetGlobalDebug() {
-    setDebugLevel(globalDebug);
+  public static void globalDebugOff() {
+    globalDebug = 0;
+    setDebugLevel(0);
   }
 
   static int globalDebug = 0;

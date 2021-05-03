@@ -76,10 +76,7 @@ public class IDESupport {
 	public static void init() {
 		synchronized(IDE_RUNNERS) {
 			if(IDE_RUNNERS.isEmpty()) {
-				log(lvl, "enter");
-
 				List<IScriptRunner> runners = Runner.getRunners();
-
 				for (Class<?> runnerClass : IDE_RUNNER_CLASSES) {
 					for (IScriptRunner runner : runners) {
 						if(runnerClass.equals(runner.getClass())) {
@@ -98,6 +95,14 @@ public class IDESupport {
 				}
 
 				defaultRunner = IDE_RUNNERS.get(0);
+				// initialize runner to speed up first script run
+				(new Thread() {
+					@Override
+					public void run() {
+						defaultRunner.init(null);
+					}
+				}).start();
+
 				log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
 			}
 		}
