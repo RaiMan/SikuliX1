@@ -46,9 +46,18 @@ import java.util.stream.Collectors;
 
 public class SikulixIDE extends JFrame {
 
+  static final String me = "IDE: ";
+
   private static void log(String message, Object... args) {
-    String me = "IDE: ";
     Debug.logx(3, me + message, args);
+  }
+
+  private static void trace(String message, Object... args) {
+    Debug.logx(4, me + message, args);
+  }
+
+  private static void error(String message, Object... args) {
+    Debug.logx(-1, me + message, args);
   }
 
   //<editor-fold desc="00 IDE instance">
@@ -277,17 +286,30 @@ public class SikulixIDE extends JFrame {
 
     Debug.log("IDE: Putting all together - before layout");
     ideContainer.doLayout();
-    ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     Debug.log("IDE: Putting all together - after layout");
-    initShortcutKeys();
-    initWindowListener();
-    initTooltip();
+    ideWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    //Debug.log( "IDE: Putting all together - Check for Updates");
-    //TODO autoCheckUpdate();
+    ideWindow.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        sikulixIDE.quit();
+      }
+    });
 
-    //waitPause();
+    ideWindow.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        PreferencesUser.get().setIdeSize(ideWindow.getSize());
+      }
+
+      @Override
+      public void componentMoved(ComponentEvent e) {
+        PreferencesUser.get().setIdeLocation(ideWindow.getLocation());
+      }
+    });
+    ToolTipManager.sharedInstance().setDismissDelay(30000);
+
     Debug.log("IDE: Putting all together - Restore last Session");
     restoreSession();
     if (tabs.getTabCount() == 0) {
@@ -295,7 +317,53 @@ public class SikulixIDE extends JFrame {
     }
     tabs.setSelectedIndex(0);
 
+    initShortcutKeys();
     Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)", Commons.getJavaVersion(), Commons.getSinceStart());
+  }
+
+  //TODO initShortcutKey
+  private void initShortcutKeys() {
+    Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+      private boolean isKeyNextTab(java.awt.event.KeyEvent ke) {
+        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
+                && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
+          return true;
+        }
+        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+          return true;
+        }
+        return false;
+      }
+
+      private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
+        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
+                && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+          return true;
+        }
+        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+          return true;
+        }
+        return false;
+      }
+
+      public void eventDispatched(AWTEvent e) {
+        java.awt.event.KeyEvent ke = (java.awt.event.KeyEvent) e;
+        if (ke.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
+          if (isKeyNextTab(ke)) {
+            int i = tabs.getSelectedIndex();
+            int next = (i + 1) % tabs.getTabCount();
+            tabs.setSelectedIndex(next);
+          } else if (isKeyPrevTab(ke)) {
+            int i = tabs.getSelectedIndex();
+            int prev = (i - 1 + tabs.getTabCount()) % tabs.getTabCount();
+            tabs.setSelectedIndex(prev);
+          }
+        }
+      }
+    }, AWTEvent.KEY_EVENT_MASK);
+
   }
 
   static SikuliIDEStatusBar getStatusbar() {
@@ -516,16 +584,10 @@ public class SikulixIDE extends JFrame {
     log("Quit: cancelled or did not work");
   }
 
-  EditorPane makeTab() {
-    EditorPane editorPane = new EditorPane();
-    lineNumberColumn = new EditorLineNumberView(editorPane);
-    editorPane.getScrollPane().setRowHeaderView(lineNumberColumn);
-    return editorPane;
-  }
-
   EditorPane makeTab(int tabIndex) {
     log("makeTab: %d", tabIndex);
-    EditorPane editorPane = makeTab();
+    EditorPane editorPane = new EditorPane();
+    editorPane.getScrollPane().setRowHeaderView(new EditorLineNumberView(editorPane));
     JScrollPane scrPane = editorPane.getScrollPane();
     if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
       tabs.addNewTab(_I("tabUntitled"), scrPane);
@@ -679,7 +741,6 @@ public class SikulixIDE extends JFrame {
     }
     return -1;
   }
-
 
   boolean removeCurrentTab() {
     EditorPane pane = getCurrentCodePane();
@@ -874,8 +935,6 @@ public class SikulixIDE extends JFrame {
   JMenu getFileMenu() {
     return _fileMenu;
   }
-
-  private EditorLineNumberView lineNumberColumn;
 
   //<editor-fold desc="menu">
   private void initFileMenu() throws NoSuchMethodException {
@@ -1167,7 +1226,11 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doQuit(ActionEvent ae) {
-      terminate();
+      log("Quit requested");
+      if (closeIDE()) {
+        RunTime.terminate(0, "");
+      }
+      log("Quit: cancelled or did not work");
     }
   }
   //</editor-fold>
@@ -1398,7 +1461,7 @@ public class SikulixIDE extends JFrame {
     void updateUndoState() {
       EditorPane pane = getCurrentCodePane();
       if (pane != null) {
-        if (pane.getUndoRedo(pane).getUndoManager().canUndo()) {
+        if (pane.getUndoRedo().getUndoManager().canUndo()) {
           setEnabled(true);
         }
       } else {
@@ -1411,7 +1474,7 @@ public class SikulixIDE extends JFrame {
       EditorPane pane = getCurrentCodePane();
       if (pane != null) {
         try {
-          pane.getUndoRedo(pane).getUndoManager().undo();
+          pane.getUndoRedo().getUndoManager().undo();
         } catch (CannotUndoException ex) {
         }
         updateUndoState();
@@ -1430,7 +1493,7 @@ public class SikulixIDE extends JFrame {
     protected void updateRedoState() {
       EditorPane pane = getCurrentCodePane();
       if (pane != null) {
-        if (pane.getUndoRedo(pane).getUndoManager().canRedo()) {
+        if (pane.getUndoRedo().getUndoManager().canRedo()) {
           setEnabled(true);
         }
       } else {
@@ -1443,7 +1506,7 @@ public class SikulixIDE extends JFrame {
       EditorPane pane = getCurrentCodePane();
       if (pane != null) {
         try {
-          pane.getUndoRedo(pane).getUndoManager().redo();
+          pane.getUndoRedo().getUndoManager().redo();
         } catch (CannotRedoException ex) {
         }
         updateRedoState();
@@ -1495,11 +1558,11 @@ public class SikulixIDE extends JFrame {
     }
 
     public void runNormal(ActionEvent ae) {
-      _btnRun.runCurrentScript();
+      btnRun.runCurrentScript();
     }
 
     public void runShowActions(ActionEvent ae) {
-      _btnRunViz.runCurrentScript();
+      btnRunSlow.runCurrentScript();
     }
 
     public void runSelection(ActionEvent ae) {
@@ -1922,15 +1985,12 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 Init ToolBar Buttons">
-  private ButtonCapture _btnCapture;
-  private ButtonRun _btnRun = null, _btnRunViz = null;
-  private ButtonRecord _btnRecord;
+  private ButtonCapture btnCapture;
+  private ButtonRun btnRun;
+  private ButtonRunViz btnRunSlow;
+  private ButtonRecord btnRecord;
 
   private JToolBar initToolbar() {
-//    if (ENABLE_UNIFIED_TOOLBAR) {
-//      MacUtils.makeWindowLeopardStyle(this.getRootPane());
-//    }
-
     JToolBar toolbar = new JToolBar();
     JButton btnInsertImage = new ButtonInsertImage();
     JButton btnSubregion = new ButtonSubregion().init();
@@ -1941,8 +2001,8 @@ public class SikulixIDE extends JFrame {
     JButton btnShow = new ButtonShow().init();
     JButton btnShowIn = new ButtonShowIn().init();
 */
-    _btnCapture = new ButtonCapture();
-    toolbar.add(_btnCapture);
+    btnCapture = new ButtonCapture();
+    toolbar.add(btnCapture);
     toolbar.add(btnInsertImage);
     toolbar.add(btnSubregion);
     toolbar.add(btnLocation);
@@ -1952,10 +2012,10 @@ public class SikulixIDE extends JFrame {
     toolbar.add(btnShowIn);
 */
     toolbar.add(Box.createHorizontalGlue());
-    _btnRun = new ButtonRun();
-    toolbar.add(_btnRun);
-    _btnRunViz = new ButtonRunViz();
-    toolbar.add(_btnRunViz);
+    btnRun = new ButtonRun();
+    toolbar.add(btnRun);
+    btnRunSlow = new ButtonRunViz();
+    toolbar.add(btnRunSlow);
     toolbar.add(Box.createHorizontalGlue());
 
 //    JComponent jcSearchField = createSearchField();
@@ -1965,8 +2025,8 @@ public class SikulixIDE extends JFrame {
     toolbar.setFloatable(false);
     //toolbar.setMargin(new Insets(0, 0, 0, 5));
 
-    _btnRecord = new ButtonRecord();
-    toolbar.add(_btnRecord);
+    btnRecord = new ButtonRecord();
+    toolbar.add(btnRecord);
 
     return toolbar;
   }
@@ -2260,73 +2320,71 @@ public class SikulixIDE extends JFrame {
     }
   }
 
+  class ButtonRecord extends ButtonOnToolbar implements ActionListener {
+
+    private Recorder recorder = new Recorder();
+
+    ButtonRecord() {
+      super();
+
+      URL imageURL = SikulixIDE.class.getResource("/icons/record.png");
+      setIcon(new ImageIcon(imageURL));
+      initTooltip();
+      addActionListener(this);
+      setText(_I("btnRecordLabel"));
+      // setMaximumSize(new Dimension(45,45));
+    }
+
+    private void initTooltip() {
+      PreferencesUser pref = PreferencesUser.get();
+      String strHotkey = Key.convertKeyToText(pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+      String stopHint = _I("btnRecordStopHint", strHotkey);
+      setToolTipText(_I("btnRecord", stopHint));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+      ideWindow.setVisible(false);
+      recorder.start();
+    }
+
+    public void stopRecord() {
+      SikulixIDE.showAgain();
+
+      if (isRunning()) {
+        EditorPane pane = getCurrentCodePane();
+        ICodeGenerator generator = pane.getCodeGenerator();
+
+        ProgressMonitor progress = new ProgressMonitor(pane, _I("processingWorkflow"), "", 0, 0);
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+
+        new Thread(() -> {
+          try {
+            List<IRecordedAction> actions = recorder.stop(progress);
+
+            if (!actions.isEmpty()) {
+              List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
+
+              EventQueue.invokeLater(() -> {
+                pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
+                pane.doReparse();
+              });
+            }
+          } finally {
+            progress.close();
+          }
+        }).start();
+      }
+    }
+
+    public boolean isRunning() {
+      return recorder.isRunning();
+    }
+  }
   //</editor-fold>
 
   //<editor-fold desc="21 Init Run Buttons">
-  boolean trySaveScriptsBeforeRun() {
-    int action;
-    if (checkDirtyPanes()) {
-      if (prefs.getPrefMoreRunSave()) {
-        action = WARNING_ACCEPTED;
-      } else {
-        action = askForSaveAll("Run");
-        if (action < 0) {
-          return false;
-        }
-      }
-      saveSession(action, false);
-    }
-    return true;
-  }
-
-  synchronized boolean isRunningScript() {
-    return ideIsRunningScript;
-  }
-
-  synchronized void setIsRunningScript(boolean state) {
-    ideIsRunningScript = state;
-  }
-
-  public Boolean ideIsRunningScript = false;
-
-  public IScriptRunner getCurrentRunner() {
-    return currentRunner;
-  }
-
-  public void setCurrentRunner(IScriptRunner currentRunner) {
-    this.currentRunner = currentRunner;
-  }
-
-  private IScriptRunner currentRunner = null;
-
-  public File getCurrentScript() {
-    return currentScript;
-  }
-
-  public void setCurrentScript(File currentScript) {
-    this.currentScript = currentScript;
-  }
-
-  private File currentScript = null;
-
-  void addErrorMark(int line) {
-    if (line < 1) {
-      return;
-    }
-    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
-    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
-    lnview.addErrorMark(line);
-    EditorPane codePane = SikulixIDE.this.getCurrentCodePane();
-    codePane.jumpTo(line);
-    codePane.requestFocus();
-  }
-
-  void resetErrorMark() {
-    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
-    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
-    lnview.resetErrorMark();
-  }
-
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
 
     private Thread thread = null;
@@ -2345,7 +2403,7 @@ public class SikulixIDE extends JFrame {
     private void initTooltip() {
       PreferencesUser pref = PreferencesUser.get();
       String strHotkey = Key.convertKeyToText(
-          pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+              pref.getStopHotkey(), pref.getStopHotkeyModifiers());
       String stopHint = _I("btnRunStopHint", strHotkey);
       setToolTipText(_I("btnRun", stopHint));
     }
@@ -2396,10 +2454,10 @@ public class SikulixIDE extends JFrame {
             }
             if (System.out.checkError()) {
               boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                  + "\nYou will not see any messages anymore!"
-                  + "\nSave your work and restart the IDE!"
-                  + "\nYou may ignore this on your own risk!" +
-                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+                      + "\nYou will not see any messages anymore!"
+                      + "\nSave your work and restart the IDE!"
+                      + "\nYou may ignore this on your own risk!" +
+                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
               if (!shouldContinue) {
                 log("Run script aborted: System.out is broken (console output)");
                 return;
@@ -2482,72 +2540,73 @@ public class SikulixIDE extends JFrame {
       Settings.setShowActions(true);
     }
   }
-  //</editor-fold>
 
-  class ButtonRecord extends ButtonOnToolbar implements ActionListener {
-
-    private Recorder recorder = new Recorder();
-
-    ButtonRecord() {
-      super();
-
-      URL imageURL = SikulixIDE.class.getResource("/icons/record.png");
-      setIcon(new ImageIcon(imageURL));
-      initTooltip();
-      addActionListener(this);
-      setText(_I("btnRecordLabel"));
-      // setMaximumSize(new Dimension(45,45));
-    }
-
-    private void initTooltip() {
-      PreferencesUser pref = PreferencesUser.get();
-      String strHotkey = Key.convertKeyToText(pref.getStopHotkey(), pref.getStopHotkeyModifiers());
-      String stopHint = _I("btnRecordStopHint", strHotkey);
-      setToolTipText(_I("btnRecord", stopHint));
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent ae) {
-      ideWindow.setVisible(false);
-      recorder.start();
-    }
-
-    public void stopRecord() {
-      SikulixIDE.showAgain();
-
-      if (isRunning()) {
-        EditorPane pane = getCurrentCodePane();
-        ICodeGenerator generator = pane.getCodeGenerator();
-
-        ProgressMonitor progress = new ProgressMonitor(pane, _I("processingWorkflow"), "", 0, 0);
-        progress.setMillisToDecideToPopup(0);
-        progress.setMillisToPopup(0);
-
-        new Thread(() -> {
-          try {
-            List<IRecordedAction> actions = recorder.stop(progress);
-
-            if (!actions.isEmpty()) {
-              List<String> actionStrings = actions.stream().map((a) -> a.generate(generator)).collect(Collectors.toList());
-
-              EventQueue.invokeLater(() -> {
-                pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
-                pane.doReparse();
-              });
-            }
-          } finally {
-            progress.close();
-          }
-        }).start();
+  boolean trySaveScriptsBeforeRun() {
+    int action;
+    if (checkDirtyPanes()) {
+      if (prefs.getPrefMoreRunSave()) {
+        action = WARNING_ACCEPTED;
+      } else {
+        action = askForSaveAll("Run");
+        if (action < 0) {
+          return false;
+        }
       }
+      saveSession(action, false);
     }
-
-    public boolean isRunning() {
-      return recorder.isRunning();
-    }
+    return true;
   }
 
-  //<editor-fold desc="30 MsgArea, Statusbar">
+  synchronized boolean isRunningScript() {
+    return ideIsRunningScript;
+  }
+
+  synchronized void setIsRunningScript(boolean state) {
+    ideIsRunningScript = state;
+  }
+
+  public Boolean ideIsRunningScript = false;
+
+  public IScriptRunner getCurrentRunner() {
+    return currentRunner;
+  }
+
+  public void setCurrentRunner(IScriptRunner currentRunner) {
+    this.currentRunner = currentRunner;
+  }
+
+  private IScriptRunner currentRunner = null;
+
+  public File getCurrentScript() {
+    return currentScript;
+  }
+
+  public void setCurrentScript(File currentScript) {
+    this.currentScript = currentScript;
+  }
+
+  private File currentScript = null;
+
+  void addErrorMark(int line) {
+    if (line < 1) {
+      return;
+    }
+    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
+    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
+    lnview.addErrorMark(line);
+    EditorPane codePane = SikulixIDE.this.getCurrentCodePane();
+    codePane.jumpTo(line);
+    codePane.requestFocus();
+  }
+
+  void resetErrorMark() {
+    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
+    EditorLineNumberView lnview = (EditorLineNumberView) (scrPane.getRowHeader().getView());
+    lnview.resetErrorMark();
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="30 MsgArea">
   private void initMessageArea() {
     messageArea = new JTabbedPane();
     messages = new EditorConsolePane();
@@ -2616,88 +2675,9 @@ public class SikulixIDE extends JFrame {
   }
 
   private boolean messageAreaCollapsed = false;
-
-  private void initWindowListener() {
-    ideWindow.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    ideWindow.addWindowListener(new WindowAdapter() {
-      @Override
-      public void windowClosing(WindowEvent e) {
-        SikulixIDE.this.quit();
-      }
-    });
-    ideWindow.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        PreferencesUser.get().setIdeSize(ideWindow.getSize());
-      }
-
-      @Override
-      public void componentMoved(ComponentEvent e) {
-        PreferencesUser.get().setIdeLocation(ideWindow.getLocation());
-      }
-    });
-  }
-
-  private void initTooltip() {
-    ToolTipManager tm = ToolTipManager.sharedInstance();
-    tm.setDismissDelay(30000);
-  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="25 Init ShortCuts HotKeys">
-  private void nextTab() {
-    int i = tabs.getSelectedIndex();
-    int next = (i + 1) % tabs.getTabCount();
-    tabs.setSelectedIndex(next);
-  }
-
-  private void prevTab() {
-    int i = tabs.getSelectedIndex();
-    int prev = (i - 1 + tabs.getTabCount()) % tabs.getTabCount();
-    tabs.setSelectedIndex(prev);
-  }
-
-  private void initShortcutKeys() {
-    Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-      private boolean isKeyNextTab(java.awt.event.KeyEvent ke) {
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-            && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
-          return true;
-        }
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
-            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
-          return true;
-        }
-        return false;
-      }
-
-      private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-            && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
-          return true;
-        }
-        if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
-            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
-          return true;
-        }
-        return false;
-      }
-
-      public void eventDispatched(AWTEvent e) {
-        java.awt.event.KeyEvent ke = (java.awt.event.KeyEvent) e;
-        //Debug.log(ke.toString());
-        if (ke.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
-          if (isKeyNextTab(ke)) {
-            nextTab();
-          } else if (isKeyPrevTab(ke)) {
-            prevTab();
-          }
-        }
-      }
-    }, AWTEvent.KEY_EVENT_MASK);
-
-  }
-
   void removeCaptureHotkey() {
     HotkeyManager.getInstance().removeHotkey("Capture");
   }
@@ -2707,7 +2687,7 @@ public class SikulixIDE extends JFrame {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
         if (!isRunningScript()) {
-          _btnCapture.capture(0);
+          btnCapture.capture(0);
         }
       }
     });
@@ -2726,7 +2706,7 @@ public class SikulixIDE extends JFrame {
     log("AbortKey was pressed: aborting all running scripts");
     Runner.abortAll();
     EventQueue.invokeLater(() -> {
-      _btnRecord.stopRecord();
+      btnRecord.stopRecord();
     });
   }
   //</editor-fold>

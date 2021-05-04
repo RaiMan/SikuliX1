@@ -76,6 +76,8 @@ public class Sikulix {
       Debug.setDebugLevel(3);
     }
 
+    //TODO autoCheckUpdate();
+
     if (Commons.hasOption(RUN)) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override

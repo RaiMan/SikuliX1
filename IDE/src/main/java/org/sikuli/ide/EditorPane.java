@@ -28,6 +28,7 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
+import org.stringtemplate.v4.ST;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -57,11 +58,18 @@ import java.util.zip.ZipOutputStream;
 public class EditorPane extends JTextPane {
 
   //<editor-fold defaultstate="collapsed" desc="02 Initialization">
-  private static final String me = "EditorPane: ";
-  private static final int lvl = 3;
+  static final String me = "EditorPane: ";
 
-  private static void log(int level, String message, Object... args) {
-    Debug.logx(level, me + message, args);
+  private static void log(String message, Object... args) {
+    Debug.logx(3, me + message, args);
+  }
+
+  private static void trace(String message, Object... args) {
+    Debug.logx(4, me + message, args);
+  }
+
+  private static void error(String message, Object... args) {
+    Debug.logx(-1, me + message, args);
   }
 
   //for debugging watches
@@ -81,7 +89,7 @@ public class EditorPane extends JTextPane {
     scrollPane = new JScrollPane(this);
     editorPaneID = new Date().getTime();
     editorPane = this;
-    log(lvl, "created %d", editorPaneID);
+    trace("created %d", editorPaneID);
   }
 
   JScrollPane getScrollPane() {
@@ -107,17 +115,17 @@ public class EditorPane extends JTextPane {
 
   //TODO right mouse click in tab text
   private void handlePopup() {
-    log(3, "text popup");
+    trace("text popup");
   }
 
   void updateDocumentListeners(String source) {
-    log(lvl + 1, "updateDocumentListeners from: %s", source);
+    trace("updateDocumentListeners from: %s", source);
     getDocument().addDocumentListener(getDirtyHandler());
-    getDocument().addUndoableEditListener(getUndoRedo(this));
+    getDocument().addUndoableEditListener(getUndoRedo());
     SikulixIDE.getStatusbar().setType(editorPaneType);
   }
 
-  EditorPaneUndoRedo getUndoRedo(EditorPane pane) {
+  EditorPaneUndoRedo getUndoRedo() {
     if (undoRedo == null) {
       undoRedo = new EditorPaneUndoRedo();
     }
@@ -150,11 +158,7 @@ public class EditorPane extends JTextPane {
   //<editor-fold desc="10 load content">
   boolean confirmDialog(String message, String title) {
     int ret = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-    boolean returnValue = true;
-    if (ret == JOptionPane.CLOSED_OPTION || ret == JOptionPane.NO_OPTION) {
-      returnValue = false;
-    }
-    return returnValue;
+    return ret != JOptionPane.CLOSED_OPTION && ret != JOptionPane.NO_OPTION;
   }
 
   void init(String scriptType) {
@@ -246,9 +250,9 @@ public class EditorPane extends JTextPane {
       String toOpen = fileSelected.getName();
       String alreadyOpen = new File(getPaneAtIndex(isOpen).editorPaneFileSelected).getName();
       if (toOpen.equals(alreadyOpen)) {
-        log(-1, "%s already open", toOpen);
+        error("%s already open", toOpen);
       } else {
-        log(-1, "%s already open as: %s", toOpen, alreadyOpen);
+        error("%s already open as: %s", toOpen, alreadyOpen);
       }
       return null;
     }
@@ -336,7 +340,7 @@ public class EditorPane extends JTextPane {
   }
 
   public void loadFile(File file) {
-    log(lvl, "loadfile: %s", file);
+    trace("loadfile: %s", file);
     if (!evalRunnerAndFile(file)) {
       return;
     }
@@ -420,7 +424,7 @@ public class EditorPane extends JTextPane {
 //      updateDocumentListeners("initBeforeLoad");
 
     SikulixIDE.getStatusbar().setType(editorPaneType);
-    log(lvl, "InitTab: (%s)", editorPaneType);
+    trace("InitTab: (%s)", editorPaneType);
   }
 
   private boolean readContent(File scriptFile) {
@@ -429,7 +433,7 @@ public class EditorPane extends JTextPane {
       isr = new InputStreamReader(new FileInputStream(scriptFile), Charset.forName("utf-8"));
       read(new BufferedReader(isr), null);
     } catch (Exception ex) {
-      log(-1, "readContent: %s (%s)", scriptFile, ex.getMessage());
+      error("readContent: %s (%s)", scriptFile, ex.getMessage());
       return false;
     }
     return true;
@@ -441,7 +445,7 @@ public class EditorPane extends JTextPane {
       isr = new InputStreamReader(new ByteArrayInputStream(script.getBytes(Charset.forName("utf-8"))), Charset.forName("utf-8"));
       read(new BufferedReader(isr), null);
     } catch (Exception ex) {
-      log(-1, "readContent: from String (%s)", ex.getMessage());
+      error("readContent: from String (%s)", ex.getMessage());
       return false;
     }
     return true;
@@ -462,7 +466,7 @@ public class EditorPane extends JTextPane {
     if (isBundle()) {
       return;
     }
-    log(3, "checkSource: started (%s)", editorPaneFile);
+    trace("checkSource: started (%s)", editorPaneFile);
     String scriptText = getText();
     if (editorPaneType == JythonRunner.TYPE) {
       if (ExtensionManager.hasPython()) {
@@ -480,7 +484,7 @@ public class EditorPane extends JTextPane {
         return;
       }
       String path = matcher.group(1);
-      log(3, "checkSource: found setBundlePath: %s", path);
+      trace("checkSource: found setBundlePath: %s", path);
       File newBundleFolder = new File(path.replace("\\\\", "\\"));
       if (Commons.runningWindows() && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
         try {
@@ -610,13 +614,13 @@ public class EditorPane extends JTextPane {
     editorPaneFolder = paneFile.getParentFile();
     setImageFolder(editorPaneFolder);
     if (null != paneFileSelected) {
-      log(3, "setFiles: for: %s", paneFileSelected);
+      trace("setFiles: for: %s", paneFileSelected);
     } else {
       if (!isTemp()) {
         setIsFile();
         editorPaneFileSelected = paneFile.getAbsolutePath();
         editorPaneFileToRun = paneFile;
-        log(3, "setFiles: for: %s", paneFile);
+        trace("setFiles: for: %s", paneFile);
       }
     }
   }
@@ -731,7 +735,7 @@ public class EditorPane extends JTextPane {
       editorPaneImageFolder = imageFolder;
       ImagePath.setBundleFolder(editorPaneImageFolder);
     } else {
-      log(-1, "setImageFolder: null or not exists: %s", imageFolder);
+      error("setImageFolder: null or not exists: %s", imageFolder);
     }
   }
 
@@ -827,7 +831,7 @@ public class EditorPane extends JTextPane {
   }
 
   public boolean jumpTo(int lineNo, int column) {
-    log(lvl + 1, "jumpTo pos: " + lineNo + "," + column);
+    trace("jumpTo pos: " + lineNo + "," + column);
     try {
       int off = getLineStartOffset(lineNo - 1) + column - 1;
       int lineCount = getDocument().getDefaultRootElement().getElementCount();
@@ -848,7 +852,7 @@ public class EditorPane extends JTextPane {
   }
 
   public boolean jumpTo(int lineNo) {
-    log(lvl + 1, "jumpTo line: " + lineNo);
+    trace("jumpTo line: " + lineNo);
     try {
       setCaretPosition(getLineStartOffset(lineNo - 1));
     } catch (BadLocationException ex) {
@@ -892,7 +896,7 @@ public class EditorPane extends JTextPane {
       try {
         getDocument().remove(sel_start, sel_end - sel_start);
       } catch (BadLocationException e) {
-        log(-1, "insertString: Problem while trying to insert\n%s", e.getMessage());
+        error("insertString: Problem while trying to insert\n%s", e.getMessage());
       }
     }
     int pos = getCaretPosition();
@@ -919,7 +923,7 @@ public class EditorPane extends JTextPane {
     try {
       doc.insertString(pos, str, null);
     } catch (Exception e) {
-      log(-1, "insertString: Problem while trying to insert at pos\n%s", e.getMessage());
+      error("insertString: Problem while trying to insert at pos\n%s", e.getMessage());
     }
   }
 
@@ -932,7 +936,7 @@ public class EditorPane extends JTextPane {
       int end = doc.getLength();
       //end = parseLine(start, end, patHistoryBtnStr);
     } catch (Exception e) {
-      log(-1, "appendString: Problem while trying to append\n%s", e.getMessage());
+      error("appendString: Problem while trying to append\n%s", e.getMessage());
     }
   }
 
@@ -991,7 +995,6 @@ public class EditorPane extends JTextPane {
     int count = node.getElementCount();
     for (int i = 0; i < count; i++) {
       Element elm = node.getElement(i);
-      log(lvl + 1, elm.toString());
       if (elm.isLeaf()) {
         parseRange(elm.getStartOffset(), elm.getEndOffset());
       } else {
@@ -1045,7 +1048,7 @@ public class EditorPane extends JTextPane {
       end = parseLine(start, end, patRegionStr);
       end = parseLine(start, end, patPngStr);
     } catch (BadLocationException e) {
-      log(-1, "parseRange: Problem while trying to parse line\n%s", e.getMessage());
+      error("parseRange: Problem while trying to parse line\n%s", e.getMessage());
     }
     return end;
   }
@@ -1141,13 +1144,13 @@ public class EditorPane extends JTextPane {
 
   private Map<String, List<Integer>> parseforImages() {
     String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
-    log(3, "parseforImages: in %s", pbundle);
+    trace("parseforImages: in %s", pbundle);
     String scriptText = getText();
     Lexer lexer = getLexer();
     Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
     lineNumber = 0;
     parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
-    log(3, "parseforImages finished");
+    trace("parseforImages finished");
     return images;
   }
 
@@ -1156,7 +1159,7 @@ public class EditorPane extends JTextPane {
 
   private void parseforImagesWalk(String pbundle, Lexer lexer,
                                   String text, int pos, Map<String, List<Integer>> images) {
-    //log(3, "parseforImagesWalk");
+    trace("parseforImagesWalk");
     Iterable<Token> tokens = lexer.getTokens(text);
     boolean inString = false;
     String current;
@@ -1173,7 +1176,7 @@ public class EditorPane extends JTextPane {
                   "No images will be deleted!\n" +
                   "Correct the problem before next save!", lineNumber),
                "Delete images on save");
-          log(-1, "DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+          error("DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
           images.clear();
           images.put(uncompleteStringError, null);
           break;
@@ -1181,13 +1184,13 @@ public class EditorPane extends JTextPane {
         lineNumber++;
       }
       if (t.getType() == TokenType.Comment) {
-        //log(3, "parseforImagesWalk::Comment");
+        trace("parseforImagesWalk::Comment");
         innerText = t.getValue().substring(1);
         parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
         continue;
       }
       if (t.getType() == TokenType.String_Doc) {
-        //log(3, "parseforImagesWalk::String_Doc");
+        trace("parseforImagesWalk::String_Doc");
         innerText = t.getValue().substring(3, t.getValue().length() - 3);
         parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
         continue;
@@ -1206,7 +1209,7 @@ public class EditorPane extends JTextPane {
 
   private boolean parseforImagesGetName(String current, boolean inString,
                                         String[] possibleImage, String[] stringType) {
-    //log(3, "parseforImagesGetName (inString: %s) %s", inString, current);
+    trace("parseforImagesGetName (inString: %s) %s", inString, current);
     if (!inString) {
       if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
         possibleImage[0] = "";
@@ -1225,7 +1228,7 @@ public class EditorPane extends JTextPane {
 
   private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
     String fimg;
-    //log(3, "parseforImagesCollect");
+    trace("parseforImagesCollect");
     if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
       fimg = FileManager.slashify(img, false);
       if (fimg.contains("/")) {
@@ -1299,19 +1302,19 @@ public class EditorPane extends JTextPane {
 
     @Override
     public void changedUpdate(DocumentEvent ev) {
-      log(lvl + 1, "change update");
+      trace("change update");
       //setDirty(true);
     }
 
     @Override
     public void insertUpdate(DocumentEvent ev) {
-      log(lvl + 1, "insert update");
+      trace("insert update");
       setDirty(true);
     }
 
     @Override
     public void removeUpdate(DocumentEvent ev) {
-      log(lvl + 1, "remove update");
+      trace("remove update");
       setDirty(true);
     }
   }
@@ -1366,11 +1369,11 @@ public class EditorPane extends JTextPane {
   private File saveAsBundle(String targetFolder) {
     String sourceFolder = editorPaneFolder.getAbsolutePath();
     targetFolder = new File(targetFolder).getAbsolutePath();
-    log(lvl, "saveAsBundle: to: %s", targetFolder);
-    log(lvl, "saveAsBundle: from: %s", sourceFolder);
+    trace("saveAsBundle: to: %s", targetFolder);
+    trace("saveAsBundle: from: %s", sourceFolder);
     if (isBundle()) {
       if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
-        log(-1, "saveAsBundle: did not work");
+        error("saveAsBundle: did not work");
         return null;
       }
     }
@@ -1390,7 +1393,7 @@ public class EditorPane extends JTextPane {
   }
 
   private File saveAsFile(String filename) {
-    log(lvl, "saveAsFile: " + filename);
+    trace("saveAsFile: " + filename);
     if (isTemp()) {
       FileManager.deleteTempDir(editorPaneFolder.getAbsolutePath());
       setTemp(false);
@@ -1403,7 +1406,7 @@ public class EditorPane extends JTextPane {
   }
 
   private boolean writeSriptFile() {
-    log(lvl, "writeSrcFile: " + editorPaneFile);
+    trace("writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
           new FileOutputStream(editorPaneFile.getAbsolutePath()),
@@ -1418,7 +1421,7 @@ public class EditorPane extends JTextPane {
           convertSrcToHtml(getSrcBundle());
           shouldDeleteHTML = false;
         } catch (Exception ex) {
-          log(-1, "Problem while trying to create HTML: %s", ex.getMessage());
+          error("Problem while trying to create HTML: %s", ex.getMessage());
         }
       }
       if (shouldDeleteHTML) {
@@ -1430,12 +1433,12 @@ public class EditorPane extends JTextPane {
       }
       if (PreferencesUser.get().getAtSaveCleanBundle()) {
         if (!editorPaneType.equals(JythonRunner.TYPE)) {
-          log(lvl, "delete-not-used-images for %s using Python string syntax", editorPaneType);
+          trace("delete-not-used-images for %s using Python string syntax", editorPaneType);
         }
         try {
           cleanBundle();
         } catch (Exception ex) {
-          log(-1, "Problem while trying to clean bundle (not used images): %s", ex.getMessage());
+          error("Problem while trying to clean bundle (not used images): %s", ex.getMessage());
         }
       }
     }
@@ -1472,9 +1475,9 @@ public class EditorPane extends JTextPane {
     if (writeSriptFile()) {
       try {
         zipDir(pSource, zipPath, editorPaneFile.getName());
-        log(lvl, "Exported packed SikuliX Script to:\n%s", zipPath);
+        trace("Exported packed SikuliX Script to:\n%s", zipPath);
       } catch (Exception ex) {
-        log(-1, "Exporting packed SikuliX Script did not work:\n%s", zipPath);
+        error("Exporting packed SikuliX Script did not work:\n%s", zipPath);
         return null;
       }
     }
@@ -1525,26 +1528,26 @@ public class EditorPane extends JTextPane {
   }
 
   private void cleanBundle() {
-    log(3, "cleanBundle");
+    trace("cleanBundle");
     Set<String> foundImages = parseforImages().keySet();
     if (foundImages.contains(uncompleteStringError)) {
-      log(-1, "cleanBundle aborted (%s)", uncompleteStringError);
+      error("cleanBundle aborted (%s)", uncompleteStringError);
     } else {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
-      log(lvl, "cleanBundle finished");
+      trace("cleanBundle finished");
     }
 
     FileManager.deleteNotUsedScreenshots(getBundlePath(), foundImages);
-    log(lvl + 1, "cleanBundle finished: %s", getCurrentScriptname());
+    trace("cleanBundle finished: %s", getCurrentScriptname());
   }
 
   public boolean close() throws IOException {
     if (!isTemp()) {
-      log(lvl, "Tab close: %s", getCurrentShortFilename());
+      trace("Tab close: %s", getCurrentShortFilename());
     }
     if (isDirty()) {
       if (isTemp()) {
-        log(lvl, "Tab close: temp-%s", getCurrentShortFilename());
+        trace("Tab close: temp-%s", getCurrentShortFilename());
       }
       Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
       int ans = JOptionPane.showOptionDialog(this,
@@ -1595,7 +1598,7 @@ public class EditorPane extends JTextPane {
         try {
           doc.remove(sel_start, sel_end - sel_start);
         } catch (BadLocationException e) {
-          log(-1, "MyTransferHandler: exportDone: Problem while trying to remove text\n%s", e.getMessage());
+          error("MyTransferHandler: exportDone: Problem while trying to remove text\n%s", e.getMessage());
         }
       }
     }
@@ -1628,7 +1631,7 @@ public class EditorPane extends JTextPane {
         StringSelection copiedString = new StringSelection(writer.toString());
         return copiedString;
       } catch (Exception e) {
-        log(-1, "MyTransferHandler: createTransferable: Problem creating text to copy\n%s", e.getMessage());
+        error("MyTransferHandler: createTransferable: Problem creating text to copy\n%s", e.getMessage());
       }
       return null;
     }
@@ -1666,7 +1669,7 @@ public class EditorPane extends JTextPane {
           }
           targetTextPane.insertString(transferString);
         } catch (Exception e) {
-          log(-1, "MyTransferHandler: importData: Problem pasting text\n%s", e.getMessage());
+          error("MyTransferHandler: importData: Problem pasting text\n%s", e.getMessage());
         }
         return true;
       }
@@ -1682,7 +1685,7 @@ public class EditorPane extends JTextPane {
         File newFile = FileManager.smartCopy(filename, bundlePath);
         return newFile;
       } catch (IOException e) {
-        log(-1, "copyFileToBundle: Problem while trying to save %s\n%s",
+        error("copyFileToBundle: Problem while trying to save %s\n%s",
             filename, e.getMessage());
         return f;
       }
@@ -1703,7 +1706,7 @@ public class EditorPane extends JTextPane {
    * _lastSearchPattern = pattern;
    * Document doc = getDocument();
    * int pos = getCaretPosition();
-   * log("caret: "  + pos);
+   * trace("caret: "  + pos);
    * try{
    * String body = doc.getText(pos, doc.getLength()-pos);
    * _lastSearchMatcher = pattern.matcher(body);
@@ -1730,7 +1733,7 @@ public class EditorPane extends JTextPane {
     }
     int ret = -1;
     Document doc = getDocument();
-    log(4, "search: %s from %d forward: %s", str, pos, forward);
+    trace("search: %s from %d forward: %s", str, pos, forward);
     try {
       String body;
       int begin;
@@ -1757,7 +1760,7 @@ public class EditorPane extends JTextPane {
         }
       }
     } catch (BadLocationException e) {
-      //log(-1, "search: did not work:\n" + e.getStackTrace());
+      //error("search: did not work:\n" + e.getStackTrace());
       ret = -1;
     }
     return ret;
@@ -1937,7 +1940,7 @@ public class EditorPane extends JTextPane {
     Element line = root.getElement(lineIdx);
     int start = line.getStartOffset(), len = line.getEndOffset() - start;
     String strLine = doc.getText(start, len - 1);
-    log(9, "[" + strLine + "]");
+    trace("[" + strLine + "]");
     if (strLine.endsWith("find") && ke.getKeyChar() == '(') {
       ke.consume();
       doc.insertString(pos, "(", null);
