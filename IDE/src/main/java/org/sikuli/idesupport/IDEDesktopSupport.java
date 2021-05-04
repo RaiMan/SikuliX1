@@ -78,7 +78,7 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
 
   @Override
   public void handleQuitRequestWith(QuitEvent e, QuitResponse response) {
-    if (!SikulixIDE.get().quit()) {
+    if (!SikulixIDE.get().terminate()) {
       response.cancelQuit();
     } else {
       response.performQuit();
