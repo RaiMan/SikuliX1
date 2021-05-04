@@ -3,17 +3,21 @@
  */
 package org.sikuli.ide;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.idesupport.IDESupport;
+import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
+import org.sikuli.script.runners.InvalidRunner;
 import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.Recorder;
@@ -310,12 +314,9 @@ public class SikulixIDE extends JFrame {
     });
     ToolTipManager.sharedInstance().setDismissDelay(30000);
 
+    createEmptyScriptPane();
     Debug.log("IDE: Putting all together - Restore last Session");
-    restoreSession();
-    if (tabs.getTabCount() == 0) {
-      newTabEmpty();
-    }
-    tabs.setSelectedIndex(0);
+    //restoreSession();
 
     initShortcutKeys();
     Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)", Commons.getJavaVersion(), Commons.getSinceStart());
@@ -326,11 +327,11 @@ public class SikulixIDE extends JFrame {
     Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
       private boolean isKeyNextTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-                && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
+            && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
-                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         return false;
@@ -338,11 +339,11 @@ public class SikulixIDE extends JFrame {
 
       private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-                && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+            && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
-                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         return false;
@@ -427,6 +428,242 @@ public class SikulixIDE extends JFrame {
   }
 
   private CloseableTabbedPane tabs;
+  //</editor-fold>
+
+  //<editor-fold desc="03 PaneContext">
+  List<PaneContext> contexts = new ArrayList<>();
+  String tempName = "sxtemp";
+  int tempIndex = 1;
+
+  PaneContext getActivePane() {
+    final int ix = tabs.getSelectedIndex();
+    return contexts.get(ix);
+  }
+
+  PaneContext setActivePane(int pos) {
+    tabs.setSelectedIndex(pos);
+    return contexts.get(pos);
+  }
+
+  PaneContext getPaneAt(int ix) {
+    return contexts.get(ix);
+  }
+
+  void createEmptyScriptPane() {
+    final PaneContext context = new PaneContext();
+    context.setRunner(IDESupport.getDefaultRunner());
+    context.setFile();
+    context.create();
+  }
+
+  void createEmptyTextPane() {
+    final PaneContext context = new PaneContext();
+    context.setRunner(Runner.getRunner(TextRunner.class));
+    context.setFile();
+    context.create();
+  }
+
+  void createFilePane(File file) {
+    final int pos = alreadyOpen(file);
+    if (pos < 0);
+    else {
+      setActivePane(pos);
+      log("Pane: alreadyopen: %s", file);
+    }
+    final PaneContext context = new PaneContext();
+    context.setFile(file);
+    context.setRunner();
+    if (context.isValid()) {
+      context.pos = contexts.size();
+      context.create();
+    }
+  }
+
+  int alreadyOpen(File file) {
+    for (PaneContext context : contexts) {
+      if (file.equals(context.getFile())) {
+        return context.pos;
+      }
+    }
+    return -1;
+  }
+
+  class PaneContext {
+    EditorPane pane;
+    IScriptRunner runner = null;
+    IIDESupport support;
+    String type;
+    File folder;
+    File file;
+    String name;
+    String ext;
+    int pos = 0;
+    boolean visible = true;
+    boolean dirty = false;
+    boolean temp = false;
+
+    private PaneContext() {
+    }
+
+    public boolean isValid() {
+      return file.exists() && runner != null;
+    }
+
+    public boolean isTemp() {
+      return temp;
+    }
+
+    public IScriptRunner getRunner() {
+      return runner;
+    }
+
+    public IIDESupport getSupport() {
+      return support;
+    }
+
+    private void setRunner(IScriptRunner _runner) {
+      runner = _runner;
+      type = runner.getType();
+      ext = runner.getDefaultExtension();
+      support = IDESupport.get(type);
+    }
+
+    private void setRunner() {
+      final IScriptRunner _runner = Runner.getRunner(file.getAbsolutePath());
+      if (!(_runner instanceof InvalidRunner)) {
+        runner = _runner;
+      }
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    private void setFile() {
+      name = tempName + tempIndex++;
+      folder = new File(Commons.getIDETemp(), name);
+      folder.mkdirs();
+      file = new File(folder, name + "." + ext);
+      if (file.exists()) {
+        file.delete();
+      }
+      temp = true;
+    }
+
+    private void setFile(File _file) {
+      file = _file;
+      String path = _file.getAbsolutePath();
+      ext = FilenameUtils.getExtension(path);
+      name = FilenameUtils.getBaseName(path);
+      if (_file.isDirectory()) {
+        folder = _file;
+        file = Runner.getScriptFile(file);
+      } else {
+        folder = _file.getParentFile();
+      }
+    }
+
+    private void create() {
+      pane = new EditorPane(this);
+      contexts.add(pos, this);
+      tabs.addNewTab(name, pane.getScrollPane(), pos);
+      tabs.setSelectedIndex(pos);
+      pane.makeReady();
+      pane.requestFocus();
+      resetPos();
+    }
+
+    public void close() {
+      if (isDirty()) {
+        log("TODO: save changed pane before close");
+        notDirty();
+      }
+      tabs.remove(pos);
+      visible = false;
+      if (resetPos() == 0) {
+        createEmptyScriptPane();
+      }
+    }
+
+    private int resetPos() {
+      int n = 0;
+      for (PaneContext context : contexts) {
+        if (!context.visible) {
+          continue;
+        }
+        context.pos = n++;
+      }
+      return n;
+    }
+
+    public boolean isDirty() {
+      return dirty;
+    }
+
+    public void setDirty() {
+      if (!dirty) {
+        dirty = true;
+        SikulixIDE.get().setCurrentFileTabTitleDirty(dirty);
+      }
+    }
+
+    public void notDirty() {
+      if (dirty) {
+        dirty = false;
+        SikulixIDE.get().setCurrentFileTabTitleDirty(dirty);
+      }
+    }
+
+    public File getFile() {
+      return file;
+    }
+
+    public EditorPane getPane() {
+      return pane;
+    }
+  }
+
+  List<File> collectPaneFiles() {
+    List<File> files = new ArrayList<>();
+    for (PaneContext context : contexts) {
+      if (context.isTemp()) {
+        log("TODO: collectPaneFiles: save temp pane");
+        context.notDirty();
+      }
+      if (context.isDirty()) {
+        log("TODO: collectPaneFiles: save dirty pane");
+      }
+      files.add(context.getFile());
+    }
+    return files;
+  }
+
+  boolean checkDirtyPanes() {
+    for (PaneContext context : contexts) {
+      if (context.isDirty() || context.isTemp()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  EditorPane getCurrentCodePane() {
+    return getActivePane().getPane();
+  }
+
+  EditorPane getPaneAtIndex(int index) {
+    return getPaneAt(index).getPane();
+  }
+
+  public File selectFile() {
+    File fileSelected = new SikulixFileChooser(SikulixIDE.get()).open();
+    if (fileSelected == null) {
+      return null;
+    }
+    return fileSelected;
+  }
+
+  void zzzzzzz() {}
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="04 save / restore session">
@@ -586,9 +823,9 @@ public class SikulixIDE extends JFrame {
 
   EditorPane makeTab(int tabIndex) {
     log("makeTab: %d", tabIndex);
-    EditorPane editorPane = new EditorPane();
-    editorPane.getScrollPane().setRowHeaderView(new EditorLineNumberView(editorPane));
+    EditorPane editorPane = EditorPane.create();
     JScrollPane scrPane = editorPane.getScrollPane();
+    scrPane.setRowHeaderView(new EditorLineNumberView(editorPane));
     if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
       tabs.addNewTab(_I("tabUntitled"), scrPane);
     } else {
@@ -654,34 +891,6 @@ public class SikulixIDE extends JFrame {
         tabs.setSelectedIndex(alreadyOpen);
       }
     }
-  }
-
-  boolean checkDirtyPanes() {
-    for (int i = 0; i < tabs.getTabCount(); i++) {
-      try {
-        EditorPane codePane = getPaneAtIndex(i);
-        if (codePane.isDirty()) {
-          return true;
-        }
-      } catch (Exception e) {
-        Debug.error("checkDirtyPanes: " + e.getMessage());
-      }
-    }
-    return false;
-  }
-
-  EditorPane getCurrentCodePane() {
-    int tabCount = tabs.getTabCount();
-    if (tabCount == 0) {
-      return null;
-    }
-    JScrollPane scrPane = (JScrollPane) tabs.getSelectedComponent();
-    return (EditorPane) scrPane.getViewport().getView();
-  }
-
-  EditorPane getPaneAtIndex(int index) {
-    JScrollPane scrPane = (JScrollPane) tabs.getComponentAt(index);
-    return (EditorPane) scrPane.getViewport().getView();
   }
 
   void setCurrentFileTabTitle(String fname) {
@@ -1064,7 +1273,8 @@ public class SikulixIDE extends JFrame {
     private int targetTab = -1;
 
     public void doNew(ActionEvent ae) {
-      newTabEmpty();
+      new PaneContext();
+      //newTabEmpty();
     }
 
     //TODO not used
@@ -1073,7 +1283,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doOpen(ActionEvent ae) {
-      newTabWithContent();
+      createFilePane(selectFile());
     }
 
     //TODO not used
@@ -1196,7 +1406,7 @@ public class SikulixIDE extends JFrame {
     }
 
     public void doCloseTab(ActionEvent ae) {
-      closeCurrentTab();
+      getActivePane().close();
     }
 
     public void doAbout(ActionEvent ae) {
@@ -2403,7 +2613,7 @@ public class SikulixIDE extends JFrame {
     private void initTooltip() {
       PreferencesUser pref = PreferencesUser.get();
       String strHotkey = Key.convertKeyToText(
-              pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+          pref.getStopHotkey(), pref.getStopHotkeyModifiers());
       String stopHint = _I("btnRunStopHint", strHotkey);
       setToolTipText(_I("btnRun", stopHint));
     }
@@ -2454,10 +2664,10 @@ public class SikulixIDE extends JFrame {
             }
             if (System.out.checkError()) {
               boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                      + "\nYou will not see any messages anymore!"
-                      + "\nSave your work and restart the IDE!"
-                      + "\nYou may ignore this on your own risk!" +
-                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+                  + "\nYou will not see any messages anymore!"
+                  + "\nSave your work and restart the IDE!"
+                  + "\nYou may ignore this on your own risk!" +
+                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
               if (!shouldContinue) {
                 log("Run script aborted: System.out is broken (console output)");
                 return;

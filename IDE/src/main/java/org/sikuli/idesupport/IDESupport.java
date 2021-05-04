@@ -22,7 +22,11 @@ public class IDESupport {
 		Debug.logx(level, me + message, args);
 	}
 
-	public static Map<String, IIDESupport> ideSupporter = new HashMap<String, IIDESupport>();
+	private static Map<String, IIDESupport> ideSupporter = new HashMap<String, IIDESupport>();
+
+	public static IIDESupport get(String type) {
+		return ideSupporter.get(type);
+	}
 
 	public static void initIDESupport() {
 		ServiceLoader<IIDESupport> sloader = ServiceLoader.load(IIDESupport.class);
@@ -74,6 +78,7 @@ public class IDESupport {
 	}
 
 	public static void init() {
+		initIDESupport();
 		synchronized(IDE_RUNNERS) {
 			if(IDE_RUNNERS.isEmpty()) {
 				List<IScriptRunner> runners = Runner.getRunners();

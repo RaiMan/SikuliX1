@@ -28,7 +28,6 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
 import org.sikuli.util.SikulixFileChooser;
-import org.stringtemplate.v4.ST;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -74,6 +73,7 @@ public class EditorPane extends JTextPane {
 
   //for debugging watches
   EditorPane editorPane;
+  SikulixIDE.PaneContext context;
 
   EditorPane() {
     showThumbs = !PreferencesUser.get().getPrefMorePlainText();
@@ -87,9 +87,85 @@ public class EditorPane extends JTextPane {
       }
     });
     scrollPane = new JScrollPane(this);
+    scrollPane.setRowHeaderView(new EditorLineNumberView(this));
     editorPaneID = new Date().getTime();
     editorPane = this;
-    trace("created %d", editorPaneID);
+    setTransferHandler(new MyTransferHandler());
+    lineHighlighter = new EditorCurrentLineHighlighter(this);
+    addCaretListener(lineHighlighter);
+    initKeyMap();
+    log("created %d", editorPaneID);
+  }
+
+  EditorPane(SikulixIDE.PaneContext context) {
+    this();
+    this.context = context;
+  }
+
+  public void makeReady() {
+    editorPaneRunner = context.getRunner();
+    paneType = context.getType();
+    indentationLogic = null;
+    IIDESupport paneSupport = context.getSupport();
+    if (null != paneSupport) {
+      try {
+        indentationLogic = paneSupport.getIndentationLogic();
+        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
+      } catch (Exception ex) {
+      }
+      codeGenerator = paneSupport.getCodeGenerator();
+    } else {
+      // Take Jython generator if no IDESupport is available
+      // TODO Needs better implementation
+      codeGenerator = new JythonCodeGenerator();
+    }
+
+    if (paneType != null) {
+      SikuliEditorKit editorKit = new SikuliEditorKit();
+      setEditorKit(editorKit);
+      setContentType(paneType);
+
+      if (indentationLogic != null) {
+        PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
+          @Override
+          public void preferenceChange(PreferenceChangeEvent event) {
+            if (event.getKey().equals("TAB_WIDTH")) {
+              indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
+            }
+          }
+        });
+      }
+    }
+
+    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
+    if (!popMenuImage.isValidMenu()) {
+      popMenuImage = null;
+    }
+
+    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
+    if (!popMenuCompletion.isValidMenu()) {
+      popMenuCompletion = null;
+    }
+
+    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
+    setMargin(new Insets(3, 3, 3, 3));
+    setBackground(Color.WHITE);
+    if (!Settings.isMac()) {
+      setSelectionColor(new Color(170, 200, 255));
+    }
+
+    getDocument().addDocumentListener(new DirtyHandler());
+    getDocument().addUndoableEditListener(new EditorPaneUndoRedo());
+
+    SikulixIDE.getStatusbar().setType(paneType);
+    log("InitTab: (%s)", paneType);
+  }
+
+  //TODO obsolete
+  static EditorPane create() {
+    final EditorPane pane = new EditorPane();
+    pane.makeReady();
+    return pane;
   }
 
   JScrollPane getScrollPane() {
@@ -99,7 +175,6 @@ public class EditorPane extends JTextPane {
   JScrollPane scrollPane;
 
   private EditorCurrentLineHighlighter lineHighlighter = null;
-  private TransferHandler transferHandler = null;
 
   SikuliIDEPopUpMenu getPopMenuImage() {
     return popMenuImage;
@@ -122,7 +197,7 @@ public class EditorPane extends JTextPane {
     trace("updateDocumentListeners from: %s", source);
     getDocument().addDocumentListener(getDirtyHandler());
     getDocument().addUndoableEditListener(getUndoRedo());
-    SikulixIDE.getStatusbar().setType(editorPaneType);
+    SikulixIDE.getStatusbar().setType(paneType);
   }
 
   EditorPaneUndoRedo getUndoRedo() {
@@ -212,12 +287,7 @@ public class EditorPane extends JTextPane {
       shouldChangeType = true;
     }
 */
-    if (null == scriptType) {
-      editorPaneRunner = IDESupport.getDefaultRunner();
-    } else {
-      editorPaneRunner = Runner.getRunner(scriptType);
-    }
-    initForScriptType();
+    makeReady();
 //TODO setType for non-empty tab
 /*
     if (!tabContent.trim().isEmpty()) {
@@ -236,7 +306,6 @@ public class EditorPane extends JTextPane {
       setDirty(false);
     }
 */
-    setDirty(false);
     return true;
   }
 
@@ -344,7 +413,7 @@ public class EditorPane extends JTextPane {
     if (!evalRunnerAndFile(file)) {
       return;
     }
-    initForScriptType();
+    makeReady();
     if (readContent(editorPaneFileToRun)) {
       setFiles(editorPaneFileToRun, file.getAbsolutePath());
       updateDocumentListeners("loadFile");
@@ -355,76 +424,6 @@ public class EditorPane extends JTextPane {
       restoreCaretPosition();
       setDirty(false);
     }
-  }
-
-  private void initForScriptType() {
-    editorPaneType = editorPaneRunner.getType();
-    indentationLogic = null;
-    setEditorPaneIDESupport(editorPaneType);
-    if (null != editorPaneIDESupport) {
-      try {
-        indentationLogic = editorPaneIDESupport.getIndentationLogic();
-        indentationLogic.setTabWidth(PreferencesUser.get().getTabWidth());
-      } catch (Exception ex) {
-      }
-      codeGenerator = editorPaneIDESupport.getCodeGenerator();
-    } else {
-      // Take Jython generator if no IDESupport is available
-      // TODO Needs better implementation
-      codeGenerator = new JythonCodeGenerator();
-    }
-
-    if (editorPaneType != null) {
-      SikuliEditorKit editorKit = new SikuliEditorKit();
-      setEditorKit(editorKit);
-      setContentType(editorPaneType);
-
-      if (indentationLogic != null) {
-        PreferencesUser.get().addPreferenceChangeListener(new PreferenceChangeListener() {
-          @Override
-          public void preferenceChange(PreferenceChangeEvent event) {
-            if (event.getKey().equals("TAB_WIDTH")) {
-              indentationLogic.setTabWidth(Integer.parseInt(event.getNewValue()));
-            }
-          }
-        });
-      }
-    }
-
-    if (transferHandler == null) {
-      transferHandler = new MyTransferHandler();
-    }
-    setTransferHandler(transferHandler);
-
-    if (lineHighlighter == null) {
-      lineHighlighter = new EditorCurrentLineHighlighter(this);
-      addCaretListener(lineHighlighter);
-      initKeyMap();
-      //addKeyListener(this);
-      //addCaretListener(this);
-    }
-
-    popMenuImage = new SikuliIDEPopUpMenu("POP_IMAGE", this);
-    if (!popMenuImage.isValidMenu()) {
-      popMenuImage = null;
-    }
-
-    popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
-    if (!popMenuCompletion.isValidMenu()) {
-      popMenuCompletion = null;
-    }
-
-    setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
-    setMargin(new Insets(3, 3, 3, 3));
-    setBackground(Color.WHITE);
-    if (!Settings.isMac()) {
-      setSelectionColor(new Color(170, 200, 255));
-    }
-
-//      updateDocumentListeners("initBeforeLoad");
-
-    SikulixIDE.getStatusbar().setType(editorPaneType);
-    trace("InitTab: (%s)", editorPaneType);
   }
 
   private boolean readContent(File scriptFile) {
@@ -452,11 +451,11 @@ public class EditorPane extends JTextPane {
   }
 
   public boolean isText() {
-    return editorPaneType == TextRunner.TYPE;
+    return paneType == TextRunner.TYPE;
   }
 
   public boolean isPython() {
-    return editorPaneType == JythonRunner.TYPE || editorPaneType == PythonRunner.TYPE;
+    return paneType == JythonRunner.TYPE || paneType == PythonRunner.TYPE;
   }
   //</editor-fold>
 
@@ -468,11 +467,11 @@ public class EditorPane extends JTextPane {
     }
     trace("checkSource: started (%s)", editorPaneFile);
     String scriptText = getText();
-    if (editorPaneType == JythonRunner.TYPE) {
+    if (paneType == JythonRunner.TYPE) {
       if (ExtensionManager.hasPython()) {
         String intro = scriptText.substring(0, Math.min(20, scriptText.length())).trim().toUpperCase();
         if (intro.contains(ExtensionManager.shebangPython)) {
-          editorPaneType = PythonRunner.TYPE;
+          paneType = PythonRunner.TYPE;
         }
       }
     }
@@ -647,28 +646,14 @@ public class EditorPane extends JTextPane {
   String editorPaneFileSelected = null;
 
   String getType() {
-    return editorPaneType;
+    return paneType;
   }
 
   void setType(String editorPaneType) {
-    this.editorPaneType = editorPaneType;
+    this.paneType = editorPaneType;
   }
 
-  private String editorPaneType;
-
-  public boolean hasIDESupport() {
-    return null != editorPaneIDESupport;
-  }
-
-  public IIDESupport getEditorPaneIDESupport() {
-    return editorPaneIDESupport;
-  }
-
-  public void setEditorPaneIDESupport(String type) {
-    editorPaneIDESupport = IDESupport.ideSupporter.get(type);
-  }
-
-  private IIDESupport editorPaneIDESupport = null;
+  private String paneType;
 
   public boolean hasEditingFile() {
     return editorPaneFile != null;
@@ -1277,15 +1262,15 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
   public boolean isDirty() {
-    return scriptIsDirty;
+    return context.isDirty();
   }
 
   public void setDirty(boolean flag) {
-    if (scriptIsDirty == flag) {
-      return;
+    if (flag) {
+      context.setDirty();
+    } else {
+      context.notDirty();
     }
-    scriptIsDirty = flag;
-    SikulixIDE.get().setCurrentFileTabTitleDirty(scriptIsDirty);
   }
 
   private DirtyHandler getDirtyHandler() {
@@ -1295,7 +1280,6 @@ public class EditorPane extends JTextPane {
     return dirtyHandler;
   }
 
-  private boolean scriptIsDirty = false;
   private DirtyHandler dirtyHandler;
 
   private class DirtyHandler implements DocumentListener {
@@ -1432,8 +1416,8 @@ public class EditorPane extends JTextPane {
         }
       }
       if (PreferencesUser.get().getAtSaveCleanBundle()) {
-        if (!editorPaneType.equals(JythonRunner.TYPE)) {
-          trace("delete-not-used-images for %s using Python string syntax", editorPaneType);
+        if (!paneType.equals(JythonRunner.TYPE)) {
+          trace("delete-not-used-images for %s using Python string syntax", paneType);
         }
         try {
           cleanBundle();
@@ -1849,8 +1833,8 @@ public class EditorPane extends JTextPane {
           ide.clearMessageArea();
           ide.resetErrorMark();
 
-          if (hasIDESupport()) {
-            editorPane.editorPaneRunner.runLines(getEditorPaneIDESupport().normalizePartialScript(lines), null);
+          if (null != context.getSupport()) {
+            editorPane.editorPaneRunner.runLines(context.getSupport().normalizePartialScript(lines), null);
           } else {
             editorPane.editorPaneRunner.runLines(lines, null);
           }
