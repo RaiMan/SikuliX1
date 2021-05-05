@@ -3,7 +3,6 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -11,7 +10,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.TextRecognizer;
+import org.sikuli.script.support.gui.SikuliIDEI18N;
 
 //RaiMan not used import org.sikuli.script.TextRecognizer;
 public class PatternPaneNaming extends JPanel {

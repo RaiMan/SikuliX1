@@ -1,0 +1,11 @@
+#globals; m 20; c; f 16
+
+Closing Tab; fontsize 20; bold
+---5
+Do not save!
+Save as File
+Save as Folder
+Save as .sikuli
+---5
+buttons; CANCEL
+buttons; OK

@@ -12,6 +12,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.script.support.gui.SikuliIDEI18N;
 
 import java.io.File;
 import java.io.FileOutputStream;

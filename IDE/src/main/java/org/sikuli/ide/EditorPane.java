@@ -27,6 +27,7 @@ import org.sikuli.script.runners.TextRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
+import org.sikuli.script.support.gui.SikuliIDEI18N;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -155,11 +156,17 @@ public class EditorPane extends JTextPane {
     }
 
     getDocument().addDocumentListener(new DirtyHandler());
-    getDocument().addUndoableEditListener(new EditorPaneUndoRedo());
+    getDocument().addUndoableEditListener(getUndoRedo());
 
     SikulixIDE.getStatusbar().setType(paneType);
     log("InitTab: (%s)", paneType);
   }
+
+  EditorPaneUndoRedo getUndoRedo() {
+    return undoRedo;
+  }
+
+  private EditorPaneUndoRedo undoRedo = new EditorPaneUndoRedo();
 
   //TODO obsolete
   static EditorPane create() {
@@ -195,19 +202,10 @@ public class EditorPane extends JTextPane {
 
   void updateDocumentListeners(String source) {
     trace("updateDocumentListeners from: %s", source);
-    getDocument().addDocumentListener(getDirtyHandler());
-    getDocument().addUndoableEditListener(getUndoRedo());
-    SikulixIDE.getStatusbar().setType(paneType);
+//    getDocument().addDocumentListener(getDirtyHandler());
+//    getDocument().addUndoableEditListener(getUndoRedo());
+//    SikulixIDE.getStatusbar().setType(paneType);
   }
-
-  EditorPaneUndoRedo getUndoRedo() {
-    if (undoRedo == null) {
-      undoRedo = new EditorPaneUndoRedo();
-    }
-    return undoRedo;
-  }
-
-  private EditorPaneUndoRedo undoRedo = null;
 
   IIndentationLogic getIndentationLogic() {
     return indentationLogic;

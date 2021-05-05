@@ -18,6 +18,7 @@ import org.sikuli.script.Match;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
+import org.sikuli.script.support.gui.SikuliIDEI18N;
 
 class PatternPaneTargetOffset extends JPanel implements
         MouseListener, MouseWheelListener, ChangeListener, ComponentListener {

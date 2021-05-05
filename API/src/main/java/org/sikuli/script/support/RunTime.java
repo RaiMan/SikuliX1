@@ -94,13 +94,14 @@ public class RunTime {
 
   public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
-    if (!outMsg.isEmpty()) {
-      System.out.println("TERMINATING: " + outMsg);
-    }
     if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        System.out.println("TERMINATING: " + outMsg);
+      }
       cleanUp();
       System.exit(retval);
     }
+    System.out.println("FATAL ERROR: " + outMsg);
     throw new SikuliXception(String.format("FATAL: " + outMsg));
   }
 

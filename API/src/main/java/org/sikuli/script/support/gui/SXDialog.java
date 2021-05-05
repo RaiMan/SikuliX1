@@ -1915,4 +1915,24 @@ public class SXDialog extends JFrame {
     }
   }
 //endregion
+
+  public static int askForDecision(JFrame where, String title, String message, String ignore, String accept) {
+//TODO I18N
+    final int WARNING_CANCEL = 2;
+    final int WARNING_ACCEPTED = 1;
+    final int WARNING_DO_NOTHING = 0;
+    String[] options;
+    int ret;
+    options = new String[3];
+    options[WARNING_DO_NOTHING] = ignore;
+    options[WARNING_ACCEPTED] = accept;
+    options[WARNING_CANCEL] = SikuliIDEI18N._I("cancel");
+    ret = JOptionPane.showOptionDialog(where, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
+        null, options, options[options.length - 1]);
+    if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
+      return -1;
+    }
+    return ret;
+  }
+
 }

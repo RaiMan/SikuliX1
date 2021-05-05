@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2020, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.ide;
+package org.sikuli.script.support.gui;
 
 import org.sikuli.basics.PreferencesUser;
 import java.text.MessageFormat;

@@ -8,6 +8,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.ScreenUnion;
+import org.sikuli.script.support.gui.SikuliIDEI18N;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
