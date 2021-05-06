@@ -1916,6 +1916,10 @@ public class SXDialog extends JFrame {
   }
 //endregion
 
+  public static final int DECISION_ACCEPT = 1;
+  public static final int DECISION_IGNORE = 0;
+  public static final int DECISION_CANCEL = -1;
+
   public static int askForDecision(JFrame where, String title, String message, String ignore, String accept) {
 //TODO I18N
     final int WARNING_CANCEL = 2;
