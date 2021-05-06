@@ -155,11 +155,14 @@ public class EditorPane extends JTextPane {
       setSelectionColor(new Color(170, 200, 255));
     }
 
-    getDocument().addDocumentListener(new DirtyHandler());
-    getDocument().addUndoableEditListener(getUndoRedo());
-
     SikulixIDE.getStatusbar().setType(paneType);
     log("InitTab: (%s)", paneType);
+  }
+
+  public void loadContent(InputStreamReader isr) throws IOException {
+    read(new BufferedReader(isr), null);
+    getDocument().addDocumentListener(new DirtyHandler());
+    getDocument().addUndoableEditListener(getUndoRedo());
   }
 
   EditorPaneUndoRedo getUndoRedo() {
