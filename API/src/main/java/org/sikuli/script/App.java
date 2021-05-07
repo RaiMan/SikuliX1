@@ -471,7 +471,7 @@ public class App {
       return 1;
     }
     focus();
-    RunTime.pause(1);
+    RunTime.pause(1.0f);
     if (Commons.runningWindows()) {
       window().type(Key.F4, Key.ALT);
     } else if (Commons.runningMac()) {

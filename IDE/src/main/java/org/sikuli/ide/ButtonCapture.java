@@ -89,6 +89,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   IScreen defaultScreen = null;
   ScreenImage sImgNonLocal = null;
+  SikulixIDE.PaneContext context = null;
 
   public void capture(int delay) {
     String line = "";
@@ -101,7 +102,8 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       delay = Math.max(delay, 500);
       SikulixIDE.doHide();
     }
-    EditorPane codePane = ide.getCurrentCodePane();
+    context = SikulixIDE.get().getActiveContext();
+    EditorPane codePane = context.getPane();
     line = codePane.getLineTextAtCaret();
     givenName = codePane.parseLineText("#" + line.trim());
     if (!givenName.isEmpty()) {

@@ -232,140 +232,45 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="10 load content">
-  boolean confirmDialog(String message, String title) {
-    int ret = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-    return ret != JOptionPane.CLOSED_OPTION && ret != JOptionPane.NO_OPTION;
-  }
-
-  void init(String scriptType) {
-    init(scriptType, "");
-  }
-
-  boolean init(String scriptType, String tabContent) {
-//TODO setType for non-empty tab
-/*
-    Boolean shouldOverwrite = null;
-    boolean useAlreadyOpen = false;
-    boolean shouldChangeType = false;
-    String dialogTitle = "Changing Tab Type";
-    String msgSuffix = "\nNot yet handled -> NOOP";
-    if (!tabContent.trim().isEmpty()) {
-      //TODO Changing Tab Type for non-empty tab
-      if (isDirty()) {
-        String message = String.format("Save changes before?");
-        if (confirmDialog(message + msgSuffix, dialogTitle)) {
-          return false;
-        }
-        return false;
-      }
-      IScriptRunner newRunner = Runner.getRunner(scriptType);
-      File newFile = changeExtension(editorPaneFileToRun, newRunner.getDefaultExtension());
-      if (isBundle()) {
-        if (isDirty()) {
-          String message = String.format("Is bundle (.sikuli or bundle folder)");
-          if (confirmDialog(message + msgSuffix, dialogTitle)) {
-            return false;
-          }
-          return false;
-        }
-      }
-      if (alreadyOpen(newFile.getPath(), -1)) {
-        String message = String.format("Overwrite already open?");
-        if (confirmDialog(message + msgSuffix, dialogTitle)) {
-          return false;
-        }
-        useAlreadyOpen = true;
-        return false;
-      }
-      if (newFile.exists()) {
-        String message = String.format("overwrite existing file?\n%s" +
-                "\n\nYes: overwrite - No: select new file", newFile);
-        if (confirmDialog(message + msgSuffix, dialogTitle)) {
-          shouldOverwrite = Boolean.TRUE;
-          return false;
-        }
-      }
-      shouldChangeType = true;
-    }
-*/
+  boolean init() { //TODO
     makeReady();
-//TODO setType for non-empty tab
-/*
-    if (!tabContent.trim().isEmpty()) {
-      setText(tabContent);
-      changeFiles();
-      if (null != shouldOverwrite) {
-        if (shouldOverwrite) {
-          saveAsFile(editorPaneFileToRun.getPath());
-        } else {
-          saveAsSelect();
-        }
-      }
-      SikulixIDE.get().setCurrentFileTabTitle(editorPaneFileToRun.getPath());
-      setDirty(shouldOverwrite == null);
-    } else {
-      setDirty(false);
-    }
-*/
     return true;
   }
 
-  public File selectFile() {
-    File fileSelected = new SikulixFileChooser(SikulixIDE.get()).open();
-    if (fileSelected == null) {
-      return null;
-    }
-    int isOpen = alreadyOpen(fileSelected.getPath(), -1);
-    if (isOpen != -1) {
-      String toOpen = fileSelected.getName();
-      String alreadyOpen = new File(getPaneAtIndex(isOpen).editorPaneFileSelected).getName();
-      if (toOpen.equals(alreadyOpen)) {
-        error("%s already open", toOpen);
-      } else {
-        error("%s already open as: %s", toOpen, alreadyOpen);
-      }
-      return null;
-    }
-    loadFile(fileSelected);
-    if (editorPaneFile == null) {
-      return null;
-    }
-    return fileSelected;
-  }
+//TODO  private int alreadyOpen(String fileSelected, int currentTab) {
 
-  private int alreadyOpen(String fileSelected, int currentTab) {
-    CloseableTabbedPane tabs = getTabs();
-    int nTab = tabs.getTabCount();
-    if (nTab > 0) {
-      File possibleBundle = new File(fileSelected);
-      String possibleBundlePath = null;
-      if (EditorPane.isInBundle(possibleBundle)) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getParent());
-      } else if (possibleBundle.isDirectory()) {
-        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getPath());
-      }
-      for (int iTab = 0; iTab < nTab; iTab++) {
-        if (currentTab > -1 && iTab == currentTab) {
-          continue;
-        }
-        EditorPane checkedPane = getPaneAtIndex(iTab);
-        String paneFile = checkedPane.editorPaneFileSelected;
-        if (null == paneFile) continue;
-        if (new File(paneFile).equals(new File(fileSelected))) {
-          tabs.setAlreadyOpen(iTab);
-          return iTab;
-        }
-        if (possibleBundlePath != null && (checkedPane.isBundle() || checkedPane.isInBundle())) {
-          String paneBundle = FilenameUtils.removeExtension(checkedPane.editorPaneFolder.getPath());
-          if (possibleBundlePath.equals(paneBundle)) {
-            tabs.setAlreadyOpen(iTab);
-            return iTab;
-          }
-        }
-      }
-    }
-    return -1;
-  }
+//    CloseableTabbedPane tabs = getTabs();
+//    int nTab = tabs.getTabCount();
+//    if (nTab > 0) {
+//      File possibleBundle = new File(fileSelected);
+//      String possibleBundlePath = null;
+//      if (EditorPane.isInBundle(possibleBundle)) {
+//        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getParent());
+//      } else if (possibleBundle.isDirectory()) {
+//        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getPath());
+//      }
+//      for (int iTab = 0; iTab < nTab; iTab++) {
+//        if (currentTab > -1 && iTab == currentTab) {
+//          continue;
+//        }
+//        EditorPane checkedPane = getPaneAtIndex(iTab);
+//        String paneFile = checkedPane.editorPaneFileSelected;
+//        if (null == paneFile) continue;
+//        if (new File(paneFile).equals(new File(fileSelected))) {
+//          tabs.setAlreadyOpen(iTab);
+//          return iTab;
+//        }
+//        if (possibleBundlePath != null && (checkedPane.isBundle() || checkedPane.isInBundle())) {
+//          String paneBundle = FilenameUtils.removeExtension(checkedPane.editorPaneFolder.getPath());
+//          if (possibleBundlePath.equals(paneBundle)) {
+//            tabs.setAlreadyOpen(iTab);
+//            return iTab;
+//          }
+//        }
+//      }
+//    }
+//    return -1;
+//  }
 
   EditorPane getPaneAtIndex(int index) {
     return (EditorPane) ((JScrollPane) getTabs().getComponentAt(index)).getViewport().getView();
@@ -689,7 +594,7 @@ public class EditorPane extends JTextPane {
 
   public File saveAndGetCurrentFile() {
     if (hasEditingFile() && isDirty()) {
-      saveAsSelect();
+      //TODO saveAsSelect();
     }
     return editorPaneFile;
   }
@@ -701,38 +606,31 @@ public class EditorPane extends JTextPane {
 
   //<editor-fold desc="16 image path">
   public File getImageFolder() {
-    return editorPaneImageFolder;
-  }
-
-  public String getImagePath() {
-    return editorPaneImageFolder.getAbsolutePath();
-  }
-
-  public String getScreenshotFolder() {
-    return new File(editorPaneImageFolder, ImagePath.SCREENSHOT_DIRECTORY).getAbsolutePath();
-  }
-
-  public void setBundleFolder() {
-    ImagePath.setBundleFolder(editorPaneImageFolder);
+    return context.getImageFolder();
   }
 
   public void setImageFolder(File imageFolder) {
-    if (imageFolder != null && imageFolder.exists()) {
-      editorPaneImageFolder = imageFolder;
-      ImagePath.setBundleFolder(editorPaneImageFolder);
-    } else {
-      error("setImageFolder: null or not exists: %s", imageFolder);
-    }
+    context.setImageFolder(imageFolder);
   }
 
-  File editorPaneImageFolder = null;
+  public String getImagePath() {
+    return context.getImageFolder().getAbsolutePath();
+  }
+
+  public String getScreenshotFolder() {
+    return context.getScreenshotFolder().getAbsolutePath();
+  }
+
+  public void setBundleFolder() {
+    ImagePath.setBundleFolder(getImageFolder());
+  }
 
   public String getSrcBundle() {
-    return editorPaneFolder.getAbsolutePath();
+    return context.getFolder().getAbsolutePath();
   }
 
   public String getBundlePath() {
-    return editorPaneImageFolder.getAbsolutePath();
+    return context.getImageFolder().getAbsolutePath();
   }
 //</editor-fold>
 
@@ -1129,21 +1027,18 @@ public class EditorPane extends JTextPane {
   }
 
   private Map<String, List<Integer>> parseforImages() {
-    String pbundle = FileManager.slashify(editorPaneImageFolder.getAbsolutePath(), false);
-    trace("parseforImages: in %s", pbundle);
+    File imageFolder = context.getImageFolder();
+    trace("parseforImages: in %s", imageFolder);
     String scriptText = getText();
     Lexer lexer = getLexer();
-    Map<String, List<Integer>> images = new HashMap<String, List<Integer>>();
+    Map<String, List<Integer>> images = new HashMap<>();
     lineNumber = 0;
-    parseforImagesWalk(pbundle, lexer, scriptText, 0, images);
+    parseforImagesWalk(imageFolder, lexer, scriptText, 0, images);
     trace("parseforImages finished");
     return images;
   }
 
-  int lineNumber = 0;
-  String uncompleteStringError = "uncomplete_string_error";
-
-  private void parseforImagesWalk(String pbundle, Lexer lexer,
+  private void parseforImagesWalk(File imageFolder, Lexer lexer,
                                   String text, int pos, Map<String, List<Integer>> images) {
     trace("parseforImagesWalk");
     Iterable<Token> tokens = lexer.getTokens(text);
@@ -1172,13 +1067,13 @@ public class EditorPane extends JTextPane {
       if (t.getType() == TokenType.Comment) {
         trace("parseforImagesWalk::Comment");
         innerText = t.getValue().substring(1);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 1, images);
+        parseforImagesWalk(imageFolder, lexer, innerText, t.getPos() + 1, images);
         continue;
       }
       if (t.getType() == TokenType.String_Doc) {
         trace("parseforImagesWalk::String_Doc");
         innerText = t.getValue().substring(3, t.getValue().length() - 3);
-        parseforImagesWalk(pbundle, lexer, innerText, t.getPos() + 3, images);
+        parseforImagesWalk(imageFolder, lexer, innerText, t.getPos() + 3, images);
         continue;
       }
       if (!inString) {
@@ -1187,7 +1082,7 @@ public class EditorPane extends JTextPane {
       }
       if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
         inString = false;
-        parseforImagesCollect(pbundle, possibleImage[0], pos + t.getPos(), images);
+        parseforImagesCollect(imageFolder, possibleImage[0], pos + t.getPos(), images);
         continue;
       }
     }
@@ -1212,21 +1107,19 @@ public class EditorPane extends JTextPane {
     return inString;
   }
 
-  private void parseforImagesCollect(String pbundle, String img, int pos, Map<String, List<Integer>> images) {
-    String fimg;
+  private void parseforImagesCollect(File imageFolder, String img, int pos, Map<String, List<Integer>> images) {
     trace("parseforImagesCollect");
     if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
-      fimg = FileManager.slashify(img, false);
-      if (fimg.contains("/")) {
-        if (!fimg.contains(pbundle)) {
+      if (img.contains(File.separator)) {
+        if (!img.contains(imageFolder.getPath())) {
           return;
         }
-        img = new File(fimg).getName();
+        img = new File(img).getName();
       }
       if (images.containsKey(img)) {
         images.get(img).add(pos);
       } else {
-        List<Integer> poss = new ArrayList<Integer>();
+        List<Integer> poss = new ArrayList<>();
         poss.add(pos);
         images.put(img, poss);
       }
@@ -1248,9 +1141,13 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  private static final Map<String, Lexer> lexers = new HashMap<String, Lexer>();
+  private static final Map<String, Lexer> lexers = new HashMap<>();
 
-  public boolean showThumbs;
+  public boolean showThumbs; //TODO
+
+  int lineNumber = 0;
+  String uncompleteStringError = "uncomplete_string_error";
+
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
@@ -1306,51 +1203,6 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="22 save, close">
-  public String saveTabContent() {
-    if (editorPaneFile == null || isTemp()) {
-      return saveAsSelect();
-    } else {
-      if (writeSriptFile()) {
-        return editorPaneFile.getAbsolutePath();
-      }
-      return null;
-    }
-  }
-
-  public String saveAsSelect() {
-    SikulixFileChooser fileChooser = new SikulixFileChooser(SikulixIDE.get());
-    File file = fileChooser.saveAs(getRunner().getDefaultExtension(), isBundle());
-    if (file == null) {
-      return null;
-    }
-    String filename = file.getAbsolutePath();
-    int currentTab = getTabs().getSelectedIndex();
-    int tabAlreadyOpen = alreadyOpen(filename, currentTab);
-    if (-1 != tabAlreadyOpen) {
-      SX.popError(String.format("Target is open in IDE\n%s\n" +
-              "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
-              "SaveAs: file is opened");
-      return null;
-    }
-    if (FileManager.exists(filename)) {
-      int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", filename),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
-      if (answer != JOptionPane.YES_OPTION) {
-        return null;
-      }
-      FileManager.deleteFileOrFolder(filename);
-    }
-    File savedFile;
-    if (isPossibleBundle(filename)) {
-      FileManager.mkdir(filename);
-      savedFile = saveAsBundle(filename);
-    } else {
-      savedFile = saveAsFile(filename);
-    }
-    return savedFile.getAbsolutePath();
-  }
-
   private File saveAsBundle(String targetFolder) {
     String sourceFolder = editorPaneFolder.getAbsolutePath();
     targetFolder = new File(targetFolder).getAbsolutePath();
@@ -1524,40 +1376,6 @@ public class EditorPane extends JTextPane {
 
     FileManager.deleteNotUsedScreenshots(getBundlePath(), foundImages);
     trace("cleanBundle finished: %s", getCurrentScriptname());
-  }
-
-  public boolean close() throws IOException {
-    if (!isTemp()) {
-      trace("Tab close: %s", getCurrentShortFilename());
-    }
-    if (isDirty()) {
-      if (isTemp()) {
-        trace("Tab close: temp-%s", getCurrentShortFilename());
-      }
-      Object[] options = {SikuliIDEI18N._I("yes"), SikuliIDEI18N._I("no"), SikuliIDEI18N._I("cancel")};
-      int ans = JOptionPane.showOptionDialog(this,
-          SikuliIDEI18N._I("msgAskSaveChanges", getCurrentShortFilename()),
-          SikuliIDEI18N._I("dlgAskCloseTab"),
-          JOptionPane.YES_NO_CANCEL_OPTION,
-          JOptionPane.WARNING_MESSAGE,
-          null,
-          options, options[0]);
-      if (ans == JOptionPane.CANCEL_OPTION || ans == JOptionPane.CLOSED_OPTION) {
-        return false;
-      } else if (ans == JOptionPane.YES_OPTION) {
-        String fileSaved = saveTabContent();
-        if (fileSaved == null) {
-          return false;
-        }
-        if (getImageFolder() != null) {
-          ImagePath.remove(getImagePath());
-        }
-        SikulixIDE.get().setCurrentFileTabTitle(fileSaved);
-      } else {
-        setDirty(false);
-      }
-    }
-    return true;
   }
   //</editor-fold>
 

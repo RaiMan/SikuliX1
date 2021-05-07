@@ -112,9 +112,9 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     }
   }
 
-  private void fireInsertTabAndLoad(int tabIndex) {
+  private void fireInsertTabAndLoad(int tabIndex) { //TODO
     SikulixIDE.FileAction insertNewTab = SikulixIDE.get().getFileAction(tabIndex);
-    insertNewTab.doInsert(null);
+//    insertNewTab.doInsert(null);
   }
 
   private JMenuItem createMenuItem(JMenuItem item, ActionListener listener) {
@@ -307,7 +307,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       if (currentType.equals(targetType)) {
         return;
       }
-      if (editorPane.init(targetType, editorPaneText)) {
+      if (editorPane.init()) {
         if (editorPane.isText()) {
           editorPane.setIsFile();
         }
