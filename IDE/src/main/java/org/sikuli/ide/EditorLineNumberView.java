@@ -73,6 +73,7 @@ public class EditorLineNumberView extends JComponent implements MouseListener {
     if (!popMenuLineNumber.isValidMenu()) {
       popMenuLineNumber = null;
     }
+    popMenuLineNumber = null; //TODO popMenu
   }
 
   @Override

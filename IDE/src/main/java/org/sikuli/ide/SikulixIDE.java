@@ -3,6 +3,7 @@
  */
 package org.sikuli.ide;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.*;
 import org.sikuli.idesupport.ExtensionManager;
@@ -436,7 +437,7 @@ public class SikulixIDE extends JFrame {
       uncollapseMessageArea();
     }
     getStatusbar().setType(context.getType());
-    chkShowThumbs.setState(getCurrentCodePane().showThumbs);
+    chkShowThumbs.setState(getActiveContext().getShowThumbs());
 
     final EditorPane editorPane = context.getPane();
     int dot = editorPane.getCaret().getDot();
@@ -478,7 +479,11 @@ public class SikulixIDE extends JFrame {
 
   int alreadyOpen(File file) {
     for (PaneContext context : contexts) {
-      if (file.equals(context.getFile())) {
+      File folderOrFile = context.file;
+      if (context.isBundle(file)) {
+        folderOrFile = context.folder;
+      }
+      if (file.equals(folderOrFile)) {
         return context.pos;
       }
     }
@@ -495,10 +500,10 @@ public class SikulixIDE extends JFrame {
 
   public File selectFileForSave(PaneContext context) {
     File fileSelected = new SikulixFileChooser(sikulixIDE).saveAs(
-        context.getExt(),context.isBundle() || context.isTemp());
+        context.getExt(), context.isBundle() || context.isTemp());
     if (fileSelected == null) {
       return null;
-    } 
+    }
     return fileSelected;
   }
 
@@ -527,16 +532,20 @@ public class SikulixIDE extends JFrame {
   }
 
   class PaneContext {
-    EditorPane pane;
-    IScriptRunner runner = null;
-    IIDESupport support;
-    String type;
     File folder;
     File imageFolder;
     File file;
     String name;
     String ext;
+
+    IScriptRunner runner = null;
+    IIDESupport support;
+    String type;
+
+    EditorPane pane;
+    boolean showThumbs; //TODO
     int pos = 0;
+
     boolean dirty = false;
     boolean temp = false;
 
@@ -595,6 +604,7 @@ public class SikulixIDE extends JFrame {
         }
       }
       type = runner.getType();
+      support = IDESupport.get(type);
     }
 
     public IIDESupport getSupport() {
@@ -643,12 +653,22 @@ public class SikulixIDE extends JFrame {
         if (_file.isDirectory()) {
           _folder = _file;
           _file = Runner.getScriptFile(_folder);
-          _ext = FilenameUtils.getExtension(_file.getPath());
+          if (_file != null) {
+            _ext = FilenameUtils.getExtension(_file.getPath());
+          } else {
+            _ext = IDESupport.getDefaultRunner().getDefaultExtension();
+            try {
+              _file.createNewFile();
+            } catch (IOException e) {
+              fatal("PaneContext: setFile: create not possible: %s", file); //TODO
+              _file = null;
+            }
+          }
         } else {
           _folder = _file.getParentFile();
         }
       } else {
-        if (_ext.isEmpty() || _ext.equals(".sikuli")) {
+        if (_ext.isEmpty() || _ext.equals("sikuli")) {
           _file.mkdirs();
           _folder = _file;
           _file = new File(_folder, _name);
@@ -684,6 +704,10 @@ public class SikulixIDE extends JFrame {
       return folder.getAbsolutePath().endsWith(".sikuli");
     }
 
+    public boolean isBundle(File file) {
+      return file.getAbsolutePath().endsWith(".sikuli") || FilenameUtils.getExtension(file.getName()).isEmpty();
+    }
+
     public File getImageFolder() {
       return imageFolder;
     }
@@ -708,17 +732,26 @@ public class SikulixIDE extends JFrame {
       return new File(imageFolder, ImagePath.SCREENSHOT_DIRECTORY);
     }
 
+    public boolean getShowThumbs() {
+      return showThumbs;
+    }
+
+    public void setShowThumbs(boolean state) {
+      showThumbs = state;
+    }
+
     private void create() {
       int lastPos = -1;
       if (contexts.size() > 0) {
         lastPos = getActiveContext().pos;
       }
+      showThumbs = !PreferencesUser.get().getPrefMorePlainText(); //TODO
       pane = new EditorPane(this);
       contexts.add(pos, this);
       tabs.addNewTab(name, pane.getScrollPane(), pos);
       tabs.setSelectedIndex(pos);
       pane.makeReady();
-      if(load()) {
+      if (load()) {
         pane.requestFocus();
       } else {
         if (lastPos >= 0) {
@@ -727,7 +760,7 @@ public class SikulixIDE extends JFrame {
           contexts.remove(pos);
         } else {
           tabs.remove(0);
-          fatal("PaneContext: create: start tab failed (possible?)");
+          fatal("PaneContext: create: start tab failed"); //TODO possible?
         }
       }
       resetPos();
@@ -793,23 +826,67 @@ public class SikulixIDE extends JFrame {
       }
     }
 
-    public boolean saveAs() { //TODO
-      if (save()) {
-        final File file = selectFileForSave(this);
+    public boolean saveAs() {//TODO
+      if (!save()) {
+        return false;
+      }
+      boolean success = true;
+      File file;
+      while (true) {
+        file = selectFileForSave(this);
         if (file == null) {
           return false;
         }
-        final PaneContext newContext = new PaneContext();
-        newContext.setFile(file);
-        newContext.setRunner();
-        boolean success = copyContent(this, newContext);
-        return success;
+        final int pos = alreadyOpen(file);
+        if (pos >= 0) {
+          setActiveContext(pos);
+          log("PaneContext: alreadyopen: %s", file); //TODO saveAs
+          final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", "Tab is currently open!",
+              "Overwrite", "Try again");
+          if (answer == SXDialog.DECISION_CANCEL) {
+            return false;
+          }
+          if (answer == SXDialog.DECISION_ACCEPT) {
+            continue;
+          }
+          contexts.get(pos).close();
+          setActiveContext(this.pos);
+        }
+        break;
       }
-      return false;
+      final PaneContext newContext = new PaneContext();
+      if (newContext.setFile(file)) {
+        newContext.file.delete();
+        try {
+          copyContent(this, newContext, isBundle(file));
+        } catch (IOException e) {
+          success = false;
+        }
+      }
+      if (success) {
+        newContext.setRunner();
+        newContext.pos = pos;
+        newContext.pane = pane;
+        newContext.showThumbs = showThumbs;
+        contexts.set(pos, newContext);
+        contextsClosed.add(0, this);
+        tabs.setTitleAt(pos, newContext.name);
+        sikulixIDE.setIDETitle(newContext.file.getAbsolutePath());
+      }
+      return success;
     }
 
-    private boolean copyContent(PaneContext currentContext, PaneContext newContext) {
-      return true;
+    private void copyContent(PaneContext currentContext, PaneContext newContext, boolean asBundle) throws
+        IOException {
+      if (asBundle) {
+        FileUtils.copyDirectory(currentContext.folder, newContext.folder);
+        final String oldName = currentContext.file.getName();
+        final String newName = FilenameUtils.getBaseName(newContext.file.getName());
+        final String ext = "." + FilenameUtils.getExtension(oldName);
+        new File(newContext.folder, oldName).renameTo(new File(newContext.folder, newName + ext));
+      } else {
+        FileUtils.copyFile(currentContext.file, newContext.file);
+      }
     }
 
     public boolean save() {
@@ -866,7 +943,7 @@ public class SikulixIDE extends JFrame {
 
   void zzzzzzz() {
   }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="04 save / restore session">
   private boolean saveSession(int saveAction) {
@@ -943,7 +1020,7 @@ public class SikulixIDE extends JFrame {
     }
     return filesToLoad;
   }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="06 tabs handling">
   public boolean terminate() {
@@ -1114,7 +1191,7 @@ public class SikulixIDE extends JFrame {
 //      }
 //    }
   }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold desc="10 Init Menus">
   private JMenuBar _menuBar = new JMenuBar();
@@ -1302,7 +1379,7 @@ public class SikulixIDE extends JFrame {
   FileAction getFileAction(int tabIndex) {
     return new FileAction(tabIndex);
   }
-  //</editor-fold>
+//</editor-fold>
 
   class FileAction extends MenuAction {
 
@@ -1844,7 +1921,7 @@ public class SikulixIDE extends JFrame {
         }
       }
       boolean showThumbsState = chkShowThumbs.getState();
-      getCurrentCodePane().showThumbs = showThumbsState;
+      getCurrentCodePane().context.setShowThumbs(showThumbsState);
       getCurrentCodePane().doReparse();
       return;
     }
@@ -2352,7 +2429,7 @@ public class SikulixIDE extends JFrame {
         w = (int) roi.getWidth();
         h = (int) roi.getHeight();
         ideWindow.setVisible(false);
-        if (codePane.showThumbs) {
+        if (codePane.context.getShowThumbs()) {
           if (prefs.getPrefMoreImageThumbs()) {
             codePane.insertComponent(new EditorRegionButton(codePane, x, y, w, h));
           } else {
@@ -2607,7 +2684,7 @@ public class SikulixIDE extends JFrame {
       return recorder.isRunning();
     }
   }
-  //</editor-fold>
+//</editor-fold>
 
   //<editor-fold desc="21 Init Run Buttons">
   class ButtonRun extends ButtonOnToolbar implements ActionListener {
@@ -2763,6 +2840,7 @@ public class SikulixIDE extends JFrame {
       super.doBeforeRun();
       Settings.setShowActions(true);
     }
+
   }
 
   synchronized boolean isRunningScript() {

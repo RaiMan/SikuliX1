@@ -77,7 +77,6 @@ public class EditorPane extends JTextPane {
   SikulixIDE.PaneContext context;
 
   EditorPane() {
-    showThumbs = !PreferencesUser.get().getPrefMorePlainText();
     addMouseListener(new MouseInputAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -142,11 +141,13 @@ public class EditorPane extends JTextPane {
     if (!popMenuImage.isValidMenu()) {
       popMenuImage = null;
     }
+    popMenuImage = null; //TODO poMenu
 
     popMenuCompletion = new SikuliIDEPopUpMenu("POP_COMPLETION", this);
     if (!popMenuCompletion.isValidMenu()) {
       popMenuCompletion = null;
     }
+    popMenuCompletion = null; //TODO popMenu
 
     setFont(new Font(PreferencesUser.get().getFontName(), Font.PLAIN, PreferencesUser.get().getFontSize()));
     setMargin(new Insets(3, 3, 3, 3));
@@ -872,7 +873,7 @@ public class EditorPane extends JTextPane {
   }
 
   private void parse(Element node) {
-    if (!showThumbs) {
+    if (!context.getShowThumbs()) {
       // do not show any thumbnails
       return;
     }
@@ -922,7 +923,7 @@ public class EditorPane extends JTextPane {
   }
 
   private int parseRange(int start, int end) {
-    if (!showThumbs) {
+    if (!context.getShowThumbs()) {
       // do not show any thumbnails
       return end;
     }
@@ -1143,9 +1144,7 @@ public class EditorPane extends JTextPane {
 
   private static final Map<String, Lexer> lexers = new HashMap<>();
 
-  public boolean showThumbs; //TODO
-
-  int lineNumber = 0;
+ int lineNumber = 0;
   String uncompleteStringError = "uncomplete_string_error";
 
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");

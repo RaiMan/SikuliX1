@@ -34,6 +34,7 @@ public class CloseableTabbedPane extends JTabbedPane implements MouseListener,
     if (!popMenuTab.isValidMenu()) {
       popMenuTab = null;
     }
+    popMenuTab = null; //TODO popMenu
   }
 
   class CloseTabIcon implements Icon {
