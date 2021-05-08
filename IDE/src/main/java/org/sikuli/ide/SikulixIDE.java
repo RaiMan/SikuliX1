@@ -799,13 +799,16 @@ public class SikulixIDE extends JFrame {
         if (file == null) {
           return false;
         }
-        moveContent(file);
-        return true;
+        final PaneContext newContext = new PaneContext();
+        newContext.setFile(file);
+        newContext.setRunner();
+        boolean success = copyContent(this, newContext);
+        return success;
       }
       return false;
     }
 
-    private boolean moveContent(File file) {
+    private boolean copyContent(PaneContext currentContext, PaneContext newContext) {
       return true;
     }
 
