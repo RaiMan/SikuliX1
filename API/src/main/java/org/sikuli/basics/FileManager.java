@@ -1129,49 +1129,6 @@ public class FileManager {
     return fpImage;
   }
 
-  //TODO consolidate with FileManager and Settings
-  public static void deleteNotUsedImages(String bundle, Set<String> usedImages) {
-    File scriptFolder = new File(bundle);
-    if (!scriptFolder.isDirectory()) {
-      return;
-    }
-    String path;
-    for (File image : scriptFolder.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
-          if (!name.startsWith("_")) {
-            return true;
-          }
-        }
-        return false;
-      }
-    })) {
-      if (!usedImages.contains(image.getName())) {
-        Debug.log(3, "FileManager: delete not used: %s", image.getName());
-        image.delete();
-      }
-    }
-  }
-
-  //TODO consolidate with FileManager and Settings
-  public static void deleteNotUsedScreenshots(String bundle, Set<String> usedImages) {
-    File scriptFolder = new File(bundle);
-    if (!scriptFolder.isDirectory()) {
-      return;
-    }
-
-    File screenshotsDir = new File(bundle, ImagePath.SCREENSHOT_DIRECTORY);
-
-    if(screenshotsDir.exists()) {
-      for(File screenshot : screenshotsDir.listFiles()) {
-        if(!usedImages.contains(screenshot.getName())) {
-          Debug.log(3, "FileManager: delete not used screenshot: %s", screenshot.getName());
-          screenshot.delete();
-        }
-      }
-    }
-  }
   public static boolean isBundle(String dir) {
     return dir.endsWith(".sikuli");
   }

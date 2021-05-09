@@ -51,6 +51,8 @@ import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class SikulixIDE extends JFrame {
 
@@ -325,11 +327,11 @@ public class SikulixIDE extends JFrame {
     Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
       private boolean isKeyNextTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-            && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
+                && ke.getModifiersEx() == InputEvent.CTRL_DOWN_MASK) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_CLOSE_BRACKET
-            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         return false;
@@ -337,11 +339,11 @@ public class SikulixIDE extends JFrame {
 
       private boolean isKeyPrevTab(java.awt.event.KeyEvent ke) {
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_TAB
-            && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+                && ke.getModifiersEx() == (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         if (ke.getKeyCode() == java.awt.event.KeyEvent.VK_OPEN_BRACKET
-            && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
+                && ke.getModifiersEx() == (InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) {
           return true;
         }
         return false;
@@ -423,7 +425,7 @@ public class SikulixIDE extends JFrame {
     }
     if (ix >= contexts.size()) {
       RunTime.terminate(999, "IDE: switchPane: invalid tab index: %d (valid: 0 .. %d)",
-          ix, contexts.size() - 1);
+              ix, contexts.size() - 1);
     }
     PaneContext context = contexts.get(ix);
     PaneContext previous = lastContext;
@@ -503,7 +505,7 @@ public class SikulixIDE extends JFrame {
 
   public File selectFileForSave(PaneContext context) {
     File fileSelected = new SikulixFileChooser(sikulixIDE).saveAs(
-        context.getExt(), context.isBundle() || context.isTemp());
+            context.getExt(), context.isBundle() || context.isTemp());
     if (fileSelected == null) {
       return null;
     }
@@ -779,7 +781,7 @@ public class SikulixIDE extends JFrame {
         if (isTemp()) {
           String msg = String.format("%s: content not yet saved!", getFileName());
           final int answer = SXDialog.askForDecision(sikulixIDE, "Closing Tab", msg,
-              "Discard", "Save");
+                  "Discard", "Save");
           if (answer == SXDialog.DECISION_CANCEL) {
             return false;
           }
@@ -817,6 +819,54 @@ public class SikulixIDE extends JFrame {
       return n;
     }
 
+    private void cleanBundle() { //TODO consolidate with FileManager and Settings
+      log("cleanBundle: %s", getName());
+      Set<String> foundImages = pane.parseforImages().keySet();
+      if (foundImages.contains(pane.uncompleteStringError)) {
+        error("cleanBundle aborted (%s)", pane.uncompleteStringError);
+      } else {
+        deleteNotUsedImages(getImageFolder(), foundImages);
+      }
+      deleteNotUsedScreenshots(getScreenshotFolder(), foundImages);
+      log("cleanBundle finished: %s", getName());
+    }
+
+    public void deleteNotUsedImages(File scriptFolder, Set<String> usedImages) {
+      if (!scriptFolder.isDirectory()) {
+        return;
+      }
+      File[] files = scriptFolder.listFiles((dir, name) -> {
+        if ((name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
+          if (!name.startsWith("_")) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (files == null || files.length == 0) {
+        return;
+      }
+      for (File image : files) {
+        if (!usedImages.contains(image.getName())) {
+          image.delete(); //TODO make a backup??
+        }
+      }
+    }
+
+    public void deleteNotUsedScreenshots(File screenshotsDir, Set<String> usedImages) {
+      if(screenshotsDir.exists()) {
+        File[] files = screenshotsDir.listFiles();
+        if (files == null || files.length == 0) {
+          return;
+        }
+        for(File screenshot : files) {
+          if(!usedImages.contains(screenshot.getName())) {
+            screenshot.delete();
+          }
+        }
+      }
+    }
+
     public boolean isDirty() {
       return dirty;
     }
@@ -841,7 +891,7 @@ public class SikulixIDE extends JFrame {
         todo("PaneContext: saveAs: ask: discard or save changes"); //TODO
         String msg = String.format("%s: save changes?", file.getName());
         final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", msg,
-            "Do not save", "Save");
+                "Do not save", "Save");
         if (answer == SXDialog.DECISION_CANCEL) {
           return false;
         }
@@ -867,7 +917,7 @@ public class SikulixIDE extends JFrame {
           log("PaneContext: alreadyopen: %s", file);
           String msg = String.format("%s: is currently open!", file.getName());
           final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", msg,
-              "Overwrite", "Try again");
+                  "Overwrite", "Try again");
           if (answer == SXDialog.DECISION_CANCEL) {
             return false;
           }
@@ -902,7 +952,7 @@ public class SikulixIDE extends JFrame {
     }
 
     private void copyContent(PaneContext currentContext, PaneContext newContext, boolean asBundle) throws
-        IOException {
+            IOException {
       if (asBundle) {
         FileUtils.copyDirectory(currentContext.folder, newContext.folder);
         final String oldName = currentContext.file.getName();
@@ -948,7 +998,7 @@ public class SikulixIDE extends JFrame {
       InputStreamReader isr;
       try {
         isr = new InputStreamReader(new ByteArrayInputStream(content.getBytes(Charset.forName("utf-8"))),
-            Charset.forName("utf-8"));
+                Charset.forName("utf-8"));
         pane.loadContent(isr);
       } catch (Exception ex) {
         log("PaneContext: loadString: ERROR(%s)", ex.getMessage());
@@ -964,6 +1014,86 @@ public class SikulixIDE extends JFrame {
 
   EditorPane getPaneAtIndex(int index) {
     return getContextAt(index).getPane();
+  }
+
+  private void convertSrcToHtml(String bundle) {
+//    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
+//    if (runner != null) {
+//      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
+//    }
+  }
+
+  public void exportAsZip() {
+    PaneContext context = getActiveContext();
+    SikulixFileChooser chooser = new SikulixFileChooser(SikulixIDE.get());
+    File file = chooser.export();
+    if (file == null) {
+      return;
+    }
+    if (!context.save()) {
+      return;
+    }
+    String zipPath = file.getAbsolutePath();
+    if (context.isBundle()) {
+      if (!file.getAbsolutePath().endsWith(".skl")) {
+        zipPath += ".skl";
+      }
+    } else {
+      if (!file.getAbsolutePath().endsWith(".zip")) {
+        zipPath += ".zip";
+      }
+    }
+    File zipFile = new File(zipPath);
+    if (zipFile.exists()) {
+      int answer = JOptionPane.showConfirmDialog(
+              null, SikuliIDEI18N._I("msgFileExists", zipFile),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+      if (answer != JOptionPane.YES_OPTION) {
+        return;
+      }
+      FileManager.deleteFileOrFolder(zipFile);
+    }
+    try {
+      zipDir(context.getFolder(), zipFile, context.getFileName());
+      log("Exported packed SikuliX Script to: %s", zipFile);
+    } catch (Exception ex) {
+      log("ERROR: Export did not work: %s", zipFile); //TODO
+    }
+  }
+
+  private static void zipDir(File zipDir, File zipFile, String fScript) throws IOException {
+    ZipOutputStream zos = null;
+    try {
+      zos = new ZipOutputStream(new FileOutputStream(zipFile));
+      String[] dirList = zipDir.list();
+      byte[] readBuffer = new byte[1024];
+      int bytesIn;
+      ZipEntry anEntry;
+      String ending = fScript.substring(fScript.length() - 3);
+      String sName = zipFile.getName();
+      sName = sName.substring(0, sName.length() - 4) + ending;
+      for (int i = 0; i < dirList.length; i++) {
+        File f = new File(zipDir, dirList[i]);
+        if (f.isFile()) {
+          if (fScript.equals(f.getName())) {
+            anEntry = new ZipEntry(sName);
+          } else {
+            anEntry = new ZipEntry(f.getName());
+          }
+          FileInputStream fis = new FileInputStream(f);
+          zos.putNextEntry(anEntry);
+          while ((bytesIn = fis.read(readBuffer)) != -1) {
+            zos.write(readBuffer, 0, bytesIn);
+          }
+          fis.close();
+        }
+      }
+    } catch (Exception ex) {
+      String msg = "";
+      msg = ex.getMessage() + "";
+    } finally {
+      zos.close();
+    }
   }
 
   void zzzzzzz() {
@@ -1182,7 +1312,7 @@ public class SikulixIDE extends JFrame {
           actMethod.invoke(this, params);
         } catch (Exception ex) {
           log("Problem when trying to invoke menu action %s\nError: %s",
-              action, ex.getMessage());
+                  action, ex.getMessage());
         }
       }
     }
@@ -1209,18 +1339,18 @@ public class SikulixIDE extends JFrame {
 
     if (IDEDesktopSupport.showAbout) {
       _fileMenu.add(createMenuItem("About SikuliX",
-          KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
-          new FileAction(FileAction.ABOUT)));
+              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
+              new FileAction(FileAction.ABOUT)));
       _fileMenu.addSeparator();
     }
 
     _fileMenu.add(createMenuItem(_I("menuFileNew"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, scMask),
-        new FileAction(FileAction.NEW)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, scMask),
+            new FileAction(FileAction.NEW)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileOpen"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
-        new FileAction(FileAction.OPEN)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, scMask),
+            new FileAction(FileAction.OPEN)));
     jmi.setName("OPEN");
 
     recentMenu = new JMenu(_I("menuRecent"));
@@ -1230,52 +1360,46 @@ public class SikulixIDE extends JFrame {
     }
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSave"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, scMask),
-        new FileAction(FileAction.SAVE)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, scMask),
+            new FileAction(FileAction.SAVE)));
     jmi.setName("SAVE");
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileSaveAs"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-            InputEvent.SHIFT_DOWN_MASK | scMask),
-        new FileAction(FileAction.SAVE_AS)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new FileAction(FileAction.SAVE_AS)));
     jmi.setName("SAVE_AS");
 
-//TODO    _fileMenu.add(createMenuItem(_I("menuFileSaveAll"),
-    _fileMenu.add(createMenuItem("Save all",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
-            InputEvent.CTRL_DOWN_MASK | scMask),
-        new FileAction(FileAction.SAVE_ALL)));
-
     _fileMenu.add(createMenuItem(_I("menuFileExport"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
-            InputEvent.SHIFT_DOWN_MASK | scMask),
-        new FileAction(FileAction.EXPORT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new FileAction(FileAction.EXPORT)));
 
     _fileMenu.add(createMenuItem("Export as jar",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
-        new FileAction(FileAction.ASJAR)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
+            new FileAction(FileAction.ASJAR)));
 
     _fileMenu.add(createMenuItem("Export as runnable jar",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
-            InputEvent.SHIFT_DOWN_MASK | scMask),
-        new FileAction(FileAction.ASRUNJAR)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new FileAction(FileAction.ASRUNJAR)));
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
-        new FileAction(FileAction.CLOSE_TAB)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
+            new FileAction(FileAction.CLOSE_TAB)));
     jmi.setName("CLOSE_TAB");
 
     if (IDEDesktopSupport.showPrefs) {
       _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFilePreferences"),
-          KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, scMask),
-          new FileAction(FileAction.PREFERENCES)));
+              KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, scMask),
+              new FileAction(FileAction.PREFERENCES)));
     }
 
     _fileMenu.addSeparator();
     _fileMenu.add(createMenuItem("Open Special Files",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
-        new FileAction(FileAction.OPEN_SPECIAL)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
+            new FileAction(FileAction.OPEN_SPECIAL)));
 
 //TODO restart IDE
 /*
@@ -1287,7 +1411,7 @@ public class SikulixIDE extends JFrame {
     if (IDEDesktopSupport.showQuit) {
       _fileMenu.addSeparator();
       _fileMenu.add(createMenuItem(_I("menuFileQuit"),
-          null, new FileAction(FileAction.QUIT)));
+              null, new FileAction(FileAction.QUIT)));
     }
   }
 
@@ -1357,25 +1481,8 @@ public class SikulixIDE extends JFrame {
       getActiveContext().saveAs();
     }
 
-    public void doSaveAll(ActionEvent ae) {
-      log("doSaveAll requested");
-      if (!checkDirtyPanes()) {
-        return;
-      }
-      saveSession(DO_SAVE_ALL);
-    }
-
     public void doExport(ActionEvent ae) {
-      EditorPane codePane = getCurrentCodePane();
-      String orgName = codePane.getCurrentShortFilename();
-      log("doExport requested: %s", orgName);
-      String fname = null;
-      try {
-        fname = codePane.exportAsZip();
-      } catch (Exception ex) {
-        log("Problem when trying to save %s\nError: %s",
-            fname, ex.getMessage());
-      }
+      exportAsZip();
     }
 
     public void doAsJar(ActionEvent ae) {
@@ -1458,54 +1565,54 @@ public class SikulixIDE extends JFrame {
     _undoAction = new UndoAction();
     JMenuItem undoItem = _editMenu.add(_undoAction);
     undoItem.setAccelerator(
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask));
 
     _redoAction = new RedoAction();
     JMenuItem redoItem = _editMenu.add(_redoAction);
     redoItem.setAccelerator(
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, scMask | InputEvent.SHIFT_DOWN_MASK));
 
     _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditCopy"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
-        new EditAction(EditAction.COPY)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask),
+            new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem("Copy line",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask | InputEvent.SHIFT_DOWN_MASK),
-        new EditAction(EditAction.COPY)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, scMask | InputEvent.SHIFT_DOWN_MASK),
+            new EditAction(EditAction.COPY)));
     _editMenu.add(createMenuItem(_I("menuEditCut"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
-        new EditAction(EditAction.CUT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask),
+            new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem("Cut line",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask | InputEvent.SHIFT_DOWN_MASK),
-        new EditAction(EditAction.CUT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, scMask | InputEvent.SHIFT_DOWN_MASK),
+            new EditAction(EditAction.CUT)));
     _editMenu.add(createMenuItem(_I("menuEditPaste"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
-        new EditAction(EditAction.PASTE)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, scMask),
+            new EditAction(EditAction.PASTE)));
     _editMenu.add(createMenuItem(_I("menuEditSelectAll"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
-        new EditAction(EditAction.SELECT_ALL)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, scMask),
+            new EditAction(EditAction.SELECT_ALL)));
 
     _editMenu.addSeparator();
     JMenu findMenu = new JMenu(_I("menuFind"));
     findMenu.setMnemonic(KeyEvent.VK_F);
     findMenu.add(createMenuItem(_I("menuFindFind"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
-        new FindAction(FindAction.FIND)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, scMask),
+            new FindAction(FindAction.FIND)));
     findMenu.add(createMenuItem(_I("menuFindFindNext"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask),
-        new FindAction(FindAction.FIND_NEXT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask),
+            new FindAction(FindAction.FIND_NEXT)));
     findMenu.add(createMenuItem(_I("menuFindFindPrev"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask | InputEvent.SHIFT_MASK),
-        new FindAction(FindAction.FIND_PREV)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, scMask | InputEvent.SHIFT_MASK),
+            new FindAction(FindAction.FIND_PREV)));
     _editMenu.add(findMenu);
 
     _editMenu.addSeparator();
     _editMenu.add(createMenuItem(_I("menuEditIndent"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, 0),
-        new EditAction(EditAction.INDENT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, 0),
+            new EditAction(EditAction.INDENT)));
     _editMenu.add(createMenuItem(_I("menuEditUnIndent"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, InputEvent.SHIFT_MASK),
-        new EditAction(EditAction.UNINDENT)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_TAB, InputEvent.SHIFT_MASK),
+            new EditAction(EditAction.UNINDENT)));
   }
 
   class EditAction extends MenuAction {
@@ -1589,9 +1696,9 @@ public class SikulixIDE extends JFrame {
 //      _searchField.selectAll();
 //      _searchField.requestFocus();
       findText = Sikulix.input(
-          "Enter text to be searched (case sensitive)\n" +
-              "Start with ! to search case insensitive\n",
-          findText, "SikuliX IDE -- Find");
+              "Enter text to be searched (case sensitive)\n" +
+                      "Start with ! to search case insensitive\n",
+              findText, "SikuliX IDE -- Find");
       if (null == findText) {
         return;
       }
@@ -1646,8 +1753,8 @@ public class SikulixIDE extends JFrame {
     boolean findNext(String str) {
       if (getCurrentCodePane() != null) {
         return _find(str,
-            getCurrentCodePane().getCaretPosition() + str.length(),
-            true);
+                getCurrentCodePane().getCaretPosition() + str.length(),
+                true);
       }
       return false;
     }
@@ -1748,16 +1855,16 @@ public class SikulixIDE extends JFrame {
     _runMenu = new JMenu(_I("menuRun"));
     _runMenu.setMnemonic(java.awt.event.KeyEvent.VK_R);
     _runMenu.add(createMenuItem(_I("menuRunRun"),
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
-        new RunAction(RunAction.RUN)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, scMask),
+            new RunAction(RunAction.RUN)));
     _runMenu.add(createMenuItem(_I("menuRunRunAndShowActions"),
-        KeyStroke.getKeyStroke(KeyEvent.VK_R,
-            InputEvent.ALT_DOWN_MASK | scMask),
-        new RunAction(RunAction.RUN_SHOW_ACTIONS)));
+            KeyStroke.getKeyStroke(KeyEvent.VK_R,
+                    InputEvent.ALT_DOWN_MASK | scMask),
+            new RunAction(RunAction.RUN_SHOW_ACTIONS)));
     _runMenu.add(createMenuItem("Run selection",
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
-            InputEvent.SHIFT_DOWN_MASK | scMask),
-        new RunAction(RunAction.RUN_SELECTION)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+                    InputEvent.SHIFT_DOWN_MASK | scMask),
+            new RunAction(RunAction.RUN_SELECTION)));
   }
 
   class RunAction extends MenuAction {
@@ -1800,8 +1907,8 @@ public class SikulixIDE extends JFrame {
 
     chkShowThumbs = new JCheckBoxMenuItem(_I("menuViewShowThumbs"), !prefMorePlainText);
     _viewMenu.add(createMenuItem(chkShowThumbs,
-        KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, scMask),
-        new ViewAction(ViewAction.SHOW_THUMBS)));
+            KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, scMask),
+            new ViewAction(ViewAction.SHOW_THUMBS)));
 
 //TODO Message Area clear
 //TODO Message Area LineBreak
@@ -1850,16 +1957,16 @@ public class SikulixIDE extends JFrame {
     _toolMenu.setMnemonic(java.awt.event.KeyEvent.VK_T);
 
     _toolMenu.add(createMenuItem(_I("menuToolExtensions"),
-        null,
-        new ToolAction(ToolAction.EXTENSIONS)));
+            null,
+            new ToolAction(ToolAction.EXTENSIONS)));
 
     _toolMenu.add(createMenuItem("Pack Jar with Jython",
-        null,
-        new ToolAction(ToolAction.JARWITHJYTHON)));
+            null,
+            new ToolAction(ToolAction.JARWITHJYTHON)));
 
     _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
-        null,
-        new ToolAction(ToolAction.ANDROID)));
+            null,
+            new ToolAction(ToolAction.ANDROID)));
   }
 
   class ToolAction extends MenuAction {
@@ -1882,8 +1989,8 @@ public class SikulixIDE extends JFrame {
 
     public void jarWithJython(ActionEvent ae) {
       if (SX.popAsk("*** You should know what you are doing! ***\n\n" +
-          "This may take a while. Wait for success popup!" +
-          "\nClick Yes to start.", "Creating jar file")) {
+              "This may take a while. Wait for success popup!" +
+              "\nClick Yes to start.", "Creating jar file")) {
         (new Thread() {
           @Override
           public void run() {
@@ -2011,25 +2118,25 @@ public class SikulixIDE extends JFrame {
     _helpMenu.setMnemonic(java.awt.event.KeyEvent.VK_H);
 
     _helpMenu.add(createMenuItem(_I("menuHelpQuickStart"),
-        null, new HelpAction(HelpAction.QUICK_START)));
+            null, new HelpAction(HelpAction.QUICK_START)));
     _helpMenu.addSeparator();
 
     _helpMenu.add(createMenuItem(_I("menuHelpGuide"),
-        null, new HelpAction(HelpAction.OPEN_DOC)));
+            null, new HelpAction(HelpAction.OPEN_DOC)));
 //    _helpMenu.add(createMenuItem(_I("menuHelpDocumentations"),
 //            null, new HelpAction(HelpAction.OPEN_GUIDE)));
     _helpMenu.add(createMenuItem(_I("menuHelpFAQ"),
-        null, new HelpAction(HelpAction.OPEN_FAQ)));
+            null, new HelpAction(HelpAction.OPEN_FAQ)));
     _helpMenu.add(createMenuItem(_I("menuHelpAsk"),
-        null, new HelpAction(HelpAction.OPEN_ASK)));
+            null, new HelpAction(HelpAction.OPEN_ASK)));
     _helpMenu.add(createMenuItem(_I("menuHelpBugReport"),
-        null, new HelpAction(HelpAction.OPEN_BUG_REPORT)));
+            null, new HelpAction(HelpAction.OPEN_BUG_REPORT)));
 
 //    _helpMenu.add(createMenuItem(_I("menuHelpTranslation"),
 //            null, new HelpAction(HelpAction.OPEN_TRANSLATION)));
     _helpMenu.addSeparator();
     _helpMenu.add(createMenuItem(_I("menuHelpHomepage"),
-        null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
+            null, new HelpAction(HelpAction.OPEN_HOMEPAGE)));
 
 //    _helpMenu.addSeparator();
 //    _helpMenu.add(createMenuItem("SikuliX1 Downloads",
@@ -2106,31 +2213,31 @@ public class SikulixIDE extends JFrame {
     public void openAsk(ActionEvent ae) {
       String title = "SikuliX - Ask a question";
       String msg = "If you want to ask a question about SikuliX\n%s\n"
-          + "\nplease do the following:"
-          + "\n- after having clicked yes"
-          + "\n   the page on Launchpad should open in your browser."
-          + "\n- You should first check using Launchpad's search funktion,"
-          + "\n   wether similar questions have already been asked."
-          + "\n- If you decide to ask a new question,"
-          + "\n   try to enter a short but speaking title"
-          + "\n- In a new questions's text field first paste using ctrl/cmd-v"
-          + "\n   which should enter the SikuliX version/system/java info"
-          + "\n   that was internally stored in the clipboard before"
-          + "\n\nIf you do not want to ask a question now: click No";
+              + "\nplease do the following:"
+              + "\n- after having clicked yes"
+              + "\n   the page on Launchpad should open in your browser."
+              + "\n- You should first check using Launchpad's search funktion,"
+              + "\n   wether similar questions have already been asked."
+              + "\n- If you decide to ask a new question,"
+              + "\n   try to enter a short but speaking title"
+              + "\n- In a new questions's text field first paste using ctrl/cmd-v"
+              + "\n   which should enter the SikuliX version/system/java info"
+              + "\n   that was internally stored in the clipboard before"
+              + "\n\nIf you do not want to ask a question now: click No";
       askBugOrAnswer(msg, title, "https://answers.launchpad.net/sikuli");
     }
 
     public void openBugReport(ActionEvent ae) {
       String title = "SikuliX - Report a bug";
       String msg = "If you want to report a bug for SikuliX\n%s\n"
-          + "\nplease do the following:"
-          + "\n- after having clicked yes"
-          + "\n   the page on Launchpad should open in your browser"
-          + "\n- fill in a short but speaking bug title and create the bug"
-          + "\n- in the bug's text field first paste using ctrl/cmd-v"
-          + "\n   which should enter the SikuliX version/system/java info"
-          + "\n   that was internally stored in the clipboard before"
-          + "\n\nIf you do not want to report a bug now: click No";
+              + "\nplease do the following:"
+              + "\n- after having clicked yes"
+              + "\n   the page on Launchpad should open in your browser"
+              + "\n- fill in a short but speaking bug title and create the bug"
+              + "\n- in the bug's text field first paste using ctrl/cmd-v"
+              + "\n   which should enter the SikuliX version/system/java info"
+              + "\n   that was internally stored in the clipboard before"
+              + "\n\nIf you do not want to report a bug now: click No";
       askBugOrAnswer(msg, title, "https://bugs.launchpad.net/sikuli/+filebug");
     }
 
@@ -2163,10 +2270,10 @@ public class SikulixIDE extends JFrame {
         lookUpdate();
         int msgType = newBuildAvailable != null ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE;
         String updMsg = newBuildAvailable != null ? (newBuildAvailable ?
-            _I("msgUpdate") + ": " + newBuildStamp :
-            _I("msgNoUpdate")) : _I("msgUpdateError");
+                _I("msgUpdate") + ": " + newBuildStamp :
+                _I("msgNoUpdate")) : _I("msgUpdateError");
         JOptionPane.showMessageDialog(null, updMsg,
-            Commons.getSXVersionIDE(), msgType);
+                Commons.getSXVersionIDE(), msgType);
       }
     }
 
@@ -2349,7 +2456,7 @@ public class SikulixIDE extends JFrame {
             codePane.insertComponent(new EditorRegionButton(codePane, x, y, w, h));
           } else {
             codePane.insertComponent(new EditorRegionLabel(codePane,
-                new EditorRegionButton(codePane, x, y, w, h).toString()));
+                    new EditorRegionButton(codePane, x, y, w, h).toString()));
           }
         } else {
           codePane.insertString(codePane.getRegionString(x, y, w, h));
@@ -2468,10 +2575,10 @@ public class SikulixIDE extends JFrame {
         return;
       }
       Sikulix.popup("ButtonShow: Nothing to show!" +
-          "\nThe line with the cursor should contain:" +
-          "\n- an absolute Region or Location" +
-          "\n- an image file name or" +
-          "\n- a Pattern with an image file name");
+              "\nThe line with the cursor should contain:" +
+              "\n- an absolute Region or Location" +
+              "\n- an image file name or" +
+              "\n- a Pattern with an image file name");
     }
   }
 
@@ -2495,12 +2602,12 @@ public class SikulixIDE extends JFrame {
       item = item.replaceAll("\"", "\\\"");
       if (item.startsWith("Pattern")) {
         item = "m = null; r = #region#; "
-            + "if (r != null) m = r.exists(new " + item + ", 0); "
-            + "if (m != null) m.highlight(2); else print(m);";
+                + "if (r != null) m = r.exists(new " + item + ", 0); "
+                + "if (m != null) m.highlight(2); else print(m);";
       } else if (item.startsWith("\"")) {
         item = "m = null; r = #region#; "
-            + "if (r != null) m = r.exists(" + item + ", 0); "
-            + "if (m != null) m.highlight(2); else print(m);";
+                + "if (r != null) m = r.exists(" + item + ", 0); "
+                + "if (m != null) m.highlight(2); else print(m);";
       } else {
         item = "";
       }
@@ -2510,9 +2617,9 @@ public class SikulixIDE extends JFrame {
     @Override
     void nothingTodo() {
       Sikulix.popup("ButtonShowIn: Nothing to show!" +
-          "\nThe line with the cursor should contain:" +
-          "\n- an image file name or" +
-          "\n- a Pattern with an image file name");
+              "\nThe line with the cursor should contain:" +
+              "\n- an image file name or" +
+              "\n- a Pattern with an image file name");
     }
 
     @Override
@@ -2620,7 +2727,7 @@ public class SikulixIDE extends JFrame {
     private void initTooltip() {
       PreferencesUser pref = PreferencesUser.get();
       String strHotkey = Key.convertKeyToText(
-          pref.getStopHotkey(), pref.getStopHotkeyModifiers());
+              pref.getStopHotkey(), pref.getStopHotkeyModifiers());
       String stopHint = _I("btnRunStopHint", strHotkey);
       setToolTipText(_I("btnRun", stopHint));
     }
@@ -2670,10 +2777,10 @@ public class SikulixIDE extends JFrame {
             }
             if (System.out.checkError()) {
               boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                  + "\nYou will not see any messages anymore!"
-                  + "\nSave your work and restart the IDE!"
-                  + "\nYou may ignore this on your own risk!" +
-                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+                      + "\nYou will not see any messages anymore!"
+                      + "\nSave your work and restart the IDE!"
+                      + "\nYou may ignore this on your own risk!" +
+                      "\nYes: continue  ---  No: back to IDE", "Fatal Error");
               if (!shouldContinue) {
                 log("Run script aborted: System.out is broken (console output)");
                 return;

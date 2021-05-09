@@ -839,7 +839,7 @@ public class EditorPane extends JTextPane {
     return patternString;
   }
 
-  private Map<String, List<Integer>> parseforImages() {
+  Map<String, List<Integer>> parseforImages() {
     File imageFolder = context.getImageFolder();
     trace("parseforImages: in %s", imageFolder);
     String scriptText = getText();
@@ -987,7 +987,7 @@ public class EditorPane extends JTextPane {
   private static final Map<String, Lexer> lexers = new HashMap<>();
 
   int lineNumber = 0;
-  String uncompleteStringError = "uncomplete_string_error";
+  public String uncompleteStringError = "uncomplete_string_error";
 
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
@@ -1040,143 +1040,6 @@ public class EditorPane extends JTextPane {
       trace("remove update");
       setDirty(true);
     }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="22 save, close">
-  private boolean writeSriptFile() {
-    trace("writeSrcFile: " + editorPaneFile);
-    try {
-      this.write(new BufferedWriter(new OutputStreamWriter(
-              new FileOutputStream(editorPaneFile.getAbsolutePath()),
-              "UTF8")));
-    } catch (IOException e) {
-      return false;
-    }
-    if (isBundle()) {
-      boolean shouldDeleteHTML = true;
-      if (PreferencesUser.get().getAtSaveMakeHTML()) {
-        try {
-          convertSrcToHtml(context.getFolder().getAbsolutePath());
-          shouldDeleteHTML = false;
-        } catch (Exception ex) {
-          error("Problem while trying to create HTML: %s", ex.getMessage());
-        }
-      }
-      if (shouldDeleteHTML) {
-        String snameDir = editorPaneFile.getParent();
-        if (snameDir.endsWith(".sikuli")) {
-          String sname = snameDir.replace(".sikuli", "") + ".html";
-          (new File(snameDir, sname)).delete();
-        }
-      }
-      if (PreferencesUser.get().getAtSaveCleanBundle()) {
-        if (!paneType.equals(JythonRunner.TYPE)) {
-          trace("delete-not-used-images for %s using Python string syntax", paneType);
-        }
-        try {
-          cleanBundle();
-        } catch (Exception ex) {
-          error("Problem while trying to clean bundle (not used images): %s", ex.getMessage());
-        }
-      }
-    }
-    setDirty(false);
-    return true;
-  }
-
-  public String exportAsZip() {
-    SikulixFileChooser chooser = new SikulixFileChooser(SikulixIDE.get());
-    File file = chooser.export();
-    if (file == null) {
-      return null;
-    }
-    String zipPath = file.getAbsolutePath();
-    if (isBundle()) {
-      if (!file.getAbsolutePath().endsWith(".skl")) {
-        zipPath += ".skl";
-      }
-    } else {
-      if (!file.getAbsolutePath().endsWith(".zip")) {
-        zipPath += ".zip";
-      }
-    }
-    if (new File(zipPath).exists()) {
-      int answer = JOptionPane.showConfirmDialog(
-              null, SikuliIDEI18N._I("msgFileExists", zipPath),
-              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
-      if (answer != JOptionPane.YES_OPTION) {
-        return null;
-      }
-      FileManager.deleteFileOrFolder(zipPath);
-    }
-    String pSource = editorPaneFile.getParent();
-    if (writeSriptFile()) {
-      try {
-        zipDir(pSource, zipPath, editorPaneFile.getName());
-        trace("Exported packed SikuliX Script to:\n%s", zipPath);
-      } catch (Exception ex) {
-        error("Exporting packed SikuliX Script did not work:\n%s", zipPath);
-        return null;
-      }
-    }
-    return zipPath;
-  }
-
-  private static void zipDir(String dir, String zipPath, String fScript) throws IOException {
-    ZipOutputStream zos = null;
-    try {
-      zos = new ZipOutputStream(new FileOutputStream(zipPath));
-      File zipDir = new File(dir);
-      String[] dirList = zipDir.list();
-      byte[] readBuffer = new byte[1024];
-      int bytesIn;
-      ZipEntry anEntry = null;
-      String ending = fScript.substring(fScript.length() - 3);
-      String sName = new File(zipPath).getName();
-      sName = sName.substring(0, sName.length() - 4) + ending;
-      for (int i = 0; i < dirList.length; i++) {
-        File f = new File(zipDir, dirList[i]);
-        if (f.isFile()) {
-          if (fScript.equals(f.getName())) {
-            anEntry = new ZipEntry(sName);
-          } else {
-            anEntry = new ZipEntry(f.getName());
-          }
-          FileInputStream fis = new FileInputStream(f);
-          zos.putNextEntry(anEntry);
-          while ((bytesIn = fis.read(readBuffer)) != -1) {
-            zos.write(readBuffer, 0, bytesIn);
-          }
-          fis.close();
-        }
-      }
-    } catch (Exception ex) {
-      String msg = "";
-      msg = ex.getMessage() + "";
-    } finally {
-      zos.close();
-    }
-  }
-
-  private void convertSrcToHtml(String bundle) {
-//    IScriptRunner runner = ScriptingSupport.getRunner(null, "jython");
-//    if (runner != null) {
-//      runner.doSomethingSpecial("convertSrcToHtml", new String[]{bundle});
-//    }
-  }
-
-  private void cleanBundle() {
-    trace("cleanBundle");
-    Set<String> foundImages = parseforImages().keySet();
-    if (foundImages.contains(uncompleteStringError)) {
-      error("cleanBundle aborted (%s)", uncompleteStringError);
-    } else {
-      FileManager.deleteNotUsedImages(context.getImageFolder().getAbsolutePath(), foundImages);
-      trace("cleanBundle finished");
-    }
-    FileManager.deleteNotUsedScreenshots(context.getScreenshotFolder().getAbsolutePath(), foundImages);
-    trace("cleanBundle finished: %s", getCurrentScriptname());
   }
   //</editor-fold>
 
