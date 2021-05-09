@@ -76,6 +76,8 @@ public class EditorPane extends JTextPane {
   EditorPane editorPane;
   SikulixIDE.PaneContext context;
 
+  long editorPaneID = 0; //TODO needed?
+
   EditorPane() {
     addMouseListener(new MouseInputAdapter() {
       @Override
@@ -334,7 +336,7 @@ public class EditorPane extends JTextPane {
     if (!imageName.endsWith(".png")) {
       imageName += ".png";
     }
-    File screenshotDir = new File(getImagePath(), ImagePath.SCREENSHOT_DIRECTORY);
+    File screenshotDir = context.getScreenshotFolder();
     return new File(screenshotDir, imageName);
   }
 
@@ -417,46 +419,6 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  public void setFiles(File editorPaneFile) {
-    setFiles(editorPaneFile, null);
-  }
-
-  public void setFiles(File paneFile, String paneFileSelected) {
-    if (paneFile == null) {
-      return;
-    }
-    editorPaneFileSelected = paneFileSelected;
-    editorPaneFile = paneFile;
-    editorPaneFolder = paneFile.getParentFile();
-    setImageFolder(editorPaneFolder);
-    if (null != paneFileSelected) {
-      trace("setFiles: for: %s", paneFileSelected);
-    } else {
-      if (!isTemp()) {
-        setIsFile();
-        editorPaneFileSelected = paneFile.getAbsolutePath();
-        editorPaneFileToRun = paneFile;
-        trace("setFiles: for: %s", paneFile);
-      }
-    }
-  }
-
-  private void changeFiles() {
-    String extension = editorPaneRunner.getDefaultExtension();
-    setFiles(changeExtension(editorPaneFileToRun, extension));
-  }
-
-  private File changeExtension(File file, String extension) {
-    String filePath = FilenameUtils.removeExtension(file.getPath()) + "." + extension;
-    return new File(filePath);
-  }
-
-  public long getID() {
-    return editorPaneID;
-  }
-
-  long editorPaneID = 0;
-
   File editorPaneFile = null;
   File editorPaneFolder = null;
 
@@ -490,7 +452,7 @@ public class EditorPane extends JTextPane {
 
   public String getCurrentShortFilename() {
     if (isBundle()) {
-      File f = new File(getSrcBundle());
+      File f = context.getFolder();
       return f.getName();
     }
     if (isTemp()) {
@@ -514,36 +476,6 @@ public class EditorPane extends JTextPane {
     return editorPaneFile;
   }
   //</editor-fold>
-
-  //<editor-fold desc="16 image path">
-  public File getImageFolder() {
-    return context.getImageFolder();
-  }
-
-  public void setImageFolder(File imageFolder) {
-    context.setImageFolder(imageFolder);
-  }
-
-  public String getImagePath() {
-    return context.getImageFolder().getAbsolutePath();
-  }
-
-  public String getScreenshotFolder() {
-    return context.getScreenshotFolder().getAbsolutePath();
-  }
-
-  public void setBundleFolder() {
-    ImagePath.setBundleFolder(getImageFolder());
-  }
-
-  public String getSrcBundle() {
-    return context.getFolder().getAbsolutePath();
-  }
-
-  public String getBundlePath() {
-    return context.getImageFolder().getAbsolutePath();
-  }
-//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="17 caret handling">
   public void saveCaretPosition() {
@@ -1125,7 +1057,7 @@ public class EditorPane extends JTextPane {
       boolean shouldDeleteHTML = true;
       if (PreferencesUser.get().getAtSaveMakeHTML()) {
         try {
-          convertSrcToHtml(getSrcBundle());
+          convertSrcToHtml(context.getFolder().getAbsolutePath());
           shouldDeleteHTML = false;
         } catch (Exception ex) {
           error("Problem while trying to create HTML: %s", ex.getMessage());
@@ -1240,10 +1172,10 @@ public class EditorPane extends JTextPane {
     if (foundImages.contains(uncompleteStringError)) {
       error("cleanBundle aborted (%s)", uncompleteStringError);
     } else {
-      FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
+      FileManager.deleteNotUsedImages(context.getImageFolder().getAbsolutePath(), foundImages);
       trace("cleanBundle finished");
     }
-    FileManager.deleteNotUsedScreenshots(getBundlePath(), foundImages);
+    FileManager.deleteNotUsedScreenshots(context.getScreenshotFolder().getAbsolutePath(), foundImages);
     trace("cleanBundle finished: %s", getCurrentScriptname());
   }
   //</editor-fold>
@@ -1351,7 +1283,7 @@ public class EditorPane extends JTextPane {
 
   public File copyFileToBundle(String filename) {
     File f = new File(filename);
-    String bundlePath = getSrcBundle();
+    String bundlePath = context.getImageFolder().getAbsolutePath();
     if (f.exists()) {
       try {
         File newFile = FileManager.smartCopy(filename, bundlePath);

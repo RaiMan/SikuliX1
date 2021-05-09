@@ -72,6 +72,10 @@ public class SikulixIDE extends JFrame {
     Debug.logx(-1, me + "FATAL: " + message, args);
   }
 
+  private static void todo(String message, Object... args) {
+    Debug.logx(-1, me + "TODO: " + message, args);
+  }
+
   //<editor-fold desc="00 IDE instance">
   static final SikulixIDE sikulixIDE = new SikulixIDE();
 
@@ -622,6 +626,10 @@ public class SikulixIDE extends JFrame {
       return file;
     }
 
+    public String getFileName() {
+      return name + "." + ext;
+    }
+
     private void setFile() {
       name = tempName + tempIndex++;
       folder = new File(Commons.getIDETemp(), name);
@@ -769,7 +777,8 @@ public class SikulixIDE extends JFrame {
       boolean success = true;
       if (isDirty()) {
         if (isTemp()) {
-          final int answer = SXDialog.askForDecision(sikulixIDE, "Closing Tab", "Tab content not yet saved!",
+          String msg = String.format("%s: content not yet saved!", getFileName());
+          final int answer = SXDialog.askForDecision(sikulixIDE, "Closing Tab", msg,
               "Discard", "Save");
           if (answer == SXDialog.DECISION_CANCEL) {
             return false;
@@ -785,6 +794,7 @@ public class SikulixIDE extends JFrame {
           }
         }
         if (success) {
+          todo("PaneContext: close: clean images"); //TODO
           save();
           notDirty();
         }
@@ -825,7 +835,10 @@ public class SikulixIDE extends JFrame {
       }
     }
 
-    public boolean saveAs() {//TODO
+    public boolean saveAs() {
+      if (!isTemp() && isDirty()) {
+        todo("PaneContext: saveAs: ask: discard or save changes"); //TODO
+      }
       if (!save()) {
         return false;
       }
@@ -838,9 +851,9 @@ public class SikulixIDE extends JFrame {
         }
         final int pos = alreadyOpen(file);
         if (pos >= 0) {
-          setActiveContext(pos);
           log("PaneContext: alreadyopen: %s", file); //TODO saveAs
-          final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", "Tab is currently open!",
+          String msg = String.format("%s: is currently open!", file.getName());
+          final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", msg,
               "Overwrite", "Try again");
           if (answer == SXDialog.DECISION_CANCEL) {
             return false;

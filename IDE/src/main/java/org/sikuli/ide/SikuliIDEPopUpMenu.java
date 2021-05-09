@@ -232,13 +232,14 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
     public void doAbout(ActionEvent ae) {
       Debug.log(3, "doAbout: selected");
       EditorPane cp = SikulixIDE.get().getCurrentCodePane();
+      final SikulixIDE.PaneContext cx = cp.context;
       if (cp.isTemp()) {
         (new Thread() {
           @Override
           public void run() {
             Region at = Mouse.at().offset(100, 52).grow(10);
             ((RobotDesktop) at.getScreen().getRobot()).moveMouse(at.getCenter().x, at.getCenter().y + 20);
-            SX.popup(String.format("%s file --- not yet saved", cp.getRunner().getName()),
+            SX.popup(String.format("%s file --- not yet saved", cx.getRunner().getName()),
                     "IDE: About: script info", "", false, 4, at);
           }
         }).start();
@@ -246,13 +247,13 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
         String msg;
         if (cp.isBundle()) {
           msg = String.format("Bundle: %s\n%s Script: %s\nImages: %s",
-                  cp.getCurrentShortFilename(), cp.getRunner().getName(), cp.getCurrentFile(), cp.getImagePath());
+                  cx.getFileName(), cx.getRunner().getName(), cx.getFile(), cx.getImageFolder());
         } else if (!cp.isText()) {
           msg = String.format("%s script: %s\nin Folder: %s\nImages: %s", cp.getRunner().getName(),
-                  cp.getCurrentShortFilename(), cp.getCurrentFile().getParent(), cp.getImagePath());
+              cx.getFileName(), cx.getFolder(), cx.getImageFolder());
         } else {
           msg = String.format("%s file: %s\nin Folder: %s", cp.getRunner().getName(),
-                  cp.getCurrentShortFilename(), new File(cp.getBundlePath()).getParent());
+              cx.getFileName(), cx.getFolder());
         }
         showAbout(cp, msg);
       }
@@ -378,16 +379,16 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
 
     public void doDuplicate(ActionEvent ae) throws NoSuchMethodException {
       log(lvl, "doDuplicate: entered");
-      EditorPane ep = SikulixIDE.get().getCurrentCodePane();
+      final SikulixIDE.PaneContext cx = SikulixIDE.get().getActiveContext();
       checkAndResetMoveTab();
       fireIDEFileMenu("SAVE");
-      if (ep.isTemp()) {
+      if (cx.isTemp()) {
         log(-1, "Untitled tab cannot be duplicated");
         return;
       }
-      String bundleOld = ep.getBundlePath();
+      String bundleOld = cx.getImageFolder().getAbsolutePath();
       fireIDEFileMenu("SAVE_AS");
-      if (FileManager.pathEquals(bundleOld, ep.getBundlePath())) {
+      if (FileManager.pathEquals(bundleOld, cx.getImageFolder().getAbsolutePath())) {
         log(-1, "duplicate must use different project name");
         return;
       }

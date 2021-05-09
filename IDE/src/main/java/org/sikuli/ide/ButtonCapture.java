@@ -167,9 +167,11 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       }
 
       if (filename != null) {
-        fullpath = capturedImage.save(filename, SikulixIDE.get().getCurrentCodePane().getImagePath());
+        fullpath = capturedImage.save(filename,
+            SikulixIDE.get().getCurrentCodePane().context.getImageFolder().getAbsolutePath());
         capturedImage.setFileURL(Commons.makeURL(fullpath));
-        ocp.getOriginal().save(filename, SikulixIDE.get().getCurrentCodePane().getScreenshotFolder());
+        ocp.getOriginal().save(filename,
+            SikulixIDE.get().getCurrentCodePane().context.getScreenshotFolder().getAbsolutePath());
       }
     }
     Settings.OverwriteImages = saveOverwrite;

@@ -351,7 +351,7 @@ public class PatternWindow extends JFrame {
       currentPane.repaint();
 
       if (!currentPane.hasScreenshotImage(file.getName())) {
-				_simg.save(file.getName(), currentPane.getScreenshotFolder());
+				_simg.save(file.getName(), currentPane.context.getScreenshotFolder().getAbsolutePath());
 			}
 		}
 
