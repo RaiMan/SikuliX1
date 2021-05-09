@@ -227,6 +227,15 @@ public class SikulixIDE extends JFrame {
     String accept = "Save all and " + typ;
     return SXDialog.askForDecision(sikulixIDE, title, message, ignore, accept);
   }
+
+  public boolean terminate() {
+    log("Quit requested");
+    if (closeIDE()) {
+      RunTime.terminate(0, "");
+    }
+    log("Quit: cancelled or did not work");
+    return false;
+  }
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
@@ -349,7 +358,6 @@ public class SikulixIDE extends JFrame {
         }
       }
     }, AWTEvent.KEY_EVENT_MASK);
-
   }
 
   static SikuliIDEStatusBar getStatusbar() {
@@ -364,15 +372,6 @@ public class SikulixIDE extends JFrame {
     tabs = new CloseableTabbedPane();
     tabs.setUI(new AquaCloseableTabbedPaneUI());
     tabs.addCloseableTabbedPaneListener(tabIndexToClose -> {
-//      EditorPane editorPane;
-//      try {
-//        editorPane = getPaneAtIndex(tabIndexToClose);
-//        tabs.setLastClosed(editorPane.getSourceReference());
-//        return editorPane.close();
-//      } catch (Exception e) {
-//        log("Problem closing tab %d\nError: %s", tabIndexToClose, e.getMessage());
-//        return false;
-//      }
       getContextAt(tabIndexToClose).close();
       return false;
     });
@@ -1023,39 +1022,6 @@ public class SikulixIDE extends JFrame {
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="06 tabs handling">
-  public boolean terminate() {
-    log("Quit requested");
-    if (closeIDE()) {
-      RunTime.terminate(0, "");
-    }
-    log("Quit: cancelled or did not work");
-    return false;
-  }
-
-  EditorPane XmakeTab(int tabIndex) {
-    log("makeTab: %d", tabIndex);
-    EditorPane editorPane = EditorPane.create();
-    JScrollPane scrPane = editorPane.getScrollPane();
-    scrPane.setRowHeaderView(new EditorLineNumberView(editorPane));
-    if (tabIndex < 0 || tabIndex >= tabs.getTabCount()) {
-      tabs.addNewTab(_I("tabUntitled"), scrPane);
-    } else {
-      tabs.addNewTab(_I("tabUntitled"), scrPane, tabIndex);
-    }
-    tabs.setSelectedIndex(tabIndex < 0 ? tabs.getTabCount() - 1 : tabIndex);
-    editorPane.requestFocus();
-    return editorPane;
-  }
-
-  void newTabWithContent(String fname, int tabIndex) {
-
-  }
-
-  void setCurrentFileTabTitle(String fname) {
-    int tabIndex = tabs.getSelectedIndex();
-    setFileTabTitle(fname, tabIndex);
-  }
-
   void setCurrentFileTabTitleDirty(boolean isDirty) {
     int i = tabs.getSelectedIndex();
     String title = tabs.getTitleAt(i);
@@ -1067,86 +1033,9 @@ public class SikulixIDE extends JFrame {
       tabs.setTitleAt(i, title);
     }
   }
-
-  void setFileTabTitle(String fName, int tabIndex) {
-    String ideTitle;
-    EditorPane codePane = getCurrentCodePane();
-    if (codePane.isBundle()) {
-      String shortName = new File(fName).getName();
-      ideTitle = new File(fName).getAbsolutePath();
-      int i = shortName.lastIndexOf(".");
-      if (i > 0) {
-        tabs.setTitleAt(tabIndex, shortName.substring(0, i));
-      } else {
-        tabs.setTitleAt(tabIndex, shortName);
-      }
-    } else {
-      tabs.setTitleAt(tabIndex, codePane.saveAndGetCurrentFile().getName());
-      ideTitle = codePane.getFilePath();
-    }
-    setIDETitle(ideTitle);
-  }
-
-  List<File> getOpenedFilenames() {
-    int nTab = tabs.getTabCount();
-    File file;
-    List<File> filenames = new ArrayList<>();
-    if (nTab > 0) {
-      for (int i = 0; i < nTab; i++) {
-        EditorPane codePane = getPaneAtIndex(i);
-        file = codePane.getCurrentFile();
-        filenames.add(file);
-      }
-    }
-    return filenames;
-  }
-
-  int isAlreadyOpen(String filename) {
-    int aot = getOpenedFilenames().indexOf(new File(filename));
-    if (aot > -1 && aot < (tabs.getTabCount() - 1)) {
-      return aot;
-    }
-    return -1;
-  }
-
-  boolean removeCurrentTab() {
-    EditorPane pane = getCurrentCodePane();
-    tabs.remove(tabs.getSelectedIndex());
-    return pane != getCurrentCodePane();
-  }
   //</editor-fold>
 
   //<editor-fold desc="07 menu helpers">
-  void recentAdd(String fPath) {
-    if (Settings.experimental) {
-      log("doRecentAdd: %s", fPath);
-      String fName = new File(fPath).getName();
-      if (recentProjectsMenu.contains(fName)) {
-        recentProjectsMenu.remove(fName);
-      } else {
-        recentProjects.put(fName, fPath);
-        if (recentProjectsMenu.size() == recentMaxMax) {
-          String fObsolete = recentProjectsMenu.remove(recentMax - 1);
-          recentProjects.remove(fObsolete);
-        }
-      }
-      recentProjectsMenu.add(0, fName);
-      recentMenu.removeAll();
-      for (String entry : recentProjectsMenu.subList(1, recentProjectsMenu.size())) {
-        if (isAlreadyOpen(recentProjects.get(entry)) > -1) {
-          continue;
-        }
-        try {
-          recentMenu.add(createMenuItem(entry,
-              null,
-              new FileAction(FileAction.ENTRY)));
-        } catch (NoSuchMethodException ex) {
-          RunTime.terminate(999, "IDE: File menu: recent");
-        }
-      }
-    }
-  }
-
   public void showPreferencesWindow() {
     PreferencesWin pwin = new PreferencesWin();
     pwin.setAlwaysOnTop(true);

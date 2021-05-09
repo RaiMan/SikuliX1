@@ -172,13 +172,6 @@ public class EditorPane extends JTextPane {
 
   private EditorPaneUndoRedo undoRedo = new EditorPaneUndoRedo();
 
-  //TODO obsolete
-  static EditorPane create() {
-    final EditorPane pane = new EditorPane();
-    pane.makeReady();
-    return pane;
-  }
-
   JScrollPane getScrollPane() {
     return scrollPane;
   }
@@ -315,36 +308,6 @@ public class EditorPane extends JTextPane {
     return false;
   }
 
-  public void loadFile(File file) {
-    trace("loadfile: %s", file);
-    if (!evalRunnerAndFile(file)) {
-      return;
-    }
-    makeReady();
-    if (readContent(editorPaneFileToRun)) {
-      setFiles(editorPaneFileToRun, file.getAbsolutePath());
-      updateDocumentListeners("loadFile");
-      if (!isBundle()) {
-        checkSource();
-      }
-      doParse();
-      restoreCaretPosition();
-      setDirty(false);
-    }
-  }
-
-  private boolean readContent(File scriptFile) {
-    InputStreamReader isr;
-    try {
-      isr = new InputStreamReader(new FileInputStream(scriptFile), Charset.forName("utf-8"));
-      read(new BufferedReader(isr), null);
-    } catch (Exception ex) {
-      error("readContent: %s (%s)", scriptFile, ex.getMessage());
-      return false;
-    }
-    return true;
-  }
-
   private boolean readContent(String script) {
     InputStreamReader isr;
     try {
@@ -363,59 +326,6 @@ public class EditorPane extends JTextPane {
 
   public boolean isPython() {
     return paneType == JythonRunner.TYPE || paneType == PythonRunner.TYPE;
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="11 check content">
-  //TODO checkSource::setBundlePath for non-bundle-tabs
-  public void checkSource() {
-    if (isBundle()) {
-      return;
-    }
-    trace("checkSource: started (%s)", editorPaneFile);
-    String scriptText = getText();
-    if (paneType == JythonRunner.TYPE) {
-      if (ExtensionManager.hasPython()) {
-        String intro = scriptText.substring(0, Math.min(20, scriptText.length())).trim().toUpperCase();
-        if (intro.contains(ExtensionManager.shebangPython)) {
-          paneType = PythonRunner.TYPE;
-        }
-      }
-    }
-    SikulixIDE.getStatusbar().setType(getType());
-    Matcher matcher = Pattern.compile("setBundlePath.*?\\(.*?\"(.*?)\".*?\\)").matcher(scriptText);
-    if (matcher.find()) {
-      String line = getTextLineAt(matcher.start());
-      if (lineIsComment(line)) {
-        return;
-      }
-      String path = matcher.group(1);
-      trace("checkSource: found setBundlePath: %s", path);
-      File newBundleFolder = new File(path.replace("\\\\", "\\"));
-      if (Commons.runningWindows() && (newBundleFolder.getPath().startsWith("\\") || newBundleFolder.getPath().startsWith("/"))) {
-        try {
-          newBundleFolder = new File(new File("\\").getCanonicalPath(), newBundleFolder.getPath().substring(1));
-        } catch (IOException e) {
-          return;
-        }
-      }
-      try {
-        if (newBundleFolder.isAbsolute()) {
-          newBundleFolder = newBundleFolder.getCanonicalFile();
-        } else {
-          newBundleFolder = new File(editorPaneFolder, newBundleFolder.getPath()).getCanonicalFile();
-        }
-      } catch (Exception ex) {
-        return;
-      }
-      setImageFolder(newBundleFolder);
-    }
-  }
-
-  private boolean lineIsComment(String line) {
-    //TODO eval other comment types
-    if (line.startsWith("#")) return true;
-    return false;
   }
   //</editor-fold>
 
@@ -462,7 +372,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-        FilenameUtils.getExtension(fileName).equals("sikuli")) {
+            FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -827,35 +737,10 @@ public class EditorPane extends JTextPane {
 
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
-  public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
-    if (fileOverWritten) {
-      Image.unCache(newName);
-    }
-    Map<String, List<Integer>> images = parseforImages();
-    oldName = new File(oldName).getName();
-    List<Integer> poss = images.get(oldName);
-    if (images.containsKey(oldName) && poss.size() > 0) {
-      Collections.sort(poss, new Comparator<Integer>() {
-        @Override
-        public int compare(Integer o1, Integer o2) {
-          if (o1 > o2) return -1;
-          return 1;
-        }
-      });
-      reparseRenameImages(poss, oldName, new File(newName).getName());
-    }
-    doReparse();
-  }
-
-  private boolean reparseRenameImages(List<Integer> poss, String oldName, String newName) {
-    StringBuilder text = new StringBuilder(getText());
-    int lenOld = oldName.length();
-    for (int pos : poss) {
-      text.replace(pos - lenOld, pos, newName);
-    }
-    setText(text.toString());
-    return true;
+  public void doParse() {
+    Document doc = getDocument();
+    Element root = doc.getDefaultRootElement();
+    parse(root);
   }
 
   public void doReparse() {
@@ -864,28 +749,6 @@ public class EditorPane extends JTextPane {
     updateDocumentListeners("reparse");
     doParse();
     restoreCaretPosition();
-  }
-
-  public void doParse() {
-    Document doc = getDocument();
-    Element root = doc.getDefaultRootElement();
-    parse(root);
-  }
-
-  private void parse(Element node) {
-    if (!context.getShowThumbs()) {
-      // do not show any thumbnails
-      return;
-    }
-    int count = node.getElementCount();
-    for (int i = 0; i < count; i++) {
-      Element elm = node.getElement(i);
-      if (elm.isLeaf()) {
-        parseRange(elm.getStartOffset(), elm.getEndOffset());
-      } else {
-        parse(elm);
-      }
-    }
   }
 
   public String parseLineText(String line) {
@@ -920,6 +783,22 @@ public class EditorPane extends JTextPane {
       return line.substring(mI.start(), mI.end());
     }
     return "";
+  }
+
+  private void parse(Element node) {
+    if (!context.getShowThumbs()) {
+      // do not show any thumbnails
+      return;
+    }
+    int count = node.getElementCount();
+    for (int i = 0; i < count; i++) {
+      Element elm = node.getElement(i);
+      if (elm.isLeaf()) {
+        parseRange(elm.getStartOffset(), elm.getEndOffset());
+      } else {
+        parse(elm);
+      }
+    }
   }
 
   private int parseRange(int start, int end) {
@@ -964,6 +843,7 @@ public class EditorPane extends JTextPane {
     return endOff;
   }
 
+  //<editor-fold defaultstate="collapsed" desc="19 replace text patterns with image buttons">
   private boolean replaceWithImage(int startOff, int endOff, Pattern ptn) throws BadLocationException {
     Document doc = getDocument();
     String imgStr = doc.getText(startOff, endOff - startOff);
@@ -1053,11 +933,11 @@ public class EditorPane extends JTextPane {
       if (current.endsWith("\n")) {
         if (inString) {
           SX.popError(
-              String.format("Orphan string delimiter (\" or ')\n" +
-                  "in line %d\n" +
-                  "No images will be deleted!\n" +
-                  "Correct the problem before next save!", lineNumber),
-               "Delete images on save");
+                  String.format("Orphan string delimiter (\" or ')\n" +
+                          "in line %d\n" +
+                          "No images will be deleted!\n" +
+                          "Correct the problem before next save!", lineNumber),
+                  "Delete images on save");
           error("DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
           images.clear();
           images.put(uncompleteStringError, null);
@@ -1127,6 +1007,36 @@ public class EditorPane extends JTextPane {
     }
   }
 
+  public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
+    if (fileOverWritten) {
+      Image.unCache(newName);
+    }
+    Map<String, List<Integer>> images = parseforImages();
+    oldName = new File(oldName).getName();
+    List<Integer> poss = images.get(oldName);
+    if (images.containsKey(oldName) && poss.size() > 0) {
+      Collections.sort(poss, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+          if (o1 > o2) return -1;
+          return 1;
+        }
+      });
+      reparseRenameImages(poss, oldName, new File(newName).getName());
+    }
+    doReparse();
+  }
+
+  private boolean reparseRenameImages(List<Integer> poss, String oldName, String newName) {
+    StringBuilder text = new StringBuilder(getText());
+    int lenOld = oldName.length();
+    for (int pos : poss) {
+      text.replace(pos - lenOld, pos, newName);
+    }
+    setText(text.toString());
+    return true;
+  }
+
   private Lexer getLexer() {
 //TODO this only works for cleanbundle to find the image strings
     String scriptType = "python";
@@ -1144,17 +1054,17 @@ public class EditorPane extends JTextPane {
 
   private static final Map<String, Lexer> lexers = new HashMap<>();
 
- int lineNumber = 0;
+  int lineNumber = 0;
   String uncompleteStringError = "uncomplete_string_error";
 
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -1202,51 +1112,12 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="22 save, close">
-  private File saveAsBundle(String targetFolder) {
-    String sourceFolder = editorPaneFolder.getAbsolutePath();
-    targetFolder = new File(targetFolder).getAbsolutePath();
-    trace("saveAsBundle: to: %s", targetFolder);
-    trace("saveAsBundle: from: %s", sourceFolder);
-    if (isBundle()) {
-      if (!IDESupport.transferScript(sourceFolder, targetFolder, getRunner())) {
-        error("saveAsBundle: did not work");
-        return null;
-      }
-    }
-    ImagePath.remove(getImagePath());
-    if (isTemp()) {
-      FileManager.deleteTempDir(sourceFolder);
-      setTemp(false);
-    }
-    String scriptName = FilenameUtils.getBaseName(targetFolder) + "." + getRunner().getDefaultExtension();
-    File scriptFile = new File(targetFolder, scriptName);
-    setIsBundle();
-    setFiles(scriptFile, targetFolder);
-    if (writeSriptFile()) {
-      return editorPaneFolder;
-    }
-    return null;
-  }
-
-  private File saveAsFile(String filename) {
-    trace("saveAsFile: " + filename);
-    if (isTemp()) {
-      FileManager.deleteTempDir(editorPaneFolder.getAbsolutePath());
-      setTemp(false);
-    }
-    setFiles(new File(filename));
-    if (writeSriptFile()) {
-      return editorPaneFile;
-    }
-    return null;
-  }
-
   private boolean writeSriptFile() {
     trace("writeSrcFile: " + editorPaneFile);
     try {
       this.write(new BufferedWriter(new OutputStreamWriter(
-          new FileOutputStream(editorPaneFile.getAbsolutePath()),
-          "UTF8")));
+              new FileOutputStream(editorPaneFile.getAbsolutePath()),
+              "UTF8")));
     } catch (IOException e) {
       return false;
     }
@@ -1300,8 +1171,8 @@ public class EditorPane extends JTextPane {
     }
     if (new File(zipPath).exists()) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", zipPath),
-          SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
+              null, SikuliIDEI18N._I("msgFileExists", zipPath),
+              SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
@@ -1372,7 +1243,6 @@ public class EditorPane extends JTextPane {
       FileManager.deleteNotUsedImages(getBundlePath(), foundImages);
       trace("cleanBundle finished");
     }
-
     FileManager.deleteNotUsedScreenshots(getBundlePath(), foundImages);
     trace("cleanBundle finished: %s", getCurrentScriptname());
   }
@@ -1488,7 +1358,7 @@ public class EditorPane extends JTextPane {
         return newFile;
       } catch (IOException e) {
         error("copyFileToBundle: Problem while trying to save %s\n%s",
-            filename, e.getMessage());
+                filename, e.getMessage());
         return f;
       }
     }
@@ -1603,7 +1473,7 @@ public class EditorPane extends JTextPane {
     if (start == end) {
       runLines(getLineTextAtCaret().trim());
     } else {
-       runLines(getLinesFromSelection(start, end));
+      runLines(getLinesFromSelection(start, end));
     }
   }
 

@@ -437,18 +437,6 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       log(lvl, "doRunSlow: entered");
       fireIDERunMenu("RUN_SLOWLY");
     }
-
-    public void doReset(ActionEvent ae) throws NoSuchMethodException {
-      log(lvl, "doReset: entered");
-      SikulixIDE.get().clearMessageArea();
-      checkAndResetMoveTab();
-      ImagePath.reset();
-      EditorPane cp = SikulixIDE.get().getCurrentCodePane();
-      cp.setBundleFolder();
-      cp.checkSource(); // reset
-      cp.doReparse(); // TODO parseTextAgain();
-      cp.getRunner().reset();
-    }
   }
 
   private void popImageMenu() {
