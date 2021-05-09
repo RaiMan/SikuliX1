@@ -836,11 +836,24 @@ public class SikulixIDE extends JFrame {
     }
 
     public boolean saveAs() {
+      boolean shouldSave = true;
       if (!isTemp() && isDirty()) {
         todo("PaneContext: saveAs: ask: discard or save changes"); //TODO
+        String msg = String.format("%s: save changes?", file.getName());
+        final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", msg,
+            "Do not save", "Save");
+        if (answer == SXDialog.DECISION_CANCEL) {
+          return false;
+        }
+        if (answer == SXDialog.DECISION_IGNORE) {
+          shouldSave = false;
+          notDirty();
+        }
       }
-      if (!save()) {
-        return false;
+      if (shouldSave) {
+        if (!save()) {
+          return false;
+        }
       }
       boolean success = true;
       File file;
@@ -851,7 +864,7 @@ public class SikulixIDE extends JFrame {
         }
         final int pos = alreadyOpen(file);
         if (pos >= 0) {
-          log("PaneContext: alreadyopen: %s", file); //TODO saveAs
+          log("PaneContext: alreadyopen: %s", file);
           String msg = String.format("%s: is currently open!", file.getName());
           final int answer = SXDialog.askForDecision(sikulixIDE, "Saving Tab", msg,
               "Overwrite", "Try again");
