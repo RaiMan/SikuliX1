@@ -10,6 +10,10 @@ import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
+import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
+import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
+import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
@@ -50,6 +54,8 @@ import java.nio.charset.Charset;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -316,7 +322,7 @@ public class SikulixIDE extends JFrame {
 
     createEmptyScriptContext();
     Debug.log("IDE: Putting all together - Restore last Session");
-    //restoreSession();
+    restoreSession();
 
     initShortcutKeys();
     Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)", Commons.getJavaVersion(), Commons.getSinceStart());
@@ -400,6 +406,7 @@ public class SikulixIDE extends JFrame {
   List<PaneContext> contextsClosed = new ArrayList<>();
   String tempName = "sxtemp";
   int tempIndex = 1;
+
   PaneContext lastContext = null;
 
   PaneContext getActiveContext() {
@@ -412,7 +419,9 @@ public class SikulixIDE extends JFrame {
 
   PaneContext setActiveContext(int pos) {
     tabs.setSelectedIndex(pos);
-    return contexts.get(pos);
+    PaneContext context = contexts.get(pos);
+    showContext(context);
+    return context;
   }
 
   PaneContext getContextAt(int ix) {
@@ -434,20 +443,27 @@ public class SikulixIDE extends JFrame {
     if (null != previous && previous.isDirty()) {
       previous.save();
     }
+    showContext(context);
+  }
+
+  private void showContext(PaneContext context) {
     setIDETitle(context.getFile().getAbsolutePath());
     ImagePath.setBundleFolder(context.getFolder());
-    if (context.isText()) {
-      collapseMessageArea();
-    } else {
-      uncollapseMessageArea();
-    }
+
     getStatusbar().setType(context.getType());
+
     chkShowThumbs.setState(getActiveContext().getShowThumbs());
 
     final EditorPane editorPane = context.getPane();
     int dot = editorPane.getCaret().getDot();
     editorPane.setCaretPosition(dot);
     updateUndoRedoStates();
+
+    if (context.isText()) {
+      collapseMessageArea();
+    } else {
+      uncollapseMessageArea();
+    }
   }
 
   void createEmptyScriptContext() {
@@ -474,12 +490,57 @@ public class SikulixIDE extends JFrame {
     final PaneContext context = new PaneContext();
     context.setFile(file);
     context.setRunner();
-    if (context.isValid()) {
-      context.pos = contexts.size();
-      context.create();
-    } else {
+    if (!context.isValid()) {
       log("PaneContext: open not posssible: %s", file);
+      return;
     }
+    context.pos = contexts.size();
+    context.create();
+    if (context.getShowThumbs()) {
+      List<Object[]> images = new ArrayList<>();
+      String[] text = context.getPane().getText().split("\n");
+      if (text.length > 0) {
+        int lnNbr = 0;
+        //TODO single apos, escaped apos?
+        Pattern sImg = Pattern.compile(".*?(\\\".*?\\\")");
+        for (String line : text) {
+          line = line.strip();
+          //TODO skip block comment apos
+          Matcher matcher = sImg.matcher(line);
+          while (matcher.find()) {
+            String match = matcher.group(1);
+            if (match != null) {
+              int start = matcher.start(1);
+              int end = matcher.end(1);
+              String imgName = match.substring(1, match.length() - 1);
+              images.add(new Object[]{imageExists(context, imgName), lnNbr, start, end});
+            }
+            lnNbr++;
+          }
+        }
+      }
+      if (images.size() > 0) {
+        log("");
+      }
+    }
+  }
+
+  Object imageExists(PaneContext context, String imgName) {
+    File folder = context.getImageFolder();
+    String ext = FilenameUtils.getExtension(imgName);
+    if (ext.isEmpty()) {
+      ext = "png";
+      imgName += ".png";
+    }
+    if ("png;jpg;jpeg;".contains(ext + ";")) {
+      File imgFile = new File(folder, imgName);
+      if (imgFile.exists()) {
+        return imgFile;
+      } else {
+        return "?" + imgName;
+      }
+    }
+    return false;
   }
 
   int alreadyOpen(File file) {
@@ -754,7 +815,7 @@ public class SikulixIDE extends JFrame {
       if (contexts.size() > 0) {
         lastPos = getActiveContext().pos;
       }
-      showThumbs = !PreferencesUser.get().getPrefMorePlainText(); //TODO
+      showThumbs = !PreferencesUser.get().getPrefMorePlainText();
       pane = new EditorPane(this);
       contexts.add(pos, this);
       tabs.addNewTab(name, pane.getScrollPane(), pos);
@@ -801,6 +862,7 @@ public class SikulixIDE extends JFrame {
           notDirty();
         }
       }
+      int closedPos = pos;
       tabs.remove(pos);
       contexts.remove(pos);
       pos = -1;
@@ -808,6 +870,7 @@ public class SikulixIDE extends JFrame {
       if (resetPos() == 0 && !ideIsQuitting) {
         createEmptyScriptContext();
       }
+      setActiveContext(closedPos);
       return true;
     }
 
@@ -821,9 +884,9 @@ public class SikulixIDE extends JFrame {
 
     private void cleanBundle() { //TODO consolidate with FileManager and Settings
       log("cleanBundle: %s", getName());
-      Set<String> foundImages = pane.parseforImages().keySet();
-      if (foundImages.contains(pane.uncompleteStringError)) {
-        error("cleanBundle aborted (%s)", pane.uncompleteStringError);
+      Set<String> foundImages = parseforImages().keySet();
+      if (foundImages.contains(uncompleteStringError)) {
+        error("cleanBundle aborted (%s)", uncompleteStringError);
       } else {
         deleteNotUsedImages(getImageFolder(), foundImages);
       }
@@ -854,13 +917,13 @@ public class SikulixIDE extends JFrame {
     }
 
     public void deleteNotUsedScreenshots(File screenshotsDir, Set<String> usedImages) {
-      if(screenshotsDir.exists()) {
+      if (screenshotsDir.exists()) {
         File[] files = screenshotsDir.listFiles();
         if (files == null || files.length == 0) {
           return;
         }
-        for(File screenshot : files) {
-          if(!usedImages.contains(screenshot.getName())) {
+        for (File screenshot : files) {
+          if (!usedImages.contains(screenshot.getName())) {
             screenshot.delete();
           }
         }
@@ -1096,6 +1159,157 @@ public class SikulixIDE extends JFrame {
     }
   }
 
+  Map<String, List<Integer>> parseforImages() {
+    File imageFolder = getActiveContext().getImageFolder();
+    trace("parseforImages: in %s", imageFolder);
+    String scriptText = getActiveContext().getPane().getText();
+    Lexer lexer = getLexer();
+    Map<String, List<Integer>> images = new HashMap<>();
+    lineNumber = 0;
+    parseforImagesWalk(imageFolder, lexer, scriptText, 0, images);
+    trace("parseforImages finished");
+    return images;
+  }
+
+  private void parseforImagesWalk(File imageFolder, Lexer lexer,
+                                  String text, int pos, Map<String, List<Integer>> images) {
+    trace("parseforImagesWalk");
+    Iterable<Token> tokens = lexer.getTokens(text);
+    boolean inString = false;
+    String current;
+    String innerText;
+    String[] possibleImage = new String[]{""};
+    String[] stringType = new String[]{""};
+    for (Token t : tokens) {
+      current = t.getValue();
+      if (current.endsWith("\n")) {
+        if (inString) {
+          SX.popError(
+                  String.format("Orphan string delimiter (\" or ')\n" +
+                          "in line %d\n" +
+                          "No images will be deleted!\n" +
+                          "Correct the problem before next save!", lineNumber),
+                  "Delete images on save");
+          error("DeleteImagesOnSave: No images deleted, caused by orphan string delimiter (\" or ') in line %d", lineNumber);
+          images.clear();
+          images.put(uncompleteStringError, null);
+          break;
+        }
+        lineNumber++;
+      }
+      if (t.getType() == TokenType.Comment) {
+        trace("parseforImagesWalk::Comment");
+        innerText = t.getValue().substring(1);
+        parseforImagesWalk(imageFolder, lexer, innerText, t.getPos() + 1, images);
+        continue;
+      }
+      if (t.getType() == TokenType.String_Doc) {
+        trace("parseforImagesWalk::String_Doc");
+        innerText = t.getValue().substring(3, t.getValue().length() - 3);
+        parseforImagesWalk(imageFolder, lexer, innerText, t.getPos() + 3, images);
+        continue;
+      }
+      if (!inString) {
+        inString = parseforImagesGetName(current, inString, possibleImage, stringType);
+        continue;
+      }
+      if (!parseforImagesGetName(current, inString, possibleImage, stringType)) {
+        inString = false;
+        parseforImagesCollect(imageFolder, possibleImage[0], pos + t.getPos(), images);
+        continue;
+      }
+    }
+  }
+
+  private boolean parseforImagesGetName(String current, boolean inString,
+                                        String[] possibleImage, String[] stringType) {
+    trace("parseforImagesGetName (inString: %s) %s", inString, current);
+    if (!inString) {
+      if (!current.isEmpty() && (current.contains("\"") || current.contains("'"))) {
+        possibleImage[0] = "";
+        stringType[0] = current.substring(current.length() - 1, current.length());
+        return true;
+      }
+    }
+    if (!current.isEmpty() && "'\"".contains(current) && stringType[0].equals(current)) {
+      return false;
+    }
+    if (inString) {
+      possibleImage[0] += current;
+    }
+    return inString;
+  }
+
+  private void parseforImagesCollect(File imageFolder, String img, int pos,
+                                     Map<String, List<Integer>> images) {
+    trace("parseforImagesCollect");
+    if (img.endsWith(".png") || img.endsWith(".jpg") || img.endsWith(".jpeg")) {
+      if (img.contains(File.separator)) {
+        if (!img.contains(imageFolder.getPath())) {
+          return;
+        }
+        img = new File(img).getName();
+      }
+      if (images.containsKey(img)) {
+        images.get(img).add(pos);
+      } else {
+        List<Integer> poss = new ArrayList<>();
+        poss.add(pos);
+        images.put(img, poss);
+      }
+    }
+  }
+
+  public void reparseOnRenameImage(String oldName, String newName, boolean fileOverWritten) {
+    if (fileOverWritten) {
+      Image.unCache(newName);
+    }
+    Map<String, List<Integer>> images = parseforImages();
+    oldName = new File(oldName).getName();
+    List<Integer> poss = images.get(oldName);
+    if (images.containsKey(oldName) && poss.size() > 0) {
+      Collections.sort(poss, new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+          if (o1 > o2) return -1;
+          return 1;
+        }
+      });
+      reparseRenameImages(poss, oldName, new File(newName).getName());
+    }
+    //TODO doReparse();
+  }
+
+  private boolean reparseRenameImages(List<Integer> poss, String oldName, String newName) {
+    StringBuilder text = new StringBuilder(getActiveContext().getPane().getText());
+    int lenOld = oldName.length();
+    for (int pos : poss) {
+      text.replace(pos - lenOld, pos, newName);
+    }
+    getActiveContext().getPane().setText(text.toString());
+    return true;
+  }
+
+  private Lexer getLexer() {
+//TODO this only works for cleanbundle to find the image strings
+    String scriptType = "python";
+    if (null != lexers.get(scriptType)) {
+      return lexers.get(scriptType);
+    }
+    try {
+      Lexer lexer = Lexer.getByName(scriptType);
+      lexers.put(scriptType, lexer);
+      return lexer;
+    } catch (ResolutionException ex) {
+      return null;
+    }
+  }
+
+  private static final Map<String, Lexer> lexers = new HashMap<>();
+
+  int lineNumber = 0;
+  public String uncompleteStringError = "uncomplete_string_error";
+
   void zzzzzzz() {
   }
 //</editor-fold>
@@ -1135,24 +1349,11 @@ public class SikulixIDE extends JFrame {
     if (session_str != null && !session_str.isEmpty()) {
       String[] filenames = session_str.split(";");
       if (filenames.length > 0) {
-        log("Restore scripts from last session");
         for (String filename : filenames) {
           if (filename.isEmpty()) {
             continue;
           }
-          File fileToLoad = new File(filename);
-          File fileToLoadClean = new File(filename.replace("###isText", ""));
-          String shortName = fileToLoad.getName();
-          if (fileToLoadClean.exists() && !filesToLoad.contains(fileToLoad)) {
-            if (shortName.endsWith(".py")) {
-              log("Restore Python script: %s", fileToLoad.getName());
-            } else if (shortName.endsWith("###isText")) {
-              log("Restore Text file: %s", fileToLoad.getName());
-            } else {
-              log("Restore Sikuli script: %s", fileToLoad);
-            }
-            filesToLoad.add(fileToLoad);
-          }
+          filesToLoad.add(new File(filename));
         }
       }
     }
@@ -1172,6 +1373,12 @@ public class SikulixIDE extends JFrame {
           }
         }
       }
+    }
+    if (filesToLoad.size() > 0) {
+      for (File file : filesToLoad) {
+        createFileContext(file);
+      }
+      getContextAt(0).close();
     }
     return filesToLoad;
   }

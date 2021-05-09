@@ -105,8 +105,8 @@ public class Sikulix {
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
-    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-    ideSplash.run();
+//    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+//TODO    ideSplash.run();
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

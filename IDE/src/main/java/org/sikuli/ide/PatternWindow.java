@@ -414,7 +414,7 @@ public class PatternWindow extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
 			if (fileRenameOld != null) {
-				currentPane.reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
+				SikulixIDE.get().reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
 			}
 			_imgBtn.getWindow().close();
 			_parent.dispose();
