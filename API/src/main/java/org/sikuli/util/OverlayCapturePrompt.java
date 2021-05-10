@@ -9,7 +9,6 @@ import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +42,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
   private BufferedImage scr_img_darker = null;
   private BufferedImage bi = null;
   private float darker_factor;
-  private Rectangle rSel;
+  private Rectangle rectSelected;
   private int srcScreenId = -1;
   private Location srcScreenLocation = null;
   private Location destScreenLocation = null;
@@ -74,7 +73,7 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     setAlwaysOnTop(true);
 
     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-    rSel = new Rectangle();
+    rectSelected = new Rectangle();
 
     if (scr.isOtherScreen()) {
       isLocalScreen = false;
@@ -283,20 +282,20 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
     if (cropImg == null) {
       return null;
     }
-    rSel.x += scrOCP.getX();
-    rSel.y += scrOCP.getY();
-    ScreenImage ret = new ScreenImage(rSel, cropImg);
-    ret.setStartEnd(srcScreenLocation, destScreenLocation);
-    return ret;
+    rectSelected.x += scrOCP.getX();
+    rectSelected.y += scrOCP.getY();
+    ScreenImage scrImage = new ScreenImage(rectSelected, cropImg);
+    scrImage.setStartEnd(srcScreenLocation, destScreenLocation);
+    return scrImage;
   }
 
   private BufferedImage cropSelection() {
-    int w = rSel.width, h = rSel.height;
+    int w = rectSelected.width, h = rectSelected.height;
     if (w <= 0 || h <= 0) {
       return null;
     }
-    int x = rSel.x;
-    int y = rSel.y;
+    int x = rectSelected.x;
+    int y = rectSelected.y;
     if (!isLocalScreen && scr_img_scale != 1) {
       x = (int) (x / scr_img_scale);
       y = (int) (y / scr_img_scale);
@@ -346,27 +345,27 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
       } else if (desty > destMaxY) {
         desty = destMaxY;
       }
-      rSel.x = (srcx < destx) ? srcx : destx;
-      rSel.y = (srcy < desty) ? srcy : desty;
+      rectSelected.x = (srcx < destx) ? srcx : destx;
+      rectSelected.y = (srcy < desty) ? srcy : desty;
       int xEnd = (srcx > destx) ? srcx : destx;
       int yEnd = (srcy > desty) ? srcy : desty;
 
-      rSel.width = (xEnd - rSel.x) + 1;
-      rSel.height = (yEnd - rSel.y) + 1;
-      if (rSel.width > 0 && rSel.height > 0) {
-        g2d.drawImage(scr_img.getSubimage(rSel.x, rSel.y, rSel.width, rSel.height),null, rSel.x, rSel.y);
+      rectSelected.width = (xEnd - rectSelected.x) + 1;
+      rectSelected.height = (yEnd - rectSelected.y) + 1;
+      if (rectSelected.width > 0 && rectSelected.height > 0) {
+        g2d.drawImage(scr_img.getSubimage(rectSelected.x, rectSelected.y, rectSelected.width, rectSelected.height),null, rectSelected.x, rectSelected.y);
       }
 
       g2d.setColor(selFrameColor);
       g2d.setStroke(bs);
-      g2d.draw(rSel);
+      g2d.draw(rectSelected);
 
-      int cx = (rSel.x + xEnd) / 2;
-      int cy = (rSel.y + yEnd) / 2;
+      int cx = (rectSelected.x + xEnd) / 2;
+      int cy = (rectSelected.y + yEnd) / 2;
       g2d.setColor(selCrossColor);
       g2d.setStroke(_StrokeCross);
-      g2d.drawLine(cx, rSel.y, cx, yEnd);
-      g2d.drawLine(rSel.x, cy, xEnd, cy);
+      g2d.drawLine(cx, rectSelected.y, cx, yEnd);
+      g2d.drawLine(rectSelected.x, cy, xEnd, cy);
 
       if (isLocalScreen && Screen.getNumberScreens() > 1) {
         drawScreenFrame(g2d, srcScreenId);

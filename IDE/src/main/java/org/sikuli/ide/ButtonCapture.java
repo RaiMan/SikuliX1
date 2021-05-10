@@ -17,6 +17,7 @@ import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.Element;
 import javax.swing.text.*;
@@ -24,6 +25,9 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 //import java.awt.Image;
@@ -31,7 +35,6 @@ import java.net.URL;
 class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable, EventObserver {
 
   private static final String me = "ButtonCapture: ";
-  protected Element _line;
   protected EditorPane _codePane;
   private boolean captureCancelled = false;
   private EditorPatternLabel _lbl = null;
@@ -41,39 +44,35 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public ButtonCapture() {
     super();
-    //"/icons/camera-icon.png"
     URL imageURL = SikulixIDE.class.getResource("/icons/sxcapture-x.png");
     setIcon(new ImageIcon(imageURL));
     PreferencesUser pref = PreferencesUser.get();
     String strHotkey = Key.convertKeyToText(
-            pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
+        pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
     setToolTipText(SikulixIDE._I("btnCaptureHint", strHotkey));
     setText(SikulixIDE._I("btnCaptureLabel"));
-    //setBorderPainted(false);
-    //setMaximumSize(new Dimension(26,26));
     addActionListener(this);
-    _line = null;
   }
 
-  public ButtonCapture(EditorPane codePane, Element elmLine) {
-    this();
-    _line = elmLine;
-    _codePane = codePane;
-    setUI(UIManager.getUI(this));
-    setBorderPainted(true);
-    setCursor(new Cursor(Cursor.HAND_CURSOR));
-    setText(null);
-    URL imageURL = SikulixIDE.class.getResource("/icons/capture-small.png");
-    setIcon(new ImageIcon(imageURL));
-  }
+//  public ButtonCapture(EditorPane codePane, Element elmLine) {
+//    this();
+//    _line = elmLine;
+//    _codePane = codePane;
+//    setUI(UIManager.getUI(this));
+//    setBorderPainted(true);
+//    setCursor(new Cursor(Cursor.HAND_CURSOR));
+//    setText(null);
+//    URL imageURL = SikulixIDE.class.getResource("/icons/capture-small.png");
+//    setIcon(new ImageIcon(imageURL));
+//  }
 
-  public ButtonCapture(EditorPatternLabel lbl) {
-    // for internal use with the image label __CLICK-TO-CAPTURE__
-    super();
-    _line = null;
-    _codePane = null;
-    _lbl = lbl;
-  }
+//  public ButtonCapture(EditorPatternLabel lbl) {
+//    // for internal use with the image label __CLICK-TO-CAPTURE__
+//    super();
+//    _line = null;
+//    _codePane = null;
+//    _lbl = lbl;
+//  }
 
   @Override
   public void actionPerformed(ActionEvent e) {
@@ -87,13 +86,10 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     capture(delay);
   }
 
-  IScreen defaultScreen = null;
   ScreenImage sImgNonLocal = null;
-  SikulixIDE.PaneContext context = null;
 
   public void capture(int delay) {
     String line = "";
-    SikulixIDE ide = SikulixIDE.get();
     if (SikulixIDE.notHidden()) {
       // Set minimum delay if IDE is visible to give
       // the IDE some time to vanish before taking the
@@ -102,115 +98,104 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       delay = Math.max(delay, 500);
       SikulixIDE.doHide();
     }
-    context = SikulixIDE.get().getActiveContext();
-    EditorPane codePane = context.getPane();
-    line = codePane.getLineTextAtCaret();
-    givenName = codePane.parseLineText("#" + line.trim());
-    if (!givenName.isEmpty()) {
-      Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
-    }
+
+    givenName = SikulixIDE.get().getImageNameFromLine();
+
     RunTime.pause(delay);
-    defaultScreen = SikulixIDE.getDefaultScreen();
-    if (defaultScreen == null) {
-      Screen.doPrompt("Select an image", this);
-    } else {
-      if (HelpDevice.isAndroid(defaultScreen) && Sikulix.popAsk("Android capture")) {
-        new Thread() {
-          @Override
-          public void run() {
-            sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
-            ButtonCapture.this.update((EventSubject) null);
-          }
-        }.start();
-      } else {
-        ButtonCapture.this.update((EventSubject) null);
-      }
-    }
+    Screen.doPrompt("Select an image", this);
+
+//TODO capture on Android
+//    defaultScreen = SikulixIDE.getDefaultScreen();
+//    if (defaultScreen == null) {
+//      Screen.doPrompt("Select an image", this);
+//    } else {
+//      if (HelpDevice.isAndroid(defaultScreen) && Sikulix.popAsk("Android capture")) {
+//        new Thread() {
+//          @Override
+//          public void run() {
+//            sImgNonLocal = (ScreenImage) defaultScreen.action("userCapture");
+//            ButtonCapture.this.update((EventSubject) null);
+//          }
+//        }.start();
+//      } else {
+//        ButtonCapture.this.update((EventSubject) null);
+//      }
+//    }
   }
 
   @Override
   public void update(EventSubject event) {
     Debug.log(3, "ButtonCapture: finished");
-    Image capturedImage = null;
-    OverlayCapturePrompt ocp = null;
-    if (null == event) {
-      capturedImage = new Image(sImgNonLocal);
+    BufferedImage capturedImage;
+    BufferedImage screenShot = null;
+    OverlayCapturePrompt ocp = (OverlayCapturePrompt) event;
+    if (ocp == null) { //TODO Android
+      capturedImage = sImgNonLocal.getImage();
     } else {
-      ocp = (OverlayCapturePrompt) event;
-      capturedImage = new Image(ocp.getSelection());
+      capturedImage = ocp.getSelection().getImage();
+      screenShot = ocp.getOriginal().getImage();
       Screen.closePrompt();
     }
-    String filename = null;
-    String fullpath = null;
-    boolean saveOverwrite = Settings.OverwriteImages;
     if (capturedImage != null) {
-      if (!givenName.isEmpty()) {
-        filename = givenName + ".png";
-        Settings.OverwriteImages = true;
-      } else {
-        int naming = PreferencesUser.get().getAutoNamingMethod();
-        if (naming == PreferencesUser.AUTO_NAMING_TIMESTAMP) {
-          filename = Settings.getTimestamp();
-        } else if (naming == PreferencesUser.AUTO_NAMING_OCR) {
-          filename = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
-          if (filename == null || filename.length() == 0) {
-            filename = Settings.getTimestamp();
-          }
-        } else {
-          String nameOCR = "";
-          try {
-            nameOCR = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
-          } catch (Exception e) {
-          }
-          filename = getFilenameFromUser(nameOCR);
+      if (givenName.isEmpty()) {
+        final PreferencesUser prefs = PreferencesUser.get();
+        if (prefs.getAutoNamingMethod() == PreferencesUser.AUTO_NAMING_OFF) {
+          givenName = (String) JOptionPane.showInputDialog(
+              SikulixIDE.get(),
+              SikuliIDEI18N._I("msgEnterScreenshotFilename"),
+              SikuliIDEI18N._I("dlgEnterScreenshotFilename"),
+              JOptionPane.PLAIN_MESSAGE,
+              null,
+              null,
+              "noname");
         }
-      }
-
-      if (filename != null) {
-        fullpath = capturedImage.save(filename,
-            SikulixIDE.get().getCurrentCodePane().context.getImageFolder().getAbsolutePath());
-        capturedImage.setFileURL(Commons.makeURL(fullpath));
-        ocp.getOriginal().save(filename,
-            SikulixIDE.get().getCurrentCodePane().context.getScreenshotFolder().getAbsolutePath());
+        if (givenName == null || givenName.isEmpty()) {
+          givenName = Settings.getTimestamp();
+        }
+//        if (prefs.getAutoNamingMethod() == PreferencesUser.AUTO_NAMING_TIMESTAMP) {
+//          ;
+//        } else if (naming == PreferencesUser.AUTO_NAMING_OCR) {
+//          filename = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
+//          if (filename == null || filename.length() == 0) {
+//            filename = Settings.getTimestamp();
+//          }
+//        } else {
+//          String nameOCR = "";
+//          try {
+//            nameOCR = PatternPaneNaming.getFilenameFromImage(capturedImage.get());
+//          } catch (Exception e) {
+//          }
+//          filename = ;
+//        }
       }
     }
-    Settings.OverwriteImages = saveOverwrite;
-    captureCompleted(capturedImage);
+    SikulixIDE.PaneContext context = SikulixIDE.get().getActiveContext();
+    final File imgFile = new File(context.getImageFolder(), givenName + ".png");
+    try {
+      ImageIO.write(capturedImage, "png",imgFile);
+      if (context.getScreenshotFolder().exists()) {
+        ImageIO.write(screenShot, "png", new File(context.getScreenshotFolder(), givenName + ".png"));
+      }
+    } catch (IOException e) {
+    }
+
+    if (context.getShowThumbs()) {
+      SikulixIDE.get().insertImageButton(context, imgFile);
+    } else {
+      context.getPane().insertString("\"" + givenName + "\"");
+    }
+
     if (ocp != null) {
       Screen.resetPrompt(ocp);
     }
     SikulixIDE.showAgain();
   }
 
-  private void captureCompleted(Image imgCaptured) {
-    Element src = getSrcElement();
-    if (imgCaptured != null) {
-      Debug.log(3, "captureCompleted: " + imgCaptured);
-      if (src == null) {
-        if (_codePane == null) {
-          if (_lbl == null) {
-            insertAtCursor(SikulixIDE.get().getCurrentCodePane(), imgCaptured);
-          } else {
-            _lbl.setFile(imgCaptured.fileName());
-          }
-        } else {
-          insertAtCursor(_codePane, imgCaptured);
-        }
-      } else {
-        replaceButton(src, imgCaptured.fileName());
-      }
-    } else {
-      Debug.log(3, "ButtonCapture: Capture cancelled");
-      if (src != null) {
-        captureCancelled = true;
-        replaceButton(src, "");
-        captureCancelled = false;
-      }
-    }
+  private void captureCompleted(BufferedImage imgCaptured, BufferedImage screenShot) {
   }
 
   //<editor-fold defaultstate="collapsed" desc="RaiMan not used">
-	/*public boolean hasNext() {
+  /*public boolean hasNext() {
    * return false;
    * }*/
   /*public CaptureButton getNextDiffButton() {
@@ -226,32 +211,17 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
    * }*/
   //</editor-fold>
 
-  private String getFilenameFromUser(String hint) {
-    return (String) JOptionPane.showInputDialog(
-            _codePane,
-            SikuliIDEI18N._I("msgEnterScreenshotFilename"),
-            SikuliIDEI18N._I("dlgEnterScreenshotFilename"),
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            null,
-            hint);
-  }
-
-  private Element getSrcElement() {
-    return _line;
-  }
-
   private boolean replaceButton(Element src, String imgFullPath) {
     if (captureCancelled) {
       if (_codePane.context.getShowThumbs() && PreferencesUser.get().getPrefMoreImageThumbs()
-              || !_codePane.context.getShowThumbs()) {
+          || !_codePane.context.getShowThumbs()) {
         return true;
       }
     }
     int start = src.getStartOffset();
     int end = src.getEndOffset();
     int old_sel_start = _codePane.getSelectionStart(),
-            old_sel_end = _codePane.getSelectionEnd();
+        old_sel_end = _codePane.getSelectionEnd();
     try {
       StyledDocument doc = (StyledDocument) src.getDocument();
       String text = doc.getText(start, end - start);

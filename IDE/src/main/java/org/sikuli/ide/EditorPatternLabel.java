@@ -348,7 +348,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
       if (x == null || lblText.startsWith(NOTFOUND)) {
         return;
       }
-      (new ButtonCapture(pane, x)).actionPerformed(null);
+      //TODO (new ButtonCapture(pane, x)).actionPerformed(null);
     }
   }
 

@@ -9,32 +9,24 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.ExtensionManager;
-import org.sikuli.idesupport.IDESupport;
 import org.sikuli.idesupport.IIDESupport;
 import org.sikuli.idesupport.IIndentationLogic;
-import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
-import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.Image;
-import org.sikuli.script.*;
+import org.sikuli.script.Location;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
-import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
-import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.MouseInputAdapter;
-import javax.swing.text.Element;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -46,14 +38,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class EditorPane extends JTextPane {
 
@@ -684,14 +676,6 @@ public class EditorPane extends JTextPane {
   }
 
   public String parseLineText(String line) {
-    if (line.startsWith("#")) {
-      Pattern aName = Pattern.compile("^#[A-Za-z0-9_]+ =$");
-      Matcher mN = aName.matcher(line);
-      if (mN.find()) {
-        return line.substring(1).split(" ")[0];
-      }
-      return "";
-    }
     Matcher mR = patRegionStr.matcher(line);
     String asOffset = ".asOffset()";
     if (mR.find()) {
@@ -1261,7 +1245,7 @@ public class EditorPane extends JTextPane {
     if (strLine.endsWith("find") && ke.getKeyChar() == '(') {
       ke.consume();
       doc.insertString(pos, "(", null);
-      ButtonCapture btnCapture = new ButtonCapture(this, line);
+      ButtonCapture btnCapture = null; //TODO new ButtonCapture(this, line);
       insertComponent(btnCapture);
       doc.insertString(pos + 2, ")", null);
     }
