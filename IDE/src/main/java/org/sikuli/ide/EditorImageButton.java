@@ -36,13 +36,7 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     this.options = options;
     thumbnail = createThumbnailImage((File) this.options.get(IButton.FILE), MAXHEIGHT);
 
-    setIcon(new ImageIcon(thumbnail));
-    setButtonText();
-
-    setMargin(new Insets(0, 0, 0, 0));
-    setBorderPainted(true);
-    setCursor(new Cursor(Cursor.HAND_CURSOR));
-    addActionListener(this);
+    init();
   }
 
   public EditorImageButton(File imgFile) {
@@ -51,6 +45,10 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     options.put(IButton.FILE, imgFile);
     options.put(IButton.TEXT, "\"" + info() + "\"");
 
+    init();
+  }
+
+  private void init() {
     setIcon(new ImageIcon(thumbnail));
     setButtonText();
 
@@ -58,11 +56,13 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     setBorderPainted(true);
     setCursor(new Cursor(Cursor.HAND_CURSOR));
     addActionListener(this);
+    addMouseListener(this);
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    Debug.log(3, "ThumbButtonLabel: open Pattern Settings");
+    final EditorImageButton source = (EditorImageButton) e.getSource();
+    Debug.log(3, "ImageButton: action performed");
   }
 
   @Override
@@ -134,14 +134,20 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
   //<editor-fold defaultstate="collapsed" desc="mouse events not used">
   @Override
   public void mouseClicked(MouseEvent me) {
+    final boolean popupTrigger = me.isPopupTrigger();
+    Debug.log(3, "ImageButton: mouse click: popup(%s)", popupTrigger);
   }
 
   @Override
   public void mousePressed(MouseEvent me) {
+    final boolean popupTrigger = me.isPopupTrigger();
+    Debug.log(3, "ImageButton: mouse press: popup(%s)", popupTrigger);
   }
 
   @Override
   public void mouseReleased(MouseEvent me) {
+    final boolean popupTrigger = me.isPopupTrigger();
+    Debug.log(3, "ImageButton: mouse release: popup(%s)", popupTrigger);
   }
   //</editor-fold>
 }

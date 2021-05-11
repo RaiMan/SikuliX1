@@ -191,9 +191,6 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     SikulixIDE.showAgain();
   }
 
-  private void captureCompleted(BufferedImage imgCaptured, BufferedImage screenShot) {
-  }
-
   //<editor-fold defaultstate="collapsed" desc="RaiMan not used">
   /*public boolean hasNext() {
    * return false;

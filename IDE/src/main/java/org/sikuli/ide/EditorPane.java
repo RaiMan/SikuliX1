@@ -96,6 +96,11 @@ public class EditorPane extends JTextPane {
     this.context = context;
   }
 
+  boolean init() { //TODO needed?
+    makeReady();
+    return true;
+  }
+
   public void makeReady() {
     editorPaneRunner = context.getRunner();
     paneType = context.getType();
@@ -191,7 +196,7 @@ public class EditorPane extends JTextPane {
     trace("text popup");
   }
 
-  void updateDocumentListeners(String source) {
+  void updateDocumentListeners(String source) { //TODO when is it needed?
     trace("updateDocumentListeners from: %s", source);
 //    getDocument().addDocumentListener(getDirtyHandler());
 //    getDocument().addUndoableEditListener(getUndoRedo());
@@ -220,54 +225,6 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="10 load content">
-  boolean init() { //TODO
-    makeReady();
-    return true;
-  }
-
-//TODO  private int alreadyOpen(String fileSelected, int currentTab) {
-
-//    CloseableTabbedPane tabs = getTabs();
-//    int nTab = tabs.getTabCount();
-//    if (nTab > 0) {
-//      File possibleBundle = new File(fileSelected);
-//      String possibleBundlePath = null;
-//      if (EditorPane.isInBundle(possibleBundle)) {
-//        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getParent());
-//      } else if (possibleBundle.isDirectory()) {
-//        possibleBundlePath = FilenameUtils.removeExtension(possibleBundle.getPath());
-//      }
-//      for (int iTab = 0; iTab < nTab; iTab++) {
-//        if (currentTab > -1 && iTab == currentTab) {
-//          continue;
-//        }
-//        EditorPane checkedPane = getPaneAtIndex(iTab);
-//        String paneFile = checkedPane.editorPaneFileSelected;
-//        if (null == paneFile) continue;
-//        if (new File(paneFile).equals(new File(fileSelected))) {
-//          tabs.setAlreadyOpen(iTab);
-//          return iTab;
-//        }
-//        if (possibleBundlePath != null && (checkedPane.isBundle() || checkedPane.isInBundle())) {
-//          String paneBundle = FilenameUtils.removeExtension(checkedPane.editorPaneFolder.getPath());
-//          if (possibleBundlePath.equals(paneBundle)) {
-//            tabs.setAlreadyOpen(iTab);
-//            return iTab;
-//          }
-//        }
-//      }
-//    }
-//    return -1;
-//  }
-
-  EditorPane getPaneAtIndex(int index) {
-    return (EditorPane) ((JScrollPane) getTabs().getComponentAt(index)).getViewport().getView();
-  }
-
-  private CloseableTabbedPane getTabs() {
-    return SikulixIDE.get().getTabs();
-  }
-
   public IScriptRunner getRunner() {
     return editorPaneRunner;
   }
@@ -276,33 +233,7 @@ public class EditorPane extends JTextPane {
 
   File editorPaneFileToRun = null;
 
-  private boolean evalRunnerAndFile(File file) {
-    IScriptRunner runner = Runner.getRunner(file.getAbsolutePath());
-    EffectiveRunner runnerAndFile = runner.getEffectiveRunner(file.getAbsolutePath());
-    if (runnerAndFile.getRunner() != null) {
-      String script = runnerAndFile.getScript();
-      if (null == script) {
-        if (!file.isFile()) {
-          return false;
-        } else {
-          script = file.getAbsolutePath();
-        }
-      }
-
-      if (script.endsWith(".class")) {
-        return false;
-      }
-
-      editorPaneFileToRun = new File(script);
-      editorPaneRunner = runnerAndFile.getRunner();
-      editorPaneIsBundle = runnerAndFile.isBundle();
-      setTemp(runnerAndFile.isTempBundle());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean readContent(String script) {
+   private boolean readContent(String script) {
     InputStreamReader isr;
     try {
       isr = new InputStreamReader(new ByteArrayInputStream(script.getBytes(Charset.forName("utf-8"))), Charset.forName("utf-8"));
