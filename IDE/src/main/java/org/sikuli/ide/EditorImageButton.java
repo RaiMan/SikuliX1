@@ -9,6 +9,7 @@ import org.sikuli.basics.PreferencesUser;
 import org.sikuli.idesupport.IButton;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -65,6 +66,11 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     Debug.log(3, "ImageButton: action performed");
   }
 
+  private void handlePopup(MouseEvent me) {
+    Point where = getLocationOnScreen();
+    new SXDialog("sxpopup", where).run();
+  }
+
   @Override
   public Point getLocationOnScreen() {
     return super.getLocationOnScreen();
@@ -76,6 +82,16 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
 
   @Override
   public void mouseExited(MouseEvent me) {
+  }
+
+  @Override
+  public void mousePressed(MouseEvent me) {
+    if (me.isPopupTrigger()) handlePopup(me);
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent me) {
+    if (me.isPopupTrigger()) handlePopup(me);
   }
 
   private BufferedImage createThumbnailImage(File imgFile, int maxHeight) {
@@ -134,20 +150,6 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
   //<editor-fold defaultstate="collapsed" desc="mouse events not used">
   @Override
   public void mouseClicked(MouseEvent me) {
-    final boolean popupTrigger = me.isPopupTrigger();
-    Debug.log(3, "ImageButton: mouse click: popup(%s)", popupTrigger);
-  }
-
-  @Override
-  public void mousePressed(MouseEvent me) {
-    final boolean popupTrigger = me.isPopupTrigger();
-    Debug.log(3, "ImageButton: mouse press: popup(%s)", popupTrigger);
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent me) {
-    final boolean popupTrigger = me.isPopupTrigger();
-    Debug.log(3, "ImageButton: mouse release: popup(%s)", popupTrigger);
   }
   //</editor-fold>
 }
