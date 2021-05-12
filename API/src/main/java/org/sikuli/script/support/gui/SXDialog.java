@@ -17,8 +17,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +55,21 @@ public class SXDialog extends JFrame {
     this(res, where, POSITION.TOPLEFT);
   }
 
-  public SXDialog(String res, Point where, POSITION pos) {
+  public SXDialog(String res, Point where, Object... parms) {
+    this(res, where, POSITION.TOPLEFT, parms);
+  }
+
+  public SXDialog(String res, Point where, POSITION pos, Object... parms) {
     this();
+
+    if (parms.length > 0) {
+      String[] keys = new String[0];
+      if (parms[0] instanceof String[]) {
+        keys = (String[]) parms[0];
+        parms[0] = null;
+      }
+      setOptions(parms, keys);
+    }
 
     if (!res.contains(".") && !res.endsWith(".txt")) {
       res += ".txt";
@@ -81,6 +96,32 @@ public class SXDialog extends JFrame {
       textToItems(text);
       packBoxes(pane, dialogLines);
     }
+  }
+
+  private Object[] orgOptions = null;
+  private Map<String, Object> options = new HashMap<>();
+
+  public Map<String, Object> setOptions(Object[] parms) {
+   return setOptions(parms, new String[0]);
+  }
+
+  public Map<String, Object> setOptions(Object[] parms, String[] keys) {
+    if (orgOptions == null) {
+      orgOptions = parms;
+      int ix = 0;
+      for (Object parm : orgOptions) {
+        if (parm == null) {
+          continue;
+        }
+        String key = "parm" + ix;
+        if (ix < keys.length) {
+          key = keys[ix];
+        }
+        options.put(key, parm);
+        ix++;
+      }
+    }
+    return options;
   }
 
   private boolean valid = false;
@@ -530,7 +571,7 @@ public class SXDialog extends JFrame {
       String lineType = "-";
 
       //TODO Commons.trace(line);
-      if (text.contains("{")) {
+      if (line.contains("{")) {
         line = replaceVariables(line);
       }
 
@@ -608,7 +649,15 @@ public class SXDialog extends JFrame {
             item = new LinkItem(urlText, url);
 
           } else if (isFeat(feature, FEATURE.IMAGE) && !title.isEmpty()) {
-            item = new ImageItem(this.getClass().getResource(title));
+            if (new File(title).exists()) {
+              try {
+                item = new ImageItem(new URL("file:" + title));
+              } catch (MalformedURLException e) {
+                item = null;
+              }
+            } else {
+              item = new ImageItem(this.getClass().getResource(title));
+            }
 
           } else if (isFeat(feature, FEATURE.CLOSE)) {
             if (title.isEmpty()) {
@@ -759,7 +808,7 @@ public class SXDialog extends JFrame {
     if (var.equals("javaversion")) {
       return "" + Commons.getJavaVersion();
     }
-    return "";
+    return options.get(var) == null ? "" : "" + options.get(var);
   }
 
   boolean isOption(String option, OPT token) {
@@ -1668,6 +1717,7 @@ public class SXDialog extends JFrame {
     String aAction = "";
     String command = null;
     String what = "";
+    String[] parms = null;
 
     ActionItem() {
     }
@@ -1694,7 +1744,7 @@ public class SXDialog extends JFrame {
           Commons.error("ActionItem: show: no dialog");
         }
       } else {
-        Commons.error("ActionItem: not implemented: %s", aAction);
+        parms = parts;
       }
     }
 
@@ -1702,7 +1752,12 @@ public class SXDialog extends JFrame {
     void mouseClick(MouseEvent e) {
       if (command != null) {
         if (command.equals("show")) {
-          new SXDialog(what);
+          new SXDialog(what).run();
+        } else {
+          Point where = getLocationOnScreen();
+          closeCancel();
+          new SXDialog("sxideerror", where, new String[]{"not implemented", aAction}).run();
+          Commons.error("ActionItem: not implemented: %s", aAction);
         }
       }
     }

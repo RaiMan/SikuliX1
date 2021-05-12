@@ -1,0 +1,13 @@
+#globals; m 3; c; f 10; b 1
+
+#image; {image}; r 100
+---
+{parm1}
+---
+#action; Rename; rename
+Capture
+Optimize
+Similar
+Offset
+---
+#close; Press ESC or Click; f 12

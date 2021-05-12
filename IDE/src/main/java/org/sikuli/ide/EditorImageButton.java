@@ -10,6 +10,7 @@ import org.sikuli.idesupport.IButton;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.script.support.gui.SXDialogPaneImage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -64,11 +65,18 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
   public void actionPerformed(ActionEvent e) {
     final EditorImageButton source = (EditorImageButton) e.getSource();
     Debug.log(3, "ImageButton: action performed");
+    handlePopup(null);
   }
 
   private void handlePopup(MouseEvent me) {
+    String source = "right mouse";
+    if (me == null) {
+      source = "button action";
+    }
     Point where = getLocationOnScreen();
-    new SXDialog("sxpopup", where).run();
+    SXDialogPaneImage popup = new SXDialogPaneImage("sxidepopup", where,
+            new String[]{"image"}, options.get(IButton.FILE), source);
+    popup.run();
   }
 
   @Override
@@ -86,12 +94,16 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
 
   @Override
   public void mousePressed(MouseEvent me) {
-    if (me.isPopupTrigger()) handlePopup(me);
+    if (me.isPopupTrigger()) {
+      handlePopup(me);
+    }
   }
 
   @Override
   public void mouseReleased(MouseEvent me) {
-    if (me.isPopupTrigger()) handlePopup(me);
+    if (me.isPopupTrigger()) {
+      handlePopup(me);
+    }
   }
 
   private BufferedImage createThumbnailImage(File imgFile, int maxHeight) {
