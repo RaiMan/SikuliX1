@@ -5,6 +5,7 @@
 package org.sikuli.script.support.gui;
 
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.devices.ScreenDevice;
 
 import javax.imageio.ImageIO;
@@ -20,6 +21,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -95,10 +98,13 @@ public class SXDialog extends JFrame {
       this.where = where;
       textToItems(text);
       packBoxes(pane, dialogLines);
+    } else {
+      Commons.debug("SXDialog: setup: empty or not found: %s", res);
     }
   }
 
   private Object[] orgOptions = null;
+
   private Map<String, Object> options = new HashMap<>();
 
   public Map<String, Object> setOptions(Object[] parms) {
@@ -124,6 +130,10 @@ public class SXDialog extends JFrame {
     return options;
   }
 
+  public Map<String, Object> getOptions() {
+    return options;
+  }
+
   private boolean valid = false;
 
   boolean isOK() {
@@ -142,7 +152,19 @@ public class SXDialog extends JFrame {
         where.y -= finalSize.height / 2;
       }
       popup(where);
+      if (autoClose > 0) {
+        new Thread(() -> {
+          RunTime.pause(autoClose * 1000);
+          closeCancel();
+        }).start();
+      }
     }
+  }
+
+  public void run(Point whereNow) {
+    pos = POSITION.CENTER;
+    where = whereNow;
+    run();
   }
 
   //region 03 global constants
@@ -204,7 +226,7 @@ public class SXDialog extends JFrame {
 
   enum TEXT {TEXT, HTML}
 
-  enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER}
+  enum OPT {SIZE, MARGIN, PADDING, CENTER, FONT, BORDER, WAIT}
 
   enum ITEMTYPE {SINGLE, LEFT, RIGHT, CENTER, OUT, BOTTOM, SAME}
   //endregion
@@ -375,6 +397,14 @@ public class SXDialog extends JFrame {
   void setAlign(ALIGN type) {
     stdAlign = type;
   }
+
+  int autoClose = -1;
+
+  void setAutoClose(int val) {
+    if (val > 0) {
+      autoClose = val;
+    }
+  }
   //endregion
 
   //region 14 show/hide/destroy
@@ -404,7 +434,7 @@ public class SXDialog extends JFrame {
     setVisible(false);
   }
 
-  void closeCancel() {
+  public void closeCancel() {
     Commons.trace("ESC or Button CANCEL: closing dialog without saving anything");
     close();
   }
@@ -772,6 +802,8 @@ public class SXDialog extends JFrame {
         setAlign(ALIGN.CENTER);
       } else if (isOption(option, OPT.FONT)) {
         setFontSize(parm1);
+      } else if (isOption(option, OPT.WAIT)) {
+        setAutoClose(parm1);
       } else if (isOption(option, OPT.BORDER)) {
         for (int pn = 1; pn < parms.length; pn++) {
           String parm = parms[pn];
@@ -1755,9 +1787,23 @@ public class SXDialog extends JFrame {
           new SXDialog(what).run();
         } else {
           Point where = getLocationOnScreen();
-          closeCancel();
-          new SXDialog("sxideerror", where, new String[]{"not implemented", aAction}).run();
-          Commons.error("ActionItem: not implemented: %s", aAction);
+          //closeCancel();
+          Class<? extends SXDialog> clazz = SXDialog.this.getClass();
+          boolean success = true;
+          try {
+            Method method = clazz.getMethod(command, null);
+            method.invoke(SXDialog.this, new Class[0]);
+          } catch (NoSuchMethodException noSuchMethodException) {
+            success = false;
+          } catch (InvocationTargetException invocationTargetException) {
+            success = false;
+          } catch (IllegalAccessException illegalAccessException) {
+            success = false;
+          }
+          if (!success) {
+            new SXDialog("sxideerror", where, new String[]{"not implemented", aAction}).run(e.getLocationOnScreen());
+            Commons.error("ActionItem: not implemented: %s", aAction);
+          }
         }
       }
     }

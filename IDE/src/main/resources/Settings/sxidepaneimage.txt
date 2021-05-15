@@ -1,0 +1,13 @@
+#globals; m 5; c; f 12; b 1; p 4
+
+[
+#close; (X);
+---5
+#action; Rename; rename
+---3
+#action; Optimize; rename
+---3
+#action; As Pattern; rename
+]
+---5
+#image; {image}

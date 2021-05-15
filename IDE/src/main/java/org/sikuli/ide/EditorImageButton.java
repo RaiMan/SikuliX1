@@ -4,13 +4,12 @@
 package org.sikuli.ide;
 
 import org.apache.commons.io.FilenameUtils;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.PreferencesUser;
 import org.sikuli.idesupport.IButton;
-import org.sikuli.script.support.Commons;
+import org.sikuli.script.Location;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.support.gui.SXDialogPaneImage;
+import org.sikuli.script.support.gui.SXDialogPaneImageMenu;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,7 +18,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -29,10 +27,27 @@ import java.util.Map;
 
 class EditorImageButton extends JButton implements ActionListener, Serializable, MouseListener {
 
+  //region existing
   Map<String, Object> options;
 
-  int MAXHEIGHT = 30;
+  public Map<String, Object> getOptions() {
+    return options;
+  }
+
+  public String getFilename() {
+    return ((File) options.get(IButton.FILE)).getAbsolutePath();
+  }
+
+  int MAXHEIGHT = 20;
+
   BufferedImage thumbnail;
+
+  public BufferedImage getThumbnail() {
+    return thumbnail;
+  }
+
+  public EditorImageButton() {
+  }
 
   public EditorImageButton(Map<String, Object> options) {
     this.options = options;
@@ -64,19 +79,41 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
   @Override
   public void actionPerformed(ActionEvent e) {
     final EditorImageButton source = (EditorImageButton) e.getSource();
-    Debug.log(3, "ImageButton: action performed");
     handlePopup(null);
   }
 
-  private void handlePopup(MouseEvent me) {
-    String source = "right mouse";
-    if (me == null) {
-      source = "button action";
+  private boolean closeIfVisible(SXDialog popup) {
+    if (popup != null && popup.isVisible()) {
+      popup.closeCancel();
+      return true;
     }
+    return false;
+  }
+  SXDialogPaneImageMenu popmenu = null;
+
+  private void handlePopup(MouseEvent me) {
+    if (closeIfVisible(popmenu)) {
+      return;
+    }
+    closeIfVisible(popwin);
+    if (me == null) {
+      handlePreview();
+    } else {
+      Point where = getLocationOnScreen();
+      where.y += MAXHEIGHT + 10;
+
+      popmenu = new SXDialogPaneImageMenu(where,
+          new String[]{"image"}, options.get(IButton.FILE));
+      popmenu.run();
+    }
+  }
+
+  private SXDialogPaneImage popwin = null;
+
+  private void handlePreview() {
     Point where = getLocationOnScreen();
-    SXDialogPaneImage popup = new SXDialogPaneImage("sxidepopup", where,
-            new String[]{"image"}, options.get(IButton.FILE), source);
-    popup.run();
+    popwin = new SXDialogPaneImage(where, new String[]{"image"}, options.get(IButton.FILE), this);
+    popwin.run();
   }
 
   @Override
@@ -155,8 +192,8 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     return String.format("%s", name);
   }
 
-  private void setButtonText() {
-      setToolTipText(info());
+  void setButtonText() {
+    setToolTipText(info());
   }
 
   //<editor-fold defaultstate="collapsed" desc="mouse events not used">
@@ -164,4 +201,32 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
   public void mouseClicked(MouseEvent me) {
   }
   //</editor-fold>
+  //endregion
+
+  //imgBtn.setImage(filename);
+  public void setImage(String fname) {
+
+  }
+
+  //imgBtn.setParameters(
+  //						_screenshot.isExact(), _screenshot.getSimilarity(),
+  //						_screenshot.getNumMatches()));
+  public boolean setParameters(boolean exact, double sim, int numM) {
+    return true;
+  }
+
+  //imgBtn.setTargetOffset(_tarOffsetPane.getTargetOffset()))
+  public boolean setTargetOffset(Location offset) {
+    return true;
+  }
+
+  //imgBtn.getWindow()
+  public PatternWindow getWindow() {
+    return null;
+  }
+
+  //imgBtn.resetParameters()
+  public void resetParameters() {
+
+  }
 }

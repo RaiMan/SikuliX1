@@ -19,8 +19,14 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener {
+class EditorPatternButton extends EditorImageButton implements ActionListener, Serializable, MouseListener {
+
+  public void setOptions(Map<String, Object> options) {
+    this.options = options;
+  }
 
   public static final int DEFAULT_NUM_MATCHES = 50;
   static final double DEFAULT_SIMILARITY = 0.7;
@@ -38,6 +44,8 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
   private static PatternWindow pwin = null;
   private static final Font textFont = new Font("arial", Font.BOLD, 12);
   private EditorPatternLabel _lbl;
+
+  public EditorPatternButton() {}
 
   protected EditorPatternButton(EditorPane pane) {
     this._image = null;
@@ -81,15 +89,17 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     } else if (img != null) {
       setImage(img);
     }
+/*
     setMargin(new Insets(0, 0, 0, 0));
     setBorderPainted(true);
     setCursor(new Cursor(Cursor.HAND_CURSOR));
     addActionListener(this);
     setButtonText();
+*/
   }
 
   public BufferedImage createThumbnailImage(int maxHeight) {
-    return createThumbnailImage(_image, maxHeight);
+    return getThumbnail();
   }
 
   public static EditorPatternButton createFromImage(EditorPane parentPane, Image capturedImage, EditorPatternLabel lbl) {
@@ -158,6 +168,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     return btn;
   }
 
+/*
   @Override
   public void actionPerformed(ActionEvent e) {
     Debug.log(3, "ThumbButtonLabel: open Pattern Settings");
@@ -172,7 +183,9 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     }
     pwin.requestFocus();
   }
+*/
 
+/*
   @Override
   public Point getLocationOnScreen() {
     if (_lbl == null) {
@@ -181,14 +194,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
       return _lbl.getLocationOnScreen();
     }
   }
-
-  @Override
-  public void mouseEntered(MouseEvent me) {
-  }
-
-  @Override
-  public void mouseExited(MouseEvent me) {
-  }
+*/
 
   public PatternWindow getWindow() {
     return pwin;
@@ -198,6 +204,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     pwin = null;
   }
 
+/*
   public String getFilename() {
     File img = new File(_imgFilename);
     String oldBundle = img.getParent();
@@ -209,6 +216,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     setImage(new File(newBundle, img.getName()).getAbsolutePath());
     return _imgFilename;
   }
+*/
 
   public void setImage(String fileName) {
     _image = Image.createSilent(fileName);
@@ -324,11 +332,8 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     return _offset;
   }
 
-  public String getFileName() {
-    return _imgFilename;
-  }
-
   //<editor-fold defaultstate="collapsed" desc="paint button">
+/*
   @Override
   public void paint(Graphics g) {
     super.paint(g);
@@ -337,6 +342,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     g2d.setColor(new Color(0, 128, 128, 128));
     g2d.drawRoundRect(3, 3, getWidth() - 7, getHeight() - 7, 5, 5);
   }
+*/
 
   private void drawDecoration(Graphics2D g2d) {
     String strSim = null, strOffset = null;
@@ -414,35 +420,6 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     g2d.drawString(cross, drawX + 1, drawY + 1);
     g2d.setColor(new Color(255, 0, 0, 180));
     g2d.drawString(cross, drawX, drawY);
-  }
-  //</editor-fold>
-
-  @Override
-  public String toString() {
-    if (_imgFilename == null && _image == null) return "";
-    String patternString = _pane.getPatternString(_image, _similarity, _offset, _resizeFactor, _mask);
-    return patternString;
-  }
-
-  private void setButtonText() {
-    if (_lbl == null) {
-      setToolTipText(toString());
-    } else {
-      _lbl.resetLabel(_imgFilename, _similarity, _offset, _resizeFactor);
-    }
-  }
-
-  //<editor-fold defaultstate="collapsed" desc="mouse events not used">
-  @Override
-  public void mouseClicked(MouseEvent me) {
-  }
-
-  @Override
-  public void mousePressed(MouseEvent me) {
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent me) {
   }
   //</editor-fold>
 }

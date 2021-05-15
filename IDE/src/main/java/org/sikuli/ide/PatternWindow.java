@@ -3,12 +3,14 @@
  */
 package org.sikuli.ide;
 
+import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.ScreenUnion;
 import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.script.support.gui.notused.PatternPaneNaming;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,7 +24,6 @@ public class PatternWindow extends JFrame {
 
 	//<editor-fold desc="000 instance">
 	private static final String me = "PatternWindow: ";
-	private EditorPatternButton _imgBtn;
 	private PatternPaneScreenshot _screenshot;
 	private PatternPaneTargetOffset _tarOffsetPane;
 	private PatternPaneNaming paneNaming;
@@ -45,22 +46,31 @@ public class PatternWindow extends JFrame {
 		return SikuliIDEI18N._I(key, args);
 	}
 
-	public PatternWindow(EditorPatternButton imgBtn, boolean exact,
-					double similarity, int numMatches) {
-		init(imgBtn, exact, similarity, numMatches);
+	SikulixIDE sikulixide = SikulixIDE.get();
+	SikulixIDE.PaneContext context;
+
+	EditorImageButton imgBtn;
+	String imgFile;
+	String imgName;
+
+	public PatternWindow(Object imgBtn) {
+		this.imgBtn = (EditorImageButton) imgBtn;
+		init();
 	}
 
-	private void init(EditorPatternButton imgBtn, boolean exact, double similarity, int numMatches) {
+	private void init() {
 		setTitle(_I("winPatternSettings"));
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		_imgBtn = imgBtn;
-		currentPane = SikulixIDE.get().getCurrentCodePane();
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		context = sikulixide.getActiveContext();
 
-		File imgFile = new File(imgBtn.getFileName());
+		currentPane = context.getPane();
+
+		imgFile = imgBtn.getFilename();
+		imgName = FilenameUtils.getName(imgFile);
 
 		_simg = null;
-		if (currentPane.hasScreenshotImage(imgFile.getName())) {
-			ScreenImage screenshotImage = currentPane.getScreenshotImage(imgFile.getName());
+		if (currentPane.hasScreenshotImage(imgName)) {
+			ScreenImage screenshotImage = currentPane.getScreenshotImage(imgName);
 			if (null != screenshotImage) {
 				_simg = savedScreenImage = screenshotImage;
 			}
@@ -69,8 +79,8 @@ public class PatternWindow extends JFrame {
 		  _simg = takeScreenshot();
 		}
 
-		Container c = getContentPane();
-		c.setLayout(new BorderLayout());
+		Container cp = getContentPane();
+		cp.setLayout(new BorderLayout());
     GraphicsConfiguration gc = getGraphicsConfiguration();
     int pOff = 50;
     Point pLoc  = new Point(pOff, pOff);
@@ -99,10 +109,8 @@ public class PatternWindow extends JFrame {
 		tabSequence = 0;
 		JLabel aMsg = msgApplied[tabSequence] = new JLabel();
     setMessageApplied(tabSequence, false);
-		paneNaming = new PatternPaneNaming(_imgBtn, aMsg);
-		tabPane.addTab(_I("tabNaming"), paneNaming);
 
-		tabSequence++;
+  	tabSequence++;
 		msgApplied[tabSequence] = new JLabel();
     setMessageApplied(tabSequence, false);
 		panePreview = createPreviewPanel();
@@ -114,13 +122,12 @@ public class PatternWindow extends JFrame {
 		paneTarget = createTargetPanel();
 		tabPane.addTab(_I("tabTargetOffset"), paneTarget);
 
-		c.add(tabPane, BorderLayout.CENTER);
-		c.add(createButtons(), BorderLayout.SOUTH);
-		c.doLayout();
+		cp.add(tabPane, BorderLayout.CENTER);
+//		cp.add(createButtons(), BorderLayout.SOUTH);
+		cp.doLayout();
 		pack();
 		try {
-			_screenshot.setParameters(_imgBtn.getFilename(),
-							exact, similarity, numMatches);
+			_screenshot.setParameters(imgBtn.getFilename(), false, 0.7, -1);
 		} catch (Exception e) {
       Debug.error(me + "Problem while setting up pattern pane\n%s", e.getMessage());
 		}
@@ -167,8 +174,7 @@ public class PatternWindow extends JFrame {
 	}
 
 	public void close() {
-		_simg = null;
-		_imgBtn.resetWindow();
+		setVisible(false);
 	}
 	//</editor-fold>
 
@@ -272,7 +278,7 @@ public class PatternWindow extends JFrame {
 		JPanel p = new JPanel();
 		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 		_tarOffsetPane = new PatternPaneTargetOffset(
-						_simg, _imgBtn.getFilename(), _imgBtn.getTargetOffset(), pDim, msgApplied[tabSequence]);
+						_simg, imgBtn.getFilename(), new Location(0,0), pDim, msgApplied[tabSequence]);
 		createMarginBox(p, _tarOffsetPane);
 		p.add(Box.createVerticalStrut(5));
 		p.add(_tarOffsetPane.createControls());
@@ -296,7 +302,7 @@ public class PatternWindow extends JFrame {
 				Debug.error("%s\n%% in filename replaced with _", filename);
 				filename = filename.replace("%", "_");
 			}
-			String oldFilename = _imgBtn.getFilename();
+			String oldFilename = imgBtn.getFilename();
 			if (FileManager.exists(filename)) {
 				String name = FileManager.getName(filename);
 				int ret = JOptionPane.showConfirmDialog(
@@ -318,7 +324,7 @@ public class PatternWindow extends JFrame {
 			try {
 				FileManager.xcopy(oldFilename, filename);
 				renameScreenshot(oldFilename, filename);
-				_imgBtn.setImage(filename);
+				imgBtn.setImage(filename);
         fileRenameOld = oldFilename;
         fileRenameNew = filename;
 			} catch (IOException ioe) {
@@ -327,7 +333,7 @@ public class PatternWindow extends JFrame {
 				isFileOverwritten = false;
         return;
 			}
-			paneNaming.updateFilename();
+			//paneNaming.updateFilename();
 			addDirty(true);
 		}
 
@@ -345,7 +351,7 @@ public class PatternWindow extends JFrame {
         Debug.error("PatternWindow: Error while saving resized pattern image: %s", e.getMessage());
       }
 
-      _imgBtn.reloadImage();
+      //TODO imgBtn.reloadImage();
       _screenshot.reloadImage();
       paneNaming.reloadImage();
       currentPane.repaint();
@@ -355,15 +361,15 @@ public class PatternWindow extends JFrame {
 			}
 		}
 
-		addDirty(_imgBtn.setParameters(
+		addDirty(imgBtn.setParameters(
 						_screenshot.isExact(), _screenshot.getSimilarity(),
 						_screenshot.getNumMatches()));
-		addDirty(_imgBtn.setTargetOffset(_tarOffsetPane.getTargetOffset()));
+		addDirty(imgBtn.setTargetOffset(_tarOffsetPane.getTargetOffset()));
 		if (isDirty() || tempDirty) {
-			Debug.log(3, "Preview: update: " + _imgBtn.toString());
-			int i = _imgBtn.getWindow().tabPane.getSelectedIndex();
-			_imgBtn.getWindow().setMessageApplied(i, true);
-			_imgBtn.repaint();
+			Debug.log(3, "Preview: update: " + imgBtn.toString());
+			int i = imgBtn.getWindow().tabPane.getSelectedIndex();
+			imgBtn.getWindow().setMessageApplied(i, true);
+			imgBtn.repaint();
 		}
 	}
 
@@ -393,7 +399,7 @@ public class PatternWindow extends JFrame {
 		try {
 			FileManager.xcopy(fileRenameNew, fileRenameOld);
 			renameScreenshot(fileRenameNew, fileRenameOld);
-			_imgBtn.setImage(fileRenameOld);
+			imgBtn.setImage(fileRenameOld);
 		} catch (IOException ioe) {
 			Debug.error("revert renaming failed: new: %s \nold: %s\n%s",
 					fileRenameNew, fileRenameOld, ioe.getMessage());
@@ -416,7 +422,7 @@ public class PatternWindow extends JFrame {
 			if (fileRenameOld != null) {
 				SikulixIDE.get().reparseOnRenameImage(fileRenameOld, fileRenameNew, isFileOverwritten);
 			}
-			_imgBtn.getWindow().close();
+			imgBtn.getWindow().close();
 			_parent.dispose();
 			currentPane.setDirty(setDirty(false));
 		}
@@ -433,7 +439,7 @@ public class PatternWindow extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			actionPerformedUpdates(_parent);
-			_imgBtn.getWindow().tabPane.getSelectedComponent().transferFocus();
+			imgBtn.getWindow().tabPane.getSelectedComponent().transferFocus();
 		}
 	}
 
@@ -448,13 +454,12 @@ public class PatternWindow extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (isDirty()) {
-				_imgBtn.resetParameters();
+				imgBtn.resetParameters();
         if (isFileOverwritten) {
           revertImageRename();
         }
 			}
-			_imgBtn.getWindow().close();
-			_parent.dispose();
+			close();
 		}
 	}
 

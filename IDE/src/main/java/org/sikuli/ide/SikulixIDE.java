@@ -52,6 +52,7 @@ import java.nio.charset.Charset;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -162,13 +163,6 @@ public class SikulixIDE extends JFrame {
   }
 
   //TODO showAfterStart to be revised
-  public static void showAfterStart() {
-    org.sikuli.ide.Sikulix.stopSplash();
-    ideWindow.setVisible(true);
-    sikulixIDE.mainPane.setDividerLocation(0.6); //TODO saved value
-    sikulixIDE.getActiveContext().focus();
-  }
-
   static String _I(String key, Object... args) {
     try {
       return SikuliIDEI18N._I(key, args);
@@ -189,6 +183,8 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="01 startup / quit">
+  private static AtomicBoolean ideIsReady = new AtomicBoolean(false);
+
   protected static void start() {
 
     ideWindowRect = getWindowRect();
@@ -323,7 +319,18 @@ public class SikulixIDE extends JFrame {
     restoreSession();
 
     initShortcutKeys();
+    ideIsReady.set(true);
     Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)", Commons.getJavaVersion(), Commons.getSinceStart());
+  }
+
+  public static void showAfterStart() {
+    while(!ideIsReady.get()) {
+      RunTime.pause(100);
+    }
+    org.sikuli.ide.Sikulix.stopSplash();
+    ideWindow.setVisible(true);
+    sikulixIDE.mainPane.setDividerLocation(0.6); //TODO saved value
+    sikulixIDE.getActiveContext().focus();
   }
 
   //TODO initShortcutKey
@@ -851,6 +858,27 @@ public class SikulixIDE extends JFrame {
 
     public File getScreenshotFolder() {
       return new File(imageFolder, ImagePath.SCREENSHOT_DIRECTORY);
+    }
+
+    public File getScreenshotFile(String name) {
+      if (!FilenameUtils.getExtension(name).equals("png")) {
+        name += ".png";
+      }
+      File shot = new File(name);
+      if (!shot.isAbsolute()) {
+        shot = new File(getScreenshotFolder(), name);
+      }
+      if (shot.exists()) {
+        return shot;
+      }
+      return null;
+    }
+
+    public File getScreenshotFile(File shot) {
+      if (shot.exists()) {
+        return shot;
+      }
+      return null;
     }
 
     public boolean getShowThumbs() {

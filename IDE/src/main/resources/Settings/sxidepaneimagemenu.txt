@@ -1,0 +1,13 @@
+#globals; m 5; c; f 12; b 1; p 3
+
+#action; Rename; rename
+---
+#action; Optimize; optimize
+---
+#action; As Pattern; pattern
+---
+#action; Find; find
+---
+#action; Recapture; capture
+---3
+#close; ESC or Click; f 10
