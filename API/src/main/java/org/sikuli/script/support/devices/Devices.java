@@ -50,7 +50,7 @@ public abstract class Devices {
 
   public Devices init(Map<String, Object> options) {
     //TODO must be overwritten
-    Debug.error("stop: not implemented for %s", deviceType);
+    Debug.error("init: not implemented for %s", deviceType);
     return null;
   }
 

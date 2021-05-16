@@ -6,12 +6,12 @@ package org.sikuli.ide;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Sikulix;
-import org.sikuli.script.*;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScreen;
+import org.sikuli.script.Image;
+import org.sikuli.script.Key;
+import org.sikuli.script.Screen;
+import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SikuliIDEI18N;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
@@ -19,18 +19,14 @@ import org.sikuli.util.OverlayCapturePrompt;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.text.Element;
 import javax.swing.text.*;
-import java.awt.Component;
-import java.awt.Cursor;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-
-//import java.awt.Image;
 
 class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable, EventObserver {
 
@@ -89,12 +85,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   ScreenImage sImgNonLocal = null;
 
   public void capture(int delay) {
-    String line = "";
     if (SikulixIDE.notHidden()) {
-      // Set minimum delay if IDE is visible to give
-      // the IDE some time to vanish before taking the
-      // screenshot. IDE might already be hidden in
-      // in case of capture hot key.
       delay = Math.max(delay, 500);
       SikulixIDE.doHide();
     }
@@ -102,7 +93,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     givenName = SikulixIDE.get().getImageNameFromLine();
 
     RunTime.pause(delay);
-    Screen.doPrompt("Select an image", this);
+    OverlayCapturePrompt.capturePrompt(this, "Select an image");
 
 //TODO capture on Android
 //    defaultScreen = SikulixIDE.getDefaultScreen();
@@ -125,17 +116,23 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   @Override
   public void update(EventSubject event) {
-    Debug.log(3, "ButtonCapture: finished");
-    BufferedImage capturedImage;
+    BufferedImage capturedImage = null;
     BufferedImage screenShot = null;
     OverlayCapturePrompt ocp = (OverlayCapturePrompt) event;
-    if (ocp == null) { //TODO Android
-      capturedImage = sImgNonLocal.getImage();
+
+    if (!ocp.isCanceled()) {
+      Debug.log(3, "ButtonCapture: finished");
+      final ScreenImage selection = ocp.getSelection();
+      if (selection != null) {
+        capturedImage = selection.getImage();
+        screenShot = ocp.getOriginal().getImage();
+      }
     } else {
-      capturedImage = ocp.getSelection().getImage();
-      screenShot = ocp.getOriginal().getImage();
-      Screen.closePrompt();
+      Debug.log(3, "ButtonCapture: cancelled");
     }
+
+    ocp.close();
+
     if (capturedImage != null) {
       if (givenName.isEmpty()) {
         final PreferencesUser prefs = PreferencesUser.get();
@@ -168,26 +165,22 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 //          filename = ;
 //        }
       }
-    }
-    SikulixIDE.PaneContext context = SikulixIDE.get().getActiveContext();
-    final File imgFile = new File(context.getImageFolder(), givenName + ".png");
-    try {
-      ImageIO.write(capturedImage, "png",imgFile);
-      if (context.getScreenshotFolder().exists()) {
-        ImageIO.write(screenShot, "png", new File(context.getScreenshotFolder(), givenName + ".png"));
+      SikulixIDE.PaneContext context = SikulixIDE.get().getActiveContext();
+      final File imgFile = new File(context.getImageFolder(), givenName + ".png");
+      try {
+        ImageIO.write(capturedImage, "png", imgFile);
+        if (context.getScreenshotFolder().exists()) {
+          ImageIO.write(screenShot, "png", new File(context.getScreenshotFolder(), givenName + ".png"));
+        }
+      } catch (IOException e) {
       }
-    } catch (IOException e) {
+      if (context.getShowThumbs()) {
+        SikulixIDE.get().insertImageButton(context, imgFile);
+      } else {
+        context.getPane().insertString("\"" + givenName + "\"");
+      }
     }
-
-    if (context.getShowThumbs()) {
-      SikulixIDE.get().insertImageButton(context, imgFile);
-    } else {
-      context.getPane().insertString("\"" + givenName + "\"");
-    }
-
-    if (ocp != null) {
-      Screen.resetPrompt(ocp);
-    }
+    ScreenDevice.closeCapturePrompts();
     SikulixIDE.showAgain();
   }
 

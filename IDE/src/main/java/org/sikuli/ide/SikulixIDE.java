@@ -324,7 +324,7 @@ public class SikulixIDE extends JFrame {
   }
 
   public static void showAfterStart() {
-    while(!ideIsReady.get()) {
+    while (!ideIsReady.get()) {
       RunTime.pause(100);
     }
     org.sikuli.ide.Sikulix.stopSplash();
@@ -3063,57 +3063,34 @@ public class SikulixIDE extends JFrame {
       log("************** before RunScript"); //TODO
       //doBeforeQuitOrRun();
 
-      EditorPane editorPane = getCurrentCodePane();
+      SikulixIDE.getStatusbar().resetMessage();
+      SikulixIDE.doHide();
+
+      final PaneContext context = getActiveContext();
+      EditorPane editorPane = context.getPane();
       if (editorPane.getDocument().getLength() == 0) {
         log("Run script not possible: Script is empty");
         return;
       }
-      File scriptFile = editorPane.getCurrentFile();
-      if (editorPane.isDirty()) {
-        if (editorPane.isTemp()) {
-          scriptFile = editorPane.getCurrentFile();
-        } else {
-          scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension());
-        }
-        if (scriptFile != null) {
-          try {
-            editorPane.write(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(scriptFile), "UTF8")));
-          } catch (Exception ex) {
-            scriptFile = null;
-          }
-        }
-        if (scriptFile == null) {
-          log("Run Script: not yet saved: temp file for running not available");
-          return;
-        }
-      }
-      final File scriptFileToRun = scriptFile;
+      context.save();
 
       new Thread(new Runnable() {
         @Override
         public void run() {
-          synchronized (ideIsRunningScript) {
-            if (isRunningScript()) {
-              log("Run Script: not possible: already running another script");
+          if (System.out.checkError()) {
+            boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
+                + "\nYou will not see any messages anymore!"
+                + "\nSave your work and restart the IDE!"
+                + "\nYou may ignore this on your own risk!" +
+                "\nYes: continue  ---  No: back to IDE", "Fatal Error");
+            if (!shouldContinue) {
+              log("Run script aborted: System.out is broken (console output)");
+              SikulixIDE.showAgain();
               return;
             }
-            if (System.out.checkError()) {
-              boolean shouldContinue = Sikulix.popAsk("System.out is broken (console output)!"
-                  + "\nYou will not see any messages anymore!"
-                  + "\nSave your work and restart the IDE!"
-                  + "\nYou may ignore this on your own risk!" +
-                  "\nYes: continue  ---  No: back to IDE", "Fatal Error");
-              if (!shouldContinue) {
-                log("Run script aborted: System.out is broken (console output)");
-                return;
-              }
-              log("Run script continued, though System.out is broken (console output)");
-            }
-            sikulixIDE.setIsRunningScript(true);
+            log("Run script continued, though System.out is broken (console output)");
           }
 
-          SikulixIDE.getStatusbar().resetMessage();
-          SikulixIDE.doHide();
           RunTime.pause(0.1f);
           messages.clear();
           resetErrorMark();
@@ -3124,39 +3101,29 @@ public class SikulixIDE extends JFrame {
 
           int exitValue = -1;
           try {
-            IScriptRunner runner = editorPane.editorPaneRunner;
-            setCurrentRunner(runner);
-            setCurrentScript(scriptFileToRun);
+            IScriptRunner runner = context.getRunner();
             //TODO make reloadImported specific for each editor tab
             if (runner.getType().equals(JythonRunner.TYPE)) {
               JythonSupport.get().reloadImported();
             }
-            exitValue = runner.runScript(scriptFileToRun.getAbsolutePath(), Commons.getUserArgs(), runOptions);
+            exitValue = runner.runScript(context.getFile().getAbsolutePath(), Commons.getUserArgs(), runOptions);
           } catch (Exception e) {
             log("Run Script: internal error:");
             e.printStackTrace();
           } finally {
-            setCurrentRunner(null);
-            setCurrentScript(null);
             Runner.setLastScriptRunReturnCode(exitValue);
           }
 
           log("************** after RunScript");
           addErrorMark(runOptions.getErrorLine());
           if (Image.getIDEshouldReload()) {
-            EditorPane pane = getCurrentCodePane();
-            int line = pane.getLineNumberAtCaret(pane.getCaretPosition());
-            getCurrentCodePane().doReparse();
-            getCurrentCodePane().jumpTo(line);
+            int line = context.getPane().getLineNumberAtCaret(context.getPane().getCaretPosition());
+            context.getPane().doReparse();
+            context.getPane().jumpTo(line);
           }
 
           RunTime.cleanUpAfterScript();
           SikulixIDE.showAgain();
-
-          synchronized (ideIsRunningScript) {
-            setIsRunningScript(false);
-          }
-
         }
       }).start();
     }
@@ -3186,36 +3153,6 @@ public class SikulixIDE extends JFrame {
     }
 
   }
-
-  synchronized boolean isRunningScript() {
-    return ideIsRunningScript;
-  }
-
-  synchronized void setIsRunningScript(boolean state) {
-    ideIsRunningScript = state;
-  }
-
-  public Boolean ideIsRunningScript = false;
-
-  public IScriptRunner getCurrentRunner() {
-    return currentRunner;
-  }
-
-  public void setCurrentRunner(IScriptRunner currentRunner) {
-    this.currentRunner = currentRunner;
-  }
-
-  private IScriptRunner currentRunner = null;
-
-  public File getCurrentScript() {
-    return currentScript;
-  }
-
-  public void setCurrentScript(File currentScript) {
-    this.currentScript = currentScript;
-  }
-
-  private File currentScript = null;
 
   void addErrorMark(int line) {
     if (line < 1) {
@@ -3316,7 +3253,7 @@ public class SikulixIDE extends JFrame {
     HotkeyManager.getInstance().addHotkey("Capture", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
-        if (!isRunningScript()) {
+        if (sikulixIDE.isVisible()) {
           btnCapture.capture(0);
         }
       }

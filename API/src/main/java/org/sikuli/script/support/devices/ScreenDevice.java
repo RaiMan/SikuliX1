@@ -3,20 +3,28 @@ package org.sikuli.script.support.devices;
 import org.sikuli.script.Image;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
+import org.sikuli.script.support.IRobot;
+import org.sikuli.script.support.RobotDesktop;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.util.OverlayCapturePrompt;
+import org.w3c.dom.css.Rect;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScreenDevice extends Devices {
 
   private static TYPE deviceType = TYPE.SCREEN;
 
   private Rectangle bounds = null;
+
   private int id = -1;
+
+  public int getId() {
+    return id;
+  }
 
   static void start() {
     initDevices();
@@ -69,7 +77,7 @@ public class ScreenDevice extends Devices {
 
   private static int mainMonitor = -1;
   private static int nDevices;
-  private static ScreenDevice[] devices;
+  private static ScreenDevice[] devices = null;
 
   private static void initDevices() {
     if (mainMonitor > -1) {
@@ -124,6 +132,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static ScreenDevice[] get() {
+    if (devices == null) {
+      initDevices();
+    }
     return devices;
   }
 
@@ -150,6 +161,83 @@ public class ScreenDevice extends Devices {
     //TODO ScreenDevice.asImage: capture
     BufferedImage bImg = null;
     return new Image(bImg);
+  }
+
+  private static Robot robot;
+
+  public static Robot getRobot() {
+    if (robot == null) {
+      try {
+        robot = new Robot();
+      } catch (AWTException e) {
+        throw new RuntimeException(String.format("ScreenDevice: getRobot: %s", e.getMessage()));
+      }
+    }
+    return robot;
+  }
+
+
+  public BufferedImage capture() {
+    return getRobot().createScreenCapture(asRectangle());
+  }
+
+  private static AtomicBoolean capturePromptActive = new AtomicBoolean(false);
+
+  public static boolean capturePromptActive() {
+    synchronized (capturePromptActive) {
+      boolean state = capturePromptActive.get();
+      if (state == false) {
+        capturePromptActive.set(true);
+      }
+      return state;
+    }
+  }
+
+  public static void capturePromptClosed() {
+    capturePromptActive.set(false);
+  }
+
+  private OverlayCapturePrompt prompt = null;
+
+  public OverlayCapturePrompt getPrompt() {
+    return prompt;
+  }
+
+  public void setPrompt(OverlayCapturePrompt prompt) {
+    this.prompt = prompt;
+  }
+
+  public void showPrompt() {
+    if (prompt != null) {
+      prompt.prompt();
+    }
+  }
+
+  public void closePrompt() {
+    if (prompt != null) {
+      prompt.close();
+      prompt = null;
+    }
+  }
+
+  public boolean hasPrompt() {
+    return prompt != null;
+  }
+
+  public static void closeCapturePrompts() {
+    for (ScreenDevice screen : ScreenDevice.get()) {
+      screen.closePrompt();
+    }
+    capturePromptClosed();
+  }
+
+  public static void closeOtherCapturePrompts(ScreenDevice screen) {
+    for (ScreenDevice otherScreen : ScreenDevice.get()) {
+      if (otherScreen.equals(screen)) {
+        continue;
+      }
+      otherScreen.closePrompt();
+    }
   }
 
   public String toString() {

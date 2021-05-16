@@ -111,7 +111,7 @@ public class RunTime {
   }
 
   public static void cleanUpAfterScript() {
-    HotkeyManager.reset(true);
+    HotkeyManager.reset(false);
     HelpDevice.stopAll();
   }
   //</editor-fold>
