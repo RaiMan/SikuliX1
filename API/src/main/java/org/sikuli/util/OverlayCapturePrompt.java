@@ -4,11 +4,7 @@
 package org.sikuli.util;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.Location;
-import org.sikuli.script.Screen;
-import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScreen;
+//import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.devices.ScreenDevice;
 
 import javax.swing.*;
@@ -35,9 +31,9 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   static final BasicStroke _StrokeCross = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[]{2f}, 0);
   static final BasicStroke bs = new BasicStroke(1);
 
-  private ScreenImage scr_img_original = null;
+  private BufferedImage scr_img_original = null;
 
-  public ScreenImage getOriginal() {
+  public BufferedImage getOriginal() {
     return scr_img_original;
   }
 
@@ -72,15 +68,6 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
 
   private EventObserver captureObserver = null;
   private String message = "";
-
-  public OverlayCapturePrompt(IScreen scr) {
-    Debug.log(3, "TRACE: OverlayCapturePrompt: init: S(%d)", scr.getID());
-    screen = ScreenDevice.get(scr.getID());
-    if (scr.isOtherScreen()) {
-      isLocalScreen = false;
-    }
-    init();
-  }
 
   public OverlayCapturePrompt(ScreenDevice screen, EventObserver observer, String message) {
     this.screen = screen;
@@ -247,11 +234,11 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   }
 
   public void prompt(String msg) {
-    scr_img_original = new ScreenImage(screen.asRectangle(), screen.capture());
+    scr_img_original = screen.capture();
     if (Debug.getDebugLevel() > 2) {
       //TODO scr_img_original.getFile(Commons.getAppDataStore().getAbsolutePath(), "lastScreenShot");
     }
-    scr_img = scr_img_original.getImage();
+    scr_img = scr_img_original;
     scr_img_darker = scr_img;
     scr_img_type = scr_img.getType();
     scr_img_rect = screen.asRectangle();
@@ -298,7 +285,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     return hasFinished;
   }
 
-  public ScreenImage getSelection() {
+  public BufferedImage getSelectionImage() {
     if (canceled) {
       return null;
     }
@@ -308,10 +295,11 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     }
     rectSelected.x += screen.x();
     rectSelected.y += screen.y();
-    ScreenImage scrImage = new ScreenImage(rectSelected, cropImg);
-    scrImage.setStartEnd(new Location(screen.x() + srcx, screen.y() + srcy),
-        new Location(screen.x() + destx, screen.y() + desty));
-    return scrImage;
+    return cropImg;
+  }
+
+  public Rectangle getSelectionRectangle() {
+    return rectSelected;
   }
 
   private BufferedImage cropSelection() {
@@ -330,7 +318,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     BufferedImage crop = new BufferedImage(w, h, scr_img_type);
     Graphics2D crop_g2d = crop.createGraphics();
     try {
-      crop_g2d.drawImage(getOriginal().getImage().getSubimage(x, y, w, h), null, 0, 0);
+      crop_g2d.drawImage(getOriginal().getSubimage(x, y, w, h), null, 0, 0);
     } catch (RasterFormatException e) {
       Debug.error("OverlayCapturePrompt: cropSelection: RasterFormatException", e.getMessage());
     }

@@ -8,7 +8,6 @@ import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Image;
 import org.sikuli.script.Key;
-import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.devices.ScreenDevice;
@@ -122,10 +121,9 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
     if (!ocp.isCanceled()) {
       Debug.log(3, "ButtonCapture: finished");
-      final ScreenImage selection = ocp.getSelection();
-      if (selection != null) {
-        capturedImage = selection.getImage();
-        screenShot = ocp.getOriginal().getImage();
+      capturedImage = ocp.getSelectionImage();
+      if (capturedImage != null) {
+        screenShot = ocp.getOriginal();
       }
     } else {
       Debug.log(3, "ButtonCapture: cancelled");

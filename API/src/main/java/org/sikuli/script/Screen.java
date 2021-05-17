@@ -5,16 +5,18 @@ package org.sikuli.script;
 
 import java.awt.AWTException;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
 import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 
 /**
@@ -27,7 +29,7 @@ import org.sikuli.util.OverlayCapturePrompt;
  * the region of the screen more than once, you have to create new ones based on the screen.
  * <br>The so called primary screen is the one with top left (0,0) and has id 0.
  */
-public class Screen extends Region implements IScreen {
+public class Screen extends Region implements IScreen, EventObserver {
 
   protected static final String logName = "Screen: ";
 
@@ -638,56 +640,44 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public ScreenImage userCapture(final String message) {
-    if (!setActiveCapturePrompt()) {
-      return null;
-    }
     Debug.log(3, "TRACE: Screen: userCapture");
-    waitPrompt = true;
+    userCaptureActive.set(true);
+    capturedImage = null;
     Thread th = new Thread() {
       @Override
       public void run() {
         String msg = message.isEmpty() ? promptMsg : message;
-        for (int is = 0; is < Screen.getNumberScreens(); is++) {
-          if (ignorePrimaryAtCapture && is == 0) {
-            continue;
-          }
-          Screen.getScreen(is).prompt = new OverlayCapturePrompt(Screen.getScreen(is));
-          Screen.getScreen(is).prompt.addObserver(captureObserver);
-          Screen.getScreen(is).prompt.prompt(msg);
-        }
+        userCaptureActive.set(OverlayCapturePrompt.capturePrompt(Screen.this, msg));
       }
     };
     th.start();
-    if (captureObserver != null) {
-      return null;
+    while (userCaptureActive.get()) {
+      RunTime.pause(500);
     }
-    boolean isComplete = false;
-    ScreenImage simg = null;
-    int count = 0;
-    while (!isComplete) {
-      this.wait(0.1f);
-      if (count++ > waitForScreenshot) {
-        break;
-      }
-      for (int is = 0; is < Screen.getNumberScreens(); is++) {
-        OverlayCapturePrompt ocp = Screen.getScreen(is).prompt;
-        if (ocp == null) {
-          continue;
-        }
-        if (ocp.isComplete()) {
-          closePrompt(Screen.getScreen(is));
-          simg = ocp.getSelection();
-          if (simg != null) {
-            Screen.getScreen(is).lastScreenImage = simg;
-          }
-          ocp.close();
-          Screen.getScreen(is).prompt = null;
-          isComplete = true;
-        }
+    if (capturedImage != null) {
+      return new ScreenImage(capturedRectangle, capturedImage);
+    }
+    return null;
+  }
+
+  AtomicBoolean userCaptureActive = new AtomicBoolean(false);
+  BufferedImage capturedImage = null;
+  BufferedImage screenShot = null;
+  Rectangle capturedRectangle = null;
+
+  @Override
+  public void update(EventSubject event) {
+    OverlayCapturePrompt ocp = (OverlayCapturePrompt) event;
+    if (!ocp.isCanceled()) {
+      capturedImage = ocp.getSelectionImage();
+      if (capturedImage != null) {
+        screenShot = ocp.getOriginal();
+        capturedRectangle = ocp.getSelectionRectangle();
       }
     }
-    resetActiveCapturePrompt();
-    return simg;
+    ocp.close();
+    ScreenDevice.closeCapturePrompts();
+    userCaptureActive.set(false);
   }
 
   /**

@@ -46,7 +46,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
   @Override
   public void update(EventSubject es) {
     OverlayCapturePrompt ocp = (OverlayCapturePrompt) es;
-    ScreenImage simg = ocp.getSelection();
+    ScreenImage simg = null; //TODO ocp.getSelection();
     Screen.closePrompt();
     if (simg != null) {
       try {
