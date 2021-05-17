@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable, EventObserver {
+class ButtonCapture extends ButtonOnToolbar implements Cloneable, EventObserver {
 
   private static final String me = "ButtonCapture: ";
   protected EditorPane _codePane;
@@ -39,35 +39,14 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
 
   public ButtonCapture() {
     super();
-    URL imageURL = SikulixIDE.class.getResource("/icons/sxcapture-x.png");
-    setIcon(new ImageIcon(imageURL));
+    buttonText = SikulixIDE._I("btnCaptureLabel");
     PreferencesUser pref = PreferencesUser.get();
     String strHotkey = Key.convertKeyToText(
         pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
-    setToolTipText(SikulixIDE._I("btnCaptureHint", strHotkey));
-    setText(SikulixIDE._I("btnCaptureLabel"));
-    addActionListener(this);
+    buttonHint = SikulixIDE._I("btnCaptureHint", strHotkey);
+    iconFile = "/icons/sxcapture-x.png";
+    init();
   }
-
-//  public ButtonCapture(EditorPane codePane, Element elmLine) {
-//    this();
-//    _line = elmLine;
-//    _codePane = codePane;
-//    setUI(UIManager.getUI(this));
-//    setBorderPainted(true);
-//    setCursor(new Cursor(Cursor.HAND_CURSOR));
-//    setText(null);
-//    URL imageURL = SikulixIDE.class.getResource("/icons/capture-small.png");
-//    setIcon(new ImageIcon(imageURL));
-//  }
-
-//  public ButtonCapture(EditorPatternLabel lbl) {
-//    // for internal use with the image label __CLICK-TO-CAPTURE__
-//    super();
-//    _line = null;
-//    _codePane = null;
-//    _lbl = lbl;
-//  }
 
   @Override
   public void actionPerformed(ActionEvent e) {
@@ -173,7 +152,7 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       } catch (IOException e) {
       }
       if (context.getShowThumbs()) {
-        SikulixIDE.get().insertImageButton(context, imgFile);
+        context.insertImageButton(imgFile);
       } else {
         context.getPane().insertString("\"" + givenName + "\"");
       }

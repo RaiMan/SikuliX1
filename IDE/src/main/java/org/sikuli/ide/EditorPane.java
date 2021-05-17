@@ -233,18 +233,6 @@ public class EditorPane extends JTextPane {
 
   File editorPaneFileToRun = null;
 
-   private boolean readContent(String script) {
-    InputStreamReader isr;
-    try {
-      isr = new InputStreamReader(new ByteArrayInputStream(script.getBytes(Charset.forName("utf-8"))), Charset.forName("utf-8"));
-      read(new BufferedReader(isr), null);
-    } catch (Exception ex) {
-      error("readContent: from String (%s)", ex.getMessage());
-      return false;
-    }
-    return true;
-  }
-
   public boolean isText() {
     return paneType == TextRunner.TYPE;
   }
@@ -297,7 +285,7 @@ public class EditorPane extends JTextPane {
 
   static boolean isPossibleBundle(String fileName) {
     if (FilenameUtils.getExtension(fileName).isEmpty() ||
-            FilenameUtils.getExtension(fileName).equals("sikuli")) {
+        FilenameUtils.getExtension(fileName).equals("sikuli")) {
       return true;
     }
     return false;
@@ -598,14 +586,6 @@ public class EditorPane extends JTextPane {
     parse(root);
   }
 
-  public void doReparse() {
-    saveCaretPosition();
-    readContent(getText());
-    updateDocumentListeners("reparse");
-    doParse();
-    restoreCaretPosition();
-  }
-
   public String parseLineText(String line) {
     Matcher mR = patRegionStr.matcher(line);
     String asOffset = ".asOffset()";
@@ -757,11 +737,11 @@ public class EditorPane extends JTextPane {
   static Pattern patPngStr = Pattern.compile("(\"[^\"]+?\\.(?i)(png|jpg|jpeg)\")");
   static Pattern patCaptureBtn = Pattern.compile("(\"__CLICK-TO-CAPTURE__\")");
   static Pattern patPatternStr = Pattern.compile(
-          "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
+      "\\b(Pattern\\s*\\(\".*?\"\\)(\\.\\w+\\([^)]*\\))+)");
   static Pattern patRegionStr = Pattern.compile(
-          "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Region\\s*\\((-?[\\d\\s],?)+\\))");
   static Pattern patLocationStr = Pattern.compile(
-          "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
+      "\\b(Location\\s*\\((-?[\\d\\s],?)+\\))");
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 dirty handling">
@@ -890,7 +870,7 @@ public class EditorPane extends JTextPane {
           for (Map.Entry<String, String> entry : _copiedImgs.entrySet()) {
             String imgName = entry.getKey();
             String imgPath = entry.getValue();
-            File destFile = targetTextPane.copyFileToBundle(imgPath);
+            File destFile = targetTextPane.copyFileToBundle(new File(imgPath));
             String newName = destFile.getName();
             if (!newName.equals(imgName)) {
               String ptnImgName = "\"" + imgName + "\"";
@@ -909,17 +889,17 @@ public class EditorPane extends JTextPane {
     }
   }
 
-  public File copyFileToBundle(String filename) {
-    File f = new File(filename);
+  public File copyFileToBundle(File file) {
+    String filename = file.getAbsolutePath();
     String bundlePath = context.getImageFolder().getAbsolutePath();
-    if (f.exists()) {
+    if (file.exists()) {
       try {
         File newFile = FileManager.smartCopy(filename, bundlePath);
         return newFile;
       } catch (IOException e) {
         error("copyFileToBundle: Problem while trying to save %s\n%s",
-                filename, e.getMessage());
-        return f;
+            filename, e.getMessage());
+        return file;
       }
     }
     return null;

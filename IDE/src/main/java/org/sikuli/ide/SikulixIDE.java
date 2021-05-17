@@ -24,6 +24,7 @@ import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.Recorder;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.support.gui.SikuliIDEI18N;
@@ -501,104 +502,8 @@ public class SikulixIDE extends JFrame {
     }
     context.pos = contexts.size();
     context.create();
-    doShowThumbs(context);
+    context.doShowThumbs();
     context.notDirty();
-  }
-
-  private void doShowThumbs(PaneContext context) {
-    if (context.getShowThumbs()) {
-      final EditorPane pane = context.getPane();
-      List<Map<String, Object>> images = new ArrayList<>();
-      List<Map<String, Object>> patterns = new ArrayList<>();
-      String[] text = pane.getText().split("\n");
-      if (text.length > 0) {
-        images = imageMatcher(context, images, text, Pattern.compile(".*?(\".*?\")"));
-        images = imageMatcher(context, images, text, Pattern.compile(".*?('.*?')"));
-        patterns = patternMatcher(context, images, text);
-      }
-      if (images.size() > 0 || patterns.size() > 0) {
-        for (Map<String, Object> item : images) {
-          final EditorImageButton button = new EditorImageButton(item);
-
-          int itemStart = context.getLineStart((Integer) item.get(IButton.LINE)) + (Integer) item.get(IButton.TOFF);
-          int itemEnd = itemStart + ((String) item.get(IButton.TEXT)).length();
-          pane.select(itemStart, itemEnd);
-          pane.insertComponent(button);
-        }
-        pane.setCaretPosition(0);
-      }
-      log("ImageButtons: images(%d) patterns(%d)", images.size(), patterns.size());
-    }
-  }
-
-  private List<Map<String, Object>> patternMatcher(PaneContext context, List<Map<String, Object>> images, String[] text) {
-    List<Map<String, Object>> patterns = new ArrayList<>();
-    for (Map<String, Object> match : images) {
-      //TODO patternMatcher
-    }
-    return patterns;
-  }
-
-  private List<Map<String, Object>> imageMatcher(PaneContext context, List<Map<String, Object>> images, String[] text, Pattern pat) {
-    int lnNbr = 0;
-    for (String line : text) {
-      line = line.strip();
-      Matcher matcher = pat.matcher(line);
-      if (line.contains("\"\"\"") || line.contains("'''")) {
-        continue;
-      }
-      while (matcher.find()) {
-        String match = matcher.group(1);
-        if (match != null) {
-          int start = matcher.start(1);
-          String imgName = match.substring(1, match.length() - 1);
-          final File imgFile = imageExists(context, imgName);
-          if (imgFile != null) {
-            Map<String, Object> options = new HashMap<>();
-            options.put(IButton.TEXT, match);
-            options.put(IButton.LINE, lnNbr);
-            options.put(IButton.TOFF, start);
-            options.put(IButton.FILE, imgFile);
-            images.add(options);
-          }
-        }
-      }
-      lnNbr++;
-    }
-    return images;
-  }
-
-  private File imageExists(PaneContext context, String imgName) {
-    String orgName = imgName;
-    imgName = FilenameUtils.normalizeNoEndSeparator(imgName, true);
-    imgName = imgName.replaceAll("//", "/");
-    String ext;
-    try {
-      ext = FilenameUtils.getExtension(imgName);
-    } catch (Exception e) {
-      return null;
-    }
-    File folder = context.getImageFolder();
-    if (ext.isEmpty()) {
-      ext = "png";
-      imgName += ".png";
-    }
-    if ("png;jpg;jpeg;".contains(ext + ";")) {
-      File imgFile = new File(imgName);
-      if (!imgFile.isAbsolute()) {
-        imgFile = new File(folder, imgName);
-      }
-      if (imgFile.exists()) {
-        log("%s (%s)", orgName, imgFile);
-        return imgFile;
-      }
-    }
-    return null;
-  }
-
-  public void insertImageButton(PaneContext context, File imgFile) {
-    final EditorImageButton button = new EditorImageButton(imgFile);
-    context.getPane().insertComponent(button);
   }
 
   int alreadyOpen(File file) {
@@ -1180,6 +1085,124 @@ public class SikulixIDE extends JFrame {
         pane.loadContent(isr);
       } catch (Exception ex) {
         log("PaneContext: loadString: ERROR(%s)", ex.getMessage());
+        return false;
+      }
+      return true;
+    }
+
+    void reparse() {
+      pane.saveCaretPosition();
+      if (getShowThumbs()) {
+        doShowThumbs();
+      } else {
+        resetContentToText();
+      }
+      pane.restoreCaretPosition();
+    }
+
+    private void doShowThumbs() {
+      if (getShowThumbs()) {
+        List<Map<String, Object>> images = new ArrayList<>();
+        List<Map<String, Object>> patterns = new ArrayList<>();
+        String[] text = pane.getText().split("\n");
+        if (text.length > 0) {
+          images = imageMatcher(images, text, Pattern.compile(".*?(\".*?\")"));
+          images = imageMatcher(images, text, Pattern.compile(".*?('.*?')"));
+          patterns = patternMatcher(images, text);
+        }
+        if (images.size() > 0 || patterns.size() > 0) {
+          for (Map<String, Object> item : images) {
+            final EditorImageButton button = new EditorImageButton(item);
+
+            int itemStart = getLineStart((Integer) item.get(IButton.LINE)) + (Integer) item.get(IButton.TOFF);
+            int itemEnd = itemStart + ((String) item.get(IButton.TEXT)).length();
+            pane.select(itemStart, itemEnd);
+            pane.insertComponent(button);
+          }
+          pane.setCaretPosition(0);
+        }
+        log("ImageButtons: images(%d) patterns(%d)", images.size(), patterns.size());
+      }
+    }
+
+    private List<Map<String, Object>> patternMatcher(List<Map<String, Object>> images, String[] text) {
+      List<Map<String, Object>> patterns = new ArrayList<>();
+      for (Map<String, Object> match : images) {
+        //TODO patternMatcher
+      }
+      return patterns;
+    }
+
+    private List<Map<String, Object>> imageMatcher(List<Map<String, Object>> images, String[] text, Pattern pat) {
+      int lnNbr = 0;
+      for (String line : text) {
+        line = line.strip();
+        Matcher matcher = pat.matcher(line);
+        if (line.contains("\"\"\"") || line.contains("'''")) {
+          continue;
+        }
+        while (matcher.find()) {
+          String match = matcher.group(1);
+          if (match != null) {
+            int start = matcher.start(1);
+            String imgName = match.substring(1, match.length() - 1);
+            final File imgFile = imageExists(imgName);
+            if (imgFile != null) {
+              Map<String, Object> options = new HashMap<>();
+              options.put(IButton.TEXT, match);
+              options.put(IButton.LINE, lnNbr);
+              options.put(IButton.TOFF, start);
+              options.put(IButton.FILE, imgFile);
+              images.add(options);
+            }
+          }
+        }
+        lnNbr++;
+      }
+      return images;
+    }
+
+    private File imageExists(String imgName) {
+      String orgName = imgName;
+      imgName = FilenameUtils.normalizeNoEndSeparator(imgName, true);
+      imgName = imgName.replaceAll("//", "/");
+      String ext;
+      try {
+        ext = FilenameUtils.getExtension(imgName);
+      } catch (Exception e) {
+        return null;
+      }
+      File folder = getImageFolder();
+      if (ext.isEmpty()) {
+        ext = "png";
+        imgName += ".png";
+      }
+      if ("png;jpg;jpeg;".contains(ext + ";")) {
+        File imgFile = new File(imgName);
+        if (!imgFile.isAbsolute()) {
+          imgFile = new File(folder, imgName);
+        }
+        if (imgFile.exists()) {
+          log("%s (%s)", orgName, imgFile);
+          return imgFile;
+        }
+      }
+      return null;
+    }
+
+    public void insertImageButton(File imgFile) {
+      final EditorImageButton button = new EditorImageButton(imgFile);
+      pane.insertComponent(button);
+    }
+
+    public boolean resetContentToText() {
+      InputStreamReader isr;
+      try {
+        isr = new InputStreamReader(new ByteArrayInputStream(
+            pane.getText().getBytes(Charset.forName("utf-8"))), Charset.forName("utf-8"));
+        pane.read(new BufferedReader(isr), null);
+      } catch (Exception ex) {
+        error("readContent: from String (%s)", ex.getMessage());
         return false;
       }
       return true;
@@ -2265,8 +2288,8 @@ public class SikulixIDE extends JFrame {
         }
       }
       boolean showThumbsState = chkShowThumbs.getState();
-      getCurrentCodePane().context.setShowThumbs(showThumbsState);
-      getCurrentCodePane().doReparse();
+      getActiveContext().setShowThumbs(showThumbsState);
+      getActiveContext().reparse();
       return;
     }
   }
@@ -2639,24 +2662,21 @@ public class SikulixIDE extends JFrame {
   private JToolBar initToolbar() {
     JToolBar toolbar = new JToolBar();
     JButton btnInsertImage = new ButtonInsertImage();
-    JButton btnSubregion = new ButtonSubregion().init();
-    JButton btnLocation = new ButtonLocation().init();
-    JButton btnOffset = new ButtonOffset().init();
+    JButton btnSubregion = new ButtonSubregion();
+    JButton btnLocation = new ButtonLocation();
+    JButton btnOffset = new ButtonOffset();
 //TODO ButtonShow/ButtonShowIn
-/*
-    JButton btnShow = new ButtonShow().init();
-    JButton btnShowIn = new ButtonShowIn().init();
-*/
+    JButton btnShow = new ButtonShow();
+    JButton btnShowIn = new ButtonShowIn();
+
     btnCapture = new ButtonCapture();
     toolbar.add(btnCapture);
     toolbar.add(btnInsertImage);
     toolbar.add(btnSubregion);
     toolbar.add(btnLocation);
     toolbar.add(btnOffset);
-/*
     toolbar.add(btnShow);
     toolbar.add(btnShowIn);
-*/
     toolbar.add(Box.createHorizontalGlue());
     btnRun = new ButtonRun();
     toolbar.add(btnRun);
@@ -2664,117 +2684,100 @@ public class SikulixIDE extends JFrame {
     toolbar.add(btnRunSlow);
     toolbar.add(Box.createHorizontalGlue());
 
-//    JComponent jcSearchField = createSearchField();
-//    toolbar.add(jcSearchField);
-
     toolbar.add(Box.createRigidArea(new Dimension(7, 0)));
     toolbar.setFloatable(false);
-    //toolbar.setMargin(new Insets(0, 0, 0, 5));
 
     btnRecord = new ButtonRecord();
     toolbar.add(btnRecord);
 
+//    JComponent jcSearchField = createSearchField();
+//    toolbar.add(jcSearchField);
+
     return toolbar;
   }
 
-  class ButtonInsertImage extends ButtonOnToolbar implements ActionListener {
+  class ButtonInsertImage extends ButtonOnToolbar {
 
     ButtonInsertImage() {
       super();
-      URL imageURL = SikulixIDE.class.getResource("/icons/insert-image-icon.png");
-      setIcon(new ImageIcon(imageURL));
-      setText(SikulixIDE._I("btnInsertImageLabel"));
-      //setMaximumSize(new Dimension(26,26));
-      setToolTipText(SikulixIDE._I("btnInsertImageHint"));
-      addActionListener(this);
+      buttonText = SikulixIDE._I("btnInsertImageLabel");
+      buttonHint = SikulixIDE._I("btnInsertImageHint");
+      iconFile = "/icons/insert-image-icon.png";
+      init();
     }
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-      EditorPane codePane = getCurrentCodePane();
+      final String name = sikulixIDE.getImageNameFromLine();
+      final PaneContext context = getActiveContext();
+      EditorPane codePane = context.getPane();
       File file = new SikulixFileChooser(ideWindow).loadImage();
       if (file == null) {
         return;
       }
-      String path = FileManager.slashify(file.getAbsolutePath(), false);
-      Debug.info("load image: " + path);
-      EditorPatternButton icon;
-      String img = codePane.copyFileToBundle(path).getAbsolutePath();
-      if (prefs.getDefaultThumbHeight() > 0) {
-        icon = new EditorPatternButton(codePane, img);
-        codePane.insertComponent(icon);
+      File imgFile = codePane.copyFileToBundle(file); //TODO context
+      if (!name.isEmpty()) {
+        final File newFile = new File(imgFile.getParentFile(), name + "." + FilenameUtils.getExtension(imgFile.getName()));
+        if (!newFile.exists()) {
+          imgFile.renameTo(newFile);
+        } else {
+          final String msg = String.format("%s already exists - stored as %s", newFile.getName(), imgFile.getName());
+          Sikulix.popError(msg, "IDE: Insert Image");
+        }
+      }
+      if (context.getShowThumbs()) {
+        codePane.insertComponent(new EditorImageButton(imgFile));
       } else {
-        codePane.insertString("\"" + (new File(img)).getName() + "\"");
+        codePane.insertString("\"" + imgFile.getName() + "\"");
       }
     }
   }
 
-  class ButtonSubregion extends ButtonOnToolbar implements ActionListener, EventObserver {
+  class ButtonSubregion extends ButtonOnToolbar implements EventObserver {
 
     String promptText;
-    String buttonText;
-    String iconFile;
-    String buttonHint;
+    Point start = new Point(0, 0);
+    Point end = new Point(0, 0);
 
     ButtonSubregion() {
       super();
-      promptText = SikulixIDE._I("msgCapturePrompt");
       buttonText = "Region"; // SikuliIDE._I("btnRegionLabel");
-      iconFile = "/icons/region-icon.png";
       buttonHint = SikulixIDE._I("btnRegionHint");
-    }
-
-    ButtonSubregion init() {
-      URL imageURL = SikulixIDE.class.getResource(iconFile);
-      setIcon(new ImageIcon(imageURL));
-      setText(buttonText);
-      //setMaximumSize(new Dimension(26,26));
-      setToolTipText(buttonHint);
-      addActionListener(this);
-      return this;
+      iconFile = "/icons/region-icon.png";
+      promptText = SikulixIDE._I("msgCapturePrompt");
+      init();
     }
 
     @Override
-    public void actionPerformed(ActionEvent ae) {
+    public void runAction(ActionEvent ae) {
       if (shouldRun()) {
-        ideWindow.setVisible(false);
-        RunTime.pause(0.5f);
-        Screen.doPrompt(promptText, this);
-      } else {
-        nothingTodo();
+        OverlayCapturePrompt.capturePrompt(this, promptText);
       }
-    }
-
-    void nothingTodo() {
-    }
-
-    boolean shouldRun() {
-      log("TRACE: ButtonSubRegion triggered");
-      return true;
     }
 
     @Override
     public void update(EventSubject es) {
       OverlayCapturePrompt ocp = (OverlayCapturePrompt) es;
-      ScreenImage simg = null; //TODO ocp.getSelection();
-      Screen.closePrompt();
-      Screen.resetPrompt(ocp);
-      captureComplete(simg);
+      Rectangle selectedRectangle = ocp.getSelectionRectangle();
+      start = ocp.getStart();
+      end = ocp.getEnd();
+      ocp.close();
+      ScreenDevice.closeCapturePrompts();
+      captureComplete(selectedRectangle);
       SikulixIDE.showAgain();
     }
 
-    void captureComplete(ScreenImage simg) {
+    void captureComplete(Rectangle selectedRectangle) {
       int x, y, w, h;
       EditorPane codePane = getCurrentCodePane();
-      if (simg != null) {
-        Rectangle roi = simg.getROI();
+      if (selectedRectangle != null) {
+        Rectangle roi = selectedRectangle;
         x = (int) roi.getX();
         y = (int) roi.getY();
         w = (int) roi.getWidth();
         h = (int) roi.getHeight();
-        ideWindow.setVisible(false);
         if (codePane.context.getShowThumbs()) {
-          if (prefs.getPrefMoreImageThumbs()) {
+          if (prefs.getPrefMoreImageThumbs()) { //TODO
             codePane.insertComponent(new EditorRegionButton(codePane, x, y, w, h));
           } else {
             codePane.insertComponent(new EditorRegionLabel(codePane,
@@ -2791,17 +2794,18 @@ public class SikulixIDE extends JFrame {
 
     ButtonLocation() {
       super();
-      promptText = "Select a Location";
       buttonText = "Location";
+      buttonHint = "Location as center of selection";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Define a Location as center of your selection";
+      promptText = "Select a Location";
+      init();
     }
 
     @Override
-    public void captureComplete(ScreenImage simg) {
+    public void captureComplete(Rectangle selectedRectangle) {
       int x, y, w, h;
-      if (simg != null) {
-        Rectangle roi = simg.getROI();
+      if (selectedRectangle != null) {
+        Rectangle roi = selectedRectangle;
         x = (int) (roi.getX() + roi.getWidth() / 2);
         y = (int) (roi.getY() + roi.getHeight() / 2);
         getCurrentCodePane().insertString(String.format("Location(%d, %d)", x, y));
@@ -2813,21 +2817,22 @@ public class SikulixIDE extends JFrame {
 
     ButtonOffset() {
       super();
-      promptText = "Select an Offset";
       buttonText = "Offset";
+      buttonHint = "Offset as width/height of selection";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Define an Offset as width and height of your selection";
+      promptText = "Select an Offset";
+      init();
     }
 
     @Override
-    public void captureComplete(ScreenImage simg) {
+    public void captureComplete(Rectangle selectedRectangle) {
       int x, y, ox, oy;
-      if (simg != null) {
-        Rectangle roi = simg.getROI();
+      if (selectedRectangle != null) {
+        Rectangle roi = selectedRectangle;
         ox = (int) roi.getWidth();
         oy = (int) roi.getHeight();
-        Location start = simg.getStart();
-        Location end = simg.getEnd();
+        Location start = new Location(super.start);
+        Location end = new Location(super.end);
         if (end.x < start.x) {
           ox *= -1;
         }
@@ -2839,37 +2844,22 @@ public class SikulixIDE extends JFrame {
     }
   }
 
-  class ButtonShow extends ButtonOnToolbar implements ActionListener {
-
-    String buttonText;
-    String iconFile;
-    String buttonHint;
+  class ButtonShow extends ButtonOnToolbar {
 
     ButtonShow() {
       super();
       buttonText = "Show";
+      buttonHint = "Find and highlight the image in current line";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Find and highlight the image in the line having the cursor";
-    }
-
-    ButtonShow init() {
-      URL imageURL = SikulixIDE.class.getResource(iconFile);
-      setIcon(new ImageIcon(imageURL));
-      setText(buttonText);
-      //setMaximumSize(new Dimension(26,26));
-      setToolTipText(buttonHint);
-      addActionListener(this);
-      return this;
+      init();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      String line = "";
-      EditorPane codePane = getCurrentCodePane();
-      line = codePane.getLineTextAtCaret();
+      EditorPane codePane = getActiveContext().getPane();
+      String line = codePane.getLineTextAtCaret();
       final String item = codePane.parseLineText(line);
       if (!item.isEmpty()) {
-//TODO ButtonShow action performed
         SikulixIDE.doHide();
         new Thread(new Runnable() {
           @Override
@@ -2890,7 +2880,7 @@ public class SikulixIDE extends JFrame {
               eval = "m = Screen.all().exists(" + item + ", 0); ";
               eval += "if (m != null) m.highlight(2);";
             }
-            log("ButtonShow:\n%s", eval);
+            log("ButtonShow:\n%s", eval); //TODO eval ButtonShow
             SikulixIDE.doShow();
           }
         }).start();
@@ -2911,13 +2901,12 @@ public class SikulixIDE extends JFrame {
     ButtonShowIn() {
       super();
       buttonText = "Show in";
+      buttonHint = "Like Show, but in selected region";
       iconFile = "/icons/region-icon.png";
-      buttonHint = "Same as Show, but in the selected region";
+      init();
     }
 
-    @Override
     public boolean shouldRun() {
-      log("TRACE: ButtonShowIn triggered");
       EditorPane codePane = getCurrentCodePane();
       String line = codePane.getLineTextAtCaret();
       item = codePane.parseLineText(line);
@@ -2936,18 +2925,9 @@ public class SikulixIDE extends JFrame {
       return !item.isEmpty();
     }
 
-    @Override
-    void nothingTodo() {
-      Sikulix.popup("ButtonShowIn: Nothing to show!" +
-          "\nThe line with the cursor should contain:" +
-          "\n- an image file name or" +
-          "\n- a Pattern with an image file name");
-    }
-
-    @Override
-    public void captureComplete(ScreenImage simg) {
-      if (simg != null) {
-        Region reg = new Region(simg.getROI());
+    public void captureComplete(Rectangle selectedRectangle) {
+      if (selectedRectangle != null) {
+        Region reg = new Region(selectedRectangle);
         String itemReg = String.format("new Region(%d, %d, %d, %d)", reg.x, reg.y, reg.w, reg.h);
         item = item.replace("#region#", itemReg);
         final String evalText = item;
@@ -2961,12 +2941,15 @@ public class SikulixIDE extends JFrame {
         RunTime.pause(2.0f);
       } else {
         SikulixIDE.showAgain();
-        nothingTodo();
+        Sikulix.popup("ButtonShowIn: Nothing to show!" +
+            "\nThe line with the cursor should contain:" +
+            "\n- an image file name or" +
+            "\n- a Pattern with an image file name");
       }
     }
   }
 
-  class ButtonRecord extends ButtonOnToolbar implements ActionListener {
+  class ButtonRecord extends ButtonOnToolbar {
 
     private Recorder recorder = new Recorder();
 
@@ -2998,7 +2981,8 @@ public class SikulixIDE extends JFrame {
       SikulixIDE.showAgain();
 
       if (isRunning()) {
-        EditorPane pane = getCurrentCodePane();
+        PaneContext context = getActiveContext();
+        EditorPane pane = context.getPane();
         ICodeGenerator generator = pane.getCodeGenerator();
 
         ProgressMonitor progress = new ProgressMonitor(pane, _I("processingWorkflow"), "", 0, 0);
@@ -3014,7 +2998,7 @@ public class SikulixIDE extends JFrame {
 
               EventQueue.invokeLater(() -> {
                 pane.insertString("\n" + String.join("\n", actionStrings) + "\n");
-                pane.doReparse();
+                context.reparse();
               });
             }
           } finally {
@@ -3031,7 +3015,7 @@ public class SikulixIDE extends JFrame {
 //</editor-fold>
 
   //<editor-fold desc="21 Init Run Buttons">
-  class ButtonRun extends ButtonOnToolbar implements ActionListener {
+  class ButtonRun extends ButtonOnToolbar {
 
     private Thread thread = null;
 
@@ -3118,7 +3102,7 @@ public class SikulixIDE extends JFrame {
           addErrorMark(runOptions.getErrorLine());
           if (Image.getIDEshouldReload()) {
             int line = context.getPane().getLineNumberAtCaret(context.getPane().getCaretPosition());
-            context.getPane().doReparse();
+            context.reparse();
             context.getPane().jumpTo(line);
           }
 

@@ -57,16 +57,16 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   private int scr_img_type = BufferedImage.TYPE_INT_RGB;
   private double scr_img_scale = 1;
   private Rectangle scr_img_rect = null;
-  private int destMinX, destMaxX, destMinY, destMaxY;
 
   private boolean isLocalScreen = true;
 
   private ScreenDevice screen;
 
   private Rectangle rectSelected = new Rectangle();
-  private int srcx, srcy, destx, desty;
+  private int startX, startY, endX, endY;
+  private int endMinX, endMaxX, endMinY, endMaxY;
 
-  private EventObserver captureObserver = null;
+  private EventObserver captureObserver;
   private String message = "";
 
   public OverlayCapturePrompt(ScreenDevice screen, EventObserver observer, String message) {
@@ -142,15 +142,15 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
       return;
     }
     hasStarted = true;
-    destx = srcx = event.getX();
-    desty = srcy = event.getY();
+    endX = startX = event.getX();
+    endY = startY = event.getY();
     if (isLocalScreen) {
       Debug.log(3, "CapturePrompt: started at (%d,%d) on S(%d)",
-          screen.x() + srcx, screen.y() + srcy, screen.getId());
-      destMinX = 0;
-      destMaxX = screen.width() - 1;
-      destMinY = 0;
-      destMaxY = screen.height() - 1;
+          screen.x() + startX, screen.y() + startY, screen.getId());
+      endMinX = 0;
+      endMaxX = screen.width() - 1;
+      endMinY = 0;
+      endMaxY = screen.height() - 1;
     }
     message = null;
     repaint();
@@ -166,7 +166,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     } else {
       if (isLocalScreen) {
         Debug.log(3, "CapturePrompt: finished at (%d,%d) on S(%d)",
-            screen.x() + destx, screen.y() + desty, screen.getId());
+            screen.x() + endX, screen.y() + endY, screen.getId());
       }
     }
     hasFinished = true;
@@ -194,8 +194,8 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
       ScreenDevice.closeOtherCapturePrompts(screen);
       dragging = true;
     }
-    destx = event.getX();
-    desty = event.getY();
+    endX = event.getX();
+    endY = event.getY();
     repaint();
   }
 
@@ -285,6 +285,14 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     return hasFinished;
   }
 
+  public Point getStart() {
+    return new Point(startX, startY);
+  }
+
+  public Point getEnd() {
+    return new Point(endX, endY);
+  }
+
   public BufferedImage getSelectionImage() {
     if (canceled) {
       return null;
@@ -346,21 +354,21 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   }
 
   private void drawSelection(Graphics2D g2d) {
-    if (srcx != destx || srcy != desty) {
-      if (destx < destMinX) {
-        destx = destMinX;
-      } else if (destx > destMaxX) {
-        destx = destMaxX;
+    if (startX != endX || startY != endY) {
+      if (endX < endMinX) {
+        endX = endMinX;
+      } else if (endX > endMaxX) {
+        endX = endMaxX;
       }
-      if (desty < destMinY) {
-        desty = destMinY;
-      } else if (desty > destMaxY) {
-        desty = destMaxY;
+      if (endY < endMinY) {
+        endY = endMinY;
+      } else if (endY > endMaxY) {
+        endY = endMaxY;
       }
-      rectSelected.x = Math.min(srcx, destx);
-      rectSelected.y = Math.min(srcy, desty);
-      int xEnd = Math.max(srcx, destx);
-      int yEnd = Math.max(srcy, desty);
+      rectSelected.x = Math.min(startX, endX);
+      rectSelected.y = Math.min(startY, endY);
+      int xEnd = Math.max(startX, endX);
+      int yEnd = Math.max(startY, endY);
 
       rectSelected.width = (xEnd - rectSelected.x) + 1;
       rectSelected.height = (yEnd - rectSelected.y) + 1;
