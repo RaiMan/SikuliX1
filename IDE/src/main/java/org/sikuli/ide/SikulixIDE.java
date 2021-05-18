@@ -858,7 +858,7 @@ public class SikulixIDE extends JFrame {
           }
         }
         if (shouldSave && !discard) {
-          cleanBundle();
+          cleanBundle(); //TODO
           save();
         }
         notDirty();

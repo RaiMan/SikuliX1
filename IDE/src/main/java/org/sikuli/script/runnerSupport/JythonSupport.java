@@ -805,7 +805,7 @@ public class JythonSupport implements IRunnerSupport {
       int lineno = fLineno.getInt(frame);
       Object code = fCode.get(frame);
       Object filename = fFilename.get(code);
-      String fname = FileManager.getName((String) filename);
+      String fname = FilenameUtils.getName((String) filename);
       fname = fname.replace(".py", "");
       trace = String.format("%s (%d)", fname, lineno);
     } catch (Exception ex) {

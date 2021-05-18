@@ -5,19 +5,16 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyManager;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.util.Highlight;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -1046,6 +1043,58 @@ public class Commons {
       }
     }
     return null;
+  }
+
+  /**
+   * Copy a file *src* to the folder *dest*. If a file with the
+   * same name exists in that path, add a unique suffix -N.
+   *
+   * @param fSrc  source file
+   * @param folder destination folder
+   * @return the destination file if ok, null otherwise
+   */
+  public static File smartCopy(File fSrc, File folder) {
+    String newName = fSrc.getName();
+    File fDest = new File(folder, newName);
+    if (fSrc.equals(fDest)) {
+      return fDest;
+    }
+    fDest = getUniqueFilename(fDest);
+    try {
+      FileUtils.copyFile(fSrc, fDest);
+      return fDest;
+    } catch (IOException e) {
+    }
+    return null;
+  }
+
+  /**
+   * check if file exists and in case create a unique filename by adding a suffix -N,
+   * where N starts with 1 and is incremented until unique
+   * @param file source file
+   * @return file made unique
+   */
+  public static File getUniqueFilename(File file) {
+    if (!file.exists()) {
+      return file;
+    }
+    final String ext = FilenameUtils.getExtension(file.getName());
+    final String name = FilenameUtils.getBaseName(file.getName());
+    File folder = file.getParentFile();
+    final Matcher matcher = Pattern.compile("^(.*)\\-([0-9]+)$").matcher(name);
+    String newName = name;
+    File newFile;
+    if (matcher.find()) {
+      newName = matcher.group(1);
+      int ix = Integer.parseInt(matcher.group(2)) + 1;
+      newFile = new File(folder, newName + "-" + ix +"." + ext);
+      while (newFile.exists()) {
+        newFile = new File(folder, newName + "-" + ++ix +"." + ext);
+      }
+    } else {
+      newFile = new File(folder, newName + "-1." + ext);
+    }
+    return newFile;
   }
   //</editor-fold>
 

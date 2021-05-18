@@ -303,8 +303,8 @@ public class PatternWindow extends JFrame {
 				filename = filename.replace("%", "_");
 			}
 			String oldFilename = imgBtn.getFilename();
-			if (FileManager.exists(filename)) {
-				String name = FileManager.getName(filename);
+			if (new File(filename).exists()) {
+				String name = new File(filename).getName();
 				int ret = JOptionPane.showConfirmDialog(
 								_parent,
 								SikuliIDEI18N._I("msgFileExists", name),

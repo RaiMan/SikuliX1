@@ -20,6 +20,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.runners.PythonRunner;
 import org.sikuli.script.runners.TextRunner;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.generators.JythonCodeGenerator;
 
@@ -29,10 +30,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -824,7 +822,7 @@ public class EditorPane extends JTextPane {
       return copiedImgs;
     }
 
-    private Map<String, String> copiedImgs = new HashMap<String, String>();
+    private Map<String, String> copiedImgs = new HashMap<>();
 
     @Override
     protected Transferable createTransferable(JComponent c) {
@@ -864,25 +862,34 @@ public class EditorPane extends JTextPane {
       Map<String, String> _copiedImgs = getCopiedImgs();
       DataFlavor htmlFlavor = DataFlavor.stringFlavor;
       if (canImport(comp, t.getTransferDataFlavors())) {
+        String transferString = null;
+        String msg = "";
         try {
-          String transferString = (String) t.getTransferData(htmlFlavor);
-          EditorPane targetTextPane = (EditorPane) comp;
-          for (Map.Entry<String, String> entry : _copiedImgs.entrySet()) {
-            String imgName = entry.getKey();
-            String imgPath = entry.getValue();
-            File destFile = targetTextPane.copyFileToBundle(new File(imgPath));
+          transferString = (String) t.getTransferData(htmlFlavor);
+        } catch (UnsupportedFlavorException e) {
+          msg = e.getMessage();
+        } catch (IOException e) {
+          msg = e.getMessage();
+        }
+        if (transferString == null) {
+          log("ERROR: MyTransferHandler: importData: getTransferData: %s", msg);
+        }
+        EditorPane targetPane = (EditorPane) comp;
+        for (Map.Entry<String, String> entry : _copiedImgs.entrySet()) {
+          String imgName = entry.getKey();
+          String imgPath = entry.getValue();
+          File destFile = Commons.smartCopy(new File(imgPath), context.getImageFolder());
+          if (destFile != null) {
             String newName = destFile.getName();
             if (!newName.equals(imgName)) {
               String ptnImgName = "\"" + imgName + "\"";
               newName = "\"" + newName + "\"";
               transferString = transferString.replaceAll(ptnImgName, newName);
-              Debug.info("MyTransferHandler: importData:" + ptnImgName + " exists. Renamed to " + newName);
+              log("MyTransferHandler: importData: image renamed: %s to %s", ptnImgName, newName);
             }
           }
-          targetTextPane.insertString(transferString);
-        } catch (Exception e) {
-          error("MyTransferHandler: importData: Problem pasting text\n%s", e.getMessage());
         }
+        targetPane.insertString(transferString);
         return true;
       }
       return false;
@@ -890,17 +897,9 @@ public class EditorPane extends JTextPane {
   }
 
   public File copyFileToBundle(File file) {
-    String filename = file.getAbsolutePath();
-    String bundlePath = context.getImageFolder().getAbsolutePath();
     if (file.exists()) {
-      try {
-        File newFile = FileManager.smartCopy(filename, bundlePath);
-        return newFile;
-      } catch (IOException e) {
-        error("copyFileToBundle: Problem while trying to save %s\n%s",
-            filename, e.getMessage());
-        return file;
-      }
+      File newFile = Commons.smartCopy(file, context.getImageFolder());
+      return newFile;
     }
     return null;
   }

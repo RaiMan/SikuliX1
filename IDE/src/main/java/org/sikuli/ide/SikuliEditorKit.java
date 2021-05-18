@@ -654,25 +654,18 @@ public class SikuliEditorKit extends StyledEditorKit {
     Debug.log(9, "SikuliEditorKit.write %d %d", pos, len);
     DefaultStyledDocument sdoc = (DefaultStyledDocument) doc;
     int i = pos;
-    String absPath;
     while (i < pos + len) {
-      Element e = sdoc.getCharacterElement(i);
-      int start = e.getStartOffset(), end = e.getEndOffset();
-      if (e.getName().equals(StyleConstants.ComponentElementName)) {
-        // A image argument to be filled
-        AttributeSet attr = e.getAttributes();
-        Component com = StyleConstants.getComponent(attr);
-        out.write(com.toString());
-        if (copiedImgs != null
-                && (com instanceof EditorPatternButton || com instanceof EditorPatternLabel)) {
-          if (com instanceof EditorPatternButton) {
-            absPath = ((EditorPatternButton) com).getFilename();
-          } else {
-            absPath = ((EditorPatternLabel) com).getFile();
-          }
+      Element element = sdoc.getCharacterElement(i);
+      int start = element.getStartOffset(), end = element.getEndOffset();
+      if (element.getName().equals(StyleConstants.ComponentElementName)) {
+        AttributeSet attr = element.getAttributes();
+        Component comp = StyleConstants.getComponent(attr);
+        out.write(comp.toString());
+        if (copiedImgs != null && comp instanceof EditorImageButton) {
+          final String absPath = ((EditorImageButton) comp).getFilename();
           String fname = (new File(absPath)).getName();
           copiedImgs.put(fname, absPath);
-          Debug.log(3, "save image for copy&paste: " + fname + " -> " + absPath);
+          Debug.log(3, "SikuliEditorKit: image: %s",absPath);
         }
       } else {
         if (start < pos) {
