@@ -40,12 +40,14 @@
     <url>git@github.com:RaiMan/SikuliX1.git</url>
   </scm>
 
+<!--
   <repositories>
     <repository>
       <id>sonatype-ossrh</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
+-->
 
   <distributionManagement>
     <snapshotRepository>
