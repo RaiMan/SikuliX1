@@ -62,8 +62,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
-    <!--suppress UnresolvedMavenProperty -->
-    <buildnumber>${env.TRAVIS_BUILD_NUMBER}</buildnumber>
+    <buildnumber>210519</buildnumber>
   </properties>
 
   <dependencies>
@@ -220,7 +219,7 @@
     </profile>
     <!-- maven-release -->
     <profile>
-      <id>maven-release</id>
+      <id>deploy</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
