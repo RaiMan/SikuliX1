@@ -15,14 +15,14 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
           server-id: ossrh
-          server-username: OSSRH_USER
-          server-password: OSSRH_PASS
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
 
       - name: Build with Maven
         run: mvn -B -pl API package
 
       - name: Publish to OSSRH
-        run: mvn -B -pl API deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn -B -pl API deploy
         env:
-          OSSRH_USER: ${{ secrets.OSSRH_USER }}
-          OSSRH_PASS: ${{ secrets.OSSRH_PASS }}
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
