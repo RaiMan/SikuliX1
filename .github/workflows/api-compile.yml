@@ -1,9 +1,10 @@
 name: Compile API
 
 on:
-  workflow_dispatch:
-#  push:
-#    branches: [ master ]
+  push:
+    branches: [ master ]
+    paths: 
+      - 'API/**'
   
 jobs:
   build:
