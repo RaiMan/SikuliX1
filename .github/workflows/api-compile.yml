@@ -1,4 +1,4 @@
-name: Compile API and IDE
+name: Compile API
 
 on:
   workflow_dispatch:
