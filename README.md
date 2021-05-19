@@ -3,6 +3,9 @@
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
 ---
+[![Java CI with Maven](https://github.com/RaiMan/SikuliX1/actions/workflows/maven.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/maven.yml)
+
+---
 
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
