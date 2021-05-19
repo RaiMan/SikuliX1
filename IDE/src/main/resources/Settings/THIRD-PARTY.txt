@@ -1,5 +1,5 @@
 
-Lists of 85 third-party dependencies.
+Lists of 83 third-party dependencies.
      (ASF 2.0) cglib (cglib:cglib:3.3.0 - https://github.com/cglib/cglib/cglib)
      (GNU General Public License (GPL), Version 3.0) (GNU Lesser General Public License (LGPL), Version 3.0) JNativeHook (com.1stleg:jnativehook:2.1.0 - https://github.com/kwhat/jnativehook)
      (The Apache Software License, Version 2.0) java-sizeof (com.carrotsearch:java-sizeof:0.0.5 - http://nexus.sonatype.org/oss-repository-hosting.html/java-sizeof)
@@ -25,8 +25,6 @@ Lists of 85 third-party dependencies.
      (Unicode/ICU License) ICU4J (com.ibm.icu:icu4j:59.1 - http://icu-project.org/)
      (The BSD License) JGoodies Forms (com.jgoodies:forms:1.2.1 - https://forms.dev.java.net/)
      (Mozilla Public License) iText, a Free Java-PDF library (com.lowagie:itext:2.1.7 - http://www.lowagie.com/iText/)
-     (MIT License) sikulix2android (com.sikulix:sikulix2android:2.0.5 - http://www.sikulix.com)
-     (GNU General Public License v2.0) sikulix2tigervnc (com.sikulix:sikulix2tigervnc:2.0.5 - http://www.sikulix.com)
      (MIT License) SikuliX API (com.sikulix:sikulixapi:2.1.0-SNAPSHOT - http://www.sikulix.com)
      (The Apache Software License, Version 2.0) Apache Commons BeanUtils (commons-beanutils:commons-beanutils:1.9.2 - http://commons.apache.org/proper/commons-beanutils/)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
