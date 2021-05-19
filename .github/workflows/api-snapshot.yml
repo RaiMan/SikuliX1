@@ -1,8 +1,11 @@
 name: API Snapshot
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches: [ master ]
+    paths: 
+      - 'API/pom*'
+      
 jobs:
   build:
     runs-on: ubuntu-latest
