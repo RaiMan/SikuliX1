@@ -11,4 +11,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: do-it-echo
-        run: echo "Hello ${{ github.repository }}"
+        run: echo "Hello ${{ github.workspace }}"
