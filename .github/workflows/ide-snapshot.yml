@@ -25,7 +25,16 @@ jobs:
       
     - name: Check build
       run: ls -l ${{ github.workspace }}/IDE/target
+      
+    - name: Remove thin jar
+      run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
+      
+    - name: Rename fat jar
+      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar ${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar 
 
+    - name: Check rename
+      run: ls -l ${{ github.workspace }}/IDE/target
+      
 #    - name: Publish to OSSRH
 #      run: mvn -B -pl API deploy
 #      env:
