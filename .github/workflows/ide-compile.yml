@@ -1,10 +1,11 @@
 name: Compile IDE
 
 on:
-  push:
-    branches: [ master ]
-    paths:
-      - 'IDE/src/**'
+  workflow_dispatch:
+#  push:
+#    branches: [ master ]
+#    paths:
+#      - 'IDE/src/**'
   
 jobs:
   build:
