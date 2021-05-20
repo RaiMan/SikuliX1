@@ -1,7 +1,6 @@
 name: Compile IDE
 
 on: 
-  workflow_dispatch:
   push: 
     branches: master
     paths: 'IDE/src/**'
