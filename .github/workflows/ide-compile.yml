@@ -4,6 +4,8 @@ on:
   push: 
     branches: master
     paths: 'IDE/src/**'
+  workflow_dispatch:
+    
   
 jobs:
   build:
