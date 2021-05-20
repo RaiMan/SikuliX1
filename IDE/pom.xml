@@ -32,6 +32,24 @@
     </developer>
   </developers>
 
+  <repositories>
+    <repository>
+      <id>sonatype-ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>maven</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
   <scm>
     <connection>scm:git:git@github.com:RaiMan/SikuliX1.git</connection>
     <developerConnection>scm:git:git@github.com:RaiMan/SikuliX1.git</developerConnection>
