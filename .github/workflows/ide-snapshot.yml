@@ -21,11 +21,14 @@ jobs:
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
     
-      - name: Build with Maven
-        run: mvn -B -pl IDE package
+    - name: Build with Maven
+      run: mvn -B -pl IDE package
+      
+    - name: Check build
+      run: ls -l ${{ github.workspace }}/IDE/target
 
-      - name: Publish to OSSRH
-        run: mvn -B -pl API deploy
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
+#    - name: Publish to OSSRH
+#      run: mvn -B -pl API deploy
+#      env:
+#        MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+#        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
