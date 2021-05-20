@@ -22,7 +22,7 @@ jobs:
         server-password: MAVEN_PASSWORD
     
     - name: Build with Maven
-      run: mvn -B -pl IDE package
+      run: mvn -B -pl IDE -P complete-mac-jar package
       
     - name: Check build
       run: ls -l ${{ github.workspace }}/IDE/target
