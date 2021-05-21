@@ -1,0 +1,3 @@
+ossrhurl=https://oss.sonatype.org/content/repositories/snapshots
+metadata=com/sikulix/sikulixmac/2.1.0-SNAPSHOT/maven-metadata.xml
+curl -s $ossrhurl/$metadata -o out.txt

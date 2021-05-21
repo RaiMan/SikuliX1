@@ -35,7 +35,10 @@ jobs:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
 
-    - name: check
-      if: ${{ always() }}
-      run: cat ${{ github.workspace }}/../../../.m2/settings.xml
+#    - name: check
+#      if: ${{ always() }}
+#      run: cat ${{ github.workspace }}/../../../.m2/settings.xml
 
+# https://oss.sonatype.org/content/repositories/snapshots
+# com/sikulix/sikulixmac/2.1.0-SNAPSHOT/maven-metadata.xml
+# <snapshotVersion><extension>jar</extension><value>2.1.0-20210521.155900-1</value><updated>20210521155900</updated></snapshotVersion>

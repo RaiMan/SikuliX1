@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.sikulix</groupId>
+  <artifactId>sikulixmac</artifactId>
+  <version>2.1.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20210521.155900</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20210521155900</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>2.1.0-20210521.155900-1</value>
+        <updated>20210521155900</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>2.1.0-20210521.155900-1</value>
+        <updated>20210521155900</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
