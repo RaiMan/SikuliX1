@@ -21,7 +21,7 @@ jobs:
         server-password: MAVEN_PASSWORD
     
     - name: Build with Maven
-      run: mvn -B -pl IDE -P complete-mac-jar package
+      run: mvn -B -pl IDE -P complete-mac-jar package | grep -e "^\[INFO\].*?Download.*?http"
       
     - name: Remove thin jar
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
@@ -33,7 +33,9 @@ jobs:
       run: mvn -B -pl IDE deploy:deploy-file -Dfile=${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar \
             -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixmac -Dversion=2.1.0-SNAPSHOT \
             -DrepositoryId=ossrh -Durl=https://oss.sonatype.org/content/repositories/snapshots/ \
-            --settings ${{ github.workspace }}/IDE/Support/settings.xml
+            --settings ${{ github.workspace }}/Support/settings.xml
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
+
+# "^\[INFO\].*?Download.*?http"
