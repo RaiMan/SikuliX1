@@ -27,8 +27,8 @@ jobs:
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
       
     - name: Rename fat jar
-      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar \
-            ${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar
+      run: mv '${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar' \
+               '${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar'
 
     - name: Publish to OSSRH
       run: mvn mvn deploy:deploy-file -Dfile=${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar \
