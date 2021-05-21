@@ -23,20 +23,17 @@ jobs:
     - name: Build with Maven
       run: mvn -B -pl IDE -P complete-mac-jar package
       
-    - name: Check build
-      run: ls -l ${{ github.workspace }}/IDE/target
-      
     - name: Remove thin jar
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
       
     - name: Rename fat jar
-      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar ${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar 
+      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar \
+            ${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar
 
-    - name: Check rename
-      run: ls -l ${{ github.workspace }}/IDE/target
-      
-#    - name: Publish to OSSRH
-#      run: mvn -B -pl API deploy
-#      env:
-#        MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
-#        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
+    - name: Publish to OSSRH
+      run: mvn mvn deploy:deploy-file -Dfile=${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar \
+            -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixmac -Dversion=2.1.0-SNAPSHOT \
+            -DrepositoryId=ossrh -Durl=https://oss.sonatypeorg/content/repositories/snapshots/
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
