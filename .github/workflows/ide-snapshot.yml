@@ -31,10 +31,10 @@ jobs:
 
     - name: Publish to OSSRH
       run: >
-        mvn -B deploy:deploy-file
+        mvn -B -e deploy:deploy-file
             -Dfile=${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar
             -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixmac -Dversion=2.1.0-SNAPSHOT
-            -DrepositoryId=ossrh -Durl=https://oss.sonatype.org/content/repositories/snapshots/
+            -DrepositoryId=ossrh -Durl=https://s01.oss.sonatype.org/content/repositories/snapshots/
         | egrep -v "^\[INFO\].*?Download.*?http"
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
