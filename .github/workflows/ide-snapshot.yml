@@ -21,7 +21,7 @@ jobs:
         server-password: MAVEN_PASSWORD
     
     - name: Build with Maven
-      run: mvn -B -pl IDE -P complete-mac-jar package | grep -e "^\[INFO\].*?Download.*?http"
+      run: mvn -B -pl IDE -P complete-mac-jar package | egrep -v "^\[INFO\].*?Download.*?http"
       
     - name: Remove thin jar
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
