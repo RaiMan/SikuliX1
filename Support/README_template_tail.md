@@ -1,17 +1,3 @@
-[<img src="https://github.com/RaiMan/SikuliX1/blob/master/Support/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
-
----
-**v2.1.0 --- Java API Status**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) 
-
-**Maven coordinates:** OSSRH Snapshots :: com.sikulix :: sikulixapi :: 2.1.0-SNAPHOT
-
----
-**v2.1.0 --- Jython IDE Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml) 
-
-**Get Latest IDE Snapshot Runnable Jar:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Windows <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixwin/2.1.0-SNAPSHOT/sikulixwin-2.1.0-20210522.165201-1.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for macOS <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixmac/2.1.0-SNAPSHOT/sikulixmac-2.1.0-20210522.165238-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Linux <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixlux/2.1.0-SNAPSHOT/sikulixlux-2.1.0-20210522.165316-1.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 ----
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)

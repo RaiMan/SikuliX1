@@ -29,7 +29,17 @@ if test $1 != XXX
 then
   set `echo $1 | sed 's/XXX//'`
   namel=$ossrhurl/$folderl/sikulixlux-$1.jar
-  echo namel
+  echo $namel
 else
   echo Linux missing
 fi
+
+linkw='[> for Windows <]('$namew') &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+linkm='[> for macOS <]('$namem') &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+linkl='[> for Linux <]('$namel') &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+
+cat Support/README_template_head.md > Support/README.md
+echo $linkw >> Support/README.md
+echo $linkm >> Support/README.md
+echo $linkl >> Support/README.md
+cat Support/README_template_tail.md >> Support/README.md
