@@ -62,7 +62,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
-    <buildnumber>210519-1</buildnumber>
+    <buildnumber>210522</buildnumber>
   </properties>
 
   <dependencies>
@@ -247,14 +247,14 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <includes>
-          <include>Settings/*</include>
+          <include>Settings/sikulixversion.txt</include>
         </includes>
       </resource>
       <resource>
         <directory>src/main/resources</directory>
         <filtering>false</filtering>
         <excludes>
-          <exclude>Settings/*</exclude>
+          <exclude>Settings/sikulixversion.txt</exclude>
         </excludes>
       </resource>
     </resources>
