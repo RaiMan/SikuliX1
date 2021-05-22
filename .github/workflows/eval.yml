@@ -14,3 +14,11 @@ jobs:
         run: |
           echo "Some test" >${{ github.workspace }}/Support/test.txt
           ls -l ${{ github.workspace }}/Support
+
+      - name: Commit
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add -A
+          git commit -m "test"
+          git push origin master
