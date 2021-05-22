@@ -2,10 +2,10 @@ name: Compile IDE
 
 on: 
   push: 
-    branches: master
-    paths: 'IDE/src/**'
-  workflow_dispatch:
-    
+    branches:
+      - master
+    paths:
+      - 'IDE/src/**'
   
 jobs:
   build:
@@ -20,4 +20,4 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     - name: Build with Maven
-      run: mvn -B compile
+      run: mvn -B compile | egrep -v "^\[INFO\].*?Download.*?http"
