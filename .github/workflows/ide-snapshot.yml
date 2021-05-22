@@ -1,7 +1,11 @@
 name: IDE Snapshot
 
-on: 
-  workflow_dispatch:
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'IDE/pom*'
   
 jobs:
   build:
