@@ -1,4 +1,6 @@
 
+[**IMPORTANT:** Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
+
 ----
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
