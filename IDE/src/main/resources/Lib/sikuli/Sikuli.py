@@ -601,45 +601,6 @@ def useRemote(adr, port=0):
     else:
         return None
 
-
-## -----------------------------------------------------------------------
-# convenience for a VNCScreen connection
-# ip the server IP (default: 127.0.0.1)
-# port the port number (default 5900)
-# connectionTimeout seconds to wait for a valid connection (default 10)
-# timeout the timout value in milli-seconds during normal operation (default 1000)
-# returns a VNCScreen object
-# use theVNCScreen.stop() to stop this connection again (auto-stopped at script end)
-
-def useVnc(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, password=None):
-    use(Sikulix.vncStart(ip, port, password, connectionTimeout, timeout), True)
-
-
-def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, password=None):
-    theVNCScreen = Sikulix.vncStart(ip, port, password, connectionTimeout, timeout)
-    if theVNCScreen:
-        return theVNCScreen
-    exit(-1)
-
-
-## -----------------------------------------------------------------------
-# convenience for an ADBScreen connection
-
-# Debug.log(3, "Jython: sikuli: Sikuli: import ADBScreen")
-import org.sikuli.android.ADBScreen as JADBScreen
-
-
-class ADBScreen(JADBScreen):
-    pass
-
-
-def adbStart(adbexec=""):
-    adbscr = ADBScreen(adbexec)
-    if adbscr:
-        return adbscr
-    exit(-1)
-
-
 ## ----------------------------------------------------------------------
 # Switches the frontmost application to the given application.
 # If the given application is not running, it will be launched by openApp()
