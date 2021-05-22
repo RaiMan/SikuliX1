@@ -43,3 +43,6 @@ echo $linkw >> Support/README.md
 echo $linkm >> Support/README.md
 echo $linkl >> Support/README.md
 cat Support/README_template_tail.md >> Support/README.md
+
+rm -f README.md
+mv Support/README.md README.md
