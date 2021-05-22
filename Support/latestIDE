@@ -1,3 +1,6 @@
 ossrhurl=https://oss.sonatype.org/content/repositories/snapshots
-metadata=com/sikulix/sikulixmac/2.1.0-SNAPSHOT/maven-metadata.xml
-curl -s $ossrhurl/$metadata -o out.txt
+folder=com/sikulix/sikulixmac/2.1.0-SNAPSHOT
+metadata=maven-metadata.xml
+name=sikulixmac
+set `curl -s $ossrhurl/$folder/$metadata | grep "<value>" | head -n 1 | sed -e 's/^.*<value>//' -e 's/<\/value>//'`
+echo $ossrhurl/$folder/$name-$1.jar

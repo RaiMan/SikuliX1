@@ -10,5 +10,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: do-it-echo
-        run: echo "Hello ${{ github.workspace }}"
+      - name: do-it-script
+        run: bash Support/latestIDE
