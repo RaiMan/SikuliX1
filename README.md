@@ -13,6 +13,8 @@
 [> for macOS <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixmac/2.1.0-SNAPSHOT/sikulixmac-2.1.0-20210522.165238-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 [> for Linux <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixlux/2.1.0-SNAPSHOT/sikulixlux-2.1.0-20210522.165316-1.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
+[**IMPORTANT** Read about how to use theses snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
+
 ----
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
