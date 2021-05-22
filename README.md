@@ -3,7 +3,7 @@
 Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
 ---
-[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) [![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml)
+[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) [![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml)
 
 ---
 
