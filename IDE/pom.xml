@@ -60,6 +60,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikulixjythonversion>2.7.2</sikulixjythonversion>
     <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
+    <buildnumber>210522</buildnumber>
   </properties>
 
   <dependencies>
@@ -252,6 +255,22 @@
   </profiles>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>Settings/sxideversion.txt</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>Settings/sxideversion.txt</exclude>
+        </excludes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
