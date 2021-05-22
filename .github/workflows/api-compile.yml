@@ -2,7 +2,8 @@ name: Compile API
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
     paths: 
       - 'API/src/**'
   
@@ -19,4 +20,4 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     - name: Build with Maven
-      run: mvn -B -pl API compile
+      run: mvn -B -pl API compile | egrep -v "^\[INFO\].*?Download.*?http"
