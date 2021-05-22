@@ -23,9 +23,26 @@ jobs:
         server-id: ossrh
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
-    
-    - name: Build with Maven
-      run: mvn -B -pl IDE -P complete-mac-jar package | egrep -v "^\[INFO\].*?Download.*?http"
+
+# --------------------------------------- Windows
+    - name: Windows Build with Maven
+      run: mvn -B -pl IDE -P complete-win-jar package | egrep -v "^\[INFO\].*?Download.*?http"
+
+    - name: Remove thin jar
+      run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
+
+    - name: Rename fat jar
+      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-win.jar ${{ github.workspace }}/IDE/target/sikulixwin-2.1.0-SNAPSHOT.jar
+
+    - name: Publish to OSSRH
+      run: mvn -B -e deploy:deploy-file -Dfile='${{ github.workspace }}/IDE/target/sikulixwin-2.1.0-SNAPSHOT.jar' -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixwin -Dversion=2.1.0-SNAPSHOT -DrepositoryId=ossrh -Durl='https://oss.sonatype.org/content/repositories/snapshots' | egrep -v "^\[INFO\].*?Download.*?http"
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
+
+# --------------------------------------- macOS
+    - name: macOS Build with Maven
+      run: mvn -B -pl IDE -P complete-mac-jar clean package | egrep -v "^\[INFO\].*?Download.*?http"
       
     - name: Remove thin jar
       run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
@@ -33,14 +50,28 @@ jobs:
     - name: Rename fat jar
       run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-mac.jar ${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar
 
-    - name: current latest
-      run: bash Support/latestIDE
-
     - name: Publish to OSSRH
       run: mvn -B -e deploy:deploy-file -Dfile='${{ github.workspace }}/IDE/target/sikulixmac-2.1.0-SNAPSHOT.jar' -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixmac -Dversion=2.1.0-SNAPSHOT -DrepositoryId=ossrh -Durl='https://oss.sonatype.org/content/repositories/snapshots' | egrep -v "^\[INFO\].*?Download.*?http"
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
 
+# --------------------------------------- Linux
+    - name: Linux Build with Maven
+      run: mvn -B -pl IDE -P complete-lux-jar clean package | egrep -v "^\[INFO\].*?Download.*?http"
+
+    - name: Remove thin jar
+      run: rm ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT.jar
+
+    - name: Rename fat jar
+      run: mv ${{ github.workspace }}/IDE/target/sikulixide-2.1.0-SNAPSHOT-complete-lux.jar ${{ github.workspace }}/IDE/target/sikulixlux-2.1.0-SNAPSHOT.jar
+
+    - name: Publish to OSSRH
+      run: mvn -B -e deploy:deploy-file -Dfile='${{ github.workspace }}/IDE/target/sikulixlux-2.1.0-SNAPSHOT.jar' -Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixlux -Dversion=2.1.0-SNAPSHOT -DrepositoryId=ossrh -Durl='https://oss.sonatype.org/content/repositories/snapshots' | egrep -v "^\[INFO\].*?Download.*?http"
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}
+
+# ------------------------------ Links in README
     - name: new latest
       run: bash Support/latestIDE
