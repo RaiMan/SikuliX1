@@ -10,5 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: do-it-script
-        run: bash Support/latestIDE
+      - name: New File
+        run: |
+          echo "Some test" >${{ github.workspace }}/Support/test.txt
+          ls -l ${{ github.workspace }}/Support
