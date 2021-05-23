@@ -5,6 +5,8 @@
 
 **Maven coordinates:** OSSRH Snapshots :: com.sikulix :: sikulixapi :: 2.1.0-SNAPHOT
 
+[**IMPORTANT:** Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/API/README.md)
+
 ---
 **v2.1.0 --- Jython IDE Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml) 
 
