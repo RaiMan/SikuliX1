@@ -455,7 +455,7 @@ public class Commons {
   private static File workDir = null;
 
   public static String getJarLibsPath() {
-    return "/sikulixlibs/" + Commons.getSysName() + "/libs";
+    return "/sikulixlibs";
   }
 
   public static File getLibsFolder() {
@@ -1101,8 +1101,10 @@ public class Commons {
   //<editor-fold desc="20 library handling">
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
   // /nu/pattern/opencv/linux/x86_64/libopencv_java451.so@nu.pattern.OpenCV
+  private static boolean libOpenCVloaded = false;
 
   public static void loadOpenCV() {
+    libOpenCVloaded = true;
   }
 
   public static String jnaPathAdd(String sFolder) {
@@ -1122,8 +1124,13 @@ public class Commons {
     return jnaPath;
   }
 
-  public static boolean loadLib(String lib) {
+  private static List<String> libsLoaded = new ArrayList<>();
+  public static final String LIB_JXGRABKEY = "JXGrabKey";
 
+  public static boolean loadLib(String libName) {
+    if (!libsLoaded.contains(libName)) {
+
+    }
     return true;
   }
   //</editor-fold>

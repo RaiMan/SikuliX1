@@ -13,7 +13,7 @@ import jxgrabkey.JXGrabKey;
 
 public class LinuxHotkeyManager extends HotkeyManager {
   static {
-    Commons.loadLib("JXGrabKey");
+    Commons.loadLib(Commons.LIB_JXGRABKEY);
   }
 
   class HotkeyData {

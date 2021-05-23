@@ -191,43 +191,6 @@ public class RunTime {
   private static void libsExport() {
     String fpJarLibs = Commons.getJarLibsPath();
 
-    // remove obsolete libs folders in Temp
-    String[] fpList = Commons.getTempFolder().list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "libsExport: deleting obsolete libs folders in Temp");
-      for (String entry : fpList) {
-        if (entry.endsWith(Commons.getSxBuildStamp())) {
-          continue;
-        }
-        FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), entry));
-      }
-    }
-
-    // remove libsfolder < 1.1.4
-    fpList = Commons.getAppDataPath().list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs_")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "libsExport: deleting obsolete libs folders in AppPath");
-      for (String entry : fpList) {
-        FileManager.deleteFileOrFolder(new File(Commons.getAppDataPath(), entry));
-      }
-    }
-
     File fLibsFolder = Commons.getLibsFolder();
     String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
@@ -239,7 +202,7 @@ public class RunTime {
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
-        throw new SikuliXception("libsExport: folder not available: " + fLibsFolder.toString());
+        throw new SikuliXception("libsExport: folder not available: " + fLibsFolder);
       }
       Commons.makeVersionFile(fLibsFolder);
       libMsg = "folder created:";
