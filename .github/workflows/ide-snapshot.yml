@@ -75,3 +75,11 @@ jobs:
 # ------------------------------ Links in README
     - name: new latest
       run: bash Support/latestIDE
+
+    - name: Commit README
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add -A
+        git commit -m "test"
+        git push origin master
