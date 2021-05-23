@@ -1100,6 +1100,7 @@ public class Commons {
 
   //<editor-fold desc="20 library handling">
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+  // /nu/pattern/opencv/linux/x86_64/libopencv_java451.so@nu.pattern.OpenCV
 
   public static void loadOpenCV() {
   }
