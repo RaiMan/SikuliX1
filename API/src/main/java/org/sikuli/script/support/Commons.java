@@ -1100,11 +1100,89 @@ public class Commons {
 
   //<editor-fold desc="20 library handling">
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-  // /nu/pattern/opencv/linux/x86_64/libopencv_java451.so@nu.pattern.OpenCV
+  private static final String libOpenCVclassref = "nu.pattern.OpenCV";
+  private static String libOpenCVresname = "opencv/%s/x86_64/";
   private static boolean libOpenCVloaded = false;
 
   public static void loadOpenCV() {
-    libOpenCVloaded = true;
+    if (!libOpenCVloaded) {
+      String libFileName = libOpenCV;
+      String resName = libOpenCVresname;
+      Class classRef = null;
+      try {
+        classRef = Class.forName(libOpenCVclassref);
+      } catch (ClassNotFoundException e) {
+        RunTime.terminate(999, "Commons.loadLib: %s: load failed",
+                resName + "::" + libFileName);
+      }
+      if (Commons.runningWindows()) {
+        libFileName += ".dll";
+        resName = String.format(resName, "windows");
+      } else if (Commons.runningMac()) {
+        libFileName = "lib" + libOpenCV + ".dylib";
+        resName = String.format(resName, "osx");
+      } else if (Commons.runningLinux()) {
+        libFileName = "lib" + libOpenCV + ".so";
+        resName = String.format(resName, "linux");
+      }
+      if (doLoadLib(classRef, resName, libFileName)) {
+        libOpenCVloaded = true;
+      }
+    }
+  }
+
+  private static final String jarLibsPath = "/sikulixlibs/";
+  private static List<String> libsLoaded = new ArrayList<>();
+  public static final String LIB_JXGRABKEY = "JXGrabKey";
+
+  public static boolean loadLib(String libName) {
+    if (!libsLoaded.contains(libName)) {
+      String libFileName = libName;
+      if (Commons.runningWindows()) {
+        libFileName += ".dll";
+      } else if (Commons.runningMac()) {
+        libFileName = "lib" + libName + ".dylib";
+      } else if (Commons.runningLinux()) {
+        libFileName = "lib" + libName + ".so";
+      }
+      if (libName.equals(LIB_JXGRABKEY)) {
+        if (doLoadLib(Commons.class, jarLibsPath, libFileName)) {
+          libsLoaded.add(libName);
+          return true;
+        }
+      }
+      RunTime.terminate(999, "Commons.loadLib: %s");
+    }
+    return true;
+  }
+
+  private static boolean doLoadLib(Class classRef, String resPath, String fileName) {
+    File fLibsFolder = Commons.getLibsFolder();
+    if (fLibsFolder.exists()) {
+      if (!Commons.hasVersionFile(fLibsFolder)) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+      }
+    }
+    if (!fLibsFolder.exists()) {
+      fLibsFolder.mkdirs();
+      if (!fLibsFolder.exists()) {
+        RunTime.terminate(999, "Commons.loadLib: %s: create failed", fLibsFolder);
+      }
+      makeVersionFile(fLibsFolder);
+    }
+    File libFile = new File(fLibsFolder, fileName);
+    try (FileOutputStream outFile = new FileOutputStream(libFile);
+         InputStream inStream = classRef.getResourceAsStream(resPath + fileName)) {
+      copy(inStream, outFile);
+    } catch (Exception ex) {
+      RunTime.terminate(999, "Commons.loadLib: %s: export failed", fileName);
+    }
+    try {
+      System.load(libFile.getAbsolutePath());
+    } catch (Exception e) {
+      RunTime.terminate(999, "Commons.loadLib: %s: load failed" + libFile);
+    }
+    return true;
   }
 
   public static String jnaPathAdd(String sFolder) {
@@ -1122,16 +1200,6 @@ public class Commons {
     jnaPath = folder.getAbsolutePath() + jnaPath;
     System.setProperty("jna.library.path", jnaPath);
     return jnaPath;
-  }
-
-  private static List<String> libsLoaded = new ArrayList<>();
-  public static final String LIB_JXGRABKEY = "JXGrabKey";
-
-  public static boolean loadLib(String libName) {
-    if (!libsLoaded.contains(libName)) {
-
-    }
-    return true;
   }
   //</editor-fold>
 
