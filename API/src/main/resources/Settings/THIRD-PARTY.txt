@@ -26,7 +26,7 @@ Lists of 31 third-party dependencies.
      (GNU LESSER GENERAL PUBLIC LICENSE) Ghost4J (org.ghost4j:ghost4j:1.0.1 - http://www.ghost4j.org)
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.15.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
-     (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.3.0-3 - http://github.com/openpnp/opencv)
+     (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.5.1-2 - http://github.com/openpnp/opencv)
      (BSD) asm (org.ow2.asm:asm:7.1 - http://asm.ow2.org/)
      (LGPL 3) Rococoa Core (org.rococoa:rococoa-core:0.5 - http://www.rococoa.org)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:1.6.4 - http://www.slf4j.org)
