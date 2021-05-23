@@ -62,7 +62,7 @@
     <sikulixjrubyversion>9.2.11.1</sikulixjrubyversion>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
-    <buildnumber>210523</buildnumber>
+    <buildnumber>210523-1</buildnumber>
   </properties>
 
   <dependencies>
