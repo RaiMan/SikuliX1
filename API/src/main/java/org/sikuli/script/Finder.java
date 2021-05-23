@@ -532,7 +532,7 @@ public class Finder implements Iterator<Match> {
   protected static class Finder2 {
 
     static {
-      RunTime.loadOpenCV();
+      Commons.loadOpenCV();
     }
 
     protected static void init() {

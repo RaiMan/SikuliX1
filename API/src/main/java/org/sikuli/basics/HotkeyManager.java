@@ -34,16 +34,7 @@ public abstract class HotkeyManager {
       if (Commons.runningWindows() || Commons.runningMac()) {
         _instance = new GenericHotkeyManager();
       } else {
-        String cls = getOSHotkeyManagerClass();
-        if (cls != null) {
-          try {
-            Class c = Class.forName(cls);
-            Constructor constr = c.getConstructor();
-            _instance = (HotkeyManager) constr.newInstance();
-          } catch (Exception e) {
-            Debug.error("HotkeyManager: Can't create " + cls + ": " + e.getMessage());
-          }
-        }
+        _instance = new LinuxHotkeyManager();
       }
       hotkeys = new HashMap<String, Integer[]>();
     }

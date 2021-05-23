@@ -3,94 +3,101 @@
  */
 package org.sikuli.basics;
 
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+
 import java.util.*;
+
 import jxgrabkey.HotkeyConflictException;
 import jxgrabkey.JXGrabKey;
 
 public class LinuxHotkeyManager extends HotkeyManager {
-   static{
-         RunTime.loadLibrary("JXGrabKey");
-   }
+  static {
+    Commons.loadLib("JXGrabKey");
+  }
 
-   class HotkeyData {
-      int key, modifiers;
-      HotkeyListener listener;
+  class HotkeyData {
+    int key, modifiers;
+    HotkeyListener listener;
 
-      public HotkeyData(int key_, int mod_, HotkeyListener l_){
-         key = key_;
-         modifiers = mod_;
-         listener = l_;
-      }
-   };
+    public HotkeyData(int key_, int mod_, HotkeyListener l_) {
+      key = key_;
+      modifiers = mod_;
+      listener = l_;
+    }
+  }
 
-   class MyHotkeyHandler implements jxgrabkey.HotkeyListener{
-      public void onHotkey(int id){
-         Debug.log(4, "Hotkey pressed");
-         HotkeyData data = _idCallbackMap.get(id);
-         HotkeyEvent e = new HotkeyEvent(data.key, data.modifiers);
-         data.listener.invokeHotkeyPressed(e);
-      }
-   };
+  ;
 
-   private Map<Integer, HotkeyData> _idCallbackMap = new HashMap<Integer,HotkeyData >();
-   private int _gHotkeyId = 1;
+  class MyHotkeyHandler implements jxgrabkey.HotkeyListener {
+    public void onHotkey(int id) {
+      Debug.log(4, "Hotkey pressed");
+      HotkeyData data = _idCallbackMap.get(id);
+      HotkeyEvent e = new HotkeyEvent(data.key, data.modifiers);
+      data.listener.invokeHotkeyPressed(e);
+    }
+  }
 
-   public boolean _addHotkey(int keyCode, int modifiers, HotkeyListener listener){
-      JXGrabKey grabKey = JXGrabKey.getInstance();
+  ;
 
-      if(_gHotkeyId == 1){
-         grabKey.addHotkeyListener(new MyHotkeyHandler());
-      }
+  private Map<Integer, HotkeyData> _idCallbackMap = new HashMap<Integer, HotkeyData>();
+  private int _gHotkeyId = 1;
 
-      _removeHotkey(keyCode, modifiers);
-      int id = _gHotkeyId++;
-      HotkeyData data = new HotkeyData(keyCode, modifiers, listener);
-      _idCallbackMap.put(id, data);
+  public boolean _addHotkey(int keyCode, int modifiers, HotkeyListener listener) {
+    JXGrabKey grabKey = JXGrabKey.getInstance();
 
-      try{
-         //JXGrabKey.setDebugOutput(true);
-         grabKey.registerAwtHotkey(id, modifiers, keyCode);
-      }catch(HotkeyConflictException e){
-         Debug.error("Hot key conflicts");
-         return false;
-      }
-      return true;
-   }
+    if (_gHotkeyId == 1) {
+      grabKey.addHotkeyListener(new MyHotkeyHandler());
+    }
 
-   public boolean _removeHotkey(int keyCode, int modifiers){
-      for( Map.Entry<Integer, HotkeyData> entry : _idCallbackMap.entrySet() ){
-         HotkeyData data = entry.getValue();
-         if(data.key == keyCode && data.modifiers == modifiers){
-            JXGrabKey grabKey = JXGrabKey.getInstance();
-            int id = entry.getKey();
-            grabKey.unregisterHotKey(id);
-            _idCallbackMap.remove(id);
-            return true;
-         }
-      }
+    _removeHotkey(keyCode, modifiers);
+    int id = _gHotkeyId++;
+    HotkeyData data = new HotkeyData(keyCode, modifiers, listener);
+    _idCallbackMap.put(id, data);
+
+    try {
+      //JXGrabKey.setDebugOutput(true);
+      grabKey.registerAwtHotkey(id, modifiers, keyCode);
+    } catch (HotkeyConflictException e) {
+      Debug.error("Hot key conflicts");
       return false;
-   }
+    }
+    return true;
+  }
 
-   @Override
-   public int _removeAll(Map<String, Integer[]> hotkeys, boolean isTerminating) {
-      for (Integer[] keyMods : hotkeys.values()) {
-         if (!_removeHotkey(keyMods[0], keyMods[1])) {
-            return -1;
-         }
+  public boolean _removeHotkey(int keyCode, int modifiers) {
+    for (Map.Entry<Integer, HotkeyData> entry : _idCallbackMap.entrySet()) {
+      HotkeyData data = entry.getValue();
+      if (data.key == keyCode && data.modifiers == modifiers) {
+        JXGrabKey grabKey = JXGrabKey.getInstance();
+        int id = entry.getKey();
+        grabKey.unregisterHotKey(id);
+        _idCallbackMap.remove(id);
+        return true;
       }
-      return hotkeys.size();
-   }
+    }
+    return false;
+  }
 
-   public void cleanUp(){
-      JXGrabKey grabKey = JXGrabKey.getInstance();
-      for( Map.Entry<Integer, HotkeyData> entry : _idCallbackMap.entrySet() ){
-         int id = entry.getKey();
-         grabKey.unregisterHotKey(id);
+  @Override
+  public int _removeAll(Map<String, Integer[]> hotkeys, boolean isTerminating) {
+    for (Integer[] keyMods : hotkeys.values()) {
+      if (!_removeHotkey(keyMods[0], keyMods[1])) {
+        return -1;
       }
-      _gHotkeyId = 1;
-      _idCallbackMap.clear();
-      grabKey.getInstance().cleanUp();
-   }
+    }
+    return hotkeys.size();
+  }
+
+  public void cleanUp() {
+    JXGrabKey grabKey = JXGrabKey.getInstance();
+    for (Map.Entry<Integer, HotkeyData> entry : _idCallbackMap.entrySet()) {
+      int id = entry.getKey();
+      grabKey.unregisterHotKey(id);
+    }
+    _gHotkeyId = 1;
+    _idCallbackMap.clear();
+    grabKey.getInstance().cleanUp();
+  }
 
 }

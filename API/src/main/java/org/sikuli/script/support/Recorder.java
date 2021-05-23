@@ -163,7 +163,7 @@ public class Recorder implements NativeKeyListener, NativeMouseListener, NativeM
    */
   public void start() {
     if (!running) {
-      RunTime.loadOpenCV();
+      Commons.loadOpenCV();
       running = true;
 
       eventsFlow.clear();

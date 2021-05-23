@@ -1099,8 +1099,9 @@ public class Commons {
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
+  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+
   public static void loadOpenCV() {
-    RunTime.loadOpenCV();
   }
 
   public static String jnaPathAdd(String sFolder) {
