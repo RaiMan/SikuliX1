@@ -5,9 +5,11 @@
 ---5
 #action; Rename; rename
 ---3
-#action; Optimize; rename
+#action; Optimize; optimize
 ---3
-#action; As Pattern; rename
+#action; As Pattern; pattern
 ]
 ---5
 #image; {image}
+---3
+{sximagefile_image}

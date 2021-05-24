@@ -6,6 +6,9 @@ package org.sikuli.ide;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.idesupport.IButton;
 import org.sikuli.script.Location;
+import org.sikuli.script.Pattern;
+import org.sikuli.script.SX;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.support.gui.SXDialogPaneImage;
@@ -25,9 +28,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-class EditorImageButton extends JButton implements ActionListener, Serializable, MouseListener {
+public class EditorImageButton extends JButton implements ActionListener, Serializable, MouseListener {
 
-  //region existing
   Map<String, Object> options;
 
   public Map<String, Object> getOptions() {
@@ -65,6 +67,16 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     init();
   }
 
+  public EditorImageButton(Pattern pattern) {
+    thumbnail = createThumbnailImage(pattern, MAXHEIGHT);
+    options = new HashMap<>();
+    options.put(IButton.FILE, pattern.getImage().file());
+    options.put(IButton.TEXT, "\"" + info() + "\"");
+    options.put(IButton.PATT, pattern);
+
+    init();
+  }
+
   private void init() {
     setIcon(new ImageIcon(thumbnail));
     setButtonText();
@@ -89,6 +101,7 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     }
     return false;
   }
+
   SXDialogPaneImageMenu popmenu = null;
 
   private void handlePopup(MouseEvent me) {
@@ -143,6 +156,15 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     }
   }
 
+  @Override
+  public void mouseClicked(MouseEvent me) {
+  }
+
+  private BufferedImage createThumbnailImage(Pattern pattern, int maxHeight) {
+    //TODO Pattern thumbnail
+    return createThumbnailImage(pattern.getImage().file(), maxHeight);
+  }
+
   private BufferedImage createThumbnailImage(File imgFile, int maxHeight) {
     BufferedImage img = null;
     try {
@@ -172,7 +194,6 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     return thumb;
   }
 
-  //<editor-fold defaultstate="collapsed" desc="paint button">
   @Override
   public void paint(Graphics g) {
     super.paint(g);
@@ -180,7 +201,6 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     g2d.setColor(new Color(0, 128, 128, 128));
     g2d.drawRoundRect(3, 3, getWidth() - 7, getHeight() - 7, 5, 5);
   }
-  //</editor-fold>
 
   @Override
   public String toString() {
@@ -196,12 +216,12 @@ class EditorImageButton extends JButton implements ActionListener, Serializable,
     setToolTipText(info());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="mouse events not used">
-  @Override
-  public void mouseClicked(MouseEvent me) {
+  public static void renameImage(String name, Map<String, Object> options) {
+    Commons.error("N/A: EditorImageButton::renameImage (%s -> %s)", options.get("image"), name);
+    // rename image file
+    // replace image name usage in script
+    // thumbnails off/on
   }
-  //</editor-fold>
-  //endregion
 
   //imgBtn.setImage(filename);
   public void setImage(String fname) {

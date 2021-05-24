@@ -107,14 +107,16 @@ public class PatternWindow extends JFrame {
 		msgApplied = new JLabel[tabMax];
 
 		tabSequence = 0;
-		JLabel aMsg = msgApplied[tabSequence] = new JLabel();
+		msgApplied[tabSequence] = new JLabel();
     setMessageApplied(tabSequence, false);
 
+/*
   	tabSequence++;
 		msgApplied[tabSequence] = new JLabel();
     setMessageApplied(tabSequence, false);
 		panePreview = createPreviewPanel();
 		tabPane.addTab(_I("tabMatchingPreview"), panePreview);
+*/
 
 		tabSequence++;
 		msgApplied[tabSequence] = new JLabel();

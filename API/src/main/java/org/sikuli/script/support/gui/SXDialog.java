@@ -840,7 +840,18 @@ public class SXDialog extends JFrame {
     if (var.equals("javaversion")) {
       return "" + Commons.getJavaVersion();
     }
-    return options.get(var) == null ? "" : "" + options.get(var);
+    final int isSpecial = var.indexOf("_");
+    String special = "";
+    if (isSpecial != -1) {
+      special = var.substring(0, isSpecial);
+      var = var.substring(isSpecial + 1);
+    }
+    String value = options.get(var) == null ? "" : "" + options.get(var);
+    if (special.equals("sximagefile")) {
+      final File imgFile = new File(value);
+      return imgFile.getParentFile().getName() + "  /  " + imgFile.getName();
+    }
+    return value;
   }
 
   boolean isOption(String option, OPT token) {

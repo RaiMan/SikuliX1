@@ -1116,7 +1116,7 @@ public class SikulixIDE extends JFrame {
               continue;
             }
             final EditorImageButton button = new EditorImageButton(item);
-            int itemStart = getLineStart((Integer) item.get(IButton.LINE)) + (Integer) item.get(IButton.TOFF);
+            int itemStart = getLineStart((Integer) item.get(IButton.LINE)) + (Integer) item.get(IButton.LOFF);
             int itemEnd = itemStart + ((String) item.get(IButton.TEXT)).length();
             pane.select(itemStart, itemEnd);
             pane.insertComponent(button);
@@ -1162,7 +1162,7 @@ public class SikulixIDE extends JFrame {
               Map<String, Object> options = new HashMap<>();
               options.put(IButton.TEXT, match);
               options.put(IButton.LINE, lnNbr);
-              options.put(IButton.TOFF, start);
+              options.put(IButton.LOFF, start);
               options.put(IButton.FILE, imgFile);
               images.add(options);
             }
