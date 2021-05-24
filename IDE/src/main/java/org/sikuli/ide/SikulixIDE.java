@@ -1110,6 +1110,11 @@ public class SikulixIDE extends JFrame {
         List<Map<String, Object>> patterns = patternMatcher(images, text);
         if (images.size() > 0 || patterns.size() > 0) {
           for (Map<String, Object> item : images) {
+            final File imgFile = (File) item.get(IButton.FILE);
+            //TODO make it optional? _image as thumb
+            if (imgFile.getName().startsWith("_")) {
+              continue;
+            }
             final EditorImageButton button = new EditorImageButton(item);
             int itemStart = getLineStart((Integer) item.get(IButton.LINE)) + (Integer) item.get(IButton.TOFF);
             int itemEnd = itemStart + ((String) item.get(IButton.TEXT)).length();
