@@ -350,7 +350,7 @@ public class TextRecognizer {
     if (OCR.Options.defaultDataPath == null) {
       // export SikuliX eng.traineddata, if libs are exported as well
       File fTessDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
-      boolean shouldExport = RunTime.shouldExport();
+      boolean shouldExport = Commons.shouldExport();
       boolean fExists = fTessDataPath.exists();
       if (!fExists || shouldExport) {
         if (0 == RunTime.extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {

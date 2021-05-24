@@ -1185,6 +1185,12 @@ public class Commons {
     return true;
   }
 
+  private static boolean didExport = false;
+
+  public static boolean shouldExport() {
+    return didExport;
+  }
+
   public static String jnaPathAdd(String sFolder) {
     String jnaPath = System.getProperty("jna.library.path");
     if (null == jnaPath) {
