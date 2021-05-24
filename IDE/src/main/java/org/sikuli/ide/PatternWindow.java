@@ -122,10 +122,11 @@ public class PatternWindow extends JFrame {
 		msgApplied[tabSequence] = new JLabel();
     setMessageApplied(tabSequence, false);
 		paneTarget = createTargetPanel();
-		tabPane.addTab(_I("tabTargetOffset"), paneTarget);
+//		tabPane.addTab(_I("tabTargetOffset"), paneTarget);
 
-		cp.add(tabPane, BorderLayout.CENTER);
-//		cp.add(createButtons(), BorderLayout.SOUTH);
+//		cp.add(tabPane, BorderLayout.CENTER);
+		cp.add(paneTarget, BorderLayout.NORTH);
+		cp.add(createButtons(), BorderLayout.SOUTH);
 		cp.doLayout();
 		pack();
 		try {

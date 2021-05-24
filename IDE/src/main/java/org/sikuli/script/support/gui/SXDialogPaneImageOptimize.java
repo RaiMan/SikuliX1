@@ -6,14 +6,12 @@ import org.sikuli.ide.PatternWindow;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
-import org.sikuli.script.Sikulix;
-import org.sikuli.script.support.Commons;
 
 import java.awt.*;
 import java.io.File;
 
-public class SXDialogPaneImage extends SXDialog {
-  public SXDialogPaneImage(Point where, Object... parms) {
+public class SXDialogPaneImageOptimize extends SXDialog {
+  public SXDialogPaneImageOptimize(Point where, Object... parms) {
     super("sxidepaneimage", where, parms);
   }
 

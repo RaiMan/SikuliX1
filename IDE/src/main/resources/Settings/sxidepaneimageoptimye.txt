@@ -3,13 +3,13 @@
 [
 #close; (✖);
 ---5
-#action; Rename; rename
----3
-#action; Optimize; optimize
----3
+#action; (⬆); fullscreen
+---5
+#action; (✔); fullscreen
+---5
 #action; As Pattern; pattern
 ]
 ---5
-#image; {image}
+#image; {screenshot}
 ---3
 {sximagefile_image}
