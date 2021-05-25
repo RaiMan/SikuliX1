@@ -149,6 +149,15 @@ public class ScreenDevice extends Devices {
     return device;
   }
 
+  public static ScreenDevice getScreenForPoint(Point point) {
+    for (ScreenDevice scr : get()) {
+      if (scr.bounds.contains(point)) {
+        return scr;
+      }
+    }
+    return primary();
+  }
+
   public Rectangle asRectangle() {
     return bounds;
   }

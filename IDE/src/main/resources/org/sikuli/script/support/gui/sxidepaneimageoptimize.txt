@@ -1,15 +1,13 @@
 #globals; m 5; c; f 12; b 1; p 4
 
 [
-#close; (✖);
+#backToIDE; (✖);
 ---5
 #action; (⬆); fullscreen
 ---5
-#action; (✔); fullscreen
----5
-#action; As Pattern; pattern
+#action; (✔); applyclose
 ]
 ---5
-#image; {screenshot}
+#image; {shot}
 ---3
 {sximagefile_image}

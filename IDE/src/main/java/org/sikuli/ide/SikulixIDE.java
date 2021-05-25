@@ -149,7 +149,7 @@ public class SikulixIDE extends JFrame {
     return ideWindow.isVisible();
   }
 
-  public static void doHide() {
+  public static void  doHide() {
     doHide(0.5f);
   }
 

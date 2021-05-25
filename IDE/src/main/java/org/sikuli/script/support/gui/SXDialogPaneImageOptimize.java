@@ -6,31 +6,21 @@ import org.sikuli.ide.PatternWindow;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
+import org.sikuli.script.support.Commons;
 
 import java.awt.*;
 import java.io.File;
 
-public class SXDialogPaneImageOptimize extends SXDialog {
+public class SXDialogPaneImageOptimize extends SXDialogIDE {
   public SXDialogPaneImageOptimize(Point where, Object... parms) {
-    super("sxidepaneimage", where, parms);
+    super("sxidepaneimageoptimize", where, parms);
   }
 
-  public void rename() {
-    closeCancel();
-    final String image = FilenameUtils.getBaseName(((File) getOptions().get("image")).getAbsolutePath());
-    final Region showAt = new Region(getLocation().x, getLocation().y, 1, 1);
-    final String name = SX.input("New name for image " + image, "ImageButton :: rename", true);
-    EditorImageButton.renameImage(name, getOptions());
+  public void fullscreen() {
+    Commons.error("SXDialogPaneImageOptimize::fullscreen: not implemented");
   }
 
-  public void optimize() {
-    closeCancel();
-    Rectangle ideWindow = SikulixIDE.get().getBounds();
-    new PatternWindow(getOptions().get("parm1"));
-  }
-
-  public void pattern() {
-    closeCancel();
-    new PatternWindow(getOptions().get("parm1"));
+  public void applyclose() {
+    Commons.error("SXDialogPaneImageOptimize::applyclose: not implemented");
   }
 }

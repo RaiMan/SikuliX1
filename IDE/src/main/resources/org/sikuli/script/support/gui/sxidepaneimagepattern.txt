@@ -1,0 +1,13 @@
+#globals; m 5; c; f 12; b 1; p 4
+
+[
+#backToIDE; (✖);
+---5
+#action; (⬆); fullscreen
+---5
+#action; (✔); applyClose
+]
+---5
+#image; {shot}
+---3
+{sximagefile_image}

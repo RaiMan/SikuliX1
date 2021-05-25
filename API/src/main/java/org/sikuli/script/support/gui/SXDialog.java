@@ -32,7 +32,9 @@ import java.util.Map;
 
 public class SXDialog extends JFrame {
 
-  private SXDialog() {
+  public SXDialog() {}
+
+  private SXDialog(Object fake) {
     frame = this;
     setResizable(false);
     setUndecorated(true);
@@ -63,7 +65,7 @@ public class SXDialog extends JFrame {
   }
 
   public SXDialog(String res, Point where, POSITION pos, Object... parms) {
-    this();
+    this(new Object());
 
     if (parms.length > 0) {
       String[] keys = new String[0];
@@ -86,7 +88,7 @@ public class SXDialog extends JFrame {
           } catch (ClassNotFoundException e) {
           }
         }
-        res = "/Settings/" + res;
+        res = "/org/sikuli/script/support/gui/" + res;
       }
     } else {
       Commons.trace("not implemented: res = %s", res);
@@ -175,7 +177,7 @@ public class SXDialog extends JFrame {
 
   enum STATE {ON, OFF}
 
-  enum FEATURE {ERROR, CLOSE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT, BOX, BOXH, BOXV, ROW, COL}
+  enum FEATURE {ERROR, CLOSE, BACKTOIDE, LINK, IMAGE, ACTION, OPTION, BUTTON, HTML, PREFIX, TEXT, BOX, BOXH, BOXV, ROW, COL}
 
   final static String FEATURE_PLAIN = "#plain";
   final static String FEATURE_TEXT = "*text";
@@ -679,7 +681,9 @@ public class SXDialog extends JFrame {
             item = new LinkItem(urlText, url);
 
           } else if (isFeat(feature, FEATURE.IMAGE) && !title.isEmpty()) {
-            if (new File(title).exists()) {
+            if (title.startsWith("__")) {
+              item = new ImageItem((BufferedImage) getOptions().get(title.substring(2)));
+            } else if (new File(title).exists()) {
               try {
                 item = new ImageItem(new URL("file:" + title));
               } catch (MalformedURLException e) {
@@ -695,6 +699,13 @@ public class SXDialog extends JFrame {
             }
             item = new TextItem(title);
             item.setActive();
+
+          } else if (isFeat(feature, FEATURE.BACKTOIDE)) {
+            if (title.isEmpty()) {
+              title = "CANCEL: ESC or click";
+            }
+            item = new TextItem(title);
+            item.setBackToIDE();
 
           } else if (isFeat(feature, FEATURE.ACTION)) {
             if (itemOptions.length > 0) {
@@ -846,12 +857,14 @@ public class SXDialog extends JFrame {
       special = var.substring(0, isSpecial);
       var = var.substring(isSpecial + 1);
     }
-    String value = options.get(var) == null ? "" : "" + options.get(var);
+    Object value = options.get(var) == null ? "" : options.get(var);
     if (special.equals("sximagefile")) {
-      final File imgFile = new File(value);
+      final File imgFile = (File) value;
       return imgFile.getParentFile().getName() + "  /  " + imgFile.getName();
+    } else if (value instanceof BufferedImage) {
+      return "__" + var;
     }
-    return value;
+    return value.toString();
   }
 
   boolean isOption(String option, OPT token) {
@@ -1248,6 +1261,14 @@ public class SXDialog extends JFrame {
       return this;
     }
 
+    BasicItem setBackToIDE() {
+      active = true;
+      backToIDE = true;
+      return this;
+    }
+
+    private boolean backToIDE = false;
+
     ItemAction itemAction = null;
 
     void itemAction(ItemAction action) {
@@ -1298,6 +1319,9 @@ public class SXDialog extends JFrame {
       if (itemAction != null) {
         itemAction.run();
       } else {
+        if (backToIDE) {
+          runBackToIDE();
+        }
         closeCancel();
       }
     }
@@ -1800,20 +1824,25 @@ public class SXDialog extends JFrame {
           Point where = getLocationOnScreen();
           //closeCancel();
           Class<? extends SXDialog> clazz = SXDialog.this.getClass();
-          boolean success = true;
+          String error = "";
+          Exception exception = null;
+          Method method;
           try {
-            Method method = clazz.getMethod(command, null);
+            method = clazz.getMethod(command, null);
             method.invoke(SXDialog.this, new Class[0]);
           } catch (NoSuchMethodException noSuchMethodException) {
-            success = false;
+            error = "not implemented";
+            exception = noSuchMethodException;
           } catch (InvocationTargetException invocationTargetException) {
-            success = false;
+            invocationTargetException.printStackTrace();
+            error = "Action crashed";
+            exception = invocationTargetException;
           } catch (IllegalAccessException illegalAccessException) {
-            success = false;
+            error = "Action crashed";
           }
-          if (!success) {
-            new SXDialog("sxideerror", where, new String[]{"not implemented", aAction}).run(e.getLocationOnScreen());
-            Commons.error("ActionItem: not implemented: %s", aAction);
+          if (!error.isEmpty()) {
+            new SXDialog("sxideerror", where, new String[]{error, aAction}).run(e.getLocationOnScreen());
+            Commons.error("ActionItem: %s: %s (%s)", error, aAction, exception);
           }
         }
       }
@@ -1945,6 +1974,14 @@ public class SXDialog extends JFrame {
       }
     }
 
+    ImageItem(BufferedImage img) {
+      this.img = img;
+    }
+
+    public BufferedImage get() {
+      return img;
+    }
+
     //TODO Image resize
     public ImageItem resize(int width) {
       double factor = width / (double) img.getWidth();
@@ -2051,4 +2088,7 @@ public class SXDialog extends JFrame {
     return ret;
   }
 
+  public void runBackToIDE() {
+    // is overwritten in SXDialogIDE
+  }
 }
