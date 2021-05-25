@@ -601,6 +601,7 @@ public class SXDialog extends JFrame {
       String[] options = null;
       String feature = "";
       String lineType = "-";
+      String refName = "";
 
       //TODO Commons.trace(line);
       if (line.contains("{")) {
@@ -621,6 +622,13 @@ public class SXDialog extends JFrame {
             } else {
               line = line.substring(1);
               feature = first + feature.substring(1);
+            }
+          }
+          if (line.startsWith("_")) {
+            int ix = line.indexOf(" ");
+            if (ix > -1) {
+              refName = line.substring(1, ix);
+              line = line.substring(ix + 1);
             }
           }
           line = feature + ";" + line;
@@ -754,6 +762,7 @@ public class SXDialog extends JFrame {
           applyOptions(item, options);
         }
 
+        item.refName(refName);
         append(item, lineType);
       }
     }
@@ -917,6 +926,7 @@ public class SXDialog extends JFrame {
   BoxItem currentBox;
   List<BoxItem> boxStack = new ArrayList<>();
   BasicItem item;
+  Map<String, BasicItem> refNames = new HashMap<>();
 
   String cb() {
     return currentBox.toStringAll();
@@ -934,6 +944,9 @@ public class SXDialog extends JFrame {
 
     for (BasicItem itm : allBoxesAndItems) {
       Commons.trace("%s", itm);
+      if (!itm.refName().isEmpty()) {
+        refNames.put(itm.refName, itm);
+      }
     }
 
     paneBox = new BoxItem("boxv", "sxpanebox");
@@ -1018,6 +1031,16 @@ public class SXDialog extends JFrame {
 
     public void itemType(ITEMTYPE itemtype) {
       this.itemType = itemtype;
+    }
+
+    String refName = "";
+
+    public void refName(String refName) {
+      this.refName = refName;
+    }
+
+    public String refName() {
+      return refName;
     }
 
     public boolean isBox() {
@@ -1804,6 +1827,7 @@ public class SXDialog extends JFrame {
       }
       final String[] parts = aAction.split(" ");
       command = parts[0].strip();
+      refName = command;
       if (command.startsWith("show")) {
         if (parts.length > 1) {
           what = parts[1].strip();
