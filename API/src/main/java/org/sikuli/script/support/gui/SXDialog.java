@@ -195,7 +195,7 @@ public class SXDialog extends JFrame {
     }
   }
 
-  static String getFeature(String line) {
+  String getFeature(String line) {
     String feature;
     int posItemSep = line.indexOf(itemSep);
     if (posItemSep >= FEATURE_MINLEN) {
@@ -205,6 +205,10 @@ public class SXDialog extends JFrame {
         feature = feature.substring(1);
       } else {
         lineType = lineTypeSame;
+      }
+      if (feature.indexOf("_") >= FEATURE_MINLEN) {
+        refName = feature.substring(feature.indexOf("_") + 1);
+        feature = feature.substring(0, feature.indexOf("_"));
       }
       if (feature.length() <= FEATURE_MAXLEN) {
         feature = feature.toLowerCase();
@@ -554,6 +558,8 @@ public class SXDialog extends JFrame {
     return pre;
   }
 
+  String refName = "";
+
   void textToItems(String text) {
 
     lastItemType = ITEMTYPE.LEFT;
@@ -595,13 +601,13 @@ public class SXDialog extends JFrame {
       if (line.isEmpty()) {
         continue;
       }
+      refName = "";
       String orgLine = line;
       TEXT isText = null;
       BasicItem item = null;
       String[] options = null;
       String feature = "";
       String lineType = "-";
-      String refName = "";
 
       //TODO Commons.trace(line);
       if (line.contains("{")) {
