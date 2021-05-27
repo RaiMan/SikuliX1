@@ -17,10 +17,14 @@ public class SXDialogPaneImageOptimize extends SXDialogIDE {
   }
 
   public void fullscreen() {
+    String feature = "fullscreen";
+    toggleText(feature, "(⬆)", "(_)");
     Commons.error("SXDialogPaneImageOptimize::fullscreen: not implemented");
   }
 
-  public void applyclose() {
+  public void apply() {
+    String feature = "apply";
+    toggleText(feature, "(✔)", "(!!)");
     Commons.error("SXDialogPaneImageOptimize::applyclose: not implemented");
   }
 }

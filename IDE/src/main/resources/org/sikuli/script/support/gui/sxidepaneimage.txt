@@ -12,4 +12,4 @@
 ---5
 #image; {image}
 ---3
-_statusline {sximagefile_image}
+{sximagefile_image}

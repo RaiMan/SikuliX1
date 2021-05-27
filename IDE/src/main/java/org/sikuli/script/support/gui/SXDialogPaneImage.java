@@ -30,7 +30,13 @@ public class SXDialogPaneImage extends SXDialogIDE {
     final ScreenDevice scr = ScreenDevice.getScreenForPoint(ideWindow.getLocation());
     SikulixIDE.doHide();
     scrImage = scr.capture();
+//    SikulixIDE.doShow();
     scrImage = new ImageItem(scrImage).resize((int) ideWindow.getWidth()).get();
+    final double scrImageH = scrImage.getHeight();
+    final double ideWindowH = ideWindow.getHeight() - 50;
+    if (scrImageH > ideWindowH) {
+      scrImage = new ImageItem(scrImage).resize( ideWindowH / scrImageH).get();
+    }
   }
 
   public void rename() {
@@ -44,8 +50,10 @@ public class SXDialogPaneImage extends SXDialogIDE {
   public void optimize() {
     closeCancel();
     prepare();
-    new SXDialogPaneImageOptimize(ideWindow.getLocation(), new String[]{"image", "shot"},
-        image, scrImage).run();
+    final SXDialogPaneImageOptimize dlgOptimize = new SXDialogPaneImageOptimize(ideWindow.getLocation(),
+        new String[]{"image", "shot"}, image, scrImage);
+    dlgOptimize.setText("statusline", "searching... +");
+    dlgOptimize.run();
   }
 
   public void pattern() {

@@ -724,6 +724,7 @@ public class SXDialog extends JFrame {
           } else if (isFeat(feature, FEATURE.ACTION)) {
             if (itemOptions.length > 0) {
               item = new ActionItem(title, itemOptions);
+              item.refName(refName);
             }
 
           } else if (isFeat(feature, FEATURE.OPTION)) {
@@ -1010,6 +1011,29 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
+  public void setText(String refName, String text) {
+    final BasicItem item = refNames.get(refName);
+    if (item != null && item.isValid()) {
+      item.setText(text);
+    }
+  }
+
+  public String getText(String refName) {
+    final BasicItem item = refNames.get(refName);
+    if (item != null && item.isValid()) {
+      return item.title();
+    }
+    return null;
+  }
+
+  public void toggleText(String feature, String opt1, String opt2) {
+    final String current = getText(feature);
+    if (current != null) {
+      if (current.equals(opt1)) setText(feature, opt2);
+      else setText(feature, opt1);
+    }
+  }
+
   //region 50 BasicItem
   abstract class BasicItem {
 
@@ -1124,6 +1148,10 @@ public class SXDialog extends JFrame {
     }
 
     void title(String text) {
+      title = text;
+    }
+
+    void setText(String text) {
       title = text;
     }
 
@@ -1767,6 +1795,11 @@ public class SXDialog extends JFrame {
         g2d.drawLine(0, height, width, height);
       }
     }
+
+    void setText(String text) {
+      super.setText(text);
+      ((JLabel) comp()).setText(text);
+    }
   }
 
   class HtmlItem extends TextItem {
@@ -1824,16 +1857,19 @@ public class SXDialog extends JFrame {
       setActive();
       bold();
       setBackground(BACKGROUNDCOLOR);
-      getAction();
+      getCommand();
     }
 
-    void getAction() {
+    void getCommand() {
       if (aAction.strip().isEmpty()) {
         return;
       }
       final String[] parts = aAction.split(" ");
       command = parts[0].strip();
-      refName = command;
+      if (refName.isEmpty()) {
+        refName = command;
+        refNames.put(refName, this);
+      }
       if (command.startsWith("show")) {
         if (parts.length > 1) {
           what = parts[1].strip();
@@ -2044,7 +2080,7 @@ public class SXDialog extends JFrame {
       if (img == null || !(factor > 0)) {
         return this;
       }
-      img = resizeImage(img, (int) (img.getWidth() * factor), (int) (img.getWidth() * factor));
+      img = resizeImage(img, (int) (img.getWidth() * factor), (int) (img.getHeight() * factor));
       return this;
     }
 

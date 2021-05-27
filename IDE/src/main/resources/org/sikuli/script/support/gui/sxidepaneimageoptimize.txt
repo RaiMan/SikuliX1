@@ -5,9 +5,9 @@
 ---5
 #action; (⬆); fullscreen
 ---5
-#action; (✔); applyclose
+#action; (✔); apply
 ]
 ---5
 #image; {shot}
 ---3
-{sximagefile_image}
+_statusline {sximagefile_image}
