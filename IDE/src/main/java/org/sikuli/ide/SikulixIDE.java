@@ -29,10 +29,7 @@ import org.sikuli.script.support.generators.ICodeGenerator;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.script.support.gui.SikuliIDEI18N;
 import org.sikuli.script.support.recorder.actions.IRecordedAction;
-import org.sikuli.util.EventObserver;
-import org.sikuli.util.EventSubject;
-import org.sikuli.util.OverlayCapturePrompt;
-import org.sikuli.util.SikulixFileChooser;
+import org.sikuli.util.*;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -262,23 +259,31 @@ public class SikulixIDE extends JFrame {
     Debug.log("IDE: creating tabbed editor");
     initTabs();
     Debug.log("IDE: creating message area");
-    initMessageArea();
+    messageArea = null;
+    if (!Commons.hasOption(CommandArgsEnum.CONSOLE)) {
+      initMessageArea();
+    }
     Debug.log("IDE: creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
-    if (prefs.getPrefMoreMessage() == PreferencesUser.VERTICAL) {
-      mainPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codePane, messageArea);
-    } else {
-      mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, codePane, messageArea);
-    }
-    mainPane.setResizeWeight(0.6);
-    mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
     Debug.log("IDE: Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
+    mainPane = null;
+    if (messageArea != null) {
+      if (prefs.getPrefMoreMessage() == PreferencesUser.VERTICAL) {
+        mainPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, codePane, messageArea);
+      } else {
+        mainPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, codePane, messageArea);
+      }
+      mainPane.setResizeWeight(0.6);
+      mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+      editPane.add(mainPane, BorderLayout.CENTER);
+    } else {
+      editPane.add(codePane, BorderLayout.CENTER);
+    }
 
-    editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
     Debug.log("IDE: Putting all together - after main pane");
 
@@ -330,7 +335,9 @@ public class SikulixIDE extends JFrame {
     }
     org.sikuli.ide.Sikulix.stopSplash();
     ideWindow.setVisible(true);
-    sikulixIDE.mainPane.setDividerLocation(0.6); //TODO saved value
+    if (sikulixIDE.mainPane != null) {
+      sikulixIDE.mainPane.setDividerLocation(0.6); //TODO saved value
+    }
     sikulixIDE.getActiveContext().focus();
   }
 
@@ -3171,6 +3178,9 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="30 MsgArea">
+  private JTabbedPane messageArea;
+  private EditorConsolePane messages;
+
   private void initMessageArea() {
     messageArea = new JTabbedPane();
     messages = new EditorConsolePane();
@@ -3206,9 +3216,6 @@ public class SikulixIDE extends JFrame {
       //</editor-fold>
     });
   }
-
-  private JTabbedPane messageArea;
-  private EditorConsolePane messages;
 
   void clearMessageArea() {
     messages.clear();
