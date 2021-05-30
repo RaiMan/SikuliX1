@@ -27,7 +27,7 @@ public abstract class Devices {
 
   private static Robot globalRobot = null;
 
-  protected static Robot getRobot() {
+  protected static Robot getGlobalRobot() {
     if (globalRobot == null) {
       try {
         globalRobot = new Robot();

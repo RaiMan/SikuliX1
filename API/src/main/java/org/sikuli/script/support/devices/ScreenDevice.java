@@ -19,6 +19,7 @@ public class ScreenDevice extends Devices {
   private static TYPE deviceType = TYPE.SCREEN;
 
   private Rectangle bounds = null;
+  private Robot robot;
 
   private int id = -1;
 
@@ -33,8 +34,9 @@ public class ScreenDevice extends Devices {
   private ScreenDevice() {
   }
 
-  private ScreenDevice(Rectangle bounds) {
+  private ScreenDevice(Rectangle bounds, Robot robot) {
     this.bounds = bounds;
+    this.robot = robot;
   }
 
   public int x() {
@@ -94,9 +96,16 @@ public class ScreenDevice extends Devices {
       }
       devices = new ScreenDevice[nDevices];
       Rectangle currentBounds;
+      Robot robot = null;
       for (int i = 0; i < nDevices; i++) {
         String addOn = "";
-        currentBounds = gdevs[i].getDefaultConfiguration().getBounds();
+        GraphicsDevice gdev = gdevs[i];
+        currentBounds = gdev.getDefaultConfiguration().getBounds();
+        try {
+          robot = new Robot(gdev);
+        } catch (AWTException e) {
+          RunTime.terminate(999, "ScreenDevice.init: device#%d (%s)", i, e.getMessage());
+        }
         if (currentBounds.contains(new Point(0, 0))) {
           if (mainMonitor < 0) {
             mainMonitor = i;
@@ -105,7 +114,7 @@ public class ScreenDevice extends Devices {
             addOn = " (has (0,0) too!";
           }
         }
-        final ScreenDevice device = new ScreenDevice(currentBounds);
+        final ScreenDevice device = new ScreenDevice(currentBounds, robot);
         device.id = i;
         devices[i] = device;
         log(deviceType, 3,"%s" + addOn, device);
@@ -172,15 +181,9 @@ public class ScreenDevice extends Devices {
     return new Image(bImg);
   }
 
-  private static Robot robot;
-
-  public static Robot getRobot() {
+  public Robot getRobot() {
     if (robot == null) {
-      try {
-        robot = new Robot();
-      } catch (AWTException e) {
-        throw new RuntimeException(String.format("ScreenDevice: getRobot: %s", e.getMessage()));
-      }
+      RunTime.terminate(999, "ScreenDevice.robot: device#%d (is null - impossible!)", id);
     }
     return robot;
   }

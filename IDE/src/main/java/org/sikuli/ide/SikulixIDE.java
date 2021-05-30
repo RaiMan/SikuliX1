@@ -3096,7 +3096,7 @@ public class SikulixIDE extends JFrame {
           }
 
           RunTime.pause(0.1f);
-          messages.clear();
+          clearMessageArea();
           resetErrorMark();
           doBeforeRun();
 
@@ -3218,10 +3218,16 @@ public class SikulixIDE extends JFrame {
   }
 
   void clearMessageArea() {
+    if (messages == null) {
+      return;
+    }
     messages.clear();
   }
 
   void collapseMessageArea() {
+    if (messages == null) {
+      return;
+    }
     if (messageAreaCollapsed) {
       return;
     }
@@ -3229,12 +3235,18 @@ public class SikulixIDE extends JFrame {
   }
 
   void uncollapseMessageArea() {
+    if (messages == null) {
+      return;
+    }
     if (messageAreaCollapsed) {
       toggleCollapsed();
     }
   }
 
   private void toggleCollapsed() {
+    if (messages == null) {
+      return;
+    }
     if (messageAreaCollapsed) {
       mainPane.setDividerLocation(mainPane.getLastDividerLocation());
       messageAreaCollapsed = false;
