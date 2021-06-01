@@ -53,7 +53,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
         Thread.sleep(300);
       } catch (InterruptedException ie) {
       }
-      Rectangle roi = simg.getROI();
+      Rectangle roi = simg.getRect();
       _x = (int) roi.getX();
       _y = (int) roi.getY();
       _w = (int) roi.getWidth();
@@ -79,7 +79,8 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
     Graphics2D screen_g2d = screen.createGraphics();
     try {
       screen_g2d.drawImage(simg.getImage(), 0, 0, scr_w, scr_h, null);
-      int sx = (int) ((x - simg.x) * scale), sy = (int) ((y - simg.y) * scale),
+      Rectangle rect = simg.getRect();
+      int sx = (int) ((x - rect.x) * scale), sy = (int) ((y - rect.y) * scale),
               sw = (int) (w * scale), sh = (int) (h * scale);
       screen_g2d.setColor(new Color(255, 0, 0, 150));
       screen_g2d.fillRect(sx, sy, sw, sh);

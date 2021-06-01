@@ -33,25 +33,10 @@ public class ScreenImage {
 	 * x, y, w, h of the stored ROI
 	 *
 	 */
-	public int x, y, w, h;
-	protected Rectangle _roi;
-	protected BufferedImage _img;
-	protected String _filename = null;
-	public Location start;
-	public Location end;
-
-	public void setStartEnd(Location start, Location end) {
-		this.start = start;
-		this.end = end;
-	}
-
-	public Location getStart() {
-		return start;
-	}
-
-	public Location getEnd() {
-		return end;
-	}
+	int x, y, w, h;
+	Rectangle rect;
+	BufferedImage bimg;
+	String filename = null;
 
 	/**
 	 * create ScreenImage with given
@@ -60,12 +45,12 @@ public class ScreenImage {
 	 * @param img the BufferedImage
 	 */
 	public ScreenImage(Rectangle roi, BufferedImage img) {
-		_img = img;
-		_roi = roi;
+		bimg = img;
+		rect = roi;
 		x = (int) roi.getX();
 		y = (int) roi.getY();
-		w = _img.getWidth();
-		h = _img.getHeight();
+		w = bimg.getWidth();
+		h = bimg.getHeight();
 	}
 
 	/**
@@ -74,19 +59,19 @@ public class ScreenImage {
 	 * @param shotFile previously saved screenshot
 	 */
 	public ScreenImage(File shotFile) {
-		_img = Image.getBufferedImage(shotFile);
+		bimg = Image.getBufferedImage(shotFile);
 		x = 0;
 		y = 0;
-		w = _img.getWidth();
-		h = _img.getHeight();
-		_roi = new Rectangle(x, y, w, h);
+		w = bimg.getWidth();
+		h = bimg.getHeight();
+		rect = new Rectangle(x, y, w, h);
 	}
 
   public ScreenImage getSub(Rectangle sub) {
-    if (!_roi.contains(sub)) {
+    if (!rect.contains(sub)) {
       return this;
     }
-    BufferedImage img = _img.getSubimage(sub.x - x, sub.y - y, sub.width, sub.height);
+    BufferedImage img = bimg.getSubimage(sub.x - x, sub.y - y, sub.width, sub.height);
     return new ScreenImage(sub, img);
   }
 
@@ -107,14 +92,14 @@ public class ScreenImage {
    * @return absolute path to stored file
    */
 	public String getFile() {
-    if (_filename == null) {
-      _filename = save();
+    if (filename == null) {
+      filename = save();
     }
-    return _filename;
+    return filename;
   }
 
   public String getStoredAt() {
-	  return _filename;
+	  return filename;
   }
 
 	/**
@@ -125,7 +110,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save() {
-    return FileManager.saveTimedImage(_img, Commons.getTempFolder().getAbsolutePath(), "#sikuliximage");
+    return FileManager.saveTimedImage(bimg, Commons.getTempFolder().getAbsolutePath(), "#sikuliximage");
   }
 
 	/**
@@ -147,7 +132,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save(String path) {
-    return FileManager.saveTimedImage(_img, path, "#sikuliximage");
+    return FileManager.saveTimedImage(bimg, path, "#sikuliximage");
   }
 
 	/**
@@ -159,7 +144,7 @@ public class ScreenImage {
 	 * @return absolute path to stored file
 	 */
   public String save(String path, String name) {
-    return FileManager.saveTimedImage(_img, path, name);
+    return FileManager.saveTimedImage(bimg, path, name);
   }
 
 	/**
@@ -184,7 +169,7 @@ public class ScreenImage {
       Debug.error("ScreenImage.store: IOException", iOException);
       return null;
     }
-		return _filename;
+		return filename;
 	}
 
 	public String saveInBundle(String name) {
@@ -213,9 +198,9 @@ public class ScreenImage {
 	// store image to given path if not yet stored
 	private void storeImage(File image) throws IOException {
 		String filename = image.getAbsolutePath();
-		if (!filename.equals(_filename) || image.getName().startsWith("_")) {
-			ImageIO.write(_img, "png", image);
-			_filename = filename;
+		if (!filename.equals(this.filename) || image.getName().startsWith("_")) {
+			ImageIO.write(bimg, "png", image);
+			this.filename = filename;
 		}
 	}
 
@@ -224,7 +209,7 @@ public class ScreenImage {
 	 * @return the stored image in memory
 	 */
 	public BufferedImage getImage() {
-		return _img;
+		return bimg;
 	}
 
 	/**
@@ -232,20 +217,20 @@ public class ScreenImage {
 	 * @return the Region, the iamge was created from
 	 */
 	public Region getRegion() {
-		return new Region(_roi);
+		return new Region(rect);
 	}
 
 	/**
 	 *
 	 * @return the screen rectangle, the iamge was created from
 	 */
-	public Rectangle getROI() {
-		return _roi;
+	public Rectangle getRect() {
+		return rect;
 	}
 
   public void saveLastScreenImage(File fPath) {
     try {
-  		ImageIO.write(_img, "png", new File(fPath, "LastScreenImage.png"));
+  		ImageIO.write(bimg, "png", new File(fPath, "LastScreenImage.png"));
     } catch (Exception ex) {}
   }
 
@@ -302,7 +287,7 @@ public class ScreenImage {
 	public String saveInto(File path) {
 		File fImage = new File(path, String.format("%s-%d.png", "sikuliximage", new Date().getTime()));
 		try {
-			ImageIO.write(_img, FilenameUtils.getExtension(fImage.getName()), fImage);
+			ImageIO.write(bimg, FilenameUtils.getExtension(fImage.getName()), fImage);
 			Debug.log(3, "ScreenImage::saveImage: %s", fImage);
 		} catch (Exception ex) {
 			Debug.error("ScreenImage::saveInto: did not work: %s (%s)", fImage, ex.getMessage());

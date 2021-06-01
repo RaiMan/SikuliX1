@@ -92,7 +92,7 @@ public class PatternWindow extends JFrame {
       pDim.height = (int) ((pDim.height - 2 * pOff) * 0.95);
 
       // optimize window size to aspect ratio of screenshot
-      double ratio = (double) _simg.w / _simg.h;
+      double ratio = (double) _simg.getRect().getWidth() / _simg.getRect().getHeight();
       pDim.width = Math.min((int) ((pDim.height - PatternPaneScreenshot.BOTTOM_MARGIN) * ratio), pDim.width);
 
       // center window

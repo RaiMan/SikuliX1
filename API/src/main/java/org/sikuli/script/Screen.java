@@ -697,7 +697,7 @@ public class Screen extends Region implements IScreen, EventObserver {
     if (sim == null) {
       return null;
     }
-    Rectangle r = sim.getROI();
+    Rectangle r = sim.getRect();
     return Region.create((int) r.getX(), (int) r.getY(),
         (int) r.getWidth(), (int) r.getHeight());
   }

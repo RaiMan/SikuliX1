@@ -122,7 +122,7 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
         Thread.sleep(300);
       } catch (InterruptedException ie) {
       }
-      Rectangle roi = simg.getROI();
+      Rectangle roi = simg.getRect();
       pyText = String.format("%d,%d,%d,%d",
               (int) roi.x, (int) roi.y, (int) roi.width, (int) roi.height);
       setText(pyText);
