@@ -4,7 +4,6 @@
 package org.sikuli.util;
 
 import org.sikuli.basics.Debug;
-//import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.devices.ScreenDevice;
 
 import javax.swing.*;
@@ -69,13 +68,6 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   private EventObserver captureObserver;
   private String message = "";
 
-  public OverlayCapturePrompt(ScreenDevice screen, EventObserver observer, String message) {
-    this.screen = screen;
-    this.message = message;
-    captureObserver = observer;
-    init();
-  }
-
   public static boolean capturePrompt(EventObserver observer, String message) {
     if (ScreenDevice.capturePromptActive()) {
       return false;
@@ -84,11 +76,19 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     for (ScreenDevice screen : screenDevices) {
       final OverlayCapturePrompt prompt = new OverlayCapturePrompt(screen, observer, message);
       screen.setPrompt(prompt);
+      prompt.setPromptImage();
     }
     for (ScreenDevice screen : screenDevices) {
       screen.showPrompt();
     }
     return true;
+  }
+
+  private OverlayCapturePrompt(ScreenDevice screen, EventObserver observer, String message) {
+    this.screen = screen;
+    this.message = message;
+    captureObserver = observer;
+    init();
   }
 
   private void init() {
@@ -146,7 +146,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     endY = startY = event.getY();
     if (isLocalScreen) {
       Debug.log(3, "CapturePrompt: started at (%d,%d) on S(%d)",
-          screen.x() + startX, screen.y() + startY, screen.getId());
+          screen.x() + startX, screen.y() + startY, screen.getScreenId());
       endMinX = 0;
       endMaxX = screen.width() - 1;
       endMinY = 0;
@@ -166,7 +166,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     } else {
       if (isLocalScreen) {
         Debug.log(3, "CapturePrompt: finished at (%d,%d) on S(%d)",
-            screen.x() + endX, screen.y() + endY, screen.getId());
+            screen.x() + endX, screen.y() + endY, screen.getScreenId());
       }
     }
     hasFinished = true;
@@ -214,7 +214,7 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
   }
 
   public int getScrID() {
-    return screen.getId();
+    return screen.getScreenId();
   }
 
   public void prompt(String msg, int delayMS) {
@@ -233,21 +233,21 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
     prompt(message);
   }
 
-  public void prompt(String msg) {
+  void setPromptImage() {
     scr_img_original = screen.capture();
     if (Debug.getDebugLevel() > 2) {
       //TODO scr_img_original.getFile(Commons.getAppDataStore().getAbsolutePath(), "lastScreenShot");
     }
     scr_img = scr_img_original;
-    scr_img_darker = scr_img;
     scr_img_type = scr_img.getType();
     scr_img_rect = screen.asRectangle();
-    if (isLocalScreen) {
-      darker_factor = 0.6f;
-      RescaleOp op = new RescaleOp(darker_factor, 0, null);
-      scr_img_darker = op.filter(scr_img, null);
-    } else {
-      //TODO nonLocal device
+    darker_factor = 0.6f;
+    RescaleOp op = new RescaleOp(darker_factor, 0, null);
+    scr_img_darker = op.filter(scr_img, null);
+  }
+
+  public void prompt(String msg) {
+//TODO nonLocal device
 /*
       promptMsg = null;
       if (scr_img_rect.height > Screen.getPrimaryScreen().getBounds().getHeight()) {
@@ -267,13 +267,12 @@ public class OverlayCapturePrompt extends JFrame implements EventSubject {
         scr_img_darker = scr_img;
       }
 */
-    }
     this.setBounds(screen.asRectangle());
     this.setVisible(true);
   }
 
   public void close() {
-    Debug.log(4, "CapturePrompt.close: S(%d) freeing resources", screen.getId());
+    Debug.log(4, "CapturePrompt.close: S(%d) freeing resources", screen.getScreenId());
     setVisible(false);
     dispose();
     scr_img = null;

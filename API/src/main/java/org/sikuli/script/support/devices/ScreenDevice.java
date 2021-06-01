@@ -20,11 +20,17 @@ public class ScreenDevice extends Devices {
 
   private Rectangle bounds = null;
   private Robot robot;
+  private GraphicsDevice gdev;
 
   private int id = -1;
+  private int screenId = -1;
 
   public int getId() {
     return id;
+  }
+
+  public int getScreenId() {
+    return screenId;
   }
 
   static void start() {
@@ -34,9 +40,9 @@ public class ScreenDevice extends Devices {
   private ScreenDevice() {
   }
 
-  private ScreenDevice(Rectangle bounds, Robot robot) {
+  private ScreenDevice(Rectangle bounds, GraphicsDevice gdev) {
     this.bounds = bounds;
-    this.robot = robot;
+    this.gdev = gdev;
   }
 
   public int x() {
@@ -67,9 +73,9 @@ public class ScreenDevice extends Devices {
     return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
   }
 
-  public static Screen makeScreen(int num) {
+  public static Screen makeScreen(int nScreen) {
     final Screen screen = new Screen();
-    screen.setup(num);
+    screen.setup(nScreen);
     return screen;
   }
 
@@ -96,27 +102,33 @@ public class ScreenDevice extends Devices {
       }
       devices = new ScreenDevice[nDevices];
       Rectangle currentBounds;
-      Robot robot = null;
+      int nScreen = 1;
       for (int i = 0; i < nDevices; i++) {
         String addOn = "";
         GraphicsDevice gdev = gdevs[i];
         currentBounds = gdev.getDefaultConfiguration().getBounds();
         try {
-          robot = new Robot(gdev);
+          new Robot(gdev);
         } catch (AWTException e) {
           RunTime.terminate(999, "ScreenDevice.init: device#%d (%s)", i, e.getMessage());
         }
+        int actualScreen = nScreen;
         if (currentBounds.contains(new Point(0, 0))) {
           if (mainMonitor < 0) {
+            actualScreen = 0;
             mainMonitor = i;
             addOn = " (is primary screen)";
           } else {
             addOn = " (has (0,0) too!";
+            nScreen++;
           }
+        } else {
+          nScreen++;
         }
-        final ScreenDevice device = new ScreenDevice(currentBounds, robot);
+        final ScreenDevice device = new ScreenDevice(currentBounds, gdev);
         device.id = i;
-        devices[i] = device;
+        device.screenId = actualScreen;
+        devices[actualScreen] = device;
         log(deviceType, 3,"%s" + addOn, device);
       }
       if (mainMonitor < 0) {
@@ -134,10 +146,6 @@ public class ScreenDevice extends Devices {
 
   public static ScreenDevice primary() {
     return get(mainMonitor);
-  }
-
-  public static Screen getPrimaryScreen() {
-    return makeScreen(mainMonitor);
   }
 
   public static ScreenDevice[] get() {
@@ -183,7 +191,11 @@ public class ScreenDevice extends Devices {
 
   public Robot getRobot() {
     if (robot == null) {
-      RunTime.terminate(999, "ScreenDevice.robot: device#%d (is null - impossible!)", id);
+      try {
+        robot = new Robot(gdev);
+      } catch (AWTException e) {
+        RunTime.terminate(999, "ScreenDevice:robot: %s", e.getMessage());
+      }
     }
     return robot;
   }
@@ -191,6 +203,10 @@ public class ScreenDevice extends Devices {
 
   public BufferedImage capture() {
     return getRobot().createScreenCapture(asRectangle());
+  }
+
+  public static BufferedImage capture(Rectangle rect) {
+    return getScreenForPoint(rect.getLocation()).getRobot().createScreenCapture(rect);
   }
 
   private static AtomicBoolean capturePromptActive = new AtomicBoolean(false);

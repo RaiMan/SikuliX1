@@ -66,21 +66,16 @@ public class Screen extends Region implements IScreen, EventObserver {
     if (!ScreenDevice.isHeadless()) {
       Devices.start(Devices.TYPE.SCREEN);
       nMonitors = ScreenDevice.numDevices();
-      primaryScreen = 0;
-      getGlobalRobot();
+      mainMonitor = ScreenDevice.primary().getId();
       screens = new Screen[nMonitors];
-      screens[0] = ScreenDevice.makeScreen(0);
-      int nMonitor = 0;
-      for (int i = 1; i < screens.length; i++) {
-        if (nMonitor == mainMonitor) {
-          nMonitor++;
-        }
+      primaryScreen = 0;
+      for (int i = 0; i < screens.length; i++) {
         screens[i] = ScreenDevice.makeScreen(i);
-        nMonitor++;
       }
     }   else {
       throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
     }
+    getGlobalRobot();
     log(logLevel, "initScreens: ending");
   }
 
@@ -89,13 +84,13 @@ public class Screen extends Region implements IScreen, EventObserver {
     initScreens();
   }
 
-  public void setup(int num) {
-    final Rectangle rect = ScreenDevice.get(num).asRectangle();
+  public void setup(int nScreen) {
+    final Rectangle rect = ScreenDevice.get(nScreen).asRectangle();
     x = rect.x;
     y = rect.y;
     w = rect.width;
     h = rect.height;
-    curID = num;
+    curID = nScreen;
   }
   //</editor-fold>
 
@@ -519,7 +514,8 @@ public class Screen extends Region implements IScreen, EventObserver {
    */
   @Override
   public ScreenImage capture() {
-    return capture(getRect());
+    ScreenDevice screenDevice = ScreenDevice.get(getID());
+    return new ScreenImage(screenDevice.asRectangle(), screenDevice.capture());
   }
 
   /**
@@ -533,8 +529,7 @@ public class Screen extends Region implements IScreen, EventObserver {
    */
   @Override
   public ScreenImage capture(int x, int y, int w, int h) {
-    Rectangle rect = newRegion(new Location(x, y), w, h).getRect();
-    return capture(rect);
+    return capture(new Rectangle(x, y, w, h));
   }
 
   /**
@@ -546,7 +541,7 @@ public class Screen extends Region implements IScreen, EventObserver {
   @Override
   public ScreenImage capture(Rectangle rect) {
     lastCaptureTime = new Date().getTime();
-    ScreenImage simg = globalRobot.captureScreen(rect);
+    ScreenImage simg = new ScreenImage(rect, ScreenDevice.capture(rect)); //globalRobot.captureScreen(rect);
     if (Settings.FindProfiling) {
       Debug.logp("[FindProfiling] Screen.capture [%d x %d]: %d msec",
           rect.width, rect.height, new Date().getTime() - lastCaptureTime);
