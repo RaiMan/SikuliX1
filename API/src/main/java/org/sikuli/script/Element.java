@@ -386,7 +386,7 @@ public abstract class Element {
     }
   }
 
-  public static <SFIRBS> BufferedImage getBufferedImage(SFIRBS whatEver) {
+  public static <SFMRISB> BufferedImage getBufferedImage(SFMRISB whatEver) {
     if (whatEver instanceof String) {
       return Image.create((String) whatEver).get();
     } else if (whatEver instanceof File) {
@@ -403,7 +403,7 @@ public abstract class Element {
     } else if (whatEver instanceof BufferedImage) {
       return (BufferedImage) whatEver;
     }
-    throw new IllegalArgumentException(String.format("Illegal OCR source: %s", whatEver != null ? whatEver.getClass() : "null"));
+    throw new IllegalArgumentException(String.format(": %s", whatEver != null ? whatEver.getClass() : "null"));
   }
 
   protected Image getImage() {

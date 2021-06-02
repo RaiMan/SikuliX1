@@ -41,16 +41,22 @@ public class ScreenImage {
 	/**
 	 * create ScreenImage with given
 	 *
-	 * @param roi the rectangle it was taken from
+	 * @param rect the rectangle it was taken from
 	 * @param img the BufferedImage
 	 */
-	public ScreenImage(Rectangle roi, BufferedImage img) {
+	public ScreenImage(Rectangle rect, BufferedImage img) {
 		bimg = img;
-		rect = roi;
-		x = (int) roi.getX();
-		y = (int) roi.getY();
+		x = rect.x;
+		y = rect.y;
 		w = bimg.getWidth();
+		if (w != rect.width) {
+			rect.width = w;
+		}
 		h = bimg.getHeight();
+		if (h != rect.height) {
+			rect.height = h;
+		}
+		this.rect = rect;
 	}
 
 	/**

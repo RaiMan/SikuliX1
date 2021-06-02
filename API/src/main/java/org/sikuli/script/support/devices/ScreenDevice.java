@@ -129,7 +129,7 @@ public class ScreenDevice extends Devices {
         device.id = i;
         device.screenId = actualScreen;
         devices[actualScreen] = device;
-        log(deviceType, 3,"%s" + addOn, device);
+        log(deviceType, 3, "%s" + addOn, device);
       }
       if (mainMonitor < 0) {
         log(deviceType, 3, "No ScreenDevice has (0,0) --- using 0 as primary: %s", devices[0]);
@@ -206,7 +206,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static BufferedImage capture(Rectangle rect) {
-    return getScreenForPoint(rect.getLocation()).getRobot().createScreenCapture(rect);
+    ScreenDevice screen = getScreenForPoint(rect.getLocation());
+    rect = screen.bounds.intersection(rect);
+    return screen.getRobot().createScreenCapture(rect);
   }
 
   private static AtomicBoolean capturePromptActive = new AtomicBoolean(false);
