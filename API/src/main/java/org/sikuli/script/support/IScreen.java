@@ -18,8 +18,6 @@ public interface IScreen {
 
 	int getID();
 
-	int getIdFromPoint(int srcx, int srcy);
-
 	String getIDString();
 
 	IRobot getRobot();

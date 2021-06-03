@@ -39,25 +39,6 @@ public class ScreenUnion extends Screen {
   }
 
   @Override
-  public int getIdFromPoint(int x, int y) {
-    Rectangle sr = getBounds();
-    int _x = x + getBounds().x;
-    int _y = y + getBounds().y;
-    for (int i = 0; i < getNumberScreens(); i++) {
-      if (Screen.getScreen(i).contains(new Location(_x, _y))) {
-        Debug.log(3, "ScreenUnion: getIdFromPoint: " +
-                     "(%d, %d) as (%d, %d) in (%d, %d, %d, %d) on %d",
-                       x, y, _x, _y, sr.x, sr.y, sr.width, sr.height, i);
-        return i;
-      }
-    }
-    Debug.log(3, "ScreenUnion: getIdFromPoint: " +
-                 "(%d, %d) as (%d, %d) in (%d, %d, %d, %d) on ???",
-                   x, y, _x, _y, sr.x, sr.y, sr.width, sr.height);
-    return 0;
-  }
-
-  @Override
   public Rectangle getBounds() {
     return _bounds;
   }

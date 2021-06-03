@@ -359,18 +359,6 @@ public class Screen extends Region implements IScreen, EventObserver {
 
 
   /**
-   * INTERNAL USE: to be compatible with ScreenUnion
-   *
-   * @param x value
-   * @param y value
-   * @return id of the screen
-   */
-  @Override
-  public int getIdFromPoint(int x, int y) {
-    return curID;
-  }
-
-  /**
    * Gets the Robot of this Screen.
    *
    * @return The Robot for this Screen

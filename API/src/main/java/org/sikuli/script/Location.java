@@ -7,6 +7,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.IRobot;
 import org.sikuli.script.support.IScreen;
+import org.sikuli.script.support.devices.ScreenDevice;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -251,14 +252,11 @@ public class Location implements Comparable<Location>{
     if (otherScreen != null) {
       return otherScreen;
     }
-    for (int i = 0; i < Screen.getNumberScreens(); i++) {
-      r = Screen.getScreen(i).getBounds();
-      if (r.contains(this.x, this.y)) {
-        return Screen.getScreen(i);
-      }
+    IScreen screen = ScreenDevice.getScreenForPoint(x, y);
+    if (screen == null) {
+      Debug.error("Location: outside any screen (%s, %s) - subsequent actions might not work as expected", x, y);
     }
-    Debug.error("Location: outside any screen (%s, %s) - subsequent actions might not work as expected", x, y);
-    return null;
+    return screen;
   }
 
   /**

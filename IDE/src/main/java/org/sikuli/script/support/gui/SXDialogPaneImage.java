@@ -5,6 +5,7 @@ import org.sikuli.ide.EditorImageButton;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
+import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.devices.ScreenDevice;
 
 import java.awt.*;
@@ -27,7 +28,10 @@ public class SXDialogPaneImage extends SXDialogIDE {
   private void prepare() {
     final SikulixIDE sxide = SikulixIDE.get();
     ideWindow = sxide.getBounds();
-    final ScreenDevice scr = ScreenDevice.getScreenForPoint(ideWindow.getLocation());
+    final ScreenDevice scr = ScreenDevice.getScreenDeviceForPoint(ideWindow.getLocation());
+    if (scr == null) {
+      RunTime.terminate(999, "SXDialogPaneImage: prepare(): ideWindow.getLocation(): should be on a valid screen");
+    }
     SikulixIDE.doHide();
     scrImage = scr.capture();
 //    SikulixIDE.doShow();

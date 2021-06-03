@@ -132,33 +132,32 @@ public class RobotDesktop extends Robot implements IRobot {
         doMouseMove((int) x, (int) y);
       }
     }
-    checkMousePosition(new Location(x, y));
+    waitForIdle();
+    checkMousePosition((int) x, (int) y);
   }
 
   private void doMouseMove(int x, int y) {
     mouseMove(x, y);
   }
 
-  private void checkMousePosition(Location targetPos) {
+  private void checkMousePosition(int x, int y) {
     if (MouseDevice.isNotUseable()) {
       return;
     }
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point actualPos;
     if (mp == null) {
-      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid\nafter move to %s", targetPos);
+      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid after move to (%d, %d)",
+              x, y);
     } else {
       actualPos = mp.getLocation();
-      boolean xOff = actualPos.x < (targetPos.x - 1) || actualPos.x > (targetPos.x + 1);
-      boolean yOff = actualPos.y < (targetPos.y - 1) || actualPos.y > (targetPos.y + 1);
+      boolean xOff = actualPos.x < (x - 1) || actualPos.x > (x + 1);
+      boolean yOff = actualPos.y < (y - 1) || actualPos.y > (y + 1);
       if (xOff || yOff) {
         if (MouseDevice.isUsable()) {
           if (Settings.checkMousePosition) {
-            Debug.error("RobotDesktop: checkMousePosition: should be %s - but is not!"
-                            + "\nPossible cause in case you did not touch the mouse while script was running:\n"
-                            + " Mouse actions are blocked generally or by the frontmost application."
-                            + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
-                    targetPos, new Location(actualPos));
+            Debug.error("RobotDesktop: checkMousePosition: should be %s - but is %s!",
+                    new Location(x, y), new Location(actualPos));
           }
         }
       }

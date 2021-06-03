@@ -3,16 +3,13 @@ package org.sikuli.script.support.devices;
 import org.sikuli.script.Image;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
-import org.sikuli.script.support.IRobot;
-import org.sikuli.script.support.RobotDesktop;
+import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.OverlayCapturePrompt;
-import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScreenDevice extends Devices {
 
@@ -77,6 +74,10 @@ public class ScreenDevice extends Devices {
     final Screen screen = new Screen();
     screen.setup(nScreen);
     return screen;
+  }
+
+  public static Screen getPrimaryScreen() {
+    return makeScreen(0);
   }
 
   public static boolean isHeadless() {
@@ -166,13 +167,26 @@ public class ScreenDevice extends Devices {
     return device;
   }
 
-  public static ScreenDevice getScreenForPoint(Point point) {
+  public static ScreenDevice getScreenDeviceForPoint(Point point) {
     for (ScreenDevice scr : get()) {
       if (scr.bounds.contains(point)) {
         return scr;
       }
     }
-    return primary();
+    return null;
+  }
+
+  public static IScreen getScreenForPoint(int x, int y) {
+    return getScreenForPoint(new Point(x, y));
+  }
+
+  public static IScreen getScreenForPoint(Point point) {
+    ScreenDevice screenDevice = getScreenDeviceForPoint(point);
+    IScreen screen = null;
+    if (screenDevice != null) {
+      screen = Screen.getScreen(screenDevice.getScreenId());
+    }
+    return screen;
   }
 
   public Rectangle asRectangle() {
@@ -206,8 +220,13 @@ public class ScreenDevice extends Devices {
   }
 
   public static BufferedImage capture(Rectangle rect) {
-    ScreenDevice screen = getScreenForPoint(rect.getLocation());
-    rect = screen.bounds.intersection(rect);
+    ScreenDevice screen = getScreenDeviceForPoint(rect.getLocation());
+    if (screen != null) {
+      rect = screen.bounds.intersection(rect);
+    } else {
+      screen = primary();
+      rect = new Rectangle(0, 0, 1, 1);
+    }
     return screen.getRobot().createScreenCapture(rect);
   }
 

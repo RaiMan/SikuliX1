@@ -70,7 +70,7 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
     Region region = Region.create(x, y, w, h);
     IScreen _screen = region.getScreen();
     ScreenImage simg = _screen.capture();
-    int scr_w = simg.w, scr_h = simg.h;
+    int scr_w = simg.getRect().width, scr_h = simg.getRect().height;
     int max_h = 80; // FIXME: put max_h in UserPreferences
     float scale = (float) max_h / scr_h;
     scr_w *= scale;

@@ -208,7 +208,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       _width = (int) getPreferredSize().getWidth();
     }
     _height = (int) ((double) _width / _ratio);
-    _scale = (double) _height / _simg.h;
+    _scale = (double) _height / _simg.getRect().height;
     setPreferredSize(new Dimension(_width, _height));
     repaint();
     revalidate();
@@ -320,10 +320,10 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
   private void initScreenImage(ScreenImage simg, Dimension pDim) {
     _simg = simg;
     _screen = simg.getImage();
-    _ratio = (double)simg.w / simg.h;
+    _ratio = (double)simg.getRect().width / simg.getRect().height;
     _height = pDim.height - BOTTOM_MARGIN;
-    _scale = (double) _height / simg.h;
-    _width = (int) (simg.w * _scale);
+    _scale = (double) _height / simg.getRect().height;
+    _width = (int) (simg.getRect().width * _scale);
     setPreferredSize(new Dimension(_width, _height));
   }
 }
