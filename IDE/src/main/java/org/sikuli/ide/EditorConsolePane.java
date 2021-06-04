@@ -36,20 +36,15 @@ import org.sikuli.basics.Debug;
 //
 // RJHM van den Bergh , rvdb@comweb.nl
 import org.sikuli.basics.PreferencesUser;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.Runner;
+import org.sikuli.support.runner.IRunner;
+import org.sikuli.support.ide.Runner;
+import org.sikuli.support.Commons;
+import org.sikuli.util.CommandArgsEnum;
 
 public class EditorConsolePane extends JPanel implements Runnable {
 
   private static final String me = "EditorConsolePane: ";
-  static boolean ENABLE_IO_REDIRECT = true;
-
-  static {
-    String flag = System.getProperty("sikuli.console");
-    if (flag != null && flag.equals("false")) {
-      ENABLE_IO_REDIRECT = false;
-    }
-  }
+  //static boolean ENABLE_IO_REDIRECT = true;
 
   private int NUM_PIPES;
   private JTextPane textArea;
@@ -83,6 +78,9 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
   public EditorConsolePane() {
     super();
+    if (Commons.hasOption(CommandArgsEnum.CONSOLE)) {
+      return;
+    }
     textArea = new JTextPane();
     textArea.setEditorKit(new HTMLEditorKit());
     textArea.setTransferHandler(new JTextPaneHTMLTransferHandler());
@@ -92,60 +90,6 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
     setLayout(new BorderLayout());
     add(new JScrollPane(textArea), BorderLayout.CENTER);
-
-    if (ENABLE_IO_REDIRECT) {
-      Debug.log(3, "EditorConsolePane: starting redirection to message area");
-      int npipes = 2;
-      NUM_PIPES = npipes * Runner.getRunners().size() + npipes;
-      pin = new PipedInputStream[NUM_PIPES];
-      reader = new Thread[NUM_PIPES];
-      for (int i = 0; i < NUM_PIPES; i++) {
-        pin[i] = new PipedInputStream();
-      }
-
-      // redirect System IO to console
-      try {
-        PipedOutputStream oout = new PipedOutputStream(pin[0]);
-        PrintStream ops = new PrintStream(oout, true);
-        System.setOut(ops);
-        reader[0] = new Thread(EditorConsolePane.this);
-        reader[0].setDaemon(true);
-        reader[0].start();
-
-        PipedOutputStream eout = new PipedOutputStream(pin[1]);
-        PrintStream eps = new PrintStream(eout, true);
-        System.setErr(eps);
-
-        reader[1] = new Thread(EditorConsolePane.this);
-        reader[1].setDaemon(true);
-        reader[1].start();
-
-        int irunner = 1;
-
-        for (IScriptRunner srunner : Runner.getRunners()) {
-          Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
-
-          PipedOutputStream pout = new PipedOutputStream(pin[irunner * npipes]);
-          PrintStream psout = new PrintStream(pout, true);
-
-          PipedOutputStream perr = new PipedOutputStream(pin[irunner * npipes + 1]);
-          PrintStream pserr = new PrintStream(perr, true);
-
-          srunner.redirect(psout, pserr);
-          quit = false; // signals the Threads that they should exit
-          // Starting two seperate threads to read from the PipedInputStreams
-          for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
-            reader[i] = new Thread(EditorConsolePane.this);
-            reader[i].setDaemon(true);
-            reader[i].start();
-          }
-          irunner++;
-        }
-
-      } catch (IOException e1) {
-        Debug.log(-1, "Redirecting System IO failes", e1.getMessage());
-      }
-    }
 
     //Create the popup menu.
     popup = new JPopupMenu();
@@ -161,6 +105,62 @@ public class EditorConsolePane extends JPanel implements Runnable {
     //Add listener to components that can bring up popup menus.
     MouseListener popupListener = new PopupListener(popup);
     textArea.addMouseListener(popupListener);
+  }
+
+  public void initRedirect() {
+    Debug.log(3, "EditorConsolePane: starting redirection to message area");
+    int npipes = 2;
+    NUM_PIPES = npipes; //npipes * Runner.getRunners().size() + npipes;
+    pin = new PipedInputStream[NUM_PIPES];
+    reader = new Thread[NUM_PIPES];
+    for (int i = 0; i < NUM_PIPES; i++) {
+      pin[i] = new PipedInputStream();
+    }
+
+    try {
+
+/*
+      int irunner = 1;
+      for (IRunner srunner : Runner.getRunners()) {
+        Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
+
+        PipedOutputStream pout = new PipedOutputStream(pin[irunner * npipes]);
+        PrintStream psout = new PrintStream(pout, true);
+
+        PipedOutputStream perr = new PipedOutputStream(pin[irunner * npipes + 1]);
+        PrintStream pserr = new PrintStream(perr, true);
+
+        srunner.redirect(psout, pserr);
+
+        quit = false; // signals the Threads that they should exit
+        // Starting two seperate threads to read from the PipedInputStreams
+        for (int i = irunner * npipes; i < irunner * npipes + npipes; i++) {
+          reader[i] = new Thread(EditorConsolePane.this);
+          reader[i].setDaemon(true);
+          reader[i].start();
+        }
+        irunner++;
+      }
+*/
+
+      // redirect System IO to IDE message area
+      PipedOutputStream oout = new PipedOutputStream(pin[0]);
+      PrintStream ops = new PrintStream(oout, true);
+      System.setOut(ops);
+      reader[0] = new Thread(EditorConsolePane.this);
+      reader[0].setDaemon(true);
+      reader[0].start();
+
+      PipedOutputStream eout = new PipedOutputStream(pin[1]);
+      PrintStream eps = new PrintStream(eout, true);
+      System.setErr(eps);
+
+      reader[1] = new Thread(EditorConsolePane.this);
+      reader[1].setDaemon(true);
+      reader[1].start();
+    } catch (IOException e1) {
+      Debug.log(-1, "Redirecting System IO failed", e1.getMessage());
+    }
   }
 
   private void appendMsg(String msg) {

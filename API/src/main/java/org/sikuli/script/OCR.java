@@ -6,7 +6,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
+import org.sikuli.support.Commons;
 
 import java.awt.Font;
 import java.awt.FontMetrics;

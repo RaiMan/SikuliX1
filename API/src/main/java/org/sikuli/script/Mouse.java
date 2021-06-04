@@ -5,8 +5,8 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.*;
-import org.sikuli.script.support.devices.MouseDevice;
+import org.sikuli.support.*;
+import org.sikuli.support.devices.*;
 import org.sikuli.util.Highlight;
 
 import java.awt.event.InputEvent;

@@ -3,7 +3,7 @@
  */
 package org.sikuli.util;
 
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.RunTime;
 
 import java.io.IOException;
 import java.io.PrintWriter;

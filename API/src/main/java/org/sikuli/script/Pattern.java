@@ -6,8 +6,8 @@ package org.sikuli.script;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;

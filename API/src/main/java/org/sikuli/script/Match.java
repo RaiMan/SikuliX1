@@ -3,7 +3,7 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.script.support.IScreen;
+import org.sikuli.support.devices.IScreen;
 
 import java.awt.*;
 

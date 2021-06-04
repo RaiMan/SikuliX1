@@ -9,10 +9,9 @@ import java.security.CodeSource;
 import java.util.*;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.support.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
 
 /**
  * maintain the path list of locations, where images will be searched.

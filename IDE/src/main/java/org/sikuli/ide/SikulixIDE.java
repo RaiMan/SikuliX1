@@ -6,29 +6,28 @@ package org.sikuli.ide;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.*;
-import org.sikuli.idesupport.*;
-import org.sikuli.idesupport.syntaxhighlight.ResolutionException;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Lexer;
-import org.sikuli.idesupport.syntaxhighlight.grammar.Token;
-import org.sikuli.idesupport.syntaxhighlight.grammar.TokenType;
+import org.sikuli.support.FileManager;
+import org.sikuli.support.ide.*;
+import org.sikuli.support.ide.syntaxhighlight.ResolutionException;
+import org.sikuli.support.ide.syntaxhighlight.grammar.Lexer;
+import org.sikuli.support.ide.syntaxhighlight.grammar.Token;
+import org.sikuli.support.ide.syntaxhighlight.grammar.TokenType;
 import org.sikuli.script.Image;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.JythonSupport;
-import org.sikuli.script.runnerSupport.Runner;
-import org.sikuli.script.runners.InvalidRunner;
-import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.TextRunner;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.Recorder;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.devices.ScreenDevice;
-import org.sikuli.script.support.generators.ICodeGenerator;
-import org.sikuli.script.support.gui.SXDialog;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
-import org.sikuli.script.support.recorder.actions.IRecordedAction;
+import org.sikuli.support.runner.IRunner;
+import org.sikuli.support.ide.Runner;
+import org.sikuli.support.runner.InvalidRunner;
+import org.sikuli.support.runner.JythonRunner;
+import org.sikuli.support.runner.TextRunner;
+import org.sikuli.support.Commons;
+import org.sikuli.support.devices.IScreen;
+import org.sikuli.support.recorder.Recorder;
+import org.sikuli.support.RunTime;
+import org.sikuli.support.devices.ScreenDevice;
+import org.sikuli.support.recorder.generators.ICodeGenerator;
+import org.sikuli.support.gui.SXDialog;
+import org.sikuli.support.recorder.actions.IRecordedAction;
 import org.sikuli.util.*;
 
 import javax.swing.*;
@@ -188,9 +187,11 @@ public class SikulixIDE extends JFrame {
     ideWindowRect = getWindowRect();
 
     IDEDesktopSupport.init();
-    Commons.startLog(1, "IDEDesktopSupport ready (%4.1f)", Commons.getSinceStart());
-
-    IDESupport.init();
+    IDESupport.initIDESupport();
+    if (!Commons.hasOption(CommandArgsEnum.CONSOLE)) {
+      get().messages = new EditorConsolePane();
+    }
+    IDESupport.initRunners();
     Commons.startLog(1, "IDESupport ready --- GUI start (%4.1f)", Commons.getSinceStart());
 
     sikulixIDE.startGUI();
@@ -259,8 +260,7 @@ public class SikulixIDE extends JFrame {
     Debug.log("IDE: creating tabbed editor");
     initTabs();
     Debug.log("IDE: creating message area");
-    messageArea = null;
-    if (!Commons.hasOption(CommandArgsEnum.CONSOLE)) {
+    if (messages != null) {
       initMessageArea();
     }
     Debug.log("IDE: creating combined work window");
@@ -321,6 +321,9 @@ public class SikulixIDE extends JFrame {
     ToolTipManager.sharedInstance().setDismissDelay(30000);
 
     createEmptyScriptContext();
+    if (messages != null) {
+      messages.initRedirect();
+    }
     Debug.log("IDE: Putting all together - Restore last Session");
     restoreSession();
 
@@ -574,7 +577,7 @@ public class SikulixIDE extends JFrame {
     String name;
     String ext;
 
-    IScriptRunner runner = null;
+    IRunner runner = null;
     IIDESupport support;
     String type;
 
@@ -615,11 +618,11 @@ public class SikulixIDE extends JFrame {
       return !pane.getText().isEmpty();
     }
 
-    public IScriptRunner getRunner() {
+    public IRunner getRunner() {
       return runner;
     }
 
-    private void setRunner(IScriptRunner _runner) {
+    private void setRunner(IRunner _runner) {
       runner = _runner;
       type = runner.getType();
       ext = runner.getDefaultExtension();
@@ -632,7 +635,7 @@ public class SikulixIDE extends JFrame {
         ext = runner.getDefaultExtension();
         file = new File(file.getAbsolutePath() + "." + ext);
       } else {
-        final IScriptRunner _runner = Runner.getRunner(file.getAbsolutePath());
+        final IRunner _runner = Runner.getRunner(file.getAbsolutePath());
         if (!(_runner instanceof InvalidRunner)) {
           runner = _runner;
         } else {
@@ -3100,12 +3103,12 @@ public class SikulixIDE extends JFrame {
           resetErrorMark();
           doBeforeRun();
 
-          IScriptRunner.Options runOptions = new IScriptRunner.Options();
+          IRunner.Options runOptions = new IRunner.Options();
           runOptions.setRunningInIDE();
 
           int exitValue = -1;
           try {
-            IScriptRunner runner = context.getRunner();
+            IRunner runner = context.getRunner();
             //TODO make reloadImported specific for each editor tab
             if (runner.getType().equals(JythonRunner.TYPE)) {
               JythonSupport.get().reloadImported();
@@ -3178,12 +3181,11 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="30 MsgArea">
-  private JTabbedPane messageArea;
-  private EditorConsolePane messages;
+  private JTabbedPane messageArea = null;
+  private EditorConsolePane messages = null;
 
   private void initMessageArea() {
     messageArea = new JTabbedPane();
-    messages = new EditorConsolePane();
     messageArea.addTab(_I("paneMessage"), null, messages, "DoubleClick to hide/unhide");
     if (Settings.isWindows() || Settings.isLinux()) {
       messageArea.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
@@ -3258,6 +3260,10 @@ public class SikulixIDE extends JFrame {
   }
 
   private boolean messageAreaCollapsed = false;
+
+  public EditorConsolePane getConsole() {
+    return messages;
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="25 Init ShortCuts HotKeys">

@@ -14,8 +14,8 @@ import javax.swing.JComponent;
 import javax.swing.text.*;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.runners.JRubyRunner;
-import org.sikuli.script.runners.JythonRunner;
+import org.sikuli.support.runner.JRubyRunner;
+import org.sikuli.support.runner.JythonRunner;
 
 public class EditorViewFactory implements ViewFactory {
 

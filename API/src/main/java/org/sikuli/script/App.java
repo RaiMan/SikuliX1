@@ -3,7 +3,6 @@
  */
 package org.sikuli.script;
 
-import java.awt.Desktop;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.ClipboardOwner;
@@ -16,12 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
@@ -41,8 +37,8 @@ import org.sikuli.natives.OSUtil;
 import org.sikuli.natives.OSUtil.OsProcess;
 import org.sikuli.natives.OSUtil.OsWindow;
 import org.sikuli.natives.SysUtil;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
 
 /**
  * App implements features to manage (open, switch to, close) applications. on

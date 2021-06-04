@@ -5,12 +5,12 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
-import org.sikuli.idesupport.IDESupport;
+import org.sikuli.support.FileManager;
 import org.sikuli.script.Sikulix;
 import org.sikuli.script.*;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.support.RobotDesktop;
+import org.sikuli.support.ide.Runner;
+import org.sikuli.support.runner.IRunner;
+import org.sikuli.support.devices.RobotDesktop;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -18,7 +18,6 @@ import javax.swing.text.Element;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -284,7 +283,7 @@ public class SikuliIDEPopUpMenu extends JPopupMenu {
       }
       if (selOptionsTypes == null) {
         String types = "";
-        for (IScriptRunner runner : IDESupport.getRunners()) {
+        for (IRunner runner : Runner.getRunners()) {
           types += runner.getType().replaceFirst(".*?\\/", "") + " ";
         }
         if (!types.isEmpty()) {

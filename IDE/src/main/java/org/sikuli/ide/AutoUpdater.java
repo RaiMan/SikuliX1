@@ -9,8 +9,8 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+
+import org.sikuli.support.FileManager;
 
 public class AutoUpdater { //TODO
 

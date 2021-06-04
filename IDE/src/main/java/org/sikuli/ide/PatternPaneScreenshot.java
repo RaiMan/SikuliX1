@@ -14,7 +14,7 @@ import org.sikuli.script.Match;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.ScreenImage;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.support.ide.SikuliIDEI18N;
 
 @SuppressWarnings("serial")
 class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentListener {

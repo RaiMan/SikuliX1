@@ -5,24 +5,21 @@ package org.sikuli.ide;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
 import org.sikuli.basics.PreferencesUser;
 import org.sikuli.basics.Settings;
-import org.sikuli.idesupport.ExtensionManager;
-import org.sikuli.idesupport.IIDESupport;
-import org.sikuli.idesupport.IIndentationLogic;
+import org.sikuli.support.ide.ExtensionManager;
+import org.sikuli.support.ide.IIDESupport;
+import org.sikuli.support.ide.IIndentationLogic;
 import org.sikuli.script.Image;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.IScriptRunner.EffectiveRunner;
-import org.sikuli.script.runnerSupport.Runner;
-import org.sikuli.script.runners.JythonRunner;
-import org.sikuli.script.runners.PythonRunner;
-import org.sikuli.script.runners.TextRunner;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.generators.ICodeGenerator;
-import org.sikuli.script.support.generators.JythonCodeGenerator;
+import org.sikuli.support.runner.IRunner;
+import org.sikuli.support.runner.JythonRunner;
+import org.sikuli.support.runner.PythonRunner;
+import org.sikuli.support.runner.TextRunner;
+import org.sikuli.support.Commons;
+import org.sikuli.support.recorder.generators.ICodeGenerator;
+import org.sikuli.support.recorder.generators.JythonCodeGenerator;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -35,7 +32,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -223,11 +219,11 @@ public class EditorPane extends JTextPane {
   //</editor-fold>
 
   //<editor-fold desc="10 load content">
-  public IScriptRunner getRunner() {
+  public IRunner getRunner() {
     return editorPaneRunner;
   }
 
-  IScriptRunner editorPaneRunner = null;
+  IRunner editorPaneRunner = null;
 
   File editorPaneFileToRun = null;
 

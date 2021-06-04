@@ -16,8 +16,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.runners.ProcessRunner;
-import org.sikuli.script.runnerSupport.IScriptRunner;
+import org.sikuli.support.runner.ProcessRunner;
+import org.sikuli.support.runner.IRunner;
 
 public class LinuxUtil extends GenericOsUtil {
 
@@ -140,7 +140,7 @@ public class LinuxUtil extends GenericOsUtil {
 
 			xdotoolRunner.redirect(new PrintStream(out), new PrintStream(err));
 
-			int exitCode = xdotoolRunner.runScript("xdotool", args, new IScriptRunner.Options());
+			int exitCode = xdotoolRunner.runScript("xdotool", args, new IRunner.Options());
 
 			if (exitCode != 0) {
 				String message = String.format("xdotool failed with code %s: %s", exitCode, err);

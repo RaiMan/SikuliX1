@@ -3,8 +3,8 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.FileManager;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;

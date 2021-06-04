@@ -17,7 +17,6 @@ import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
-import org.sikuli.script.support.Commons;
 
 public class MacUtil extends GenericOsUtil {
 

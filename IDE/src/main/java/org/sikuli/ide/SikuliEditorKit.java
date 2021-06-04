@@ -13,7 +13,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.idesupport.IIndentationLogic;
+import org.sikuli.support.ide.IIndentationLogic;
 
 public class SikuliEditorKit extends StyledEditorKit {
 

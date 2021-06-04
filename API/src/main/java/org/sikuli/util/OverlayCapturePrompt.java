@@ -4,7 +4,7 @@
 package org.sikuli.util;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.support.devices.ScreenDevice;
 
 import javax.swing.*;
 import java.awt.*;

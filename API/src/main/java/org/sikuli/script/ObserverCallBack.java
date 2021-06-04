@@ -6,7 +6,7 @@ package org.sikuli.script;
 import java.util.EventListener;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.Commons;
+import org.sikuli.support.Commons;
 
 /**
  * Use this class to implement callbacks for<br>

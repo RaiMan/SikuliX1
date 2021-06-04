@@ -5,12 +5,12 @@ package org.sikuli.script;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Settings;
-import org.sikuli.basics.FileManager;
+import org.sikuli.support.FileManager;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.Commons;
+import org.sikuli.support.Commons;
 
 import java.awt.*;
 import java.awt.image.*;

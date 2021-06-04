@@ -13,8 +13,8 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

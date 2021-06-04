@@ -5,12 +5,12 @@ package org.sikuli.ide;
 
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.support.FileManager;
 import org.sikuli.script.Location;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.ScreenUnion;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
-import org.sikuli.script.support.gui.notused.PatternPaneNaming;
+import org.sikuli.support.devices.ScreenUnion;
+import org.sikuli.support.ide.SikuliIDEI18N;
+import org.sikuli.support.gui.notused.PatternPaneNaming;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

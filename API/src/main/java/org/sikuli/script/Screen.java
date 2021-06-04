@@ -12,9 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.*;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.support.*;
+import org.sikuli.support.devices.*;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;

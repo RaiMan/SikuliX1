@@ -5,9 +5,11 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Observer;
-import org.sikuli.script.support.*;
-import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.support.*;
+import org.sikuli.support.Observer;
+import org.sikuli.support.devices.HelpDevice;
+import org.sikuli.support.devices.IRobot;
+import org.sikuli.support.devices.IScreen;
 import org.sikuli.util.Highlight;
 
 import java.awt.Rectangle;
@@ -3438,11 +3440,11 @@ public class Region extends Element {
   private boolean observingInBackground = false;
 
   /**
-   * The {@link org.sikuli.script.support.Observer} Singleton instance
+   * The {@link Observer} Singleton instance
    */
-  private org.sikuli.script.support.Observer regionObserver = null;
+  private Observer regionObserver = null;
 
-  public org.sikuli.script.support.Observer getObserver() {
+  public Observer getObserver() {
     if (regionObserver == null) {
       regionObserver = new Observer(this);
     }

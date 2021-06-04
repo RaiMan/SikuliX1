@@ -5,14 +5,15 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.*;
-import org.sikuli.script.runners.SikulixServer;
+import org.sikuli.support.FileManager;
+import org.sikuli.support.runner.SikulixServer;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.runnerSupport.IScriptRunner;
-import org.sikuli.script.runnerSupport.Runner;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.gui.SXDialog;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.support.runner.IRunner;
+import org.sikuli.support.ide.Runner;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
+import org.sikuli.support.gui.SXDialog;
+import org.sikuli.support.ide.SikuliIDEI18N;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -90,7 +91,7 @@ public class Sikulix {
         }
       });
       String[] scripts = Runner.resolveRelativeFiles(Commons.getArgs("r"));
-      int exitCode = Runner.runScripts(scripts, Commons.getUserArgs(), new IScriptRunner.Options());
+      int exitCode = Runner.runScripts(scripts, Commons.getUserArgs(), new IRunner.Options());
       if (exitCode > 255) {
         exitCode = 254;
       }

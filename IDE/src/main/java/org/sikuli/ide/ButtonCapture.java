@@ -9,9 +9,9 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Image;
 import org.sikuli.script.Key;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.devices.ScreenDevice;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.support.RunTime;
+import org.sikuli.support.devices.ScreenDevice;
+import org.sikuli.support.ide.SikuliIDEI18N;
 import org.sikuli.util.EventObserver;
 import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
@@ -21,11 +21,9 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 class ButtonCapture extends ButtonOnToolbar implements Cloneable, EventObserver {
 

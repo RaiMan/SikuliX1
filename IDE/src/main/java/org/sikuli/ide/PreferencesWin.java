@@ -36,7 +36,7 @@ import javax.swing.text.Element;
 import org.jdesktop.layout.*;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.Key;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.support.ide.SikuliIDEI18N;
 
 /*
  * Created by JFormDesigner on Mon Nov 16 10:13:52 EST 2009

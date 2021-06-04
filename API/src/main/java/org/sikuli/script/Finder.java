@@ -7,9 +7,8 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.devices.IScreen;
 
 import java.awt.Color;
 import java.awt.Rectangle;

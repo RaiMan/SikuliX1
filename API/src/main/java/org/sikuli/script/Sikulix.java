@@ -4,14 +4,13 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.support.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.HelpDevice;
-import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
+import org.sikuli.support.devices.Devices;
+import org.sikuli.support.devices.HelpDevice;
+import org.sikuli.support.devices.ScreenDevice;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +24,8 @@ public class Sikulix {
       System.exit(0);
     }
 
-    SikulixAPI.main(args);
+    System.out.println("SikuliX API: nothing to do");
+    System.exit(0);
   }
 
   //<editor-fold desc="00 log">

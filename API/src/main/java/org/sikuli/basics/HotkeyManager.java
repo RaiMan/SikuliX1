@@ -5,11 +5,9 @@ package org.sikuli.basics;
 
 import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
 
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 

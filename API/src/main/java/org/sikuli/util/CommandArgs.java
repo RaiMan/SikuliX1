@@ -4,7 +4,7 @@
 package org.sikuli.util;
 
 import org.apache.commons.cli.*;
-import org.sikuli.script.support.Commons;
+import org.sikuli.support.Commons;
 
 import java.util.ArrayList;
 import java.util.List;

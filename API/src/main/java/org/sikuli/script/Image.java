@@ -6,9 +6,9 @@ package org.sikuli.script;
 import org.apache.commons.io.FilenameUtils;
 import org.opencv.core.Mat;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.FileManager;
+import org.sikuli.support.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.support.Commons;
+import org.sikuli.support.Commons;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

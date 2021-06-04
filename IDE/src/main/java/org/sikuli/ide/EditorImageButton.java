@@ -4,15 +4,14 @@
 package org.sikuli.ide;
 
 import org.apache.commons.io.FilenameUtils;
-import org.sikuli.idesupport.IButton;
+import org.sikuli.support.ide.IButton;
 import org.sikuli.script.Location;
 import org.sikuli.script.Pattern;
-import org.sikuli.script.SX;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.script.support.gui.SXDialog;
-import org.sikuli.script.support.gui.SXDialogPaneImage;
-import org.sikuli.script.support.gui.SXDialogPaneImageMenu;
+import org.sikuli.support.Commons;
+import org.sikuli.support.RunTime;
+import org.sikuli.support.gui.SXDialog;
+import org.sikuli.support.gui.SXDialogPaneImage;
+import org.sikuli.support.gui.SXDialogPaneImageMenu;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

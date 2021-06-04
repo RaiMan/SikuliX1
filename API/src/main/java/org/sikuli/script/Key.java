@@ -13,9 +13,8 @@ import java.util.TreeMap;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.KeyboardLayout;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
+import org.sikuli.support.devices.KeyboardLayout;
 
 /**
  * this class implements an interface to the Java key system

@@ -11,14 +11,14 @@ import javax.imageio.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import org.sikuli.basics.Debug;
-import org.sikuli.idesupport.Resizable;
+import org.sikuli.support.ide.Resizable;
 import org.sikuli.script.Finder;
 import org.sikuli.script.Location;
 import org.sikuli.script.Match;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
 import org.sikuli.script.ScreenImage;
-import org.sikuli.script.support.gui.SikuliIDEI18N;
+import org.sikuli.support.ide.SikuliIDEI18N;
 
 class PatternPaneTargetOffset extends JPanel implements
         MouseListener, MouseWheelListener, ChangeListener, ComponentListener {

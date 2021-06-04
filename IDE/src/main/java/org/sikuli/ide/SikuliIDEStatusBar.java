@@ -7,8 +7,7 @@ import java.awt.*;
 import javax.swing.*;
 
 import com.explodingpixels.macwidgets.plaf.EmphasizedLabelUI;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
 
 import java.util.Date;
 

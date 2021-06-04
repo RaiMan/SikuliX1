@@ -4,8 +4,7 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.Image;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.support.Commons;
 
 import java.io.File;
 import java.net.InetAddress;

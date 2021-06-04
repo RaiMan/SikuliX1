@@ -21,7 +21,7 @@ import inspect
 import org.sikuli.script.SX as Do
 
 # Debug.log(3, "Jython: sikuli: Sikuli: RunTime, Setting, Debug")
-import org.sikuli.script.support.RunTime as JRunTime
+import org.sikuli.support.RunTime as JRunTime
 
 
 class RunTime(JRunTime):
@@ -180,9 +180,9 @@ import SikuliImporter
 from org.sikuli.script import Sikulix
 
 # Debug.log(3, "Jython: sikuli: Sikuli: import Runner")
-import org.sikuli.script.runnerSupport.Runner as Runner
+import org.sikuli.support.ide.Runner as Runner
 
-import org.sikuli.script.runnerSupport.JythonSupport as JythonHelper
+import org.sikuli.support.ide.JythonSupport as JythonHelper
 
 
 def load(jar):
@@ -202,7 +202,7 @@ def prepareRobot():
 
 
 def show():
-    import org.sikuli.script.support.Commons as SC
+    import org.sikuli.support.Commons as SC
     SC.show()
 
 
@@ -568,7 +568,7 @@ def popFile(title="Select File or Folder"):
 #
 # TODO where else to remember an opened remote screen?
 remoteScreen = None
-import org.sikuli.script.support.devices.ScreenDevice as SD
+import org.sikuli.support.devices.ScreenDevice as SD
 SCREEN = None
 
 def use(scr=None, remote=False, fromWith=False):
