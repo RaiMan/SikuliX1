@@ -21,8 +21,8 @@ public class ProcessRunner extends AbstractRunner {
 	public static final String[] EXTENSIONS = new String[0];
 
 	private Process process;
-	private PrintStream stdOut = System.out;
-	private PrintStream stdErr = System.err;
+	private PrintStream stdOut;
+	private PrintStream stdErr;
 
 	@Override
 	public String getName() {
@@ -91,6 +91,12 @@ public class ProcessRunner extends AbstractRunner {
 
 	@Override
 	protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
+		if (stdout == null) {
+			stdout = System.out;
+		}
+		if (stderr == null) {
+			stderr = System.err;
+		}
 		this.stdOut = stdout;
 		this.stdErr = stderr;
 		return true;

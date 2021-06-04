@@ -14,6 +14,11 @@ public class PowershellRunner extends ProcessRunner {
   public static final String[] EXTENSIONS = new String[] {"ps1"};
 
   @Override
+  protected void doInit(String[] args) throws Exception {
+    doRedirect(null, null);
+  }
+
+  @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IRunner.Options options) {
     File fScriptFile = new File(scriptFile);
 

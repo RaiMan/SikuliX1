@@ -17,6 +17,11 @@ public class AppleScriptRunner extends ProcessRunner {
   private static final int LVL = 3;
 
   @Override
+  protected void doInit(String[] args) throws Exception {
+    doRedirect(null, null);
+  }
+
+  @Override
   protected int doEvalScript(String script, IRunner.Options options) {
     return super.doRunScript("osascript", new String[]{"-e", script}, options);
   }
