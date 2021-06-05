@@ -3184,7 +3184,10 @@ public class SikulixIDE extends JFrame {
   private JTabbedPane messageArea = null;
   private EditorConsolePane messages = null;
 
+  private boolean SHOULD_WRAP_LINE = false;
+
   private void initMessageArea() {
+    messages.init(SHOULD_WRAP_LINE);
     messageArea = new JTabbedPane();
     messageArea.addTab(_I("paneMessage"), null, messages, "DoubleClick to hide/unhide");
     if (Settings.isWindows() || Settings.isLinux()) {

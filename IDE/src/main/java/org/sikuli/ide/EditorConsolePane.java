@@ -16,15 +16,14 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.text.*;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.InlineView;
+import javax.swing.text.ParagraphView;
+import javax.swing.text.html.*;
 
 import org.sikuli.basics.Debug;
 //
@@ -37,8 +36,6 @@ import org.sikuli.basics.Debug;
 //
 // RJHM van den Bergh , rvdb@comweb.nl
 import org.sikuli.basics.PreferencesUser;
-import org.sikuli.support.runner.IRunner;
-import org.sikuli.support.ide.Runner;
 import org.sikuli.support.Commons;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -79,18 +76,19 @@ public class EditorConsolePane extends JPanel implements Runnable {
 
   public EditorConsolePane() {
     super();
-    if (Commons.hasOption(CommandArgsEnum.CONSOLE)) {
-      return;
-    }
-    textArea = new JTextPane();
-    //textArea.setEditorKit(new HTMLEditorKit());
-    someStuff();
-    textArea.setTransferHandler(new JTextPaneHTMLTransferHandler());
-    String css = PreferencesUser.get().getConsoleCSS();
-    HTMLEditorKit editorKit = (HTMLEditorKit) textArea.getEditorKit();
-    editorKit.getStyleSheet().addRule(css);
-    textArea.setEditable(false);
+  }
 
+  public void init(boolean SHOULD_WRAP_LINE) {
+    textArea = new JTextPane();
+    HTMLEditorKit kit;
+    if (SHOULD_WRAP_LINE) {
+      kit = editorKitWithLineWrap();
+    } else {
+      kit = new HTMLEditorKit();
+    }
+    textArea.setEditorKit(kit);
+    textArea.setTransferHandler(new JTextPaneHTMLTransferHandler());
+    textArea.setEditable(false);
     setLayout(new BorderLayout());
     add(new JScrollPane(textArea), BorderLayout.CENTER);
 
@@ -110,6 +108,56 @@ public class EditorConsolePane extends JPanel implements Runnable {
     textArea.addMouseListener(popupListener);
   }
 
+  private HTMLEditorKit editorKitWithLineWrap() {
+    HTMLEditorKit kit = new HTMLEditorKit() {
+      @Override
+      public ViewFactory getViewFactory() {
+        return new HTMLFactory() {
+          public View create(Element e) {
+            View v = super.create(e);
+            if (v instanceof InlineView) {
+              return new InlineView(e) {
+                public int getBreakWeight(int axis, float pos, float len) {
+                  return GoodBreakWeight;
+                }
+
+                public View breakView(int axis, int p0, float pos, float len) {
+                  if (axis == View.X_AXIS) {
+                    checkPainter();
+                    int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
+                    if (p0 == getStartOffset() && p1 == getEndOffset()) {
+                      return this;
+                    }
+                    return createFragment(p0, p1);
+                  }
+                  return this;
+                }
+              };
+            } else if (v instanceof ParagraphView) {
+              return new ParagraphView(e) {
+                protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+                  if (r == null) {
+                    r = new SizeRequirements();
+                  }
+                  float pref = layoutPool.getPreferredSpan(axis);
+                  float min = layoutPool.getMinimumSpan(axis);
+                  // Don't include insets, Box.getXXXSpan will include them.
+                  r.minimum = (int) min;
+                  r.preferred = Math.max(r.minimum, (int) pref);
+                  r.maximum = Integer.MAX_VALUE;
+                  r.alignment = 0.5f;
+                  return r;
+                }
+              };
+            }
+            return v;
+          }
+        };
+      }
+    };
+    return kit;
+  }
+
   public void initRedirect() {
     Debug.log(3, "EditorConsolePane: starting redirection to message area");
     int npipes = 2;
@@ -121,7 +169,6 @@ public class EditorConsolePane extends JPanel implements Runnable {
     }
 
     try {
-
 /*
       int irunner = 1;
       for (IRunner srunner : Runner.getRunners()) {
@@ -194,21 +241,34 @@ public class EditorConsolePane extends JPanel implements Runnable {
    */
   static final String lineSep = System.getProperty("line.separator");
 
+  public final static String CSS_Colors =
+      ".normal{ color: black; }"
+          + ".debug { color:#505000; }"
+          + ".info  { color: blue; }"
+          + ".log   { color: #09806A; }"
+          + ".error { color: red; }";
+
   private String htmlize(String msg) {
     StringBuilder sb = new StringBuilder();
     Pattern patMsgCat = Pattern.compile("\\[(.+?)\\].*");
     msg = msg.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;");
+        .replace("<", "&lt;")
+        .replace(">", "&gt;");
 
-    String cls = "normal";
+    String color = "color: black;";
 
     for (String line : msg.split(lineSep)) {
       Matcher m = patMsgCat.matcher(line);
       if (m.matches()) {
-        cls = m.group(1);
+        String logType = m.group(1).toLowerCase();
+        if (logType.contains("error")) color = "color: red;";
+        else if (logType.contains("debug")) color = "color: #505000;";
+        else if (logType.contains("log")) color = "color: #09806A;";
+        else if (logType.contains("info")) color = "color: blue;";
       }
-      line = "<pre class=\"" + cls + "\" style=\"margin: 0;\">" + line + "</pre>";
+      String font = "font-family:monospace; font-size: medium;";
+      int margin = 0;
+      line = String.format("<pre style=\"margin: %d; %s %s\">%s</pre>", margin, font, color, line);
       sb.append(line);
     }
     return sb.toString();
@@ -260,55 +320,6 @@ public class EditorConsolePane extends JPanel implements Runnable {
       }
     }
   }
-
-  private void someStuff() {
-    textArea.setEditorKit(new HTMLEditorKit() {
-      @Override
-      public ViewFactory getViewFactory() {
-        return new HTMLEditorKit.HTMLFactory() {
-          public View create(Element e) {
-            View v = super.create(e);
-            if (v instanceof InlineView) {
-              return new InlineView(e) {
-                public int getBreakWeight(int axis, float pos, float len) {
-                  return GoodBreakWeight;
-                }
-                public View breakView(int axis, int p0, float pos, float len) {
-                  if (axis == View.X_AXIS) {
-                    checkPainter();
-                    int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
-                    if (p0 == getStartOffset() && p1 == getEndOffset()) {
-                      return this;
-                    }
-                    return createFragment(p0, p1);
-                  }
-                  return this;
-                }
-              };
-            } else if (v instanceof ParagraphView) {
-              return new ParagraphView(e) {
-                protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-                  if (r == null) {
-                    r = new SizeRequirements();
-                  }
-                  float pref = layoutPool.getPreferredSpan(axis);
-                  float min = layoutPool.getMinimumSpan(axis);
-                  // Don't include insets, Box.getXXXSpan will include them.
-                  r.minimum = (int) min;
-                  r.preferred = Math.max(r.minimum, (int) pref);
-                  r.maximum = Integer.MAX_VALUE;
-                  r.alignment = 0.5f;
-                  return r;
-                }
-              };
-            }
-            return v;
-          }
-        };
-      }
-    });
-  }
-
 
   public synchronized String readLine(PipedInputStream in) throws IOException {
     String input = "";

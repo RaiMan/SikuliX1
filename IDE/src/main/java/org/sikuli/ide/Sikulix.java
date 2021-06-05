@@ -23,7 +23,7 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Sikulix {
 
-  static SXDialog ideSplash;
+  static SXDialog ideSplash = null;
   static int waitStart = 0;
 
   public static void stopSplash() {
@@ -106,8 +106,10 @@ public class Sikulix {
     Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
-    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-    ideSplash.run();
+    if (!Commons.hasOption(VERBOSE)) {
+      ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+      ideSplash.run();
+    }
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;
