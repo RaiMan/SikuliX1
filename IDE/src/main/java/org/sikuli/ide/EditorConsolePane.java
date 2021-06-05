@@ -24,6 +24,7 @@ import javax.swing.text.*;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.InlineView;
 
 import org.sikuli.basics.Debug;
 //
@@ -82,10 +83,12 @@ public class EditorConsolePane extends JPanel implements Runnable {
       return;
     }
     textArea = new JTextPane();
-    textArea.setEditorKit(new HTMLEditorKit());
+    //textArea.setEditorKit(new HTMLEditorKit());
+    someStuff();
     textArea.setTransferHandler(new JTextPaneHTMLTransferHandler());
     String css = PreferencesUser.get().getConsoleCSS();
-    ((HTMLEditorKit) textArea.getEditorKit()).getStyleSheet().addRule(css);
+    HTMLEditorKit editorKit = (HTMLEditorKit) textArea.getEditorKit();
+    editorKit.getStyleSheet().addRule(css);
     textArea.setEditable(false);
 
     setLayout(new BorderLayout());
@@ -194,7 +197,9 @@ public class EditorConsolePane extends JPanel implements Runnable {
   private String htmlize(String msg) {
     StringBuilder sb = new StringBuilder();
     Pattern patMsgCat = Pattern.compile("\\[(.+?)\\].*");
-    msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    msg = msg.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;");
 
     String cls = "normal";
 
@@ -230,23 +235,18 @@ public class EditorConsolePane extends JPanel implements Runnable {
           } catch (IOException e) {
           }
           if (null != input) {
-            String finalInput = input;
+            final String finalInput = input;
             EventQueue.invokeLater(() -> {
               synchronized (textArea) {
                 appendMsg(htmlize(finalInput));
-                //appendMsg("</br>"); //trial to avoid problems with Utilities.getRowStart
                 int textLen = textArea.getDocument().getLength();
                 if (textLen > 0) {
                   int textPosEnd = textLen - 1;
-                  int rowStart = -1;
+                  int rowStart;
                   try {
-                    //TODO horizontal slider should be left adjusted with messages exceeding window width
-                    rowStart = textPosEnd; // currently right adjusted in these cases
-//                    if (false) { // currently noop
-//                      rowStart = Math.max(0, Utilities.getRowStart(textArea, textPosEnd));
-//                    }
+                    rowStart = Math.max(0, Utilities.getRowStart(textArea, textPosEnd));
                   } catch (Exception e) {
-                    rowStart = textPosEnd; // fallback when using Utilities.getRowStart
+                    rowStart = textPosEnd;
                   }
                   textArea.setCaretPosition(rowStart);
                 }
@@ -260,6 +260,55 @@ public class EditorConsolePane extends JPanel implements Runnable {
       }
     }
   }
+
+  private void someStuff() {
+    textArea.setEditorKit(new HTMLEditorKit() {
+      @Override
+      public ViewFactory getViewFactory() {
+        return new HTMLEditorKit.HTMLFactory() {
+          public View create(Element e) {
+            View v = super.create(e);
+            if (v instanceof InlineView) {
+              return new InlineView(e) {
+                public int getBreakWeight(int axis, float pos, float len) {
+                  return GoodBreakWeight;
+                }
+                public View breakView(int axis, int p0, float pos, float len) {
+                  if (axis == View.X_AXIS) {
+                    checkPainter();
+                    int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
+                    if (p0 == getStartOffset() && p1 == getEndOffset()) {
+                      return this;
+                    }
+                    return createFragment(p0, p1);
+                  }
+                  return this;
+                }
+              };
+            } else if (v instanceof ParagraphView) {
+              return new ParagraphView(e) {
+                protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+                  if (r == null) {
+                    r = new SizeRequirements();
+                  }
+                  float pref = layoutPool.getPreferredSpan(axis);
+                  float min = layoutPool.getMinimumSpan(axis);
+                  // Don't include insets, Box.getXXXSpan will include them.
+                  r.minimum = (int) min;
+                  r.preferred = Math.max(r.minimum, (int) pref);
+                  r.maximum = Integer.MAX_VALUE;
+                  r.alignment = 0.5f;
+                  return r;
+                }
+              };
+            }
+            return v;
+          }
+        };
+      }
+    });
+  }
+
 
   public synchronized String readLine(PipedInputStream in) throws IOException {
     String input = "";
