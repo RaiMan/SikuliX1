@@ -51,6 +51,7 @@ public class Commons {
 
   private static final String osName = System.getProperty("os.name").toLowerCase();
   private static final String osVersion = System.getProperty("os.version").toLowerCase();
+  private static final String osArch = System.getProperty("os.arch").toLowerCase();
 
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
@@ -555,6 +556,11 @@ public class Commons {
 
   public static String getOSVersion() {
     return osVersion;
+  }
+
+
+  public static String getOSArch() {
+    return osArch;
   }
 
   public static String getOSInfo() {
