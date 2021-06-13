@@ -79,6 +79,11 @@ public class ScreenDevice extends Devices {
     return makeScreen(0);
   }
 
+  public static Screen getRemoteScreen(String adr, String port) {
+    //TODO support useRemote() in Sikuli.py
+    return null;
+  }
+
   public static boolean isHeadless() {
     return GraphicsEnvironment.isHeadless();
   }
@@ -189,7 +194,7 @@ public class ScreenDevice extends Devices {
   }
 
   public Rectangle asRectangle() {
-    return bounds;
+    return new Rectangle(bounds);
   }
 
   public Region asRegion() {

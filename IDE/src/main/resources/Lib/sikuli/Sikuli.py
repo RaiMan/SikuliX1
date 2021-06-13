@@ -2,6 +2,9 @@
 
 from __future__ import with_statement
 
+from future.types.newint import long
+from future.types.newstr import unicode
+
 from org.sikuli.basics import Debug as JDebug
 
 
@@ -306,7 +309,7 @@ def ucode(s):
 # relative paths are resolved against the working folder
 #
 def unzip(zip, target):
-    import org.sikuli.basics.FileManager as FM
+    import org.sikuli.support.FileManager as FM
     return FM.unzip(str(zip), str(target))
 
 
@@ -594,10 +597,10 @@ def use(scr=None, remote=False, fromWith=False):
 #
 def useRemote(adr, port=0):
     global remoteScreen
-    import org.sikuli.script.ScreenRemote as SR
-    SCREEN = SR(adr, str(port))
-    if SCREEN.isValid():
-        return use(SCREEN, True)
+    import org.sikuli.support.devices.ScreenDevice as SD
+    screen = SD.getRemoteScreen(adr, str(port))
+    if screen:
+        return use(screen, True)
     else:
         return None
 
