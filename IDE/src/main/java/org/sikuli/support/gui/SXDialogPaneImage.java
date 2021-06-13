@@ -22,25 +22,20 @@ public class SXDialogPaneImage extends SXDialogIDE {
   }
 
   File image = (File) getOptions().get("image");
-  BufferedImage scrImage = null;
+  BufferedImage actualImage = null;
+  protected BufferedImage scrImage = null;
   Rectangle ideWindow = null;
 
   private void prepare() {
-    final SikulixIDE sxide = SikulixIDE.get();
-    ideWindow = sxide.getBounds();
+    ideWindow = getIdeWindow();
     final ScreenDevice scr = ScreenDevice.getScreenDeviceForPoint(ideWindow.getLocation());
     if (scr == null) {
       RunTime.terminate(999, "SXDialogPaneImage: prepare(): ideWindow.getLocation(): should be on a valid screen");
     }
     SikulixIDE.doHide();
     scrImage = scr.capture();
-//    SikulixIDE.doShow();
-    scrImage = new ImageItem(scrImage).resize((int) ideWindow.getWidth()).get();
-    final double scrImageH = scrImage.getHeight();
-    final double ideWindowH = ideWindow.getHeight() - 50;
-    if (scrImageH > ideWindowH) {
-      scrImage = new ImageItem(scrImage).resize( ideWindowH / scrImageH).get();
-    }
+    globalStore.put("screenshot", scrImage);
+    actualImage = adjustTo(ideWindow, scrImage);
   }
 
   public void rename() {
@@ -55,7 +50,7 @@ public class SXDialogPaneImage extends SXDialogIDE {
     closeCancel();
     prepare();
     final SXDialogPaneImageOptimize dlgOptimize = new SXDialogPaneImageOptimize(ideWindow.getLocation(),
-        new String[]{"image", "shot"}, image, scrImage);
+        new String[]{"image", "shot"}, image, actualImage, this);
     dlgOptimize.setText("statusline", "searching... +");
     dlgOptimize.run();
   }
@@ -64,6 +59,6 @@ public class SXDialogPaneImage extends SXDialogIDE {
     closeCancel();
     prepare();
     new SXDialogPaneImagePattern(ideWindow.getLocation(), new String[]{"image", "shot", "pattern"},
-        getOptions().get("image"), scrImage).run();
+        getOptions().get("image"), actualImage).run();
   }
 }

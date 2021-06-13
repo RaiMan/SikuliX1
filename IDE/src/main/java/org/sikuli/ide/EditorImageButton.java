@@ -115,7 +115,7 @@ public class EditorImageButton extends JButton implements ActionListener, Serial
       where.y += MAXHEIGHT + 10;
 
       popmenu = new SXDialogPaneImageMenu(where,
-          new String[]{"image"}, options.get(IButton.FILE));
+          new String[]{"image"}, options.get(IButton.FILE), this);
       popmenu.run();
     }
   }

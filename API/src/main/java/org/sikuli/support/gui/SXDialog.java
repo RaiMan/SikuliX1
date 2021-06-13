@@ -145,6 +145,10 @@ public class SXDialog extends JFrame {
   private Point where;
   private POSITION pos;
 
+  public void where(Point where) {
+    this.where = where;
+  }
+
   public void run() {
     if (isOK()) {
       if (pos.equals(POSITION.TOP)) {
@@ -166,6 +170,18 @@ public class SXDialog extends JFrame {
   public void run(Point whereNow) {
     pos = POSITION.CENTER;
     where = whereNow;
+    run();
+  }
+
+  public void reRun() {
+    setVisible(false);
+    boxStack = new ArrayList<>();
+    refNames = new HashMap<>();
+    pane.removeAll();
+    for (BasicItem itm : dialogLines) {
+      itm.reset();
+    }
+    packBoxes(pane, dialogLines);
     run();
   }
 
@@ -411,6 +427,8 @@ public class SXDialog extends JFrame {
       autoClose = val;
     }
   }
+
+  public Map<String, Object> globalStore = new HashMap<>();
   //endregion
 
   //region 14 show/hide/destroy
@@ -1011,6 +1029,10 @@ public class SXDialog extends JFrame {
   }
   //endregion
 
+  public BasicItem getItem(String refName) {
+    return refNames.get(refName);
+  }
+
   public void setText(String refName, String text) {
     final BasicItem item = refNames.get(refName);
     if (item != null && item.isValid()) {
@@ -1233,6 +1255,13 @@ public class SXDialog extends JFrame {
     //endregion
 
     //region Location Size
+    void reset() {
+      x = 0;
+      y = 0;
+      width = 0;
+      height = 0;
+    }
+
     BasicItem resize(int width) {
       return this;
     }
@@ -2025,6 +2054,15 @@ public class SXDialog extends JFrame {
 //endregion
 
   //region 53 ImageItem
+  public BufferedImage adjustTo(Rectangle where, BufferedImage img) {
+    BufferedImage actualImage = new ImageItem(img).resize((int) where.getWidth()).get();
+    final double scrImageH = actualImage.getHeight();
+    final double whereH = where.getHeight() - 50;
+    if (scrImageH > whereH) {
+      actualImage = new ImageItem(actualImage).resize( whereH / scrImageH).get();
+    }
+    return actualImage;
+  }
   class ImageItem extends BasicItem {
     BufferedImage img = null;
 
@@ -2046,6 +2084,10 @@ public class SXDialog extends JFrame {
 
     public BufferedImage get() {
       return img;
+    }
+
+    public void set(BufferedImage img) {
+      this.img = img;
     }
 
     //TODO Image resize

@@ -8,6 +8,6 @@
 #action; (✔); apply
 ]
 ---5
-#image; {shot}
+#image_paneshot; {shot}
 ---3
 _statusline {sximagefile_image}
