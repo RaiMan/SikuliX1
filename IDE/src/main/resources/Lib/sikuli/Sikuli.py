@@ -2,7 +2,6 @@
 
 from __future__ import with_statement
 
-from future.types.newint import long
 from future.types.newstr import unicode
 
 from org.sikuli.basics import Debug as JDebug
@@ -65,7 +64,7 @@ def capture(*args):
 # Python wait() needs to be here because Java Object has a final method: wait(long timeout).
 # If we want to let Sikuli users use wait(int/long timeout), we need this Python method.
 def wait(target, timeout=None):
-    if isinstance(target, int) or isinstance(target, long):
+    if isinstance(target, int):
         target = float(target)
     if timeout == None:
         return SCREEN.wait(target)
