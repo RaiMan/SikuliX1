@@ -2,19 +2,13 @@
 
 from __future__ import with_statement
 
-from future.types.newstr import unicode
-
 from org.sikuli.basics import Debug as JDebug
-
 
 class Debug(JDebug):
     pass
 
-
 Debug.log(3, "Jython: starting init")
 import time
-# import __builtin__
-# import __main__
 import sys
 import os
 import inspect
