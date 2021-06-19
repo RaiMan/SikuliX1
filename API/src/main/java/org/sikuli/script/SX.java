@@ -160,6 +160,7 @@ public class SX {
       Boolean hidden = false;
       Integer timeout = 0;
       Object options = null;
+      Pattern pattern = null;
       Map<String, Object> parameters = new HashMap<>();
       Object returnValue;
 
@@ -173,6 +174,7 @@ public class SX {
         timeout = (Integer) parameters.get("timeout");
         frame = getFrame(parameters.get("location"));
         options = parameters.get("options");
+        pattern = (Pattern) parameters.get("pattern");
       }
 
       @Override
@@ -336,10 +338,10 @@ public class SX {
   }
 
   private static Map<String, Object> getPopParameters(Object... args) {
-    String parameterNames = "message,title,preset,hidden,timeout,location,options";
-    String parameterClass = "s,s,s,b,i,e,o";
+    String parameterNames = "message,title,preset,hidden,timeout,location,options,pattern";
+    String parameterClass = "s,s,s,b,i,e,o,p";
     Object[] parameterDefault = new Object[]{"not set", "SikuliX", "",
-        false, Integer.MAX_VALUE, null, new Object[0]};
+        false, Integer.MAX_VALUE, null, new Object[0], null};
     return Parameters.get(parameterNames, parameterClass, parameterDefault, args);
   }
 
@@ -400,11 +402,13 @@ public class SX {
               clazz = "Region";
             } else if ("o".equals(clazz)) {
               clazz = "Object";
+            } else if ("p".equals(clazz)) {
+              clazz = "Pattern";
             }
           }
           if ("String".equals(clazz) || "Integer".equals(clazz) ||
               "Double".equals(clazz) || "Boolean".equals(clazz) ||
-              "Region".equals(clazz) || "Object".equals(clazz)) {
+              "Region".equals(clazz) || "Object".equals(clazz) || "Pattern".equals(clazz)) {
             parameterTypes.put(names[n], clazz);
           }
         }
