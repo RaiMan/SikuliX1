@@ -294,7 +294,7 @@ public class Commons {
   }
 
   public static boolean hasArg(String arg) {
-    return cmdLine == null ? false : cmdLine.hasOption(arg);
+    return cmdLine != null && cmdLine.hasOption(arg);
   }
 
   public static String getArg(String arg) {
