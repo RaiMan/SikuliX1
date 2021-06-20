@@ -21,4 +21,6 @@ original/
 *.java.ignore
 .DS_Store
 native/
+.jython_cache/
+
 
