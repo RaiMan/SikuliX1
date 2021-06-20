@@ -52,8 +52,9 @@
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython-slim</artifactId>
+      <artifactId>jython</artifactId>
       <version>${sikulixjythonversion}</version>
+<!--      <optional>true</optional>-->
     </dependency>
     <dependency>
       <groupId>org.jruby</groupId>
