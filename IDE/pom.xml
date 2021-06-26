@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython</artifactId>
+      <artifactId>jython-slim</artifactId>
       <version>${sikulixjythonversion}</version>
 <!--      <optional>true</optional>-->
     </dependency>
