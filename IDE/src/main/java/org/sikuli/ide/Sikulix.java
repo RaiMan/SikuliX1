@@ -189,6 +189,9 @@ public class Sikulix {
       }
     }
 
+//    System.setProperty("python.home", "");
+//    System.setProperty("python.import.site", "false");
+
     SikulixIDE.start(args);
 
     //TODO start IDE in subprocess?
