@@ -263,6 +263,17 @@ public class RunTime {
         } else {
           inFile = new File(fpJarLibs, aFile).getPath();
         }
+        //TODO export opencv_java
+        String OPENCV_JAVA = "opencv_java";
+        if (OPENCV_JAVA.equals(aFile)) {
+          aFile = libOpenCV;
+          if (Commons.runningWindows()) {
+            aFile += ".dll";
+          } else if (Commons.runningMac()) {
+            aFile = "lib" + aFile + ".dylib";
+          }
+          inFile = inFile.replace(OPENCV_JAVA, aFile);
+        }
         if (Commons.runningWindows()) {
           inFile = inFile.replace("\\", "/");
         }
