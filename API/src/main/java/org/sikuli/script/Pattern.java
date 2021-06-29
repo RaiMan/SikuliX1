@@ -126,14 +126,17 @@ public class Pattern {
     return image.isValid() || imagePattern;
   }
 
-  private Mat patternMask = Commons.getNewMat();
+  private Mat patternMask = null; //TODO Commons.getNewMat();
 
   public Mat getMask() {
+    if (patternMask == null) {
+      patternMask = Commons.getNewMat();
+    }
     return patternMask;
   }
 
   public boolean hasMask() {
-    return !patternMask.empty();
+    return patternMask != null && !patternMask.empty();
   }
 
   private Mat extractMask() {
