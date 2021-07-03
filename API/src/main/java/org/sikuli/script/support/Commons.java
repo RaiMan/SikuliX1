@@ -471,6 +471,12 @@ public class Commons {
     return osName.startsWith(SYSMAC);
   }
 
+  private static final String ARCHM1 = "aarch64";
+
+  public static boolean runningMacM1() {
+    return runningMac() && ARCHM1.equals(osArch);
+  }
+
   public static boolean runningLinux() {
     return !runningMac() && !runningWindows();
   }
