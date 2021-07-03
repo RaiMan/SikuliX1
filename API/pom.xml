@@ -101,12 +101,14 @@
       <artifactId>cglib</artifactId>
       <version>3.3.0</version>
     </dependency>
+<!-- temporary for macOS M1
     <dependency>
       <groupId>org.openpnp</groupId>
       <artifactId>opencv</artifactId>
       <version>4.5.1-2</version>
-      <!-- https://github.com/openpnp/opencv -->
+      &lt;!&ndash; https://github.com/openpnp/opencv &ndash;&gt;
     </dependency>
+-->
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
