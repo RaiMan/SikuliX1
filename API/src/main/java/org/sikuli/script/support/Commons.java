@@ -55,6 +55,7 @@ public class Commons {
 
   private static final String osName = System.getProperty("os.name").toLowerCase();
   private static final String osVersion = System.getProperty("os.version").toLowerCase();
+  private static final String osArch = System.getProperty("os.arch").toLowerCase();
 
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
@@ -240,7 +241,7 @@ public class Commons {
 
   public static void setStartClass(Class startClass) {
     String caller = Thread.currentThread().getStackTrace()[2].getClassName();
-    if (caller.startsWith("org.sikuli.ide.Sikulix")) {
+    if (caller.startsWith("org.sikuli.ide.Sikulix") || caller.startsWith("org.sikuli.script.Sikulix")) {
       Commons.startClass = startClass;
     } else {
       error("FATAL: setStartClass: not allowed from: %s", caller);
@@ -541,9 +542,10 @@ public class Commons {
   }
 
   public static String getOSInfo() {
-    if (runningWindows()) return "Windows " + osVersion;
-    if (runningMac()) return "macOS " + osVersion;
-    return System.getProperty("os.name") + " " + osVersion;
+    String info = osVersion + " (" + osArch + ")";
+    if (runningWindows()) return "Windows " + info;
+    if (runningMac()) return "macOS " + info;
+    return System.getProperty("os.name") + " " + info;
   }
 
   public static int getJavaVersion() {
@@ -569,7 +571,7 @@ public class Commons {
     return String.format("%s/%s/Java %s", getSXVersionLong(), getOSInfo(), Commons.getJavaVersion());
   }
 
-  public void getStatus() {
+  public static void getStatus() {
     System.out.println("***** System Information Dump *****");
     System.out.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
     System.getProperties().list(System.out);
