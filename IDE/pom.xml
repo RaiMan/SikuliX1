@@ -192,6 +192,40 @@
         </plugins>
       </build>
     </profile>
+    <!-- complete-jar Mac M1 only-->
+    <profile>
+      <id>complete-macM1-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>org.sikuli.ide.Sikulix</mainClass>
+                </manifest>
+              </archive>
+              <descriptors>
+                <descriptor>makeide-macM1.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!-- complete-jar Linux only-->
     <profile>
       <id>complete-lux-jar</id>
