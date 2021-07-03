@@ -133,7 +133,6 @@ public class RunTime {
       libName = "lib" + libName + ".so";
     }
     File fLib = new File(Commons.getLibsFolder(), libName);
-    int level = lvl;
     if (!Commons.runningLinux()) {
       Boolean vLib = libsLoaded.get(libName);
       if (vLib == null || !fLib.exists()) {
@@ -144,9 +143,8 @@ public class RunTime {
         }
       }
       if (vLib) {
-        level++;
         msg += " already loaded";
-        log(level, msg, libName);
+        log(lvl +1, msg, libName);
         return true;
       }
     }
@@ -177,7 +175,7 @@ public class RunTime {
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
-    log(level, msg + " (success)", libName);
+    log(lvl +1, msg + " (success)", libName);
     return true;
   }
 
@@ -189,44 +187,6 @@ public class RunTime {
 
   private static void libsExport() {
     String fpJarLibs = Commons.getJarLibsPath();
-
-    // remove obsolete libs folders in Temp
-    String[] fpList = Commons.getTempFolder().list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "libsExport: deleting obsolete libs folders in Temp");
-      for (String entry : fpList) {
-        if (entry.endsWith(Commons.getSxBuildStamp())) {
-          continue;
-        }
-        FileManager.deleteFileOrFolder(new File(Commons.getTempFolder(), entry));
-      }
-    }
-
-    // remove libsfolder < 1.1.4
-    fpList = Commons.getAppDataPath().list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("SikulixLibs_")) {
-          return true;
-        }
-        return false;
-      }
-    });
-    if (fpList.length > 0) {
-      log(lvl, "libsExport: deleting obsolete libs folders in AppPath");
-      for (String entry : fpList) {
-        FileManager.deleteFileOrFolder(new File(Commons.getAppDataPath(), entry));
-      }
-    }
-
     File fLibsFolder = Commons.getLibsFolder();
     String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
@@ -247,7 +207,9 @@ public class RunTime {
         String copyMsg = "";
         String inFile;
         Class classRef = clsRef;
-        if (aFile.startsWith("/")) {
+        if (aFile.startsWith("//") || aFile.startsWith("#")) {
+          continue;
+        } else if (aFile.startsWith("/")) {
           String[] parts = aFile.split("@");
           if (parts.length > 1) {
             inFile = parts[0];
