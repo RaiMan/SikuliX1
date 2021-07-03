@@ -69,6 +69,9 @@ public class TextRecognizer {
       //TODO Tess4J: macOS: tesseract library load problem
       if (Commons.runningMac()) {
         String libPath = "/usr/local/lib";
+        if (Commons.runningMacM1()) {
+          libPath = "/opt/homebrew/lib";
+        }
         File libTess = new File(libPath, "libtesseract.dylib");
         if (libTess.exists()) {
           Commons.jnaPathAdd(libPath);
