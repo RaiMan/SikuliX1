@@ -33,22 +33,12 @@ public class Sikulix {
 
 //TODO place to test something in the API context
     if (args.length == 1 && "test".equals(args[0])) {
-
-      //SikulixEvaluate.test();
-      Commons.startTrace();
-
-      SXDialog dialog = new SXDialog("sxtest");
-      dialog.run();
-
-      while (dialog.isVisible()) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-        }
-      }
+      print("BuildStamp: %s", Commons.getSXBuild());
+      print("osVersion: %s", Commons.getOSInfo());
 
       System.exit(0);
     }
+
     SikulixAPI.main(args);
   }
 
