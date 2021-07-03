@@ -1,5 +1,5 @@
 
-Lists of 81 third-party dependencies.
+Lists of 80 third-party dependencies.
      (ASF 2.0) cglib (cglib:cglib:3.3.0 - https://github.com/cglib/cglib/cglib)
      (The Apache Software License, Version 2.0) java-sizeof (com.carrotsearch:java-sizeof:0.0.5 - http://nexus.sonatype.org/oss-repository-hosting.html/java-sizeof)
      (GNU Lesser General Public License) mac_widgets (com.explodingpixels:mac_widgets:0.9.5 - http://code.google.com/p/macwidgets/)
@@ -41,8 +41,8 @@ Lists of 81 third-party dependencies.
      (CDDL + GPLv2 with classpath exception) Java Servlet API (javax.servlet:javax.servlet-api:3.1.0 - http://servlet-spec.java.net)
      (The BSD License) JLine (jline:jline:2.14.5 - http://nexus.sonatype.org/oss-repository-hosting.html/jline)
      (The Apache Software License, Version 2.0) Apache Log4j (log4j:log4j:1.2.17 - http://logging.apache.org/log4j/1.2/)
-     (Apache License v2.0) (LGPL, version 2.1) Java Native Access (net.java.dev.jna:jna:5.6.0 - https://github.com/java-native-access/jna)
-     (Apache License v2.0) (LGPL, version 2.1) Java Native Access Platform (net.java.dev.jna:jna-platform:5.6.0 - https://github.com/java-native-access/jna)
+     (Apache License v2.0) (LGPL, version 2.1) Java Native Access (net.java.dev.jna:jna:5.8.0 - https://github.com/java-native-access/jna)
+     (Apache License v2.0) (LGPL, version 2.1) Java Native Access Platform (net.java.dev.jna:jna-platform:5.8.0 - https://github.com/java-native-access/jna)
      (The New BSD License) (WTFPL) Reflections8 (net.oneandone.reflections8:reflections8:0.11.6 - http://github.com/aschoerk/reflections8)
      (The New BSD License) Py4J (net.sf.py4j:py4j:0.10.9.1 - http://nexus.sonatype.org/oss-repository-hosting.html/py4j)
      (Apache License 2.0) Lept4J - Leptonica for Java (net.sourceforge.lept4j:lept4j:1.13.2 - https://github.com/nguyenq/lept4j)
@@ -70,7 +70,6 @@ Lists of 81 third-party dependencies.
      (asl) JBoss VFS (org.jboss:jboss-vfs:3.2.15.Final - http://www.jboss.org)
      (Apache License, version 2.0) JBoss Logging 3 (org.jboss.logging:jboss-logging:3.1.4.GA - http://www.jboss.org)
      (EPL-2.0) (GPL-2.0) (LGPL-2.1) JRuby Complete (org.jruby:jruby-complete:9.2.11.1 - https://github.com/jruby/jruby/jruby-artifacts/jruby-complete)
-     (BSD License) OpenPnP OpenCV (org.openpnp:opencv:4.3.0-3 - http://github.com/openpnp/opencv)
      (BSD) asm (org.ow2.asm:asm:7.1 - http://asm.ow2.org/)
      (BSD) asm-analysis (org.ow2.asm:asm-analysis:7.1 - http://asm.ow2.org/)
      (BSD) asm-commons (org.ow2.asm:asm-commons:7.1 - http://asm.ow2.org/)
