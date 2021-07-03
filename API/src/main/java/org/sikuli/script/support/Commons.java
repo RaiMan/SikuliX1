@@ -527,9 +527,10 @@ public class Commons {
   }
 
   public static void makeVersionFile(File folder) {
-    String libToken = String.format("%s_%s_MadeForSikuliX64%s.txt",
+    String libToken = String.format("%s_%s_MadeForSikuliX%s%s.txt",
         Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
-        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"));
+        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
+        Commons.getOSArch());
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
   }
 
@@ -539,6 +540,10 @@ public class Commons {
 
   public static String getOSVersion() {
     return osVersion;
+  }
+
+  public static String getOSArch() {
+    return osArch;
   }
 
   public static String getOSInfo() {
