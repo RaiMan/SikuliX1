@@ -1,34 +1,40 @@
 [<img src="https://github.com/RaiMan/SikuliX1/blob/master/Support/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
 
 ---
-**v2.1.0 --- Java API Status**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) 
-
-**Maven coordinates:** OSSRH Snapshots :: com.sikulix :: sikulixapi :: 2.1.0-SNAPHOT
-
-[**IMPORTANT:** Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/API/README.md)
-
----
-**v2.1.0 --- Jython IDE Status:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml) 
-
-**Get Latest IDE Snapshot Runnable Jar:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Windows <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixwin/2.1.0-SNAPSHOT/sikulixwin-2.1.0-20210523.145804-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for macOS <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixmac/2.1.0-SNAPSHOT/sikulixmac-2.1.0-20210523.145838-7.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Linux <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixlux/2.1.0-SNAPSHOT/sikulixlux-2.1.0-20210523.145917-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-[**IMPORTANT:** Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
-
-----
-Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
-
----
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
 running Windows, Mac or some Linux/Unix. It uses image recognition powered by OpenCV to identify 
 GUI components and can act on them with mouse and keyboard actions.
 This is handy in cases when there is no easy access to a GUI's internals or 
 the source code of the application or web page you want to act on. [More details](http://sikulix.com)
 
-<hr>
+Great thanks for the new logo and all the help with the new webpage to [@Waleed Sadek](https://github.com/waleedsadek-panx)
 
+---
+**2.0.6 (branch release_2.0.x) preparing for release - snapshots available**
+
+[more information coming soon]()
+
+---
+**2.1.0 (branch master) currently not useable - development suspended**
+
+---
+API 2.1.0-SNAPSHOT --- Java API Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) 
+
+Maven coordinates: OSSRH Snapshots :: com.sikulix :: sikulixapi :: 2.1.0-SNAPHOT
+
+[IMPORTANT: Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/API/README.md)
+
+---
+IDE 2.1.0-SNAPSHOT --- Jython IDE Status:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml) 
+
+Get Latest IDE Snapshot Runnable Jar:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[> for Windows <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixwin/2.1.0-SNAPSHOT/sikulixwin-2.1.0-20210523.145804-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[> for macOS <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixmac/2.1.0-SNAPSHOT/sikulixmac-2.1.0-20210523.145838-7.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[> for Linux <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixlux/2.1.0-SNAPSHOT/sikulixlux-2.1.0-20210523.145917-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+[IMPORTANT: Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
+
+---
 **Java: must be Java 11 or later** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
 <br>non-LTS versions like Java 15/16 might create problems that should be reported
 
