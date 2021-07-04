@@ -1,10 +1,8 @@
 
-Lists of 31 third-party dependencies.
+Lists of 29 third-party dependencies.
      (ASF 2.0) cglib (cglib:cglib:3.3.0 - https://github.com/cglib/cglib/cglib)
      (BSD 3-clause License w/nuclear disclaimer) Java Advanced Imaging Image I/O Tools API core (standalone) (com.github.jai-imageio:jai-imageio-core:1.4.0 - https://github.com/jai-imageio/jai-imageio-core)
      (Mozilla Public License) iText, a Free Java-PDF library (com.lowagie:itext:2.1.7 - http://www.lowagie.com/iText/)
-     (MIT License) sikulix2android (com.sikulix:sikulix2android:2.0.5 - http://www.sikulix.com)
-     (GNU General Public License v2.0) sikulix2tigervnc (com.sikulix:sikulix2tigervnc:2.0.5 - http://www.sikulix.com)
      (The Apache Software License, Version 2.0) Apache Commons BeanUtils (commons-beanutils:commons-beanutils:1.9.2 - http://commons.apache.org/proper/commons-beanutils/)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (The Apache Software License, Version 2.0) Commons Collections (commons-collections:commons-collections:3.2.1 - http://commons.apache.org/collections/)
