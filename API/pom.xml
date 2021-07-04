@@ -41,6 +41,10 @@
   </scm>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
       <id>maven</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
@@ -56,17 +60,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.sikulix</groupId>
-      <artifactId>sikulix2tigervnc</artifactId>
-      <version>2.0.5</version>
-      <!--License GPLv2-->
-    </dependency>
-    <dependency>
-      <groupId>com.sikulix</groupId>
-      <artifactId>sikulix2android</artifactId>
-      <version>2.0.5</version>
-    </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
       <artifactId>commons-cli</artifactId>
