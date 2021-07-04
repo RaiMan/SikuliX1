@@ -623,21 +623,22 @@ def vncStart(ip="127.0.0.1", port=5900, connectionTimeout=10, timeout=1000, pass
 
 
 ## -----------------------------------------------------------------------
-# convenience for an ADBScreen connection
+#TODO convenience for an ADBScreen connection
+#TODO temporary switched off (2.0.6)
 
 # Debug.log(3, "Jython: sikuli: Sikuli: import ADBScreen")
-import org.sikuli.android.ADBScreen as JADBScreen
-
-
-class ADBScreen(JADBScreen):
-    pass
-
-
-def adbStart(adbexec=""):
-    adbscr = ADBScreen(adbexec)
-    if adbscr:
-        return adbscr
-    exit(-1)
+# import org.sikuli.android.ADBScreen as JADBScreen
+#
+#
+# class ADBScreen(JADBScreen):
+#     pass
+#
+#
+# def adbStart(adbexec=""):
+#     adbscr = ADBScreen(adbexec)
+#     if adbscr:
+#         return adbscr
+#     exit(-1)
 
 
 ## ----------------------------------------------------------------------
