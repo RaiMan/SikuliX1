@@ -76,6 +76,9 @@ public class MacUtil extends GenericOsUtil {
 
     @Override
     public boolean focus() {
+      if (Commons.runningMacM1()) {
+        throw new UnsupportedOperationException("focus not implemented"); //TODO
+      }
       NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
 
       if (app != null) {
@@ -113,6 +116,9 @@ public class MacUtil extends GenericOsUtil {
 
   @Override
   public OsWindow getFocusedWindow() {
+    if (Commons.runningMacM1()) {
+      throw new UnsupportedOperationException("getFocusedWindow not implemented"); //TODO
+    }
     return allWindows().stream().filter((w) -> {
       OsProcess process = w.getProcess();
 
@@ -195,5 +201,13 @@ public class MacUtil extends GenericOsUtil {
     }
 
     return windows;
+  }
+
+  protected String[] openCommand(String[] cmd, String workDir) { //TODO
+    return cmd;
+  }
+
+  protected ProcessHandle openGetProcess(Process p, String[] cmd) { //TODO
+    return p.toHandle();
   }
 }

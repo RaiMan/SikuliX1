@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
@@ -21,6 +22,7 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
+import java.util.List;
 
 public class Sikulix {
 
@@ -35,6 +37,16 @@ public class Sikulix {
     if (args.length == 1 && "test".equals(args[0])) {
       print("BuildStamp: %s", Commons.getSXBuild());
       print("osVersion: %s", Commons.getOSInfo());
+
+      String script = "display dialog \"hello\"";
+      new AppleScriptRunner().evalScript(script, null);
+
+      List<App> apps = App.getApps();
+      App app = new App("safari");
+      //app.open();
+      Region window = app.window();
+      Region focusedWindow = App.focusedWindow();
+      //app.focus();
 
       System.exit(0);
     }
