@@ -12,6 +12,10 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 ---
 **2.0.6 (branch release_2.0.x) preparing for release - snapshots available**
 
+Direct IDE downloads &nbsp;&nbsp;&nbsp;&nbsp;[> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar) &nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp; [> for macOS M1 <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm1&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp; [> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
+
+You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place whereever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from AdoptOpenJDK or Azul) from a commandline/Terminal. Be aware: Java 8 is no longer supported.
+
 [more information coming soon]()
 
 ---
