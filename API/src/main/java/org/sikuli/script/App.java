@@ -263,7 +263,7 @@ public class App {
   }
 
   public static List<App> getApps() {
-    return osUtil.getProcesses().stream().map((p) -> new App(p)).collect(Collectors.toList());
+    return osUtil.getProcesses().stream().filter((p) -> osUtil.isUserProcess(p)).map((p) -> new App(p)).collect(Collectors.toList());
   }
 
   public static List<App> getApps(String name) {

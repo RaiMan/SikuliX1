@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +30,13 @@ public abstract class GenericOsUtil implements OSUtil {
 
 		@Override
 		public String getName() {
-			return process.info().command().orElse("");
+			ProcessHandle.Info info = null;
+			try {
+				info = process.info();
+			} catch (Exception e) {
+				return "";
+			}
+			return info.command().orElse("");
 		}
 
 		@Override
@@ -66,8 +73,19 @@ public abstract class GenericOsUtil implements OSUtil {
 
 	@Override
 	public List<OsProcess> findProcesses(String name) {
-		return allProcesses().filter((p) -> FilenameUtils.getBaseName(p.getName().toLowerCase()).equals(FilenameUtils.getBaseName(name.toLowerCase())))
-				.collect(Collectors.toList());
+		Stream<OsProcess> osProcessStream = allProcesses();
+		Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
+			String procName = "";
+			try {
+				procName = p.getName().toLowerCase();
+			} catch (Exception e) {
+				//e.printStackTrace();
+				return false;
+			}
+			return FilenameUtils.getBaseName(procName).equals(FilenameUtils.getBaseName(name.toLowerCase()));
+		});
+		List<OsProcess> processList = processStream.collect(Collectors.toList());
+		return processList;
 	}
 
 	@Override
@@ -98,6 +116,8 @@ public abstract class GenericOsUtil implements OSUtil {
 	public OsProcess open(String[] cmd, String workDir) {
 		try {
 
+			cmd = openCommand(cmd, workDir);
+
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 
 			if (StringUtils.isNotBlank(workDir)) {
@@ -106,11 +126,20 @@ public abstract class GenericOsUtil implements OSUtil {
 
 			Process p = pb.start();
 
-			return new GenericOsProcess(p.toHandle());
+			ProcessHandle pHandle = openGetProcess(p, cmd);
+			return new GenericOsProcess(pHandle);
 		} catch (Exception e) {
 			System.out.println("[error] WinUtil.open:\n" + e.getMessage());
 			return null;
 		}
+	}
+
+	protected String[] openCommand(String[] cmd, String workDir) {
+		return cmd;
+	}
+
+	protected ProcessHandle openGetProcess(Process p, String[] cmd) {
+		return p.toHandle();
 	}
 
 	@Override
