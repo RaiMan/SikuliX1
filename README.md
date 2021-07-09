@@ -14,7 +14,11 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 
 Direct IDE downloads &nbsp;&nbsp;&nbsp;&nbsp;[> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar) &nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp; [> for macOS M1 <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm1&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp; [> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
 
-You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place whereever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from AdoptOpenJDK or Azul) from a commandline/Terminal. Be aware: Java 8 is no longer supported.
+You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can place wherever you want and rename them to whatever you want. It is recommended to run with Java 11+ (preferably from [AdoptOpenJDK](https://adoptopenjdk.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk)) from a commandline/Terminal. 
+
+**Be aware:** 
+- Java 8 is no longer supported. 
+- For macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
 
 [more information coming soon]()
 
@@ -39,8 +43,9 @@ Get Latest IDE Snapshot Runnable Jar:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 [IMPORTANT: Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
 
 ---
-**Java: must be Java 11 or later** (best place to get it: [AdoptOpenJDK](https://adoptopenjdk.net))
-<br>non-LTS versions like Java 15/16 might create problems that should be reported
+**Java: must be Java 11 or later** (best places to get it: [AdoptOpenJDK](https://adoptopenjdk.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk))
+- non-LTS versions like Java 16 or even 17ea might create problems that should be reported
+- for macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
 
 **Windows:** Works out of the box
 
@@ -68,14 +73,14 @@ For use in **Java Maven projects** the dependency coordinates are:
 ```
 <hr>
 
-**Development environment**
+**My Development environment**
 
  - Java 11 (current JDK LTS release)
  - Source and target level for Java is version 11
  - Maven project
  - Windows 10 latest (Pro 64-Bit)
- - macOS 11.2 on Intel machines
- - Ubuntu latest running in Oracle VM VirtualBox on Windows 10
+ - latest macOS 11 (10.16) on Intel and M1 machines
+ - Ubuntu latest LTS version running in Oracle VM VirtualBox on Windows 10
  - Using IntelliJ IDEA CE in all environments
 
 <hr>
