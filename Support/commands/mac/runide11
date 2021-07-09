@@ -1,4 +1,3 @@
 ide=~/IdeaProjects/SikuliX1/IDE/target/sikulixide-2.0.6-SNAPSHOT-complete-mac.jar
-java=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/bin/java
-echo running %ide%
-$java -jar $ide $*
+export JAVA_HOME=`/usr/libexec/java_home -v 11`
+java -jar $ide $*
