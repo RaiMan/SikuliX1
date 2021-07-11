@@ -1178,6 +1178,8 @@ public class FileManager {
   public static boolean writeStringToFile(String text, File fPath) {
     PrintStream out = null;
     try {
+      fPath.getParentFile().mkdirs();
+      fPath.createNewFile();
       out = new PrintStream(new FileOutputStream(fPath), false, "UTF-8");
       out.print(text);
     } catch (Exception e) {
