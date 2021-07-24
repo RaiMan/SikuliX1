@@ -5,10 +5,7 @@ package org.sikuli.script.runnerSupport;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.python.core.BytecodeLoader;
-import org.python.core.PyCode;
-import org.python.core.PyList;
-import org.python.core.PySystemState;
+import org.python.core.*;
 import org.python.util.PythonInterpreter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -84,8 +81,7 @@ public class JythonSupport implements IRunnerSupport {
   private static void init() {
     try {
       //TODO is this initialize needed?
-      //PythonInterpreter.initialize(System.getProperties(), null, new String[0]);
-      Class.forName("org.python.util.PythonInterpreter");
+      PythonInterpreter.initialize(System.getProperties(), null, new String[0]);
     } catch (Exception ex) {
       Debug.log("Jython: not found on classpath");
       return;
@@ -94,14 +90,22 @@ public class JythonSupport implements IRunnerSupport {
     //RunTime.get().exportLib();
     try {
       interpreter = new PythonInterpreter();
-      cPyException = Class.forName("org.python.core.PyException");
-      cPyFunction = Class.forName("org.python.core.PyFunction");
-      cPyMethod = Class.forName("org.python.core.PyMethod");
-      cPyInstance = Class.forName("org.python.core.PyInstance");
-      cPyString = Class.forName("org.python.core.PyString");
     } catch (Exception ex) {
-      instance.log(-1, "reflection problem: %s", ex.getMessage());
+      String cause = ex.getMessage();
+      instance.log(-1, "Problem: New PythonInterpreter: %s", cause);
       interpreter = null;
+    }
+    if (interpreter != null) {
+      try {
+        cPyException = Class.forName("org.python.core.PyException");
+        cPyFunction = Class.forName("org.python.core.PyFunction");
+        cPyMethod = Class.forName("org.python.core.PyMethod");
+        cPyInstance = Class.forName("org.python.core.PyInstance");
+        cPyString = Class.forName("org.python.core.PyString");
+      } catch (ClassNotFoundException ex) {
+        instance.log(-1, "reflection problem: %s", ex.getMessage());
+        interpreter = null;
+      }
     }
     Commons.setJythonReady();
     //instance.log(lvl, "init: success");
@@ -113,7 +117,8 @@ public class JythonSupport implements IRunnerSupport {
 
   /**
    * For experts, who want to tweak the Jython interprter instance<br>
-   *   Usage: org.sikuli.script.runnerSupport.JythonSupport.get().interpreterGet()
+   * Usage: org.sikuli.script.runnerSupport.JythonSupport.get().interpreterGet()
+   *
    * @return the singleton Jython interpreter instance (org.python.util.PythonInterpreter)
    */
   public PythonInterpreter interpreterGet() {
@@ -166,10 +171,10 @@ public class JythonSupport implements IRunnerSupport {
         }
       });
     } else {
-        fLib.mkdirs();
-        if (!fLib.exists()) {
-          throw new SikuliXception("LibExport: folder not available: " + fLib.toString());
-        }
+      fLib.mkdirs();
+      if (!fLib.exists()) {
+        throw new SikuliXception("LibExport: folder not available: " + fLib.toString());
+      }
       filterSitePackages = (dir, name) -> {
         if (dir.getPath().contains("site-packages")) {
           return false;
@@ -184,6 +189,7 @@ public class JythonSupport implements IRunnerSupport {
   static Class cPyMethod = null;
 
   static Class cPyException = null;
+
   class SXPyException {
 
     Object inst = null;
@@ -215,6 +221,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   static Class cPyInstance = null;
+
   class SXPyInstance {
 
     Object inst = null;
@@ -258,6 +265,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   static Class cPyFunction = null;
+
   class SXPyFunction {
 
     public String __name__;
@@ -315,6 +323,7 @@ public class JythonSupport implements IRunnerSupport {
       } catch (Exception ex) {
       }
     }
+
     Object java2py(Object arg) {
       if (mJava2py == null) {
         return null;
@@ -375,11 +384,11 @@ public class JythonSupport implements IRunnerSupport {
    * The header commands, that are executed before every script
    */
   private static String[] SCRIPT_HEADER = new String[]{
-          "# -*- coding: utf-8 -*- ",
-          "import time; start = time.time()",
-          "from sikuli import *",
-          "resetBeforeScriptStart()",
-          "Debug.log(3, 'Jython: BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
+      "# -*- coding: utf-8 -*- ",
+      "import time; start = time.time()",
+      "from sikuli import *",
+      "resetBeforeScriptStart()",
+      "Debug.log(3, 'Jython: BeforeScript: %s (%f)',  SCREEN, time.time()-start)",
   };
   //</editor-fold>
 
@@ -784,7 +793,7 @@ public class JythonSupport implements IRunnerSupport {
         trace = "Jython: at " + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
       } else {
         trace = "Jython traceback - current first:\n"
-                + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
+            + getCurrentLineTraceElement(fLineno, fCode, fFilename, frame);
         while (null != back) {
           String line = getCurrentLineTraceElement(fLineno, fCode, fFilename, back);
           if (!line.startsWith("Region (")) {
@@ -874,7 +883,7 @@ public class JythonSupport implements IRunnerSupport {
         mFile = pFile.matcher(err);
         if (mFile.find()) {
           log(lvl + 2, "Runtime error line: " + mFile.group(2) + "\n in function: " + mFile.group(3) + "\n statement: "
-                  + mFile.group(4));
+              + mFile.group(4));
           errorLine = Integer.parseInt(mFile.group(2));
           Matcher mError = pError.matcher(err);
           if (mError.find()) {
@@ -941,7 +950,7 @@ public class JythonSupport implements IRunnerSupport {
         errorTrace = findErrorSourceWalkTrace(mFile, filename);
         if (errorTrace.length() > 0) {
           Debug.error("--- Traceback --- error source first\n" + "line: module ( function ) statement \n" + errorTrace
-                  + "[error] --- Traceback --- end --------------");
+              + "[error] --- Traceback --- end --------------");
         }
       }
     } else {
@@ -1063,6 +1072,7 @@ public class JythonSupport implements IRunnerSupport {
 
   //<editor-fold desc="40 callback">
   static Class cPyString = null;
+
   class PyString {
 
     String aString = "";
@@ -1201,7 +1211,7 @@ public class JythonSupport implements IRunnerSupport {
     return false;
   }
 
-  private static class CompileJythonFilter extends FileManager.FileFilter{
+  private static class CompileJythonFilter extends FileManager.FileFilter {
 
     JythonSupport jython = null;
 

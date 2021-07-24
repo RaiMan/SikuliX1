@@ -84,30 +84,34 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       Commons.startLog(1, "JythonRunner: starting initialization (%4.1f sec)", Commons.getSinceStart());
 
       jythonSupport = JythonSupport.get();
-      jythonSupport.getSysPath();
-      if (!Commons.isRunningFromJar()) {
-        jythonSupport.putSysPath(new File(Commons.getMainClassLocation(), "LIB").getAbsolutePath(), 0);
+      if (jythonSupport.isReady()) {
+        jythonSupport.getSysPath();
+        if (!Commons.isRunningFromJar()) {
+          jythonSupport.putSysPath(new File(Commons.getMainClassLocation(), "LIB").getAbsolutePath(), 0);
+        }
+        jythonSupport.addSitePackages();
+        jythonSupport.showSysPath();
+        jythonSupport.interpreterExecString("import sys");
+        jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
+        String interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
+        if (interpreterVersion.isEmpty()) {
+          interpreterVersion = "could not be evaluated";
+        }
+        Commons.startLog(3, "Jython ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
+      } else {
+        Commons.startLog(3, "Jython not ready --- scripts cannot be run (%4.1f sec)", Commons.getSinceStart());
       }
-      jythonSupport.addSitePackages();
-      jythonSupport.showSysPath();
-      jythonSupport.interpreterExecString("import sys");
-      jythonSupport.interpreterExecString("import org.sikuli.script.runnerSupport.Runner as Runner");
-      String interpreterVersion = jythonSupport.interpreterEval("sys.version.split(\"(\")[0]\n").toString();
-      if (interpreterVersion.isEmpty()) {
-        interpreterVersion = "could not be evaluated";
-      }
-      Commons.startLog(3, "Jython ready: version %s (%4.1f sec)", interpreterVersion, Commons.getSinceStart());
       SikulixIDE.showAfterStart();
     }
   }
 
   private void initAbort() {
     jythonSupport.interpreterExecString("sx_runner_sx = Runner.getRunner(\"" + NAME + "\")\n"
-                                      + "def trace_calls_for_abort(frame, evt, arg):\n"
-                                      + "  if sx_runner_sx.isAborted():\n"
-                                      + "    raise RuntimeError(\"Aborted\")\n"
-                                      + "  return trace_calls_for_abort\n"
-                                      + "sys.settrace(trace_calls_for_abort)");
+        + "def trace_calls_for_abort(frame, evt, arg):\n"
+        + "  if sx_runner_sx.isAborted():\n"
+        + "    raise RuntimeError(\"Aborted\")\n"
+        + "  return trace_calls_for_abort\n"
+        + "sys.settrace(trace_calls_for_abort)");
   }
 
   static JythonSupport jythonSupport = null;
@@ -127,6 +131,10 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected int doEvalScript(String script, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
+      if (!jythonSupport.isReady()) {
+        jythonSupport.log(-1, "No PythonInterpreter --- scripts cannot be run");
+        return 0;
+      }
       initAbort();
       jythonSupport.interpreterExecString(script);
       return 0;
@@ -146,6 +154,10 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
+      if (!jythonSupport.isReady()) {
+        jythonSupport.log(-1, "No PythonInterpreter --- scripts cannot be run");
+        return 0;
+      }
       initAbort();
 
       File pyFile = new File(scriptFile);
@@ -162,7 +174,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
           jythonSupport.interpreterExecFile(pyFile.getAbsolutePath());
         }
       } catch (Throwable scriptException) {
-        if(!isAborted()) {
+        if (!isAborted()) {
           exitCode = 1;
           java.util.regex.Pattern p = java.util.regex.Pattern.compile("SystemExit: (-?[0-9]+)");
           String exception = scriptException.toString();
@@ -184,7 +196,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
 
       if (System.out.checkError()) {
         Sikulix.popError("System.out is broken (console output)!" + "\nYou will not see any messages anymore!"
-                + "\nSave your work and restart the IDE!", "Fatal Error");
+            + "\nSave your work and restart the IDE!", "Fatal Error");
       }
 
       return exitCode;
@@ -195,13 +207,17 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
   protected void doRunLines(String lines, IScriptRunner.Options options) {
     // Since we have a static interpreter, we have to synchronize class wide
     synchronized (JythonRunner.class) {
+      if (!jythonSupport.isReady()) {
+        jythonSupport.log(-1, "No PythonInterpreter --- scripts cannot be run");
+        return;
+      }
       initAbort();
       jythonSupport.executeScriptHeader(codeBefore);
 
       try {
         jythonSupport.interpreterExecString(lines);
       } catch (Exception ex) {
-        if(!isAborted()) {
+        if (!isAborted()) {
           log(-1, "runPython: (%s) raised: %s", "\n" + lines, ex);
         }
       }
