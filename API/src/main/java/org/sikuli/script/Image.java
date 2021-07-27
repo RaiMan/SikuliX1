@@ -112,7 +112,7 @@ public class Image extends Element {
     imgTarget.setIsAbsolute(imageIsAbsolute);
     imgTarget.setIsText(imageIsText);
     imgTarget.setIsBundled(imageIsBundled);
-    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore());
+    imgTarget.setLastSeen(getLastSeen(), getLastSeenScore()); // copy
     imgTarget.setHasIOException(hasIOException());
     if (isPattern()) {
       imgTarget.setSimilarity(similarity);
@@ -1028,7 +1028,7 @@ public class Image extends Element {
       int sizeOld = image.bsize;
       if (null != image.loadAgain()) {
         currentMemoryDownUp(sizeOld, image.bsize);
-        image.setLastSeen(null, 0);
+        image.setLastSeen(null, 0); // reload
       }
     }
   }

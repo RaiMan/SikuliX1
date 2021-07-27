@@ -2207,7 +2207,7 @@ public class Region extends Element {
         if (isOtherScreen()) {
           lastMatch.setOtherScreen();
         } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore()); // wait
         }
         log(logLevel, "wait: %s appeared (%s)", img.getName(), lastMatch);
         return lastMatch;
@@ -2281,7 +2281,7 @@ public class Region extends Element {
         if (isOtherScreen()) {
           lastMatch.setOtherScreen();
         } else if (img != null) {
-          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+          img.setLastSeen(lastMatch.getRect(), lastMatch.getScore()); // find
         }
         log(logLevel, "find: %s appeared (%s)", targetStr, lastMatch);
         break;
@@ -2351,7 +2351,7 @@ public class Region extends Element {
       if (isOtherScreen()) {
         lastMatch.setOtherScreen();
       } else if (img != null) {
-        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
+        img.setLastSeen(lastMatch.getRect(), lastMatch.getScore()); // exists
       }
       if (!(timeout > 0)) {
         log(logLevel, "exists: %s has appeared (%s)", targetStr, lastMatch);
@@ -2879,11 +2879,13 @@ public class Region extends Element {
     }
     boolean shouldCheckLastSeen = false;
     double score = 0;
-    if (Settings.CheckLastSeen && null != img.getLastSeen()) {
-      score = img.getLastSeenScore() - 0.01;
-      if (ptn != null) {
-        if (!(ptn.getSimilar() > score)) {
-          shouldCheckLastSeen = true;
+    if (Settings.CheckLastSeen) {
+      if (null != img.getLastSeen() && ptn != null && ptn.getResize() == 1) {
+        score = img.getLastSeenScore() - 0.01;
+        if (ptn != null) {
+          if (!(ptn.getSimilar() > score)) {
+            shouldCheckLastSeen = true;
+          }
         }
       }
     }
@@ -3284,7 +3286,7 @@ public class Region extends Element {
     if (finder.hasNext()) {
       match = finder.next();
       //match.setImage(img);
-      img.setLastSeen(match.getRect(), match.getScore());
+      img.setLastSeen(match.getRect(), match.getScore()); // findInImage / SubFind run
     }
     return match;
   }
