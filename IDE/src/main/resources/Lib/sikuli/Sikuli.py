@@ -271,6 +271,38 @@ def setOptNum(props, key, value):
 def delOpt(props, key):
     return SXOpts.delOpt(props, key)
 
+##
+# use the Sikulix preferences store
+##
+
+def prefStore(key, value):
+    import org.sikuli.basics.PreferencesUser as Prefs
+    prefs = Prefs.get()
+    prefs.put("USER_" + key, value)
+
+def prefLoad(key):
+    prefLoad(key, "")
+
+def prefLoad(key, default):
+    import org.sikuli.basics.PreferencesUser as Prefs
+    prefs = Prefs.get()
+    prefs.get("USER_" + key, default)
+
+def prefRemove(key):
+    import org.sikuli.basics.PreferencesUser as Prefs
+    prefs = Prefs.get()
+    prefs.remove("USER_" + key)
+
+def prefRemove():
+    import org.sikuli.basics.PreferencesUser as Prefs
+    prefs = Prefs.get()
+    prefs.removeAll("USER_")
+
+def prefExport(path):
+    pass
+
+def prefImport(path):
+    pass
 
 ##
 # some support for handling unicode and strings
