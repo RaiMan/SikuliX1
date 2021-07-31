@@ -177,7 +177,7 @@ from org.sikuli.script.compare import HorizontalComparator
 import SikuliImporter
 
 # Debug.log(3, "Jython: sikuli: Sikuli: import Sikulix")
-from org.sikuli.script import Sikulix
+import org.sikuli.script.Sikulix as Sikulix
 
 # Debug.log(3, "Jython: sikuli: Sikuli: import Runner")
 import org.sikuli.script.runnerSupport.Runner as Runner
@@ -273,36 +273,28 @@ def delOpt(props, key):
 
 ##
 # use the Sikulix preferences store
+# keys internally will get a prefix USER_
 ##
 
 def prefStore(key, value):
-    import org.sikuli.basics.PreferencesUser as Prefs
-    prefs = Prefs.get()
-    prefs.put("USER_" + key, value)
+    SXOpts.prefStore(key, value)
 
-def prefLoad(key):
-    prefLoad(key, "")
+def prefLoad(key, default = ""):
+    return SXOpts.prefLoad(key, default)
 
-def prefLoad(key, default):
-    import org.sikuli.basics.PreferencesUser as Prefs
-    prefs = Prefs.get()
-    prefs.get("USER_" + key, default)
+def prefAll():
+    return SXOpts.prefAll();
 
-def prefRemove(key):
-    import org.sikuli.basics.PreferencesUser as Prefs
-    prefs = Prefs.get()
-    prefs.remove("USER_" + key)
-
-def prefRemove():
-    import org.sikuli.basics.PreferencesUser as Prefs
-    prefs = Prefs.get()
-    prefs.removeAll("USER_")
+def prefRemove(key = None):
+    if not key:
+        return SXOpts.prefRemoveAll()
+    return SXOpts.prefRemove(key)
 
 def prefExport(path):
-    pass
+    return SXOpts.prefExport(path)
 
 def prefImport(path):
-    pass
+    return SXOpts.prefImport(path)
 
 ##
 # some support for handling unicode and strings
