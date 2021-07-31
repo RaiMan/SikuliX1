@@ -11,7 +11,7 @@ public enum CommandArgsEnum {
 	/**
 	 * Shows the help
 	 */
-	HELP("help", "h", null, "print this help message"),
+	HELP("help", "h", null, "print this help message and actual SikuliX preferences"),
 	/**
 	 * set debug level
 	 */

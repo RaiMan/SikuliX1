@@ -109,6 +109,8 @@ public class CommandArgs {
             + "go to script as user parameters (respecting enclosing \")\n"
             + "------\n-d use this option if you encounter any weird problems\n"
             + "DebugLevel=3 and all output goes to <workingFolder>/SikuliLog.text\n"
+            + "------\n-reset use this as the only option if the IDE does not start up\n"
+            + "and start the IDE normally afterwards\n"
             + "----------------------------------------------------------------",
         true);
   }
