@@ -5,18 +5,21 @@
 package org.sikuli.ide;
 
 import org.sikuli.basics.*;
-import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.script.Options;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.gui.SXDialog;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -43,12 +46,29 @@ public class Sikulix {
   public static void main(String[] args) {
     //region startup
     Commons.setStartClass(Sikulix.class);
+
+    if (args.length == 1 && args[0].startsWith("-reset")) {
+      System.out.println("[INFO] IDE: resetting local preferences store and terminating --- see docs");
+
+      if (PreferencesUser.get().getStore().get("USER_TYPE", "0").equals("2")) {
+        PreferencesUser.get().getStore().remove("IDE_LOCATION");
+        PreferencesUser.get().getStore().remove("IDE_SIZE");
+        PreferencesUser.get().getStore().put("IDE_SESSION", "");
+      } else {
+        PreferencesUser.get().setDefaults();
+      }
+
+      System.exit(0);
+    }
     Commons.setStartArgs(args);
+
 
     if (Commons.hasArg("h")) {
       Commons.printHelp();
+      Options.prefDump();
       System.exit(0);
     }
+
 
     Commons.initOptions();
 
