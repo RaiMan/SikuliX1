@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.PreferencesUser;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.CommandArgsEnum;
@@ -12,10 +13,10 @@ import org.sikuli.util.CommandArgsEnum;
 import javax.swing.text.html.Option;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 public class Options {
 
@@ -581,5 +582,103 @@ public class Options {
     opts.options.remove(key);
   }
 
+  //endregion
+
+  //region user preferences store
+  public static void prefStore(String key, Object value) {
+    PreferencesUser prefs = PreferencesUser.get();
+    prefs.put(userPrefix + key, "" + value);
+  }
+
+  public static String prefLoad(String key) {
+    return prefLoad(key, "");
+  }
+
+  private static final String userPrefix = "USER::";
+
+  public static Map<String, String> prefAll() {
+    return prefComplete()
+        .entrySet()
+        .stream()
+        .filter(e -> e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue,
+            (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+  }
+
+  public static Map<String, String> prefAllSX() {
+    return prefComplete()
+        .entrySet()
+        .stream()
+        .filter(e -> !e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue,
+            (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+  }
+
+  private static Map<String, String> prefComplete() {
+    PreferencesUser prefs = PreferencesUser.get();
+    Map<String, String> allPrefs = new HashMap<>();
+    try {
+      final Preferences store = prefs.getStore();
+      String[] keys = store.keys();
+      for (String key : keys) {
+        allPrefs.put(key, store.get(key, ""));
+      }
+    } catch (BackingStoreException e) {
+    }
+    return allPrefs;
+  }
+
+  public static void prefDump() {
+    final Map<String, String> prefsSX = Options.prefComplete();
+    System.out.println("***** Preferences SikuliX *****");
+    prefsSX.entrySet()
+        .stream()
+        .filter(e -> !e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(System.out::println);
+    System.out.println("***** Preferences User:: *****");
+    prefsSX.entrySet()
+        .stream()
+        .filter(e -> e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(System.out::println);
+    System.out.println("***** Preferences Dump End *****");
+
+  }
+
+  public static String prefLoad(String key, Object deflt) {
+    PreferencesUser prefs = PreferencesUser.get();
+    return prefs.get(userPrefix + key, "" + deflt);
+  }
+
+  public static String prefRemove(String key) {
+    PreferencesUser prefs = PreferencesUser.get();
+    String value = prefs.get(userPrefix + key, "");
+    prefs.remove(userPrefix + key);
+    return value;
+  }
+
+  public static Map<String, String> prefRemoveAll() {
+    PreferencesUser prefs = PreferencesUser.get();
+    Map<String, String> allPrefs = prefAll();
+    prefs.removeAll(userPrefix);
+    return allPrefs;
+  }
+
+  public static boolean prefExport(String path) {
+    PreferencesUser prefs = PreferencesUser.get();
+    return prefs.save(path);
+  }
+
+  public static boolean prefImport(String path) {
+    PreferencesUser prefs = PreferencesUser.get();
+    return prefs.load(path);
+  }
   //endregion
 }

@@ -11,9 +11,7 @@ import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
@@ -50,6 +48,11 @@ public class PreferencesUser {
                   + ".log   { color: #09806A; }"
                   + ".error { color: red; }";
   static PreferencesUser _instance = null;
+
+  public Preferences getStore() {
+    return pref;
+  }
+
   Preferences pref = Preferences.userNodeForPackage(Sikulix.class);
 
   public static PreferencesUser get() {
@@ -65,8 +68,7 @@ public class PreferencesUser {
 
   public boolean save(String path) {
     try {
-      FileOutputStream pout = new FileOutputStream(new File(path));
-      ;
+      FileOutputStream pout = new FileOutputStream(path);
       pref.exportSubtree(pout);
       pout.close();
     } catch (Exception ex) {
@@ -78,7 +80,7 @@ public class PreferencesUser {
 
   public boolean load(String path) {
     try {
-      Preferences.importPreferences(new FileInputStream(new File(path)));
+      Preferences.importPreferences(new FileInputStream(path));
     } catch (Exception ex) {
       Debug.error("UserPrefs: import: did not work: ", ex.getMessage());
       return false;
@@ -88,6 +90,20 @@ public class PreferencesUser {
 
   public void remove(String key) {
     pref.remove(key);
+  }
+
+  public Map<String, String> getAll(String prefix) {
+    Map<String, String> allPrefs = new HashMap<>();
+    try {
+      for (String item : pref.keys()) {
+        if (item.startsWith(prefix)) {
+          allPrefs.put(item, pref.get(item, ""));
+        }
+      }
+    } catch (Exception ex) {
+      Debug.error("Prefs.getAll: prefix (%s) did not work", prefix);
+    }
+    return allPrefs;
   }
 
   public void removeAll(String prefix) {
@@ -432,7 +448,7 @@ public class PreferencesUser {
   }
 
   public void setPrefMoreLogDebug(boolean flag) {
-    pref.putBoolean("PREF_MORE_LOG_INFO", flag);
+    pref.putBoolean("PREF_MORE_LOG_DEBUG", flag);
   }
 
   public boolean getPrefMoreLogDebug() {

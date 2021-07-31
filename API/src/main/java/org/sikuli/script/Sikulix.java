@@ -433,6 +433,28 @@ public class Sikulix {
   }
   //</editor-fold>
 
+  //<editor-fold desc="20 Sikulix preferences store - deprecated">
+  @Deprecated
+  public static void prefStore(String key, Object value) {
+    Options.prefStore(key, value);
+  }
+
+  @Deprecated
+  public static String prefLoad(String key, Object deflt) {
+    return Options.prefLoad(key, deflt);
+  }
+
+  @Deprecated
+  public static String prefRemove(String key) {
+    return Options.prefRemove(key);
+  }
+
+  @Deprecated
+  public static void prefRemove() {
+    Options.prefRemoveAll();
+  }
+  //</editor-fold> (deprecated
+
   //<editor-fold desc="99 buildjar, compile">
 
   /**
