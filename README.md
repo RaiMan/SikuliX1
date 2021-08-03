@@ -1,4 +1,4 @@
-[<img src="https://github.com/RaiMan/SikuliX1/blob/master/Support/sikulix-red.png" alt="SikuliX" width="430">](https://sikulix.github.io)
+[![SikuliX](https://raw.githubusercontent.com/RaiMan/SikuliX1/master/Support/sikulix-red.png)](https://sikulix.github.io)
 
 ---
 **What is SikuliX**<br>SikuliX automates anything you see on the screen of your desktop computer 
