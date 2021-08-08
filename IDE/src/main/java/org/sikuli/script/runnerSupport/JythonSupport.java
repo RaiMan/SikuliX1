@@ -582,6 +582,26 @@ public class JythonSupport implements IRunnerSupport {
           }
         }
       }
+      //TODO PYTHONPATH environment variable and 1+ entries (sep : or ;)
+      String pythonPath = System.getProperty("python.path");
+      if (pythonPath != null) {
+        log(lvl, "given python.path: %s", pythonPath);
+        File fpp = new File(pythonPath);
+        if (!fpp.isAbsolute()) {
+          fpp = new File(Commons.getWorkDir(), pythonPath);
+        }
+        if (fpp.exists()) {
+          try {
+            fpp = fpp.getCanonicalFile();
+          } catch (IOException e) {
+            fpp = null;
+          }
+        }
+        if (fpp != null) {
+          addSysPath(fpp);
+          log(lvl, "added python.path: %s", fpp);
+        }
+      }
       String fpBundle = ImagePath.getBundlePath();
       if (fpBundle != null) {
         addSysPath(fpBundle);
