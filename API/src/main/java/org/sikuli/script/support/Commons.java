@@ -919,17 +919,23 @@ public class Commons {
   }
 
   public static File asFolder(String option) {
-    if (null == option) {
+    if (null == option || option.isBlank()) {
       return null;
     }
     File folder = new File(option);
     if (!folder.isAbsolute()) {
       folder = new File(Commons.getWorkDir(), option);
     }
-    if (folder.isDirectory() && folder.exists()) {
-      return folder;
+    if (!folder.isDirectory()) {
+      if (folder.exists()) {
+        return folder.getParentFile();
+      }
+      folder.mkdirs();
+      if (!folder.exists()) {
+        RunTime.terminate(999, "Commons: asFolder(): not possible for %s", folder);
+      }
     }
-    return null;
+    return folder;
   }
   //</editor-fold>
 
