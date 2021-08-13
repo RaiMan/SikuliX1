@@ -428,9 +428,7 @@ public class Commons {
       }
     }
     if (workDir == null) {
-      Debug.error("Commons.getWorkDir: env: user.dir not valid: %s (exiting)", workDirPath);
-      //TODO System.exit
-      System.exit(-1);
+      RunTime.terminate(999, "Commons.getWorkDir: env: user.dir not valid: %s (exiting)", workDirPath);
     }
     return workDir;
   }
