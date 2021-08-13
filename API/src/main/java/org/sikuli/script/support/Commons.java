@@ -333,7 +333,7 @@ public class Commons {
   }
 
   public static File getTempFolder() {
-    return sxTempFolder;
+    return setTempFolder();
   }
 
   public static File getIDETemp() {
