@@ -98,7 +98,7 @@ public class ScreenImage {
   }
 
   public String getStoredAt() {
-	  return _filename;
+	  return getFile();
   }
 
 	/**
