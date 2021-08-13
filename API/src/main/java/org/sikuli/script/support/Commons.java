@@ -920,7 +920,7 @@ public class Commons {
 
   public static File asFolder(String option) {
     if (null == option || option.isBlank()) {
-      return null;
+      RunTime.terminate(999, "Commons: asFolder(): not possible for %s", option);
     }
     File folder = new File(option);
     if (!folder.isAbsolute()) {
@@ -1029,19 +1029,23 @@ public class Commons {
   }
 
   public static File asFile(String option) {
-    if (null == option) {
-      return null;
+    if (null == option || option.isBlank()) {
+      RunTime.terminate(999, "Commons: asFile(): not possible for %s", option);
     }
-    if (null == asFolder(option)) {
-      File file = new File(option);
-      if (!file.isAbsolute()) {
-        file = new File(Commons.getWorkDir(), option);
-      }
-      if (file.exists()) {
-        return file;
+    File file = new File(option);
+    if (!file.isAbsolute()) {
+      file = new File(Commons.getWorkDir(), option);
+    }
+    if (file.isDirectory()) {
+      RunTime.terminate(999, "Commons: asFile(): is directory %s", file);
+    }
+    if (!file.getParentFile().isDirectory()) {
+      file.getParentFile().mkdirs();
+      if (!file.getParentFile().isDirectory()) {
+        RunTime.terminate(999, "Commons: asFile(): not possible for %s", option);
       }
     }
-    return null;
+    return file;
   }
   //</editor-fold>
 
