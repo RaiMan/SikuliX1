@@ -642,7 +642,7 @@ public class ImagePath {
     if (newBundlePath == null) {
       newBundlePath = Settings.BundlePath;
       if (newBundlePath == null) {
-        return false;
+        newBundlePath = new File(Commons.getWorkDir(), "SikulixBundlePath").getAbsolutePath();
       }
     }
     PathEntry entry = getPathEntry(newBundlePath, null);
