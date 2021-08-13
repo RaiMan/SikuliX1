@@ -1047,6 +1047,18 @@ public class Commons {
     }
     return file;
   }
+
+  public static File asFile(Object path, String option) {
+    File folder = null;
+    if (path instanceof String) {
+      folder = asFolder((String) path);
+    } else if (path instanceof File) {
+      folder = asFolder(((File) path).getPath());
+    } else {
+      RunTime.terminate(999, "Commons: asFile(): path invalid %s", path);
+    }
+    return asFile(new File(folder, option).getPath());
+  }
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
