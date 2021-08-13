@@ -34,20 +34,30 @@ public class Sikulix {
     }
 
 //TODO place to test something in the API context
-    if (args.length == 1 && "test".equals(args[0])) {
+    if (args.length == 1) {
       print("BuildStamp: %s", Commons.getSXBuild());
       print("osVersion: %s", Commons.getOSInfo());
 
-      String script = "display dialog \"hello\"";
-      new AppleScriptRunner().evalScript(script, null);
+      String arg = args[0];
+      if (arg.startsWith("test")) {
+        arg = arg.replace("test", "");
 
-      List<App> apps = App.getApps();
-      App app = new App("safari");
-      //app.open();
-      Region window = app.window();
-      Region focusedWindow = App.focusedWindow();
-      //app.focus();
+        if ("app".equals(arg)) {
+          String script = "display dialog \"hello\"";
+          new AppleScriptRunner().evalScript(script, null);
 
+          List<App> apps = App.getApps();
+          App app = new App("safari");
+          //app.open();
+          Region window = app.window();
+          Region focusedWindow = App.focusedWindow();
+          //app.focus();
+        }
+
+        if ("xxx".equals(arg)) {
+          print("testxxx");
+        }
+      }
       System.exit(0);
     }
 
