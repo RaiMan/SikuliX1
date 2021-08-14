@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -113,7 +112,7 @@ public abstract class GenericOsUtil implements OSUtil {
 	}
 
 	@Override
-	public OsProcess open(String[] cmd, String workDir) {
+	public OsProcess open(String[] cmd, String workDir, int waitTime) {
 		try {
 
 			cmd = openCommand(cmd, workDir);
@@ -126,10 +125,14 @@ public abstract class GenericOsUtil implements OSUtil {
 
 			Process p = pb.start();
 
-			ProcessHandle pHandle = openGetProcess(p, cmd);
-			return new GenericOsProcess(pHandle);
+			ProcessHandle pHandle = openGetProcess(p, cmd, waitTime);
+			if (pHandle == null) {
+				return null;
+			} else {
+				return new GenericOsProcess(pHandle);
+			}
 		} catch (Exception e) {
-			System.out.println("[error] WinUtil.open:\n" + e.getMessage());
+			System.out.println("[error] GenericOSUtil.open:\n" + e.getMessage());
 			return null;
 		}
 	}
@@ -138,7 +141,7 @@ public abstract class GenericOsUtil implements OSUtil {
 		return cmd;
 	}
 
-	protected ProcessHandle openGetProcess(Process p, String[] cmd) {
+	protected ProcessHandle openGetProcess(Process p, String[] cmd, int waitTime) {
 		return p.toHandle();
 	}
 

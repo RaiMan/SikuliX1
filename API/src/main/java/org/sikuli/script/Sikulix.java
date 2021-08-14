@@ -46,12 +46,15 @@ public class Sikulix {
           String script = "display dialog \"hello\"";
           new AppleScriptRunner().evalScript(script, null);
 
-          List<App> apps = App.getApps();
+          //List<App> apps = App.getApps("dropbox");
+          //App.listApps();
           App app = new App("safari");
-          //app.open();
-          Region window = app.window();
-          Region focusedWindow = App.focusedWindow();
+//          app.open();
+          //Region window = app.window();
+          //Region focusedWindow = App.focusedWindow();
+          print("App.open(): %s", app);
           //app.focus();
+          App.close("safari");
         }
 
         if ("xxx".equals(arg)) {

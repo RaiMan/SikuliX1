@@ -80,6 +80,10 @@ public class App {
     }
   }
 
+  public static void error(String msg, Object... args) {
+    Debug.logp("[AppError] " + msg, args);
+  }
+
   public static void logOn() {
     shouldLog = true;
   }
@@ -180,14 +184,7 @@ public class App {
   }
 
   public boolean isRunning(int maxTime) {
-    do {
-      if (process.isRunning()) {
-        return true;
-      }
-      pause(1);
-      maxTime--;
-    } while (maxTime > 0);
-    return false;
+    return process.isRunning();
   }
 
   public boolean hasWindow() {
@@ -353,28 +350,14 @@ public class App {
   }
 
   private boolean openAndWait(int waitTime) {
-    if (!isRunning(0)) {
-      process = osUtil.open(cmd.toStrings(), workDir);
-
+    if (!isRunning()) {
+      process = osUtil.open(cmd.toStrings(), workDir, waitTime);
       if (process != null) {
-        do {
-          pause(1);
-
-          if (isRunning()) {
-            return true;
-          }
-
-          waitTime--;
-        } while (waitTime > 0);
-
-        log("App.open: not running after %d secs (%s)", waitTime, process.getName());
-        return false;
-
+        return true;
       } else {
         process = new NullProcess();
+        return false;
       }
-
-      return false;
     } else {
       log("App.open: already running: %s", this);
       return focus();
@@ -385,7 +368,6 @@ public class App {
   // <editor-fold defaultstate="collapsed" desc="23 close">
   private int maxWait = 10;
   private boolean isClosing = false;
-  ;
 
   /**
    * tries to identify a running app with the given name and then tries to close
@@ -540,7 +522,7 @@ public class App {
    * @return true on succes, false otherwise
    */
   public boolean focus() {
-    if (!isRunning(0)) {
+    if (!isRunning()) {
       log("App.focus: not running: %s", toString());
       return false;
     }
