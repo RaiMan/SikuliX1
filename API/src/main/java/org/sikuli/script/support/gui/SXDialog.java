@@ -60,7 +60,8 @@ public class SXDialog extends JFrame {
       res += ".txt";
     }
     Class clazz = SXDialog.class;
-    if (!res.startsWith("/")) {
+    String text = "";
+    if (!res.startsWith("/") && !res.startsWith("#")) {
       if (res.startsWith("sx")) {
         if (res.startsWith("sxide")) {
           try {
@@ -70,10 +71,15 @@ public class SXDialog extends JFrame {
         }
         res = "/Settings/" + res;
       }
+    } else if (res.startsWith("#")) {
+      text = res;
+      clazz = null;
     } else {
       Commons.trace("not implemented: res = %s", res);
     }
-    final String text = Commons.copyResourceToString(res, clazz);
+    if (clazz != null) {
+      text = Commons.copyResourceToString(res, clazz);
+    }
     if (!text.isEmpty()) {
       valid = true;
       this.pos = pos;
@@ -351,6 +357,7 @@ public class SXDialog extends JFrame {
       }
       setAlwaysOnTop(true);
       setVisible(true);
+      running = true;
       if (APPLY_BUTTON != null) {
         APPLY_BUTTON.comp().requestFocusInWindow();
       }
@@ -359,8 +366,15 @@ public class SXDialog extends JFrame {
     }
   }
 
+  private boolean running = false;
+
+  public boolean isRunning() {
+    return running;
+  }
+
   void close() {
     setVisible(false);
+    running = false;
   }
 
   void closeCancel() {
@@ -608,7 +622,13 @@ public class SXDialog extends JFrame {
             item = new LinkItem(urlText, url);
 
           } else if (isFeat(feature, FEATURE.IMAGE) && !title.isEmpty()) {
-            item = new ImageItem(this.getClass().getResource(title));
+            URL url = null;
+            if (title.startsWith("file:")) {
+              url = Commons.makeURL(title.substring(5));
+            } else {
+              url = this.getClass().getResource(title);
+            }
+            item = new ImageItem(url);
 
           } else if (isFeat(feature, FEATURE.CLOSE)) {
             if (title.isEmpty()) {
@@ -1826,9 +1846,13 @@ public class SXDialog extends JFrame {
     }
 
     ImageItem(URL url) {
-      try {
-        img = ImageIO.read(url);
-      } catch (IOException e) {
+      if (url != null) {
+        try {
+          img = ImageIO.read(url);
+        } catch (IOException e) {
+        }
+      }
+      if (img == null) {
         Commons.error("ImageItem: %s", url);
       }
     }
