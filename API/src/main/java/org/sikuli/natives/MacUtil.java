@@ -17,6 +17,7 @@ import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
+import org.sikuli.script.App;
 import org.sikuli.script.support.Commons;
 
 public class MacUtil extends GenericOsUtil {
@@ -77,7 +78,9 @@ public class MacUtil extends GenericOsUtil {
     @Override
     public boolean focus() {
       if (Commons.runningMacM1()) {
-        throw new UnsupportedOperationException("focus not implemented"); //TODO
+        // throw new UnsupportedOperationException("focus not implemented"); //TODO
+        App.error("MacUtil(M1): focus not implemented (%s)", this);
+        return false;
       }
       NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
 
@@ -117,7 +120,9 @@ public class MacUtil extends GenericOsUtil {
   @Override
   public OsWindow getFocusedWindow() {
     if (Commons.runningMacM1()) {
-      throw new UnsupportedOperationException("getFocusedWindow not implemented"); //TODO
+      // throw new UnsupportedOperationException("getFocusedWindow not implemented"); //TODO
+      App.error("MacUtil(M1): getFocusedWindow not implemented (%s)", this);
+      return null;
     }
     return allWindows().stream().filter((w) -> {
       OsProcess process = w.getProcess();
@@ -203,11 +208,31 @@ public class MacUtil extends GenericOsUtil {
     return windows;
   }
 
-  protected String[] openCommand(String[] cmd, String workDir) { //TODO
-    return cmd;
+  protected String[] openCommand(String[] cmd, String workDir) {
+    //open -a cmd[0] --args cmd[1:]
+    String[] newCmd = new String[4 + cmd.length - 1];
+    newCmd[0] = "open";
+    newCmd[1] = "-a";
+    newCmd[2] = cmd[0];
+    newCmd[3] = "--args";
+    System.arraycopy(cmd, 1, newCmd, 4, cmd.length - 1);
+    return newCmd;
   }
 
-  protected ProcessHandle openGetProcess(Process p, String[] cmd) { //TODO
-    return p.toHandle();
+  protected ProcessHandle openGetProcess(Process p, String[] cmd, int waitTime) {
+    //return p.toHandle();
+    List<OsProcess> processes;
+    do {
+      App.pause(1);
+      processes = findProcesses(cmd[2]);
+    } while (processes.size() == 0 && --waitTime > 0);
+    if (processes.size() == 0) {
+      return null;
+    } else {
+      final long pid = processes.get(0).getPid();
+      final Optional<ProcessHandle> handle = ProcessHandle.of(pid);
+      return handle.get();
+    }
   }
 }
+
