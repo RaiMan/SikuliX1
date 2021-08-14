@@ -8,6 +8,8 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -264,6 +266,10 @@ public class Image extends Element {
   }
 
   private URL fileURL = null;
+
+  public boolean inMemory() {
+    return fileURL == null && bimg != null;
+  }
 
   private static Image get(URL imgURL) {
     return imageFiles.get(imgURL);
@@ -1055,18 +1061,25 @@ public class Image extends Element {
 
   public boolean wasRecaptured = false;
 
-  public void save(String name) {
-    save(name, ImagePath.getBundlePath());
+  public String save(String name) {
+    return save(name, ImagePath.getBundlePath());
   }
 
-  public void save(String name, String path) {
-    File fImg = new File(path, name);
+  public String save(String name, String path) {
+    return save(new File(path, name));
+  }
+
+  public String save(File file) {
+    String fileName = FilenameUtils.removeExtension(file.getAbsolutePath()) + ".png";
+    File fImg = new File(fileName);
     try {
       ImageIO.write(get(), "png", fImg);
       Debug.log(3, "Image::save: %s", fImg);
     } catch (IOException e) {
       Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
     }
+    fileURL = Commons.makeURL(fImg);
+    return fileName;
   }
   //</editor-fold>
 
@@ -1332,4 +1345,24 @@ public class Image extends Element {
     return OCR.readChar(imgFile);
   }
   //</editor-fold>
+
+  public void show() {
+    String url = "";
+    if (inMemory()) {
+      ;
+    } else {
+      url = fileURL.toString();
+    }
+    String text =
+        "#globals; \n" +
+            "#image; " + url + "; \n" +
+//            "---\n" +
+//            "#close; Press ESC or Click;" +
+            "";
+    final SXDialog show = new SXDialog(text);
+    show.run();
+    while(show.isRunning()) {
+      RunTime.pause(1);
+    }
+  }
 }

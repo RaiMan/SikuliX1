@@ -13,6 +13,7 @@ import org.sikuli.util.Highlight;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1289,6 +1290,20 @@ public class Region extends Element {
   //<editor-fold desc="050 save capture to file">
   public String saveCapture(Object... args) {
     return ((Screen) getScreen()).cmdCapture(args).getStoredAt();
+  }
+
+  public Image getCapture(String... path) {
+    final Image image = new Image(((Screen) getScreen()).doCapture(this));
+    if (path.length > 0) {
+      File file;
+      if (path.length == 1) {
+        file = Commons.asFile(path[0]);
+      } else {
+        file = Commons.asFile(path[0], path[1]);
+      }
+      image.save(file);
+    }
+    return image;
   }
 
   /**

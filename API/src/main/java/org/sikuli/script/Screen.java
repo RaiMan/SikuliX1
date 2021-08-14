@@ -435,6 +435,14 @@ public class Screen extends Region implements IScreen {
   //<editor-fold defaultstate="collapsed" desc="Capture - SelectRegion">
 
   public ScreenImage cmdCapture(Object... args) {
+    ScreenImage shot = doCapture(args);
+    if (shot != null) {
+      shot.getFile();
+    }
+    return shot;
+  }
+
+  public ScreenImage doCapture(Object... args) {
     ScreenImage shot = null;
     if (args.length == 0) {
       shot = userCapture("capture an image");
@@ -503,9 +511,6 @@ public class Screen extends Region implements IScreen {
       } else {
         Debug.error("Screen: capture: Invalid parameters");
       }
-    }
-    if (shot != null) {
-      shot.getFile();
     }
     return shot;
   }
