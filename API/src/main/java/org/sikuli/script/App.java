@@ -184,7 +184,13 @@ public class App {
   }
 
   public boolean isRunning(int maxTime) {
-    return process.isRunning();
+    do {
+      if (process.isRunning()) {
+        return true;
+      }
+      pause(1);
+    } while (--maxTime > 0);
+    return false;
   }
 
   public boolean hasWindow() {
@@ -816,7 +822,7 @@ public class App {
      * specified MIME type
      */
     public static void putText(TextType type, Charset charset, TransferType transferType, CharSequence data)
-        throws Exception {
+            throws Exception {
       String mimeType = type + "; charset=" + charset + "; class=" + transferType;
       TextTransferable transferable = new TextTransferable(mimeType, data.toString());
       getSystemClipboard().setContents(transferable, transferable);
