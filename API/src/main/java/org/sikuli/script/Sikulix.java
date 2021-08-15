@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.natives.OSUtil;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
@@ -45,16 +46,13 @@ public class Sikulix {
         if ("app".equals(arg)) {
           String script = "display dialog \"hello\"";
           new AppleScriptRunner().evalScript(script, null);
-
-          //List<App> apps = App.getApps("dropbox");
-          //App.listApps();
           App app = new App("safari");
-//          app.open();
-          //Region window = app.window();
-          //Region focusedWindow = App.focusedWindow();
+          if (!app.isRunning()) {
+            app.open();
+          } else {
+            app.focus();
+          }
           print("App.open(): %s", app);
-          //app.focus();
-          App.close("safari");
         }
 
         if ("xxx".equals(arg)) {
