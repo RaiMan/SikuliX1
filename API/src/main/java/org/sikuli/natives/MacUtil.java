@@ -18,6 +18,7 @@ import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
 import org.sikuli.script.App;
+import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 
 public class MacUtil extends GenericOsUtil {
@@ -78,12 +79,16 @@ public class MacUtil extends GenericOsUtil {
     @Override
     public boolean focus() {
       if (Commons.runningMacM1()) {
-        // throw new UnsupportedOperationException("focus not implemented"); //TODO
-        App.error("MacUtil(M1): focus not implemented (%s)", this);
+        if (pid > 0) {
+          String script = "tell application \"System Events\" to set frontmost of first process in (processes where unix id is %d) to true";
+          script = String.format(script, pid);
+          new AppleScriptRunner().evalScript(script, null);
+          return true;
+        }
         return false;
       }
-      NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
 
+      NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
       if (app != null) {
         return app.activateWithOptions(NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateAllWindows | NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateIgnoringOtherApps);
       }
