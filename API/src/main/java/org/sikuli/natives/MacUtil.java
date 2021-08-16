@@ -4,6 +4,10 @@
 package org.sikuli.natives;
 
 import java.awt.Rectangle;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -124,11 +128,21 @@ public class MacUtil extends GenericOsUtil {
 
   @Override
   public OsWindow getFocusedWindow() {
+    String script = "tell application \"System Events\" to " +
+            "unix id of first process in (processes where frontmost is true)";
     if (Commons.runningMacM1()) {
       // throw new UnsupportedOperationException("getFocusedWindow not implemented"); //TODO
       App.error("MacUtil(M1): getFocusedWindow not implemented (%s)", this);
       return null;
     }
+    AppleScriptRunner appleScriptRunner = new AppleScriptRunner();
+
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(bout);
+    appleScriptRunner.redirect(ps, ps);
+    int evalScript = appleScriptRunner.evalScript(script, null);
+    String out = bout.toString();
+
     return allWindows().stream().filter((w) -> {
       OsProcess process = w.getProcess();
 
