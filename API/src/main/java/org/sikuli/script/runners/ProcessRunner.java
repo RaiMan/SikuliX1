@@ -61,6 +61,9 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 		int exitCode = 0;
 
 		try {
+			if (options.getOutStream() != null) {
+				doRedirect(options.getOutStream());
+			}
 			process = Runtime.getRuntime().exec(cmdArgs);
 
 			startStreamPumper(process.getInputStream(), stdOut, options);
@@ -94,6 +97,12 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 	protected boolean doRedirect(PrintStream stdout, PrintStream stderr) {
 		this.stdOut = stdout;
 		this.stdErr = stderr;
+		return true;
+	}
+
+	protected boolean doRedirect(PrintStream stdout) {
+		this.stdOut = stdout;
+		this.stdErr = stdout;
 		return true;
 	}
 

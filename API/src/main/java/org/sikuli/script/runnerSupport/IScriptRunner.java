@@ -3,6 +3,7 @@
  */
 package org.sikuli.script.runnerSupport;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 
@@ -64,6 +65,33 @@ public interface IScriptRunner {
     }
 
     private int errorLine = -1;
+
+    public String getOutput() {
+      output = bout.toString();
+      return output;
+    }
+
+    public PrintStream getOutStream() {
+      if (output != null) {
+        bout = new ByteArrayOutputStream();
+        return new PrintStream(bout);
+      } else {
+        return null;
+      }
+    }
+
+    public Options setOutput(String output) {
+      this.output = output;
+      return this;
+    }
+
+    public Options setOutput() {
+      this.output = "";
+      return this;
+    }
+
+    private String output = null;
+    private ByteArrayOutputStream bout = null;
 
     public boolean isRunningInIDE() {
       return runningInIDE;
