@@ -150,6 +150,11 @@ public abstract class GenericOsUtil implements OSUtil {
 		throw new UnsupportedOperationException("getFocusedWindow not implemented");
 	}
 
+	@Override
+	public OsProcess getFocusedProcess() {
+		throw new UnsupportedOperationException("getFocusedWindow not implemented");
+	}
+
 	protected static Stream<OsProcess> allProcesses() {
 		return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
 	}

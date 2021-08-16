@@ -22,6 +22,7 @@ import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
 import org.sikuli.script.App;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 
@@ -127,37 +128,35 @@ public class MacUtil extends GenericOsUtil {
   }
 
   @Override
-  public OsWindow getFocusedWindow() {
+  public OsProcess getFocusedProcess() {
     String script = "tell application \"System Events\" to " +
-            "unix id of first process in (processes where frontmost is true)";
-    if (Commons.runningMacM1()) {
-      // throw new UnsupportedOperationException("getFocusedWindow not implemented"); //TODO
-      App.error("MacUtil(M1): getFocusedWindow not implemented (%s)", this);
-      return null;
+        "unix id of first process in (processes where frontmost is true)";
+    final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
+    new AppleScriptRunner().evalScript(script, options);
+    final String spid = options.getOutput().strip();
+    int pid = -1;
+    try {
+      pid = Integer.parseInt(spid);
+    } catch (NumberFormatException e) {
     }
-    AppleScriptRunner appleScriptRunner = new AppleScriptRunner();
+    if (pid > 0) {
+      return getProcess(pid);
+    }
+    return null;
+  }
 
-    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(bout);
-    appleScriptRunner.redirect(ps, ps);
-    int evalScript = appleScriptRunner.evalScript(script, null);
-    String out = bout.toString();
+  private OsProcess getProcess(int pid) {
+    Optional<ProcessHandle> handle = ProcessHandle.of(pid);
+    if (handle.isPresent()) {
+      return new GenericOsProcess(handle.get());
+    }
+    return null;
+  }
 
-    return allWindows().stream().filter((w) -> {
-      OsProcess process = w.getProcess();
-
-      if (process != null) {
-        NSRunningApplication app = NSRunningApplication.CLASS
-            .runningApplicationWithProcessIdentifier((int) w.getProcess().getPid());
-
-        if (app != null) {
-          if (app.isActive()) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }).findFirst().orElse(null);
+  @Override
+  public OsWindow getFocusedWindow() {
+    OsProcess process = getFocusedProcess();
+    return null;
   }
 
   @Override

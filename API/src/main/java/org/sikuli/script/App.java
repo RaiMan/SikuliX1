@@ -306,6 +306,16 @@ public class App {
   }
   // </editor-fold>
 
+  public static App focusedApp() {
+    final OsProcess process = osUtil.getFocusedProcess();
+    if (process == null) {
+      return new App(new NullProcess());
+    }
+    else {
+      return new App(process);
+    }
+  }
+
   //<editor-fold desc="20 open">
 
   /**

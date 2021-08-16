@@ -58,4 +58,6 @@ public interface OSUtil {
 	OsProcess open(String[] cmd, String workDir, int waitTime);
 
 	OsWindow getFocusedWindow();
+
+	OsProcess getFocusedProcess();
 }
