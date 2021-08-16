@@ -52,6 +52,10 @@ public class Sikulix {
           } else {
             app.focus();
           }
+          List<OSUtil.OsWindow> windows = app.windows();
+          Region window = app.window(1);
+          Region focusedWindow = App.focusedWindow();
+          App.pause(3);
           print("App.open(): %s", app);
         }
 

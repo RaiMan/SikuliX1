@@ -539,7 +539,7 @@ public class App {
       return windows.get(0).focus();
     }
 
-    log("App.focus: no window for %s", toString());
+    error("App.focus: no window for %s", toString());
     return false;
   }
   //</editor-fold>
@@ -585,7 +585,7 @@ public class App {
   }
 
   List<OsWindow> windows() {
-    return osUtil.getWindows();
+    return osUtil.getWindows(process);
   }
 
   public String getTitle(int windowNumber) {
@@ -601,7 +601,7 @@ public class App {
   public static Region focusedWindow() {
     OsWindow window = osUtil.getFocusedWindow();
     if (window != null) {
-      return asRegion(osUtil.getFocusedWindow().getBounds());
+      return asRegion(window.getBounds(), window.getTitle());
     } else {
       return new Region();
     }

@@ -1,2 +1,3 @@
-tell application "System Events" to set frontmost of first process in (processes where unix id is 34692) to true
+tell application "System Events" to unix id of first process in (processes where frontmost is true)
+
 
