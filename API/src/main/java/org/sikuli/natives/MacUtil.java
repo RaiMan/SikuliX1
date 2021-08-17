@@ -87,6 +87,17 @@ public class MacUtil extends GenericOsUtil {
     }
 
     @Override
+    public boolean focus(int winNum) {
+      if (focus()) {
+        String script = "tell application \"System Events\" to perform action \"AXRaise\" " +
+                "of item %d of (windows of item 1 of (processes whose unix id is %d))";
+        script = String.format(script, winNum + 1, pid);
+        new AppleScriptRunner().evalScript(script, null);
+      }
+      return false;
+    }
+
+    @Override
     public boolean minimize() {
       throw new UnsupportedOperationException("minimize not implemented");
     }

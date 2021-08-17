@@ -90,7 +90,7 @@ public abstract class Element {
    */
   public int h = 0;
 
-  protected boolean isEmpty() {
+  public boolean isEmpty() {
     return w <= 1 && h <= 1;
   }
 
