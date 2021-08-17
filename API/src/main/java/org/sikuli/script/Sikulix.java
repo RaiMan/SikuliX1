@@ -45,6 +45,8 @@ public class Sikulix {
 
         if ("app".equals(arg)) {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
+//          App app1 = App.focus("_Hofhaus");
+//          App.pause(2);
           App running = App.focusedApp();
           App app = new App("safari");
           if (!app.isRunning()) {

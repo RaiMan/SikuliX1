@@ -107,10 +107,6 @@ public abstract class GenericOsUtil implements OSUtil {
 		return allProcesses().collect(Collectors.toList());
 	}
 
-	public OsProcess getProcess() {
-		return thisProcess();
-	}
-
 	@Override
 	public OsProcess open(String[] cmd, String workDir, int waitTime) {
 		try {
@@ -157,9 +153,5 @@ public abstract class GenericOsUtil implements OSUtil {
 
 	protected static Stream<OsProcess> allProcesses() {
 		return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
-	}
-
-	protected static OsProcess thisProcess() {
-		return new GenericOsProcess(ProcessHandle.current());
 	}
 }
