@@ -84,6 +84,7 @@
       <version>5.8.0</version>
       <!--License LGPL, version 2.1 - Apache License v2.0-->
     </dependency>
+<!--
     <dependency>
       <groupId>org.rococoa</groupId>
       <artifactId>rococoa-core</artifactId>
@@ -94,6 +95,7 @@
       <artifactId>cglib</artifactId>
       <version>3.3.0</version>
     </dependency>
+-->
 <!-- temporary for macOS M1
     <dependency>
       <groupId>org.openpnp</groupId>
