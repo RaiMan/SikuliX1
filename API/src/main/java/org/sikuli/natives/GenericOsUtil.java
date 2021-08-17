@@ -28,7 +28,7 @@ public abstract class GenericOsUtil implements OSUtil {
 		}
 
 		@Override
-		public String getName() {
+		public String getExecutable() {
 			ProcessHandle.Info info = null;
 			try {
 				info = process.info();
@@ -76,7 +76,7 @@ public abstract class GenericOsUtil implements OSUtil {
 		Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
 			String procName = "";
 			try {
-				procName = p.getName().toLowerCase();
+				procName = p.getExecutable().toLowerCase();
 			} catch (Exception e) {
 				//e.printStackTrace();
 				return false;
