@@ -45,8 +45,6 @@ public class Sikulix {
 
         if ("app".equals(arg)) {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
-//          App app1 = App.focus("_Hofhaus");
-//          App.pause(2);
           App running = App.focusedApp();
           App app = new App("safari");
           if (!app.isRunning()) {
@@ -55,7 +53,7 @@ public class Sikulix {
             app.focus();
           }
           List<OSUtil.OsWindow> windows = app.windows();
-          Region window = app.window();
+          Region window = app.toFront(1);
           window.highlight(2);
           print("App.open(): %s", app);
           print("app.getTitle(): %s", app.getTitle());
@@ -275,7 +273,7 @@ public class Sikulix {
         title = "Sikuli input request";
       }
       ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-          JOptionPane.PLAIN_MESSAGE, null, null, preset);
+              JOptionPane.PLAIN_MESSAGE, null, null, preset);
     } else {
       preset = "";
       JTextArea tm = new JTextArea(msg);
@@ -505,7 +503,7 @@ public class Sikulix {
       }
     }
     return FileManager.buildJar(targetJar, new String[]{null},
-        new String[]{sourceFolder}, new String[]{prefix}, null);
+            new String[]{sourceFolder}, new String[]{prefix}, null);
   }
   //</editor-fold>
 }

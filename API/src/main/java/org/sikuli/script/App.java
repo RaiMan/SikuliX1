@@ -3,23 +3,25 @@
  */
 package org.sikuli.script;
 
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.lang3.StringUtils;
+import org.sikuli.basics.Debug;
+import org.sikuli.natives.OSUtil;
+import org.sikuli.natives.OSUtil.OsProcess;
+import org.sikuli.natives.OSUtil.OsWindow;
+import org.sikuli.natives.SysUtil;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.RunTime;
+
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
 //import org.apache.http.StatusLine;
@@ -30,16 +32,6 @@ import java.util.stream.Collectors;
 //import org.apache.http.client.methods.HttpGet;
 //import org.apache.http.impl.client.CloseableHttpClient;
 //import org.apache.http.impl.client.HttpClients;
-
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.lang3.StringUtils;
-import org.sikuli.basics.Debug;
-import org.sikuli.natives.OSUtil;
-import org.sikuli.natives.OSUtil.OsProcess;
-import org.sikuli.natives.OSUtil.OsWindow;
-import org.sikuli.natives.SysUtil;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 /**
  * App implements features to manage (open, switch to, close) applications. on
@@ -552,7 +544,7 @@ public class App {
     }
     if (actual > -1) {
       App app = new App(windows.get(actual).getProcess());
-      app.focus();
+      app.toFront(title);
       return app;
     }
 
@@ -577,34 +569,54 @@ public class App {
    * @return true on succes, false otherwise
    */
   public boolean focus() {
-    if (!isRunning()) {
-      error("App.focus: not running: %s", toString());
-      return false;
-    }
-
-    List<OsWindow> windows = osUtil.getWindows(process);
-
-    if (!windows.isEmpty()) {
-      return windows.get(0).focus();
-    }
-
-    error("App.focus: no window for %s", toString());
-    return false;
+    Region region = toFront(0);
+    return !region.isEmpty();
   }
 
   public Region toFront() {
-    Region window = asRegion();
-    return window;
+    return toFront(0);
   }
 
   public Region toFront(int winNum) {
-    Region window = asRegion();
-    return window;
+    if (!isRunning()) {
+      error("App.focus: not running: %s", toString());
+      return asRegion();
+    }
+    List<OsWindow> windows = osUtil.getWindows(process);
+    OsWindow window = null;
+    if (!windows.isEmpty()) {
+      int actual = -1;
+      if (windows.size() > winNum) {
+        actual = winNum;
+      } else if (windows.size() > 0) {
+        actual = 0;
+      }
+      if (actual > -1) {
+        window = windows.get(actual);
+        window.focus(actual);
+      }
+    }
+    return asRegion(window);
   }
 
   public Region toFront(String title) {
-    Region window = asRegion();
-    return window;
+    if (!isRunning()) {
+      error("App.focus: not running: %s", toString());
+      return asRegion();
+    }
+    OsWindow window = null;
+    int winNum = 0;
+    for (OsWindow win : osUtil.getWindows(process)) {
+      if (win.getTitle().toUpperCase().contains(title.toUpperCase())) {
+        window = win;
+        break;
+      }
+      winNum++;
+    }
+    if (window != null) {
+      window.focus(winNum);
+    }
+    return asRegion(window);
   }
   //</editor-fold>
 
@@ -692,6 +704,17 @@ public class App {
 
   private static Region asRegion() {
     return asRegion(new Rectangle(0, 0, 0, 0), "NullWindow");
+  }
+
+  private static boolean isNullRegion(Region region) {
+    return region.isEmpty();
+  }
+
+  private static Region asRegion(OsWindow window) {
+    if (window == null) {
+      return asRegion();
+    }
+    return asRegion(window.getBounds(), window.getTitle());
   }
 
   private static Region asRegion(Rectangle r) {

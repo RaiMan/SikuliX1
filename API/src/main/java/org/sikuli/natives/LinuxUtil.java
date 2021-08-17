@@ -92,6 +92,11 @@ public class LinuxUtil extends GenericOsUtil {
 		}
 
 		@Override
+		public boolean focus(int winNum) {
+			return  focus();
+		}
+
+		@Override
 		public boolean minimize() {
 			throw new UnsupportedOperationException("minimize not implemented");
 		}

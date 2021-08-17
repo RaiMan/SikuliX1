@@ -28,6 +28,8 @@ public interface OSUtil {
 
 		boolean focus();
 
+		boolean focus(int winNum);
+
 		boolean minimize();
 
 		boolean maximize();
