@@ -18,6 +18,7 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
@@ -122,6 +123,7 @@ public class App {
 
   public App() {
     process = new NullProcess();
+    maxWait = globalMaxWait;
   }
 
   public App(String name) {
@@ -168,6 +170,9 @@ public class App {
     }
     return String.format("App:SystemProcess(pid:%d)", getPID());
   }
+
+  private static int globalMaxWait = 10;
+  private int maxWait;
   //</editor-fold>
 
   // <editor-fold desc="02 running/valid">
@@ -180,6 +185,9 @@ public class App {
   }
 
   public boolean isRunning(int maxTime) {
+    if (isClosing()) {
+      return false;
+    }
     do {
       if (process.isRunning()) {
         return true;
@@ -257,10 +265,6 @@ public class App {
   //</editor-fold>
 
   // <editor-fold desc="10 app list">
-  public static App getApp() {
-    return new App(osUtil.getProcess());
-  }
-
   public static List<App> getApps() {
     return osUtil.getProcesses().stream().filter((p) -> osUtil.isUserProcess(p)).map((p) -> new App(p)).collect(Collectors.toList());
   }
@@ -337,7 +341,7 @@ public class App {
    * @return the App instance
    */
   public static App open(String name) {
-    return open(name, 1);
+    return open(name, globalMaxWait);
   }
 
   /**
@@ -347,7 +351,7 @@ public class App {
    * @return this or null on failure
    */
   public boolean open() {
-    return openAndWait(5);
+    return openAndWait(maxWait);
   }
 
   /**
@@ -361,9 +365,20 @@ public class App {
     return openAndWait(waitTime);
   }
 
+  private AtomicBoolean opening = new AtomicBoolean(false);
+
   private boolean openAndWait(int waitTime) {
+    if (!waitUntilClosed(waitTime)) {
+      log("App.open: app is still closing (after %d seconds): %s", waitTime, this);
+      return false;
+    }
     if (!isRunning()) {
+      if (opening.compareAndExchange(false, true)) {
+        log("App.open: already opening: %s", this);
+        return false;
+      }
       process = osUtil.open(cmd.toStrings(), workDir, waitTime);
+      opening.set(false);
       if (process != null) {
         return true;
       } else {
@@ -378,8 +393,24 @@ public class App {
   //</editor-fold>
 
   // <editor-fold defaultstate="collapsed" desc="23 close">
-  private int maxWait = 10;
-  private boolean isClosing = false;
+  private AtomicBoolean closing = new AtomicBoolean(false);
+
+  public boolean isClosing() {
+    return closing.get();
+  }
+
+  public boolean waitUntilClosed(int waitTime) {
+    if (!isClosing()) {
+      return true;
+    }
+    do {
+      pause(1);
+      if (!isClosing()) {
+        return true;
+      }
+    } while (--waitTime > 0);
+    return  false;
+  }
 
   /**
    * tries to identify a running app with the given name and then tries to close
@@ -392,10 +423,6 @@ public class App {
     return new App(appName).close();
   }
 
-  public boolean isClosing() {
-    return isClosing;
-  }
-
   /**
    * tries to close the app defined by this App instance, waits max 10 seconds for
    * the app to no longer be running
@@ -403,7 +430,7 @@ public class App {
    * @return this or null on failure
    */
   public boolean close() {
-    return close(5);
+    return close(maxWait);
   }
 
   /**
@@ -419,7 +446,10 @@ public class App {
       return false;
     }
 
-    isClosing = true;
+    if (closing.compareAndExchange(false, true)) {
+      log("App.close: already closing: %s", this);
+      return false;
+    }
 
     try {
       // try to close gracefully
@@ -450,7 +480,7 @@ public class App {
       log("App.close: did not work: %s", this);
       return false;
     } finally {
-      isClosing = false;
+      closing.set(false);
     }
 
   }
@@ -514,12 +544,25 @@ public class App {
   public static App focus(String title, int index) {
     List<OsWindow> windows = osUtil.findWindows(title);
 
+    int actual = -1;
     if (windows.size() > index) {
-      App app = new App(windows.get(index).getProcess());
+      actual = index;
+    } else if (windows.size() > 0) {
+      actual = 0;
+    }
+    if (actual > -1) {
+      App app = new App(windows.get(actual).getProcess());
       app.focus();
       return app;
     }
 
+    App app = new App(title);
+    if (app.isRunning()) {
+      app.focus();
+      return app;
+    }
+
+    error("App.focus: no window nor app: %s", title);
     return new App();
   }
 
@@ -535,7 +578,7 @@ public class App {
    */
   public boolean focus() {
     if (!isRunning()) {
-      log("App.focus: not running: %s", toString());
+      error("App.focus: not running: %s", toString());
       return false;
     }
 
@@ -547,6 +590,21 @@ public class App {
 
     error("App.focus: no window for %s", toString());
     return false;
+  }
+
+  public Region toFront() {
+    Region window = asRegion();
+    return window;
+  }
+
+  public Region toFront(int winNum) {
+    Region window = asRegion();
+    return window;
+  }
+
+  public Region toFront(String title) {
+    Region window = asRegion();
+    return window;
   }
   //</editor-fold>
 
@@ -632,6 +690,10 @@ public class App {
     }
   }
 
+  private static Region asRegion() {
+    return asRegion(new Rectangle(0, 0, 0, 0), "NullWindow");
+  }
+
   private static Region asRegion(Rectangle r) {
     return asRegion(r, "");
   }
@@ -658,7 +720,7 @@ public class App {
    */
   public boolean minimize() {
     if (!isRunning(0)) {
-      log("App.minimize: not running: %s", toString());
+      error("App.minimize: not running: %s", toString());
       return false;
     }
 
@@ -668,7 +730,7 @@ public class App {
       return windows.get(0).minimize();
     }
 
-    log("App.focus: no window for %s", toString());
+    error("App.focus: no window for %s", toString());
     return false;
   }
 
@@ -679,7 +741,7 @@ public class App {
    */
   public boolean maximize() {
     if (!isRunning(0)) {
-      log("App.minimize: not running: %s", toString());
+      error("App.minimize: not running: %s", toString());
       return false;
     }
 
@@ -689,7 +751,7 @@ public class App {
       return windows.get(0).maximize();
     }
 
-    log("App.focus: no window for %s", toString());
+    error("App.focus: no window for %s", toString());
     return false;
   }
 
@@ -700,7 +762,7 @@ public class App {
    */
   public boolean restore() {
     if (!isRunning(0)) {
-      log("App.minimize: not running: %s", toString());
+      error("App.minimize: not running: %s", toString());
       return false;
     }
 
@@ -710,7 +772,7 @@ public class App {
       return windows.get(0).restore();
     }
 
-    log("App.focus: no window for %s", toString());
+    error("App.focus: no window for %s", toString());
     return false;
   }
   //</editor-fold>
