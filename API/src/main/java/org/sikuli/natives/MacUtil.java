@@ -3,28 +3,22 @@
  */
 package org.sikuli.natives;
 
-import java.awt.Rectangle;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.sikuli.natives.mac.jna.CoreGraphics;
-import org.sikuli.natives.mac.jna.NSRunningApplication;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.mac.CoreFoundation;
 import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
+import org.sikuli.natives.mac.jna.CoreGraphics;
 import org.sikuli.script.App;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
-import org.sikuli.script.support.Commons;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MacUtil extends GenericOsUtil {
 
@@ -34,7 +28,7 @@ public class MacUtil extends GenericOsUtil {
       return false;
     } else {
       if (process.getPid() > 0) {
-        String name = process.getName();
+        String name = process.getExecutable();
         if (name.isEmpty()) {
           return false;
         }
@@ -83,21 +77,12 @@ public class MacUtil extends GenericOsUtil {
 
     @Override
     public boolean focus() {
-      if (Commons.runningMacM1()) {
-        if (pid > 0) {
-          String script = "tell application \"System Events\" to set frontmost of first process in (processes where unix id is %d) to true";
-          script = String.format(script, pid);
-          new AppleScriptRunner().evalScript(script, null);
-          return true;
-        }
-        return false;
+      if (pid > 0) {
+        String script = "tell application \"System Events\" to set frontmost of first process in (processes where unix id is %d) to true";
+        script = String.format(script, pid);
+        new AppleScriptRunner().evalScript(script, null);
+        return true;
       }
-
-      NSRunningApplication app = NSRunningApplication.CLASS.runningApplicationWithProcessIdentifier((int) pid);
-      if (app != null) {
-        return app.activateWithOptions(NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateAllWindows | NSRunningApplication.NSApplicationActivationOptions.NSApplicationActivateIgnoringOtherApps);
-      }
-
       return false;
     }
 
@@ -162,7 +147,8 @@ public class MacUtil extends GenericOsUtil {
   @Override
   public List<OsWindow> getWindows(OsProcess process) {
     if (process != null) {
-      return allWindows().stream().filter((w) -> process.equals(w.getProcess())).collect(Collectors.toList());
+      List<OsWindow> windows = allWindows().stream().filter((w) -> process.equals(w.getProcess())).collect(Collectors.toList());
+      return windows;
     }
     return new ArrayList<>(0);
   }

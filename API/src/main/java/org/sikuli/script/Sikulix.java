@@ -44,9 +44,8 @@ public class Sikulix {
         arg = arg.replace("test", "");
 
         if ("app".equals(arg)) {
-          App app1 = App.focusedApp();
-          String script = "display dialog \"hello\"";
-          new AppleScriptRunner().evalScript(script, null);
+          new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
+          App running = App.focusedApp();
           App app = new App("safari");
           if (!app.isRunning()) {
             app.open();
@@ -54,10 +53,11 @@ public class Sikulix {
             app.focus();
           }
           List<OSUtil.OsWindow> windows = app.windows();
-          Region window = app.window(0);
-          //Region focusedWindow = App.focusedWindow();
-          App.pause(3);
+          Region window = app.window();
+          window.highlight(2);
           print("App.open(): %s", app);
+          print("app.getTitle(): %s", app.getTitle());
+          running.focus();
         }
 
         if ("xxx".equals(arg)) {

@@ -3,7 +3,6 @@
  */
 package org.sikuli.script;
 
-import java.awt.Desktop;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.ClipboardOwner;
@@ -16,12 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 //import org.apache.http.HttpEntity;
 //import org.apache.http.HttpResponse;
@@ -102,7 +98,7 @@ public class App {
     }
 
     @Override
-    public String getName() {
+    public String getExecutable() {
       return "NotRunning";
     }
 
@@ -166,9 +162,9 @@ public class App {
   public String toString() {
     if (isUserProcess()) {
       final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
-      String executable = getExecutable().isEmpty() ? "" : getExecutable();
+      String givenExecutable = getGivenExecutable().isEmpty() ? "" : getGivenExecutable();
       String arguments = getArguments().isEmpty() ? "" : getArguments();
-      return String.format("[%d:%s%s] %s %s", getPID(), getName(), windowTitle, executable, arguments);
+      return String.format("[%d:%s%s] %s %s", getPID(), getExecutable(), windowTitle, givenExecutable, arguments);
     }
     return String.format("App:SystemProcess(pid:%d)", getPID());
   }
@@ -199,7 +195,7 @@ public class App {
   // </editor-fold>
 
   //<editor-fold desc="05 arguments, name, executable, pid">
-  public String getExecutable() {
+  public String getGivenExecutable() {
     if (cmd != null) {
       return cmd.getExecutable();
     } else {
@@ -247,8 +243,8 @@ public class App {
     process = osUtil.findProcesses(cmd.getExecutable()).stream().findFirst().orElse(new NullProcess());
   }
 
-  public String getName() {
-    return process.getName();
+  public String getExecutable() {
+    return process.getExecutable();
   }
 
   public long getPID() {
@@ -571,10 +567,6 @@ public class App {
     return window(0);
   }
 
-  public String getTitle() {
-    return getWindowTitle();
-  }
-
   /**
    * evaluates the region currently occupied by the window with the given number
    * of this App instance. The region might not be fully visible, not visible at
@@ -584,12 +576,20 @@ public class App {
    * @param winNum window
    * @return the region
    */
-  public Region window(int winNum) {
+  public Region window(int winNum) { //TODO bring window to front
     List<OsWindow> windows = osUtil.getWindows(process);
     Region windowRegion = null;
-    Rectangle windowRect = windows.get(winNum).getBounds();
-    if (null != windowRect) {
-      windowRegion = asRegion(windowRect, windows.get(winNum).getTitle());
+    if (winNum >= windows.size()) {
+      winNum = -1;
+      if (windows.size() > 0) {
+        winNum = 0;
+      }
+    }
+    if (winNum > -1) {
+      Rectangle windowRect = windows.get(winNum).getBounds();
+      if (null != windowRect) {
+        windowRegion = asRegion(windowRect, windows.get(winNum).getTitle());
+      }
     }
     return windowRegion;
   }
@@ -598,10 +598,25 @@ public class App {
     return osUtil.getWindows(process);
   }
 
+  public String getTitle() {
+    return getWindowTitle();
+  }
+
   public String getTitle(int windowNumber) {
     return getWindowTitle(windowNumber);
   }
 
+  public String getWindowTitle() {
+    return getWindowTitle(0);
+  }
+
+  public String getWindowTitle(int windowNumber) {
+    Region window = window(windowNumber);
+    if (window != null) {
+      return window.getName();
+    }
+    return "";
+  }
   /**
    * evaluates the region currently occupied by the systemwide frontmost window
    * (usually the one that has focus for mouse and keyboard actions)
@@ -631,15 +646,6 @@ public class App {
     } else {
       return null;
     }
-  }
-
-  public String getWindowTitle() {
-    return getWindowTitle(0);
-  }
-
-  public String getWindowTitle(int windowNumber) {
-    List<OsWindow> windows = osUtil.getWindows(process);
-    return windows.size() > windowNumber ? windows.get(windowNumber).getTitle() : "";
   }
   //</editor-fold>
 

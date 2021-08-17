@@ -12,7 +12,7 @@ public interface OSUtil {
 
 		long getPid();
 
-		String getName();
+		String getExecutable();
 
 		boolean isRunning();
 
