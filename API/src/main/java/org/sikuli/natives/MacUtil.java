@@ -93,6 +93,7 @@ public class MacUtil extends GenericOsUtil {
                 "of item %d of (windows of item 1 of (processes whose unix id is %d))";
         script = String.format(script, winNum + 1, pid);
         new AppleScriptRunner().evalScript(script, null);
+        return true;
       }
       return false;
     }
@@ -114,7 +115,7 @@ public class MacUtil extends GenericOsUtil {
 
     @Override
     public boolean equals(Object other) {
-      return other != null && other instanceof MacWindow && this.number == (((MacWindow) other).number);
+      return other != null && other instanceof MacWindow && this.getProcess() == (((MacWindow) other).getProcess());
     }
   }
 
@@ -151,9 +152,10 @@ public class MacUtil extends GenericOsUtil {
 
   @Override
   public OsWindow getFocusedWindow() {
-    OsProcess process = getFocusedProcess();
-    return null;
+    List<OsWindow> windows = getWindows(getFocusedProcess());
+    return windows.size() > 0 ? windows.get(0) : null;
   }
+
 
   @Override
   public List<OsWindow> getWindows(OsProcess process) {

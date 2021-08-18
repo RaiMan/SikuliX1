@@ -47,15 +47,22 @@ public class Sikulix {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
           App running = App.focusedApp();
           App app = new App("safari");
+          Region window = app.toFront("start");
+
           if (!app.isRunning()) {
             app.open();
           } else {
-            app.focus();
+            //app.focus();
           }
+          App.pause(2);
+
+
+          if (app.hasFocus()) {
+            print("App.open(): %s", app);
+          }
+
           List<OSUtil.OsWindow> windows = app.windows();
-          Region window = app.toFront(1);
-          window.highlight(2);
-          print("App.open(): %s", app);
+          app.window(0).highlight(2);
           print("app.getTitle(): %s", app.getTitle());
           running.focus();
         }
