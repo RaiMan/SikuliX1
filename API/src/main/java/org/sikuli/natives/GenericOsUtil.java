@@ -14,125 +14,115 @@ import java.util.stream.Stream;
 
 public abstract class GenericOsUtil implements OSUtil {
 
-	protected static class GenericOsProcess implements OsProcess {
+  protected static class GenericOsProcess implements OsProcess {
 
-		private ProcessHandle process;
+    private ProcessHandle process;
 
-		public GenericOsProcess(ProcessHandle process) {
-			this.process = process;
-		}
+    public GenericOsProcess(ProcessHandle process) {
+      this.process = process;
+    }
 
-		@Override
-		public long getPid() {
-			return process.pid();
-		}
+    @Override
+    public long getPid() {
+      return process.pid();
+    }
 
-		@Override
-		public String getExecutable() {
-			ProcessHandle.Info info = null;
-			try {
-				info = process.info();
-			} catch (Exception e) {
-				return "";
-			}
-			return info.command().orElse("");
-		}
+    @Override
+    public String getExecutable() {
+      ProcessHandle.Info info = null;
+      try {
+        info = process.info();
+      } catch (Exception e) {
+        return "";
+      }
+      return info.command().orElse("");
+    }
 
-		@Override
-		public boolean isRunning() {
-			return process.isAlive();
-		}
+    @Override
+    public boolean isRunning() {
+      return process.isAlive();
+    }
 
-		@Override
-		public boolean close(boolean force) {
-			if (force) {
-				process.descendants().forEach((h) -> h.destroyForcibly());
-				return process.destroyForcibly();
-			} else {
-				process.descendants().forEach((h) -> h.destroy());
-				return process.destroy();
-			}
-		}
+    @Override
+    public boolean close(boolean force) {
+      if (force) {
+        process.descendants().forEach((h) -> h.destroyForcibly());
+        return process.destroyForcibly();
+      } else {
+        process.descendants().forEach((h) -> h.destroy());
+        return process.destroy();
+      }
+    }
 
-		@Override
-		public boolean equals(Object other) {
-			return other != null && other instanceof OsProcess && this.getPid() == ((OsProcess) other).getPid();
-		}
-	}
+    @Override
+    public boolean equals(Object other) {
+      return other != null && other instanceof OsProcess && this.getPid() == ((OsProcess) other).getPid();
+    }
+  }
 
-	@Override
-	public void init() {
-		// nothing to do
-	}
+  @Override
+  public void init() {
+    // nothing to do
+  }
 
-	@Override
-	public List<OsProcess> findProcesses(String name) {
-		boolean shouldContain = false;
-		if (name.startsWith("~")) {
-			name = name.substring(1);
-			shouldContain = true;
-		}
-		final String usedName = name.toLowerCase();
-		final boolean useContains = shouldContain;
-		Stream<OsProcess> osProcessStream = allProcesses();
-		Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
-			String procName;
-			try {
-				procName = p.getExecutable().toLowerCase();
-			} catch (Exception e) {
-				//e.printStackTrace();
-				return false;
-			}
-			if (useContains) {
-				return FilenameUtils.getBaseName(procName).contains(FilenameUtils.getBaseName(usedName));
-			} else {
-				return FilenameUtils.getBaseName(procName).equals(FilenameUtils.getBaseName(usedName));
-			}
-		});
-		List<OsProcess> processList = processStream.collect(Collectors.toList());
-		return processList;
-	}
+  @Override
+  public List<OsProcess> findProcesses(String name) {
+    final String usedName = name.toLowerCase();
+    Stream<OsProcess> osProcessStream = allProcesses();
+    Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
+      String procName;
+      try {
+        procName = p.getExecutable().toLowerCase();
+      } catch (Exception e) {
+        //e.printStackTrace();
+        return false;
+      }
+      return FilenameUtils.getBaseName(procName).equals(FilenameUtils.getBaseName(usedName));
+    });
+    List<OsProcess> processList = processStream.collect(Collectors.toList());
+    return processList;
+  }
 
-	@Override
-	public List<OsProcess> getProcesses() {
-		return allProcesses().collect(Collectors.toList());
-	}
+  @Override
+  public List<OsProcess> getProcesses() {
+    return allProcesses().collect(Collectors.toList());
+  }
 
-	@Override
-	public OsProcess open(String[] cmd, String workDir, int waitTime) {
-		try {
+  @Override
+  public OsProcess open(String[] cmd, String workDir, int waitTime) {
+    try {
 
-			cmd = openCommand(cmd, workDir);
+      cmd = openCommand(cmd, workDir);
 
-			ProcessBuilder pb = new ProcessBuilder(cmd);
+      ProcessBuilder pb = new ProcessBuilder(cmd);
 
-			if (StringUtils.isNotBlank(workDir)) {
-				pb.directory(new File(workDir));
-			}
+      if (StringUtils.isNotBlank(workDir)) {
+        pb.directory(new File(workDir));
+      }
 
-			Process p = pb.start();
+      Process p = pb.start();
 
-			ProcessHandle pHandle = openGetProcess(p, cmd, waitTime);
-			if (pHandle == null) {
-				return null;
-			} else {
-				return new GenericOsProcess(pHandle);
-			}
-		} catch (Exception e) {
-			System.out.println("[error] GenericOSUtil.open:\n" + e.getMessage());
-			return null;
-		}
-	}
+      ProcessHandle pHandle = openGetProcess(p, cmd, waitTime);
+      if (pHandle == null) {
+        return null;
+      } else {
+        return new GenericOsProcess(pHandle);
+      }
+    } catch (Exception e) {
+      System.out.println("[error] GenericOSUtil.open:\n" + e.getMessage());
+      return null;
+    }
+  }
 
-	protected String[] openCommand(String[] cmd, String workDir) {
-		return cmd;
-	}
+  protected String[] openCommand(String[] cmd, String workDir) {
+    return cmd;
+  }
 
-	protected ProcessHandle openGetProcess(Process p, String[] cmd, int waitTime) {
-		return p.toHandle();
-	}
+  protected ProcessHandle openGetProcess(Process p, String[] cmd, int waitTime) {
+    return p.toHandle();
+  }
 
-	protected static Stream<OsProcess> allProcesses() {
-		return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
-	}
+  protected static Stream<OsProcess> allProcesses() {
+    return ProcessHandle.allProcesses().map((h) -> new GenericOsProcess(h));
+  }
 }

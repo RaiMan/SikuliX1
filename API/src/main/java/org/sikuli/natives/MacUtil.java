@@ -130,6 +130,22 @@ public class MacUtil extends GenericOsUtil {
   }
 
   @Override
+  public boolean isUserApp(OsProcess process) {
+    if (process.getExecutable().isEmpty()) {
+      return false;
+    }
+    if (getWindows(process).size() > 0) {
+      if (getWindows(process).get(0).getTitle().toLowerCase().contains("item-0") || getWindows(process).get(0).getBounds().y == 0) {
+        return false;
+      }
+    }
+    if (process.getExecutable().contains("/Applications/") && process.getExecutable().contains(".app/Contents/MacOS")) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   public OsWindow getFocusedWindow() {
     List<OsWindow> windows = getWindows(getFocusedProcess());
     return windows.size() > 0 ? windows.get(0) : null;
@@ -148,6 +164,11 @@ public class MacUtil extends GenericOsUtil {
   @Override
   public List<OsWindow> getWindows() {
     return allWindows();
+  }
+
+  @Override
+  public List<OsWindow> getAppWindows() {
+    return allWindows().stream().filter((w) -> w.getBounds().y > 0).collect(Collectors.toList());
   }
 
   private static List<OsWindow> allWindows() {

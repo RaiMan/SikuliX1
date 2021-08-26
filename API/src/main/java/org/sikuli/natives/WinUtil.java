@@ -110,6 +110,11 @@ public class WinUtil extends GenericOsUtil {
   }
 
   @Override
+  public List<OsWindow> getAppWindows() { //TODO
+    return allWindows();
+  }
+
+  @Override
   public List<OsWindow> findWindows(String title) {
     if (StringUtils.isNotBlank(title)) {
       return allWindows().stream().filter((w) -> w.getTitle().contains(title)).collect(Collectors.toList());
@@ -177,6 +182,11 @@ public class WinUtil extends GenericOsUtil {
   public OsProcess getFocusedProcess() {
     final OsWindow focusedWindow = getFocusedWindow();
     return focusedWindow.getProcess();
+  }
+
+  @Override
+  public boolean isUserApp(OsProcess process) { //TODO
+    return true;
   }
 
   // https://msdn.microsoft.com/pt-br/library/windows/desktop/dd375731

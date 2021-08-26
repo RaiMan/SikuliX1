@@ -11,11 +11,9 @@ import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.support.SikulixAPI;
-import org.sikuli.script.support.SikulixEvaluate;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
-import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,14 +40,8 @@ public class Sikulix {
 
         if ("app".equals(arg)) {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
-          final List<OSUtil.OsWindow> all = App.allWindows();
-          int n = 0;
-          for (OSUtil.OsWindow w : all) {
-            //print("%3d: %s %s", n, w.getTitle(), new App(w.getProcess())); //;
-            //new Region(w.getBounds()).highlight(1);
-            n++;
-          }
-          App app = new App("~idea");
+          List<App> apps = App.allUserApps();
+          App app = new App("preview");
           if (!app.isRunning()) {
             app.open();
           } else {
@@ -58,6 +50,7 @@ public class Sikulix {
           App.pause(2);
           Region window = app.toFront("smile");
           //window.highlight(2);
+
 
           List<OSUtil.OsWindow> windows = app.windows();
           //app.window(0).highlight(2);

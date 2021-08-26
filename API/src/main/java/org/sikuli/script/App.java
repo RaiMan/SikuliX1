@@ -18,6 +18,7 @@ import java.awt.datatransfer.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -126,7 +127,7 @@ public class App {
     setName(name);
   }
 
-  public App(OsProcess process) {
+  protected App(OsProcess process) {
     this.process = process;
   }
 
@@ -157,10 +158,11 @@ public class App {
 
   @Override
   public String toString() {
-      final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
-      String givenExecutable = getGivenExecutable().isEmpty() ? "" : getGivenExecutable();
-      String arguments = getArguments().isEmpty() ? "" : getArguments();
-      return String.format("[%d:%s%s] %s %s", getPID(), getExecutable(), windowTitle, givenExecutable, arguments);
+    final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
+    String givenExecutable = getGivenExecutable().isEmpty() ? "" : getGivenExecutable();
+    String arguments = getArguments().isEmpty() ? "" : getArguments();
+    String executable = getExecutable();
+    return String.format("[%d:%s%s] %s %s", getPID(), executable, windowTitle, givenExecutable, arguments);
   }
   //</editor-fold>
 
@@ -186,16 +188,23 @@ public class App {
     return false;
   }
 
-  public boolean hasWindow() {
-    return !osUtil.getWindows(process).isEmpty();
-  }
-
-  public static List<OSUtil.OsProcess> allProcesses() {
-    return osUtil.getProcesses();
+  public static List<App> allUserApps() {
+    List<App> apps = new ArrayList<>();
+    List<OsProcess> processes = osUtil.getProcesses().stream()
+        .filter((p) -> osUtil.isUserApp(p))
+        .collect(Collectors.toList());
+    for (OsProcess proc : processes) {
+      apps.add(new App(proc));
+    }
+    return apps;
   }
 
   public static List<OSUtil.OsWindow> allWindows() {
     return osUtil.getWindows();
+  }
+
+  public static List<OSUtil.OsWindow> allAppWindows() {
+    return osUtil.getAppWindows();
   }
   // </editor-fold>
 
