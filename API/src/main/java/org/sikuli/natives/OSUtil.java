@@ -51,7 +51,11 @@ public interface OSUtil {
 
 	List<OsWindow> getWindows();
 
+	List<OsWindow> getAppWindows();
+
 	List<OsProcess> getProcesses();
+
+	boolean isUserApp(OsProcess process);
 
 	OsProcess open(String[] cmd, String workDir, int waitTime);
 
