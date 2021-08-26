@@ -18,10 +18,7 @@ import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.File;
 import java.util.List;
 
@@ -69,6 +66,13 @@ public class Sikulix {
 
         if ("xxx".equals(arg)) {
           print("testxxx");
+          Screen s0 = new Screen(0);
+          Screen s1 = new Screen(1);
+          Debug.on(3);
+          ScreenImage img0 = s0.userCapture();
+          //RunTime.pause(3);
+          s0.find(new Image(img0)).highlight(2);
+          s1.find(new Image(img0)).highlight(2);
         }
       }
       System.exit(0);

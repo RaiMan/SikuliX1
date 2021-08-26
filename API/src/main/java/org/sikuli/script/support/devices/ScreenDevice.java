@@ -15,6 +15,12 @@ public class ScreenDevice extends Devices {
 
   private static TYPE deviceType = TYPE.SCREEN;
 
+  private GraphicsDevice gdev = null;
+
+  public GraphicsDevice getDevice() {
+    return gdev;
+  }
+
   private Rectangle bounds = null;
   private int id = -1;
 
@@ -25,8 +31,9 @@ public class ScreenDevice extends Devices {
   private ScreenDevice() {
   }
 
-  private ScreenDevice(Rectangle bounds) {
-    this.bounds = bounds;
+  private ScreenDevice(GraphicsDevice gdev) {
+    this.bounds = gdev.getDefaultConfiguration().getBounds();
+    this.gdev = gdev;
   }
 
   public int x() {
@@ -97,7 +104,7 @@ public class ScreenDevice extends Devices {
             addOn = " (has (0,0) too!";
           }
         }
-        final ScreenDevice device = new ScreenDevice(currentBounds);
+        final ScreenDevice device = new ScreenDevice(gdevs[i]);
         device.id = i;
         devices[i] = device;
         log(deviceType, 3,"%s" + addOn, device);

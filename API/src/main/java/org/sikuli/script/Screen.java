@@ -3,8 +3,7 @@
  */
 package org.sikuli.script;
 
-import java.awt.AWTException;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -31,7 +30,6 @@ public class Screen extends Region implements IScreen {
 
   protected static final String logName = "Screen: ";
 
-  private static IRobot globalRobot = null;
   private static Screen[] screens = null;
   private static int primaryScreen = -1;
   private static int waitForScreenshot = 300;
@@ -54,7 +52,6 @@ public class Screen extends Region implements IScreen {
 
   //<editor-fold defaultstate="collapsed" desc="monitors">
   static int nMonitors = 0;
-  static int mainMonitor = -1;
 
   protected static void initScreens() {
     if (screens != null) {
@@ -65,16 +62,10 @@ public class Screen extends Region implements IScreen {
       Devices.start(Devices.TYPE.SCREEN);
       nMonitors = ScreenDevice.numDevices();
       primaryScreen = 0;
-      getGlobalRobot();
       screens = new Screen[nMonitors];
-      screens[0] = ScreenDevice.makeScreen(0);
-      int nMonitor = 0;
-      for (int i = 1; i < screens.length; i++) {
-        if (nMonitor == mainMonitor) {
-          nMonitor++;
-        }
+      for (int i = 0; i < screens.length; i++) {
         screens[i] = ScreenDevice.makeScreen(i);
-        nMonitor++;
+        screens[i].getRobot();
       }
     }   else {
       throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
@@ -179,17 +170,6 @@ public class Screen extends Region implements IScreen {
     } else {
       return screens[id];
     }
-  }
-
-  protected static IRobot getGlobalRobot() {
-    if (globalRobot == null) {
-      try {
-        globalRobot = new RobotDesktop();
-      } catch (AWTException e) {
-        throw new RuntimeException(String.format("SikuliX: Screen: getGlobalRobot: %s", e.getMessage()));
-      }
-    }
-    return globalRobot;
   }
 
   /**
@@ -373,6 +353,8 @@ public class Screen extends Region implements IScreen {
     return curID;
   }
 
+  private RobotDesktop robot = null;
+
   /**
    * Gets the Robot of this Screen.
    *
@@ -380,12 +362,19 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public IRobot getRobot() {
-    return getGlobalRobot();
+    if (robot == null) {
+      try {
+        robot = new RobotDesktop(ScreenDevice.get(getID()).getDevice());
+      } catch (AWTException e) {
+        RunTime.terminate(999, "Screen.getRobot(): %s", e);
+      }
+    }
+    return robot;
   }
 
   protected static IRobot getRobot(Region reg) {
     if (reg == null || null == reg.getScreen()) {
-      return getPrimaryScreen().getGlobalRobot();
+      return getPrimaryScreen().getRobot();
     } else {
       return reg.getScreen().getRobot();
     }
@@ -549,7 +538,7 @@ public class Screen extends Region implements IScreen {
   @Override
   public ScreenImage capture(Rectangle rect) {
     lastCaptureTime = new Date().getTime();
-    ScreenImage simg = globalRobot.captureScreen(rect);
+    ScreenImage simg = getRobot().captureScreen(rect);
     if (Settings.FindProfiling) {
       Debug.logp("[FindProfiling] Screen.capture [%d x %d]: %d msec",
           rect.width, rect.height, new Date().getTime() - lastCaptureTime);
@@ -653,9 +642,6 @@ public class Screen extends Region implements IScreen {
       public void run() {
         String msg = message.isEmpty() ? promptMsg : message;
         for (int is = 0; is < Screen.getNumberScreens(); is++) {
-          if (ignorePrimaryAtCapture && is == 0) {
-            continue;
-          }
           Screen.getScreen(is).prompt = new OverlayCapturePrompt(Screen.getScreen(is));
           Screen.getScreen(is).prompt.addObserver(captureObserver);
           Screen.getScreen(is).prompt.prompt(msg);
