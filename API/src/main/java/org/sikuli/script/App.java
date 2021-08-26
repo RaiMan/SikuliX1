@@ -18,6 +18,7 @@ import java.awt.datatransfer.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -302,8 +303,7 @@ public class App {
     final OsProcess process = osUtil.getFocusedProcess();
     if (process == null) {
       return new App(new NullProcess());
-    }
-    else {
+    } else {
       return new App(process);
     }
   }
@@ -401,7 +401,7 @@ public class App {
         return true;
       }
     } while (--waitTime > 0);
-    return  false;
+    return false;
   }
 
   /**
@@ -540,7 +540,7 @@ public class App {
     if (windows.size() > index) {
       actual = index;
     } else if (windows.size() > 0) {
-      actual = 0;
+      actual = windows.size() - 1;
     }
     if (actual > -1) {
       App app = new App(windows.get(actual).getProcess());
@@ -559,8 +559,8 @@ public class App {
   }
 
   public boolean hasFocus() {
-    OsWindow focusedWindow = osUtil.getFocusedWindow();
-    return osUtil.getWindows(process).stream().anyMatch((w) -> w.equals(focusedWindow));
+    App.error("hasFocus: not implemented"); //TODO
+    return false;
   }
 
   /**
@@ -569,51 +569,39 @@ public class App {
    * @return true on succes, false otherwise
    */
   public boolean focus() {
-    Region region = toFront(0);
+    Region region = toFront();
     return !region.isEmpty();
   }
 
-  public Region toFront() {
-    return toFront(0);
-  }
-
-  public Region toFront(int winNum) {
-    if (!isRunning()) {
-      error("App.focus: not running: %s", toString());
-      return asRegion();
-    }
-    List<OsWindow> windows = osUtil.getWindows(process);
-    OsWindow window = null;
-    if (!windows.isEmpty()) {
-      int actual = -1;
-      if (windows.size() > winNum) {
-        actual = winNum;
-      } else if (windows.size() > 0) {
-        actual = 0;
-      }
-      if (actual > -1) {
-        window = windows.get(actual);
-        window.focus(actual);
-      }
-    }
-    return asRegion(window);
-  }
-
-  public Region toFront(String title) {
-    if (!isRunning()) {
-      error("App.focus: not running: %s", toString());
-      return asRegion();
-    }
+  public Region toFront(Object... args) {
     OsWindow window = null;
     int winNum = 0;
-    for (OsWindow win : osUtil.getWindows(process)) {
-      if (win.getTitle().toUpperCase().contains(title.toUpperCase())) {
-        window = win;
-        break;
-      }
-      winNum++;
+    String title = "";
+    List<OsWindow> windows = null;
+    Object arg;
+    if (args.length > 0) {
+      arg = args[0];
+    } else {
+      arg = 0;
     }
-    if (window != null) {
+    if (arg instanceof Integer) {
+      winNum = Math.max(0, (Integer) arg);
+    } else if (arg instanceof String) {
+      title = (String) arg;
+      windows = osUtil.getWindows(process);
+      for (OsWindow win : windows) {
+        if (win.getTitle().toUpperCase().contains(title.toUpperCase())) {
+          break;
+        }
+        winNum++;
+      }
+    }
+    if (null == windows) {
+      windows = osUtil.getWindows(process);
+    }
+    if (windows.size() > 0) {
+      winNum = Math.min(winNum, windows.size() - 1);
+      window = windows.get(winNum);
       window.focus(winNum);
     }
     return asRegion(window);
@@ -646,22 +634,13 @@ public class App {
    * @param winNum window
    * @return the region
    */
-  public Region window(int winNum) { //TODO bring window to front
-    List<OsWindow> windows = osUtil.getWindows(process);
-    Region windowRegion = null;
-    if (winNum >= windows.size()) {
-      winNum = -1;
-      if (windows.size() > 0) {
-        winNum = 0;
-      }
+
+  public Region window(int winNum) {
+    List<OsWindow> windows = windows();
+    if (windows.size() > 0) {
+      return asRegion(windows.get(Math.max(0, Math.min(windows.size() - 1, winNum))));
     }
-    if (winNum > -1) {
-      Rectangle windowRect = windows.get(winNum).getBounds();
-      if (null != windowRect) {
-        windowRegion = asRegion(windowRect, windows.get(winNum).getTitle());
-      }
-    }
-    return windowRegion;
+    return asRegion();
   }
 
   List<OsWindow> windows() {
@@ -687,6 +666,7 @@ public class App {
     }
     return "";
   }
+
   /**
    * evaluates the region currently occupied by the systemwide frontmost window
    * (usually the one that has focus for mouse and keyboard actions)
@@ -923,7 +903,7 @@ public class App {
      * specified MIME type
      */
     public static void putText(TextType type, Charset charset, TransferType transferType, CharSequence data)
-            throws Exception {
+        throws Exception {
       String mimeType = type + "; charset=" + charset + "; class=" + transferType;
       TextTransferable transferable = new TextTransferable(mimeType, data.toString());
       getSystemClipboard().setContents(transferable, transferable);
