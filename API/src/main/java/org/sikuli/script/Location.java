@@ -623,7 +623,7 @@ public class Location implements Comparable<Location>{
   protected IRobot getRobotForPoint(String action) {
     if (getScreen() == null) {
       Debug.error("Point %s outside any screen for %s - might not work", this, action);
-      return Screen.getGlobalRobot();
+      return Screen.getPrimaryScreen().getRobot();
     }
     return getScreen().getRobot();
   }
