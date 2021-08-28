@@ -353,8 +353,6 @@ public class Screen extends Region implements IScreen {
     return curID;
   }
 
-  private RobotDesktop robot = null;
-
   /**
    * Gets the Robot of this Screen.
    *
@@ -362,14 +360,7 @@ public class Screen extends Region implements IScreen {
    */
   @Override
   public IRobot getRobot() {
-    if (robot == null) {
-      try {
-        robot = new RobotDesktop(ScreenDevice.get(getID()).getDevice());
-      } catch (AWTException e) {
-        RunTime.terminate(999, "Screen.getRobot(): %s", e);
-      }
-    }
-    return robot;
+    return ScreenDevice.getRobot(getID());
   }
 
   protected static IRobot getRobot(Region reg) {
@@ -544,8 +535,8 @@ public class Screen extends Region implements IScreen {
           rect.width, rect.height, new Date().getTime() - lastCaptureTime);
     }
     lastScreenImage = simg;
-    if (Debug.getDebugLevel() > logLevel) {
-      simg.saveLastScreenImage(Commons.getAppDataStore());
+    if (Debug.getDebugLevel() > 2) {
+      simg.saveLastScreenImage(Commons.getAppDataStore(), curID);
     }
     return simg;
   }
@@ -637,14 +628,23 @@ public class Screen extends Region implements IScreen {
     }
     Debug.log(3, "TRACE: Screen: userCapture");
     waitPrompt = true;
+    final int numScr = Screen.getNumberScreens();
+    Screen[] screens = new Screen[numScr];
+    for (int is = 0; is < numScr; is++) {
+      screens[is] = Screen.getScreen(is);
+    }
     Thread th = new Thread() {
       @Override
       public void run() {
         String msg = message.isEmpty() ? promptMsg : message;
-        for (int is = 0; is < Screen.getNumberScreens(); is++) {
-          Screen.getScreen(is).prompt = new OverlayCapturePrompt(Screen.getScreen(is));
-          Screen.getScreen(is).prompt.addObserver(captureObserver);
-          Screen.getScreen(is).prompt.prompt(msg);
+        OverlayCapturePrompt[] prompts = new OverlayCapturePrompt[Screen.getNumberScreens()];
+        for (int is = 0; is < numScr; is++) {
+          Screen scr = screens[is];
+          prompts[is] = scr.prompt = new OverlayCapturePrompt(scr);
+          prompts[is].addObserver(captureObserver);
+        }
+        for (int is = 0; is < numScr; is++) {
+          prompts[is].prompt(msg);
         }
       }
     };
@@ -660,19 +660,19 @@ public class Screen extends Region implements IScreen {
       if (count++ > waitForScreenshot) {
         break;
       }
-      for (int is = 0; is < Screen.getNumberScreens(); is++) {
-        OverlayCapturePrompt ocp = Screen.getScreen(is).prompt;
+      for (int is = 0; is < numScr; is++) {
+        OverlayCapturePrompt ocp = screens[is].prompt;
         if (ocp == null) {
           continue;
         }
         if (ocp.isComplete()) {
-          closePrompt(Screen.getScreen(is));
+          closePrompt(screens[is]);
           simg = ocp.getSelection();
           if (simg != null) {
-            Screen.getScreen(is).lastScreenImage = simg;
+            screens[is].lastScreenImage = simg;
           }
           ocp.close();
-          Screen.getScreen(is).prompt = null;
+          screens[is].prompt = null;
           isComplete = true;
         }
       }
