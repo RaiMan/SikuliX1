@@ -3,12 +3,10 @@ package org.sikuli.script.support.devices;
 import org.sikuli.script.Image;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
+import org.sikuli.script.support.RobotDesktop;
 import org.sikuli.script.support.RunTime;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class ScreenDevice extends Devices {
@@ -21,7 +19,12 @@ public class ScreenDevice extends Devices {
     return gdev;
   }
 
-  private Rectangle bounds = null;
+  private RobotDesktop robot = null;
+
+  public RobotDesktop getRobot() {
+    return robot;
+  }
+
   private int id = -1;
 
   static void start() {
@@ -32,36 +35,44 @@ public class ScreenDevice extends Devices {
   }
 
   private ScreenDevice(GraphicsDevice gdev) {
-    this.bounds = gdev.getDefaultConfiguration().getBounds();
     this.gdev = gdev;
+    try {
+      robot = new RobotDesktop(gdev);
+    } catch (AWTException e) {
+      RunTime.terminate(999, "ScreenDevice: robot: %s", e.getMessage());
+    }
+  }
+
+  private Rectangle getBounds() {
+    return gdev.getDefaultConfiguration().getBounds();
   }
 
   public int x() {
-    return bounds.x;
+    return getBounds().x;
   }
 
   public int y() {
-    return bounds.y;
+    return getBounds().y;
   }
 
   public int h() {
-    return bounds.height;
+    return getBounds().height;
   }
 
   public int height() {
-    return bounds.height;
+    return getBounds().height;
   }
 
   public int w() {
-    return bounds.width;
+    return getBounds().width;
   }
 
   public int width() {
-    return bounds.width;
+    return getBounds().width;
   }
 
   public Point getCenter() {
-    return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
+    return new Point((int) getBounds().getCenterX(), (int) getBounds().getCenterY());
   }
 
   public static Screen makeScreen(int num) {
@@ -145,17 +156,20 @@ public class ScreenDevice extends Devices {
     return device;
   }
 
+  public static RobotDesktop getRobot(int id) {
+    return get(id).getRobot();
+  }
+
   public Rectangle asRectangle() {
-    return bounds;
+    return getBounds();
   }
 
   public Region asRegion() {
-    return new Region(bounds);
+    return new Region(getBounds());
   }
 
   public Image asImage() {
-    //TODO ScreenDevice.asImage: capture
-    BufferedImage bImg = null;
+    BufferedImage bImg = robot.captureScreen(getBounds()).getImage();
     return new Image(bImg);
   }
 
