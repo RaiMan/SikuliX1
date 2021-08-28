@@ -56,8 +56,11 @@ public class RobotDesktop extends Robot implements IRobot {
     }
   }
 
+  private GraphicsDevice gdev = null;
+
   public RobotDesktop(GraphicsDevice gdev) throws AWTException {
     super(gdev);
+    this.gdev = gdev;
     setAutoDelay(stdAutoDelay);
   }
 
