@@ -227,9 +227,14 @@ public class ScreenImage {
 		return _roi;
 	}
 
-  public void saveLastScreenImage(File fPath) {
+	public void saveLastScreenImage(File fPath) {
+		saveLastScreenImage(fPath, -1);
+	}
+
+	public void saveLastScreenImage(File fPath, int id) {
     try {
-  		ImageIO.write(_img, "png", new File(fPath, "LastScreenImage.png"));
+  		ImageIO.write(_img, "png", new File(fPath, "LastScreenImage" +
+					(id < 0 ? "" : "" + id) + ".png"));
     } catch (Exception ex) {}
   }
 
