@@ -77,8 +77,8 @@ public class MouseDevice extends Devices {
   }
 
   public static Point move(Point where) {
-    getRobot().mouseMove(where.x, where.y);
-    getRobot().waitForIdle();
+    getMouseRobot().mouseMove(where.x, where.y);
+    getMouseRobot().waitForIdle();
     return at();
   }
 }
