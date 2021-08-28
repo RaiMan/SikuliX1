@@ -65,8 +65,8 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
 
   public OverlayCapturePrompt(IScreen scr) {
 //    super();
-    Debug.log(3, "TRACE: OverlayCapturePrompt: init: S(%d)", scr.getID());
     scrOCP = scr;
+    scr_img_rect = new Rectangle(scrOCP.getBounds());
     canceled = false;
 
     setUndecorated(true);
@@ -215,13 +215,9 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
 
   public void prompt(String msg) {
     scr_img_original = scrOCP.capture();
-    if (Debug.getDebugLevel() > 2) {
-      scr_img_original.getFile(Commons.getAppDataPath().getAbsolutePath(), "lastScreenShot");
-    }
     scr_img = scr_img_original.getImage();
     scr_img_darker = scr_img;
     scr_img_type = scr_img.getType();
-    scr_img_rect = new Rectangle(scrOCP.getBounds());
     promptMsg = msg;
     if (isLocalScreen) {
       darker_factor = 0.6f;
@@ -246,7 +242,8 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
         scr_img_darker = scr_img;
       }
     }
-    this.setBounds(scr_img_rect);
+    this.setSize(scr_img_rect.width, scr_img_rect.height);
+    this.setLocation(scr_img_rect.x, scr_img_rect.y);
     this.setVisible(true);
   }
 
@@ -256,13 +253,11 @@ public class OverlayCapturePrompt extends JFrame  implements EventSubject {
 
   @Override
   public void addObserver(EventObserver obs) {
-    Debug.log(3, "TRACE: OverlayCapturePrompt: addObserver: %s", obs != null);
     captureObserver = obs;
   }
 
   @Override
   public void notifyObserver() {
-    Debug.log(3, "TRACE: OverlayCapturePrompt: notifyObserver: %s", captureObserver != null);
     if (null != captureObserver) {
       captureObserver.update(this);
     }
