@@ -66,13 +66,6 @@ public class Sikulix {
 
         if ("xxx".equals(arg)) {
           print("testxxx");
-          Screen s0 = new Screen(0);
-          Screen s1 = new Screen(1);
-          Debug.on(3);
-          ScreenImage img0 = s0.userCapture();
-          //RunTime.pause(3);
-          s0.find(new Image(img0)).highlight(2);
-          s1.find(new Image(img0)).highlight(2);
         }
       }
       System.exit(0);
