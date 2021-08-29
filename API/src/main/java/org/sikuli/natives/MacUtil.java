@@ -22,27 +22,6 @@ import java.util.stream.Collectors;
 
 public class MacUtil extends GenericOsUtil {
 
-  @Override
-  public boolean isUserProcess(OsProcess process) {
-    if (process == null) {
-      return false;
-    } else {
-      if (process.getPid() > 0) {
-        String name = process.getExecutable();
-        if (name.isEmpty()) {
-          return false;
-        }
-        if (!name.startsWith("/Applications/")
-            && !name.startsWith("/System/Applications/")
-            && !name.startsWith("/Library/Java/JavaVirtualMachines/")) {
-          return false;
-        }
-        return true;
-      }
-    }
-    return false;
-  }
-
   private static final class MacWindow implements OsWindow {
     private long number;
     private String title;
@@ -215,8 +194,9 @@ public class MacUtil extends GenericOsUtil {
 
           javaRect = new Rectangle(x, y, width, height);
         }
-
-        windows.add(new MacWindow(windowNumber, windowName, windowPid, javaRect));
+        if (!windowName.isEmpty() && !javaRect.isEmpty()) {
+          windows.add(new MacWindow(windowNumber, windowName, windowPid, javaRect));
+        }
       }
     } finally {
       windowInfo.release();

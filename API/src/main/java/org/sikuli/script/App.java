@@ -18,7 +18,6 @@ import java.awt.datatransfer.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -114,6 +113,9 @@ public class App {
     process = new NullProcess();
   }
 
+  private static int globalMaxWait = 10;
+  private int maxWait;
+
   public App() {
     process = new NullProcess();
     maxWait = globalMaxWait;
@@ -124,7 +126,7 @@ public class App {
     setName(name);
   }
 
-  private App(OsProcess process) {
+  public App(OsProcess process) {
     this.process = process;
   }
 
@@ -155,17 +157,11 @@ public class App {
 
   @Override
   public String toString() {
-    if (isUserProcess()) {
       final String windowTitle = getTitle().isEmpty() ? "" : " (" + getTitle() + ")";
       String givenExecutable = getGivenExecutable().isEmpty() ? "" : getGivenExecutable();
       String arguments = getArguments().isEmpty() ? "" : getArguments();
       return String.format("[%d:%s%s] %s %s", getPID(), getExecutable(), windowTitle, givenExecutable, arguments);
-    }
-    return String.format("App:SystemProcess(pid:%d)", getPID());
   }
-
-  private static int globalMaxWait = 10;
-  private int maxWait;
   //</editor-fold>
 
   // <editor-fold desc="02 running/valid">
@@ -192,6 +188,14 @@ public class App {
 
   public boolean hasWindow() {
     return !osUtil.getWindows(process).isEmpty();
+  }
+
+  public static List<OSUtil.OsProcess> allProcesses() {
+    return osUtil.getProcesses();
+  }
+
+  public static List<OSUtil.OsWindow> allWindows() {
+    return osUtil.getWindows();
   }
   // </editor-fold>
 
@@ -240,8 +244,8 @@ public class App {
 
     // Use apache.commons.exec.CommandLine to correctly tokenize given command.
     cmd = CommandLine.parse(name);
-
-    process = osUtil.findProcesses(cmd.getExecutable()).stream().findFirst().orElse(new NullProcess());
+    String executable = cmd.getExecutable();
+    process = osUtil.findProcesses(executable).stream().findFirst().orElse(new NullProcess());
   }
 
   public String getExecutable() {
@@ -251,53 +255,7 @@ public class App {
   public long getPID() {
     return process.getPid();
   }
-
-  public boolean isUserProcess() {
-    return osUtil.isUserProcess(process);
-  }
   //</editor-fold>
-
-  // <editor-fold desc="10 app list">
-  public static List<App> getApps() {
-    return osUtil.getProcesses().stream().filter((p) -> osUtil.isUserProcess(p)).map((p) -> new App(p)).collect(Collectors.toList());
-  }
-
-  public static List<App> getApps(String name) {
-    return osUtil.findProcesses(name).stream().map((p) -> new App(p)).collect(Collectors.toList());
-  }
-
-  public static void listApps() {
-    new App();
-    List<App> appList = getApps();
-    logOn();
-    log("***** running apps with windows");
-    int n = 0;
-    for (App app : appList) {
-      if (app.isUserProcess() && app.hasWindow()) {
-        log("%s", app);
-        n++;
-      }
-    }
-    log("***** end of list (%d)", n);
-    logOff();
-  }
-
-  public static void listApps(String name) {
-    new App();
-    List<App> appList = getApps(name);
-    logOn();
-    log("***** running apps matching: %s", name);
-    int n = 0;
-    for (App app : appList) {
-      if (app.isUserProcess() && app.hasWindow()) {
-        log("%s", app);
-        n++;
-      }
-    }
-    log("***** end of list (%d)", n);
-    logOff();
-  }
-  // </editor-fold>
 
   public static App focusedApp() {
     final OsProcess process = osUtil.getFocusedProcess();
@@ -558,11 +516,6 @@ public class App {
     return new App();
   }
 
-  public boolean hasFocus() {
-    App.error("hasFocus: not implemented"); //TODO
-    return false;
-  }
-
   /**
    * tries to focus this applications top window
    *
@@ -595,6 +548,9 @@ public class App {
         }
         winNum++;
       }
+      if (winNum == windows.size()) {
+        winNum = 0;
+      }
     }
     if (null == windows) {
       windows = osUtil.getWindows(process);
@@ -602,7 +558,7 @@ public class App {
     if (windows.size() > 0) {
       winNum = Math.min(winNum, windows.size() - 1);
       window = windows.get(winNum);
-      window.focus(winNum);
+      window.focus(winNum); //TODO macOS trick: window not directly focusable
     }
     return asRegion(window);
   }
@@ -640,7 +596,7 @@ public class App {
     if (windows.size() > 0) {
       return asRegion(windows.get(Math.max(0, Math.min(windows.size() - 1, winNum))));
     }
-    return asRegion();
+    return asNullRegion();
   }
 
   List<OsWindow> windows() {
@@ -682,7 +638,7 @@ public class App {
     }
   }
 
-  private static Region asRegion() {
+  private static Region asNullRegion() {
     return asRegion(new Rectangle(0, 0, 0, 0), "NullWindow");
   }
 
@@ -692,7 +648,7 @@ public class App {
 
   private static Region asRegion(OsWindow window) {
     if (window == null) {
-      return asRegion();
+      return asNullRegion();
     }
     return asRegion(window.getBounds(), window.getTitle());
   }
