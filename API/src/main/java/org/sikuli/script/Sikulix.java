@@ -45,11 +45,11 @@ public class Sikulix {
           final List<OSUtil.OsWindow> all = App.allWindows();
           int n = 0;
           for (OSUtil.OsWindow w : all) {
-            print("%3d: %s %s", n, w.getTitle(), new App(w.getProcess())); //;
+            //print("%3d: %s %s", n, w.getTitle(), new App(w.getProcess())); //;
             //new Region(w.getBounds()).highlight(1);
             n++;
           }
-          App app = new App("msedge");
+          App app = new App("~idea");
           if (!app.isRunning()) {
             app.open();
           } else {
