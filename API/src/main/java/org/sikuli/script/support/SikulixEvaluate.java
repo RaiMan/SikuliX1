@@ -17,19 +17,7 @@ public class SikulixEvaluate {
     if ("test".equals(args[0])) {
       test();
     }
-
-    if ("app".equals(args[0])) {
-      testApp();
-    }
   }
-
-  static void testApp() {
-    Commons.startDebug();
-    App app = new App();
-    App.listApps("java");
-    Commons.debug("%s", app);
-  }
-
   //region test
   public static void test() {
 
