@@ -158,6 +158,11 @@ public class LinuxUtil extends GenericOsUtil {
 	}
 
 	@Override
+	public List<OsWindow> getWindows() {
+		throw new UnsupportedOperationException("getWindows not implemented");
+	}
+
+	@Override
 	public List<OsWindow> findWindows(String title) {
 		try {
 			List<String> lines = xdotool(new String[] { "search", "--onlyvisible", "--name", title });
@@ -191,5 +196,11 @@ public class LinuxUtil extends GenericOsUtil {
 		}
 
 		return null;
+	}
+
+	@Override
+	public OsProcess getFocusedProcess() {
+		final OsWindow focusedWindow = getFocusedWindow();
+		return focusedWindow.getProcess();
 	}
 }

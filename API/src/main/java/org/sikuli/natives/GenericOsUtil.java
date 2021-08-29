@@ -66,40 +66,31 @@ public abstract class GenericOsUtil implements OSUtil {
 	}
 
 	@Override
-	public boolean isUserProcess(OsProcess process) {
-		return true;
-	}
-
-	@Override
 	public List<OsProcess> findProcesses(String name) {
+		boolean shouldContain = true;
+		if (name.startsWith("=")) {
+			name = name.substring(1);
+			shouldContain = false;
+		}
+		final String usedName = name.toLowerCase();
+		final boolean useContains = shouldContain;
 		Stream<OsProcess> osProcessStream = allProcesses();
 		Stream<OsProcess> processStream = osProcessStream.filter((p) -> {
-			String procName = "";
+			String procName;
 			try {
 				procName = p.getExecutable().toLowerCase();
 			} catch (Exception e) {
 				//e.printStackTrace();
 				return false;
 			}
-			return FilenameUtils.getBaseName(procName).equals(FilenameUtils.getBaseName(name.toLowerCase()));
+			if (useContains) {
+				return FilenameUtils.getBaseName(procName).contains(FilenameUtils.getBaseName(usedName));
+			} else {
+				return FilenameUtils.getBaseName(procName).equals(FilenameUtils.getBaseName(usedName));
+			}
 		});
 		List<OsProcess> processList = processStream.collect(Collectors.toList());
 		return processList;
-	}
-
-	@Override
-	public List<OsWindow> findWindows(String title) {
-		throw new UnsupportedOperationException("findWindows not implemented");
-	}
-
-	@Override
-	public List<OsWindow> getWindows(OsProcess process) {
-		throw new UnsupportedOperationException("getWindows not implemented");
-	}
-
-	@Override
-	public List<OsWindow> getWindows() {
-		throw new UnsupportedOperationException("getWindows not implemented");
 	}
 
 	@Override
@@ -139,16 +130,6 @@ public abstract class GenericOsUtil implements OSUtil {
 
 	protected ProcessHandle openGetProcess(Process p, String[] cmd, int waitTime) {
 		return p.toHandle();
-	}
-
-	@Override
-	public OsWindow getFocusedWindow() {
-		throw new UnsupportedOperationException("getFocusedWindow not implemented");
-	}
-
-	@Override
-	public OsProcess getFocusedProcess() {
-		throw new UnsupportedOperationException("getFocusedWindow not implemented");
 	}
 
 	protected static Stream<OsProcess> allProcesses() {

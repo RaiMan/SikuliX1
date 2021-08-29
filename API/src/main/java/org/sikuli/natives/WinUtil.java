@@ -105,6 +105,11 @@ public class WinUtil extends GenericOsUtil {
   }
 
   @Override
+  public List<OsWindow> getWindows() {
+    return allWindows();
+  }
+
+  @Override
   public List<OsWindow> findWindows(String title) {
     if (StringUtils.isNotBlank(title)) {
       return allWindows().stream().filter((w) -> w.getTitle().contains(title)).collect(Collectors.toList());
@@ -134,18 +139,26 @@ public class WinUtil extends GenericOsUtil {
       public boolean callback(final HWND hWnd, final Pointer data) {
         // Only visible and top level. Ensures that top level window is at index 0
         if (user32.IsWindowVisible(hWnd) && user32.GetWindow(hWnd, new DWORD(WinUser.GW_OWNER)) == null) {
-          windows.add(new WinWindow(hWnd));
+          final WinWindow win = new WinWindow(hWnd);
+          if (!win.getTitle().isEmpty() && !win.getBounds().isEmpty()) {
+            windows.add(win);
+          }
 
           // get child windows as well
+/*
           user32.EnumChildWindows(hWnd, new WinUser.WNDENUMPROC() {
             public boolean callback(final HWND hWnd, final Pointer data) {
               if (user32.IsWindowVisible(hWnd)) {
-                windows.add(new WinWindow(hWnd));
+                final WinWindow win = new WinWindow(hWnd);
+                if (!win.getTitle().isEmpty() && !win.getBounds().isEmpty()) {
+                  windows.add(win);
+                }
               }
 
               return true;
             }
           }, null);
+*/
         }
 
         return true;
@@ -158,6 +171,12 @@ public class WinUtil extends GenericOsUtil {
     }
 
     return windows;
+  }
+
+  @Override
+  public OsProcess getFocusedProcess() {
+    final OsWindow focusedWindow = getFocusedWindow();
+    return focusedWindow.getProcess();
   }
 
   // https://msdn.microsoft.com/pt-br/library/windows/desktop/dd375731

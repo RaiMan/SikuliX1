@@ -43,8 +43,6 @@ public interface OSUtil {
 	 */
 	void init();
 
-	boolean isUserProcess(OsProcess process);
-
 	List<OsProcess> findProcesses(String name);
 
 	List<OsWindow> findWindows(String title);
