@@ -67,10 +67,10 @@ public abstract class GenericOsUtil implements OSUtil {
 
 	@Override
 	public List<OsProcess> findProcesses(String name) {
-		boolean shouldContain = true;
-		if (name.startsWith("=")) {
+		boolean shouldContain = false;
+		if (name.startsWith("~")) {
 			name = name.substring(1);
-			shouldContain = false;
+			shouldContain = true;
 		}
 		final String usedName = name.toLowerCase();
 		final boolean useContains = shouldContain;
