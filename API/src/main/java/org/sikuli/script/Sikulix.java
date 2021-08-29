@@ -42,26 +42,29 @@ public class Sikulix {
 
         if ("app".equals(arg)) {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
-          App running = App.focusedApp();
-          App app = new App("safari");
-          Region window = app.toFront("start");
-
+          final List<OSUtil.OsWindow> all = App.allWindows();
+          int n = 0;
+          for (OSUtil.OsWindow w : all) {
+            print("%3d: %s %s", n, w.getTitle(), new App(w.getProcess())); //;
+            //new Region(w.getBounds()).highlight(1);
+            n++;
+          }
+          App app = new App("msedge");
           if (!app.isRunning()) {
             app.open();
           } else {
-            //app.focus();
+            app.focus();
           }
           App.pause(2);
-
-
-          if (app.hasFocus()) {
-            print("App.open(): %s", app);
-          }
+          Region window = app.toFront("smile");
+          //window.highlight(2);
 
           List<OSUtil.OsWindow> windows = app.windows();
-          app.window(0).highlight(2);
+          //app.window(0).highlight(2);
           print("app.getTitle(): %s", app.getTitle());
-          running.focus();
+          for (OSUtil.OsWindow w : windows) {
+            print(w.getTitle());
+          }
         }
 
         if ("xxx".equals(arg)) {
