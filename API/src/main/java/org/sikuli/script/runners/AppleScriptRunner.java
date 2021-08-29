@@ -19,13 +19,13 @@ public class AppleScriptRunner extends ProcessRunner {
 
   @Override
   protected int doEvalScript(String script, IScriptRunner.Options options) {
-    return super.doRunScript("osascript", new String[]{"-e", script}, options);
+    return isSupported() ? super.doRunScript("osascript", new String[]{"-e", script}, options) : -1;
   }
 
   @Override
   protected int doRunScript(String scriptFile, String[] scriptArgs, IScriptRunner.Options options) {
     String path = new File(scriptFile).getAbsolutePath();
-    return super.doRunScript("osascript", new String[] {path}, options);
+    return isSupported() ? super.doRunScript("osascript", new String[] {path}, options) : -1;
   }
 
   @Override
