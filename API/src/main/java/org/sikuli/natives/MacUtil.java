@@ -9,6 +9,7 @@ import com.sun.jna.platform.mac.CoreFoundation.CFArrayRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFDictionaryRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFNumberRef;
 import com.sun.jna.platform.mac.CoreFoundation.CFStringRef;
+import org.apache.commons.lang3.RegExUtils;
 import org.sikuli.natives.mac.jna.CoreGraphics;
 import org.sikuli.script.App;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -18,6 +19,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MacUtil extends GenericOsUtil {
@@ -129,9 +132,12 @@ public class MacUtil extends GenericOsUtil {
     return null;
   }
 
+  static Pattern isApp = Pattern.compile(".*?/(Applications)/.*?/Contents/(.*)");
+
   @Override
   public boolean isUserApp(OsProcess process) {
-    if (process.getExecutable().isEmpty()) {
+    String exec = process.getExecutable();
+    if (exec.isEmpty()) {
       return false;
     }
     if (getWindows(process).size() > 0) {
@@ -139,8 +145,11 @@ public class MacUtil extends GenericOsUtil {
         return false;
       }
     }
-    if (process.getExecutable().contains("/Applications/") && process.getExecutable().contains(".app/Contents/MacOS")) {
-      return true;
+    Matcher matcher = isApp.matcher(exec);
+    if (matcher.matches()) {
+      if (matcher.group(2).startsWith("MacOS/")) {
+        return true;
+      }
     }
     return false;
   }

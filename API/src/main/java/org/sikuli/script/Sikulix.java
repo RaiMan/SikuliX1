@@ -41,7 +41,7 @@ public class Sikulix {
         if ("app".equals(arg)) {
           new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
           List<App> apps = App.allUserApps();
-          App app = new App("preview");
+          App app = new App("finder");
           if (!app.isRunning()) {
             app.open();
           } else {
