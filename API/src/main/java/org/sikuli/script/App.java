@@ -206,6 +206,10 @@ public class App {
   public static List<OSUtil.OsWindow> allAppWindows() {
     return osUtil.getAppWindows();
   }
+
+  public boolean hasWindows() {
+    return getWindows().size() > 0;
+  }
   // </editor-fold>
 
   //<editor-fold desc="05 arguments, name, executable, pid">
