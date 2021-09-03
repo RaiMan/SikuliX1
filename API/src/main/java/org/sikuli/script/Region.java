@@ -321,9 +321,9 @@ public class Region extends Element {
     }
     String nameText = "";
     if (!getName().isEmpty()) {
-      nameText = "#" + getName() + "# ";
+      nameText = " (" + getName() + ")";
     }
-    return String.format("%sR[%d,%d %dx%d]@S(%s)", nameText, x, y, w, h, scrText);
+    return String.format("R[%d,%d %dx%d%s]@S(%s)", x, y, w, h, nameText, scrText);
   }
 
   /**

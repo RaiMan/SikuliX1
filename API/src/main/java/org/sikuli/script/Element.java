@@ -103,6 +103,14 @@ public abstract class Element {
   }
 
   /**
+   * Convenience: App: the window title
+   * @return the name
+   */
+  public String getTitle() {
+    return name;
+  }
+
+  /**
    * INTERNAL: to identify a Region or Image
    * @param name to be used
    */
