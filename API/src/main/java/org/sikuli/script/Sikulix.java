@@ -7,6 +7,7 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.OSUtil;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
@@ -39,7 +40,10 @@ public class Sikulix {
         arg = arg.replace("test", "");
 
         if ("app".equals(arg)) {
-          new AppleScriptRunner().evalScript("display dialog \"hello\"", null);
+          final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
+          new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
+          if (!options.getOutput().strip().contains("OK")) System.exit(-1);
+
           List<App> apps = App.allUserApps();
           App app = new App("finder");
           if (!app.isRunning()) {
@@ -52,11 +56,11 @@ public class Sikulix {
           //window.highlight(2);
 
 
-          List<OSUtil.OsWindow> windows = app.windows();
+          List<Region> windows = app.windows();
           //app.window(0).highlight(2);
           print("app.getTitle(): %s", app.getTitle());
-          for (OSUtil.OsWindow w : windows) {
-            print(w.getTitle());
+          for (Region w : windows) {
+            print(w.getName());
           }
         }
 

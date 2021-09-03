@@ -208,7 +208,7 @@ public class App {
   }
 
   public boolean hasWindows() {
-    return getWindows().size() > 0;
+    return windows().size() > 0;
   }
   // </editor-fold>
 
@@ -578,7 +578,7 @@ public class App {
   //</editor-fold>
 
   // <editor-fold defaultstate="collapsed" desc="30 window">
-  public List<Region> getWindows() {
+  public List<Region> windows() {
     return osUtil.getWindows(process).stream().map((w) -> asRegion(w.getBounds(), w.getTitle())).collect(Collectors.toList());
   }
 
@@ -605,15 +605,11 @@ public class App {
    */
 
   public Region window(int winNum) {
-    List<OsWindow> windows = windows();
+    List<OsWindow> windows = osUtil.getWindows(process);
     if (windows.size() > 0) {
       return asRegion(windows.get(Math.max(0, Math.min(windows.size() - 1, winNum))));
     }
     return asNullRegion();
-  }
-
-  List<OsWindow> windows() {
-    return osUtil.getWindows(process);
   }
 
   public String getTitle() {
@@ -647,7 +643,7 @@ public class App {
     if (window != null) {
       return asRegion(window.getBounds(), window.getTitle());
     } else {
-      return new Region();
+      return asNullRegion();
     }
   }
 

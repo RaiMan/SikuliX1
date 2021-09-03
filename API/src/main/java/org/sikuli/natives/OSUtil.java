@@ -28,7 +28,7 @@ public interface OSUtil {
 
 		boolean focus();
 
-		boolean focus(int winNum);
+		boolean focus(int winNum); //TODO macOS trick: window not directly focusable
 
 		boolean minimize();
 
