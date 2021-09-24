@@ -225,7 +225,6 @@ public class RunTime {
         } else {
           inFile = new File(fpJarLibs, aFile).getPath();
         }
-        //TODO export opencv_java
         String OPENCV_JAVA = "opencv_java";
         if (OPENCV_JAVA.equals(aFile)) {
           aFile = libOpenCV;
@@ -233,6 +232,8 @@ public class RunTime {
             aFile += ".dll";
           } else if (Commons.runningMac()) {
             aFile = "lib" + aFile + ".dylib";
+          } else {
+            aFile = "lib" + aFile + ".so";
           }
           inFile = inFile.replace(OPENCV_JAVA, aFile);
         }
