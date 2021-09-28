@@ -1734,30 +1734,35 @@ public class Region extends Element {
   /**
    * the area constants for use with get()
    */
+  public static final int NH = 202, NORTH = NH, TH = NH;
+  public static final int NE = 302, NORTH_EAST = NE, TR = NE;
   public static final int NW = 300, NORTH_WEST = NW, TL = NW;
   public static final int NM = 301, NORTH_MID = NM, TM = NM;
-  public static final int NE = 302, NORTH_EAST = NE, TR = NE;
-  public static final int EM = 312, EAST_MID = EM, RM = EM;
+
+  public static final int SH = 212, SOUTH = SH, BH = SH;
   public static final int SE = 322, SOUTH_EAST = SE, BR = SE;
-  public static final int SM = 321, SOUTH_MID = SM, BM = SM;
   public static final int SW = 320, SOUTH_WEST = SW, BL = SW;
+  public static final int SM = 321, SOUTH_MID = SM, BM = SM;
+
+  public static final int EH = 221, EAST = EH, RH = EH;
+  public static final int EN = NE, EAST_NORTH = NE, RT = TR;
+  public static final int ES = SE, EAST_SOUTH = SE, RB = BR;
+  public static final int EM = 312, EAST_MID = EM, RM = EM;
+
+  public static final int WH = 220, WEST = WH, LH = WH;
+  public static final int WN = NW, WEST_NORTH = NW, LT = TL;
+  public static final int WS = SW, WEST_SOUTH = SW, LB = BL;
   public static final int WM = 310, WEST_MID = WM, LM = WM;
-  public static final int MM = 311, MIDDLE = MM, M3 = MM;
+
+  public static final int MM = 311, MIDDLE = MM, M3 = MM, MID_THIRD = MM, CC = MM;
   public static final int TT = 200;
   public static final int RR = 201;
   public static final int BB = 211;
   public static final int LL = 210;
-  public static final int NH = 202, NORTH = NH, TH = NH;
-  public static final int EH = 221, EAST = EH, RH = EH;
-  public static final int SH = 212, SOUTH = SH, BH = SH;
-  public static final int WH = 220, WEST = WH, LH = WH;
+
   public static final int MV = 441, MID_VERTICAL = MV, CV = MV;
   public static final int MH = 414, MID_HORIZONTAL = MH, CH = MH;
-  public static final int M2 = 444, MIDDLE_BIG = M2, C2 = M2;
-  public static final int EN = NE, EAST_NORTH = NE, RT = TR;
-  public static final int ES = SE, EAST_SOUTH = SE, RB = BR;
-  public static final int WN = NW, WEST_NORTH = NW, LT = TL;
-  public static final int WS = SW, WEST_SOUTH = SW, LB = BL;
+  public static final int M2 = 444, MIDDLE_BIG = M2, C2 = M2, MID_BIG = M2;
 
   /**
    * to support a raster over the region
