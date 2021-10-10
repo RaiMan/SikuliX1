@@ -4,60 +4,80 @@
 
 package org.sikuli.ide;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+
+import org.sikuli.script.Screen;
+import org.sikuli.script.support.Commons;
+import org.sikuli.script.support.devices.Devices;
+import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayTransparentWindow;
+
+import javax.swing.*;
 
 /**
  *
  * @author rhocke
  */
 public class PreviewWindow extends OverlayTransparentWindow implements MouseListener, KeyListener {
+//public class PreviewWindow extends JFrame implements MouseListener, KeyListener {
 
-  public PreviewWindow() {
+  EditorPatternButton callerEPB = null;
+  static Color baseColor = new Color(255, 0, 0, 25);
 
+  public PreviewWindow(Object caller) {
+    super(baseColor, null);
+    if (caller instanceof EditorPatternButton) {
+      callerEPB = (EditorPatternButton) caller;
+    }
+    addMouseListener(this);
+    addKeyListener(this);
+    Screen scr = ScreenDevice.getPrimaryScreen();
+    setSize(new Dimension(scr.w - getLocation().x, scr.h - getLocation().y));
+    setVisible(true);
+    requestFocus();
+  }
+
+  public void close() {
+    setVisible(false);
+    dispose();
   }
 
   @Override
   public void mouseClicked(MouseEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void mouseEntered(MouseEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void mouseExited(MouseEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void keyTyped(KeyEvent e) {
+    char keyChar = e.getKeyChar();
     close();
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void keyPressed(KeyEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void keyReleased(KeyEvent e) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }

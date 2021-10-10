@@ -157,19 +157,27 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 		return btn;
 	}
 
+	boolean usePreWin = false;
+	PreviewWindow preWin = null;
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Debug.log(3, "ThumbButtonLabel: open Pattern Settings");
 		_pane.saveCaretPosition();
-		if (pwin == null) {
-			_offsetSaved = new Location(_offset);
-			_similaritySaved = _similarity;
-      _exactSaved = _similarity >= 0.99f;
-			_imgFilenameSaved = _imgFilename.substring(0);
-			pwin = new PatternWindow(this, _exactSaved, _similarity, _numMatches);
-			pwin.setTargetOffset(_offset);
-		}
-		pwin.requestFocus();
+		if (usePreWin) {
+		  preWin = new PreviewWindow(this);
+
+    } else {
+      if (pwin == null) {
+        _offsetSaved = new Location(_offset);
+        _similaritySaved = _similarity;
+        _exactSaved = _similarity >= 0.99f;
+        _imgFilenameSaved = _imgFilename.substring(0);
+        pwin = new PatternWindow(this, _exactSaved, _similarity, _numMatches);
+        pwin.setTargetOffset(_offset);
+      }
+      pwin.requestFocus();
+    }
 	}
 
   @Override
