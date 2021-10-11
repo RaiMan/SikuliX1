@@ -142,8 +142,10 @@ public class Sikulix {
 
 
     ideSplash = null;
-    ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-    ideSplash.run();
+    if (!Commons.isRunningFromJar() && !Commons.hasOption(VERBOSE)) {
+      ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+      ideSplash.run();
+    }
 
     if (!Commons.hasOption(MULTI)) {
       File isRunning;

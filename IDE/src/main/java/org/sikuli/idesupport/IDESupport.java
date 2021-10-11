@@ -103,6 +103,7 @@ public class IDESupport {
 
 				defaultRunner = IDE_RUNNERS.get(0);
 				log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
+				initIDESupport();
 			}
 		}
 	}
