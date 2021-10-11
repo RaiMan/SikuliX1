@@ -2,22 +2,18 @@
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 
-package org.sikuli.ide;
+package org.sikuli.util;
+
+import org.sikuli.script.Screen;
+import org.sikuli.script.support.devices.ScreenDevice;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
-import org.sikuli.script.Screen;
-import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.ScreenDevice;
-import org.sikuli.util.EventSubject;
-import org.sikuli.util.OverlayTransparentWindow;
-
-import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -26,13 +22,16 @@ import javax.swing.*;
 public class PreviewWindow extends OverlayTransparentWindow implements MouseListener, KeyListener {
 //public class PreviewWindow extends JFrame implements MouseListener, KeyListener {
 
-  EditorPatternButton callerEPB = null;
+  Object caller = null;
+  Map<String, Object> options = new HashMap<>();
   static Color baseColor = new Color(255, 0, 0, 25);
 
-  public PreviewWindow(Object caller) {
+  public PreviewWindow(Map<String, Object> options) {
     super(baseColor, null);
-    if (caller instanceof EditorPatternButton) {
-      callerEPB = (EditorPatternButton) caller;
+    this.options = options;
+    caller = options.get("caller");
+    if (caller != null) {
+      addObserver((EventObserver) caller);
     }
     addMouseListener(this);
     addKeyListener(this);

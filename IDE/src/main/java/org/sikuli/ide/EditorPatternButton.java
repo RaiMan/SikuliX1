@@ -3,22 +3,31 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import javax.imageio.*;
-import javax.swing.*;
-
-import org.sikuli.script.Location;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.PreferencesUser;
 import org.sikuli.script.Image;
+import org.sikuli.script.Location;
+import org.sikuli.util.EventObserver;
+import org.sikuli.util.EventSubject;
+import org.sikuli.util.PreviewWindow;
 
-class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener {
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener, EventObserver {
 
     public static final int DEFAULT_NUM_MATCHES = 50;
     static final float DEFAULT_SIMILARITY = 0.7f;
@@ -167,7 +176,9 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         Debug.log(3, "ThumbButtonLabel: open Pattern Settings");
         _pane.saveCaretPosition();
         if (usePreWin) {
-            preWin = new PreviewWindow(this);
+            Map<String, Object> options = new HashMap<>();
+            options.put("caller", this);
+            preWin = new PreviewWindow(options);
         } else {
             if (pwin == null) {
                 _offsetSaved = new Location(_offset);
@@ -461,6 +472,11 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     @Override
     public void mouseReleased(MouseEvent me) {
+    }
+
+    @Override
+    public void update(EventSubject s) {
+        SikulixIDE.get().setVisible(true);
     }
     //</editor-fold>
 }
