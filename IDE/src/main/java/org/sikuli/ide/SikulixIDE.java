@@ -1343,6 +1343,7 @@ public class SikulixIDE extends JFrame {
     public void doFind(ActionEvent ae) {
 //      _searchField.selectAll();
 //      _searchField.requestFocus();
+      Sikulix.popat(getWindowCenter());
       findText = Sikulix.input(
           "Enter text to be searched (case sensitive)\n" +
               "Start with ! to search case insensitive\n",
