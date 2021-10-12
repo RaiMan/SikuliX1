@@ -5,6 +5,7 @@ package org.sikuli.idesupport;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.runners.ProcessRunner;
 
@@ -421,7 +422,7 @@ public class ExtensionManager {
     options[WARNING_DO_NOTHING] = "OK";
     options[WARNING_ACCEPTED] = "More ...";
     options[WARNING_CANCEL] = "Cancel";
-    int ret = JOptionPane.showOptionDialog(null, warn, title,
+    int ret = JOptionPane.showOptionDialog(SikulixIDE.get(), warn, title,
         0, JOptionPane.WARNING_MESSAGE, null, options, options[2]);
     if (ret == WARNING_CANCEL || ret == JOptionPane.CLOSED_OPTION) {
       return;

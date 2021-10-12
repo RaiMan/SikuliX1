@@ -10,16 +10,12 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyManager;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
-import org.sikuli.util.Highlight;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
@@ -33,8 +29,8 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.security.CodeSource;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -64,6 +60,23 @@ public class Commons {
 
   private static File isRunning = null;
   private static FileOutputStream isRunningFile;
+
+  public static Region getSXIDERegion() {
+    Region regIDE = new Region(0, 0, 1, 1);
+    regIDE.setName("***SXIDE***");
+    return regIDE;
+  }
+
+
+  public static JFrame getSXIDE() {
+    return SXIDE;
+  }
+
+  public static void setSXIDE(JFrame SXIDE) {
+    Commons.SXIDE = SXIDE;
+  }
+
+  private static JFrame SXIDE = null;
 
   private static void runShutdownHook() {
     debug("***** final cleanup at System.exit() *****");

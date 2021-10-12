@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.script.support.Commons;
 import org.sikuli.util.SikulixFileChooser;
 
 import javax.swing.*;
@@ -300,7 +301,9 @@ public class SX {
       }
 
       public void dispose() {
-        frame.dispose();
+        if (frame.getSize().width < 2) {
+          frame.dispose();
+        }
       }
 
       public Object getReturnValue() {
@@ -355,8 +358,12 @@ public class SX {
         y = ((Point) point).y;
       } else {
         if (point instanceof Region) {
-          x = ((Region) point).getCenter().x;
-          y = ((Region) point).getCenter().y;
+          Region reg = (Region) point;
+          if (reg.getName().equals("***SXIDE***")) {
+            return Commons.getSXIDE();
+          }
+          x = reg.getCenter().x;
+          y = reg.getCenter().y;
         } else if (point instanceof Location) {
           x = ((Location) point).x;
           y = ((Location) point).y;

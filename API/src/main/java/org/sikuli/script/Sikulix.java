@@ -89,6 +89,12 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="01 popat">
+  public static Location popat(JFrame atFrame) {
+    locPopAt = null;
+    locPopAtFrame = atFrame;
+    return new Location(atFrame.getLocation());
+  }
+
   public static Location popat(Point at) {
     locPopAt = new Point(at);
     return new Location(locPopAt);
@@ -131,13 +137,23 @@ public class Sikulix {
   }
 
   private static JFrame popLocation() {
+    JFrame anchor = null;
     if (null == locPopAt) {
-      locPopAt = getLocPopAt();
-      if (null == locPopAt) {
-        return null;
+      if (null != locPopAtFrame) {
+        anchor = locPopAtFrame;
+      } else {
+        locPopAt = getLocPopAt();
+        if (null == locPopAt) {
+          return null;
+        }
       }
     }
-    return popLocation(locPopAt.x, locPopAt.y);
+    if (anchor == null) {
+      anchor = popLocation(locPopAt.x, locPopAt.y);
+    }
+    locPopAt = null;
+    locPopAtFrame = null;
+    return anchor;
   }
 
   private static JFrame popLocation(int x, int y) {
@@ -151,6 +167,7 @@ public class Sikulix {
   }
 
   private static Point locPopAt = null;
+  private static JFrame locPopAtFrame = null;
   //</editor-fold>
 
   //<editor-fold desc="02 popup">
@@ -306,7 +323,7 @@ public class Sikulix {
         }
       }
     }
-    if (anchor != null) {
+    if (anchor != null && anchor.getSize().width < 2) {
       anchor.dispose();
     }
     return ret;
