@@ -58,7 +58,8 @@ public class PreferencesWin extends JFrame {
   private int _spnTabWidth;
   Locale _locale;
   EditorPane codePane;
-  JFrame winPrefMore;
+  //JFrame winPrefMore;
+  PreferencesWindowMore prefWinMore;
 
   boolean isDirty = false;
 
@@ -353,6 +354,8 @@ public class PreferencesWin extends JFrame {
       }
       _tabPane.addTab(SikuliIDEI18N._I("prefTabGeneralSettings"), paneGeneral);
 
+      prefWinMore = new PreferencesWindowMore();
+      _tabPane.addTab("... more Options", prefWinMore);
     }
     contentPane.add(_tabPane, BorderLayout.CENTER);
 
@@ -361,14 +364,6 @@ public class PreferencesWin extends JFrame {
       paneOkCancel.setBorder(new EmptyBorder(5, 5, 5, 5));
       paneOkCancel.setLayout(new BoxLayout(paneOkCancel, BoxLayout.X_AXIS));
       paneOkCancel.add(hSpacer1);
-
-      //---- _btnMore ----
-      _btnMore.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          btnMoreActionPerformed(e);
-        }
-      });
-      paneOkCancel.add(_btnMore);
 
       //---- _btnOk ----
       _btnOk.addActionListener(new ActionListener() {
@@ -487,6 +482,7 @@ public class PreferencesWin extends JFrame {
 
   private void savePrefs() {
     SikulixIDE ide = SikulixIDE.get();
+    prefWinMore.savePrefs("");
     pref.setCaptureDelay((Double) spnDelay.getValue());
     pref.setCaptureHotkey(cap_hkey);
     pref.setCaptureHotkeyModifiers(cap_mod);
@@ -590,18 +586,6 @@ public class PreferencesWin extends JFrame {
     }
   }
 
-  private void btnMoreActionPerformed(ActionEvent e) {
-    winPrefMore = new JFrame("Preferences: more Options ...");
-    Container mpwinCP = winPrefMore.getContentPane();
-    mpwinCP.setLayout(new BorderLayout());
-    mpwinCP.add(new PreferencesWindowMore(), BorderLayout.CENTER);
-    winPrefMore.pack();
-    winPrefMore.setAlwaysOnTop(true);
-    winPrefMore.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    winPrefMore.setLocation(getLocation().x - 70, getLocation().y);
-    winPrefMore.setVisible(true);
-  }
-
   private void btnOkActionPerformed(ActionEvent e) {
     savePrefs();
     String warn = "Until some bugs have been fixed,\n" +
@@ -612,7 +596,6 @@ public class PreferencesWin extends JFrame {
         "Use CANCEL next time, if nothing was changed!";
     JOptionPane.showMessageDialog(this, warn,
         "--- Preferences have been saved ---", JOptionPane.WARNING_MESSAGE);
-    if (winPrefMore != null) winPrefMore.dispose();
     this.dispose();
   }
 
@@ -624,7 +607,6 @@ public class PreferencesWin extends JFrame {
     if (isDirty) {
       resetPrefs();
     }
-    if (winPrefMore != null) winPrefMore.dispose();
     this.dispose();
   }
 

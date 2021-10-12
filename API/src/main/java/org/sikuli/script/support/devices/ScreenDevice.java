@@ -130,6 +130,9 @@ public class ScreenDevice extends Devices {
   }
 
   public static int numDevices() {
+    if (devices == null) {
+      initDevices();
+    }
     return nDevices;
   }
 
@@ -154,6 +157,15 @@ public class ScreenDevice extends Devices {
       device = devices[n];
     }
     return device;
+  }
+
+  public static int whichMonitor(Rectangle rect) {
+    int monitor = 0;
+    for (int i = 0; i < numDevices(); i++) {
+      ScreenDevice device = get(i);
+      if(device.getBounds().contains(rect.getLocation())) monitor = i;
+    }
+    return monitor;
   }
 
   public static RobotDesktop getRobot(int id) {
