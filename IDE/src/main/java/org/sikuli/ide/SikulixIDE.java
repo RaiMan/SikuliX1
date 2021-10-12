@@ -13,6 +13,7 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.*;
 
@@ -763,6 +764,9 @@ public class SikulixIDE extends JFrame {
     PreferencesWin pwin = new PreferencesWin();
     pwin.setAlwaysOnTop(true);
     pwin.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    Point ideLoc = SikulixIDE.getWindowRect().getLocation();
+    ideLoc.y += 120;
+    pwin.setLocation(ideLoc);
     pwin.setVisible(true);
   }
 

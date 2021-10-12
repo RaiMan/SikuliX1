@@ -160,7 +160,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
     });
 
     prefMoreCommand.setText("CommandBar (old style) *");
-    prefMoreCommand.setToolTipText("OFF --- no command bar - commands in Tools menu instaed, ON --- old style (restart needed)");
+    prefMoreCommand.setToolTipText("OFF --- no command bar - commands in Tools menu instead, ON --- old style (restart needed)");
     prefMoreCommand.addChangeListener(new javax.swing.event.ChangeListener() {
       public void stateChanged(javax.swing.event.ChangeEvent evt) {
         prefMoreCommandStateChanged(evt);
@@ -209,15 +209,15 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
       }
     });
 
-    prefMoreScripter.setText("Activate the new layout (X-1.0) *  (no CommandBar, MessageArea on right side)");
-    prefMoreScripter.setToolTipText("... no command bar - in Tools menu instead, message area on right side, some more options ..."); // NOI18N
+    prefMoreScripter.setText("Layout: MessageArea on right side *");
+    prefMoreScripter.setToolTipText("... message area on right side"); // NOI18N
     prefMoreScripter.addChangeListener(new javax.swing.event.ChangeListener() {
       public void stateChanged(javax.swing.event.ChangeEvent evt) {
         prefMoreScripterStateChanged(evt);
       }
     });
 
-    prefMoreLblTitle1.setText("* these prefs need a restart of the IDE - others are active after save (no restart needed)");
+    prefMoreLblTitle1.setText("* these prefs need a restart of the IDE to get active");
 
     prefMoreImageThumbs.setText("ImageThumbs (on) / ImageLabels (off) *");
     prefMoreImageThumbs.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -226,7 +226,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
       }
     });
 
-    prefMorePlainText.setText("show script as plain text");
+    prefMorePlainText.setText("show script as plain text *");
     prefMorePlainText.addChangeListener(new javax.swing.event.ChangeListener() {
       public void stateChanged(javax.swing.event.ChangeEvent evt) {
         prefMorePlainStateChanged(evt);
@@ -415,7 +415,7 @@ public class PreferencesWindowMore extends javax.swing.JPanel {
 		}
   }
 
-	private void savePrefs(String msg)	{
+	protected void savePrefs(String msg)	{
 		prefs.setAtSaveCleanBundle(isSelected(prefMoreClean));
 		prefs.setPrefMoreRunSave(isSelected(prefMoreRunSave));
 		prefs.setPrefMoreHighlight(isSelected(prefMoreHighlight));
