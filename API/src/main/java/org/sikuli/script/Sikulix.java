@@ -89,6 +89,11 @@ public class Sikulix {
   //</editor-fold>
 
   //<editor-fold desc="01 popat">
+  public static Location popat(Point at) {
+    locPopAt = new Point(at);
+    return new Location(locPopAt);
+  }
+
   public static Location popat(Location at) {
     locPopAt = new Point(at.x, at.y);
     return new Location(locPopAt);
