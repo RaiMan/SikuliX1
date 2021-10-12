@@ -90,6 +90,7 @@ public class SikulixIDE extends JFrame {
   protected static void start(String[] args) {
 
     ideWindowRect = getWindowRect();
+    Commons.setSXIDE(SikulixIDE.get());
 
     IDEDesktopSupport.init();
 
@@ -1343,7 +1344,7 @@ public class SikulixIDE extends JFrame {
     public void doFind(ActionEvent ae) {
 //      _searchField.selectAll();
 //      _searchField.requestFocus();
-      Sikulix.popat(getWindowCenter());
+      Sikulix.popat(SikulixIDE.get());
       findText = Sikulix.input(
           "Enter text to be searched (case sensitive)\n" +
               "Start with ! to search case insensitive\n",
@@ -1634,7 +1635,7 @@ public class SikulixIDE extends JFrame {
     public void jarWithJython(ActionEvent ae) {
       if (SX.popAsk("*** You should know what you are doing! ***\n\n" +
           "This may take a while. Wait for success popup!" +
-          "\nClick Yes to start.", "Creating jar file")) {
+          "\nClick Yes to start.", "Creating jar file", Commons.getSXIDERegion())) {
         (new Thread() {
           @Override
           public void run() {
@@ -1889,7 +1890,7 @@ public class SikulixIDE extends JFrame {
       String si = Commons.getSystemInfo();
       System.out.println(si);
       msg = String.format(msg, si);
-      if (Sikulix.popAsk(msg, title)) {
+      if (SX.popAsk(msg, title, Commons.getSXIDERegion())) {
         Clipboard clb = Toolkit.getDefaultToolkit().getSystemClipboard();
         StringSelection sic = new StringSelection(si.toString());
         clb.setContents(sic, sic);
