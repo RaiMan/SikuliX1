@@ -32,7 +32,7 @@ public class ScreenImage {
 	 *
 	 */
 	public int x, y, w, h;
-	protected Rectangle _roi;
+	protected Rectangle rect;
 	protected BufferedImage _img;
 	protected String _filename = null;
 	public Location start;
@@ -54,20 +54,24 @@ public class ScreenImage {
 	/**
 	 * create ScreenImage with given
 	 *
-	 * @param roi the rectangle it was taken from
+	 * @param rect the rectangle it was taken from
 	 * @param img the BufferedImage
 	 */
-	public ScreenImage(Rectangle roi, BufferedImage img) {
+	public ScreenImage(Rectangle rect, BufferedImage img) {
 		_img = img;
-		_roi = roi;
-		x = (int) roi.getX();
-		y = (int) roi.getY();
+		this.rect = rect;
+		x = (int) rect.getX();
+		y = (int) rect.getY();
 		w = _img.getWidth();
 		h = _img.getHeight();
 	}
 
+	public Rectangle getRect() {
+		return rect;
+	}
+
   public ScreenImage getSub(Rectangle sub) {
-    if (!_roi.contains(sub)) {
+    if (!rect.contains(sub)) {
       return this;
     }
     BufferedImage img = _img.getSubimage(sub.x - x, sub.y - y, sub.width, sub.height);
@@ -216,7 +220,7 @@ public class ScreenImage {
 	 * @return the Region, the iamge was created from
 	 */
 	public Region getRegion() {
-		return new Region(_roi);
+		return new Region(rect);
 	}
 
 	/**
@@ -224,7 +228,7 @@ public class ScreenImage {
 	 * @return the screen rectangle, the iamge was created from
 	 */
 	public Rectangle getROI() {
-		return _roi;
+		return rect;
 	}
 
 	public void saveLastScreenImage(File fPath) {

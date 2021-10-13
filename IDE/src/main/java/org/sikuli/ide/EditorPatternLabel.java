@@ -30,7 +30,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
   public static String NOTFOUND = "!? ";
   private String lblText;
   private EditorPane pane;
-  private float sim;
+  private double sim;
   private float resizeFactor;
   private String mask;
   private Location off;
@@ -74,7 +74,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
 
   private void initLabel(EditorPane parentPane) {
     pane = parentPane;
-    sim = 0.7F;
+    sim = 0.7;
     off = new Location(0, 0);
     resizeFactor = 0;
     mask = "";
@@ -86,7 +86,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
       for (String tok : tokens) {
         //System.out.println("token: " + tok);
         if (tok.startsWith("exact")) {
-          sim = 0.99F;
+          sim = 0.99;
         } else if (tok.startsWith("Pattern")) {
           setFileNames(tok.substring(tok.indexOf("\"") + 1, tok.lastIndexOf("\"")));
           if (lblText == null) {
@@ -95,9 +95,9 @@ public class EditorPatternLabel extends EditorRegionLabel {
         } else if (tok.startsWith("similar")) {
           String strArg = tok.substring(tok.lastIndexOf("(") + 1);
           try {
-            sim = Float.valueOf(strArg);
+            sim = Double.valueOf(strArg);
           } catch (NumberFormatException e) {
-            sim = 0.7F;
+            sim = 0.7;
           }
         } else if (tok.startsWith("targetOffset")) {
           String strArg = tok.substring(tok.lastIndexOf("(") + 1);
@@ -212,7 +212,7 @@ public class EditorPatternLabel extends EditorRegionLabel {
     return (CAPTURE.equals(lblText) || lblText.startsWith(NOTFOUND));
   }
 
-  public void resetLabel(String givenFileName, float sim, Location off, float resizeFactor) {
+  public void resetLabel(String givenFileName, double sim, Location off, float resizeFactor) {
     imgName = (new File(givenFileName)).getName();
     image = Image.createThumbNail(imgName);
     imgFile = image.getFilename();
@@ -226,8 +226,8 @@ public class EditorPatternLabel extends EditorRegionLabel {
 
   public void setLabelText() {
     String buttonSimilar = "";
-    if (sim != 0.7F) {
-      buttonSimilar = String.format(Locale.ENGLISH, " .%d", (int) (sim * 100F));
+    if (!EditorPatternButton.isDefaultSimilarity(sim)) {
+      buttonSimilar = String.format(Locale.ENGLISH, " .%d", (int) (EditorPatternButton.defaultSimilarity() * 100));
     }
     String buttonOffset = "";
     if (off != null && (off.x != 0 || off.y != 0)) {
@@ -275,11 +275,11 @@ public class EditorPatternLabel extends EditorRegionLabel {
     return off;
   }
 
-  public void setSimilarity(float sim) {
+  public void setSimilarity(double sim) {
     this.sim = sim;
   }
 
-  public float getSimilarity() {
+  public double getSimilarity() {
     return sim;
   }
 
