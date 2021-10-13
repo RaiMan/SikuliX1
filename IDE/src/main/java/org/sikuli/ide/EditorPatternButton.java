@@ -30,12 +30,19 @@ import java.util.Map;
 class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener, EventObserver {
 
     public static final int DEFAULT_NUM_MATCHES = 50;
-    static final float DEFAULT_SIMILARITY = 0.7f;
+    static final int DEFAULT_SIMILARITY = 70;
+    static double defaultSimilarity() {
+        return (double) DEFAULT_SIMILARITY / 100;
+    }
+    protected static boolean isDefaultSimilarity(double similarity) {
+        return Math.round(similarity * 100) == DEFAULT_SIMILARITY;
+    }
+
     private String _imgFilename, _thumbFname, _imgFilenameSaved;
     private Image _image;
     private JLabel patternImageIcon = null;
     private EditorPane _pane;
-    private float _similarity, _similaritySaved;
+    private double _similarity, _similaritySaved;
     private float _resizeFactor;
     private String _mask;
     private int _numMatches = DEFAULT_NUM_MATCHES;
@@ -83,7 +90,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         //TODO thumbMax = PreferencesUser.getInstance().getDefaultThumbHeight() == 0 ? false : true;
         _pane = pane;
         _exact = false;
-        _similarity = DEFAULT_SIMILARITY;
+        _similarity = defaultSimilarity();
         _numMatches = DEFAULT_NUM_MATCHES;
         if (imgFilename != null) {
             setFilename(imgFilename);
@@ -243,6 +250,12 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         setButtonText();
     }
 
+    public void setImage(String fileName) {
+        _image = Image.createSilent(fileName);
+        _imgFilename = _image.getFilename();
+        setIcon(new ImageIcon(createThumbnailImage(_image, PreferencesUser.get().getDefaultThumbHeight())));
+        setButtonText();
+    }
 /*
   private String createThumbnail(String imgFname) {
     return createThumbnail(imgFname, PreferencesUser.get().getDefaultThumbHeight());
@@ -284,7 +297,26 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         }
     }
 
-    public boolean setParameters(boolean exact, float similarity, int numMatches) {
+    private BufferedImage createThumbnailImage(Image image, int maxHeight) {
+        BufferedImage img = image.get();
+        int w = img.getWidth(null), h = img.getHeight(null);
+        _imgW = w;
+        _imgH = h;
+        if (maxHeight == 0 || maxHeight >= h) {
+            return img;
+        }
+        _scale = (float) maxHeight / h;
+        w *= _scale;
+        h *= _scale;
+        h = (int) h;
+        BufferedImage thumb = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = thumb.createGraphics();
+        g2d.drawImage(img, 0, 0, w, h, null);
+        g2d.dispose();
+        return thumb;
+    }
+
+    public boolean setParameters(boolean exact, double similarity, int numMatches) {
         boolean dirty = false;
         Debug.log(3, "ThumbButtonLabel: setParameters: " + exact + "," + similarity + "," + numMatches);
         dirty |= setExact(exact);
@@ -307,12 +339,12 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         return false;
     }
 
-    public boolean setSimilarity(float val) {
-        float sim;
+    public boolean setSimilarity(double val) {
+        double sim;
         if (val < 0) {
             sim = 0;
         } else if (val >= 1) {
-            sim = 0.99f;
+            sim = 0.99;
         } else {
             sim = val;
         }
@@ -323,7 +355,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         return false;
     }
 
-    public float getSimilarity() {
+    public double getSimilarity() {
         return _similarity;
     }
 
@@ -367,7 +399,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     private void drawDecoration(Graphics2D g2d) {
         String strSim = null, strOffset = null;
-        if (_similarity != DEFAULT_SIMILARITY
+        if (!isDefaultSimilarity(_similarity)
                 || (_resizeFactor > 0 && _resizeFactor != 1)
                 || (null != _mask && !_mask.isEmpty())) {
             if (_exact) {

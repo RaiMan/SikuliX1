@@ -586,6 +586,13 @@ public class Image extends Element {
     return createImageValidate(img);
   }
 
+  public static Image createSilent(String fName) {
+    silent = true;
+    Image image = create(fName);
+    silent = false;
+    return image;
+  }
+
   /**
    * create a new image from the given file <br>
    * file ending .png is added if missing (currently valid: png, jpg, jpeg)<br>

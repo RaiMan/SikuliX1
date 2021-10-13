@@ -2,7 +2,6 @@
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
 package org.sikuli.ide;
-
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
@@ -1070,7 +1069,7 @@ public class EditorPane extends JTextPane {
     return String.format("Region(%d,%d,%d,%d)", x, y, w, h);
   }
 
-  public String getPatternString(String ifn, float sim, Location off, Image img, float resizeFactor, String mask) {
+  public String getPatternString(String ifn, double sim, Location off, Image img, float resizeFactor, String mask) {
 //TODO ifn really needed??
     if (ifn == null) {
       return "\"" + EditorPatternLabel.CAPTURE + "\"";
@@ -1085,10 +1084,10 @@ public class EditorPane extends JTextPane {
       patternString += String.format(".resize(%.2f)", resizeFactor).replace(",", ".");
     }
     if (sim > 0) {
-      if (sim >= 0.99F) {
+      if (sim >= 0.99) {
         patternString += ".exact()";
-      } else if (sim != 0.7F) {
-        patternString += String.format(Locale.ENGLISH, ".similar(%.2f)", sim);
+      } else if (!EditorPatternButton.isDefaultSimilarity(sim)) {
+        patternString += String.format(Locale.ENGLISH, ".similar(.%d)", (int) (Math.round(sim * 100)));
       }
     }
     if (off != null && (off.x != 0 || off.y != 0)) {

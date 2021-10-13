@@ -27,9 +27,10 @@ import java.util.List;
 public abstract class Element {
 
   protected static final int logLevel = 3;
+  protected static boolean silent = false;
 
   protected static void log(int level, String message, Object... args) {
-    if (!Debug.is(level)) {
+    if (!Debug.is(level) || silent) {
         return;
     }
     String className = Thread.currentThread().getStackTrace()[2].getClassName();
