@@ -124,7 +124,7 @@ public class Commons {
         osVersion = System.getProperty("os.version").toLowerCase();
       }
     } else {
-      osName = System.getProperty("os.version").toLowerCase();
+      osName = System.getProperty("os.name").toLowerCase();
       osVersion = System.getProperty("os.version").toLowerCase();
     }
 
