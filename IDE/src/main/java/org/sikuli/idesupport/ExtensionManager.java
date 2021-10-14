@@ -285,6 +285,9 @@ public class ExtensionManager {
   }
 
   public static File getExtensionsFile() {
+    if (sxExtensionsFile == null) {
+      readExtensions(false);
+    }
     return sxExtensionsFile;
   }
 

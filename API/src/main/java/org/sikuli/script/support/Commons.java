@@ -1235,6 +1235,9 @@ public class Commons {
   }
 
   public static Options getOptions() {
+    if (sxOptions == null) {
+      sxOptions = new Options();
+    }
     return sxOptions;
   }
 
