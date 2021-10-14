@@ -6,6 +6,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.PreferencesUser;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.util.CommandArgsEnum;
@@ -30,7 +31,12 @@ public class Options {
     log(-3, message, args);
   }
 
-  private Options() {
+  private void p(String message, Object... args) {
+    System.out.println(String.format(message, args));
+  }
+
+  public Options() {
+    loadOptions();
   }
 
   public Options(String fpOptions) {
@@ -71,7 +77,6 @@ public class Options {
   }
 
   void loadOptions() {
-/*
     // public Settings::fields as options
     Field[] fields = Settings.class.getFields();
     Object value = null;
@@ -84,9 +89,8 @@ public class Options {
       } catch (IllegalAccessException e) {
         e.printStackTrace();
       }
-      p("%s (%s) %s", field.getName(), field.getType(), value);
+      //p("Settings.%s (%s) %s", field.getName(), field.getType(), value);
     }
-*/
     loadOptions(fnSXOptions);
     if (hasOptions()) {
       testing = isOption("testing", false);
