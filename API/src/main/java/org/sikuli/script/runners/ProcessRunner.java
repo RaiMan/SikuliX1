@@ -194,6 +194,7 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 	public static String run(List<String> cmd) {
 		int exitValue = 0;
 		String stdout = "";
+		String NL = System.lineSeparator();
 		if (cmd.size() > 0) {
 			ProcessBuilder app = new ProcessBuilder();
 			Map<String, String> processEnv = app.environment();
@@ -211,8 +212,10 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 					BufferedReader processOut = new BufferedReader(reader);
 					String line = processOut.readLine();
 					while (null != line) {
-						// System.out.println(line);
-						stdout += line;
+						line = line.trim();
+						if (!line.isEmpty()) {
+							stdout += line + NL;
+						}
 						line = processOut.readLine();
 					}
 				}
@@ -228,7 +231,7 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 				p("[Error] ProcessRunner: waitFor: %s", e.getMessage());
 			}
 		}
-		return "" + exitValue + "\n" + stdout;
+		return "" + exitValue + NL + stdout;
 	}
 
 	public static void detach(String... args) {
