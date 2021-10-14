@@ -11,6 +11,7 @@ import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -49,8 +50,8 @@ public class Commons {
   private static String sxBuildStamp;
   private static String sxBuildNumber;
 
-  private static final String osName = System.getProperty("os.name").toLowerCase();
-  private static final String osVersion = System.getProperty("os.version").toLowerCase();
+  private static final String osName;
+  private static final String osVersion;
   private static final String osArch = System.getProperty("os.arch").toLowerCase();
 
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
@@ -105,6 +106,26 @@ public class Commons {
 
     if (!"64".equals(System.getProperty("sun.arch.data.model"))) {
       throw new SikuliXception("SikuliX fatal Error: Java must be 64-Bit");
+    }
+
+    //TODO check with Java 18 for correct Windows 11 version
+    if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+      osName = "windows";
+      if (System.getProperty("os.version").toLowerCase().startsWith("1")) {
+        String[] sysInfo = ProcessRunner.run("cmd", "/C", "systeminfo").split("\n");
+        String v1 = sysInfo[2].trim().split(":")[1].trim().split(" ")[2];
+        String v2 = sysInfo[3].trim().split(":")[1].trim().split(" ")[0];
+        if (v1.equals("11")) {
+          osVersion = "11";
+        } else {
+          osVersion = System.getProperty("os.version").toLowerCase();
+        }
+      } else {
+        osVersion = System.getProperty("os.version").toLowerCase();
+      }
+    } else {
+      osName = System.getProperty("os.version").toLowerCase();
+      osVersion = System.getProperty("os.version").toLowerCase();
     }
 
     Properties sxProps = new Properties();
