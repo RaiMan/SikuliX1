@@ -124,6 +124,17 @@ public class Commons {
         osVersion = System.getProperty("os.version").toLowerCase();
       }
     } else {
+/*TODO macOS version is 11.5 instead of 11.6
+% sw_vers
+ProductName:	macOS
+ProductVersion:	11.6
+BuildVersion:	20G165
+... or ...
+%system_profiler SPSoftwareDataType
+Software:
+    System Software Overview:
+      System Version: macOS 11.6 (20G165)
+*/
       osName = System.getProperty("os.name").toLowerCase();
       osVersion = System.getProperty("os.version").toLowerCase();
     }
