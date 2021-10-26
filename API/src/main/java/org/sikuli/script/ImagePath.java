@@ -760,6 +760,10 @@ public class ImagePath {
           }
         }
       }
+      imageFile = new File(Commons.getWorkDir(), imageFileName);
+      if (imageFile.exists()) {
+        return Commons.makeURL(imageFile);
+      }
       log(-1, "find: not there: %s", imageFileName);
       dump(lvl);
       return fURL;
