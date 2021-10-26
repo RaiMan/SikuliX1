@@ -186,6 +186,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
           } else {
             int errorExit = jythonSupport.findErrorSource(scriptException, pyFile.getAbsolutePath());
             if (null != options) {
+//TODO exit exception not reported to outside???
               options.setErrorLine(errorExit);
             }
           }
