@@ -44,7 +44,7 @@ import org.sikuli.util.CommandArgsEnum;
 public class EditorConsolePane extends JPanel implements Runnable {
 
   private static final String me = "EditorConsolePane: ";
-  static boolean ENABLE_IO_REDIRECT = !Commons.hasOption(CommandArgsEnum.CONSOLE);
+  static boolean ENABLE_IO_REDIRECT = !Commons.hasStartArg(CommandArgsEnum.CONSOLE);
 
   private int NUM_PIPES;
   private JTextPane textArea;

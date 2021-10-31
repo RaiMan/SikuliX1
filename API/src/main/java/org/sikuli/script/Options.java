@@ -36,7 +36,6 @@ public class Options {
   }
 
   public Options() {
-    loadOptions();
   }
 
   public Options(String fpOptions) {
@@ -595,7 +594,7 @@ public class Options {
   }
 
   public static String prefLoad(String key) {
-    return prefLoad(key, "");
+    return prefLoad(userPrefix + key, "");
   }
 
   private static final String userPrefix = "USER::";
@@ -653,7 +652,6 @@ public class Options {
         .sorted(Map.Entry.comparingByKey())
         .forEach(System.out::println);
     System.out.println("***** Preferences Dump End *****");
-
   }
 
   public static String prefLoad(String key, Object deflt) {
