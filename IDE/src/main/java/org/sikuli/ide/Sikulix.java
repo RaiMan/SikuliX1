@@ -71,7 +71,7 @@ public class Sikulix {
 
     Commons.globals().setOption("SX_LOCALE", SikuliIDEI18N.getLocaleShow());
 
-    if (Commons.hasOption(APPDATA)) {
+    if (Commons.hasStartArg(APPDATA)) {
       String argValue = Commons.globals().getOption(APPDATA);
       File path = Commons.setAppDataPath(argValue);
       Commons.setTempFolder(new File(path, "Temp"));
@@ -79,24 +79,24 @@ public class Sikulix {
       Commons.setTempFolder();
     }
 
-    if (Commons.hasOption(VERBOSE)) {
+    if (Commons.hasStartArg(VERBOSE)) {
       Commons.show();
       Debug.setDebugLevel(3);
       Debug.setGlobalDebug(3);
     }
 
-    if (Commons.hasOption(DEBUG)) {
+    if (Commons.hasStartArg(DEBUG)) {
       Commons.globals().getOptionInteger("ARG_DEBUG", 3);
       Debug.setDebugLevel(3);
     }
 
     Commons.showOptions("ARG_");
 
-    if (Commons.hasOption(RUN)) {
+    if (Commons.hasStartArg(RUN)) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
         public void hotkeyPressed(HotkeyEvent e) {
-          if (Commons.hasOption(RUN)) {
+          if (Commons.hasStartArg(RUN)) {
             Runner.abortAll();
             RunTime.terminate(254, "AbortKey was pressed: aborting all running scripts");
           }
@@ -110,7 +110,7 @@ public class Sikulix {
       RunTime.terminate(exitCode, "");
     }
 
-    if (Commons.hasOption(SERVER)) {
+    if (Commons.hasStartArg(SERVER)) {
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
@@ -139,12 +139,12 @@ public class Sikulix {
 
 
     ideSplash = null;
-    if (Commons.isRunningFromJar() || (!Commons.isRunningFromJar() && !Commons.hasOption(VERBOSE))) {
+    if (Commons.isRunningFromJar() || (!Commons.isRunningFromJar() && !Commons.hasStartArg(VERBOSE))) {
       ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
       ideSplash.run();
     }
 
-    if (!Commons.hasOption(MULTI)) {
+    if (!Commons.hasStartArg(MULTI)) {
       File isRunning;
       FileOutputStream isRunningFile;
       String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";

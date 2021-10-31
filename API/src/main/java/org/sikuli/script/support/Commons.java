@@ -182,7 +182,7 @@ public class Commons {
 
   //<editor-fold desc="01 logging">
   public static void info(String msg, Object... args) {
-    if (hasOption(VERBOSE)) {
+    if (hasStartArg(VERBOSE)) {
       System.out.printf("[SXINFO] " + msg + "%n", args);
     }
   }
@@ -255,10 +255,10 @@ public class Commons {
 
   public static void startLog(int level, String msg, Object... args) {
     if (level < 3) {
-      if (!hasOption(VERBOSE)) {
+      if (!hasStartArg(VERBOSE)) {
         return;
       }
-      if (hasOption(QUIET)) {
+      if (hasStartArg(QUIET)) {
         return;
       }
     }
@@ -1134,7 +1134,7 @@ public class Commons {
     info("work dir: %s", Commons.getWorkDir());
     info("user.home: %s", Commons.getUserHome());
     info("active locale: %s", globalOptions.getOption("SX_LOCALE"));
-    if (hasOption(CommandArgsEnum.VERBOSE) || isJythonReady()) {
+    if (hasStartArg(CommandArgsEnum.VERBOSE) || isJythonReady()) {
 //      dumpClassPath("sikulix");
       if (isJythonReady()) {
         int saveLvl = Debug.getDebugLevel();
@@ -1214,7 +1214,7 @@ public class Commons {
       prop = System.getProperty("sikuli.console");
       if (prop != null) {
         if (prop.equals("false")) {
-          if (!hasOption(CONSOLE)) {
+          if (!hasStartArg(CONSOLE)) {
             options.setOption("ARG_" + CONSOLE.name(), "");
           }
         }
@@ -1223,11 +1223,11 @@ public class Commons {
     }
   }
 
-  public static boolean hasOption(CommandArgsEnum option) {
-    return hasOption("ARG_" + option.name());
+  public static boolean hasStartArg(CommandArgsEnum option) {
+    return hasGlobalOption("ARG_" + option.name());
   }
 
-  public static boolean hasOption(String option) {
+  public static boolean hasGlobalOption(String option) {
     if (globalOptions == null) {
       return false;
     }
