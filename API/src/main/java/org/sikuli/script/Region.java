@@ -2602,7 +2602,7 @@ public class Region extends Element {
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
-    return findBestList(pList);
+    return findBestListDo(0, pList);
   }
 
   public Match waitBest(double time, Object... args) {
@@ -2611,23 +2611,35 @@ public class Region extends Element {
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
-    return waitBestList(time, pList);
+    return findBestListDo(time, pList);
   }
 
   public Match findBestList(List<Object> pList) {
-    Debug.log(logLevel, "findBest: enter");
     return findBestListDo(0, pList);
   }
 
   public Match waitBestList(double time, List<Object> pList) {
-    Debug.log(logLevel, "waitBest: enter");
     return findBestListDo(time, pList);
   }
 
-  private Match findBestListDo(double time, List<Object> pList) {
-    if (pList == null || pList.size() == 0) {
-      return null;
+  public Match getBest(List<Object> pList) {
+    return findBestListDo(0, pList);
+  }
+
+  public Match getBest(double time, List<Object> pList) {
+    return findBestListDo(time, pList);
+  }
+
+  public List<Match> getBestAll(List<Object> pList) {
+    List<List<Match>> list = findAnyCollectAll(pList);
+    List<Match> matches = new ArrayList<>();
+    for (List<Match> matchList : list) {
+      matches.add(matchList.get(0));
     }
+    return matches;
+  }
+
+  private Match findBestListDo(double time, List<Object> pList) {
     List<Match> mList = findAnyCollect(time, pList);
     if (mList.size() > 1) {
       Collections.sort(mList, (m1, m2) -> {
@@ -2648,13 +2660,12 @@ public class Region extends Element {
   }
 
   public List<Match> findAny(Object... args) {
-    Debug.log(logLevel, "findAny: enter");
     if (args.length == 0) {
       return new ArrayList<Match>();
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
-    return findAnyList(pList);
+    return findAnyCollect(0, pList);
   }
 
   public List<Match> waitAny(double time, Object... args) {
@@ -2663,25 +2674,30 @@ public class Region extends Element {
     }
     List<Object> pList = new ArrayList<>();
     pList.addAll(Arrays.asList(args));
-    return waitAnyList(time, pList);
+    return findAnyCollect(time, pList);
   }
 
   public List<Match> findAnyList(List<Object> pList) {
-    Debug.log(logLevel, "findAny: enter");
-    return findAnyListDo(0, pList);
+    return findAnyCollect(0, pList);
   }
 
   public List<Match> waitAnyList(double time, List<Object> pList) {
     Debug.log(logLevel, "waitAny: enter");
-    return findAnyListDo(time, pList);
+    return findAnyCollect(time, pList);
   }
 
-  private List<Match> findAnyListDo(double time, List<Object> pList) {
-    if (pList == null || pList.size() == 0) {
-      return new ArrayList<Match>();
-    }
-    List<Match> mList = findAnyCollect(time, pList);
-    return mList;
+  public List<Match> getAny(List<Object> pList) {
+    return findAnyCollect(0, pList);
+  }
+
+  public List<Match> getAny(double time, List<Object> pList) {
+    Debug.log(logLevel, "waitAny: enter");
+    return findAnyCollect(time, pList);
+  }
+
+  public List<List<Match>> getAnyAll(List<Object> pList) {
+    Debug.log(logLevel, "waitAny: enter");
+    return findAnyCollectAll(pList);
   }
 
   public Region unionAny(Object... targets) {
@@ -2698,7 +2714,7 @@ public class Region extends Element {
       return this;
     }
     List<Match> matches;
-    matches = findAnyList(targets);
+    matches = findAnyCollect(0, targets);
     if (matches.size() < 1) {
       return this;
     }
@@ -3194,8 +3210,17 @@ public class Region extends Element {
   }
 
   private List<Match> findAnyCollect(double time, List<Object> pList) {
-    List<Match> mList = new ArrayList<Match>();
-    if (pList == null) {
+    List<List<Match>> list = findAnyCollectDo(time, pList, false);
+    return list.get(0);
+  }
+
+  private List<List<Match>> findAnyCollectAll(List<Object> pList) {
+    return findAnyCollectDo(0, pList, true);
+  }
+
+  private List<List<Match>> findAnyCollectDo(double time, List<Object> pList, boolean findAll) {
+    List<List<Match>> mList = new ArrayList<>();
+    if (pList == null || pList.isEmpty()) {
       return mList;
     }
     Match[] mArray = new Match[pList.size()];
@@ -3245,7 +3270,7 @@ public class Region extends Element {
     for (Match match : mArray) {
       if (match != null) {
         match.setIndex(nobj);
-        mList.add(match);
+        mList.get(0).add(match);
       } else {
       }
       nobj++;
