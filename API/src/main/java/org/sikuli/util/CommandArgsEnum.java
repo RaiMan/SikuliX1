@@ -47,7 +47,7 @@ public enum CommandArgsEnum {
 	/**
 	 * run as server
 	 */
-	SERVER("server", "s", "[port (50001)]", "run as server on optional port", true),
+	SERVER("server", "s", "[port (50001)]", "run as server on optional port"),
 	/**
 	 * run the server for Python
 	 */
