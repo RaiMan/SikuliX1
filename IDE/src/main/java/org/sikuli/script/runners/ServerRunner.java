@@ -16,6 +16,7 @@ import javax.script.ScriptEngine;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.script.ImagePath;
+import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.runnerSupport.Runner;
@@ -508,7 +509,8 @@ public class ServerRunner extends AbstractScriptRunner {
     private boolean startRunner(String runType, File fScript, File fScriptScript, String[] args) {
       
       try {
-        Runner.getRunner(runType).init(null);
+        IScriptRunner runner = Runner.getRunner(runType);
+        runner.init(null);
       }catch (Exception ex) {
         rMessage = "startRunner not possible:" + ex.getMessage();
         rStatus = rStatusServiceNotAvail;
