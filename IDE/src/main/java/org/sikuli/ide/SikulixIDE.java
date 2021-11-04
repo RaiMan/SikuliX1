@@ -197,20 +197,22 @@ public class SikulixIDE extends JFrame {
     codePane.requestFocusInWindow();
   }
 
-  //TODO showAfterStart to be revised
+  //TODO showAfterStart to be revised - special case: running as server
   public static void showAfterStart() {
-    org.sikuli.ide.Sikulix.stopSplash();
-    ideWindow.setVisible(true);
-    get().mainPane.setDividerLocation(0.6);
-    try {
-      EditorPane editorPane = get().getCurrentCodePane();
-      if (editorPane.isText()) {
-        get().collapseMessageArea();
+    if (ideWindow != null) {
+      org.sikuli.ide.Sikulix.stopSplash();
+      ideWindow.setVisible(true);
+      get().mainPane.setDividerLocation(0.6);
+      try {
+        EditorPane editorPane = get().getCurrentCodePane();
+        if (editorPane.isText()) {
+          get().collapseMessageArea();
+        }
+        editorPane.requestFocusInWindow();
+      } catch (Exception e) {
       }
-      editorPane.requestFocusInWindow();
-    } catch (Exception e) {
+      get()._inited = true;
     }
-    get()._inited = true;
   }
 
   static String _I(String key, Object... args) {
