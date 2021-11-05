@@ -500,10 +500,11 @@ Software:
   //<editor-fold desc="06 version infos">
   private static String SYSWIN = "windows";
   private static String SYSMAC = "mac";
+  private static String SYSMACM1 = "macm1";
   private static String SYSLUX = "linux";
 
   public static String getSysName() {
-    return runningWindows() ? SYSWIN : (runningMac() ? SYSMAC : SYSLUX);
+    return runningWindows() ? SYSWIN : (runningMac() ? (runningMacM1() ? SYSMACM1 : SYSMAC) : SYSLUX);
   }
 
   public static boolean runningWindows() {
