@@ -84,26 +84,11 @@
       <version>5.8.0</version>
       <!--License LGPL, version 2.1 - Apache License v2.0-->
     </dependency>
-<!--
     <dependency>
-      <groupId>org.rococoa</groupId>
-      <artifactId>rococoa-core</artifactId>
-      <version>0.5</version>
+      <groupId>com.sikulix</groupId>
+      <artifactId>sikulix2opencv</artifactId>
+      <version>4.5.4</version>
     </dependency>
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>3.3.0</version>
-    </dependency>
--->
-<!-- temporary for macOS M1
-    <dependency>
-      <groupId>org.openpnp</groupId>
-      <artifactId>opencv</artifactId>
-      <version>4.5.1-2</version>
-      &lt;!&ndash; https://github.com/openpnp/opencv &ndash;&gt;
-    </dependency>
--->
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>
       <artifactId>tess4j</artifactId>
