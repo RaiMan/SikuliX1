@@ -117,8 +117,7 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="11 libs export">
   private static boolean libsLoad(String libName) {
-    log(lvl, "loadlib: trying %s", libName);
-    String msg = "loadLib: %s";
+    log(lvl, "loadlib: trying: %s", libName);
     if (!areLibsExported) {
       libsExport();
     }
@@ -143,8 +142,6 @@ public class RunTime {
         }
       }
       if (vLib) {
-        msg += " already loaded";
-        log(lvl +1, msg, libName);
         return true;
       }
     }
@@ -156,10 +153,10 @@ public class RunTime {
       }
       System.load(fLib.getAbsolutePath());
     } catch (Exception e) {
-      log(-1, "not usable: %s", e.getMessage());
+      log(-1, "loadlib: not usable: %s (%s)", libName, e.getMessage());
       terminate(999, "problem with native library: " + libName);
     } catch (UnsatisfiedLinkError e) {
-      log(-1, msg + " (failed) probably dependent libs missing:\n%s", libName, e.getMessage());
+      log(-1, "loadlib: failed: %s - probably dependent libs missing:\n%s", libName, e.getMessage());
       //TODO 2.0.5 goto some webpage in case of problems
 /*
       String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4";
@@ -175,7 +172,7 @@ public class RunTime {
       terminate(999, "problem with native library: " + libName);
     }
     libsLoaded.put(libName, true);
-    log(lvl +1, msg + " (success)", libName);
+    log(lvl, "loadlib: success: %s", libName);
     return true;
   }
 
@@ -188,43 +185,50 @@ public class RunTime {
   private static void libsExport() {
     String fpJarLibs = Commons.getJarLibsPath();
     File fLibsFolder = Commons.getLibsFolder();
-    String libMsg = "folder exists:";
     if (fLibsFolder.exists()) {
       if (!Commons.hasVersionFile(fLibsFolder)) {
         FileManager.deleteFileOrFolder(fLibsFolder);
-        log(lvl, "libsExport: folder has wrong content: %s", fLibsFolder);
+        log(lvl, "libsFolder: has wrong content: %s", fLibsFolder);
       }
     }
     if (!fLibsFolder.exists()) {
       fLibsFolder.mkdirs();
       if (!fLibsFolder.exists()) {
-        throw new SikuliXception("libsExport: folder not available: " + fLibsFolder.toString());
+        throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
       }
       Commons.makeVersionFile(fLibsFolder);
-      libMsg = "folder created:";
-      List<String> nativesList = getResourceList(fpJarLibs);
-      for (String aFile : nativesList) {
-        String copyMsg = "";
-        String inFile;
-        Class classRef = clsRef;
-        if (aFile.startsWith("//") || aFile.startsWith("#")) {
-          continue;
-        } else if (aFile.startsWith("/")) {
-          String[] parts = aFile.split("@");
-          if (parts.length > 1) {
-            inFile = parts[0];
-            try {
-              classRef = Class.forName(parts[1]);
-            } catch (ClassNotFoundException e) {
-              copyMsg = String.format("libExport: %s: ", aFile);
-            }
-          } else {
-            inFile = aFile;
+      log(lvl, "libsFolder: created %s (%s)", fLibsFolder, Commons.getSXVersionLong());
+      didExport = true;
+    }
+    if (!shouldExport()) {
+      areLibsExported = true;
+      return;
+    }
+    List<String> nativesList = getResourceList(fpJarLibs);
+    for (String aFile : nativesList) {
+      String copyMsg = "";
+      String inFile;
+      Class classRef = clsRef;
+      if (aFile.startsWith("//") || aFile.startsWith("#")) {
+        continue;
+      } else if (aFile.startsWith("/")) {
+        String[] parts = aFile.split("@");
+        if (parts.length > 1) {
+          inFile = parts[0];
+          try {
+            classRef = Class.forName(parts[1]);
+          } catch (ClassNotFoundException e) {
+            copyMsg = String.format(": failed: %s", e.getMessage());
+            inFile = null;
           }
-          aFile = new File(inFile).getName();
         } else {
-          inFile = new File(fpJarLibs, aFile).getPath();
+          inFile = aFile;
         }
+        aFile = new File(inFile).getName();
+      } else {
+        inFile = new File(fpJarLibs, aFile).getPath();
+      }
+      if (inFile != null) {
         String OPENCV_JAVA = "opencv_java";
         if (OPENCV_JAVA.equals(aFile)) {
           aFile = libOpenCV;
@@ -245,17 +249,16 @@ public class RunTime {
           copy(inStream, outFile);
           libsLoaded.put(aFile, false);
         } catch (Exception ex) {
-          copyMsg += String.format("failed: %s", ex.getMessage());
+          copyMsg = String.format(": failed: %s", ex.getMessage());
         }
-        copyMsg = String.format("libsExport: %s: %s", aFile, copyMsg);
-        if (copyMsg.contains("failed")) {
-          FileManager.deleteFileOrFolder(fLibsFolder);
-          log(-1, copyMsg);
-          break;
-        } else {
-          log(lvl + 1, copyMsg);
-          didExport = true;
-        }
+        copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
+      }
+      if (copyMsg.contains("failed")) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+        log(-1, copyMsg);
+        break;
+      } else {
+        log(lvl, copyMsg);
       }
     }
 
@@ -284,7 +287,6 @@ public class RunTime {
 //        throw new SikuliXception("problem copying " + fJawtDll);
 //      }
     }
-    log(lvl, "libsExport: " + libMsg + " %s (%s)", fLibsFolder, Commons.getSXVersionLong());
     areLibsExported = true;
   }
 //</editor-fold>
