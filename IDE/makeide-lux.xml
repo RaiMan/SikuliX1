@@ -19,8 +19,9 @@
         <excludes>
           <exclude>**/win32-x86/**</exclude>
           <exclude>**/tessdata/**</exclude>
-          <exclude>/nu/pattern/opencv/osx/**</exclude>
-          <exclude>/nu/pattern/opencv/windows/**</exclude>
+          <exclude>/sikulixlibs/mac/**</exclude>
+          <exclude>/sikulixlibs/macm1/**</exclude>
+          <exclude>/sikulixlibs/windows/**</exclude>
         </excludes>
       </unpackOptions>
       <excludes>

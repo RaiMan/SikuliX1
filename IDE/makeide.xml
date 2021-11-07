@@ -23,8 +23,6 @@
         <excludes>
           <exclude>**/win32-x86/**</exclude>
           <exclude>**/tessdata/**</exclude>
-          <exclude>/nu/pattern/opencv/linux/x86_32/**</exclude>
-          <exclude>/nu/pattern/opencv/windows/x86_32/**</exclude>
         </excludes>
       </unpackOptions>
       <scope>runtime</scope>
