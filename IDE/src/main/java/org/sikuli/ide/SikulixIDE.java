@@ -957,6 +957,8 @@ public class SikulixIDE extends JFrame {
             InputEvent.SHIFT_DOWN_MASK | scMask),
         new FileAction(FileAction.EXPORT)));
 
+//TODO export as jar / runnable jar
+/*
     _fileMenu.add(createMenuItem("Export as jar",
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
         new FileAction(FileAction.ASJAR)));
@@ -965,6 +967,7 @@ public class SikulixIDE extends JFrame {
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
             InputEvent.SHIFT_DOWN_MASK | scMask),
         new FileAction(FileAction.ASRUNJAR)));
+*/
 
     jmi = _fileMenu.add(createMenuItem(_I("menuFileCloseTab"),
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, scMask),
@@ -978,10 +981,13 @@ public class SikulixIDE extends JFrame {
           new FileAction(FileAction.PREFERENCES)));
     }
 
+//TODO open special files needed?
+/*
     _fileMenu.addSeparator();
     _fileMenu.add(createMenuItem("Open Special Files",
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK | scMask),
         new FileAction(FileAction.OPEN_SPECIAL)));
+*/
 
 //TODO restart IDE
 /*

@@ -10,9 +10,9 @@ import org.python.util.PythonInterpreter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.SikulixForJython;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
@@ -86,8 +86,16 @@ public class JythonSupport implements IRunnerSupport {
       Debug.log("Jython: not found on classpath");
       return;
     }
-    //TODO RunTime.get().exportLib()
-    //RunTime.get().exportLib();
+    File appDataPath = Commons.getAppDataPath();
+    File pyLib = new File(appDataPath, "Lib");
+    if (!pyLib.exists() && !pyLib.mkdirs()) {
+      Debug.error("JythonSupport: failed: %s", pyLib);
+    } else {
+      File sitePackages = new File(pyLib, "site-packages");
+      if (!sitePackages.exists() && sitePackages.mkdir()) {
+        FileManager.writeStringToFile(ExtensionManager.getSitesTxtDefault(), new File(sitePackages, "sites.txt"));
+      }
+    }
     try {
       interpreter = new PythonInterpreter();
     } catch (Exception ex) {
@@ -1045,7 +1053,7 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   public int runJar(String fpJarOrFolder, String imagePath) {
-    SikulixForJython.get();
+    //SikulixForJython.get();
     String fpJar = load(fpJarOrFolder, true);
     ImagePath.addJar(fpJar, imagePath);
     String scriptName = new File(fpJar).getName().replace("_sikuli.jar", "");

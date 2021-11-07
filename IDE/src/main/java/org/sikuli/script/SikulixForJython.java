@@ -21,8 +21,12 @@ public class SikulixForJython {
   private static SikulixForJython instance = null;
   private static final int lvl = 3;
 
-  private SikulixForJython() {
+  static {
     init();
+  }
+
+  private SikulixForJython() {
+    //init();
   }
 
   public static SikulixForJython get() {
@@ -32,19 +36,19 @@ public class SikulixForJython {
     return instance;
   }
 
-  void init() {
+  static void init() {
     JythonSupport helper = JythonSupport.get();
     helper.log(lvl, "SikulixForJython: init: starting");
-    String sikuliStuff = "sikuli/Sikuli";
-    File fSikuliStuff = helper.existsSysPathModule(sikuliStuff);
-    String libSikuli = "/Lib/" + sikuliStuff + ".py";
-    String fpSikuliStuff;
-    if (null == fSikuliStuff) {
-      URL uSikuliStuff = RunTime.resourceLocation(libSikuli);
-      if (uSikuliStuff == null) {
+    if (null == helper.existsSysPathModule("sikuli/Sikuli")) {
+      URL urlSX = RunTime.resourceLocation("/Lib/sikuli/Sikuli.py");
+      if (null == urlSX) {
         throw new SikuliXception(String.format("fatal: " + "Jython: " + "no suitable sikulix...jar on classpath"));
       }
-      fpSikuliStuff = Commons.getLibFolder().getAbsolutePath();
+      String pathSX = Commons.asFile(urlSX, "").getParentFile().getParent();
+      helper.log(0, "***** %s", pathSX);
+      helper.addSysPath(pathSX);
+/*
+      String fpSikuliStuff = Commons.getLibFolder().getAbsolutePath();
       if (!helper.hasSysPath(fpSikuliStuff)) {
         helper.log(lvl, "sikuli/*.py not found on current Jython::sys.path");
         helper.addSysPath(fpSikuliStuff);
@@ -57,6 +61,7 @@ public class SikulixForJython {
       } else {
         helper.log(lvl, "sikuli/*.py is on Jython::sys.path at:\n%s", fpSikuliStuff);
       }
+*/
     }
     helper.addSitePackages();
 //TODO default ImagePath???

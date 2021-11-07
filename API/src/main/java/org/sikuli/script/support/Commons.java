@@ -1100,6 +1100,18 @@ Software:
       folder = asFolder((String) path);
     } else if (path instanceof File) {
       folder = asFolder(((File) path).getPath());
+    } else if (path instanceof URL) {
+      URL url = (URL) path;
+      String urlPath = url.getPath();
+      if (url.getProtocol().equals("jar") || url.getProtocol().equals("file")) {
+        urlPath = urlPath.substring(5);
+      }
+      File urlFile = new File(urlPath);
+      if (url.getProtocol().equals("jar")) {
+        String[] split = urlPath.split("!");
+        urlFile = new File(split[0], split[1].substring(1));
+      }
+      return urlFile;
     } else {
       RunTime.terminate(999, "Commons: asFile(): path invalid %s", path);
     }
