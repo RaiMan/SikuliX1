@@ -645,12 +645,14 @@ public class ImagePath {
         newBundlePath = new File(Commons.getWorkDir(), "SikulixBundlePath").getAbsolutePath();
       }
     }
-    PathEntry entry = getPathEntry(newBundlePath, null);
-    if (entry != null && entry.isValid()) {
-      remove(isPathEntry(entry));
-      setBundle(entry);
-      bundlePathValid(entry);
-      return true;
+    if (new File(newBundlePath).exists()) {
+      PathEntry entry = getPathEntry(newBundlePath, null);
+      if (entry != null && entry.isValid()) {
+        remove(isPathEntry(entry));
+        setBundle(entry);
+        bundlePathValid(entry);
+        return true;
+      }
     }
     return false;
   }
