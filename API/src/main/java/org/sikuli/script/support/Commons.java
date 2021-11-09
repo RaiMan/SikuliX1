@@ -48,7 +48,6 @@ public class Commons {
   private static String sxVersionShort;
   private static String sxBuild;
   private static String sxBuildStamp;
-  private static String sxBuildNumber;
 
   private static final String osName;
   private static final String osVersion;
@@ -141,6 +140,9 @@ Software:
 
     Properties sxProps = new Properties();
     String svf = "/Settings/sikulixversion.txt";
+    String caller = Thread.currentThread().getStackTrace()[2].getClassName();
+    if (caller.contains(".ide."))
+      svf = "/Settings/sikulixversionide.txt";
     try {
       InputStream is;
       is = Commons.class.getResourceAsStream(svf);
@@ -161,18 +163,7 @@ Software:
     sxBuildStamp = sxBuild
         .replace("_", "").replace("-", "").replace(":", "")
         .substring(0, 12);
-    //    sikulixbuildnumber= BE-AWARE: only real in deployed artefacts (TravisCI)
-    //    in development context undefined:
-    sxBuildNumber = sxProps.getProperty("sikulixbuildnumber");
-    if (sxBuildNumber.contains("TRAVIS_BUILD_NUMBER")) {
-      sxBuildNumber = "";
-    }
-
-    if (sxBuildNumber.isEmpty()) {
-      sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
-    } else {
-      sxVersionLong = sxVersion + String.format("-#%s-%s", sxBuildNumber, sxBuildStamp);
-    }
+    sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
 
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -551,13 +542,6 @@ Software:
 
   public static String getSxBuildStamp() {
     return sxBuildStamp;
-  }
-
-  public static String getSXBuildNumber() {
-    if (sxBuildNumber.isEmpty()) {
-      return "dev";
-    }
-    return sxBuildNumber;
   }
 
   public static boolean hasVersionFile(File folder) {

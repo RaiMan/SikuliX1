@@ -70,12 +70,7 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    String buildNumber = Commons.getSXBuildNumber();
-    if (buildNumber.isEmpty()) {
-      setMessage(Commons.getSXVersionIDE());
-    } else {
-      setMessage(Commons.getSXVersionIDE() + String.format(" (%s) on Java %d", Commons.getSXBuild(), Commons.getJavaVersion()));
-    }
+    setMessage(Commons.getSXVersionIDE() + String.format(" (%s) on Java %d", Commons.getSXBuild(), Commons.getJavaVersion()));
     starting = 0;
   }
 //  @Override

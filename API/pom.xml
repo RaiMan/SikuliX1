@@ -63,8 +63,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd_HH:mm</maven.build.timestamp.format>
-    <!--suppress UnresolvedMavenProperty -->
-    <buildnumber>${env.TRAVIS_BUILD_NUMBER}</buildnumber>
   </properties>
 
   <dependencies>
@@ -270,7 +268,7 @@
         <version>2.0.0</version>
         <configuration>
           <outputDirectory>
-            src/main/resources/Settings
+            src/main/resources/Settings/LicenseAPI
           </outputDirectory>
         </configuration>
       </plugin>
