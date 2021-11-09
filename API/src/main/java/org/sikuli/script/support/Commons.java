@@ -60,6 +60,7 @@ public class Commons {
 
   private static File isRunning = null;
   private static FileOutputStream isRunningFile;
+  private static boolean isRunningIDE = false;
 
   public static Region getSXIDERegion() {
     Region regIDE = new Region(0, 0, 1, 1);
@@ -141,8 +142,10 @@ Software:
     Properties sxProps = new Properties();
     String svf = "/Settings/sikulixversion.txt";
     String caller = Thread.currentThread().getStackTrace()[2].getClassName();
-    if (caller.contains(".ide."))
+    if (caller.contains(".ide.")) {
       svf = "/Settings/sikulixversionide.txt";
+      isRunningIDE = true;
+    }
     try {
       InputStream is;
       is = Commons.class.getResourceAsStream(svf);
@@ -514,6 +517,10 @@ Software:
 
   public static boolean runningLinux() {
     return !runningMac() && !runningWindows();
+  }
+
+  public static boolean runningIDE() {
+    return isRunningIDE;
   }
 
   public static String getSXVersion() {
