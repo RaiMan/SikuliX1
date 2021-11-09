@@ -51,6 +51,14 @@
     </repository>
   </distributionManagement>
 
+  <repositories>
+    <repository>
+      <id>OSSRH</id>
+      <snapshots></snapshots>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -87,7 +95,7 @@
     <dependency>
       <groupId>com.sikulix</groupId>
       <artifactId>sikulix2opencv</artifactId>
-      <version>4.5.4</version>
+      <version>4.5.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.tess4j</groupId>

@@ -1,6 +1,5 @@
 
-Lists of 80 third-party dependencies.
-     (ASF 2.0) cglib (cglib:cglib:3.3.0 - https://github.com/cglib/cglib/cglib)
+Lists of 77 third-party dependencies.
      (The Apache Software License, Version 2.0) java-sizeof (com.carrotsearch:java-sizeof:0.0.5 - http://nexus.sonatype.org/oss-repository-hosting.html/java-sizeof)
      (GNU Lesser General Public License) mac_widgets (com.explodingpixels:mac_widgets:0.9.5 - http://code.google.com/p/macwidgets/)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.10 - http://github.com/FasterXML/jackson)
@@ -24,9 +23,8 @@ Lists of 80 third-party dependencies.
      (Unicode/ICU License) ICU4J (com.ibm.icu:icu4j:59.1 - http://icu-project.org/)
      (The BSD License) JGoodies Forms (com.jgoodies:forms:1.2.1 - https://forms.dev.java.net/)
      (Mozilla Public License) iText, a Free Java-PDF library (com.lowagie:itext:2.1.7 - http://www.lowagie.com/iText/)
-     (MIT License) sikulix2android (com.sikulix:sikulix2android:2.0.5 - http://www.sikulix.com)
-     (GNU General Public License v2.0) sikulix2tigervnc (com.sikulix:sikulix2tigervnc:2.0.5 - http://www.sikulix.com)
-     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-SNAPSHOT - http://www.sikulix.com)
+     (GNU General Public License v2.0) sikulix2opencv (com.sikulix:sikulix2opencv:4.5.4-20211108.155100-1 - http://www.sikulix.com)
+     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-20211108.173900-2 - http://www.sikulix.com)
      (The Apache Software License, Version 2.0) Apache Commons BeanUtils (commons-beanutils:commons-beanutils:1.9.2 - http://commons.apache.org/proper/commons-beanutils/)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (The Apache Software License, Version 2.0) Commons Collections (commons-collections:commons-collections:3.2.1 - http://commons.apache.org/collections/)
@@ -76,7 +74,6 @@ Lists of 80 third-party dependencies.
      (BSD) asm-tree (org.ow2.asm:asm-tree:7.1 - http://asm.ow2.org/)
      (BSD) asm-util (org.ow2.asm:asm-util:7.1 - http://asm.ow2.org/)
      (Jython Software License) Jython (org.python:jython-slim:2.7.2 - https://www.jython.org/)
-     (LGPL 3) Rococoa Core (org.rococoa:rococoa-core:0.5 - http://www.rococoa.org)
-     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:1.6.4 - http://www.slf4j.org)
+     (MIT License) SLF4J API Module (org.slf4j:slf4j-api:1.7.30 - http://www.slf4j.org)
      (MIT License) SLF4J NOP Binding (org.slf4j:slf4j-nop:1.7.28 - http://www.slf4j.org)
      (Lesser General Public License (LGPL)) Swing Layout Extensions (org.swinglabs:swing-layout:1.0.3 - https://swing-layout.dev.java.net/)

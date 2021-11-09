@@ -1,0 +1,7 @@
+maven-deploy-API
+
+ver=2.0.6-SNAPSHOT
+maven-deploy-IDE win $ver
+maven-deploy-IDE mac $ver
+maven-deploy-IDE macm1 $ver
+maven-deploy-IDE lux $ver

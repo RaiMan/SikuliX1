@@ -1,6 +1,5 @@
 export LC_ALL=en_US.UTF-8
 export GPG_TTY=$(tty)
 rm -f -R ~/.m2/repository/com/sikulix/sikulixapi
-cd ~/IdeaProjects/SikuliX
-mvn clean deploy -pl API -P build-source,build-docs,sign,maven-release
-cd ~/IdeaProjects/SikuliX
+mvn -pl API license:add-third-party
+mvn clean deploy -pl API -P sign --settings ../_DEV/_private/_sxmvnsettings.xml

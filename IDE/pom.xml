@@ -38,6 +38,14 @@
     <url>git@github.com:RaiMan/SikuliX1.git</url>
   </scm>
 
+  <repositories>
+    <repository>
+      <id>OSSRH</id>
+      <snapshots></snapshots>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sikulixjythonversion>2.7.2</sikulixjythonversion>
@@ -194,7 +202,7 @@
     </profile>
     <!-- complete-jar Mac M1 only-->
     <profile>
-      <id>complete-macM1-jar</id>
+      <id>complete-macm1-jar</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
@@ -210,7 +218,7 @@
                 </manifest>
               </archive>
               <descriptors>
-                <descriptor>makeide-macM1.xml</descriptor>
+                <descriptor>makeide-macm1.xml</descriptor>
               </descriptors>
             </configuration>
             <executions>

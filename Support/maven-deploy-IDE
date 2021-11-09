@@ -1,0 +1,34 @@
+if [ -e IDE/makeide-$1.xml ]; then
+
+type=$1
+ver=$2
+export LC_ALL=en_US.UTF-8
+export GPG_TTY=$(tty)
+
+cd ~/IdeaProjects/SikuliX1
+
+git switch release_2.0.x
+
+mvn -pl IDE license:add-third-party
+mvn clean package -pl IDE -P complete-$type-jar
+
+jarfrom=IDE/target/sikulixide-$ver-complete-$type.jar
+jarto=IDE/target/sikulixide$type-$ver.jar
+
+if [ -e $jarfrom ]; then
+
+cp -f $jarfrom $jarto
+
+mvn -B -e deploy:deploy-file -Dfile=$jarto \
+-Dpackaging=jar -DgroupId=com.sikulix -DartifactId=sikulixide$type \
+-Dversion=$ver \
+-DrepositoryId=ossrh -Durl='https://oss.sonatype.org/content/repositories/snapshots' \
+--settings ../_DEV/_private/_sxmvnsettings.xml
+
+else
+echo ERROR: parm2 not valid version: "$2"
+fi
+
+else
+echo ERROR - not in project folder OR parm1 not win mac macm1 lux
+fi
