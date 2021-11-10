@@ -5,8 +5,6 @@ ver=$2
 export LC_ALL=en_US.UTF-8
 export GPG_TTY=$(tty)
 
-cd ~/IdeaProjects/SikuliX1
-
 git switch release_2.0.x
 
 mvn -pl IDE license:add-third-party

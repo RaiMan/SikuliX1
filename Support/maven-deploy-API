@@ -1,5 +1,12 @@
+if [ -e IDE/makeide.xml ]; then
+echo ************************** deploy API
 export LC_ALL=en_US.UTF-8
 export GPG_TTY=$(tty)
+git switch release_2.0.x
 rm -f -R ~/.m2/repository/com/sikulix/sikulixapi
 mvn -pl API license:add-third-party
 mvn clean deploy -pl API -P sign --settings ../_DEV/_private/_sxmvnsettings.xml
+
+else
+echo ERROR - not in project folder
+fi
