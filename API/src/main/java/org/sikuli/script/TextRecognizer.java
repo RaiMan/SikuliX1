@@ -76,7 +76,7 @@ public class TextRecognizer {
         if (libTess.exists()) {
           Commons.jnaPathAdd(libPath);
         } else {
-          throw new SikuliXception(String.format("OCR: validate: libtesseract.dylib not in /usr/local/lib"));
+          throw new SikuliXception(String.format("OCR: validate: libtesseract.dylib not in %s", libPath));
         }
       }
       RunTime.loadOpenCV();
