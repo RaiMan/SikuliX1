@@ -138,17 +138,17 @@ public class RunTime {
     if (libsLoaded.contains(libName)) {
       return true;
     }
-    if (!areLibsExported) {
-      libsExport();
-      if (!areLibsExported) {
-        throw new SikuliXception("loadLib: deferred exporting of libs did not work");
-      }
-    }
     libName = getLibFilename(libName);
     //try from env::SIKULIX_LIBS
     File fLib = loadLib(Commons.getFromExternalLibsFolder(libName));
     if (fLib == null) {
       //try exported libs
+      if (!areLibsExported) {
+        libsExport();
+        if (!areLibsExported) {
+          throw new SikuliXception("loadLib: deferred exporting of libs did not work");
+        }
+      }
       fLib = loadLib(new File(Commons.getLibsFolder(), libName));
     }
     if (fLib == null) {
