@@ -478,6 +478,26 @@ Software:
     return "/sikulixlibs/" + Commons.getSysName() + "/libs";
   }
 
+  public static String getUserLibsPath() {
+    return System.getenv("SIKULIX_LIBS");
+  }
+
+  public static File getFromExternalLibsFolder(String libName) {
+    String libsPath = getUserLibsPath();
+    if (libsPath == null) {
+      return  null;
+    }
+    String[] paths = libsPath.split(File.pathSeparator);
+    File libFile = null;
+    for (String path : paths) {
+      if (new File(path, libName).exists()) {
+        libFile = new File(path, libName);
+        break;
+      }
+    }
+    return libFile;
+  }
+
   public static File getLibsFolder() {
     return new File(getAppDataPath(), "SikulixLibs");
   }

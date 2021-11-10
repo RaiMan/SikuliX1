@@ -76,7 +76,7 @@ public class RunTime {
   private List<String> classPathList = new ArrayList<>();
 
   private static boolean areLibsExported = false;
-  private static Map<String, Boolean> libsLoaded = new HashMap<String, Boolean>();
+  private static List<String> libsLoaded = new ArrayList<>();
 
   public File fSxBaseJar = null;
   public static String fpContent = "sikulixcontent";
@@ -115,65 +115,73 @@ public class RunTime {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="11 libs export">
-  private static boolean libsLoad(String libName) {
-    log(lvl, "loadlib: trying: %s", libName);
+  //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
+  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+
+  private static String getLibFilename(String aFile) {
+    if (Commons.runningWindows()) {
+      aFile += ".dll";
+    } else if (Commons.runningMac()) {
+      aFile = "lib" + aFile + ".dylib";
+    } else {
+      aFile = "lib" + aFile + ".so";
+    }
+    return aFile;
+  }
+
+  public static boolean loadOpenCV() {
+    return loadLibrary(libOpenCV);
+  }
+
+  public static boolean loadLibrary(String libName) {
+    log(lvl, "loadLibrary: trying: %s", libName);
+    if (libsLoaded.contains(libName)) {
+      return true;
+    }
     if (!areLibsExported) {
       libsExport();
-    }
-    if (!areLibsExported) {
-      throw new SikuliXception("loadLib: deferred exporting of libs did not work");
-    }
-    if (Commons.runningWindows()) {
-      libName += ".dll";
-    } else if (Commons.runningMac()) {
-      libName = "lib" + libName + ".dylib";
-    } else if (Commons.runningLinux()) {
-      libName = "lib" + libName + ".so";
-    }
-    File fLib = new File(Commons.getLibsFolder(), libName);
-    if (!Commons.runningLinux()) {
-      Boolean vLib = libsLoaded.get(libName);
-      if (vLib == null || !fLib.exists()) {
-        if (!fLib.exists()) {
-          RunTime.terminate(999, "FATAL: loadlib: %s not in any libs folder", libName);
-        } else {
-          vLib = false;
-        }
+      if (!areLibsExported) {
+        throw new SikuliXception("loadLib: deferred exporting of libs did not work");
       }
-      if (vLib) {
-        return true;
-      }
+    }
+    libName = getLibFilename(libName);
+    //try from env::SIKULIX_LIBS
+    File fLib = loadLib(Commons.getFromExternalLibsFolder(libName));
+    if (fLib == null) {
+      //try exported libs
+      fLib = loadLib(new File(Commons.getLibsFolder(), libName));
+    }
+    if (fLib == null) {
+      //try from system library folders
+      fLib = loadLib(new File(libName));
+    }
+    if (null == fLib) {
+      RunTime.terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libName);
+    }
+    libsLoaded.add(libName);
+    log(lvl, "loadLibrary: success: %s", fLib);
+    return true;
+  }
+
+  private static File loadLib(File fLib) {
+    if (fLib == null) {
+      return null;
     }
     try {
-      //TODO Linux libs handling
-      if (Commons.runningLinux() && libName.startsWith("libopen")) {
-        //libName = "opencv_java";
-        //System.loadLibrary(libName);
-      }
-      System.load(fLib.getAbsolutePath());
-    } catch (Exception e) {
-      log(-1, "loadlib: not usable: %s (%s)", libName, e.getMessage());
-      terminate(999, "problem with native library: " + libName);
-    } catch (UnsatisfiedLinkError e) {
-      log(-1, "loadlib: failed: %s - probably dependent libs missing:\n%s", libName, e.getMessage());
-      //TODO 2.0.5 goto some webpage in case of problems
-/*
-      String helpURL = "https://github.com/RaiMan/SikuliX1/wiki/macOS-Linux:-Support-Libraries-for-OpenCV-4";
-      if (RunTime.isIDE()) {
-        Debug.error("Save your work, correct the problem and restart the IDE!");
-        try {
-          Desktop.getDesktop().browse(new URI(helpURL));
-        } catch (Exception ex) {
+      if (fLib.isAbsolute()) {
+        if (fLib.exists()) {
+          System.load(fLib.getAbsolutePath());
+        } else {
+          return null;
         }
+      } else {
+        System.loadLibrary("" + fLib);
       }
-      Debug.error("see: " + helpURL);
-*/
-      terminate(999, "problem with native library: " + libName);
+    } catch (Exception e) {
+      log(-1, "loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
+      return null;
     }
-    libsLoaded.put(libName, true);
-    log(lvl, "loadlib: success: %s", libName);
-    return true;
+    return fLib;
   }
 
   private static boolean didExport = false;
@@ -183,6 +191,7 @@ public class RunTime {
   }
 
   private static void libsExport() {
+    String OPENCV_JAVA = "opencv_java";
     String fpJarLibs = Commons.getJarLibsPath();
     File fLibsFolder = Commons.getLibsFolder();
     if (fLibsFolder.exists()) {
@@ -229,17 +238,9 @@ public class RunTime {
         inFile = new File(fpJarLibs, aFile).getPath();
       }
       if (inFile != null) {
-        String OPENCV_JAVA = "opencv_java";
         if (OPENCV_JAVA.equals(aFile)) {
-          aFile = libOpenCV;
-          if (Commons.runningWindows()) {
-            aFile += ".dll";
-          } else if (Commons.runningMac()) {
-            aFile = "lib" + aFile + ".dylib";
-          } else {
-            aFile = "lib" + aFile + ".so";
-          }
-          inFile = inFile.replace(OPENCV_JAVA, aFile);
+          inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
+          aFile = new File(inFile).getName();
         }
         if (Commons.runningWindows()) {
           inFile = inFile.replace("\\", "/");
@@ -247,7 +248,6 @@ public class RunTime {
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
              InputStream inStream = classRef.getResourceAsStream(inFile)) {
           copy(inStream, outFile);
-          libsLoaded.put(aFile, false);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());
         }
@@ -261,47 +261,9 @@ public class RunTime {
         log(lvl, copyMsg);
       }
     }
-
-    //TODO useLibsProvided
-/*
-      if (useLibsProvided) {
-        log(lvl, "Linux: requested to use provided libs - copying");
-        LinuxSupport.copyProvidedLibs(fLibsFolder);
-      }
-*/
-
-    if (Commons.runningWindows()) {
-//TODO addToWindowsSystemPath needed?
-//      addToWindowsSystemPath(fLibsFolder);
-//TODO: Windows: Java Classloader::usr_paths needed for libs access?
-//      if (!checkJavaUsrPath(fLibsFolder)) {
-//        log(-1, "Problems setting up on Windows - see errors - might not work and crash later");
-//      }
-
-//TODO: jawt.dll no longer needed
-//      String lib = "jawt.dll";
-//      File fJawtDll = new File(fLibsFolder, lib);
-//      FileManager.deleteFileOrFolder(fJawtDll);
-//      FileManager.xcopy(new File(javahome, "bin/" + lib), fJawtDll);
-//      if (!fJawtDll.exists()) {
-//        throw new SikuliXception("problem copying " + fJawtDll);
-//      }
-    }
     areLibsExported = true;
   }
 //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
-  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-  private static boolean libOpenCVloaded = false;
-
-  public static boolean loadOpenCV() {
-    return loadLibrary(libOpenCV);
-  }
-
-  public static boolean loadLibrary(String libname) {
-    return libsLoad(libname);
-  }
 
   //TODO
   private static void addToWindowsSystemPath(File fLibsFolder) {

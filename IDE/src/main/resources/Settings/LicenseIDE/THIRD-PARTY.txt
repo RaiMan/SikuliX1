@@ -24,7 +24,7 @@ Lists of 77 third-party dependencies.
      (The BSD License) JGoodies Forms (com.jgoodies:forms:1.2.1 - https://forms.dev.java.net/)
      (Mozilla Public License) iText, a Free Java-PDF library (com.lowagie:itext:2.1.7 - http://www.lowagie.com/iText/)
      (GNU General Public License v2.0) sikulix2opencv (com.sikulix:sikulix2opencv:4.5.4-20211108.155100-1 - http://www.sikulix.com)
-     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-20211108.173900-2 - http://www.sikulix.com)
+     (MIT License) SikuliX API (com.sikulix:sikulixapi:2.0.6-SNAPSHOT - http://www.sikulix.com)
      (The Apache Software License, Version 2.0) Apache Commons BeanUtils (commons-beanutils:commons-beanutils:1.9.2 - http://commons.apache.org/proper/commons-beanutils/)
      (Apache License, Version 2.0) Apache Commons CLI (commons-cli:commons-cli:1.4 - http://commons.apache.org/proper/commons-cli/)
      (The Apache Software License, Version 2.0) Commons Collections (commons-collections:commons-collections:3.2.1 - http://commons.apache.org/collections/)
