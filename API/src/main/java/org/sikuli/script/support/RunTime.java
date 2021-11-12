@@ -139,6 +139,7 @@ public class RunTime {
       return true;
     }
     libName = getLibFilename(libName);
+    String userLib = "";
     //try from env::SIKULIX_LIBS
     File fLib = loadLib(Commons.getFromExternalLibsFolder(libName));
     if (fLib == null) {
@@ -150,6 +151,8 @@ public class RunTime {
         }
       }
       fLib = loadLib(new File(Commons.getLibsFolder(), libName));
+    } else {
+      userLib = Commons.userLibsPath + ": ";
     }
     if (fLib == null) {
       //try from system library folders
@@ -159,7 +162,7 @@ public class RunTime {
       RunTime.terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libName);
     }
     libsLoaded.add(libName);
-    log(lvl, "loadLibrary: success: %s", fLib);
+    log(lvl, "loadLibrary: success: %s%s", userLib, fLib);
     return true;
   }
 
