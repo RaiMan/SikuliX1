@@ -27,23 +27,6 @@ You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can pl
 **2.1.0 (branch master) currently not useable - development suspended**
 
 ---
-API 2.1.0-SNAPSHOT --- Java API Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile API](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-compile.yml) [![API Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/api-snapshot.yml) 
-
-Maven coordinates: OSSRH Snapshots :: com.sikulix :: sikulixapi :: 2.1.0-SNAPHOT
-
-[IMPORTANT: Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/API/README.md)
-
----
-IDE 2.1.0-SNAPSHOT --- Jython IDE Status:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Compile IDE](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-compile.yml) [![IDE Snapshot](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml/badge.svg)](https://github.com/RaiMan/SikuliX1/actions/workflows/ide-snapshot.yml) 
-
-Get Latest IDE Snapshot Runnable Jar:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Windows <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixwin/2.1.0-SNAPSHOT/sikulixwin-2.1.0-20210523.145804-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for macOS <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixmac/2.1.0-SNAPSHOT/sikulixmac-2.1.0-20210523.145838-7.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-[> for Linux <](https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixlux/2.1.0-SNAPSHOT/sikulixlux-2.1.0-20210523.145917-4.jar) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
-[IMPORTANT: Read about how to use these snapshot jars](https://github.com/RaiMan/SikuliX1/blob/master/IDE/README.md)
-
----
 **Java: must be Java 11 or later** (best places to get it: [AdoptOpenJDK](https://adoptopenjdk.net) or [Azul](https://www.azul.com/downloads/?package=jdk#download-openjdk))
 - non-LTS versions like Java 16 or even 17ea might create problems that should be reported
 - for macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
@@ -76,11 +59,11 @@ For use in **Java Maven projects** the dependency coordinates are:
 
 **My Development environment**
 
- - Java 11 (current JDK LTS release)
+ - Java 17 (current JDK LTS release)
  - Source and target level for Java is version 11
  - Maven project
- - Windows 10 latest (Pro 64-Bit)
- - latest macOS 11 (10.16) on Intel and M1 machines
+ - Windows 11 latest (Pro 64-Bit)
+ - latest macOS 12 (Monterey) on Intel and M1 machines
  - Ubuntu latest LTS version running in Oracle VM VirtualBox on Windows 10
  - Using IntelliJ IDEA CE in all environments
 
