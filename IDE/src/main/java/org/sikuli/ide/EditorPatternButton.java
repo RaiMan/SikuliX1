@@ -29,7 +29,6 @@ import java.util.Map;
 
 class EditorPatternButton extends JButton implements ActionListener, Serializable, MouseListener, EventObserver {
 
-    public static final int DEFAULT_NUM_MATCHES = 50;
     static final int DEFAULT_SIMILARITY = 70;
     static double defaultSimilarity() {
         return (double) DEFAULT_SIMILARITY / 100;
@@ -45,7 +44,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
     private double _similarity, _similaritySaved;
     private float _resizeFactor;
     private String _mask;
-    private int _numMatches = DEFAULT_NUM_MATCHES;
+//    private int _numMatches = DEFAULT_NUM_MATCHES;
     private boolean _exact, _exactSaved;
     private Location _offset = new Location(0, 0), _offsetSaved;
     private int _imgW, _imgH;
@@ -82,7 +81,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         _similarity = _lbl.getSimilarity();
         _resizeFactor = _lbl.getResizeFactor();
         _offset = _lbl.getTargetOffset();
-        _numMatches = DEFAULT_NUM_MATCHES;
+        //_numMatches = DEFAULT_NUM_MATCHES;
         _pane = _lbl.getPane();
     }
 
@@ -91,7 +90,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         _pane = pane;
         _exact = false;
         _similarity = defaultSimilarity();
-        _numMatches = DEFAULT_NUM_MATCHES;
+        //_numMatches = DEFAULT_NUM_MATCHES;
         if (imgFilename != null) {
             setFilename(imgFilename);
         } else if (img != null) {
@@ -144,9 +143,11 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
                 } catch (NumberFormatException e) {
                     return null;
                 }
-            } else if (tok.startsWith("firstN")) { // FIXME: replace with limit/max
-                String strArg = tok.substring(tok.lastIndexOf("(") + 1);
-                btn._numMatches = Integer.valueOf(strArg);
+//TODO max matches no longer needed
+//           }
+//            else if (tok.startsWith("firstN")) { // FIXME: replace with limit/max
+//                String strArg = tok.substring(tok.lastIndexOf("(") + 1);
+//                btn._numMatches = Integer.valueOf(strArg);
             } else if (tok.startsWith("targetOffset")) {
                 String strArg = tok.substring(tok.lastIndexOf("(") + 1);
                 String[] args = strArg.split(",");
@@ -192,8 +193,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
                 _similaritySaved = _similarity;
                 _exactSaved = _similarity >= 0.99f;
                 _imgFilenameSaved = _imgFilename.substring(0);
-                pwin = new PatternWindow(this, _exactSaved, _similarity, _numMatches);
-                pwin.setTargetOffset(_offset);
+                pwin = new PatternWindow(this, _exactSaved, _similarity, _offset);
             }
             pwin.requestFocus();
         }
@@ -316,9 +316,9 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
         return thumb;
     }
 
-    public boolean setParameters(boolean exact, double similarity, int numMatches) {
+    public boolean setParameters(boolean exact, double similarity) {
         boolean dirty = false;
-        Debug.log(3, "ThumbButtonLabel: setParameters: " + exact + "," + similarity + "," + numMatches);
+        Debug.log(3, "ThumbButtonLabel: setParameters: " + exact + "," + similarity);
         dirty |= setExact(exact);
         dirty |= setSimilarity(similarity);
         setButtonText();
@@ -327,7 +327,7 @@ class EditorPatternButton extends JButton implements ActionListener, Serializabl
 
     public void resetParameters() {
         setFilename(_imgFilenameSaved);
-        setParameters(_exactSaved, _similaritySaved, DEFAULT_NUM_MATCHES);
+        setParameters(_exactSaved, _similaritySaved);
         setTargetOffset(_offsetSaved);
     }
 

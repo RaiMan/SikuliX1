@@ -19,10 +19,10 @@ import java.util.*;
 
 @SuppressWarnings("serial")
 class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentListener {
+  public static final int DEFAULT_NUM_MATCHES = 50;
   public static final int BOTTOM_MARGIN = 200;
   private static final String me = "PatternPaneScreenshot: ";
-  static int DEFAULT_H;
-  static int MAX_NUM_MATCHING = EditorPatternButton.DEFAULT_NUM_MATCHES;
+//  static int MAX_NUM_MATCHING = EditorPatternButton.DEFAULT_NUM_MATCHES;
   int _width, _height;
   double _scale, _ratio;
   boolean _runFind = false;
@@ -129,14 +129,12 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     return sldSimilar;
   }
 
-  public void setParameters(final String patFilename,
-          final boolean exact, final double similarity,
-          final int numMatches) {
+  public void createMatches(String patFilename, boolean exact, double similarity) {
     if (!_runFind) {
+      _runFind = true;
       _showMatches = null;
       _fullMatches.clear();
       repaint();
-      _runFind = true;
       patternFileName = patFilename;
       new Thread(() -> {
         try {
@@ -145,7 +143,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
 
           int count = 0;
           while (f.hasNext()) {
-            if (++count > MAX_NUM_MATCHING) {
+            if (++count > DEFAULT_NUM_MATCHES) {
               break;
             }
             Match m = f.next();
@@ -155,33 +153,29 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
           }
 
           EventQueue.invokeLater(() -> {
-            setParameters(exact, similarity, numMatches);
+            setParameters(exact, similarity);
           });
         } catch (Exception e) {
           Debug.error(me + "Problems searching image in ScreenUnion\n%s", e.getMessage());
         }
       }).start();
     } else {
-      setParameters(exact, similarity, numMatches);
+      setParameters(exact, similarity);
     }
   }
 
   public void reloadImage() {
     _runFind = false;
-    setParameters(patternFileName, isExact(), getSimilarity(), getNumMatches());
+    createMatches(patternFileName, isExact(), getSimilarity());
   }
 
-  public void setParameters(boolean exact, double similarity, int numMatches) {
-    if (numMatches > MAX_NUM_MATCHING) {
-      numMatches = MAX_NUM_MATCHING;
-    }
+  public void setParameters(boolean exact, double similarity) {
     if (!exact) {
       _similarity = similarity;
     } else {
       _similarity = 0.99;
     }
-    _numMatches = numMatches;
-    filterMatches(_similarity, _numMatches);
+    filterMatches(_similarity);
     sldSimilar.setValue((int) Math.round(similarity * 100));
     repaint();
   }
@@ -229,30 +223,20 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
 
   private void setSimilarity(double similarity) {
     _similarity = similarity > 0.99 ? 0.99 : similarity;
-    filterMatches(_similarity, _numMatches);
+    filterMatches(_similarity);
     repaint();
   }
 
-  private void setNumMatches(int numMatches) {
-    _numMatches = numMatches;
-    filterMatches(_similarity, _numMatches);
-    repaint();
-  }
-
-  void filterMatches(double similarity, int numMatches) {
+  void filterMatches(double similarity) {
     int count = 0;
-    if (_fullMatches != null && numMatches >= 0) {
+    if (_fullMatches != null) {
       _showMatches = new ArrayList<Match>();
-
-      if (numMatches == 0) {
-        return;
-      }
 
       synchronized(_fullMatches) {
         for (Match m : _fullMatches) {
           if (m.getScore() >= similarity) {
             _showMatches.add(m);
-            if (++count >= numMatches) {
+            if (++count >= DEFAULT_NUM_MATCHES) {
               break;
             }
           }
@@ -260,7 +244,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       }
 
 //      _lblMatchCount.setText(Integer.toString(count));
-      Debug.log(4, "filterMatches(%.2f,%d): %d", similarity, numMatches, count);
+      Debug.log(4, "filterMatches(%.2f,%d): %d", similarity, count);
     }
   }
 
@@ -304,10 +288,6 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
     if (src instanceof JSlider) {
       JSlider source = (JSlider) e.getSource();
       setSimilarity((double) source.getValue() / 100);
-    } else if (src instanceof JSpinner) {
-      JSpinner source = (JSpinner) e.getSource();
-      int val = (Integer) source.getValue();
-      setNumMatches(val);
     }
   }
 
