@@ -99,7 +99,7 @@ public class ImagePath {
 
   private static void dumpDo(int lvl, String msg) {
     if (null != msg) {
-      log(0, "****** %s", msg);
+      log(lvl, "****** %s", msg);
     }
     int i = 0;
     for (PathEntry p : imagePaths) {
@@ -111,7 +111,7 @@ public class ImagePath {
       i++;
     }
     if (null != msg) {
-      log(0, "****** ------------ ******");
+      log(lvl, "****** ------------ ******");
     }
   }
   /**
@@ -642,7 +642,7 @@ public class ImagePath {
     if (newBundlePath == null) {
       newBundlePath = Settings.BundlePath;
       if (newBundlePath == null) {
-        newBundlePath = new File(Commons.getWorkDir(), "SikulixBundlePath").getAbsolutePath();
+        newBundlePath = new File(Commons.getWorkDir(), Settings.WorkdirBundlePath).getAbsolutePath();
       }
     }
     if (new File(newBundlePath).exists()) {
@@ -765,8 +765,13 @@ public class ImagePath {
       imageFile = new File(Commons.getWorkDir(), imageFileName);
       if (imageFile.exists()) {
         return Commons.makeURL(imageFile);
+      } else {
+        imageFile = new File(new File(Commons.getWorkDir(), Settings.WorkdirBundlePath), imageFileName);
+        if (imageFile.exists()) {
+          return Commons.makeURL(imageFile);
+        }
       }
-      log(-1, "find: not there: %s", imageFileName);
+      log(-1, "find: File not found: %s", imageFileName);
       dump(lvl);
       return fURL;
     }

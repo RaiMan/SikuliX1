@@ -91,6 +91,8 @@ public class Settings {
   public static boolean ClickTypeHack = false;
 
   public static String BundlePath = null;
+  public static String WorkdirBundlePath = "SikulixBundlePath";
+
   public static boolean OverwriteImages = false;
 
   public static final String OcrLanguageDefault = "eng";
