@@ -59,7 +59,7 @@ public class CommandArgs {
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
 
-    cmdArgs.addOption(makeOption(CommandArgsEnum.MULTI));
+    //TODO use APPDATA: cmdArgs.addOption(makeOption(CommandArgsEnum.MULTI));
 
     cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
 

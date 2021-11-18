@@ -144,7 +144,7 @@ public class Sikulix {
       ideSplash.run();
     }
 
-    if (!Commons.hasStartArg(MULTI)) {
+    if (!Commons.hasStartArg(APPDATA)) {
       File isRunning;
       FileOutputStream isRunningFile;
       String isRunningFilename = "s_i_k_u_l_i-ide-isrunning";
