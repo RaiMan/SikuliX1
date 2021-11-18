@@ -177,7 +177,7 @@ public class Options {
       log(-1, "saveOptions: no prop %s", propOptionsFile);
       return false;
     }
-    return saveOpts(fpOptions);
+    return saveOptions(fpOptions);
   }
 
   /**

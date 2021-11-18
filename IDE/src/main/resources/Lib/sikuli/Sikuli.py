@@ -283,7 +283,7 @@ def prefLoad(key, default = ""):
     return SXOpts.prefLoad(key, default)
 
 def prefAll():
-    return SXOpts.prefAll();
+    return SXOpts.prefAll()
 
 def prefRemove(key = None):
     if not key:
