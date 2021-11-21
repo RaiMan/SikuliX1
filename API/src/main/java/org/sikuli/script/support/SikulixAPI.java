@@ -16,7 +16,7 @@ public class SikulixAPI {
 
   public static void main(String[] args) {
 
-    CommandArgs cmdArgs = new CommandArgs();
+    CommandArgs cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
     CommandLine cmdLine = cmdArgs.getCommandLine(args);
 
     if (cmdLine != null && cmdLine.hasOption("p")) {
@@ -26,7 +26,7 @@ public class SikulixAPI {
           pythonServer = new py4j.GatewayServer();
         } catch (ClassNotFoundException e) {
           System.out.println("[ERROR] Python server: py4j not on classpath");
-          RunTime.terminate();
+          Commons.terminate();
         }
         Debug.reset();
         HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
@@ -37,7 +37,7 @@ public class SikulixAPI {
               Debug.logp("Python server: trying to stop");
               pythonServer.shutdown();
               pythonServer = null;
-              RunTime.terminate();
+              Commons.terminate();
             }
           }
         });
@@ -47,13 +47,13 @@ public class SikulixAPI {
           pythonServer.start(false);
         } catch (Exception e) {
           error("py4j server already running on port %s --- TERMINATING", port);
-          RunTime.terminate();
+          Commons.terminate();
         }
       }
     }
 
     info("nothing to do");
-    RunTime.terminate();
+    Commons.terminate();
   }
 
   private static GatewayServer pythonServer = null;

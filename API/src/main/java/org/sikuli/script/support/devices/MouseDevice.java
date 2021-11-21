@@ -3,7 +3,6 @@ package org.sikuli.script.support.devices;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 
@@ -61,7 +60,7 @@ public class MouseDevice extends Devices {
     Settings.MoveMouseDelay = mmd;
     if (!isUsable()) {
       if (Commons.runningMac()) {
-        RunTime.terminate(999, "Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
+        Commons.terminate(999, "Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
       }
     }
   }

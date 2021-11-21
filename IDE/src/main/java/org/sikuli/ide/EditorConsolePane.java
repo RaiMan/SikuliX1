@@ -35,7 +35,7 @@ import org.sikuli.basics.Debug;
 // Permision to use and distribute into your own applications
 //
 // RJHM van den Bergh , rvdb@comweb.nl
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;

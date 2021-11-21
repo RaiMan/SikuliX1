@@ -5,7 +5,7 @@ package org.sikuli.ide;
 import org.apache.commons.io.FilenameUtils;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.idesupport.IDESupport;

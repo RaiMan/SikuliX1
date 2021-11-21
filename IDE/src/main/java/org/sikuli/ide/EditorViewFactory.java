@@ -3,7 +3,7 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import java.awt.*;
 import java.util.*;
 import java.util.prefs.PreferenceChangeEvent;

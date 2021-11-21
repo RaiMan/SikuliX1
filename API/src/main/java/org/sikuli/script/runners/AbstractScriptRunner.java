@@ -18,6 +18,7 @@ import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 
 import com.sun.jna.ptr.IntByReference;
+import org.sikuli.script.support.Commons;
 
 public abstract class AbstractScriptRunner implements IScriptRunner {
 
@@ -165,7 +166,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
     return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
-      if (!Debug.isGlobalDebug()) {
+      if (!Commons.isVerbose()) {
         Debug.off();
       }
 

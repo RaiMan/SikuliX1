@@ -205,6 +205,12 @@ def show():
     import org.sikuli.script.support.Commons as SC
     SC.show()
 
+def showOptions():
+    level = Debug.getDebugLevel()
+    Debug.setDebugLevel(3)
+    import org.sikuli.script.support.Commons as SC
+    SC.showOptions()
+    Debug.setDebugLevel(level)
 
 ##
 # public for options handling (property file)

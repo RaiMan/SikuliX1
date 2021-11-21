@@ -47,18 +47,13 @@ public enum CommandArgsEnum {
 	/**
 	 * run as server
 	 */
-	SERVER("server", "s", "[port (50001)]", "run as server on optional port"),
+	RUNSERVER("server", "s", "[port (50001)]", "run as server on optional port"),
 	/**
 	 * run the server for Python
 	 */
-	PYTHONSERVER("pythonserver", "p", "Python support", "use SikuliX features from Python"),
+	RUNPYSERVER("pythonserver", "p", "Python support", "use SikuliX features from Python"),
 	/**
-	 * allow multiple IDE
-	 */
-	MULTI("multi", "m", "more than one IDE", "two or more IDE instances are allowed"),
-
-	/**
-	 * allow multiple IDE
+	 * run in sandbox, multiple IDE instances allowed
 	 */
 	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", true);
 

@@ -1,7 +1,7 @@
 package org.sikuli.script.support.devices;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Commons;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -32,7 +32,7 @@ public abstract class Devices {
       try {
         globalRobot = new Robot();
       } catch (AWTException e) {
-        RunTime.terminate(999, String.format("SikuliX: Devices: AWT.Robot: %s", e.getMessage()));
+        Commons.terminate(999, String.format("SikuliX: Devices: AWT.Robot: %s", e.getMessage()));
       }
     }
     return globalRobot;

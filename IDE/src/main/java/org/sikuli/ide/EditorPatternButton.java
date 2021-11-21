@@ -5,7 +5,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.Image;
 import org.sikuli.script.Location;
 import org.sikuli.util.EventObserver;

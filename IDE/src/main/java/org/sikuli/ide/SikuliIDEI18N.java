@@ -3,10 +3,9 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.Commons;
 import java.text.MessageFormat;
 import java.util.*;
-import org.sikuli.basics.Debug;
 
 public class SikuliIDEI18N {
    static ResourceBundle i18nRB = null;
@@ -16,11 +15,10 @@ public class SikuliIDEI18N {
    static {
       Locale locale_en = new Locale("en","US");
       i18nRB_en = ResourceBundle.getBundle("i18n/IDE",locale_en);
-      Locale locale = PreferencesUser.get().getLocale();
-      curLocale = locale;
-      if(!setLocale(locale)){
-         locale = locale_en;
-         PreferencesUser.get().setLocale(locale);
+      curLocale = Commons.getLocale();
+      if(!setLocale(curLocale)){
+         curLocale = locale_en;
+         Commons.setLocale(curLocale);
       }
    }
 
@@ -29,7 +27,7 @@ public class SikuliIDEI18N {
          i18nRB = ResourceBundle.getBundle("i18n/IDE",locale);
       }
       catch(MissingResourceException e){
-         Debug.error("SikuliIDEI18N: no locale for " + locale);
+         Commons.error("SikuliIDEI18N: no locale for " + locale);
          return false;
       }
       return true;

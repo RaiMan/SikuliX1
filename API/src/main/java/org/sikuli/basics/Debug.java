@@ -72,6 +72,11 @@ public class Debug {
 
   private static PrintStream redirectedOut = null, redirectedErr = null;
 
+  static {
+    if (Commons.isDebug()) {
+      DEBUG_LEVEL = 3;
+    }
+  }
 
   private static boolean initOK = false;
 
@@ -79,45 +84,10 @@ public class Debug {
     if (initOK) {
       return;
     }
-    String debug = System.getProperty("sikuli.Debug");
-    if (debug != null) {
-      if ("".equals(debug)) {
-        DEBUG_LEVEL = 0;
-        Settings.DebugLogs = false;
-      } else {
-        try {
-          DEBUG_LEVEL = Integer.parseInt(debug);
-          if (DEBUG_LEVEL > 0) {
-            Settings.DebugLogs = true;
-          } else {
-            Settings.DebugLogs = false;
-          }
-        } catch (NumberFormatException numberFormatException) {
-        }
-      }
-    }
     setLogFile(null);
     setUserLogFile(null);
-    if (DEBUG_LEVEL > 0) {
-      setGlobalDebug(DEBUG_LEVEL);
-    }
     initOK = true;
   }
-
-  public static boolean isGlobalDebug() {
-    return globalDebug > 0;
-  }
-
-  public static void setGlobalDebug(int level) {
-    globalDebug = level;
-    setDebugLevel(level);
-  }
-
-  public static void resetGlobalDebug() {
-    setDebugLevel(globalDebug);
-  }
-
-  static int globalDebug = 0;
 
   public static void highlightOn() {
     searchHighlight = true;
@@ -132,20 +102,6 @@ public class Debug {
   public static boolean shouldHighlight() {
     return searchHighlight;
   }
-
-  public static void quietOn() {
-    beQuiet = true;
-  }
-
-  public static void quietOff() {
-    beQuiet = false;
-  }
-
-  public static boolean isBeQuiet() {
-    return beQuiet;
-  }
-
-  private static boolean beQuiet = false;
 
   public static void reset() {
     setDebugLevel(0);
@@ -432,7 +388,7 @@ public class Debug {
 
   public static void out(String msg) {
     if (redirectedOut != null && DEBUG_LEVEL > 2) {
-      if (!beQuiet) {
+      if (!Commons.isQuiet()) {
         redirectedOut.println(msg);
       }
     }
@@ -744,7 +700,7 @@ public class Debug {
    */
   public static String logx(int level, String message, Object... args) {
     String sout = "";
-    if (beQuiet) return sout;
+    if (Commons.isQuiet()) return sout;
     if (level == -1 || level == -100) {
       sout = log(level, errorPrefix, message, args);
     } else if (level == -2) {
@@ -764,7 +720,7 @@ public class Debug {
     } else {
       out = msg;
     }
-    if (!beQuiet) {
+    if (!Commons.isQuiet()) {
       System.out.println(out);
     }
     return out;
@@ -772,7 +728,7 @@ public class Debug {
 
   private static synchronized String log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
-    if (beQuiet) {
+    if (Commons.isQuiet()) {
       return "";
     }
     String sout = "";
@@ -803,7 +759,7 @@ public class Debug {
           printout.print(prefix + sout);
           printout.println();
         } else {
-          if (!beQuiet) {
+          if (!Commons.isQuiet()) {
             System.out.print(prefix + sout);
             System.out.println();
           }

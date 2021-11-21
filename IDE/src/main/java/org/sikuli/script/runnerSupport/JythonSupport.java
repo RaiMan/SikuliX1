@@ -115,8 +115,6 @@ public class JythonSupport implements IRunnerSupport {
         interpreter = null;
       }
     }
-    Commons.setJythonReady();
-    //instance.log(lvl, "init: success");
   }
 
   public static boolean isReady() {

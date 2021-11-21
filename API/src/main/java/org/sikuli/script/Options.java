@@ -5,13 +5,10 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
-import org.sikuli.util.CommandArgsEnum;
 
-import javax.swing.text.html.Option;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -48,7 +45,6 @@ public class Options {
   }
 
   static Options sxOptions = null;
-  static RunTime runtime = null;
 
   private String fnSXOptions = "SikulixOptions.txt";
   private String propOptionsFile = "OptionsFile";
@@ -250,10 +246,6 @@ public class Options {
     return getOption(pName, "");
   }
 
-  public String getOption(CommandArgsEnum arg) {
-    return getOption("ARG_" + arg.name(), "");
-  }
-
   /**
    * {link getOption}
    *
@@ -262,7 +254,7 @@ public class Options {
    */
   public void setOption(String pName, String sValue) {
     if (options == null) {
-      init();
+      init(); //setOption
     }
     options.setProperty(pName, sValue);
   }
@@ -305,7 +297,7 @@ public class Options {
    */
   public void setOptionInteger(String pName, int nValue) {
     if (options == null) {
-      init();
+      init(); //setOptionInt
     }
     options.setProperty(pName, "" + nValue);
   }
@@ -347,7 +339,7 @@ public class Options {
    */
   public void setOptionFloat(String pName, float nValue) {
     if (options == null) {
-      init();
+      init(); //setOptionFloat
     }
     options.setProperty(pName, "" + nValue);
   }
@@ -389,7 +381,7 @@ public class Options {
    */
   public void setOptionDouble(String pName, double nValue) {
     if (options == null) {
-      init();
+      init(); //setOptionDouble
     }
     options.setProperty(pName, "" + nValue);
   }
@@ -432,7 +424,7 @@ public class Options {
    */
   public void setOptionBool(String pName, boolean bValue) {
     if (options == null) {
-      init();
+      init(); //setOptionBool
     }
     options.setProperty(pName, isOption(pName, bValue) ? "true" : "false");
   }
@@ -604,18 +596,6 @@ public class Options {
         .entrySet()
         .stream()
         .filter(e -> e.getKey().startsWith(userPrefix))
-        .sorted(Map.Entry.comparingByKey())
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            Map.Entry::getValue,
-            (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-  }
-
-  public static Map<String, String> prefAllSX() {
-    return prefComplete()
-        .entrySet()
-        .stream()
-        .filter(e -> !e.getKey().startsWith(userPrefix))
         .sorted(Map.Entry.comparingByKey())
         .collect(Collectors.toMap(
             Map.Entry::getKey,

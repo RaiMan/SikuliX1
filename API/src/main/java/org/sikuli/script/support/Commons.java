@@ -8,7 +8,6 @@ import org.apache.commons.cli.CommandLine;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.script.*;
 import org.sikuli.script.runners.ProcessRunner;
@@ -58,16 +57,23 @@ public class Commons {
 
   private static long startMoment;
 
-  private static File isRunning = null;
-  private static FileOutputStream isRunningFile;
-  private static boolean isRunningIDE = false;
+  private static int debugLevelQuiet = -100;
+  private static int debugLevel = 0;
+  private static boolean verbose = false;
 
-  public static Region getSXIDERegion() {
-    Region regIDE = new Region(0, 0, 1, 1);
-    regIDE.setName("***SXIDE***");
-    return regIDE;
+  protected static boolean RUNNINGIDE = false;
+
+  public static boolean isRunningIDE() {
+    if (RUNNINGIDE &&
+        !hasOption("SX_ARG_RUN") &&
+        !hasOption("SX_ARG_RUNSERVER") &&
+        !hasOption("SX_ARG_RUNPYSERVER")) {
+      return true;
+    }
+    return false;
   }
 
+  private static JFrame SXIDE = null;
 
   public static JFrame getSXIDE() {
     return SXIDE;
@@ -77,12 +83,18 @@ public class Commons {
     Commons.SXIDE = SXIDE;
   }
 
-  private static JFrame SXIDE = null;
+  public static Region getSXIDERegion() {
+    Region regIDE = new Region(0, 0, 1, 1);
+    regIDE.setName("***SXIDE***");
+    return regIDE;
+  }
+
+  private static File isRunning = null;
+  private static FileOutputStream isRunningFile;
 
   private static void runShutdownHook() {
     debug("***** final cleanup at System.exit() *****");
     //TODO runShutdownHook cleanUp();
-
     if (isRunning != null) {
       try {
         isRunningFile.close();
@@ -108,7 +120,9 @@ public class Commons {
       throw new SikuliXception("SikuliX fatal Error: Java must be 64-Bit");
     }
 
-    //TODO check with Java 18 for correct Windows 11 version
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
+
+    //TODO check with Java 18 for correct Windows 11 version + macOS version
     if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
       osName = "windows";
       if (System.getProperty("os.version").toLowerCase().startsWith("1")) {
@@ -144,7 +158,7 @@ Software:
     String caller = Thread.currentThread().getStackTrace()[2].getClassName();
     if (caller.contains(".ide.")) {
       svf = "/Settings/sikulixversionide.txt";
-      isRunningIDE = true;
+      RUNNINGIDE = true;
     }
     try {
       InputStream is;
@@ -168,53 +182,129 @@ Software:
         .substring(0, 12);
     sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        runShutdownHook();
-      }
-    });
   }
 
+  //TODO force early Commons static initializer (RunTime)
   public static void init() {
   }
 
   public static double getSinceStart() {
     return (new Date().getTime() - startMoment) / 1000.0;
   }
+
+  public static Locale getLocale() {
+    return PreferencesUser.get().getLocale(); //TODO
+  }
+  public static void setLocale(Locale locale) {
+    PreferencesUser.get().setLocale(locale); //TODO
+  }
+
+  public static boolean hasStartArg(CommandArgsEnum option) {
+    if (!hasOption("SX_ARG_" + option.name())) {
+      if (option.equals(DEBUG)) {
+        String prop = System.getProperty("sikuli.Debug");
+        if (prop != null) {
+          return true;
+        }
+      } else if(option.equals(CONSOLE)) {
+        String prop = System.getProperty("sikuli.console");
+        if (prop != null) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  public static void initGlobalOptions() {
+    if (globalOptions == null) {
+      globalOptions = Options.create();
+      // *************** add commandline args
+      String val = "";
+      if (Commons.RUNNINGIDE) {
+        for (CommandArgsEnum arg : CommandArgsEnum.values()) {
+          if (cmdLine.hasOption(arg.shortname())) {
+            if (arg.hasArgs()) {
+              String[] args = cmdLine.getOptionValues(arg.shortname());
+              if (args.length > 1) {
+                for (int n = 0; n < args.length; n++) {
+                  val += args[n] + File.pathSeparator;
+                }
+                val = val.substring(0, val.length() - 1);
+              } else {
+                val = args[0];
+              }
+            }
+            globalOptions.setOption("SX_ARG_" + arg, val);
+            val = "";
+          }
+        }
+        val = "";
+        for (String arg : cmdArgs.getUserArgs()) {
+          val += arg + " ";
+        }
+        if (!val.isEmpty()) {
+          globalOptions.setOption("SX_ARG_USER", val.trim());
+        }
+
+        if (Commons.isRunningIDE()) {
+          PreferencesUser prefsIDE = PreferencesUser.get();
+          Map<String, String> allPrefs = prefsIDE.getAll("");
+          for (String key : allPrefs.keySet()) {
+            globalOptions.setOption("SX_PREFS_IDE_" + key, allPrefs.get(key));
+          }
+        }
+      }
+      globalOptions.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
+    }
+  }
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
   public static void info(String msg, Object... args) {
-    if (hasStartArg(VERBOSE)) {
+    if (!isQuiet()) {
       System.out.printf("[SXINFO] " + msg + "%n", args);
     }
   }
 
   public static void error(String msg, Object... args) {
-    System.out.printf("[SXERROR] " + msg + "%n", args);
+    if (!isQuiet()) {
+      System.out.printf("[SXERROR] " + msg + "%n", args);
+    }
+  }
+
+ public static void setDebug() {
+    debugLevel = 3;
   }
 
   public static boolean isDebug() {
-    return debug;
+    return debugLevel > 2;
   }
 
-  public static void startDebug() {
-    debug = true;
+  public static void setQuiet() {
+    debugLevel = debugLevelQuiet;
   }
 
-  public static void stopDebug() {
-    debug = true;
+  public static boolean isQuiet() {
+    return debugLevel < 0;
   }
 
-  private static boolean debug = false;
+  public static void setVerbose() {
+    setDebug();
+    verbose = true;
+  }
 
+  public static boolean isVerbose() {
+    return verbose;
+  }
   public static void debug(String msg, Object... args) {
-    if (isDebug() || Debug.isGlobalDebug()) {
+    if (isDebug()) {
       System.out.printf("[SXDEBUG] " + msg + "%n", args);
     }
   }
+
+  private static boolean trace = false;
 
   public static boolean isTrace() {
     return trace;
@@ -227,8 +317,6 @@ Software:
   public static void stopTrace() {
     trace = false;
   }
-
-  private static boolean trace = false;
 
   public static void trace(String msg, Object... args) {
     if (isTrace()) {
@@ -258,16 +346,20 @@ Software:
     }
   }
 
-  public static void startLog(int level, String msg, Object... args) {
-    if (level < 3) {
-      if (!hasStartArg(VERBOSE)) {
-        return;
-      }
-      if (hasStartArg(QUIET)) {
-        return;
-      }
+  public static void terminate() {
+    terminate(0, "");
+  }
+
+  public static void terminate(int retval, String message, Object... args) {
+    String outMsg = String.format(message, args);
+    if (!outMsg.isEmpty()) {
+      System.out.println("TERMINATING: " + outMsg);
     }
-    System.out.println(String.format("[DEBUG STARTUP] " + msg, args));
+    if (retval < 999) {
+      RunTime.cleanUp();
+      System.exit(retval);
+    }
+    throw new SikuliXception(String.format("FATAL: " + outMsg));
   }
   //</editor-fold>
 
@@ -313,16 +405,16 @@ Software:
     return jarFile;
   }
 
-  private static String[] startArgs = null;
   private static CommandLine cmdLine = null;
   private static CommandArgs cmdArgs = null;
   private static String[] userArgs = new String[0];
 
   public static void setStartArgs(String[] args) {
-    startArgs = args;
-    cmdArgs = new CommandArgs();
-    userArgs = cmdArgs.getUserArgs();
+    cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
     cmdLine = cmdArgs.getCommandLine(args);
+    if (cmdArgs != null) {
+      userArgs = cmdArgs.getUserArgs();
+    }
   }
 
   public static String[] getUserArgs() {
@@ -333,27 +425,8 @@ Software:
     cmdArgs.printHelp();
   }
 
-  public static boolean hasArg(String arg) {
-    return cmdLine == null ? true : cmdLine.hasOption(arg);
-  }
-
-  public static String getArg(String arg) {
-    return cmdLine.getOptionValue(arg);
-  }
-
   public static String[] getArgs(String arg) {
-    String[] args = cmdLine.getOptionValues(arg);
-    return args;
-  }
-
-  static boolean jythonReady = false;
-
-  public static boolean isJythonReady() {
-    return jythonReady;
-  }
-
-  public static void setJythonReady() {
-    Commons.jythonReady = true;
+    return cmdLine == null ? null : cmdLine.getOptionValues(arg);
   }
   //</editor-fold>
 
@@ -402,7 +475,7 @@ Software:
       }
       if (appDataPath == null || !appDataPath.exists()) {
         appDataPath = new File(getUserHome(), "SikulixAppData");
-        Debug.error("Commons.getAppDataPath: standard place not possible - using: %s", appDataPath);
+        error("Commons.getAppDataPath: standard place not possible - using: %s", appDataPath);
       }
     }
     return appDataPath;
@@ -414,7 +487,7 @@ Software:
       appDataPath = new File(getUserHome(), givenAppPath);
       appDataPath.mkdirs();
       if (!appDataPath.exists()) {
-        RunTime.terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
+        terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
       }
     }
     return appDataPath;
@@ -447,7 +520,7 @@ Software:
       }
     }
     if (userHome == null) {
-      Debug.error("Commons.getUserHome: env: user.home not valid: %s (trying work-dir)", userHomePath);
+      error("Commons.getUserHome: env: user.home not valid: %s (trying work-dir)", userHomePath);
       userHome = getWorkDir();
     }
     return userHome;
@@ -467,7 +540,7 @@ Software:
       }
     }
     if (workDir == null) {
-      RunTime.terminate(999, "Commons.getWorkDir: env: user.dir not valid: %s (exiting)", workDirPath);
+      terminate(999, "Commons.getWorkDir: env: user.dir not valid: %s (exiting)", workDirPath);
     }
     return workDir;
   }
@@ -487,7 +560,7 @@ Software:
   public static File getFromExternalLibsFolder(String libName) {
     String libsPath = getUserLibsPath();
     if (libsPath == null) {
-      return  null;
+      return null;
     }
     String[] paths = libsPath.split(File.pathSeparator);
     File libFile = null;
@@ -542,7 +615,7 @@ Software:
   }
 
   public static boolean runningIDE() {
-    return isRunningIDE;
+    return RUNNINGIDE;
   }
 
   public static String getSXVersion() {
@@ -709,8 +782,6 @@ Software:
     Collections.sort(keysProps);
     return keysProps;
   }
-
-
   //</editor-fold>
 
   //<editor-fold desc="10 folder handling">
@@ -791,7 +862,7 @@ Software:
         entry = null;
       }
     } catch (Exception ex) {
-      Debug.error("");
+      error("");
     }
     return folderList;
   }
@@ -979,7 +1050,7 @@ Software:
 
   public static File asFolder(String option) {
     if (null == option || option.isBlank()) {
-      RunTime.terminate(999, "Commons: asFolder(): not possible for %s", option);
+      terminate(999, "Commons: asFolder(): not possible for %s", option);
     }
     File folder = new File(option);
     if (!folder.isAbsolute()) {
@@ -991,7 +1062,7 @@ Software:
       }
       folder.mkdirs();
       if (!folder.exists()) {
-        RunTime.terminate(999, "Commons: asFolder(): not possible for %s", folder);
+        terminate(999, "Commons: asFolder(): not possible for %s", folder);
       }
     }
     return folder;
@@ -1089,19 +1160,19 @@ Software:
 
   public static File asFile(String option) {
     if (null == option || option.isBlank()) {
-      RunTime.terminate(999, "Commons: asFile(): not possible for %s", option);
+      terminate(999, "Commons: asFile(): not possible for %s", option);
     }
     File file = new File(option);
     if (!file.isAbsolute()) {
       file = new File(Commons.getWorkDir(), option);
     }
     if (file.isDirectory()) {
-      RunTime.terminate(999, "Commons: asFile(): is directory %s", file);
+      terminate(999, "Commons: asFile(): is directory %s", file);
     }
     if (!file.getParentFile().isDirectory()) {
       file.getParentFile().mkdirs();
       if (!file.getParentFile().isDirectory()) {
-        RunTime.terminate(999, "Commons: asFile(): not possible for %s", option);
+        terminate(999, "Commons: asFile(): not possible for %s", option);
       }
     }
     return file;
@@ -1126,7 +1197,7 @@ Software:
       }
       return urlFile;
     } else {
-      RunTime.terminate(999, "Commons: asFile(): path invalid %s", path);
+      terminate(999, "Commons: asFile(): path invalid %s", path);
     }
     return asFile(new File(folder, option).getPath());
   }
@@ -1161,6 +1232,12 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling">
+  public enum SXOPTIONS {
+
+  }
+
+  private static Options globalOptions = null;
+
   public static void show() {
     info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
     info("running as: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
@@ -1171,23 +1248,8 @@ Software:
     info("work dir: %s", Commons.getWorkDir());
     info("user.home: %s", Commons.getUserHome());
     info("active locale: %s", globalOptions.getOption("SX_LOCALE"));
-    if (hasStartArg(CommandArgsEnum.VERBOSE) || isJythonReady()) {
-//      dumpClassPath("sikulix");
-      if (isJythonReady()) {
-        int saveLvl = Debug.getDebugLevel();
-        Debug.setDebugLevel(3);
-        Commons.runFunctionScriptingSupport("showSysPath", null);
-        Screen.showMonitors();
-        Debug.setDebugLevel(saveLvl);
-      }
-    }
+    Commons.showOptions("SX_", "PREFS_IDE");
     info("***** show environment end");
-  }
-
-  private static Options globalOptions = null;
-
-  public static Options globals() {
-    return globalOptions;
   }
 
   public static void showOptions() {
@@ -1195,94 +1257,138 @@ Software:
   }
 
   public static void showOptions(String prefix) {
-    Map<String, String> options = globals().getOptions();
+    doShowOptions(prefix, "");
+  }
+
+  public static void showOptions(String prefix, String... except) {
+    doShowOptions(prefix, except);
+  }
+
+  private static void doShowOptions(String prefix, String... except) {
+    if (except.length == 1 & except[0].isEmpty()) except = null;
     TreeMap<String, String> sortedOptions = new TreeMap<>();
-    sortedOptions.putAll(options);
+    sortedOptions.putAll(getOptions());
     int len = 0;
+    List<String> keys = new ArrayList<>();
     for (String key : sortedOptions.keySet()) {
       if (!key.startsWith(prefix)) {
         continue;
       }
+      if (except != null && except.length > 0) {
+        for (String exKey : except) {
+          if (key.contains(exKey)) {
+            key = null;
+            break;
+          }
+        }
+      }
+      if (key == null) {
+        continue;
+      }
+      keys.add(key);
       if (key.length() < len) {
         continue;
       }
       len = key.length();
     }
-    String formKey = "%-" + len + "s";
-    String formVal = " = %s";
-    for (String key : sortedOptions.keySet()) {
-      if (!key.startsWith(prefix)) {
-        continue;
-      }
+    for (String key : keys) {
       String val = sortedOptions.get(key);
       if (val.isEmpty()) {
-        info(formKey, key);
+        info("%s", key);
       } else {
-        info(formKey + formVal, key, val);
+        info("%-" + len + "s" + " = %s", key, val);
       }
     }
   }
 
-  public static void initOptions() {
-    if (globalOptions == null) {
-      Options options = Options.create();
-      // *************** add commandline args
-      for (CommandArgsEnum arg : CommandArgsEnum.values()) {
-        String val = "";
-        if (hasArg(arg.shortname())) {
-          if (arg.hasArgs()) {
-            String[] args = getArgs(arg.shortname());
-            if (args.length > 1) {
-              for (int n = 0; n < args.length; n++) {
-                val += "|" + args[n];
-              }
-            } else {
-              val = args[0];
-            }
-          }
-          options.setOption("ARG_" + arg.toString(), (val == null ? "" : val));
-        }
-      }
-      options.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
-      String prop = System.getProperty("sikuli.Debug");
-      if (prop != null) {
-        options.setOption("SX_DEBUG_LEVEL", prop);
-      }
-      prop = System.getProperty("sikuli.console");
-      if (prop != null) {
-        if (prop.equals("false")) {
-          if (!hasStartArg(CONSOLE)) {
-            options.setOption("ARG_" + CONSOLE.name(), "");
-          }
-        }
-      }
-      globalOptions = options;
-    }
+  public static File getOptionsFile() {
+    return new File("OptionsFile-NotSet"); //TODO global Optionsfile
   }
 
-  public static boolean hasStartArg(CommandArgsEnum option) {
-    return hasGlobalOption("ARG_" + option.name());
-  }
-
-  public static boolean hasGlobalOption(String option) {
+  public static boolean hasOption(String option) {
     if (globalOptions == null) {
-      return false;
+      initGlobalOptions();
     }
     return globalOptions.hasOption(option);
   }
 
-  public static Options getOptions() {
-    if (sxOptions == null) {
-      sxOptions = new Options();
+  public static String getOption(String option) {
+    if (globalOptions == null) {
+      initGlobalOptions();
     }
-    return sxOptions;
+    return globalOptions.getOption(option, "");
   }
 
-  public static void setOptions(Options options) {
-    sxOptions = options;
+  public static String getOption(String option, Object deflt) {
+    if (globalOptions == null) {
+      initGlobalOptions();
+    }
+    if (deflt instanceof String) {
+      return globalOptions.getOption(option, (String) deflt);
+    } else {
+      return globalOptions.getOption(option, deflt.toString());
+
+    }
   }
 
-  private static Options sxOptions = null;
+  public static Map<String, String> getOptions() {
+    if (globalOptions == null) {
+      initGlobalOptions();
+    }
+    return globalOptions.getOptions();
+  }
+
+  public static void setOption(String option, String val) {
+    if (globalOptions == null) {
+      initGlobalOptions();
+    }
+    globalOptions.setOption(option, val);
+  }
+
+  public static int asInt(String val) {
+    try {
+      return Integer.parseInt(val);
+    } catch (NumberFormatException e) {
+      return -1;
+    }
+  }
+
+  public static Long asLong(String val) {
+    try {
+      return Long.parseLong(val);
+    } catch (NumberFormatException e) {
+      return -1L;
+    }
+  }
+
+  public static double asDouble(String val) {
+    try {
+      return Double.parseDouble(val);
+    } catch (NumberFormatException e) {
+      return -1;
+    }
+  }
+
+  public static float asFloat(String val) {
+    try {
+      return Float.parseFloat(val);
+    } catch (NumberFormatException e) {
+      return -1F;
+    }
+  }
+
+  public static boolean asBool(String val) {
+    if (!val.isEmpty()) {
+      val = val.toUpperCase().substring(0, 1);
+      if (val.equals("0") || val.equals("F") || val.equals("N")) return false;
+      if (val.equals("1") || val.equals("T") || val.equals("Y")) return true;
+    }
+    return false;
+  }
+
+  public static String[] asArray(String val) {
+    return val.split(File.pathSeparator);
+  }
   //</editor-fold>
 
   //<editor-fold desc="80 image handling">
@@ -1524,16 +1630,16 @@ Software:
       try {
         classSup = Class.forName("org.sikuli.script.runnerSupport.JythonSupport");
       } catch (ClassNotFoundException e) {
-        RunTime.terminate(999, "Commons: JythonSupport: %s", e.getMessage());
+        terminate(999, "Commons: JythonSupport: %s", e.getMessage());
       }
     } else if (reference instanceof String && ((String) reference).contains("org.jruby")) {
       try {
         classSup = Class.forName("org.sikuli.script.runnerSupport.JRubySupport");
       } catch (ClassNotFoundException e) {
-        RunTime.terminate(999, "Commons: JRubySupport: %s", e.getMessage());
+        terminate(999, "Commons: JRubySupport: %s", e.getMessage());
       }
     } else {
-      RunTime.terminate(999, "Commons: ScriptingSupport: not supported: %s", reference);
+      terminate(999, "Commons: ScriptingSupport: not supported: %s", reference);
     }
     Object returnSup = null;
     String error = "";
@@ -1558,7 +1664,7 @@ Software:
       error = e.toString();
     }
     if (!error.isEmpty()) {
-      RunTime.terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
+      terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
           instanceSup, method, args, error);
     }
     return returnSup;

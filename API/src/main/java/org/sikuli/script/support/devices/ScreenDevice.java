@@ -3,8 +3,8 @@ package org.sikuli.script.support.devices;
 import org.sikuli.script.Image;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RobotDesktop;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -39,7 +39,7 @@ public class ScreenDevice extends Devices {
     try {
       robot = new RobotDesktop(gdev);
     } catch (AWTException e) {
-      RunTime.terminate(999, "ScreenDevice: robot: %s", e.getMessage());
+      Commons.terminate(999, "ScreenDevice: robot: %s", e.getMessage());
     }
   }
 
@@ -100,7 +100,7 @@ public class ScreenDevice extends Devices {
       GraphicsDevice[] gdevs = genv.getScreenDevices();
       nDevices = gdevs.length;
       if (nDevices == 0) {
-        RunTime.terminate(999, "GraphicsEnvironment: running not possibel: no ScreenDevices");
+        Commons.terminate(999, "GraphicsEnvironment: running not possibel: no ScreenDevices");
       }
       devices = new ScreenDevice[nDevices];
       Rectangle currentBounds;
@@ -125,7 +125,7 @@ public class ScreenDevice extends Devices {
         mainMonitor = 0;
       }
     } else {
-      RunTime.terminate(999, "GraphicsEnvironment: running not possible: is headless");
+      Commons.terminate(999, "GraphicsEnvironment: running not possible: is headless");
     }
   }
 

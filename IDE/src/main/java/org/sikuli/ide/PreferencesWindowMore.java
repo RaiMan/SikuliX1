@@ -3,7 +3,7 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import javax.swing.JCheckBox;
 
 public class PreferencesWindowMore extends javax.swing.JPanel {

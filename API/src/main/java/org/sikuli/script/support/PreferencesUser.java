@@ -1,20 +1,18 @@
 /*
  * Copyright (c) 2010-2021, sikuli.org, sikulix.com - MIT license
  */
-package org.sikuli.basics;
+package org.sikuli.script.support;
 
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.Sikulix;
 
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.*;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.PreferenceChangeListener;
-import java.util.prefs.Preferences;
+import java.util.prefs.*;
 
 public class PreferencesUser {
 
@@ -49,12 +47,6 @@ public class PreferencesUser {
                   + ".error { color: red; }";
   static PreferencesUser _instance = null;
 
-  public Preferences getStore() {
-    return pref;
-  }
-
-  Preferences pref = Preferences.userNodeForPackage(Sikulix.class);
-
   public static PreferencesUser get() {
     if (_instance == null) {
       _instance = new PreferencesUser();
@@ -62,14 +54,201 @@ public class PreferencesUser {
     return _instance;
   }
 
+  String SXPrefix = "SX_IDE_";
+
+  private class SXPreferences extends Preferences {
+
+
+    @Override
+    public void put(String key, String value) {
+
+    }
+
+    @Override
+    public String get(String key, String def) {
+      return null;
+    }
+
+    @Override
+    public void remove(String key) {
+
+    }
+
+    @Override
+    public void clear() {
+
+    }
+
+    @Override
+    public void putInt(String key, int value) {
+
+    }
+
+    @Override
+    public int getInt(String key, int def) {
+      return 0;
+    }
+
+    @Override
+    public void putLong(String key, long value) {
+
+    }
+
+    @Override
+    public long getLong(String key, long def) {
+      return 0;
+    }
+
+    @Override
+    public void putBoolean(String key, boolean value) {
+
+    }
+
+    @Override
+    public boolean getBoolean(String key, boolean def) {
+      return false;
+    }
+
+    @Override
+    public void putFloat(String key, float value) {
+
+    }
+
+    @Override
+    public float getFloat(String key, float def) {
+      return 0;
+    }
+
+    @Override
+    public void putDouble(String key, double value) {
+
+    }
+
+    @Override
+    public double getDouble(String key, double def) {
+      return 0;
+    }
+
+    @Override
+    public String[] keys() {
+      return new String[0];
+    }
+
+    @Override
+    public String toString() {
+      return ""; //TODO SXPreferences
+    }
+
+    //region NOT IMPLEMENTED
+    @Override
+    public void putByteArray(String key, byte[] value) {
+
+    }
+
+    @Override
+    public byte[] getByteArray(String key, byte[] def) {
+      return new byte[0];
+    }
+
+    @Override
+    public String[] childrenNames() {
+      return new String[0];
+    }
+
+    @Override
+    public Preferences parent() {
+      return null;
+    }
+
+    @Override
+    public Preferences node(String pathName) {
+      return null;
+    }
+
+    @Override
+    public boolean nodeExists(String pathName) {
+      return false;
+    }
+
+    @Override
+    public void removeNode() {
+
+    }
+
+    @Override
+    public String name() {
+      return null;
+    }
+
+    @Override
+    public String absolutePath() {
+      return null;
+    }
+
+    @Override
+    public boolean isUserNode() {
+      return false;
+    }
+
+    @Override
+    public void flush() {
+
+    }
+
+    @Override
+    public void sync() {
+
+    }
+
+    @Override
+    public void addPreferenceChangeListener(PreferenceChangeListener pcl) {
+
+    }
+
+    @Override
+    public void removePreferenceChangeListener(PreferenceChangeListener pcl) {
+
+    }
+
+    @Override
+    public void addNodeChangeListener(NodeChangeListener ncl) {
+
+    }
+
+    @Override
+    public void removeNodeChangeListener(NodeChangeListener ncl) {
+
+    }
+
+    @Override
+    public void exportNode(OutputStream os) {
+
+    }
+
+    @Override
+    public void exportSubtree(OutputStream os) {
+
+    }
+    //endregion
+  }
+
   private PreferencesUser() {
     //Debug.log(3, "init user preferences");
+    pref = new SXPreferences(); //TODO
+    Class<Sikulix> sikulixClass = Sikulix.class;
+    pref = Preferences.userNodeForPackage(sikulixClass);
+  }
+
+  Preferences pref;
+
+  public Preferences getStore() {
+    return pref; //TODO
   }
 
   public boolean save(String path) {
     try {
       FileOutputStream pout = new FileOutputStream(path);
-      pref.exportSubtree(pout);
+      pref.exportSubtree(pout); //TODO
       pout.close();
     } catch (Exception ex) {
       Debug.error("UserPrefs: export: did not work: %s", ex.getMessage());
@@ -89,15 +268,15 @@ public class PreferencesUser {
   }
 
   public void remove(String key) {
-    pref.remove(key);
+    pref.remove(key); //TODO
   }
 
   public Map<String, String> getAll(String prefix) {
     Map<String, String> allPrefs = new HashMap<>();
     try {
-      for (String item : pref.keys()) {
+      for (String item : pref.keys()) { //TODO
         if (item.startsWith(prefix)) {
-          allPrefs.put(item, pref.get(item, ""));
+          allPrefs.put(item, pref.get(item, "")); //TODO get
         }
       }
     } catch (Exception ex) {
@@ -126,23 +305,23 @@ public class PreferencesUser {
 
   public void store() {
     try {
-      pref.flush();
+      pref.flush(); //TODO
     } catch (BackingStoreException e) {
       Debug.error("UserPrefs: store: did not work: ", e.getMessage());
     }
   }
 
   public void addPreferenceChangeListener(PreferenceChangeListener pcl) {
-    pref.addPreferenceChangeListener(pcl);
+    pref.addPreferenceChangeListener(pcl); //TODO Change Listener
   }
 
   // ***** user type
   public void setUserType(int typ) {
-    pref.putInt("USER_TYPE", typ);
+    pref.putInt("USER_TYPE", typ); //TODO putInt
   }
 
   public int getUserType() {
-    return pref.getInt("USER_TYPE", UNKNOWN);
+    return pref.getInt("USER_TYPE", UNKNOWN); //TODO getInt
   }
 
   // ***** capture hot key
@@ -173,11 +352,11 @@ public class PreferencesUser {
   }
 
   public void setCaptureDelay(double v) {
-    pref.putDouble("CAPTURE_DELAY", v);
+    pref.putDouble("CAPTURE_DELAY", v); //TODO putDouble
   }
 
   public double getCaptureDelay() {
-    return pref.getDouble("CAPTURE_DELAY", 1.0);
+    return pref.getDouble("CAPTURE_DELAY", 1.0); //TODO getDouble
   }
 
   // ***** abort key
@@ -207,11 +386,11 @@ public class PreferencesUser {
 
   // ***** indentation support
   public void setExpandTab(boolean flag) {
-    pref.putBoolean("EXPAND_TAB", flag);
+    pref.putBoolean("EXPAND_TAB", flag); //TODO putBoolean
   }
 
   public boolean getExpandTab() {
-    return pref.getBoolean("EXPAND_TAB", true);
+    return pref.getBoolean("EXPAND_TAB", true); //TODO getBoolean
   }
 
   public void setTabWidth(int width) {
@@ -242,11 +421,11 @@ public class PreferencesUser {
   }
 
   public void setFontName(String font) {
-    pref.put("FONT_NAME", font);
+    pref.put("FONT_NAME", font); //TODO put
   }
 
   public String getFontName() {
-    return pref.get("FONT_NAME", "Monospaced");
+    return pref.get("FONT_NAME", "Monospaced"); //TODO get
   }
 
   // ***** locale support
@@ -349,11 +528,11 @@ public class PreferencesUser {
   }
 
   public void setCheckUpdateTime() {
-    pref.putLong("LAST_CHECK_UPDATE", (new Date()).getTime());
+    pref.putLong("LAST_CHECK_UPDATE", (new Date()).getTime()); //TODO putLong
   }
 
   public long getCheckUpdateTime() {
-    return pref.getLong("LAST_CHECK_UPDATE", (new Date()).getTime());
+    return pref.getLong("LAST_CHECK_UPDATE", (new Date()).getTime()); //TODO getLong
   }
 
   // ***** IDE general support

@@ -3,7 +3,7 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import com.jgoodies.forms.factories.DefaultComponentFactory;
 
 import java.awt.*;
@@ -35,7 +35,6 @@ import javax.swing.text.Element;
 
 import org.jdesktop.layout.*;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Settings;
 import org.sikuli.script.Key;
 
 /*

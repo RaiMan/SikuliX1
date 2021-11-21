@@ -6,7 +6,7 @@ package org.sikuli.basics;
 import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.PreferencesUser;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;

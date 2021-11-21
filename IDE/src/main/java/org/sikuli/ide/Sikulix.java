@@ -4,13 +4,16 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.*;
-import org.sikuli.script.Options;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyEvent;
+import org.sikuli.basics.HotkeyListener;
+import org.sikuli.basics.HotkeyManager;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.support.gui.SXDialog;
 
 import java.io.File;
@@ -57,40 +60,39 @@ public class Sikulix {
 
       System.exit(0);
     }
+
     Commons.setStartArgs(args);
 
-
-    if (Commons.hasArg("h")) {
-      Commons.printHelp();
-      Options.prefDump();
-      System.exit(0);
+    if (Commons.hasStartArg(QUIET)) {
+      Commons.setQuiet();
+    } else if (Commons.hasStartArg(VERBOSE)) {
+      Commons.setVerbose();
+    } else if (Commons.hasStartArg(DEBUG)) {
+      Commons.setDebug();
     }
 
-
-    Commons.initOptions();
-
-    Commons.globals().setOption("SX_LOCALE", SikuliIDEI18N.getLocaleShow());
-
     if (Commons.hasStartArg(APPDATA)) {
-      String argValue = Commons.globals().getOption(APPDATA);
-      File path = Commons.setAppDataPath(argValue);
+      File path = Commons.setAppDataPath(Commons.getOption("ARG_APPDATA"));
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
       Commons.setTempFolder();
     }
 
-    if (Commons.hasStartArg(VERBOSE)) {
+    Commons.initGlobalOptions();
+
+    Commons.setOption("SX_LOCALE", SikuliIDEI18N.getLocaleShow());
+
+    if (Commons.hasStartArg(HELP)) {
+      Commons.printHelp();
+      Debug.setDebugLevel(3);
       Commons.show();
-      Debug.setDebugLevel(3);
-      Debug.setGlobalDebug(3);
+      Commons.showOptions("SX_PREFS_IDE");
+      System.exit(0);
     }
 
-    if (Commons.hasStartArg(DEBUG)) {
-      Commons.globals().getOptionInteger("ARG_DEBUG", 3);
-      Debug.setDebugLevel(3);
+    if (Commons.isDebug()) {
+      Commons.show();
     }
-
-    Commons.showOptions("ARG_");
 
     if (Commons.hasStartArg(RUN)) {
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
@@ -98,24 +100,24 @@ public class Sikulix {
         public void hotkeyPressed(HotkeyEvent e) {
           if (Commons.hasStartArg(RUN)) {
             Runner.abortAll();
-            RunTime.terminate(254, "AbortKey was pressed: aborting all running scripts");
+            Commons.terminate(254, "AbortKey was pressed: aborting all running scripts");
           }
         }
       });
-      String[] scripts = Runner.resolveRelativeFiles(Commons.getArgs("r"));
+      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(Commons.getOption("SX_ARG_RUN")));
       int exitCode = Runner.runScripts(scripts, Commons.getUserArgs(), new IScriptRunner.Options());
       if (exitCode > 255) {
         exitCode = 254;
       }
-      RunTime.terminate(exitCode, "");
+      Commons.terminate(exitCode, "");
     }
 
-    if (Commons.hasStartArg(SERVER)) {
+    if (Commons.hasStartArg(RUNSERVER)) {
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
         cServer.getMethod("run").invoke(null);
-        RunTime.terminate();
+        Commons.terminate();
       } catch (ClassNotFoundException e) {
       } catch (NoSuchMethodException e) {
       } catch (IllegalAccessException e) {
@@ -124,17 +126,17 @@ public class Sikulix {
       try {
         cServer = Class.forName("org.sikuli.script.support.SikulixServer");
         if (!(Boolean) cServer.getMethod("run").invoke(null)) {
-          RunTime.terminate(1, "SikulixServer: terminated with errors");
+          Commons.terminate(1, "SikulixServer: terminated with errors");
         }
       } catch (ClassNotFoundException e) {
       } catch (IllegalAccessException e) {
       } catch (InvocationTargetException e) {
       } catch (NoSuchMethodException e) {
       }
-      RunTime.terminate();
+      Commons.terminate();
     }
 
-    Commons.startLog(1, "IDE starting (%4.1f)", Commons.getSinceStart());
+    Commons.info("IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
 

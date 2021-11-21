@@ -13,7 +13,6 @@ import org.sikuli.script.runnerSupport.JythonSupport;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.runners.JythonRunner;
 import org.sikuli.script.support.*;
-import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 import org.sikuli.util.*;
 
@@ -288,7 +287,7 @@ public class SikulixIDE extends JFrame {
     }
     tabs.setSelectedIndex(0);
 
-    Commons.startLog(3, "IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
+    Commons.info("IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
@@ -520,7 +519,7 @@ public class SikulixIDE extends JFrame {
   void terminate() {
     log(lvl, "Quit requested");
     if (closeIDE()) {
-      RunTime.terminate(0, "");
+      Commons.terminate(0, "");
     }
     log(-1, "Quit: cancelled or did not work");
   }
@@ -776,7 +775,7 @@ public class SikulixIDE extends JFrame {
   void openSpecial() {
     log(lvl, "Open Special requested");
     Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Settings & Options", Commons.getOptions().getOptionsFile());
+    specialFiles.put("1 SikuliX Settings & Options", Commons.getOptionsFile().getAbsolutePath());
     File extensionsFile = ExtensionManager.getExtensionsFile();
     specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
     File sitesTxt = ExtensionManager.getSitesTxt();
@@ -1200,7 +1199,7 @@ public class SikulixIDE extends JFrame {
       log(lvl, "Restart IDE requested");
       if (closeIDE()) {
         log(lvl, "Restarting IDE");
-        RunTime.terminate(255, "Restarting IDE");
+        Commons.terminate(255, "Restarting IDE");
       }
       log(-1, "Restart IDE: did not work");
     }

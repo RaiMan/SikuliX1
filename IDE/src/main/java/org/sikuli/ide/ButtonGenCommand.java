@@ -3,7 +3,7 @@
  */
 package org.sikuli.ide;
 
-import org.sikuli.basics.PreferencesUser;
+import org.sikuli.script.support.PreferencesUser;
 import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.text.*;

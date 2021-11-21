@@ -14,11 +14,13 @@ import java.util.regex.Pattern;
 public class CommandArgs {
 
   private Options cmdArgs;
-  ArrayList<String> userArgs = new ArrayList<String>();
-  ArrayList<String> sikuliArgs = new ArrayList<String>();
-  static String argsOrg = "";
+  ArrayList<String> userArgs = new ArrayList<>();
+  ArrayList<String> sikuliArgs = new ArrayList<>();
 
-  public CommandArgs() {
+  private boolean isIDE = false;
+
+  public CommandArgs(boolean isIDE) {
+    this.isIDE = isIDE;
     init();
   }
 
@@ -41,7 +43,7 @@ public class CommandArgs {
     try {
       cmd = parser.parse(cmdArgs, sikuliArgs.toArray(new String[]{}), true);
     } catch (ParseException exp) {
-      Commons.error("%s", exp.getMessage());
+      Commons.terminate(isIDE ? 998 : 999, "%s", exp.getMessage());
     }
     return cmd;
   }
@@ -56,31 +58,26 @@ public class CommandArgs {
   @SuppressWarnings("static-access")
   private void init() {
     cmdArgs = new Options();
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
-
-    //TODO use APPDATA: cmdArgs.addOption(makeOption(CommandArgsEnum.MULTI));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
-
+    if (isIDE) {
+      cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.QUIET));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.DEBUG));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.LOGFILE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.USERLOGFILE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.CONSOLE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RUNSERVER));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RUNPYSERVER));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.APPDATA));
+      return;
+    }
     cmdArgs.addOption(makeOption(CommandArgsEnum.QUIET));
-
     cmdArgs.addOption(makeOption(CommandArgsEnum.DEBUG));
-
     cmdArgs.addOption(makeOption(CommandArgsEnum.LOGFILE));
-
     cmdArgs.addOption(makeOption(CommandArgsEnum.USERLOGFILE));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.CONSOLE));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.SERVER));
-
-    cmdArgs.addOption(makeOption(CommandArgsEnum.PYTHONSERVER));
-
+    cmdArgs.addOption(makeOption(CommandArgsEnum.RUNPYSERVER));
     cmdArgs.addOption(makeOption(CommandArgsEnum.APPDATA));
   }
 
@@ -114,6 +111,8 @@ public class CommandArgs {
             + "----------------------------------------------------------------",
         true);
   }
+
+  static String argsOrg = "";
 
   public static String[] scanArgs(String[] args) {
 //TODO detect leading and/or trailing blanks

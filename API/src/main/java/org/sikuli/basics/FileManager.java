@@ -7,6 +7,7 @@ import org.sikuli.script.Image;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.PreferencesUser;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
