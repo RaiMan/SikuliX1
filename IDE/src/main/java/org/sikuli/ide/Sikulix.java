@@ -80,11 +80,9 @@ public class Sikulix {
 
     Commons.initGlobalOptions();
 
-    Commons.setOption("SX_LOCALE", SikuliIDEI18N.getLocaleShow());
-
     if (Commons.hasStartArg(HELP)) {
       Commons.printHelp();
-      Debug.setDebugLevel(3);
+      Debug.setDebugLevel(3); //TODO
       Commons.show();
       Commons.showOptions("SX_PREFS_IDE");
       System.exit(0);

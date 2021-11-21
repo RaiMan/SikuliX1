@@ -252,11 +252,11 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param sValue the value to be set
    */
-  public void setOption(String pName, String sValue) {
+  public void setOption(String pName, Object sValue) {
     if (options == null) {
       init(); //setOption
     }
-    options.setProperty(pName, sValue);
+    options.setProperty(pName, sValue.toString());
   }
 
   /**

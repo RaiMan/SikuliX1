@@ -33,10 +33,11 @@ public class SikuliIDEI18N {
       return true;
    }
 
-   public static String getLocaleShow() {
-     String ret = curLocale.toString();
-     if (i18nRB == null) ret += " (using en_US)";
-     return ret;
+   public static Locale getLocale() {
+      return curLocale;
+//     String ret = curLocale.toString();
+//     if (i18nRB == null) ret += " (using en_US)";
+//     return ret;
    }
 
    public static String _I(String key, Object... args){

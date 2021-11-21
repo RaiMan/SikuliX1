@@ -55,6 +55,8 @@ public class Commons {
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
 
+  private static Locale sxLocale = new Locale("en","US");
+
   private static long startMoment;
 
   private static int debugLevelQuiet = -100;
@@ -193,10 +195,12 @@ Software:
   }
 
   public static Locale getLocale() {
-    return PreferencesUser.get().getLocale(); //TODO
+    return sxLocale;
   }
+
   public static void setLocale(Locale locale) {
-    PreferencesUser.get().setLocale(locale); //TODO
+    sxLocale = locale;
+    setOption("SX_LOCALE", locale); //TODO
   }
 
   public static boolean hasStartArg(CommandArgsEnum option) {
@@ -345,22 +349,6 @@ Software:
       System.out.printf("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
     }
   }
-
-  public static void terminate() {
-    terminate(0, "");
-  }
-
-  public static void terminate(int retval, String message, Object... args) {
-    String outMsg = String.format(message, args);
-    if (!outMsg.isEmpty()) {
-      System.out.println("TERMINATING: " + outMsg);
-    }
-    if (retval < 999) {
-      RunTime.cleanUp();
-      System.exit(retval);
-    }
-    throw new SikuliXception(String.format("FATAL: " + outMsg));
-  }
   //</editor-fold>
 
   //<editor-fold desc="02 startup / terminate">
@@ -427,6 +415,22 @@ Software:
 
   public static String[] getArgs(String arg) {
     return cmdLine == null ? null : cmdLine.getOptionValues(arg);
+  }
+
+  public static void terminate() {
+    terminate(0, "");
+  }
+
+  public static void terminate(int retval, String message, Object... args) {
+    String outMsg = String.format(message, args);
+    if (!outMsg.isEmpty()) {
+      System.out.println("TERMINATING: " + outMsg);
+    }
+    if (retval < 999) {
+      RunTime.cleanUp();
+      System.exit(retval);
+    }
+    throw new SikuliXception(String.format("FATAL: " + outMsg));
   }
   //</editor-fold>
 
@@ -1247,7 +1251,6 @@ Software:
     info("app data folder: %s", Commons.getAppDataPath());
     info("work dir: %s", Commons.getWorkDir());
     info("user.home: %s", Commons.getUserHome());
-    info("active locale: %s", globalOptions.getOption("SX_LOCALE"));
     Commons.showOptions("SX_", "PREFS_IDE");
     info("***** show environment end");
   }
@@ -1338,7 +1341,7 @@ Software:
     return globalOptions.getOptions();
   }
 
-  public static void setOption(String option, String val) {
+  public static void setOption(String option, Object val) {
     if (globalOptions == null) {
       initGlobalOptions();
     }
