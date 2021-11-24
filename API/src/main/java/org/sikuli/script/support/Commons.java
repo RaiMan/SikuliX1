@@ -59,10 +59,6 @@ public class Commons {
 
   private static long startMoment;
 
-  private static int debugLevelQuiet = -100;
-  private static int debugLevel = 0;
-  private static boolean verbose = false;
-
   protected static boolean RUNNINGIDE = false;
 
   public static boolean isRunningIDE() {
@@ -203,24 +199,6 @@ Software:
     setOption("SX_LOCALE", locale); //TODO
   }
 
-  public static boolean hasStartArg(CommandArgsEnum option) {
-    if (!hasOption("SX_ARG_" + option.name())) {
-      if (option.equals(DEBUG)) {
-        String prop = System.getProperty("sikuli.Debug");
-        if (prop != null) {
-          return true;
-        }
-      } else if(option.equals(CONSOLE)) {
-        String prop = System.getProperty("sikuli.console");
-        if (prop != null) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
   public static void initGlobalOptions() {
     if (globalOptions == null) {
       globalOptions = Options.create();
@@ -229,15 +207,20 @@ Software:
       if (Commons.RUNNINGIDE) {
         for (CommandArgsEnum arg : CommandArgsEnum.values()) {
           if (cmdLine.hasOption(arg.shortname())) {
-            if (arg.hasArgs()) {
-              String[] args = cmdLine.getOptionValues(arg.shortname());
-              if (args.length > 1) {
-                for (int n = 0; n < args.length; n++) {
-                  val += args[n] + File.pathSeparator;
+            if (null != arg.hasArgs()) {
+              if (arg.hasArgs()) {
+                String[] args = cmdLine.getOptionValues(arg.shortname());
+                if (args.length > 1) {
+                  for (int n = 0; n < args.length; n++) {
+                    val += args[n] + File.pathSeparator;
+                  }
+                  val = val.substring(0, val.length() - 1);
+                } else {
+                  val = args[0];
                 }
-                val = val.substring(0, val.length() - 1);
               } else {
-                val = args[0];
+                val = cmdLine.getOptionValue(arg.shortname());
+                val = val == null ? "" : val;
               }
             }
             globalOptions.setOption("SX_ARG_" + arg, val);
@@ -278,7 +261,17 @@ Software:
     }
   }
 
- public static void setDebug() {
+  public static void debug(String msg, Object... args) {
+    if (isDebug()) {
+      System.out.printf("[SXDEBUG] " + msg + "%n", args);
+    }
+  }
+
+  private static final int DEBUG_LEVEL_QUIET = -9999;
+  private static int debugLevel = 0;
+  private static boolean verbose = false;
+
+  public static void setDebug() {
     debugLevel = 3;
   }
 
@@ -287,7 +280,7 @@ Software:
   }
 
   public static void setQuiet() {
-    debugLevel = debugLevelQuiet;
+    debugLevel = DEBUG_LEVEL_QUIET;
   }
 
   public static boolean isQuiet() {
@@ -301,11 +294,6 @@ Software:
 
   public static boolean isVerbose() {
     return verbose;
-  }
-  public static void debug(String msg, Object... args) {
-    if (isDebug()) {
-      System.out.printf("[SXDEBUG] " + msg + "%n", args);
-    }
   }
 
   private static boolean trace = false;
@@ -413,8 +401,31 @@ Software:
     cmdArgs.printHelp();
   }
 
-  public static String[] getArgs(String arg) {
-    return cmdLine == null ? null : cmdLine.getOptionValues(arg);
+  public static boolean hasStartArg(CommandArgsEnum option) {
+    if (option.equals(DEBUG)) {
+      String prop = System.getProperty("sikuli.Debug");
+      if (prop != null) {
+        return true;
+      }
+    } else if(option.equals(CONSOLE)) {
+      String prop = System.getProperty("sikuli.console");
+      if (prop != null) {
+        return true;
+      }
+    }
+    if (cmdLine.hasOption(option.shortname())) {
+      return true;
+    }
+    return false;
+  }
+
+  public static String getStartArg(CommandArgsEnum option) {
+    String val = "";
+    if (hasStartArg(option) && !option.hasArgs()) {
+      val = cmdLine.getOptionValue(option.shortname());
+      val = val == null ? "" : val;
+    }
+    return val;
   }
 
   public static void terminate() {
@@ -486,20 +497,16 @@ Software:
   }
 
   public static File setAppDataPath(String givenAppPath) {
+    if (givenAppPath.isEmpty()) givenAppPath = "SikulixAppData";
     appDataPath = new File(givenAppPath);
     if (!appDataPath.isAbsolute()) {
       appDataPath = new File(getUserHome(), givenAppPath);
-      appDataPath.mkdirs();
-      if (!appDataPath.exists()) {
-        terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
-      }
+    }
+    appDataPath.mkdirs();
+    if (!appDataPath.exists()) {
+      terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
     }
     return appDataPath;
-  }
-
-  public static File resetAppDataPath() {
-    appDataPath = null;
-    return getAppDataPath();
   }
 
   private static File appDataPath = null;
@@ -1208,10 +1215,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="20 library handling">
-  public static void loadOpenCV() {
-    RunTime.loadOpenCV();
-  }
-
   public static String jnaPathAdd(String sFolder) {
     String jnaPath = System.getProperty("jna.library.path");
     if (null == jnaPath) {
@@ -1227,11 +1230,6 @@ Software:
     jnaPath = folder.getAbsolutePath() + jnaPath;
     System.setProperty("jna.library.path", jnaPath);
     return jnaPath;
-  }
-
-  public static boolean loadLib(String lib) {
-
-    return true;
   }
   //</editor-fold>
 

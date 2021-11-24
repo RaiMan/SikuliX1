@@ -88,6 +88,7 @@ public class RunTime {
   public boolean runningLinux = false;
   //</editor-fold>
 
+  //<editor-fold defaultstate="collapsed" desc="09 cleanUp">
   public static void cleanUp() {
     HotkeyManager.reset(true);
     HelpDevice.stopAll();
@@ -122,10 +123,10 @@ public class RunTime {
     if (libsLoaded.contains(libName)) {
       return true;
     }
-    libName = getLibFilename(libName);
+    String libFileName = getLibFilename(libName);
     String userLib = "";
     //try from env::SIKULIX_LIBS
-    File fLib = loadLib(Commons.getFromExternalLibsFolder(libName));
+    File fLib = loadLib(Commons.getFromExternalLibsFolder(libFileName));
     if (fLib == null) {
       //try exported libs
       if (!areLibsExported) {
@@ -134,16 +135,16 @@ public class RunTime {
           throw new SikuliXception("loadLib: deferred exporting of libs did not work");
         }
       }
-      fLib = loadLib(new File(Commons.getLibsFolder(), libName));
+      fLib = loadLib(new File(Commons.getLibsFolder(), libFileName));
     } else {
       userLib = Commons.userLibsPath + ": ";
     }
     if (fLib == null) {
       //try from system library folders
-      fLib = loadLib(new File(libName));
+      fLib = loadLib(new File(libFileName));
     }
     if (null == fLib) {
-      Commons.terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libName);
+      Commons.terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
     }
     libsLoaded.add(libName);
     log(lvl, "loadLibrary: success: %s%s", userLib, fLib);
@@ -251,84 +252,6 @@ public class RunTime {
     areLibsExported = true;
   }
 //</editor-fold>
-
-  //TODO
-  private static void addToWindowsSystemPath(File fLibsFolder) {
-    for (File bridjFile : Commons.getTempFolder().listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        if (name.contains("BridJExtractedLibraries")) {
-          return true;
-        }
-        return false;
-      }
-    })) {
-      FileManager.deleteFileOrFolder(bridjFile);
-    }
-    //TODO String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
-    String syspath = WinUtil.getEnv("PATH");
-    if (syspath == null) {
-      throw new SikuliXception("addToWindowsSystemPath: cannot access system path");
-    } else {
-      String libsPath = fLibsFolder.getAbsolutePath();
-      if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
-        // TODO if (SysJNA.WinKernel32.setEnvironmentVariable("PATH", libsPath + ";" + syspath)) {
-        if (null != (syspath = WinUtil.setEnv("PATH", libsPath + ";" + syspath))) {
-          if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
-            log(-1, "addToWindowsSystemPath: adding to system path did not work:\n%s", syspath);
-            throw new SikuliXception("addToWindowsSystemPath: did not work - see error");
-          }
-        }
-        log(lvl, "addToWindowsSystemPath: added to systempath:\n%s", libsPath);
-      }
-    }
-  }
-
-  private static boolean checkJavaUsrPath(File fLibsFolder) {
-    //TODO Java 9: Windows: Java Classloader::usr_paths needed for libs access?
-    if (Commons.getJavaVersion() > 8) {
-      return true;
-    }
-    String fpLibsFolder = fLibsFolder.getAbsolutePath();
-    Field usrPathsField = null;
-    boolean contained = false;
-    try {
-      usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
-    } catch (NoSuchFieldException ex) {
-      log(-1, "checkJavaUsrPath: get\n%s", ex);
-    } catch (SecurityException ex) {
-      log(-1, "checkJavaUsrPath: get\n%s", ex);
-    }
-    if (usrPathsField != null) {
-      usrPathsField.setAccessible(true);
-      try {
-        //get array of paths
-        String[] javapaths = (String[]) usrPathsField.get(null);
-        //check if the path to add is already present
-        for (String p : javapaths) {
-          if (new File(p).equals(fLibsFolder)) {
-            contained = true;
-            break;
-          }
-        }
-        //add the new path
-        if (!contained) {
-          final String[] newPaths = Arrays.copyOf(javapaths, javapaths.length + 1);
-          newPaths[newPaths.length - 1] = fpLibsFolder;
-          usrPathsField.set(null, newPaths);
-          log(lvl, "checkJavaUsrPath: added to ClassLoader.usrPaths");
-          contained = true;
-        }
-      } catch (IllegalAccessException ex) {
-        log(-1, "checkJavaUsrPath: set\n%s", ex);
-      } catch (IllegalArgumentException ex) {
-        log(-1, "checkJavaUsrPath: set\n%s", ex);
-      }
-      return contained;
-    }
-    return false;
-  }
-  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
   public void crash() {
@@ -1433,4 +1356,82 @@ public class RunTime {
     return lastResult;
   }
 //</editor-fold>
+
+  //<editor-fold desc="99 stuff needed?">
+  private static void addToWindowsSystemPath(File fLibsFolder) {
+    for (File bridjFile : Commons.getTempFolder().listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        if (name.contains("BridJExtractedLibraries")) {
+          return true;
+        }
+        return false;
+      }
+    })) {
+      FileManager.deleteFileOrFolder(bridjFile);
+    }
+    //TODO String syspath = SysJNA.WinKernel32.getEnvironmentVariable("PATH");
+    String syspath = WinUtil.getEnv("PATH");
+    if (syspath == null) {
+      throw new SikuliXception("addToWindowsSystemPath: cannot access system path");
+    } else {
+      String libsPath = fLibsFolder.getAbsolutePath();
+      if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
+        // TODO if (SysJNA.WinKernel32.setEnvironmentVariable("PATH", libsPath + ";" + syspath)) {
+        if (null != (syspath = WinUtil.setEnv("PATH", libsPath + ";" + syspath))) {
+          if (!syspath.toUpperCase().contains(libsPath.toUpperCase())) {
+            log(-1, "addToWindowsSystemPath: adding to system path did not work:\n%s", syspath);
+            throw new SikuliXception("addToWindowsSystemPath: did not work - see error");
+          }
+        }
+        log(lvl, "addToWindowsSystemPath: added to systempath:\n%s", libsPath);
+      }
+    }
+  }
+
+  private static boolean checkJavaUsrPath(File fLibsFolder) {
+    //TODO Java 9: Windows: Java Classloader::usr_paths needed for libs access?
+    if (Commons.getJavaVersion() > 8) {
+      return true;
+    }
+    String fpLibsFolder = fLibsFolder.getAbsolutePath();
+    Field usrPathsField = null;
+    boolean contained = false;
+    try {
+      usrPathsField = ClassLoader.class.getDeclaredField("usr_paths");
+    } catch (NoSuchFieldException ex) {
+      log(-1, "checkJavaUsrPath: get\n%s", ex);
+    } catch (SecurityException ex) {
+      log(-1, "checkJavaUsrPath: get\n%s", ex);
+    }
+    if (usrPathsField != null) {
+      usrPathsField.setAccessible(true);
+      try {
+        //get array of paths
+        String[] javapaths = (String[]) usrPathsField.get(null);
+        //check if the path to add is already present
+        for (String p : javapaths) {
+          if (new File(p).equals(fLibsFolder)) {
+            contained = true;
+            break;
+          }
+        }
+        //add the new path
+        if (!contained) {
+          final String[] newPaths = Arrays.copyOf(javapaths, javapaths.length + 1);
+          newPaths[newPaths.length - 1] = fpLibsFolder;
+          usrPathsField.set(null, newPaths);
+          log(lvl, "checkJavaUsrPath: added to ClassLoader.usrPaths");
+          contained = true;
+        }
+      } catch (IllegalAccessException ex) {
+        log(-1, "checkJavaUsrPath: set\n%s", ex);
+      } catch (IllegalArgumentException ex) {
+        log(-1, "checkJavaUsrPath: set\n%s", ex);
+      }
+      return contained;
+    }
+    return false;
+  }
+  //</editor-fold>
 }

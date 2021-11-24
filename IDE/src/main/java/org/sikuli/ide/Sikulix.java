@@ -4,7 +4,6 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
 import org.sikuli.basics.HotkeyListener;
@@ -72,7 +71,7 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(APPDATA)) {
-      File path = Commons.setAppDataPath(Commons.getOption("ARG_APPDATA"));
+      File path = Commons.setAppDataPath(Commons.getStartArg(APPDATA));
       Commons.setTempFolder(new File(path, "Temp"));
     } else {
       Commons.setTempFolder();
@@ -82,7 +81,7 @@ public class Sikulix {
 
     if (Commons.hasStartArg(HELP)) {
       Commons.printHelp();
-      Debug.setDebugLevel(3); //TODO
+      Commons.setDebug();
       Commons.show();
       Commons.showOptions("SX_PREFS_IDE");
       System.exit(0);
@@ -140,8 +139,10 @@ public class Sikulix {
 
     ideSplash = null;
     if (Commons.isRunningFromJar() || (!Commons.isRunningFromJar() && !Commons.hasStartArg(VERBOSE))) {
-      ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
-      ideSplash.run();
+      if (!Commons.isQuiet()) {
+        ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
+        ideSplash.run();
+      }
     }
 
     if (!Commons.hasStartArg(APPDATA)) {

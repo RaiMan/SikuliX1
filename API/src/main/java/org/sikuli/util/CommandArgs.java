@@ -85,8 +85,12 @@ public class CommandArgs {
     Option.Builder builder = Option.builder(anOption.shortname())
         .longOpt(anOption.longname())
         .desc(anOption.description());
-    if (anOption.hasArgs()) {
-      builder.hasArgs();
+    if (anOption.hasArgs() != null) {
+      if (anOption.hasArgs()) {
+        builder.hasArgs();
+      } else {
+        builder.hasArg(true).optionalArg(true);
+      }
     }
     return builder.build();
   }

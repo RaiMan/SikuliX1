@@ -70,8 +70,6 @@ public class Debug {
 
   private static boolean searchHighlight = false;
 
-  private static PrintStream redirectedOut = null, redirectedErr = null;
-
   static {
     if (Commons.isDebug()) {
       DEBUG_LEVEL = 3;
@@ -381,19 +379,6 @@ public class Debug {
     return success;
   }
 
-  public static void saveRedirected(PrintStream rdo, PrintStream rde) {
-    redirectedOut = rdo;
-    redirectedErr = rde;
-  }
-
-  public static void out(String msg) {
-    if (redirectedOut != null && DEBUG_LEVEL > 2) {
-      if (!Commons.isQuiet()) {
-        redirectedOut.println(msg);
-      }
-    }
-  }
-
   /**
    * specify, where the logs should be written:<br>
    * null - use from property sikuli.Logfile
@@ -684,7 +669,7 @@ public class Debug {
    * @param args    to use with format string
    */
   public static void log(int level, String message, Object... args) {
-    if (Settings.DebugLogs) {
+    if (Settings.DebugLogs || Commons.isVerbose()) {
       String prefix = debugPrefix;
       log(level, prefix, message, args);
     }
@@ -765,12 +750,29 @@ public class Debug {
           }
         }
         if (level == -1 || level == -100 || level > 2) {
-          out(prefix + sout);
+          //TODO needed? out(prefix + sout);
         }
       }
     }
     return prefix + sout;
   }
+
+//TODO  needed? private static PrintStream redirectedOut = null, redirectedErr = null;
+
+//TODO needed?  public static void saveRedirected(PrintStream rdo, PrintStream rde) {
+
+//    redirectedOut = rdo;
+//    redirectedErr = rde;
+//  }
+
+//TODO needed?  public static void out(String msg) {
+
+//    if (redirectedOut != null && DEBUG_LEVEL > 2) {
+//      if (!Commons.isQuiet()) {
+//        redirectedOut.println(msg);
+//      }
+//    }
+//  }
 
   /**
    * Sikuli profiling messages<br> switch on/off: Settings.ProfileLogs, default off

@@ -15,15 +15,15 @@ public enum CommandArgsEnum {
 	/**
 	 * set debug level
 	 */
-	DEBUG("debug", "d", "debug level", "positive integer (1)", true),
+	DEBUG("debug", "d", "debug level", "positive integer ", false),
 	/**
 	 * outputfile for Sikuli logging messages
 	 */
-	LOGFILE("logfile", "f", "Sikuli logfile", "a valid filename (WorkingDir/SikuliLog.txt)", true),
+	LOGFILE("logfile", "f", "Sikuli logfile", "a valid filename (WorkingDir/SikuliLog.txt)", false),
 	/**
 	 * outputfile for user logging messages
 	 */
-	USERLOGFILE("userlog", "u", "User logfile", "a valid filename (WorkingDir/UserLog.txt)", true),
+	USERLOGFILE("userlog", "u", "User logfile", "a valid filename (WorkingDir/UserLog.txt)", false),
 	/**
 	 * Runs the script
 	 */
@@ -47,7 +47,7 @@ public enum CommandArgsEnum {
 	/**
 	 * run as server
 	 */
-	RUNSERVER("server", "s", "[port (50001)]", "run as server on optional port"),
+	RUNSERVER("server", "s", "[port (50001)]", "run as server on optional port", false),
 	/**
 	 * run the server for Python
 	 */
@@ -55,8 +55,7 @@ public enum CommandArgsEnum {
 	/**
 	 * run in sandbox, multiple IDE instances allowed
 	 */
-	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", true);
-
+	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", false);
 	/**
 	 * Longname of the parameter
 	 */
@@ -92,8 +91,8 @@ public enum CommandArgsEnum {
 	/**
 	 * has args
 	 */
-	private boolean hasArgs;
-	public boolean hasArgs() {
+	private Boolean hasArgs;
+	public Boolean hasArgs() {
 		return hasArgs;
 	}
 
@@ -119,6 +118,6 @@ public enum CommandArgsEnum {
 		this.shortname = shortname;
 		this.argname = argname;
 		this.description = description;
-		this.hasArgs = false;
+		this.hasArgs = null;
 	}
 }
