@@ -8,6 +8,7 @@ import org.sikuli.script.support.Commons;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,7 @@ public class CommandArgs {
   private Options cmdArgs;
   ArrayList<String> userArgs = new ArrayList<>();
   ArrayList<String> sikuliArgs = new ArrayList<>();
+  List<String> extendedArgs = new ArrayList<>();
 
   private boolean isIDE = false;
 
@@ -31,6 +33,10 @@ public class CommandArgs {
     boolean isUserArg = false;
     for (int i = 0; i < args.length; i++) {
       if (!isUserArg && args[i].startsWith("--")) {
+        if (args[i].equalsIgnoreCase("--reset")) {
+          extendedArgs.add("reset");
+          continue;
+        }
         isUserArg = true;
         continue;
       }
@@ -52,6 +58,9 @@ public class CommandArgs {
     return userArgs.toArray(new String[0]);
   }
 
+  public List<String> getExtendedArgs() {
+    return extendedArgs;
+  }
   /**
    * Adds all options to the Options object
    */

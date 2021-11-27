@@ -46,20 +46,6 @@ public class Sikulix {
     //region startup
     Commons.setStartClass(Sikulix.class);
 
-    if (args.length == 1 && args[0].startsWith("-reset")) {
-      System.out.println("[INFO] IDE: resetting local preferences store and terminating --- see docs");
-
-      if (PreferencesUser.get().getStore().get("USER_TYPE", "0").equals("2")) {
-        PreferencesUser.get().getStore().remove("IDE_LOCATION");
-        PreferencesUser.get().getStore().remove("IDE_SIZE");
-        PreferencesUser.get().getStore().put("IDE_SESSION", "");
-      } else {
-        PreferencesUser.get().setDefaults();
-      }
-
-      System.exit(0);
-    }
-
     Commons.setStartArgs(args);
 
     if (Commons.hasStartArg(QUIET)) {
@@ -78,6 +64,20 @@ public class Sikulix {
     }
 
     Commons.initGlobalOptions();
+
+    if (Commons.hasExtendedArg("reset")) {
+      System.out.println("[INFO] IDE: resetting global options and terminating --- see docs");
+
+      if (PreferencesUser.get().getStore().get("USER_TYPE", "0").equals("2")) {
+        PreferencesUser.get().getStore().remove("IDE_LOCATION");
+        PreferencesUser.get().getStore().remove("IDE_SIZE");
+        PreferencesUser.get().getStore().remove("IDE_SESSION");
+      } else {
+        PreferencesUser.get().setDefaults();
+      }
+
+      System.exit(0);
+    }
 
     if (Commons.hasStartArg(HELP)) {
       Commons.printHelp();
@@ -133,7 +133,7 @@ public class Sikulix {
       Commons.terminate();
     }
 
-    Commons.info("IDE starting (%4.1f)", Commons.getSinceStart());
+    Commons.debug("IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
 

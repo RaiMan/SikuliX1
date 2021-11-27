@@ -51,11 +51,11 @@ public enum CommandArgsEnum {
 	/**
 	 * run the server for Python
 	 */
-	RUNPYSERVER("pythonserver", "p", "Python support", "use SikuliX features from Python"),
+	RUNPYSERVER("pythonserver", "p", "python support", "use SikuliX features from Python"),
 	/**
 	 * run in sandbox, multiple IDE instances allowed
 	 */
-	APPDATA("appdata", "a", "appdata path", "path for SikuliX appdata", false);
+	APPDATA("appdata", "a", "appdata path", "Path for SikuliX AppData (Sandbox)", false);
 	/**
 	 * Longname of the parameter
 	 */

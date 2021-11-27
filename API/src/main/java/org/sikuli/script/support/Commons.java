@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,12 +101,18 @@ public class Commons {
       }
       isRunning.delete();
     }
+    if (globalOptions != null) {
+      debug("GlobalOptions: save: %s", getOptionFile()); //TODO
+    }
   }
 
   public static void setIsRunning(File token, FileOutputStream tokenStream) {
     isRunning = token;
     isRunningFile = tokenStream;
   }
+
+  private static Options globalOptions = null;
+  private static File globalOptionsFile = null;
 
   static {
     startMoment = new Date().getTime();
@@ -199,12 +206,17 @@ Software:
     setOption("SX_LOCALE", locale); //TODO
   }
 
+  public static boolean isSandBox() {
+    return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
+  }
+
   public static void initGlobalOptions() {
     if (globalOptions == null) {
       globalOptions = Options.create();
+      globalOptions.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
       // *************** add commandline args
       String val = "";
-      if (Commons.RUNNINGIDE) {
+      if (RUNNINGIDE) {
         for (CommandArgsEnum arg : CommandArgsEnum.values()) {
           if (cmdLine.hasOption(arg.shortname())) {
             if (null != arg.hasArgs()) {
@@ -234,17 +246,73 @@ Software:
         if (!val.isEmpty()) {
           globalOptions.setOption("SX_ARG_USER", val.trim());
         }
-
-        if (Commons.isRunningIDE()) {
+      }
+      // check for existing optionsfile and load it
+      if (getOptionFile().exists()) {
+        globalOptionsFile = getOptionFile();
+        Properties options = loadOptions(globalOptionsFile);
+        for (Object key : options.keySet()) {
+          globalOptions.setOption("" + key, options.get(key));
+        }
+      }
+      // add IDE Preferences
+      if (isRunningIDE()) {
+        if (globalOptions.hasOption("SX_PREFS_IDE_USER"));
+        else {
           PreferencesUser prefsIDE = PreferencesUser.get();
-          Map<String, String> allPrefs = prefsIDE.getAll("");
-          for (String key : allPrefs.keySet()) {
-            globalOptions.setOption("SX_PREFS_IDE_" + key, allPrefs.get(key));
+
+          if (!isSandBox()) {
+            Map<String, String> allPrefs = prefsIDE.getAll("");
+            for (String key : allPrefs.keySet()) {
+              globalOptions.setOption("SX_PREFS_IDE_" + key, allPrefs.get(key));
+            }
+          } else {
+
           }
         }
       }
-      globalOptions.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
     }
+  }
+
+  private static File getOptionFile() {
+    return getOptionFile(getOptionFileName());
+  }
+
+  public static File getOptionFile(String fpOptions) {
+    File fOptions = new File(fpOptions);
+    if (!fOptions.isAbsolute()) {
+      for (File aFile : new File[]{getAppDataPath(), getAppDataStore(), getWorkDir(), getUserHome()}) {
+        fOptions = new File(aFile, fpOptions);
+        if (fOptions.exists()) {
+          break;
+        } else {
+          fOptions = null;
+        }
+      }
+    }
+    if (fOptions == null) {
+      fOptions = new File(getAppDataPath(), fpOptions);
+    }
+    return fOptions;
+  }
+
+  private static String getOptionFileName() {
+    String fileName = "SikulixOptions.txt";
+    return fileName;
+  }
+
+  public static Properties loadOptions(File fOptions) {
+    Properties options = new Properties();
+    if (fOptions != null) {
+      try {
+        InputStream is;
+        is = new FileInputStream(fOptions);
+        options.load(is);
+        is.close();
+      } catch (Exception ex) {
+      }
+    }
+    return options;
   }
   //</editor-fold>
 
@@ -388,7 +456,7 @@ Software:
   public static void setStartArgs(String[] args) {
     cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
     cmdLine = cmdArgs.getCommandLine(args);
-    if (cmdArgs != null) {
+    if (cmdLine != null) {
       userArgs = cmdArgs.getUserArgs();
     }
   }
@@ -426,6 +494,13 @@ Software:
       val = val == null ? "" : val;
     }
     return val;
+  }
+
+  public static boolean hasExtendedArg(String option) {
+    if (cmdArgs != null && cmdArgs.getExtendedArgs().contains(option)) {
+      return true;
+    }
+    return false;
   }
 
   public static void terminate() {
@@ -489,7 +564,7 @@ Software:
         appDataPath.mkdirs();
       }
       if (appDataPath == null || !appDataPath.exists()) {
-        appDataPath = new File(getUserHome(), "SikulixAppData");
+        setAppDataPath("");
         error("Commons.getAppDataPath: standard place not possible - using: %s", appDataPath);
       }
     }
@@ -499,17 +574,21 @@ Software:
   public static File setAppDataPath(String givenAppPath) {
     if (givenAppPath.isEmpty()) givenAppPath = "SikulixAppData";
     appDataPath = new File(givenAppPath);
+    if (givenAppPath.startsWith("~/")) appDataPath = new File(getUserHome(), givenAppPath);
+    else if (givenAppPath.startsWith("./")) appDataPath = new File(getWorkDir(), givenAppPath);
     if (!appDataPath.isAbsolute()) {
-      appDataPath = new File(getUserHome(), givenAppPath);
+      appDataPath = new File(getWorkDir(), givenAppPath);
     }
     appDataPath.mkdirs();
     if (!appDataPath.exists()) {
-      terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created");
+      terminate(999, "Commons: setAppDataPath: %s (%s)", givenAppPath, "not created/not exists");
     }
+    APP_DATA_SANDBOX = new File(appDataPath.getAbsolutePath());
     return appDataPath;
   }
 
   private static File appDataPath = null;
+  private static File APP_DATA_SANDBOX = null;
 
   public static File getAppDataStore() {
     File sikulixStore = new File(getAppDataPath(), "SikulixStore");
@@ -1237,8 +1316,6 @@ Software:
   public enum SXOPTIONS {
 
   }
-
-  private static Options globalOptions = null;
 
   public static void show() {
     info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
