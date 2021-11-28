@@ -22,5 +22,4 @@ original/
 .DS_Store
 native/
 .jython_cache/
-
-
+SikulixAppData/
