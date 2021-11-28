@@ -305,6 +305,49 @@ public class Options {
   /**
    * {link getOption}
    *
+   * @param pName    the option key (case-sensitive)
+   * @param nDefault the default to be returned if option absent, empty or not convertible
+   * @return the converted integer number, default if absent, empty or not possible
+   */
+  public long getOptionLong(String pName, Long nDefault) {
+    if (options == null) {
+      return nDefault;
+    }
+    String pVal = options.getProperty(pName, nDefault.toString());
+    long nVal = nDefault;
+    try {
+      nVal = Long.decode(pVal);
+    } catch (Exception ex) {
+    }
+    return nVal;
+  }
+
+  /**
+   * {link getOption}
+   *
+   * @param pName the option key (case-sensitive)
+   * @return the converted long number, 0 if absent or not possible
+   */
+  public long getOptionLong(String pName) {
+    return getOptionInteger(pName, 0);
+  }
+
+  /**
+   * {link getOption}
+   *
+   * @param pName  the option key (case-sensitive)
+   * @param nValue the value to be set
+   */
+  public void setOptionLong(String pName, long nValue) {
+    if (options == null) {
+      init(); //setOptionLong
+    }
+    options.setProperty(pName, "" + nValue);
+  }
+
+  /**
+   * {link getOption}
+   *
    * @param pName the option key (case-sensitive)
    * @return the converted float number, default if absent or not possible
    */
@@ -444,13 +487,19 @@ public class Options {
    * @return a map of key-value pairs containing the found options, empty if no options file found
    */
   public Map<String, String> getOptions() {
+    return getOptions("");
+  }
+
+  public Map<String, String> getOptions(String prefix) {
     Map<String, String> mapOptions = new HashMap<String, String>();
     if (options != null) {
       Enumeration<?> optionNames = options.propertyNames();
       String optionName;
       while (optionNames.hasMoreElements()) {
         optionName = (String) optionNames.nextElement();
-        mapOptions.put(optionName, getOption(optionName));
+        if (prefix.isEmpty() || optionName.startsWith(prefix)) {
+          mapOptions.put(optionName, getOption(optionName));
+        }
       }
     }
     return mapOptions;
@@ -459,11 +508,12 @@ public class Options {
   /**
    * all options and their values written to sysout as key = value
    */
-  public void dumpOptions() {
+  public void dumpOptions(String key) {
     if (hasOptions()) {
       Map<String, String> mapOptions = getOptions();
-      logp("*** options dump");
+      logp("*** options dump" + (key.isEmpty() ? "" : " for: " + key));
       for (String sOpt : mapOptions.keySet()) {
+        if (!options.isEmpty() && !sOpt.startsWith(key)) continue;
         logp("%s = %s", sOpt, mapOptions.get(sOpt));
       }
       logp("*** options dump end");

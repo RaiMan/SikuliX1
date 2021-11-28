@@ -210,6 +210,15 @@ Software:
     return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
   }
 
+  public static Options getGlobalOptions() {
+    if (globalOptions == null) {
+      terminate(999, "Commons::globalOptions: early access - not initialized");
+    }
+    return globalOptions;
+  }
+
+  public final static String SXPREFS = "SX_PREFS_";
+
   public static void initGlobalOptions() {
     if (globalOptions == null) {
       globalOptions = Options.create();
@@ -257,17 +266,10 @@ Software:
       }
       // add IDE Preferences
       if (isRunningIDE()) {
-        if (globalOptions.hasOption("SX_PREFS_IDE_USER"));
-        else {
+        if (!globalOptions.hasOption("SX_PREFS_USER")) {
           PreferencesUser prefsIDE = PreferencesUser.get();
-
-          if (!isSandBox()) {
-            Map<String, String> allPrefs = prefsIDE.getAll("");
-            for (String key : allPrefs.keySet()) {
-              globalOptions.setOption("SX_PREFS_IDE_" + key, allPrefs.get(key));
-            }
-          } else {
-
+          for (String key : prefsIDE.getAll("").keySet()) {
+            globalOptions.setOption("SX_PREFS_" + key, prefsIDE.get(key, ""));
           }
         }
       }
@@ -1326,7 +1328,7 @@ Software:
     info("app data folder: %s", Commons.getAppDataPath());
     info("work dir: %s", Commons.getWorkDir());
     info("user.home: %s", Commons.getUserHome());
-    Commons.showOptions("SX_", "PREFS_IDE");
+    Commons.showOptions("SX_", "_PREFS_");
     info("***** show environment end");
   }
 

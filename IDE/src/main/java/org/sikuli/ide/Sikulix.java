@@ -68,10 +68,10 @@ public class Sikulix {
     if (Commons.hasExtendedArg("reset")) {
       System.out.println("[INFO] IDE: resetting global options and terminating --- see docs");
 
-      if (PreferencesUser.get().getStore().get("USER_TYPE", "0").equals("2")) {
-        PreferencesUser.get().getStore().remove("IDE_LOCATION");
-        PreferencesUser.get().getStore().remove("IDE_SIZE");
-        PreferencesUser.get().getStore().remove("IDE_SESSION");
+      if (PreferencesUser.get().get("USER_TYPE", "0").equals("2")) {
+        PreferencesUser.get().remove("IDE_LOCATION");
+        PreferencesUser.get().remove("IDE_SIZE");
+        PreferencesUser.get().remove("IDE_SESSION");
       } else {
         PreferencesUser.get().setDefaults();
       }
@@ -83,7 +83,7 @@ public class Sikulix {
       Commons.printHelp();
       Commons.setDebug();
       Commons.show();
-      Commons.showOptions("SX_PREFS_IDE");
+      Commons.showOptions(Commons.SXPREFS);
       System.exit(0);
     }
 

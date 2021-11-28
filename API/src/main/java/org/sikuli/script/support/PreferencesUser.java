@@ -5,6 +5,7 @@ package org.sikuli.script.support;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Options;
 import org.sikuli.script.Sikulix;
 
 import java.awt.Dimension;
@@ -54,89 +55,114 @@ public class PreferencesUser {
     return _instance;
   }
 
-  String SXPrefix = "SX_IDE_";
+  private PreferencesUser() {
+    if (Commons.isSandBox()) {
+      pref = new SXPreferences();
+    } else {
+      Class<Sikulix> sikulixClass = Sikulix.class;
+      pref = Preferences.userNodeForPackage(sikulixClass);
+    }
+  }
+
+  Preferences pref;
+
+  public Preferences getStore() {
+    return pref;
+  }
 
   private class SXPreferences extends Preferences {
 
+    final String prfx = Commons.SXPREFS;
+    Options opts = Commons.getGlobalOptions();
 
     @Override
     public void put(String key, String value) {
-
+      opts.setOption(prfx + key, value);
     }
 
     @Override
     public String get(String key, String def) {
-      return null;
+      return opts.getOption(prfx + key, def);
     }
 
     @Override
     public void remove(String key) {
-
+      Options.delOpt(opts, prfx + key);
     }
 
     @Override
     public void clear() {
-
+      for (String key : keys()) {
+        Options.delOpt(opts, key);
+      }
     }
 
     @Override
     public void putInt(String key, int value) {
-
+      opts.setOptionInteger(prfx + key, value);
     }
 
     @Override
     public int getInt(String key, int def) {
-      return 0;
+      return opts.getOptionInteger(prfx + key, def);
     }
 
     @Override
     public void putLong(String key, long value) {
-
+      opts.setOptionLong(prfx + key, value);
     }
 
     @Override
     public long getLong(String key, long def) {
-      return 0;
+      return opts.getOptionLong(prfx + key, def);
     }
 
     @Override
     public void putBoolean(String key, boolean value) {
-
+      opts.setOptionBool(prfx + key, value);
     }
 
     @Override
     public boolean getBoolean(String key, boolean def) {
-      return false;
+      return opts.isOption(prfx + key, def);
     }
 
     @Override
     public void putFloat(String key, float value) {
-
+      opts.setOptionFloat(prfx + key, value);
     }
 
     @Override
     public float getFloat(String key, float def) {
-      return 0;
+      return opts.getOptionFloat(prfx + key, def);
     }
 
     @Override
     public void putDouble(String key, double value) {
-
+      opts.setOptionDouble(prfx + key, value);
     }
 
     @Override
     public double getDouble(String key, double def) {
-      return 0;
+      return opts.getOptionDouble(prfx + key, def);
     }
 
     @Override
     public String[] keys() {
-      return new String[0];
+      return opts.getOptions(prfx).keySet().toArray(new String[0]);
     }
 
     @Override
     public String toString() {
-      return ""; //TODO SXPreferences
+      String optionsToString = "";
+      Map<String, String> options = opts.getOptions(prfx);
+      if (!options.isEmpty()) {
+        for (String key : options.keySet()) {
+          optionsToString += key + "=" + options.get(key) +"\n";
+        }
+        optionsToString = optionsToString.substring(0, optionsToString.length() - 1);
+      }
+      return optionsToString;
     }
 
     //region NOT IMPLEMENTED
@@ -232,19 +258,6 @@ public class PreferencesUser {
     //endregion
   }
 
-  private PreferencesUser() {
-    //Debug.log(3, "init user preferences");
-    pref = new SXPreferences(); //TODO
-    Class<Sikulix> sikulixClass = Sikulix.class;
-    pref = Preferences.userNodeForPackage(sikulixClass);
-  }
-
-  Preferences pref;
-
-  public Preferences getStore() {
-    return pref; //TODO
-  }
-
   public boolean save(String path) {
     try {
       FileOutputStream pout = new FileOutputStream(path);
@@ -268,15 +281,20 @@ public class PreferencesUser {
   }
 
   public void remove(String key) {
-    pref.remove(key); //TODO
+    pref.remove(key);
   }
 
   public Map<String, String> getAll(String prefix) {
     Map<String, String> allPrefs = new HashMap<>();
+    String[] keys = new String[0];
     try {
-      for (String item : pref.keys()) { //TODO
-        if (item.startsWith(prefix)) {
-          allPrefs.put(item, pref.get(item, "")); //TODO get
+      keys = pref.keys();
+    } catch (BackingStoreException e) {
+    }
+    try {
+      for (String item : keys) {
+        if (prefix.isEmpty() || item.startsWith(prefix)) {
+          allPrefs.put(item, pref.get(item, ""));
         }
       }
     } catch (Exception ex) {
@@ -581,7 +599,7 @@ public class PreferencesUser {
   }
 
   public String getIdeSession() {
-    return pref.get("IDE_SESSION", null);
+    return pref.get("IDE_SESSION", "");
   }
 
   // support for IDE image path
@@ -598,7 +616,7 @@ public class PreferencesUser {
   }
 
   public String getPrefMoreImagesPath() {
-    return pref.get("PREF_MORE_IMAGES_PATH", null);
+    return pref.get("PREF_MORE_IMAGES_PATH", "");
   }
 
   // ***** message area settings
