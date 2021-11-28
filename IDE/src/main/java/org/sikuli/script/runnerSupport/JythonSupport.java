@@ -10,7 +10,6 @@ import org.python.util.PythonInterpreter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.idesupport.ExtensionManager;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
@@ -86,15 +85,25 @@ public class JythonSupport implements IRunnerSupport {
       Debug.log("Jython: not found on classpath");
       return;
     }
-    File appDataPath = Commons.getAppDataPath();
-    File pyLib = new File(appDataPath, "Lib");
+    File pyLib = new File(Commons.getAppDataPath(), "Lib");
+
     if (!pyLib.exists() && !pyLib.mkdirs()) {
-      Debug.error("JythonSupport: failed: %s", pyLib);
+      Commons.terminate(998, "JythonSupport: failed: %s", pyLib);
     } else {
-      File sitePackages = new File(pyLib, "site-packages");
-      if (!sitePackages.exists() && sitePackages.mkdir()) {
-        FileManager.writeStringToFile(ExtensionManager.getSitesTxtDefault(), new File(sitePackages, "sites.txt"));
-      }
+      FileManager.deleteFileOrFolder(pyLib, new FileManager.FileFilter() {
+        @Override
+        public boolean accept(File entry) {
+          if (entry.getPath().contains("site-packages")) {
+            return false;
+          }
+          return true;
+        }
+      });
+    }
+    File sitePackages = getSitePackages();
+    File sitesTxt = getSitesTxt();
+    if ((!sitePackages.exists() && sitePackages.mkdir()) || !sitesTxt.exists() ) {
+      FileManager.writeStringToFile(getSitesTxtDefault(), sitesTxt);
     }
     try {
       interpreter = new PythonInterpreter();
@@ -163,6 +172,23 @@ public class JythonSupport implements IRunnerSupport {
   }
   //</editor-fold>
 
+  public static File getSitePackages() {
+    return new File(Commons.getAppDataPath(), "Lib/site-packages");
+  }
+
+  public static File getSitesTxt() {
+    return new File(getSitePackages(), "sites.txt");
+  }
+
+  public static String getSitesTxtDefault() {
+    return "# add absolute paths one per line, that point to other directories/jars,\n" +
+        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
+        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
+        "\n" +
+        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
+  }
+
+  //TODO no longer needed with 2.0.6 bundled Jython
   public void exportLib() {
     File fLib = Commons.getLibFolder();
     FilenameFilter filterSitePackages = null;
@@ -190,6 +216,7 @@ public class JythonSupport implements IRunnerSupport {
     }
     RunTime.extractResourcesToFolder("Lib", Commons.getLibFolder(), filterSitePackages);
   }
+
 
   //<editor-fold desc="05 Jython reflection">
   static Class cPyMethod = null;
@@ -561,8 +588,7 @@ public class JythonSupport implements IRunnerSupport {
 
   public void addSitePackages() {
     synchronized (sysPath) {
-      File fLibFolder = Commons.getLibFolder();
-      File fSitePackages = new File(fLibFolder, "site-packages");
+      File fSitePackages = getSitePackages();
       if (fSitePackages.exists()) {
         addSysPath(fSitePackages);
         if (hasSysPath(fSitePackages.getAbsolutePath())) {

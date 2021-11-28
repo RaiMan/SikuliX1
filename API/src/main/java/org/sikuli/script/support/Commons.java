@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,7 +101,7 @@ public class Commons {
       isRunning.delete();
     }
     if (globalOptions != null) {
-      debug("GlobalOptions: save: %s", getOptionFile()); //TODO
+      saveGlobalOptions();
     }
   }
 
@@ -257,10 +256,17 @@ Software:
         }
       }
       // check for existing optionsfile and load it
-      if (getOptionFile().exists()) {
+      if (isSandBox()) {
         globalOptionsFile = getOptionFile();
-        Properties options = loadOptions(globalOptionsFile);
+      } else {
+        globalOptionsFile = getOptionFileDefault();
+      }
+      if (globalOptionsFile != null && globalOptionsFile.exists()) {
+        Properties options = loadPropsFromFile(globalOptionsFile);
         for (Object key : options.keySet()) {
+          if (("" + key).startsWith("SX_ARG_")) {
+            continue;
+          }
           globalOptions.setOption("" + key, options.get(key));
         }
       }
@@ -268,11 +274,31 @@ Software:
       if (isRunningIDE()) {
         if (!globalOptions.hasOption("SX_PREFS_USER")) {
           PreferencesUser prefsIDE = PreferencesUser.get();
-          for (String key : prefsIDE.getAll("").keySet()) {
-            globalOptions.setOption("SX_PREFS_" + key, prefsIDE.get(key, ""));
+          if (isSandBox()) {
+            prefsIDE.setDefaults();
+          } else {
+            for (String key : prefsIDE.getAll("").keySet()) {
+              globalOptions.setOption("SX_PREFS_" + key, prefsIDE.get(key, ""));
+            }
           }
         }
       }
+    }
+  }
+
+  public static void saveGlobalOptions() {
+    if (isSandBox()) {
+      File optionFile = getOptionFile();
+      if (null == optionFile) {
+        optionFile = new File(APP_DATA_SANDBOX, getOptionFileName());
+      }
+      savePropsToFile(globalOptions.getOptionsAsProps(), optionFile);
+    } else {
+      File optionFile = getOptionFileDefault();
+      if (null == optionFile || !optionFile.exists()) {
+        optionFile = new File(getAppDataStore(), getOptionFileNameBackup());
+      }
+      savePropsToFile(globalOptions.getOptionsAsProps(), optionFile);
     }
   }
 
@@ -280,10 +306,14 @@ Software:
     return getOptionFile(getOptionFileName());
   }
 
+  private static File getOptionFileDefault() {
+    return getOptionFile(new File(getAppDataStore(),getOptionFileName()).getAbsolutePath());
+  }
+
   public static File getOptionFile(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (!fOptions.isAbsolute()) {
-      for (File aFile : new File[]{getAppDataPath(), getAppDataStore(), getWorkDir(), getUserHome()}) {
+      for (File aFile : new File[]{getAppDataPath(), getWorkDir(), getUserHome()}) {
         fOptions = new File(aFile, fpOptions);
         if (fOptions.exists()) {
           break;
@@ -291,9 +321,6 @@ Software:
           fOptions = null;
         }
       }
-    }
-    if (fOptions == null) {
-      fOptions = new File(getAppDataPath(), fpOptions);
     }
     return fOptions;
   }
@@ -303,18 +330,33 @@ Software:
     return fileName;
   }
 
-  public static Properties loadOptions(File fOptions) {
+  private static String getOptionFileNameBackup() {
+    String fileName = "SikulixOptionsBackup.txt";
+    return fileName;
+  }
+
+  private static Properties loadPropsFromFile(File fOptions) {
     Properties options = new Properties();
     if (fOptions != null) {
       try {
-        InputStream is;
-        is = new FileInputStream(fOptions);
+        InputStream is = new FileInputStream(fOptions);
         options.load(is);
         is.close();
       } catch (Exception ex) {
       }
     }
     return options;
+  }
+
+  private static void savePropsToFile(Properties options, File fOptions) {
+    if (options != null && fOptions != null) {
+      try {
+        OutputStream os = new FileOutputStream(fOptions);
+        options.store(os, null);
+        os.close();
+      } catch (Exception ex) {
+      }
+    }
   }
   //</editor-fold>
 
@@ -574,10 +616,15 @@ Software:
   }
 
   public static File setAppDataPath(String givenAppPath) {
-    if (givenAppPath.isEmpty()) givenAppPath = "SikulixAppData";
+    if (givenAppPath.isEmpty()) {
+      givenAppPath = "SikulixAppData";
+    }
     appDataPath = new File(givenAppPath);
-    if (givenAppPath.startsWith("~/")) appDataPath = new File(getUserHome(), givenAppPath);
-    else if (givenAppPath.startsWith("./")) appDataPath = new File(getWorkDir(), givenAppPath);
+    if (givenAppPath.startsWith("~/")) {
+      appDataPath = new File(getUserHome(), givenAppPath);
+    } else if (givenAppPath.startsWith("./")) {
+      appDataPath = new File(getWorkDir(), givenAppPath);
+    }
     if (!appDataPath.isAbsolute()) {
       appDataPath = new File(getWorkDir(), givenAppPath);
     }
@@ -1315,10 +1362,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling">
-  public enum SXOPTIONS {
-
-  }
-
   public static void show() {
     info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
     info("running as: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());

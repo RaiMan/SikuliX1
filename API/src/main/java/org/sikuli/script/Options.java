@@ -490,6 +490,10 @@ public class Options {
     return getOptions("");
   }
 
+  public Properties getOptionsAsProps() {
+    return options;
+  }
+
   public Map<String, String> getOptions(String prefix) {
     Map<String, String> mapOptions = new HashMap<String, String>();
     if (options != null) {

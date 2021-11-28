@@ -778,12 +778,12 @@ public class SikulixIDE extends JFrame {
     specialFiles.put("1 SikuliX Settings & Options", Commons.getOptionsFile().getAbsolutePath());
     File extensionsFile = ExtensionManager.getExtensionsFile();
     specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
-    File sitesTxt = ExtensionManager.getSitesTxt();
+    File sitesTxt = JythonSupport.getSitesTxt();
     specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
     String[] defaults = new String[specialFiles.size()];
     defaults[0] = Options.getOptionsFileDefault();
     defaults[1] = ExtensionManager.getExtensionsFileDefault();
-    defaults[2] = ExtensionManager.getSitesTxtDefault();
+    defaults[2] = JythonSupport.getSitesTxtDefault();
     String msg = "";
     int num = 1;
     String[] files = new String[specialFiles.size()];

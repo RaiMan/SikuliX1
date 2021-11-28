@@ -391,20 +391,6 @@ public class ExtensionManager {
   public static final String shebangPython = "#!PYTHON";
   public static final String shebangJython = "#!JYTHON";
 
-  public static File getSitesTxt() {
-    return sxSitesTxt;
-  }
-
-  private static File sxSitesTxt = new File(Commons.getAppDataPath(), "Lib/site-packages/sites.txt");
-
-  public static String getSitesTxtDefault() {
-    return "# add absolute paths one per line, that point to other directories/jars,\n" +
-        "# where importable modules (Jython, plain Python, SikuliX scripts, ...) can be found.\n" +
-        "# They will be added automatically at startup to the end of sys.path in the given sequence\n" +
-        "\n" +
-        "# lines beginning with # and blank lines are ignored and can be used as comments\n";
-  }
-
   public static void show() {
     String warn = "Nothing to do here currently - click what you like ;-)\n" +
         "\nExtensions folder: \n" + sxExtensions +
