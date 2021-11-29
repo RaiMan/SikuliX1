@@ -56,4 +56,4 @@ class Region(JRegion):
     if background :
       return self.observeInBackground(waitTime)
     else:
-      return self.observeInLine(waitTime);
+      return self.observeInLine(waitTime)

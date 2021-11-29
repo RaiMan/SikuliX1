@@ -440,7 +440,7 @@ def getBundlePath():
 def getBundleFolder():
     path = ImagePath.getBundlePath()
     if not path: return None
-    return path + Settings.getFilePathSeperator();
+    return path + Settings.getFilePathSeperator()
 
 
 ##
@@ -452,7 +452,7 @@ def getBundleFolder():
 def getParentPath():
     path = ImagePath.getBundlePath()
     if not path: return None
-    return os.path.dirname(makePath(getBundlePath()));
+    return os.path.dirname(makePath(getBundlePath()))
 
 
 ##
@@ -464,7 +464,7 @@ def getParentPath():
 def getParentFolder():
     path = getParentPath()
     if not path: return None
-    return path + Settings.getFilePathSeperator();
+    return path + Settings.getFilePathSeperator()
 
 
 ##
@@ -576,13 +576,13 @@ def select(msg="", title="Sikuli Selection", options=(), default=None):
     if optionsLen == 0:
         return ""
     try:
-        ndefault = 0 + default;
+        ndefault = 0 + default
         if ndefault > -1 and ndefault < optionsLen:
             default = options[ndefault]
     except:
         pass
     # return Sikulix.popSelect(msg, title, options, default)
-    optionString = "";
+    optionString = ""
     for option in options:
         optionString += str(len(option) + 1000) + option
     return Do.popSelect(msg, title, default, optionString)
@@ -591,45 +591,6 @@ def select(msg="", title="Sikuli Selection", options=(), default=None):
 def popFile(title="Select File or Folder"):
     # return Sikulix.popFile(title)
     return Do.popFile("", title)
-
-
-## ----------------------------------------------------------------------
-# set the default screen to given or primary screen
-#
-# TODO where else to remember an opened remote screen?
-remoteScreen = None
-import org.sikuli.script.support.devices.ScreenDevice as SD
-SCREEN = None
-
-def use(scr=None, remote=False, fromWith=False):
-    global SCREEN
-    global remoteScreen
-    if remoteScreen:
-        remoteScreen.close()
-        remoteScreen = None
-    if not scr:
-        newScreen = SD.getPrimaryScreen()
-    else:
-        newScreen = scr
-    if remote or fromWith:
-        theGlobals = inspect.currentframe().f_back.f_back.f_globals
-    else:
-        theGlobals = inspect.currentframe().f_back.f_globals
-    _setSCREEN(newScreen, theGlobals)
-    if remote:
-        remoteScreen = SCREEN
-
-##
-# set the default screen to given remote screen
-#
-def useRemote(adr, port=0):
-    global remoteScreen
-    import org.sikuli.script.ScreenRemote as SR
-    SCREEN = SR(adr, str(port))
-    if SCREEN.isValid():
-        return use(SCREEN, True)
-    else:
-        return None
 
 
 ## -----------------------------------------------------------------------
@@ -826,12 +787,51 @@ def _exposeAllMethods(anyObject, saved, theGlobals, exclude_list):
     return tosave
 
 ## ----------------------------------------------------------------------
+# set the default screen to given or primary screen
+#
+# TODO where else to remember an opened remote screen?
+remoteScreen = None
+import org.sikuli.script.support.devices.ScreenDevice as SD
+SCREEN = None
+
+def use(scr=None, remote=False, fromWith=False):
+    global SCREEN
+    global remoteScreen
+    if remoteScreen:
+        remoteScreen.close()
+        remoteScreen = None
+    if not scr:
+        newScreen = SD.getPrimaryScreen()
+    else:
+        newScreen = scr
+    if remote or fromWith:
+        theGlobals = inspect.currentframe().f_back.f_back.f_globals
+    else:
+        theGlobals = inspect.currentframe().f_back.f_globals
+    _setSCREEN(newScreen, theGlobals)
+    if remote:
+        remoteScreen = SCREEN
+
+##
+# set the default screen to given remote screen
+#
+def useRemote(adr, port=0):
+    global remoteScreen
+    import org.sikuli.script.ScreenRemote as SR
+    SCREEN = SR(adr, str(port))
+    if SCREEN.isValid():
+        return use(SCREEN, True)
+    else:
+        return None
+
+## ----------------------------------------------------------------------
 def reset():
-    JScreen.resetMonitors();
+    JScreen.resetMonitors()
     ALL = SCREEN.all().getRegion()
 
-def resetBeforeScriptStart():
-    scr = SD.getPrimaryScreen();
+def resetToPrimaryScreen():
+    if SCREEN and SCREEN.getID() == 0: return
+    scr = SD.getPrimaryScreen()
     scr.reset()
     theGlobals = inspect.currentframe().f_back.f_globals
     _setSCREEN(scr,theGlobals)
@@ -844,4 +844,5 @@ def _setSCREEN(scr, theGlobals):
 
 ############### set SCREEN as primary screen at startup ################
 ALL = JScreen.all().getRegion()
+resetToPrimaryScreen()
 Debug.log(3, "Jython: ending init")
