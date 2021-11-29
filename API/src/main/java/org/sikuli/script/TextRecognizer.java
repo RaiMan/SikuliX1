@@ -40,8 +40,8 @@ public class TextRecognizer {
 
   private static int lvl = 3;
 
-  private static final String versionTess4J = "4.5.4";
-  private static final String versionTesseract = "4.1.x";
+  private static final String versionTess4J = "4.6.0";
+  private static final String versionTesseract = "4.1.3";
 
   private OCR.Options options;
 
