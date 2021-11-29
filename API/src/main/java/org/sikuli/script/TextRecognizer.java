@@ -66,6 +66,7 @@ public class TextRecognizer {
    */
   protected static TextRecognizer get(OCR.Options options) {
     if (!isValid) {
+      Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       //TODO Tess4J: macOS: tesseract library load problem
       if (Commons.runningMac()) {
         String libPath = "/usr/local/lib";
@@ -85,7 +86,6 @@ public class TextRecognizer {
 
     initDefaultDataPath();
 
-    Debug.log(lvl, "OCR: start: Tess4J %s using Tesseract %s", versionTess4J, versionTesseract);
     if (options == null) {
       options = OCR.globalOptions();
     }
