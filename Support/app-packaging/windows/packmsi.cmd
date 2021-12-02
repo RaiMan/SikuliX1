@@ -1,5 +1,5 @@
-del *.exe
-del *.msi
+del app-package\app\*.exe
+del app-package\app\*.msi
 set version=2.0.6-SNAPSHOT
 jpackage --type msi ^
 --input app-package\jar ^
