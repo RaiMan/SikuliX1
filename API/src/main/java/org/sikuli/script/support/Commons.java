@@ -534,7 +534,7 @@ Software:
   private static List<String> STARTUPARGS = new ArrayList<>();
 
   public static void setStartArgs(String[] args) {
-    if (!args[0].isEmpty() && args[0].endsWith("sikulixide")) {
+    if (args.length == 1 && !args[0].isEmpty() && args[0].endsWith("sikulixide")) {
       STARTUPFILE = args[0];
       STARTUPINFO = FileManager.readFileToString(new File(STARTUPFILE));
       String[] info = STARTUPINFO.split(System.lineSeparator());
@@ -585,6 +585,9 @@ Software:
         return true;
       }
     } else if (option.equals(CONSOLE)) {
+      if (isRunningPackage() && STARTUPFILE != null) {
+        return false;
+      }
       String prop = System.getProperty("sikuli.console");
       if (prop != null) {
         return true;

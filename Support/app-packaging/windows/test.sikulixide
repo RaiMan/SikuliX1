@@ -1,5 +1,6 @@
 # this is startup information
--v -c
+-v
+-r
 -- parm1 parm2
 # options
 anOption=someValue
