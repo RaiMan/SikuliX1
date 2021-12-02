@@ -1,0 +1,9 @@
+# this is startup information
+-v -c
+-- parm1 parm2
+# options
+anOption=someValue
+anOption1=
+anOption2
+=someValue
+=

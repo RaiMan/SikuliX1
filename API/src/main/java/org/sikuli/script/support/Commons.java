@@ -9,6 +9,7 @@ import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.util.CommandArgs;
@@ -55,7 +56,7 @@ public class Commons {
   private static final String sxTempDir = System.getProperty("java.io.tmpdir");
   private static File sxTempFolder = null;
 
-  private static Locale sxLocale = new Locale("en","US");
+  private static Locale sxLocale = new Locale("en", "US");
 
   private static long startMoment;
 
@@ -66,6 +67,16 @@ public class Commons {
         !hasOption("SX_ARG_RUN") &&
         !hasOption("SX_ARG_RUNSERVER") &&
         !hasOption("SX_ARG_RUNPYSERVER")) {
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isRunningPackage() {
+    if (!RUNNINGIDE) return false;
+    File packFolder = getMainClassLocation().getParentFile().getParentFile();
+    if (new File(packFolder, "app").exists() && new File(packFolder, "runtime").exists()
+        && new File(packFolder, "runtime/release").exists()) {
       return true;
     }
     return false;
@@ -222,6 +233,9 @@ Software:
     if (globalOptions == null) {
       globalOptions = Options.create();
       globalOptions.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
+      if (STARTUPFILE != null) {
+        globalOptions.setOption("SX_ARG_STARTUP", new File(STARTUPFILE));
+      }
       // *************** add commandline args
       String val = "";
       if (RUNNINGIDE) {
@@ -283,6 +297,24 @@ Software:
           }
         }
       }
+      if (RUNNINGIDE && STARTUPLINES != null) {
+        for (String line : STARTUPLINES) {
+          if (line.contains("=")) {
+            if (line.startsWith("=")) {
+              continue;
+            }
+            String[] parts = line.split("=");
+            if (parts.length > 0) {
+              if (parts.length > 1) {
+                globalOptions.setOption(parts[0], parts[1]);
+              } else
+                globalOptions.setOption(parts[0], "");
+            }
+          } else {
+            globalOptions.setOption(line, "");
+          }
+        }
+      }
     }
   }
 
@@ -307,7 +339,7 @@ Software:
   }
 
   private static File getOptionFileDefault() {
-    return getOptionFile(new File(getAppDataStore(),getOptionFileName()).getAbsolutePath());
+    return getOptionFile(new File(getAppDataStore(), getOptionFileName()).getAbsolutePath());
   }
 
   public static File getOptionFile(String fpOptions) {
@@ -496,10 +528,43 @@ Software:
   private static CommandLine cmdLine = null;
   private static CommandArgs cmdArgs = null;
   private static String[] userArgs = new String[0];
+  private static String STARTUPFILE = null;
+  private static String STARTUPINFO = null;
+  private static List<String> STARTUPLINES = new ArrayList<>();
+  private static List<String> STARTUPARGS = new ArrayList<>();
 
   public static void setStartArgs(String[] args) {
+    if (!args[0].isEmpty() && args[0].endsWith("sikulixide")) {
+      STARTUPFILE = args[0];
+      STARTUPINFO = FileManager.readFileToString(new File(STARTUPFILE));
+      String[] info = STARTUPINFO.split(System.lineSeparator());
+      if (info.length > 0) {
+        for (String line : info) {
+          line = line.strip();
+          if (!line.isEmpty()) {
+            if (line.startsWith("/") || line.startsWith("#")) {
+              continue;
+            }
+            STARTUPLINES.add(line);
+          }
+        }
+      }
+      if (STARTUPLINES.size() > 0) {
+        List<String> lines = new ArrayList<>();
+
+        for (String line : STARTUPLINES) {
+          if (line.startsWith("-")) {
+            String[] parms = parmStringToArray(line);
+            STARTUPARGS.addAll(List.of(parms));
+            continue;
+          }
+          lines.add(line);
+        }
+        STARTUPLINES = lines;
+      }
+    }
     cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
-    cmdLine = cmdArgs.getCommandLine(args);
+    cmdLine = cmdArgs.getCommandLine(STARTUPARGS.size() > 0 ? STARTUPARGS.toArray(new String[0]) : args);
     if (cmdLine != null) {
       userArgs = cmdArgs.getUserArgs();
     }
@@ -519,7 +584,7 @@ Software:
       if (prop != null) {
         return true;
       }
-    } else if(option.equals(CONSOLE)) {
+    } else if (option.equals(CONSOLE)) {
       String prop = System.getProperty("sikuli.console");
       if (prop != null) {
         return true;
@@ -1363,8 +1428,15 @@ Software:
 
   //<editor-fold desc="30 Options handling">
   public static void show() {
+    String runningAs = "running as jar";
+    if (Commons.isRunningPackage()) {
+      runningAs = "running from package";
+    }
     info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
-    info("running as: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
+    if (STARTUPFILE != null) {
+      info("startupfile: %s", STARTUPFILE);
+    }
+    info("%s: %s (%s)", runningAs, getMainClassLocation(), getStartClass().getCanonicalName());
     info("running on: %s", Commons.getOSInfo());
     info("running Java: %s", Commons.getJavaInfo());
     info("java.io.tmpdir: %s", Commons.getTempFolder());
@@ -1819,6 +1891,36 @@ Software:
       return false;
     }
     return true;
+  }
+
+  public static String[] parmStringToArray(String line) {
+    String separator = "\"";
+    ArrayList<String> argsx = new ArrayList<String>();
+    StringTokenizer toks;
+    String tok;
+//    if (Settings.isWindows()) {
+//      line = line.replaceAll("\\\\ ", "%20;");
+//    }
+    toks = new StringTokenizer(line);
+    while (toks.hasMoreTokens()) {
+      tok = toks.nextToken(" ");
+      if (tok.length() == 0) {
+        continue;
+      }
+      if (separator.equals(tok)) {
+        continue;
+      }
+      if (tok.startsWith(separator)) {
+        if (tok.endsWith(separator)) {
+          tok = tok.substring(1, tok.length() - 1);
+        } else {
+          tok = tok.substring(1);
+          tok += toks.nextToken(separator);
+        }
+      }
+      argsx.add(tok); //.replaceAll("%20;", " "));
+    }
+    return argsx.toArray(new String[0]);
   }
 
   public static int[] reverseIntArray(int[] anArray) {
