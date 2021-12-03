@@ -8,6 +8,7 @@ import org.apache.commons.cli.CommandLine;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.*;
@@ -536,7 +537,10 @@ Software:
   public static void setStartArgs(String[] args) {
     if (args.length == 1 && !args[0].isEmpty() && args[0].endsWith("sikulixide")) {
       STARTUPFILE = args[0];
-      STARTUPINFO = FileManager.readFileToString(new File(STARTUPFILE));
+      File startupFile = asFile(STARTUPFILE);
+      Debug.setLogFile(new File(startupFile.getParentFile(),
+          startupFile.getName().replaceAll("\\.", "-") + ".logfile"));
+      STARTUPINFO = FileManager.readFileToString(startupFile);
       String[] info = STARTUPINFO.split(System.lineSeparator());
       if (info.length > 0) {
         for (String line : info) {

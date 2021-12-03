@@ -6,6 +6,7 @@ package org.sikuli.basics;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -82,7 +83,7 @@ public class Debug {
     if (initOK) {
       return;
     }
-    setLogFile(null);
+    setLogFile();
     setUserLogFile(null);
     initOK = true;
   }
@@ -391,13 +392,17 @@ public class Debug {
   public static boolean setLogFile(String fileName) {
     if (fileName == null) {
       fileName = System.getProperty("sikuli.Logfile");
+      if ("".equals(fileName)) {
+        fileName = new File(Commons.getWorkDir(), "SikulixLog.txt").getAbsolutePath();
+      }
     }
     if (fileName != null) {
-      if ("".equals(fileName)) {
-        fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "SikulixLog.txt";
+      File fLog = new File(fileName);
+      if (!fLog.isAbsolute()) {
+        fLog = new File(Commons.getWorkDir(), fileName);
       }
       try {
-        logfile = fileName;
+        logfile = fLog.getAbsolutePath();
         if (printout != null) {
           printout.close();
         }
@@ -411,6 +416,22 @@ public class Debug {
       }
     }
     return false;
+  }
+
+  public static boolean setLogFile(File file) {
+    return setLogFile(file.getAbsolutePath());
+  }
+
+  public static boolean setLogFile() {
+    String fileName = System.getProperty("sikuli.Logfile");
+    if ("".equals(fileName)) {
+      fileName = new File(Commons.getWorkDir(), "SikulixLog.txt").getAbsolutePath();
+    }
+    File file = Commons.asFile(fileName);
+    if (file.exists()) {
+      file.delete();
+    }
+    return setLogFile(file);
   }
 
   /**
