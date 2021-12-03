@@ -25,3 +25,4 @@ native/
 SikulixAppData/
 app-package/
 SikulixLog.txt
+*.sikulixide
