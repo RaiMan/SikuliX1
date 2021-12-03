@@ -8,6 +8,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
+import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -135,7 +136,7 @@ public class Sikulix {
 
 
     ideSplash = null;
-    if (Commons.isRunningFromJar() || (!Commons.isRunningFromJar() && !Commons.hasStartArg(VERBOSE))) {
+    if (Commons.isRunningFromJar()) {
       if (!Commons.isQuiet()) {
         ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
         ideSplash.run();

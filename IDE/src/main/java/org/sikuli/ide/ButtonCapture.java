@@ -44,8 +44,9 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
     URL imageURL = SikulixIDE.class.getResource("/icons/sxcapture-x.png");
     setIcon(new ImageIcon(imageURL));
     PreferencesUser pref = PreferencesUser.get();
-    String strHotkey = Key.convertKeyToText(
-            pref.getCaptureHotkey(), pref.getCaptureHotkeyModifiers());
+    int key = pref.getCaptureHotkey();
+    int mod = pref.getCaptureHotkeyModifiers();
+    String strHotkey = Key.convertKeyToText(key, mod);
     setToolTipText(SikulixIDE._I("btnCaptureHint", strHotkey));
     setText(SikulixIDE._I("btnCaptureLabel"));
     //setBorderPainted(false);

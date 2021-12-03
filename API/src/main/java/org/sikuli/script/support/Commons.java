@@ -62,6 +62,7 @@ public class Commons {
   private static long startMoment;
 
   protected static boolean RUNNINGIDE = false;
+  static PrintStream SX_PRINTOUT = null;
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
@@ -115,6 +116,9 @@ public class Commons {
     if (globalOptions != null) {
       saveGlobalOptions();
     }
+    if (SX_PRINTOUT != null) {
+      SX_PRINTOUT.close();
+    }
   }
 
   public static void setIsRunning(File token, FileOutputStream tokenStream) {
@@ -125,18 +129,33 @@ public class Commons {
   private static Options globalOptions = null;
   private static File globalOptionsFile = null;
 
+  static List<String> STARTLOG = new ArrayList<>();
+
   static {
     startMoment = new Date().getTime();
 
+    String caller = Thread.currentThread().getStackTrace()[2].getClassName();
+    if (caller.contains(".ide.")) {
+      RUNNINGIDE = true;
+    }
+
     if (!System.getProperty("os.arch").contains("64")) {
-      throw new SikuliXception("SikuliX fatal Error: System must be 64-Bit");
+      String msg = "SikuliX fatal Error: System must be 64-Bit";
+      if (RUNNINGIDE) {
+        terminate(254, msg);
+      } else {
+        throw new SikuliXception(msg);
+      }
     }
 
     if (!"64".equals(System.getProperty("sun.arch.data.model"))) {
-      throw new SikuliXception("SikuliX fatal Error: Java must be 64-Bit");
+      String msg = "SikuliX fatal Error: Java must be 64-Bit";
+      if (RUNNINGIDE) {
+        terminate(254, msg);
+      } else {
+        throw new SikuliXception(msg);
+      }
     }
-
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
 
     //TODO check with Java 18 for correct Windows 11 version + macOS version
     if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
@@ -171,23 +190,29 @@ Software:
 
     Properties sxProps = new Properties();
     String svf = "/Settings/sikulixversion.txt";
-    String caller = Thread.currentThread().getStackTrace()[2].getClassName();
-    if (caller.contains(".ide.")) {
+    if (RUNNINGIDE) {
       svf = "/Settings/sikulixversionide.txt";
-      RUNNINGIDE = true;
     }
     try {
       InputStream is;
       is = Commons.class.getResourceAsStream(svf);
       if (is == null) {
         String msg = String.format("SikuliX fatal Error: not found on classpath: %s", svf);
-        throw new SikuliXception(msg);
+        if (RUNNINGIDE) {
+          terminate(254, msg);
+        } else {
+          throw new SikuliXception(msg);
+        }
       }
       sxProps.load(is);
       is.close();
     } catch (IOException e) {
       String msg = String.format("SikuliX fatal Error: load did not work: %s (%s)", svf, e.getMessage());
-      throw new SikuliXception(msg);
+      if (RUNNINGIDE) {
+        terminate(254, msg);
+      } else {
+        throw new SikuliXception(msg);
+      }
     }
     //    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
     sxVersion = sxProps.getProperty("sikulixvproject");
@@ -198,6 +223,8 @@ Software:
         .substring(0, 12);
     sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
   }
 
   //TODO force early Commons static initializer (RunTime)
@@ -394,21 +421,52 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
+  static File SX_LOGFILE = null;
+
+  public static void setLogFile(File file) {
+    try {
+      PrintStream printoutNew = new PrintStream(file);
+      SX_LOGFILE = file;
+      if (SX_PRINTOUT != null) {
+        SX_PRINTOUT.close();
+      }
+      SX_PRINTOUT = printoutNew;
+    } catch (Exception ex) {
+      terminate(999, "Commons::setLogFile: not possible: %s", ex.getMessage());
+    }
+  }
+
+  public static File getLogFile() {
+    return SX_LOGFILE;
+  }
+
+  public static PrintStream getLogStream() {
+    return SX_PRINTOUT;
+  }
+
+  private static void printOut(String msg, Object... args) {
+    if (SX_PRINTOUT == null) {
+      System.out.printf(msg, args);
+    } else {
+      SX_PRINTOUT.printf(msg, args);
+    }
+  }
+
   public static void info(String msg, Object... args) {
     if (!isQuiet()) {
-      System.out.printf("[SXINFO] " + msg + "%n", args);
+      printOut("[SXINFO] " + msg + "%n", args);
     }
   }
 
   public static void error(String msg, Object... args) {
     if (!isQuiet()) {
-      System.out.printf("[SXERROR] " + msg + "%n", args);
+      printOut("[SXERROR] " + msg + "%n", args);
     }
   }
 
   public static void debug(String msg, Object... args) {
     if (isDebug()) {
-      System.out.printf("[SXDEBUG] " + msg + "%n", args);
+      printOut("[SXDEBUG] " + msg + "%n", args);
     }
   }
 
@@ -461,25 +519,25 @@ Software:
       String className = stackTrace.getFileName().replace(".java", "");
       String methodName = stackTrace.getMethodName();
       int lineNumber = stackTrace.getLineNumber();
-      System.out.print(String.format("[%d->%s::%s] ", lineNumber, className, methodName));
+      SX_PRINTOUT.print(String.format("[%d->%s::%s] ", lineNumber, className, methodName));
       String out = String.format(msg, args);
       out = out.replace("\n\n", "\n");
       out = out.replace("\n\n", "\n");
-      System.out.println(out);
+      SX_PRINTOUT.println(out);
     }
   }
 
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTrace()) {
-      System.out.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
+      SX_PRINTOUT.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
     }
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
   public static void exit(String method, String returns, Object... args) {
     if (isTrace()) {
-      System.out.printf("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
+      printOut("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
     }
   }
   //</editor-fold>
@@ -538,33 +596,37 @@ Software:
     if (args.length == 1 && !args[0].isEmpty() && args[0].endsWith("sikulixide")) {
       STARTUPFILE = args[0];
       File startupFile = asFile(STARTUPFILE);
-      Debug.setLogFile(new File(startupFile.getParentFile(),
-          startupFile.getName().replaceAll("\\.", "-") + ".logfile"));
-      STARTUPINFO = FileManager.readFileToString(startupFile);
-      String[] info = STARTUPINFO.split(System.lineSeparator());
-      if (info.length > 0) {
-        for (String line : info) {
-          line = line.strip();
-          if (!line.isEmpty()) {
-            if (line.startsWith("/") || line.startsWith("#")) {
+      if (!startupFile.exists()) {
+        STARTUPFILE = null;
+      } else {
+        Commons.setLogFile(new File(startupFile.getParentFile(),
+            startupFile.getName().replaceAll("\\.", "-") + ".log"));
+        STARTUPINFO = FileManager.readFileToString(startupFile);
+        String[] info = STARTUPINFO.split(System.lineSeparator());
+        if (info.length > 0) {
+          for (String line : info) {
+            line = line.strip();
+            if (!line.isEmpty()) {
+              if (line.startsWith("/") || line.startsWith("#")) {
+                continue;
+              }
+              STARTUPLINES.add(line);
+            }
+          }
+        }
+        if (STARTUPLINES.size() > 0) {
+          List<String> lines = new ArrayList<>();
+
+          for (String line : STARTUPLINES) {
+            if (line.startsWith("-")) {
+              String[] parms = parmStringToArray(line);
+              STARTUPARGS.addAll(List.of(parms));
               continue;
             }
-            STARTUPLINES.add(line);
+            lines.add(line);
           }
+          STARTUPLINES = lines;
         }
-      }
-      if (STARTUPLINES.size() > 0) {
-        List<String> lines = new ArrayList<>();
-
-        for (String line : STARTUPLINES) {
-          if (line.startsWith("-")) {
-            String[] parms = parmStringToArray(line);
-            STARTUPARGS.addAll(List.of(parms));
-            continue;
-          }
-          lines.add(line);
-        }
-        STARTUPLINES = lines;
       }
     }
     cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
@@ -626,7 +688,7 @@ Software:
   public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
     if (!outMsg.isEmpty()) {
-      System.out.println("TERMINATING: " + outMsg);
+      SX_PRINTOUT.println("TERMINATING: " + outMsg);
     }
     if (retval < 999) {
       RunTime.cleanUp();
@@ -924,20 +986,20 @@ Software:
   }
 
   public static void getStatus() {
-    System.out.println("***** System Information Dump *****");
-    System.out.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
-    System.getProperties().list(System.out);
-    System.out.println("*** System Environment");
+    SX_PRINTOUT.println("***** System Information Dump *****");
+    SX_PRINTOUT.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
+    System.getProperties().list(SX_PRINTOUT);
+    SX_PRINTOUT.println("*** System Environment");
     for (String key : System.getenv().keySet()) {
-      System.out.println(String.format("%s = %s", key, System.getenv(key)));
+      SX_PRINTOUT.println(String.format("%s = %s", key, System.getenv(key)));
     }
-    System.out.println("*** Java Class Path");
+    SX_PRINTOUT.println("*** Java Class Path");
     URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
     URL[] urls = sysLoader.getURLs();
     for (int i = 0; i < urls.length; i++) {
-      System.out.println(String.format("%d: %s", i, urls[i]));
+      SX_PRINTOUT.println(String.format("%d: %s", i, urls[i]));
     }
-    System.out.println("***** System Information Dump ***** end *****");
+    SX_PRINTOUT.println("***** System Information Dump ***** end *****");
   }
   //</editor-fold>
 

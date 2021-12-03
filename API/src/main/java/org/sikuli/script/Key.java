@@ -6,6 +6,7 @@ package org.sikuli.script;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.HotkeyListener;
 
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -831,7 +832,7 @@ public class Key {
    * @return readable key text
    */
   public static String convertKeyToText(int code, int mod) {
-    String txtMod = KeyEvent.getKeyModifiersText(mod);
+    String txtMod = InputEvent.getModifiersExText(mod);
     String txtCode = KeyEvent.getKeyText(code);
     String ret;
     if (code == KeyEvent.VK_ALT || code == KeyEvent.VK_CONTROL || code == KeyEvent.VK_SHIFT) {

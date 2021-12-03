@@ -34,17 +34,15 @@ import java.util.Date;
 public class Debug {
 
   private static int DEBUG_LEVEL = 0;
-  private static boolean loggerRedirectSupported = true;
-  public static boolean shouldLogJython = false;
+  private static final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
   private long _beginTime = 0;
   private String _message;
   private String _title = null;
+
   private static PrintStream printout = null;
   private static PrintStream printoutuser = null;
-  private static final DateFormat df =
-      DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-  public static String logfile;
 
+  private static boolean loggerRedirectSupported = true;
   private static Object privateLogger = null;
   private static boolean privateLoggerPrefixAll = true;
   private static Method privateLoggerUser = null;
@@ -75,17 +73,12 @@ public class Debug {
     if (Commons.isDebug()) {
       DEBUG_LEVEL = 3;
     }
-  }
-
-  private static boolean initOK = false;
-
-  public static void init() {
-    if (initOK) {
-      return;
+    if (Commons.getLogFile() != null) {
+      printout = Commons.getLogStream();
+    } else {
+      setLogFile();
     }
-    setLogFile();
-    setUserLogFile(null);
-    initOK = true;
+    setUserLogFile();
   }
 
   public static void highlightOn() {
@@ -390,57 +383,38 @@ public class Debug {
    * @return success
    */
   public static boolean setLogFile(String fileName) {
-    if (fileName == null) {
-      fileName = System.getProperty("sikuli.Logfile");
-      if ("".equals(fileName)) {
-        fileName = new File(Commons.getWorkDir(), "SikulixLog.txt").getAbsolutePath();
-      }
+    if (fileName == null || fileName.isBlank()) {
+      fileName = "SikulixLog.txt";
     }
-    if (fileName != null) {
-      File fLog = new File(fileName);
-      if (!fLog.isAbsolute()) {
-        fLog = new File(Commons.getWorkDir(), fileName);
-      }
-      try {
-        logfile = fLog.getAbsolutePath();
-        if (printout != null) {
-          printout.close();
-        }
-        printout = new PrintStream(fileName);
-        log(3, "Debug: setLogFile: " + fileName);
-        return true;
-      } catch (Exception ex) {
-        System.out.printf("[Error] Logfile %s not accessible - check given path", fileName);
-        System.out.println();
-        return false;
-      }
+    File fLog = Commons.asFile(fileName);
+    if (fLog.exists()) {
+      fLog.delete();
     }
-    return false;
+    fileName = fLog.getAbsolutePath();
+    try {
+      PrintStream printoutNew = new PrintStream(fLog);
+      if (printout != null) {
+        printout.close();
+      }
+      printout = printoutNew;
+      log(3, "Debug: setLogFile: " + fileName);
+      return true;
+    } catch (Exception ex) {
+      System.out.printf("[Error] Logfile %s not accessible", fileName);
+      System.out.println();
+      return false;
+    }
   }
 
-  public static boolean setLogFile(File file) {
-    return setLogFile(file.getAbsolutePath());
-  }
-
-  public static boolean setLogFile() {
+  public static void setLogFile() {
     String fileName = System.getProperty("sikuli.Logfile");
-    if ("".equals(fileName)) {
-      fileName = new File(Commons.getWorkDir(), "SikulixLog.txt").getAbsolutePath();
+    if (fileName == null) {
+      return;
     }
-    File file = Commons.asFile(fileName);
-    if (file.exists()) {
-      file.delete();
+    if (fileName.isBlank()) {
+      fileName = "SikulixLog.txt";
     }
-    return setLogFile(file);
-  }
-
-  /**
-   * does Sikuli log go to a file?
-   *
-   * @return true if yes, false otherwise
-   */
-  public static boolean isLogToFile() {
-    return (printout != null);
+    setLogFile(fileName);
   }
 
   /**
@@ -453,43 +427,44 @@ public class Debug {
    * @return success
    */
   public static boolean setUserLogFile(String fileName) {
-    if (fileName == null) {
-      fileName = System.getProperty("sikuli.LogfileUser");
+    if (fileName == null || fileName.isBlank()) {
+      fileName = "SikulixUserLog.txt";
     }
-    if (fileName != null) {
-      if ("".equals(fileName)) {
-        fileName = FileManager.slashify(System.getProperty("user.dir"), true) + "UserLog.txt";
-      }
-      try {
-        if (printoutuser != null) {
-          printoutuser.close();
-        }
-        printoutuser = new PrintStream(fileName);
-        log(3, "Debug: setLogFile: " + fileName);
-        return true;
-      } catch (FileNotFoundException ex) {
-        System.out.printf("[Error] User logfile %s not accessible - check given path", fileName);
-        System.out.println();
-        return false;
-      }
+    File fLog = Commons.asFile(fileName);
+    if (fLog.exists()) {
+      fLog.delete();
     }
-    return false;
+    fileName = fLog.getAbsolutePath();
+    try {
+      PrintStream printoutuserNew = new PrintStream(fLog);
+      if (printoutuser != null) {
+        printoutuser.close();
+      }
+      printoutuser = printoutuserNew;
+      log(3, "Debug: setUserLogFile: " + fileName);
+      return true;
+    } catch (FileNotFoundException ex) {
+      System.out.printf("[Error] User logfile %s not accessible", fileName);
+      System.out.println();
+      return false;
+    }
   }
 
-  /**
-   * does user log go to a file?
-   *
-   * @return true if yes, false otherwise
-   */
-  public static boolean isUserLogToFile() {
-    return (printoutuser != null);
+  public static void setUserLogFile() {
+    String fileName = System.getProperty("sikuli.UserLogfile");
+    if (fileName == null) {
+      return;
+    }
+    if (fileName.isBlank()) {
+      fileName = "SikulixUserLog.txt";
+    }
+    setUserLogFile(fileName);
   }
 
   /**
    * @return current debug level
    */
   public static int getDebugLevel() {
-    init();
     return DEBUG_LEVEL;
   }
 
@@ -644,22 +619,24 @@ public class Debug {
     log(0, message, args);
   }
 
-  public static boolean logJython() {
-    return logJython(null);
-  }
+//TODO logJython() obsolete?
 
-  public static boolean logJython(Boolean state) {
-    if (null != state) {
-      shouldLogJython = state;
-    }
-    return shouldLogJython;
-  }
-
-  public static void logj(String message, Object... args) {
-    if (shouldLogJython) {
-      log(0, "Jython: " + message, args);
-    }
-  }
+//  public static boolean logJython() {
+//    return logJython(null);
+//  }
+//
+//  public static boolean logJython(Boolean state) {
+//    if (null != state) {
+//      shouldLogJython = state;
+//    }
+//    return shouldLogJython;
+//  }
+//
+//  public static void logj(String message, Object... args) {
+//    if (shouldLogJython) {
+//      log(0, "Jython: " + message, args);
+//    }
+//  }
 
   /**
    * messages given by the user<br> switch on/off: Settings.UserLogs<br> depending on

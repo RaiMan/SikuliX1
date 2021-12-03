@@ -89,7 +89,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
     add(new JScrollPane(textArea), BorderLayout.CENTER);
 
     if (ENABLE_IO_REDIRECT) {
-      Debug.log(3, "EditorConsolePane: starting redirection to message area");
+      Debug.log(4, "EditorConsolePane: starting redirection to message area");
       int npipes = 2;
       NUM_PIPES = npipes * Runner.getRunners().size() + npipes;
       pin = new PipedInputStream[NUM_PIPES];
@@ -118,7 +118,7 @@ public class EditorConsolePane extends JPanel implements Runnable {
         int irunner = 1;
 
         for (IScriptRunner srunner : Runner.getRunners()) {
-          Debug.log(3, "EditorConsolePane: redirection for %s", srunner.getName());
+          Debug.log(4, "EditorConsolePane: redirection for %s", srunner.getName());
 
           PipedOutputStream pout = new PipedOutputStream(pin[irunner * npipes]);
           PrintStream psout = new PrintStream(pout, true);

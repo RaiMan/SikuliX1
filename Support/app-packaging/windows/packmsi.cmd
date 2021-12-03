@@ -7,7 +7,7 @@ jpackage --type msi ^
 --app-version 206.000 ^
 --name SikulixIDE ^
 --icon sikulix.ico ^
---description "Visual automation and testing - SikuliX IDE - edit and run scripts" ^
+--description "SikuliX IDE" ^
 --vendor "SikuliX - RaiMan" ^
 --copyright "Copyright 2021, MIT License" ^
 --license-file app-package\license.txt ^

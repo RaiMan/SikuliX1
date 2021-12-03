@@ -27,8 +27,17 @@ public class ScreenDevice extends Devices {
 
   private int id = -1;
 
+  private static boolean started = false;
+
+  public static boolean isStarted() {
+    return started;
+  }
+
   static void start() {
     initDevices();
+    if (mainMonitor > -1) {
+      started = true;
+    }
   }
 
   private ScreenDevice() {

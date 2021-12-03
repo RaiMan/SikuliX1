@@ -33,6 +33,9 @@ public class HelpDevice extends Devices {
         return;
       }
       if (type.equals(TYPE.SCREEN)) {
+        if (!ScreenDevice.isStarted()) {
+          return;
+        }
         Highlight.closeAll();
         Settings.DefaultHighlightColor = "RED";
         Settings.DefaultHighlightTime = 2.0f;

@@ -134,7 +134,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   @Override
   public final void redirect(PrintStream stdout, PrintStream stderr) {
     synchronized (AbstractScriptRunner.class) {
-      Debug.log(3, "%s: Initiate IO redirect", getName());
+      Debug.log(4, "%s: Initiate IO redirect", getName());
 
       this.redirectedStdout = stdout;
       this.redirectedStderr = stderr;
