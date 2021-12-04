@@ -4,11 +4,10 @@
 
 package org.sikuli.idesupport;
 
-/*
- * TODO Uncomment as soon as we ditch Java 8 support
- */
 import org.sikuli.ide.SikulixIDE;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.gui.SXDialog;
+import org.sikuli.util.CommandArgs;
 
 import java.awt.*;
 import java.awt.desktop.AboutEvent;
@@ -29,12 +28,12 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
   public static boolean showAbout = true;
   public static boolean showPrefs = true;
   public static boolean showQuit = true;
+  private static IDEDesktopSupport support;
 
-  public static void init() {
+  public static void initStart() {
 
     if(Taskbar.isTaskbarSupported()) {
       Taskbar taskbar = Taskbar.getTaskbar();
-
       if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
         taskbar.setIconImage(Toolkit.getDefaultToolkit().createImage(
             SikulixIDE.class.getResource("/icons/sikulix-icon.png")));
@@ -42,7 +41,18 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
     }
 
     if (Desktop.isDesktopSupported()) {
-      IDEDesktopSupport support = new IDEDesktopSupport();
+      support = new IDEDesktopSupport();
+      Desktop desktop = Desktop.getDesktop();
+
+      if (desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
+        desktop.setOpenFileHandler(support);
+      }
+    }
+  }
+
+  public static void initGUI() {
+    if (Desktop.isDesktopSupported()) {
+      support = new IDEDesktopSupport();
       Desktop desktop = Desktop.getDesktop();
 
       if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
@@ -58,10 +68,6 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
       if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
         desktop.setQuitHandler(support);
         showQuit = false;
-      }
-
-      if (desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
-        desktop.setOpenFileHandler(support);
       }
     }
   }
@@ -88,8 +94,16 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
   @Override
   public void openFiles(OpenFilesEvent e) {
     filesToOpen = e.getFiles();
+    File startupFile = null;
     for (File f : filesToOpen) {
-      //TODO DesktopAction :: openFiles
+      Commons.addlog("FileDrop: %s", f);
+      if (f.getName().endsWith(".sikulixide")) {
+        startupFile = f;
+      }
+    }
+    if (startupFile != null) {
+      Commons.setStartupFile(startupFile.getAbsolutePath());
+      filesToOpen.remove(startupFile);
     }
   }
 }

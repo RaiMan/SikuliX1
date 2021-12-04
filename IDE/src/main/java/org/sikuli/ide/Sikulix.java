@@ -8,6 +8,7 @@ import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyEvent;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
+import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -47,6 +48,10 @@ public class Sikulix {
     //region startup
     Commons.setStartClass(Sikulix.class);
 
+    Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
+    IDEDesktopSupport.initStart();
+
+    Commons.addlog("Sikulix::Commons.setStartArgs(args)");
     Commons.setStartArgs(args);
 
     if (Commons.hasStartArg(QUIET)) {
@@ -210,6 +215,7 @@ public class Sikulix {
 //    System.setProperty("python.home", "");
 //    System.setProperty("python.import.site", "false");
 
+    Commons.addlog("Sikulix::SikulixIDE.start(args)");
     SikulixIDE.start(args);
 
     //TODO start IDE in subprocess?

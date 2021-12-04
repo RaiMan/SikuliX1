@@ -66,9 +66,9 @@ public class Commons {
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
-        !hasOption("SX_ARG_RUN") &&
-        !hasOption("SX_ARG_RUNSERVER") &&
-        !hasOption("SX_ARG_RUNPYSERVER")) {
+            !hasOption("SX_ARG_RUN") &&
+            !hasOption("SX_ARG_RUNSERVER") &&
+            !hasOption("SX_ARG_RUNPYSERVER")) {
       return true;
     }
     return false;
@@ -78,7 +78,7 @@ public class Commons {
     if (!RUNNINGIDE) return false;
     File packFolder = getMainClassLocation().getParentFile().getParentFile();
     if (new File(packFolder, "app").exists() && new File(packFolder, "runtime").exists()
-        && new File(packFolder, "runtime/release").exists()) {
+            && new File(packFolder, "runtime/release").exists()) {
       return true;
     }
     return false;
@@ -119,6 +119,9 @@ public class Commons {
     if (SX_PRINTOUT != null) {
       SX_PRINTOUT.close();
     }
+    if (!GLOBAL_LOG.isEmpty()) {
+      FileManager.writeStringToFile(GLOBAL_LOG, asFile(getUserHome(), "sikulixide_startlog.txt"));
+    }
   }
 
   public static void setIsRunning(File token, FileOutputStream tokenStream) {
@@ -129,7 +132,7 @@ public class Commons {
   private static Options globalOptions = null;
   private static File globalOptionsFile = null;
 
-  static List<String> STARTLOG = new ArrayList<>();
+  static String GLOBAL_LOG = "";
 
   static {
     startMoment = new Date().getTime();
@@ -219,8 +222,8 @@ Software:
     //    sikulixbuild=2019-10-17_09:58
     sxBuild = sxProps.getProperty("sikulixbuild");
     sxBuildStamp = sxBuild
-        .replace("_", "").replace("-", "").replace(":", "")
-        .substring(0, 12);
+            .replace("_", "").replace("-", "").replace(":", "")
+            .substring(0, 12);
     sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
 
@@ -452,6 +455,10 @@ Software:
     }
   }
 
+  public static synchronized void addlog(String msg, Object... args) {
+    GLOBAL_LOG += String.format("[SXGLOBAL %4.1f] " + msg + "%n", getSinceStart(), args);
+  }
+
   public static void info(String msg, Object... args) {
     if (!isQuiet()) {
       printOut("[SXINFO] " + msg + "%n", args);
@@ -592,15 +599,28 @@ Software:
   private static List<String> STARTUPLINES = new ArrayList<>();
   private static List<String> STARTUPARGS = new ArrayList<>();
 
+  public static void setStartupFile(String fileName) {
+    STARTUPFILE = fileName;
+  }
+
   public static void setStartArgs(String[] args) {
     if (args.length == 1 && !args[0].isEmpty() && args[0].endsWith("sikulixide")) {
-      STARTUPFILE = args[0];
+      if (STARTUPFILE == null) {
+        STARTUPFILE = args[0];
+      }
+    }
+    pause(0.5);
+    Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: %s", STARTUPFILE);
+
+    if (STARTUPFILE != null) {
       File startupFile = asFile(STARTUPFILE);
       if (!startupFile.exists()) {
         STARTUPFILE = null;
       } else {
-        Commons.setLogFile(new File(startupFile.getParentFile(),
-            startupFile.getName().replaceAll("\\.", "-") + ".log"));
+        File startupLogFile = new File(startupFile.getParentFile(),
+                startupFile.getName().replaceAll("\\.", "-") + ".log");
+        FileManager.writeStringToFile("***** startupLogFile *****", startupLogFile);
+        Commons.setLogFile(startupLogFile);
         STARTUPINFO = FileManager.readFileToString(startupFile);
         String[] info = STARTUPINFO.split(System.lineSeparator());
         if (info.length > 0) {
@@ -931,15 +951,15 @@ Software:
       }
     }
     return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
-        libStamp.length() == Commons.getSxBuildStamp().length()
-        && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
+            libStamp.length() == Commons.getSxBuildStamp().length()
+            && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
   public static void makeVersionFile(File folder) {
     String libToken = String.format("%s_%s_MadeForSikuliX%s%s.txt",
-        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
-        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
-        Commons.getOSArch());
+            Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
+            Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
+            Commons.getOSArch());
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
   }
 
@@ -1660,11 +1680,11 @@ Software:
   public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
     final AffineTransform af = new AffineTransform();
     af.scale((double) width / originalImage.getWidth(),
-        (double) height / originalImage.getHeight());
+            (double) height / originalImage.getHeight());
     final AffineTransformOp operation = new AffineTransformOp(
-        af, AffineTransformOp.TYPE_BILINEAR);
+            af, AffineTransformOp.TYPE_BILINEAR);
     BufferedImage rescaledImage = new BufferedImage(width, height,
-        BufferedImage.TYPE_INT_ARGB);
+            BufferedImage.TYPE_INT_ARGB);
     rescaledImage = operation.filter(originalImage, rescaledImage);
     return rescaledImage;
   }
@@ -1812,7 +1832,7 @@ Software:
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-        || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+            || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
       String bImgType = "BYTE_BINARY";
       if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         bImgType = "BYTE_INDEXED";
@@ -1825,7 +1845,7 @@ Software:
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR
-        || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
+            || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
       List<Mat> mats = getMatList(bImg);
       Size size = mats.get(0).size();
       if (!asBGR || bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
@@ -1929,13 +1949,20 @@ Software:
     }
     if (!error.isEmpty()) {
       terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
-          instanceSup, method, args, error);
+              instanceSup, method, args, error);
     }
     return returnSup;
   }
   //</editor-fold>
 
   //<editor-fold desc="99 stuff">
+  public static void pause(double time) {
+    try {
+      Thread.sleep((int) (time * 1000));
+    } catch (InterruptedException ex) {
+    }
+  }
+
   public static void browse(String url) {
     if (Desktop.isDesktopSupported()) {
       try {
