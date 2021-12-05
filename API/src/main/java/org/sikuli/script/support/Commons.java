@@ -456,7 +456,7 @@ Software:
   }
 
   public static synchronized void addlog(String msg, Object... args) {
-    GLOBAL_LOG += String.format("[SXGLOBAL %4.1f] " + msg + "%n", getSinceStart(), args);
+    GLOBAL_LOG += String.format("[SXGLOBAL %4.3f] " + msg + "%n", getSinceStart(), args);
   }
 
   public static void info(String msg, Object... args) {
@@ -609,7 +609,7 @@ Software:
         STARTUPFILE = args[0];
       }
     }
-    pause(0.5);
+
     Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: %s", STARTUPFILE);
 
     if (STARTUPFILE != null) {
