@@ -91,12 +91,10 @@ public class SikulixIDE extends JFrame {
     ideWindowRect = getWindowRect();
     Commons.setSXIDE(SikulixIDE.get());
 
-    Commons.addlog("IDEDesktopSupport.initGUI()");
     IDEDesktopSupport.initGUI();
 
     IDESupport.init();
 
-    Commons.addlog("sikulixIDE.startGUI()");
     sikulixIDE.startGUI();
   }
 

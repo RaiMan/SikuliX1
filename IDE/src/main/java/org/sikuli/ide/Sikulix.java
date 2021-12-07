@@ -48,10 +48,10 @@ public class Sikulix {
     //region startup
     Commons.setStartClass(Sikulix.class);
 
-    Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
+    //Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
     IDEDesktopSupport.initStart();
 
-    Commons.addlog("Sikulix::Commons.setStartArgs(args)");
+    //Commons.addlog("Sikulix::Commons.setStartArgs(args)");
     Commons.setStartArgs(args);
 
     if (Commons.hasStartArg(QUIET)) {
@@ -136,6 +136,13 @@ public class Sikulix {
       Commons.terminate();
     }
 
+    if (Commons.hasStartArg(LOAD) || Commons.getFilesToLoad().size() > 0) {
+      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(Commons.getOption("SX_ARG_LOAD")));
+      for (String script : scripts) {
+
+      }
+    }
+
     Commons.debug("IDE starting (%4.1f)", Commons.getSinceStart());
     //endregion
 
@@ -215,7 +222,7 @@ public class Sikulix {
 //    System.setProperty("python.home", "");
 //    System.setProperty("python.import.site", "false");
 
-    Commons.addlog("Sikulix::SikulixIDE.start(args)");
+    //Commons.addlog("Sikulix::SikulixIDE.start(args)");
     SikulixIDE.start(args);
 
     //TODO start IDE in subprocess?

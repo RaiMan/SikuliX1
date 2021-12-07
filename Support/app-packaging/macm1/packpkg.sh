@@ -1,6 +1,6 @@
 version=2.0.6-SNAPSHOT
 mkdir app-package/app
-rm app-package/app/*.pkg
+rm -f app-package/app/*.pkg
 jpackage --input app-package/jar \
 --type pkg \
 --dest app-package/app \
@@ -9,6 +9,7 @@ jpackage --input app-package/jar \
 --icon sikulix.icns \
 --description "SikuliX IDE" \
 --file-associations ../windows/sxfastartup.properties \
+--file-associations ../windows/sxfapython.properties \
 --vendor "SikuliX - RaiMan" \
 --copyright "Copyright 2021, MIT License" \
 --license-file app-package/license.txt \

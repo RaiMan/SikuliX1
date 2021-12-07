@@ -49,6 +49,7 @@ public class Commons {
   private static String sxVersionShort;
   private static String sxBuild;
   private static String sxBuildStamp;
+  private static boolean SNAPSHOT = false;
 
   private static final String osName;
   private static final String osVersion;
@@ -116,11 +117,12 @@ public class Commons {
     if (globalOptions != null) {
       saveGlobalOptions();
     }
+    if (!GLOBAL_LOG.isEmpty()) {
+      File logFile = asFile(getUserHome(), "sikulixide_startlog.txt");
+      FileManager.writeStringToFile(GLOBAL_LOG, logFile);
+    }
     if (SX_PRINTOUT != null) {
       SX_PRINTOUT.close();
-    }
-    if (!GLOBAL_LOG.isEmpty()) {
-      FileManager.writeStringToFile(GLOBAL_LOG, asFile(getUserHome(), "sikulixide_startlog.txt"));
     }
   }
 
@@ -226,6 +228,9 @@ Software:
             .substring(0, 12);
     sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
+    if (sxVersion.contains("-SNAPSHOT")) {
+      SNAPSHOT = true;
+    }
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
   }
@@ -424,6 +429,10 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
+  public static  boolean isSnapshot() {
+    return SNAPSHOT;
+  }
+
   static File SX_LOGFILE = null;
 
   public static void setLogFile(File file) {
@@ -455,8 +464,10 @@ Software:
     }
   }
 
-  public static synchronized void addlog(String msg, Object... args) {
-    GLOBAL_LOG += String.format("[SXGLOBAL %4.3f] " + msg + "%n", getSinceStart(), args);
+  public static synchronized void addlog(String msg) {
+    if (SNAPSHOT) {
+      GLOBAL_LOG += String.format("[SXGLOBAL %4.3f] ", getSinceStart()) + msg + System.lineSeparator();
+    }
   }
 
   public static void info(String msg, Object... args) {
@@ -598,9 +609,18 @@ Software:
   private static String STARTUPINFO = null;
   private static List<String> STARTUPLINES = new ArrayList<>();
   private static List<String> STARTUPARGS = new ArrayList<>();
+  private static List<File> FILESTOLOAD = new ArrayList<>();
 
   public static void setStartupFile(String fileName) {
     STARTUPFILE = fileName;
+  }
+
+  public static List<File> getFilesToLoad() {
+    return FILESTOLOAD;
+  }
+
+  public static void addFilesToLoad(List<File> files) {
+    FILESTOLOAD.addAll(files);
   }
 
   public static void setStartArgs(String[] args) {
@@ -610,9 +630,12 @@ Software:
       }
     }
 
-    Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: %s", STARTUPFILE);
+    if (runningMac()) {
+      pause(getSinceStart()/4);
+    }
 
     if (STARTUPFILE != null) {
+      //Commons.addlog("Commons::setStartArgs(args): STARTUPFILE: " + STARTUPFILE);
       File startupFile = asFile(STARTUPFILE);
       if (!startupFile.exists()) {
         STARTUPFILE = null;

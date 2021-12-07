@@ -7,7 +7,6 @@ package org.sikuli.idesupport;
 import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.gui.SXDialog;
-import org.sikuli.util.CommandArgs;
 
 import java.awt.*;
 import java.awt.desktop.AboutEvent;
@@ -72,6 +71,10 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
     }
   }
 
+  public static List<File> getFilesToOpen() {
+    return filesToOpen;
+  }
+
   @Override
   public void handleAbout(AboutEvent e) {
     new SXDialog("sxideabout", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP).run();
@@ -96,7 +99,7 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
     filesToOpen = e.getFiles();
     File startupFile = null;
     for (File f : filesToOpen) {
-      Commons.addlog("FileDrop: %s", f);
+      //Commons.addlog("FileDrop: " + f.getAbsolutePath());
       if (f.getName().endsWith(".sikulixide")) {
         startupFile = f;
       }
@@ -104,6 +107,9 @@ public class IDEDesktopSupport implements AboutHandler, PreferencesHandler, Quit
     if (startupFile != null) {
       Commons.setStartupFile(startupFile.getAbsolutePath());
       filesToOpen.remove(startupFile);
+    }
+    if (filesToOpen.size() > 0) {
+      Commons.addFilesToLoad(filesToOpen);
     }
   }
 }
