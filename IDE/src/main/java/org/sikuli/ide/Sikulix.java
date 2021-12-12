@@ -136,8 +136,9 @@ public class Sikulix {
       Commons.terminate();
     }
 
-    if (Commons.hasStartArg(LOAD) || Commons.getFilesToLoad().size() > 0) {
-      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(Commons.getOption("SX_ARG_LOAD")));
+    if (Commons.hasStartArg(LOAD)) {
+      String sx_arg_load = Commons.getOption("SX_ARG_LOAD");
+      String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(sx_arg_load));
       for (String script : scripts) {
 
       }

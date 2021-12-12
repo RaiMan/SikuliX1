@@ -67,27 +67,20 @@ public class CommandArgs {
   @SuppressWarnings("static-access")
   private void init() {
     cmdArgs = new Options();
-    if (isIDE) {
-      cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.QUIET));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.DEBUG));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.LOGFILE));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.USERLOGFILE));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.CONSOLE));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.RUNSERVER));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.RUNPYSERVER));
-      cmdArgs.addOption(makeOption(CommandArgsEnum.APPDATA));
-      return;
-    }
     cmdArgs.addOption(makeOption(CommandArgsEnum.QUIET));
     cmdArgs.addOption(makeOption(CommandArgsEnum.DEBUG));
     cmdArgs.addOption(makeOption(CommandArgsEnum.LOGFILE));
     cmdArgs.addOption(makeOption(CommandArgsEnum.USERLOGFILE));
     cmdArgs.addOption(makeOption(CommandArgsEnum.RUNPYSERVER));
     cmdArgs.addOption(makeOption(CommandArgsEnum.APPDATA));
+    if (isIDE) {
+      cmdArgs.addOption(makeOption(CommandArgsEnum.HELP));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.VERBOSE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.CONSOLE));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.LOAD));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RUN));
+      cmdArgs.addOption(makeOption(CommandArgsEnum.RUNSERVER));
+    }
   }
 
   private Option makeOption(CommandArgsEnum anOption) {

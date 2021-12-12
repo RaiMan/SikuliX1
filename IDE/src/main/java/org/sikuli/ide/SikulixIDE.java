@@ -448,8 +448,8 @@ public class SikulixIDE extends JFrame {
     String session_str = prefs.getIdeSession();
     int filesLoaded = 0;
     List<File> filesToLoad = new ArrayList<File>();
-    if (IDEDesktopSupport.filesToOpen != null && IDEDesktopSupport.filesToOpen.size() > 0) {
-      for (File f : IDEDesktopSupport.filesToOpen) {
+    if (Commons.getFilesToLoad().size() > 0) {
+      for (File f : Commons.getFilesToLoad()) {
         filesToLoad.add(f);
         if (restoreScriptFromSession(f)) filesLoaded++;
       }
