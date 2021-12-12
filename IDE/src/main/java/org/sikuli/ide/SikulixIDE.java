@@ -775,7 +775,7 @@ public class SikulixIDE extends JFrame {
   void openSpecial() {
     log(lvl, "Open Special requested");
     Map<String, String> specialFiles = new Hashtable<>();
-    specialFiles.put("1 SikuliX Settings & Options", Commons.getOptionsFile().getAbsolutePath());
+    specialFiles.put("1 SikuliX Settings & Options", Commons.getOptionFile().getAbsolutePath());
     File extensionsFile = ExtensionManager.getExtensionsFile();
     specialFiles.put("2 SikuliX Extensions Options", extensionsFile.getAbsolutePath());
     File sitesTxt = JythonSupport.getSitesTxt();
