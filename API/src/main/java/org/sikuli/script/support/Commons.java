@@ -9,6 +9,7 @@ import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Settings;
 import org.sikuli.script.Options;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
@@ -26,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
@@ -260,7 +262,7 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
-  public static  boolean isSnapshot() {
+  public static boolean isSnapshot() {
     return SNAPSHOT;
   }
 
@@ -462,7 +464,7 @@ Software:
     }
 
     if (runningMac()) {
-      pause(getSinceStart()/4);
+      pause(getSinceStart() / 4);
     }
 
     if (STARTUPFILE != null) {
@@ -1412,6 +1414,21 @@ Software:
           globalOptions.setOption("SX_ARG_USER", val.trim());
         }
       }
+      Field[] fields = Settings.class.getFields();
+      Object value = null;
+      for (Field field : fields) {
+        try {
+          Field theField = Settings.class.getField(field.getName());
+          value = theField.get(null);
+        } catch (NoSuchFieldException e) {
+          e.printStackTrace();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+        String valType = field.getType().getSimpleName().toUpperCase().substring(0,1);
+        globalOptions.setOption("Settings." + field.getName(), String.format("%s%s", valType, value));
+      }
+
       // check for existing optionsfile and load it
       if (isSandBox()) {
         globalOptionsFile = getOptionFile();
@@ -1420,15 +1437,24 @@ Software:
       }
       if (globalOptionsFile != null && globalOptionsFile.exists()) {
         Properties options = loadPropsFromFile(globalOptionsFile);
+        Map<String, String> givenSettings = new HashMap<>();
+        String SETTINGS = "Settings.";
         for (Object key : options.keySet()) {
-          if (("" + key).startsWith("SX_ARG_")) {
+          String sKey = "" + key;
+          if (sKey.startsWith("SX_ARG_")) {
             continue;
           }
-          globalOptions.setOption("" + key, options.get(key));
+          if (sKey.startsWith(SETTINGS)) {
+            givenSettings.put(sKey.substring(SETTINGS.length()), "" + options.get(key));
+            continue;
+          }
+          globalOptions.setOption(sKey, options.get(key));
         }
+        info("");
       }
+
       // add IDE Preferences
-      if (isRunningIDE()) {
+      if (RUNNINGIDE) {
         if (!globalOptions.hasOption("SX_PREFS_USER")) {
           PreferencesUser prefsIDE = PreferencesUser.get();
           if (isSandBox()) {
@@ -1439,22 +1465,22 @@ Software:
             }
           }
         }
-      }
-      if (RUNNINGIDE && STARTUPLINES != null) {
-        for (String line : STARTUPLINES) {
-          if (line.contains("=")) {
-            if (line.startsWith("=")) {
-              continue;
+        if (STARTUPLINES != null) {
+          for (String line : STARTUPLINES) {
+            if (line.contains("=")) {
+              if (line.startsWith("=")) {
+                continue;
+              }
+              String[] parts = line.split("=");
+              if (parts.length > 0) {
+                if (parts.length > 1) {
+                  globalOptions.setOption(parts[0], parts[1]);
+                } else
+                  globalOptions.setOption(parts[0], "");
+              }
+            } else {
+              globalOptions.setOption(line, "");
             }
-            String[] parts = line.split("=");
-            if (parts.length > 0) {
-              if (parts.length > 1) {
-                globalOptions.setOption(parts[0], parts[1]);
-              } else
-                globalOptions.setOption(parts[0], "");
-            }
-          } else {
-            globalOptions.setOption(line, "");
           }
         }
       }

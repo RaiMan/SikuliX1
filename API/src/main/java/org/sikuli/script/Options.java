@@ -102,21 +102,21 @@ public class Options {
         String sAttr = parts[1];
         Class cClass;
         Field cField;
-        Class ccField;
+        Class cFieldType;
         if (sClass.contains("Settings")) {
           try {
             cClass = Class.forName("org.sikuli.basics.Settings");
             cField = cClass.getField(sAttr);
-            ccField = cField.getType();
-            if (ccField.getName() == "boolean") {
+            cFieldType = cField.getType();
+            if (cFieldType.getName() == "boolean") {
               cField.setBoolean(null, isOption(sKey));
-            } else if (ccField.getName() == "int") {
+            } else if (cFieldType.getName() == "int") {
               cField.setInt(null, getOptionInteger(sKey));
-            } else if (ccField.getName() == "float") {
+            } else if (cFieldType.getName() == "float") {
               cField.setFloat(null, getOptionFloat(sKey));
-            } else if (ccField.getName() == "double") {
+            } else if (cFieldType.getName() == "double") {
               cField.setDouble(null, getOptionDouble(sKey));
-            } else if (ccField.getName() == "String") {
+            } else if (cFieldType.getName() == "String") {
               cField.set(null, getOption(sKey));
             }
           } catch (Exception ex) {
