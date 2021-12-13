@@ -5,12 +5,12 @@ package org.sikuli.basics;
 
 import org.sikuli.script.Image;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.Proxy;
-import java.util.Date;
+import java.util.*;
 
 //import org.sikuli.script.RunTime;
 
@@ -18,6 +18,70 @@ import java.util.Date;
  * This is the container for all
  */
 public class Settings {
+
+  public final static Field[] FIELDS = Settings.class.getFields();
+  public final static Map<String, Field> FIELDS_LIST = new HashMap<>();
+
+  static {
+    for (Field field : FIELDS) {
+      FIELDS_LIST.put(field.getName(), field);
+    }
+  }
+
+  public static void set(String fName, Object fValue) {
+    if (!FIELDS_LIST.containsKey(fName)) {
+      Commons.error("Settings.%s: does not exist", fName);
+      return;
+    }
+    Field field = FIELDS_LIST.get(fName);
+    String valType = field.getType().getSimpleName().toUpperCase().substring(0, 1);
+    Object value = null;
+    if ((valType.equals("S") && fValue instanceof String) || (valType.equals("B") && fValue instanceof Boolean) ||
+        (valType.equals("I") && fValue instanceof Integer) || (valType.equals("L") && fValue instanceof Long) ||
+        (valType.equals("F") && fValue instanceof Float) || (valType.equals("D") && fValue instanceof Double)) {
+      value = fValue;
+    } else {
+      if (fValue instanceof String) {
+        String val = ((String) fValue);
+        switch (valType) {
+          case "B":
+            value = Commons.asBool(val);
+            break;
+          case "I":
+            value = Commons.asInt(val);
+            break;
+          case "L":
+            value = Commons.asLong(val);
+            break;
+          case "F":
+            value = Commons.asFloat(val);
+            break;
+          case "D":
+            value = Commons.asDouble(val);
+            break;
+          default:
+        }
+      }
+    }
+    try {
+      field.set(null, value);
+      Commons.info("Settings.%s = %s", fName, value);
+    } catch (IllegalAccessException e) {
+      Commons.error("Settings.%s = %s --- not possible", fName, value);
+    }
+  }
+
+  public static Object get(String fName) {
+    Object value = null;
+    String valType = null;
+    try {
+      Field field = Settings.class.getField(fName);
+      value = field.get(null);
+    } catch (NoSuchFieldException e) {
+    } catch (IllegalAccessException e) {
+    }
+    return value;
+  }
 
   public static boolean experimental = false;
 

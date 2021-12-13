@@ -27,7 +27,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
@@ -70,9 +69,9 @@ public class Commons {
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
-            !hasOption("SX_ARG_RUN") &&
-            !hasOption("SX_ARG_RUNSERVER") &&
-            !hasOption("SX_ARG_RUNPYSERVER")) {
+        !hasOption("SX_ARG_RUN") &&
+        !hasOption("SX_ARG_RUNSERVER") &&
+        !hasOption("SX_ARG_RUNPYSERVER")) {
       return true;
     }
     return false;
@@ -82,7 +81,7 @@ public class Commons {
     if (!RUNNINGIDE) return false;
     File packFolder = getMainClassLocation().getParentFile().getParentFile();
     if (new File(packFolder, "app").exists() && new File(packFolder, "runtime").exists()
-            && new File(packFolder, "runtime/release").exists()) {
+        && new File(packFolder, "runtime/release").exists()) {
       return true;
     }
     return false;
@@ -227,8 +226,8 @@ Software:
     //    sikulixbuild=2019-10-17_09:58
     sxBuild = sxProps.getProperty("sikulixbuild");
     sxBuildStamp = sxBuild
-            .replace("_", "").replace("-", "").replace(":", "")
-            .substring(0, 12);
+        .replace("_", "").replace("-", "").replace(":", "")
+        .substring(0, 12);
     sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
     sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
     if (sxVersion.contains("-SNAPSHOT")) {
@@ -457,9 +456,18 @@ Software:
   }
 
   public static void setStartArgs(String[] args) {
-    if (args.length == 1 && !args[0].isEmpty() && args[0].endsWith("sikulixide")) {
-      if (STARTUPFILE == null) {
-        STARTUPFILE = args[0];
+    int iArgs = 0;
+    if (args.length > 0) {
+      if (!args[0].isEmpty() && args[0].endsWith("sikulixide")) {
+        if (STARTUPFILE == null) {
+          STARTUPFILE = args[0];
+        }
+        iArgs = 1;
+      }
+      if (args.length > iArgs) {
+        for (int i = iArgs; i < args.length; i++) {
+          STARTUPARGS.add(args[i]);
+        }
       }
     }
 
@@ -474,7 +482,7 @@ Software:
         STARTUPFILE = null;
       } else {
         File startupLogFile = new File(startupFile.getParentFile(),
-                startupFile.getName().replaceAll("\\.", "-") + ".log");
+            startupFile.getName().replaceAll("\\.", "-") + ".log");
         FileManager.writeStringToFile("***** startupLogFile *****", startupLogFile);
         Commons.setLogFile(startupLogFile);
         STARTUPINFO = FileManager.readFileToString(startupFile);
@@ -496,7 +504,7 @@ Software:
           for (String line : STARTUPLINES) {
             if (line.startsWith("-")) {
               String[] parms = parmStringToArray(line);
-              STARTUPARGS.addAll(List.of(parms));
+              STARTUPARGS.addAll(0, List.of(parms));
               continue;
             }
             lines.add(line);
@@ -505,10 +513,12 @@ Software:
         }
       }
     }
-    cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
-    cmdLine = cmdArgs.getCommandLine(STARTUPARGS.size() > 0 ? STARTUPARGS.toArray(new String[0]) : args);
-    if (cmdLine != null) {
-      userArgs = cmdArgs.getUserArgs();
+    if (STARTUPARGS.size() > 0) {
+      cmdArgs = new CommandArgs(Commons.RUNNINGIDE);
+      cmdLine = cmdArgs.getCommandLine(STARTUPARGS.toArray(new String[0]));
+      if (cmdLine != null) {
+        userArgs = cmdArgs.getUserArgs();
+      }
     }
   }
 
@@ -535,7 +545,7 @@ Software:
         return true;
       }
     }
-    if (cmdLine.hasOption(option.shortname())) {
+    if (cmdLine != null && cmdLine.hasOption(option.shortname())) {
       return true;
     }
     return false;
@@ -807,15 +817,15 @@ Software:
       }
     }
     return !libVersion.isEmpty() && libVersion.equals(getSXVersionShort()) &&
-            libStamp.length() == Commons.getSxBuildStamp().length()
-            && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
+        libStamp.length() == Commons.getSxBuildStamp().length()
+        && 0 == libStamp.compareTo(Commons.getSxBuildStamp());
   }
 
   public static void makeVersionFile(File folder) {
     String libToken = String.format("%s_%s_MadeForSikuliX%s%s.txt",
-            Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
-            Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
-            Commons.getOSArch());
+        Commons.getSXVersionShort(), Commons.getSxBuildStamp(),
+        Commons.runningMac() ? "M" : (Commons.runningWindows() ? "W" : "L"),
+        Commons.getOSArch());
     FileManager.writeStringToFile("*** Do not delete this file ***\n", new File(folder, libToken));
   }
 
@@ -1373,6 +1383,7 @@ Software:
 
   //<editor-fold desc="30 Options handling">
   public final static String SXPREFS = "SX_PREFS_";
+  public final static String SETTINGS = "Settings.";
 
   public static void initGlobalOptions() {
     if (globalOptions == null) {
@@ -1383,7 +1394,7 @@ Software:
       }
       // *************** add commandline args
       String val = "";
-      if (RUNNINGIDE) {
+      if (RUNNINGIDE && cmdLine != null) {
         for (CommandArgsEnum arg : CommandArgsEnum.values()) {
           if (cmdLine.hasOption(arg.shortname())) {
             if (null != arg.hasArgs()) {
@@ -1414,19 +1425,12 @@ Software:
           globalOptions.setOption("SX_ARG_USER", val.trim());
         }
       }
-      Field[] fields = Settings.class.getFields();
-      Object value = null;
-      for (Field field : fields) {
-        try {
-          Field theField = Settings.class.getField(field.getName());
-          value = theField.get(null);
-        } catch (NoSuchFieldException e) {
-          e.printStackTrace();
-        } catch (IllegalAccessException e) {
-          e.printStackTrace();
+      for (String name : Settings.FIELDS_LIST.keySet()) {
+        Object value = Settings.get(name);
+        if (value == null) {
+          value = "null";
         }
-        String valType = field.getType().getSimpleName().toUpperCase().substring(0,1);
-        globalOptions.setOption("Settings." + field.getName(), String.format("%s%s", valType, value));
+        globalOptions.addOption("Settings." + name, value);
       }
 
       // check for existing optionsfile and load it
@@ -1437,15 +1441,9 @@ Software:
       }
       if (globalOptionsFile != null && globalOptionsFile.exists()) {
         Properties options = loadPropsFromFile(globalOptionsFile);
-        Map<String, String> givenSettings = new HashMap<>();
-        String SETTINGS = "Settings.";
         for (Object key : options.keySet()) {
           String sKey = "" + key;
           if (sKey.startsWith("SX_ARG_")) {
-            continue;
-          }
-          if (sKey.startsWith(SETTINGS)) {
-            givenSettings.put(sKey.substring(SETTINGS.length()), "" + options.get(key));
             continue;
           }
           globalOptions.setOption(sKey, options.get(key));
@@ -1473,13 +1471,15 @@ Software:
               }
               String[] parts = line.split("=");
               if (parts.length > 0) {
+                String key = parts[0].strip();
+                val = "";
                 if (parts.length > 1) {
-                  globalOptions.setOption(parts[0], parts[1]);
-                } else
-                  globalOptions.setOption(parts[0], "");
+                  val = parts[1].strip();
+                }
+                globalOptions.setOption(key, val);
               }
             } else {
-              globalOptions.setOption(line, "");
+              globalOptions.setOption(line.strip(), "");
             }
           }
         }
@@ -1727,11 +1727,11 @@ Software:
   public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
     final AffineTransform af = new AffineTransform();
     af.scale((double) width / originalImage.getWidth(),
-            (double) height / originalImage.getHeight());
+        (double) height / originalImage.getHeight());
     final AffineTransformOp operation = new AffineTransformOp(
-            af, AffineTransformOp.TYPE_BILINEAR);
+        af, AffineTransformOp.TYPE_BILINEAR);
     BufferedImage rescaledImage = new BufferedImage(width, height,
-            BufferedImage.TYPE_INT_ARGB);
+        BufferedImage.TYPE_INT_ARGB);
     rescaledImage = operation.filter(originalImage, rescaledImage);
     return rescaledImage;
   }
@@ -1879,7 +1879,7 @@ Software:
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED
-            || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
+        || bImg.getType() == BufferedImage.TYPE_BYTE_BINARY) {
       String bImgType = "BYTE_BINARY";
       if (bImg.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
         bImgType = "BYTE_INDEXED";
@@ -1892,7 +1892,7 @@ Software:
       aMatBGR.put(0, 0, data);
       return aMatBGR;
     } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR
-            || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
+        || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
       List<Mat> mats = getMatList(bImg);
       Size size = mats.get(0).size();
       if (!asBGR || bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
@@ -1996,7 +1996,7 @@ Software:
     }
     if (!error.isEmpty()) {
       terminate(999, "Commons: runScriptingSupportFunction(%s, %s, %s): %s",
-              instanceSup, method, args, error);
+          instanceSup, method, args, error);
     }
     return returnSup;
   }

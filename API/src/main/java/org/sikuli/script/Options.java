@@ -246,7 +246,7 @@ public class Options {
     return getOption(pName, "");
   }
 
-  /**
+ /**
    * {link getOption}
    *
    * @param pName  the option key (case-sensitive)
@@ -255,6 +255,16 @@ public class Options {
   public void setOption(String pName, Object sValue) {
     if (options == null) {
       init(); //setOption
+    }
+    options.setProperty(pName, sValue.toString());
+    if (pName.startsWith(Commons.SETTINGS)) {
+      Settings.set(pName.substring(Commons.SETTINGS.length()), sValue);
+    }
+  }
+
+  public void addOption(String pName, Object sValue) {
+    if (options == null) {
+      init(); //addOption
     }
     options.setProperty(pName, sValue.toString());
   }
