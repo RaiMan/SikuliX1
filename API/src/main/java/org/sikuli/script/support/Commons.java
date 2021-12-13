@@ -1600,7 +1600,9 @@ Software:
   }
 
   private static void doShowOptions(String prefix, String... except) {
-    if (except.length == 1 & except[0].isEmpty()) except = null;
+    if (except.length == 1 && except[0].isEmpty()) {
+      except = null;
+    }
     TreeMap<String, String> sortedOptions = new TreeMap<>();
     sortedOptions.putAll(getOptions());
     int len = 0;
