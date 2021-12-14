@@ -1425,7 +1425,7 @@ Software:
           globalOptions.setOption("SX_ARG_USER", val.trim());
         }
       }
-      for (String name : Settings.FIELDS_LIST.keySet()) {
+      for (String name : Settings._FIELDS_LIST.keySet()) {
         Object value = Settings.get(name);
         if (value == null) {
           value = "null";
