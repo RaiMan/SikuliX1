@@ -4,7 +4,7 @@ Lists of 77 third-party dependencies.
      (GNU Lesser General Public License) mac_widgets (com.explodingpixels:mac_widgets:0.9.5 - http://code.google.com/p/macwidgets/)
      (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.10 - http://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.9.10 - https://github.com/FasterXML/jackson-core)
-     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.9.10.1 - http://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.9.10.8 - http://github.com/FasterXML/jackson)
      (BSD 3-clause License w/nuclear disclaimer) Java Advanced Imaging Image I/O Tools API core (standalone) (com.github.jai-imageio:jai-imageio-core:1.4.0 - https://github.com/jai-imageio/jai-imageio-core)
      (The Apache Software License, Version 2.0) jffi (com.github.jnr:jffi:1.2.19 - http://github.com/jnr/jffi)
      (The Apache Software License, Version 2.0) jffi (com.github.jnr:jffi:1.2.20 - http://github.com/jnr/jffi)

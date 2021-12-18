@@ -33,6 +33,7 @@ import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.zip.ZipEntry;
 
 public class SikulixIDE extends JFrame {
 
@@ -957,11 +958,10 @@ public class SikulixIDE extends JFrame {
         new FileAction(FileAction.EXPORT)));
 
 //TODO export as jar / runnable jar
-/*
     _fileMenu.add(createMenuItem("Export as jar",
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J, scMask),
         new FileAction(FileAction.ASJAR)));
-
+/*
     _fileMenu.add(createMenuItem("Export as runnable jar",
         KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_J,
             InputEvent.SHIFT_DOWN_MASK | scMask),
@@ -1146,11 +1146,11 @@ public class SikulixIDE extends JFrame {
         List<String> options = new ArrayList<>();
         options.add("plain");
         options.add(fScript.getParentFile().getAbsolutePath());
-        String fpJar = FileManager.makeScriptjar(options);
+        String fpJar = makeScriptjar(options);
         if (null != fpJar) {
-          Sikulix.popup(fpJar, "Export as jar ...");
+          Sikulix.popup("ok: " + fpJar, "Export as jar ...");
         } else {
-          Sikulix.popError("did not work for: " + orgName, "Export as jar");
+          Sikulix.popError("did not work for: " + orgName, "Export as jar ...");
         }
       }
     }
@@ -1165,7 +1165,7 @@ public class SikulixIDE extends JFrame {
         File fScript = codePane.saveAndGetCurrentFile();
         List<String> options = new ArrayList<>();
         options.add(fScript.getParentFile().getAbsolutePath());
-        String fpJar = FileManager.makeScriptjar(options);
+        String fpJar = makeScriptjar(options);
         if (null != fpJar) {
           Sikulix.popup(fpJar, "Export as runnable jar ...");
         } else {
@@ -1612,10 +1612,6 @@ public class SikulixIDE extends JFrame {
         null,
         new ToolAction(ToolAction.EXTENSIONS)));
 
-    _toolMenu.add(createMenuItem("Pack Jar with Jython",
-        null,
-        new ToolAction(ToolAction.JARWITHJYTHON)));
-
     _toolMenu.add(createMenuItem(_I("menuToolAndroid"),
         null,
         new ToolAction(ToolAction.ANDROID)));
@@ -1624,7 +1620,6 @@ public class SikulixIDE extends JFrame {
   class ToolAction extends MenuAction {
 
     static final String EXTENSIONS = "extensions";
-    static final String JARWITHJYTHON = "jarWithJython";
     static final String ANDROID = "android";
 
     ToolAction() {
@@ -1637,19 +1632,6 @@ public class SikulixIDE extends JFrame {
 
     public void extensions(ActionEvent ae) {
       showExtensions();
-    }
-
-    public void jarWithJython(ActionEvent ae) {
-      if (SX.popAsk("*** You should know what you are doing! ***\n\n" +
-          "This may take a while. Wait for success popup!" +
-          "\nClick Yes to start.", "Creating jar file", Commons.getSXIDERegion())) {
-        (new Thread() {
-          @Override
-          public void run() {
-            makeJarWithJython();
-          }
-        }).start();
-      }
     }
 
     public void android(ActionEvent ae) {
@@ -1665,39 +1647,6 @@ public class SikulixIDE extends JFrame {
 
   static IScreen getDefaultScreen() {
     return defaultScreen;
-  }
-
-  private void makeJarWithJython() {
-    String ideJarName = getRunningJar(SikulixIDE.class);
-    if (ideJarName.isEmpty()) {
-      log(-1, "makeJarWithJython: JAR containing IDE not available");
-      return;
-    }
-    if (ideJarName.endsWith("/classes/")) {
-      String version = Commons.getSXVersionShort();
-      String name = "sikulixide-" + version + "-complete.jar";
-      ideJarName = new File(new File(ideJarName).getParentFile(), name).getAbsolutePath();
-    }
-    String jythonJarName = "";
-    try {
-      jythonJarName = getRunningJar(Class.forName("org.python.util.jython"));
-    } catch (ClassNotFoundException e) {
-      log(-1, "makeJarWithJython: Jar containing Jython not available");
-      return;
-    }
-    String targetJar = new File(Commons.getAppDataStore(), "sikulixjython.jar").getAbsolutePath();
-    String[] jars = new String[]{ideJarName, jythonJarName};
-    SikulixIDE.getStatusbar().setMessage(String.format("Creating SikuliX with Jython: %s", targetJar));
-    if (FileManager.buildJar(targetJar, jars, null, null, null)) {
-      String msg = String.format("Created SikuliX with Jython: %s", targetJar);
-      log(3, msg);
-      SX.popup(msg.replace(": ", "\n"));
-    } else {
-      String msg = String.format("Create SikuliX with Jython not possible: %s", targetJar);
-      log(-1, msg);
-      SX.popError(msg.replace(": ", "\n"));
-    }
-    SikulixIDE.getStatusbar().resetMessage();
   }
 
   private String getRunningJar(Class clazz) {
@@ -2729,4 +2678,154 @@ public class SikulixIDE extends JFrame {
     Runner.abortAll();
   }
   //</editor-fold>
+
+  public static String makeScriptjar(List<String> options) {
+    File fSikulixTemp = new File(Commons.getAppDataStore(), "SikulixTemp");
+    FileManager.resetFolder(fSikulixTemp);
+    String target = doMakeScriptjar(options, fSikulixTemp);
+    FileManager.deleteFileOrFolder(fSikulixTemp);
+    return target;
+  }
+
+  private static String doMakeScriptjar(List<String> options, File fSikulixTemp) {
+    boolean makingScriptjarPlain = false;
+    if (options.size() > 0 && "plain".equals(options.get(0))) {
+      makingScriptjarPlain = true;
+      options.remove(0);
+    }
+    File scriptFile = null;
+    File scriptFolder = null;
+    File scriptFolderSikuli = null;
+    String scriptName = null;
+    String[] fileList = new String[]{null, null, null};
+    String[] preList = new String[]{null, null, null};
+    if (options.size() > 0) {
+      scriptFolder = new File(options.get(0));
+      if (!scriptFolder.exists()) {
+        scriptFolderSikuli = new File(scriptFolder.getAbsolutePath() + ".sikuli");
+        if (!scriptFolderSikuli.exists()) {
+          log(-1, "makingScriptJar: script folder invalid: " + scriptFolder.getAbsolutePath());
+          return null;
+        }
+      } else {
+        if (scriptFolder.getAbsolutePath().endsWith(".sikuli")) {
+          scriptFolderSikuli = scriptFolder;
+        } else {
+          scriptFile = new File(scriptFolder, "__run__.py");
+          if (!scriptFile.exists()) {
+            log(-1, "makingScriptJar: script file missing: " + scriptFile.getAbsolutePath());
+            return null;
+          }
+        }
+      }
+    } else {
+      log(-1, "makingScriptJar: no script file given");
+      return null;
+    }
+
+    String fpScriptJar = "";
+    File fScriptSource = new File(fSikulixTemp, "scriptSource");
+    File fScriptCompiled = new File(fSikulixTemp, "scriptCompiled");
+    File fWorkdir = scriptFolder.getParentFile();
+    FileManager.FileFilter skipCompiled = new FileManager.FileFilter() {
+      @Override
+      public boolean accept(File entry) {
+        if (entry.getName().contains("$py.class")) {
+          return false;
+        }
+        return true;
+      }
+    };
+    if (null != scriptFolderSikuli) {
+      log(lvl, "makingScriptJar: compiling sikuli script: %s", scriptFolderSikuli);
+      fWorkdir = scriptFolderSikuli.getParentFile();
+      scriptName = scriptFolder.getName().replace(".sikuli", "");
+      fpScriptJar = scriptName + "_sikuli.jar";
+      scriptFile = new File(scriptFolderSikuli, scriptName + ".py");
+      if (!scriptFile.exists()) {
+        log(-1, "makingScriptJar: script folder invalid: " + scriptFolderSikuli.getAbsolutePath());
+        return null;
+      }
+      FileManager.xcopy(scriptFolderSikuli, fScriptSource, skipCompiled);
+      String script = "";
+      String prolog = "import org.sikuli.script.SikulixForJython\n" +
+          "from sikuli import *\n" +
+          "Debug.on(3)\n" +
+          "for e in sys.path:\n" +
+          "    print e\n" +
+          "    if e.endswith(\".jar\"):\n" +
+          "        jar = e\n" +
+          "        break\n" +
+          "ImagePath.addJar(jar, \"\")\n" +
+          "import " + scriptName + "\n";
+      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__run__.py"));
+      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, "__main__.py"));
+      script = FileManager.readFileToString(new File(fScriptSource, scriptName + ".py"));
+      prolog = "from sikuli import *\naddImportPath(getBundlePath())\n";
+      FileManager.writeStringToFile(prolog + script, new File(fScriptSource, scriptName + ".py"));
+    } else {
+      log(lvl, "makingScriptJar: compiling plain script: %s", scriptFolder);
+      FileManager.xcopy(scriptFolder, fScriptSource, skipCompiled);
+    }
+
+    JythonSupport.get().compileJythonFolder(fScriptSource.getAbsolutePath(), fScriptCompiled.getAbsolutePath());
+    FileManager.xcopy(fScriptCompiled, fSikulixTemp);
+    FileManager.deleteFileOrFolder(fScriptSource);
+    FileManager.deleteFileOrFolder(fScriptCompiled);
+    fileList[0] = fSikulixTemp.getAbsolutePath();
+
+    String[] jarsList = new String[]{null, null};
+    if (!makingScriptjarPlain) {
+//      File fJarRunner = new File(runTime.fSikulixExtensions, "archiv");
+//      fJarRunner = new File(fJarRunner, "JarRunner.class");
+//      File fJarRunnerDir = new File(fSikulixTemp, "org/python/util");
+//      fJarRunnerDir.mkdirs();
+//      FileManager.xcopy(fJarRunner, fJarRunnerDir);
+
+      String manifest = "Manifest-Version: 1.0\nMain-Class: org.sikuli.script.support.SikulixRun\n";
+      File fMetaInf = new File(fSikulixTemp, "META-INF");
+      fMetaInf.mkdir();
+      FileManager.writeStringToFile(manifest, new File(fMetaInf, "MANIFEST.MF"));
+      Class<?> cSikulixRun = null;
+      try {
+        cSikulixRun = Class.forName("org.sikuli.script.support.SikulixRun");
+      } catch (ClassNotFoundException e) {
+      }
+      if (null != cSikulixRun) {
+        InputStream resourceAsStream = cSikulixRun.getResourceAsStream("SikulixRun.class");
+        File targetFile = new File(fSikulixTemp, "org/sikuli/script/support");
+        targetFile.mkdirs();
+        targetFile = new File(targetFile, "SikulixRun.class");
+        try {
+          byte[] buffer = new byte[resourceAsStream.available()];
+          resourceAsStream.read(buffer);
+          OutputStream outStream = new FileOutputStream(targetFile);
+          outStream.write(buffer);
+          outStream.close();
+        } catch (IOException e) {
+          cSikulixRun = null;
+        }
+      }
+      if (null == cSikulixRun) {
+        log(-1, "makingRunnableScriptJar: problems creating main class org.sikuli.script.support.SikulixRun");
+        return null;
+      }
+    }
+
+    String targetJar = (new File(fWorkdir, fpScriptJar)).getAbsolutePath();
+    if (!FileManager.buildJar(targetJar, jarsList, fileList, preList, new FileManager.JarFileFilter() {
+      @Override
+      public boolean accept(ZipEntry entry, String jarname) {
+        if (entry.getName().startsWith("META-INF")) {
+          return false;
+        }
+        return true;
+      }
+    })) {
+      log(-1, "makingScriptJar: problems building jar - for details see logfile");
+      return null;
+    }
+    log(lvl, "makingScriptJar: ended successfully: %s", targetJar);
+    return targetJar;
+  }
 }
