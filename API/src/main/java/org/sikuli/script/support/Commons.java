@@ -9,12 +9,14 @@ import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
+import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Options;
 import org.sikuli.script.Region;
 import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -577,10 +579,20 @@ Software:
       SX_PRINTOUT.println("TERMINATING: " + outMsg);
     }
     if (retval < 999) {
-      RunTime.cleanUp();
+      cleanUp();
       System.exit(retval);
     }
     throw new SikuliXception(String.format("FATAL: " + outMsg));
+  }
+
+  public static void cleanUp() {
+    HotkeyManager.reset(true);
+    HelpDevice.stopAll();
+  }
+
+  public static void cleanUpAfterScript() {
+    HotkeyManager.reset(false);
+    HelpDevice.stopAll();
   }
   //</editor-fold>
 

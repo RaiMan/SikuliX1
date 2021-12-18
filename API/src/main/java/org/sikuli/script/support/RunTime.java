@@ -88,18 +88,6 @@ public class RunTime {
   public boolean runningLinux = false;
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="09 cleanUp">
-  public static void cleanUp() {
-    HotkeyManager.reset(true);
-    HelpDevice.stopAll();
-  }
-
-  public static void cleanUpAfterScript() {
-    HotkeyManager.reset(false);
-    HelpDevice.stopAll();
-  }
-  //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
   private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
 

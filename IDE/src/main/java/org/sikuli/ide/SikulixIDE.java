@@ -2430,7 +2430,7 @@ public class SikulixIDE extends JFrame {
             getCurrentCodePane().jumpTo(line);
           }
 
-          RunTime.cleanUpAfterScript();
+          Commons.cleanUpAfterScript();
           SikulixIDE.showAgain();
 
           synchronized (ideIsRunningScript) {
