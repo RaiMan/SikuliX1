@@ -259,7 +259,7 @@ public class Options {
     options.setProperty(pName, sValue.toString());
     if (pName.startsWith(Commons.SETTINGS_OPT)) {
       Settings.set(pName.substring(Commons.SETTINGS_OPT.length()), sValue);
-    } else if (pName.startsWith(Commons.SXPREFS_OPT)) {
+    } else if (pName.startsWith(Commons.SXPREFS_OPT) && !Commons.isSandBox()) {
       PreferencesUser.get().getStore().put(pName.substring(Commons.SXPREFS_OPT.length()), sValue.toString());
     }
   }

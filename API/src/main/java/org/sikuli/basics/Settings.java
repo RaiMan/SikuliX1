@@ -70,7 +70,9 @@ public class Settings {
       field.set(null, value);
       Commons.info("Settings.%s = %s", fName, value);
     } catch (IllegalAccessException e) {
-      Commons.error("Settings.%s = %s --- not possible", fName, value);
+      Commons.error("Settings.%s = %s --- access not possible", fName, value);
+    } catch (IllegalArgumentException e) {
+      Commons.error("Settings.%s = %s --- value not possible", fName, value);
     }
   }
 

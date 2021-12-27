@@ -1437,6 +1437,8 @@ Software:
           globalOptions.setOption("SX_ARG_USER", val.trim());
         }
       }
+
+      // ************* add Settings defaults
       for (String name : Settings._FIELDS_LIST.keySet()) {
         Object value = Settings.get(name);
         if (value == null) {
@@ -1445,7 +1447,13 @@ Software:
         globalOptions.addOption("Settings." + name, value);
       }
 
-      // check for existing optionsfile and load it
+      // add IDE Preferences defaults
+      if (RUNNINGIDE && isSandBox()) {
+        PreferencesUser prefsIDE = PreferencesUser.get();
+        prefsIDE.setDefaults();
+      }
+
+      // *************** check for existing optionsfile and load it
       if (isSandBox()) {
         globalOptionsFile = getOptionFile();
       } else {
@@ -1460,42 +1468,31 @@ Software:
           }
           globalOptions.setOption(sKey, options.get(key));
         }
-        info("");
       }
 
-      // add IDE Preferences
-      if (RUNNINGIDE) {
-        if (!globalOptions.hasOption("SX_PREFS_USER")) {
-          PreferencesUser prefsIDE = PreferencesUser.get();
-          for (String key : prefsIDE.getAll("").keySet()) {
-            String currentKey = SXPREFS_OPT + key;
-            if (!globalOptions.hasOption(currentKey)) {
-              globalOptions.addOption(currentKey, prefsIDE.get(key, ""));
+      // ***************** add options from a given startup config file
+      if (STARTUPLINES != null) {
+        for (String line : STARTUPLINES) {
+          if (line.contains("=")) {
+            if (line.startsWith("=")) {
+              continue;
             }
-          }
-        }
-        if (STARTUPLINES != null) {
-          for (String line : STARTUPLINES) {
-            if (line.contains("=")) {
-              if (line.startsWith("=")) {
-                continue;
+            String[] parts = line.split("=");
+            if (parts.length > 0) {
+              String key = parts[0].strip();
+              val = "";
+              if (parts.length > 1) {
+                val = parts[1].strip();
               }
-              String[] parts = line.split("=");
-              if (parts.length > 0) {
-                String key = parts[0].strip();
-                val = "";
-                if (parts.length > 1) {
-                  val = parts[1].strip();
-                }
-                globalOptions.setOption(key, val);
-              }
-            } else {
-              globalOptions.setOption(line.strip(), "");
+              globalOptions.setOption(key, val);
             }
+          } else {
+            globalOptions.setOption(line.strip(), "");
           }
         }
       }
     }
+    info("");
   }
 
   public static Options getGlobalOptions() {
@@ -1511,13 +1508,11 @@ Software:
       if (null == optionFile) {
         optionFile = new File(APP_DATA_SANDBOX, getOptionFileName());
       }
-      savePropsToFile(globalOptions.getOptionsAsProps(), optionFile);
     } else {
       File optionFile = getOptionFileDefault();
       if (null == optionFile || !optionFile.exists()) {
         optionFile = new File(getAppDataStore(), getOptionFileNameBackup());
       }
-      savePropsToFile(globalOptions.getOptionsAsProps(), optionFile);
     }
   }
 
@@ -1611,6 +1606,10 @@ Software:
   }
 
   private static void doShowOptions(String prefix, String... except) {
+    info("%s", getOptionsAsLines(prefix, except));
+  }
+
+  private static String getOptionsAsLines(String prefix, String... except) {
     if (except.length == 1 && except[0].isEmpty()) {
       except = null;
     }
@@ -1639,14 +1638,16 @@ Software:
       }
       len = key.length();
     }
+    String out = "";
     for (String key : keys) {
       String val = sortedOptions.get(key);
       if (val.isEmpty()) {
-        info("%s", key);
+        out += key + System.lineSeparator();
       } else {
-        info("%-" + len + "s" + " = %s", key, val);
+        out += String.format("%-" + len + "s" + " = %s", key, val) + System.lineSeparator();
       }
     }
+    return out;
   }
 
   public static boolean hasOption(String option) {
