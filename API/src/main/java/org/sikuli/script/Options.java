@@ -246,7 +246,7 @@ public class Options {
     return getOption(pName, "");
   }
 
- /**
+  /**
    * {link getOption}
    *
    * @param pName  the option key (case-sensitive)
@@ -257,8 +257,10 @@ public class Options {
       init(); //setOption
     }
     options.setProperty(pName, sValue.toString());
-    if (pName.startsWith(Commons.SETTINGS)) {
-      Settings.set(pName.substring(Commons.SETTINGS.length()), sValue);
+    if (pName.startsWith(Commons.SETTINGS_OPT)) {
+      Settings.set(pName.substring(Commons.SETTINGS_OPT.length()), sValue);
+    } else if (pName.startsWith(Commons.SXPREFS_OPT)) {
+      PreferencesUser.get().getStore().put(pName.substring(Commons.SXPREFS_OPT.length()), sValue.toString());
     }
   }
 

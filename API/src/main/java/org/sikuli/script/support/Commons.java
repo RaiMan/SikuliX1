@@ -1394,8 +1394,8 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling">
-  public final static String SXPREFS = "SX_PREFS_";
-  public final static String SETTINGS = "Settings.";
+  public final static String SXPREFS_OPT = "SX_PREFS_";
+  public final static String SETTINGS_OPT = "Settings.";
 
   public static void initGlobalOptions() {
     if (globalOptions == null) {
@@ -1467,11 +1467,10 @@ Software:
       if (RUNNINGIDE) {
         if (!globalOptions.hasOption("SX_PREFS_USER")) {
           PreferencesUser prefsIDE = PreferencesUser.get();
-          if (isSandBox()) {
-            prefsIDE.setDefaults();
-          } else {
-            for (String key : prefsIDE.getAll("").keySet()) {
-              globalOptions.setOption("SX_PREFS_" + key, prefsIDE.get(key, ""));
+          for (String key : prefsIDE.getAll("").keySet()) {
+            String currentKey = SXPREFS_OPT + key;
+            if (!globalOptions.hasOption(currentKey)) {
+              globalOptions.addOption(currentKey, prefsIDE.get(key, ""));
             }
           }
         }

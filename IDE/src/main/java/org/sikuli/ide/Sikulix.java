@@ -9,7 +9,6 @@ import org.sikuli.basics.HotkeyEvent;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.idesupport.IDEDesktopSupport;
-import org.sikuli.script.Key;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
@@ -86,7 +85,7 @@ public class Sikulix {
       Commons.printHelp();
       Commons.setDebug();
       Commons.show();
-      Commons.showOptions(Commons.SXPREFS);
+      Commons.showOptions(Commons.SXPREFS_OPT);
       System.exit(0);
     }
 

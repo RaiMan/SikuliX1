@@ -72,7 +72,7 @@ public class PreferencesUser {
 
   private class SXPreferences extends Preferences {
 
-    final String prfx = Commons.SXPREFS;
+    final String prfx = Commons.SXPREFS_OPT;
     Options opts = Commons.getGlobalOptions();
 
     @Override
