@@ -1518,6 +1518,13 @@ Software:
     return lines;
   }
 
+  public static Map<String, String> getOptions() {
+    if (globalOptions == null) {
+      initGlobalOptions();
+    }
+    return globalOptions.getAll();
+  }
+
   public static Options getGlobalOptions() {
     if (globalOptions == null) {
       terminate(999, "Commons::globalOptions: early access - not initialized");
@@ -1575,30 +1582,6 @@ Software:
     return fileName;
   }
 
-  static Properties loadPropsFromFile(File fOptions) {
-    Properties options = new Properties();
-    if (fOptions != null) {
-      try {
-        InputStream is = new FileInputStream(fOptions);
-        options.load(is);
-        is.close();
-      } catch (Exception ex) {
-      }
-    }
-    return options;
-  }
-
-  static void savePropsToFile(Properties options, File fOptions) {
-    if (options != null && fOptions != null) {
-      try {
-        OutputStream os = new FileOutputStream(fOptions);
-        options.store(os, null);
-        os.close();
-      } catch (Exception ex) {
-      }
-    }
-  }
-
   public static void show() {
     String runningAs = "running as jar";
     if (Commons.isRunningPackage()) {
@@ -1631,15 +1614,15 @@ Software:
     doShowOptions(prefix, except);
   }
 
-  private static void doShowOptions(String prefix, String... except) {
+  static void doShowOptions(String prefix, String... except) {
     info("%s", getOptionsAsLines(prefix, except));
   }
 
-  private static String getOptionsAsLines() {
+  static String getOptionsAsLines() {
     return getOptionsAsLines("");
   }
 
-  private static String getOptionsAsLines(String prefix, String... except) {
+  static String getOptionsAsLines(String prefix, String... except) {
     if (except.length == 1 && except[0].isEmpty()) {
       except = null;
     }
@@ -1704,13 +1687,6 @@ Software:
       return globalOptions.get(option, deflt.toString());
 
     }
-  }
-
-  public static Map<String, String> getOptions() {
-    if (globalOptions == null) {
-      initGlobalOptions();
-    }
-    return globalOptions.getAll();
   }
 
   public static void setOption(String option, Object val) {
