@@ -170,9 +170,6 @@ public class Settings {
   public static boolean OcrTextRead = true;
   public static boolean SwitchToText = false;
 
-  public static boolean TRUE = true;
-  public static boolean FALSE = false;
-
   public static float SlowMotionDelay = 2.0f; // in seconds
   public static float MoveMouseDelay = 0.5f; // in seconds
   private static float MoveMouseDelaySaved = MoveMouseDelay;
@@ -227,9 +224,6 @@ public class Settings {
     return Commons.getAppDataPath().getAbsolutePath();
   }
 
-  public static final int ISWINDOWS = 0;
-  public static final int ISMAC = 1;
-  public static final int ISLINUX = 2;
   public static OS getOS() {
     if (isWindows()) {
       return OS.WINDOWS;

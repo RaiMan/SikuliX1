@@ -49,7 +49,7 @@ public class Options {
 
   private Properties options = null;
 
-  void load(String fpOptions) {
+  public void load(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (fOptions.isAbsolute()) {
       if (!fOptions.exists()) {
@@ -355,7 +355,7 @@ public class Options {
    * @param bValue the value to be set
    */
   public void setBool(String pName, boolean bValue) {
-    options.setProperty(pName, is(pName, bValue) ? "true" : "false");
+    options.setProperty(pName, bValue ? "true" : "false");
   }
 
   /**

@@ -1400,7 +1400,7 @@ Software:
   public static void initGlobalOptions() {
     if (globalOptions == null) {
       globalOptions = new Options();
-      globalOptions.set("SX_JAR", getMainClassLocation().getAbsolutePath());
+      globalOptions.set("SX_ARG_JAR", getMainClassLocation().getAbsolutePath());
       if (STARTUPFILE != null) {
         globalOptions.set("SX_ARG_STARTUP", new File(STARTUPFILE));
       }
@@ -1460,13 +1460,12 @@ Software:
         globalOptionsFile = getOptionFileDefault();
       }
       if (globalOptionsFile != null && globalOptionsFile.exists()) {
-        Properties options = loadPropsFromFile(globalOptionsFile);
-        for (Object key : options.keySet()) {
-          String sKey = "" + key;
-          if (sKey.startsWith("SX_ARG_")) {
+        Map<String, String> options = getOptions(globalOptionsFile);
+        for (String key : options.keySet()) {
+          if (key.startsWith("SX_ARG_")) {
             continue;
           }
-          globalOptions.set(sKey, options.get(key));
+          globalOptions.set(key, options.get(key));
         }
       }
 
@@ -1494,6 +1493,31 @@ Software:
     }
   }
 
+  static Map<String, String > getOptions(File optFile) {
+    String optContent = FileManager.readFileToString(optFile);
+    String[] optLines = optContent.split(System.lineSeparator());
+    Map<String, String> lines = new HashMap<>();
+    if (optLines.length > 0) {
+      for (String line : optLines) {
+        line = line.strip();
+        if (!line.isEmpty()) {
+          if (line.startsWith("/") || line.startsWith("#") || line.startsWith("=")) {
+            continue;
+          }
+          if (line.contains("=")) {
+            String[] parts = line.split("=");
+            if (parts.length > 1) {
+              lines.put(parts[0].strip(), parts[1].strip());
+              continue;
+            }
+          }
+          lines.put(line, "");
+        }
+      }
+    }
+    return lines;
+  }
+
   public static Options getGlobalOptions() {
     if (globalOptions == null) {
       terminate(999, "Commons::globalOptions: early access - not initialized");
@@ -1501,7 +1525,7 @@ Software:
     return globalOptions;
   }
 
-  public static void saveGlobalOptions() {
+  static void saveGlobalOptions() {
     File optionFile;
     if (isSandBox()) {
       optionFile = getOptionFile();
@@ -1522,11 +1546,11 @@ Software:
     return getOptionFile(getOptionFileName());
   }
 
-  private static File getOptionFileDefault() {
+  static File getOptionFileDefault() {
     return getOptionFile(new File(getAppDataStore(), getOptionFileName()).getAbsolutePath());
   }
 
-  public static File getOptionFile(String fpOptions) {
+  static File getOptionFile(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (!fOptions.isAbsolute()) {
       for (File aFile : new File[]{getAppDataPath(), getWorkDir(), getUserHome()}) {
@@ -1541,17 +1565,17 @@ Software:
     return fOptions;
   }
 
-  private static String getOptionFileName() {
+  static String getOptionFileName() {
     String fileName = "SikulixOptions.txt";
     return fileName;
   }
 
-  private static String getOptionFileNameBackup() {
+  static String getOptionFileNameBackup() {
     String fileName = "SikulixOptionsBackup.txt";
     return fileName;
   }
 
-  private static Properties loadPropsFromFile(File fOptions) {
+  static Properties loadPropsFromFile(File fOptions) {
     Properties options = new Properties();
     if (fOptions != null) {
       try {
@@ -1564,7 +1588,7 @@ Software:
     return options;
   }
 
-  private static void savePropsToFile(Properties options, File fOptions) {
+  static void savePropsToFile(Properties options, File fOptions) {
     if (options != null && fOptions != null) {
       try {
         OutputStream os = new FileOutputStream(fOptions);
