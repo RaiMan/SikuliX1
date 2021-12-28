@@ -10,7 +10,6 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -33,10 +32,12 @@ public class Options {
   }
 
   public Options() {
+    this.options = new Properties();
   }
 
   public Options(String fpOptions) {
-    loadOptions(fpOptions);
+    this();
+    load(fpOptions);
   }
 
   public static String getOptionsFileDefault() {
@@ -44,90 +45,11 @@ public class Options {
     return defaultContent;
   }
 
-  static Options sxOptions = null;
-
-  private String fnSXOptions = "SikulixOptions.txt";
   private String propOptionsFile = "OptionsFile";
 
   private Properties options = null;
 
-  static boolean testing = false;
-
-  public String getOptionsFile() {
-    return getOption(propOptionsFile);
-  }
-
-  private static Options init() {
-    if (sxOptions == null) {
-      sxOptions = new Options();
-      sxOptions.loadOptions();
-    }
-    return sxOptions;
-  }
-
-  public static Options create() {
-    Options options = new Options();
-    options.options = new Properties();
-    return options;
-  }
-
-  void loadOptions() {
-    // public Settings::fields as options
-    Field[] fields = Settings.class.getFields();
-    Object value = null;
-    for (Field field : fields) {
-      try {
-        Field theField = Settings.class.getField(field.getName());
-        value = theField.get(null);
-      } catch (NoSuchFieldException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      }
-      //p("Settings.%s (%s) %s", field.getName(), field.getType(), value);
-    }
-    loadOptions(fnSXOptions);
-    if (hasOptions()) {
-      testing = isOption("testing", false);
-      if (testing) {
-        Debug.setDebugLevel(3);
-      }
-      for (Object oKey : options.keySet()) {
-        String sKey = (String) oKey;
-        String[] parts = sKey.split("\\.");
-        if (parts.length == 1) {
-          continue;
-        }
-        String sClass = parts[0];
-        String sAttr = parts[1];
-        Class cClass;
-        Field cField;
-        Class cFieldType;
-        if (sClass.contains("Settings")) {
-          try {
-            cClass = Class.forName("org.sikuli.basics.Settings");
-            cField = cClass.getField(sAttr);
-            cFieldType = cField.getType();
-            if (cFieldType.getName() == "boolean") {
-              cField.setBoolean(null, isOption(sKey));
-            } else if (cFieldType.getName() == "int") {
-              cField.setInt(null, getOptionInteger(sKey));
-            } else if (cFieldType.getName() == "float") {
-              cField.setFloat(null, getOptionFloat(sKey));
-            } else if (cFieldType.getName() == "double") {
-              cField.setDouble(null, getOptionDouble(sKey));
-            } else if (cFieldType.getName() == "String") {
-              cField.set(null, getOption(sKey));
-            }
-          } catch (Exception ex) {
-            log(-1, "loadOptions: not possible: %s = %s", sKey, options.getProperty(sKey));
-          }
-        }
-      }
-    }
-  }
-
-  void loadOptions(String fpOptions) {
+  void load(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (fOptions.isAbsolute()) {
       if (!fOptions.exists()) {
@@ -144,7 +66,6 @@ public class Options {
         }
       }
     }
-    options = new Properties();
     if (fOptions != null) {
       try {
         InputStream is;
@@ -152,13 +73,13 @@ public class Options {
         options.load(is);
         is.close();
         log(lvl, "loadOptions: Options file: %s", fOptions);
-        setOption(propOptionsFile, fOptions.getAbsolutePath());
+        set(propOptionsFile, fOptions.getAbsolutePath());
       } catch (Exception ex) {
         log(-1, "loadOptions: %s: %s", fOptions, ex.getMessage());
         options = null;
       }
     } else {
-      setOption(propOptionsFile, new File(Commons.getAppDataStore(), fpOptions).getAbsolutePath());
+      set(propOptionsFile, new File(Commons.getAppDataStore(), fpOptions).getAbsolutePath());
     }
   }
 
@@ -167,13 +88,13 @@ public class Options {
    *
    * @return success
    */
-  public boolean saveOptions() {
-    String fpOptions = getOption(propOptionsFile, null);
+  public boolean save() {
+    String fpOptions = get(propOptionsFile, null);
     if (null == fpOptions) {
       log(-1, "saveOptions: no prop %s", propOptionsFile);
       return false;
     }
-    return saveOptions(fpOptions);
+    return save(fpOptions);
   }
 
   /**
@@ -182,13 +103,13 @@ public class Options {
    * @param fpOptions path to a file
    * @return success
    */
-  public boolean saveOptions(String fpOptions) {
+  public boolean save(String fpOptions) {
     File fOptions = new File(fpOptions);
     if (!fOptions.isAbsolute()) {
       fOptions = new File(Commons.getWorkDir(), fpOptions);
     }
     try {
-      setOption(propOptionsFile, fOptions.getAbsolutePath());
+      set(propOptionsFile, fOptions.getAbsolutePath());
       OutputStream os;
       os = new FileOutputStream(fOptions);
       options.store(os, "");
@@ -201,15 +122,7 @@ public class Options {
     return true;
   }
 
-  @Deprecated // use saveOptions instead
-  public boolean saveOpts(String fpOptions) {
-    return saveOptions(fpOptions);
-  }
-
-  public boolean hasOption(String pName) {
-    if (options == null) {
-      return false;
-    }
+  public boolean has(String pName) {
     return null == options.getProperty(pName) ? false : true;
   }
 
@@ -224,10 +137,7 @@ public class Options {
    * @param sDefault the default to be returned if option absent or empty
    * @return the associated value, the default value if absent or empty
    */
-  public String getOption(String pName, String sDefault) {
-    if (options == null) {
-      return sDefault;
-    }
+  public String get(String pName, String sDefault) {
     String pVal = options.getProperty(pName, sDefault);
     if (pVal.isEmpty()) {
       options.setProperty(pName, sDefault);
@@ -242,8 +152,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the associated value, empty string if absent
    */
-  public String getOption(String pName) {
-    return getOption(pName, "");
+  public String get(String pName) {
+    return get(pName, "");
   }
 
   /**
@@ -252,10 +162,7 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param sValue the value to be set
    */
-  public void setOption(String pName, Object sValue) {
-    if (options == null) {
-      init(); //setOption
-    }
+  public void set(String pName, Object sValue) {
     options.setProperty(pName, sValue.toString());
     if (pName.startsWith(Commons.SETTINGS_OPT)) {
       Settings.set(pName.substring(Commons.SETTINGS_OPT.length()), sValue);
@@ -264,10 +171,7 @@ public class Options {
     }
   }
 
-  public void addOption(String pName, Object sValue) {
-    if (options == null) {
-      init(); //addOption
-    }
+  public void add(String pName, Object sValue) {
     options.setProperty(pName, sValue.toString());
   }
 
@@ -278,10 +182,7 @@ public class Options {
    * @param nDefault the default to be returned if option absent, empty or not convertible
    * @return the converted integer number, default if absent, empty or not possible
    */
-  public int getOptionInteger(String pName, Integer nDefault) {
-    if (options == null) {
-      return nDefault;
-    }
+  public int getInteger(String pName, Integer nDefault) {
     String pVal = options.getProperty(pName, nDefault.toString());
     int nVal = nDefault;
     try {
@@ -297,8 +198,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted integer number, 0 if absent or not possible
    */
-  public int getOptionInteger(String pName) {
-    return getOptionInteger(pName, 0);
+  public int getInteger(String pName) {
+    return getInteger(pName, 0);
   }
 
   /**
@@ -307,10 +208,7 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param nValue the value to be set
    */
-  public void setOptionInteger(String pName, int nValue) {
-    if (options == null) {
-      init(); //setOptionInt
-    }
+  public void setInteger(String pName, int nValue) {
     options.setProperty(pName, "" + nValue);
   }
 
@@ -321,10 +219,7 @@ public class Options {
    * @param nDefault the default to be returned if option absent, empty or not convertible
    * @return the converted integer number, default if absent, empty or not possible
    */
-  public long getOptionLong(String pName, Long nDefault) {
-    if (options == null) {
-      return nDefault;
-    }
+  public long getLong(String pName, Long nDefault) {
     String pVal = options.getProperty(pName, nDefault.toString());
     long nVal = nDefault;
     try {
@@ -340,8 +235,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted long number, 0 if absent or not possible
    */
-  public long getOptionLong(String pName) {
-    return getOptionInteger(pName, 0);
+  public long getLong(String pName) {
+    return getInteger(pName, 0);
   }
 
   /**
@@ -350,10 +245,7 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param nValue the value to be set
    */
-  public void setOptionLong(String pName, long nValue) {
-    if (options == null) {
-      init(); //setOptionLong
-    }
+  public void setLong(String pName, long nValue) {
     options.setProperty(pName, "" + nValue);
   }
 
@@ -363,10 +255,7 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted float number, default if absent or not possible
    */
-  public float getOptionFloat(String pName, float nDefault) {
-    if (options == null) {
-      return nDefault;
-    }
+  public float getFloat(String pName, float nDefault) {
     String pVal = options.getProperty(pName, "0");
     float nVal = nDefault;
     try {
@@ -382,8 +271,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted float number, 0 if absent or not possible
    */
-  public float getOptionFloat(String pName) {
-    return getOptionFloat(pName, 0);
+  public float getFloat(String pName) {
+    return getFloat(pName, 0);
   }
 
   /**
@@ -392,10 +281,7 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param nValue the value to be set
    */
-  public void setOptionFloat(String pName, float nValue) {
-    if (options == null) {
-      init(); //setOptionFloat
-    }
+  public void setFloat(String pName, float nValue) {
     options.setProperty(pName, "" + nValue);
   }
 
@@ -405,10 +291,7 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted float number, default if absent or not possible
    */
-  public double getOptionDouble(String pName, double nDefault) {
-    if (options == null) {
-      return nDefault;
-    }
+  public double getDouble(String pName, double nDefault) {
     String pVal = options.getProperty(pName, "0");
     double nVal = nDefault;
     try {
@@ -424,8 +307,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return the converted double number, 0 if absent or not possible
    */
-  public double getOptionDouble(String pName) {
-    return getOptionDouble(pName, 0);
+  public double getDouble(String pName) {
+    return getDouble(pName, 0);
   }
 
   /**
@@ -434,10 +317,7 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param nValue the value to be set
    */
-  public void setOptionDouble(String pName, double nValue) {
-    if (options == null) {
-      init(); //setOptionDouble
-    }
+  public void setDouble(String pName, double nValue) {
     options.setProperty(pName, "" + nValue);
   }
 
@@ -448,10 +328,7 @@ public class Options {
    * @param bDefault the default to be returned if option absent or empty
    * @return true if option has yes or no, false for no or false (not case-sensitive)
    */
-  public boolean isOption(String pName, boolean bDefault) {
-    if (options == null) {
-      return bDefault;
-    }
+  public boolean is(String pName, boolean bDefault) {
     String pVal = options.getProperty(pName, bDefault ? "true" : "false").toLowerCase();
     if (pVal.isEmpty()) {
       return bDefault;
@@ -467,8 +344,8 @@ public class Options {
    * @param pName the option key (case-sensitive)
    * @return true only if option exists and has yes or true (not case-sensitive), in all other cases false
    */
-  public boolean isOption(String pName) {
-    return isOption(pName, false);
+  public boolean is(String pName) {
+    return is(pName, false);
   }
 
   /**
@@ -477,11 +354,8 @@ public class Options {
    * @param pName  the option key (case-sensitive)
    * @param bValue the value to be set
    */
-  public void setOptionBool(String pName, boolean bValue) {
-    if (options == null) {
-      init(); //setOptionBool
-    }
-    options.setProperty(pName, isOption(pName, bValue) ? "true" : "false");
+  public void setBool(String pName, boolean bValue) {
+    options.setProperty(pName, is(pName, bValue) ? "true" : "false");
   }
 
   /**
@@ -498,24 +372,18 @@ public class Options {
    *
    * @return a map of key-value pairs containing the found options, empty if no options file found
    */
-  public Map<String, String> getOptions() {
-    return getOptions("");
+  public Map<String, String> getAll() {
+    return getAll("");
   }
 
-  public Properties getOptionsAsProps() {
-    return options;
-  }
-
-  public Map<String, String> getOptions(String prefix) {
+  public Map<String, String> getAll(String prefix) {
     Map<String, String> mapOptions = new HashMap<String, String>();
-    if (options != null) {
-      Enumeration<?> optionNames = options.propertyNames();
-      String optionName;
-      while (optionNames.hasMoreElements()) {
-        optionName = (String) optionNames.nextElement();
-        if (prefix.isEmpty() || optionName.startsWith(prefix)) {
-          mapOptions.put(optionName, getOption(optionName));
-        }
+    Enumeration<?> optionNames = options.propertyNames();
+    String optionName;
+    while (optionNames.hasMoreElements()) {
+      optionName = (String) optionNames.nextElement();
+      if (prefix.isEmpty() || optionName.startsWith(prefix)) {
+        mapOptions.put(optionName, get(optionName));
       }
     }
     return mapOptions;
@@ -524,9 +392,9 @@ public class Options {
   /**
    * all options and their values written to sysout as key = value
    */
-  public void dumpOptions(String key) {
+  public void dump(String key) {
     if (hasOptions()) {
-      Map<String, String> mapOptions = getOptions();
+      Map<String, String> mapOptions = getAll();
       logp("*** options dump" + (key.isEmpty() ? "" : " for: " + key));
       for (String sOpt : mapOptions.keySet()) {
         if (!options.isEmpty() && !sOpt.startsWith(key)) continue;
@@ -541,14 +409,14 @@ public class Options {
   //      return SXOpts.makeOpts()
   //
   public static Options makeOpts() {
-    return create();
+    return new Options();
   }
 
   //  def loadOpts(filePath):
   //      return SXOpts.loadOpts(filePath)
   public static Options loadOpts(String file) {
     Options options = makeOpts();
-    options.loadOptions(file);
+    options.load(file);
     return options;
   }
 
@@ -558,18 +426,18 @@ public class Options {
   //      else:
   //      return SXOpts.saveOpts(props, filePath)
   public static String saveOpts(Options opts) {
-    return saveOpts(opts, opts.getOption("OptionsFile", "optionsfile"));
+    return saveOpts(opts, opts.get("OptionsFile", "optionsfile"));
   }
 
   public static String saveOpts(Options opts, String file) {
-    opts.saveOptions(file);
+    opts.save(file);
     return opts.options.getProperty("OptionsFile", "no filename");
   }
 
   //  def getOpts(props):
   //      return SXOpts.getOpts(props)
   public static Map<String, String> getOpts(Options opts) {
-    return opts.getOptions();
+    return opts.getAll();
   }
 
   //  def hasOpts(props):
@@ -589,7 +457,7 @@ public class Options {
   //  def delOpts(props):
   //      return SXOpts.delOpts(props)
   public static void delOpts(Options opts) {
-    String optsFile = opts.getOption("OptionsFile", "optionsfile");
+    String optsFile = opts.get("OptionsFile", "optionsfile");
     opts.options.clear();
     opts.options.setProperty("OptionsFile", optsFile);
   }
@@ -659,14 +527,14 @@ public class Options {
 
   public static Map<String, String> prefAll() {
     return prefComplete()
-        .entrySet()
-        .stream()
-        .filter(e -> e.getKey().startsWith(userPrefix))
-        .sorted(Map.Entry.comparingByKey())
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            Map.Entry::getValue,
-            (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+            .entrySet()
+            .stream()
+            .filter(e -> e.getKey().startsWith(userPrefix))
+            .sorted(Map.Entry.comparingByKey())
+            .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
   }
 
   private static Map<String, String> prefComplete() {
@@ -687,16 +555,16 @@ public class Options {
     final Map<String, String> prefsSX = Options.prefComplete();
     System.out.println("***** Preferences SikuliX *****");
     prefsSX.entrySet()
-        .stream()
-        .filter(e -> !e.getKey().startsWith(userPrefix))
-        .sorted(Map.Entry.comparingByKey())
-        .forEach(System.out::println);
+            .stream()
+            .filter(e -> !e.getKey().startsWith(userPrefix))
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(System.out::println);
     System.out.println("***** Preferences User:: *****");
     prefsSX.entrySet()
-        .stream()
-        .filter(e -> e.getKey().startsWith(userPrefix))
-        .sorted(Map.Entry.comparingByKey())
-        .forEach(System.out::println);
+            .stream()
+            .filter(e -> e.getKey().startsWith(userPrefix))
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(System.out::println);
     System.out.println("***** Preferences Dump End *****");
   }
 

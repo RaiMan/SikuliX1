@@ -1399,10 +1399,10 @@ Software:
 
   public static void initGlobalOptions() {
     if (globalOptions == null) {
-      globalOptions = Options.create();
-      globalOptions.setOption("SX_JAR", getMainClassLocation().getAbsolutePath());
+      globalOptions = new Options();
+      globalOptions.set("SX_JAR", getMainClassLocation().getAbsolutePath());
       if (STARTUPFILE != null) {
-        globalOptions.setOption("SX_ARG_STARTUP", new File(STARTUPFILE));
+        globalOptions.set("SX_ARG_STARTUP", new File(STARTUPFILE));
       }
       // *************** add commandline args
       String val = "";
@@ -1425,7 +1425,7 @@ Software:
                 val = val == null ? "" : val;
               }
             }
-            globalOptions.setOption("SX_ARG_" + arg, val);
+            globalOptions.set("SX_ARG_" + arg, val);
             val = "";
           }
         }
@@ -1434,7 +1434,7 @@ Software:
           val += arg + " ";
         }
         if (!val.isEmpty()) {
-          globalOptions.setOption("SX_ARG_USER", val.trim());
+          globalOptions.set("SX_ARG_USER", val.trim());
         }
       }
 
@@ -1444,7 +1444,7 @@ Software:
         if (value == null) {
           value = "null";
         }
-        globalOptions.addOption("Settings." + name, value);
+        globalOptions.add("Settings." + name, value);
       }
 
       // add IDE Preferences defaults
@@ -1466,7 +1466,7 @@ Software:
           if (sKey.startsWith("SX_ARG_")) {
             continue;
           }
-          globalOptions.setOption(sKey, options.get(key));
+          globalOptions.set(sKey, options.get(key));
         }
       }
 
@@ -1484,15 +1484,14 @@ Software:
               if (parts.length > 1) {
                 val = parts[1].strip();
               }
-              globalOptions.setOption(key, val);
+              globalOptions.set(key, val);
             }
           } else {
-            globalOptions.setOption(line.strip(), "");
+            globalOptions.set(line.strip(), "");
           }
         }
       }
     }
-    info("");
   }
 
   public static Options getGlobalOptions() {
@@ -1503,17 +1502,20 @@ Software:
   }
 
   public static void saveGlobalOptions() {
+    File optionFile;
     if (isSandBox()) {
-      File optionFile = getOptionFile();
+      optionFile = getOptionFile();
       if (null == optionFile) {
         optionFile = new File(APP_DATA_SANDBOX, getOptionFileName());
       }
     } else {
-      File optionFile = getOptionFileDefault();
+      optionFile = getOptionFileDefault();
       if (null == optionFile || !optionFile.exists()) {
         optionFile = new File(getAppDataStore(), getOptionFileNameBackup());
       }
     }
+    String optionsAsLines = getOptionsAsLines();
+    FileManager.writeStringToFile(optionsAsLines, optionFile);
   }
 
   public static File getOptionFile() {
@@ -1609,6 +1611,10 @@ Software:
     info("%s", getOptionsAsLines(prefix, except));
   }
 
+  private static String getOptionsAsLines() {
+    return getOptionsAsLines("");
+  }
+
   private static String getOptionsAsLines(String prefix, String... except) {
     if (except.length == 1 && except[0].isEmpty()) {
       except = null;
@@ -1654,14 +1660,14 @@ Software:
     if (globalOptions == null) {
       initGlobalOptions();
     }
-    return globalOptions.hasOption(option);
+    return globalOptions.has(option);
   }
 
   public static String getOption(String option) {
     if (globalOptions == null) {
       initGlobalOptions();
     }
-    return globalOptions.getOption(option, "");
+    return globalOptions.get(option, "");
   }
 
   public static String getOption(String option, Object deflt) {
@@ -1669,9 +1675,9 @@ Software:
       initGlobalOptions();
     }
     if (deflt instanceof String) {
-      return globalOptions.getOption(option, (String) deflt);
+      return globalOptions.get(option, (String) deflt);
     } else {
-      return globalOptions.getOption(option, deflt.toString());
+      return globalOptions.get(option, deflt.toString());
 
     }
   }
@@ -1680,14 +1686,14 @@ Software:
     if (globalOptions == null) {
       initGlobalOptions();
     }
-    return globalOptions.getOptions();
+    return globalOptions.getAll();
   }
 
   public static void setOption(String option, Object val) {
     if (globalOptions == null) {
       initGlobalOptions();
     }
-    globalOptions.setOption(option, val);
+    globalOptions.set(option, val);
   }
 
   public static int asInt(String val) {

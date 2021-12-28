@@ -77,12 +77,12 @@ public class PreferencesUser {
 
     @Override
     public void put(String key, String value) {
-      opts.setOption(prfx + key, value);
+      opts.set(prfx + key, value);
     }
 
     @Override
     public String get(String key, String def) {
-      return opts.getOption(prfx + key, def);
+      return opts.get(prfx + key, def);
     }
 
     @Override
@@ -99,63 +99,63 @@ public class PreferencesUser {
 
     @Override
     public void putInt(String key, int value) {
-      opts.setOptionInteger(prfx + key, value);
+      opts.setInteger(prfx + key, value);
     }
 
     @Override
     public int getInt(String key, int def) {
-      return opts.getOptionInteger(prfx + key, def);
+      return opts.getInteger(prfx + key, def);
     }
 
     @Override
     public void putLong(String key, long value) {
-      opts.setOptionLong(prfx + key, value);
+      opts.setLong(prfx + key, value);
     }
 
     @Override
     public long getLong(String key, long def) {
-      return opts.getOptionLong(prfx + key, def);
+      return opts.getLong(prfx + key, def);
     }
 
     @Override
     public void putBoolean(String key, boolean value) {
-      opts.setOptionBool(prfx + key, value);
+      opts.setBool(prfx + key, value);
     }
 
     @Override
     public boolean getBoolean(String key, boolean def) {
-      return opts.isOption(prfx + key, def);
+      return opts.is(prfx + key, def);
     }
 
     @Override
     public void putFloat(String key, float value) {
-      opts.setOptionFloat(prfx + key, value);
+      opts.setFloat(prfx + key, value);
     }
 
     @Override
     public float getFloat(String key, float def) {
-      return opts.getOptionFloat(prfx + key, def);
+      return opts.getFloat(prfx + key, def);
     }
 
     @Override
     public void putDouble(String key, double value) {
-      opts.setOptionDouble(prfx + key, value);
+      opts.setDouble(prfx + key, value);
     }
 
     @Override
     public double getDouble(String key, double def) {
-      return opts.getOptionDouble(prfx + key, def);
+      return opts.getDouble(prfx + key, def);
     }
 
     @Override
     public String[] keys() {
-      return opts.getOptions(prfx).keySet().toArray(new String[0]);
+      return opts.getAll(prfx).keySet().toArray(new String[0]);
     }
 
     @Override
     public String toString() {
       String optionsToString = "";
-      Map<String, String> options = opts.getOptions(prfx);
+      Map<String, String> options = opts.getAll(prfx);
       if (!options.isEmpty()) {
         for (String key : options.keySet()) {
           optionsToString += key + "=" + options.get(key) +"\n";
