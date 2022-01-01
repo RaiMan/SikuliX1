@@ -2,6 +2,7 @@ package org.sikuli.script.support.devices;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.Location;
 import org.sikuli.script.support.Commons;
 
 import java.awt.*;
@@ -32,7 +33,7 @@ public class MouseDevice extends Devices {
     notUseable = true;
     if (Commons.runningMac()) {
       Debug.error("Mouse: not useable (blocked)\n" +
-              "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
+          "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
     } else {
       Debug.error("Mouse: not useable (blocked)");
     }
@@ -49,10 +50,10 @@ public class MouseDevice extends Devices {
     for (ScreenDevice scrd : ScreenDevice.get()) {
       lc = scrd.getCenter();
       lcn = move(lc);
-      if (lc.equals(lcn)) {
-        log(deviceType,3,"ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
+      if (MouseDevice.nearby(lc, lcn)) {
+        log(deviceType, 3, "ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
       } else {
-        log(deviceType,3,"not ok: %s at: (%d, %d) but: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
+        log(deviceType, 3, "not ok: %s at: (%d, %d) but is: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
         usable = false;
       }
       move(lnow);
@@ -63,6 +64,33 @@ public class MouseDevice extends Devices {
         Commons.terminate(999, "Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
       }
     }
+  }
+
+  public static boolean nearby(Object target, Object actual) {
+    int x1, x2, y1, y2;
+    int delta = 2;
+    if (target instanceof Point) {
+      x1 = ((Point) target).x;
+      y1 = ((Point) target).y;
+    } else if (target instanceof Location) {
+      x1 = ((Location) target).x;
+      y1 = ((Location) target).y;
+    } else {
+      return false;
+    }
+    if (actual instanceof Point) {
+      x2 = ((Point) actual).x;
+      y2 = ((Point) actual).y;
+    } else if (actual instanceof Location) {
+      x2 = ((Location) actual).x;
+      y2 = ((Location) actual).y;
+    } else {
+      return false;
+    }
+    if (x2 < (x1 - delta) || x2 > (x1 + delta) || y2 < (y1 - delta) || y2 > (y1 + delta)) {
+      return false;
+    }
+    return true;
   }
 
   public static Point at() {

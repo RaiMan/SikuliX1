@@ -282,6 +282,18 @@ Software:
     }
   }
 
+  public static void resetLogFile() {
+    try {
+      PrintStream printoutNew = System.out;
+      if (SX_PRINTOUT != null) {
+        SX_PRINTOUT.close();
+      }
+      SX_PRINTOUT = printoutNew;
+    } catch (Exception ex) {
+      terminate(999, "Commons::setLogFile: not possible: %s", ex.getMessage());
+    }
+  }
+
   public static File getLogFile() {
     return SX_LOGFILE;
   }
@@ -514,6 +526,8 @@ Software:
           STARTUPLINES = lines;
         }
       }
+    } else {
+      resetLogFile();
     }
     if (STARTUPARGS.size() > 0) {
       cmdArgs = new CommandArgs(Commons.RUNNINGIDE);

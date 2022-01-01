@@ -15,13 +15,13 @@ public abstract class Devices {
 
   static void log(TYPE type, int level, String message, Object... args) {
     if (Debug.is(level)) {
-      Debug.logx(level, type + "Device: " + message, args);
+      Debug.logx(level, type + "-Device: " + message, args);
     }
   }
 
   void log(int level, String message, Object... args) {
     if (Debug.is(level)) {
-      Debug.logx(level, deviceType + "Device: " + message, args);
+      Debug.logx(level, deviceType + "-Device: " + message, args);
     }
   }
 

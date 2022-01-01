@@ -29,8 +29,8 @@ import java.util.Date;
 public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
-  public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT |  KeyModifier.META | KeyModifier.ALTGR;
-  
+  public static final int ALL_MODIFIERS = KeyModifier.SHIFT | KeyModifier.CTRL | KeyModifier.ALT | KeyModifier.META | KeyModifier.ALTGR;
+
   private static int heldButtons = 0;
   private static String heldKeys = "";
   private static final ArrayList<Integer> heldKeyCodes = new ArrayList<Integer>();
@@ -151,18 +151,12 @@ public class RobotDesktop extends Robot implements IRobot {
       Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid\nafter move to %s", targetPos);
     } else {
       actualPos = mp.getLocation();
-      boolean xOff = actualPos.x < (targetPos.x - 1) || actualPos.x > (targetPos.x + 1);
-      boolean yOff = actualPos.y < (targetPos.y - 1) || actualPos.y > (targetPos.y + 1);
-      if (xOff || yOff) {
-        if (MouseDevice.isUsable()) {
-          if (Settings.checkMousePosition) {
-            Debug.error("RobotDesktop: checkMousePosition: should be %s - but is not!"
-                            + "\nPossible cause in case you did not touch the mouse while script was running:\n"
-                            + " Mouse actions are blocked generally or by the frontmost application."
-                            + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff as admin." : ""),
-                    targetPos, new Location(actualPos));
-          }
-        }
+      if (Settings.checkMousePosition && !MouseDevice.nearby(targetPos, actualPos)) {
+        Debug.error("RobotDesktop: checkMousePosition: should be %s - but is (%d, %d)!"
+                + "\nIf you did not move the mouse while script was running:\n"
+                + " Mouse actions might be blocked generally or by the target application."
+                + (Settings.isWindows() ? "\nYou might try to run the SikuliX stuff from commandline in admin-mode." : ""),
+            targetPos, actualPos.x, actualPos.y);
       }
     }
   }
@@ -338,9 +332,9 @@ public class RobotDesktop extends Robot implements IRobot {
 //
 //      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
 //          (WinUser.INPUT[]) input.toArray(1), input.size());
-        int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-        SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
-    }else{
+      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(0), new BaseTSD.ULONG_PTR(0));
+    } else {
       keyPress(keyCode);
     }
 
@@ -360,7 +354,7 @@ public class RobotDesktop extends Robot implements IRobot {
           Debug.log(4, "release: " + keys.charAt(i));
           typeChar(keys.charAt(i), IRobot.KeyMode.RELEASE_ONLY);
           heldKeys = heldKeys.substring(0, pos)
-                  + heldKeys.substring(pos + 1);
+              + heldKeys.substring(pos + 1);
         }
       }
     }
@@ -401,9 +395,9 @@ public class RobotDesktop extends Robot implements IRobot {
 //
 //      User32.INSTANCE.SendInput(new WinDef.DWORD(1),
 //          (WinUser.INPUT[]) input.toArray(1), input.size());
-      int scanCode =  SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
-      SXUser32.INSTANCE.keybd_event((byte)keyCode, (byte)scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
-    }else{
+      int scanCode = SXUser32.INSTANCE.MapVirtualKeyW(keyCode, 0);
+      SXUser32.INSTANCE.keybd_event((byte) keyCode, (byte) scanCode, new WinDef.DWORD(WinUser.KEYBDINPUT.KEYEVENTF_KEYUP), new BaseTSD.ULONG_PTR(0));
+    } else {
       keyRelease(keyCode);
     }
 
@@ -416,8 +410,8 @@ public class RobotDesktop extends Robot implements IRobot {
   @Override
   public void typeChar(char character, KeyMode mode) {
     Debug.log(4, "Robot: doType: %s ( %d )",
-            KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(),
-            Key.toJavaKeyCode(character)[0]);
+        KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(),
+        Key.toJavaKeyCode(character)[0]);
     doType(mode, Key.toJavaKeyCode(character));
   }
 
