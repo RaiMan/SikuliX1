@@ -68,7 +68,7 @@ public class MouseDevice extends Devices {
 
   public static boolean nearby(Object target, Object actual) {
     int x1, x2, y1, y2;
-    int delta = 2;
+    int delta = Settings.MousePositionDelta;
     if (target instanceof Point) {
       x1 = ((Point) target).x;
       y1 = ((Point) target).y;

@@ -142,6 +142,7 @@ public class Settings {
 
   //setting to false supresses error message in RobotDesktop
   public static boolean checkMousePosition = true;
+  public static int MousePositionDelta = 2;
 
   /**
    * Specify a delay between the key presses in seconds as 0.nnn. This only
@@ -149,6 +150,7 @@ public class Settings {
    * to 1.0 (max delay of 1 second)
    */
   public static double TypeDelay = 0.0;
+
   /**
    * Specify a delay between the mouse down and up in seconds as 0.nnn. This
    * only applies to the next click action and is then reset to 0 again. A value
@@ -214,10 +216,7 @@ public class Settings {
   }
 
   public static String getPathSeparator() {
-    if (isWindows()) {
-      return ";";
-    }
-    return ":";
+    return File.pathSeparator;
   }
 
   public static String getDataPath() {

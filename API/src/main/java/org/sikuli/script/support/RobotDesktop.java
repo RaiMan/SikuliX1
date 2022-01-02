@@ -148,7 +148,7 @@ public class RobotDesktop extends Robot implements IRobot {
     PointerInfo mp = MouseInfo.getPointerInfo();
     Point actualPos;
     if (mp == null) {
-      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid\nafter move to %s", targetPos);
+      Debug.error("RobotDesktop: checkMousePosition: MouseInfo.getPointerInfo invalid after move to %s", targetPos);
     } else {
       actualPos = mp.getLocation();
       if (Settings.checkMousePosition && !MouseDevice.nearby(targetPos, actualPos)) {
