@@ -5,6 +5,7 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
@@ -16,6 +17,10 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 public class Options {
+
+  public interface Filter {
+    boolean accept(String key);
+  }
 
   int lvl = 3;
 
@@ -31,56 +36,106 @@ public class Options {
     System.out.println(String.format(message, args));
   }
 
+  private Properties options;
+
   public Options() {
     this.options = new Properties();
   }
 
-  public Options(String fpOptions) {
+  public Options(File optFile) {
     this();
-    load(fpOptions);
+    load(optFile);
   }
 
-  public static String getOptionsFileDefault() {
-    String defaultContent = "# key = value";
-    return defaultContent;
+  public Options(String optFilePath) {
+    this();
+    load(optFilePath);
   }
 
-  private String propOptionsFile = "OptionsFile";
+  private String propOptionsFile = "SX_OPTION_FILE";
 
-  private Properties options = null;
+  public void load(File optFile) {
+    add(optFile);
+    set(propOptionsFile, optFile.getAbsolutePath());
+  }
 
-  public void load(String fpOptions) {
-    File fOptions = new File(fpOptions);
-    if (fOptions.isAbsolute()) {
-      if (!fOptions.exists()) {
-        fOptions = null;
-        log(-1, "loadOptions: not exists: %s", fOptions);
+  public void load(File optFile, Filter filter) {
+    add(optFile, filter);
+    set(propOptionsFile, optFile.getAbsolutePath());
+  }
+
+  public void add(File optFile) {
+    add(optFile, null);
+  }
+
+  public void add(File optFile, Filter filter) {
+    String optContent = FileManager.readFileToString(optFile);
+    String[] lines = optContent.split(System.lineSeparator());
+    Map<String, String> optlines = new HashMap<>();
+    if (lines.length > 0) {
+      for (String line : lines) {
+        line = line.strip();
+        if (!line.isEmpty()) {
+          if (line.startsWith("/") || line.startsWith("#") || line.startsWith("=")) {
+            continue;
+          }
+          if (line.contains("=")) {
+            String[] parts = line.split("=");
+            if (parts.length > 1) {
+              optlines.put(parts[0].strip(), parts[1].strip());
+              continue;
+            }
+          }
+          optlines.put(line, "");
+        }
       }
-    } else {
-      for (File aFile : new File[]{Commons.getAppDataStore(), Commons.getWorkDir(), Commons.getUserHome()}) {
-        fOptions = new File(aFile, fpOptions);
-        if (fOptions.exists()) {
-          break;
-        } else {
-          fOptions = null;
+      for (String key : optlines.keySet()) {
+        if (filter == null || filter.accept(key)) {
+          set(key, optlines.get(key));
         }
       }
     }
-    if (fOptions != null) {
-      try {
-        InputStream is;
-        is = new FileInputStream(fOptions);
-        options.load(is);
-        is.close();
-        log(lvl, "loadOptions: Options file: %s", fOptions);
-        set(propOptionsFile, fOptions.getAbsolutePath());
-      } catch (Exception ex) {
-        log(-1, "loadOptions: %s: %s", fOptions, ex.getMessage());
-        options = null;
+  }
+
+  public void load(String optFilePath) {
+    File optFile = add(optFilePath);
+    if (optFile != null) {
+      set(propOptionsFile, optFile.getAbsolutePath());
+    }
+  }
+
+  public void load(String optFilePath, Filter filter) {
+    File optFile = add(optFilePath, filter);
+    if (optFile != null) {
+      set(propOptionsFile, optFile.getAbsolutePath());
+    }
+  }
+
+  public File add(String optFilePath) {
+    return add(optFilePath, null);
+  }
+
+  public File add(String optFilePath, Filter filter) {
+    File optFile = new File(optFilePath);
+    if (optFile.isAbsolute()) {
+      if (!optFile.exists()) {
+        optFile = null;
+        log(-1, "loadOptions: not exists: %s", optFile);
       }
     } else {
-      set(propOptionsFile, new File(Commons.getAppDataStore(), fpOptions).getAbsolutePath());
+      for (File aFile : new File[]{Commons.getAppDataStore(), Commons.getWorkDir(), Commons.getUserHome()}) {
+        optFile = new File(aFile, optFilePath);
+        if (optFile.exists()) {
+          break;
+        } else {
+          optFile = null;
+        }
+      }
     }
+    if (optFile != null) {
+      add(optFile, filter);
+    }
+    return optFile;
   }
 
   /**
@@ -100,13 +155,13 @@ public class Options {
   /**
    * save a properties store to the given file
    *
-   * @param fpOptions path to a file
+   * @param optFilePath path to a file
    * @return success
    */
-  public boolean save(String fpOptions) {
-    File fOptions = new File(fpOptions);
+  public boolean save(String optFilePath) {
+    File fOptions = new File(optFilePath);
     if (!fOptions.isAbsolute()) {
-      fOptions = new File(Commons.getWorkDir(), fpOptions);
+      fOptions = new File(Commons.getWorkDir(), optFilePath);
     }
     try {
       set(propOptionsFile, fOptions.getAbsolutePath());
@@ -118,8 +173,13 @@ public class Options {
       log(-1, "saveOptions: %s (error %s)", fOptions, ex.getMessage());
       return false;
     }
-    log(lvl, "saveOptions: saved: %s", fpOptions);
+    log(lvl, "saveOptions: saved: %s", optFilePath);
     return true;
+  }
+
+  public static String getDefaultContent() {
+    String defaultContent = "# key = value";
+    return defaultContent;
   }
 
   public boolean has(String pName) {
@@ -527,14 +587,14 @@ public class Options {
 
   public static Map<String, String> prefAll() {
     return prefComplete()
-            .entrySet()
-            .stream()
-            .filter(e -> e.getKey().startsWith(userPrefix))
-            .sorted(Map.Entry.comparingByKey())
-            .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    Map.Entry::getValue,
-                    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+        .entrySet()
+        .stream()
+        .filter(e -> e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue,
+            (oldValue, newValue) -> oldValue, LinkedHashMap::new));
   }
 
   private static Map<String, String> prefComplete() {
@@ -555,16 +615,16 @@ public class Options {
     final Map<String, String> prefsSX = Options.prefComplete();
     System.out.println("***** Preferences SikuliX *****");
     prefsSX.entrySet()
-            .stream()
-            .filter(e -> !e.getKey().startsWith(userPrefix))
-            .sorted(Map.Entry.comparingByKey())
-            .forEach(System.out::println);
+        .stream()
+        .filter(e -> !e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(System.out::println);
     System.out.println("***** Preferences User:: *****");
     prefsSX.entrySet()
-            .stream()
-            .filter(e -> e.getKey().startsWith(userPrefix))
-            .sorted(Map.Entry.comparingByKey())
-            .forEach(System.out::println);
+        .stream()
+        .filter(e -> e.getKey().startsWith(userPrefix))
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(System.out::println);
     System.out.println("***** Preferences Dump End *****");
   }
 

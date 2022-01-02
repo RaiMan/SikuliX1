@@ -1407,9 +1407,10 @@ Software:
   }
   //</editor-fold>
 
-  //<editor-fold desc="30 Options handling">
+  //<editor-fold desc="30 Options handling SX_ARG_">
   public final static String SXPREFS_OPT = "SX_PREFS_";
   public final static String SETTINGS_OPT = "Settings.";
+  public final static String SXARGS_OPT = "SX_ARG_";
 
   public static void initGlobalOptions() {
     if (globalOptions == null) {
@@ -1474,13 +1475,15 @@ Software:
         globalOptionsFile = getOptionFileDefault();
       }
       if (globalOptionsFile != null && globalOptionsFile.exists()) {
-        Map<String, String> options = getOptions(globalOptionsFile);
-        for (String key : options.keySet()) {
-          if (key.startsWith("SX_ARG_")) {
-            continue;
+        globalOptions.load(globalOptionsFile, new Options.Filter() {
+          @Override
+          public boolean accept(String key) {
+            if (key.startsWith(SXARGS_OPT)) {
+              return false;
+            }
+            return  true;
           }
-          globalOptions.set(key, options.get(key));
-        }
+        });
       }
 
       // ***************** add options from a given startup config file
@@ -1505,31 +1508,6 @@ Software:
         }
       }
     }
-  }
-
-  static Map<String, String > getOptions(File optFile) {
-    String optContent = FileManager.readFileToString(optFile);
-    String[] optLines = optContent.split(System.lineSeparator());
-    Map<String, String> lines = new HashMap<>();
-    if (optLines.length > 0) {
-      for (String line : optLines) {
-        line = line.strip();
-        if (!line.isEmpty()) {
-          if (line.startsWith("/") || line.startsWith("#") || line.startsWith("=")) {
-            continue;
-          }
-          if (line.contains("=")) {
-            String[] parts = line.split("=");
-            if (parts.length > 1) {
-              lines.put(parts[0].strip(), parts[1].strip());
-              continue;
-            }
-          }
-          lines.put(line, "");
-        }
-      }
-    }
-    return lines;
   }
 
   public static Map<String, String> getOptions() {

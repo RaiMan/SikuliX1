@@ -782,7 +782,7 @@ public class SikulixIDE extends JFrame {
     File sitesTxt = JythonSupport.getSitesTxt();
     specialFiles.put("3 SikuliX Additional Sites", sitesTxt.getAbsolutePath());
     String[] defaults = new String[specialFiles.size()];
-    defaults[0] = Options.getOptionsFileDefault();
+    defaults[0] = Options.getDefaultContent();
     defaults[1] = ExtensionManager.getExtensionsFileDefault();
     defaults[2] = JythonSupport.getSitesTxtDefault();
     String msg = "";
