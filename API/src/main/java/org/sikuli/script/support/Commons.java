@@ -1994,8 +1994,8 @@ Software:
         method = classSup.getMethod(function, null);
         returnSup = method.invoke(instanceSup);
       } else {
-        method = classSup.getMethod(function, new Class[]{Object[].class});
-        returnSup = method.invoke(instanceSup, args);
+        method = classSup.getMethod(function, Object[].class);
+        returnSup = method.invoke(instanceSup, new Object[]{args});
       }
     } catch (NoSuchMethodException e) {
       error = e.toString();
