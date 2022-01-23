@@ -143,7 +143,7 @@ public class Highlight extends JFrame {
 
   private Color evalColor(String color) {
     Color targetColor = Color.RED;
-    if (color == null) {
+    if (color == null || color.isEmpty()) {
       color = Settings.DefaultHighlightColor;
     }
     if (color.startsWith("#")) {
