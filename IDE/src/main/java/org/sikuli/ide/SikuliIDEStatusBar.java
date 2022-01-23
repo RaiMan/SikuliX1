@@ -18,7 +18,7 @@ class SikuliIDEStatusBar extends JPanel {
   private String currentContentType = "???";
   private int currentRow;
   private int currentCol;
-  private long starting;
+  private long starting = 0;
 
   public SikuliIDEStatusBar() {
     setLayout(new BorderLayout());
@@ -27,7 +27,7 @@ class SikuliIDEStatusBar extends JPanel {
     JPanel rightPanel = new JPanel(new BorderLayout());
     rightPanel.setOpaque(false);
     _lblMsg = new JLabel();
-    _lblMsg.setPreferredSize(new Dimension(500, 20));
+    _lblMsg.setPreferredSize(new Dimension(800, 20));
     _lblMsg.setUI(new EmphasizedLabelUI());
     _lblMsg.setFont(new Font("Monaco", Font.TRUETYPE_FONT, 11));
     _lblCaretPos = new JLabel();
@@ -70,8 +70,10 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    setMessage(Commons.getSXVersionIDE() + String.format(" (%s) on Java %d", Commons.getSXBuild(), Commons.getJavaVersion()));
-    starting = 0;
+    String updateAvailable = Commons.getUpdateAvailable();
+    setMessage(Commons.getSXVersionIDE() + String.format(" (%s) on Java %d %s",
+        Commons.getSXBuild(), Commons.getJavaVersion(), updateAvailable));
+    starting = new Date().getTime();
   }
 //  @Override
 //  protected void paintComponent(Graphics g) {

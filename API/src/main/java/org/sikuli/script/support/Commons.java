@@ -239,6 +239,36 @@ Software:
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
   }
 
+  private static String latestUpdate = null;
+  static final String[] xmlDate = {""};
+
+  public static String getUpdateAvailable() {
+    return setUpdateAvailable();
+  }
+
+  public static synchronized String setUpdateAvailable() {
+    if (latestUpdate == null) {
+      if (xmlDate[0].isEmpty()) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
+            String xml = FileManager.downloadURLtoString(ossrhURL);
+            String xmlParm = "<timestamp>";
+            int xmlParmPos = xml.indexOf(xmlParm);
+            if (xmlParmPos > -1) {
+              int pos = xmlParmPos + xmlParm.length();
+              xmlDate[0] = xml.substring(pos, pos + 8);
+            } else {
+              xmlDate[0] = "00000000";
+            }
+          }
+        }).start();
+      }
+    }
+    return String.format("(Update available: %s)", xmlDate[0]);
+  }
+
   //TODO force early Commons static initializer (RunTime)
   public static void init() {
   }
@@ -1481,7 +1511,7 @@ Software:
             if (key.startsWith(SXARGS_OPT)) {
               return false;
             }
-            return  true;
+            return true;
           }
         });
       }
