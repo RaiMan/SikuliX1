@@ -140,6 +140,45 @@ public class Commons {
 
   static String GLOBAL_LOG = "";
 
+  static final String[] xmlDate = {""};
+
+  public static synchronized String setCurrentSnapshotDate(String date) {
+    if (!date.isEmpty()) {
+      String thisDate = sxBuildStamp.substring(0, 8);
+      if (Integer.parseInt(date) > Integer.parseInt(thisDate)) {
+        xmlDate[0] = date;
+      }
+    }
+    return xmlDate[0];
+  }
+
+  private static String SYSWIN = "windows";
+  private static String SYSMAC = "mac";
+  private static String SYSMACM1 = "macm1";
+  private static String SYSLUX = "linux";
+
+  public static String getSysName() {
+    return runningWindows() ? SYSWIN : (runningMac() ? (runningMacM1() ? SYSMACM1 : SYSMAC) : SYSLUX);
+  }
+
+  public static boolean runningWindows() {
+    return osName.startsWith(SYSWIN);
+  }
+
+  public static boolean runningMac() {
+    return osName.startsWith(SYSMAC);
+  }
+
+  private static final String ARCHM1 = "aarch64";
+
+  public static boolean runningMacM1() {
+    return runningMac() && ARCHM1.equals(osArch);
+  }
+
+  public static boolean runningLinux() {
+    return !runningMac() && !runningWindows();
+  }
+
   static {
     startMoment = new Date().getTime();
 
@@ -237,36 +276,33 @@ Software:
     }
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
-  }
 
-  private static String latestUpdate = null;
-  static final String[] xmlDate = {""};
-
-  public static String getUpdateAvailable() {
-    return setUpdateAvailable();
-  }
-
-  public static synchronized String setUpdateAvailable() {
-    if (latestUpdate == null) {
-      if (xmlDate[0].isEmpty()) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
-            String xml = FileManager.downloadURLtoString(ossrhURL);
+    if (SNAPSHOT) {
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          //https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
+          String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixide";
+          ossrhURL += getSysName();
+          ossrhURL += "/" + sxVersion + "/maven-metadata.xml";
+          String xml = FileManager.downloadURLtoString(ossrhURL);
+          if (!xml.isEmpty()) {
             String xmlParm = "<timestamp>";
             int xmlParmPos = xml.indexOf(xmlParm);
             if (xmlParmPos > -1) {
               int pos = xmlParmPos + xmlParm.length();
-              xmlDate[0] = xml.substring(pos, pos + 8);
-            } else {
-              xmlDate[0] = "00000000";
+              String date = xml.substring(pos, pos + 8);
+              setCurrentSnapshotDate(date);
             }
           }
-        }).start();
-      }
+        }
+      }).start();
     }
-    return String.format("(Update available: %s)", xmlDate[0]);
+  }
+
+
+  public static String getCurrentSnapshotDate() {
+    return setCurrentSnapshotDate("");
   }
 
   //TODO force early Commons static initializer (RunTime)
@@ -802,33 +838,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="06 version infos">
-  private static String SYSWIN = "windows";
-  private static String SYSMAC = "mac";
-  private static String SYSMACM1 = "macm1";
-  private static String SYSLUX = "linux";
-
-  public static String getSysName() {
-    return runningWindows() ? SYSWIN : (runningMac() ? (runningMacM1() ? SYSMACM1 : SYSMAC) : SYSLUX);
-  }
-
-  public static boolean runningWindows() {
-    return osName.startsWith(SYSWIN);
-  }
-
-  public static boolean runningMac() {
-    return osName.startsWith(SYSMAC);
-  }
-
-  private static final String ARCHM1 = "aarch64";
-
-  public static boolean runningMacM1() {
-    return runningMac() && ARCHM1.equals(osArch);
-  }
-
-  public static boolean runningLinux() {
-    return !runningMac() && !runningWindows();
-  }
-
   public static boolean runningIDE() {
     return RUNNINGIDE;
   }

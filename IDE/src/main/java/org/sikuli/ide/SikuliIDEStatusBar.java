@@ -70,10 +70,19 @@ class SikuliIDEStatusBar extends JPanel {
   }
 
   public void resetMessage() {
-    String updateAvailable = Commons.getUpdateAvailable();
+    String date = Commons.getCurrentSnapshotDate();
+    String updateAvailable = "";
+    if (!date.isEmpty()) {
+      date = String.format("%s-%s-%s", date.substring(0,4), date.substring(4,6), date.substring(6));
+      updateAvailable = "(Update available: " + date + ")";
+    }
     setMessage(Commons.getSXVersionIDE() + String.format(" (%s) on Java %d %s",
         Commons.getSXBuild(), Commons.getJavaVersion(), updateAvailable));
-    starting = new Date().getTime();
+    if (updateAvailable.isEmpty()) {
+      starting = new Date().getTime();
+    } else {
+      starting = 0;
+    }
   }
 //  @Override
 //  protected void paintComponent(Graphics g) {
