@@ -70,8 +70,10 @@ public class FindFailed extends SikuliException {
    * @param response {@link FindFailed}
    */
   public static void setResponse(FindFailedResponse response) {
-    if (!HANDLE.equals(response)) {
+    if (!HANDLE.equals(response) && !RETRY.equals(response)) {
       FindFailed.response = response;
+    } else {
+      FindFailed.response = PROMPT;
     }
   }
 
@@ -171,5 +173,17 @@ public class FindFailed extends SikuliException {
       msg = String.format("%s in %s", img, reg);
     }
     return msg;
+  }
+
+  public static boolean isAbort(Boolean state) {
+    return state == null;
+  }
+
+  public static boolean isSkip(Boolean state) {
+    return state != null && !state;
+  }
+
+  public static boolean isRetry(Boolean state) {
+    return state != null && state;
   }
 }

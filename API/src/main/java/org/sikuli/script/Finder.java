@@ -84,6 +84,16 @@ public class Finder implements Iterator<Match> {
   protected void setScreenImage(ScreenImage simg) {
     _findInput.setSource(Commons.makeMat(simg.getImage()));
   }
+
+  public Finder onScreen() {
+    _region = where;
+    setScreenImage(_region.getScreen().capture(_region));
+    return this;
+  }
+
+  public void newShot() {
+    setScreenImage(_region.getScreen().capture(_region));
+  }
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
@@ -413,6 +423,38 @@ public class Finder implements Iterator<Match> {
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Iterator">
+  int index = -1;
+  long findTime = -1;
+  long searchTime = -1;
+
+  public void setTimes(long findTime, long searchTime) {
+    this.findTime = findTime;
+    this.searchTime = searchTime;
+  }
+
+  public void setIndex(int index) {
+    this.index = index;
+  }
+
+  public Match getMatch() {
+    return hasNext() ? getNextMatch() : null;
+  }
+
+  public List<Match> getMatches() {
+    List<Match> matches = new ArrayList<>();
+    while (hasNext()) {
+      matches.add(getNextMatch());
+    }
+    return matches;
+  }
+
+  private Match getNextMatch() {
+    Match match = next();
+    match.setTimes(findTime, searchTime);
+    match.setIndex(index);
+    return match;
+  }
+
   public List<Match> getList() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {
@@ -421,7 +463,7 @@ public class Finder implements Iterator<Match> {
     return matches;
   }
 
-  public <RI> List<Match> getListFor(RI what) {
+  <RI> List<Match> getListFor(RI what) {
     List<Match> matches = new ArrayList<>();
     if (what instanceof Element)
     while (hasNext()) {

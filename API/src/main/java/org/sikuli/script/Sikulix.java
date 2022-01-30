@@ -67,9 +67,25 @@ public class Sikulix {
         if ("xxx".equals(arg)) {
           print("testxxx");
         }
+
+        if ("find".equals(arg)) {
+          Settings.Highlight = true;
+          File workDir = new File(Commons.getWorkDir(), "API/src/main/resources");
+          ImagePath.setBundleFolder(new File(workDir, "images"));
+          String images = ImagePath.getBundlePath();
+          Screen scr = new Screen();
+          Region reg = new Region(0, 0, 500, 600);
+          //reg = scr;
+          reg.setFindFailedResponse(FindFailedResponse.RETRY);
+          Match match = reg.find("img");
+          match = scr.wait("img", 10.0);
+          match.highlight(3);
+          print("");
+        }
       }
       System.exit(0);
     }
+
 
     SikulixAPI.main(args);
   }
