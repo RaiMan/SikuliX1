@@ -329,6 +329,14 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
+  public static long timeNow() {
+    return new Date().getTime();
+  }
+
+  public static long timeSince(long start) {
+    return new Date().getTime() - start;
+  }
+
   public static boolean isSnapshot() {
     return SNAPSHOT;
   }
@@ -366,6 +374,10 @@ Software:
 
   public static PrintStream getLogStream() {
     return SX_PRINTOUT;
+  }
+
+  private static void printlnOut(String msg, Object... args) {
+    printOut(msg + "\n", args);
   }
 
   private static void printOut(String msg, Object... args) {
@@ -429,6 +441,20 @@ Software:
     return verbose;
   }
 
+  private static boolean traceEnterExit = false;
+
+  public static boolean isTraceEnterExit() {
+    return traceEnterExit;
+  }
+
+  public static void startTraceEnterExit() {
+    traceEnterExit = true;
+  }
+
+  public static void stopTraceEnterExit() {
+    traceEnterExit = false;
+  }
+
   private static boolean trace = false;
 
   public static boolean isTrace() {
@@ -443,31 +469,41 @@ Software:
     trace = false;
   }
 
-  public static void trace(String msg, Object... args) {
-    if (isTrace()) {
-      StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[2];
+  public static String trace() {
+    return trace(null);
+  }
+
+    public static String trace(String msg, Object... args) {
+    if (isTrace() || msg == null) {
+      int functionIndex = msg == null ? 3 : 2;
+      StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[functionIndex];
       String className = stackTrace.getFileName().replace(".java", "");
       String methodName = stackTrace.getMethodName();
       int lineNumber = stackTrace.getLineNumber();
-      SX_PRINTOUT.print(String.format("[%d->%s::%s] ", lineNumber, className, methodName));
-      String out = String.format(msg, args);
-      out = out.replace("\n\n", "\n");
-      out = out.replace("\n\n", "\n");
-      SX_PRINTOUT.println(out);
+      printOut(String.format("[%d_%s::%s] ", lineNumber, className, methodName));
+      if (msg != null && !msg.isEmpty()) {
+          String out = String.format(msg, args);
+          out = out.replace("\n\n", "\n");
+          out = out.replace("\n\n", "\n");
+          printOut(out);
+      }
+      printOut("\n");
+      return methodName;
     }
+    return "";
   }
 
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
-    if (isTrace()) {
-      SX_PRINTOUT.println("[TRACE Commons] enter: " + method + "(" + parms + ")");
+    if (isTraceEnterExit()) {
+      printOut("[TRACE enter] " + method + "(" + parms + ")%n");
     }
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
   public static void exit(String method, String returns, Object... args) {
-    if (isTrace()) {
-      printOut("[TRACE Commons] exit: " + method + ": " + returns + "%n", args);
+    if (isTraceEnterExit()) {
+      printOut("[TRACE exit] " + method + ": " + returns + "%n", args);
     }
   }
   //</editor-fold>
@@ -1942,11 +1978,10 @@ Software:
       Mat aMatBGR = new Mat(bImg.getHeight(), bImg.getWidth(), CvType.CV_8UC3);
       aMatBGR.put(0, 0, data);
       return aMatBGR;
-    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR
-        || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
+    } else if (bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) { //TODO || bImg.getType() == BufferedImage.TYPE_CUSTOM) {
       List<Mat> mats = getMatList(bImg);
       Size size = mats.get(0).size();
-      if (!asBGR || bImg.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+      if (!asBGR) {
         Mat mBGRA = getNewMat(size, 4, -1);
         mats.add(mats.remove(0));
         Core.merge(mats, mBGRA);

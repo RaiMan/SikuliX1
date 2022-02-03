@@ -239,7 +239,7 @@ public class Observer {
           match.setTimes(0, now - lastSearchTime);
           if (match.getScore() >= getSimiliarity(ptn)) {
             hasMatch = true;
-            img.setLastSeen(match.getRect(), match.getScore()); // checkPatterns
+            img.setLastSeen(match); // checkPatterns
           }
         }
       }

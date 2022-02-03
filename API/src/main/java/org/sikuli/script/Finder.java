@@ -25,6 +25,21 @@ public class Finder implements Iterator<Match> {
   private FindInput2 _findInput = new FindInput2();
   private FindResult2 _results = null;
   private Region where = null;
+  private Image imgWhere = null;
+
+  public void setWhereImage(Image img) {
+    imgWhere = img;
+  }
+
+  public Image getWhereImage() {
+    return imgWhere;
+  }
+
+  Element.FINDTYPE findType = Element.FINDTYPE.SINGLE;
+
+  public void setFindType(Element.FINDTYPE type) {
+    findType = type;
+  }
 
   private int currentMatchIndex;
   private boolean repeating = false;
@@ -51,6 +66,8 @@ public class Finder implements Iterator<Match> {
   public <RIBS> Finder(RIBS inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
+      _region = where;
+      setScreenImage(_region.getScreen().capture(_region));
     } else if (inWhat instanceof Image) {
       _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
@@ -83,12 +100,6 @@ public class Finder implements Iterator<Match> {
 
   protected void setScreenImage(ScreenImage simg) {
     _findInput.setSource(Commons.makeMat(simg.getImage()));
-  }
-
-  public Finder onScreen() {
-    _region = where;
-    setScreenImage(_region.getScreen().capture(_region));
-    return this;
   }
 
   public void newShot() {
@@ -437,13 +448,16 @@ public class Finder implements Iterator<Match> {
   }
 
   public Match getMatch() {
-    return hasNext() ? getNextMatch() : null;
+    if (hasNext()) {
+      return next();
+    }
+    return null;
   }
 
   public List<Match> getMatches() {
     List<Match> matches = new ArrayList<>();
     while (hasNext()) {
-      matches.add(getNextMatch());
+      matches.add(next());
     }
     return matches;
   }
@@ -452,6 +466,11 @@ public class Finder implements Iterator<Match> {
     Match match = next();
     match.setTimes(findTime, searchTime);
     match.setIndex(index);
+    if (null != getWhereImage()) {
+      match.setWhere(getWhereImage());
+    } else {
+      _image.setLastSeen(match);
+    }
     return match;
   }
 
@@ -506,6 +525,17 @@ public class Finder implements Iterator<Match> {
       }
       match.setOnScreen(screenFinder);
       match.setImage(_image);
+      match.setTimes(findTime, searchTime);
+      match.setIndex(index);
+      if (null != getWhereImage()) {
+        match.setWhere(getWhereImage());
+      } else {
+        if (findType.equals(Element.FINDTYPE.SINGLE)) {
+          if (_image != null) {
+            _image.setLastSeen(match);
+          }
+        }
+      }
     }
     return match;
   }

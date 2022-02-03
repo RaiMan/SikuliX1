@@ -25,10 +25,11 @@ public class Match extends Region implements Comparable<Match> {
   private Location target = null;
   private Image image = null;
   private String ocrText = "";
-  private long lastSearchTime = -1;
-  private long lastFindTime = -1;
+  private long searchTime = -1;
+  private long findTime = -1;
   private int index = -1;
   private boolean onScreen = true;
+  private Image where = null;
 
   public Match() {
 
@@ -46,6 +47,14 @@ public class Match extends Region implements Comparable<Match> {
     this.index = index;
   }
 
+  public void setWhere(Image img) {
+    where = img;
+  }
+
+  public Image getWhere() {
+    return where;
+  }
+
   /**
    * INTERNAL USE
    * set the elapsed times from search
@@ -54,16 +63,24 @@ public class Match extends Region implements Comparable<Match> {
    * @param stime time
    */
   public void setTimes(long ftime, long stime) {
-    lastFindTime = ftime;
-    lastSearchTime = stime;
+    findTime = ftime;
+    searchTime = stime;
   }
 
   /**
-   * @return this Match's actual waiting time from last successful find
+   * @return msecs search duration including waiting for target
    */
-  public long getTime() {
-    return lastFindTime;
+  public long getFindTime() {
+    return findTime;
   }
+
+  /**
+   * @return msecs search duration excluding waiting for target
+   */
+  public long getSearchTime() {
+    return searchTime;
+  }
+
 
   /**
    * create a copy of Match object<br>
@@ -145,8 +162,9 @@ public class Match extends Region implements Comparable<Match> {
     if (m.target != null) {
       target = new Location(m.target);
     }
-    lastFindTime = m.lastFindTime;
-    lastSearchTime = m.lastSearchTime;
+    findTime = m.findTime;
+    searchTime = m.searchTime;
+    where = m.where;
   }
 
   /**
@@ -283,23 +301,22 @@ public class Match extends Region implements Comparable<Match> {
 
   @Override
   public String toString() {
-    String text = super.toString().replace("R[", "M[");
+    String text = toStringShort();
     String starget;
     Location c = getCenter();
     if (target != null && !c.equals(target)) {
-      starget = String.format("T:%d,%d", target.x, target.y);
+      starget = String.format("T(%d,%d)", target.x, target.y);
     } else {
-      starget = String.format("C:%d,%d", c.x, c.y);
+      starget = String.format("C(%d,%d)", c.x, c.y);
     }
-    String findTimes = String.format("[%d msec]", lastFindTime);
-    return String.format("%s S:%.2f %s %s", text, simScore, starget, findTimes);
+    String findTimes = String.format("[%d/%d msec]", findTime, searchTime);
+    return String.format("%s %s %s", text, starget, findTimes);
   }
 
   @Override
   public String toStringShort() {
-    return String.format("M[%d,%d %dx%d]On(%s) S %d", x, y, w, h,
-        (getScreen() == null ? "?" : getScreen().getID()),
-        Math.round(simScore * 10000));
+    return String.format("M[%d,%d %dx%d]IN(%s) %%%.2f", x, y, w, h,
+        (getScreen() == null ? getWhere().getName() : getScreen().getID()), simScore * 100);
   }
 
 

@@ -199,10 +199,10 @@ public class Image extends Element {
 
   @Override
   public String toString() {
-    return String.format(
-        (getName() != null ? getName() : "__UNKNOWN__") + ": (%dx%d)", w, h)
+    return String.format( "I[" +
+        (getName() != null ? getName() : "__UNKNOWN__") + "(%dx%d)]", w, h)
         + (lastSeen == null ? ""
-        : String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
+        : String.format(" at(%d,%d)%%%.2f", lastSeen.x, lastSeen.y, lastScore * 100.0));
   }
   //</editor-fold>
 
@@ -1146,6 +1146,17 @@ public class Image extends Element {
   public Image setLastSeen(Rectangle lastSeen, double sim) {
     this.lastSeen = lastSeen;
     this.lastScore = sim;
+    return this;
+  }
+
+  public Image setLastSeen(Match match) {
+    if (match == null) {
+      lastSeen = null;
+      lastScore = 0.0;
+      return this;
+    }
+    lastSeen = match.getRect();
+    lastScore = match.getScore();
     return this;
   }
   //</editor-fold>

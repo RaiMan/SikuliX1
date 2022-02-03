@@ -15,10 +15,13 @@ import org.sikuli.script.support.SikulixAPI;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
+import org.sikuli.script.support.gui.SXDialog;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Sikulix {
@@ -69,18 +72,23 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
-          Settings.Highlight = true;
-          File workDir = new File(Commons.getWorkDir(), "API/src/main/resources");
-          ImagePath.setBundleFolder(new File(workDir, "images"));
+          String testBundle = "/Users/raimundhocke/IdeaProjects/_SUPPORT/_Latest/2_0_6/test206/src/main/resources/images";
+          ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
+          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;", SXDialog.POSITION.TOPLEFT);
+          //sxDialog.run();
           Screen scr = new Screen();
+          Commons.pause(1);
           Region reg = new Region(0, 0, 500, 600);
-          //reg = scr;
-          reg.setFindFailedResponse(FindFailedResponse.RETRY);
-          Match match = reg.find("img");
-          match = scr.wait("img", 10.0);
-          match.highlight(3);
-          print("");
+          ScreenImage screenImage = scr.capture(reg);
+          Image image = new Image(screenImage);
+          image = Image.create("SikulixTest001");
+          reg = scr;
+          Match match;
+          List<Object> obs = new ArrayList<>(Arrays.asList("image", "image", image));
+          reg.setFindFailedResponse(FindFailedResponse.PROMPT);
+          reg.findBest(obs);
+          App.focus("idea");
         }
       }
       System.exit(0);

@@ -2039,23 +2039,13 @@ public class Region extends Element {
    * @return true if target vanishes, false otherwise and if imagefile is missing.
    */
   public <PSI> boolean waitVanish(PSI target, double timeout) {
-    RepeatableVanish rv = new RepeatableVanish(target);
-    Image img = rv._image;
-    String targetStr = img.getName();
-    Boolean response = true;
-    if (!img.isValid() && img.hasIOException()) {
-      response = handleImageMissing(img, false);//waitVanish
-    }
-    if (null != response && response) {
-      log(logLevel, "waiting for " + targetStr + " to vanish within %.1f secs", timeout);
-      if (rv.repeat(timeout)) { // waitVanish
-        log(logLevel, "%s vanished", targetStr);
-        return true;
-      }
-      log(logLevel, "%s did not vanish before timeout", targetStr);
+    Finder finder;
+    try {
+      finder = executeFind(target, timeout, 0, null, FINDTYPE.VANISH);// waitVanish
+    } catch (FindFailed e) {
       return false;
     }
-    return false;
+    return !finder.hasNext();
   }
 
   /**

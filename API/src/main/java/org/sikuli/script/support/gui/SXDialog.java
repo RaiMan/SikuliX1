@@ -49,6 +49,10 @@ public class SXDialog extends JFrame {
     this(res, ScreenDevice.primary().getCenter(), POSITION.CENTER);
   }
 
+  public SXDialog(String res, POSITION pos) {
+    this(res, new Point(ScreenDevice.primary().x(), ScreenDevice.primary().y()), pos);
+  }
+
   public SXDialog(String res, Point where) {
     this(res, where, POSITION.TOPLEFT);
   }
@@ -302,6 +306,10 @@ public class SXDialog extends JFrame {
   }
 
   Dimension finalSize = null;
+
+  public Dimension getFinalSize() {
+    return finalSize;
+  }
 
   private int maxW = (int) (1024 * 0.8);
   private int maxH = maxW / 4 * 3;
