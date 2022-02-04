@@ -66,8 +66,6 @@ public class Finder implements Iterator<Match> {
   public <RIBS> Finder(RIBS inWhat) {
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
-      _region = where;
-      setScreenImage(_region.getScreen().capture(_region));
     } else if (inWhat instanceof Image) {
       _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
@@ -80,6 +78,12 @@ public class Finder implements Iterator<Match> {
       throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
     resetFindChanges();
+  }
+
+  public Finder onScreen() {
+    _region = where;
+    setScreenImage(_region.getScreen().capture(_region));
+    return this;
   }
 
   /**

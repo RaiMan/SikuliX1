@@ -766,8 +766,9 @@ public abstract class Element {
         pList.set(nTarget, target);
         // image was recaptured
       }
-      Commons.info("");
     }
+
+    Commons.info("");
 
     Match[] mArray = new Match[pList.size()];
     RepeatableFinder[] rfArray = new RepeatableFinder[pList.size()];
@@ -919,7 +920,7 @@ public abstract class Element {
             throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
           }
         } else if (!response) { // skip
-          return new Finder(this);
+          return new Finder(this); // executeFind null Finder
         }
         // image was recaptured
       }
@@ -941,7 +942,10 @@ public abstract class Element {
         }
         if (findingText) {
           log(logLevel, "doFind: Switching to TextSearch");
-          finder = new Finder(this);
+          finder = new Finder(this); // executeFind text finder
+          if (this instanceof Region) {
+            finder.onScreen();
+          }
           finder.findText(someText);
         }
       } else if (target instanceof Pattern) {
@@ -1013,7 +1017,10 @@ public abstract class Element {
     if (type.equals(FINDTYPE.SINGLE) || type.equals(FINDTYPE.VANISH)) {
       finder = checkLastSeenAndCreateFinder(target);
     } else {
-      finder = new Finder(this);
+      finder = new Finder(this); // runFirstFinder
+      if (this instanceof Region) {
+        finder.onScreen();
+      }
     }
     if (!finder.hasNext()) {
       finder.findAll(target);
@@ -1024,7 +1031,7 @@ public abstract class Element {
   private Finder checkLastSeenAndCreateFinder(Pattern ptn) {
     Commons.trace("");
     if (this instanceof Image) {
-      return new Finder(this);
+      return new Finder(this); // checkLastSeenAndCreateFinder in Image
     }
     boolean shouldCheckLastSeen = false;
     double score = 0;
@@ -1040,7 +1047,7 @@ public abstract class Element {
     if (shouldCheckLastSeen) {
       Region r = Region.create(img.getLastSeen());
       if (((Region) this).contains(r)) {
-        Finder lastSeenFinder = new Finder(r);
+        Finder lastSeenFinder = new Finder(r); // checkLastSeenAndCreateFinder
         if (Debug.shouldHighlight()) { //TODO
 //          if (getScreen().getW() > w + 10 && getScreen().getH() > h + 10) {
 //            highlight(2, "#000255000");
@@ -1054,7 +1061,7 @@ public abstract class Element {
         log(logLevel, "checkLastSeen: not there");
       }
     }
-    return new Finder(this);
+    return new Finder(this).onScreen(); // checkLastSeenAndCreateFinder normal
   }
 
   abstract class Repeatable {
@@ -1384,7 +1391,10 @@ public abstract class Element {
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
-    Finder finder = new Finder(this);
+    Finder finder = new Finder(this); // find text
+    if (this instanceof Region) {
+      finder.onScreen();
+    }
     lastSearchTime = (new Date()).getTime();
     if (level == levelWord) {
       if (multi) {

@@ -138,7 +138,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       patternFileName = patFilename;
       new Thread(() -> {
         try {
-          Finder f = new Finder(_simg);
+          Finder f = new Finder(_simg); // ScreenImage
           f.findAll(new Pattern(patFilename).similar(0.00001));
 
           int count = 0;

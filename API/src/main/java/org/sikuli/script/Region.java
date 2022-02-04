@@ -2169,7 +2169,7 @@ public class Region extends Element {
         }
         if (findingText) {
           log(logLevel, "doFind: Switching to TextSearch");
-          finder = new Finder(this);
+          finder = new Finder(this).onScreen(); // doFind (obsolete)
           lastSearchTime = (new Date()).getTime();
           finder.findText(someText);
         }
@@ -2351,7 +2351,7 @@ public class Region extends Element {
           }
         }
         if (findingText) {
-          finder = new Finder(this);
+          finder = new Finder(this).onScreen(); // doFindAll
           finder.findAllText(someText);
         }
       } else if (ptn instanceof Pattern) {

@@ -323,7 +323,7 @@ public class Observer {
       }
     }
     log(lvl + 1, "update: checking changes");
-    Finder finder = new Finder(lastImage);
+    Finder finder = new Finder(lastImage); // ScreenImage
     List<Region> result = finder.findChanges(img);
     if (result.size() > 0) {
       callChangeObserver(result);

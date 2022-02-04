@@ -72,7 +72,7 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
-          String testBundle = "/Users/raimundhocke/IdeaProjects/_SUPPORT/_Latest/2_0_6/test206/src/main/resources/images";
+          String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
           SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;", SXDialog.POSITION.TOPLEFT);
@@ -85,9 +85,8 @@ public class Sikulix {
           image = Image.create("SikulixTest001");
           reg = scr;
           Match match;
-          List<Object> obs = new ArrayList<>(Arrays.asList("image", "image", image));
-          reg.setFindFailedResponse(FindFailedResponse.PROMPT);
-          reg.findBest(obs);
+          //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
+          reg.getAny(new ArrayList<>(Arrays.asList("img", "img100", new Pattern("img").similar(0.9))));
           App.focus("idea");
         }
       }
