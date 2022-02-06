@@ -314,9 +314,9 @@ public class Match extends Region implements Comparable<Match> {
   }
 
   @Override
-  public String toStringShort() {
+  public String toStringShort() { //TODO Match::where == null
     return String.format("M[%d,%d %dx%d]IN(%s) %%%.2f", x, y, w, h,
-        (getScreen() == null ? getWhere().getName() : getScreen().getID()), simScore * 100);
+        (getScreen() == null ? (getWhere() == null ? "?" : getWhere().getName()) : getScreen().getID()), simScore * 100);
   }
 
 

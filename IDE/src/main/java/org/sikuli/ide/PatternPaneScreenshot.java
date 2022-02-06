@@ -138,7 +138,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
       patternFileName = patFilename;
       new Thread(() -> {
         try {
-          Finder f = new Finder(_simg); // ScreenImage
+          Finder f = new Finder(_simg.getImage()); // screenImage
           f.findAll(new Pattern(patFilename).similar(0.00001));
 
           int count = 0;
@@ -146,10 +146,7 @@ class PatternPaneScreenshot extends JPanel implements ChangeListener, ComponentL
             if (++count > DEFAULT_NUM_MATCHES) {
               break;
             }
-            Match m = f.next();
-            Debug.log(4, me + "f.next(%d): " + m.toString(), count);
-
-            _fullMatches.add(m);
+            _fullMatches.add(f.next());
           }
 
           EventQueue.invokeLater(() -> {

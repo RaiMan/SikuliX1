@@ -93,6 +93,32 @@ public class SXDialog extends JFrame {
     }
   }
 
+  public static void onScreen(SXDialog dialog) {
+    onScreen(dialog,0,0);
+  }
+
+  public static void onScreen(SXDialog dialog, long when) {
+    onScreen(dialog, when,0);
+  }
+
+  public static void onScreen(SXDialog dialog, long when, long time) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (when > 0) {
+          Commons.pause(when);
+        }
+        dialog.setAlwaysOnTop(true);
+        dialog.run();
+        if (time > 0) {
+          Commons.pause(time);
+          dialog.dispose();
+        }
+      }
+    }).start();
+    Commons.pause(1);
+  }
+
   private boolean valid = false;
 
   boolean isOK() {

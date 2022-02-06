@@ -13,6 +13,7 @@ import org.sikuli.script.support.FindFailedDialog;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -452,36 +453,6 @@ public abstract class Element {
     } catch (InterruptedException e) {
     }
   }
-
-  /**
-   * Waits for the Pattern, String or Image to appear or timeout (in second) is passed
-   *
-   * @param <PSI>   Pattern, String or Image
-   * @param target  The target to search for
-   * @param timeout Timeout in seconds (will be 0 when Image)
-   * @return The found Match
-   * @throws FindFailed if the Find operation finally failed
-   */
-  public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
-    Commons.trace("");
-    return executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch(); // wait
-  }
-
-  /**
-   * Waits for the Pattern, String or Image to appear until the AutoWaitTimeout value is exceeded.
-   *
-   * @param <PSI>  Pattern, String or Image
-   * @param target The target to search for
-   * @return The found Match
-   * @throws FindFailed if the Find operation finally failed
-   */
-  public <PSI> Match wait(PSI target) throws FindFailed {
-    if (target instanceof Float || target instanceof Double) {
-      wait(0.0 + ((Double) target));
-      return null;
-    }
-    return wait(target, autoWaitTimeout);
-  }
   //</editor-fold>
 
   //<editor-fold desc="102 exists/has image">
@@ -498,7 +469,7 @@ public abstract class Element {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     try {
-      return wait(target, timeout);
+      return executeFind(target, timeout, 0, null, FINDTYPE.SINGLE).getMatch(); // exists
     } catch (FindFailed e) {
       return null;
     }
@@ -663,7 +634,7 @@ public abstract class Element {
       return null;
     }
     List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof  ArrayList) {
+    if (args[0] instanceof ArrayList) {
       pList = (ArrayList) args[0];
     } else {
       pList.addAll(Arrays.asList(args));
@@ -676,7 +647,7 @@ public abstract class Element {
       return null;
     }
     List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof  ArrayList) {
+    if (args[0] instanceof ArrayList) {
       pList = (ArrayList) args[0];
     } else {
       pList.addAll(Arrays.asList(args));
@@ -716,7 +687,7 @@ public abstract class Element {
       return new ArrayList<>();
     }
     List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof  ArrayList) {
+    if (args[0] instanceof ArrayList) {
       pList = (ArrayList) args[0];
     } else {
       pList.addAll(Arrays.asList(args));
@@ -729,7 +700,7 @@ public abstract class Element {
       return new ArrayList<>();
     }
     List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof  ArrayList) {
+    if (args[0] instanceof ArrayList) {
       pList = (ArrayList) args[0];
     } else {
       pList.addAll(Arrays.asList(args));
@@ -737,88 +708,17 @@ public abstract class Element {
     return getAny(time, pList); // waitAny
   }
 
-  public List<Match> getAny(List<Object> pList) {
-    return getAny(0, pList); // getAny
+  public List<Match> getAny(List<Object> targets) {
+    return getAny(0, targets); // getAny
   }
 
-  public List<Match> getAny(double time, List<Object> pList) {
-    if (pList == null || pList.isEmpty()) {
+  public List<Match> getAny(double time, List<Object> targets) {
+    if (targets == null || targets.isEmpty()) {
       return new ArrayList<>();
     }
-    Image img;
-    int nTarget = -1;
-    for (Object target : pList) {
-      nTarget++;
-      img = getImageFromTarget(target);
-      if (!img.isValid()) {
-        Boolean response = handleImageMissing(img, false);
-        if (null == response) {
-            throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
-        } else if (!response) { // skip
-          pList.set(nTarget, null);
-          continue;
-        }
-        if (target instanceof Pattern) {
-          ((Pattern) target).setImage(img);
-        } else {
-          target = img;
-        }
-        pList.set(nTarget, target);
-        // image was recaptured
-      }
-    }
-
-    Commons.info("");
-
-    Match[] mArray = new Match[pList.size()];
-    RepeatableFinder[] rfArray = new RepeatableFinder[pList.size()];
-    SubFindRun[] theSubs = new SubFindRun[pList.size()];
-    int nobj = 0;
-    ScreenImage base = ((Region) this).getScreen().capture((Region) this); //TODO
-    for (Object obj : pList) {
-      mArray[nobj] = null;
-      if (obj instanceof Pattern || obj instanceof String || obj instanceof Image) {
-        theSubs[nobj] = new SubFindRun(time, mArray, rfArray, nobj, base, obj, (Region) this);
-        new Thread(theSubs[nobj]).start();
-      }
-      nobj++;
-    }
-    Debug.log(logLevel, "findAnyCollect: waiting for SubFindRuns");
-    if (time > 0) {
-      boolean any = false;
-      while (!any) {
-        for (SubFindRun sub : theSubs) {
-          if (sub.hasFinished()) {
-            any = true;
-            break;
-          }
-        }
-      }
-      for (SubFindRun sub : theSubs) {
-        sub.shouldStop();
-      }
-    } else {
-      boolean all = false;
-      while (!all) {
-        all = true;
-        for (SubFindRun sub : theSubs) {
-          all &= sub.hasFinished();
-        }
-      }
-    }
-    if (time > 0)
-      Debug.log(logLevel, "waitAnyCollect: first SubFindRun finished");
-    else {
-      Debug.log(logLevel, "findAnyCollect: all SubFindRuns finished");
-    }
-    nobj = 0;
     List<Match> mList = new ArrayList<>();
-    for (Match match : mArray) {
-      if (match != null) {
-        match.setIndex(nobj);
-        mList.add(match);
-      }
-      nobj++;
+    for (List<Match> matches : getAnyAll(time, targets)) {
+      mList.add(matches.get(0));
     }
     return mList;
   }
@@ -830,66 +730,101 @@ public abstract class Element {
     return getAnyAll(0, pList);
   }
 
-  public List<List<Match>> getAnyAll(double time, List<Object> pList) {
-    if (pList == null || pList.isEmpty()) {
+  public List<List<Match>> getAnyAll(double time, List<Object> targets) {
+    if (targets == null || targets.isEmpty()) {
       return new ArrayList<>();
     }
-    Finder[] finders = new Finder[pList.size()];
-    //TODO SubFindRun[] theSubs = new SubFindAll[pList.size()];
-    Region.SubFindRun[] theSubs = new Region.SubFindRun[pList.size()];
-    int nTarget = 0;
-    ScreenImage base = ((Region) this).getScreen().capture((Region) this); //TODO
-    for (Object target : pList) {
-      finders[nTarget] = null;
-      if (target instanceof Pattern || target instanceof String || target instanceof Image) {
-        //TODO theSubs[nTarget] = new SubFindAll(finders, nTarget, target, this, base, time);
-        theSubs[nTarget] = new Region.SubFindRun();
-        new Thread(theSubs[nTarget]).start();
-      }
+    Image img;
+    int nTarget = -1;
+    List<Pattern> pList = new ArrayList<>();
+    for (Object target : targets) {
       nTarget++;
+      img = getImageFromTarget(target);
+      if (!img.isValid()) {
+        Boolean response = handleImageMissing(img, false);
+        if (null == response) {
+          throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
+        } else if (!response) { // skip
+          pList.add(nTarget, null);
+          continue;
+        }
+        // image was recaptured
+      }
+      if (target instanceof Pattern) {
+        ((Pattern) target).setImage(img);
+      } else {
+        target = new Pattern(img);
+      }
+      pList.add((Pattern) target);
     }
-    Debug.log(logLevel, "findAnyCollect: waiting for SubFindRuns");
-    if (time > 0) {
-      boolean any = false;
-      while (!any) {
-        any = false;
-        for (Region.SubFindRun sub : theSubs) {
-          if (sub.hasFinished()) {
-            any = true;
-            break;
-          }
+
+    int nTasks = pList.size();
+    List<Finder> finders = new ArrayList<>();
+    List<Long> results = new ArrayList<>();
+    long startSearch = 0;
+    long durationAll = 0;
+    for (int n = 0; n < nTasks; n++) {
+      finders.add(new Finder(this));
+    }
+    ExecutorService executorService = new ThreadPoolExecutor(nTasks, nTasks,
+        0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>());
+    List<Callable<Long>> callableTasks = new ArrayList<>();
+    for (int n = 0; n < nTasks; n++) {
+      final Integer nCall = Integer.valueOf(n);
+      Callable<Long> callableTask = () -> {
+        Pattern pattern = pList.get(nCall);
+        long duration = 0;
+        if (pattern != null) {
+          long startFind = Commons.timeNow();
+          finders.get(nCall).findAll(pattern);
+          duration = Commons.timeSince(startFind);
+        }
+        return duration;
+      };
+      callableTasks.add(callableTask);
+    }
+
+    List<Future<Long>> fResults = new ArrayList<>();
+    startSearch = Commons.timeNow();
+    while (true) {
+      try {
+        fResults = executorService.invokeAll(callableTasks);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      long anySuccess = 0;
+      for (Future result : fResults) {
+        try {
+          Long current = (Long) result.get();
+          anySuccess = Math.max(current, anySuccess);
+          results.add(current);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (ExecutionException e) {
+          e.printStackTrace();
         }
       }
-      for (Region.SubFindRun sub : theSubs) {
-        sub.shouldStop();
+      durationAll = Commons.timeSince(startSearch);
+      if (anySuccess > 0) {
+        break;
       }
-    } else {
-      boolean all = false;
-      while (!all) {
-        all = true;
-        for (Region.SubFindRun sub : theSubs) {
-          all &= sub.hasFinished();
-        }
+      if (durationAll > ((long) time * 1000)) {
+        break;
       }
-    }
-    if (time > 0)
-      Debug.log(logLevel, "waitAnyCollect: first SubFindRun finished");
-    else {
-      Debug.log(logLevel, "findAnyCollect: all SubFindRuns finished");
+      for (Finder finder : finders) {
+        finder.newShot();
+      }
     }
     nTarget = 0;
     List<List<Match>> mList = new ArrayList<>();
     for (Finder finder : finders) {
-      if (finder != null) {
-        List<Match> matches = new ArrayList<>();
-        while (finder.hasNext()) {
-          Match next = finder.next();
-          next.setIndex(nTarget);
-          matches.add(next);
+      if (finder.hasNext()) {
+        List<Match> matches = finder.getMatches();
+        for (Match match : matches) {
+          match.setTimes(results.get(nTarget), durationAll);
+          match.setIndex(nTarget);
         }
-        if (matches.size() > 0) {
-          mList.add(matches);
-        }
+        mList.add(matches);
       }
       nTarget++;
     }
@@ -920,7 +855,7 @@ public abstract class Element {
             throw new RuntimeException(String.format("SikuliX: ImageMissing: %s", target)); // abort
           }
         } else if (!response) { // skip
-          return new Finder(this); // executeFind null Finder
+          return new Finder(this);
         }
         // image was recaptured
       }
@@ -942,10 +877,7 @@ public abstract class Element {
         }
         if (findingText) {
           log(logLevel, "doFind: Switching to TextSearch");
-          finder = new Finder(this); // executeFind text finder
-          if (this instanceof Region) {
-            finder.onScreen();
-          }
+          finder = new Finder(this);
           finder.findText(someText);
         }
       } else if (target instanceof Pattern) {
@@ -1017,10 +949,7 @@ public abstract class Element {
     if (type.equals(FINDTYPE.SINGLE) || type.equals(FINDTYPE.VANISH)) {
       finder = checkLastSeenAndCreateFinder(target);
     } else {
-      finder = new Finder(this); // runFirstFinder
-      if (this instanceof Region) {
-        finder.onScreen();
-      }
+      finder = new Finder(this);
     }
     if (!finder.hasNext()) {
       finder.findAll(target);
@@ -1031,7 +960,7 @@ public abstract class Element {
   private Finder checkLastSeenAndCreateFinder(Pattern ptn) {
     Commons.trace("");
     if (this instanceof Image) {
-      return new Finder(this); // checkLastSeenAndCreateFinder in Image
+      return new Finder(this);
     }
     boolean shouldCheckLastSeen = false;
     double score = 0;
@@ -1047,7 +976,7 @@ public abstract class Element {
     if (shouldCheckLastSeen) {
       Region r = Region.create(img.getLastSeen());
       if (((Region) this).contains(r)) {
-        Finder lastSeenFinder = new Finder(r); // checkLastSeenAndCreateFinder
+        Finder lastSeenFinder = new Finder(r);
         if (Debug.shouldHighlight()) { //TODO
 //          if (getScreen().getW() > w + 10 && getScreen().getH() > h + 10) {
 //            highlight(2, "#000255000");
@@ -1061,7 +990,7 @@ public abstract class Element {
         log(logLevel, "checkLastSeen: not there");
       }
     }
-    return new Finder(this).onScreen(); // checkLastSeenAndCreateFinder normal
+    return new Finder(this);
   }
 
   abstract class Repeatable {
@@ -1391,10 +1320,7 @@ public abstract class Element {
 
   private Object doFindText(String text, int level, boolean multi) {
     Object returnValue = null;
-    Finder finder = new Finder(this); // find text
-    if (this instanceof Region) {
-      finder.onScreen();
-    }
+    Finder finder = new Finder(this);
     lastSearchTime = (new Date()).getTime();
     if (level == levelWord) {
       if (multi) {

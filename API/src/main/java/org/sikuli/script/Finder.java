@@ -54,8 +54,10 @@ public class Finder implements Iterator<Match> {
   }
 
   //<editor-fold defaultstate="collapsed" desc="Constructors">
-  protected Finder() {
-    resetFindChanges();
+  Finder() {
+    //TODO resetFindChanges needed?
+    PIXEL_DIFF_THRESHOLD = PIXEL_DIFF_THRESHOLD_DEFAULT;
+    IMAGE_DIFF_THRESHOLD = IMAGE_DIFF_THRESHOLD_DEFAULT;
   }
 
   /**
@@ -64,8 +66,11 @@ public class Finder implements Iterator<Match> {
    * @param <RIBS> Region, Image, BufferedImage, ScreenImage or image filename
    */
   public <RIBS> Finder(RIBS inWhat) {
+    this();
     if (inWhat instanceof Region) {
       where = (Region) inWhat;
+      _region = where;
+      _findInput.setSource(Commons.makeMat(_region.getScreen().capture(_region).getImage()));
     } else if (inWhat instanceof Image) {
       _findInput.setSource(Commons.makeMat(((Image) inWhat).get()));
     } else if (inWhat instanceof String) {
@@ -73,17 +78,11 @@ public class Finder implements Iterator<Match> {
     } else if (inWhat instanceof BufferedImage) {
       _findInput.setSource(Commons.makeMat(((BufferedImage) inWhat)));
     } else if (inWhat instanceof ScreenImage) {
-      initScreenFinder(((ScreenImage) inWhat), null);
+      Commons.terminate(999, "Finder::new::ScreenImage: deprecated"); //TODO use sImg.get()
+      //initScreenFinder(((ScreenImage) inWhat), null);
     } else {
       throw new IllegalArgumentException(String.format("Finder: not possible with: %s", inWhat));
     }
-    resetFindChanges();
-  }
-
-  public Finder onScreen() {
-    _region = where;
-    setScreenImage(_region.getScreen().capture(_region));
-    return this;
   }
 
   /**
@@ -92,26 +91,18 @@ public class Finder implements Iterator<Match> {
    * @param simg   ScreenImage
    * @param region the cropping region
    */
-  public Finder(ScreenImage simg, Region region) {
-    initScreenFinder(simg, region);
-  }
-
-  private void initScreenFinder(ScreenImage simg, Region region) {
-    setScreenImage(simg);
-    _region = region;
-    resetFindChanges();
-   }
-
-  protected void setScreenImage(ScreenImage simg) {
+  public Finder(ScreenImage simg, Region region) { //TODO to be revised
+    this();
     _findInput.setSource(Commons.makeMat(simg.getImage()));
+    _region = region;
+    where = _region;
   }
-
-  public void newShot() {
-    setScreenImage(_region.getScreen().capture(_region));
-  }
-//</editor-fold>
+  //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="internal repeating">
+  public void newShot() {
+    _findInput.setSource(Commons.makeMat(_region.getScreen().capture(_region).getImage()));
+  }
 
   /**
    * internal use: to be able to reuse the same Finder
@@ -581,15 +572,11 @@ public class Finder implements Iterator<Match> {
   }
 //</editor-fold>
 
+  //<editor-fold desc="Finder2 implementation">
   static final int PIXEL_DIFF_THRESHOLD_DEFAULT = 3;
   static final int IMAGE_DIFF_THRESHOLD_DEFAULT = 5;
   static int PIXEL_DIFF_THRESHOLD = PIXEL_DIFF_THRESHOLD_DEFAULT;
   static int IMAGE_DIFF_THRESHOLD = IMAGE_DIFF_THRESHOLD_DEFAULT;
-
-  public void resetFindChanges() {
-    PIXEL_DIFF_THRESHOLD = PIXEL_DIFF_THRESHOLD_DEFAULT;
-    IMAGE_DIFF_THRESHOLD = IMAGE_DIFF_THRESHOLD_DEFAULT;
-  }
 
   public void setFindChangesPixelDiff(int value) {
     PIXEL_DIFF_THRESHOLD = value;
@@ -1517,4 +1504,5 @@ public class Finder implements Iterator<Match> {
     public void remove() {
     }
   }
+  //</editor-fold>
 }
