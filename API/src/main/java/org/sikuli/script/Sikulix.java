@@ -72,22 +72,31 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
-          String testBundle = "/Users/raimundhocke/IdeaProjects/_SUPPORT/_Latest/2_0_6/test206/src/main/resources/images";
+          String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
-          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;", SXDialog.POSITION.TOPLEFT);
-          //sxDialog.run();
+          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
+              new Screen(1).getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
           Screen scr = new Screen();
-          Commons.pause(1);
+          scr = new Screen(1);
           Region reg = new Region(0, 0, 500, 600);
           ScreenImage screenImage = scr.capture(reg);
           Image image = new Image(screenImage);
           image = Image.create("SikulixTest001");
-          reg = scr;
           Match match;
-          List<Object> obs = new ArrayList<>(Arrays.asList("image", "image", image));
-          reg.setFindFailedResponse(FindFailedResponse.PROMPT);
-          reg.findBest(obs);
+          Commons.pause(1);
+
+          reg = scr;
+          List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
+          //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
+          SXDialog.onScreen(sxDialog, 2);
+          match = reg.waitBest(3, obs);
+          match.highlight(2);
+          List<Match> matches = reg.getAny(obs);
+          Commons.info("%s", match);
+          for (Match m : matches) {
+            Commons.info("- %s", m);
+          }
           App.focus("idea");
         }
       }

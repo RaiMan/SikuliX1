@@ -660,7 +660,19 @@ public abstract class Element {
   }
 
   public Match getBest(double time, List<Object> pList) {
-    List<Match> mList = getAny(time, pList);
+    List<Match> mList = sortMatches(getAny(time, pList));
+    if (mList.size() > 0) {
+      return mList.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  private List<Match> sortMatches(List<Match> matches) {
+    if (matches == null) {
+      return new ArrayList<>();
+    }
+    List<Match> mList = matches;
     if (mList.size() > 1) {
       Collections.sort(mList, (m1, m2) -> {
         double ms = m2.getScore() - m1.getScore();
@@ -672,11 +684,7 @@ public abstract class Element {
         return 0;
       });
     }
-    if (mList.size() > 0) {
-      return mList.get(0);
-    } else {
-      return null;
-    }
+    return mList;
   }
   //</editor-fold>
 
@@ -768,23 +776,25 @@ public abstract class Element {
     }
     ExecutorService executorService = new ThreadPoolExecutor(nTasks, nTasks,
         0, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>());
-    List<Callable<Long>> callableTasks = new ArrayList<>();
+    List<Callable<Object[]>> callableTasks = new ArrayList<>();
     for (int n = 0; n < nTasks; n++) {
       final Integer nCall = Integer.valueOf(n);
-      Callable<Long> callableTask = () -> {
+      Callable<Object[]> callableTask = () -> {
         Pattern pattern = pList.get(nCall);
         long duration = 0;
         if (pattern != null) {
           long startFind = Commons.timeNow();
           finders.get(nCall).findAll(pattern);
-          duration = Commons.timeSince(startFind);
+          if (finders.get(nCall).hasNext()) {
+            duration = Commons.timeSince(startFind);
+          }
         }
-        return duration;
+        return new Object[]{nCall, Long.valueOf(duration)};
       };
       callableTasks.add(callableTask);
     }
 
-    List<Future<Long>> fResults = new ArrayList<>();
+    List<Future<Object[]>> fResults = new ArrayList<>();
     startSearch = Commons.timeNow();
     while (true) {
       try {
@@ -792,12 +802,12 @@ public abstract class Element {
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      long anySuccess = 0;
+      long maxDuration = 0;
       for (Future result : fResults) {
         try {
-          Long current = (Long) result.get();
-          anySuccess = Math.max(current, anySuccess);
-          results.add(current);
+          Object[] current = (Object[]) result.get();
+          maxDuration = Math.max((Long) current[1], maxDuration);
+          results.add((Integer) current[0], (Long) current[1]);
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (ExecutionException e) {
@@ -805,7 +815,7 @@ public abstract class Element {
         }
       }
       durationAll = Commons.timeSince(startSearch);
-      if (anySuccess > 0) {
+      if (maxDuration > 0) {
         break;
       }
       if (durationAll > ((long) time * 1000)) {

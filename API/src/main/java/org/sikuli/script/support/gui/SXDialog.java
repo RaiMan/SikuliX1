@@ -60,12 +60,12 @@ public class SXDialog extends JFrame {
   public SXDialog(String res, Point where, POSITION pos) {
     this();
 
-    if (!res.contains(".") && !res.endsWith(".txt")) {
-      res += ".txt";
-    }
     Class clazz = SXDialog.class;
     String text = "";
     if (!res.startsWith("/") && !res.startsWith("#")) {
+      if (!res.contains(".") && !res.endsWith(".txt")) {
+        res += ".txt";
+      }
       if (res.startsWith("sx")) {
         if (res.startsWith("sxide")) {
           try {

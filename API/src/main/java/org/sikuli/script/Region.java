@@ -2002,7 +2002,7 @@ public class Region extends Element {
    */
   public Region highlight(double secs, String color) {
     if (getScreen() == null || isOtherScreen() || isScreenUnion) {
-      Debug.error("highlight: not possible for %s", getScreen());
+      Debug.error("highlight: not possible for %s", getScreen() == null ? "Image" : getScreen());
       return this;
     }
     if (secs < 0) {
