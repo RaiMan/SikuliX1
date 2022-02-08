@@ -90,10 +90,10 @@ public class Sikulix {
           List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
           //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
           SXDialog.onScreen(sxDialog, 2);
-          match = reg.waitBest(3, obs);
-          match.highlight(2);
-          List<Match> matches = reg.getAny(obs);
-          Commons.info("%s", match);
+          List<Match> matches = reg.waitAny(3, obs);
+          reg.highlight(matches, 2);
+          matches = reg.getAny(obs);
+          //Commons.info("%s", match);
           for (Match m : matches) {
             Commons.info("- %s", m);
           }

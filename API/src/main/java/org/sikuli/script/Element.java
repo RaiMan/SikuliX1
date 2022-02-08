@@ -440,7 +440,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="101 wait for image">
+  //<editor-fold desc="101 wait (timed)">
 
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any interruptedExceptions
@@ -455,7 +455,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="102 exists/has image">
+  //<editor-fold desc="102 exists/has">
 
   /**
    * Check if target exists with a specified timeout<br>
@@ -521,7 +521,7 @@ public abstract class Element {
   }
   //</editor-fold>
 
-  //<editor-fold desc="103 findAll images">
+  //<editor-fold desc="103 findAll">
 
   /**
    * Finds all occurences of the given Pattern, String or Image in the Region/Image and returns an Iterator of Matches.
@@ -633,26 +633,7 @@ public abstract class Element {
     if (args.length == 0) {
       return null;
     }
-    List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof ArrayList) {
-      pList = (ArrayList) args[0];
-    } else {
-      pList.addAll(Arrays.asList(args));
-    }
-    return getBest(0, pList);
-  }
-
-  public Match waitBest(double time, Object... args) {
-    if (args.length == 0) {
-      return null;
-    }
-    List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof ArrayList) {
-      pList = (ArrayList) args[0];
-    } else {
-      pList.addAll(Arrays.asList(args));
-    }
-    return getBest(time, pList);
+    return getBest(0, varargsToList(args)); // findBest
   }
 
   public Match getBest(List<Object> pList) {
@@ -694,26 +675,7 @@ public abstract class Element {
     if (args.length == 0) {
       return new ArrayList<>();
     }
-    List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof ArrayList) {
-      pList = (ArrayList) args[0];
-    } else {
-      pList.addAll(Arrays.asList(args));
-    }
-    return getAny(0, pList); // findAny
-  }
-
-  public List<Match> waitAny(double time, Object... args) {
-    if (args.length == 0) {
-      return new ArrayList<>();
-    }
-    List<Object> pList = new ArrayList<>();
-    if (args[0] instanceof ArrayList) {
-      pList = (ArrayList) args[0];
-    } else {
-      pList.addAll(Arrays.asList(args));
-    }
-    return getAny(time, pList); // waitAny
+    return getAny(0, varargsToList(args)); // findAny
   }
 
   public List<Match> getAny(List<Object> targets) {
@@ -741,6 +703,9 @@ public abstract class Element {
   public List<List<Match>> getAnyAll(double time, List<Object> targets) {
     if (targets == null || targets.isEmpty()) {
       return new ArrayList<>();
+    }
+    if (this instanceof Image) {
+      time = 0;
     }
     Image img;
     int nTarget = -1;
@@ -843,6 +808,17 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="109 find image internals">
+  List<Object> varargsToList(Object... args) {
+    List<Object> pList = new ArrayList<>();
+    if (args[0] instanceof Collection<?>) {
+      pList.addAll((Collection<?>) args[0]);
+      Commons.info("");
+    } else {
+      pList.addAll(Arrays.asList(args));
+    }
+    return pList;
+  }
+
   enum FINDTYPE {
     SINGLE, ALL, ANY, ANYALL, VANISH
   }

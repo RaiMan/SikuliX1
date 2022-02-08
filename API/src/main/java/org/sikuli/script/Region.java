@@ -2058,6 +2058,18 @@ public class Region extends Element {
     return wait(target, autoWaitTimeout);
   }
 
+  public <PSI> List<Match> waitAll(PSI target, double timeout) throws FindFailed {
+    List<Match> matches = getAll(timeout, target);
+    if (matches.size() == 0) {
+      throw new FindFailed(String.format("in %s with %s", this, getImageFromTarget(target)));
+    }
+    return matches;
+  }
+
+  public <PSI> List<Match> waitAll(PSI target) throws FindFailed {
+    return waitAll(target, autoWaitTimeout);
+  }
+
   /**
    * waits until target vanishes or timeout (in seconds) is passed
    *
@@ -2085,6 +2097,20 @@ public class Region extends Element {
    */
   public <PSI> boolean waitVanish(PSI target) {
     return waitVanish(target, autoWaitTimeout);
+  }
+
+  public Match waitBest(double time, Object... args) {
+    if (args.length == 0) {
+      return null;
+    }
+    return getBest(time, varargsToList(args)); // waitBest
+  }
+
+  public List<Match> waitAny (double time, Object... args) {
+    if (args.length == 0) {
+      return new ArrayList<>();
+    }
+    return getAny(time, varargsToList(args)); // waitAny
   }
   //</editor-fold>
 
