@@ -42,38 +42,14 @@ public class Sikulix {
       if (arg.startsWith("test")) {
         arg = arg.replace("test", "");
 
-        if ("app".equals(arg)) {
-          final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
-          new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
-          if (!options.getOutput().strip().contains("OK")) System.exit(-1);
-
-          List<App> apps = App.allUserApps();
-          App app = new App("finder");
-          if (!app.isRunning()) {
-            app.open();
-          } else {
-            app.focus();
-          }
-          App.pause(2);
-          Region window = app.toFront("smile");
-          //window.highlight(2);
-
-
-          List<Region> windows = app.windows();
-          //app.window(0).highlight(2);
-          print("app.getTitle(): %s", app.getTitle());
-          for (Region w : windows) {
-            print(w.getName());
-          }
-        }
-
         if ("xxx".equals(arg)) {
           print("testxxx");
         }
 
         if ("find".equals(arg)) {
-          String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
-          ImagePath.setBundleFolder(new File(testBundle));
+          File workDir = Commons.getWorkDir();
+          String testBundle = workDir.getCanonicalPath().replace("SikuliX1" + File.separator + "API", "Test206");
+          ImagePath.setBundleFolder(new File(testBundle, "images"));
           String images = ImagePath.getBundlePath();
           SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
               new Screen(1).getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
@@ -97,7 +73,7 @@ public class Sikulix {
           for (Match m : matches) {
             Commons.info("- %s", m);
           }
-          App.focus("idea");
+          App.focus("SikuliX1");
         }
       }
       System.exit(0);
