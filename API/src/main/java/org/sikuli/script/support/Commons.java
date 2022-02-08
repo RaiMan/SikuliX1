@@ -283,7 +283,7 @@ Software:
         public void run() {
           //https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
           String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixide";
-          ossrhURL += getSysName();
+          ossrhURL += (runningWindows() ? "win" : (runningMac() ? (runningMacM1() ? "macm1" : "mac") : "lux"));
           ossrhURL += "/" + sxVersion + "/maven-metadata.xml";
           String xml = FileManager.downloadURLtoString(ossrhURL);
           if (!xml.isEmpty()) {
