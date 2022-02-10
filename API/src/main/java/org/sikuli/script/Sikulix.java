@@ -72,18 +72,13 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
-          ImagePath.add("net.sourceforge.tess4j.Tesseract/tessdata");
-          ImagePath.add("net.sourceforge.tess4j.Tesseract");
-          ImagePath.add("org.sikuli.script.Sikulix/images");
-          ImagePath.dump(0);
-
           String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
-          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
-              new Screen(1).getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
           Screen scr = new Screen();
-          scr = new Screen(1);
+          //scr = new Screen(1);
+          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
+              scr.getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
           Region reg = new Region(0, 0, 500, 600);
           ScreenImage screenImage = scr.capture(reg);
           Image image = new Image(screenImage);
