@@ -93,7 +93,7 @@ public class Image extends Element {
     File imgFile = new File(img.getName());
     if (imgFile.isAbsolute()) {
       if (imgFile.exists()) {
-        fURL = Commons.makeURL(imgFile);
+        fURL = Commons.makeURL(imgFile); // reinit
       }
     } else {
       fURL = imageNames.get(img.getName());
@@ -935,7 +935,7 @@ public class Image extends Element {
       }
       File imageFile = new File(imageFileName);
       if (imageFile.isAbsolute() && imageFile.exists()) {
-        imageURL = Commons.makeURL(imageFile);
+        imageURL = Commons.makeURL(imageFile); // get
 //        try {
 //          imageURL = new URL("file", null, imageFile.getPath());
 //        } catch (MalformedURLException e) {
@@ -1085,7 +1085,7 @@ public class Image extends Element {
     } catch (IOException e) {
       Debug.error("Image::save: %s did not work (%s)", fImg, e.getMessage());
     }
-    fileURL = Commons.makeURL(fImg);
+    fileURL = Commons.makeURL(fImg); // save
     return fileName;
   }
   //</editor-fold>

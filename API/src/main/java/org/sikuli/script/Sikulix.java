@@ -72,6 +72,11 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
+          ImagePath.add("net.sourceforge.tess4j.Tesseract/tessdata");
+          ImagePath.add("net.sourceforge.tess4j.Tesseract");
+          ImagePath.add("org.sikuli.script.Sikulix/images");
+          ImagePath.dump(0);
+
           String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
@@ -89,14 +94,7 @@ public class Sikulix {
           reg = scr;
           List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
           //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
-          SXDialog.onScreen(sxDialog, 2);
-          List<Match> matches = reg.waitAny(3, obs);
-          reg.highlight(matches, 2);
-          matches = reg.getAny(obs);
-          //Commons.info("%s", match);
-          for (Match m : matches) {
-            Commons.info("- %s", m);
-          }
+          SXDialog.onScreen(sxDialog);
           App.focus("idea");
         }
       }

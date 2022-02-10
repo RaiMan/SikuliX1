@@ -114,6 +114,7 @@ public class ImagePath {
       log(lvl, "****** ------------ ******");
     }
   }
+
   /**
    * empty path list and keep bundlePath (entry 0)<br>
    * Image cache is cleared completely
@@ -183,7 +184,10 @@ public class ImagePath {
   public static class PathEntry {
 
     private URL pathURL = null;
+    private String pathURLpath = null;
     private String path = null;
+    private Class clazz = null;
+    private String clazzSub = null;
 
     private PathEntry(String main, String sub, URL eqivalentURL) {
       if (main == null) {
@@ -194,6 +198,25 @@ public class ImagePath {
       }
       path = main + (sub.isEmpty() ? sub : "+" + sub);
       pathURL = eqivalentURL;
+      if (pathURL != null) {
+        pathURLpath = pathURL.toExternalForm();
+        if (pathURL.getProtocol().equals("jar")) {
+          if (!main.contains(".jar")) {
+            String[] parts = main.replace("\\", "/").split("/");
+            try {
+              clazz = Class.forName(parts[0]);
+              if (parts.length > 0) {
+                clazzSub = main.substring(parts[0].length());
+              }
+            } catch (ClassNotFoundException e) {
+              Commons.terminate(999, "ImagePath::PathEntry(%s): as class not possible", main);
+            }
+          }
+          pathURLpath = pathURL.toExternalForm().substring("jar:file:".length());
+        } else if (pathURL.getProtocol().equals("file")) {
+          pathURLpath = pathURL.toExternalForm().substring("file:".length());
+        }
+      }
       log(lvl + 1, "ImagePathEntry: %s (%s)", pathURL, path);
     }
 
@@ -209,7 +232,7 @@ public class ImagePath {
           return pathURL.toExternalForm().equals(((URL) other).toExternalForm());
         } else if (other instanceof String || other instanceof File) {
           if (isFile() || isJar()) {
-            return pathURL.toExternalForm().equals(getPathEntry(other, null).pathURL.toExternalForm());
+            return pathURL.toExternalForm().equals(getPathEntry(other, null).pathURL.toExternalForm()); // equals
           }
           return false;
         }
@@ -257,21 +280,27 @@ public class ImagePath {
     public String getPath() {
       String path = "--invalid--";
       if (isValid()) {
-        if (isHTTP()) {
-          return pathURL.toExternalForm();
-        } else {
-          File file = getFile();
-          if (file != null) {
-            return file.getPath();
-          }
-        }
+        return pathURLpath;
       }
       return path;
     }
 
     public File getFile() {
       if (isValid()) {
-        return Commons.urlToFile(pathURL);
+        if (pathURL.getProtocol().equals("file")) {
+          return new File(getPath());
+        }
+      }
+      return null;
+    }
+
+    public File getJar() {
+      if (isValid()) {
+        if (pathURL.getProtocol().equals("jar")) {
+          String path = getPath();
+          path = path.split("!")[0];
+          return new File(path);
+        }
       }
       return null;
     }
@@ -306,6 +335,10 @@ public class ImagePath {
   }
 
   private static PathEntry getPathEntry(Object path, String folder) {
+    if (path == null) {
+      return null;
+    }
+    Commons.debug("*** ImagePath::getPathEntry: %s", path);
     PathEntry pathEntry = null;
     String special = null;
     if (null != path) {
@@ -325,19 +358,24 @@ public class ImagePath {
           log(-1, "getPathEntry: url + folder not implmented");
           return null;
         }
-      } else {
-        log(-1, "getPathEntry: invalid path: %s (String, File or URL");
-        return null;
       }
+    }
+    if (pathEntry == null) {
+      log(-1, "getPathEntry: invalid path: %s (String, File or URL)", path);
+      return null;
     }
     if (special != null) {
       pathEntry.path = special;
     }
+    Commons.debug("ImagePath::getPathEntry returns: %s", pathEntry);
     return pathEntry;
   }
 
   private static int getPathEntryIndex(URL url) {
-    PathEntry whereEntry = getPathEntry(url, null);
+    if (url == null) {
+      return 0;
+    }
+    PathEntry whereEntry = getPathEntry(url, null); // getPathEntryIndex
     return isPathEntry(whereEntry);
   }
 
@@ -360,11 +398,11 @@ public class ImagePath {
         return createPathEntryHttp(mainPath, altPathOrFolder);
       }
     }
-    URL pathURL = Commons.makeURL(mainPath, altPathOrFolder);
-    if (pathURL == null) {
-      return createPathEntryClass(mainPath, altPathOrFolder);
-    }
-    return new PathEntry(mainPath, altPathOrFolder, pathURL);
+    URL pathURL = Commons.makeURL(mainPath, altPathOrFolder); // createPathEntry
+    Commons.debug("createPathEntry: mainPath: %s", mainPath);
+    PathEntry pathEntry = new PathEntry(mainPath, altPathOrFolder, pathURL);
+    Commons.debug("createPathEntry returns: pathEntry: %s", pathEntry);
+    return pathEntry;
   }
 
   private static PathEntry createPathEntryJar(String jar, String folder) {
@@ -372,50 +410,13 @@ public class ImagePath {
     if (".".equals(jar)) {
       jar = Commons.getMainClassLocation().getAbsolutePath();
     }
-    URL url = Commons.makeURL(jar, folder);
+    URL url = Commons.makeURL(jar, folder); // createPathEntryJar
     pathEntry = new PathEntry(jar, folder, url);
     return pathEntry;
   }
 
-  private static PathEntry createPathEntryClass(String possibleClass, String altPath) {
-    URL pathURL = null;
-    Class cls = null;
-    String klassName;
-    String fpSubPath = "";
-    String subPath = null;
-    int n = possibleClass.indexOf("/");
-    if (n > 0) {
-      klassName = possibleClass.substring(0, n);
-      if ((n + 1) < possibleClass.length()) {
-        fpSubPath = possibleClass.substring(n + 1);
-      }
-    } else {
-      klassName = possibleClass;
-    }
-    try {
-      cls = Class.forName(klassName);
-    } catch (ClassNotFoundException ex) {
-    }
-    if (cls != null) {
-      CodeSource codeSrc = cls.getProtectionDomain().getCodeSource();
-      if (codeSrc != null && codeSrc.getLocation() != null) {
-        URL classURL = codeSrc.getLocation();
-        pathURL = Commons.makeURL(classURL, fpSubPath);
-      } else {
-        cls = null;
-      }
-      if (cls == null) {
-        log(lvl, "createPathEntryClass: class not found (%s) from path (%s)", klassName, possibleClass);
-        pathURL = Commons.makeURL(altPath, fpSubPath);
-        possibleClass = altPath;
-        subPath = fpSubPath;
-      }
-    }
-    return new PathEntry(possibleClass, subPath, pathURL);
-  }
-
   private static PathEntry createPathEntryHttp(String netURL, String folder) {
-    URL url = Commons.makeURL(netURL, folder);
+    URL url = Commons.makeURL(netURL, folder); // createPathEntryHttp
     return new PathEntry(netURL, folder, url);
   }
   //</editor-fold>
@@ -485,7 +486,7 @@ public class ImagePath {
     if (!pathHTTP.startsWith(proto) && !pathHTTP.startsWith(protos)) {
       pathHTTP = proto + pathHTTP;
     }
-    return Commons.makeURL(pathHTTP);
+    return Commons.makeURL(pathHTTP, ""); // makeNetURL
   }
 
   public static boolean removeHTTP(String pathHTTP) {
@@ -530,7 +531,7 @@ public class ImagePath {
   }
 
   public static URL get(Object what, String folder) {
-    PathEntry whatEntry = getPathEntry(what, folder);
+    PathEntry whatEntry = getPathEntry(what, folder); // get
     return null != whatEntry ? whatEntry.pathURL : null;
   }
 
@@ -539,7 +540,7 @@ public class ImagePath {
   }
 
   public static boolean has(Object what, String folder) {
-    return hasPathEntry(getPathEntry(what, folder));
+    return hasPathEntry(getPathEntry(what, folder)); // has
   }
 
   public static URL insert(Object what) {
@@ -556,7 +557,7 @@ public class ImagePath {
 
   public static URL insert(Object what, String folder, URL where) {
     URL url = null;
-    PathEntry whatEntry = getPathEntry(what, folder);
+    PathEntry whatEntry = getPathEntry(what, folder); // insert
     if (null != whatEntry && whatEntry.isValid()) {
       remove(isPathEntry(whatEntry));
       int pathEntryIndex = getPathEntryIndex(where);
@@ -583,7 +584,7 @@ public class ImagePath {
 
   public static URL append(Object what, String folder, URL where) {
     URL url = null;
-    PathEntry whatEntry = getPathEntry(what, folder);
+    PathEntry whatEntry = getPathEntry(what, folder); // append
     if (null != whatEntry && whatEntry.isValid()) {
       remove(isPathEntry(whatEntry));
       int pathEntryIndex = getPathEntryIndex(where) + 1;
@@ -606,7 +607,7 @@ public class ImagePath {
 
   public static URL replace(Object what, String folder, URL where) {
     URL url = null;
-    PathEntry whatEntry = getPathEntry(what, folder);
+    PathEntry whatEntry = getPathEntry(what, folder); // replace
     if (null != whatEntry && whatEntry.isValid()) {
       int pathEntryIndex = getPathEntryIndex(where);
       if (0 < pathEntryIndex) {
@@ -619,11 +620,11 @@ public class ImagePath {
   }
 
   public static URL remove(Object what) {
-    return remove(isPathEntry(getPathEntry(what, null)));
+    return remove(isPathEntry(getPathEntry(what, null))); // remove
   }
 
   public static URL remove(Object what, String folder) {
-    return remove(isPathEntry(getPathEntry(what, folder)));
+    return remove(isPathEntry(getPathEntry(what, folder))); // remove
   }
   //</editor-fold>
 
@@ -646,7 +647,7 @@ public class ImagePath {
       }
     }
     if (new File(newBundlePath).exists()) {
-      PathEntry entry = getPathEntry(newBundlePath, null);
+      PathEntry entry = getPathEntry(newBundlePath, null); // setBundlePath
       if (entry != null && entry.isValid()) {
         remove(isPathEntry(entry));
         setBundle(entry);
@@ -672,7 +673,7 @@ public class ImagePath {
   }
 
   public static File setBundleFolder(File folder) {
-    PathEntry entry = getPathEntry(folder, null);
+    PathEntry entry = getPathEntry(folder, null); // setBundleFolder
     if (entry != null && entry.isValid()) {
       PathEntry oldBundle = getBundle();
       if (entry.equals(oldBundle)) {
@@ -719,62 +720,77 @@ public class ImagePath {
    * starting from entry 0, the first found existence is taken<br>
    * absolute file names are checked for existence
    *
-   * @param imageFileName relative or absolute filename with extension
+   * @param imageName relative or absolute filename with extension
    * @return a valid URL or null if not found/exists
    */
-  public static URL find(String imageFileName) {
-    URL fURL = null;
+  public static URL find(String imageName) {
     String proto = "";
+    String imageFileName = Image.getValidImageFilename(imageName);
+    if (imageName.endsWith("#")) {
+      imageFileName = imageName.substring(0, imageName.length() -1);
+    }
     File imageFile = new File(imageFileName);
     if (imageFile.isAbsolute()) {
       if (imageFile.exists()) {
-        fURL = Commons.makeURL(imageFile);
+        return Commons.makeURL(imageFile, ""); // find absolute
       } else {
-        log(-1, "find: File does not exist: %s", imageFileName);
+        log(-1, "find: File does not exist: %s", imageName);
+        return null;
       }
-      return fURL;
-    } else {
-      for (PathEntry entry : getPaths()) {
-        if (entry == null || !entry.isValid()) {
-          continue;
-        }
-        proto = entry.pathURL.getProtocol();
-        if ("file".equals(proto)) {
-          if (new File(entry.getPath(), imageFileName).exists()) {
-            return Commons.makeURL(entry.getPath(), imageFileName);
-          }
-        } else if ("jar".equals(proto) || proto.startsWith("http")) {
-          URL url = Commons.makeURL(entry.getPath(), imageFileName);
-          if (url != null) {
-            int check = -1;
-            if (proto.startsWith("http")) {
-              check = FileManager.isUrlUseabel(url);
-            } else {
-              try {
-                InputStream inputStream = url.openStream();
-                check = inputStream.available();
-              } catch (IOException e) {
-              }
-            }
-            if (check > 0) {
-              return url;
-            }
-          }
-        }
-      }
-      imageFile = new File(Commons.getWorkDir(), imageFileName);
-      if (imageFile.exists()) {
-        return Commons.makeURL(imageFile);
-      } else {
-        imageFile = new File(new File(Commons.getWorkDir(), Settings.WorkdirBundlePath), imageFileName);
-        if (imageFile.exists()) {
-          return Commons.makeURL(imageFile);
-        }
-      }
-      log(-1, "find: File not found: %s", imageFileName);
-      dump(lvl);
-      return fURL;
     }
+    URL url = null;
+    for (PathEntry entry : getPaths()) {
+      if (url != null) {
+        break;
+      }
+      if (entry == null || !entry.isValid()) {
+        continue;
+      }
+      proto = entry.pathURL.getProtocol();
+      if (entry.clazz != null) {
+        url = Commons.makeURL(entry.clazz.getResource(entry.clazzSub), imageFileName);
+        proto = "jar";
+      }
+      if ("jar".equals(proto) || proto.startsWith("http")) {
+        if (url == null) {
+          url = Commons.makeURL(entry.getPath(), imageFileName); // find
+        }
+        if (url != null) {
+          int check = -1;
+          if (proto.startsWith("http")) {
+            check = FileManager.isUrlUseabel(url);
+          } else {
+            try {
+              InputStream inputStream = url.openStream();
+              check = inputStream.available();
+            } catch (IOException e) {
+            }
+          }
+          if (check < 1) {
+            url = null;
+          }
+        }
+      } else if ("file".equals(proto)) {
+        if (new File(entry.getPath(), imageFileName).exists()) {
+          url = Commons.makeURL(entry.getPath(), imageFileName); // find
+        }
+      } else {
+        imageFile = new File(Commons.getWorkDir(), imageFileName);
+        if (imageFile.exists()) {
+          url = Commons.makeURL(imageFile, ""); // find workdir
+        } else {
+          imageFile = new File(new File(Commons.getWorkDir(), Settings.WorkdirBundlePath), imageName);
+          if (imageFile.exists()) {
+            url = Commons.makeURL(imageFile, ""); // find workdir Settings.WorkdirBundlePath
+          }
+        }
+      }
+    }
+    if (url == null) {
+      log(-1, "find: not in ImagePath: %s", imageName);
+      dump(lvl);
+    }
+    return url;
   }
 
   /**

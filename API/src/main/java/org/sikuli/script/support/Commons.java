@@ -300,7 +300,6 @@ Software:
     }
   }
 
-
   public static String getCurrentSnapshotDate() {
     return setCurrentSnapshotDate("");
   }
@@ -473,7 +472,7 @@ Software:
     return trace(null);
   }
 
-    public static String trace(String msg, Object... args) {
+  public static String trace(String msg, Object... args) {
     if (isTrace() || msg == null) {
       int functionIndex = msg == null ? 3 : 2;
       StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[functionIndex];
@@ -482,10 +481,10 @@ Software:
       int lineNumber = stackTrace.getLineNumber();
       printOut(String.format("[%d_%s::%s] ", lineNumber, className, methodName));
       if (msg != null && !msg.isEmpty()) {
-          String out = String.format(msg, args);
-          out = out.replace("\n\n", "\n");
-          out = out.replace("\n\n", "\n");
-          printOut(out);
+        String out = String.format(msg, args);
+        out = out.replace("\n\n", "\n");
+        out = out.replace("\n\n", "\n");
+        printOut(out);
       }
       printOut("\n");
       return methodName;
@@ -1140,16 +1139,13 @@ Software:
     return fileList;
   }
 
-  public static URL makeURL() {
-    return makeURL("", null);
-  }
-
   public static URL makeURL(Object main) {
     return makeURL(main, null);
   }
 
   public static URL makeURL(Object main, String sub) {
     String enter = enter("makeURL", "main: %s, sub: %s", main, sub);
+    debug("makeURL: main: %s", main); //TODO
     if (main == null) {
       error("makeURL: 1st parameter main is null");
       return null;
@@ -1158,7 +1154,6 @@ Software:
     File mainFile = null;
     String mainPath = "";
     boolean isJar = false;
-    boolean isHTTP = false;
     if (main instanceof File) {
       mainFile = (File) main;
     } else if (main instanceof String) {
@@ -1166,7 +1161,7 @@ Software:
       mainFile = new File(mainPath);
     } else if (main instanceof URL) {
       URL mainURL = (URL) main;
-      if (sub != null) {
+      if (sub != null && !sub.isEmpty()) {
         if (mainURL.getProtocol().equals("jar")) {
           mainPath = mainURL.getPath();
           sub = sub.replace("\\", "/");
@@ -1196,16 +1191,8 @@ Software:
       }
       return mainURL;
     }
-    if (!mainFile.isAbsolute()) {
-      if (mainPath.startsWith("http:") || mainPath.startsWith("https:")) {
-        isHTTP = true;
-      } else {
-        mainFile = new File(getWorkDir(), mainFile.getPath());
-        debug("makeURL: mainFile relative: in current workdir: %s", getWorkDir());
-      }
-    }
-    if (isHTTP) {
-      if (sub != null) {
+    if (!mainFile.isAbsolute() && (mainPath.startsWith("http:") || mainPath.startsWith("https:"))) {
+      if (sub != null && !sub.isEmpty()) {
         if (!mainPath.endsWith("/")) {
           mainPath += "/";
         }
@@ -1220,52 +1207,87 @@ Software:
         error(enter);
         error("makeURL: net url malformed: %s (%s)", mainPath, e.getMessage());
       }
-    }
-    if (!isHTTP) {
+    } else {
       if (mainFile.getPath().endsWith(".jar") || mainFile.getPath().contains(".jar!")) {
         isJar = true;
       }
-      if (!isJar && sub != null) {
+      if (!isJar && sub != null && !sub.isEmpty()) {
         mainFile = new File(mainFile, sub);
       }
-      try {
-        if (mainFile.getPath().contains("%")) {
-          try {
-            mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
-          } catch (Exception e) {
-            error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
-          }
+      if (mainFile.getPath().contains("%")) {
+        try {
+          mainFile = new File(URLDecoder.decode(mainFile.getPath(), "UTF-8"));
+        } catch (Exception e) {
+          error("makeURL: mainFile with %%: not decodable(UTF-8): %s (%s)", mainFile, e.getMessage());
         }
-        mainFile = mainFile.getCanonicalFile();
-        if (isJar) {
+      }
+      try {
+        if (!isJar) {
+          if (!mainFile.isAbsolute()) {
+            mainFile = new File(getWorkDir(), mainFile.getPath());
+          }
+          mainFile = mainFile.getCanonicalFile();
+          if (!mainFile.exists()) {
+            if (main instanceof String) {
+              url = makeClassURL((String) main);
+            }
+            if (url == null) {
+              error(enter);
+              error("makeURL(%s): file does not exist: %s", main, mainFile);
+            }
+          } else {
+            url = mainFile.toURI().toURL();
+          }
+        } else {
           String[] parts = mainFile.getPath().split("\\.jar");
           String jarPart = parts[0] + ".jar";
+          if (!new File(jarPart).exists()) {
+            throw new IOException();
+          }
           String subPart = sub != null ? sub : "";
           if (parts.length > 1 && parts[1].length() > 1) {
             subPart = (parts[1].startsWith("!") ? parts[1].substring(2) : parts[1].substring(1));
-            if (sub != null) subPart += "/" + sub;
+            if (sub != null && !sub.isEmpty()) {
+              subPart += "/" + sub;
+            }
           }
           subPart = "!/" + subPart.replace("\\", "/");
           subPart = subPart.replace("//", "/");
           url = new URL("jar:file:" + jarPart + subPart);
-          mainFile = new File(jarPart);
-        } else {
-          url = mainFile.toURI().toURL();
         }
       } catch (MalformedURLException e) {
         error(enter);
-        error("makeURL: url malformed: %s (%s)", mainFile, e.getMessage());
+        error("makeURL: malformed: %s", mainFile);
       } catch (IOException e) {
         error(enter);
-        error("makeURL: mainFile.getCanonicalFile().toURI().toURL(): %s (%s)", mainFile, e.getMessage());
-      }
-      if (!mainFile.exists()) {
-        error(enter);
-        error("makeURL: file does not exist: %s", mainFile);
-        return null;
+        error("makeURL: not found: %s", mainFile);
       }
     }
+
+    debug("makeURL returns: url: %s", url); //TODO
     exit("makeURL", "url: %s", url);
+    return url;
+  }
+
+  public static URL makeClassURL(String sClass) {
+    debug("makeClassURL: sClass: %s", sClass);
+    if (sClass == null || sClass.isEmpty()) {
+      return null;
+    }
+    URL url = null;
+    sClass = sClass.replace("\\", "/");
+    String[] parts = sClass.split("/");
+    String sub = "";
+    if (parts.length > 1) {
+      sub = sClass.substring(parts[0].length());
+    }
+    try {
+      Class<?> aClass = Class.forName(parts[0]);
+      url = aClass.getResource(sub);
+    } catch (ClassNotFoundException e) {
+      error("makeURL(%s): class does not exist: %s", parts[0]);
+    }
+    debug("makeClassURL returns: url: %s", url);
     return url;
   }
 
@@ -1840,6 +1862,7 @@ Software:
     Interpolation(int value) {
       this.value = value;
     }
+
   }
 
   /**
