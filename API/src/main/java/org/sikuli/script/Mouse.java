@@ -400,7 +400,7 @@ public class Mouse {
   }
 
   protected static int move(Location loc, Region region) {
-    if (MouseDevice.isNotUseable("move")) {
+    if (!MouseDevice.isUseable()) {
       return 0;
     }
     if (get().device.isSuspended()) {
@@ -442,7 +442,7 @@ public class Mouse {
   }
 
   protected static void down(int buttons, Region region) {
-    if (MouseDevice.isNotUseable("down")) {
+    if (!MouseDevice.isUseable()) {
       return;
     }
     if (get().device.isSuspended()) {
@@ -469,7 +469,7 @@ public class Mouse {
   }
 
   protected static void up(int buttons, Region region) {
-    if (MouseDevice.isNotUseable("up")) {
+    if (!MouseDevice.isUseable()) {
       return;
     }
     if (get().device.isSuspended()) {
@@ -497,7 +497,7 @@ public class Mouse {
   }
 
   protected static void wheel(int direction, int steps, Region region, int stepDelay) {
-    if (MouseDevice.isNotUseable("wheel")) {
+    if (MouseDevice.isUseable()) {
       return;
     }
     if (get().device.isSuspended()) {

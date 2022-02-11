@@ -27,6 +27,7 @@ import java.util.List;
 public class Sikulix {
 
   public static void main(String[] args) throws Exception {
+    Commons.init();
     System.setProperty("sikuli.API_should_run", "develop");
     if (args.length == 1 && "buildDate".equals(args[0])) {
       System.out.println(Commons.getSxBuildStamp());

@@ -11,16 +11,17 @@ public class MouseDevice extends Devices {
 
   private static TYPE deviceType = TYPE.MOUSE;
 
-  private static boolean usable = true;
+  private static boolean useable = false;
 
-  public static boolean isUsable() {
-    return usable;
+  public static boolean isUseable() {
+    return useable;
   }
 
+/*
   public static boolean isNotUseable(String function) {
     String fText = function.isEmpty() ? "" : "." + function + "()";
     if (notUseable) {
-      Debug.error("Mouse%s: not usable (blocked)", fText);
+      Debug.error("Mouse%s: not useable (blocked)", fText);
     }
     return notUseable;
   }
@@ -40,9 +41,9 @@ public class MouseDevice extends Devices {
   }
 
   private static boolean notUseable = false;
+*/
 
   public static void start() {
-    log(deviceType, 3, "checking usability");
     Point lnow = at();
     float mmd = Settings.MoveMouseDelay;
     Settings.MoveMouseDelay = 0f;
@@ -51,19 +52,11 @@ public class MouseDevice extends Devices {
       lc = scrd.getCenter();
       lcn = move(lc);
       if (MouseDevice.nearby(lc, lcn)) {
-        log(deviceType, 3, "ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
         move(lnow);
-      } else {
-        log(deviceType, 3, "not ok: %s at: (%d, %d) but is: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
-        usable = false;
+        useable = true;
       }
     }
     Settings.MoveMouseDelay = mmd;
-    if (!isUsable()) {
-      if (Commons.runningMac()) {
-        Commons.terminate(999, "Mouse.init: Mouse not useable (blocked) - Screenshots might not work either!");
-      }
-    }
   }
 
   public static boolean nearby(Object target, Object actual) {

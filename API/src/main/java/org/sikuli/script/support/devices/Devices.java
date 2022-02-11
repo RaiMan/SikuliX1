@@ -41,6 +41,8 @@ public abstract class Devices {
   public static void start(TYPE type, Map<String, Object> options) {
     if (type.equals(TYPE.SCREEN)) {
       ScreenDevice.start();
+    } else if (type.equals(TYPE.MOUSE)) {
+      MouseDevice.start();
     }
   }
 

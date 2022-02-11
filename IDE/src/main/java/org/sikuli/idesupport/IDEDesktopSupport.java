@@ -8,7 +8,9 @@ import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.gui.SXDialog;
 
-import java.awt.*;
+import java.awt.Desktop;
+import java.awt.Taskbar;
+import java.awt.Toolkit;
 import java.awt.desktop.AboutEvent;
 import java.awt.desktop.AboutHandler;
 import java.awt.desktop.OpenFilesEvent;

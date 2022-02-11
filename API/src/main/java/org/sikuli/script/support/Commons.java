@@ -16,7 +16,9 @@ import org.sikuli.script.Region;
 import org.sikuli.script.SX;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
+import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -37,6 +39,9 @@ import java.nio.IntBuffer;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -179,6 +184,30 @@ public class Commons {
     return !runningMac() && !runningWindows();
   }
 
+  public static void checkAccessibilityOnMac() {
+    if (Commons.runningMac()) {
+      Devices.start(Devices.TYPE.SCREEN);
+      ExecutorService executorService = Executors.newFixedThreadPool(1);
+      executorService.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            Devices.start(Devices.TYPE.MOUSE);
+          } catch (Exception e) {
+          }
+        }
+      });
+      pause(0.5);
+      executorService.shutdownNow();
+      if (!MouseDevice.isUseable()) {
+        System.out.println( //TODO mouse blocked message
+            "*****************************************************\n" +
+                "* Mouse blocked - Screenshots might not work either *\n" +
+                "*****************************************************");
+      }
+    }
+  }
+
   static {
     startMoment = new Date().getTime();
 
@@ -276,6 +305,8 @@ Software:
     }
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
+
+    checkAccessibilityOnMac(); //TODO
 
     if (SNAPSHOT) {
       new Thread(new Runnable() {

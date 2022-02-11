@@ -14,12 +14,14 @@ import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
+import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.gui.SXDialog;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -94,6 +96,10 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(RUN)) {
+      //TODO mouse not useable
+      if (!MouseDevice.isUseable()) {
+        System.exit(1);
+      }
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override
         public void hotkeyPressed(HotkeyEvent e) {
@@ -112,6 +118,10 @@ public class Sikulix {
     }
 
     if (Commons.hasStartArg(RUNSERVER)) {
+      //TODO mouse not useable
+      if (!MouseDevice.isUseable()) {
+        System.exit(1);
+      }
       Class cServer = null;
       try {
         cServer = Class.forName("org.sikuli.script.runners.ServerRunner");
@@ -144,6 +154,11 @@ public class Sikulix {
     }
 
     Commons.debug("IDE starting (%4.1f)", Commons.getSinceStart());
+
+    //TODO mouse not useable
+    if (!MouseDevice.isUseable()) {
+      System.exit(1);
+    }
     //endregion
 
 
