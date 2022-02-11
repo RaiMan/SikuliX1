@@ -1,9 +1,7 @@
 package org.sikuli.script.support.devices;
 
-import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Location;
-import org.sikuli.script.support.Commons;
 
 import java.awt.*;
 
@@ -16,32 +14,6 @@ public class MouseDevice extends Devices {
   public static boolean isUseable() {
     return useable;
   }
-
-/*
-  public static boolean isNotUseable(String function) {
-    String fText = function.isEmpty() ? "" : "." + function + "()";
-    if (notUseable) {
-      Debug.error("Mouse%s: not useable (blocked)", fText);
-    }
-    return notUseable;
-  }
-
-  public static boolean isNotUseable() {
-    return isNotUseable("");
-  }
-
-  public static void setNotUseable() {
-    notUseable = true;
-    if (Commons.runningMac()) {
-      Debug.error("Mouse: not useable (blocked)\n" +
-          "See: https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS");
-    } else {
-      Debug.error("Mouse: not useable (blocked)");
-    }
-  }
-
-  private static boolean notUseable = false;
-*/
 
   public static void start() {
     Point lnow = at();
