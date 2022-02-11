@@ -52,11 +52,11 @@ public class MouseDevice extends Devices {
       lcn = move(lc);
       if (MouseDevice.nearby(lc, lcn)) {
         log(deviceType, 3, "ok: %s at: (%d, %d)", scrd, lc.x, lc.y);
+        move(lnow);
       } else {
         log(deviceType, 3, "not ok: %s at: (%d, %d) but is: (%d, %d)", scrd, lc.x, lc.y, lcn.x, lcn.y);
         usable = false;
       }
-      move(lnow);
     }
     Settings.MoveMouseDelay = mmd;
     if (!isUsable()) {

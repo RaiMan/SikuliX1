@@ -97,23 +97,25 @@ public class Screen extends Region implements IScreen {
     if (primaryScreen < 0) {
       initScreens();
       //TODO open some website: mouse is blocked
-/*
-      if (RunTime.isIDE() && MouseDevice.isNotUseable() && Commons.runningMac()) {
-        String link = "https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS";
-        SX.popup("In order for SikuliX to use the mouse on macOS" +
-                "\nand to make screenshots, you have to allow this" +
-                "\nin SystemPreferences -> Security&Privacy" +
-                "\nin Accessibility and ScreenRecording" +
-                "\n\nIn current IDE session mouse/keyboard-actions will not work" +
-                "\nand screenshots might be empty (background only, FindFailed)." +
-                "\n\nUntil an App is available, the SikuliX IDE must be started" +
-                "\nfrom a Terminal: java -jar <path-to>/sikulixide....jar!" +
-                "\n\nFor details see: (link is copied to clipboard)" +
-                "\n" + link,
-            "Mouse usage is blocked");
-        App.setClipboard(link);
+      if ( Commons.runningMac() && MouseDevice.isNotUseable()) {
+        if (Commons.runningIDE()) {
+  //        String link = "https://github.com/RaiMan/SikuliX1/wiki/Allow-SikuliX-actions-on-macOS";
+  //        SX.popup("In order for SikuliX to use the mouse on macOS" +
+  //                "\nand to make screenshots, you have to allow this" +
+  //                "\nin SystemPreferences -> Security&Privacy" +
+  //                "\nin Accessibility and ScreenRecording" +
+  //                "\n\nIn current IDE session mouse/keyboard-actions will not work" +
+  //                "\nand screenshots might be empty (background only, FindFailed)." +
+  //                "\n\nUntil an App is available, the SikuliX IDE must be started" +
+  //                "\nfrom a Terminal: java -jar <path-to>/sikulixide....jar!" +
+  //                "\n\nFor details see: (link is copied to clipboard)" +
+  //                "\n" + link,
+  //            "Mouse usage is blocked");
+  //        App.setClipboard(link);
+          //Commons.info("");
+        }
+        //Commons.info("");
       }
-*/
     }
     curID = primaryScreen;
     initScreen();

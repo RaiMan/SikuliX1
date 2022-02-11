@@ -67,7 +67,7 @@ public class Commons {
   private static long startMoment;
 
   protected static boolean RUNNINGIDE = false;
-  static PrintStream SX_PRINTOUT = null;
+  static PrintStream SX_PRINTOUT;
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
@@ -372,6 +372,9 @@ Software:
   }
 
   public static PrintStream getLogStream() {
+    if (SX_PRINTOUT == null) {
+      SX_PRINTOUT = System.out;
+    }
     return SX_PRINTOUT;
   }
 
@@ -380,11 +383,7 @@ Software:
   }
 
   private static void printOut(String msg, Object... args) {
-    if (SX_PRINTOUT == null) {
-      System.out.printf(msg, args);
-    } else {
-      SX_PRINTOUT.printf(msg, args);
-    }
+    getLogStream().printf(msg, args);
   }
 
   public static synchronized void addlog(String msg) {
@@ -691,7 +690,7 @@ Software:
   public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
     if (!outMsg.isEmpty()) {
-      SX_PRINTOUT.println("TERMINATING: " + outMsg);
+      Commons.printlnOut("TERMINATING: " + outMsg);
     }
     if (retval < 999) {
       cleanUp();
@@ -972,20 +971,20 @@ Software:
   }
 
   public static void getStatus() {
-    SX_PRINTOUT.println("***** System Information Dump *****");
-    SX_PRINTOUT.println(String.format("*** SystemInfo\n%s", getSystemInfo()));
-    System.getProperties().list(SX_PRINTOUT);
-    SX_PRINTOUT.println("*** System Environment");
+    printlnOut("***** System Information Dump *****");
+    printlnOut(String.format("*** SystemInfo\n%s", getSystemInfo()));
+    System.getProperties().list(getLogStream());
+    printlnOut("*** System Environment");
     for (String key : System.getenv().keySet()) {
-      SX_PRINTOUT.println(String.format("%s = %s", key, System.getenv(key)));
+      printlnOut(String.format("%s = %s", key, System.getenv(key)));
     }
-    SX_PRINTOUT.println("*** Java Class Path");
+    printlnOut("*** Java Class Path");
     URLClassLoader sysLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
     URL[] urls = sysLoader.getURLs();
     for (int i = 0; i < urls.length; i++) {
-      SX_PRINTOUT.println(String.format("%d: %s", i, urls[i]));
+      printlnOut(String.format("%d: %s", i, urls[i]));
     }
-    SX_PRINTOUT.println("***** System Information Dump ***** end *****");
+    printlnOut("***** System Information Dump ***** end *****");
   }
   //</editor-fold>
 
