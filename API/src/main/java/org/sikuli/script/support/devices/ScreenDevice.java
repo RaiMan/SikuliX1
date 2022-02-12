@@ -8,6 +8,7 @@ import org.sikuli.script.support.RobotDesktop;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScreenDevice extends Devices {
 
@@ -27,25 +28,19 @@ public class ScreenDevice extends Devices {
 
   private int id = -1;
 
-  private static boolean started = false;
-
-  public static boolean isStarted() {
-    return started;
-  }
-
-  static boolean useable = true;
+  static AtomicBoolean useable = null;
 
   public static boolean isUseable(boolean... state) {
     if (state.length > 0) {
-      useable = state[0];
+      useable.set(state[0]);
     }
-    return useable;
+    return useable.get();
   }
 
   static void start() {
-    initDevices();
-    if (mainMonitor > -1) {
-      started = true;
+    if (useable == null) {
+      initDevices();
+      useable = new AtomicBoolean(true);
     }
   }
 

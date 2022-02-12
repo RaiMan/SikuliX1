@@ -60,11 +60,13 @@ public class Mouse {
       mouse.device = new Device(mouse);
       mouse.device.isMouse = true;
       mouse.device.lastPos = null;
-      MouseDevice.start();
     }
   }
 
   private static Mouse get() {
+    if (!MouseDevice.isUseable()) {
+      throw new SikuliXception("FATAL: Mouse not useable"); //TODO
+    }
     if (mouse == null) {
       init();
     }
@@ -400,9 +402,6 @@ public class Mouse {
   }
 
   protected static int move(Location loc, Region region) {
-    if (!MouseDevice.isUseable()) {
-      return 0;
-    }
     if (get().device.isSuspended()) {
       return 0;
     }
@@ -442,9 +441,6 @@ public class Mouse {
   }
 
   protected static void down(int buttons, Region region) {
-    if (!MouseDevice.isUseable()) {
-      return;
-    }
     if (get().device.isSuspended()) {
       return;
     }
@@ -469,9 +465,6 @@ public class Mouse {
   }
 
   protected static void up(int buttons, Region region) {
-    if (!MouseDevice.isUseable()) {
-      return;
-    }
     if (get().device.isSuspended()) {
       return;
     }
@@ -497,9 +490,6 @@ public class Mouse {
   }
 
   protected static void wheel(int direction, int steps, Region region, int stepDelay) {
-    if (MouseDevice.isUseable()) {
-      return;
-    }
     if (get().device.isSuspended()) {
       return;
     }

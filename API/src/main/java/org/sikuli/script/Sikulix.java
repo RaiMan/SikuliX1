@@ -74,9 +74,16 @@ public class Sikulix {
 
         if ("find".equals(arg)) {
           Screen scr = new Screen();
+          scr.hover();
           String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
+          SXDialog sxabout = new SXDialog("sxabout", new Point(500, 500), SXDialog.POSITION.TOP);
+          sxabout.run();
+          while(sxabout.isRunning()) {
+            Commons.pause(1);
+          }
+          System.exit(0);
 
           //scr = new Screen(1);
           SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
@@ -97,7 +104,6 @@ public class Sikulix {
       }
       System.exit(0);
     }
-
 
     SikulixAPI.main(args);
   }
@@ -327,7 +333,7 @@ public class Sikulix {
         title = "Sikuli input request";
       }
       ret = (String) JOptionPane.showInputDialog(anchor, msg, title,
-              JOptionPane.PLAIN_MESSAGE, null, null, preset);
+          JOptionPane.PLAIN_MESSAGE, null, null, preset);
     } else {
       preset = "";
       JTextArea tm = new JTextArea(msg);
@@ -557,7 +563,7 @@ public class Sikulix {
       }
     }
     return FileManager.buildJar(targetJar, new String[]{null},
-            new String[]{sourceFolder}, new String[]{prefix}, null);
+        new String[]{sourceFolder}, new String[]{prefix}, null);
   }
   //</editor-fold>
 }

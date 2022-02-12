@@ -178,7 +178,7 @@ public class Commons {
     return !runningMac() && !runningWindows();
   }
 
-  public static void checkAccessibilityOnMac() {
+  public static void checkAccessibility() {
     Devices.start(Devices.TYPE.SCREEN);
     Rectangle srect = ScreenDevice.primary().asRectangle();
     long now = timeNow();
@@ -198,7 +198,9 @@ public class Commons {
           (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
               (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
               (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
-      ScreenDevice.isUseable(!singleColor);
+      if (singleColor) {
+        ScreenDevice.isUseable(false);
+      }
     }
     ExecutorService executorService = Executors.newFixedThreadPool(1);
     executorService.execute(new Runnable() {
@@ -323,7 +325,7 @@ Software:
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
 
-    checkAccessibilityOnMac(); //TODO
+    checkAccessibility(); //TODO
 
     if (SNAPSHOT) {
       new Thread(new Runnable() {

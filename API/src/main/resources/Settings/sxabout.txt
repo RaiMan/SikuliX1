@@ -1,0 +1,10 @@
+#globals; c; f 16
+---
+Mouse not useable
+---
+---
+SikuliX-IDE-{sxversion} on Java {javaversion}
+---
+#link; sikulix.com | https://sikulix.github.io
+---
+#close; Press ESC or Click; f 12

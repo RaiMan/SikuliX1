@@ -59,7 +59,6 @@ public class Screen extends Region implements IScreen {
     }
     log(logLevel, "initScreens: starting");
     if (!ScreenDevice.isHeadless()) {
-      Devices.start(Devices.TYPE.SCREEN);
       nMonitors = ScreenDevice.numDevices();
       primaryScreen = 0;
       screens = new Screen[nMonitors];

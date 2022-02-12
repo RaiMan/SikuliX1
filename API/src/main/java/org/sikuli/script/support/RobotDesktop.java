@@ -142,7 +142,7 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   private void checkMousePosition(Location targetPos) {
-    if (!MouseDevice.isUseable()) {
+    if (!MouseDevice.isUseable()) { // checkMousePosition
       return;
     }
     PointerInfo mp = MouseInfo.getPointerInfo();

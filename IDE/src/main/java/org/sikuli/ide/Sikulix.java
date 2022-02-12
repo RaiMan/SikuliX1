@@ -15,6 +15,7 @@ import org.sikuli.script.runnerSupport.Runner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.script.support.devices.MouseDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.script.support.gui.SXDialog;
 
 import java.io.File;
@@ -97,7 +98,7 @@ public class Sikulix {
 
     if (Commons.hasStartArg(RUN)) {
       //TODO mouse not useable
-      if (!MouseDevice.isUseable()) {
+      if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
         System.exit(1);
       }
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
@@ -119,7 +120,7 @@ public class Sikulix {
 
     if (Commons.hasStartArg(RUNSERVER)) {
       //TODO mouse not useable
-      if (!MouseDevice.isUseable()) {
+      if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
         System.exit(1);
       }
       Class cServer = null;
@@ -156,7 +157,7 @@ public class Sikulix {
     Commons.debug("IDE starting (%4.1f)", Commons.getSinceStart());
 
     //TODO mouse not useable
-    if (!MouseDevice.isUseable()) {
+    if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
       //System.exit(1);
     }
     //endregion
