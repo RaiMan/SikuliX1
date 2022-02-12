@@ -4,15 +4,16 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.Location;
 
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MouseDevice extends Devices {
 
   private static TYPE deviceType = TYPE.MOUSE;
 
-  private static boolean useable = false;
+  private static AtomicBoolean useable = new AtomicBoolean(false);
 
   public static boolean isUseable() {
-    return useable;
+    return useable.get();
   }
 
   public static void start() {
@@ -25,8 +26,9 @@ public class MouseDevice extends Devices {
       lcn = move(lc);
       if (MouseDevice.nearby(lc, lcn)) {
         move(lnow);
-        useable = true;
+        useable.set(true);
       }
+
     }
     Settings.MoveMouseDelay = mmd;
   }

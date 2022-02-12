@@ -157,7 +157,7 @@ public class Sikulix {
 
     //TODO mouse not useable
     if (!MouseDevice.isUseable()) {
-      System.exit(1);
+      //System.exit(1);
     }
     //endregion
 

@@ -33,6 +33,15 @@ public class ScreenDevice extends Devices {
     return started;
   }
 
+  static boolean useable = true;
+
+  public static boolean isUseable(boolean... state) {
+    if (state.length > 0) {
+      useable = state[0];
+    }
+    return useable;
+  }
+
   static void start() {
     initDevices();
     if (mainMonitor > -1) {

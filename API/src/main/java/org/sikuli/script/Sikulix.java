@@ -73,11 +73,11 @@ public class Sikulix {
         }
 
         if ("find".equals(arg)) {
+          Screen scr = new Screen();
           String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
           ImagePath.setBundleFolder(new File(testBundle));
           String images = ImagePath.getBundlePath();
-          Screen scr = new Screen();
-          scr.hover();
+
           //scr = new Screen(1);
           SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
               scr.getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);

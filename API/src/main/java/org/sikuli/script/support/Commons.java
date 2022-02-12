@@ -11,14 +11,12 @@ import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.Options;
-import org.sikuli.script.Region;
-import org.sikuli.script.SX;
-import org.sikuli.script.SikuliXception;
+import org.sikuli.script.*;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
 import org.sikuli.script.support.devices.MouseDevice;
+import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.CommandArgs;
 import org.sikuli.util.CommandArgsEnum;
 
@@ -26,10 +24,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
+import java.awt.image.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -184,26 +179,49 @@ public class Commons {
   }
 
   public static void checkAccessibilityOnMac() {
+    Devices.start(Devices.TYPE.SCREEN);
+    Rectangle srect = ScreenDevice.primary().asRectangle();
+    long now = timeNow();
+    BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage();
+    long since = timeSince(now);
     if (Commons.runningMac()) {
-      Devices.start(Devices.TYPE.SCREEN);
-      ExecutorService executorService = Executors.newFixedThreadPool(1);
-      executorService.execute(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            Devices.start(Devices.TYPE.MOUSE);
-          } catch (Exception e) {
-          }
-        }
-      });
-      pause(0.5);
-      executorService.shutdownNow();
-      if (!MouseDevice.isUseable()) {
-        System.out.println( //TODO mouse blocked message
-            "*****************************************************\n" +
-                "* Mouse blocked - Screenshots might not work either *\n" +
-                "*****************************************************");
+      DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
+      int min = data.getElem(0);
+      int max = data.getElem(0);
+      for (int n = 0; n < data.getSize(); n++) {
+        min = Math.min(min, data.getElem(n));
+        max = Math.max(max, data.getElem(n));
       }
+      Color cmin = new Color(min);
+      Color cmax = new Color(max);
+      boolean singleColor =
+          (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
+              (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
+              (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
+      ScreenDevice.isUseable(!singleColor);
+    }
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
+    executorService.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Devices.start(Devices.TYPE.MOUSE);
+        } catch (Exception e) {
+        }
+      }
+    });
+    pause(since / 1000.0 * 3.0); //TODO pause depending on system performance
+    if (!MouseDevice.isUseable()) {
+      System.out.println( //TODO mouse blocked message
+          "*****************************************************\n" +
+              "    Mouse/Key features are blocked - not useable\n" +
+              "*****************************************************");
+    }
+    if (!ScreenDevice.isUseable()) {
+      System.out.println( //TODO screenshots blocked message
+          "*****************************************************\n" +
+              "  Screenshots blocked - find on screen not useable\n" +
+              "*****************************************************");
     }
   }
 
