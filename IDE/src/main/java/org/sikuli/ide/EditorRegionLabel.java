@@ -12,6 +12,9 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
+
+import org.sikuli.basics.Debug;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 import org.sikuli.script.Screen;
 import org.sikuli.util.EventSubject;
@@ -104,11 +107,15 @@ public class EditorRegionLabel extends JLabel implements MouseListener, EventObs
       wasPopup = false;
       return;
     }
+    if (Commons.isCaptureBlocked()) {
+      Debug.error("FATAL: Capture is blocked");
+      return;
+    }
     SikulixIDE.doHide();
     setForeground(fc);
     setBorder(bfinal);
     RunTime.pause(0.5f);
-    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this);
+    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this); // EditorRegionLabel
   }
 
   @Override

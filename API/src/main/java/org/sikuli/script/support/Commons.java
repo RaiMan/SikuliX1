@@ -227,6 +227,10 @@ public class Commons {
     }
   }
 
+  public static boolean isCaptureBlocked() {
+    return !ScreenDevice.isUseable();
+  }
+
   static {
     startMoment = new Date().getTime();
 

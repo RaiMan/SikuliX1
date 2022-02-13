@@ -5,6 +5,7 @@ package org.sikuli.ide;
 
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
+import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.PreferencesUser;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.Key;
@@ -91,6 +92,13 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
   ScreenImage sImgNonLocal = null;
 
   public void capture(int delay) {
+    defaultScreen = SikulixIDE.getDefaultScreen();
+    if (defaultScreen == null) {
+      if (Commons.isCaptureBlocked()) {
+        Debug.error("FATAL: Capture is blocked");
+        return;
+      }
+    }
     String line = "";
     SikulixIDE ide = SikulixIDE.get();
     if (SikulixIDE.notHidden()) {
@@ -108,9 +116,8 @@ class ButtonCapture extends ButtonOnToolbar implements ActionListener, Cloneable
       Debug.log(3, "ButtonCapture: doPrompt for %s", givenName);
     }
     RunTime.pause(((float) delay)/1000);
-    defaultScreen = SikulixIDE.getDefaultScreen();
     if (defaultScreen == null) {
-      Screen.doPrompt("Select an image", this);
+      Screen.doPrompt("Select an image", this); // ButtonCapture
     } else {
       if (HelpDevice.isAndroid(defaultScreen) && Sikulix.popAsk("Android capture")) {
         new Thread() {

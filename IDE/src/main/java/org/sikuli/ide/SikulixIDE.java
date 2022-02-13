@@ -2016,7 +2016,7 @@ public class SikulixIDE extends JFrame {
       if (shouldRun()) {
         ideWindow.setVisible(false);
         RunTime.pause(0.5f);
-        Screen.doPrompt(promptText, this);
+        Screen.doPrompt(promptText, this); // ButtonSubregion
       } else {
         nothingTodo();
       }
@@ -2027,6 +2027,10 @@ public class SikulixIDE extends JFrame {
 
     boolean shouldRun() {
       log(3, "TRACE: ButtonSubRegion triggered");
+      if (Commons.isCaptureBlocked()) {
+        Debug.error("FATAL: Capture is blocked");
+        return false;
+      }
       return true;
     }
 

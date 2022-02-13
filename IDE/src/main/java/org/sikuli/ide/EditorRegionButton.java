@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import javax.swing.*;
+
+import org.sikuli.script.support.Commons;
 import org.sikuli.util.OverlayCapturePrompt;
 import org.sikuli.script.support.IScreen;
 import org.sikuli.script.support.RunTime;
@@ -37,9 +39,13 @@ class EditorRegionButton extends JButton implements ActionListener, EventObserve
 
   @Override
   public void actionPerformed(ActionEvent ae) {
+    if (Commons.isCaptureBlocked()) {
+      Debug.error("FATAL: Capture is blocked");
+      return;
+    }
     SikulixIDE.doHide();
     RunTime.pause(0.5f);
-    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this);
+    Screen.doPrompt(SikulixIDE._I("msgCapturePrompt"), this); // EditorRegionButton
   }
 
   @Override
