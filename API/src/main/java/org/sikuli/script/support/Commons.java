@@ -1194,7 +1194,7 @@ Software:
 
   public static URL makeURL(Object main, String sub) {
     String enter = enter("makeURL", "main: %s, sub: %s", main, sub);
-    debug("makeURL: main: %s", main); //TODO
+    //debug("makeURL: main: %s", main); //TODO
     if (main == null) {
       error("makeURL: 1st parameter main is null");
       return null;
@@ -1313,13 +1313,13 @@ Software:
       }
     }
 
-    debug("makeURL returns: url: %s", url); //TODO
+    //debug("makeURL returns: url: %s", url); //TODO
     exit("makeURL", "url: %s", url);
     return url;
   }
 
   public static URL makeClassURL(String sClass) {
-    debug("makeClassURL: sClass: %s", sClass);
+    //debug("makeClassURL: sClass: %s", sClass); //TODO
     if (sClass == null || sClass.isEmpty()) {
       return null;
     }
@@ -1336,7 +1336,7 @@ Software:
     } catch (ClassNotFoundException e) {
       error("makeURL(%s): class does not exist: %s", parts[0]);
     }
-    debug("makeClassURL returns: url: %s", url);
+    //debug("makeClassURL returns: url: %s", url); //TODO
     return url;
   }
 
@@ -1406,7 +1406,7 @@ Software:
   }
 
   public static List<String> getContentList(String resFolder, Class classReference) {
-    debug("getContentList(res: %s, ref: %s)", resFolder, classReference);
+    //debug("getContentList(res: %s, ref: %s)", resFolder, classReference); //TODO
     List<String> resList = new ArrayList<>();
     if (!parmsValid(resFolder, classReference)) {
       return resList;
@@ -1416,7 +1416,7 @@ Software:
       resFile = resFile.replace("\\", "/");
     }
     String content = copyResourceToString(resFile, classReference);
-    debug("getResourceList: %s\n(%s)", resFile, content);
+    //debug("getResourceList: %s\n(%s)", resFile, content); //TODO
     if (!content.isEmpty()) {
       String[] names = content.split("\n");
       for (String name : names) {
