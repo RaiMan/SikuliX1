@@ -18,19 +18,20 @@ public class MouseDevice extends Devices {
 
   public static void start() {
     Point lnow = at();
-    float mmd = Settings.MoveMouseDelay;
-    Settings.MoveMouseDelay = 0f;
     Point lc, lcn;
     for (ScreenDevice scrd : ScreenDevice.get()) {
       lc = scrd.getCenter();
-      lcn = move(lc);
+      getMouseRobot().mouseMove(lc.x, lc.y);
+      getMouseRobot().waitForIdle();
+      lcn = at();
+      //lcn = move(lc);
       if (MouseDevice.nearby(lc, lcn)) {
         move(lnow);
         useable.set(true);
+      } else {
+        break;
       }
-
     }
-    Settings.MoveMouseDelay = mmd;
   }
 
   public static boolean nearby(Object target, Object actual) {

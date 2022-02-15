@@ -26,7 +26,7 @@ import java.util.List;
 
 public class Sikulix {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     Commons.init();
     System.setProperty("sikuli.API_should_run", "develop");
     if (args.length == 1 && "buildDate".equals(args[0])) {
@@ -42,70 +42,86 @@ public class Sikulix {
       String arg = args[0];
       if (arg.startsWith("test")) {
         arg = arg.replace("test", "");
-
-        if ("app".equals(arg)) {
-          final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
-          new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
-          if (!options.getOutput().strip().contains("OK")) System.exit(-1);
-
-          List<App> apps = App.allUserApps();
-          App app = new App("finder");
-          if (!app.isRunning()) {
-            app.open();
-          } else {
-            app.focus();
-          }
-          App.pause(2);
-          Region window = app.toFront("smile");
-          //window.highlight(2);
-
-
-          List<Region> windows = app.windows();
-          //app.window(0).highlight(2);
-          print("app.getTitle(): %s", app.getTitle());
-          for (Region w : windows) {
-            print(w.getName());
-          }
+        try {
+          testRun(arg);
+        } catch (Exception e) {
+          Commons.error("%s", e);
+          System.exit(1);
         }
 
-        if ("xxx".equals(arg)) {
-          print("testxxx");
-        }
-
-        if ("find".equals(arg)) {
-          Screen scr = new Screen();
-          scr.hover();
-          String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
-          ImagePath.setBundleFolder(new File(testBundle));
-          String images = ImagePath.getBundlePath();
-          SXDialog sxabout = new SXDialog("sxabout", new Point(500, 500), SXDialog.POSITION.TOP);
-          sxabout.run();
-          while(sxabout.isRunning()) {
-            Commons.pause(1);
-          }
-          System.exit(0);
-
-          //scr = new Screen(1);
-          SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
-              scr.getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
-          Region reg = new Region(0, 0, 500, 600);
-          ScreenImage screenImage = scr.capture(reg);
-          Image image = new Image(screenImage);
-          image = Image.create("SikulixTest001");
-          Match match;
-          Commons.pause(1);
-
-          reg = scr;
-          List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
-          //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
-          SXDialog.onScreen(sxDialog);
-          App.focus("idea");
-        }
       }
       System.exit(0);
     }
 
     SikulixAPI.main(args);
+  }
+
+  public static void testRun(String arg) throws Exception {
+    if ("app".equals(arg)) {
+      final IScriptRunner.Options options = new IScriptRunner.Options().setOutput();
+      new AppleScriptRunner().evalScript("display dialog \"hello\"", options);
+      if (!options.getOutput().strip().contains("OK")) System.exit(-1);
+
+      List<App> apps = App.allUserApps();
+      App app = new App("finder");
+      if (!app.isRunning()) {
+        app.open();
+      } else {
+        app.focus();
+      }
+      App.pause(2);
+      Region window = app.toFront("smile");
+      //window.highlight(2);
+
+
+      List<Region> windows = app.windows();
+      //app.window(0).highlight(2);
+      print("app.getTitle(): %s", app.getTitle());
+      for (Region w : windows) {
+        print(w.getName());
+      }
+    }
+
+    if ("xxx".equals(arg)) {
+      print("testxxx");
+    }
+
+    if ("find".equals(arg)) {
+      Screen scr = new Screen();
+      String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
+      ImagePath.setBundleFolder(new File(testBundle));
+      List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
+
+      //scr.userCapture();
+      //scr.hover();
+      //scr.find("img");
+      scr.getAny(obs);
+
+      System.exit(1);
+
+      String images = ImagePath.getBundlePath();
+      SXDialog sxabout = new SXDialog("sxabout", new Point(500, 500), SXDialog.POSITION.TOP);
+      sxabout.run();
+      while(sxabout.isRunning()) {
+        Commons.pause(1);
+      }
+      System.exit(0);
+
+      //scr = new Screen(1);
+      SXDialog sxDialog = new SXDialog("#image; file:" + images + "/SikulixTest001.png;",
+          scr.getTopLeft().getPoint(), SXDialog.POSITION.TOPLEFT);
+      Region reg = new Region(0, 0, 500, 600);
+      ScreenImage screenImage = scr.capture(reg);
+      Image image = new Image(screenImage);
+      image = Image.create("SikulixTest001");
+      Match match;
+      Commons.pause(1);
+
+      reg = scr;
+      //reg.setFindFailedResponse(FindFailedResponse.PROMPT);
+      SXDialog.onScreen(sxDialog);
+      App.focus("idea");
+    }
   }
 
   //<editor-fold desc="00 log">

@@ -178,11 +178,13 @@ public class Commons {
     return !runningMac() && !runningWindows();
   }
 
+  public static ExecutorService executorService = null;
+
   public static void checkAccessibility() {
     Devices.start(Devices.TYPE.SCREEN);
     Rectangle srect = ScreenDevice.primary().asRectangle();
     long now = timeNow();
-    BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage();
+    BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
     long since = timeSince(now);
     if (Commons.runningMac()) {
       DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
@@ -202,13 +204,14 @@ public class Commons {
         ScreenDevice.isUseable(false);
       }
     }
-    ExecutorService executorService = Executors.newFixedThreadPool(1);
+    executorService = Executors.newFixedThreadPool(1);
     executorService.execute(new Runnable() {
       @Override
       public void run() {
         try {
           Devices.start(Devices.TYPE.MOUSE);
         } catch (Exception e) {
+          System.out.println("");
         }
       }
     });
@@ -743,10 +746,10 @@ Software:
 
   public static void terminate(int retval, String message, Object... args) {
     String outMsg = String.format(message, args);
-    if (!outMsg.isEmpty()) {
-      Commons.printlnOut("TERMINATING: " + outMsg);
-    }
     if (retval < 999) {
+      if (!outMsg.isEmpty()) {
+        Commons.printlnOut("TERMINATING: " + outMsg);
+      }
       cleanUp();
       System.exit(retval);
     }

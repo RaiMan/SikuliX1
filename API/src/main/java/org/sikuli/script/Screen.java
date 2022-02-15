@@ -536,7 +536,7 @@ public class Screen extends Region implements IScreen {
 
   public static boolean doPrompt(String message, EventObserver obs) {
     if (Commons.isCaptureBlocked()) {
-      Debug.error("FATAL: Capture is blocked");
+      Commons.terminate(999, "Capture is blocked"); //TODO interactive capture
       return false;
     }
     captureObserver = obs;
@@ -612,6 +612,9 @@ public class Screen extends Region implements IScreen {
   public ScreenImage userCapture(final String message) {
     if (!setActiveCapturePrompt()) {
       return null;
+    }
+    if (Commons.isCaptureBlocked()) {
+      Commons.terminate(999, "Capture is blocked"); //TODO userCapture
     }
     Debug.log(3, "TRACE: Screen: userCapture");
     waitPrompt = true;

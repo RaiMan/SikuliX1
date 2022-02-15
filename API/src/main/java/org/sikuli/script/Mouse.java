@@ -65,7 +65,7 @@ public class Mouse {
 
   private static Mouse get() {
     if (!MouseDevice.isUseable()) {
-      throw new SikuliXception("FATAL: Mouse not useable"); //TODO
+      Commons.terminate(999, "Mouse not useable"); //TODO
     }
     if (mouse == null) {
       init();

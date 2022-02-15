@@ -2028,7 +2028,7 @@ public class SikulixIDE extends JFrame {
     boolean shouldRun() {
       log(3, "TRACE: ButtonSubRegion triggered");
       if (Commons.isCaptureBlocked()) {
-        Debug.error("FATAL: Capture is blocked");
+        Debug.error("FATAL: Capture is blocked"); // Button SubRegion
         return false;
       }
       return true;
