@@ -812,7 +812,6 @@ public abstract class Element {
     List<Object> pList = new ArrayList<>();
     if (args[0] instanceof Collection<?>) {
       pList.addAll((Collection<?>) args[0]);
-      Commons.info("");
     } else {
       pList.addAll(Arrays.asList(args));
     }
