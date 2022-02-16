@@ -182,11 +182,22 @@ public class Commons {
 
   public static void checkAccessibility() {
     Devices.start(Devices.TYPE.SCREEN);
-    Rectangle srect = ScreenDevice.primary().asRectangle();
-    long now = timeNow();
-    BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
-    long since = timeSince(now);
+    //check Mouse
+    executorService = Executors.newFixedThreadPool(1);
+    executorService.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Devices.start(Devices.TYPE.MOUSE);
+        } catch (Exception e) {
+          System.out.println("");
+        }
+      }
+    });
     if (Commons.runningMac()) {
+      //macOS: check Screen capture
+      Rectangle srect = ScreenDevice.primary().asRectangle();
+      BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
       DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
       int min = data.getElem(0);
       int max = data.getElem(0);
@@ -203,19 +214,9 @@ public class Commons {
       if (singleColor) {
         ScreenDevice.isUseable(false);
       }
+    } else {
+      pause(0.5); //Windows: wait for threaded Mouse check
     }
-    executorService = Executors.newFixedThreadPool(1);
-    executorService.execute(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Devices.start(Devices.TYPE.MOUSE);
-        } catch (Exception e) {
-          System.out.println("");
-        }
-      }
-    });
-    pause(since / 1000.0 * 3.0); //TODO pause depending on system performance
     if (!MouseDevice.isUseable()) {
       System.out.println( //TODO mouse blocked message
           "*****************************************************\n" +
