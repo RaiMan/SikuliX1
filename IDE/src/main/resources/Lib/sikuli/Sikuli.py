@@ -477,7 +477,7 @@ def makePath(*paths):
     if len(paths) > 1:
         for p in paths[1:]:
             path = os.path.join(path, p)
-    if path[-1] == Settings.getFilePathSeperator():
+    if path[-1] == "\\" or path[-1] == "/":
         return os.path.dirname(path)
     return path
 
