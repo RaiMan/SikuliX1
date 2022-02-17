@@ -371,9 +371,15 @@ public class TextRecognizer {
 
   protected <SFIRBS> String doRead(SFIRBS from) {
     BufferedImage bimg = Element.getBufferedImage(from);
+    if (bimg == null) {
+      Debug.error("OCR: read: %s (no image)", from);
+      return "";
+    }
     String text;
     try {
-      text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
+      ITesseract tesseractAPI = getTesseractAPI();
+      text = tesseractAPI.doOCR(optimize(bimg));
+      text = text.trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
       Debug.error("OCR: read: Tess4J: doOCR: %s", e.getMessage());
       return "";
