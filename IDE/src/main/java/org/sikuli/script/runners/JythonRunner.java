@@ -101,7 +101,7 @@ public class JythonRunner extends AbstractLocalFileScriptRunner {
       } else {
         Commons.error("Jython not ready --- scripts cannot be run (%4.1f sec)", Commons.getSinceStart());
       }
-      SikulixIDE.showAfterStart();
+      SikulixIDE.isRunnerReady(true);
     }
   }
 

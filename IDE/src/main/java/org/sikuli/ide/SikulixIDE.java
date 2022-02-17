@@ -33,6 +33,7 @@ import java.net.URLDecoder;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 
 public class SikulixIDE extends JFrame {
@@ -97,6 +98,11 @@ public class SikulixIDE extends JFrame {
     IDESupport.init();
 
     sikulixIDE.startGUI();
+
+    while (!isRunnerReady()) {
+      Commons.pause(0.3);
+    }
+    showAfterStart();
   }
 
   public boolean quit() {
@@ -226,6 +232,15 @@ public class SikulixIDE extends JFrame {
   //</editor-fold>
 
   //<editor-fold desc="02 init IDE">
+  private static AtomicBoolean runnerReady = new AtomicBoolean(false);
+
+  public static boolean isRunnerReady(boolean... state) {
+    if (state.length > 0) {
+      runnerReady.set(state[0]);
+    }
+    return runnerReady.get();
+  }
+
   private void startGUI() {
     log(3, "IDE: starting GUI");
     setWindow();
