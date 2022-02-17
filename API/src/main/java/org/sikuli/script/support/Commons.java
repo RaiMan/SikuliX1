@@ -1334,15 +1334,14 @@ Software:
     URL url = null;
     sClass = sClass.replace("\\", "/");
     String[] parts = sClass.split("/");
-    String sub = "";
-    if (parts.length > 1) {
-      sub = sClass.substring(parts[0].length());
-    }
-    try {
-      Class<?> aClass = Class.forName(parts[0]);
-      url = aClass.getResource(sub);
-    } catch (ClassNotFoundException e) {
-      error("makeURL(%s): class does not exist: %s", parts[0]);
+    String possibleClass = parts[0];
+    if (!possibleClass.endsWith(":")) {
+      try {
+        Class<?> aClass = Class.forName(possibleClass);
+        url = aClass.getResource(possibleClass);
+      } catch (ClassNotFoundException e) {
+        error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
+      }
     }
     //debug("makeClassURL returns: url: %s", url); //TODO
     return url;
