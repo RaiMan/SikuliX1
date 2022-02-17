@@ -92,10 +92,11 @@ public class Sikulix {
       ImagePath.setBundleFolder(new File(testBundle));
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
 
+      String img = ImagePath.check("img");
       //scr.userCapture();
       //scr.hover();
       //scr.find("img");
-      scr.getAny(obs);
+      //scr.getAny(obs);
 
       System.exit(1);
 

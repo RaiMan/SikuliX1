@@ -712,7 +712,12 @@ public class ImagePath {
 
   //<editor-fold desc="10 find image">
   public static String check(String name) {
-    return "CheckImage: " + name + ": " + Commons.urlToFile(find(Image.getValidImageFilename(name))).getAbsolutePath();
+    String validImageFilename = Image.getValidImageFilename(name);
+    URL url = find(validImageFilename, true);
+    if (url != null) {
+      validImageFilename = url.toExternalForm();
+    }
+    return validImageFilename;
   }
 
   /**
@@ -724,6 +729,10 @@ public class ImagePath {
    * @return a valid URL or null if not found/exists
    */
   public static URL find(String imageName) {
+    return find(imageName, false);
+  }
+
+  private static URL find(String imageName, boolean silent) {
     String proto = "";
     String imageFileName = Image.getValidImageFilename(imageName);
     if (imageName.endsWith("#")) {
@@ -734,7 +743,9 @@ public class ImagePath {
       if (imageFile.exists()) {
         return Commons.makeURL(imageFile, ""); // find absolute
       } else {
-        log(-1, "find: File does not exist: %s", imageName);
+        if (!silent) {
+          log(-1, "find: File does not exist: %s", imageName);
+        }
         return null;
       }
     }
@@ -748,7 +759,7 @@ public class ImagePath {
       }
       proto = entry.pathURL.getProtocol();
       if (entry.clazz != null) {
-        url = Commons.makeURL(entry.clazz.getResource(entry.clazzSub), imageFileName);
+        url = Commons.makeURL(entry.clazz.getResource(entry.clazzSub), imageFileName); // find with class
         proto = "jar";
       }
       if ("jar".equals(proto) || proto.startsWith("http")) {
@@ -787,7 +798,9 @@ public class ImagePath {
       }
     }
     if (url == null) {
-      log(-1, "find: not in ImagePath: %s", imageName);
+      if (!silent) {
+        log(-1, "find: not in ImagePath: %s", imageName);
+      }
       dump(lvl);
     }
     return url;
