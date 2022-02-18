@@ -92,8 +92,9 @@ public class Sikulix {
       ImagePath.setBundleFolder(new File(testBundle));
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
 
-      Debug.on(3);
-      print("%s", scr.selectRegion().text());
+      //Debug.on(3);
+      //TextRecognizer.get(null);
+      //print("%s", scr.selectRegion().text());
       //String img = ImagePath.check("img");
       //scr.userCapture();
       //scr.hover();

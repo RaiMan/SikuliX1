@@ -83,11 +83,25 @@ public class TextRecognizer {
       }
       String libVersion = LoadLibs.LIB_NAME.replace("libtesseract", "");
       versionTesseract = String.format("%s.%s.%s", libVersion.substring(0,1), libVersion.substring(1,2), libVersion.substring(2));
-      Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       if (!Commons.runningWindows()) {
         String tesseract = ProcessRunner.run("tesseract", "--version");
-        Commons.info("");
+        String runningTesseract = "-None-";
+        boolean success = false;
+        if (tesseract.startsWith("0\n")) {
+          String[] split = tesseract.split("\n");
+          if (split[1].startsWith("tesseract")) {
+             runningTesseract = split[1].replace("tesseract ", "");
+            if (runningTesseract.equals(versionTesseract)) {
+              success = true;
+            }
+          }
+        }
+        if (!success) {
+          Commons.terminate(999, "OCR/TextRecognizer: Tesseract version found: %s must be: %s",
+              runningTesseract, versionTesseract);
+        }
       }
+      Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       RunTime.loadOpenCV();
       isValid = true;
     }
