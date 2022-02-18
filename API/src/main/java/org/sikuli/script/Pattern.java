@@ -34,6 +34,34 @@ public class Pattern {
   public Pattern() {
   }
 
+  public static <SFIRBS> Pattern get(SFIRBS whatever, Object... args) {
+    Image image = Image.get(whatever);
+    Pattern pattern = new Pattern().setImage(image);
+    boolean firstInt = true;
+    int xoff = 0;
+    int yoff = 0;
+    double sim = -1.0;
+    double resz = -1.0;
+    for (Object arg : args) {
+      if (arg instanceof Double && (Double) arg > 0) {
+        if (sim < 0) {
+          sim = (double) arg;
+        } else {
+          resz = (double) arg;
+        }
+      } else if (arg instanceof Integer) {
+        if (firstInt) {
+          xoff = (int) arg;
+          sim = Settings.MinSimilarity;
+          firstInt = false;
+        } else {
+          yoff = (int) arg;
+        }
+      }
+    }
+    return pattern;
+  }
+
   /**
    * create a new Pattern from another (attribs are copied)
    *
@@ -188,8 +216,8 @@ public class Pattern {
         }
       }
       if (mask.empty()
-              || image.getSize().getWidth() != mask.width()
-              || image.getSize().getHeight() != mask.height()) {
+          || image.getSize().getWidth() != mask.width()
+          || image.getSize().getHeight() != mask.height()) {
         Debug.log(-1, "Pattern (%s): withMask: not valid", image, pMask.image);
         mask = Commons.getNewMat();
       } else {
@@ -275,6 +303,7 @@ public class Pattern {
     similarity = sim;
     return this;
   }
+
   /**
    * sets the minimum Similarity to 0.99 which means exact match
    *
@@ -386,8 +415,8 @@ public class Pattern {
   @Override
   public String toString() {
     String ret = "P(" + image.getName()
-            + (isValid() ? "" : " -- not valid!")
-            + ")";
+        + (isValid() ? "" : " -- not valid!")
+        + ")";
     ret += " S: " + similarity;
     if (offset.x != 0 || offset.y != 0) {
       ret += " T: " + offset.x + "," + offset.y;

@@ -59,6 +59,27 @@ public class Image extends Element {
   private Image() {
   }
 
+  public static <SFIRBS> Image get(SFIRBS whatEver) {
+    if (whatEver instanceof String) {
+      return Image.create((String) whatEver);
+    } else if (whatEver instanceof File) {
+      return Image.create((File) whatEver);
+    } else if (whatEver instanceof Match) {
+      Region theRegion = new Region((Match) whatEver);
+      return theRegion.getImage();
+    } else if (whatEver instanceof Region) {
+      return ((Region) whatEver).getImage();
+    } else if (whatEver instanceof Image) {
+      return Image.create((Image) whatEver);
+    } else if (whatEver instanceof ScreenImage) {
+      return new Image((ScreenImage) whatEver);
+    } else if (whatEver instanceof BufferedImage) {
+      return new Image((BufferedImage) whatEver);
+    }
+    throw new IllegalArgumentException(String.format("Illegal Image source: %s", whatEver != null ? whatEver.getClass() : "null"));
+  }
+
+
   private Image(String fname, URL fURL) {
     init(fname, fURL);
   }

@@ -91,14 +91,17 @@ public class Sikulix {
       String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
       ImagePath.setBundleFolder(new File(testBundle));
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
-
-      //Debug.on(3);
+      Match match;
+      List<Match> matches;
+      Debug.on(3);
       //TextRecognizer.get(null);
       //print("%s", scr.selectRegion().text());
-      //String img = ImagePath.check("img");
+      //String img = ImagePath.check("pylon");
       //scr.userCapture();
       //scr.hover();
-      //scr.find("img");
+      Pattern pImg = Pattern.get("img", 0.9, 20, 30);
+      matches = scr.getAll(pImg);
+      scr.highlight(matches, 2);
       //scr.getAny(obs);
 
       System.exit(1);
@@ -118,7 +121,6 @@ public class Sikulix {
       ScreenImage screenImage = scr.capture(reg);
       Image image = new Image(screenImage);
       image = Image.create("SikulixTest001");
-      Match match;
       Commons.pause(1);
 
       reg = scr;
