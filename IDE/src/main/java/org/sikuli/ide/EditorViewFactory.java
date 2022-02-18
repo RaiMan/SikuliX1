@@ -139,6 +139,7 @@ class SyntaxHighlightLabelView extends LabelView {
   private static Font fontParenthesis;
 
   //<editor-fold defaultstate="collapsed" desc="keyword lists">
+  //TODO Highlight names in Python scripts
   private static String[] keywordsPython = {
     "and", "del", "for", "is", "raise",
     "assert", "elif", "from", "lambda", "return",
