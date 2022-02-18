@@ -38,10 +38,10 @@ public class TextRecognizer {
 
   private static boolean isValid = false;
 
-  private static int lvl = 3;
+  private static final int lvl = 3;
 
-  private static final String versionTess4J = "4.6.0";
-  private static final String versionTesseract = "4.1.3";
+  private static final String versionTess4J = "5.1.1";
+  private static final String versionTesseract = "";
 
   private OCR.Options options;
 
@@ -156,7 +156,7 @@ public class TextRecognizer {
   //<editor-fold desc="02 set OEM, PSM">
 
   /**
-   * @param oem
+   * @param oem OCR Engine mode
    * @return instance
    * @see OCR.Options#oem(OCR.OEM)
    * @deprecated Use options().oem()
@@ -167,7 +167,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param oem
+   * @param oem OCR Engine mode
    * @return instance
    * @see OCR.Options#oem(int)
    * @deprecated use OCR.globalOptions().oem()
@@ -180,7 +180,7 @@ public class TextRecognizer {
 
 
   /**
-   * @param psm
+   * @param psm Page segmentation mode
    * @return instance
    * @see OCR.Options#psm(OCR.PSM)
    * @deprecated use OCR.globalOptions().psm()
@@ -191,7 +191,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param psm
+   * @param psm Page segmentation mode
    * @return instance
    * @see OCR.Options#psm(int)
    * @deprecated use OCR.globalOptions().psm()
@@ -206,7 +206,7 @@ public class TextRecognizer {
   //<editor-fold desc="03 set datapath, language, variable, configs">
 
   /**
-   * @param dataPath
+   * @param dataPath tessdata path
    * @return instance
    * @see OCR.Options#dataPath()
    * @deprecated use OCR.globalOptions().datapath()
@@ -218,7 +218,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param language
+   * @param language tessdata language
    * @return instance
    * @see OCR.Options#language(String)
    * @deprecated use OCR.globalOptions().language()
@@ -230,8 +230,8 @@ public class TextRecognizer {
   }
 
   /**
-   * @param key
-   * @param value
+   * @param key variable key
+   * @param value variable value
    * @return instance
    * @see OCR.Options#variable(String, String)
    * @deprecated use OCR.globalOptions().variable(String key, String value)
@@ -243,7 +243,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param configs
+   * @param configs tessdata configs
    * @return instance
    * @see OCR.Options#configs(String...)
    * @deprecated Use OCR.globalOptions.configs(String... configs)
@@ -255,8 +255,8 @@ public class TextRecognizer {
   }
 
   /**
-   * @param configs
-   * @return
+   * @param configs tessdata configs
+   * @return TextRecognizer instance
    * @see OCR.Options#configs(List)
    * @deprecated Use options.configs
    */
@@ -297,16 +297,15 @@ public class TextRecognizer {
     Imgproc.cvtColor(mimg, mimg, Imgproc.COLOR_BGR2GRAY);
 
     // sharpen original image to primarily get rid of sub pixel rendering artifacts
-    mimg = unsharpMask(mimg, 3);
+    unsharpMask(mimg, 3);
 
     float rFactor = options.factor();
 
     if (rFactor > 0 && rFactor != 1) {
       Commons.resize(mimg, rFactor, options.resizeInterpolation());
+      // sharpen the enlarged image again
+      unsharpMask(mimg, 5);
     }
-
-    // sharpen the enlarged image again
-    mimg = unsharpMask(mimg, 5);
 
     // invert if font color is said to be light
     if (options.isLightFont()) {
@@ -317,18 +316,16 @@ public class TextRecognizer {
 //      Core.bitwise_not(mimg, mimg);
 //    }
 
-    BufferedImage optImg = Commons.getBufferedImage(mimg);
-    return optImg;
+    return Commons.getBufferedImage(mimg);
   }
 
   /*
    * sharpens the image using an unsharp mask
    */
-  private Mat unsharpMask(Mat img, double sigma) {
+  private void unsharpMask(Mat img, double sigma) {
     Mat blurred = new Mat();
     Imgproc.GaussianBlur(img, blurred, new Size(), sigma, sigma);
     Core.addWeighted(img, 1.5, blurred, -0.5, 0, img);
-    return img;
   }
   //</editor-fold>
 
@@ -356,7 +353,8 @@ public class TextRecognizer {
       boolean shouldExport = RunTime.shouldExport();
       boolean fExists = fTessDataPath.exists();
       if (!fExists || shouldExport) {
-        if (0 == RunTime.extractResourcesToFolder("/tessdataSX", fTessDataPath, null).size()) {
+        List<String> tessdata = RunTime.extractResourcesToFolder("/tessdataSX", fTessDataPath, null);
+        if (tessdata == null || 0 == tessdata.size()) {
           throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
         }
       }
@@ -372,8 +370,8 @@ public class TextRecognizer {
   }
 
   protected <SFIRBS> String doRead(SFIRBS from) {
-    String text = "";
     BufferedImage bimg = Element.getBufferedImage(from);
+    String text;
     try {
       text = getTesseractAPI().doOCR(optimize(bimg)).trim().replace("\n\n", "\n");
     } catch (TesseractException e) {
@@ -416,7 +414,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param simg
+   * @param simg ScreenImage
    * @return the text read
    * @see OCR#readText(Object)
    * @deprecated use OCR.readText() instead
@@ -427,7 +425,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param bimg
+   * @param bimg BufferedImage
    * @return the text read
    * @see OCR#readText(Object)
    * @deprecated use OCR.readText() instead
@@ -438,7 +436,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param simg
+   * @param simg ScreenImage
    * @return text
    * @see OCR#readText(Object)
    * @deprecated use OCR.readText() instead
@@ -450,7 +448,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param bimg
+   * @param bimg BufferedImage
    * @return text
    * @see OCR#readText(Object)
    * @deprecated use OCR.readText() instead
