@@ -12,7 +12,7 @@ Great thanks for the new logo and all the help with the new webpage to [@Waleed 
 ---
 **2.0.6 (branch release_2.0.x) preparing for release - snapshots available**
 
-**Latest Upload: 16th February 2022**
+**Latest Upload: 18th February 2022**
 
 **Direct IDE downloads** &nbsp;&nbsp;&nbsp;&nbsp;
 [> for Windows <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidewin&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS Intel <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemac&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for macOS M1 <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidemacm1&v=2.0.6-SNAPSHOT&e=jar)&nbsp;&nbsp;&nbsp;&nbsp;[> for Linux <](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=com.sikulix&a=sikulixidelux&v=2.0.6-SNAPSHOT&e=jar) 
@@ -26,6 +26,7 @@ You get files like `sikulixidemac-2.0.6-20210708.194940-1.jar`, which you can pl
 **Be aware:** 
 - Java 8 is no longer supported. 
 - For macOS M1 (non-Intel) use the JDK's from [Azul](https://www.azul.com/downloads/?os=macos&architecture=arm-64-bit&package=jdk)
+- now using Tess4J/Tesseract 5 - macOS/Linux: have a Tesseract 5.0.1 ready (tesseract runs on commandline)
 
 [more information coming soon]()
 
