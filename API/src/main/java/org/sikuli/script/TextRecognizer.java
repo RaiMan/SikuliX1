@@ -7,12 +7,14 @@ import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
+import net.sourceforge.tess4j.util.LoadLibs;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
+import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.RunTime;
 
@@ -41,7 +43,7 @@ public class TextRecognizer {
   private static final int lvl = 3;
 
   private static final String versionTess4J = "5.1.1";
-  private static final String versionTesseract = "";
+  private static  String versionTesseract = "???";
 
   private OCR.Options options;
 
@@ -66,7 +68,6 @@ public class TextRecognizer {
    */
   protected static TextRecognizer get(OCR.Options options) {
     if (!isValid) {
-      Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       //TODO Tess4J: macOS: tesseract library load problem
       if (Commons.runningMac()) {
         String libPath = "/usr/local/lib";
@@ -79,6 +80,13 @@ public class TextRecognizer {
         } else {
           throw new SikuliXception(String.format("OCR: validate: libtesseract.dylib not in %s", libPath));
         }
+      }
+      String libVersion = LoadLibs.LIB_NAME.replace("libtesseract", "");
+      versionTesseract = String.format("%s.%s.%s", libVersion.substring(0,1), libVersion.substring(1,2), libVersion.substring(2));
+      Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
+      if (!Commons.runningWindows()) {
+        String tesseract = ProcessRunner.run("tesseract", "--version");
+        Commons.info("");
       }
       RunTime.loadOpenCV();
       isValid = true;
