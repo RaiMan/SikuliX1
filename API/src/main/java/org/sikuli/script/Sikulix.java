@@ -88,8 +88,9 @@ public class Sikulix {
 
     if ("find".equals(arg)) {
       Screen scr = new Screen();
-      String testBundle = "/Users/raimundhocke/IdeaProjects/Test206/src/main/resources/images";
-      ImagePath.setBundleFolder(new File(testBundle));
+      File userHome = Commons.getUserHome();
+      File testBundle = new File(userHome, "IdeaProjects/Test206/src/main/resources/images");
+      ImagePath.setBundleFolder(testBundle);
       List<Object> obs = new ArrayList<>(Arrays.asList("img", "img100"));
       Match match;
       List<Match> matches;
