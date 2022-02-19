@@ -6,7 +6,6 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.OSUtil;
 import org.sikuli.script.runnerSupport.IScriptRunner;
 import org.sikuli.script.runners.AppleScriptRunner;
 import org.sikuli.script.support.Commons;
@@ -110,7 +109,7 @@ public class Sikulix {
       String images = ImagePath.getBundlePath();
       SXDialog sxabout = new SXDialog("sxabout", new Point(500, 500), SXDialog.POSITION.TOP);
       sxabout.run();
-      while(sxabout.isRunning()) {
+      while (sxabout.isRunning()) {
         Commons.pause(1);
       }
       System.exit(0);

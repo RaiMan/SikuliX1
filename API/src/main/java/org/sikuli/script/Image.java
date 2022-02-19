@@ -526,6 +526,9 @@ public class Image extends Element {
   //</editor-fold>
 
   //<editor-fold desc="01 create">
+  public Image getSub(Rectangle r) {
+    return getSub(r.x, r.y, r.width, r.height);
+  }
 
   /**
    * create a sub image from this image

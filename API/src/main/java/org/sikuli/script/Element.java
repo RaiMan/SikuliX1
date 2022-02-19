@@ -10,9 +10,11 @@ import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.FindFailedDialog;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -47,6 +49,10 @@ public abstract class Element {
 
   public Image asImage() {
     return (Image) this;
+  }
+
+  public Rectangle asRectangle() {
+    return new Rectangle(this.x, this.y, this.w, this.h);
   }
 
   //<editor-fold desc="01 Fields x, y, w, h">
@@ -1373,6 +1379,40 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="20 helper">
+  protected static Rectangle getRectangle(Object... args) {
+    Rectangle rElem = null;
+    List<Object> rects = new ArrayList<>();
+    for (Object arg : args) {
+      if (arg instanceof Collection<?>) {
+        rects.addAll((Collection<?>) arg);
+      } else if (arg instanceof  Element || arg instanceof Rectangle || arg instanceof Point) {
+        rects.add(arg);
+      }
+    }
+    for (Object arg : rects) {
+      Rectangle rect = makeRect(arg);
+      if (rect == null) {
+        continue;
+      }
+      if (rElem == null) {
+        rElem = new Rectangle(rect);
+        continue;
+      }
+      rElem.add(rect);
+    }
+    return rElem;
+  }
+
+  private static Rectangle makeRect(Object arg) {
+    if (arg instanceof Rectangle) {
+      return (Rectangle) arg;
+    } else if (arg instanceof Point) {
+      return new Rectangle((Point) arg);
+    } else if (arg instanceof Element) {
+      return ((Element) arg).asRectangle();
+    }
+    return null;
+  }
 
   /**
    * INTERNAL: get Image from target
