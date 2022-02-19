@@ -37,7 +37,7 @@ public class Pattern {
   public static <SFIRBS> Pattern get(SFIRBS whatever, Object... args) {
     Image image = Image.get(whatever);
     Pattern pattern = new Pattern().setImage(image);
-    boolean firstInt = true;
+    Boolean firstInt = null;
     int xoff = 0;
     int yoff = 0;
     double sim = -1.0;
@@ -50,14 +50,22 @@ public class Pattern {
           resz = (double) arg;
         }
       } else if (arg instanceof Integer) {
-        if (firstInt) {
+        if (firstInt == null) {
           xoff = (int) arg;
-          sim = Settings.MinSimilarity;
-          firstInt = false;
-        } else {
+          sim = sim < 0 ? Settings.MinSimilarity : sim;
+          firstInt = true;
+        } else if (firstInt) {
           yoff = (int) arg;
+          firstInt = false;
         }
       }
+    }
+    pattern.targetOffset(xoff, yoff);
+    if (sim > 0) {
+      pattern.similar(sim);
+    }
+    if (resz > 0) {
+      pattern.resize((float) resz);
     }
     return pattern;
   }
