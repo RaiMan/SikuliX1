@@ -335,7 +335,7 @@ Software:
 
     checkAccessibility(); //TODO
 
-    if (SNAPSHOT) {
+    if (runningIDE() && SNAPSHOT) {
       new Thread(new Runnable() {
         @Override
         public void run() {
@@ -1290,7 +1290,7 @@ Software:
             }
             if (url == null) {
               error(enter);
-              error("makeURL(%s): file does not exist: %s", main, mainFile);
+              error("makeURL(%s): file does not exist and is not a class resource", main);
             }
           } else {
             url = mainFile.toURI().toURL();
@@ -1335,10 +1335,10 @@ Software:
     sClass = sClass.replace("\\", "/");
     String[] parts = sClass.split("/");
     String possibleClass = parts[0];
-    if (!possibleClass.endsWith(":")) {
+    if (parts.length > 1 && !possibleClass.endsWith(":")) {
       try {
         Class<?> aClass = Class.forName(possibleClass);
-        url = aClass.getResource(possibleClass);
+        url = aClass.getResource("/" + parts[1]);
       } catch (ClassNotFoundException e) {
         error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
       }
