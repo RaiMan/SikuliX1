@@ -58,7 +58,7 @@ public class Screen extends Region implements IScreen {
     if (screens != null) {
       return;
     }
-    log(logLevel, "initScreens: starting");
+    log(logLevel + 1, "initScreens: starting");
     if (!ScreenDevice.isHeadless()) {
       nMonitors = ScreenDevice.numDevices();
       primaryScreen = 0;
@@ -70,7 +70,7 @@ public class Screen extends Region implements IScreen {
     }   else {
       throw new SikuliXception(String.format("SikuliX: Init: running in headless environment"));
     }
-    log(logLevel, "initScreens: ending");
+    log(logLevel + 1, "initScreens: ending");
   }
 
   public static void resetScreens() {
