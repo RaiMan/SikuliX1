@@ -1379,7 +1379,7 @@ public abstract class Element {
   //</editor-fold>
 
   //<editor-fold desc="20 helper">
-  protected static Rectangle getRectangle(Object... args) {
+  public static Rectangle getRectangle(Object... args) {
     Rectangle rElem = null;
     List<Object> rects = new ArrayList<>();
     for (Object arg : args) {
