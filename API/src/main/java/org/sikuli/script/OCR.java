@@ -207,9 +207,24 @@ public class OCR {
      * INTERNAL: validates this Options before OCR usage.
      */
     protected void validate() {
-      if (!new File(dataPath(), language() + ".traineddata").exists()) {
-        throw new SikuliXception(String.format("OCR: language: no %s.traineddata in %s",
-                language(), dataPath()));
+      String languageFile = language() + ".traineddata";
+      String dataPath = dataPath();
+      if (!new File(dataPath, languageFile).exists()) {
+        Class cTesseract = null;
+        try {
+          cTesseract = Class.forName("net.sourceforge.tess4j.ITesseract");
+        } catch (ClassNotFoundException e) {
+        }
+        if (cTesseract != null) {
+          File dataPathFolder = new File(dataPath);
+          dataPathFolder.mkdirs();
+          File target = new File(dataPathFolder, languageFile);
+          boolean success = Commons.copyResourceToFile("/tessdata/" + languageFile, cTesseract, target);
+          if (!success) {
+            throw new SikuliXception(String.format("OCR: no %s.traineddata in %s",
+                language(), dataPath));
+          }
+        }
       }
     }
     //</editor-fold>

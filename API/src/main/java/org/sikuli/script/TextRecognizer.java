@@ -106,12 +106,27 @@ public class TextRecognizer {
       isValid = true;
     }
 
-    initDefaultDataPath();
+    //initDefaultDataPath();
+    if (OCR.Options.defaultDataPath == null) {
+      File fTessDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
+      String defaultDataPath = null;
+      if (Settings.OcrDataPath != null) {
+        File defaultDataFolder = new File(Settings.OcrDataPath, "tessdata");
+        if (!defaultDataFolder.exists()) {
+          defaultDataFolder = defaultDataFolder.getParentFile();
+        }
+        defaultDataPath = defaultDataFolder.getAbsolutePath();
+      }
+      if (defaultDataPath == null) {
+        defaultDataPath = fTessDataPath.getAbsolutePath();
+      }
+      OCR.Options.defaultDataPath = defaultDataPath;
+    }
 
     if (options == null) {
       options = OCR.globalOptions();
     }
-    options.validate();
+    //options.validate();
 
     TextRecognizer textRecognizer = new TextRecognizer();
     textRecognizer.options = options;
@@ -124,10 +139,13 @@ public class TextRecognizer {
       ITesseract tesseract = new Tesseract1();
       tesseract.setOcrEngineMode(options.oem());
       tesseract.setPageSegMode(options.psm());
-      tesseract.setLanguage(options.language());
-      tesseract.setDatapath(options.dataPath());
+      String language = options.language();
+      tesseract.setLanguage(language);
+      String dataPath = options.dataPath();
+      tesseract.setDatapath(dataPath);
+      options.validate();
       for (Map.Entry<String, String> entry : options.variables().entrySet()) {
-        tesseract.setTessVariable(entry.getKey(), entry.getValue());
+        tesseract.setVariable(entry.getKey(), entry.getValue());
       }
       if (!options.configs().isEmpty()) {
         tesseract.setConfigs(new ArrayList<>(options.configs()));
@@ -368,29 +386,6 @@ public class TextRecognizer {
   //</editor-fold>
 
   //<editor-fold desc="30 helper">
-  private static void initDefaultDataPath() {
-    if (OCR.Options.defaultDataPath == null) {
-      // export SikuliX eng.traineddata, if libs are exported as well
-      File fTessDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
-      boolean shouldExport = RunTime.shouldExport();
-      boolean fExists = fTessDataPath.exists();
-      if (!fExists || shouldExport) {
-        List<String> tessdata = RunTime.extractResourcesToFolder("/tessdataSX", fTessDataPath, null);
-        if (tessdata == null || 0 == tessdata.size()) {
-          throw new SikuliXception(String.format("OCR: start: export tessdata did not work: %s", fTessDataPath));
-        }
-      }
-      // if set, try with provided tessdata parent folder
-      String defaultDataPath;
-      if (Settings.OcrDataPath != null) {
-        defaultDataPath = new File(Settings.OcrDataPath, "tessdata").getAbsolutePath();
-      } else {
-        defaultDataPath = fTessDataPath.getAbsolutePath();
-      }
-      OCR.Options.defaultDataPath = defaultDataPath;
-    }
-  }
-
   protected <SFIRBS> String doRead(SFIRBS from) {
     BufferedImage bimg = Element.getBufferedImage(from);
     if (bimg == null) {
