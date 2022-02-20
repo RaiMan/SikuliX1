@@ -108,19 +108,17 @@ public class TextRecognizer {
 
     //initDefaultDataPath();
     if (OCR.Options.defaultDataPath == null) {
-      File fTessDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
-      String defaultDataPath = null;
       if (Settings.OcrDataPath != null) {
         File defaultDataFolder = new File(Settings.OcrDataPath, "tessdata");
         if (!defaultDataFolder.exists()) {
           defaultDataFolder = defaultDataFolder.getParentFile();
         }
-        defaultDataPath = defaultDataFolder.getAbsolutePath();
+        OCR.Options.defaultDataPath = defaultDataFolder.getAbsolutePath();
+      } else {
+        OCR.Options.defaultDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata").getAbsolutePath();
       }
-      if (defaultDataPath == null) {
-        defaultDataPath = fTessDataPath.getAbsolutePath();
-      }
-      OCR.Options.defaultDataPath = defaultDataPath;
+      List<String> contentList = Commons.getContentList("/tessdata", OCR.classTesseract);
+      Commons.info("");
     }
 
     if (options == null) {

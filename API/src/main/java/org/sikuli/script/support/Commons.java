@@ -5,6 +5,7 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FileUtils;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -31,6 +32,10 @@ import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
@@ -40,6 +45,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -1424,32 +1430,55 @@ Software:
     if (!parmsValid(resFolder, classReference)) {
       return resList;
     }
-    String resFile = new File(resFolder, "sikulixcontent.txt").getPath();
+    String resFile = new File(resFolder, "sikulixcontent").getPath();
     if (runningWindows()) {
       resFile = resFile.replace("\\", "/");
     }
     String content = copyResourceToString(resFile, classReference);
     if (content == null) {
-      String resFileParent = new File(resFile).getParent();
-      URL resource = classReference.getResource(resFileParent);
+      URL resource = classReference.getResource(resFolder);
       if (resource != null) {
-        URL url = Commons.makeClassURL(classReference.getName() + resFileParent);
+        URL url = Commons.makeClassURL(classReference.getName() + resFolder);
         if (url != null) {
           if (url.getProtocol().equals("jar")) {
-            resList.add("" + url); //TODO res list jar
+            String path = null;
+            try {
+              path = classReference.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+            } catch (URISyntaxException e) {
+            }
+            List<Path> files = null;
+            if (path != null) {
+              URI uri = URI.create("jar:file:" + path);
+              try {
+                FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
+                return Files.walk(fs.getPath(resFolder)).filter(Files::isRegularFile).map(Path::toString).collect(Collectors.toList());
+              } catch (IOException e) {
+              }
+            }
           } else if (url.getProtocol().equals("file")) {
-            resList.add("" + url); //TODO res list file
+            return getAllFiles(urlToFile(url));
           }
         }
       }
     } else if (!content.isEmpty()) {
       String[] names = content.split("\n");
       for (String name : names) {
-        if (name.equals("sikulixcontent")) continue;
+        if (name.equals("sikulixcontent")) {
+          continue;
+        }
         resList.add(name.trim());
       }
     }
     return resList;
+  }
+
+  public static List<String> getAllFiles(File dirPath){
+    List<String> files = new ArrayList<>();
+    try {
+      FileUtils.streamFiles(dirPath, true, null).forEach(s -> files.add(s.getPath()));
+    } catch (IOException e) {
+    }
+    return files;
   }
 
   public static String copyResourceToString(String res, Class classReference) {
@@ -1477,6 +1506,7 @@ Software:
     OutputStream out;
     try {
       try {
+        file.getParentFile().mkdirs();
         out = new FileOutputStream(file);
       } catch (FileNotFoundException e) {
         return false;
