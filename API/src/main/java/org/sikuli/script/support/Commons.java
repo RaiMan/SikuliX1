@@ -1332,16 +1332,22 @@ Software:
       return null;
     }
     URL url = null;
+    Class<?> aClass = null;
     sClass = sClass.replace("\\", "/");
     String[] parts = sClass.split("/");
     String possibleClass = parts[0];
-    if (parts.length > 1 && !possibleClass.endsWith(":")) {
-      try {
-        Class<?> aClass = Class.forName(possibleClass);
-        url = aClass.getResource("/" + parts[1]);
-      } catch (ClassNotFoundException e) {
-        error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
-      }
+    if (possibleClass.endsWith(":")) {
+      return null;
+    }
+    try {
+      aClass = Class.forName(possibleClass);
+      url = aClass.getResource("/" + possibleClass.replace(".", "/") + ".class");
+    } catch (ClassNotFoundException e) {
+      error("makeURL(%s): class does not exist: %s", sClass, possibleClass);
+      return null;
+    }
+    if (parts.length > 1) {
+      url = aClass.getResource(sClass.substring(possibleClass.length()));
     }
     //debug("makeClassURL returns: url: %s", url); //TODO
     return url;
@@ -1427,9 +1433,14 @@ Software:
       String resFileParent = new File(resFile).getParent();
       URL resource = classReference.getResource(resFileParent);
       if (resource != null) {
-        String msg = String.format("TODO: Commons::getContentList: %s (%s) \nin %s", //TODO
-            resFileParent, classReference, resource);
-        throw new SikuliXception(msg);
+        URL url = Commons.makeClassURL(classReference.getName() + resFileParent);
+        if (url != null) {
+          if (url.getProtocol().equals("jar")) {
+            resList.add("" + url); //TODO res list jar
+          } else if (url.getProtocol().equals("file")) {
+            resList.add("" + url); //TODO res list file
+          }
+        }
       }
     } else if (!content.isEmpty()) {
       String[] names = content.split("\n");

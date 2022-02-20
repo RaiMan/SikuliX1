@@ -126,7 +126,7 @@ public class TextRecognizer {
     if (options == null) {
       options = OCR.globalOptions();
     }
-    //options.validate();
+    options.validate();
 
     TextRecognizer textRecognizer = new TextRecognizer();
     textRecognizer.options = options;
