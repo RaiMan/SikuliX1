@@ -84,7 +84,7 @@ public class SXDialog extends JFrame {
     if (clazz != null) {
       text = Commons.copyResourceToString(res, clazz);
     }
-    if (!text.isEmpty()) {
+    if (text != null && !text.isEmpty()) {
       valid = true;
       this.pos = pos;
       this.where = where;

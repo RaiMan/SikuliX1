@@ -1423,8 +1423,15 @@ Software:
       resFile = resFile.replace("\\", "/");
     }
     String content = copyResourceToString(resFile, classReference);
-    //debug("getResourceList: %s\n(%s)", resFile, content); //TODO
-    if (!content.isEmpty()) {
+    if (content == null) {
+      String resFileParent = new File(resFile).getParent();
+      URL resource = classReference.getResource(resFileParent);
+      if (resource != null) {
+        String msg = String.format("TODO: Commons::getContentList: %s (%s) \nin %s", //TODO
+            resFileParent, classReference, resource);
+        throw new SikuliXception(msg);
+      }
+    } else if (!content.isEmpty()) {
       String[] names = content.split("\n");
       for (String name : names) {
         if (name.equals("sikulixcontent")) continue;
@@ -1442,27 +1449,29 @@ Software:
         content = new String(copy(stream));
         stream.close();
       } else {
-        Commons.trace("not found: %s", res);
+        trace("not found: %s (%s)", res, classReference);
+        return null;
       }
     } catch (Exception ex) {
-      Commons.trace("not found: %s", res);
+      trace("not possible: %s (%s): %s", res, classReference, ex.getMessage());
     }
     return content;
   }
 
   public static boolean copyResourceToFile(String res, Class classReference, File file) {
     InputStream stream = classReference.getResourceAsStream(res);
-    OutputStream out;
-    try {
-      out = new FileOutputStream(file);
-    } catch (FileNotFoundException e) {
+    if (stream == null) {
       return false;
     }
+    OutputStream out;
     try {
-      if (stream != null) {
-        copy(stream, out);
-        stream.close();
+      try {
+        out = new FileOutputStream(file);
+      } catch (FileNotFoundException e) {
+        return false;
       }
+      copy(stream, out);
+      stream.close();
     } catch (Exception ex) {
       return false;
     }
