@@ -19,9 +19,16 @@ import org.sikuli.script.support.gui.SXDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Sikulix {
 
@@ -82,6 +89,7 @@ public class Sikulix {
     }
 
     if ("xxx".equals(arg)) {
+      TextRecognizer.get(null);
       print("testxxx");
     }
 
