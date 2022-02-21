@@ -42,6 +42,10 @@ public class TextRecognizer {
 
   private static boolean isValid = false;
 
+  protected static void setValid(boolean state) {
+    isValid = state;
+  }
+
   private static final int lvl = 3;
 
   private static final String versionTess4J = "5.1.1";
@@ -107,43 +111,50 @@ public class TextRecognizer {
       Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       tesseractStamp = String.format("tes4j-%s_tesseract-%s", versionTess4J, versionTesseract);
       RunTime.loadOpenCV();
+
+      //initDefaultDataPath();
+      File sxTessdata = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");
+      if (OCR.Options.defaultDataPath == null) {
+        if (Settings.OcrDataPath != null) {
+          File defaultDataFolder = new File(Settings.OcrDataPath, "tessdata");
+          if (!defaultDataFolder.exists()) {
+            defaultDataFolder = defaultDataFolder.getParentFile();
+          }
+          OCR.Options.defaultDataPath = defaultDataFolder.getAbsolutePath();
+        } else {
+          OCR.Options.defaultDataPath = sxTessdata.getAbsolutePath();
+        }
+        String resFolder = "/tessdata";
+        File targetFolder = new File(OCR.globalOptions().dataPath());
+        if (targetFolder.equals(sxTessdata)) {
+          try {
+            if ((!tesseractStamp.isEmpty() && !new File(targetFolder, tesseractStamp).exists()) ||
+                !new File(targetFolder, "eng.traineddata").exists()) {
+              List<String> contentList = Commons.getFileList(resFolder, OCR.classTesseract);
+              for (String res : contentList) {
+                String targetName = res.substring(resFolder.length() + 1);
+                if (targetName.startsWith("osd.") || targetName.startsWith("pdf.")) {
+                  continue;
+                }
+                Commons.copyResourceToFile(res, OCR.classTesseract, new File(targetFolder, targetName));
+              }
+              if (contentList.size() > 0 && !new File(targetFolder, tesseractStamp).exists()) {
+                FileUtils.touch(new File(targetFolder, tesseractStamp));
+              }
+            }
+          } catch (IOException e) {
+            Commons.terminate(999, "OCR/TextRecognizer: tessdata export not possible: %s", targetFolder);
+          }
+        }
+      }
+
+      if (options == null) {
+        options = OCR.globalOptions();
+      }
+      options.validate();
+
       isValid = true;
     }
-
-    //initDefaultDataPath();
-    if (OCR.Options.defaultDataPath == null) {
-      if (Settings.OcrDataPath != null) {
-        File defaultDataFolder = new File(Settings.OcrDataPath, "tessdata");
-        if (!defaultDataFolder.exists()) {
-          defaultDataFolder = defaultDataFolder.getParentFile();
-        }
-        OCR.Options.defaultDataPath = defaultDataFolder.getAbsolutePath();
-      } else {
-        OCR.Options.defaultDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata").getAbsolutePath();
-      }
-      String resFolder = "/tessdata";
-      File targetFolder = new File(OCR.globalOptions().dataPath());
-      try {
-        if (!tesseractStamp.isEmpty() && !new File(targetFolder, tesseractStamp).exists()) {
-          List<String> contentList = Commons.getContentList(resFolder, OCR.classTesseract);
-          for (String res : contentList) {
-            String targetName = res.substring(resFolder.length() + 1);
-            if (targetName.startsWith("osd.") || targetName.startsWith("pdf.")) {
-              continue;
-            }
-            Commons.copyResourceToFile(res, OCR.classTesseract, new File(targetFolder, targetName));
-          }
-          FileUtils.touch(new File(targetFolder, tesseractStamp));
-        }
-      } catch (IOException e) {
-        Commons.terminate(999, "OCR/TextRecognizer: tessdata export not possible: %s", targetFolder);
-      }
-    }
-
-    if (options == null) {
-      options = OCR.globalOptions();
-    }
-    options.validate();
 
     TextRecognizer textRecognizer = new TextRecognizer();
     textRecognizer.options = options;

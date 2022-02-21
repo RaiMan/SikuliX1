@@ -682,6 +682,11 @@ public class OCR {
     return globalOptions().reset();
   }
 
+  public static void restart() {
+    Options.defaultDataPath = null;
+    TextRecognizer.setValid(false);
+  }
+
   /**
    * prints out the current global options.
    */
