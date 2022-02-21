@@ -32,20 +32,18 @@ import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.sikuli.util.CommandArgsEnum.*;
 
@@ -1107,101 +1105,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="10 folder handling">
-  public static List<String> getFileList(String resFolder) {
-    return getFileList(resFolder, null);
-  }
-
-  public static List<String> getFileList(String resFolder, Class classReference) {
-    List<String> fileList = new ArrayList<>();
-    URL dirURL;
-    if (classReference == null) {
-      dirURL = makeURLFromPath(resFolder);
-    } else {
-      if (resFolder.equals(".")) {
-        resFolder = "/" + classReference.getPackage().getName().replace(".", "/");
-      }
-      dirURL = classReference.getResource(resFolder);
-    }
-    if (dirURL != null) {
-      if (dirURL.getProtocol().equals("file")) {
-        Map<String, List<String>> folderList = new HashMap<>();
-        fileList = createFinalFolderList(getFolderFileList(dirURL, "", folderList));
-      } else if (dirURL.getProtocol().equals("jar")) {
-        String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!"));
-        String jarFolder = dirURL.getPath().substring(dirURL.getPath().indexOf("!") + 2);
-        JarFile jarFile;
-        try {
-          jarFile = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
-        } catch (IOException e) {
-          jarFile = null;
-        }
-        if (jarFile != null) {
-          Enumeration<JarEntry> entries = jarFile.entries();
-          if (entries.hasMoreElements()) {
-            Map<String, List<String>> jarList = new HashMap<>();
-            while (entries.hasMoreElements()) {
-              String name = entries.nextElement().getName();
-              if (name.startsWith(jarFolder)) {
-                name = name.substring(jarFolder.length() + 1);
-                if (name.endsWith("/")) {
-                  jarList.put(name, new ArrayList<>());
-                } else if (!name.isEmpty()) {
-                  String dName = name.substring(0, name.lastIndexOf("/") + 1);
-                  String fName = name.substring(dName.length());
-                  if (dName.isEmpty()) {
-                    jarList.put("/" + name, new ArrayList<>());
-                  } else {
-                    jarList.get(dName).add(fName);
-                  }
-                }
-              }
-            }
-            fileList = createFinalFolderList(jarList);
-          }
-        }
-      }
-    }
-    return fileList;
-  }
-
-  private static Map<String, List<String>> getFolderFileList(URL dirURL, String folder, Map<String, List<String>> folderList) {
-    try {
-      //TODO getFolderFileList does not work with url-names containing illegal chars (space, ...)
-      File fileFolder = new File(new File(dirURL.toURI()), folder);
-      String[] list = fileFolder.list();
-      for (String entry : list) {
-        if (new File(fileFolder, entry).isFile()) {
-          if (folder.isEmpty()) {
-            folderList.put("/" + entry, new ArrayList<>());
-          } else {
-            folderList.get(folder).add(entry);
-          }
-          entry = null;
-        } else {
-          folderList.put(folder + entry + "/", new ArrayList<>());
-          getFolderFileList(dirURL, folder + entry + "/", folderList);
-        }
-        entry = null;
-      }
-    } catch (Exception ex) {
-      error("");
-    }
-    return folderList;
-  }
-
-  private static List<String> createFinalFolderList(Map<String, List<String>> folderList) {
-    List<String> fileList = new ArrayList<>();
-    for (String dName : folderList.keySet()) {
-      if (dName.startsWith("/")) {
-        fileList.add(dName);
-      } else {
-        fileList.add(dName);
-        fileList.addAll(folderList.get(dName));
-      }
-    }
-    return fileList;
-  }
-
   public static URL makeURL(Object main) {
     return makeURL(main, null);
   }
@@ -1253,6 +1156,8 @@ Software:
         }
       }
       return mainURL;
+    } else if (main instanceof Class) {
+
     }
     if (!mainFile.isAbsolute() && (mainPath.startsWith("http:") || mainPath.startsWith("https:"))) {
       if (sub != null && !sub.isEmpty()) {
@@ -1420,65 +1325,124 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="15 file handling">
-  public static List<String> getContentList(String res) {
-    return getContentList(res, RunTime.class);
+  public static List<String> getFileList(Object givenMain, Object... options) {
+    return doGetFileList(givenMain, null, null, options);
   }
 
-  public static List<String> getContentList(String resFolder, Class classReference) {
-    //debug("getContentList(res: %s, ref: %s)", resFolder, classReference); //TODO
-    List<String> resList = new ArrayList<>();
-    if (!parmsValid(resFolder, classReference)) {
-      return resList;
+  public static List<String> getFileList(Object givenMain, String givenSubFolder, Object... options) {
+    return doGetFileList(givenMain, null, null, options);
+  }
+
+  public static List<String> getFileList(String givenFolder, Class classReference, Object... options) {
+    return doGetFileList(givenFolder, null, classReference, options);
+  }
+
+  private static List<String> doGetFileList(Object givenMainOrFolder, String givenSubfolder, Class classReference, Object... options) {
+    Commons.trace("ENTER: Main(%s) Sub(%s) Class(%s)", givenMainOrFolder, givenSubfolder, classReference);
+    List<String> fileList = new ArrayList<>();
+    String givenFolder = "/";
+    int MAX_LEVEL = 5;
+    boolean listFolders = false;
+    for (Object option : options) {
+      if (option instanceof Integer) {
+        MAX_LEVEL = (Integer) option;
+        if (MAX_LEVEL < 1) {
+          MAX_LEVEL = Integer.MAX_VALUE;
+        }
+      } else if (option instanceof Boolean) {
+        listFolders = (Boolean) option;
+      }
     }
-    String resFile = new File(resFolder, "sikulixcontent").getPath();
-    if (runningWindows()) {
-      resFile = resFile.replace("\\", "/");
+    if (givenMainOrFolder instanceof Class) {
+      classReference = (Class) givenMainOrFolder;
+    } else if (givenMainOrFolder instanceof File) {
+      givenFolder = ((File) givenMainOrFolder).getPath();
+    } else {
+      givenFolder = givenMainOrFolder.toString();
     }
-    String content = copyResourceToString(resFile, classReference);
-    if (content == null) {
-      URL resource = classReference.getResource(resFolder);
-      if (resource != null) {
-        URL url = Commons.makeClassURL(classReference.getName() + resFolder);
-        if (url != null) {
-          if (url.getProtocol().equals("jar")) {
-            String path = null;
-            try {
-              path = classReference.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-            } catch (URISyntaxException e) {
-            }
-            List<Path> files = null;
-            if (path != null) {
-              URI uri = URI.create("jar:file:" + path);
-              try {
-                FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
-                return Files.walk(fs.getPath(resFolder)).filter(Files::isRegularFile).map(Path::toString).collect(Collectors.toList());
-              } catch (IOException e) {
-              }
-            }
-          } else if (url.getProtocol().equals("file")) {
-            return getAllFiles(urlToFile(url));
+    //check for sikulixcontent file
+    if (classReference != null) {
+      String resFile = new File(givenFolder, "sikulixcontent").getPath();
+      String content = copyResourceToString(resFile, classReference);
+      if (content != null && !content.isEmpty()) {
+        String[] names = content.split("\n");
+        for (String name : names) {
+          if (name.equals("sikulixcontent")) {
+            continue;
           }
+          fileList.add(name.trim());
         }
-      }
-    } else if (!content.isEmpty()) {
-      String[] names = content.split("\n");
-      for (String name : names) {
-        if (name.equals("sikulixcontent")) {
-          continue;
-        }
-        resList.add(name.trim());
+        return fileList;
       }
     }
-    return resList;
-  }
 
-  public static List<String> getAllFiles(File dirPath){
-    List<String> files = new ArrayList<>();
-    try {
-      FileUtils.streamFiles(dirPath, true, null).forEach(s -> files.add(s.getPath()));
-    } catch (IOException e) {
+    // get file list
+    String path = null;
+    boolean isJar = false;
+    boolean isFile = false;
+    if (classReference != null) {
+      while (true) {
+        if (classReference.getResource(givenFolder) == null) {
+          if (!givenFolder.startsWith("/")) {
+            givenFolder = "/" + givenFolder;
+            continue;
+          }
+          Commons.trace("ERROR(not found) Folder(%s) Class(%s)", givenFolder, classReference);
+          return fileList;
+        }
+        break;
+      }
+      try {
+        path = classReference.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+        if (path.endsWith(".jar")) {
+          isJar = true;
+        } else {
+          isFile = true;
+        }
+      } catch (URISyntaxException ignored) {
+      }
+    } else if (givenFolder != null && !givenFolder.isEmpty()) {
+      if (givenFolder.endsWith(".jar") || givenFolder.contains(".jar!/")) {
+        String[] parts = givenFolder.split("!/");
+        givenFolder = "/";
+        path = parts[0];
+        if (parts.length > 1) {
+          givenFolder += parts[1];
+        }
+        isJar = true;
+      } else {
+        path = givenFolder;
+        givenFolder = "";
+        isFile = true; //TODO zip, http
+      }
     }
-    return files;
+    Commons.trace("BEFORE: Path(%s) Folder(%s)", path, givenFolder);
+    if (path != null) {
+      FileSystem fs = null;
+      String fspath = null;
+      try {
+        if (isJar) {
+          URI uri = URI.create("jar:file:" + path);
+          fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
+          fspath = givenFolder;
+        } else if (isFile) {
+          fs = FileSystems.getFileSystem(URI.create("file:/"));
+          fspath = new File(path, givenFolder).getPath();
+        }
+        Stream<Path> pathStream;
+        if (listFolders) {
+          pathStream = Files.walk(fs.getPath(fspath), MAX_LEVEL).filter(Files::isDirectory);
+        } else {
+          pathStream = Files.walk(fs.getPath(fspath), MAX_LEVEL).filter(Files::isRegularFile);
+        }
+        fileList = pathStream.map(Path::toString).collect(Collectors.toList());
+        if (isJar) {
+          fs.close();
+        }
+      } catch (IOException e) {
+      }
+    }
+    return fileList;
   }
 
   public static String copyResourceToString(String res, Class classReference) {
@@ -1489,11 +1453,11 @@ Software:
         content = new String(copy(stream));
         stream.close();
       } else {
-        trace("not found: %s (%s)", res, classReference);
+        trace("ERROR(not found) File(%s) Class(%s)", res, classReference);
         return null;
       }
     } catch (Exception ex) {
-      trace("not possible: %s (%s): %s", res, classReference, ex.getMessage());
+      trace("ERROR File(%s) Class(%s): %s", res, classReference, ex.getMessage());
     }
     return content;
   }
