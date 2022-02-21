@@ -531,14 +531,6 @@ public class EditorPane extends JTextPane {
     return possibleBundleName.equals(folderOrBundleName);
   }
 
-  static boolean isPossibleBundle(String fileName) {
-    if (FilenameUtils.getExtension(fileName).isEmpty() ||
-        FilenameUtils.getExtension(fileName).equals("sikuli")) {
-      return true;
-    }
-    return false;
-  }
-
   boolean isBundle() {
     return editorPaneIsBundle;
   }
@@ -1300,30 +1292,30 @@ public class EditorPane extends JTextPane {
     if (file == null) {
       return null;
     }
-    String filename = file.getAbsolutePath();
     int currentTab = getTabs().getSelectedIndex();
-    int tabAlreadyOpen = alreadyOpen(filename, currentTab);
+    int tabAlreadyOpen = alreadyOpen(file.getAbsolutePath(), currentTab);
     if (-1 != tabAlreadyOpen) {
       SX.popError(String.format("Target is open in IDE\n%s\n" +
-              "Close tab (%d) before doing saveAs or use other filename", filename, tabAlreadyOpen + 1),
+              "Close tab (%d) before doing saveAs or use other filename", file.getAbsolutePath(), tabAlreadyOpen + 1),
               "SaveAs: file is opened");
       return null;
     }
-    if (FileManager.exists(filename)) {
+    if (file.exists()) {
       int answer = JOptionPane.showConfirmDialog(
-          null, SikuliIDEI18N._I("msgFileExists", filename),
+          null, SikuliIDEI18N._I("msgFileExists", file),
           SikuliIDEI18N._I("dlgFileExists"), JOptionPane.YES_NO_OPTION);
       if (answer != JOptionPane.YES_OPTION) {
         return null;
       }
-      FileManager.deleteFileOrFolder(filename);
+      FileManager.deleteFileOrFolder(file);
     }
     File savedFile;
-    if (isPossibleBundle(filename)) {
-      FileManager.mkdir(filename);
-      savedFile = saveAsBundle(filename);
+    if (FilenameUtils.getExtension(file.getName()).isEmpty() ||
+        FilenameUtils.getExtension(file.getName()).equals("sikuli")) {
+      file.mkdir();
+      savedFile = saveAsBundle(file.getAbsolutePath());
     } else {
-      savedFile = saveAsFile(filename);
+      savedFile = saveAsFile(file.getAbsolutePath());
     }
     return savedFile.getAbsolutePath();
   }
