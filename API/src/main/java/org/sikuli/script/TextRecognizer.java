@@ -8,6 +8,7 @@ import net.sourceforge.tess4j.Tesseract1;
 import net.sourceforge.tess4j.TesseractException;
 import net.sourceforge.tess4j.Word;
 import net.sourceforge.tess4j.util.LoadLibs;
+import org.apache.commons.io.FileUtils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -21,6 +22,7 @@ import org.sikuli.script.support.RunTime;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +45,8 @@ public class TextRecognizer {
   private static final int lvl = 3;
 
   private static final String versionTess4J = "5.1.1";
-  private static  String versionTesseract = "???";
+  private static String versionTesseract = "???";
+  private static String tesseractStamp = "";
 
   private OCR.Options options;
 
@@ -82,7 +85,7 @@ public class TextRecognizer {
         }
       }
       String libVersion = LoadLibs.LIB_NAME.replace("libtesseract", "");
-      versionTesseract = String.format("%s.%s.%s", libVersion.substring(0,1), libVersion.substring(1,2), libVersion.substring(2));
+      versionTesseract = String.format("%s.%s.%s", libVersion.substring(0, 1), libVersion.substring(1, 2), libVersion.substring(2));
       if (!Commons.runningWindows()) {
         String tesseract = ProcessRunner.run("tesseract", "--version");
         String runningTesseract = "-None-";
@@ -90,7 +93,7 @@ public class TextRecognizer {
         if (tesseract.startsWith("0\n")) {
           String[] split = tesseract.split("\n");
           if (split[1].startsWith("tesseract")) {
-             runningTesseract = split[1].replace("tesseract ", "");
+            runningTesseract = split[1].replace("tesseract ", "");
             if (runningTesseract.equals(versionTesseract)) {
               success = true;
             }
@@ -102,6 +105,7 @@ public class TextRecognizer {
         }
       }
       Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
+      tesseractStamp = String.format("tes4j-%s_tesseract-%s", versionTess4J, versionTesseract);
       RunTime.loadOpenCV();
       isValid = true;
     }
@@ -117,8 +121,23 @@ public class TextRecognizer {
       } else {
         OCR.Options.defaultDataPath = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata").getAbsolutePath();
       }
-      List<String> contentList = Commons.getContentList("/tessdata", OCR.classTesseract);
-      Commons.info("");
+      String resFolder = "/tessdata";
+      File targetFolder = new File(OCR.globalOptions().dataPath());
+      try {
+        if (!tesseractStamp.isEmpty() && !new File(targetFolder, tesseractStamp).exists()) {
+          List<String> contentList = Commons.getContentList(resFolder, OCR.classTesseract);
+          for (String res : contentList) {
+            String targetName = res.substring(resFolder.length() + 1);
+            if (targetName.startsWith("osd.") || targetName.startsWith("pdf.")) {
+              continue;
+            }
+            Commons.copyResourceToFile(res, OCR.classTesseract, new File(targetFolder, targetName));
+          }
+          FileUtils.touch(new File(targetFolder, tesseractStamp));
+        }
+      } catch (IOException e) {
+        Commons.terminate(999, "OCR/TextRecognizer: tessdata export not possible: %s", targetFolder);
+      }
     }
 
     if (options == null) {
@@ -268,7 +287,7 @@ public class TextRecognizer {
   }
 
   /**
-   * @param key variable key
+   * @param key   variable key
    * @param value variable value
    * @return instance
    * @see OCR.Options#variable(String, String)
@@ -412,10 +431,10 @@ public class TextRecognizer {
     for (Word textItem : textItems) {
       Rectangle boundingBox = textItem.getBoundingBox();
       Rectangle realBox = new Rectangle(
-              (int) (boundingBox.x * wFactor) - 1,
-              (int) (boundingBox.y * hFactor) - 1,
-              1 + (int) (boundingBox.width * wFactor) + 2,
-              1 + (int) (boundingBox.height * hFactor) + 2);
+          (int) (boundingBox.x * wFactor) - 1,
+          (int) (boundingBox.y * hFactor) - 1,
+          1 + (int) (boundingBox.width * wFactor) + 2,
+          1 + (int) (boundingBox.height * hFactor) + 2);
       lines.add(new Match(realBox, textItem.getConfidence(), textItem.getText().trim()));
     }
     return lines;
