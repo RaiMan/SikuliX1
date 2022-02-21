@@ -1483,6 +1483,21 @@ Software:
     return true;
   }
 
+  public static void copyResourceFiles(String from, String toWhere, Class clazz) {
+    List<String> libFiles = Commons.getFileList(from, clazz);
+    if (libFiles.size() > 0) {
+      String libFolderName = "/" + from + "/";
+      String file0 = libFiles.get(0);
+      int prefix = file0.indexOf(libFolderName);
+      for (String file : libFiles) {
+        String fromFile = file.substring(prefix);
+        String toFile = new File(toWhere, fromFile.substring(1)).getPath();
+        Commons.copyResourceToFile(fromFile, clazz, new File(toFile));
+      }
+    }
+
+  }
+
   private static void copy(InputStream in, OutputStream out) throws IOException {
     byte[] tmp = new byte[8192];
     int len;

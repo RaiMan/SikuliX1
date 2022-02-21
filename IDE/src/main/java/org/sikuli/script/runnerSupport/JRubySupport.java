@@ -37,7 +37,6 @@ public class JRubySupport implements IRunnerSupport {
   public static JRubySupport get() {
     if (null == instance) {
       instance = new JRubySupport();
-      //RunTime.get().exportLib();
       Commons.getLibFolder().mkdirs();
       Commons.copyResourceToFile("/Lib/sikulix.rb", Commons.class, Commons.getLibFolder());
       instance.interpreterInitialization();

@@ -10,13 +10,11 @@ import org.python.util.PythonInterpreter;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
+import org.sikuli.ide.SikulixIDE;
 import org.sikuli.script.ImagePath;
-import org.sikuli.script.SikuliXception;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -105,6 +103,7 @@ public class JythonSupport implements IRunnerSupport {
     if ((!sitePackages.exists() && sitePackages.mkdir()) || !sitesTxt.exists() ) {
       FileManager.writeStringToFile(getSitesTxtDefault(), sitesTxt);
     }
+
     try {
       interpreter = new PythonInterpreter();
     } catch (Exception ex) {
@@ -188,35 +187,9 @@ public class JythonSupport implements IRunnerSupport {
         "# lines beginning with # and blank lines are ignored and can be used as comments\n";
   }
 
-  //TODO no longer needed with 2.0.6 bundled Jython
-  public void exportLib() {
-    File fLib = Commons.getLibFolder();
-    FilenameFilter filterSitePackages = null;
-    if (fLib.exists()) {
-      FileManager.deleteFileOrFolder(fLib, new FileManager.FileFilter() {
-        @Override
-        public boolean accept(File entry) {
-          if (entry.getPath().contains("site-packages")) {
-            return false;
-          }
-          return true;
-        }
-      });
-    } else {
-      fLib.mkdirs();
-      if (!fLib.exists()) {
-        throw new SikuliXception("LibExport: folder not available: " + fLib.toString());
-      }
-      filterSitePackages = (dir, name) -> {
-        if (dir.getPath().contains("site-packages")) {
-          return false;
-        }
-        return true;
-      };
-    }
-    RunTime.extractResourcesToFolder("Lib", Commons.getLibFolder(), filterSitePackages);
+  public static void exportLib() {
+    Commons.copyResourceFiles("Lib", Commons.getAppDataPath().getPath(), SikulixIDE.class);
   }
-
 
   //<editor-fold desc="05 Jython reflection">
   static Class cPyMethod = null;
@@ -1291,9 +1264,8 @@ public class JythonSupport implements IRunnerSupport {
   }
 
   private static JythonSupport doCompileJythonFolder(JythonSupport jython, File fSource) {
-    String fpSource = FileManager.slashify(fSource.getAbsolutePath(), false);
     if (!jython.interpreterExecString(String.format("compileall.compile_dir(\"%s\","
-        + "maxlevels = 0, quiet = 1)", fpSource))) {
+        + "maxlevels = 0, quiet = 1)", fSource))) {
       return null;
     }
     for (File aFile : fSource.listFiles()) {
