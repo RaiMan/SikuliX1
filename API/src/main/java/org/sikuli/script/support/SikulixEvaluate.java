@@ -151,20 +151,5 @@ public class SikulixEvaluate {
 //BREAKPOINT after test
     Commons.info("***** end of testing *****");
   }
-
-  private static void testFolderList() {
-    try {
-      Class<?> aClass = Class.forName("net.sourceforge.tess4j.Tesseract");
-      String folder = "/tessdata";
-//      aClass = JythonSupport.class;
-//      folder = "LibJython";
-//      folder = ".";
-//      List<String> fileList = Commons.getFileList(folder, aClass);
-      List<String> fileList = Commons.getFileList("<appdata>/SikulixLibs");
-      fileList = null;
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-    }
-  }
-  //endregion
+//endregion
 }

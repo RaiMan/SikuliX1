@@ -19,16 +19,9 @@ import org.sikuli.script.support.gui.SXDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Sikulix {
 
@@ -89,8 +82,17 @@ public class Sikulix {
     }
 
     if ("xxx".equals(arg)) {
-      TextRecognizer.get(null);
-      print("testxxx");
+      Screen scr = new Screen();
+      Region reg = new Region(35, 0, 100, 25);
+      List<String> fileList;
+      Commons.startTrace();
+      Commons.getFileList("tessdat", OCR.classTesseract);
+      //Commons.getFileList("/Settings", Sikulix.class);
+      //Commons.getFileList("/Users/raimundhocke/.m2/repository/net/sourceforge/tess4j/tess4j/5.1.1/tess4j-5.1.1.jar!/tessdata");
+      //fileList = Commons.getFileList("/Users/raimundhocke/.m2/repository/net/sourceforge/tess4j/tess4j/5.1.1/tess4j-5.1.1.jar");
+      //fileList = Commons.getFileList("/Users/raimundhocke");
+      //print("%s", reg.text());
+      Commons.info("testxxx");
     }
 
     if ("find".equals(arg)) {
