@@ -19,7 +19,6 @@
         <excludes>
           <exclude>**/win32-x86/**</exclude>
           <exclude>**/win32-x86-64/**</exclude>
-          <exclude>**/tessdata/**</exclude>
           <exclude>/sikulixlibs/mac/**</exclude>
           <exclude>/sikulixlibs/windows/**</exclude>
           <exclude>/sikulixlibs/linux/**</exclude>
