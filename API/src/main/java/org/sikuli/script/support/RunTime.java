@@ -6,19 +6,19 @@ package org.sikuli.script.support;
 import org.opencv.core.Core;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.natives.WinUtil;
 import org.sikuli.script.SikuliXception;
-import org.sikuli.script.support.devices.HelpDevice;
 
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.CodeSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -181,17 +181,18 @@ public class RunTime {
       if (!fLibsFolder.exists()) {
         throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
       }
-      Commons.makeVersionFile(fLibsFolder);
+      Commons.makeVersionFile(fLibsFolder); //TODO
       log(lvl, "libsFolder: created %s (%s)", fLibsFolder, Commons.getSXVersionLong());
       didExport = true;
     }
-    if (!shouldExport()) {
+    if (!shouldExport()) { //TODO for what needed?
       areLibsExported = true;
       return;
     }
-    List<String> nativesList = getResourceList(fpJarLibs);
+    List<String> nativesList = Commons.getFileList(fpJarLibs, clsRef);
     for (String aFile : nativesList) {
       String copyMsg = "";
+
       String inFile;
       Class classRef = clsRef;
       if (aFile.startsWith("//") || aFile.startsWith("#")) {
@@ -296,54 +297,6 @@ public class RunTime {
     } else {
       return false;
     }
-  }
-  //</editor-fold>
-
-  //<editor-fold desc="16 get resources NEW">
-  public static List<String> getResourceList(String res) {
-    return getResourceList(res, clsRef);
-  }
-
-  public static List<String> getResourceList(String res, Class classReference) {
-    List<String> resList = new ArrayList<>();
-    CodeSource codeSource = classReference.getProtectionDomain().getCodeSource();
-    if (codeSource == null) {
-      return resList;
-    }
-    InputStream aIS = null;
-    String content = null;
-    res = new File(res, "sikulixcontent").getPath();
-    if (Commons.runningWindows()) {
-      res = res.replace("\\", "/");
-    }
-    if (!res.startsWith("/")) {
-      res = "/" + res;
-    }
-    try {
-      aIS = (InputStream) classReference.getResourceAsStream(res);
-      if (aIS != null) {
-        content = new String(copy(aIS));
-        aIS.close();
-      }
-      log(lvl + 1, "getResourceList: %s (%s)", res, content);
-      aIS = null;
-    } catch (Exception ex) {
-      log(-1, "getResourceList: %s (%s)", res, ex);
-    }
-    try {
-      if (aIS != null) {
-        aIS.close();
-      }
-    } catch (Exception ex) {
-    }
-    if (null != content) {
-      String[] names = content.split("\n");
-      for (String name : names) {
-        if (name.equals("sikulixcontent")) continue;
-        resList.add(name.trim());
-      }
-    }
-    return resList;
   }
   //</editor-fold>
 
