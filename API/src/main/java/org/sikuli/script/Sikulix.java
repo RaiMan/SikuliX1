@@ -84,15 +84,9 @@ public class Sikulix {
     if ("xxx".equals(arg)) {
       Screen scr = new Screen();
       Region reg = new Region(35, 0, 100, 25);
-      List<String> fileList;
-      Commons.startTrace();
-      Commons.getFileList("tessdat", OCR.classTesseract);
-      //Commons.getFileList("/Settings", Sikulix.class);
-      //Commons.getFileList("/Users/raimundhocke/.m2/repository/net/sourceforge/tess4j/tess4j/5.1.1/tess4j-5.1.1.jar!/tessdata");
-      //fileList = Commons.getFileList("/Users/raimundhocke/.m2/repository/net/sourceforge/tess4j/tess4j/5.1.1/tess4j-5.1.1.jar");
-      //fileList = Commons.getFileList("/Users/raimundhocke");
-      //print("%s", reg.text());
-      Commons.info("testxxx");
+      Image image = Image.get(reg);
+      String text = image.text();
+      Commons.info("testxxx: %s", text);
     }
 
     if ("find".equals(arg)) {
