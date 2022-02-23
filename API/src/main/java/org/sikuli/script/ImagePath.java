@@ -199,7 +199,7 @@ public class ImagePath {
       path = main + (sub.isEmpty() ? sub : "+" + sub);
       pathURL = eqivalentURL;
       if (pathURL != null) {
-        pathURLpath = pathURL.toExternalForm();
+        pathURLpath = Commons.urlToFile(pathURL).getAbsolutePath();//pathURL.toExternalForm();
         if (pathURL.getProtocol().equals("jar")) {
           if (!main.contains(".jar")) {
             String[] parts = main.replace("\\", "/").split("/");
@@ -212,9 +212,9 @@ public class ImagePath {
               Commons.terminate(999, "ImagePath::PathEntry(%s): as class not possible", main);
             }
           }
-          pathURLpath = pathURL.toExternalForm().substring("jar:file:".length());
+          pathURLpath = Commons.urlToFile(pathURL).getAbsolutePath();
         } else if (pathURL.getProtocol().equals("file")) {
-          pathURLpath = pathURL.toExternalForm().substring("file:".length());
+          pathURLpath = Commons.urlToFile(pathURL).getAbsolutePath();
         }
       }
       log(lvl + 1, "ImagePathEntry: %s (%s)", pathURL, path);
