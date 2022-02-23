@@ -2106,11 +2106,43 @@ public class Region extends Element {
     return getBest(time, varargsToList(args)); // waitBest
   }
 
+  /**
+   * @deprecated use getBest
+   */
+@Deprecated
+public Match waitBestList(double time, List<Object> arg) {
+    return getBest(time, arg); // waitBestList
+  }
+
   public List<Match> waitAny (double time, Object... args) {
     if (args.length == 0) {
       return new ArrayList<>();
     }
     return getAny(time, varargsToList(args)); // waitAny
+  }
+
+  /**
+   * @deprecated use getAny
+   */
+  @Deprecated
+  public List<Match> waitAnyList(double time, List<Object> arg) {
+    return getAny(time, arg); // waitAnyList
+  }
+
+  /**
+   * @deprecated use getBest
+   */
+  @Deprecated
+  public Match findBestList(List<Object> arg) {
+    return waitBestList(0, arg);
+  }
+
+  /**
+   * @deprecated use getAny
+   */
+  @Deprecated
+  public List<Match> findAnyList(List<Object> arg) {
+    return waitAnyList(0, arg);
   }
   //</editor-fold>
 
