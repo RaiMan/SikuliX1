@@ -9,7 +9,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.IScreen;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -589,7 +588,7 @@ public class Finder implements Iterator<Match> {
   protected static class Finder2 {
 
     static {
-      RunTime.loadOpenCV();
+      Commons.loadOpenCV();
     }
 
     protected static void init() {

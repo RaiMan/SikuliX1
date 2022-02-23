@@ -17,7 +17,6 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -110,7 +109,7 @@ public class TextRecognizer {
       }
       Debug.log(lvl, "OCR: Tess4J %s --- Tesseract %s", versionTess4J, versionTesseract);
       tesseractStamp = String.format("tes4j-%s_tesseract-%s", versionTess4J, versionTesseract);
-      RunTime.loadOpenCV();
+      Commons.loadOpenCV();
 
       //initDefaultDataPath();
       File sxTessdata = new File(Commons.getAppDataPath(), "SikulixTesseract/tessdata");

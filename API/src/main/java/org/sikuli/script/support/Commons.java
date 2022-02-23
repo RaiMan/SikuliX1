@@ -5,7 +5,6 @@
 package org.sikuli.script.support;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -38,8 +37,6 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,6 +47,8 @@ import static org.sikuli.util.CommandArgsEnum.*;
 public class Commons {
 
   //<editor-fold desc="00 static">
+  private static Class classRef = Commons.class;
+
   private static String sxVersion;
 
   private static String sxVersionLong;
@@ -1587,6 +1586,161 @@ Software:
     System.setProperty("jna.library.path", jnaPath);
     return jnaPath;
   }
+
+  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
+
+  public static boolean loadOpenCV() {
+    return loadLibrary(libOpenCV);
+  }
+
+  public static String getLibFilename(String aFile) {
+    if (runningWindows()) {
+      aFile += ".dll";
+    } else if (runningMac()) {
+      aFile = "lib" + aFile + ".dylib";
+    } else {
+      aFile = "lib" + aFile + ".so";
+    }
+    return aFile;
+  }
+
+  private static List<String> libsLoaded = new ArrayList<>();
+  private static boolean areLibsExported = false;
+
+  public static boolean loadLibrary(String libName) {
+    debug("loadLibrary: trying: %s", libName);
+    if (libsLoaded.contains(libName)) {
+      return true;
+    }
+    String libFileName = getLibFilename(libName);
+    String userLib = "";
+    //try from env::SIKULIX_LIBS
+    File fLib = loadLib(getFromExternalLibsFolder(libFileName));
+    if (fLib != null) {
+      userLib = userLibsPath + ": ";
+    } else {
+      //try exported libs
+      if (!areLibsExported) {
+        libsExport();
+        if (!areLibsExported) {
+          throw new SikuliXception("loadLib: deferred exporting of libs did not work");
+        }
+      }
+      fLib = loadLib(new File(getLibsFolder(), libFileName));
+    }
+    if (fLib == null) {
+      //try from system library folders
+      fLib = loadLib(new File(libFileName));
+    }
+    if (null == fLib) {
+      terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
+    }
+    libsLoaded.add(libName);
+    debug("loadLibrary: success: %s%s", userLib, fLib);
+    return true;
+  }
+
+  private static File loadLib(File fLib) {
+    if (fLib == null) {
+      return null;
+    }
+    try {
+      if (fLib.isAbsolute()) {
+        if (fLib.exists()) {
+          System.load(fLib.getAbsolutePath());
+        } else {
+          return null;
+        }
+      } else {
+        System.loadLibrary("" + fLib);
+      }
+    } catch (Exception e) {
+      error("loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
+      return null;
+    }
+    return fLib;
+  }
+
+  private static void libsExport() {
+    String OPENCV_JAVA = "opencv_java";
+    String fpJarLibs = getJarLibsPath();
+    File fLibsFolder = getLibsFolder();
+    if (fLibsFolder.exists()) {
+      if (!hasVersionFile(fLibsFolder)) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+        debug("libsFolder: has wrong content: %s", fLibsFolder);
+      }
+    }
+    if (!fLibsFolder.exists()) {
+      fLibsFolder.mkdirs();
+      if (!fLibsFolder.exists()) {
+        throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
+      }
+      makeVersionFile(fLibsFolder); //TODO
+      debug("libsFolder: created %s (%s)", fLibsFolder, getSXVersionLong());
+      didExport = true;
+    }
+    if (!shouldExport()) { //TODO for what needed?
+      areLibsExported = true;
+      return;
+    }
+    List<String> nativesList = Commons.getFileList(fpJarLibs, classRef);
+    for (String aFile : nativesList) {
+      String copyMsg = "";
+
+      String inFile;
+      if (aFile.startsWith("//") || aFile.startsWith("#")) {
+        continue;
+      } else if (aFile.startsWith("/")) {
+        String[] parts = aFile.split("@");
+        if (parts.length > 1) {
+          inFile = parts[0];
+          try {
+            classRef = Class.forName(parts[1]);
+          } catch (ClassNotFoundException e) {
+            copyMsg = String.format(": failed: %s", e.getMessage());
+            inFile = null;
+          }
+        } else {
+          inFile = aFile;
+        }
+        aFile = new File(inFile).getName();
+      } else {
+        inFile = new File(fpJarLibs, aFile).getPath();
+      }
+      if (inFile != null) {
+        if (OPENCV_JAVA.equals(aFile)) {
+          inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
+          aFile = new File(inFile).getName();
+        }
+        if (runningWindows()) {
+          inFile = inFile.replace("\\", "/");
+        }
+        try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
+             InputStream inStream = classRef.getResourceAsStream(inFile)) {
+          RunTime.copy(inStream, outFile);
+        } catch (Exception ex) {
+          copyMsg = String.format(": failed: %s", ex.getMessage());
+        }
+        copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
+      }
+      if (copyMsg.contains("failed")) {
+        FileManager.deleteFileOrFolder(fLibsFolder);
+        error(copyMsg);
+        break;
+      } else {
+        debug(copyMsg);
+      }
+    }
+    areLibsExported = true;
+  }
+
+  private static boolean didExport = false;
+
+  public static boolean shouldExport() {
+    return didExport;
+  }
+
   //</editor-fold>
 
   //<editor-fold desc="30 Options handling SX_ARG_">

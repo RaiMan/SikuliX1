@@ -3,7 +3,6 @@
  */
 package org.sikuli.script.support;
 
-import org.opencv.core.Core;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -36,18 +35,6 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="02 logging">
   private static int lvl = 3;
-  private int minLvl = lvl;
-
-  public static String arrayToQuotedString(String[] args) {
-    String ret = "";
-    for (String s : args) {
-      if (s.contains(" ")) {
-        s = "\"" + s + "\"";
-      }
-      ret += s + " ";
-    }
-    return ret;
-  }
 
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, "RunTime: " + message, args);
@@ -76,171 +63,11 @@ public class RunTime {
   private List<URL> classPathActual = new ArrayList<>();
   private List<String> classPathList = new ArrayList<>();
 
-  private static boolean areLibsExported = false;
-  private static List<String> libsLoaded = new ArrayList<>();
-
-  public File fSxBaseJar = null;
   public static String fpContent = "sikulixcontent";
 
   public boolean runningJar = true;
   public boolean runningWindows = false;
-  public boolean runningMac = false;
-  public boolean runningLinux = false;
   //</editor-fold>
-
-  //<editor-fold defaultstate="collapsed" desc="10 native libs handling">
-  private static final String libOpenCV = Core.NATIVE_LIBRARY_NAME;
-
-  private static String getLibFilename(String aFile) {
-    if (Commons.runningWindows()) {
-      aFile += ".dll";
-    } else if (Commons.runningMac()) {
-      aFile = "lib" + aFile + ".dylib";
-    } else {
-      aFile = "lib" + aFile + ".so";
-    }
-    return aFile;
-  }
-
-  public static boolean loadOpenCV() {
-    return loadLibrary(libOpenCV);
-  }
-
-  public static boolean loadLibrary(String libName) {
-    log(lvl, "loadLibrary: trying: %s", libName);
-    if (libsLoaded.contains(libName)) {
-      return true;
-    }
-    String libFileName = getLibFilename(libName);
-    String userLib = "";
-    //try from env::SIKULIX_LIBS
-    File fLib = loadLib(Commons.getFromExternalLibsFolder(libFileName));
-    if (fLib == null) {
-      //try exported libs
-      if (!areLibsExported) {
-        libsExport();
-        if (!areLibsExported) {
-          throw new SikuliXception("loadLib: deferred exporting of libs did not work");
-        }
-      }
-      fLib = loadLib(new File(Commons.getLibsFolder(), libFileName));
-    } else {
-      userLib = Commons.userLibsPath + ": ";
-    }
-    if (fLib == null) {
-      //try from system library folders
-      fLib = loadLib(new File(libFileName));
-    }
-    if (null == fLib) {
-      Commons.terminate(999, "FATAL: loadLibrary: %s not in any libs folder or not useable", libFileName);
-    }
-    libsLoaded.add(libName);
-    log(lvl, "loadLibrary: success: %s%s", userLib, fLib);
-    return true;
-  }
-
-  private static File loadLib(File fLib) {
-    if (fLib == null) {
-      return null;
-    }
-    try {
-      if (fLib.isAbsolute()) {
-        if (fLib.exists()) {
-          System.load(fLib.getAbsolutePath());
-        } else {
-          return null;
-        }
-      } else {
-        System.loadLibrary("" + fLib);
-      }
-    } catch (Exception e) {
-      log(-1, "loadLibrary: not useable: %s (%s)", fLib.getName(), e.getMessage());
-      return null;
-    }
-    return fLib;
-  }
-
-  private static boolean didExport = false;
-
-  public static boolean shouldExport() {
-    return didExport;
-  }
-
-  private static void libsExport() {
-    String OPENCV_JAVA = "opencv_java";
-    String fpJarLibs = Commons.getJarLibsPath();
-    File fLibsFolder = Commons.getLibsFolder();
-    if (fLibsFolder.exists()) {
-      if (!Commons.hasVersionFile(fLibsFolder)) {
-        FileManager.deleteFileOrFolder(fLibsFolder);
-        log(lvl, "libsFolder: has wrong content: %s", fLibsFolder);
-      }
-    }
-    if (!fLibsFolder.exists()) {
-      fLibsFolder.mkdirs();
-      if (!fLibsFolder.exists()) {
-        throw new SikuliXception("libsFolder: folder not available: " + fLibsFolder);
-      }
-      Commons.makeVersionFile(fLibsFolder); //TODO
-      log(lvl, "libsFolder: created %s (%s)", fLibsFolder, Commons.getSXVersionLong());
-      didExport = true;
-    }
-    if (!shouldExport()) { //TODO for what needed?
-      areLibsExported = true;
-      return;
-    }
-    List<String> nativesList = Commons.getFileList(fpJarLibs, clsRef);
-    for (String aFile : nativesList) {
-      String copyMsg = "";
-
-      String inFile;
-      Class classRef = clsRef;
-      if (aFile.startsWith("//") || aFile.startsWith("#")) {
-        continue;
-      } else if (aFile.startsWith("/")) {
-        String[] parts = aFile.split("@");
-        if (parts.length > 1) {
-          inFile = parts[0];
-          try {
-            classRef = Class.forName(parts[1]);
-          } catch (ClassNotFoundException e) {
-            copyMsg = String.format(": failed: %s", e.getMessage());
-            inFile = null;
-          }
-        } else {
-          inFile = aFile;
-        }
-        aFile = new File(inFile).getName();
-      } else {
-        inFile = new File(fpJarLibs, aFile).getPath();
-      }
-      if (inFile != null) {
-        if (OPENCV_JAVA.equals(aFile)) {
-          inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
-          aFile = new File(inFile).getName();
-        }
-        if (Commons.runningWindows()) {
-          inFile = inFile.replace("\\", "/");
-        }
-        try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inStream = classRef.getResourceAsStream(inFile)) {
-          copy(inStream, outFile);
-        } catch (Exception ex) {
-          copyMsg = String.format(": failed: %s", ex.getMessage());
-        }
-        copyMsg = String.format("libsExport: %s%s", aFile, copyMsg);
-      }
-      if (copyMsg.contains("failed")) {
-        FileManager.deleteFileOrFolder(fLibsFolder);
-        log(-1, copyMsg);
-        break;
-      } else {
-        log(lvl, copyMsg);
-      }
-    }
-    areLibsExported = true;
-  }
-//</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="20 helpers">
   public void crash() {
@@ -1178,6 +1005,17 @@ public class RunTime {
 
   //<editor-fold defaultstate="collapsed" desc="21 runcmd">
   public final static String runCmdError = "*****error*****";
+
+  public static String arrayToQuotedString(String[] args) {
+    String ret = "";
+    for (String s : args) {
+      if (s.contains(" ")) {
+        s = "\"" + s + "\"";
+      }
+      ret += s + " ";
+    }
+    return ret;
+  }
 
   /**
    * run a system command finally using Java::Runtime.getRuntime().exec(args) and waiting for completion

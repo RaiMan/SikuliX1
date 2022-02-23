@@ -3,14 +3,15 @@
  */
 package org.sikuli.basics;
 
-import org.sikuli.script.support.RunTime;
+import org.sikuli.script.support.Commons;
+
 import java.util.*;
 import jxgrabkey.HotkeyConflictException;
 import jxgrabkey.JXGrabKey;
 
 public class LinuxHotkeyManager extends HotkeyManager {
    static{
-         RunTime.loadLibrary("JXGrabKey");
+         Commons.loadLibrary("JXGrabKey");
    }
 
    class HotkeyData {
