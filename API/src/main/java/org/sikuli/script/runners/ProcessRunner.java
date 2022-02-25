@@ -49,7 +49,7 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 			extension = extensions[0];
 		}
 
-		File file = FileManager.createTempFile(extension);
+		File file = FileManager.createTempFile(extension, null); //TODO
 		FileManager.writeStringToFile(script, file);
 		return runScript(file.getAbsolutePath(), null, options);
 	}
@@ -63,7 +63,10 @@ public class ProcessRunner extends AbstractLocalFileScriptRunner {
 		try {
 			if (options.getOutStream() != null) {
 				doRedirect(options.getOutStream());
+			} else if (!isStdoutRedirected()) {
+				doRedirect(System.out);
 			}
+
 			process = Runtime.getRuntime().exec(cmdArgs);
 
 			startStreamPumper(process.getInputStream(), stdOut, options);

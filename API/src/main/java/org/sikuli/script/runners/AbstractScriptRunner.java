@@ -49,6 +49,10 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
   private PrintStream redirectedStdout;
   private PrintStream redirectedStderr;
 
+  public boolean isStdoutRedirected() {
+    return null != redirectedStdout;
+  }
+
   private static volatile Thread worker = null;
   private static final ScheduledExecutorService TIMEOUT_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
   private static final Object WORKER_LOCK = new Object();
