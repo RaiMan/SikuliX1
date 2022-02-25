@@ -775,6 +775,7 @@ Software:
   public static File setTempFolder() {
     if (null == sxTempFolder) {
       sxTempFolder = new File(sxTempDir);
+      sxTempFolder.mkdirs();
     }
     return sxTempFolder;
   }

@@ -2373,7 +2373,8 @@ public class SikulixIDE extends JFrame {
         if (editorPane.isTemp()) {
           scriptFile = editorPane.getCurrentFile();
         } else {
-          scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension());
+          scriptFile = FileManager.createTempFile(editorPane.getRunner().getDefaultExtension(),
+              Commons.getIDETemp().getAbsolutePath());
         }
         if (scriptFile != null) {
           try {

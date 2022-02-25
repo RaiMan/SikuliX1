@@ -493,25 +493,23 @@ public class FileManager {
     }
   }
 
-  public static File createTempFile(String suffix) {
-    return createTempFile(suffix, null);
-  }
-
-  public static File createTempFile(String suffix, String path) {
+  public static File createTempFile(String suffix, String path) { //TODO better solution?
     String fPrefix = "sikulitemp-";
     String fSuffix = "." + suffix;
-    File fpath = Commons.getIDETemp();
+    File fpath;
     if (path != null) {
       fpath = new File(path);
+      fpath.mkdirs();
+    } else {
+      fpath = Commons.getTempFolder();
     }
     try {
-      fpath.mkdirs();
       File temp = File.createTempFile(fPrefix, fSuffix, fpath);
       temp.deleteOnExit();
       return temp;
     } catch (IOException ex) {
       log(-1, "createTempFile: IOException: %s\n%s", ex.getMessage(),
-          fpath + File.separator + fPrefix + "12....56" + fSuffix);
+          fpath + File.separator + fPrefix + "12...56" + fSuffix);
       return null;
     }
   }
