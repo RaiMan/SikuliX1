@@ -303,7 +303,7 @@ public class SikulixIDE extends JFrame {
     }
     tabs.setSelectedIndex(0);
 
-    Commons.info("IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
+    Commons.debug("IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }

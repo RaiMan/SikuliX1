@@ -335,30 +335,6 @@ Software:
     }
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
-
-    checkAccessibility(); //TODO
-
-    if (runningIDE() && SNAPSHOT) {
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          //https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
-          String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixide";
-          ossrhURL += (runningWindows() ? "win" : (runningMac() ? (runningMacM1() ? "macm1" : "mac") : "lux"));
-          ossrhURL += "/" + sxVersion + "/maven-metadata.xml";
-          String xml = FileManager.downloadURLtoString(ossrhURL);
-          if (!xml.isEmpty()) {
-            String xmlParm = "<timestamp>";
-            int xmlParmPos = xml.indexOf(xmlParm);
-            if (xmlParmPos > -1) {
-              int pos = xmlParmPos + xmlParm.length();
-              String date = xml.substring(pos, pos + 8);
-              setCurrentSnapshotDate(date);
-            }
-          }
-        }
-      }).start();
-    }
   }
 
   public static String getCurrentSnapshotDate() {
@@ -424,7 +400,7 @@ Software:
       }
       SX_PRINTOUT = printoutNew;
     } catch (Exception ex) {
-      terminate(999, "Commons::setLogFile: not possible: %s", ex.getMessage());
+      terminate(999, "Commons::resetLogFile: not possible: %s", ex.getMessage());
     }
   }
 
@@ -1446,7 +1422,7 @@ Software:
   }
 
   public static String copyResourceToString(String res, Class classReference) {
-    InputStream stream = classReference.getResourceAsStream(res);
+    InputStream stream = classReference.getResourceAsStream(res.replace("\\", "/"));
     String content = "";
     try {
       if (stream != null) {
@@ -1463,7 +1439,7 @@ Software:
   }
 
   public static boolean copyResourceToFile(String res, Class classReference, File file) {
-    InputStream stream = classReference.getResourceAsStream(res);
+    InputStream stream = classReference.getResourceAsStream(res.replace("\\", "/"));
     if (stream == null) {
       return false;
     }
@@ -1714,11 +1690,8 @@ Software:
           inFile = inFile.replace(OPENCV_JAVA, getLibFilename(libOpenCV));
           aFile = new File(inFile).getName();
         }
-        if (runningWindows()) {
-          inFile = inFile.replace("\\", "/");
-        }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inStream = classRef.getResourceAsStream(inFile)) {
+             InputStream inStream = classRef.getResourceAsStream(inFile.replace("\\", "/"))) {
           RunTime.copy(inStream, outFile);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());

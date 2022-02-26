@@ -4,10 +4,7 @@
 
 package org.sikuli.ide;
 
-import org.sikuli.basics.FileManager;
-import org.sikuli.basics.HotkeyEvent;
-import org.sikuli.basics.HotkeyListener;
-import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.*;
 import org.sikuli.idesupport.IDEDesktopSupport;
 import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runnerSupport.IScriptRunner;
@@ -73,6 +70,28 @@ public class Sikulix {
 
     Commons.initGlobalOptions();
 
+    if (Commons.isSnapshot()) {
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          //https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixidemac/2.0.6-SNAPSHOT/maven-metadata.xml";
+          String ossrhURL = "https://oss.sonatype.org/content/repositories/snapshots/com/sikulix/sikulixide";
+          ossrhURL += (Commons.runningWindows() ? "win" : (Commons.runningMac() ? (Commons.runningMacM1() ? "macm1" : "mac") : "lux"));
+          ossrhURL += "/" + Commons.getSXVersion() + "/maven-metadata.xml";
+          String xml = FileManager.downloadURLtoString("#" + ossrhURL);
+          if (!xml.isEmpty()) {
+            String xmlParm = "<timestamp>";
+            int xmlParmPos = xml.indexOf(xmlParm);
+            if (xmlParmPos > -1) {
+              int pos = xmlParmPos + xmlParm.length();
+              String date = xml.substring(pos, pos + 8);
+              Commons.setCurrentSnapshotDate(date);
+            }
+          }
+        }
+      }).start();
+    }
+
     if (Commons.hasExtendedArg("reset")) {
       System.out.println("[INFO] IDE: resetting global options and terminating --- see docs");
 
@@ -92,14 +111,27 @@ public class Sikulix {
       System.exit(0);
     }
 
+    if (Commons.hasStartArg(LOGFILE)) {
+      String logfileName = Commons.getStartArg(LOGFILE);
+      Commons.debug("START_ARG -f: %s", logfileName);
+      Debug.setDebugLogFile(logfileName);
+    }
+
+    if (Commons.hasStartArg(USERLOGFILE)) {
+      String logfileName = Commons.getStartArg(USERLOGFILE);
+      Commons.debug("START_ARG -u: %s", logfileName);
+      Debug.setUserLogFile(logfileName);
+    }
+
     if (Commons.isDebug()) {
       Commons.show();
     }
 
+    Commons.checkAccessibility(); //TODO
+
     if (Commons.hasStartArg(RUN)) {
-      //TODO mouse not useable
       if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
-        System.exit(1);
+        //TODO mouse not useable ??? System.exit(1);
       }
       HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
         @Override

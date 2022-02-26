@@ -4,7 +4,6 @@
 package org.sikuli.basics;
 
 import org.sikuli.script.support.Commons;
-import org.sikuli.script.support.RunTime;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -76,7 +75,7 @@ public class Debug {
     if (Commons.getLogFile() != null) {
       printout = Commons.getLogStream();
     } else {
-      setLogFile();
+      setDebugLogFile();
     }
     setUserLogFile();
   }
@@ -382,7 +381,7 @@ public class Debug {
    * @param fileName null, empty or absolute filename
    * @return success
    */
-  public static boolean setLogFile(String fileName) {
+  public static boolean setDebugLogFile(String fileName) {
     if (fileName == null || fileName.isBlank()) {
       fileName = "SikulixLog.txt";
     }
@@ -406,7 +405,7 @@ public class Debug {
     }
   }
 
-  public static void setLogFile() {
+  public static void setDebugLogFile() {
     String fileName = System.getProperty("sikuli.Logfile");
     if (fileName == null) {
       return;
@@ -414,7 +413,7 @@ public class Debug {
     if (fileName.isBlank()) {
       fileName = "SikulixLog.txt";
     }
-    setLogFile(fileName);
+    setDebugLogFile(fileName);
   }
 
   /**

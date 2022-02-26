@@ -107,9 +107,7 @@ public class ScreenDevice extends Devices {
       return;
     }
     if (!isHeadless()) {
-      log(deviceType, 4, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment()");
       GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-      log(deviceType, 4, "Accessing: GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()");
       GraphicsDevice[] gdevs = genv.getScreenDevices();
       nDevices = gdevs.length;
       if (nDevices == 0) {
@@ -123,18 +121,13 @@ public class ScreenDevice extends Devices {
         if (currentBounds.contains(new Point(0, 0))) {
           if (mainMonitor < 0) {
             mainMonitor = i;
-            addOn = " (is primary screen)";
-          } else {
-            addOn = " (has (0,0) too!";
           }
         }
         final ScreenDevice device = new ScreenDevice(gdevs[i]);
         device.id = i;
         devices[i] = device;
-        log(deviceType, 3,"%s" + addOn, device);
       }
       if (mainMonitor < 0) {
-        log(deviceType, 3, "No ScreenDevice has (0,0) --- using 0 as primary: %s", devices[0]);
         mainMonitor = 0;
       }
     } else {
