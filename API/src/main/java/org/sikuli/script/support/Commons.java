@@ -46,30 +46,58 @@ import static org.sikuli.util.CommandArgsEnum.*;
 
 public class Commons {
 
+  //TODO force early Commons static initializer (RunTime)
+  public static void init() {
+  }
+
   //<editor-fold desc="00 static">
-  private static Class classRef = Commons.class;
-
-  private static String sxVersion;
-
-  private static String sxVersionLong;
-  private static String sxVersionShort;
-  private static String sxBuild;
-  private static String sxBuildStamp;
-  private static boolean SNAPSHOT = false;
-
-  private static final String osName;
-  private static final String osVersion;
-  private static final String osArch = System.getProperty("os.arch").toLowerCase();
-
-  private static final String sxTempDir = System.getProperty("java.io.tmpdir");
-  private static File sxTempFolder = null;
-
-  private static Locale sxLocale = new Locale("en", "US");
-
-  private static long startMoment;
-
+  private static Class COMMONS_CLASS = Commons.class;
+  private static final long START_MOMENT;
   protected static boolean RUNNINGIDE = false;
   static PrintStream SX_PRINTOUT;
+  private static Options GLOBAL_OPTIONS = null;
+  static String GLOBAL_LOG = "";
+
+  private static final String SX_VERSION;
+  private static final String SX_VERSION_LONG;
+  private static final String SX_VERSION_SHORT;
+  private static final String SX_BUILD;
+  private static final String SX_BUILD_STAMP;
+
+  private static final String SYSWIN = "windows";
+  private static final String SYSMAC = "mac";
+  private static final String SYSMACM1 = "macm1";
+  private static final String SYSLUX = "linux";
+
+  private static final String OS_NAME;
+  private static final String OS_VERSION;
+  private static final String OS_ARCH = System.getProperty("os.arch").toLowerCase();
+  private static final String ARCHM1 = "aarch64";
+
+  public static String getSysName() {
+    return runningWindows() ? SYSWIN : (runningMac() ? (runningMacM1() ? SYSMACM1 : SYSMAC) : SYSLUX);
+  }
+
+  public static boolean runningWindows() {
+    return OS_NAME.startsWith(SYSWIN);
+  }
+
+  public static boolean runningMac() {
+    return OS_NAME.startsWith(SYSMAC);
+  }
+
+  public static boolean runningMacM1() {
+    return runningMac() && ARCHM1.equals(OS_ARCH);
+  }
+
+  public static boolean runningLinux() {
+    return !runningMac() && !runningWindows();
+  }
+
+  private static final String SX_TEMP_DIR = System.getProperty("java.io.tmpdir");
+  private static File SX_TEMP_FOLDER = null;
+
+  private static Locale SX_LOCALE = new Locale("en", "US");
 
   public static boolean isRunningIDE() {
     if (RUNNINGIDE &&
@@ -107,20 +135,30 @@ public class Commons {
     return regIDE;
   }
 
-  private static File isRunning = null;
-  private static FileOutputStream isRunningFile;
+  private static boolean SNAPSHOT = false;
+  public static boolean isSnapshot() {
+    return SNAPSHOT;
+  }
+
+  private static File IS_RUNNING_FILE = null;
+  private static FileOutputStream IS_RUNNING_STREAM;
+
+  public static void setIsRunning(File file, FileOutputStream stream) {
+    IS_RUNNING_FILE = file;
+    IS_RUNNING_STREAM = stream;
+  }
 
   private static void runShutdownHook() {
     debug("***** final cleanup at System.exit() *****");
     //TODO runShutdownHook cleanUp();
-    if (isRunning != null) {
+    if (IS_RUNNING_FILE != null) {
       try {
-        isRunningFile.close();
+        IS_RUNNING_STREAM.close();
       } catch (IOException ex) {
       }
-      isRunning.delete();
+      IS_RUNNING_FILE.delete();
     }
-    if (globalOptions != null) {
+    if (GLOBAL_OPTIONS != null) {
       saveGlobalOptions();
     }
     if (!GLOBAL_LOG.isEmpty()) {
@@ -132,114 +170,8 @@ public class Commons {
     }
   }
 
-  public static void setIsRunning(File token, FileOutputStream tokenStream) {
-    isRunning = token;
-    isRunningFile = tokenStream;
-  }
-
-  private static Options globalOptions = null;
-  private static File globalOptionsFile = null;
-
-  static String GLOBAL_LOG = "";
-
-  static final String[] xmlDate = {""};
-
-  public static synchronized String setCurrentSnapshotDate(String date) {
-    if (!date.isEmpty()) {
-      String thisDate = sxBuildStamp.substring(0, 8);
-      if (Integer.parseInt(date) > Integer.parseInt(thisDate)) {
-        xmlDate[0] = date;
-      }
-    }
-    return xmlDate[0];
-  }
-
-  private static String SYSWIN = "windows";
-  private static String SYSMAC = "mac";
-  private static String SYSMACM1 = "macm1";
-  private static String SYSLUX = "linux";
-
-  public static String getSysName() {
-    return runningWindows() ? SYSWIN : (runningMac() ? (runningMacM1() ? SYSMACM1 : SYSMAC) : SYSLUX);
-  }
-
-  public static boolean runningWindows() {
-    return osName.startsWith(SYSWIN);
-  }
-
-  public static boolean runningMac() {
-    return osName.startsWith(SYSMAC);
-  }
-
-  private static final String ARCHM1 = "aarch64";
-
-  public static boolean runningMacM1() {
-    return runningMac() && ARCHM1.equals(osArch);
-  }
-
-  public static boolean runningLinux() {
-    return !runningMac() && !runningWindows();
-  }
-
-  public static ExecutorService executorService = null;
-
-  public static void checkAccessibility() {
-    Devices.start(Devices.TYPE.SCREEN);
-    //check Mouse
-    executorService = Executors.newFixedThreadPool(1);
-    executorService.execute(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Devices.start(Devices.TYPE.MOUSE);
-        } catch (Exception e) {
-          System.out.println("");
-        }
-      }
-    });
-    if (Commons.runningMac()) {
-      //macOS: check Screen capture
-      Rectangle srect = ScreenDevice.primary().asRectangle();
-      BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
-      DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
-      int min = data.getElem(0);
-      int max = data.getElem(0);
-      for (int n = 0; n < data.getSize(); n++) {
-        min = Math.min(min, data.getElem(n));
-        max = Math.max(max, data.getElem(n));
-      }
-      Color cmin = new Color(min);
-      Color cmax = new Color(max);
-      boolean singleColor =
-          (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
-              (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
-              (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
-      if (singleColor) {
-        ScreenDevice.isUseable(false);
-      }
-    } else {
-      pause(0.5); //Windows: wait for threaded Mouse check
-    }
-    if (!MouseDevice.isUseable()) {
-      System.out.println( //TODO mouse blocked message
-          "*****************************************************\n" +
-              "    Mouse/Key features are blocked - not useable\n" +
-              "*****************************************************");
-    }
-    if (!ScreenDevice.isUseable()) {
-      System.out.println( //TODO screenshots blocked message
-          "*****************************************************\n" +
-              "  Screenshots blocked - find on screen not useable\n" +
-              "*****************************************************");
-    }
-  }
-
-  public static boolean isCaptureBlocked() {
-    return !ScreenDevice.isUseable();
-  }
-
   static {
-    startMoment = new Date().getTime();
+    START_MOMENT = new Date().getTime();
 
     String caller = Thread.currentThread().getStackTrace()[2].getClassName();
     if (caller.contains(".ide.")) {
@@ -266,18 +198,18 @@ public class Commons {
 
     //TODO check with Java 18 for correct Windows 11 version + macOS version
     if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
-      osName = "windows";
+      OS_NAME = "windows";
       if (System.getProperty("os.version").toLowerCase().startsWith("1")) {
         String[] sysInfo = ProcessRunner.run("cmd", "/C", "systeminfo").split("\n");
         String v1 = sysInfo[2].trim().split(":")[1].trim().split(" ")[2];
         String v2 = sysInfo[3].trim().split(":")[1].trim().split(" ")[0];
         if (v1.equals("11")) {
-          osVersion = "11";
+          OS_VERSION = "11";
         } else {
-          osVersion = System.getProperty("os.version").toLowerCase();
+          OS_VERSION = System.getProperty("os.version").toLowerCase();
         }
       } else {
-        osVersion = System.getProperty("os.version").toLowerCase();
+        OS_VERSION = System.getProperty("os.version").toLowerCase();
       }
     } else {
 /*TODO macOS version is 11.5 instead of 11.6
@@ -291,8 +223,8 @@ Software:
     System Software Overview:
       System Version: macOS 11.6 (20G165)
 */
-      osName = System.getProperty("os.name").toLowerCase();
-      osVersion = System.getProperty("os.version").toLowerCase();
+      OS_NAME = System.getProperty("os.name").toLowerCase();
+      OS_VERSION = System.getProperty("os.version").toLowerCase();
     }
 
     Properties sxProps = new Properties();
@@ -322,46 +254,20 @@ Software:
       }
     }
     //    sikulixvproject=2.0.0  or 2.1.0-SNAPSHOT
-    sxVersion = sxProps.getProperty("sikulixvproject");
+    SX_VERSION = sxProps.getProperty("sikulixvproject");
     //    sikulixbuild=2019-10-17_09:58
-    sxBuild = sxProps.getProperty("sikulixbuild");
-    sxBuildStamp = sxBuild
+    SX_BUILD = sxProps.getProperty("sikulixbuild");
+    SX_BUILD_STAMP = SX_BUILD
         .replace("_", "").replace("-", "").replace(":", "")
         .substring(0, 12);
-    sxVersionLong = sxVersion + String.format("-%s", sxBuildStamp);
-    sxVersionShort = sxVersion.replace("-SNAPSHOT", "");
-    if (sxVersion.contains("-SNAPSHOT")) {
+    SX_VERSION_LONG = SX_VERSION + String.format("-%s", SX_BUILD_STAMP);
+    SX_VERSION_SHORT = SX_VERSION.replace("-SNAPSHOT", "");
+    if (SX_VERSION.contains("-SNAPSHOT")) {
       SNAPSHOT = true;
     }
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> runShutdownHook()));
   }
-
-  public static String getCurrentSnapshotDate() {
-    return setCurrentSnapshotDate("");
-  }
-
-  //TODO force early Commons static initializer (RunTime)
-  public static void init() {
-  }
-
-  public static double getSinceStart() {
-    return (new Date().getTime() - startMoment) / 1000.0;
-  }
-
-  public static Locale getLocale() {
-    return sxLocale;
-  }
-
-  public static void setLocale(Locale locale) {
-    sxLocale = locale;
-    setOption("SX_LOCALE", locale); //TODO
-  }
-
-  public static boolean isSandBox() {
-    return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
-  }
-
   //</editor-fold>
 
   //<editor-fold desc="01 logging">
@@ -371,10 +277,6 @@ Software:
 
   public static long timeSince(long start) {
     return new Date().getTime() - start;
-  }
-
-  public static boolean isSnapshot() {
-    return SNAPSHOT;
   }
 
   static File SX_LOGFILE = null;
@@ -544,6 +446,94 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="02 startup / terminate">
+  static final String[] xmlDate = {""};
+
+  public static synchronized String setCurrentSnapshotDate(String date) {
+    if (!date.isEmpty()) {
+      String thisDate = SX_BUILD_STAMP.substring(0, 8);
+      if (Integer.parseInt(date) > Integer.parseInt(thisDate)) {
+        xmlDate[0] = date;
+      }
+    }
+    return xmlDate[0];
+  }
+
+  public static String getCurrentSnapshotDate() {
+    return setCurrentSnapshotDate("");
+  }
+
+  public static double getSinceStart() {
+    return (new Date().getTime() - START_MOMENT) / 1000.0;
+  }
+
+  public static Locale getLocale() {
+    return SX_LOCALE;
+  }
+
+  public static void setLocale(Locale locale) {
+    SX_LOCALE = locale;
+    setOption("SX_LOCALE", locale); //TODO
+  }
+
+  public static boolean isSandBox() {
+    return hasStartArg(APPDATA) && APP_DATA_SANDBOX != null;
+  }
+
+  public static void checkAccessibility() {
+    Devices.start(Devices.TYPE.SCREEN);
+    //check Mouse
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
+    executorService.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Devices.start(Devices.TYPE.MOUSE);
+        } catch (Exception e) {
+          System.out.println("");
+        }
+      }
+    });
+    if (Commons.runningMac()) {
+      //macOS: check Screen capture
+      Rectangle srect = ScreenDevice.primary().asRectangle();
+      BufferedImage screenImage = ScreenDevice.getRobot(0).captureScreen(srect).getImage(); // checkAccessibility
+      DataBuffer data = screenImage.getData(new Rectangle(200, 10, srect.width - 200, 1)).getDataBuffer();
+      int min = data.getElem(0);
+      int max = data.getElem(0);
+      for (int n = 0; n < data.getSize(); n++) {
+        min = Math.min(min, data.getElem(n));
+        max = Math.max(max, data.getElem(n));
+      }
+      Color cmin = new Color(min);
+      Color cmax = new Color(max);
+      boolean singleColor =
+          (Math.abs(cmax.getRed() - cmin.getRed()) < 2) &&
+              (Math.abs(cmax.getGreen() - cmin.getGreen()) < 2) &&
+              (Math.abs(cmax.getBlue() - cmin.getBlue()) < 2);
+      if (singleColor) {
+        ScreenDevice.isUseable(false);
+      }
+    } else {
+      pause(0.5); //Windows: wait for threaded Mouse check
+    }
+    if (!MouseDevice.isUseable()) {
+      System.out.println( //TODO mouse blocked message
+          "*****************************************************\n" +
+              "    Mouse/Key features are blocked - not useable\n" +
+              "*****************************************************");
+    }
+    if (!ScreenDevice.isUseable()) {
+      System.out.println( //TODO screenshots blocked message
+          "*****************************************************\n" +
+              "  Screenshots blocked - find on screen not useable\n" +
+              "*****************************************************");
+    }
+  }
+
+  public static boolean isCaptureBlocked() {
+    return !ScreenDevice.isUseable();
+  }
+
   private static Class startClass = null;
 
   public static Class getStartClass() {
@@ -749,17 +739,17 @@ Software:
 
   //<editor-fold desc="05 standard directories">
   public static File setTempFolder() {
-    if (null == sxTempFolder) {
-      sxTempFolder = new File(sxTempDir);
-      sxTempFolder.mkdirs();
+    if (null == SX_TEMP_FOLDER) {
+      SX_TEMP_FOLDER = new File(SX_TEMP_DIR);
+      SX_TEMP_FOLDER.mkdirs();
     }
-    return sxTempFolder;
+    return SX_TEMP_FOLDER;
   }
 
   public static File setTempFolder(File folder) {
-    sxTempFolder = folder;
-    sxTempFolder.mkdirs();
-    return sxTempFolder;
+    SX_TEMP_FOLDER = folder;
+    SX_TEMP_FOLDER.mkdirs();
+    return SX_TEMP_FOLDER;
   }
 
   public static File getTempFolder() {
@@ -915,31 +905,31 @@ Software:
   }
 
   public static String getSXVersion() {
-    return sxVersion;
+    return SX_VERSION;
   }
 
   public static String getSXVersionIDE() {
-    return "SikulixIDE-" + sxVersion;
+    return "SikulixIDE-" + SX_VERSION;
   }
 
   public static String getSXVersionAPI() {
-    return "SikulixAPI-" + sxVersion;
+    return "SikulixAPI-" + SX_VERSION;
   }
 
   public static String getSXVersionLong() {
-    return sxVersionLong;
+    return SX_VERSION_LONG;
   }
 
   public static String getSXVersionShort() {
-    return sxVersionShort;
+    return SX_VERSION_SHORT;
   }
 
   public static String getSXBuild() {
-    return sxBuild;
+    return SX_BUILD;
   }
 
   public static String getSxBuildStamp() {
-    return sxBuildStamp;
+    return SX_BUILD_STAMP;
   }
 
   public static boolean hasVersionFile(File folder) {
@@ -967,19 +957,19 @@ Software:
   }
 
   public static String getOSName() {
-    return osName;
+    return OS_NAME;
   }
 
   public static String getOSVersion() {
-    return osVersion;
+    return OS_VERSION;
   }
 
   public static String getOSArch() {
-    return osArch;
+    return OS_ARCH;
   }
 
   public static String getOSInfo() {
-    String info = osVersion + " (" + osArch + ")";
+    String info = OS_VERSION + " (" + OS_ARCH + ")";
     if (runningWindows()) return "Windows " + info;
     if (runningMac()) return "macOS " + info;
     return System.getProperty("os.name") + " " + info;
@@ -1661,7 +1651,7 @@ Software:
       areLibsExported = true;
       return;
     }
-    List<String> nativesList = Commons.getFileList(fpJarLibs, classRef);
+    List<String> nativesList = Commons.getFileList(fpJarLibs, COMMONS_CLASS);
     for (String aFile : nativesList) {
       String copyMsg = "";
 
@@ -1673,7 +1663,7 @@ Software:
         if (parts.length > 1) {
           inFile = parts[0];
           try {
-            classRef = Class.forName(parts[1]);
+            COMMONS_CLASS = Class.forName(parts[1]);
           } catch (ClassNotFoundException e) {
             copyMsg = String.format(": failed: %s", e.getMessage());
             inFile = null;
@@ -1691,7 +1681,7 @@ Software:
           aFile = new File(inFile).getName();
         }
         try (FileOutputStream outFile = new FileOutputStream(new File(fLibsFolder, aFile));
-             InputStream inStream = classRef.getResourceAsStream(inFile.replace("\\", "/"))) {
+             InputStream inStream = COMMONS_CLASS.getResourceAsStream(inFile.replace("\\", "/"))) {
           RunTime.copy(inStream, outFile);
         } catch (Exception ex) {
           copyMsg = String.format(": failed: %s", ex.getMessage());
@@ -1723,11 +1713,11 @@ Software:
   public final static String SXARGS_OPT = "SX_ARG_";
 
   public static void initGlobalOptions() {
-    if (globalOptions == null) {
-      globalOptions = new Options();
-      globalOptions.set("SX_ARG_JAR", getMainClassLocation().getAbsolutePath());
+    if (GLOBAL_OPTIONS == null) {
+      GLOBAL_OPTIONS = new Options();
+      GLOBAL_OPTIONS.set("SX_ARG_JAR", getMainClassLocation().getAbsolutePath());
       if (STARTUPFILE != null) {
-        globalOptions.set("SX_ARG_STARTUP", new File(STARTUPFILE));
+        GLOBAL_OPTIONS.set("SX_ARG_STARTUP", new File(STARTUPFILE));
       }
       // *************** add commandline args
       String val = "";
@@ -1750,7 +1740,7 @@ Software:
                 val = val == null ? "" : val;
               }
             }
-            globalOptions.set("SX_ARG_" + arg, val);
+            GLOBAL_OPTIONS.set("SX_ARG_" + arg, val);
             val = "";
           }
         }
@@ -1759,7 +1749,7 @@ Software:
           val += arg + " ";
         }
         if (!val.isEmpty()) {
-          globalOptions.set("SX_ARG_USER", val.trim());
+          GLOBAL_OPTIONS.set("SX_ARG_USER", val.trim());
         }
       }
 
@@ -1769,7 +1759,7 @@ Software:
         if (value == null) {
           value = "null";
         }
-        globalOptions.add("Settings." + name, value);
+        GLOBAL_OPTIONS.add("Settings." + name, value);
       }
 
       // add IDE Preferences defaults
@@ -1779,13 +1769,14 @@ Software:
       }
 
       // *************** check for existing optionsfile and load it
+      File globalOptionsFile = null;
       if (isSandBox()) {
         globalOptionsFile = getOptionFile();
       } else {
         globalOptionsFile = getOptionFileDefault();
       }
       if (globalOptionsFile != null && globalOptionsFile.exists()) {
-        globalOptions.load(globalOptionsFile, new Options.Filter() {
+        GLOBAL_OPTIONS.load(globalOptionsFile, new Options.Filter() {
           @Override
           public boolean accept(String key) {
             if (key.startsWith(SXARGS_OPT)) {
@@ -1810,10 +1801,10 @@ Software:
               if (parts.length > 1) {
                 val = parts[1].strip();
               }
-              globalOptions.set(key, val);
+              GLOBAL_OPTIONS.set(key, val);
             }
           } else {
-            globalOptions.set(line.strip(), "");
+            GLOBAL_OPTIONS.set(line.strip(), "");
           }
         }
       }
@@ -1821,17 +1812,17 @@ Software:
   }
 
   public static Map<String, String> getOptions() {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
     }
-    return globalOptions.getAll();
+    return GLOBAL_OPTIONS.getAll();
   }
 
   public static Options getGlobalOptions() {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       terminate(999, "Commons::globalOptions: early access - not initialized");
     }
-    return globalOptions;
+    return GLOBAL_OPTIONS;
   }
 
   static void saveGlobalOptions() {
@@ -1966,36 +1957,36 @@ Software:
   }
 
   public static boolean hasOption(String option) {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
     }
-    return globalOptions.has(option);
+    return GLOBAL_OPTIONS.has(option);
   }
 
   public static String getOption(String option) {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
     }
-    return globalOptions.get(option, "");
+    return GLOBAL_OPTIONS.get(option, "");
   }
 
   public static String getOption(String option, Object deflt) {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
     }
     if (deflt instanceof String) {
-      return globalOptions.get(option, (String) deflt);
+      return GLOBAL_OPTIONS.get(option, (String) deflt);
     } else {
-      return globalOptions.get(option, deflt.toString());
+      return GLOBAL_OPTIONS.get(option, deflt.toString());
 
     }
   }
 
   public static void setOption(String option, Object val) {
-    if (globalOptions == null) {
+    if (GLOBAL_OPTIONS == null) {
       initGlobalOptions();
     }
-    globalOptions.set(option, val);
+    GLOBAL_OPTIONS.set(option, val);
   }
 
   public static int asInt(String val) {

@@ -113,13 +113,11 @@ public class Sikulix {
 
     if (Commons.hasStartArg(LOGFILE)) {
       String logfileName = Commons.getStartArg(LOGFILE);
-      Commons.debug("START_ARG -f: %s", logfileName);
       Debug.setDebugLogFile(logfileName);
     }
 
     if (Commons.hasStartArg(USERLOGFILE)) {
       String logfileName = Commons.getStartArg(USERLOGFILE);
-      Commons.debug("START_ARG -u: %s", logfileName);
       Debug.setUserLogFile(logfileName);
     }
 
