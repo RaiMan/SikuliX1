@@ -19,12 +19,6 @@ import java.util.*;
 
 public class IDESupport {
 
-	private static final String me = "IDESupport: ";
-	private static final int lvl = 3;
-	private static void log(int level, String message, Object... args) {
-		Debug.logx(level, me + message, args);
-	}
-
 	public static Map<String, IIDESupport> ideSupporter = new HashMap<String, IIDESupport>();
 
 	public static void initIDESupport() {
@@ -71,7 +65,6 @@ public class IDESupport {
 		try {
 			FileManager.xcopy(src, dest, filter);
 		} catch (IOException ex) {
-			log(-1, "transferScript: %s", ex.getMessage());
 			return false;
 		}
 		return true;
@@ -80,29 +73,25 @@ public class IDESupport {
 	public static void init() {
 		synchronized(IDE_RUNNERS) {
 			if(IDE_RUNNERS.isEmpty()) {
-				log(lvl, "enter");
 
 				List<IScriptRunner> runners = Runner.getRunners();
 
 				for (Class<?> runnerClass : IDE_RUNNER_CLASSES) {
 					for (IScriptRunner runner : runners) {
 						if(runnerClass.equals(runner.getClass())) {
-							log(lvl, "added: %s", runner.getName());
 							IDE_RUNNERS.add(runner);
 							break;
 						}
 					}
 				}
 
-				if (IDE_RUNNERS.isEmpty()) {
-					String em = "Terminating: No scripting support available. Rerun Setup!";
-					log(-1, em);
+				if (IDE_RUNNERS.isEmpty()) { //TODO IDESupport
+					String em = "Terminating: No script runner available";
 					Sikulix.popError(em, "IDE has problems ...");
 					System.exit(1);
 				}
 
 				defaultRunner = IDE_RUNNERS.get(0);
-				log(lvl, "exit: defaultrunner: %s (%s)", defaultRunner.getName(), defaultRunner.getExtensions()[0]);
 				initIDESupport();
 			}
 		}

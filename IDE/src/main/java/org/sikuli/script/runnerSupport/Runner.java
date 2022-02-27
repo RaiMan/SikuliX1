@@ -55,8 +55,6 @@ public class Runner {
             current = cl.getConstructor().newInstance();
           } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
               | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-
-            log(lvl, "init: %s: warning: not possible", cl);
             continue;
           }
 
@@ -64,8 +62,6 @@ public class Runner {
           if (name != null && !name.startsWith("Not")) {
             runners.add(current);
             if (current.isSupported()) {
-              log(lvl, "added: %s %s %s", current.getName(), Arrays.toString(current.getExtensions()),
-                  current.getType());
               supportedRunners.add(current);
             }
           }

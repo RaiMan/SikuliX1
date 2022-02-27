@@ -242,7 +242,7 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    log(3, "IDE: starting GUI");
+    log(4, "starting GUI");
     setWindow();
 
     installCaptureHotkey();
@@ -251,15 +251,15 @@ public class SikulixIDE extends JFrame {
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
 
-    Debug.log(4, "IDE: Adding components to window");
+    log(4, "Adding components to window");
     initMenuBars(ideWindow);
     final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
-    Debug.log(4, "IDE: creating tabbed editor");
+    log(4, "creating tabbed editor");
     initTabs();
-    Debug.log(4, "IDE: creating message area");
+    log(4, "creating message area");
     initMessageArea();
-    Debug.log(4, "IDE: creating combined work window");
+    log(4, "creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
@@ -271,39 +271,39 @@ public class SikulixIDE extends JFrame {
     mainPane.setResizeWeight(0.6);
     mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-    Debug.log(4, "IDE: Putting all together");
+    log(4, "Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
 
     editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
-    Debug.log(4, "IDE: Putting all together - after main pane");
+    log(4, "Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
     ideContainer.add(tb, BorderLayout.NORTH);
-    Debug.log(4, "IDE: Putting all together - after toolbar");
+    log(4, "Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
-    Debug.log(4, "IDE: Putting all together - before layout");
+    log(4, "Putting all together - before layout");
     ideContainer.doLayout();
     ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    Debug.log(4, "IDE: Putting all together - after layout");
+    log(4, "Putting all together - after layout");
     initShortcutKeys();
     initWindowListener();
     initTooltip();
 
-    //Debug.log(4, "IDE: Putting all together - Check for Updates");
+    //log(4, "Putting all together - Check for Updates");
     //TODO autoCheckUpdate();
 
     //waitPause();
-    Debug.log(4, "IDE: Putting all together - Restore last Session");
+    log(4, "Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
       newTabEmpty();
     }
     tabs.setSelectedIndex(0);
 
-    Commons.debug("IDE ready: on Java %d (%4.1f sec)",  Commons.getJavaVersion(), Commons.getSinceStart());
+    Commons.addlog("IDE ready: on Java %d",  Commons.getJavaVersion());
     if (Debug.getDebugLevel() < 3) {
       Debug.reset();
     }
@@ -506,9 +506,9 @@ public class SikulixIDE extends JFrame {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           if (f.getName().endsWith(".py")) {
-            Debug.info("Python script: %s", f.getName());
+            log(4,"Python script: %s", f.getName());
           } else {
-            log(3, "Sikuli script: %s", f);
+            log(4, "Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }
@@ -734,7 +734,7 @@ public class SikulixIDE extends JFrame {
       codePane.close();
       tabs.remove(tabs.getSelectedIndex());
     } catch (Exception ex) {
-      Debug.info("Can't close this tab: %s", ex.getMessage());
+      Debug.error("Can't close this tab: %s", ex.getMessage());
     }
     codePane = getCurrentCodePane();
     if (codePane != null) {
@@ -1432,7 +1432,7 @@ public class SikulixIDE extends JFrame {
     }
 
 //    public void setFailed(boolean failed) {
-//      Debug.log(7, "search failed: " + failed);
+//      log(4, "search failed: " + failed);
 //      _searchField.setBackground(Color.white);
 //      if (failed) {
 //        _searchField.setForeground(COLOR_SEARCH_FAILED);
@@ -1989,7 +1989,7 @@ public class SikulixIDE extends JFrame {
         return;
       }
       String path = FileManager.slashify(file.getAbsolutePath(), false);
-      Debug.info("load image: " + path);
+      log(4, "load image: " + path);
       EditorPatternButton icon;
       String img = codePane.copyFileToBundle(path).getAbsolutePath();
       if (prefs.getDefaultThumbHeight() > 0) {
@@ -2641,7 +2641,6 @@ public class SikulixIDE extends JFrame {
 
       public void eventDispatched(AWTEvent e) {
         java.awt.event.KeyEvent ke = (java.awt.event.KeyEvent) e;
-        //Debug.log(ke.toString());
         if (ke.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
           if (isKeyNextTab(ke)) {
             nextTab();

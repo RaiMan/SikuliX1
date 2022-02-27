@@ -8,10 +8,14 @@ import org.apache.commons.cli.CommandLine;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.script.*;
+import org.sikuli.script.Options;
+import org.sikuli.script.Region;
+import org.sikuli.script.SX;
+import org.sikuli.script.SikuliXception;
 import org.sikuli.script.runners.ProcessRunner;
 import org.sikuli.script.support.devices.Devices;
 import org.sikuli.script.support.devices.HelpDevice;
@@ -149,7 +153,7 @@ public class Commons {
   }
 
   private static void runShutdownHook() {
-    debug("***** final cleanup at System.exit() *****");
+    Debug.log(3, "***** final cleanup at System.exit() *****");
     //TODO runShutdownHook cleanUp();
     if (IS_RUNNING_FILE != null) {
       try {
@@ -279,6 +283,35 @@ Software:
     return new Date().getTime() - start;
   }
 
+  private static final int DEBUG_LEVEL_QUIET = -9999;
+  private static int debugLevel = 0;
+  private static boolean verbose = false;
+
+  public static void setDebug() {
+    debugLevel = 3;
+  }
+
+  public static boolean isDebug() {
+    return debugLevel > 2;
+  }
+
+  public static void setQuiet() {
+    debugLevel = DEBUG_LEVEL_QUIET;
+  }
+
+  public static boolean isQuiet() {
+    return debugLevel < 0;
+  }
+
+  public static void setVerbose() {
+    setDebug();
+    verbose = true;
+  }
+
+  public static boolean isVerbose() {
+    return verbose;
+  }
+
   static File SX_LOGFILE = null;
 
   public static void setLogFile(File file) {
@@ -325,9 +358,10 @@ Software:
     getLogStream().printf(msg, args);
   }
 
-  public static synchronized void addlog(String msg) {
+  public static synchronized void addlog(String msg, Object... args) {
     if (SNAPSHOT) {
-      GLOBAL_LOG += String.format("[SXGLOBAL %4.3f] ", getSinceStart()) + msg + System.lineSeparator();
+      String header = String.format("[SXLOG %4.3f] ", getSinceStart());
+      GLOBAL_LOG += String.format(header + msg, args) + System.lineSeparator();
     }
   }
 
@@ -347,35 +381,6 @@ Software:
     if (isDebug()) {
       printOut("[SXDEBUG] " + msg + "%n", args);
     }
-  }
-
-  private static final int DEBUG_LEVEL_QUIET = -9999;
-  private static int debugLevel = 0;
-  private static boolean verbose = false;
-
-  public static void setDebug() {
-    debugLevel = 3;
-  }
-
-  public static boolean isDebug() {
-    return debugLevel > 2;
-  }
-
-  public static void setQuiet() {
-    debugLevel = DEBUG_LEVEL_QUIET;
-  }
-
-  public static boolean isQuiet() {
-    return debugLevel < 0;
-  }
-
-  public static void setVerbose() {
-    setDebug();
-    verbose = true;
-  }
-
-  public static boolean isVerbose() {
-    return verbose;
   }
 
   private static boolean traceEnterExit = false;

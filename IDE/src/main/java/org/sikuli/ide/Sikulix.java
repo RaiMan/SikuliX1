@@ -121,10 +121,6 @@ public class Sikulix {
       Debug.setUserLogFile(logfileName);
     }
 
-    if (Commons.isDebug()) {
-      Commons.show();
-    }
-
     Commons.checkAccessibility(); //TODO
 
     if (Commons.hasStartArg(RUN)) {
@@ -184,7 +180,7 @@ public class Sikulix {
       }
     }
 
-    Commons.debug("IDE starting (%4.1f)", Commons.getSinceStart());
+    Commons.addlog("IDE starting");
 
     //TODO mouse not useable
     if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
