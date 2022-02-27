@@ -123,6 +123,8 @@ public class Sikulix {
 
     Commons.checkAccessibility(); //TODO
 
+    Commons.show(); //TODO
+
     if (Commons.hasStartArg(RUN)) {
       if (!MouseDevice.isUseable() || !ScreenDevice.isUseable()) {
         //TODO mouse not useable ??? System.exit(1);
@@ -172,7 +174,7 @@ public class Sikulix {
       Commons.terminate();
     }
 
-    if (Commons.hasStartArg(LOAD)) {
+    if (Commons.hasStartArg(LOAD)) { //TODO
       String sx_arg_load = Commons.getOption("SX_ARG_LOAD");
       String[] scripts = Runner.resolveRelativeFiles(Commons.asArray(sx_arg_load));
       for (String script : scripts) {
@@ -267,12 +269,11 @@ public class Sikulix {
     //Commons.addlog("Sikulix::SikulixIDE.start(args)");
     SikulixIDE.start(args);
 
-    //TODO start IDE in subprocess?
     //region IDE subprocess
     if (false) {
       /*
       if (false) {
-        RunTime.terminate(999, "//TODO start IDE in subprocess?");
+        RunTime.terminate(999, "start IDE in subprocess?");
         List<String> cmd = new ArrayList<>();
         System.getProperty("java.home");
         if (Commons.runningWindows()) {
@@ -291,7 +292,7 @@ public class Sikulix {
 //      java.base/java.io=ALL-UNNAMED
 /*
 
-//TODO IDE start: --add-opens supress warnings
+        IDE start: --add-opens supress warnings
           cmd.add("--add-opens");
           cmd.add("java.desktop/javax.swing.plaf.basic=ALL-UNNAMED");
           cmd.add("--add-opens");
@@ -312,9 +313,7 @@ public class Sikulix {
 //      cmd.addAll(finalArgs);
 
         RunTime.startLog(3, "*********************** leaving start");
-        //TODO detach IDE: for what does it make sense?
-*/
-/*
+
     if (shouldDetach()) {
       ProcessRunner.detach(cmd);
       System.exit(0);
@@ -322,8 +321,8 @@ public class Sikulix {
       int exitCode = ProcessRunner.runBlocking(cmd);
       System.exit(exitCode);
     }
-*/
-/*
+
+
 
         int exitCode = ProcessRunner.runBlocking(cmd);
         System.exit(exitCode);

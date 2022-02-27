@@ -303,6 +303,21 @@ Software:
     return debugLevel < 0;
   }
 
+  private static int debugLevelSaved = -1;
+
+  public static void setQuietSavingState() {
+    debugLevelSaved = debugLevel;
+    setQuiet();
+  }
+
+  public static void resetQuiet() {
+    if (debugLevelSaved < 0) {
+      return;
+    }
+    debugLevel = debugLevelSaved;
+    debugLevelSaved = -1;
+  }
+
   public static void setVerbose() {
     setDebug();
     verbose = true;

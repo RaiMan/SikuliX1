@@ -225,7 +225,7 @@ public class SikulixIDE extends JFrame {
     try {
       return SikuliIDEI18N._I(key, args);
     } catch (Exception e) {
-      log(4, "[I18N] " + key);
+      //TODO log(4, "[I18N] " + key);
       return key;
     }
   }
@@ -242,24 +242,34 @@ public class SikulixIDE extends JFrame {
   }
 
   private void startGUI() {
-    log(4, "starting GUI");
+    Commons.addlog("starting GUI");
     setWindow();
 
-    installCaptureHotkey();
-    installStopHotkey();
+    Commons.setQuietSavingState();
+    if (installCaptureHotkey()) {
+      Commons.addlog("IDE: Capture HotKey installed");
+    } else {
+      Commons.addlog("IDE: Capture HotKey not installed: %s", "PROBLEM?"); //TODO
+    }
+    if (installStopHotkey()) {
+      Commons.addlog("IDE: Stop HotKey installed");
+    } else {
+      Commons.addlog("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
+    }
+    Commons.resetQuiet();
 
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
 
-    log(4, "Adding components to window");
+    Commons.addlog("Adding components to window");
     initMenuBars(ideWindow);
     final Container ideContainer = ideWindow.getContentPane();
     ideContainer.setLayout(new BorderLayout());
-    log(4, "creating tabbed editor");
+    Commons.addlog("creating tabbed editor");
     initTabs();
-    log(4, "creating message area");
+    Commons.addlog("creating message area");
     initMessageArea();
-    log(4, "creating combined work window");
+    Commons.addlog("creating combined work window");
     JPanel codePane = new JPanel(new BorderLayout(10, 10));
     codePane.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
     codePane.add(tabs, BorderLayout.CENTER);
@@ -271,32 +281,32 @@ public class SikulixIDE extends JFrame {
     mainPane.setResizeWeight(0.6);
     mainPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-    log(4, "Putting all together");
+    Commons.addlog("Putting all together");
     JPanel editPane = new JPanel(new BorderLayout(0, 0));
 
     editPane.add(mainPane, BorderLayout.CENTER);
     ideContainer.add(editPane, BorderLayout.CENTER);
-    log(4, "Putting all together - after main pane");
+    Commons.addlog("Putting all together - after main pane");
 
     JToolBar tb = initToolbar();
     ideContainer.add(tb, BorderLayout.NORTH);
-    log(4, "Putting all together - after toolbar");
+    Commons.addlog("Putting all together - after toolbar");
 
     ideContainer.add(initStatusbar(), BorderLayout.SOUTH);
-    log(4, "Putting all together - before layout");
+    Commons.addlog("Putting all together - before layout");
     ideContainer.doLayout();
     ideWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    log(4, "Putting all together - after layout");
+    Commons.addlog("Putting all together - after layout");
     initShortcutKeys();
     initWindowListener();
     initTooltip();
 
-    //log(4, "Putting all together - Check for Updates");
+    //Commons.addlog("Putting all together - Check for Updates");
     //TODO autoCheckUpdate();
 
     //waitPause();
-    log(4, "Putting all together - Restore last Session");
+    Commons.addlog("Putting all together - Restore last Session");
     restoreSession(0);
     if (tabs.getTabCount() == 0) {
       newTabEmpty();
@@ -335,7 +345,6 @@ public class SikulixIDE extends JFrame {
     tabs.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(javax.swing.event.ChangeEvent e) {
-        log(4, "********** Tab switched");
         EditorPane editorPane;
         JTabbedPane tab = (JTabbedPane) e.getSource();
         int i = tab.getSelectedIndex();
@@ -506,9 +515,9 @@ public class SikulixIDE extends JFrame {
         File f = new File(loadScripts[i]);
         if (f.exists() && !filesToLoad.contains(f)) {
           if (f.getName().endsWith(".py")) {
-            log(4,"Python script: %s", f.getName());
+            Commons.addlog("Python script: %s", f.getName());
           } else {
-            log(4, "Sikuli script: %s", f);
+            Commons.addlog("Sikuli script: %s", f);
           }
           if (restoreScriptFromSession(f)) filesLoaded++;
         }
@@ -2657,8 +2666,8 @@ public class SikulixIDE extends JFrame {
     HotkeyManager.getInstance().removeHotkey("Capture");
   }
 
-  void installCaptureHotkey() {
-    HotkeyManager.getInstance().addHotkey("Capture", new HotkeyListener() {
+  boolean installCaptureHotkey() {
+    return HotkeyManager.getInstance().addHotkey("Capture", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
         if (!isRunningScript()) {
@@ -2683,8 +2692,8 @@ public class SikulixIDE extends JFrame {
     HotkeyManager.getInstance().removeHotkey("Abort");
   }
 
-  void installStopHotkey() {
-    HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
+  boolean installStopHotkey() {
+    return HotkeyManager.getInstance().addHotkey("Abort", new HotkeyListener() {
       @Override
       public void hotkeyPressed(HotkeyEvent e) {
         onStopRunning();
