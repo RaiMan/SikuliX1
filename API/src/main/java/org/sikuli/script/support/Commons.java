@@ -378,6 +378,12 @@ Software:
     GLOBAL_LOG += String.format(header + msg, args) + System.lineSeparator();
   }
 
+  public static void print(String msg, Object... args) {
+    if (!isQuiet()) {
+      printOut(msg + "%n", args);
+    }
+  }
+
   public static void info(String msg, Object... args) {
     if (!isQuiet()) {
       printOut("[SXINFO] " + msg + "%n", args);
@@ -1894,23 +1900,20 @@ Software:
   }
 
   public static void show() {
-    String runningAs = "running as jar";
-    if (Commons.isRunningPackage()) {
-      runningAs = "running from package";
-    }
-    info("***** show environment for %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
     if (STARTUPFILE != null) {
-      info("startupfile: %s", STARTUPFILE);
+      print("STARTUPFILE: %s", STARTUPFILE);
     }
-    info("%s: %s (%s)", runningAs, getMainClassLocation(), getStartClass().getCanonicalName());
-    info("running on: %s", Commons.getOSInfo());
-    info("running Java: %s", Commons.getJavaInfo());
-    info("java.io.tmpdir: %s", Commons.getTempFolder());
-    info("app data folder: %s", Commons.getAppDataPath());
-    info("work dir: %s", Commons.getWorkDir());
-    info("user.home: %s", Commons.getUserHome());
-    Commons.showOptions("SX_", "_PREFS_");
-    info("***** show environment end");
+    if (runningIDE()) {
+      print("IDE : %s (%s)", Commons.getSXVersion(), Commons.getSxBuildStamp());
+    }
+    print("ON  : %s", Commons.getOSInfo());
+    print("JAVA: %s", Commons.getJavaInfo());
+    print("FROM: %s (%s)", getMainClassLocation(), getStartClass().getCanonicalName());
+    print("APP_DATA: %s", Commons.getAppDataPath());
+    print("WORK_DIR: %s", Commons.getWorkDir());
+    print("USER.HOME: %s", Commons.getUserHome());
+    print("JAVA.IO.TMPDIR: %s", Commons.getTempFolder());
+    Commons.showOptions("SX_", "_PREFS_", "_ARG_JAR");
   }
 
   public static void showOptions() {
@@ -1926,7 +1929,10 @@ Software:
   }
 
   static void doShowOptions(String prefix, String... except) {
-    info("%s", getOptionsAsLines(prefix, except));
+    String lines = getOptionsAsLines(prefix, except);
+    if (!lines.isEmpty()) {
+      print("%s", lines);
+    }
   }
 
   static String getOptionsAsLines() {
