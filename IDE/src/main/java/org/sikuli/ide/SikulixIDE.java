@@ -217,6 +217,7 @@ public class SikulixIDE extends JFrame {
         editorPane.requestFocusInWindow();
       } catch (Exception e) {
       }
+      Commons.print("Commons.GLOBAL_LOG");
       get()._inited = true;
     }
   }

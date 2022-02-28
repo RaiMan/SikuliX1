@@ -60,7 +60,7 @@ public class Commons {
   protected static boolean RUNNINGIDE = false;
   static PrintStream SX_PRINTOUT;
   private static Options GLOBAL_OPTIONS = null;
-  static String GLOBAL_LOG = "";
+  static String IDE_START_LOG = "";
 
   private static final String SX_VERSION;
   private static final String SX_VERSION_LONG;
@@ -165,9 +165,9 @@ public class Commons {
     if (GLOBAL_OPTIONS != null) {
       saveGlobalOptions();
     }
-    if (!GLOBAL_LOG.isEmpty()) {
+    if (!IDE_START_LOG.isEmpty()) {
       File logFile = asFile(getUserHome(), "sikulixide_startlog.txt");
-      FileManager.writeStringToFile(GLOBAL_LOG, logFile);
+      FileManager.writeStringToFile(IDE_START_LOG, logFile);
     }
     if (SX_PRINTOUT != null) {
       SX_PRINTOUT.close();
@@ -366,39 +366,43 @@ Software:
   }
 
   private static void printlnOut(String msg, Object... args) {
-    printOut(msg + "\n", args);
+    printOut("",msg + "\n", args);
   }
 
-  private static void printOut(String msg, Object... args) {
-    getLogStream().printf(msg, args);
+  private static void printOut(String type, String msg, Object... args) {
+    String header = type.isEmpty() ? "" : "[SX" + type + "] ";
+    String message = String.format(msg, args);
+    if (Commons.runningIDE()) {
+      getLogStream().print(header + message);
+    }
   }
 
   public static synchronized void addlog(String msg, Object... args) {
     String header = String.format("[SXLOG %4.3f] ", getSinceStart());
-    GLOBAL_LOG += String.format(header + msg, args) + System.lineSeparator();
+    IDE_START_LOG += String.format(header + msg, args) + System.lineSeparator();
   }
 
   public static void print(String msg, Object... args) {
     if (!isQuiet()) {
-      printOut(msg + "%n", args);
+      printOut("",msg + "%n", args);
     }
   }
 
   public static void info(String msg, Object... args) {
-    if (!isQuiet()) {
-      printOut("[SXINFO] " + msg + "%n", args);
+    if (isDebug()) {
+      printOut("INFO",msg + "%n", args);
     }
   }
 
   public static void error(String msg, Object... args) {
-    if (!isQuiet()) {
-      printOut("[SXERROR] " + msg + "%n", args);
+    if (isDebug()) {
+      printOut("ERROR",msg + "%n", args);
     }
   }
 
   public static void debug(String msg, Object... args) {
     if (isDebug()) {
-      printOut("[SXDEBUG] " + msg + "%n", args);
+      printOut("DEBUG",msg + "%n", args);
     }
   }
 
@@ -441,14 +445,14 @@ Software:
       String className = stackTrace.getFileName().replace(".java", "");
       String methodName = stackTrace.getMethodName();
       int lineNumber = stackTrace.getLineNumber();
-      printOut(String.format("[%d_%s::%s] ", lineNumber, className, methodName));
+      printOut("", String.format("[%d_%s::%s] ", lineNumber, className, methodName));
       if (msg != null && !msg.isEmpty()) {
         String out = String.format(msg, args);
         out = out.replace("\n\n", "\n");
         out = out.replace("\n\n", "\n");
-        printOut(out);
+        printOut("", out);
       }
-      printOut("\n");
+      printOut("", "\n");
       return methodName;
     }
     return "";
@@ -457,14 +461,14 @@ Software:
   public static String enter(String method, String parameter, Object... args) {
     String parms = String.format(parameter, args);
     if (isTraceEnterExit()) {
-      printOut("[TRACE enter] " + method + "(" + parms + ")%n");
+      printOut("","[TRACE enter] " + method + "(" + parms + ")%n");
     }
     return "parameter(" + parms.replace("%", "%%") + ")";
   }
 
   public static void exit(String method, String returns, Object... args) {
     if (isTraceEnterExit()) {
-      printOut("[TRACE exit] " + method + ": " + returns + "%n", args);
+      printOut("","[TRACE exit] " + method + ": " + returns + "%n", args);
     }
   }
   //</editor-fold>
