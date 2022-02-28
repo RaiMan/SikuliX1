@@ -216,7 +216,7 @@ public class TextRecognizer {
    */
   @Deprecated
   public static void status() {
-    Debug.logp("Global settings " + OCR.globalOptions().toString());
+    Debug.print("Global settings " + OCR.globalOptions().toString());
   }
   //</editor-fold>
 

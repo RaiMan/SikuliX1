@@ -66,12 +66,12 @@ public class App {
 
   public static void log(String msg, Object... args) {
     if (shouldLog) {
-      Debug.logp("[AppLog] " + msg, args);
+      Debug.print("[AppLog] " + msg, args);
     }
   }
 
   public static void error(String msg, Object... args) {
-    Debug.logp("[AppError] " + msg, args);
+    Debug.print("[AppError] " + msg, args);
   }
 
   public static void logOn() {

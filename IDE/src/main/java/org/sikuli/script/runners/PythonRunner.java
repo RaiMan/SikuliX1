@@ -64,7 +64,7 @@ public class PythonRunner extends AbstractLocalFileScriptRunner {
     if (!runOut.startsWith("0\n")) {
       Debug.error("%s", runOut);
     } else {
-      Debug.logp("%s", runOut.substring(2));
+      Debug.print("%s", runOut.substring(2));
     }
     return 0;
   }

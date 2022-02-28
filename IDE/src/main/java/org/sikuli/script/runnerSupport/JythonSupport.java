@@ -35,16 +35,6 @@ public class JythonSupport implements IRunnerSupport {
   public void log(int level, String message, Object... args) {
     Debug.logx(level, me + message, args);
   }
-
-  private void logp(String message, Object... args) {
-    Debug.logx(-3, message, args);
-  }
-
-  private void logp(int level, String message, Object... args) {
-    if (level <= Debug.getDebugLevel()) {
-      logp(message, args);
-    }
-  }
   //</editor-fold>
 
   //<editor-fold desc="01 instance">
@@ -553,7 +543,7 @@ public class JythonSupport implements IRunnerSupport {
           if (sysPath.get(i).startsWith("__")) {
             continue;
           }
-          logp(lvl, "%2d: %s", i, sysPath.get(i));
+          Debug.print("%2d: %s", i, sysPath.get(i));
         }
       }
     }

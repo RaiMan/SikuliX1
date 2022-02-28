@@ -33,14 +33,43 @@ import java.util.Date;
 public class Debug {
 
   private static int DEBUG_LEVEL = 0;
-  private static final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-  private long _beginTime = 0;
-  private String _message;
-  private String _title = null;
 
   private static PrintStream printout = null;
   private static PrintStream printoutuser = null;
 
+  static {
+    if (Commons.isDebug()) {
+      DEBUG_LEVEL = 3;
+    }
+    if (Commons.getLogFile() != null) {
+      printout = Commons.getLogStream();
+    } else {
+      setDebugLogFile();
+    }
+    setUserLogFile();
+  }
+
+  //<editor-fold desc="highlight">
+  private static boolean searchHighlight = false;
+
+  public static void highlightOn() {
+    searchHighlight = true;
+    Settings.Highlight = true;
+  }
+
+  public static void highlightOff() {
+    searchHighlight = false;
+    Settings.Highlight = false;
+  }
+
+  public static boolean shouldHighlight() {
+    return searchHighlight;
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="logger callback">
+  private static boolean isJython;
+  private static boolean isJRuby;
   private static boolean loggerRedirectSupported = true;
   private static Object privateLogger = null;
   private static boolean privateLoggerPrefixAll = true;
@@ -63,39 +92,9 @@ public class Debug {
   private static String privateLoggerDebugName = "";
   private static final String debugPrefix = "debug";
   private static String privateLoggerDebugPrefix = "";
-  private static boolean isJython;
-  private static boolean isJRuby;
 
-  private static boolean searchHighlight = false;
-
-  static {
-    if (Commons.isDebug()) {
-      DEBUG_LEVEL = 3;
-    }
-    if (Commons.getLogFile() != null) {
-      printout = Commons.getLogStream();
-    } else {
-      setDebugLogFile();
-    }
-    setUserLogFile();
-  }
-
-  public static void highlightOn() {
-    searchHighlight = true;
-    Settings.Highlight = true;
-  }
-
-  public static void highlightOff() {
-    searchHighlight = false;
-    Settings.Highlight = false;
-  }
-
-  public static boolean shouldHighlight() {
-    return searchHighlight;
-  }
-
-  public static void reset() {
-    setDebugLevel(0);
+  private enum CallbackType {
+    INFO, ACTION, ERROR, DEBUG, USER;
   }
 
   /**
@@ -320,12 +319,12 @@ public class Debug {
         pln = privateLoggerErrorName;
       } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+                (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
         plf = privateLoggerDebug;
         pln = privateLoggerDebugName;
       } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+                (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
         plf = privateLoggerUser;
         pln = privateLoggerUserName;
       }
@@ -338,7 +337,7 @@ public class Debug {
         }
         if (isJython) {
           Object runLoggerCallback = Commons.runFunctionScriptingSupport("runLoggerCallback",
-              new Object[]{privateLogger, pln, msg});
+                  new Object[]{privateLogger, pln, msg});
           success = runLoggerCallback != null && (Boolean) runLoggerCallback;
         } else if (isJRuby) {
           success = false;
@@ -346,7 +345,7 @@ public class Debug {
           try {
             plf.invoke(privateLogger,
 
-                new Object[]{msg});
+                    new Object[]{msg});
             return true;
           } catch (Exception e) {
             error = ": " + e.getMessage();
@@ -371,7 +370,9 @@ public class Debug {
     }
     return success;
   }
+  //</editor-fold>
 
+  //<editor-fold desc="logfiles">
   /**
    * specify, where the logs should be written:<br>
    * null - use from property sikuli.Logfile
@@ -459,7 +460,9 @@ public class Debug {
     }
     setUserLogFile(fileName);
   }
+  //</editor-fold>
 
+  //<editor-fold desc="debug level">
   /**
    * @return current debug level
    */
@@ -528,6 +531,33 @@ public class Debug {
     }
   }
 
+  public static void reset() {
+    setDebugLevel(0);
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="logging">
+  private static final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
+
+  /**
+   * messages given by the user<br> switch on/off: Settings.UserLogs<br> depending on
+   * Settings.UserLogTime, the prefix contains a timestamp <br> the user prefix (default "user")
+   * can be set: Settings,UserLogPrefix
+   *
+   * @param message String or format string (String.format)
+   * @param args    to use with format string
+   */
+  public static void user(String message, Object... args) {
+    if (Settings.UserLogs) {
+      if (Settings.UserLogTime) {
+//TODO replace the hack -99 to filter user logs
+        log(-99, String.format("%s (%s)",
+                Settings.UserLogPrefix, df.format(new Date())), message, args);
+      } else {
+        log(-99, String.format("%s", Settings.UserLogPrefix), message, args);
+      }
+    }
+  }
 
   /**
    * Sikuli messages from actions like click, ...<br> switch on/off: Settings.ActionLogs
@@ -546,18 +576,6 @@ public class Debug {
         log(-1, actionPrefix, message, args);
       }
     }
-  }
-
-  /**
-   * use Debug.action() instead
-   *
-   * @param message String or format string (String.format)
-   * @param args    to use with format string
-   * @deprecated
-   */
-  @Deprecated
-  public static void history(String message, Object... args) {
-    action(message, args);
   }
 
   /**
@@ -593,21 +611,6 @@ public class Debug {
   }
 
   /**
-   * Sikuli messages to use in tests<br> switch on/off: always on
-   *
-   * @param message String or format string (String.format)
-   * @param args    to use with format string
-   */
-  public static void test(String message, Object... args) {
-    if (message.contains("#returned#")) {
-      message = message.replace("#returned#", "returned: " +
-          ((Boolean) args[0] ? "true" : "false"));
-      args = Arrays.copyOfRange(args, 1, args.length);
-    }
-    log(-1, "test", message, args);
-  }
-
-  /**
    * Sikuli debug messages with default level<br> switch on/off: Settings.DebugLogs (off) and/or
    * -Dsikuli.Debug
    *
@@ -616,45 +619,6 @@ public class Debug {
    */
   public static void log(String message, Object... args) {
     log(0, message, args);
-  }
-
-//TODO logJython() obsolete?
-
-//  public static boolean logJython() {
-//    return logJython(null);
-//  }
-//
-//  public static boolean logJython(Boolean state) {
-//    if (null != state) {
-//      shouldLogJython = state;
-//    }
-//    return shouldLogJython;
-//  }
-//
-//  public static void logj(String message, Object... args) {
-//    if (shouldLogJython) {
-//      log(0, "Jython: " + message, args);
-//    }
-//  }
-
-  /**
-   * messages given by the user<br> switch on/off: Settings.UserLogs<br> depending on
-   * Settings.UserLogTime, the prefix contains a timestamp <br> the user prefix (default "user")
-   * can be set: Settings,UserLogPrefix
-   *
-   * @param message String or format string (String.format)
-   * @param args    to use with format string
-   */
-  public static void user(String message, Object... args) {
-    if (Settings.UserLogs) {
-      if (Settings.UserLogTime) {
-//TODO replace the hack -99 to filter user logs
-        log(-99, String.format("%s (%s)",
-            Settings.UserLogPrefix, df.format(new Date())), message, args);
-      } else {
-        log(-99, String.format("%s", Settings.UserLogPrefix), message, args);
-      }
-    }
   }
 
   /**
@@ -672,46 +636,38 @@ public class Debug {
     }
   }
 
-  /**
-   * INTERNAL USE: special debug messages
-   *
-   * @param level   value
-   * @param message text or format string
-   * @param args    for use with format string
-   * @return generated message
-   */
-  public static String logx(int level, String message, Object... args) {
-    String sout = "";
-    if (Commons.isQuiet()) return sout;
+  public static void logx(int level, String message, Object... args) {
     if (level == -1 || level == -100) {
-      sout = log(level, errorPrefix, message, args);
+      log(level, errorPrefix, message, args);
     } else if (level == -2) {
-      sout = log(level, actionPrefix, message, args);
+      log(level, actionPrefix, message, args);
     } else if (level == -3) {
-      sout = log(level, "", message, args);
+      log(level, "", message, args);
     } else {
-      sout = log(level, debugPrefix, message, args);
+      log(level, debugPrefix, message, args);
     }
-    return sout;
   }
 
+  @Deprecated
   public static String logp(String msg, Object... args) {
+    return print(msg, args);
+  }
+
+  public static String print(String msg, Object... args) {
     String out;
     if (args != null && args.length > 0) {
       out = String.format(msg, args);
     } else {
       out = msg;
     }
-    if (!Commons.isQuiet()) {
-      System.out.println(out);
-    }
+    log(-1, "", msg);
     return out;
   }
 
-  private static synchronized String log(int level, String prefix, String message, Object... args) {
+  private static synchronized void log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
     if (Commons.isQuiet()) {
-      return "";
+      return;
     }
     String sout = "";
     String stime = "";
@@ -746,30 +702,15 @@ public class Debug {
             System.out.println();
           }
         }
-        if (level == -1 || level == -100 || level > 2) {
-          //TODO needed? out(prefix + sout);
-        }
       }
     }
-    return prefix + sout;
   }
+  //</editor-fold>
 
-//TODO  needed? private static PrintStream redirectedOut = null, redirectedErr = null;
-
-//TODO needed?  public static void saveRedirected(PrintStream rdo, PrintStream rde) {
-
-//    redirectedOut = rdo;
-//    redirectedErr = rde;
-//  }
-
-//TODO needed?  public static void out(String msg) {
-
-//    if (redirectedOut != null && DEBUG_LEVEL > 2) {
-//      if (!Commons.isQuiet()) {
-//        redirectedOut.println(msg);
-//      }
-//    }
-//  }
+  //<editor-fold desc="profiling">
+  private long _beginTime = 0;
+  private String _message;
+  private String _title = null;
 
   /**
    * Sikuli profiling messages<br> switch on/off: Settings.ProfileLogs, default off
@@ -883,12 +824,9 @@ public class Debug {
     }
     if (!"".equals(message)) {
       profile(String.format((isLap ? "TLap:" : "TEnd") +
-          " (%.3f sec): ", (float) dt / 1000) + message, args);
+              " (%.3f sec): ", (float) dt / 1000) + message, args);
     }
     return dt;
   }
-
-  private static enum CallbackType {
-    INFO, ACTION, ERROR, DEBUG, USER;
-  }
+  //</editor-fold>
 }

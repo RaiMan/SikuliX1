@@ -10,11 +10,8 @@ import java.util.Date;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 import org.sikuli.script.support.*;
-import org.sikuli.script.support.devices.Devices;
-import org.sikuli.script.support.devices.MouseDevice;
 import org.sikuli.script.support.devices.ScreenDevice;
 import org.sikuli.util.EventObserver;
-import org.sikuli.util.EventSubject;
 import org.sikuli.util.OverlayCapturePrompt;
 
 /**
@@ -220,12 +217,12 @@ public class Screen extends Region implements IScreen {
     if (primaryScreen < 0) {
       initScreens();
     }
-    Debug.logp("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
-    Debug.logp("*** Primary is Screen %d", primaryScreen);
+    Debug.print("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
+    Debug.print("*** Primary is Screen %d", primaryScreen);
     for (int i = 0; i < nMonitors; i++) {
-      Debug.logp("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
+      Debug.print("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
-    Debug.logp("*** end monitor configuration ***");
+    Debug.print("*** end monitor configuration ***");
   }
 
   /**
@@ -237,10 +234,10 @@ public class Screen extends Region implements IScreen {
     Debug.error("... Current Region/Screen objects might not be valid any longer");
     Debug.error("... Use existing Region/Screen objects only if you know what you are doing!");
     resetScreens();
-    Debug.logp("*** new monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
-    Debug.logp("*** Primary is Screen %d", primaryScreen);
+    Debug.print("*** new monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
+    Debug.print("*** Primary is Screen %d", primaryScreen);
     for (int i = 0; i < nMonitors; i++) {
-      Debug.logp("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
+      Debug.print("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
     Debug.error("*** end new monitor configuration ***");
   }
@@ -513,7 +510,7 @@ public class Screen extends Region implements IScreen {
     lastCaptureTime = new Date().getTime();
     ScreenImage simg = getRobot().captureScreen(rect);
     if (Settings.FindProfiling) {
-      Debug.logp("[FindProfiling] Screen.capture [%d x %d]: %d msec",
+      Debug.print("[FindProfiling] Screen.capture [%d x %d]: %d msec",
           rect.width, rect.height, new Date().getTime() - lastCaptureTime);
     }
     lastScreenImage = simg;

@@ -34,7 +34,7 @@ public class SikulixAPI {
           public void hotkeyPressed(HotkeyEvent e) {
             Debug.log(3, "Stop HotKey was pressed");
             if (pythonServer != null) {
-              Debug.logp("Python server: trying to stop");
+              Debug.print("Python server: trying to stop");
               pythonServer.shutdown();
               pythonServer = null;
               Commons.terminate();

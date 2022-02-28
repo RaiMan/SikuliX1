@@ -691,7 +691,7 @@ public class OCR {
    * prints out the current global options.
    */
   public static void status() {
-    Debug.logp("Global settings " + globalOptions().toString());
+    Debug.print("Global settings " + globalOptions().toString());
   }
   //</editor-fold>
 

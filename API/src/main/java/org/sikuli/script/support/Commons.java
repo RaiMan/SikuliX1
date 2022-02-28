@@ -374,10 +374,8 @@ Software:
   }
 
   public static synchronized void addlog(String msg, Object... args) {
-    if (SNAPSHOT) {
-      String header = String.format("[SXLOG %4.3f] ", getSinceStart());
-      GLOBAL_LOG += String.format(header + msg, args) + System.lineSeparator();
-    }
+    String header = String.format("[SXLOG %4.3f] ", getSinceStart());
+    GLOBAL_LOG += String.format(header + msg, args) + System.lineSeparator();
   }
 
   public static void info(String msg, Object... args) {
