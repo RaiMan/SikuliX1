@@ -4,6 +4,7 @@
 
 package org.sikuli.script.support;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.App;
 
 import java.util.List;

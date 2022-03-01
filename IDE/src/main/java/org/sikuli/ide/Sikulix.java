@@ -44,7 +44,7 @@ public class Sikulix {
 
   public static void main(String[] args) {
     //region startup
-    Commons.isIDEstarting(true);
+    Debug.isIDEstarting(true);
     Commons.setStartClass(Sikulix.class);
 
     //Commons.addlog("Sikulix::IDEDesktopSupport.initStart()");
@@ -54,11 +54,11 @@ public class Sikulix {
     Commons.setStartArgs(args);
 
     if (Commons.hasStartArg(QUIET)) {
-      Commons.setQuiet();
+      Debug.setQuiet();
     } else if (Commons.hasStartArg(VERBOSE)) {
-      Commons.setVerbose();
+      Debug.setVerbose();
     } else if (Commons.hasStartArg(DEBUG)) {
-      Commons.setDebug();
+      Debug.setDebugLevel(3);
     }
 
     if (Commons.hasStartArg(APPDATA)) {
@@ -105,7 +105,7 @@ public class Sikulix {
 
     if (Commons.hasStartArg(HELP)) {
       Commons.printHelp();
-      Commons.setDebug();
+      Debug.setDebugLevel(3);
       Commons.show();
       Commons.showOptions(Commons.SXPREFS_OPT);
       System.exit(0);
@@ -193,7 +193,7 @@ public class Sikulix {
 
     ideSplash = null;
     if (Commons.isRunningFromJar()) {
-      if (!Commons.isQuiet()) {
+      if (!Debug.isQuiet()) {
         ideSplash = new SXDialog("sxidestartup", SikulixIDE.getWindowTop(), SXDialog.POSITION.TOP);
         ideSplash.run();
       }

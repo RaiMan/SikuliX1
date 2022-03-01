@@ -4,6 +4,7 @@
 
 package org.sikuli.script.support.gui;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.support.Commons;
 import org.sikuli.script.support.devices.ScreenDevice;
 

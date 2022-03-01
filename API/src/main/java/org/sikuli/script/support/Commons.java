@@ -271,92 +271,9 @@ Software:
   }
   //</editor-fold>
 
-  private static final int DEBUG_LEVEL_QUIET = -9999;
-  private static int debugLevel = 0;
-  private static boolean verbose = false;
-
-  public static void setDebug() {
-    debugLevel = 3;
-  }
-
-  public static boolean isDebug() {
-    return debugLevel > 2;
-  }
-
-  public static void setQuiet() {
-    debugLevel = DEBUG_LEVEL_QUIET;
-  }
-
-  public static boolean isQuiet() {
-    return debugLevel < 0;
-  }
-
-  private static int debugLevelSaved = -1;
-
-  public static void setQuietSavingState() {
-    debugLevelSaved = debugLevel;
-    setQuiet();
-  }
-
-  public static void resetQuiet() {
-    if (debugLevelSaved < 0) {
-      return;
-    }
-    debugLevel = debugLevelSaved;
-    debugLevelSaved = -1;
-  }
-
-  public static void setVerbose() {
-    setDebug();
-    verbose = true;
-  }
-
-  public static boolean isVerbose() {
-    return verbose;
-  }
-
-  static File SX_LOGFILE = null; //TODO
-
-/*
-  public static void setLogFile(File file) {
-    try {
-      PrintStream printoutNew = new PrintStream(file);
-      SX_LOGFILE = file;
-      if (SX_PRINTOUT != null) {
-        SX_PRINTOUT.close();
-      }
-      SX_PRINTOUT = printoutNew;
-    } catch (Exception ex) {
-      terminate(999, "Commons::setLogFile: not possible: %s", ex.getMessage());
-    }
-  }
-
-  public static void resetLogFile() {
-    try {
-      PrintStream printoutNew = System.out;
-      if (SX_PRINTOUT != null) {
-        SX_PRINTOUT.close();
-      }
-      SX_PRINTOUT = printoutNew;
-    } catch (Exception ex) {
-      terminate(999, "Commons::resetLogFile: not possible: %s", ex.getMessage());
-    }
-  }
-
-  public static File getLogFile() {
-    return SX_LOGFILE;
-  }
-
-  public static PrintStream getLogStream() {
-    if (SX_PRINTOUT == null) {
-      SX_PRINTOUT = System.out;
-    }
-    return SX_PRINTOUT;
-  }
-*/
-
+  //<editor-fold desc="01 trace">
   private static void printOut(String type, String msg, Object... args) {
-    if (isIDEstarting()) {
+    if (Debug.isIDEstarting()) {
       Debug.addlog((type.isEmpty() ? "" : " " + type + ": ") + String.format(msg, args));
       return;
     }
@@ -535,15 +452,6 @@ Software:
       Debug.error("FATAL: setStartClass: not allowed from: %s", caller);
       System.exit(-1);
     }
-  }
-
-  private static boolean ideIsStarting = false;
-
-  public static boolean isIDEstarting(boolean... state) {
-    if (state.length > 0) {
-      ideIsStarting = state[0];
-    }
-    return ideIsStarting;
   }
 
   public static boolean isRunningFromJar() {
@@ -2033,7 +1941,6 @@ Software:
   //</editor-fold>
 
   //<editor-fold desc="80 image handling">
-
   public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
     final AffineTransform af = new AffineTransform();
     af.scale((double) width / originalImage.getWidth(),

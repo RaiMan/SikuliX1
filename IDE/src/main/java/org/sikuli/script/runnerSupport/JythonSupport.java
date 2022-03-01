@@ -547,6 +547,7 @@ public class JythonSupport implements IRunnerSupport {
         }
       }
     }
+    Debug.print("");
   }
 
   public void addSitePackages() {

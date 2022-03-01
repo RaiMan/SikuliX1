@@ -3,6 +3,7 @@
  */
 package org.sikuli.ide;
 
+import org.sikuli.basics.Debug;
 import org.sikuli.script.support.Commons;
 import java.text.MessageFormat;
 import java.util.*;

@@ -32,7 +32,38 @@ import java.util.Date;
  */
 public class Debug {
 
-  //TODO Logging from Commons
+  //<editor-fold desc="01 verbose/quiet">
+  private static boolean verbose = false;
+
+  public static void setVerbose() {
+    Debug.setDebugLevel(3);
+    verbose = true;
+  }
+
+  public static boolean isVerbose() {
+    return verbose;
+  }
+
+  private static boolean quiet = false;
+
+  public static void setQuiet() {
+    quiet = true;
+  }
+
+  public static boolean isQuiet() {
+    return quiet;
+  }
+  //</editor-fold>
+
+  private static boolean ideIsStarting = false;
+
+  public static boolean isIDEstarting(boolean... state) {
+    if (state.length > 0) {
+      ideIsStarting = state[0];
+    }
+    return ideIsStarting;
+  }
+
   static String IDE_START_LOG = "";
 
   public static synchronized void addlog(String msg, Object... args) {
@@ -61,9 +92,6 @@ public class Debug {
   private static PrintStream printoutuser = null;
 
   static {
-    if (Commons.isDebug()) {
-      DEBUG_LEVEL = 3;
-    }
     setDebugLogFile();
     setUserLogFile();
   }
@@ -338,12 +366,12 @@ public class Debug {
         pln = privateLoggerErrorName;
       } else if (type == CallbackType.DEBUG && !privateLoggerDebugName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-            (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
+                (privateLoggerDebugPrefix.isEmpty() ? pre : privateLoggerDebugPrefix) : "";
         plf = privateLoggerDebug;
         pln = privateLoggerDebugName;
       } else if (type == CallbackType.USER && !privateLoggerUserName.isEmpty()) {
         prefix = privateLoggerPrefixAll ?
-            (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
+                (privateLoggerUserPrefix.isEmpty() ? pre : privateLoggerUserPrefix) : "";
         plf = privateLoggerUser;
         pln = privateLoggerUserName;
       }
@@ -356,7 +384,7 @@ public class Debug {
         }
         if (isJython) {
           Object runLoggerCallback = Commons.runFunctionScriptingSupport("runLoggerCallback",
-              new Object[]{privateLogger, pln, msg});
+                  new Object[]{privateLogger, pln, msg});
           success = runLoggerCallback != null && (Boolean) runLoggerCallback;
         } else if (isJRuby) {
           success = false;
@@ -364,7 +392,7 @@ public class Debug {
           try {
             plf.invoke(privateLogger,
 
-                new Object[]{msg});
+                    new Object[]{msg});
             return true;
           } catch (Exception e) {
             error = ": " + e.getMessage();
@@ -573,7 +601,7 @@ public class Debug {
       if (Settings.UserLogTime) {
 //TODO replace the hack -99 to filter user logs
         log(-99, String.format("%s (%s)",
-            Settings.UserLogPrefix, df.format(new Date())), message, args);
+                Settings.UserLogPrefix, df.format(new Date())), message, args);
       } else {
         log(-99, String.format("%s", Settings.UserLogPrefix), message, args);
       }
@@ -651,7 +679,7 @@ public class Debug {
    * @param args    to use with format string
    */
   public static void log(int level, String message, Object... args) {
-    if (Settings.DebugLogs || Commons.isVerbose()) {
+    if (Settings.DebugLogs || isVerbose()) {
       String prefix = debugPrefix;
       log(level, prefix, message, args);
     }
@@ -687,7 +715,7 @@ public class Debug {
 
   private static synchronized void log(int level, String prefix, String message, Object... args) {
 //TODO replace the hack -99 to filter user logs
-    if (Commons.isQuiet()) {
+    if (isQuiet()) { //TODO
       return;
     }
     String sout = "";
@@ -718,9 +746,10 @@ public class Debug {
           printout.print(prefix + sout);
           printout.println();
         } else {
-          if (!Commons.isQuiet()) {
-            System.out.print(prefix + sout);
-            System.out.println();
+          if (isIDEstarting()) {
+            addlog(prefix + sout);
+          } else {
+            System.out.println(prefix + sout);
           }
         }
       }
@@ -845,7 +874,7 @@ public class Debug {
     }
     if (!"".equals(message)) {
       profile(String.format((isLap ? "TLap:" : "TEnd") +
-          " (%.3f sec): ", (float) dt / 1000) + message, args);
+              " (%.3f sec): ", (float) dt / 1000) + message, args);
     }
     return dt;
   }

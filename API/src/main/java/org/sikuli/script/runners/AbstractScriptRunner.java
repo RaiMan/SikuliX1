@@ -170,7 +170,7 @@ public abstract class AbstractScriptRunner implements IScriptRunner {
 
     return runSynchronized(options, () -> {
       int savedLevel = Debug.getDebugLevel();
-      if (!Commons.isVerbose()) {
+      if (!Debug.isVerbose()) {
         Debug.off();
       }
 

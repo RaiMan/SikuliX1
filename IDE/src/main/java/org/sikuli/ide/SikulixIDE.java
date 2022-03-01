@@ -217,7 +217,7 @@ public class SikulixIDE extends JFrame {
         editorPane.requestFocusInWindow();
       } catch (Exception e) {
       }
-      Commons.isIDEstarting(false);
+      Debug.isIDEstarting(false);
       get()._inited = true;
     }
   }
@@ -246,7 +246,6 @@ public class SikulixIDE extends JFrame {
     Debug.addlog("starting GUI");
     setWindow();
 
-    Commons.setQuietSavingState();
     if (installCaptureHotkey()) {
       Debug.addlog("IDE: Capture HotKey installed");
     } else {
@@ -257,7 +256,6 @@ public class SikulixIDE extends JFrame {
     } else {
       Debug.addlog("IDE: Stop HotKey not installed: %s", "PROBLEM?"); //TODO
     }
-    Commons.resetQuiet();
 
     ideWindow.setSize(ideWindowRect.getSize());
     ideWindow.setLocation(ideWindowRect.getLocation());
